@@ -227,20 +227,25 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-swift-${{ hashFiles('swift/sdk/.swift-version') }}-
 
-      # Go's, Swift's and Haskell's tests run no OCaml toolchain container, and
-      # restore its image and dune cache all the same: a list of those that do
-      # would restate scripts/make-target.sh.
+      # The target says which dune workspace its OCaml toolchain containers
+      # build, if any (scripts/make-target.sh): OCaml's tests build the SDK's,
+      # and save its cache once they pass, and the languages that read the
+      # Protocol bundles the generator's, which writes them. Go's, Swift's and
+      # Haskell's run no toolchain container.
+      - name: Ask the target which dune workspace it builds
+        id: toolchain
+        run: bash scripts/make-target.sh --ocaml-toolchain "test-$LANGUAGE" >> "$GITHUB_OUTPUT"
+
       - name: Restore the OCaml toolchain's image
+        if: steps.toolchain.outputs.workspace != 'none'
         uses: ./.github/actions/restore-ocaml-toolchain-image
 
-      # OCaml's tests build the SDK's workspace, and save its cache once they
-      # pass. The other languages restore the generator's, which builds the
-      # Protocol bundles for those that read them.
       - name: Restore dune's build of the workspace's locked packages
         id: dune
+        if: steps.toolchain.outputs.workspace != 'none'
         uses: ./.github/actions/restore-ocaml-dune-cache
         with:
-          workspace: ${{ matrix.language == 'ocaml' && 'ocaml/sdk' || 'codegen' }}
+          workspace: ${{ steps.toolchain.outputs.workspace }}
 
       - name: Run the language's tests, type checks, lints and format checks
         id: checks
