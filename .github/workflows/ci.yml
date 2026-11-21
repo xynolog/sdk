@@ -106,14 +106,21 @@ jobs:
           reads="$(bash scripts/reads-protocol-bundles.sh "$LANGUAGE")"
           echo "reads=$reads" >> "$GITHUB_OUTPUT"
 
-      - name: Restore the OCaml toolchain's image
+      # Restored, the bundles are copied rather than built, and neither the
+      # image nor the dune cache is needed. The codegen job saves them.
+      - name: Restore the Protocol bundles
+        id: protocol-bundles
         if: steps.bundles.outputs.reads == 'true'
+        uses: ./.github/actions/restore-protocol-bundles
+
+      - name: Restore the OCaml toolchain's image
+        if: steps.bundles.outputs.reads == 'true' && steps.protocol-bundles.outputs.cache-hit != 'true'
         uses: ./.github/actions/restore-ocaml-toolchain-image
 
       # The Protocol bundles are written in the generator's workspace. The
       # codegen job saves its cache.
       - name: Restore dune's build of the generator's locked packages
-        if: steps.bundles.outputs.reads == 'true'
+        if: steps.bundles.outputs.reads == 'true' && steps.protocol-bundles.outputs.cache-hit != 'true'
         uses: ./.github/actions/restore-ocaml-dune-cache
         with:
           workspace: codegen
@@ -227,11 +234,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-swift-${{ hashFiles('swift/sdk/.swift-version') }}-
 
-      # The target says which dune workspace its OCaml toolchain containers
-      # build, if any (scripts/make-target.sh): OCaml's tests build the SDK's,
-      # and save its cache once they pass, and the languages that read the
-      # Protocol bundles the generator's, which writes them. Go's, Swift's and
-      # Haskell's run no toolchain container.
+      # Restored, the bundles are copied rather than built. The codegen job
+      # saves them.
+      - name: Restore the Protocol bundles
+        uses: ./.github/actions/restore-protocol-bundles
+
+      # The target says which dune workspace a run of it builds, if any
+      # (scripts/make-target.sh): OCaml's tests build the SDK's, and save its
+      # cache once they pass, and the languages that read the Protocol
+      # bundles the generator's, when the bundles were not restored. Go's,
+      # Swift's and Haskell's run no toolchain container.
       - name: Ask the target which dune workspace it builds
         id: toolchain
         run: bash scripts/make-target.sh --ocaml-toolchain "test-$LANGUAGE" >> "$GITHUB_OUTPUT"
@@ -315,6 +327,10 @@ jobs:
         with:
           workspace: codegen
 
+      # The codegen job saves the Protocol bundles.
+      - name: Restore the Protocol bundles
+        uses: ./.github/actions/restore-protocol-bundles
+
       - name: Check every generation group
         run: make check-generated
 
@@ -370,10 +386,24 @@ jobs:
           path: ${{ steps.image.outputs.path }}
           key: ${{ steps.image.outputs.cache-primary-key }}
 
+      # make codegen writes the Protocol bundles: this job saves them, once
+      # the bundle verifies, when it built them.
+      - name: Restore the Protocol bundles
+        id: protocol-bundles
+        uses: ./.github/actions/restore-protocol-bundles
+
       - name: The bundle carries the generator
+        id: bundle
         run: |
           make codegen
           SDK_ARTIFACTS="$(python3 scripts/create-artifact-bundle.py --path codegen)" make verify-artifacts
+
+      - name: Save the Protocol bundles
+        if: github.event_name == 'push' && steps.bundle.outcome == 'success' && steps.protocol-bundles.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ${{ steps.protocol-bundles.outputs.path }}
+          key: ${{ steps.protocol-bundles.outputs.cache-primary-key }}
 
   # No dependency in any lockfile has a published advisory that advisories.toml
   # does not ignore with a reason, and no ignore outlives its finding
