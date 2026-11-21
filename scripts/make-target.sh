@@ -13,14 +13,14 @@ usage() {
 }
 
 # What a target builds on of the OCaml toolchain. OCAML_WORKSPACE: the dune
-# workspace whose locked packages its toolchain containers build, so whose
-# cache they mount, bundle-protocol.sh's among them; none when it runs no
-# toolchain container. READS_BUNDLES: whether it reads the Protocol bundles,
-# which bundle-protocol.sh writes from the generator's workspace.
+# workspace whose locked packages its own toolchain containers build, so whose
+# cache they mount; none when it runs none. READS_BUNDLES: whether it reads the
+# Protocol bundles, which bundle-protocol.sh writes, or copies from its store.
 ocaml_toolchain_use() {
   case "$1" in
-    test-typescript|test-python|test-rust|test-csharp|test-kotlin|generate|check-generated)
-      OCAML_WORKSPACE=codegen READS_BUNDLES=true ;;
+    test-typescript|test-python|test-rust|test-csharp|test-kotlin)
+      OCAML_WORKSPACE=none READS_BUNDLES=true ;;
+    generate|check-generated) OCAML_WORKSPACE=codegen READS_BUNDLES=true ;;
     test-codegen|codegen-binary) OCAML_WORKSPACE=codegen READS_BUNDLES=false ;;
     test-ocaml) OCAML_WORKSPACE=ocaml/sdk READS_BUNDLES=false ;;
     test-go|test-swift|test-haskell|haskell-dependencies) OCAML_WORKSPACE=none READS_BUNDLES=false ;;
@@ -28,13 +28,18 @@ ocaml_toolchain_use() {
   esac
 }
 
-# --ocaml-toolchain TARGET prints the target's workspace as a line CI adds to
-# a step's outputs, so the tests job restores the toolchain's image and dune
-# cache for the targets that use them alone.
+# --ocaml-toolchain TARGET prints, as a line CI adds to a step's outputs, the
+# dune workspace a run of the target builds: its own containers', else the
+# Protocol bundles' when it reads them and their store lacks them, else none.
+# The tests job restores the toolchain's image and dune cache for it alone.
 if [[ "${1:-}" == --ocaml-toolchain ]]; then
   (($# == 2)) || usage
   ocaml_toolchain_use "$2"
-  printf 'workspace=%s\n' "$OCAML_WORKSPACE"
+  workspace="$OCAML_WORKSPACE"
+  if [[ "$workspace" == none && "$READS_BUNDLES" == true ]]; then
+    workspace="$(bash "$ROOT/scripts/bundle-protocol.sh" --builds)"
+  fi
+  printf 'workspace=%s\n' "$workspace"
   exit
 fi
 ocaml_toolchain_use "${1:-}"

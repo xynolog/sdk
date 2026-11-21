@@ -1,0 +1,31 @@
+name: Restore the Protocol bundles
+description: >-
+  Restore the store scripts/bundle-protocol.sh keeps the Protocol bundles in,
+  named by the fingerprint of all the reader is built and run from, so a job
+  whose fingerprint main saved copies the bundles rather than building the
+  reader on the OCaml toolchain's image. The codegen job saves it, with this
+  action's path and key, when it had to build them.
+outputs:
+  path:
+    description: The store's directory, as bundle-protocol.sh --store prints it
+    value: ${{ steps.store.outputs.path }}
+  cache-hit:
+    description: Whether the store was restored
+    value: ${{ steps.restore.outputs.cache-hit }}
+  cache-primary-key:
+    description: The key a save of the store takes
+    value: ${{ steps.restore.outputs.cache-primary-key }}
+runs:
+  using: composite
+  steps:
+    - id: store
+      shell: bash
+      run: |
+        store="$(bash scripts/bundle-protocol.sh --store)"
+        echo "path=$store" >> "$GITHUB_OUTPUT"
+        echo "fingerprint=${store##*/}" >> "$GITHUB_OUTPUT"
+    - id: restore
+      uses: actions/cache/restore@v6.1.0
+      with:
+        path: ${{ steps.store.outputs.path }}
+        key: ${{ runner.os }}-${{ runner.arch }}-protocol-bundles-${{ steps.store.outputs.fingerprint }}
