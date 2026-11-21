@@ -189,8 +189,7 @@ case "${1:-}" in
       find /swift-build -mindepth 1 -exec chmod a+rX {} +' --memory 4g --volume "$swift_build:/swift-build"
     ;;
   test-haskell|haskell-dependencies)
-    "$RUNTIME" build --build-arg "GHC_VERSION=$(bash "$ROOT/haskell/toolchain/toolchain.sh" --ghc)" \
-      --tag xynolog-haskell-toolchain --file "$ROOT/haskell/toolchain/Dockerfile" "$ROOT/haskell/toolchain"
+    bash "$ROOT/haskell/toolchain/toolchain-image.sh"
     # Cabal's home (its index and the store of built dependencies) outlives
     # the container, so a run builds only what changed since the last one.
     # CI's tests job caches this directory, once haskell-dependencies has
