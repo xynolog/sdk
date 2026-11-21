@@ -7,7 +7,7 @@ source "$ROOT/scripts/require-protocol-pin.sh"
 source "$ROOT/scripts/ocaml-dune-cache.sh"
 
 usage() {
-  echo 'Usage: make-target.sh test-<language>|haskell-dependencies|test-codegen|generate|check-generated|codegen-binary DIRECTORY' >&2
+  echo 'Usage: make-target.sh test-<language>|haskell-dependencies|test-codegen|test-tooling|generate|check-generated|codegen-binary DIRECTORY' >&2
   echo '       make-target.sh --ocaml-toolchain TARGET' >&2
   exit 2
 }
@@ -23,7 +23,8 @@ ocaml_toolchain_use() {
     generate|check-generated) OCAML_WORKSPACE=codegen READS_BUNDLES=true ;;
     test-codegen|codegen-binary) OCAML_WORKSPACE=codegen READS_BUNDLES=false ;;
     test-ocaml) OCAML_WORKSPACE=ocaml/sdk READS_BUNDLES=false ;;
-    test-go|test-swift|test-haskell|haskell-dependencies) OCAML_WORKSPACE=none READS_BUNDLES=false ;;
+    test-go|test-swift|test-haskell|haskell-dependencies|test-tooling)
+      OCAML_WORKSPACE=none READS_BUNDLES=false ;;
     *) usage ;;
   esac
 }
