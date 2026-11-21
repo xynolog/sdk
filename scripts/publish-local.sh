@@ -44,10 +44,8 @@ has_language() {
 ALL_LANGUAGES=false
 [[ "$LANGUAGE" == all ]] && ALL_LANGUAGES=true
 
-# Haskell's container is handed haskell/sdk alone (publish-other-local.sh),
-# so its artifact never reads the bundles. Protocol commits none of them: a
-# Haskell artifact that came to read them would fail on a fresh checkout.
-if [[ " ${LANGUAGES[*]} " != " haskell " ]]; then
+reads_bundles="$(bash "$ROOT/scripts/reads-protocol-bundles.sh" "${LANGUAGES[@]}")"
+if [[ "$reads_bundles" == true ]]; then
   bash "$ROOT/scripts/bundle-protocol.sh"
 fi
 

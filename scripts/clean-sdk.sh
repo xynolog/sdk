@@ -33,7 +33,7 @@ clean_language() {
     haskell) cache_paths=("$STATE_ROOT/haskell" "$STATE_ROOT/cabal-cache" "$STATE_ROOT/haskell-build") ;;
     kotlin) cache_paths=("$STATE_ROOT/kotlin-maven" "$STATE_ROOT/gradle-cache" "$STATE_ROOT/kotlin-publish.init.gradle") ;;
     ocaml) cache_paths=("$STATE_ROOT/opam-repo") ;;
-    swift) cache_paths=("$STATE_ROOT/swift" "$STATE_ROOT/swift-cache" "$STATE_ROOT/swift-build") ;;
+    swift) cache_paths=("$STATE_ROOT/swift" "$STATE_ROOT/swift-cache") ;;
     *) echo "Unknown SDK language: $language" >&2; return 2 ;;
   esac
 

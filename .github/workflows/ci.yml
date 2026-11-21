@@ -98,12 +98,22 @@ jobs:
         with:
           submodules: recursive
 
+      # The toolchain's image and the generator's dune cache are here for the
+      # Protocol bundles alone, which some artifacts never read.
+      - name: Whether the language's artifact reads the Protocol bundles
+        id: bundles
+        run: |
+          reads="$(bash scripts/reads-protocol-bundles.sh "$LANGUAGE")"
+          echo "reads=$reads" >> "$GITHUB_OUTPUT"
+
       - name: Restore the OCaml toolchain's image
+        if: steps.bundles.outputs.reads == 'true'
         uses: ./.github/actions/restore-ocaml-toolchain-image
 
       # The Protocol bundles are written in the generator's workspace. The
       # codegen job saves its cache.
       - name: Restore dune's build of the generator's locked packages
+        if: steps.bundles.outputs.reads == 'true'
         uses: ./.github/actions/restore-ocaml-dune-cache
         with:
           workspace: codegen
