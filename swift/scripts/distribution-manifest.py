@@ -17,6 +17,85 @@ a new setting, requirement or target property must be taught here first.
 
 import json
 import sys
+from collections.abc import Mapping, Set
+from typing import Literal, NoReturn, NotRequired, TypedDict
+
+# What this script reads of `swift package dump-package`. SwiftPM writes an
+# enum case with values as {case: [values]}; each such value is narrowed where
+# it is read.
+
+
+class Product(TypedDict):
+    name: str
+    settings: list[object]
+    targets: list[str]
+    type: object
+
+
+class Target(TypedDict):
+    dependencies: list[dict[str, list[object]]]
+    exclude: list[object]
+    name: str
+    packageAccess: object
+    path: NotRequired[object]
+    pluginUsages: NotRequired[object]
+    resources: list[object]
+    settings: list[object]
+    type: str
+
+
+class Remote(TypedDict):
+    urlString: str
+
+
+class Location(TypedDict):
+    remote: list[Remote]
+
+
+class Bounds(TypedDict):
+    lowerBound: str
+    upperBound: str
+
+
+class SourceControl(TypedDict):
+    identity: str
+    location: Location
+    productFilter: object
+    # {"range": [Bounds]} or {"exact": [version]}
+    requirement: dict[str, list[Bounds | str]]
+    traits: object
+
+
+class PackageDependency(TypedDict):
+    sourceControl: list[SourceControl]
+
+
+class Platform(TypedDict):
+    options: list[object]
+    platformName: str
+    version: str
+
+
+class ToolsVersion(TypedDict):
+    _version: str
+
+
+class Dump(TypedDict):
+    cLanguageStandard: object
+    cxxLanguageStandard: object
+    defaultLocalization: object
+    dependencies: list[PackageDependency]
+    name: str
+    packageKind: object
+    pkgConfig: object
+    platforms: list[Platform]
+    products: list[Product]
+    providers: object
+    swiftLanguageVersions: list[str]
+    targets: list[Target]
+    toolsVersion: ToolsVersion
+    traits: list[object]
+
 
 PLATFORMS = {
     "macos": "macOS",
@@ -28,49 +107,38 @@ PLATFORMS = {
 }
 LANGUAGE_MODES = {"5": ".v5", "6": ".v6"}
 UNSET_PACKAGE_KEYS = ("cLanguageStandard", "cxxLanguageStandard", "defaultLocalization", "pkgConfig", "providers")
-PACKAGE_KEYS = {
-    "dependencies",
-    "name",
-    "packageKind",
-    "platforms",
-    "products",
-    "swiftLanguageVersions",
-    "targets",
-    "toolsVersion",
-    "traits",
-    *UNSET_PACKAGE_KEYS,
-}
-TARGET_KEYS = {"dependencies", "exclude", "name", "packageAccess", "path", "pluginUsages", "resources", "settings", "type"}
+PACKAGE_KEYS = Dump.__required_keys__
+TARGET_KEYS = Target.__required_keys__ | Target.__optional_keys__
 
 
-def refuse(message: str) -> None:
+def refuse(message: str) -> NoReturn:
     raise SystemExit(f"distribution-manifest.py: {message}")
 
 
-def quoted(text: str) -> str:
+def quoted(text: object) -> str:
     return json.dumps(text)
 
 
-def only_keys(what: str, value: dict, allowed: set) -> None:
+def only_keys(what: str, value: Mapping[str, object], allowed: Set[str]) -> None:
     unknown = sorted(set(value) - allowed)
     if unknown:
         refuse(f"{what} has properties this script does not know: {unknown}")
 
 
-def library_products(dump: dict) -> list:
-    products = []
+def library_products(dump: Dump) -> list[Product]:
+    products: list[Product] = []
     for product in dump["products"]:
-        only_keys(f"product {product['name']}", product, {"name", "settings", "targets", "type"})
+        only_keys(f"product {product['name']}", product, Product.__required_keys__)
         if product["type"] != {"library": ["automatic"]} or product["settings"]:
             refuse(f"product {product['name']} is not an automatic library without settings")
         products.append(product)
     return products
 
 
-def needed_targets(dump: dict) -> list:
+def needed_targets(dump: Dump) -> list[Target]:
     """The targets the library products need, in the dump's order."""
     by_name = {target["name"]: target for target in dump["targets"]}
-    needed: set = set()
+    needed: set[str] = set()
     waiting = [name for product in library_products(dump) for name in product["targets"]]
     while waiting:
         name = waiting.pop()
@@ -82,11 +150,14 @@ def needed_targets(dump: dict) -> list:
         for dependency in by_name[name]["dependencies"]:
             for kind in ("byName", "target"):
                 if kind in dependency:
-                    waiting.append(dependency[kind][0])
+                    named = dependency[kind][0]
+                    if not isinstance(named, str):
+                        refuse(f"a target dependency this script does not know: {dependency}")
+                    waiting.append(named)
     return [target for target in dump["targets"] if target["name"] in needed]
 
 
-def target_dependency(dependency: dict) -> str:
+def target_dependency(dependency: dict[str, list[object]]) -> str:
     if set(dependency) == {"byName"} or set(dependency) == {"target"}:
         name, condition = next(iter(dependency.values()))
         if condition is not None:
@@ -100,17 +171,18 @@ def target_dependency(dependency: dict) -> str:
     refuse(f"a target dependency this script does not know: {dependency}")
 
 
-def setting(entry: dict) -> str:
+def setting(entry: object) -> str:
     if entry == {"kind": {"treatAllWarnings": {"_0": "error"}}, "tool": "swift"}:
         return ".treatAllWarnings(as: .error)"
     refuse(f"a build setting this script does not know: {entry}")
 
 
-def target(entry: dict) -> str:
+def target(entry: Target) -> str:
     name = entry["name"]
     only_keys(f"target {name}", entry, TARGET_KEYS)
     if entry["type"] != "regular":
         refuse(f"target {name} is a {entry['type']} target, not a library target")
+    empty: Literal["exclude", "resources"]
     for empty in ("exclude", "resources"):
         if entry[empty]:
             refuse(f"target {name} has {empty}")
@@ -118,8 +190,8 @@ def target(entry: dict) -> str:
         refuse(f"target {name} names a path; the distribution keeps each target at Sources/<name>")
     if entry["packageAccess"] is not True:
         refuse(f"target {name} turns package access off")
-    if entry.get("pluginUsages"):
-        refuse(f"target {name} uses a build plugin: {entry['pluginUsages']}")
+    if usages := entry.get("pluginUsages"):
+        refuse(f"target {name} uses a build plugin: {usages}")
     arguments = [f"name: {quoted(name)}"]
     dependencies = [target_dependency(dependency) for dependency in entry["dependencies"]]
     if dependencies:
@@ -130,11 +202,11 @@ def target(entry: dict) -> str:
     return "    .target(\n" + ",\n".join(f"      {argument}" for argument in arguments) + "\n    ),\n"
 
 
-def package_dependency(entry: dict) -> tuple:
+def package_dependency(entry: PackageDependency) -> tuple[str, str]:
     if set(entry) != {"sourceControl"} or len(entry["sourceControl"]) != 1:
         refuse(f"a package dependency that is not one source-control dependency: {entry}")
     control = entry["sourceControl"][0]
-    only_keys(f"dependency {control.get('identity')}", control, {"identity", "location", "productFilter", "requirement", "traits"})
+    only_keys(f"dependency {control.get('identity')}", control, SourceControl.__required_keys__)
     if control["productFilter"] is not None or control["traits"] != [{"name": "default"}]:
         refuse(f"dependency {control['identity']} filters products or chooses traits")
     location = control["location"]
@@ -144,7 +216,7 @@ def package_dependency(entry: dict) -> tuple:
     requirement = control["requirement"]
     if set(requirement) == {"range"} and len(requirement["range"]) == 1:
         bounds = requirement["range"][0]
-        if set(bounds) != {"lowerBound", "upperBound"}:
+        if isinstance(bounds, str) or set(bounds) != {"lowerBound", "upperBound"}:
             refuse(f"dependency {control['identity']}'s range is not a lower and upper bound")
         written = f"{quoted(bounds['lowerBound'])}..<{quoted(bounds['upperBound'])}"
     elif set(requirement) == {"exact"} and len(requirement["exact"]) == 1:
@@ -154,26 +226,32 @@ def package_dependency(entry: dict) -> tuple:
     return control["identity"], f"    .package(url: {quoted(url)}, {written}),\n"
 
 
-def platform(entry: dict) -> str:
+def platform(entry: Platform) -> str:
     if entry["platformName"] not in PLATFORMS or entry["options"]:
         refuse(f"a platform this script does not know: {entry}")
     return f".{PLATFORMS[entry['platformName']]}({quoted(entry['version'])})"
 
 
-def tools_version(dump: dict) -> str:
+def tools_version(dump: Dump) -> str:
     major, minor, patch = dump["toolsVersion"]["_version"].split(".")
     return f"{major}.{minor}" if patch == "0" else f"{major}.{minor}.{patch}"
 
 
-def manifest(dump: dict) -> str:
+def manifest(dump: Dump) -> str:
     only_keys("the package", dump, PACKAGE_KEYS)
+    fields: Mapping[str, object] = dump
     for key in UNSET_PACKAGE_KEYS:
-        if dump[key] is not None:
+        if fields[key] is not None:
             refuse(f"the package sets {key}")
     if dump["traits"]:
         refuse("the package declares traits")
     targets = needed_targets(dump)
-    named = {d["product"][1] for t in targets for d in t["dependencies"] if "product" in d}
+    named: set[str] = set()
+    for dependency in (d for t in targets for d in t["dependencies"] if "product" in d):
+        package = dependency["product"][1]
+        if not isinstance(package, str):
+            refuse(f"the dependency on product {dependency['product'][0]} names no package")
+        named.add(package)
     dependencies = dict(package_dependency(entry) for entry in dump["dependencies"])
     missing = sorted(named - set(dependencies))
     if missing:
@@ -205,7 +283,7 @@ def main() -> None:
     if len(sys.argv) != 3 or sys.argv[1] not in ("manifest", "targets"):
         raise SystemExit(__doc__)
     with open(sys.argv[2]) as file:
-        dump = json.load(file)
+        dump: Dump = json.load(file)
     if sys.argv[1] == "manifest":
         sys.stdout.write(manifest(dump))
     else:
