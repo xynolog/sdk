@@ -174,10 +174,6 @@ export * from './components/layout/UnifiedHeader';
 export * from './components/layout/LeftSidebar';
 export * from './components/layout/PageLayout';
 
-// Favicon components and assets
-export { XynologFavicon } from './assets/favicons/XynologFavicon';
-export { faviconPaths } from './assets/favicons';
-
 // CSS-agnostic components
 export { Button, ButtonGroup } from './components/Button/Button';
 export type { ButtonProps, ButtonGroupProps } from './components/Button/Button';

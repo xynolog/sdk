@@ -27,7 +27,6 @@ Framework-agnostic React component library for building Xynolog knowledge manage
 - **Annotation System** - Rich annotation and tagging capabilities
 - **Built-in Translations** - one per supported language (`LOCALE_CODES` from `@xynolog/core`), each loaded on demand
 - **Flexible i18n** - Two modes: built-in locales or a custom translation system. There is no default language
-- **Favicon Assets** - Complete set of Xynolog branded favicons for all platforms
 
 ## Installation
 
@@ -180,10 +179,6 @@ A locale's strings load the first time a view of that locale mounts; every view 
 at once. Colours, the JSON-LD view's among them, follow the page's `data-theme` attribute through
 react-ui's stylesheet, so dark mode needs nothing more.
 
-## Favicon Assets
-
-The package includes Xynolog-branded favicons in multiple formats (SVG, PNG, ICO) and a React component for inline usage. See [FAVICON.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/FAVICON.md) for complete usage instructions.
-
 ## Architecture
 
 The library follows strict architectural principles:
@@ -311,7 +306,6 @@ See [TESTING.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/TEST
 - [ROUTING.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/ROUTING.md) - Framework-agnostic routing
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Design principles and decisions
 - [STYLES.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/STYLES.md) - Using the styles, design tokens and classes
-- [FAVICON.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/FAVICON.md) - Favicon assets and usage
 - [ANNOTATIONS.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/ANNOTATIONS.md) - Annotation system
 - [ACCESSIBILITY.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/ACCESSIBILITY.md) - Accessibility architecture and WCAG compliance
 
