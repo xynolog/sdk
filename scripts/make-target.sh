@@ -34,11 +34,8 @@ case "${1:-}" in
       npm install --no-package-lock
       npm run format:check
       npm run build:packages
-      for package in core observability http-transport sdk react-ui; do
-        npm run typecheck --workspace="@xynolog/$package"
-      done
-      npm run typecheck:conformance --workspace=@xynolog/http-transport
-      npm run typecheck:conformance --workspace=@xynolog/sdk
+      npm run typecheck --workspaces
+      npm run typecheck:conformance --workspaces --if-present
       npm run lint:css --workspace=@xynolog/react-ui
       node react-ui/scripts/check-no-utility-classes-in-react-ui.cjs
       node react-ui/scripts/check-css-variables-defined.cjs
@@ -47,9 +44,27 @@ case "${1:-}" in
       bash scripts/compliance/audit-gathered-context-component-state.sh
       bash scripts/compliance/audit-session-typed-factories.sh
       bash react-ui/scripts/audit-toolbar-pref-storage.sh
-      for package in core observability http-transport sdk react-ui; do
-        npm test --workspace="@xynolog/$package"
-      done' --memory 4g
+      npm test --workspaces' --memory 4g
+    ;;
+  test-tooling)
+    in_container node:26-bookworm '
+      # The census asks git what the repository holds, and the copy belongs
+      # to another user than the container runs as.
+      git config --global --add safe.directory /tmp/sdk
+      cd /tmp/sdk/typescript
+      npm install --no-package-lock
+      npx tsc -p tsconfig.scripts.json
+      npx tsc -p tsconfig.configs.json
+      node scripts/tsconfig-census.mjs' --memory 4g
+    in_container python:3.12-bookworm '
+      # pyright is a Node program, and its Python wrapper runs the node it
+      # finds on PATH.
+      apt-get update -qq
+      apt-get install -y -qq --no-install-recommends nodejs > /dev/null
+      python -m pip install --disable-pip-version-check --no-cache-dir --root-user-action=ignore uv
+      git config --global --add safe.directory /tmp/sdk
+      (cd /tmp/sdk/python/sdk && uv sync --locked)
+      bash /tmp/sdk/scripts/check-python-tooling.sh' --memory 4g
     ;;
   test-python)
     bash "$ROOT/scripts/bundle-protocol.sh"
