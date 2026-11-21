@@ -27,7 +27,8 @@ python3 "$manifest" targets "$work/dump.json" > "$work/targets"
 while IFS= read -r target; do cp -a "Sources/$target" "$tree/Sources/$target"; done < "$work/targets"
 cp "$root/LICENSE" "$root/swift/distribution/NOTICE" "$root/swift/distribution/README.md" "$tree/"
 
-# Installed as an application installs it: by URL, at exactly this version.
+# Installed as an application installs it: by URL, at exactly this version,
+# with the SDK's dependencies at the newest versions its manifest allows.
 cp -a "$tree" "$work/sdk-swift"
 git -C "$work/sdk-swift" init -q
 git -C "$work/sdk-swift" add -A
