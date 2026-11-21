@@ -140,15 +140,33 @@ case "${1:-}" in
     cabal_home="$HOME/.cache/xynolog/haskell-cabal"
     mkdir -p "$cabal_home"
     if [[ "$1" == haskell-dependencies ]]; then
-      commands='bash run.sh --only-dependencies'
+      in_container xynolog-haskell-toolchain '
+        cd /tmp/sdk/haskell/sdk
+        cabal update
+        bash run.sh --only-dependencies' --memory 4g --volume "$cabal_home:/cabal" --env CABAL_DIR=/cabal
     else
-      commands='bash run.sh /tmp/sdk
-      python3 ../coverage.py coverage.lcov'
+      # The package's build directory outlives the container too, always
+      # mounted at one path: Cabal records where it was. GHC decides a
+      # module's recompilation by its source's hash, so a checkout's fresh
+      # mtimes recompile nothing unchanged. Cabal decides a C source's by
+      # its mtime against the object's, which an edit of a header it
+      # includes leaves alone, so the C sources are given fresh ones. CI's
+      # tests job caches this directory, once the checks pass, as the
+      # runner's user; GHC's coverage writes some of it readable by root
+      # alone.
+      haskell_build="$HOME/.cache/xynolog/haskell-build"
+      mkdir -p "$haskell_build"
+      in_container xynolog-haskell-toolchain '
+        cd /tmp/sdk/haskell/sdk
+        rm -rf dist-newstyle
+        ln -s /haskell-build dist-newstyle
+        find . -name "*.c" -exec touch {} +
+        cabal update
+        bash run.sh /tmp/sdk
+        python3 ../coverage.py coverage.lcov
+        find /haskell-build -mindepth 1 -exec chmod a+rX {} +' --memory 4g \
+        --volume "$cabal_home:/cabal" --env CABAL_DIR=/cabal --volume "$haskell_build:/haskell-build"
     fi
-    in_container xynolog-haskell-toolchain "
-      cd /tmp/sdk/haskell/sdk
-      cabal update
-      $commands" --memory 4g --volume "$cabal_home:/cabal" --env CABAL_DIR=/cabal
     ;;
   test-ocaml)
     ocaml_toolchain_image
