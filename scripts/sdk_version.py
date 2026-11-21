@@ -207,8 +207,6 @@ def unreleased() -> None:
 
 def move(release: str) -> None:
     data = config()
-    if not RELEASE.fullmatch(release):
-        raise SystemExit(f"sdk_version.py: {release!r} is not X.Y.Z")
     if parts(release) <= parts(data["release"]):
         raise SystemExit(f"sdk_version.py: {release} does not come after {data['release']}")
     data["release"] = release

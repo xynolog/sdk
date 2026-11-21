@@ -12,13 +12,19 @@ TOOLS=(uv run --project python/sdk --locked)
 # Every check runs, and any that fails fails the whole.
 failed=0
 
-mapfile -t files < <(git ls-files -- '*.py' ':!:python/sdk/**')
+# A failed listing fails here, not as a check of no files.
+listed="$(git ls-files -- '*.py' ':!:python/sdk/**')"
+[[ -n "$listed" ]] || { echo 'git lists no Python file outside python/sdk' >&2; exit 1; }
+mapfile -t files <<< "$listed"
 mapfile -t directories < <(printf '%s\n' "${files[@]}" | xargs -n1 dirname | sort -u)
 
 # mypy takes two files of the same name as one module twice, and two
 # directories each hold an api.py: each directory is its own run.
 for directory in "${directories[@]}"; do
-  mapfile -t here < <(git ls-files -- ":(glob)$directory/*.py")
+  here=()
+  for file in "${files[@]}"; do
+    if [[ "$(dirname "$file")" == "$directory" ]]; then here+=("$file"); fi
+  done
   "${TOOLS[@]}" mypy --config-file "$CONFIG" "${here[@]}" || failed=1
 done
 
