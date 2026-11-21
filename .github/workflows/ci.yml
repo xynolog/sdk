@@ -129,7 +129,7 @@ jobs:
           SDK_ARTIFACTS="$(python3 scripts/create-artifact-bundle.py --path "$LANGUAGE")" make verify-artifacts
 
       - name: Save the Haskell artifact's Cabal home
-        if: matrix.language == 'haskell' && steps.bundle.outcome == 'success' && steps.cabal.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && matrix.language == 'haskell' && steps.bundle.outcome == 'success' && steps.cabal.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: ~/.cache/xynolog-sdk/local/cabal-cache
@@ -237,35 +237,35 @@ jobs:
         run: make "test-$LANGUAGE"
 
       - name: Save Cabal's index and built dependencies
-        if: always() && steps.dependencies.outcome == 'success' && steps.cabal.outputs.cache-hit != 'true'
+        if: always() && github.event_name == 'push' && steps.dependencies.outcome == 'success' && steps.cabal.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: ~/.cache/xynolog/haskell-cabal
           key: ${{ steps.cabal.outputs.cache-primary-key }}
 
       - name: Save the Haskell package's build directory
-        if: matrix.language == 'haskell' && steps.checks.outcome == 'success' && steps.haskell-build.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && matrix.language == 'haskell' && steps.checks.outcome == 'success' && steps.haskell-build.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: ~/.cache/xynolog/haskell-build
           key: ${{ steps.haskell-build.outputs.cache-primary-key }}
 
       - name: Save Gradle's distribution, plugins and dependencies
-        if: matrix.language == 'kotlin' && steps.checks.outcome == 'success' && steps.gradle.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && matrix.language == 'kotlin' && steps.checks.outcome == 'success' && steps.gradle.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: ~/.cache/xynolog/kotlin-gradle
           key: ${{ steps.gradle.outputs.cache-primary-key }}
 
       - name: Save SwiftPM's checkouts and built dependencies
-        if: matrix.language == 'swift' && steps.checks.outcome == 'success' && steps.swift.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && matrix.language == 'swift' && steps.checks.outcome == 'success' && steps.swift.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: ~/.cache/xynolog/swift-build
           key: ${{ steps.swift.outputs.cache-primary-key }}
 
       - name: Save dune's build of the OCaml SDK's locked packages
-        if: matrix.language == 'ocaml' && steps.checks.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && matrix.language == 'ocaml' && steps.checks.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
         uses: ./.github/actions/save-ocaml-dune-cache
         with:
           path: ${{ steps.dune.outputs.path }}
@@ -333,14 +333,14 @@ jobs:
         run: make test-codegen
 
       - name: Save dune's build of the generator's locked packages
-        if: steps.tests.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && steps.tests.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
         uses: ./.github/actions/save-ocaml-dune-cache
         with:
           path: ${{ steps.dune.outputs.path }}
           key: ${{ steps.dune.outputs.cache-primary-key }}
 
       - name: Archive the OCaml toolchain's image
-        if: steps.tests.outcome == 'success' && steps.image.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && steps.tests.outcome == 'success' && steps.image.outputs.cache-hit != 'true'
         env:
           ARCHIVE: ${{ steps.image.outputs.path }}/image.tar
           IMAGE: ${{ steps.image.outputs.tag }}
@@ -349,7 +349,7 @@ jobs:
           docker save --output "$ARCHIVE" "$IMAGE"
 
       - name: Save the OCaml toolchain's image
-        if: steps.tests.outcome == 'success' && steps.image.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && steps.tests.outcome == 'success' && steps.image.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: ${{ steps.image.outputs.path }}
@@ -418,6 +418,17 @@ jobs:
           if [ "$jobs" != "$waits" ]; then
             echo "CI Gate's needs differ from the workflow's jobs (< jobs, > needs):" >&2
             diff <(echo "$jobs") <(echo "$waits") >&2
+            exit 1
+          fi
+      # A cache saved by a pull request is restored by that pull request
+      # alone, and one saved in the merge queue by nothing: each queue entry
+      # has a ref of its own. Only a push to main saves, and every run
+      # restores what main saved.
+      - name: Every cache is saved by a push to main alone
+        run: |
+          unguarded="$(yq '.jobs[] | (.steps // [])[] | select((.uses // "") | test("^actions/cache/save@|^[.]/[.]github/actions/save-")) | select((.if // "") | test("github[.]event_name == .push. && ") | not) | .name' .github/workflows/ci.yml)"
+          if [ -n "$unguarded" ]; then
+            printf 'These steps save a cache on runs other than a push to main:\n%s\n' "$unguarded" >&2
             exit 1
           fi
       - name: Every job it waits for passed or was skipped
