@@ -266,7 +266,7 @@ jobs:
 
       - name: Save dune's build of the OCaml SDK's locked packages
         if: matrix.language == 'ocaml' && steps.checks.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6.1.0
+        uses: ./.github/actions/save-ocaml-dune-cache
         with:
           path: ${{ steps.dune.outputs.path }}
           key: ${{ steps.dune.outputs.cache-primary-key }}
@@ -334,7 +334,7 @@ jobs:
 
       - name: Save dune's build of the generator's locked packages
         if: steps.tests.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6.1.0
+        uses: ./.github/actions/save-ocaml-dune-cache
         with:
           path: ${{ steps.dune.outputs.path }}
           key: ${{ steps.dune.outputs.cache-primary-key }}

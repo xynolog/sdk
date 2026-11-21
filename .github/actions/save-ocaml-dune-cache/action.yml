@@ -1,0 +1,24 @@
+name: Save dune's build of a workspace's locked packages
+description: >-
+  Save the dune cache restore-ocaml-dune-cache restored, under its path and
+  key. The toolchain containers write the cache as root, and dune keeps some
+  entries readable by their owner alone, so the cache is the runner's before
+  it is archived.
+inputs:
+  path:
+    description: The cache's directory, restore-ocaml-dune-cache's path
+    required: true
+  key:
+    description: The cache's key, restore-ocaml-dune-cache's cache-primary-key
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        CACHE: ${{ inputs.path }}
+      run: sudo chown -R "$(id -u):$(id -g)" "$CACHE"
+    - uses: actions/cache/save@v6.1.0
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
