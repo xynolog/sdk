@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 source "$ROOT/build-tools/container-runtime.sh"
 source "$ROOT/scripts/require-protocol-pin.sh"
+source "$ROOT/scripts/ocaml-dune-cache.sh"
 RUNTIME="$(detect_container_runtime)"
 require_protocol_pin "$ROOT" >/dev/null
 
@@ -169,6 +170,7 @@ case "${1:-}" in
     ;;
   test-ocaml)
     ocaml_toolchain_image
+    ocaml_dune_cache_options ocaml/sdk
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/ocaml/sdk
       dune build @all @opam
@@ -177,7 +179,7 @@ case "${1:-}" in
       python3 probes/check-interface.py
       python3 api.py
       python3 probes/check-api-controls.py
-      dune runtest' --memory 4g
+      dune runtest' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
     ;;
   test-codegen)
     # The pinned Protocol reads through its reader, and Swift's table values
@@ -187,6 +189,7 @@ case "${1:-}" in
     # reason. Every sdk path the pinned Protocol names is one this checkout
     # has, and each base module a generated one imports stays below it.
     ocaml_toolchain_image
+    ocaml_dune_cache_options codegen
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/codegen
       dune build @all @opam
@@ -198,7 +201,7 @@ case "${1:-}" in
       dune exec -- ./test/images_groups.exe ..
       dune exec -- xynolog-codegen read ..
       dune exec -- ./test/boundary_census.exe ..
-      dune exec -- ./test/protocol_paths_census.exe .. ../protocol' --memory 4g
+      dune exec -- ./test/protocol_paths_census.exe .. ../protocol' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
     ;;
   generate|check-generated)
     # The OCaml generator writes each of its groups' files, a TypeScript one as
@@ -209,6 +212,7 @@ case "${1:-}" in
     # from the committed one.
     bash "$ROOT/scripts/bundle-protocol.sh"
     ocaml_toolchain_image
+    ocaml_dune_cache_options codegen
     work=$(mktemp -d)
     # The containers write into it as their own users, root among them, so a
     # container empties it.
@@ -224,10 +228,11 @@ case "${1:-}" in
         --exclude=_build --exclude=.venv -cf - . | tar -C "$target" -xf -
     fi
     "$RUNTIME" run --rm --volume "$target:/sdk" --volume "$work:/work" --workdir /tmp --memory 4g \
-      xynolog-ocaml-toolchain bash -euc '
+      "${OCAML_DUNE_CACHE_OPTIONS[@]}" xynolog-ocaml-toolchain bash -euc '
         set -o pipefail
-        cp -a /sdk/codegen /sdk/protocol /tmp/
-        cd /tmp/codegen
+        mkdir /tmp/sdk
+        cp -a /sdk/codegen /sdk/protocol /tmp/sdk/
+        cd /tmp/sdk/codegen
         dune build ./bin/main.exe
         dune exec -- xynolog-codegen generate sdk /sdk | tee /work/written'
     "$RUNTIME" run --rm --volume "$target:/sdk" --volume "$work:/work" --workdir /sdk node:26-bookworm bash -euc '
@@ -262,11 +267,12 @@ case "${1:-}" in
     [[ $# -eq 2 ]] || { echo 'Usage: make-target.sh codegen-binary DIRECTORY' >&2; exit 2; }
     mkdir -p "$2"
     ocaml_toolchain_image
+    ocaml_dune_cache_options codegen
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/codegen
       dune build ./bin/main.exe
       install -m 0755 _build/default/bin/main.exe /artifacts/xynolog-codegen' \
-      --volume "$(cd "$2" && pwd -P):/artifacts" --memory 4g
+      --volume "$(cd "$2" && pwd -P):/artifacts" --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
     ;;
   *)
     echo 'Usage: make-target.sh test-<language>|haskell-dependencies|test-codegen|generate|check-generated|codegen-binary DIRECTORY' >&2

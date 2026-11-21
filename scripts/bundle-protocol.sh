@@ -10,14 +10,16 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 source "$ROOT/build-tools/container-runtime.sh"
 source "$ROOT/scripts/run-container-quietly.sh"
 source "$ROOT/scripts/require-protocol-pin.sh"
+source "$ROOT/scripts/ocaml-dune-cache.sh"
 RUNTIME="$(detect_container_runtime)"
 
 echo "Building protocol bundles from pinned revision $(require_protocol_pin "$ROOT")…"
 run_container_quietly bash "$ROOT/build-tools/ocaml/toolchain-image.sh" "$ROOT/codegen"
+ocaml_dune_cache_options codegen
 run_container_quietly "$RUNTIME" run --rm \
   --volume "$ROOT/codegen:/source/codegen:ro" \
   --volume "$ROOT/protocol:/source/protocol" \
-  --workdir /tmp --memory 4g \
+  --workdir /tmp --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}" \
   xynolog-ocaml-toolchain bash -euc '
     mkdir /tmp/sdk
     tar -C /source --exclude=_build --exclude=.git -cf - codegen protocol | tar -C /tmp/sdk -xf -

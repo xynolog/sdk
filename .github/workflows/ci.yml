@@ -98,6 +98,13 @@ jobs:
         with:
           submodules: recursive
 
+      # The Protocol bundles are written in the generator's workspace. The
+      # codegen job saves its cache.
+      - name: Restore dune's build of the generator's locked packages
+        uses: ./.github/actions/restore-ocaml-dune-cache
+        with:
+          workspace: codegen
+
       # The Haskell artifact's container keeps Cabal's home here
       # (scripts/publish-other-local.sh): its index and the dependencies it
       # builds, never the source distribution it writes. Only an exact key
@@ -207,6 +214,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-swift-${{ hashFiles('swift/sdk/.swift-version') }}-
 
+      # OCaml's tests build the SDK's workspace, and save its cache once they
+      # pass. The other languages restore the generator's, which builds the
+      # Protocol bundles for those that read them.
+      - name: Restore dune's build of the workspace's locked packages
+        id: dune
+        uses: ./.github/actions/restore-ocaml-dune-cache
+        with:
+          workspace: ${{ matrix.language == 'ocaml' && 'ocaml/sdk' || 'codegen' }}
+
       - name: Run the language's tests, type checks, lints and format checks
         id: checks
         run: make "test-$LANGUAGE"
@@ -239,6 +255,13 @@ jobs:
           path: ~/.cache/xynolog/swift-build
           key: ${{ steps.swift.outputs.cache-primary-key }}
 
+      - name: Save dune's build of the OCaml SDK's locked packages
+        if: matrix.language == 'ocaml' && steps.checks.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ${{ steps.dune.outputs.path }}
+          key: ${{ steps.dune.outputs.cache-primary-key }}
+
       - name: Upload coverage to Codecov
         if: matrix.language == 'go'
         # Codecov rejects tokenless uploads for this organization; configure CODECOV_TOKEN to enable reports.
@@ -259,6 +282,12 @@ jobs:
         with:
           submodules: recursive
 
+      # The codegen job saves the generator workspace's cache.
+      - name: Restore dune's build of the generator's locked packages
+        uses: ./.github/actions/restore-ocaml-dune-cache
+        with:
+          workspace: codegen
+
       - name: Check every generation group
         run: make check-generated
 
@@ -273,8 +302,24 @@ jobs:
         with:
           submodules: recursive
 
+      # Every job that builds the generator's workspace restores its cache;
+      # this one saves it, once the generator's tests pass.
+      - name: Restore dune's build of the generator's locked packages
+        id: dune
+        uses: ./.github/actions/restore-ocaml-dune-cache
+        with:
+          workspace: codegen
+
       - name: Build, format-check and test the generator
+        id: tests
         run: make test-codegen
+
+      - name: Save dune's build of the generator's locked packages
+        if: steps.tests.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ${{ steps.dune.outputs.path }}
+          key: ${{ steps.dune.outputs.cache-primary-key }}
 
       - name: The bundle carries the generator
         run: |
