@@ -10,8 +10,10 @@
  (deps ../lib/client_timing.ml)
  (action (copy %{deps} %{targets})))
 
+; The certificate expires two days after the rule runs, so no cache may keep it.
 (rule
  (targets peer-cert.pem peer-key.pem)
+ (deps (universe))
  (action
   (run openssl req -x509 -newkey rsa:2048 -nodes
    -keyout peer-key.pem -out peer-cert.pem -days 2

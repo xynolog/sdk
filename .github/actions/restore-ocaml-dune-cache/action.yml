@@ -1,0 +1,36 @@
+name: Restore dune's build of a workspace's locked packages
+description: >-
+  Restore the OCaml toolchain containers' dune cache of one dune workspace
+  (scripts/ocaml-dune-cache.sh): its locked packages, the compiler first. One
+  job saves each workspace's, through save-ocaml-dune-cache with this action's
+  path and key, once its build passed: a cache cut short would be an exact hit that no later run saves
+  over. No older key is restored, so a cache holds one lock's packages only.
+inputs:
+  workspace:
+    description: The dune workspace whose dune.lock the containers build, as a path from the checkout's root
+    required: true
+outputs:
+  path:
+    description: The directory the workspace's containers mount as dune's cache
+    value: ${{ steps.path.outputs.path }}
+  cache-hit:
+    description: Whether the restored cache is this lock's
+    value: ${{ steps.restore.outputs.cache-hit }}
+  cache-primary-key:
+    description: The key a save of this lock's cache takes
+    value: ${{ steps.restore.outputs.cache-primary-key }}
+runs:
+  using: composite
+  steps:
+    - id: path
+      shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+      run: |
+        source scripts/ocaml-dune-cache.sh
+        echo "path=$(ocaml_dune_cache_dir "$WORKSPACE")" >> "$GITHUB_OUTPUT"
+    - id: restore
+      uses: actions/cache/restore@v6.1.0
+      with:
+        path: ${{ steps.path.outputs.path }}
+        key: ${{ runner.os }}-${{ runner.arch }}-ocaml-dune-${{ inputs.workspace }}-${{ hashFiles(format('{0}/dune.lock/**', inputs.workspace), 'build-tools/ocaml/toolchain.json', 'build-tools/ocaml/Dockerfile') }}

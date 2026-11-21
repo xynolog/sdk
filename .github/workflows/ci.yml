@@ -98,10 +98,59 @@ jobs:
         with:
           submodules: recursive
 
+      # The toolchain's image and the generator's dune cache are here for the
+      # Protocol bundles alone, which some artifacts never read.
+      - name: Whether the language's artifact reads the Protocol bundles
+        id: bundles
+        run: |
+          reads="$(bash scripts/reads-protocol-bundles.sh "$LANGUAGE")"
+          echo "reads=$reads" >> "$GITHUB_OUTPUT"
+
+      # Restored, the bundles are copied rather than built, and neither the
+      # image nor the dune cache is needed. The codegen job saves them.
+      - name: Restore the Protocol bundles
+        id: protocol-bundles
+        if: steps.bundles.outputs.reads == 'true'
+        uses: ./.github/actions/restore-protocol-bundles
+
+      - name: Restore the OCaml toolchain's image
+        if: steps.bundles.outputs.reads == 'true' && steps.protocol-bundles.outputs.cache-hit != 'true'
+        uses: ./.github/actions/restore-ocaml-toolchain-image
+
+      # The Protocol bundles are written in the generator's workspace. The
+      # codegen job saves its cache.
+      - name: Restore dune's build of the generator's locked packages
+        if: steps.bundles.outputs.reads == 'true' && steps.protocol-bundles.outputs.cache-hit != 'true'
+        uses: ./.github/actions/restore-ocaml-dune-cache
+        with:
+          workspace: codegen
+
+      # The Haskell artifact's container keeps Cabal's home here
+      # (scripts/publish-other-local.sh): its index and the dependencies it
+      # builds, never the source distribution it writes. Only an exact key
+      # restores: the script updates the index only when it has none, and an
+      # older home's index may lack what a newer freeze file names. It is
+      # saved only after an artifact that verifies.
+      - name: Restore the Haskell artifact's Cabal home
+        id: cabal
+        if: matrix.language == 'haskell'
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ~/.cache/xynolog-sdk/local/cabal-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-haskell-artifact-${{ hashFiles('haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze') }}
+
       - name: Build and verify the language's bundle
+        id: bundle
         run: |
           make "$LANGUAGE"
           SDK_ARTIFACTS="$(python3 scripts/create-artifact-bundle.py --path "$LANGUAGE")" make verify-artifacts
+
+      - name: Save the Haskell artifact's Cabal home
+        if: github.event_name == 'push' && matrix.language == 'haskell' && steps.bundle.outcome == 'success' && steps.cabal.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ~/.cache/xynolog-sdk/local/cabal-cache
+          key: ${{ steps.cabal.outputs.cache-primary-key }}
 
   tests:
     name: ${{ matrix.language }} SDK tests and checks
@@ -141,6 +190,22 @@ jobs:
         if: matrix.language == 'haskell'
         run: bash scripts/make-target.sh haskell-dependencies
 
+      # The Haskell target keeps the package's build directory here
+      # (scripts/make-target.sh). Each state of the package's sources has a
+      # build of its own; the nearest earlier one with the same toolchain,
+      # dependencies and package description is restored, and GHC recompiles
+      # what changed since. It is saved only after checks that pass, as
+      # Gradle's home is.
+      - name: Restore the Haskell package's build directory
+        id: haskell-build
+        if: matrix.language == 'haskell'
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ~/.cache/xynolog/haskell-build
+          key: ${{ runner.os }}-${{ runner.arch }}-haskell-build-${{ hashFiles('haskell/toolchain/**', 'haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze', 'haskell/sdk/xynolog.cabal') }}-${{ hashFiles('haskell/sdk/**') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-haskell-build-${{ hashFiles('haskell/toolchain/**', 'haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze', 'haskell/sdk/xynolog.cabal') }}-
+
       # The Kotlin target keeps Gradle's home here (scripts/make-target.sh).
       # Gradle fetches what it lacks during the checks, so a home is saved only
       # after checks that pass: one cut short would be an exact hit that no
@@ -155,23 +220,83 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-kotlin-
 
+      # The Swift target keeps SwiftPM's build directory here
+      # (scripts/make-target.sh). Each toolchain has caches of its own: one
+      # compiler's modules are no use to another. It is saved only after checks
+      # that pass, as Gradle's home is.
+      - name: Restore SwiftPM's checkouts and built dependencies
+        id: swift
+        if: matrix.language == 'swift'
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ~/.cache/xynolog/swift-build
+          key: ${{ runner.os }}-${{ runner.arch }}-swift-${{ hashFiles('swift/sdk/.swift-version') }}-${{ hashFiles('swift/sdk/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-swift-${{ hashFiles('swift/sdk/.swift-version') }}-
+
+      # Restored, the bundles are copied rather than built. The codegen job
+      # saves them.
+      - name: Restore the Protocol bundles
+        uses: ./.github/actions/restore-protocol-bundles
+
+      # The target says which dune workspace a run of it builds, if any
+      # (scripts/make-target.sh): OCaml's tests build the SDK's, and save its
+      # cache once they pass, and the languages that read the Protocol
+      # bundles the generator's, when the bundles were not restored. Go's,
+      # Swift's and Haskell's run no toolchain container.
+      - name: Ask the target which dune workspace it builds
+        id: toolchain
+        run: bash scripts/make-target.sh --ocaml-toolchain "test-$LANGUAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the OCaml toolchain's image
+        if: steps.toolchain.outputs.workspace != 'none'
+        uses: ./.github/actions/restore-ocaml-toolchain-image
+
+      - name: Restore dune's build of the workspace's locked packages
+        id: dune
+        if: steps.toolchain.outputs.workspace != 'none'
+        uses: ./.github/actions/restore-ocaml-dune-cache
+        with:
+          workspace: ${{ steps.toolchain.outputs.workspace }}
+
       - name: Run the language's tests, type checks, lints and format checks
         id: checks
         run: make "test-$LANGUAGE"
 
       - name: Save Cabal's index and built dependencies
-        if: always() && steps.dependencies.outcome == 'success' && steps.cabal.outputs.cache-hit != 'true'
+        if: always() && github.event_name == 'push' && steps.dependencies.outcome == 'success' && steps.cabal.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: ~/.cache/xynolog/haskell-cabal
           key: ${{ steps.cabal.outputs.cache-primary-key }}
 
+      - name: Save the Haskell package's build directory
+        if: github.event_name == 'push' && matrix.language == 'haskell' && steps.checks.outcome == 'success' && steps.haskell-build.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ~/.cache/xynolog/haskell-build
+          key: ${{ steps.haskell-build.outputs.cache-primary-key }}
+
       - name: Save Gradle's distribution, plugins and dependencies
-        if: matrix.language == 'kotlin' && steps.checks.outcome == 'success' && steps.gradle.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && matrix.language == 'kotlin' && steps.checks.outcome == 'success' && steps.gradle.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
         with:
           path: ~/.cache/xynolog/kotlin-gradle
           key: ${{ steps.gradle.outputs.cache-primary-key }}
+
+      - name: Save SwiftPM's checkouts and built dependencies
+        if: github.event_name == 'push' && matrix.language == 'swift' && steps.checks.outcome == 'success' && steps.swift.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ~/.cache/xynolog/swift-build
+          key: ${{ steps.swift.outputs.cache-primary-key }}
+
+      - name: Save dune's build of the OCaml SDK's locked packages
+        if: github.event_name == 'push' && matrix.language == 'ocaml' && steps.checks.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
+        uses: ./.github/actions/save-ocaml-dune-cache
+        with:
+          path: ${{ steps.dune.outputs.path }}
+          key: ${{ steps.dune.outputs.cache-primary-key }}
 
       - name: Upload coverage to Codecov
         if: matrix.language == 'go'
@@ -193,6 +318,19 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Restore the OCaml toolchain's image
+        uses: ./.github/actions/restore-ocaml-toolchain-image
+
+      # The codegen job saves the generator workspace's cache.
+      - name: Restore dune's build of the generator's locked packages
+        uses: ./.github/actions/restore-ocaml-dune-cache
+        with:
+          workspace: codegen
+
+      # The codegen job saves the Protocol bundles.
+      - name: Restore the Protocol bundles
+        uses: ./.github/actions/restore-protocol-bundles
+
       - name: Check every generation group
         run: make check-generated
 
@@ -207,13 +345,65 @@ jobs:
         with:
           submodules: recursive
 
+      # Every job that runs an OCaml toolchain container restores its image;
+      # this one saves it, once the generator's tests pass, when it built it.
+      - name: Restore the OCaml toolchain's image
+        id: image
+        uses: ./.github/actions/restore-ocaml-toolchain-image
+
+      # Every job that builds the generator's workspace restores its cache;
+      # this one saves it, once the generator's tests pass.
+      - name: Restore dune's build of the generator's locked packages
+        id: dune
+        uses: ./.github/actions/restore-ocaml-dune-cache
+        with:
+          workspace: codegen
+
       - name: Build, format-check and test the generator
+        id: tests
         run: make test-codegen
 
+      - name: Save dune's build of the generator's locked packages
+        if: github.event_name == 'push' && steps.tests.outcome == 'success' && steps.dune.outputs.cache-hit != 'true'
+        uses: ./.github/actions/save-ocaml-dune-cache
+        with:
+          path: ${{ steps.dune.outputs.path }}
+          key: ${{ steps.dune.outputs.cache-primary-key }}
+
+      - name: Archive the OCaml toolchain's image
+        if: github.event_name == 'push' && steps.tests.outcome == 'success' && steps.image.outputs.cache-hit != 'true'
+        env:
+          ARCHIVE: ${{ steps.image.outputs.path }}/image.tar
+          IMAGE: ${{ steps.image.outputs.tag }}
+        run: |
+          mkdir -p "$(dirname "$ARCHIVE")"
+          docker save --output "$ARCHIVE" "$IMAGE"
+
+      - name: Save the OCaml toolchain's image
+        if: github.event_name == 'push' && steps.tests.outcome == 'success' && steps.image.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ${{ steps.image.outputs.path }}
+          key: ${{ steps.image.outputs.cache-primary-key }}
+
+      # make codegen writes the Protocol bundles: this job saves them, once
+      # the bundle verifies, when it built them.
+      - name: Restore the Protocol bundles
+        id: protocol-bundles
+        uses: ./.github/actions/restore-protocol-bundles
+
       - name: The bundle carries the generator
+        id: bundle
         run: |
           make codegen
           SDK_ARTIFACTS="$(python3 scripts/create-artifact-bundle.py --path codegen)" make verify-artifacts
+
+      - name: Save the Protocol bundles
+        if: github.event_name == 'push' && steps.bundle.outcome == 'success' && steps.protocol-bundles.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ${{ steps.protocol-bundles.outputs.path }}
+          key: ${{ steps.protocol-bundles.outputs.cache-primary-key }}
 
   tooling:
     name: The repository's own scripts and configs are typechecked and linted
@@ -287,6 +477,17 @@ jobs:
           if [ "$jobs" != "$waits" ]; then
             echo "CI Gate's needs differ from the workflow's jobs (< jobs, > needs):" >&2
             diff <(echo "$jobs") <(echo "$waits") >&2
+            exit 1
+          fi
+      # A cache saved by a pull request is restored by that pull request
+      # alone, and one saved in the merge queue by nothing: each queue entry
+      # has a ref of its own. Only a push to main saves, and every run
+      # restores what main saved.
+      - name: Every cache is saved by a push to main alone
+        run: |
+          unguarded="$(yq '.jobs[] | (.steps // [])[] | select((.uses // "") | test("^actions/cache/save@|^[.]/[.]github/actions/save-")) | select((.if // "") | test("github[.]event_name == .push. && ") | not) | .name' .github/workflows/ci.yml)"
+          if [ -n "$unguarded" ]; then
+            printf 'These steps save a cache on runs other than a push to main:\n%s\n' "$unguarded" >&2
             exit 1
           fi
       - name: Every job it waits for passed or was skipped

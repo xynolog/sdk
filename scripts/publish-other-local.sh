@@ -13,7 +13,7 @@ case "$LANGUAGE" in
   *) echo "Unsupported language for this artifact script: $LANGUAGE" >&2; exit 2 ;;
 esac
 PROTOCOL_REVISION="$(require_protocol_pin "$ROOT")"
-mkdir -p "$STATE_ROOT"/{go-proxy,nuget,nuget-cache,haskell,cabal-cache,haskell-build,kotlin-maven,gradle-cache,opam-repo,swift,swift-cache,swift-build,go-mod-cache,go-build-cache}
+mkdir -p "$STATE_ROOT"/{go-proxy,nuget,nuget-cache,haskell,cabal-cache,haskell-build,kotlin-maven,gradle-cache,opam-repo,swift,swift-cache,go-mod-cache,go-build-cache}
 OPAM_VOLUME=xynolog-sdk-opam-5-5
 # The version this build gives a language's packages: the release's, or a
 # development version. Each container is handed its own.
@@ -152,7 +152,7 @@ run_container_quietly "$RUNTIME" run --rm --memory 4g --volume "$ROOT/ocaml/sdk:
     sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libgmp-dev pkg-config >/dev/null
     cp -a /source /tmp/sdk && cd /tmp/sdk
     rm -rf /home/opam/.opam/5.5/.opam-switch/sources/uring.2.15.0
-    OPAMJOBS=1 opam install . --deps-only -y
+    opam install . --deps-only -y --jobs "$(nproc)"
     eval "$(opam env)"
     dune build -p xynolog @install
     version="$XYNOLOG_SDK_VERSION"
@@ -173,14 +173,14 @@ swift_package_version="$(version_of swift)"
 swift_version="$(cat "$ROOT/swift/sdk/.swift-version")"
 # The container holds the repository as a checkout lays it out: swift/ and the
 # LICENSE.
+# Its dependencies resolve as an application's do, to the newest versions
+# Package.swift allows; the tests job builds against Package.resolved.
 run_container_quietly "$RUNTIME" run --rm --memory 4g --volume "$ROOT:/source:ro" \
   --volume "$STATE_ROOT/swift:/out" --volume "$STATE_ROOT/swift-cache:/root/.cache" \
-  --volume "$STATE_ROOT/swift-build:/build" --env "XYNOLOG_SDK_VERSION=$swift_package_version" --workdir /tmp "swift:$swift_version" bash -euc '
+  --env "XYNOLOG_SDK_VERSION=$swift_package_version" --workdir /tmp "swift:$swift_version" bash -euc '
     apt-get update -qq && apt-get install -y -qq --no-install-recommends python3 zip >/dev/null
     mkdir -p /tmp/sdk
     cp -a /source/LICENSE /source/swift /tmp/sdk/
-    cd /tmp/sdk/swift/sdk
-    if ! swift build --build-path /build --jobs 4 --force-resolved-versions --product Xynolog > /out/build.log 2>&1; then tail -n 100 /out/build.log; exit 1; fi
     if ! sh /tmp/sdk/swift/scripts/distribution.sh "$XYNOLOG_SDK_VERSION" /tmp/distribution > /out/distribution.log 2>&1; then tail -n 100 /out/distribution.log; exit 1; fi
     cd /tmp/distribution
     rm -f "/out/sdk-swift-$XYNOLOG_SDK_VERSION.zip"

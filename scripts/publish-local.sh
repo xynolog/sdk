@@ -44,7 +44,10 @@ has_language() {
 ALL_LANGUAGES=false
 [[ "$LANGUAGE" == all ]] && ALL_LANGUAGES=true
 
-bash "$ROOT/scripts/bundle-protocol.sh"
+reads_bundles="$(bash "$ROOT/scripts/reads-protocol-bundles.sh" "${LANGUAGES[@]}")"
+if [[ "$reads_bundles" == true ]]; then
+  bash "$ROOT/scripts/bundle-protocol.sh"
+fi
 
 if has_language typescript; then
   echo 'Building TypeScript packages and packing npm artifacts in a Node container…'

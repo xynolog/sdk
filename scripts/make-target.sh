@@ -4,6 +4,49 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 source "$ROOT/build-tools/container-runtime.sh"
 source "$ROOT/scripts/require-protocol-pin.sh"
+source "$ROOT/scripts/ocaml-dune-cache.sh"
+
+usage() {
+  echo 'Usage: make-target.sh test-<language>|haskell-dependencies|test-codegen|generate|check-generated|codegen-binary DIRECTORY' >&2
+  echo '       make-target.sh --ocaml-toolchain TARGET' >&2
+  exit 2
+}
+
+# What a target builds on of the OCaml toolchain. OCAML_WORKSPACE: the dune
+# workspace whose locked packages its own toolchain containers build, so whose
+# cache they mount; none when it runs none. READS_BUNDLES: whether it reads the
+# Protocol bundles, which bundle-protocol.sh writes, or copies from its store.
+ocaml_toolchain_use() {
+  case "$1" in
+    test-typescript|test-python|test-rust|test-csharp|test-kotlin)
+      OCAML_WORKSPACE=none READS_BUNDLES=true ;;
+    generate|check-generated) OCAML_WORKSPACE=codegen READS_BUNDLES=true ;;
+    test-codegen|codegen-binary) OCAML_WORKSPACE=codegen READS_BUNDLES=false ;;
+    test-ocaml) OCAML_WORKSPACE=ocaml/sdk READS_BUNDLES=false ;;
+    test-go|test-swift|test-haskell|haskell-dependencies) OCAML_WORKSPACE=none READS_BUNDLES=false ;;
+    *) usage ;;
+  esac
+}
+
+# --ocaml-toolchain TARGET prints, as a line CI adds to a step's outputs, the
+# dune workspace a run of the target builds: its own containers', else the
+# Protocol bundles' when it reads them and their store lacks them, else none.
+# The tests job restores the toolchain's image and dune cache for it alone.
+if [[ "${1:-}" == --ocaml-toolchain ]]; then
+  (($# == 2)) || usage
+  ocaml_toolchain_use "$2"
+  workspace="$OCAML_WORKSPACE"
+  if [[ "$workspace" == none && "$READS_BUNDLES" == true ]]; then
+    workspace="$(bash "$ROOT/scripts/bundle-protocol.sh" --builds)"
+  fi
+  printf 'workspace=%s\n' "$workspace"
+  exit
+fi
+ocaml_toolchain_use "${1:-}"
+if [[ "$1" == codegen-binary ]]; then
+  (($# == 2)) || usage
+fi
+
 RUNTIME="$(detect_container_runtime)"
 require_protocol_pin "$ROOT" >/dev/null
 
@@ -18,14 +61,18 @@ $script"
 }
 
 # The OCaml toolchain's image, which the SDK and the generator build on, each
-# held to build-tools' pins.
-ocaml_toolchain_image() {
+# held to build-tools' pins, then the target's dune cache and the Protocol
+# bundles, as ocaml_toolchain_use says.
+if [[ "$OCAML_WORKSPACE" != none ]]; then
   bash "$ROOT/build-tools/ocaml/toolchain-image.sh" "$ROOT/ocaml/sdk" "$ROOT/codegen"
-}
+  ocaml_dune_cache_options "$OCAML_WORKSPACE"
+fi
+if [[ "$READS_BUNDLES" == true ]]; then
+  bash "$ROOT/scripts/bundle-protocol.sh"
+fi
 
 case "${1:-}" in
   test-typescript)
-    bash "$ROOT/scripts/bundle-protocol.sh"
     in_container node:26-bookworm '
       # The censuses ask git what the repository holds, and the copy belongs
       # to another user than the container runs as.
@@ -67,7 +114,6 @@ case "${1:-}" in
       bash /tmp/sdk/scripts/check-python-tooling.sh' --memory 4g
     ;;
   test-python)
-    bash "$ROOT/scripts/bundle-protocol.sh"
     in_container python:3.12-bookworm '
       # pyright is a Node program, and its Python wrapper runs the node it
       # finds on PATH.
@@ -85,7 +131,6 @@ case "${1:-}" in
       uv run pytest' --memory 4g
     ;;
   test-rust)
-    bash "$ROOT/scripts/bundle-protocol.sh"
     in_container "rust:$(sh "$ROOT/rust/scripts/rust-toolchain.sh")-bookworm" '
       cd /tmp/sdk/rust
       cargo fmt --all --check
@@ -106,7 +151,6 @@ case "${1:-}" in
     cp "$COVERAGE_DIR/coverage.txt" "$ROOT/coverage.txt"
     ;;
   test-csharp)
-    bash "$ROOT/scripts/bundle-protocol.sh"
     in_container "mcr.microsoft.com/dotnet/sdk:$(sh "$ROOT/csharp/scripts/dotnet-version.sh" --image-tag)" '
       cd /tmp/sdk/csharp/sdk
       test "$(dotnet --version)" = "$(sh ../scripts/dotnet-version.sh)"
@@ -116,7 +160,6 @@ case "${1:-}" in
       dotnet format --no-restore --verify-no-changes --include-generated --exclude "$HOME/.nuget/packages"' --memory 4g
     ;;
   test-kotlin)
-    bash "$ROOT/scripts/bundle-protocol.sh"
     # Gradle's home (the wrapper's distribution, and the plugins and
     # dependencies it fetches) outlives the container. CI's tests job caches
     # this directory.
@@ -127,12 +170,22 @@ case "${1:-}" in
       ./gradlew --no-daemon --console=plain check' --memory 4g --volume "$gradle_home:/gradle" --env GRADLE_USER_HOME=/gradle
     ;;
   test-swift)
+    # SwiftPM's build directory (the dependencies' checkouts and what every
+    # build compiled of them, the refusals' canary build too) outlives the
+    # container. CI's tests job caches this directory, once the checks pass,
+    # as the runner's user; the container's root writes some of it readable
+    # by root alone.
+    swift_build="$HOME/.cache/xynolog/swift-build"
+    mkdir -p "$swift_build"
     in_container "swift:$(sh "$ROOT/swift/scripts/swift-version.sh")" '
       cd /tmp/sdk/swift/sdk
+      rm -rf .build
+      ln -s /swift-build .build
       Scripts/test.sh
       swift format lint --strict --recursive .
       Scripts/census.sh
-      Scripts/refusals.sh' --memory 4g
+      Scripts/refusals.sh
+      find /swift-build -mindepth 1 -exec chmod a+rX {} +' --memory 4g --volume "$swift_build:/swift-build"
     ;;
   test-haskell|haskell-dependencies)
     "$RUNTIME" build --build-arg "GHC_VERSION=$(bash "$ROOT/haskell/toolchain/toolchain.sh" --ghc)" \
@@ -144,18 +197,35 @@ case "${1:-}" in
     cabal_home="$HOME/.cache/xynolog/haskell-cabal"
     mkdir -p "$cabal_home"
     if [[ "$1" == haskell-dependencies ]]; then
-      commands='bash run.sh --only-dependencies'
+      in_container xynolog-haskell-toolchain '
+        cd /tmp/sdk/haskell/sdk
+        cabal update
+        bash run.sh --only-dependencies' --memory 4g --volume "$cabal_home:/cabal" --env CABAL_DIR=/cabal
     else
-      commands='bash run.sh /tmp/sdk
-      python3 ../coverage.py coverage.lcov'
+      # The package's build directory outlives the container too, always
+      # mounted at one path: Cabal records where it was. GHC decides a
+      # module's recompilation by its source's hash, so a checkout's fresh
+      # mtimes recompile nothing unchanged. Cabal decides a C source's by
+      # its mtime against the object's, which an edit of a header it
+      # includes leaves alone, so the C sources are given fresh ones. CI's
+      # tests job caches this directory, once the checks pass, as the
+      # runner's user; GHC's coverage writes some of it readable by root
+      # alone.
+      haskell_build="$HOME/.cache/xynolog/haskell-build"
+      mkdir -p "$haskell_build"
+      in_container xynolog-haskell-toolchain '
+        cd /tmp/sdk/haskell/sdk
+        rm -rf dist-newstyle
+        ln -s /haskell-build dist-newstyle
+        find . -name "*.c" -exec touch {} +
+        cabal update
+        bash run.sh /tmp/sdk
+        python3 ../coverage.py coverage.lcov
+        find /haskell-build -mindepth 1 -exec chmod a+rX {} +' --memory 4g \
+        --volume "$cabal_home:/cabal" --env CABAL_DIR=/cabal --volume "$haskell_build:/haskell-build"
     fi
-    in_container xynolog-haskell-toolchain "
-      cd /tmp/sdk/haskell/sdk
-      cabal update
-      $commands" --memory 4g --volume "$cabal_home:/cabal" --env CABAL_DIR=/cabal
     ;;
   test-ocaml)
-    ocaml_toolchain_image
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/ocaml/sdk
       dune build @all @opam
@@ -164,7 +234,7 @@ case "${1:-}" in
       python3 probes/check-interface.py
       python3 api.py
       python3 probes/check-api-controls.py
-      dune runtest' --memory 4g
+      dune runtest' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
     ;;
   test-codegen)
     # The pinned Protocol reads through its reader, and Swift's table values
@@ -173,7 +243,6 @@ case "${1:-}" in
     # reason, and every surface item an SDK lacks is one Protocol has, with a
     # reason. Every sdk path the pinned Protocol names is one this checkout
     # has, and each base module a generated one imports stays below it.
-    ocaml_toolchain_image
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/codegen
       dune build @all @opam
@@ -185,7 +254,7 @@ case "${1:-}" in
       dune exec -- ./test/images_groups.exe ..
       dune exec -- xynolog-codegen read ..
       dune exec -- ./test/boundary_census.exe ..
-      dune exec -- ./test/protocol_paths_census.exe .. ../protocol' --memory 4g
+      dune exec -- ./test/protocol_paths_census.exe .. ../protocol' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
     ;;
   generate|check-generated)
     # The OCaml generator writes each of its groups' files, a TypeScript one as
@@ -194,8 +263,6 @@ case "${1:-}" in
     # codegen/, never in the checkout; check-generated runs the same into a
     # copy of the checkout, and fails when a file the generator names differs
     # from the committed one.
-    bash "$ROOT/scripts/bundle-protocol.sh"
-    ocaml_toolchain_image
     work=$(mktemp -d)
     # The containers write into it as their own users, root among them, so a
     # container empties it.
@@ -211,10 +278,11 @@ case "${1:-}" in
         --exclude=_build --exclude=.venv -cf - . | tar -C "$target" -xf -
     fi
     "$RUNTIME" run --rm --volume "$target:/sdk" --volume "$work:/work" --workdir /tmp --memory 4g \
-      xynolog-ocaml-toolchain bash -euc '
+      "${OCAML_DUNE_CACHE_OPTIONS[@]}" xynolog-ocaml-toolchain bash -euc '
         set -o pipefail
-        cp -a /sdk/codegen /sdk/protocol /tmp/
-        cd /tmp/codegen
+        mkdir /tmp/sdk
+        cp -a /sdk/codegen /sdk/protocol /tmp/sdk/
+        cd /tmp/sdk/codegen
         dune build ./bin/main.exe
         dune exec -- xynolog-codegen generate sdk /sdk | tee /work/written'
     "$RUNTIME" run --rm --volume "$target:/sdk" --volume "$work:/work" --workdir /sdk node:26-bookworm bash -euc '
@@ -246,17 +314,14 @@ case "${1:-}" in
     # run against its own checkout: built in the toolchain's container, and
     # linked statically, so it runs in any Linux container. It is written to
     # the directory given, as xynolog-codegen.
-    [[ $# -eq 2 ]] || { echo 'Usage: make-target.sh codegen-binary DIRECTORY' >&2; exit 2; }
     mkdir -p "$2"
-    ocaml_toolchain_image
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/codegen
       dune build ./bin/main.exe
       install -m 0755 _build/default/bin/main.exe /artifacts/xynolog-codegen' \
-      --volume "$(cd "$2" && pwd -P):/artifacts" --memory 4g
+      --volume "$(cd "$2" && pwd -P):/artifacts" --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
     ;;
   *)
-    echo 'Usage: make-target.sh test-<language>|haskell-dependencies|test-codegen|generate|check-generated|codegen-binary DIRECTORY' >&2
-    exit 2
+    usage
     ;;
 esac
