@@ -108,10 +108,32 @@ jobs:
         with:
           workspace: codegen
 
+      # The Haskell artifact's container keeps Cabal's home here
+      # (scripts/publish-other-local.sh): its index and the dependencies it
+      # builds, never the source distribution it writes. Only an exact key
+      # restores: the script updates the index only when it has none, and an
+      # older home's index may lack what a newer freeze file names. It is
+      # saved only after an artifact that verifies.
+      - name: Restore the Haskell artifact's Cabal home
+        id: cabal
+        if: matrix.language == 'haskell'
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ~/.cache/xynolog-sdk/local/cabal-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-haskell-artifact-${{ hashFiles('haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze') }}
+
       - name: Build and verify the language's bundle
+        id: bundle
         run: |
           make "$LANGUAGE"
           SDK_ARTIFACTS="$(python3 scripts/create-artifact-bundle.py --path "$LANGUAGE")" make verify-artifacts
+
+      - name: Save the Haskell artifact's Cabal home
+        if: matrix.language == 'haskell' && steps.bundle.outcome == 'success' && steps.cabal.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ~/.cache/xynolog-sdk/local/cabal-cache
+          key: ${{ steps.cabal.outputs.cache-primary-key }}
 
   tests:
     name: ${{ matrix.language }} SDK tests and checks
@@ -150,6 +172,22 @@ jobs:
         id: dependencies
         if: matrix.language == 'haskell'
         run: bash scripts/make-target.sh haskell-dependencies
+
+      # The Haskell target keeps the package's build directory here
+      # (scripts/make-target.sh). Each state of the package's sources has a
+      # build of its own; the nearest earlier one with the same toolchain,
+      # dependencies and package description is restored, and GHC recompiles
+      # what changed since. It is saved only after checks that pass, as
+      # Gradle's home is.
+      - name: Restore the Haskell package's build directory
+        id: haskell-build
+        if: matrix.language == 'haskell'
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ~/.cache/xynolog/haskell-build
+          key: ${{ runner.os }}-${{ runner.arch }}-haskell-build-${{ hashFiles('haskell/toolchain/**', 'haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze', 'haskell/sdk/xynolog.cabal') }}-${{ hashFiles('haskell/sdk/**') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-haskell-build-${{ hashFiles('haskell/toolchain/**', 'haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze', 'haskell/sdk/xynolog.cabal') }}-
 
       # The Kotlin target keeps Gradle's home here (scripts/make-target.sh).
       # Gradle fetches what it lacks during the checks, so a home is saved only
@@ -204,6 +242,13 @@ jobs:
         with:
           path: ~/.cache/xynolog/haskell-cabal
           key: ${{ steps.cabal.outputs.cache-primary-key }}
+
+      - name: Save the Haskell package's build directory
+        if: matrix.language == 'haskell' && steps.checks.outcome == 'success' && steps.haskell-build.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ~/.cache/xynolog/haskell-build
+          key: ${{ steps.haskell-build.outputs.cache-primary-key }}
 
       - name: Save Gradle's distribution, plugins and dependencies
         if: matrix.language == 'kotlin' && steps.checks.outcome == 'success' && steps.gradle.outputs.cache-hit != 'true'

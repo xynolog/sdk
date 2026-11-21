@@ -44,7 +44,12 @@ has_language() {
 ALL_LANGUAGES=false
 [[ "$LANGUAGE" == all ]] && ALL_LANGUAGES=true
 
-bash "$ROOT/scripts/bundle-protocol.sh"
+# Haskell's container is handed haskell/sdk alone (publish-other-local.sh),
+# so its artifact never reads the bundles. Protocol commits none of them: a
+# Haskell artifact that came to read them would fail on a fresh checkout.
+if [[ " ${LANGUAGES[*]} " != " haskell " ]]; then
+  bash "$ROOT/scripts/bundle-protocol.sh"
+fi
 
 if has_language typescript; then
   echo 'Building TypeScript packages and packing npm artifacts in a Node container…'
