@@ -82,23 +82,49 @@ const ALLOWLIST = new Map([
  * the build. Entries only come OUT.
  */
 const BASELINE_PATH = path.join(__dirname, 'css-classes-baseline.json');
+/** @type {{ _note: string, duplicated: string[], unrendered: string[], unstyled: string[] }} */
 const baseline = JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8'));
 
-/** The repository's files under `root` whose names end in one of `ext`. */
+/**
+ * The repository's files under `root` whose names end in one of `ext`.
+ *
+ * @param {string} root
+ * @param {string[]} ext
+ */
 const filesUnder = (root, ext) =>
   REPOSITORY.filter((file) => file.startsWith(`${root}/`) && ext.some((e) => file.endsWith(e)));
+/** @param {string} file */
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
 
 const DEFINITION = /\.(xynolog-[a-zA-Z0-9_-]+)/g;
 
 // Where each class is DEFINED (a selector at the head of a rule), per file.
+/**
+ * Add `file` to the files `map` holds for `cls`.
+ *
+ * @param {Map<string, Set<string>>} map
+ * @param {string} cls
+ * @param {string} file
+ */
+function record(map, cls, file) {
+  const files = map.get(cls) ?? new Set();
+  files.add(file);
+  map.set(cls, files);
+}
+
+/** @type {Map<string, Set<string>>} */
 const definedIn = new Map(); // class -> Set<file> (bare `.xynolog-x { }` rules)
+/** @type {Map<string, Set<string>>} */
 const mentioned = new Map(); // class -> Set<file> (any selector naming it)
 /**
  * Walk the stylesheet, tracking whether we are inside an at-rule. A rule nested
  * in `@media (prefers-reduced-motion: reduce)` or `@media (prefers-contrast:
  * more)` is a CONDITIONAL variant of a class, not a second definition of it —
  * the accessibility layers are built entirely that way on purpose.
+ */
+/**
+ * @param {string} source
+ * @param {string} file
  */
 function scan(source, file) {
   // Comments first: a section banner sitting above `@media` ends up in the same
@@ -120,12 +146,10 @@ function scan(source, file) {
           const selector = part.trim();
           const own = /^\.(xynolog-[a-zA-Z0-9_-]+)$/.exec(selector);
           if (own && !conditional) {
-            if (!definedIn.has(own[1])) definedIn.set(own[1], new Set());
-            definedIn.get(own[1]).add(file);
+            record(definedIn, own[1], file);
           }
           for (const cls of selector.matchAll(DEFINITION)) {
-            if (!mentioned.has(cls[1])) mentioned.set(cls[1], new Set());
-            mentioned.get(cls[1]).add(file);
+            record(mentioned, cls[1], file);
           }
         }
       }
@@ -166,7 +190,12 @@ const RENDERED = /xynolog-[a-zA-Z0-9_-]+/g;
  * permissive (it spares a class from being called dead). Here, being loose
  * ACCUSES. So this side has to be strict.
  */
+/**
+ * @param {string} rawSource
+ * @returns {Set<string>}
+ */
 function classNamesIn(rawSource) {
+  /** @type {Set<string>} */
   const names = new Set();
   // Data attributes wear the same prefix — `data-testid="xynolog-delegate-bar"`
   // is a TEST HOOK, never a class, and no stylesheet should define it. They sit
@@ -202,19 +231,21 @@ function classNamesIn(rawSource) {
   return names;
 }
 let markup = '';
+/** @type {Map<string, Set<string>>} */
 const renderedIn = new Map(); // class -> Set<file>
 for (const root of MARKUP_ROOTS) {
   for (const file of filesUnder(root, ['.tsx', '.ts'])) {
     const source = read(file);
     markup += source;
     for (const cls of classNamesIn(source)) {
-      if (!renderedIn.has(cls)) renderedIn.set(cls, new Set());
-      renderedIn.get(cls).add(file);
+      record(renderedIn, cls, file);
     }
   }
 }
 
+/** @type {[string, string[]][]} */
 const duplicated = [];
+/** @type {[string, string[]][]} */
 const unrendered = [];
 for (const [cls, files] of [...definedIn].sort()) {
   if (files.size > 1) duplicated.push([cls, [...files]]);
@@ -235,6 +266,7 @@ for (const [cls, files] of [...mentioned].sort()) {
  * `mentioned` is the right denominator — a class styled only inside an
  * `@media` block is still styled, just conditionally.
  */
+/** @type {[string, string[]][]} */
 const unstyled = [];
 for (const [cls, files] of [...renderedIn].sort()) {
   if (ALLOWLIST.has(cls)) continue;
@@ -242,6 +274,10 @@ for (const [cls, files] of [...renderedIn].sort()) {
   unstyled.push([cls, [...files]]);
 }
 
+/**
+ * @param {string[]} list
+ * @param {string} cls
+ */
 const known = (list, cls) => list.includes(cls);
 const newDuplicates = duplicated.filter(([cls]) => !known(baseline.duplicated, cls));
 const newUnrendered = unrendered.filter(([cls]) => !known(baseline.unrendered, cls));

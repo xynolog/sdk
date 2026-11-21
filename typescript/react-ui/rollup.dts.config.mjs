@@ -27,6 +27,7 @@ const externalPackages = new Set([
   ...builtinModules,
 ]);
 
+/** @param {string} id */
 function isExternal(id) {
   // Asset side-effect imports (`import './Toast.css'`) appear in .d.ts
   // shards when a source module does `import './foo.css'`. They are

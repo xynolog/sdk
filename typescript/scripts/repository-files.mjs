@@ -6,8 +6,12 @@ import { execFileSync } from 'node:child_process';
  * relative to `root`. On a clean checkout, CI's, it is `git ls-files`
  * exactly; before a change is staged it is still the change, so a check run
  * then judges the tree it will be committed as.
+ *
+ * @param {string} root
+ * @returns {string[]}
  */
 export function repositoryFiles(root) {
+  /** @param {string[]} args */
   const list = (...args) => execFileSync('git', ['ls-files', '-z', ...args], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
   const deleted = new Set(list('--deleted'));
   return [...new Set([...list('--cached'), ...list('--others', '--exclude-standard')])].filter((file) => !deleted.has(file)).sort();

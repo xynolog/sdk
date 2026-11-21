@@ -10,6 +10,11 @@
 const stylelint = require('stylelint');
 const { report, ruleMessages, validateOptions } = stylelint.utils;
 
+/**
+ * @typedef {Parameters<ReturnType<import('stylelint').RuleBase>>[0]} Root
+ * @typedef {Extract<Root['nodes'][number], { type: 'rule' }>} CssRule
+ */
+
 const ruleName = 'xynolog/theme-selectors';
 const messages = ruleMessages(ruleName, {
   avoidRootNot: 'Avoid ":root:not([data-theme=\\"light\\"])" - use "[data-theme=\\"dark\\"]" instead',
@@ -17,7 +22,8 @@ const messages = ruleMessages(ruleName, {
   nestedSelectorInPlainCSS: 'Nested "&" selectors are not valid in plain CSS files',
 });
 
-const plugin = stylelint.createPlugin(ruleName, (primaryOption, secondaryOptions, context) => {
+/** @type {import('stylelint').RuleBase<boolean>} */
+const ruleFunction = (primaryOption) => {
   return (root, result) => {
     const validOptions = validateOptions(result, ruleName, {
       actual: primaryOption,
@@ -28,6 +34,7 @@ const plugin = stylelint.createPlugin(ruleName, (primaryOption, secondaryOptions
       return;
     }
 
+    /** @type {CssRule | null} */
     let previousRule = null;
 
     root.walkRules((rule) => {
@@ -80,9 +87,6 @@ const plugin = stylelint.createPlugin(ruleName, (primaryOption, secondaryOptions
       }
     });
   };
-});
+};
 
-plugin.ruleName = ruleName;
-plugin.messages = messages;
-
-module.exports = plugin;
+module.exports = stylelint.createPlugin(ruleName, Object.assign(ruleFunction, { ruleName, messages }));

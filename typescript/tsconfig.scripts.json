@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "allowJs": true,
+    "checkJs": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
+  },
+  "include": [
+    "*/*.config.mjs",
+    "*/*.config.cjs",
+    "scripts/**/*.ts",
+    "scripts/**/*.mts",
+    "scripts/**/*.mjs",
+    "*/scripts/**/*.ts",
+    "*/scripts/**/*.mjs",
+    "*/scripts/**/*.cjs",
+    "../.github/**/*.mjs"
+  ]
+}

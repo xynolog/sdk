@@ -36,8 +36,13 @@ const ROOTS = process.argv.slice(2).length
   ? process.argv.slice(2).map((root) => root.replace(/\/+$/, ''))
   : ['typescript/react-ui/src'];
 
-/** Every .css under a root. */
+/**
+ * Every .css under a root.
+ *
+ * @param {string} root
+ */
 const cssFiles = (root) => REPOSITORY.filter((file) => file.startsWith(`${root}/`) && file.endsWith('.css'));
+/** @param {string} file */
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
 
 const DEFINITION = /^\s*(--[a-zA-Z0-9_-]+)\s*:/gm;

@@ -96,11 +96,19 @@ const UTILITY_CLASS_PATTERNS = [
 ];
 
 /**
+ * @typedef {{ file: string, line: number, pattern: string, className: string }} Violation
+ */
+
+/**
  * Extract className values from a file and return matches with line numbers
+ *
+ * @param {string} filePath
+ * @returns {Violation[]}
  */
 function checkFileForUtilityClasses(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.split('\n');
+  /** @type {Violation[]} */
   const violations = [];
 
   lines.forEach((line, lineIndex) => {
@@ -184,6 +192,7 @@ function main() {
   }
 
   // Group violations by file
+  /** @type {Record<string, Violation[]>} */
   const byFile = {};
   for (const v of allViolations) {
     const relativePath = path.relative(process.cwd(), v.file);

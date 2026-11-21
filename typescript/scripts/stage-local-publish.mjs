@@ -1,5 +1,5 @@
 /** Copy local publication inputs, including built artifacts, without stamping the checkout. */
-import { cpSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { verifyPublication } from './publication-inputs.mjs';
@@ -15,6 +15,7 @@ for (const entry of Object.values(version.packages).filter((entry) => entry.publ
   verifyPublication(join(root, entry.dir), manifest, entry.dir);
 }
 if (operation === 'stage') {
+  /** @param {string} relative */
   const copy = (relative) => {
     const target = join(destination, relative);
     mkdirSync(dirname(target), { recursive: true });

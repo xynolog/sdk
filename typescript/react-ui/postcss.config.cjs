@@ -25,7 +25,7 @@ module.exports = {
     // Handle @import statements (critical for our modular structure)
     'postcss-import': {
       path: ['src/styles'],
-      resolve: (id, basedir) => {
+      resolve: (/** @type {string} */ id) => {
         // Handle relative imports
         if (id.startsWith('./')) {
           return id;
