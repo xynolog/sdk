@@ -185,10 +185,33 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-haskell-
 
+      # Restored, the image is loaded rather than built. This job saves it,
+      # once every dependency is built in it, when it had to build it.
+      - name: Restore the Haskell toolchain's image
+        id: haskell-image
+        if: matrix.language == 'haskell'
+        uses: ./.github/actions/restore-haskell-toolchain-image
+
       - name: Build Haskell's dependencies into Cabal's store
         id: dependencies
         if: matrix.language == 'haskell'
         run: bash scripts/make-target.sh haskell-dependencies
+
+      - name: Archive the Haskell toolchain's image
+        if: github.event_name == 'push' && steps.dependencies.outcome == 'success' && steps.haskell-image.outputs.cache-hit != 'true'
+        env:
+          ARCHIVE: ${{ steps.haskell-image.outputs.path }}/image.tar
+          IMAGE: ${{ steps.haskell-image.outputs.tag }}
+        run: |
+          mkdir -p "$(dirname "$ARCHIVE")"
+          docker save --output "$ARCHIVE" "$IMAGE"
+
+      - name: Save the Haskell toolchain's image
+        if: github.event_name == 'push' && steps.dependencies.outcome == 'success' && steps.haskell-image.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ${{ steps.haskell-image.outputs.path }}
+          key: ${{ steps.haskell-image.outputs.cache-primary-key }}
 
       # The Haskell target keeps the package's build directory here
       # (scripts/make-target.sh). Each state of the package's sources has a
