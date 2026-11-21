@@ -23,7 +23,12 @@ if (!version) {
   process.exit(1);
 }
 
+/** @param {string} p */
 const read = (p) => JSON.parse(readFileSync(resolve(rootDir, p), 'utf-8'));
+/**
+ * @param {string} p
+ * @param {unknown} data
+ */
 const write = (p, data) => writeFileSync(resolve(rootDir, p), JSON.stringify(data, null, 2) + '\n');
 
 const versionJson = read('version.json');

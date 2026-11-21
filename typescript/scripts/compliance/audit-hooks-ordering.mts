@@ -59,10 +59,7 @@ class HooksOrderingAuditor {
   /**
    * Check if node is inside a conditional expression (ternary or logical &&)
    */
-  private isInConditionalJSX(
-    node: ts.Node,
-    sourceFile: ts.SourceFile,
-  ): boolean {
+  private isInConditionalJSX(node: ts.Node): boolean {
     let current: ts.Node | undefined = node;
 
     while (current) {
@@ -129,7 +126,7 @@ class HooksOrderingAuditor {
     while (current) {
       // We are interested in function literals (arrow or traditional) …
       if (ts.isArrowFunction(current) || ts.isFunctionExpression(current)) {
-        const parent = current.parent;
+        const parent: ts.Node | undefined = current.parent;
         // … that appear as the first argument of a useCallback/useMemo call.
         if (
           parent &&
@@ -159,10 +156,7 @@ class HooksOrderingAuditor {
     if (this.isHookCall(node) && ts.isCallExpression(node)) {
       const hookName = this.getHookName(node);
 
-      if (
-        this.isInlineJSXProp(node) &&
-        this.isInConditionalJSX(node, sourceFile)
-      ) {
+      if (this.isInlineJSXProp(node) && this.isInConditionalJSX(node)) {
         const { line, character } = sourceFile.getLineAndCharacterOfPosition(
           node.getStart(),
         );

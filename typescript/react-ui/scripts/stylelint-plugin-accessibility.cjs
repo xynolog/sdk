@@ -1,6 +1,8 @@
 const stylelint = require('stylelint');
 const { report, ruleMessages, validateOptions } = stylelint.utils;
 
+/** @typedef {Parameters<ReturnType<import('stylelint').RuleBase>>[0]} Root */
+
 const ruleName = 'xynolog/accessibility';
 const messages = ruleMessages(ruleName, {
   missingFocusVisible: (selector) => `Missing :focus-visible styles for interactive element "${selector}". Add keyboard focus indicators.`,
@@ -50,6 +52,7 @@ const INTERACTIVE_PATTERNS = [
 ];
 
 // Check if selector is for an interactive element
+/** @param {string} selector */
 function isInteractiveElement(selector) {
   // Skip pseudo-states and modifiers - we only check base selectors
   if (selector.includes(':hover') ||
@@ -106,6 +109,11 @@ function isInteractiveElement(selector) {
 }
 
 // Check if selector has focus styles
+/**
+ * @param {string} selector
+ * @param {Root} root
+ * @returns {boolean}
+ */
 function hasFocusStyles(selector, root) {
   const focusSelectors = [
     `${selector}:focus`,
@@ -143,6 +151,7 @@ function hasFocusStyles(selector, root) {
 }
 
 // Check for potentially problematic color values
+/** @param {string} value */
 function hasColorContrastRisk(value) {
   // Skip pure white and black as they typically have good contrast
   if (value === '#fff' || value === '#ffffff' || value === 'white' ||
@@ -162,6 +171,7 @@ function hasColorContrastRisk(value) {
 }
 
 // Check if file contains reduced motion media query
+/** @param {Root} root */
 function hasReducedMotionSupport(root) {
   let hasSupport = false;
   root.walkAtRules('media', (atRule) => {
@@ -172,9 +182,8 @@ function hasReducedMotionSupport(root) {
   return hasSupport;
 }
 
-const plugin = stylelint.createPlugin(
-  ruleName,
-  (primaryOption, secondaryOptions, context) => {
+/** @type {import('stylelint').RuleBase<boolean>} */
+const ruleFunction = (primaryOption) => {
     return (root, result) => {
       const validOptions = validateOptions(result, ruleName, {
         actual: primaryOption,
@@ -453,15 +462,13 @@ const plugin = stylelint.createPlugin(
                   });
                   return false; // Only report once per selector
                 }
+                return undefined;
               });
             }
           });
         });
       }
     };
-  }
-);
+};
 
-module.exports = plugin;
-module.exports.ruleName = ruleName;
-module.exports.messages = messages;
+module.exports = stylelint.createPlugin(ruleName, Object.assign(ruleFunction, { ruleName, messages }));

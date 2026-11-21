@@ -1,4 +1,5 @@
 """An independent native flock holder, driven by explicit pipe barriers."""
+
 import fcntl
 import os
 import sys

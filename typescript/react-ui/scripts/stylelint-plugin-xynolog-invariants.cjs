@@ -102,16 +102,19 @@ const TAILWIND_PATTERNS = [
 ];
 
 // Check if a class is a Tailwind utility
+/** @param {string} className */
 function isTailwindClass(className) {
   return TAILWIND_PATTERNS.some(pattern => pattern.test(className));
 }
 
 // Check if we're in a react-ui package file
+/** @param {string} filename */
 function isReactUIFile(filename) {
   return filename && filename.includes('typescript/react-ui');
 }
 
 // Check if file should be skipped
+/** @param {string} filename */
 function shouldSkipFile(filename) {
   const skipPatterns = [
     '.module.css',
@@ -128,6 +131,7 @@ function shouldSkipFile(filename) {
 }
 
 // Check if a class follows xynolog- naming convention
+/** @param {string} className */
 function isValidXynologClass(className) {
   // Allow certain exceptions for legitimate non-xynolog classes
   const exceptions = [
@@ -157,6 +161,7 @@ function isValidXynologClass(className) {
 }
 
 // Check for hardcoded colors
+/** @param {string} value */
 function hasHardcodedColor(value) {
   const hardcodedPatterns = [
     /^#[0-9a-f]{3,6}$/i, // Hex colors
@@ -185,6 +190,7 @@ function hasHardcodedColor(value) {
 }
 
 // Check if a property typically needs dark theme support
+/** @param {string} prop */
 function needsDarkThemeSupport(prop) {
   const themeProperties = [
     'background-color',
@@ -205,6 +211,7 @@ function needsDarkThemeSupport(prop) {
 // their own. Keeps the dark-variant invariant from demanding duplicate rules
 // that change nothing — a rule mixing one of these with a real color still
 // warns, because the real color is what needs the variant.
+/** @param {string} value */
 function isThemeIndependentValue(value) {
   const normalized = value
     .replace(/\s*!important\s*$/i, '')
@@ -225,6 +232,7 @@ function isThemeIndependentValue(value) {
 /** The one token file whose `[data-theme="dark"]` block defines what "themed" means. */
 const TOKEN_FILE = path.resolve(__dirname, '../src/styles/variables.css');
 
+/** @type {Set<string> | null} */
 let themeAwareTokens = null;
 
 /**
@@ -272,6 +280,7 @@ function getThemeAwareTokens() {
  * hardcoded colours. A value mixing the two warns, because the fixed part is
  * what needs the variant.
  */
+/** @param {string} value */
 function isThemeAwareValue(value) {
   const tokens = [...value.matchAll(/var\(\s*(--[a-zA-Z0-9_-]+)/g)].map((m) => m[1]);
   if (tokens.length === 0) return false;
@@ -287,9 +296,8 @@ function isThemeAwareValue(value) {
   return !outside.split(/[\s,/]+/).filter(Boolean).some(hasHardcodedColor);
 }
 
-const plugin = stylelint.createPlugin(
-  ruleName,
-  (primaryOption, secondaryOptions, context) => {
+/** @type {import('stylelint').RuleBase<boolean>} */
+const ruleFunction = (primaryOption) => {
     return (root, result) => {
       const validOptions = validateOptions(result, ruleName, {
         actual: primaryOption,
@@ -440,9 +448,6 @@ const plugin = stylelint.createPlugin(
         });
       }
     };
-  }
-);
+};
 
-module.exports = plugin;
-module.exports.ruleName = ruleName;
-module.exports.messages = messages;
+module.exports = stylelint.createPlugin(ruleName, Object.assign(ruleFunction, { ruleName, messages }));

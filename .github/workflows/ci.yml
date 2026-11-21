@@ -405,6 +405,20 @@ jobs:
           path: ${{ steps.protocol-bundles.outputs.path }}
           key: ${{ steps.protocol-bundles.outputs.cache-primary-key }}
 
+  tooling:
+    name: The repository's own scripts and configs are typechecked and linted
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source and build tools
+        uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Typecheck, lint and format-check the tooling
+        run: make test-tooling
+
   # No dependency in any lockfile has a published advisory that advisories.toml
   # does not ignore with a reason, and no ignore outlives its finding
   # (build-tools/advisories.py).
@@ -450,7 +464,7 @@ jobs:
   gate:
     name: CI Gate
     if: always()
-    needs: [dco, labels, checks, artifacts, tests, generated, codegen, advisories, crates]
+    needs: [dco, labels, checks, artifacts, tests, generated, codegen, tooling, advisories, crates]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1

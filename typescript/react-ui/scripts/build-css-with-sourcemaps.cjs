@@ -30,6 +30,10 @@ const colors = {
   red: '\x1b[31m'
 };
 
+/**
+ * @param {string} message
+ * @param {keyof typeof colors} [color]
+ */
 function log(message, color = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
@@ -52,6 +56,7 @@ function checkDependencies() {
     'autoprefixer'
   ];
 
+  /** @type {string[]} */
   const missingPackages = [];
 
   requiredPackages.forEach(pkg => {
@@ -69,6 +74,10 @@ function checkDependencies() {
   }
 }
 
+/**
+ * @param {typeof PACKAGES[number]} pkg
+ * @param {boolean} [watch]
+ */
 function buildCSS(pkg, watch = false) {
   const startTime = Date.now();
   log(`Building CSS for ${pkg.name}...`, 'blue');
@@ -127,7 +136,7 @@ function buildCSS(pkg, watch = false) {
       }
     }
   } catch (error) {
-    log(`Failed to build ${pkg.name}: ${error.message}`, 'red');
+    log(`Failed to build ${pkg.name}: ${error instanceof Error ? error.message : String(error)}`, 'red');
     process.exit(1);
   }
 }

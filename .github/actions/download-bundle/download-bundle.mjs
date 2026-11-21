@@ -50,16 +50,25 @@ try {
   rmSync(temporaryDir, { recursive: true, force: true });
 }
 
+/**
+ * @param {string} name
+ * @returns {string}
+ */
 function required(name) {
   const value = process.env[name];
   if (!value) fail(`${name} is required`);
   return value;
 }
 
+/** @param {Buffer} value */
 function hash(value) {
   return createHash('sha256').update(value).digest('hex');
 }
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(message);
   process.exit(1);

@@ -17,7 +17,7 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
-import { glob } from 'glob';
+import { globSync } from 'node:fs';
 
 interface DiscoveredSymbol {
   name: string;
@@ -31,9 +31,9 @@ class SymbolDiscoverer {
   private symbols: DiscoveredSymbol[] = [];
 
   async discoverInDirectory(srcDir: string): Promise<DiscoveredSymbol[]> {
-    const files = await glob('**/*.{ts,tsx}', {
+    const files = globSync('**/*.{ts,tsx}', {
       cwd: srcDir,
-      ignore: [
+      exclude: [
         '**/*.test.{ts,tsx}',
         '**/__tests__/**',
         '**/*.spec.{ts,tsx}',
@@ -41,7 +41,6 @@ class SymbolDiscoverer {
         '**/dist/**',
         '**/build/**',
       ],
-      absolute: false,
     });
 
     console.error(`Found ${files.length} source files to analyze`);

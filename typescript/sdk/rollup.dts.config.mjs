@@ -27,6 +27,7 @@ const externalPackages = new Set([
   ...builtinModules,
 ]);
 
+/** @param {string} id */
 function isExternal(id) {
   // Asset side-effect imports (`import './Toast.css'`) appear in .d.ts
   // shards when a source module does `import './foo.css'`. They are
@@ -46,6 +47,7 @@ function isExternal(id) {
 // inlined classes are NOMINALLY distinct, so consumers holding index types
 // couldn't pass them where testing types are expected (found via react-ui's
 // welcome pilot; same fix as core's rollup.dts.config.mjs, same day).
+/** @returns {import('rollup').Plugin} */
 function testingSelfExternal() {
   return {
     name: 'testing-self-external',

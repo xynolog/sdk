@@ -11,13 +11,14 @@
  * We publish every package at every version, so an exact pin always resolves —
  * see https://github.com/xynolog/docs/blob/main/contributor/DEPENDENCIES.md#how-the-sdks-packages-depend-on-each-other.
  *
- * @param {object} json    a parsed package.json (mutated in place)
+ * @param {Partial<Record<'dependencies' | 'devDependencies' | 'peerDependencies', Record<string, string>>>} json
+ *   a parsed package.json (mutated in place)
  * @param {string} version the exact release version, e.g. "0.5.8"
  * @returns {boolean} true if any dependency was changed
  */
 export function stampInternalDeps(json, version) {
   let changed = false;
-  for (const section of ['dependencies', 'devDependencies', 'peerDependencies']) {
+  for (const section of /** @type {const} */ (['dependencies', 'devDependencies', 'peerDependencies'])) {
     const deps = json[section];
     if (!deps) continue;
     for (const name of Object.keys(deps)) {

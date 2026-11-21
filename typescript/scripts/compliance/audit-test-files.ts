@@ -12,6 +12,15 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
 
+// The list in `mockedTypes` each kind of mock is recorded under.
+const MOCKED_TYPE_KEYS = {
+  hook: 'hooks',
+  component: 'components',
+  api: 'apis',
+  browserAPI: 'browserAPIs',
+  utility: 'utilities',
+} as const;
+
 export interface TestFileAnalysis {
   filePath: string;
   mocksComponents: boolean;
@@ -209,19 +218,15 @@ export class TestFileAuditor {
 
   private addMockToType(
     analysis: TestFileAnalysis,
-    type: 'hook' | 'component' | 'api' | 'browserAPI' | 'utility',
+    type: keyof typeof MOCKED_TYPE_KEYS,
     target: string,
   ) {
     // Extract just the file/module name from the path
     const name = target.split('/').pop() || target;
 
-    // Ensure the array exists before checking
-    if (!analysis.mockedTypes[type]) {
-      analysis.mockedTypes[type] = [];
-    }
-
-    if (!analysis.mockedTypes[type].includes(name)) {
-      analysis.mockedTypes[type].push(name);
+    const mocked = analysis.mockedTypes[MOCKED_TYPE_KEYS[type]];
+    if (!mocked.includes(name)) {
+      mocked.push(name);
     }
   }
 }

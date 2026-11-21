@@ -2,18 +2,25 @@
 
 import json
 import os
-from pathlib import Path
 import stat
 import subprocess
 import sys
+from pathlib import Path
 
 policy_path, directory, filename = sys.argv[1:]
 policy = json.loads(Path(policy_path).read_text())
 if os.name == "nt":
     subprocess.run(
         [
-            "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
-            str(Path(__file__).with_suffix(".ps1")), policy_path, directory, filename,
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(Path(__file__).with_suffix(".ps1")),
+            policy_path,
+            directory,
+            filename,
         ],
         check=True,
     )

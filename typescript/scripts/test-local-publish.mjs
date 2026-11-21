@@ -11,6 +11,10 @@ function fixture() {
   const directory = mkdtempSync(join(tmpdir(), 'xynolog-local-publication-'));
   const source = join(directory, 'source');
   const stage = join(directory, 'stage');
+  /**
+   * @param {string} path
+   * @param {string} text
+   */
   const put = (path, text) => { mkdirSync(dirname(join(source, path)), { recursive: true }); writeFileSync(join(source, path), text); };
   const version = JSON.parse(readFileSync(join(root, 'version.json'), 'utf8'));
   put('version.json', JSON.stringify(version));
@@ -20,9 +24,11 @@ function fixture() {
   for (const entry of Object.values(version.packages)) {
     put(`${entry.dir}/package.json`, readFileSync(join(root, entry.dir, 'package.json'), 'utf8'));
     if (entry.publish && !entry.stage) {
+      /** @type {{ main?: string, types?: string, exports?: unknown, bin?: unknown, files: string[] }} */
       const manifest = JSON.parse(readFileSync(join(root, entry.dir, 'package.json'), 'utf8'));
+      /** @type {(value: unknown) => string[]} */
       const strings = (value) => typeof value === 'string' ? [value] : value && typeof value === 'object' ? Object.values(value).flatMap(strings) : [];
-      for (const path of [manifest.main, manifest.types, ...strings(manifest.exports), ...strings(manifest.bin)].filter(Boolean)) {
+      for (const path of [manifest.main, manifest.types, ...strings(manifest.exports), ...strings(manifest.bin)].flatMap((path) => path ? [path] : [])) {
         put(`${entry.dir}/${path.replaceAll('*', 'fixture')}`, 'built artifact');
       }
       for (const path of manifest.files.filter((path) => !path.startsWith('!'))) {
@@ -31,6 +37,7 @@ function fixture() {
       }
     }
   }
+  /** @param {string[]} args */
   const run = (...args) => spawnSync(process.execPath, [join(source, 'typescript/scripts/stage-local-publish.mjs'), ...args], { encoding: 'utf8' });
   return { directory, source, stage, run, version };
 }

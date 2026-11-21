@@ -15,7 +15,7 @@
 import { dts } from 'rollup-plugin-dts';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { basename, dirname, resolve } from 'node:path';
 import { builtinModules } from 'node:module';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -27,6 +27,7 @@ const externalPackages = new Set([
   ...builtinModules,
 ]);
 
+/** @param {string} id */
 function isExternal(id) {
   // Asset side-effect imports (`import './Toast.css'`) appear in .d.ts
   // shards when a source module does `import './foo.css'`. They are
@@ -57,15 +58,16 @@ function isExternal(id) {
 // distinct `FaultyTransport`, and a consumer holding one from
 // `@xynolog/core/testing` could not pass it where the axiom harness expects
 // one. That is the same nominal-inlining bug, one level over.
+/**
+ * @param {{ ownShards: Set<string>, redirects?: Record<string, string> }} shards
+ * @returns {import('rollup').Plugin}
+ */
 function selfExternal({ ownShards, redirects = {} }) {
   return {
     name: 'dts-self-external',
     resolveId(source, importer) {
       if (!importer || !source.startsWith('.')) return null;
-      const base = resolve(dirname(importer), source)
-        .replace(/\.d\.ts$/, '')
-        .split('/')
-        .pop();
+      const base = basename(resolve(dirname(importer), source).replace(/\.d\.ts$/, ''));
       if (ownShards.has(base)) return null;
       return { id: redirects[base] ?? '@xynolog/core', external: true };
     },

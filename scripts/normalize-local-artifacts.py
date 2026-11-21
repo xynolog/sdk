@@ -5,10 +5,8 @@ import gzip
 import os
 import sys
 import tarfile
-import tempfile
 import zipfile
 from pathlib import Path
-
 
 EPOCH = (1980, 1, 1, 0, 0, 0)
 
@@ -33,31 +31,33 @@ def normalize_tar_gz(path: Path) -> None:
     temporary = path.with_name(path.name + ".normalized")
     with tarfile.open(path, "r:gz") as source:
         members = sorted(source.getmembers(), key=lambda item: item.name)
-        with temporary.open("wb") as raw:
-            with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as compressed:
-                with tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as target:
-                    for original in members:
-                        item = tarfile.TarInfo(original.name)
-                        item.type = original.type
-                        item.linkname = original.linkname
-                        item.mode = original.mode
-                        item.uid = 0
-                        item.gid = 0
-                        item.uname = ""
-                        item.gname = ""
-                        item.mtime = 0
-                        item.devmajor = original.devmajor
-                        item.devminor = original.devminor
-                        item.pax_headers = {}
-                        if original.isfile():
-                            stream = source.extractfile(original)
-                            if stream is None:
-                                raise ValueError(f"cannot read archive member {original.name}")
-                            item.size = original.size
-                            target.addfile(item, stream)
-                        else:
-                            item.size = 0
-                            target.addfile(item)
+        with (
+            temporary.open("wb") as raw,
+            gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as compressed,
+            tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as target,
+        ):
+            for original in members:
+                item = tarfile.TarInfo(original.name)
+                item.type = original.type
+                item.linkname = original.linkname
+                item.mode = original.mode
+                item.uid = 0
+                item.gid = 0
+                item.uname = ""
+                item.gname = ""
+                item.mtime = 0
+                item.devmajor = original.devmajor
+                item.devminor = original.devminor
+                item.pax_headers = {}
+                if original.isfile():
+                    stream = source.extractfile(original)
+                    if stream is None:
+                        raise ValueError(f"cannot read archive member {original.name}")
+                    item.size = original.size
+                    target.addfile(item, stream)
+                else:
+                    item.size = 0
+                    target.addfile(item)
     os.replace(temporary, path)
 
 

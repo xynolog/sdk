@@ -1,9 +1,8 @@
 """Normalize HPC LCOV paths without changing line, function or branch counts."""
 
 import os
-from pathlib import Path
 import sys
-
+from pathlib import Path
 
 report = Path(sys.argv[1]).resolve()
 root = Path(__file__).resolve().parents[1]

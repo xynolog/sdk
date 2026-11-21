@@ -1,5 +1,7 @@
 """A real HTTP/SSE peer; route and response shapes come from the protocol."""
 
+import contextlib
+import email.message
 import email.parser
 import http.server
 import json
@@ -8,6 +10,27 @@ import queue
 import socket
 import sys
 import threading
+from collections.abc import Sequence
+from typing import Literal, TypedDict, override
+
+
+class State(TypedDict):
+    requests: list[dict[str, object]]
+    subscriptions: list[object]
+    uploads: list[dict[str, object]]
+    disconnected: int
+    bodyClosed: int
+    headersClosed: int
+
+
+class Controls(TypedDict):
+    """What a test sets through /test/config."""
+
+    uploadStatuses: list[int]
+    emitStatuses: list[int]
+    subscribeFailures: list[int]
+    subscribeRetryAfter: str
+    refusedOperations: list[str]
 
 
 root = pathlib.Path(sys.argv[1])
@@ -15,7 +38,7 @@ fixtures = json.loads(pathlib.Path(sys.argv[2]).read_text())
 specs = root / "protocol/specs/src"
 spec = json.loads((specs / "openapi.json").read_text())
 registry = json.loads((specs / "bus/registry.json").read_text())
-routes = {}
+routes: dict[str, tuple[str, str]] = {}
 for path, item in spec["paths"].items():
     document = json.loads((specs / item["$ref"]).read_text())
     for method, operation in document.items():
@@ -23,23 +46,30 @@ for path, item in spec["paths"].items():
             routes[operation["operationId"]] = (method.upper(), path)
 operations = {row["request"]: row for row in registry["operations"]}
 channels = {row["channel"]: row for row in registry["channels"]}
-state = {"requests": [], "subscriptions": [], "uploads": [], "disconnected": 0, "bodyClosed": 0, "headersClosed": 0}
-controls = {"uploadStatuses": [], "emitStatuses": [], "subscribeFailures": [], "subscribeRetryAfter": "0", "refusedOperations": []}
+state: State = {"requests": [], "subscriptions": [], "uploads": [], "disconnected": 0, "bodyClosed": 0, "headersClosed": 0}
+controls: Controls = {
+    "uploadStatuses": [],
+    "emitStatuses": [],
+    "subscribeFailures": [],
+    "subscribeRetryAfter": "0",
+    "refusedOperations": [],
+}
 subscribe_ready = threading.Event()
 subscribe_ready.set()
 gate = threading.Lock()
-listeners = []
+listeners: list[tuple[dict[str, object], queue.Queue[tuple[object, str]]]] = []
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
-    def log_message(self, *_args):
+    @override
+    def log_message(self, format: str, *args: object) -> None:
         pass
 
-    def read_body(self):
+    def read_body(self) -> bytes:
         if self.headers.get("Transfer-Encoding") == "chunked":
-            chunks = []
+            chunks: list[bytes] = []
             while True:
                 size = int(self.rfile.readline().strip(), 16)
                 if not size:
@@ -49,7 +79,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 assert self.rfile.read(2) == b"\r\n"
         return self.rfile.read(int(self.headers.get("Content-Length", 0)))
 
-    def reply(self, body, status=200, media="application/json", headers=()):
+    def reply(self, body: object, status: int = 200, media: str = "application/json", headers: Sequence[tuple[str, str]] = ()) -> None:
         encoded = body if isinstance(body, bytes) else json.dumps(body).encode()
         self.send_response(status)
         self.send_header("Content-Type", media)
@@ -60,7 +90,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(encoded)
         self.wfile.flush()
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         if self.path == "/test/state":
             with gate:
                 snapshot = json.loads(json.dumps(state))
@@ -68,10 +98,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return
         self.handle_request(b"")
 
-    def do_POST(self):
+    def do_POST(self) -> None:
         self.handle_request(self.read_body())
 
-    def handle_request(self, raw):
+    def handle_request(self, raw: bytes) -> None:
         if self.path == "/test/config":
             configuration = json.loads(raw)
             with gate:
@@ -86,11 +116,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if self.path == "/test/publish":
             publication = json.loads(raw)
             with gate:
-                for _, received in listeners:
-                    received.put((publication["frame"], publication["id"]))
+                for _, listener in listeners:
+                    listener.put((publication["frame"], publication["id"]))
             self.reply({})
             return
-        record = {"path": self.path, "method": self.command, "token": self.headers.get("Authorization"), "key": self.headers.get("Idempotency-Key"), "headers": {key.lower(): value for key, value in self.headers.items()}}
+        record: dict[str, object] = {
+            "path": self.path,
+            "method": self.command,
+            "token": self.headers.get("Authorization"),
+            "key": self.headers.get("Idempotency-Key"),
+            "headers": {key.lower(): value for key, value in self.headers.items()},
+        }
         with gate:
             state["requests"].append(record)
         if self.path == routes["subscribeToBus"][1]:
@@ -103,9 +139,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 refusal = failures.pop(0) if failures else None
                 retry_after = controls["subscribeRetryAfter"]
             if refusal:
-                self.reply({"error": "stream credential refused" if refusal == 401 else "stream temporarily unavailable"}, refusal, headers=[("Retry-After", retry_after)])
+                self.reply(
+                    {"error": "stream credential refused" if refusal == 401 else "stream temporarily unavailable"},
+                    refusal,
+                    headers=[("Retry-After", retry_after)],
+                )
                 return
-            received = queue.Queue()
+            received: queue.Queue[tuple[object, str]] = queue.Queue()
             with gate:
                 state["subscriptions"].append(body)
                 listeners.append((body, received))
@@ -151,18 +191,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if operation:
                 result = operation["failure"] if body["channel"] in controls["refusedOperations"] else operation["result"]
                 channel = channels[result]
-                payload = {} if channel["shape"] in ("empty", "void") else fixtures[channel["schema"]]
+                payload: dict[str, object] = {} if channel["shape"] in ("empty", "void") else fixtures[channel["schema"]]
                 frame = {"channel": result, "correlationId": body["correlationId"], "payload": payload}
                 with gate:
                     for subscription, received in listeners:
                         if subscription["clientId"] == body["clientId"]:
-                            received.put((frame, "e-" + frame["channel"] + ":" + frame["correlationId"]))
+                            received.put((frame, "e-" + result + ":" + body["correlationId"]))
             self.reply({"subscribers": 1}, 202)
             return
         if self.path == routes["uploadResource"][1]:
             assert record["key"], "upload has no idempotency key"
-            message = email.parser.BytesParser().parsebytes(("Content-Type: " + self.headers["Content-Type"] + "\r\nMIME-Version: 1.0\r\n\r\n").encode() + raw)
-            parts = {part.get_param("name", header="Content-Disposition"): part.get_payload(decode=True).decode() for part in message.get_payload()}
+            message = email.parser.BytesParser().parsebytes(
+                ("Content-Type: " + self.headers["Content-Type"] + "\r\nMIME-Version: 1.0\r\n\r\n").encode() + raw
+            )
+            parts: dict[str, str] = {}
+            for part in message.get_payload():
+                assert isinstance(part, email.message.Message)
+                name = part.get_param("name", header="Content-Disposition")
+                content = part.get_payload(decode=True)
+                assert isinstance(name, str)
+                assert isinstance(content, bytes)
+                parts[name] = content.decode()
             with gate:
                 state["uploads"].append({"parts": parts, "key": record["key"], "token": record["token"]})
                 statuses = controls["uploadStatuses"]
@@ -174,7 +223,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
             else:
                 self.reply(fixtures["CreateResourceResponse"], 202)
             return
-        for operation, schema in [("getHealth", "HealthResponse"), ("getCurrentUser", "UserResponse"), ("getStatus", "StatusResponse"), ("getProtectedResourceMetadata", "ProtectedResourceMetadata"), ("createMediaToken", "MediaTokenResponse")]:
+        for operation, schema in [
+            ("getHealth", "HealthResponse"),
+            ("getCurrentUser", "UserResponse"),
+            ("getStatus", "StatusResponse"),
+            ("getProtectedResourceMetadata", "ProtectedResourceMetadata"),
+            ("createMediaToken", "MediaTokenResponse"),
+        ]:
             if self.path == routes[operation][1]:
                 self.reply(fixtures[schema])
                 return
@@ -186,7 +241,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             suffix = self.path.rsplit("/", 1)[-1]
             schemas = {"jsonld": "GetResourceResponse", "annotations": "GetAnnotationsResponse", "anchored-text": "AnchoredTextAnswer"}
             if suffix in schemas:
-                if self.path[len(content_prefix):].split("/", 1)[0] == "malformed":
+                if self.path[len(content_prefix) :].split("/", 1)[0] == "malformed":
                     self.reply(b"invalid", media="application/json")
                 else:
                     self.reply(fixtures[schemas[suffix]])
@@ -202,12 +257,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     self.wfile.flush()
                 self.connection.settimeout(10)
                 # A client that closes with response bytes still unread resets the connection instead of ending it.
-                try:
+                with contextlib.suppress(ConnectionResetError):
                     assert self.connection.recv(1) == b"", "an abandoned response socket was reused"
-                except ConnectionResetError:
-                    pass
+                closed: Literal["bodyClosed", "headersClosed"] = "bodyClosed" if suffix == "body" else "headersClosed"
                 with gate:
-                    state[suffix + "Closed"] += 1
+                    state[closed] += 1
             else:
                 self.reply("hello λ".encode(), media="text/plain; charset=utf-8")
             return

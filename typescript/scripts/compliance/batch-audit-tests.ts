@@ -8,7 +8,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { glob } from 'glob';
+import { globSync } from 'node:fs';
 import { TestFileAuditor, TestFileAnalysis } from './audit-test-files';
 
 interface TestComplianceRow {
@@ -63,7 +63,7 @@ function isFileBypassed(
 function findTestFiles(rootDir: string): string[] {
   // Find all test files: **/__tests__/*.test.tsx and *.test.ts
   const pattern = `${rootDir}/**/__tests__/*.test.{ts,tsx}`;
-  return glob.sync(pattern);
+  return globSync(pattern);
 }
 
 function analyzeAndFormat(
