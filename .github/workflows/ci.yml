@@ -155,6 +155,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-kotlin-
 
+      # The Swift target keeps SwiftPM's build directory here
+      # (scripts/make-target.sh). Each toolchain has caches of its own: one
+      # compiler's modules are no use to another. It is saved only after checks
+      # that pass, as Gradle's home is.
+      - name: Restore SwiftPM's checkouts and built dependencies
+        id: swift
+        if: matrix.language == 'swift'
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ~/.cache/xynolog/swift-build
+          key: ${{ runner.os }}-${{ runner.arch }}-swift-${{ hashFiles('swift/sdk/.swift-version') }}-${{ hashFiles('swift/sdk/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-swift-${{ hashFiles('swift/sdk/.swift-version') }}-
+
       - name: Run the language's tests, type checks, lints and format checks
         id: checks
         run: make "test-$LANGUAGE"
@@ -172,6 +186,13 @@ jobs:
         with:
           path: ~/.cache/xynolog/kotlin-gradle
           key: ${{ steps.gradle.outputs.cache-primary-key }}
+
+      - name: Save SwiftPM's checkouts and built dependencies
+        if: matrix.language == 'swift' && steps.checks.outcome == 'success' && steps.swift.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ~/.cache/xynolog/swift-build
+          key: ${{ steps.swift.outputs.cache-primary-key }}
 
       - name: Upload coverage to Codecov
         if: matrix.language == 'go'
