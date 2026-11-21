@@ -152,7 +152,7 @@ run_container_quietly "$RUNTIME" run --rm --memory 4g --volume "$ROOT/ocaml/sdk:
     sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libgmp-dev pkg-config >/dev/null
     cp -a /source /tmp/sdk && cd /tmp/sdk
     rm -rf /home/opam/.opam/5.5/.opam-switch/sources/uring.2.15.0
-    OPAMJOBS=1 opam install . --deps-only -y
+    opam install . --deps-only -y --jobs "$(nproc)"
     eval "$(opam env)"
     dune build -p xynolog @install
     version="$XYNOLOG_SDK_VERSION"
