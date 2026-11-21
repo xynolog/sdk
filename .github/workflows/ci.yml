@@ -98,6 +98,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Restore the OCaml toolchain's image
+        uses: ./.github/actions/restore-ocaml-toolchain-image
+
       # The Protocol bundles are written in the generator's workspace. The
       # codegen job saves its cache.
       - name: Restore dune's build of the generator's locked packages
@@ -214,6 +217,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-swift-${{ hashFiles('swift/sdk/.swift-version') }}-
 
+      # Go's, Swift's and Haskell's tests run no OCaml toolchain container, and
+      # restore its image and dune cache all the same: a list of those that do
+      # would restate scripts/make-target.sh.
+      - name: Restore the OCaml toolchain's image
+        uses: ./.github/actions/restore-ocaml-toolchain-image
+
       # OCaml's tests build the SDK's workspace, and save its cache once they
       # pass. The other languages restore the generator's, which builds the
       # Protocol bundles for those that read them.
@@ -282,6 +291,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Restore the OCaml toolchain's image
+        uses: ./.github/actions/restore-ocaml-toolchain-image
+
       # The codegen job saves the generator workspace's cache.
       - name: Restore dune's build of the generator's locked packages
         uses: ./.github/actions/restore-ocaml-dune-cache
@@ -302,6 +314,12 @@ jobs:
         with:
           submodules: recursive
 
+      # Every job that runs an OCaml toolchain container restores its image;
+      # this one saves it, once the generator's tests pass, when it built it.
+      - name: Restore the OCaml toolchain's image
+        id: image
+        uses: ./.github/actions/restore-ocaml-toolchain-image
+
       # Every job that builds the generator's workspace restores its cache;
       # this one saves it, once the generator's tests pass.
       - name: Restore dune's build of the generator's locked packages
@@ -320,6 +338,22 @@ jobs:
         with:
           path: ${{ steps.dune.outputs.path }}
           key: ${{ steps.dune.outputs.cache-primary-key }}
+
+      - name: Archive the OCaml toolchain's image
+        if: steps.tests.outcome == 'success' && steps.image.outputs.cache-hit != 'true'
+        env:
+          ARCHIVE: ${{ steps.image.outputs.path }}/image.tar
+          IMAGE: ${{ steps.image.outputs.tag }}
+        run: |
+          mkdir -p "$(dirname "$ARCHIVE")"
+          docker save --output "$ARCHIVE" "$IMAGE"
+
+      - name: Save the OCaml toolchain's image
+        if: steps.tests.outcome == 'success' && steps.image.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ${{ steps.image.outputs.path }}
+          key: ${{ steps.image.outputs.cache-primary-key }}
 
       - name: The bundle carries the generator
         run: |

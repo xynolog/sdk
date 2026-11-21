@@ -1,0 +1,42 @@
+name: Restore the OCaml toolchain's image
+description: >-
+  Load the image build-tools/ocaml/toolchain-image.sh tags by a digest of
+  what it is built from, from the cache a run saved it to, so the script
+  builds nothing. The codegen job saves it, with this action's tag, path and
+  key, when it had to build the image. The archive is deleted once loaded:
+  the runner's disk also holds the dune caches.
+outputs:
+  tag:
+    description: The image's tag, as toolchain-image.sh --tag prints it
+    value: ${{ steps.image.outputs.tag }}
+  path:
+    description: The directory the image's archive is saved in and restored to
+    value: ${{ steps.image.outputs.path }}
+  cache-hit:
+    description: Whether the image was restored
+    value: ${{ steps.restore.outputs.cache-hit }}
+  cache-primary-key:
+    description: The key a save of the image takes
+    value: ${{ steps.restore.outputs.cache-primary-key }}
+runs:
+  using: composite
+  steps:
+    - id: image
+      shell: bash
+      run: |
+        tag="$(bash build-tools/ocaml/toolchain-image.sh --tag)"
+        echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        echo "digest=${tag#*:}" >> "$GITHUB_OUTPUT"
+        echo "path=$HOME/.cache/xynolog/ocaml-toolchain-image" >> "$GITHUB_OUTPUT"
+    - id: restore
+      uses: actions/cache/restore@v6.1.0
+      with:
+        path: ${{ steps.image.outputs.path }}
+        key: ${{ runner.os }}-${{ runner.arch }}-ocaml-toolchain-image-${{ steps.image.outputs.digest }}
+    - if: steps.restore.outputs.cache-hit == 'true'
+      shell: bash
+      env:
+        ARCHIVE: ${{ steps.image.outputs.path }}/image.tar
+      run: |
+        docker load --input "$ARCHIVE"
+        rm "$ARCHIVE"
