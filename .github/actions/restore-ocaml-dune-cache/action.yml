@@ -2,8 +2,8 @@ name: Restore dune's build of a workspace's locked packages
 description: >-
   Restore the OCaml toolchain containers' dune cache of one dune workspace
   (scripts/ocaml-dune-cache.sh): its locked packages, the compiler first. One
-  job saves each workspace's, with this action's path and key, once its build
-  passed: a cache cut short would be an exact hit that no later run saves
+  job saves each workspace's, through save-ocaml-dune-cache with this action's
+  path and key, once its build passed: a cache cut short would be an exact hit that no later run saves
   over. No older key is restored, so a cache holds one lock's packages only.
 inputs:
   workspace:
