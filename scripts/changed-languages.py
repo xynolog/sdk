@@ -38,10 +38,7 @@ def mentions(reader: str, read: str) -> bool:
 
 
 def readers_of(languages: list[str]) -> dict[str, set[str]]:
-    return {
-        read: {reader for reader in languages if reader != read and mentions(reader, read)}
-        for read in languages
-    }
+    return {read: {reader for reader in languages if reader != read and mentions(reader, read)} for read in languages}
 
 
 def touched(paths: list[str], languages: list[str]) -> set[str]:

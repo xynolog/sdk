@@ -19,15 +19,28 @@ import json
 import sys
 
 PLATFORMS = {
-    "macos": "macOS", "ios": "iOS", "tvos": "tvOS", "watchos": "watchOS",
-    "visionos": "visionOS", "maccatalyst": "macCatalyst",
+    "macos": "macOS",
+    "ios": "iOS",
+    "tvos": "tvOS",
+    "watchos": "watchOS",
+    "visionos": "visionOS",
+    "maccatalyst": "macCatalyst",
 }
 LANGUAGE_MODES = {"5": ".v5", "6": ".v6"}
 UNSET_PACKAGE_KEYS = ("cLanguageStandard", "cxxLanguageStandard", "defaultLocalization", "pkgConfig", "providers")
-PACKAGE_KEYS = {"dependencies", "name", "packageKind", "platforms", "products", "swiftLanguageVersions", "targets",
-                "toolsVersion", "traits", *UNSET_PACKAGE_KEYS}
-TARGET_KEYS = {"dependencies", "exclude", "name", "packageAccess", "path", "pluginUsages", "resources", "settings",
-               "type"}
+PACKAGE_KEYS = {
+    "dependencies",
+    "name",
+    "packageKind",
+    "platforms",
+    "products",
+    "swiftLanguageVersions",
+    "targets",
+    "toolsVersion",
+    "traits",
+    *UNSET_PACKAGE_KEYS,
+}
+TARGET_KEYS = {"dependencies", "exclude", "name", "packageAccess", "path", "pluginUsages", "resources", "settings", "type"}
 
 
 def refuse(message: str) -> None:
@@ -121,8 +134,7 @@ def package_dependency(entry: dict) -> tuple:
     if set(entry) != {"sourceControl"} or len(entry["sourceControl"]) != 1:
         refuse(f"a package dependency that is not one source-control dependency: {entry}")
     control = entry["sourceControl"][0]
-    only_keys(f"dependency {control.get('identity')}", control,
-              {"identity", "location", "productFilter", "requirement", "traits"})
+    only_keys(f"dependency {control.get('identity')}", control, {"identity", "location", "productFilter", "requirement", "traits"})
     if control["productFilter"] is not None or control["traits"] != [{"name": "default"}]:
         refuse(f"dependency {control['identity']} filters products or chooses traits")
     location = control["location"]
@@ -166,8 +178,10 @@ def manifest(dump: dict) -> str:
     missing = sorted(named - set(dependencies))
     if missing:
         refuse(f"targets name packages the package does not depend on: {missing}")
-    modes = [LANGUAGE_MODES.get(mode) or refuse(f"a Swift language mode this script does not know: {mode}")
-             for mode in dump["swiftLanguageVersions"]]
+    modes = [
+        LANGUAGE_MODES.get(mode) or refuse(f"a Swift language mode this script does not know: {mode}")
+        for mode in dump["swiftLanguageVersions"]
+    ]
     products = "".join(
         f"    .library(name: {quoted(p['name'])}, targets: [{', '.join(quoted(t) for t in p['targets'])}]),\n"
         for p in library_products(dump)

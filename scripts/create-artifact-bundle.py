@@ -15,7 +15,6 @@ from pathlib import Path
 
 import sdk_version
 
-
 ROOT = Path(__file__).resolve().parents[1]
 STATE = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "xynolog-sdk" / "local"
 SDK_COMMIT = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
@@ -38,9 +37,7 @@ def working_tree_digest() -> str:
     value = hashlib.sha256()
     diff = subprocess.check_output(["git", "-C", str(ROOT), "diff", "--binary", "HEAD", "--", "."])
     value.update(diff)
-    untracked = subprocess.check_output([
-        "git", "-C", str(ROOT), "ls-files", "--others", "--exclude-standard", "-z"
-    ]).split(b"\0")
+    untracked = subprocess.check_output(["git", "-C", str(ROOT), "ls-files", "--others", "--exclude-standard", "-z"]).split(b"\0")
     for raw_path in sorted(path for path in untracked if path and not path.startswith(b"protocol/")):
         path = Path(os.fsdecode(raw_path))
         value.update(raw_path)
@@ -54,10 +51,9 @@ def files(language: str) -> list[tuple[Path, str, str]]:
         return [(STATE / "codegen/xynolog-codegen", "codegen-binary", "xynolog-codegen")]
     version = sdk_version.version(language)
     if language == "typescript":
-        config = json.loads((ROOT / "version.json").read_text())
         return [
             (STATE / "npm/packages" / f"{name.removeprefix('@').replace('/', '-')}-{version}.tgz", "npm", name)
-            for name, package in config["packages"].items()
+            for name, package in sdk_version.config()["packages"].items()
             if package["publish"]
         ]
     if language == "python":
@@ -68,8 +64,7 @@ def files(language: str) -> list[tuple[Path, str, str]]:
     if language == "go":
         root = STATE / "go-proxy/github.com/xynolog/sdk/go/@v"
         return [
-            (root / ("list" if suffix == "list" else f"v{version}.{suffix}"),
-             "go-module-proxy", "github.com/xynolog/sdk/go")
+            (root / ("list" if suffix == "list" else f"v{version}.{suffix}"), "go-module-proxy", "github.com/xynolog/sdk/go")
             for suffix in ("zip", "mod", "info", "list")
         ]
     if language == "csharp":
@@ -91,16 +86,22 @@ def package_version(language: str, path: Path) -> str:
     if language == "typescript":
         with tarfile.open(path, "r:gz") as archive:
             member = next(m for m in archive.getmembers() if m.name.endswith("package/package.json"))
-            package = json.load(archive.extractfile(member))
-            return package["version"]
+            stream = archive.extractfile(member)
+            if stream is None:
+                raise ValueError(f"{member.name} in {path} is not a file")
+            version: str = json.load(stream)["version"]
+            return version
     if language == "python" and path.suffix == ".whl":
         with zipfile.ZipFile(path) as archive:
             metadata = next(n for n in archive.namelist() if n.endswith(".dist-info/METADATA"))
             text = archive.read(metadata).decode()
     elif language == "python":
         with tarfile.open(path, "r:gz") as archive:
-            metadata = next(m for m in archive.getmembers() if m.name.endswith("/PKG-INFO"))
-            text = archive.extractfile(metadata).read().decode()
+            info = next(m for m in archive.getmembers() if m.name.endswith("/PKG-INFO"))
+            stream = archive.extractfile(info)
+            if stream is None:
+                raise ValueError(f"{info.name} in {path} is not a file")
+            text = stream.read().decode()
     elif language == "codegen":
         return SDK_COMMIT
     else:
@@ -138,15 +139,12 @@ def write_bundle(languages: list[str], tree_digest: str, output: Path, staged: P
 
     The build containers own the cache they write the packages to; the copies are this host's to rewrite.
     """
-    selected = []
+    selected: list[tuple[str, str, str, Path, Path]] = []
     for language in languages:
         for source, ecosystem, package in files(language):
             if not source.is_file():
                 raise SystemExit(f"required {language} SDK artifact is missing: {source}")
-            if language == "go":
-                relative = Path(language) / source.relative_to(STATE)
-            else:
-                relative = Path(language) / source.name
+            relative = Path(language) / (source.relative_to(STATE) if language == "go" else source.name)
             copy = staged / relative
             copy.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, copy)
@@ -156,16 +154,18 @@ def write_bundle(languages: list[str], tree_digest: str, output: Path, staged: P
         check=True,
     )
 
-    artifacts = []
-    copied = []
+    artifacts: list[dict[str, str]] = []
+    copied: list[tuple[Path, Path]] = []
     for language, ecosystem, package, copy, relative in selected:
-        artifacts.append({
-            "ecosystem": ecosystem,
-            "package": package,
-            "version": package_version(language, copy),
-            "path": relative.as_posix(),
-            "sha256": digest(copy),
-        })
+        artifacts.append(
+            {
+                "ecosystem": ecosystem,
+                "package": package,
+                "version": package_version(language, copy),
+                "path": relative.as_posix(),
+                "sha256": digest(copy),
+            }
+        )
         copied.append((copy, relative))
 
     toolchains = {
@@ -183,15 +183,17 @@ def write_bundle(languages: list[str], tree_digest: str, output: Path, staged: P
     release = sdk_version.config()
     verifier_source = ROOT / "scripts/verify-artifact-bundle.py"
     verifier_path = Path("tools/verify-artifact-bundle.py")
-    artifacts.append({
-        "ecosystem": "bundle-tool",
-        "package": "xynolog-sdk-artifact-verifier",
-        "version": "1",
-        "path": verifier_path.as_posix(),
-        "sha256": digest(verifier_source),
-    })
+    artifacts.append(
+        {
+            "ecosystem": "bundle-tool",
+            "package": "xynolog-sdk-artifact-verifier",
+            "version": "1",
+            "path": verifier_path.as_posix(),
+            "sha256": digest(verifier_source),
+        }
+    )
     copied.append((verifier_source, verifier_path))
-    manifest = {
+    manifest: dict[str, object] = {
         "schema": "xynolog-sdk-artifacts/v2",
         "sdk": {
             "commit": SDK_COMMIT,

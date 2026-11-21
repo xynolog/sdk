@@ -25,12 +25,26 @@ would sort before the release it follows.
     sdk_version.py move X.Y.Z       make X.Y.Z, a later release, the coming one
 """
 
+# Hosts run this with their own python3, which may be older than the `X | None` it is typed with.
+from __future__ import annotations
+
 import json
 import os
 import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import TypedDict
+
+
+class Package(TypedDict):
+    dir: str
+    publish: bool
+
+
+class Config(TypedDict):
+    release: str
+    packages: dict[str, Package]
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,7 +52,7 @@ RELEASE = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 GO_MODULE = "github.com/xynolog/sdk/go"
 
 
-def makefile_languages() -> tuple:
+def makefile_languages() -> tuple[str, ...]:
     found = re.findall(r"(?m)^LANGUAGES := (.+)$", (ROOT / "Makefile").read_text())
     if len(found) != 1:
         raise SystemExit("sdk_version.py: the Makefile must set LANGUAGES exactly once")
@@ -48,8 +62,8 @@ def makefile_languages() -> tuple:
 LANGUAGES = makefile_languages()
 
 
-def config() -> dict:
-    data = json.loads((ROOT / "version.json").read_text())
+def config() -> Config:
+    data: Config = json.loads((ROOT / "version.json").read_text())
     if sorted(data) != ["packages", "release"]:
         raise SystemExit(f"version.json: names {sorted(data)}, not the release and the packages")
     if not RELEASE.fullmatch(data["release"]):
@@ -57,13 +71,13 @@ def config() -> dict:
     return data
 
 
-def released(data: dict, language: str) -> str:
+def released(data: Config, language: str) -> str:
     if language not in LANGUAGES:
         raise SystemExit(f"sdk_version.py: unknown SDK language {language!r}")
     return data["release"]
 
 
-def development(data: dict, language: str, time: str, commit: str) -> str:
+def development(data: Config, language: str, time: str, commit: str) -> str:
     base, label = released(data, language), f"g{commit[:7]}"
     if language == "python":
         return f"{base}.dev{time}+{label}"
@@ -77,24 +91,35 @@ def development(data: dict, language: str, time: str, commit: str) -> str:
     return f"{base}-dev.{time}.{label}"
 
 
-def tags(data: dict) -> list:
+def tags(data: Config) -> list[str]:
     return [f"v{data['release']}", f"go/v{released(data, 'go')}"]
 
 
-def go_module(data: dict) -> str:
+def parts(release: str) -> tuple[int, int, int]:
+    match = RELEASE.fullmatch(release)
+    if match is None:
+        raise SystemExit(f"sdk_version.py: {release!r} is not X.Y.Z")
+    major, minor, patch = match.groups()
+    return int(major), int(minor), int(patch)
+
+
+def go_module(data: Config) -> str:
     """From major version 2, Go names the module by it."""
-    major = int(RELEASE.fullmatch(data["release"]).group(1))
+    major = parts(data["release"])[0]
     return GO_MODULE if major < 2 else f"{GO_MODULE}/v{major}"
 
 
 def git(*arguments: str) -> str:
     return subprocess.run(
         ["git", "-C", str(ROOT), *arguments],
-        stdout=subprocess.PIPE, text=True, check=True, env={**os.environ, "TZ": "UTC"},
+        stdout=subprocess.PIPE,
+        text=True,
+        check=True,
+        env={**os.environ, "TZ": "UTC"},
     ).stdout.strip()
 
 
-def is_release(data: dict) -> bool:
+def is_release(data: Config) -> bool:
     return f"v{data['release']}" in git("tag", "--points-at", "HEAD").split()
 
 
@@ -107,9 +132,9 @@ def version(language: str) -> str:
     return development(data, language, time, git("rev-parse", "HEAD"))
 
 
-def manifests(data: dict) -> list:
+def manifests(data: Config) -> list[tuple[str, str | None, str]]:
     """Each committed manifest's version, as (path, found, wanted)."""
-    found = []
+    found: list[tuple[str, str | None, str]] = []
     cargo = (ROOT / "rust/Cargo.toml").read_text()
     section = ""
     for line in cargo.splitlines():
@@ -118,9 +143,13 @@ def manifests(data: dict) -> list:
         elif section == "[workspace.package]" and line.startswith("version = "):
             found.append(("rust/Cargo.toml [workspace.package]", line.split('"')[1], "rust"))
         elif section == "[workspace.dependencies]" and "path = " in line and 'version = "' in line:
-            found.append((f"rust/Cargo.toml {line.split()[0]}", re.search(r'version = "([^"]*)"', line).group(1), "rust"))
+            pinned = re.search(r'version = "([^"]*)"', line)
+            found.append((f"rust/Cargo.toml {line.split()[0]}", pinned.group(1) if pinned else None, "rust"))
     published = subprocess.run(
-        ["bash", str(ROOT / "rust/scripts/published-crates.sh")], stdout=subprocess.PIPE, text=True, check=True,
+        ["bash", str(ROOT / "rust/scripts/published-crates.sh")],
+        stdout=subprocess.PIPE,
+        text=True,
+        check=True,
     ).stdout.split()
     lock = (ROOT / "rust/Cargo.lock").read_text()
     for crate in published:
@@ -165,7 +194,7 @@ def unreleased() -> None:
     data = config()
     tag = f"refs/tags/v{data['release']}"
     peeled = f"{tag}^{{}}"
-    listed = dict(reversed(line.split("\t")) for line in git("ls-remote", "--tags", "origin", tag, peeled).splitlines())
+    listed = {ref: commit for commit, ref in (line.split("\t") for line in git("ls-remote", "--tags", "origin", tag, peeled).splitlines())}
     # An annotated tag lists its commit as the peeled ref; a lightweight one, as itself.
     tagged = listed.get(peeled, listed.get(tag))
     if tagged is not None and tagged != git("rev-parse", "HEAD"):
@@ -180,8 +209,7 @@ def move(release: str) -> None:
     data = config()
     if not RELEASE.fullmatch(release):
         raise SystemExit(f"sdk_version.py: {release!r} is not X.Y.Z")
-    order = [tuple(int(part) for part in RELEASE.fullmatch(value).groups()) for value in (data["release"], release)]
-    if order[1] <= order[0]:
+    if parts(release) <= parts(data["release"]):
         raise SystemExit(f"sdk_version.py: {release} does not come after {data['release']}")
     data["release"] = release
     (ROOT / "version.json").write_text(json.dumps(data, indent=2) + "\n")

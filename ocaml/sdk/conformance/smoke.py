@@ -1,25 +1,34 @@
 """Exercise the JSON-lines driver and its subscription against a loopback peer."""
 
 import base64
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
-from pathlib import Path
 import queue
 import subprocess
 import sys
 import threading
+from collections.abc import Callable
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import override
 
+type Json = bool | int | float | str | list[Json] | dict[str, Json] | None
 
-requests = queue.Queue()
-frames = queue.Queue()
+requests: queue.Queue[tuple[Json, ...]] = queue.Queue()
+frames: queue.Queue[bytes | None] = queue.Queue()
 retry = True
 
 
+def member(value: Json, name: str) -> Json:
+    assert isinstance(value, dict)
+    return value[name]
+
+
 class Peer(BaseHTTPRequestHandler):
-    def log_message(self, *args):
+    @override
+    def log_message(self, format: str, *args: object) -> None:
         pass
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         requests.put((self.path, {}, self.headers["Authorization"]))
         self.send_response(200)
         if self.path == "/api/health":
@@ -30,9 +39,9 @@ class Peer(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(bytes(range(256)))
 
-    def do_POST(self):
+    def do_POST(self) -> None:
         global retry
-        body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        body: dict[str, Json] = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         requests.put((self.path, body, self.headers["Authorization"], self.headers["Idempotency-Key"]))
         if self.path == "/bus/subscribe":
             self.send_response(200)
@@ -57,12 +66,10 @@ class Peer(BaseHTTPRequestHandler):
                     "correlationId": body["correlationId"],
                     "payload": {},
                 }
-                frames.put(
-                    ("event: bus-event\nid: reply-1\ndata: " + json.dumps(reply) + "\n\n").encode()
-                )
+                frames.put(("event: bus-event\nid: reply-1\ndata: " + json.dumps(reply) + "\n\n").encode())
 
 
-def main():
+def main() -> None:
     with ThreadingHTTPServer(("127.0.0.1", 0), Peer) as server:
         threading.Thread(target=server.serve_forever, daemon=True).start()
         with subprocess.Popen(
@@ -71,23 +78,26 @@ def main():
             stdout=subprocess.PIPE,
             text=True,
         ) as driver:
-            lines = queue.Queue()
+            stdin, stdout = driver.stdin, driver.stdout
+            assert stdin is not None
+            assert stdout is not None
+            lines: queue.Queue[dict[str, Json]] = queue.Queue()
 
-            def receive():
-                for line in driver.stdout:
+            def receive() -> None:
+                for line in stdout:
                     lines.put(json.loads(line))
 
             threading.Thread(target=receive, daemon=True).start()
 
-            def expect(predicate):
+            def expect(predicate: Callable[[dict[str, Json]], object]) -> dict[str, Json]:
                 while True:
                     line = lines.get(timeout=10)
                     if predicate(line):
                         return line
 
-            def send(id, op, **args):
-                driver.stdin.write(json.dumps({"id": id, "op": op, **args}) + "\n")
-                driver.stdin.flush()
+            def send(id: int, op: str, **args: Json) -> None:
+                stdin.write(json.dumps({"id": id, "op": op, **args}) + "\n")
+                stdin.flush()
 
             try:
                 assert expect(lambda line: line.get("ready")) == {"ready": True}
@@ -100,19 +110,23 @@ def main():
                     timing={"emitRetry": {"attempts": 2, "initialDelayMs": 1, "maxDelayMs": 1}},
                 )
                 path, opened, bearer, _ = requests.get(timeout=10)
-                assert path == "/bus/subscribe" and bearer == "Bearer token"
-                assert opened["pendingReplies"] == []
+                assert path == "/bus/subscribe"
+                assert bearer == "Bearer token"
+                assert member(opened, "pendingReplies") == []
                 expect(lambda line: line.get("state") == "open")
                 send(2, "request", operation="mark:archive", payload={"resourceId": "res-1"})
                 path, emitted, bearer, request_key = requests.get(timeout=10)
-                assert path == "/bus/emit" and bearer == "Bearer token"
-                assert emitted["clientId"] == opened["clientId"]
-                assert emitted["correlationId"]
+                assert path == "/bus/emit"
+                assert bearer == "Bearer token"
+                assert member(emitted, "clientId") == member(opened, "clientId")
+                assert member(emitted, "correlationId")
                 assert expect(lambda line: line.get("id") == 2) == {"id": 2, "ok": {}}
                 send(3, "emit", channel="beckon:focus", payload={"resourceId": "res-1"})
                 first = requests.get(timeout=10)
                 second = requests.get(timeout=10)
-                assert first == second and first[3] and first[3] != request_key
+                assert first == second
+                assert first[3]
+                assert first[3] != request_key
                 assert expect(lambda line: line.get("id") == 3)["ok"] == {"subscribers": 1}
                 send(4, "health")
                 assert requests.get(timeout=10) == ("/api/health", {}, None)
@@ -120,11 +134,13 @@ def main():
                 send(5, "get-stream", resource="res-1")
                 assert requests.get(timeout=10) == ("/resources/res-1", {}, "Bearer token")
                 content = expect(lambda line: line.get("id") == 5)["ok"]
-                assert content["contentType"] == "application/octet-stream"
-                assert base64.b64decode(content["bytes"]) == bytes(range(256))
+                assert member(content, "contentType") == "application/octet-stream"
+                encoded = member(content, "bytes")
+                assert isinstance(encoded, str)
+                assert base64.b64decode(encoded) == bytes(range(256))
                 send(6, "close")
                 assert expect(lambda line: line.get("id") == 6) == {"id": 6, "ok": None}
-                driver.stdin.close()
+                stdin.close()
                 assert driver.wait(timeout=10) == 0
             finally:
                 frames.put(None)

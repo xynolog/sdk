@@ -37,15 +37,12 @@ PNG_SIZES = {
     "android-chrome-512x512.png": 512,
 }
 
+
 def svg_to_png(svg_path, png_path, size):
     """Convert SVG to PNG at specified size."""
     print(f"Generating {png_path.name} ({size}x{size})...")
-    cairosvg.svg2png(
-        url=str(svg_path),
-        write_to=str(png_path),
-        output_width=size,
-        output_height=size
-    )
+    cairosvg.svg2png(url=str(svg_path), write_to=str(png_path), output_width=size, output_height=size)
+
 
 def create_ico(png_sizes_paths):
     """Create ICO file with multiple sizes."""
@@ -63,15 +60,11 @@ def create_ico(png_sizes_paths):
 
     if images:
         # Save as ICO with multiple sizes
-        images[0].save(
-            ico_path,
-            format='ICO',
-            sizes=[(16, 16), (32, 32), (48, 48)],
-            append_images=images[1:]
-        )
+        images[0].save(ico_path, format="ICO", sizes=[(16, 16), (32, 32), (48, 48)], append_images=images[1:])
         print(f"Created {ico_path.name}")
     else:
         print("Warning: Could not create ICO file - missing required PNG sizes")
+
 
 def main():
     if not SVG_PATH.exists():
@@ -92,6 +85,7 @@ def main():
 
     print("\n✅ Favicon generation complete!")
     print(f"Files created in: {FAVICON_DIR}")
+
 
 if __name__ == "__main__":
     main()
