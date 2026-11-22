@@ -389,6 +389,11 @@ java {
 }
 // The published API alone: the tests, the Java callers and the conformance
 // drivers are no part of it.
+// Dokka's generator runs while the javadoc jar is built and is never shipped;
+// its jackson is held past the advisories libs.versions.toml names.
+dependencies {
+    "dokkaJavadocGeneratorRuntime"(platform(libs.jackson.bom))
+}
 dokka {
     dokkaSourceSets.configureEach {
         suppress = name != "main"
