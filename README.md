@@ -56,7 +56,7 @@ Run `git clone --recurse-submodules https://github.com/xynolog/sdk.git` (or init
 
 To release, check out `main`'s latest commit (`git switch main && git pull --ff-only`) and run `bash scripts/tag-release.sh`; it refuses any other commit. It runs `scripts/release-ready.sh`, which checks five things:
 
-- the committed manifests hold the release's versions;
+- the committed manifests and tagged links hold the release's versions;
 - the release is not tagged on another commit;
 - `main` holds the commit;
 - CI's run for the commit's push to `main`, which builds and tests all nine languages, finished green;

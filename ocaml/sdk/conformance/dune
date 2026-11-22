@@ -3,7 +3,9 @@
  (modules wire_driver otlp)
  (libraries xynolog eio_main cohttp-eio yojson uri cstruct base64))
 
+; The driver's smoke run is conformance, which sdk's CI runs (make test-ocaml),
+; so it is no part of the package's @runtest.
 (rule
- (alias runtest)
+ (alias conformance)
  (deps smoke.py)
  (action (run python3 %{dep:smoke.py} %{exe:wire_driver.exe})))
