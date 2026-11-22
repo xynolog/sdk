@@ -7,6 +7,7 @@
  (libraries
   xynolog-protocol
   xynolog-protocol.schema
+  xynolog-protocol.model
   yojson
   compiler-libs.common
   unix

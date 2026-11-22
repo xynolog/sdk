@@ -8,7 +8,7 @@ open Coverage_sdk
 
 type coverage =
   (* The SDK's tests that run the table, each a file under the SDK's directory
-     that names the table's path. *)
+     that reads the table (coverage_census.exe). *)
   | Run_by of string list
   (* The SDK has no counterpart of what the table states, with why. *)
   | Absent of string

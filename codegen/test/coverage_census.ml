@@ -1,7 +1,9 @@
 (* coverage_census.exe SDK: Case_coverage names every case table of the pinned
    Protocol and no other, and the SDKs the Makefile's LANGUAGES names, in its
    order; and for each table and SDK, either tests this checkout has under the
-   SDK's directory that each name the table's path, or a reason. A case table
+   SDK's directory that each read the table, or a reason. A test reads a
+   table by the module the case-data group writes its rows to, where the
+   group has a writer for the SDK, else by the table's path. A case table
    is a table of the model whose file name ends in cases.json (specs/README.md,
    "Case tables"). Surface_coverage names only items the pinned Protocol's
    client surface has, each once, with each SDK that lacks it once and a
@@ -15,9 +17,20 @@ open Xynolog_codegen
 let root = Sys.argv.(1)
 let read path = In_channel.with_open_bin path In_channel.input_all
 
-let contains text part =
+(* Whether [text] names [part]: has it, followed by no character of a name,
+   so a module's name does not name a longer one it begins. *)
+let names text part =
   let n = String.length text and m = String.length part in
-  let rec from i = i + m <= n && (String.sub text i m = part || from (i + 1)) in
+  let ends i =
+    i + m = n
+    ||
+    match text.[i + m] with
+    | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> false
+    | _ -> true
+  in
+  let rec from i =
+    i + m <= n && ((String.sub text i m = part && ends i) || from (i + 1))
+  in
   from 0
 
 let duplicates names =
@@ -51,6 +64,28 @@ let spec =
       List.iter (fun e -> prerr_endline (Decode.error_to_string e)) errors;
       exit 1
   | Ok spec -> spec
+
+module M = Xynolog_protocol_model.Model
+
+let derived =
+  match M.derive (Filename.concat root "protocol/specs/src") with
+  | Error refusals ->
+      List.iter prerr_endline refusals;
+      exit 1
+  | Ok derived -> derived
+
+(* What a test of [sdk] that reads [table] names: the module the case-data
+   group writes the table's rows to, else, for an SDK it has no writer for,
+   the table's path; or, for a table the model does not derive, a refusal. *)
+let reads_by sdk table =
+  match Case_data.language sdk with
+  | None -> Ok table
+  | Some language -> (
+      match
+        List.find_opt (fun (m : M.model) -> m.path = table) derived.tables
+      with
+      | Some model -> Ok (language.reference model.model_name)
+      | None -> Error "Protocol's reader derives no model of it")
 
 let case_tables =
   List.filter
@@ -120,9 +155,12 @@ let coverage_refusals table sdk =
               ]
             else if not (Sys.file_exists path && not (Sys.is_directory path))
             then [ Printf.sprintf "%s: %s is not in the checkout" where test ]
-            else if not (contains (read path) table) then
-              [ Printf.sprintf "%s: %s does not name %s" where test table ]
-            else [])
+            else
+              match reads_by sdk table with
+              | Error why -> [ Printf.sprintf "%s: %s" where why ]
+              | Ok name when not (names (read path) name) ->
+                  [ Printf.sprintf "%s: %s does not name %s" where test name ]
+              | Ok _ -> [])
           tests
 
 module Surface = Tables.Client_surface
@@ -257,8 +295,9 @@ let () =
   if refusals <> [] then exit 1;
   Printf.printf
     "PASS every case table is run by a named test or absent with a reason, in \
-     each SDK, and every surface item an SDK lacks is one Protocol has, with a \
-     reason: %d case tables, %d SDKs, %d surface items lacked\n"
+     each SDK, and every surface item an \
+     SDK lacks is one Protocol has, with a reason: %d case tables, %d SDKs, %d \
+     surface items lacked\n"
     (List.length case_tables)
     (List.length Coverage_sdk.all)
     (List.length Surface_coverage.lacking)
