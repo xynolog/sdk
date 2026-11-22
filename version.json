@@ -1,5 +1,5 @@
 {
-  "release": "0.8.0",
+  "release": "0.8.1",
   "packages": {
     "@xynolog/core": {
       "dir": "typescript/core",

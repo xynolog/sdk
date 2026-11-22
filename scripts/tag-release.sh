@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Tag this commit as the SDK release version.json names, in two steps.
 #
-#   scripts/tag-release.sh        sign and push vX.Y.Z
-#   scripts/tag-release.sh go     sign and push go/vX.Y.Z, once vX.Y.Z's
-#                                 release workflow has released the bundle
+#   scripts/tag-release.sh        sign and push vX.Y.Z on main's latest
+#                                 commit, as GitHub has it
+#   scripts/tag-release.sh go     sign and push go/vX.Y.Z on vX.Y.Z's commit,
+#                                 once its release workflow has released the
+#                                 bundle, though main may have moved on since
 #
 # A person runs it, with their own Git signer: each tag is annotated and
 # signed, and a release workflow does nothing unless the release signer signed
@@ -30,6 +32,12 @@ commit="$(git rev-parse HEAD)"
 
 if [ "$step" = sdk ]; then
   tag="$release"
+  # A merge lands on main as a new squashed commit, so a local main that was
+  # not pulled since is an older commit that main still holds.
+  git fetch --quiet origin main
+  tip="$(git rev-parse FETCH_HEAD)"
+  test "$tip" = "$commit" \
+    || fail "This is $commit, but main is at $tip: run git switch main && git pull --ff-only, then tag again."
 else
   tag="${tags[1]}"
   git fetch --quiet --force --no-tags origin "+refs/tags/$release:refs/tags/$release" \
