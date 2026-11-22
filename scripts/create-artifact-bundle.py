@@ -25,6 +25,10 @@ def rust_toolchain() -> str:
     return subprocess.check_output(["sh", str(ROOT / "rust/scripts/rust-toolchain.sh")], text=True).strip()
 
 
+def go_toolchain() -> str:
+    return subprocess.check_output(["sh", str(ROOT / "go/scripts/go-toolchain.sh")], text=True).strip()
+
+
 def digest(path: Path) -> str:
     value = hashlib.sha256()
     with path.open("rb") as stream:
@@ -172,7 +176,7 @@ def write_bundle(languages: list[str], tree_digest: str, output: Path, staged: P
         "typescript": "node:26-bookworm",
         "python": "python:3.12-bookworm",
         "rust": f"rust:{rust_toolchain()}-bookworm",
-        "go": "golang:1.27.4-bookworm",
+        "go": f"golang:{go_toolchain()}-bookworm",
         "csharp": "mcr.microsoft.com/dotnet/sdk (version from csharp/sdk/global.json)",
         "haskell": "haskell:9.10.3",
         "kotlin": "eclipse-temurin (version from kotlin/sdk/.java-version)",
