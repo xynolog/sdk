@@ -54,11 +54,12 @@ Run `git clone --recurse-submodules https://github.com/xynolog/sdk.git` (or init
 
 `version.json` names the coming release, one semantic version `X.Y.Z` for all nine languages; `scripts/sdk_version.py` derives every package version from it. Below 1.0 the minor number is the break: a breaking change raises it, anything else the patch number. A commit tagged `vX.Y.Z` builds the release; every other commit builds a development version, which no registry receives.
 
-To release, check out the commit on `main` and run `bash scripts/tag-release.sh`. It runs `scripts/release-ready.sh`, which checks four things:
+To release, check out the commit on `main` and run `bash scripts/tag-release.sh`. It runs `scripts/release-ready.sh`, which checks five things:
 
 - the committed manifests hold the release's versions;
 - the release is not tagged on another commit;
 - `main` holds the commit;
+- CI's run for the commit's push to `main`, which builds and tests all nine languages, finished green;
 - the Protocol submodule's commit is on Protocol's `main`.
 
 It then signs and pushes `vX.Y.Z`. That starts the release workflow, which does nothing until it has fetched the tag and found it annotated, named as pushed, on a commit `main` holds, and signed by the release signer (`xynolog/.github`'s `release-tag.yml`); it then runs the same checks again, and builds, verifies and releases the nine-language bundle as the GitHub release `vX.Y.Z`.
