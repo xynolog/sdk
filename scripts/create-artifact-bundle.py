@@ -68,7 +68,7 @@ def files(language: str) -> list[tuple[Path, str, str]]:
             for suffix in ("zip", "mod", "info", "list")
         ]
     if language == "csharp":
-        return [(STATE / "nuget" / f"Xynolog.{version}.nupkg", "nuget", "Xynolog")]
+        return [(STATE / "nuget" / f"Xynolog.{version}.{suffix}", "nuget", "Xynolog") for suffix in ("nupkg", "snupkg")]
     if language == "haskell":
         return [(STATE / "haskell" / f"xynolog-{version}.tar.gz", "hackage-sdist", "xynolog")]
     if language == "kotlin":
