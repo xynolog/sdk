@@ -169,6 +169,22 @@ The module is [`go`](go) of the [Xynolog repository](https://github.com/xynolog/
 
 `csharp/` holds the `Xynolog` NuGet package, in `csharp/sdk`. `make csharp` builds and stages its packages, and `make test-csharp` runs its tests, type checks, lints and format checks, in its toolchain's container.
 
+#### Building and verifying
+
+The SDK targets .NET 11. [global.json](csharp/sdk/global.json) pins the SDK exactly, with roll-forward disabled. [dotnet-version.sh](csharp/scripts/dotnet-version.sh) derives the container tag from that version. No .NET installation on the host is required.
+
+From the repository root, build and check inside Apple `container`:
+
+```sh
+container run --rm --memory 4g -v "$PWD":/work -w /work/csharp/sdk \
+  "mcr.microsoft.com/dotnet/sdk:$(csharp/scripts/dotnet-version.sh --image-tag)" \
+  sh -c 'dotnet build -p:RestoreLockedMode=true && dotnet test --no-build --settings test.runsettings && dotnet format --no-restore --verify-no-changes'
+```
+
+The build enables nullable reference types, warnings as errors, analyzers, and explicit accessibility. Its Roslyn census analyzer covers generated code too. It refuses null forgiveness, task blocking, dynamic types, diagnostic suppression, skipped tests, and environment reads other than `XYNOLOG_BUS_LOG`. The analyzer is a build-time dependency; the SDK has no runtime package dependencies.
+
+Every build compiles each file in [refusals](csharp/sdk/refusals) separately and requires its stated diagnostic. The xUnit suite checks valid code that must remain accepted. The test settings make a run with no tests fail. Linux CI uploads Cobertura coverage under `csharp-sdk`; Windows CI builds, tests, and checks formatting as well.
+
 ### Haskell
 
 `haskell/` holds the `xynolog` Cabal package, in `haskell/sdk`. `make haskell` builds and stages its packages, and `make test-haskell` runs its tests, type checks, lints and format checks, in its toolchain's container.
