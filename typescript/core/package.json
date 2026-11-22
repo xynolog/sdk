@@ -1,6 +1,6 @@
 {
   "name": "@xynolog/core",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Core types and domain logic for Xynolog - Resource, Annotation, and Graph models",
   "type": "module",
   "main": "dist/index.js",

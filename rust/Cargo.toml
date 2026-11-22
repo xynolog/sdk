@@ -13,15 +13,15 @@ members = [
 # CI's `sdk_version.py check` fails any of them that carries another. A
 # build packages its copy at that build's version.
 [workspace.package]
-version = "0.8.0"
+version = "0.8.1"
 repository = "https://github.com/xynolog/sdk"
 
 # Every crate a member uses, by version, once: a member names the ones it uses
 # with `.workspace = true` and adds the features it needs.
 [workspace.dependencies]
-xynolog = { path = "sdk", version = "0.8.0" }
+xynolog = { path = "sdk", version = "0.8.1" }
 xynolog-http-transport = { path = "http-transport" }
-xynolog-telemetry = { path = "telemetry", version = "0.8.0" }
+xynolog-telemetry = { path = "telemetry", version = "0.8.1" }
 async-nats = { version = "0.50.0", default-features = false }
 axum = { version = "0.8.9", default-features = false }
 base64 = "0.23.1"
