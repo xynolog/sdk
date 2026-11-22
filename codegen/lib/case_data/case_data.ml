@@ -8,6 +8,7 @@
 
 module M = Xynolog_protocol_model.Model
 module Walk = Walk
+module Ocaml = Ocaml
 
 (* A schema's name as a module's: its path's words in snake case, as
    [Places.model_of] names a table's model: session/StoredSession.json is
@@ -32,9 +33,16 @@ type language = {
 
 (* None for an SDK whose writer this group does not have yet. *)
 let language : Coverage_sdk.t -> language option = function
-  | Ocaml | Typescript | Python | Rust | Go | Csharp | Haskell | Kotlin | Swift
-    ->
-      None
+  | Ocaml ->
+      Some
+        {
+          path = (fun name -> "ocaml/sdk/test/cases/" ^ name ^ ".ml");
+          reference =
+            (fun name -> "Protocol_cases." ^ String.capitalize_ascii name);
+          table = Ocaml.file;
+          schema = Ocaml.schema;
+        }
+  | Typescript | Python | Rust | Go | Csharp | Haskell | Kotlin | Swift -> None
 
 (* The SDKs whose tests read [table]: run it, as a case table, or read it, as
    another table. *)

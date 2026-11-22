@@ -6,6 +6,16 @@
 type read = Table of string | Schema of string
 
 let reads : Coverage_sdk.t -> read list = function
-  | Ocaml | Typescript | Python | Rust | Go | Csharp | Haskell | Kotlin | Swift
-    ->
-      []
+  | Ocaml ->
+      [
+        Table "client/timing.json";
+        Table "client/state-units.json";
+        Table "client/surface.json";
+        Table "session/stored.json";
+        Schema "client/types/SearchState.json";
+        Schema "client/types/JobEvent.json";
+        Schema "session/StoredSession.json";
+        Schema "session/OpenResource.json";
+        Schema "sign-in-store/SignIn.json";
+      ]
+  | Typescript | Python | Rust | Go | Csharp | Haskell | Kotlin | Swift -> []

@@ -167,7 +167,8 @@ writes:
 - `case-data`: each table an SDK's tests run or read, as typed values of the
   model Protocol's reader derives from its schema
   (`Xynolog_protocol_model`), and each schema they read, as its JSON, in the
-  SDK's test tree. A row the model does not describe is refused by its JSON
+  SDK's test tree: the OCaml SDK's `test/cases`, the `Protocol_cases`
+  library. A row the model does not describe is refused by its JSON
   Pointer. It writes data alone: a test keeps its own loop, which says how a
   row becomes a call on the SDK, so an SDK's tests read no file of Protocol,
   and a change to a table's shape is a compile error in each SDK that runs
