@@ -94,6 +94,7 @@ import {
   resourceId,
 } from '@xynolog/core';
 import type { XynologError } from '@xynolog/core';
+// The cases of protocol/specs/src/session/open-resource-cases.json.
 import { table as openResources } from '../../__tests__/cases/session_open_resource_cases';
 
 /** An issuer's JSON answer, as `fetch` would hand it back. */

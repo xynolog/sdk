@@ -6,10 +6,11 @@
  * carry it; the gateway's reply filter, which writes a correlated reply only
  * to its owner's connections, is what reads it.
  *
- * Asserted against `protocol/specs/src/components/schemas/` rather than the generated
- * types because the schema is the authority — the TS types, the Go client and
- * the required table are all derived from it, so a check on any one of them
- * would be a check on a derivation.
+ * Asserted against the schemas of `protocol/specs/src/components/schemas/`,
+ * each as its JSON (`./cases/`), rather than the generated types because the
+ * schema is the authority — the TS types, the Go client and the required table
+ * are all derived from it, so a check on any one of them would be a check on a
+ * derivation.
  */
 
 import { describe, it, expect } from 'vitest';

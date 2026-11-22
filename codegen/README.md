@@ -346,7 +346,8 @@ is a file this checkout has under the SDK's directory, and it names the
 module `case-data` writes its table's rows to, or, for an SDK the group has
 no writer for, its table's path; so is each test `test_reads.ml` names, of
 the module its table or schema is written to. `case-data` writes a module
-for the tests named so and no other, so each module it writes is read.
+for the tests named so and no other, so each module it writes is read,
+and each directory it writes holds no module it does not write.
 Every surface item named is one the
 surface has, named once, and each SDK lacking it once; that an SDK has an
 item named nowhere is its own surface test's to hold. The readers

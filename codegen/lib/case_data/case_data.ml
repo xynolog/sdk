@@ -101,18 +101,27 @@ let schemas =
 let refusal message =
   { Decode.file = "protocol/specs/src"; pointer = ""; message }
 
+(* Each file of the module [name], of [file], with its SDK's writers. *)
+let homes file name =
+  List.concat_map
+    (fun sdk ->
+      match (language sdk, tests sdk file) with
+      | None, _ | Some _, [] -> []
+      | Some language, tests ->
+          List.map (fun path -> (language, path)) (language.paths ~tests name))
+    Coverage_sdk.all
+
+(* Each file this group writes, of [derived]'s tables and the schemas SDKs'
+   tests read, which coverage_census.exe holds each directory of to. *)
+let paths ({ tables; harness = _ } : M.t) =
+  List.concat_map
+    (fun (model : M.model) -> homes model.path model.model_name)
+    tables
+  @ List.concat_map (fun file -> homes file (schema_module file)) schemas
+  |> List.map snd
+
 let files ~root (_ : Spec.t) =
   let specs = Filename.concat root "protocol/specs/src" in
-  (* Each file of the module [name], of [file], with its SDK's writers. *)
-  let homes file name =
-    List.concat_map
-      (fun sdk ->
-        match (language sdk, tests sdk file) with
-        | None, _ | Some _, [] -> []
-        | Some language, tests ->
-            List.map (fun path -> (language, path)) (language.paths ~tests name))
-      Coverage_sdk.all
-  in
   match M.derive specs with
   | Error refusals -> Error (List.map refusal refusals)
   | Ok { tables; harness = _ } ->

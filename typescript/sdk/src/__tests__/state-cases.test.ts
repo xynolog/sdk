@@ -79,7 +79,7 @@ const SETTLE_TURNS = 200;
 type JsonObject = { [key: string]: Json };
 
 /** The table's fixtures, by name. */
-const FIXTURES: { [name: string]: Json } = { ...table.fixtures };
+const FIXTURES: { [name: string]: Json } = table.fixtures;
 const TIMING = new Map(timing.timing.map(({ name, value }) => [name, value]));
 
 // ── Reading the table ───────────────────────────────────────────────────

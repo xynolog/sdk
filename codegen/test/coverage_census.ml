@@ -193,6 +193,24 @@ let test_reads_refusals =
         (Test_reads.reads sdk))
     Coverage_sdk.all
 
+(* Each directory the case-data group writes to holds what it writes and
+   no other module: one it no longer writes is no test's. *)
+let stale_refusals =
+  let written = Case_data.paths derived in
+  List.sort_uniq compare (List.map Filename.dirname written)
+  |> List.concat_map (fun dir ->
+      Sys.readdir (Filename.concat root dir)
+      |> Array.to_list |> List.sort compare
+      |> List.filter_map (fun name ->
+          let path = Filename.concat dir name in
+          if name = "dune" || List.mem path written then None
+          else
+            Some
+              (Printf.sprintf
+                 "%s: the case-data group writes no such module, so no test \
+                  reads it"
+                 path)))
+
 module Surface = Tables.Client_surface
 
 let module_member_name : Surface.modules_item_members_item -> string = function
@@ -318,7 +336,7 @@ let refusals =
   @ List.concat_map
       (fun table -> List.concat_map (coverage_refusals table) Coverage_sdk.all)
       (List.sort_uniq compare named)
-  @ test_reads_refusals @ surface_refusals @ reader_refusals
+  @ test_reads_refusals @ stale_refusals @ surface_refusals @ reader_refusals
 
 let () =
   List.iter prerr_endline refusals;

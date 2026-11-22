@@ -66,7 +66,7 @@ import {
 type Args = { [key: string]: Json };
 
 /** The table's fixtures, by name. */
-const FIXTURES: { [name: string]: Json } = { ...table.fixtures };
+const FIXTURES: { [name: string]: Json } = table.fixtures;
 
 /** `value` with each `{"$fixture": name}` replaced by the table's fixture. */
 function resolved(value: Json): Json {

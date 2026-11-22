@@ -132,6 +132,7 @@ describe('frame-cases.json', () => {
         ),
       ),
     ).toEqual(new Set(['fails', 'waits']));
+    // A case's `read` is what the channel's typed reader reads of the payload, where that is not the payload as the frame states it.
     expect(delivered.some((stated) => stated.read !== undefined)).toBe(true);
   });
 
