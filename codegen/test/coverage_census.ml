@@ -3,9 +3,10 @@
    order; and for each table and SDK, either tests this checkout has under the
    SDK's directory that each read the table, or a reason. A test reads a
    table by the module the case-data group writes its rows to, where the
-   group has a writer for the SDK, else by the table's path. A case table
-   is a table of the model whose file name ends in cases.json (specs/README.md,
-   "Case tables"). Surface_coverage names only items the pinned Protocol's
+   group has a writer for the SDK, else by the table's path; and every
+   module the group writes is read by a file of its SDK other than itself. A
+   case table is a table of the model whose file name ends in cases.json
+   (specs/README.md, "Case tables"). Surface_coverage names only items the pinned Protocol's
    client surface has, each once, with each SDK that lacks it once and a
    reason; that an SDK has an item it names nowhere is its own surface test's
    to hold. The readers annotations/reader-cases.json names are the readers of
@@ -163,6 +164,43 @@ let coverage_refusals table sdk =
               | Ok _ -> [])
           tests
 
+(* Every file under [dir] of the checkout, but what a build writes. *)
+let rec files dir =
+  Sys.readdir (Filename.concat root dir)
+  |> Array.to_list |> List.sort compare
+  |> List.concat_map (fun name ->
+      let path = Filename.concat dir name in
+      if Sys.is_directory (Filename.concat root path) then
+        if List.mem name [ "_build"; "node_modules"; "target"; ".build" ] then
+          []
+        else files path
+      else [ path ])
+
+let unread_refusals =
+  List.concat_map
+    (fun (sdk, name, file) ->
+      match Case_data.language sdk with
+      | None -> []
+      | Some language ->
+          let own = language.path name
+          and reference = language.reference name in
+          if
+            List.exists
+              (fun path ->
+                path <> own
+                && names (read (Filename.concat root path)) reference)
+              (files (Coverage_sdk.name sdk))
+          then []
+          else
+            [
+              Printf.sprintf
+                "%s, %s: the case-data group writes %s, and no file of %s \
+                 reads %s"
+                file (Coverage_sdk.name sdk) own (Coverage_sdk.name sdk)
+                reference;
+            ])
+    (Case_data.modules derived)
+
 module Surface = Tables.Client_surface
 
 let module_member_name : Surface.modules_item_members_item -> string = function
@@ -288,15 +326,16 @@ let refusals =
   @ List.concat_map
       (fun table -> List.concat_map (coverage_refusals table) Coverage_sdk.all)
       (List.sort_uniq compare named)
-  @ surface_refusals @ reader_refusals
+  @ unread_refusals @ surface_refusals @ reader_refusals
 
 let () =
   List.iter prerr_endline refusals;
   if refusals <> [] then exit 1;
   Printf.printf
     "PASS every case table is run by a named test or absent with a reason, in \
-     each SDK, and every surface item an SDK lacks is one Protocol has, with a \
-     reason: %d case tables, %d SDKs, %d surface items lacked\n"
+     each SDK, every module of case data is read, and every surface item an \
+     SDK lacks is one Protocol has, with a reason: %d case tables, %d SDKs, %d \
+     surface items lacked\n"
     (List.length case_tables)
     (List.length Coverage_sdk.all)
     (List.length Surface_coverage.lacking)
