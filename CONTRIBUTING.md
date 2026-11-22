@@ -68,6 +68,57 @@ Once the release is tagged, CI fails until the coming release moves on: `python3
 
 `typescript/` holds the five npm packages, one directory each: `sdk`, `core`, `http-transport`, `observability` and `react-ui`. `make typescript` builds and stages its packages, and `make test-typescript` runs its tests, type checks, lints and format checks, in its toolchain's container.
 
+#### What a change to `@xynolog/core` must keep
+
+- **The spec is the source.** Each module that opens `GENERATED FILE`, `src/types.ts` among them, is generated from [`protocol/specs/src`](https://github.com/xynolog/protocol/tree/main/specs/src), and never edited. Those modules are committed, and `make generate` writes them. Change the spec, then run `make generate`. A type written by hand that restates a schema is a second copy that nothing keeps true: use the spec's type, under the spec's name.
+- **The main import runs in a browser.** It uses no Node builtin. The test issuer is reachable only by its subpath, because of the weight `jose` would add to every bundle, and `npm run lint:core-subpaths` fails a re-export of it from the root.
+- **It depends on no other Xynolog package.** Everything else depends on it.
+- **An id is made only by its constructor or its guard.** One kind is never assignable to another.
+- **Its tests read every package.** Three census tests here walk the source of all of `packages/`, `apps/` and `images/`, tests included, so a change somewhere else can fail this package's suite.
+
+#### What a change to `@xynolog/http-transport` must keep
+
+- **The transport contract.** What every transport must do is [TRANSPORT-CONTRACT](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-CONTRACT.md), and what this one does on the wire is [TRANSPORT-HTTP](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-HTTP.md). The [SDK conformance suite](https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md) holds it to both, through [conformance/driver.ts](typescript/http-transport/conformance/driver.ts), beside the Rust transport.
+- **One token source.** A transport reads the current token from `token$`. `tokenRefresher` is the only way a token is renewed, for a refused request, emit and stream alike, and it is told the token refused.
+- **Timing is the spec's.** The reconnect, linger and retry values are [`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json)'s. The config fields that override them are for a test or the conformance driver, which cannot wait them out.
+- **A narrowed stream still hears its replies.** A process that passes `channels` names the reply channels of every operation it awaits. A request whose replies are outside the set fails at once with `bus.unsubscribed`, rather than timing out.
+- **Wire shapes are generated.** Requests and responses are `@xynolog/core`'s types, from the spec. None is retyped here.
+
+A transport that is not HTTP implements `ITransport` and `IContentTransport` from `@xynolog/core` and inherits nothing from this package.
+
+#### What a change to `@xynolog/observability` must keep
+
+- **Off by default, and free when off.** With no exporter configured, the tracer and the meter are OpenTelemetry's own no-ops. Nothing here may do work, or fail, because telemetry is not set up.
+- **The main import runs in a browser.** It imports no Node builtin. What needs Node is in `/node`.
+- **One trace across the bus.** A request carries the active span as a W3C `traceparent` header, and a frame relayed over the stream carries it in its payload's trace field (`TRACE_FIELD` in `@xynolog/core`, generated from the bus registry). A handler continues that trace rather than starting one.
+- **No domain logic.** The package gives the helpers and the recorder. What is worth a span or a count is decided where the work happens.
+- **Initialized once.** `initObservabilityNode` is called at a process's entry point. A second call does nothing and returns `false`.
+
+#### Developing `@xynolog/react-ui`
+
+```bash
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Type checking
+npm run typecheck
+```
+
+#### Contributing to `@xynolog/react-ui`
+
+This library follows strict quality standards:
+
+- **100% TypeScript** - All code must be properly typed
+- **No `any` casts** - Without explicit permission
+- **No cruft** - Delete dead code immediately, no "legacy" patterns
+- **Direct fixes** - If something is wrong, fix it directly (no aliases/wrappers)
+
 ### Python
 
 `python/` holds the `xynolog` distribution, in `python/sdk`. `make python` builds and stages its packages, and `make test-python` runs its tests, type checks, lints and format checks, in its toolchain's container.

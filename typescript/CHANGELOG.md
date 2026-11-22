@@ -13,3 +13,8 @@ the coming release's, and gathers its changes as they land.
 - `@xynolog/react-ui` no longer ships its components' TypeScript sources:
   of `src/components` and `src/features` it carries the CSS alone, which its
   stylesheets import.
+- Each package's README reads as its npm page: what the package is, how to
+  install it (`npm install`, taking releases up to the next minor), a first
+  program, and, for `@xynolog/sdk`, connecting and signing in and the eight
+  verbs. How to work on the packages moved to the repository's
+  CONTRIBUTING.md.
