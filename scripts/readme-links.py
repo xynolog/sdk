@@ -136,15 +136,17 @@ def by_convention(language: str, manifest: Callable[[str], bool]) -> Callable[[l
     return lambda files: [beside(path, "README.md") for path in under(files, language, manifest)]
 
 
-SWIFT_DISTRIBUTION = "swift/distribution/README.md"
 SWIFT_DISTRIBUTES = "swift/scripts/distribution.sh"
 
 
 def swift(files: list[str]) -> list[str]:
-    """The README beside Package.swift, and the Swift Package Index's page, which distribution.sh copies to xynolog/sdk-swift."""
-    if SWIFT_DISTRIBUTION not in (ROOT / SWIFT_DISTRIBUTES).read_text():
-        raise SystemExit(f"readme-links.py: {SWIFT_DISTRIBUTES} no longer copies {SWIFT_DISTRIBUTION} to xynolog/sdk-swift")
-    return [*by_convention("swift", lambda name: name == "Package.swift")(files), SWIFT_DISTRIBUTION]
+    """The README beside Package.swift, which distribution.sh copies to xynolog/sdk-swift as the Swift Package Index's page."""
+    found = by_convention("swift", lambda name: name == "Package.swift")(files)
+    distributes = (ROOT / SWIFT_DISTRIBUTES).read_text()
+    for readme in found:
+        if f'"$root/{readme}"' not in distributes:
+            raise SystemExit(f"readme-links.py: {SWIFT_DISTRIBUTES} no longer copies {readme} to xynolog/sdk-swift")
+    return found
 
 
 READMES: dict[str, Callable[[list[str]], list[str]]] = {

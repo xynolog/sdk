@@ -15,6 +15,9 @@ the coming release's, and gathers its changes as they land.
   minor), and a first program before connecting, signing in and the eight
   verbs. How to work on the SDK moved to the repository's CONTRIBUTING.md,
   which the README's last line links to.
-- The README, and the distribution's README the Swift Package Index shows,
-  link to the repository's files at the release's tag, so their links
-  resolve there and show the files as of the release.
+- The README links to the repository's files at the release's tag, so its
+  links resolve wherever the Swift Package Index shows it and show the
+  files as of the release.
+- The distribution's README is this README, as of the release, in place of
+  a short page that pointed at it on `main`: the Swift Package Index shows
+  the package's whole README.
