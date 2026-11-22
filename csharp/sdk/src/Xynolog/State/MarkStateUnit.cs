@@ -5,6 +5,8 @@ using Xynolog.Types;
 
 namespace Xynolog.State;
 
+/// <summary>A resource's annotating: the annotation being composed from a request on this client's own bus, its creation
+/// on submit, and a delegated annotating job's progress.</summary>
 public sealed class MarkStateUnit : IStateUnit
 {
     private readonly XynologClient client;
@@ -15,13 +17,21 @@ public sealed class MarkStateUnit : IStateUnit
     private static readonly TimeSpan Silence = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("delegateSilenceMs").GetInt32());
     private long revision;
 
+    /// <summary>The annotation being composed for the resource, from the selection a request asked for, until it is
+    /// created or cancelled.</summary>
     public StateValue<PendingAnnotation?> PendingAnnotation { get; } = new(null);
+    /// <summary>The motivation of the annotating job being followed, or null when none is.</summary>
     public StateValue<Motivation?> DelegatingMotivation { get; } = new(null);
+    /// <summary>The annotating job's last progress report, kept after it ends until dismissed.</summary>
     public StateValue<JobProgress?> Progress { get; } = new(null);
+    /// <summary>The motivation of the job whose progress is shown.</summary>
     public StateValue<Motivation?> ProgressMotivation { get; } = new(null);
+    /// <summary>Why the annotating job failed, or null when it did not.</summary>
     public StateValue<XynologError?> Failure { get; } = new(null);
+    /// <summary>The id of the annotating job being followed, once the queue has named it.</summary>
     public StateValue<JobId?> JobId { get; } = new(null);
 
+    /// <summary>Starts listening to this client's own bus for requests and submissions of annotations of the resource.</summary>
     public MarkStateUnit(XynologClient client, ResourceId resourceId)
     {
         this.client = client;
@@ -32,6 +42,7 @@ public sealed class MarkStateUnit : IStateUnit
         work.Run(ReadAsync);
     }
 
+    /// <summary>Delegates the annotating of the resource as a job and follows it, abandoning the job followed before.</summary>
     public void RequestDelegate(MarkJobParams parameters)
     {
         lock (work.Gate)
@@ -56,12 +67,14 @@ public sealed class MarkStateUnit : IStateUnit
         }
     }
 
+    /// <summary>Drops the annotation being composed.</summary>
     public void CancelPending()
     {
         lock (work.Gate)
             if (work.Active) PendingAnnotation.Set(null);
     }
 
+    /// <summary>Clears the shown progress and failure of the last annotating job.</summary>
     public void DismissProgress()
     {
         lock (work.Gate)
@@ -191,6 +204,7 @@ public sealed class MarkStateUnit : IStateUnit
         }
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         lock (work.Gate)

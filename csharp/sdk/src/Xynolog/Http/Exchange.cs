@@ -8,12 +8,21 @@ using Xynolog.Types;
 
 namespace Xynolog.Http;
 
+/// <summary>The connection to a knowledge base's gateway: its bus stream, emits and requests, and the gateway's own
+/// HTTP operations.</summary>
 public sealed partial class HttpTransport
 {
+    /// <summary>Asks the gateway whether it is healthy.</summary>
     public Task<HealthResponse> HealthCheckAsync(CancellationToken cancellation = default) => AnswerAsync<HealthResponse>(GatewayRoute.GetHealth.Method, GatewayRoute.GetHealth.Path, cancellation: cancellation);
+    /// <summary>Reads the gateway's status: its version, its features, and whom the credential authenticates
+    /// as.</summary>
     public Task<StatusResponse> GetStatusAsync(CancellationToken cancellation = default) => AnswerAsync<StatusResponse>(GatewayRoute.GetStatus.Method, GatewayRoute.GetStatus.Path, cancellation: cancellation);
+    /// <summary>Asks the gateway whom the transport's credential belongs to.</summary>
     public Task<UserResponse> GetCurrentUserAsync(CancellationToken cancellation = default) => AnswerAsync<UserResponse>(GatewayRoute.GetCurrentUser.Method, GatewayRoute.GetCurrentUser.Path, cancellation: cancellation);
+    /// <summary>Reads, without a credential, the gateway's protected resource metadata, which names the authorization
+    /// servers it trusts.</summary>
     public Task<ProtectedResourceMetadata> GetProtectedResourceMetadataAsync(CancellationToken cancellation = default) => AnswerAsync<ProtectedResourceMetadata>(GatewayRoute.GetProtectedResourceMetadata.Method, GatewayRoute.GetProtectedResourceMetadata.Path, authenticated: false, cancellation: cancellation);
+    /// <summary>Asks the gateway for a token that grants access to one resource's media.</summary>
     public Task<MediaTokenResponse> GetMediaTokenAsync(ResourceId resource, CancellationToken cancellation = default) => AnswerAsync<MediaTokenResponse>(GatewayRoute.CreateMediaToken.Method, GatewayRoute.CreateMediaToken.Path, () => JsonContent.Create(new MediaTokenRequest { ResourceId = resource }), cancellation: cancellation);
 
     internal async Task<T> AnswerAsync<T>(HttpMethod method, string path, Func<HttpContent>? content = null, bool authenticated = true, CancellationToken cancellation = default, bool retry = true) where T : class

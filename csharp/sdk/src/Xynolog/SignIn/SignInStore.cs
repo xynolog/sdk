@@ -7,6 +7,8 @@ using Xynolog.Types;
 
 namespace Xynolog.SignIn;
 
+/// <summary>The sign-in store file <c>xynolog login</c> keeps, holding a sign-in for each key, which processes share
+/// under a file lock.</summary>
 public sealed partial class SignInStore
 {
     private readonly string directory;
@@ -14,6 +16,7 @@ public sealed partial class SignInStore
     private readonly Random random;
     private static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
 
+    /// <summary>Opens the store in a directory, which is created when the store is first changed.</summary>
     public SignInStore(string directory, TimeProvider? timeProvider = null, Random? random = null)
     {
         this.directory = Path.GetFullPath(directory);
@@ -22,9 +25,12 @@ public sealed partial class SignInStore
         FilePath = Path.Combine(this.directory, ProtocolTables.StoreFileName);
     }
 
+    /// <summary>The full path of the store's file.</summary>
     public string FilePath { get; }
+    /// <summary>The sign-in kept under one key of the store.</summary>
     public ISignInKept Entry(string key) => new EntryKept(this, key);
 
+    /// <summary>Reads the whole store, as an empty object when its file does not exist yet.</summary>
     public async Task<JsonObject> ReadAsync(CancellationToken cancellation = default)
     {
         try
@@ -36,6 +42,8 @@ public sealed partial class SignInStore
         catch (DirectoryNotFoundException) { return new JsonObject(); }
     }
 
+    /// <summary>Changes the store under its lock: <paramref name="change"/> edits the document read, and the file is
+    /// replaced with it whole when it answers true.</summary>
     public async Task ChangeAsync(Func<JsonObject, bool> change, CancellationToken cancellation = default)
     {
         StorePermissions.CreateDirectory(directory);
@@ -123,6 +131,8 @@ public sealed partial class SignInStore
         }
     }
 
+    /// <summary>Where the store lives on an operating system (<c>macos</c>, <c>windows</c> or any other, which follows the
+    /// XDG layout), or null when no home directory is known.</summary>
     public static string? StateDirectory(string os, string? home, string? xdgStateHome = null, string? localAppData = null)
     {
         if (string.IsNullOrEmpty(home)) return null;

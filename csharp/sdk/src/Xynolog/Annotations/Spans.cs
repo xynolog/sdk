@@ -46,6 +46,9 @@ internal sealed class ScalarText(Rune[] points)
 
 public static partial class AnnotationTools
 {
+    /// <summary>Finds where <paramref name="quoted"/> lies in <paramref name="text"/>: a unique match, a match its
+    /// prefix or suffix picks out of several, the first of several, or a normalized, case-insensitive or fuzzy match;
+    /// null when the quote is blank or nothing near it is found.</summary>
     public static ReconciledSpan? Reconcile(string text, QuotedText quoted)
     {
         if (string.IsNullOrWhiteSpace(quoted.Exact)) return null;

@@ -15,26 +15,53 @@ using Xynolog.Types;
 
 namespace Xynolog.Authorization;
 
+/// <summary>The endpoints of the issuer a sign-in goes through, as its discovery stated them.</summary>
+/// <param name="Issuer">The issuer's identifier.</param>
+/// <param name="Authorization">Where the person is sent to approve the sign-in.</param>
+/// <param name="Token">Where codes and refresh tokens are exchanged for tokens.</param>
+/// <param name="Device">Where a device sign-in begins, if the issuer offers one.</param>
+/// <param name="Revocation">Where tokens are revoked on sign-out, if the issuer offers it.</param>
 public sealed record AuthorizationIssuer(
     [property: JsonRequired] string Issuer, [property: JsonRequired] string Authorization,
     [property: JsonRequired] string Token, string? Device = null, string? Revocation = null);
 
+/// <summary>A browser sign-in begun and not yet completed, kept in session storage until the issuer sends the person
+/// back.</summary>
+/// <param name="State">The value the issuer must send back, which ties its response to this sign-in.</param>
+/// <param name="Verifier">The PKCE code verifier the code is exchanged with.</param>
+/// <param name="RedirectUri">Where the issuer sends the person back to.</param>
+/// <param name="Target">The knowledge base being signed in to.</param>
+/// <param name="Issuer">The issuer the sign-in goes through.</param>
+/// <param name="KbId">The registered knowledge base being re-authenticated, rather than a new address connected
+/// to.</param>
+/// <param name="ExpectedDid">The knowledge base's DID the person believed they chose, to verify once signed in.</param>
+/// <param name="ExpectedName">The knowledge base's name the person believed they chose, to verify once signed
+/// in.</param>
 public sealed record PendingAuthorization(
     [property: JsonRequired] string State, [property: JsonRequired] string Verifier, [property: JsonRequired] string RedirectUri,
     [property: JsonRequired] HttpEndpoint Target, [property: JsonRequired] AuthorizationIssuer Issuer,
     string? KbId = null, string? ExpectedDid = null, string? ExpectedName = null);
 
+/// <summary>Thrown when a knowledge base cannot be asked who it is, or does not say, so its identity cannot be
+/// verified.</summary>
 public sealed class IdentityUnverifiableError : XynologError
 {
     internal IdentityUnverifiableError(string reason, string message, Exception? cause = null)
         : base(reason, message, inner: cause) { }
 }
 
+/// <summary>Signs a person in through the browser: an OAuth authorization-code grant with PKCE, begun on one page and
+/// completed on the page the issuer sends them back to.</summary>
 public static class RedirectSignIn
 {
+    /// <summary>The session storage key the pending sign-in is kept under between its beginning and its
+    /// completion.</summary>
     public static readonly string PendingAuthorizationKey = RegistryStorage.PendingKey;
+    /// <summary>The PKCE S256 code challenge of a verifier: its SHA-256, base64url-encoded without padding.</summary>
     public static string CodeChallenge(string verifier) => Base64Url(SHA256.HashData(Encoding.UTF8.GetBytes(verifier)));
 
+    /// <summary>Discovers the target's issuer, keeps the pending sign-in in storage, and returns the address to send the
+    /// person to.</summary>
     public static async Task<string> BeginAuthorizationAsync(BeginAuthorizationOptions options, ISessionStorage storage,
         HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null, CancellationToken cancellation = default)
     {
@@ -65,6 +92,8 @@ public static class RedirectSignIn
         return destination.Uri.AbsoluteUri;
     }
 
+    /// <summary>Takes the pending sign-in from storage, checks the issuer's response at the callback address against it,
+    /// and exchanges its code for the session's tokens.</summary>
     public static async Task<(PendingAuthorization Pending, StoredSession Session)> CompleteAuthorizationAsync(
         string callbackUrl, ISessionStorage storage, HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null,
         CancellationToken cancellation = default)
@@ -109,6 +138,10 @@ public static class RedirectSignIn
         });
     }
 
+    /// <summary>Asks the knowledge base, with a new access token, to describe itself, giving its DID and
+    /// description.</summary>
+    /// <exception cref="IdentityUnverifiableError">The knowledge base could not be reached or did not report who it
+    /// is.</exception>
     public static async Task<ConnectionIdentity> DescribeConnectionAsync(HttpEndpoint target, string access,
         HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null, CancellationToken cancellation = default)
     {

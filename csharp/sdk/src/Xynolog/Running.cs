@@ -19,8 +19,10 @@ public sealed class Running<T> : IAsyncEnumerable<T>
         return await finish(null, cancellation).ConfigureAwait(Spawning.Captures);
     }
 
+    /// <summary>Lets the operation be awaited for its final value, as <see cref="CompleteAsync"/> does.</summary>
     public TaskAwaiter<T> GetAwaiter() => CompleteAsync().GetAwaiter();
 
+    /// <summary>Consumes the operation, reading each value it reports and then its final value.</summary>
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         Take();

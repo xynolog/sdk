@@ -27,6 +27,7 @@ public sealed class FaultyTransport(IEnumerable<FaultAction>? schedule = null, R
     private int requests;
     private bool disposed;
 
+    /// <summary>Every emit the transport has received, with the fault it met.</summary>
     public IReadOnlyList<RequestLogEntry> RequestLog { get { lock (gate) return log.ToArray(); } }
 
     /// <summary>Supply a failure body to override the responder for a correlated request.</summary>
@@ -45,6 +46,8 @@ public sealed class FaultyTransport(IEnumerable<FaultAction>? schedule = null, R
         }
     }
 
+    /// <summary>Sends <paramref name="frame"/> to every open subscription that accepts it, under the next event id
+    /// unless given one.</summary>
     public void Deliver(BusFrame frame, string? eventId = null)
     {
         lock (gate) SendFrame(frame, eventId ?? NextEventId());
@@ -57,6 +60,7 @@ public sealed class FaultyTransport(IEnumerable<FaultAction>? schedule = null, R
             foreach (var stream in streams.ToArray()) stream.Dispose();
     }
 
+    /// <inheritdoc/>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var path = request.RequestUri?.AbsolutePath;
@@ -166,6 +170,7 @@ public sealed class FaultyTransport(IEnumerable<FaultAction>? schedule = null, R
 
     private void Remove(EventStream stream) { lock (gate) streams.Remove(stream); }
 
+    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         if (disposing)
