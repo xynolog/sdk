@@ -12,3 +12,8 @@ the coming release's, and gathers its changes as they land.
   `tested-with` states.
 - Hackage shows the package's homepage, bug tracker, source repository and
   this changelog.
+- The README is Hackage's page for the package: it says what the SDK is, how
+  to add it to `build-depends` and take releases up to the next minor, and
+  then shows a first program, which connects and reads the knowledge base's
+  name, before signing in and the eight verbs. How the SDK itself is built
+  and checked moves to CONTRIBUTING.md, which the README's last line links to.
