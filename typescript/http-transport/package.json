@@ -1,6 +1,6 @@
 {
   "name": "@xynolog/http-transport",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "HTTP transport adapters for the Xynolog SDK",
   "type": "module",
   "main": "dist/index.js",
