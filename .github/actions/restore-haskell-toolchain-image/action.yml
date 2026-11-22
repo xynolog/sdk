@@ -9,6 +9,9 @@ outputs:
   tag:
     description: The image's tag, as toolchain-image.sh --tag prints it
     value: ${{ steps.image.outputs.tag }}
+  digest:
+    description: The tag's digest of what the image is built from
+    value: ${{ steps.image.outputs.digest }}
   path:
     description: The directory the image's archive is saved in and restored to
     value: ${{ steps.image.outputs.path }}
