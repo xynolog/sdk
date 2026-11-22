@@ -344,8 +344,9 @@ let () =
   Printf.printf
     "PASS every case table is run by a named test or absent with a reason, in \
      each SDK, every other file of Protocol a test reads is named with its \
-     tests, and every surface item an SDK lacks is one Protocol has, with a \
-     reason: %d case tables, %d SDKs, %d surface items lacked\n"
+     tests, the case data is what case-data writes, and every surface item an \
+     SDK lacks is one Protocol has, with a reason: %d case tables, %d SDKs, %d \
+     surface items lacked\n"
     (List.length case_tables)
     (List.length Coverage_sdk.all)
     (List.length Surface_coverage.lacking)
