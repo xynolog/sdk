@@ -139,6 +139,16 @@ def version(language: str) -> str:
     return development(data, language, time, git("rev-parse", "HEAD"))
 
 
+def published_crates() -> list[str]:
+    """The Rust crates published to crates.io, as published-crates.sh names them."""
+    return subprocess.run(
+        ["bash", str(ROOT / "rust/scripts/published-crates.sh")],
+        stdout=subprocess.PIPE,
+        text=True,
+        check=True,
+    ).stdout.split()
+
+
 def manifests(data: Config) -> list[tuple[str, str | None, str]]:
     """Each committed manifest's version, as (path, found, wanted)."""
     found: list[tuple[str, str | None, str]] = []
@@ -152,14 +162,8 @@ def manifests(data: Config) -> list[tuple[str, str | None, str]]:
         elif section == "[workspace.dependencies]" and "path = " in line and 'version = "' in line:
             pinned = re.search(r'version = "([^"]*)"', line)
             found.append((f"rust/Cargo.toml {line.split()[0]}", pinned.group(1) if pinned else None, "rust"))
-    published = subprocess.run(
-        ["bash", str(ROOT / "rust/scripts/published-crates.sh")],
-        stdout=subprocess.PIPE,
-        text=True,
-        check=True,
-    ).stdout.split()
     lock = (ROOT / "rust/Cargo.lock").read_text()
-    for crate in published:
+    for crate in published_crates():
         entry = re.search(rf'(?m)^name = "{re.escape(crate)}"\nversion = "([^"]*)"$', lock)
         found.append((f"rust/Cargo.lock {crate}", entry.group(1) if entry else None, "rust"))
     for package in data["packages"].values():

@@ -53,6 +53,9 @@ jobs:
       - name: The committed manifests, tagged links and changelogs hold the release's versions
         run: python3 scripts/sdk_version.py check
 
+      - name: Each published README links to sdk at the release's tag
+        run: python3 scripts/readme-links.py
+
       - name: The coming release is not yet tagged on another commit
         run: python3 scripts/sdk_version.py unreleased
 
