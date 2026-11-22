@@ -13,8 +13,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
 import {
   CACHE_PER,
@@ -24,49 +22,18 @@ import {
   type PersistedQuery,
 } from '../cache-refresh';
 import { faultOf, isSchemaName } from '../required';
-
-const ROOT = fileURLToPath(new URL('../../../..', import.meta.url));
+import {
+  table,
+  type CasesItem,
+  type PlacesItem,
+} from './cases/session_cache_cases';
+import { table as stored } from './cases/session_stored';
 
 /** An entry as the table states it: its key and its value. */
 interface Entry {
   key: unknown;
   value: unknown;
 }
-
-interface Stored {
-  name: string;
-  stored?: unknown;
-  storedText?: string;
-}
-
-interface Load extends Stored {
-  query: string;
-  kept: Entry[];
-}
-
-interface Write {
-  name: string;
-  query: string;
-  held: Entry[];
-  written: { version: number; entries: Entry[] };
-}
-
-interface Places extends Stored {
-  kept: Record<string, string>;
-}
-
-const read = (path: string): unknown =>
-  JSON.parse(readFileSync(`${ROOT}/${path}`, 'utf8'));
-const table = read('protocol/specs/src/session/cache-cases.json') as {
-  cases: Load[];
-  writes: Write[];
-  refusedWrites: Write[];
-  places: Places[];
-};
-const stored = read('protocol/specs/src/session/stored.json') as {
-  cacheDocument: object;
-  wholeKey: { key: string };
-};
 
 const isPersisted = (name: string): name is PersistedQuery =>
   PERSISTED_QUERIES.some((persisted) => persisted === name);
@@ -111,11 +78,11 @@ function valueHolds(query: PersistedQuery, value: unknown): boolean {
 }
 
 const structureHolds = new Ajv2020({ strict: false }).compile(
-  stored.cacheDocument,
+  stored.cacheDocument as object,
 );
 
 /** The text a case keeps under its key. */
-const text = (stated: Stored): string => {
+const text = (stated: CasesItem | PlacesItem): string => {
   if ((stated.stored === undefined) === (stated.storedText === undefined))
     throw new Error(
       `${stated.name}: states not exactly one of stored and storedText`,

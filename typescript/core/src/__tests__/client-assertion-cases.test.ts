@@ -9,45 +9,14 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
 import {
   JWT_BEARER,
   LIFETIME_SECONDS,
   assertionClaims,
   assertionHeader,
   thumbprint,
-  type RsaPublicMembers,
 } from '../client-assertion';
-
-interface Jwk extends RsaPublicMembers {
-  kty: string;
-}
-
-interface Table {
-  assertionType: string;
-  lifetimeSeconds: number;
-  thumbprints: Array<{ why: string; jwk: Jwk; thumbprint: string }>;
-  cases: Array<{
-    why: string;
-    jwk: Jwk;
-    clientId: string;
-    tokenEndpoint: string;
-    issuedAt: number;
-    jti: string;
-    header: unknown;
-    claims: unknown;
-  }>;
-}
-
-const table: Table = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/session/client-assertion-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
+import { table } from './cases/session_client_assertion_cases';
 
 describe("a service account's assertion (protocol/specs/src/session/client-assertion-cases.json)", () => {
   it('has thumbprints and cases, each of an RSA key', () => {

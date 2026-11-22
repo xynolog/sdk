@@ -4,15 +4,15 @@
  * grant, refresh, and revocation — against a fetch stub, with the issuer's
  * answers scripted per case. Nothing here names a vendor.
  */
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import util from 'node:util';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   HTTP_REQUEST_TIMEOUT_MS,
   REFRESH_RETRY,
   SignInError,
+  isArray,
+  isObject,
+  isString,
 } from '@xynolog/core';
 import { APIError, HttpTransport } from '@xynolog/http-transport';
 import { keptIn, renewKept } from '../../index';
@@ -29,6 +29,7 @@ import {
   revokeAtIssuer,
   signInWithDeviceGrant,
 } from '../oauth';
+import { table as stored } from '../../__tests__/cases/session_stored';
 
 const TARGET = {
   kind: 'http' as const,
@@ -51,20 +52,21 @@ interface ObjectShape {
   required: string[];
 }
 
+/** `schema`, which `what` names, as an object schema: its members, and the names of those it requires. */
+function objectShape(schema: unknown, what: string): ObjectShape {
+  if (!isObject(schema)) throw new Error(`${what} is no schema`);
+  const { properties, required } = schema;
+  if (!isObject(properties)) throw new Error(`${what} states no members`);
+  if (!isArray(required) || !required.every(isString))
+    throw new Error(`${what} states no list of the members it requires`);
+  return { properties, required };
+}
+
 /** What protocol/specs/src/session/stored.json states is kept of a sign-in begun. */
-const PENDING: ObjectShape & { properties: { issuer: ObjectShape } } = (
-  JSON.parse(
-    readFileSync(
-      join(
-        dirname(fileURLToPath(import.meta.url)),
-        '../../../../../protocol/specs/src/session/stored.json',
-      ),
-      'utf-8',
-    ),
-  ) as {
-    pendingAuthorization: ObjectShape & { properties: { issuer: ObjectShape } };
-  }
-).pendingAuthorization;
+const PENDING = objectShape(
+  stored.pendingAuthorization,
+  'pendingAuthorization',
+);
 
 function reply(json: unknown, status = 200): Response {
   return {
@@ -367,7 +369,10 @@ describe('the authorization-code grant', () => {
       Object.keys(PENDING.properties).sort(),
     );
     expect(Object.keys(record.issuer).sort()).toEqual(
-      Object.keys(PENDING.properties.issuer.properties).sort(),
+      Object.keys(
+        objectShape(PENDING.properties['issuer'], 'pendingAuthorization.issuer')
+          .properties,
+      ).sort(),
     );
 
     const bare = new InMemorySessionStorage();

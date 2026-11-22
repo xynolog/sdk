@@ -133,6 +133,32 @@ let table_refusals =
                table))
       named
 
+(* [where]'s refusals of [tests], each a test of [sdk] that reads what it
+   names, [named]: a file under the SDK's directory, in the checkout, that
+   names it. *)
+let test_refusals where sdk tests named =
+  List.map
+    (Printf.sprintf "%s: names %s more than once" where)
+    (duplicates tests)
+  @ List.concat_map
+      (fun test ->
+        let path = Filename.concat root test in
+        if not (String.starts_with ~prefix:(Coverage_sdk.name sdk ^ "/") test)
+        then
+          [
+            Printf.sprintf "%s: %s is not under %s/" where test
+              (Coverage_sdk.name sdk);
+          ]
+        else if not (Sys.file_exists path && not (Sys.is_directory path)) then
+          [ Printf.sprintf "%s: %s is not in the checkout" where test ]
+        else
+          match named with
+          | Error why -> [ Printf.sprintf "%s: %s" where why ]
+          | Ok name when not (names (read path) name) ->
+              [ Printf.sprintf "%s: %s does not name %s" where test name ]
+          | Ok _ -> [])
+      tests
+
 let coverage_refusals table sdk =
   let where = Printf.sprintf "%s, %s" table (Coverage_sdk.name sdk) in
   match (List.assoc table Case_coverage.tables) sdk with
@@ -140,66 +166,50 @@ let coverage_refusals table sdk =
       if String.trim why = "" then [ where ^ ": states no reason" ] else []
   | Case_coverage.Run_by [] -> [ where ^ ": names no test" ]
   | Case_coverage.Run_by tests ->
-      List.map
-        (Printf.sprintf "%s: names %s more than once" where)
-        (duplicates tests)
-      @ List.concat_map
-          (fun test ->
-            let path = Filename.concat root test in
-            if
-              not
-                (String.starts_with ~prefix:(Coverage_sdk.name sdk ^ "/") test)
-            then
-              [
-                Printf.sprintf "%s: %s is not under %s/" where test
-                  (Coverage_sdk.name sdk);
-              ]
-            else if not (Sys.file_exists path && not (Sys.is_directory path))
-            then [ Printf.sprintf "%s: %s is not in the checkout" where test ]
-            else
-              match reads_by sdk table with
-              | Error why -> [ Printf.sprintf "%s: %s" where why ]
-              | Ok name when not (names (read path) name) ->
-                  [ Printf.sprintf "%s: %s does not name %s" where test name ]
-              | Ok _ -> [])
-          tests
+      test_refusals where sdk tests (reads_by sdk table)
 
-(* Every file under [dir] of the checkout, but what a build writes. *)
-let rec files dir =
-  Sys.readdir (Filename.concat root dir)
-  |> Array.to_list |> List.sort compare
-  |> List.concat_map (fun name ->
-      let path = Filename.concat dir name in
-      if Sys.is_directory (Filename.concat root path) then
-        if List.mem name [ "_build"; "node_modules"; "target"; ".build" ] then
-          []
-        else files path
-      else [ path ])
+(* What a test of [sdk] that reads the schema [file] names: the module the
+   case-data group writes it to, else its path. *)
+let schema_read_by sdk file =
+  match Case_data.language sdk with
+  | None -> file
+  | Some language -> language.reference (Case_data.schema_module file)
 
-let unread_refusals =
+let test_reads_refusals =
   List.concat_map
-    (fun (sdk, name, file) ->
-      match Case_data.language sdk with
-      | None -> []
-      | Some language ->
-          let own = language.path name
-          and reference = language.reference name in
-          if
-            List.exists
-              (fun path ->
-                path <> own
-                && names (read (Filename.concat root path)) reference)
-              (files (Coverage_sdk.name sdk))
-          then []
+    (fun sdk ->
+      List.concat_map
+        (fun (read, tests) ->
+          let where =
+            Printf.sprintf "%s, %s" (Test_reads.file read)
+              (Coverage_sdk.name sdk)
+          in
+          match (read, tests) with
+          | _, [] -> [ where ^ ": Test_reads names no test" ]
+          | Test_reads.Table table, tests ->
+              test_refusals where sdk tests (reads_by sdk table)
+          | Schema file, tests ->
+              test_refusals where sdk tests (Ok (schema_read_by sdk file)))
+        (Test_reads.reads sdk))
+    Coverage_sdk.all
+
+(* Each directory the case-data group writes to holds what it writes and
+   no other module: one it no longer writes is no test's. *)
+let stale_refusals =
+  let written = Case_data.paths derived in
+  List.sort_uniq compare (List.map Filename.dirname written)
+  |> List.concat_map (fun dir ->
+      Sys.readdir (Filename.concat root dir)
+      |> Array.to_list |> List.sort compare
+      |> List.filter_map (fun name ->
+          let path = Filename.concat dir name in
+          if name = "dune" || List.mem path written then None
           else
-            [
-              Printf.sprintf
-                "%s, %s: the case-data group writes %s, and no file of %s \
-                 reads %s"
-                file (Coverage_sdk.name sdk) own (Coverage_sdk.name sdk)
-                reference;
-            ])
-    (Case_data.modules derived)
+            Some
+              (Printf.sprintf
+                 "%s: the case-data group writes no such module, so no test \
+                  reads it"
+                 path)))
 
 module Surface = Tables.Client_surface
 
@@ -326,14 +336,15 @@ let refusals =
   @ List.concat_map
       (fun table -> List.concat_map (coverage_refusals table) Coverage_sdk.all)
       (List.sort_uniq compare named)
-  @ unread_refusals @ surface_refusals @ reader_refusals
+  @ test_reads_refusals @ stale_refusals @ surface_refusals @ reader_refusals
 
 let () =
   List.iter prerr_endline refusals;
   if refusals <> [] then exit 1;
   Printf.printf
     "PASS every case table is run by a named test or absent with a reason, in \
-     each SDK, every module of case data is read, and every surface item an \
+     each SDK, every other file of Protocol a test reads is named with its \
+     tests, the case data is what case-data writes, and every surface item an \
      SDK lacks is one Protocol has, with a reason: %d case tables, %d SDKs, %d \
      surface items lacked\n"
     (List.length case_tables)

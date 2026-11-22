@@ -6,26 +6,11 @@
  * gains or loses fails.
  */
 
-import { readFileSync } from 'node:fs';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { JobEvent } from '../awaitable';
 import type { SearchState } from '../state/lib/search-pipeline';
-
-interface ObjectSchema {
-  properties: Record<string, ObjectSchema & { enum?: string[] }>;
-}
-
-function schema<T>(name: string): T {
-  return JSON.parse(
-    readFileSync(
-      new URL(
-        `../../../../protocol/specs/src/client/types/${name}.json`,
-        import.meta.url,
-      ),
-      'utf8',
-    ),
-  );
-}
+import { schema as jobEvent } from './cases/client_types_job_event_schema';
+import { schema as searchState } from './cases/client_types_search_state_schema';
 
 const sorted = (names: readonly string[]) => [...names].sort();
 
@@ -55,8 +40,9 @@ describe('the generic client types (protocol/specs/src/client/types)', () => {
     expectTypeOf<
       Exclude<keyof SearchState<unknown>, (typeof SEARCH_STATE)[number]>
     >().toBeNever();
-    const { properties } = schema<ObjectSchema>('SearchState');
-    expect(sorted(Object.keys(properties))).toEqual(sorted(SEARCH_STATE));
+    expect(sorted(Object.keys(searchState.properties))).toEqual(
+      sorted(SEARCH_STATE),
+    );
   });
 
   it('JobEvent has the schema’s branches, each of its members', () => {
@@ -79,9 +65,8 @@ describe('the generic client types (protocol/specs/src/client/types)', () => {
       Exclude<keyof Branch<'refused'>['data'], (typeof REFUSED_DATA)[number]>
     >().toBeNever();
 
-    const { oneOf } = schema<{ oneOf: ObjectSchema[] }>('JobEvent');
-    const branches = new Map(
-      oneOf.map((branch) => [branch.properties.kind!.enum![0]!, branch]),
+    const branches = new Map<string, (typeof jobEvent.oneOf)[number]>(
+      jobEvent.oneOf.map((branch) => [branch.properties.kind.enum[0], branch]),
     );
     expect(sorted([...branches.keys()])).toEqual(
       sorted(Object.keys(JOB_EVENT)),
@@ -91,8 +76,11 @@ describe('the generic client types (protocol/specs/src/client/types)', () => {
         sorted(members),
       );
     }
-    expect(
-      sorted(Object.keys(branches.get('refused')!.properties.data!.properties)),
-    ).toEqual(sorted(REFUSED_DATA));
+    const refused = branches.get('refused')!.properties.data;
+    if (!('properties' in refused))
+      throw new Error('the refused branch states no members of its data');
+    expect(sorted(Object.keys(refused.properties))).toEqual(
+      sorted(REFUSED_DATA),
+    );
   });
 });

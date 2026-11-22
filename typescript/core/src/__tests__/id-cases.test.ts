@@ -5,23 +5,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { annotationIdFor, type AnnotationIdentity } from '../annotation-id';
-
-interface Case extends AnnotationIdentity {
-  why: string;
-  id: string;
-}
-
-const table: { cases: Case[] } = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/annotations/id-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
+import { annotationIdFor } from '../annotation-id';
+import { table } from './cases/annotations_id_cases';
 
 describe('the id of an annotation (protocol/specs/src/annotations/id-cases.json)', () => {
   it('has cases', () => {
