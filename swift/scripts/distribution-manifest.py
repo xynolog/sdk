@@ -3,13 +3,16 @@
 
 Usage: distribution-manifest.py manifest <dump.json>
        distribution-manifest.py targets <dump.json>
+       distribution-manifest.py spi <dump.json>
 
 <dump.json> is what `swift package dump-package` prints for swift/sdk. The
 distribution holds the SDK's library products, the targets they need, and the
 package dependencies those targets name, and nothing else; a target that uses
 a build plugin is refused, since the SDK commits what it generates.
 `manifest` prints the distribution's Package.swift; `targets` prints the
-targets it holds, one per line.
+targets it holds, one per line; `spi` prints its .spi.yml, which has the Swift
+Package Index build and host the DocC documentation of each library product's
+targets.
 
 Anything in the dump this script does not know is refused, never guessed at:
 a new setting, requirement or target property must be taught here first.
@@ -279,13 +282,26 @@ def manifest(dump: Dump) -> str:
     )
 
 
+def spi(dump: Dump) -> str:
+    documented = list(dict.fromkeys(name for product in library_products(dump) for name in product["targets"]))
+    return (
+        "# Written by the Xynolog SDK's release from the SDK's own manifest; not edited here.\n"
+        "version: 1\n"
+        "builder:\n"
+        "  configs:\n"
+        f"    - documentation_targets: [{', '.join(documented)}]\n"
+    )
+
+
 def main() -> None:
-    if len(sys.argv) != 3 or sys.argv[1] not in ("manifest", "targets"):
+    if len(sys.argv) != 3 or sys.argv[1] not in ("manifest", "targets", "spi"):
         raise SystemExit(__doc__)
     with open(sys.argv[2]) as file:
         dump: Dump = json.load(file)
     if sys.argv[1] == "manifest":
         sys.stdout.write(manifest(dump))
+    elif sys.argv[1] == "spi":
+        sys.stdout.write(spi(dump))
     else:
         sys.stdout.write("".join(f"{t['name']}\n" for t in needed_targets(dump)))
 
