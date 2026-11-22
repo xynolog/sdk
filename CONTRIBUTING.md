@@ -129,6 +129,14 @@ The package is [`python/sdk`](https://github.com/xynolog/sdk/tree/main/python/sd
 
 `rust/` holds the three crates of one workspace: `sdk`, `http-transport` and `telemetry`. `make rust` builds and stages its packages, and `make test-rust` runs its tests, type checks, lints and format checks, in its toolchain's container.
 
+#### Contributing to `xynolog-http-transport`
+
+Every Rust block of its README is a region of [tests/sign_in.rs](rust/http-transport/tests/sign_in.rs), compiled and run there against a stand-in gateway and issuer. The Rust block of the [`xynolog-worker` skill](skills/xynolog-worker/SKILL.md) is held to the same regions. [tests/stream.rs](rust/http-transport/tests/stream.rs) holds the stream's behaviour against a gateway that misbehaves on cue. [conformance/](rust/http-transport/conformance) holds the two drivers the [SDK conformance suite](https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md) runs, and the one the [worker conformance suite](https://github.com/xynolog/protocol/blob/main/conformance/worker/README.md) runs.
+
+#### Contributing to `xynolog-telemetry`
+
+Both Rust blocks of its README are regions of [tests/on.rs](rust/telemetry/tests/on.rs), which runs them in a process that installed an OpenTelemetry of its own and holds the crate to the telemetry table in both directions. [tests/off.rs](rust/telemetry/tests/off.rs) is the process that installed none.
+
 ### Go
 
 `go/` holds the module `github.com/xynolog/sdk/go`. `make go` builds and stages its packages, and `make test-go` runs its tests, type checks, lints and format checks, in its toolchain's container.

@@ -15,6 +15,19 @@ installed.
 It exports nothing itself. With no OpenTelemetry installed, nothing is
 recorded and no trace context leaves the process.
 
+## Install
+
+```bash
+cargo add xynolog-telemetry
+```
+
+Below 1.0 the minor number is the break, and the requirement `cargo add`
+writes into `Cargo.toml` takes the releases up to the next minor and no
+further.
+
+It is built with `opentelemetry` 0.33. Every function is documented on
+[docs.rs](https://docs.rs/xynolog-telemetry).
+
 ## Do you need it?
 
 - **To see the client's traces in your own telemetry**, you install your
@@ -23,13 +36,6 @@ recorded and no trace context leaves the process.
   [Turning it on](#turning-it-on).
 - **To write a transport** for the SDK, you report through the functions
   below. See [Writing a transport](#writing-a-transport).
-
-```bash
-cargo add xynolog-telemetry
-```
-
-It is built with `opentelemetry` 0.33. Every function is documented on
-[docs.rs](https://docs.rs/xynolog-telemetry).
 
 ## Turning it on
 
@@ -121,13 +127,8 @@ four more functions:
 | [`xynolog`](../sdk/README.md) | The SDK's client. |
 | [`xynolog-http-transport`](../http-transport/README.md) | The transport over a gateway, which reports through this crate. |
 
-## Contributing
-
-Both Rust blocks on this page are regions of [tests/on.rs](tests/on.rs),
-which runs them in a process that installed an OpenTelemetry of its own and
-holds the crate to the telemetry table in both directions.
-[tests/off.rs](tests/off.rs) is the process that installed none.
-
 ## License
 
 Apache-2.0. See [LICENSE](../../LICENSE).
+
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
