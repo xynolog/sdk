@@ -1,0 +1,5 @@
+{
+  "name": "clean-room-consumer",
+  "private": true,
+  "type": "module"
+}

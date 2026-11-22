@@ -6,10 +6,10 @@
 #
 # The tree, <out dir>/sdk-swift, holds the SDK's library targets, a manifest
 # distribution-manifest.py derives from swift/sdk's, and the LICENSE, NOTICE
-# and README. It is then committed to a scratch git repository, tagged
-# <version>, and a package that depends on it by URL at exactly that version
-# is built, as an application would depend on it. Run in the pinned Swift
-# container, from a checkout with python3 and git on the path.
+# and README. It is then installed as an application installs it
+# (consume-distribution.sh), and the distribution's consumer built on it. Run
+# in the pinned Swift container, from a checkout with python3 and git on the
+# path.
 set -eu
 version=$1
 tree="$2/sdk-swift"
@@ -27,32 +27,4 @@ python3 "$manifest" targets "$work/dump.json" > "$work/targets"
 while IFS= read -r target; do cp -a "Sources/$target" "$tree/Sources/$target"; done < "$work/targets"
 cp "$root/LICENSE" "$root/swift/distribution/NOTICE" "$root/swift/distribution/README.md" "$tree/"
 
-# Installed as an application installs it: by URL, at exactly this version,
-# with the SDK's dependencies at the newest versions its manifest allows.
-cp -a "$tree" "$work/sdk-swift"
-git -C "$work/sdk-swift" init -q
-git -C "$work/sdk-swift" add -A
-git -C "$work/sdk-swift" -c user.name=distribution -c user.email=distribution@invalid commit -q -m "Xynolog SDK for Swift $version"
-git -C "$work/sdk-swift" tag "$version"
-cp -a "$root/swift/distribution/consumer" "$work/consumer"
-cat > "$work/consumer/Package.swift" <<MANIFEST
-// swift-tools-version: 6.2
-import PackageDescription
-
-let package = Package(
-  name: "Consumer",
-  dependencies: [.package(url: "file://$work/sdk-swift", exact: "$version")],
-  targets: [
-    .executableTarget(
-      name: "Consumer",
-      dependencies: [
-        .product(name: "Xynolog", package: "sdk-swift"),
-        .product(name: "XynologTesting", package: "sdk-swift"),
-      ])
-  ]
-)
-MANIFEST
-cd "$work/consumer"
-swift build --jobs 4
-# How SwiftPM took the dependency: the pin names its kind.
-cat Package.resolved
+sh "$root/swift/scripts/consume-distribution.sh" "$tree" "$version" "$root/swift/distribution/consumer"

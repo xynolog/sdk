@@ -1,0 +1,4 @@
+; A program of the installed library alone.
+(executable
+ (name consume)
+ (libraries xynolog))

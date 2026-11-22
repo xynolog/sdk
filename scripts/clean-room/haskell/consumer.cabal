@@ -1,0 +1,9 @@
+cabal-version: 3.0
+name:          consumer
+version:       0
+-- A program of the source distribution alone, built as Hackage builds it.
+
+executable consumer
+  main-is:          Main.hs
+  build-depends:    base, xynolog
+  default-language: GHC2021
