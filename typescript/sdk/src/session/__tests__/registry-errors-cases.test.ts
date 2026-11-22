@@ -22,9 +22,6 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import {
   BehaviorSubject,
   filter,
@@ -56,34 +53,11 @@ import {
   freshJwt,
   testSession,
 } from './test-storage-helpers';
-
-/** What a case's session says: one of its own errors, by its code, or a failure of its transport, by its code, with its message. */
-type Said =
-  | { own: XynologSessionErrorCode }
-  | { transport: TransportErrorCode; message: string };
-
-interface Case {
-  why: string;
-  while: 'opening' | 'active';
-  said: Said[];
-  registryErrors: XynologSessionErrorCode[];
-  permissionDenied?: string;
-}
-
-interface ClosingCase {
-  why: string;
-  owed: boolean;
-  registryErrors: XynologSessionErrorCode[];
-}
-
-const TABLE = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../../protocol/specs/src/session/registry-errors-cases.json',
-);
-const { cases, closing } = JSON.parse(readFileSync(TABLE, 'utf-8')) as {
-  cases: Case[];
-  closing: ClosingCase[];
-};
+import {
+  table,
+  type CasesItem,
+  type SaidItem,
+} from '../../__tests__/cases/session_registry_errors_cases';
 
 /** The knowledge base each registry signs in to, where the fake gateway is. */
 const KB: NewKnowledgeBase = {
@@ -104,19 +78,22 @@ const JO = {
 function sayAll(
   session: XynologSession,
   transport: FaultyTransport,
-  entries: readonly Said[],
+  entries: readonly SaidItem[],
 ): XynologError[] {
   return entries.map((entry): XynologError => {
     if ('own' in entry) {
       const own = new XynologSessionError(
-        entry.own,
+        entry.own as XynologSessionErrorCode,
         `the session says ${entry.own}`,
         session.kb.id,
       );
       sayOn(session, own);
       return own;
     }
-    const failure = new XynologError(entry.message, entry.transport);
+    const failure = new XynologError(
+      entry.message,
+      entry.transport as TransportErrorCode,
+    );
     transport.fail(failure);
     return failure;
   });
@@ -128,7 +105,7 @@ function sayAll(
  * each token it is handed and gives a new one. What `row` says `opening`, the
  * factory says as it builds the session, before handing it back.
  */
-function scripted(row: Case): {
+function scripted(row: CasesItem): {
   factory: SessionFactory;
   transports: Map<XynologSession, FaultyTransport>;
   sayings: Map<XynologSession, XynologError[]>;
@@ -159,7 +136,7 @@ function scripted(row: Case): {
 
 describe('protocol/specs/src/session/registry-errors-cases.json', () => {
   describe('cases', () => {
-    it.each(cases)('$while: $why', async (row) => {
+    it.each(table.cases)('$while: $why', async (row) => {
       const { factory, transports, sayings, handed } = scripted(row);
       const browser = new XynologBrowser({
         storage: new TestStorage(),
@@ -221,7 +198,7 @@ describe('protocol/specs/src/session/registry-errors-cases.json', () => {
   });
 
   describe('closing', () => {
-    it.each(closing)('owed $owed: $why', async (row) => {
+    it.each(table.closing)('owed $owed: $why', async (row) => {
       const storage = new RefusingStorage();
       const gateway = fakeGateway({
         whoIs: async () => Response.json(JO),

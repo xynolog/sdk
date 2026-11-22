@@ -94,32 +94,7 @@ import {
   resourceId,
 } from '@xynolog/core';
 import type { XynologError } from '@xynolog/core';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-
-/** A case of protocol/specs/src/session/open-resource-cases.json. */
-interface OpenResourceCase {
-  why: string;
-  kb: 'itself' | 'unanswered';
-  open: string[];
-  resources: Record<string, 'ready' | 'gone' | 'unanswered'>;
-  asked: string[];
-  stillOpen: string[];
-}
-
-const openResourceCases = (
-  JSON.parse(
-    readFileSync(
-      fileURLToPath(
-        new URL(
-          '../../../../../protocol/specs/src/session/open-resource-cases.json',
-          import.meta.url,
-        ),
-      ),
-      'utf8',
-    ),
-  ) as { cases: OpenResourceCase[] }
-).cases;
+import { table as openResources } from '../../__tests__/cases/session_open_resource_cases';
 
 /** An issuer's JSON answer, as `fetch` would hand it back. */
 function issuerReply(json: unknown, status = 200): Response {
@@ -731,7 +706,7 @@ describe('XynologBrowser — open resources (KB-scoped)', () => {
     const unanswered = () =>
       new BusRequestError('no answer in this test', 'bus.timeout');
 
-    it.each(openResourceCases)('$why', async (stated) => {
+    it.each(openResources.cases)('$why', async (stated) => {
       seedTabs(...stated.open);
       mockKb =
         stated.kb === 'itself'

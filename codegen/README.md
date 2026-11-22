@@ -168,7 +168,9 @@ writes:
   model Protocol's reader derives from its schema
   (`Xynolog_protocol_model`), and each schema they read, as its JSON, in the
   SDK's test tree: the OCaml SDK's `test/cases`, the `Protocol_cases`
-  library. A row the model does not describe is refused by its JSON
+  library, and, for each TypeScript package whose tests read it,
+  `src/__tests__/cases` of that package, whose `rootDir` its `src/` is. A
+  row the model does not describe is refused by its JSON
   Pointer. It writes data alone: a test keeps its own loop, which says how a
   row becomes a call on the SDK, so an SDK's tests read no file of Protocol,
   and a change to a table's shape is a compile error in each SDK that runs
@@ -330,7 +332,7 @@ names the SDKs the records speak of.
   yet. A test named there runs every case of its table.
 - [`lib/test_reads.ml`](lib/test_reads.ml): the files of Protocol other
   than its case tables that each SDK's tests read, tables and schemas,
-  which `case-data` writes for them too.
+  which `case-data` writes for them too, each with the tests that read it.
 - [`test/surface_coverage.ml`](test/surface_coverage.ml): each item of the
   client surface (`client/surface.json`) some SDK lacks, with each SDK that
   lacks it and why: absent, or not yet reached. An item it does not name is
@@ -342,8 +344,10 @@ it names each of them and no other. Its SDKs are the Makefile's `LANGUAGES`,
 and the compiler holds every table to a coverage for each one. A named test
 is a file this checkout has under the SDK's directory, and it names the
 module `case-data` writes its table's rows to, or, for an SDK the group has
-no writer for, its table's path. Every module `case-data` writes is read by
-a file of its SDK other than itself. Every surface item named is one the
+no writer for, its table's path; so is each test `test_reads.ml` names, of
+the module its table or schema is written to. `case-data` writes a module
+for the tests named so and no other, so each module it writes is read.
+Every surface item named is one the
 surface has, named once, and each SDK lacking it once; that an SDK has an
 item named nowhere is its own surface test's to hold. The readers
 `annotations/reader-cases.json` names are the annotations module's readers

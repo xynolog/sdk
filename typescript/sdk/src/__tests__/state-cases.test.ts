@@ -8,7 +8,6 @@
  * each unit's own test holds.
  */
 
-import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Subject, type Observable } from 'rxjs';
 import {
@@ -62,44 +61,26 @@ import {
   type SessionSignals,
 } from '../session/session-signals';
 import type { KbIdentityConflict, SessionEndReason } from '@xynolog/core';
+import {
+  table,
+  type CasesItem,
+  type CorrelationIdObject,
+  type Json,
+  type MadeValue,
+  type Pass,
+  type StepsItem,
+} from './cases/client_state_units';
+import { table as surface } from './cases/client_surface';
+import { table as timing } from './cases/client_timing';
 
 /** How many rounds a settle lets pass: enough for what any case sets going to run to its end, the clock held still. */
 const SETTLE_TURNS = 200;
 
-type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 type JsonObject = { [key: string]: Json };
 
-interface Case {
-  unit: string;
-  case: string;
-  transport: JsonObject;
-  made: Record<string, JsonObject>;
-  listen?: string[];
-  steps: Json[];
-}
-
-const read = (path: string): unknown =>
-  JSON.parse(
-    readFileSync(
-      new URL(`../../../../protocol/specs/src/${path}`, import.meta.url),
-      'utf8',
-    ),
-  );
-
-const TABLE = read('client/state-units.json') as {
-  fixtures: Record<string, Json>;
-  cases: Case[];
-};
-const NAMES = read('client/surface.json') as {
-  stateUnits: Array<{ unit: string }>;
-};
-const TIMING = new Map(
-  (
-    read('client/timing.json') as {
-      timing: Array<{ name: string; value: number }>;
-    }
-  ).timing.map(({ name, value }) => [name, value]),
-);
+/** The table's fixtures, by name. */
+const FIXTURES: { [name: string]: Json } = { ...table.fixtures };
+const TIMING = new Map(timing.timing.map(({ name, value }) => [name, value]));
 
 // ── Reading the table ───────────────────────────────────────────────────
 
@@ -127,12 +108,6 @@ function flag(value: Json | undefined, what: string): boolean {
   return value;
 }
 
-function strings(value: Json | undefined, what: string): string[] {
-  if (!Array.isArray(value))
-    throw new Error(`${what} is not a list: ${JSON.stringify(value)}`);
-  return value.map((item) => text(item, what));
-}
-
 /** `value` with each `{"$fixture": name}` replaced by the table's fixture. */
 function resolved(value: Json): Json {
   if (Array.isArray(value)) return value.map(resolved);
@@ -140,7 +115,7 @@ function resolved(value: Json): Json {
   const keys = Object.keys(value);
   if (keys.length === 1 && keys[0] === '$fixture') {
     const name = text(value['$fixture'], "a fixture's name");
-    const fixture = TABLE.fixtures[name];
+    const fixture = FIXTURES[name];
     if (fixture === undefined)
       throw new Error(`the table has no fixture ${name}`);
     return resolved(fixture);
@@ -151,19 +126,18 @@ function resolved(value: Json): Json {
 }
 
 /** A duration as the table states it, in milliseconds: a number, or a timing of protocol/specs/src/client/timing.json scaled and moved. */
-function durationMs(value: Json | undefined): number {
+function durationMs(value: Pass | undefined): number {
   if (typeof value === 'number') return value;
-  const stated = object(value, 'a duration');
-  const name = text(stated['timing'], 'a timing');
-  const base = TIMING.get(name);
+  if (value === undefined) throw new Error('a duration is not stated');
+  const base = TIMING.get(value.timing);
   if (base === undefined)
     throw new Error(
-      `${name} is no timing of protocol/specs/src/client/timing.json`,
+      `${value.timing} is no timing of protocol/specs/src/client/timing.json`,
     );
-  const times =
-    stated['times'] === undefined ? 1 : count(stated['times'], 'times');
-  const plus =
-    stated['plusMs'] === undefined ? 0 : count(stated['plusMs'], 'plusMs');
+  if (typeof base !== 'number')
+    throw new Error(`${value.timing} is no duration`);
+  const times = value.times === undefined ? 1 : value.times;
+  const plus = value.plusMs === undefined ? 0 : value.plusMs;
   return base * times + plus;
 }
 
@@ -221,7 +195,7 @@ interface Played {
 type Make = (
   client: XynologClient,
   searches: Searches,
-  made: JsonObject,
+  made: MadeValue,
 ) => Played;
 
 const annotationOf = (args: Args): AnnotationId =>
@@ -451,10 +425,10 @@ function jobs(operation: BusOperationKey): unknown {
 
 /** The transport a case states. Its stream carries what a client's does: the replies and the broadcasts, never the requests. */
 function transportOf(
-  stated: JsonObject,
+  stated: CasesItem['transport'],
 ): NonNullable<TestClientOptions['transport']> {
-  const answers = text(stated['answers'], 'transport.answers');
-  const delay = stated['delayMs'];
+  const answers = stated.answers;
+  const delay = stated.delayMs;
   const schedule: FaultAction[] =
     delay === undefined ? [] : [{ kind: 'delay', ms: durationMs(delay) }];
   switch (answers) {
@@ -570,10 +544,10 @@ interface Heard {
 /** The correlation id the `nth` request sent on a channel carried. */
 function requestId(
   transport: FaultyTransport,
-  named: JsonObject,
+  named: CorrelationIdObject,
 ): string | undefined {
-  const channel = text(named['sent'], "a request's channel");
-  const nth = count(named['nth'], 'nth');
+  const channel = named.sent;
+  const nth = named.nth;
   const sent = transport.requestLog.filter(
     (entry) => entry.channel === channel,
   );
@@ -587,11 +561,9 @@ function requestId(
 
 /** An envelope carrying `correlationId`, or none when the step states none. */
 const envelopeOf = (
-  correlation: Json | undefined,
+  correlation: string | undefined,
 ): { correlationId: string } | undefined =>
-  correlation === undefined
-    ? undefined
-    : { correlationId: text(correlation, 'correlationId') };
+  correlation === undefined ? undefined : { correlationId: correlation };
 
 interface World {
   client: XynologClient;
@@ -601,10 +573,9 @@ interface World {
   heard: Heard[];
 }
 
-function unitOf(world: World, name: Json | undefined): Played {
-  const named = text(name, 'a unit');
-  const unit = world.units[named];
-  if (unit === undefined) throw new Error(`the case made no unit ${named}`);
+function unitOf(world: World, name: string): Played {
+  const unit = world.units[name];
+  if (unit === undefined) throw new Error(`the case made no unit ${name}`);
   return unit;
 }
 
@@ -616,7 +587,7 @@ function stateOf(world: World, name: string, member: string): Watched<unknown> {
 
 /** Perform one step. Returns how much of what was heard has been checked. */
 async function perform(
-  step: Json,
+  step: StepsItem,
   world: World,
   told: number,
 ): Promise<number> {
@@ -625,74 +596,63 @@ async function perform(
     await settle();
     return told;
   }
-  const stated = object(step, 'a step');
-  if ('say' in stated) {
+  if ('say' in step) {
     client.bus.emit(
-      text(stated['say'], 'a channel') as keyof EventMap,
+      step.say as keyof EventMap,
       resolved(
-        object(stated['payload'], 'a payload'),
+        object(step.payload, 'a payload'),
       ) as unknown as EventMap[keyof EventMap],
-      envelopeOf(stated['correlationId']),
+      envelopeOf(step.correlationId),
     );
-  } else if ('deliver' in stated) {
+  } else if ('deliver' in step) {
     // The test transport hands what it is sent on a channel that is no request to the client's stream, as the wire does another participant's.
     void transport.emit(
-      text(stated['deliver'], 'a channel') as keyof EventMap,
+      step.deliver as keyof EventMap,
       resolved(
-        object(stated['payload'], 'a payload'),
+        object(step.payload, 'a payload'),
       ) as unknown as EventMap[keyof EventMap],
-      envelopeOf(stated['correlationId']),
+      envelopeOf(step.correlationId),
     );
-  } else if ('answer' in stated) {
-    const asked = requestId(transport, {
-      sent: stated['answer'] ?? null,
-      nth: stated['nth'] ?? null,
-    });
+  } else if ('answer' in step) {
+    const asked = requestId(transport, { sent: step.answer, nth: step.nth });
     void transport.emit(
-      text(stated['reply'], "a reply's channel") as keyof EventMap,
+      step.reply as keyof EventMap,
       resolved(
-        object(stated['payload'], 'a payload'),
+        object(step.payload, 'a payload'),
       ) as unknown as EventMap[keyof EventMap],
       asked === undefined ? undefined : { correlationId: asked },
     );
-  } else if ('queueReply' in stated) {
+  } else if ('queueReply' in step) {
     transport.queueReply(
-      text(stated['queueReply'], 'an operation') as BusOperationKey,
-      resolved(stated['response'] ?? null),
+      step.queueReply as BusOperationKey,
+      resolved(step.response),
     );
-  } else if ('invoke' in stated) {
-    const name = text(stated['invoke'], 'a method');
-    const method = unitOf(world, stated['of']).methods[name];
+  } else if ('invoke' in step) {
+    const method = unitOf(world, step.of).methods[step.invoke];
     if (method === undefined)
-      throw new Error(`${text(stated['of'], 'a unit')} has no method ${name}`);
-    method(object(resolved(stated['args'] ?? null), 'args'));
-  } else if ('pass' in stated) {
+      throw new Error(`${step.of} has no method ${step.invoke}`);
+    method(object(resolved(step.args), 'args'));
+  } else if ('pass' in step) {
     // What is ready runs at the time it became ready, before the clock moves; what falls due runs to its end.
     await settle();
-    await vi.advanceTimersByTimeAsync(durationMs(stated['pass']));
+    await vi.advanceTimersByTimeAsync(durationMs(step.pass));
     await settle();
-  } else if ('dispose' in stated) {
-    unitOf(world, stated['dispose']).unit.dispose();
-  } else if ('answerSearch' in stated) {
-    const results = stated['results'];
+  } else if ('dispose' in step) {
+    unitOf(world, step.dispose).unit.dispose();
+  } else if ('answerSearch' in step) {
     searches.answer(
-      count(stated['answerSearch'], 'answerSearch'),
-      results === null ? undefined : strings(results, "an answer's results"),
+      step.answerSearch,
+      step.results === null ? undefined : step.results,
     );
-  } else if ('searched' in stated) {
+  } else if ('searched' in step) {
     const queries = searches.asked.map((asked) => asked.query);
-    const wanted = strings(stated['searched'], 'searched');
     check(
-      matches(wanted, queries),
+      matches(step.searched, queries),
       () => `the search was asked ${JSON.stringify(queries)}`,
     );
-  } else if ('expect' in stated) {
-    for (const [name, members] of Object.entries(
-      object(stated['expect'], 'expect'),
-    )) {
-      for (const [member, value] of Object.entries(
-        object(members, `${name}'s members`),
-      )) {
+  } else if ('expect' in step) {
+    for (const [name, members] of Object.entries(step.expect)) {
+      for (const [member, value] of Object.entries(members)) {
         const held = stateOf(world, name, member).getValue();
         check(
           holds(value, held),
@@ -701,30 +661,31 @@ async function perform(
         );
       }
     }
-  } else if ('sent' in stated) {
-    const channel = text(stated['sent'], "a request's channel");
+  } else if ('sent' in step) {
+    const channel = step.sent;
     const sent = transport.requestLog
       .filter((entry) => entry.channel === channel)
       .map((entry) => wire(entry.payload));
-    if ('count' in stated) {
+    if ('count' in step) {
+      const stated = step.count;
       check(
-        sent.length === count(stated['count'], 'count'),
+        sent.length === stated,
         () =>
-          `${sent.length} requests were sent on ${channel}, not ${JSON.stringify(stated['count'])}`,
+          `${sent.length} requests were sent on ${channel}, not ${JSON.stringify(stated)}`,
       );
     } else {
       check(
-        matches(resolved(stated['payloads'] ?? null), sent),
+        matches(resolved(step.payloads), sent),
         () => `sent on ${channel}: ${JSON.stringify(sent)}`,
       );
     }
-  } else if ('nothingSent' in stated) {
+  } else if ('nothingSent' in step) {
     check(
       transport.requestLog.length === 0,
       () =>
         `requests were sent: ${JSON.stringify(transport.requestLog.map((entry) => entry.channel))}`,
     );
-  } else if ('heard' in stated) {
+  } else if ('heard' in step) {
     await settle();
     const frames = heard.slice(told);
     const got = frames.map((frame) => ({
@@ -732,28 +693,24 @@ async function perform(
       payload: wire(frame.payload),
       correlationId: frame.correlationId ?? null,
     }));
-    const wanted = stated['heard'];
+    const wanted = step.heard;
     check(
-      Array.isArray(wanted) && wanted.length === frames.length,
+      wanted.length === frames.length,
       () => `heard ${JSON.stringify(got)}`,
     );
     frames.forEach((frame, at) => {
-      const one = object(wanted[at], 'a heard entry');
-      const correlation = one['correlationId'];
+      const one = wanted[at];
+      const correlation = one.correlationId;
       const expectedId =
-        correlation === undefined
-          ? undefined
-          : correlation !== null &&
-              typeof correlation === 'object' &&
-              !Array.isArray(correlation)
-            ? requestId(transport, correlation)
-            : text(correlation, 'correlationId');
+        correlation === undefined || typeof correlation === 'string'
+          ? correlation
+          : requestId(transport, correlation);
       check(
-        frame.channel === one['channel'],
+        frame.channel === one.channel,
         () => `heard ${JSON.stringify(got)}`,
       );
       check(
-        matches(resolved(one['payload'] ?? null), wire(frame.payload)),
+        matches(resolved(one.payload), wire(frame.payload)),
         () => `heard ${JSON.stringify(got)}`,
       );
       check(
@@ -762,20 +719,18 @@ async function perform(
       );
     });
     return heard.length;
-  } else if ('ended' in stated) {
-    for (const [name, members] of Object.entries(
-      object(stated['ended'], 'ended'),
-    )) {
-      for (const member of strings(members, 'ended')) {
+  } else if ('ended' in step) {
+    for (const [name, members] of Object.entries(step.ended)) {
+      for (const member of members) {
         check(
           hasEnded(stateOf(world, name, member)),
           () => `${name}.${member} has not ended`,
         );
       }
     }
-  } else if ('busDestroyed' in stated) {
+  } else if ('busDestroyed' in step) {
     check(
-      client.bus.destroyed === stated['busDestroyed'],
+      client.bus.destroyed === step.busDestroyed,
       () =>
         `the client's bus is${client.bus.destroyed ? '' : ' not'} destroyed`,
     );
@@ -785,7 +740,7 @@ async function perform(
   return told;
 }
 
-async function play(stated: Case): Promise<void> {
+async function play(stated: CasesItem): Promise<void> {
   const make = MAKERS[stated.unit];
   if (make === undefined)
     throw new Error(`this runner makes no ${stated.unit}`);
@@ -793,10 +748,8 @@ async function play(stated: Case): Promise<void> {
     transport: transportOf(stated.transport),
   });
   for (const [operation, responses] of Object.entries(
-    object(stated.transport['replies'] ?? {}, 'transport.replies'),
+    stated.transport.replies ?? {},
   )) {
-    if (!Array.isArray(responses))
-      throw new Error(`the replies to ${operation} are not a list`);
     transport.queueReply(
       operation as BusOperationKey,
       ...responses.map(resolved),
@@ -859,21 +812,21 @@ describe('the state units against protocol/specs/src/client/state-units.json', (
   it('makes each unit the table has cases of, and no other', () => {
     // A unit the table states no case of (the cache, whose behaviour its own tables hold) needs no maker here.
     expect(new Set(Object.keys(MAKERS))).toEqual(
-      new Set(TABLE.cases.map((stated) => stated.unit)),
+      new Set(table.cases.map((stated) => stated.unit)),
     );
   });
 
   it('runs only cases of units the names table has', () => {
-    const named = new Set(NAMES.stateUnits.map((row) => row.unit));
+    const named = new Set(surface.stateUnits.map((row) => row.unit));
     expect(
-      TABLE.cases
+      table.cases
         .filter((stated) => !named.has(stated.unit))
         .map((stated) => stated.unit),
     ).toEqual([]);
   });
 
   it.each(
-    TABLE.cases.map(
+    table.cases.map(
       (stated) => [`${stated.unit}: ${stated.case}`, stated] as const,
     ),
   )('%s', async (_name, stated) => {
@@ -881,16 +834,11 @@ describe('the state units against protocol/specs/src/client/state-units.json', (
   });
 
   it('fails a case whose check is wrong', async () => {
-    const match = TABLE.cases.find((stated) => stated.unit === 'match');
+    const match = table.cases.find((stated) => stated.unit === 'match');
     if (match === undefined) throw new Error('the table has no case of match');
-    const told: Case = structuredClone(match);
+    const told: CasesItem = structuredClone(match);
     told.steps = told.steps.map((step) =>
-      step !== null &&
-      typeof step === 'object' &&
-      !Array.isArray(step) &&
-      'heard' in step
-        ? { ...step, heard: [] }
-        : step,
+      step !== 'settle' && 'heard' in step ? { ...step, heard: [] } : step,
     );
     await expect(play(told)).rejects.toThrow(/heard/);
   });

@@ -10,47 +10,18 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
 import { XynologError } from '../errors';
 import type { ResourceDescriptor } from '../graph';
-import { faultOf, type Fault } from '../required';
+import { faultOf } from '../required';
 import {
   getPrimaryMediaType,
   getPrimaryRepresentation,
   getResourceEntityTypes,
 } from '../resource-utils';
-import type { components } from '../types';
+import { table, type Read, type Refused } from './cases/resources_reader_cases';
 
-type Representation = components['schemas']['Representation'];
-
-interface Case {
-  why: string;
-  resource: ResourceDescriptor;
-  primaryRepresentation?: Representation;
-  primaryMediaType?: string;
-  entityTypes: string[];
-}
-
-/** A resource the schema does not allow, and its first fault. */
-interface Refused {
-  why: string;
-  resource: ResourceDescriptor;
-  refused: true;
-  member: string;
-  reason: Fault['reason'];
-}
-
-const table: { cases: (Case | Refused)[] } = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/resources/reader-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
 const read = table.cases.filter(
-  (stated): stated is Case => !('refused' in stated),
+  (stated): stated is Read => !('refused' in stated),
 );
 const refused = table.cases.filter(
   (stated): stated is Refused => 'refused' in stated,
@@ -128,9 +99,12 @@ describe('the readers of a resource (protocol/specs/src/resources/reader-cases.j
     entityTypes,
   } of read) {
     it(why, () => {
-      expect(getPrimaryRepresentation(resource)).toEqual(primaryRepresentation);
-      expect(getPrimaryMediaType(resource)).toBe(primaryMediaType);
-      expect(getResourceEntityTypes(resource)).toEqual(entityTypes);
+      const descriptor = resource as ResourceDescriptor;
+      expect(getPrimaryRepresentation(descriptor)).toEqual(
+        primaryRepresentation,
+      );
+      expect(getPrimaryMediaType(descriptor)).toBe(primaryMediaType);
+      expect(getResourceEntityTypes(descriptor)).toEqual(entityTypes);
     });
   }
 
@@ -139,12 +113,13 @@ describe('the readers of a resource (protocol/specs/src/resources/reader-cases.j
       stated.member === 'representations' && stated.reason === 'malformed',
   )) {
     it(why, () => {
+      const descriptor = resource as ResourceDescriptor;
       refusedNamingRepresentations(
-        () => getPrimaryRepresentation(resource),
+        () => getPrimaryRepresentation(descriptor),
         `${why}: getPrimaryRepresentation`,
       );
       refusedNamingRepresentations(
-        () => getPrimaryMediaType(resource),
+        () => getPrimaryMediaType(descriptor),
         `${why}: getPrimaryMediaType`,
       );
     });

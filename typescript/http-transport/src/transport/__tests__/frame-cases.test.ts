@@ -10,59 +10,31 @@
  * key this runner does not hold it to fails.
  */
 
-import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { filter, firstValueFrom } from 'rxjs';
 import {
   Bus,
   FrameRefusal,
   XynologError,
+  isObject,
   type EventMap,
   type Heard,
 } from '@xynolog/core';
 import { createActorStateUnit } from '../actor-state-unit';
 import { mockFetch, mockSSEResponse, sseChunk } from './helpers/mock-conn';
+import {
+  table,
+  type Delivered,
+  type FrameRefusalReason,
+  type FrameRefused,
+  type LineRefused,
+} from '../../__tests__/cases/bus_frame_cases';
 
-type Frame = {
-  readonly channel: keyof EventMap;
-  readonly payload: unknown;
-  readonly correlationId?: string;
-  readonly scope?: string;
-};
-
-interface Delivered {
-  readonly why: string;
-  readonly frame: Frame;
-  /** What the channel's typed reader reads of the payload, where that is not the payload as the frame states it. */
-  readonly read?: unknown;
-}
-
-interface Refused {
-  readonly why: string;
-  readonly frame?: Record<string, unknown>;
-  readonly data?: string;
-  readonly refused: true;
-  readonly member: string;
-  readonly reason: 'lacks' | 'malformed';
-  readonly told: 'readers' | 'failure-report';
-  readonly correlationId?: string;
-  readonly request?: 'fails' | 'waits';
-}
-
-const table: { cases: (Delivered | Refused)[] } = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../../protocol/specs/src/bus/frame-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
 const delivered = table.cases.filter(
   (stated): stated is Delivered => !('refused' in stated),
 );
 const refused = table.cases.filter(
-  (stated): stated is Refused => 'refused' in stated,
+  (stated): stated is FrameRefused | LineRefused => 'refused' in stated,
 );
 
 /** The keys this runner holds a case to, of each kind. */
@@ -92,7 +64,7 @@ const AWAITED = 'c-1';
 const AFTER = { channel: READ, payload: { resourceId: 'after' } };
 
 /** A fault in the words every SDK says one in. */
-function said(member: string, reason: Refused['reason']): string {
+function said(member: string, reason: FrameRefusalReason): string {
   if (reason === 'lacks') return `it has no \`${member}\``;
   return member === '' ? 'it is malformed' : `its \`${member}\` is malformed`;
 }
@@ -179,7 +151,7 @@ describe('frame-cases.json', () => {
   it.each(delivered.map((stated) => [stated.why, stated] as const))(
     '%s',
     async (_why, stated) => {
-      const { channel } = stated.frame;
+      const channel = stated.frame.channel as keyof EventMap;
       const typed = TYPED.find((one) => one === channel);
       if (typed === undefined && stated.read !== undefined)
         throw new Error(
@@ -224,17 +196,21 @@ describe('frame-cases.json', () => {
       });
       const request =
         stated.request === undefined ? undefined : await asking(bus);
+      const sent = 'frame' in stated ? stated.frame : undefined;
+      const members = isObject(sent) ? sent : undefined;
       // The request's own correlation id, in place of the one the case names it by.
       const frame =
-        request !== undefined && stated.frame?.['correlationId'] === AWAITED
-          ? { ...stated.frame, correlationId: request.correlationId }
-          : stated.frame;
+        request !== undefined && members?.['correlationId'] === AWAITED
+          ? { ...members, correlationId: request.correlationId }
+          : sent;
+      const named =
+        'correlationId' in stated ? stated.correlationId : undefined;
       const carried =
-        stated.correlationId === AWAITED && request !== undefined
+        named === AWAITED && request !== undefined
           ? request.correlationId
-          : stated.correlationId;
+          : named;
       const channel: keyof EventMap =
-        frame?.['channel'] === REPLIES[0] ? REPLIES[0] : READ;
+        members?.['channel'] === REPLIES[0] ? REPLIES[0] : READ;
 
       const heard: Heard<EventMap[keyof EventMap]>[] = [];
       const reading = bus.frames(channel).subscribe((one) => heard.push(one));
@@ -242,7 +218,7 @@ describe('frame-cases.json', () => {
       sse.push(
         sseChunk(
           'bus-event',
-          stated.data === undefined ? JSON.stringify(frame) : stated.data,
+          'data' in stated ? stated.data : JSON.stringify(frame),
         ),
       );
       sse.push(sseChunk('bus-event', JSON.stringify(AFTER)));
@@ -251,7 +227,7 @@ describe('frame-cases.json', () => {
       const before = channel === READ ? heard.slice(0, -1) : heard;
 
       if (stated.told === 'readers') {
-        expect(frame?.['channel']).toBe(channel);
+        expect(members?.['channel']).toBe(channel);
         expect(before).toHaveLength(1);
         const [refusal] = before;
         expect(refusal).toBeInstanceOf(FrameRefusal);
@@ -260,7 +236,7 @@ describe('frame-cases.json', () => {
           channel,
           member: stated.member,
           reason: stated.reason,
-          payload: frame?.['payload'],
+          payload: members?.['payload'],
           ...(carried === undefined ? {} : { correlationId: carried }),
         });
         expect(told).toEqual([]);

@@ -13,30 +13,16 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const SCHEMA_DIR = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../protocol/specs/src/components/schemas',
-);
-
-function schema(name: string): {
-  properties?: Record<string, unknown>;
-  required?: string[];
-} {
-  return JSON.parse(readFileSync(join(SCHEMA_DIR, `${name}.json`), 'utf-8'));
-}
+import { schema as busSubscribeRequest } from './cases/components_schemas_bus_subscribe_request_schema';
+import { schema as busEmitRequest } from './cases/components_schemas_bus_emit_request_schema';
 
 describe('the wire carries identity', () => {
   it('BusSubscribeRequest REQUIRES clientId', () => {
     // Required, not optional: a subscriber without one could never receive a
     // correlated frame, and that has to fail loudly at subscribe rather than
     // silently at delivery.
-    const s = schema('BusSubscribeRequest');
-    expect(s.properties).toHaveProperty('clientId');
-    expect(s.required ?? []).toContain('clientId');
+    expect(busSubscribeRequest.properties).toHaveProperty('clientId');
+    expect(busSubscribeRequest.required).toContain('clientId');
   });
 
   it('BusEmitRequest carries clientId, optionally', () => {
@@ -44,17 +30,15 @@ describe('the wire carries identity', () => {
     // the ROUTE enforces it for a registry operation's request emitted with a
     // correlationId. A schema-level requirement would reject every
     // legitimate broadcast emit.
-    const s = schema('BusEmitRequest');
-    expect(s.properties).toHaveProperty('clientId');
-    expect(s.required ?? []).not.toContain('clientId');
+    expect(busEmitRequest.properties).toHaveProperty('clientId');
+    expect(busEmitRequest.required).not.toContain('clientId');
   });
 
   it('clientId is a top-level wire field on emit, never inside the payload', () => {
     // It is a routing concern like `scope`, not part of any channel's domain
     // payload — burying it in the payload would put a routing address into
     // every consumer's typed event.
-    const s = schema('BusEmitRequest');
-    expect(Object.keys(s.properties ?? {})).toEqual(
+    expect(Object.keys(busEmitRequest.properties)).toEqual(
       expect.arrayContaining(['channel', 'payload', 'scope', 'clientId']),
     );
   });

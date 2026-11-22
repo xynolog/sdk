@@ -61,11 +61,13 @@ let is_case json (c : M.case) =
   | Object { required; stated; fixed }, `Assoc members ->
       List.for_all (fun name -> List.mem_assoc name members) required
       && List.for_all (fun (name, _) -> List.mem name stated) members
+      (* A member fixed to a value is that value where it is stated, as an
+         [enum] holds a member: it is required only if [required] says so. *)
       && List.for_all
            (fun (name, v) ->
              match List.assoc_opt name members with
              | Some w -> Yojson.Safe.equal v w
-             | None -> false)
+             | None -> true)
            fixed
   | Object _, _ -> false
 
