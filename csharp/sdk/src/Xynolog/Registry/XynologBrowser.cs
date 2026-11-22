@@ -345,7 +345,7 @@ public sealed class XynologBrowser : IAsyncDisposable
                 live = current;
                 held = null;
                 Project();
-                _ = RunOwned(() => CheckOpenResourcesAsync(current), background: true);
+                current.Checks(RunOwned(() => CheckOpenResourcesAsync(current), background: true));
             }
         }
         catch (OperationCanceledException) when (!caller.IsCancellationRequested && token.IsCancellationRequested) { }
@@ -653,6 +653,7 @@ public sealed class XynologBrowser : IAsyncDisposable
     {
         private readonly CancellationTokenSource closing = new();
         private readonly Task? reading;
+        private Task? checking;
         internal string KbId { get; }
         internal OpenedSession Opened { get; }
         internal SessionSignals Signals { get; }
@@ -667,11 +668,20 @@ public sealed class XynologBrowser : IAsyncDisposable
             Closed = closing.Token;
         }
 
-        // Ending the opened session ends its client, waits for its closing save, and then ends the session and its errors,
-        // so the reader has heard what that save said, and is done, before the signals it speaks through close.
+        /// <summary>The check of what is open in the knowledge base, made through this session.</summary>
+        internal void Checks(Task check) => Volatile.Write(ref checking, check);
+
+        // The check is told to stop, and has stopped, before the opened session ends: a factory's close may let go of
+        // what the session sends through. Ending the opened session ends its client, waits for its closing save, and then
+        // ends the session and its errors, so the reader has heard what that save said, and is done, before the signals
+        // it speaks through close.
         public async ValueTask DisposeAsync()
         {
-            try { await Spawning.CancelAsync(closing).ConfigureAwait(Spawning.Captures); }
+            try
+            {
+                await Spawning.CancelAsync(closing).ConfigureAwait(Spawning.Captures);
+                if (Volatile.Read(ref checking) is { } check) await check.ConfigureAwait(Spawning.Captures);
+            }
             finally
             {
                 try
