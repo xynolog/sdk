@@ -170,6 +170,14 @@ jobs:
         with:
           submodules: recursive
 
+      # Restored, the image is loaded rather than built. This job saves it,
+      # once every dependency is built in it, when it had to build it. Its
+      # digest, of what the image is built from, keys the caches built in it.
+      - name: Restore the Haskell toolchain's image
+        id: haskell-image
+        if: matrix.language == 'haskell'
+        uses: ./.github/actions/restore-haskell-toolchain-image
+
       # The Haskell target keeps Cabal's home here (scripts/make-target.sh).
       # It is saved once every dependency is built, even when the checks
       # fail: a failing branch is when the next run comes soonest. A store
@@ -181,16 +189,9 @@ jobs:
         uses: actions/cache/restore@v6.1.0
         with:
           path: ~/.cache/xynolog/haskell-cabal
-          key: ${{ runner.os }}-${{ runner.arch }}-haskell-${{ hashFiles('haskell/toolchain/**', 'haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-haskell-${{ steps.haskell-image.outputs.digest }}-${{ hashFiles('haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-haskell-
-
-      # Restored, the image is loaded rather than built. This job saves it,
-      # once every dependency is built in it, when it had to build it.
-      - name: Restore the Haskell toolchain's image
-        id: haskell-image
-        if: matrix.language == 'haskell'
-        uses: ./.github/actions/restore-haskell-toolchain-image
 
       - name: Build Haskell's dependencies into Cabal's store
         id: dependencies
@@ -225,9 +226,9 @@ jobs:
         uses: actions/cache/restore@v6.1.0
         with:
           path: ~/.cache/xynolog/haskell-build
-          key: ${{ runner.os }}-${{ runner.arch }}-haskell-build-${{ hashFiles('haskell/toolchain/**', 'haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze', 'haskell/sdk/xynolog.cabal') }}-${{ hashFiles('haskell/sdk/**') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-haskell-build-${{ steps.haskell-image.outputs.digest }}-${{ hashFiles('haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze', 'haskell/sdk/xynolog.cabal') }}-${{ hashFiles('haskell/sdk/**') }}
           restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-haskell-build-${{ hashFiles('haskell/toolchain/**', 'haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze', 'haskell/sdk/xynolog.cabal') }}-
+            ${{ runner.os }}-${{ runner.arch }}-haskell-build-${{ steps.haskell-image.outputs.digest }}-${{ hashFiles('haskell/sdk/cabal.project', 'haskell/sdk/cabal.project.freeze', 'haskell/sdk/xynolog.cabal') }}-
 
       # The Kotlin target keeps Gradle's home here (scripts/make-target.sh).
       # Gradle fetches what it lacks during the checks, so a home is saved only
