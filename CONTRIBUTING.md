@@ -141,6 +141,30 @@ Both Rust blocks of its README are regions of [tests/on.rs](rust/telemetry/tests
 
 `go/` holds the module `github.com/xynolog/sdk/go`. `make go` builds and stages its packages, and `make test-go` runs its tests, type checks, lints and format checks, in its toolchain's container.
 
+A program in this repository requires the module by a `replace` directive on its relative path instead of a release, as `go/conformance/go.mod` does, so it builds against the tree:
+
+```text
+require github.com/xynolog/sdk/go v0.0.0
+
+replace github.com/xynolog/sdk/go => ../
+```
+
+#### Regenerating
+
+Nothing regenerates by itself. When the spec changes:
+
+```sh
+make generate
+```
+
+That runs the generator, [`codegen/`](codegen), in a container, so no Go or OCaml is needed on the host, and rewrites every generated file of every SDK, this module's among them. Commit the result. CI runs `make check-generated`, which writes nothing, and fails while a committed file differs from what the spec generates.
+
+Package `api`'s types are its Go types group ([`codegen/lib/go_types`](codegen/lib/go_types)): a type for every component schema and every schema it reaches, so the bus's payloads too, which no HTTP path reaches. An enumeration's constants are named by the type and then the value, as `LogFormatJson` is the `json` of `LogFormat`, so a schema that reuses another's value renames no constant. A union holds its value as the wire carries it ([`go/api/union.go`](go/api/union.go)): `From` sets it to one of its members, `As` reads it into one, and a union that holds no member is refused when it is written.
+
+#### Working on it
+
+The module is [`go`](go) of the [Xynolog repository](https://github.com/xynolog/sdk), and [Testing](https://github.com/xynolog/docs/blob/main/contributor/TESTING.md) says how its checks and its tests are run. Go runs in a `golang` container at the toolchain its `go.mod` names. The programs its README shows are files of package `readme`, in `go/internal/readme`, word for word: the compiler checks them, and its tests run each one.
+
 ### C#
 
 `csharp/` holds the `Xynolog` NuGet package, in `csharp/sdk`. `make csharp` builds and stages its packages, and `make test-csharp` runs its tests, type checks, lints and format checks, in its toolchain's container.

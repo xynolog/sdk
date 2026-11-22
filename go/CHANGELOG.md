@@ -15,3 +15,8 @@ the coming release's, and gathers its changes as they land.
 ### Changed
 
 - The module requires Go 1.26, not 1.27.
+- The README is pkg.go.dev's page for the module: it says what the SDK is,
+  how to install it and take releases up to the next minor, and then shows a
+  first program before signing in and the eight verbs. How the SDK itself is
+  regenerated and checked moves to CONTRIBUTING.md, which the README's last
+  line links to.
