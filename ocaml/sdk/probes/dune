@@ -14,12 +14,12 @@
 (rule
  (targets peer-cert.pem peer-key.pem)
  (deps (universe))
- (action
-  (run openssl req -x509 -newkey rsa:2048 -nodes
-   -keyout peer-key.pem -out peer-cert.pem -days 2
-   -subj /CN=localhost
-   -addext subjectAltName=DNS:localhost
-   -addext basicConstraints=critical,CA:TRUE)))
+ (action (run %{exe:peer_cert.exe})))
+
+(executable
+ (name peer_cert)
+ (modules peer_cert)
+ (libraries x509 mirage-crypto-rng.unix ptime ptime.clock.os))
 
 (library
  (name native_lock)
@@ -31,8 +31,7 @@
 (test
  (name storage)
  (modules storage store_policy)
- (libraries native_lock unix eio_main eio.mock alcotest)
- (deps lock_holder.py))
+ (libraries native_lock unix eio_main eio.mock alcotest))
 
 (test
  (name runtime)
