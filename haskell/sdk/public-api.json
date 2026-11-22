@@ -548,7 +548,7 @@
     "src/Xynolog/Types/Presence.hs": "0c700ed04e5fe1fe43786d384622dbf716ea8703a1af8b8d8b894876dbe13a8f",
     "src/Xynolog/Worker.hs": "b3059ffc5f52c53c19d967ae9551f753a142ef3827730ed3b5e10722d3445706",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
-    "xynolog.cabal.in": "ea122248760687af2cd454b9b7b84a09a68937998fa5cab30e319020ca3e6108"
+    "xynolog.cabal.in": "2c7b4dd382c7bdc994fe4b6655c0e3bd2b0533ca17c70969f2fa4c70f2926863"
   },
   "modules": {
     "Xynolog.Annotations": {
