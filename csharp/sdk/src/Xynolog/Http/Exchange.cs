@@ -50,9 +50,9 @@ public sealed partial class HttpTransport
         var key = upload ? Guid.NewGuid().ToString() : null;
         var repeatable = retry && ProtocolFacts.RetryTransport(503, method.Method, keyed: key is not null);
         var renewed = false;
+        var sent = authenticated ? Token() : null;
         for (var attempt = 0; ; attempt++)
         {
-            var sent = authenticated ? Token() : null;
             using var request = Request(method, path, sent);
             if (key is not null) request.Headers.Add(GatewayHeader.IdempotencyKey, key);
             request.Content = content?.Invoke();
@@ -81,8 +81,9 @@ public sealed partial class HttpTransport
             if (failure.Code == ProtocolFacts.Error(401) && !renewed && sent is not null)
             {
                 renewed = true;
-                if (await RenewAsync(sent, cancellation).ConfigureAwait(Spawning.Captures) is not null)
+                if (await RenewAsync(sent, cancellation).ConfigureAwait(Spawning.Captures) is { } renewal)
                 {
+                    sent = renewal;
                     response.Dispose();
                     attempt--;
                     continue;

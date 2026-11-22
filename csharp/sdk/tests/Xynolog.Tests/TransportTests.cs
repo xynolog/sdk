@@ -994,6 +994,42 @@ public sealed partial class TransportTests
         Assert.Contains("it has no `version`", refused.Message);
     }
 
+    [Fact]
+    public async Task ARefusedRequestIsSentAgainWithTheTokenItsRenewalGave()
+    {
+        var status = "{\"status\":\"ready\",\"message\":\"ready\",\"version\":\"1\",\"features\":{\"semanticContent\":\"ready\",\"collaboration\":\"ready\"}}";
+        var sent = Channel.CreateUnbounded<string?>();
+        using var server = new Handler();
+        using var client = new HttpClient(server);
+        using var transport = new HttpTransport("http://unit.test", "old", ["beckon:focus"],
+            refresher: (_, _) => Task.FromResult<string?>("renewed"), httpClient: client);
+        // The session withdraws its token once the renewal has answered and before the refused request is sent again, as
+        // one whose renewed token its gateway then refuses ends.
+        server.Other = (request, _) =>
+        {
+            var bearer = request.Headers.Authorization?.Parameter;
+            sent.Writer.TryWrite(bearer);
+            return Task.FromResult(bearer == "old"
+                ? new HttpResponseMessage(HttpStatusCode.Unauthorized) { Content = new WithdrawnAsLetGo(() => transport.SetToken(null)) }
+                : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(status) });
+        };
+        await OpenAsync(transport);
+        Assert.Equal("ready", (await transport.GetStatusAsync()).Status);
+        Assert.Equal("old", await sent.Reader.ReadAsync());
+        Assert.Equal("renewed", await sent.Reader.ReadAsync());
+        Assert.False(sent.Reader.TryPeek(out _));
+    }
+
+    /// <summary>A refusal's body that, as the transport lets it go, calls <paramref name="withdraw"/>.</summary>
+    private sealed class WithdrawnAsLetGo(Action withdraw) : StringContent("{}")
+    {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) withdraw();
+            base.Dispose(disposing);
+        }
+    }
+
     [Theory]
     [InlineData("emitRetry")]
     [InlineData("refreshRetry")]
