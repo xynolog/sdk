@@ -25,7 +25,7 @@ jobs:
 
   # On a push to main, the repository's labels become the org's.
   labels:
-    uses: xynolog/.github/.github/workflows/labels.yml@189966d08e740aa4e79460c9fce7a85769880193
+    uses: xynolog/.github/.github/workflows/labels.yml@6f4669cee4eb0a5e2ed0460c654a8a9f7f4bcb13
     permissions:
       issues: write
 
