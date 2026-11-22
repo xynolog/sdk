@@ -235,7 +235,8 @@ case "${1:-}" in
       python3 probes/check-interface.py
       python3 api.py
       python3 probes/check-api-controls.py
-      dune runtest' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
+      dune runtest
+      dune build @conformance' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
     ;;
   test-codegen)
     # The pinned Protocol reads through its reader, and Swift's table values
