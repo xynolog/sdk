@@ -10,6 +10,7 @@ author: Xynolog
 maintainer: Xynolog contributors
 build-type: Simple
 extra-source-files: test/store-owner-policy.py, test/store-owner-policy.ps1, test/store-lock-peer.py, generated/Xynolog/Internal/Generated/xynolog_store_policy.h, test/fixtures/*.pem, xynolog.cabal.in, README.md, run.sh, api.py, public-api.inputs.json, public-api.json, test/refusals.py, test/refusals/*.hs, test/http-peer.py, conformance/README.md, conformance/launch.sh
+extra-doc-files: CHANGELOG.md
 
 common settings
   default-language: GHC2021

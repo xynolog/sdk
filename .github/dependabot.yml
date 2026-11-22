@@ -13,6 +13,11 @@ version: 2
 # Rust's crates and toolchain are not: whether an entry in a
 # multi-ecosystem group may also have groups of its own is undocumented.
 
+# An update changes a lockfile or a toolchain, which a consumer of the SDK
+# never sees, so it carries no-changelog and the Changelog workflow asks
+# for no entry. A review takes the label off an update that changes what a
+# consumer gets, such as a manifest's bound.
+
 multi-ecosystem-groups:
   rust:
     schedule:
@@ -21,7 +26,7 @@ multi-ecosystem-groups:
 
 updates:
   - package-ecosystem: github-actions
-    labels: ["dependencies"]
+    labels: ["dependencies", "no-changelog"]
     directory: /
     schedule:
       interval: cron
@@ -37,7 +42,7 @@ updates:
         patterns: ["*"]
 
   - package-ecosystem: gomod
-    labels: ["dependencies"]
+    labels: ["dependencies", "no-changelog"]
     directories:
       - /go
       - /go/conformance
@@ -57,7 +62,7 @@ updates:
         patterns: ["*"]
 
   - package-ecosystem: cargo
-    labels: ["dependencies"]
+    labels: ["dependencies", "no-changelog"]
     directory: /rust
     multi-ecosystem-group: rust
     patterns: ["*"]
@@ -66,13 +71,13 @@ updates:
       semver-major-days: 30
 
   - package-ecosystem: rust-toolchain
-    labels: ["dependencies"]
+    labels: ["dependencies", "no-changelog"]
     directory: /rust
     multi-ecosystem-group: rust
     patterns: ["*"]
 
   - package-ecosystem: npm
-    labels: ["dependencies"]
+    labels: ["dependencies", "no-changelog"]
     directory: /typescript
     schedule:
       interval: cron
@@ -97,7 +102,7 @@ updates:
       - dependency-name: prettier
 
   - package-ecosystem: uv
-    labels: ["dependencies"]
+    labels: ["dependencies", "no-changelog"]
     directory: /python/sdk
     schedule:
       interval: cron
@@ -114,7 +119,7 @@ updates:
         patterns: ["*"]
 
   - package-ecosystem: nuget
-    labels: ["dependencies"]
+    labels: ["dependencies", "no-changelog"]
     directory: /csharp/sdk
     schedule:
       interval: cron
@@ -131,7 +136,7 @@ updates:
         patterns: ["*"]
 
   - package-ecosystem: gradle
-    labels: ["dependencies"]
+    labels: ["dependencies", "no-changelog"]
     directory: /kotlin/sdk
     schedule:
       interval: cron
@@ -148,7 +153,7 @@ updates:
         patterns: ["*"]
 
   - package-ecosystem: swift
-    labels: ["dependencies"]
+    labels: ["dependencies", "no-changelog"]
     directory: /swift/sdk
     schedule:
       interval: cron
