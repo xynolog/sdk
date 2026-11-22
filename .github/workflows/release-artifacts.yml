@@ -81,13 +81,17 @@ jobs:
         run: |
           asset="$RUNNER_TEMP/xynolog-sdk-artifacts-${GITHUB_REF_NAME}.tar.gz"
           checksum="$asset.sha256"
+          # opam-repository takes a package's source by URL: the bundle's
+          # archive, as an asset of its own, which an opam file's url names
+          # with the sha256 artifacts.json records.
+          opam="$RUNNER_TEMP/sdk-artifacts/$(jq -r '[.artifacts[] | select(.ecosystem == "opam-source")] | if length == 1 then .[0].path else error("the bundle holds \(length) opam source archives, not one") end' "$RUNNER_TEMP/sdk-artifacts/artifacts.json")"
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             echo "Immutable SDK artifact release already exists: $GITHUB_REF_NAME" >&2
             exit 1
           fi
           # The Protocol commit it speaks, read from the submodule: Protocol
           # has no version, and the commit is the whole pin.
-          gh release create "$GITHUB_REF_NAME" "$asset" "$checksum" \
+          gh release create "$GITHUB_REF_NAME" "$asset" "$checksum" "$opam" \
             --target "$GITHUB_SHA" \
             --title "Xynolog SDK artifacts ${GITHUB_REF_NAME}" \
             --notes "Built from Protocol $(git rev-parse HEAD:protocol)." \
