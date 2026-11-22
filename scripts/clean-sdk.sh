@@ -31,7 +31,7 @@ clean_language() {
     go) cache_paths=("$STATE_ROOT/go-proxy" "$STATE_ROOT/go-mod-cache" "$STATE_ROOT/go-build-cache") ;;
     csharp) cache_paths=("$STATE_ROOT/nuget" "$STATE_ROOT/nuget-cache") ;;
     haskell) cache_paths=("$STATE_ROOT/haskell" "$STATE_ROOT/cabal-cache" "$STATE_ROOT/haskell-build") ;;
-    kotlin) cache_paths=("$STATE_ROOT/kotlin-maven" "$STATE_ROOT/gradle-cache" "$STATE_ROOT/kotlin-publish.init.gradle") ;;
+    kotlin) cache_paths=("$STATE_ROOT/kotlin-maven" "$STATE_ROOT/gradle-cache") ;;
     ocaml) cache_paths=("$STATE_ROOT/opam-repo") ;;
     swift) cache_paths=("$STATE_ROOT/swift" "$STATE_ROOT/swift-cache") ;;
     *) echo "Unknown SDK language: $language" >&2; return 2 ;;
