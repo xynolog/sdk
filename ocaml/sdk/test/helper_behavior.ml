@@ -4,7 +4,6 @@ module J = Yojson.Safe.Util
 let field = J.member
 let text value = `String value
 let nullable f value = Option.fold ~none:`Null ~some:f value
-let texts values = `List (List.map text values)
 
 let rec normalized = function
   | `Assoc fields ->
@@ -22,11 +21,20 @@ let check label expected actual =
     (Yojson.Safe.to_string (normalized expected))
     (Yojson.Safe.to_string (normalized actual))
 
-let request_routing row source =
+module Frames = Protocol_cases.Bus_frame_cases
+module Readers = Protocol_cases.Annotations_reader_cases
+module Resource_cases = Protocol_cases.Resources_reader_cases
+module Builders = Protocol_cases.Annotations_builder_cases
+module Ids = Protocol_cases.Annotations_id_cases
+module Reconcile = Protocol_cases.Annotations_reconcile_cases
+module Locate = Protocol_cases.Annotations_pdf_locate_cases
+module Job_retry = Protocol_cases.Jobs_retry_cases
+
+let request_routing ~request ~member source =
   let open Eio.Std in
-  match field "request" row with
-  | `Null -> ()
-  | `String verdict ->
+  match request with
+  | None -> ()
+  | Some (verdict : Frames.request) ->
       Eio_main.run @@ fun env ->
       Switch.run @@ fun sw ->
       let read, write = Eio.Process.pipe ~sw (Eio.Stdenv.process_mgr env) in
@@ -69,34 +77,16 @@ let request_routing row source =
                 false)
           in
           Alcotest.(check bool) "frame arrived" true arrived;
-          if verdict = "fails" then
+          if verdict = Fails then
             match Promise.await_exn request with
             | Error (Subscription.Frame_refusal fault) ->
                 Alcotest.(check string)
-                  "request fault member"
-                  (J.to_string (field "member" row))
-                  fault.member
+                  "request fault member" member fault.member
             | _ -> Alcotest.fail "request did not receive the frame fault"
           else
             Alcotest.(check bool)
               "request is still pending" false
               (Promise.is_resolved request))
-  | _ -> Alcotest.fail "unknown request verdict"
-
-(* What a case of bus/frame-cases.json may state. *)
-let frame_case_keys =
-  [
-    "why";
-    "frame";
-    "data";
-    "read";
-    "refused";
-    "member";
-    "reason";
-    "told";
-    "correlationId";
-    "request";
-  ]
 
 (* The channels the table's delivered frames are read on by type. *)
 let typed_channels =
@@ -109,219 +99,286 @@ let typed_channels =
       Channel Channels.gather_failed;
     ]
 
+let refusal_reason = function `Lacks -> "lacks" | `Malformed -> "malformed"
+
 (* Shared cases from bus/frame-cases.json. *)
-let frame row =
-  List.iter
-    (fun (key, _) ->
-      if not (List.mem key frame_case_keys) then
-        Alcotest.failf
-          "a frame case states `%s`, which this runner does not know" key)
-    (J.to_assoc row);
-  let source =
-    match field "data" row with
-    | `String data -> data
-    | _ -> Yojson.Safe.to_string (field "frame" row)
+let frame (row : Frames.cases_item) =
+  let source, request, member =
+    match row with
+    | Delivered { frame; _ } ->
+        (Yojson.Safe.to_string (Frames.bus_frame_json frame), None, "")
+    | Frame_refused { frame; request; member; _ } ->
+        (Yojson.Safe.to_string frame, request, member)
+    | Line_refused { data; request; member; _ } -> (data, request, member)
   in
   let message = "event: bus-event\ndata: " ^ source ^ "\n\n" in
-  request_routing row message;
+  request_routing ~request ~member message;
   let input = Eio.Flow.string_source message in
   let raw =
     Wire_stream.read (Eio.Buf_read.of_flow ~max_size:65536 input) |> Option.get
   in
-  let result = Wire_stream.normalized raw in
-  match (field "refused" row, result) with
-  | `Bool true, Error fault ->
-      check "member" (field "member" row) (text fault.member);
-      check "reason" (field "reason" row)
-        (text
-           (match fault.reason with
-           | `Lacks -> "lacks"
-           | `Malformed -> "malformed"));
-      check "recipient" (field "told" row)
-        (text
-           (if Option.is_some fault.route then "readers" else "failure-report"));
-      check "correlation"
-        (field "correlationId" row)
-        (nullable text
-           (Option.bind fault.route (fun route -> route.correlation_id)))
-  | `Null, _ -> (
+  let refused ~member ~reason ~told ~correlation_id =
+    match Wire_stream.normalized raw with
+    | Error fault ->
+        Alcotest.(check string) "member" member fault.member;
+        Alcotest.(check string)
+          "reason"
+          (Frames.frame_refusal_reason_value reason)
+          (refusal_reason fault.reason);
+        Alcotest.(check string)
+          "recipient" (Frames.told_value told)
+          (if Option.is_some fault.route then "readers" else "failure-report");
+        Alcotest.(check (option string))
+          "correlation" correlation_id
+          (Option.bind fault.route (fun route -> route.correlation_id))
+    | Ok _ -> Alcotest.fail "the frame was not refused"
+  in
+  match row with
+  | Frame_refused { member; reason; told; correlation_id; _ } ->
+      refused ~member ~reason ~told ~correlation_id
+  | Line_refused { member; reason; told; _ } ->
+      refused ~member ~reason ~told ~correlation_id:None
+  | Delivered { frame = expected; read; _ } -> (
       (* Envelope acceptance is distinct from the typed payload result. *)
       match Result.get_ok raw with
       | Wire_stream.Frame { route; payload; _ } -> (
-          let expected = field "frame" row in
-          check "channel" (field "channel" expected) (text route.channel);
-          check "correlation"
-            (field "correlationId" expected)
-            (nullable text route.correlation_id);
-          check "scope" (field "scope" expected)
-            (nullable
-               (fun value -> text (Identifiers.Resource_id.to_string value))
-               route.scope);
-          let read =
-            match field "read" row with
-            | `Null -> field "payload" expected
-            | read -> read
-          in
+          Alcotest.(check string) "channel" expected.channel route.channel;
+          Alcotest.(check (option string))
+            "correlation" expected.correlation_id route.correlation_id;
+          Alcotest.(check (option string))
+            "scope" expected.scope
+            (Option.map Identifiers.Resource_id.to_string route.scope);
           match (List.mem route.channel typed_channels, payload) with
           | true, Ok payload ->
-              check "read" read
+              (* A frame that states no read is read as its payload. *)
+              check "read"
+                (Option.value read ~default:expected.payload)
                 (Yojson.Safe.from_string (Bus_registry.encode payload))
           | true, Error _ ->
               Alcotest.fail "the typed reader refused the payload"
-          | false, _ when field "read" row <> `Null ->
+          | false, _ when Option.is_some read ->
               Alcotest.fail "a read is stated on a channel not read by type"
           | false, _ -> ()))
-  | _ -> Alcotest.fail "unexpected frame refusal result"
 
 (* Shared cases from annotations/reader-cases.json. *)
-let annotation row =
+let annotation (row : Readers.cases_item) =
   let module A = Annotations in
   let annotation =
-    Models.decode Models.annotation
-      (Yojson.Safe.to_string (field "annotation" row))
+    Models.decode Models.annotation (Yojson.Safe.to_string row.annotation)
     |> Result.get_ok |> A.of_model
   in
   let selection = A.target_selector annotation in
-  let reads =
-    [
-      ("bodySource", nullable text (A.body_source annotation));
-      ("targetSource", text (A.target_source annotation));
-      ("targetSelector", nullable Fun.id selection);
-      ("isBodyResolved", `Bool (A.is_body_resolved annotation));
-      ("isHighlight", `Bool (A.is_highlight annotation));
-      ("isReference", `Bool (A.is_reference annotation));
-      ("isAssessment", `Bool (A.is_assessment annotation));
-      ("isComment", `Bool (A.is_comment annotation));
-      ("isTag", `Bool (A.is_tag annotation));
-      ("commentText", nullable text (A.comment_text annotation));
-      ("isStubReference", `Bool (A.is_stub_reference annotation));
-      ("isResolvedReference", `Bool (A.is_resolved_reference annotation));
-      ("exactText", text (A.exact_text selection));
-      ("annotationExactText", text (A.annotation_exact_text annotation));
-      ( "textQuoteSelector",
-        nullable Fun.id (Option.bind selection A.text_quote_selector) );
-      ("entityTypes", texts (A.entity_types annotation));
-      ("tagCategory", nullable text (A.tag_category annotation));
-      ("tagSchemaId", nullable text (A.tag_schema_id annotation));
-    ]
+  let reads = row.reads in
+  let strings = Alcotest.(list string)
+  and optional = Alcotest.(option string) in
+  let flag label expected actual =
+    Alcotest.(check bool) label expected actual
   in
-  List.iter
-    (fun (key, value) -> check key value (List.assoc key reads))
-    (J.to_assoc (field "reads" row))
+  Alcotest.(check optional)
+    "bodySource" reads.body_source (A.body_source annotation);
+  Alcotest.(check string)
+    "targetSource" reads.target_source
+    (A.target_source annotation);
+  check "targetSelector"
+    (nullable Fun.id reads.target_selector)
+    (nullable Fun.id selection);
+  flag "isBodyResolved" reads.is_body_resolved (A.is_body_resolved annotation);
+  flag "isHighlight" reads.is_highlight (A.is_highlight annotation);
+  flag "isReference" reads.is_reference (A.is_reference annotation);
+  flag "isAssessment" reads.is_assessment (A.is_assessment annotation);
+  flag "isComment" reads.is_comment (A.is_comment annotation);
+  flag "isTag" reads.is_tag (A.is_tag annotation);
+  Alcotest.(check optional)
+    "commentText" reads.comment_text
+    (A.comment_text annotation);
+  flag "isStubReference" reads.is_stub_reference
+    (A.is_stub_reference annotation);
+  flag "isResolvedReference" reads.is_resolved_reference
+    (A.is_resolved_reference annotation);
+  Alcotest.(check string) "exactText" reads.exact_text (A.exact_text selection);
+  Alcotest.(check string)
+    "annotationExactText" reads.annotation_exact_text
+    (A.annotation_exact_text annotation);
+  Option.iter
+    (fun expected ->
+      check "textQuoteSelector" (nullable Fun.id expected)
+        (nullable Fun.id (Option.bind selection A.text_quote_selector)))
+    reads.text_quote_selector;
+  Alcotest.(check strings)
+    "entityTypes" reads.entity_types
+    (A.entity_types annotation);
+  Alcotest.(check optional)
+    "tagCategory" reads.tag_category
+    (A.tag_category annotation);
+  Alcotest.(check optional)
+    "tagSchemaId" reads.tag_schema_id
+    (A.tag_schema_id annotation)
 
 (* Shared cases from resources/reader-cases.json. *)
-let resource row =
-  let model =
-    Models.decode Models.resource_descriptor
-      (Yojson.Safe.to_string (field "resource" row))
+let resource (row : Resource_cases.cases_item) =
+  let decode resource =
+    Models.decode Models.resource_descriptor (Yojson.Safe.to_string resource)
   in
-  match (field "refused" row, model) with
-  | `Bool true, Error (Models.Invalid_payload fault) ->
-      check "member" (field "member" row) (text fault.member);
-      check "reason" (field "reason" row)
-        (text
-           (match fault.reason with
-           | `Lacks -> "lacks"
-           | `Malformed -> "malformed"))
-  | `Null, Ok model ->
-      check "primary representation"
-        (field "primaryRepresentation" row)
-        (nullable
-           (fun value -> Yojson.Safe.from_string (Yojson.Raw.to_string value))
-           (Resources.primary_representation model));
-      check "primary media type"
-        (field "primaryMediaType" row)
-        (nullable text (Resources.primary_media_type model));
-      check "entity types" (field "entityTypes" row)
-        (texts (Resources.entity_types model))
-  | _ -> Alcotest.fail "unexpected resource decode result"
-
-let string key row = J.to_string (field key row)
-
-let optional key row =
-  match field key row with `Null -> None | value -> Some value
-
-let number key row = J.to_number (field key row)
-let int key row = J.to_int (field key row)
+  match row with
+  | Refused { resource; member; reason; _ } -> (
+      match decode resource with
+      | Error (Models.Invalid_payload fault) ->
+          Alcotest.(check string) "member" member fault.member;
+          Alcotest.(check string)
+            "reason"
+            (Resource_cases.reason_value reason)
+            (refusal_reason fault.reason)
+      | _ -> Alcotest.fail "the resource was not refused")
+  | Read
+      { resource; primary_representation; primary_media_type; entity_types; _ }
+    -> (
+      match decode resource with
+      | Ok model ->
+          check "primary representation"
+            (nullable Fun.id primary_representation)
+            (nullable
+               (fun value ->
+                 Yojson.Safe.from_string (Yojson.Raw.to_string value))
+               (Resources.primary_representation model));
+          Alcotest.(check (option string))
+            "primary media type" primary_media_type
+            (Resources.primary_media_type model);
+          Alcotest.(check (list string))
+            "entity types" entity_types
+            (Resources.entity_types model)
+      | Error _ -> Alcotest.fail "the resource was refused")
 
 let parse schema value =
   Models.decode schema (Yojson.Safe.to_string value) |> Result.get_ok
 
-let quote row : Records.Quoted_text.t =
+(* A quoted text the model leaves as the JSON of Protocol's own schema. *)
+let quote value : Records.Quoted_text.t =
   {
-    exact = string "exact" row;
-    prefix = J.to_string_option (field "prefix" row);
-    suffix = J.to_string_option (field "suffix" row);
+    exact = J.to_string (field "exact" value);
+    prefix = J.to_string_option (field "prefix" value);
+    suffix = J.to_string_option (field "suffix" value);
   }
 
-(* Shared deterministic IDs from annotations/id-cases.json. *)
-let identity row =
-  let actual =
-    Annotation_id.derive ~resource_id:(string "resourceId" row)
-      ~motivation:(string "motivation" row) ~anchor:(string "anchor" row)
-      (optional "body" row)
-  in
-  check "id" (field "id" row) (text actual)
+let motivation value =
+  Enums.Motivation.of_string (Builders.motivation_value value) |> Option.get
 
-(* Shared whole-resource and span builders from annotations/builder-cases.json. *)
-let builder row =
-  let module A = Annotations in
-  let resource =
-    Identifiers.Resource_id.of_string (string "resourceId" row) |> Result.get_ok
+(* Shared deterministic IDs from annotations/id-cases.json. *)
+let identity (row : Ids.cases_item) =
+  let actual =
+    Annotation_id.derive ~resource_id:row.resource_id
+      ~motivation:(Ids.motivation_value row.motivation)
+      ~anchor:row.anchor row.body
   in
-  let motivation =
-    Enums.Motivation.of_string (string "motivation" row) |> Option.get
-  in
-  let generator = optional "generator" row and body = optional "body" row in
-  let created = "2026-01-01T00:00:00.000Z" in
-  let build () =
-    match optional "span" row with
-    | None ->
-        A.annotation_of_resource ~created ~resource ~motivation ?generator ?body
-          ()
-    | Some span ->
-        let offset key =
-          let value = number key span in
-          if Float.is_integer value then int_of_float value else -1
-        in
-        let { Records.Quoted_text.exact; prefix; suffix } = quote span in
-        let selection : Records.Text_span.t =
-          { start = offset "start"; end_ = offset "end"; exact; prefix; suffix }
-        in
-        let content =
-          match optional "anchored" row with
-          | Some value -> A.Pdf (parse Models.anchored_text value)
-          | None -> A.Text (string "text" row)
-        in
-        A.annotation_of_span ~created ~resource ~motivation
-          ~generator:(Option.get generator) ?body content selection
-  in
+  Alcotest.(check string) "id" row.id actual
+
+(* A span's offset, which a refused case may state as no integer. *)
+let offset value = if Float.is_integer value then int_of_float value else -1
+
+(* A span the model leaves as the JSON of Protocol's own schema. *)
+let span_of_json value : Records.Text_span.t =
+  let { Records.Quoted_text.exact; prefix; suffix } = quote value in
+  {
+    start = offset (J.to_number (field "start" value));
+    end_ = offset (J.to_number (field "end" value));
+    exact;
+    prefix;
+    suffix;
+  }
+
+let span_of_row ({ start; end_; exact; prefix; suffix } : Builders.span) :
+    Records.Text_span.t =
+  { start = offset start; end_ = offset end_; exact; prefix; suffix }
+
+let created = "2026-01-01T00:00:00.000Z"
+
+let refusal_code : Annotations.span_refusal -> string = function
+  | Span_out_of_range -> "span-out-of-range"
+  | Item_out_of_range -> "item-out-of-range"
+  | Exact_mismatch -> "exact-mismatch"
+  | Nothing_located -> "nothing-located"
+  | Exact_not_covered -> "exact-not-covered"
+  | Prefix_mismatch -> "prefix-mismatch"
+  | Suffix_mismatch -> "suffix-mismatch"
+
+(* What a builder made, held to the annotation a case states, or to the
+   refusal it states. *)
+let built expected build =
   match build () with
-  | Ok model ->
-      let fields =
-        Yojson.Safe.from_string (Models.encode model) |> J.to_assoc
-      in
-      check "created" (text created) (List.assoc "created" fields);
-      check "annotation" (field "annotation" row)
-        (`Assoc (List.remove_assoc "created" fields))
+  | Ok model -> (
+      match expected with
+      | `Annotation annotation ->
+          let fields =
+            Yojson.Safe.from_string (Models.encode model) |> J.to_assoc
+          in
+          check "created" (text created) (List.assoc "created" fields);
+          check "annotation" annotation
+            (`Assoc (List.remove_assoc "created" fields))
+      | `Refused _ -> Alcotest.fail "the builder made a refused span")
   | Error _ -> Alcotest.fail "builder produced an invalid annotation"
-  | exception A.Span_refused { code } ->
-      let code =
-        match code with
-        | A.Span_out_of_range -> "span-out-of-range"
-        | Item_out_of_range -> "item-out-of-range"
-        | Exact_mismatch -> "exact-mismatch"
-        | Nothing_located -> "nothing-located"
-        | Exact_not_covered -> "exact-not-covered"
-        | Prefix_mismatch -> "prefix-mismatch"
-        | Suffix_mismatch -> "suffix-mismatch"
-      in
-      check "refusal" (field "refused" row) (text code)
+  | exception Annotations.Span_refused { code } -> (
+      match expected with
+      | `Refused refused ->
+          Alcotest.(check string) "refusal" refused (refusal_code code)
+      | `Annotation _ -> Alcotest.fail "the builder refused the span")
+
+(* Shared span builders from annotations/builder-cases.json. *)
+let span_builder (row : Builders.cases_item) =
+  let module A = Annotations in
+  let build ~resource_id ~motivation:m ~generator ~body content selection () =
+    A.annotation_of_span ~created
+      ~resource:(Identifiers.Resource_id.of_string resource_id |> Result.get_ok)
+      ~motivation:(motivation m)
+      ~generator:(Builders.generator_json generator)
+      ?body content selection
+  in
+  match row with
+  | Text_built
+      { text; resource_id; generator; motivation; span; body; annotation; _ } ->
+      built (`Annotation annotation)
+        (build ~resource_id ~motivation ~generator ~body (A.Text text)
+           (span_of_json span))
+  | Text_refused
+      { text; resource_id; generator; motivation; span; body; refused; _ } ->
+      built (`Refused refused)
+        (build ~resource_id ~motivation ~generator ~body (A.Text text)
+           (span_of_row span))
+  | Pdf_built
+      {
+        anchored;
+        resource_id;
+        generator;
+        motivation;
+        span;
+        body;
+        annotation;
+        _;
+      } ->
+      built (`Annotation annotation)
+        (build ~resource_id ~motivation ~generator ~body
+           (A.Pdf (parse Models.anchored_text anchored))
+           (span_of_json span))
+  | Pdf_refused
+      { anchored; resource_id; generator; motivation; span; body; refused; _ }
+    ->
+      built (`Refused refused)
+        (build ~resource_id ~motivation ~generator ~body
+           (A.Pdf (parse Models.anchored_text anchored))
+           (span_of_row span))
+
+(* Shared whole-resource builders from annotations/builder-cases.json. *)
+let resource_builder (row : Builders.resources_item) =
+  built (`Annotation row.annotation) (fun () ->
+      Annotations.annotation_of_resource ~created
+        ~resource:
+          (Identifiers.Resource_id.of_string row.resource_id |> Result.get_ok)
+        ~motivation:(motivation row.motivation)
+        ?generator:(Option.map Builders.generator_json row.generator)
+        ?body:row.body ())
 
 (* Shared Unicode anchors from annotations/reconcile-cases.json. *)
-let reconcile row =
+let reconcile (row : Reconcile.cases_item) =
   let module A = Annotations in
-  let actual = A.reconcile (string "text" row) (quote (field "quoted" row)) in
+  let actual = A.reconcile row.text (quote row.quoted) in
   let to_json (result : Records.Reconciled_span.t) =
     let field name value =
       Option.to_list (Option.map (fun value -> (name, text value)) value)
@@ -352,12 +409,17 @@ let reconcile row =
         span ~start ~end_ ~exact ~prefix ~suffix Enums.Anchor_method.Fuzzy_match
           (Some match_quality)
   in
-  check "reconciled span" (field "reconciled" row) (nullable to_json actual)
+  check "reconciled span"
+    (nullable Fun.id row.reconciled)
+    (nullable to_json actual)
 
 (* SDK geometry cases from annotations/pdf-locate-cases.json. *)
-let pdf row =
+let pdf (row : Locate.cases_item) =
   let module A = Annotations in
-  let items = field "items" (field "anchored" row) |> J.to_list in
+  let number key item = J.to_number (field key item)
+  and int key item = J.to_int (field key item) in
+  (* The anchored text's items, which the model leaves as the JSON of
+     Protocol's own schema. *)
   let read item : A.pdf_item =
     {
       start = int "start" item;
@@ -369,59 +431,92 @@ let pdf row =
       height = number "height" item;
     }
   in
-  let entries = List.map (fun raw -> (read raw, raw)) items in
-  let span = field "span" row in
+  let entries =
+    List.map
+      (fun raw -> (read raw, raw))
+      (J.to_list (field "items" row.anchored))
+  in
   let overlaps, rectangles =
-    A.locate_pdf (List.map fst entries) (int "start" span) (int "end" span)
+    A.locate_pdf (List.map fst entries) row.span.start row.span.end_
   in
-  check "overlaps" (field "overlapping" row)
+  check "overlaps" (`List row.overlapping)
     (`List (List.map (fun item -> List.assq item entries) overlaps));
-  let rectangle (place : Records.Pdf_coordinate.t) =
-    `Assoc
-      [
-        ("page", `Int place.page);
-        ("x", `Float place.x);
-        ("y", `Float place.y);
-        ("width", `Float place.width);
-        ("height", `Float place.height);
-      ]
+  let expected (r : Locate.pdf_coordinate) =
+    (r.page, [ r.x; r.y; r.width; r.height ])
+  and actual (r : Records.Pdf_coordinate.t) =
+    (r.page, [ r.x; r.y; r.width; r.height ])
   in
-  check "rectangles" (field "rects" row) (`List (List.map rectangle rectangles));
-  check "fragments" (field "fragments" row)
-    (texts (List.map A.fragment rectangles))
+  Alcotest.(check (list (pair int (list (float 0.)))))
+    "rectangles"
+    (List.map expected row.rects)
+    (List.map actual rectangles);
+  Alcotest.(check (list string))
+    "fragments" row.fragments
+    (List.map A.fragment rectangles)
 
 (* Shared failure retry decisions from jobs/retry-cases.json. *)
-let retry row =
+let retry (row : Job_retry.cases_item) =
   let classification =
-    Option.bind
-      (J.to_string_option (field "failureClass" row))
-      Enums.Failure_class.of_string
+    Option.map
+      (fun c ->
+        Enums.Failure_class.of_string (Job_retry.failure_class_value c)
+        |> Option.get)
+      row.failure_class
   in
-  let result =
-    Claims.will_retry_after ~retry_count:(int "retryCount" row)
-      ~max_retries:(int "maxRetries" row) classification
-  in
-  check "retries" (field "retries" row) (`Bool result)
+  Alcotest.(check bool)
+    "retries" row.retries
+    (Claims.will_retry_after ~retry_count:row.retry_count
+       ~max_retries:row.max_retries classification)
 
-let cases ?(rows = "cases") path test =
-  Protocol.member path rows |> J.to_list
-  |> List.map (fun row ->
-      Alcotest.test_case
-        (J.to_string (field "why" row))
-        `Quick
-        (fun () -> test row))
+(* Each row, a test case by its why. *)
+let cases rows why test =
+  List.map
+    (fun row -> Alcotest.test_case (why row) `Quick (fun () -> test row))
+    rows
 
 let () =
   Alcotest.run "OCaml reader helpers"
     [
-      ("frames", cases "bus/frame-cases.json" frame);
-      ("annotations", cases "annotations/reader-cases.json" annotation);
-      ("resources", cases "resources/reader-cases.json" resource);
-      ("span builders", cases "annotations/builder-cases.json" builder);
+      ( "frames",
+        cases Frames.table.cases
+          (function
+            | Frames.Delivered { why; _ }
+            | Frame_refused { why; _ }
+            | Line_refused { why; _ } ->
+                why)
+          frame );
+      ( "annotations",
+        cases Readers.table.cases
+          (fun (r : Readers.cases_item) -> r.why)
+          annotation );
+      ( "resources",
+        cases Resource_cases.table.cases
+          (function
+            | Resource_cases.Read { why; _ } | Refused { why; _ } -> why)
+          resource );
+      ( "span builders",
+        cases Builders.table.cases
+          (function
+            | Builders.Text_built { why; _ }
+            | Text_refused { why; _ }
+            | Pdf_built { why; _ }
+            | Pdf_refused { why; _ } ->
+                why)
+          span_builder );
       ( "resource builders",
-        cases "annotations/builder-cases.json" ~rows:"resources" builder );
-      ("annotation ids", cases "annotations/id-cases.json" identity);
-      ("reconciliation", cases "annotations/reconcile-cases.json" reconcile);
-      ("PDF locations", cases "annotations/pdf-locate-cases.json" pdf);
-      ("job retry", cases "jobs/retry-cases.json" retry);
+        cases Builders.table.resources
+          (fun (r : Builders.resources_item) -> r.why)
+          resource_builder );
+      ( "annotation ids",
+        cases Ids.table.cases (fun (r : Ids.cases_item) -> r.why) identity );
+      ( "reconciliation",
+        cases Reconcile.table.cases
+          (fun (r : Reconcile.cases_item) -> r.why)
+          reconcile );
+      ( "PDF locations",
+        cases Locate.table.cases (fun (r : Locate.cases_item) -> r.why) pdf );
+      ( "job retry",
+        cases Job_retry.table.cases
+          (fun (r : Job_retry.cases_item) -> r.why)
+          retry );
     ]

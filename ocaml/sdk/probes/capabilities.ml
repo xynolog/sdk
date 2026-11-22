@@ -1,7 +1,6 @@
 open Eio.Std
 module Otel = Opentelemetry
 
-(* Unicode_cases supplies the generated text/offset-cases.json corpus. *)
 let span digit =
   Otel.Span.make
     ~trace_id:(Otel.Trace_id.of_hex (String.make 32 digit))
@@ -101,7 +100,8 @@ let points text =
 
 let unicode () =
   List.iter
-    (fun (text, count, spans) ->
+    (fun ({ text; code_points = count; spans; _ } :
+           Protocol_cases.Text_offset_cases.cases_item) ->
       let scalars = points text in
       Alcotest.(check int)
         "shared code point count" count (Array.length scalars);
@@ -109,7 +109,8 @@ let unicode () =
         if index = count then String.length text else fst scalars.(index)
       in
       List.iter
-        (fun (exact, occurrence, start, finish) ->
+        (fun ({ exact; occurrence; start; end_ = finish } :
+               Protocol_cases.Text_offset_cases.spans_item) ->
           Alcotest.(check string)
             "shared scalar offsets select the exact UTF-8 bytes" exact
             (String.sub text (byte start) (byte finish - byte start));
@@ -128,7 +129,7 @@ let unicode () =
           Alcotest.(check int)
             "search returns the shared scalar start" start (find 0 0))
         spans)
-    Unicode_cases.cases;
+    Protocol_cases.Text_offset_cases.table.cases;
   let malformed =
     try
       ignore (points "\255");
