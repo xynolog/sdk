@@ -4,16 +4,22 @@ package xynolog.readme
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import xynolog.http.HttpTransport
+import xynolog.http.Realm
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
 import xynolog.testing.GetAnnotations
@@ -22,6 +28,8 @@ import xynolog.testing.TestClient
 import xynolog.transport.Frame
 import xynolog.types.GetAnnotationsResponse
 import xynolog.types.wireJson
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.extension
@@ -67,6 +75,33 @@ class ReadmeTest {
         val programs = regions()
         assertEquals(programs.keys.sorted(), shown.keys.sorted())
         for ((name, block) in shown) assertEquals(programs.getValue(name), block, "README's $name")
+    }
+
+    @Test
+    fun theFirstProgramAsksTheKnowledgeBaseItsNameAndSaysIt() {
+        Realm().use { realm ->
+            realm.onEmit = { emit ->
+                if (emit.getValue("channel").jsonPrimitive.content == "browse:kb-requested") {
+                    realm.send(
+                        buildJsonObject {
+                            put("channel", "browse:kb-result")
+                            put("payload", Json.parseToJsonElement("""{"response": {"name": "Papers", "domain": "kb.example"}}"""))
+                            put("correlationId", emit.getValue("correlationId"))
+                        },
+                    )
+                }
+            }
+            val shown = ByteArrayOutputStream()
+            val standard = System.out
+            System.setOut(PrintStream(shown, true))
+            try {
+                runBlocking { withTimeout(10.seconds) { main(arrayOf(realm.origin, "a-token")) } }
+            } finally {
+                System.setOut(standard)
+            }
+            assertEquals("Papers", shown.toString().trim())
+            assertEquals(listOf("Bearer a-token"), realm.of("/bus/emit").map { it.authorization })
+        }
     }
 
     @Test

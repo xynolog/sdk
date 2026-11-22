@@ -262,6 +262,23 @@ close waking pending requests, SSE chunk boundaries, and operation ownership.
 
 `kotlin/` holds the `org.xynolog:xynolog` publication, in `kotlin/sdk`. `make kotlin` builds and stages its packages, and `make test-kotlin` runs its tests, type checks, lints and format checks, in its toolchain's container.
 
+#### Building it
+
+Nothing but a container runtime is needed. In the JDK image `kotlin/sdk/.java-version` names:
+
+```bash
+container run --rm -v "$PWD":/w -w /w/kotlin/sdk eclipse-temurin:"$(kotlin/scripts/jdk-version.sh)"-jdk ./gradlew --no-daemon check
+```
+
+`check` runs, beside the build and the tests:
+
+- `checkKotlinAbi`: the public API written by hand against the committed dump, `kotlin/sdk/api/sdk.api`. A change to that API is a change to the dump, made with `./gradlew updateKotlinAbi`. What the generator writes is the spec's, and is not in it.
+- `javaTest`: the tests under `kotlin/sdk/src/javaTest/java`, which call the SDK as a Java program does. They are Java alone.
+- `refusals`: the programs under `kotlin/sdk/src/refusals`, Kotlin and Java, that must not compile against the SDK. Each begins `// refused: <text>`, and the compiler must refuse it with a message holding that text.
+- `census`: no source suppresses a warning (every warning is an error, so a suppression is the one way an unchecked cast gets in), and the SDK reads no environment variable but `XYNOLOG_BUS_LOG`.
+
+Every public declaration says it is public: the build runs Kotlin's explicit API mode.
+
 ### OCaml
 
 `ocaml/` holds the `xynolog` opam package, in `ocaml/sdk`. `make ocaml` builds and stages its packages, and `make test-ocaml` runs its tests, type checks, lints and format checks, in its toolchain's container.
