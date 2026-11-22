@@ -10,7 +10,7 @@ homepage: "https://github.com/xynolog/sdk"
 bug-reports: "https://github.com/xynolog/sdk/issues"
 depends: [
   "dune" {>= "3.24"}
-  "ocaml" {= "5.5.2"}
+  "ocaml" {>= "5.5"}
   "eio" {>= "1.6"}
   "eio_main"
   "cohttp-eio" {>= "6.3.0"}
@@ -36,8 +36,8 @@ depends: [
   "ambient-context-eio" {with-test}
   "alcotest" {with-test}
   "qcheck" {with-test}
-  "bisect_ppx_ng" {with-test}
-  "ocamlformat" {with-test & = "0.29.0"}
+  "bisect_ppx_ng" {with-dev-setup}
+  "ocamlformat" {with-dev-setup & = "0.29.0"}
   "odoc" {with-doc}
 ]
 build: [
