@@ -295,9 +295,8 @@ let () =
   if refusals <> [] then exit 1;
   Printf.printf
     "PASS every case table is run by a named test or absent with a reason, in \
-     each SDK, and every surface item an \
-     SDK lacks is one Protocol has, with a reason: %d case tables, %d SDKs, %d \
-     surface items lacked\n"
+     each SDK, and every surface item an SDK lacks is one Protocol has, with a \
+     reason: %d case tables, %d SDKs, %d surface items lacked\n"
     (List.length case_tables)
     (List.length Coverage_sdk.all)
     (List.length Surface_coverage.lacking)
