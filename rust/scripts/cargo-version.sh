@@ -9,7 +9,7 @@
 #
 # Which crates are published is read from the workspace's manifests, never
 # listed here. scripts/sdk_version.py write runs this on the checkout, with the
-# release's version, and scripts/publish-rust-local.sh on a build's copy, with
+# release's version, and scripts/rust-crates.sh on a build's copy, with
 # the version that build gives the crates: the release's, or a development
 # version (scripts/sdk_version.py).
 set -euo pipefail
