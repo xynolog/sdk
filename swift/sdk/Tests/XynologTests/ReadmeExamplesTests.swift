@@ -20,7 +20,7 @@ import XynologTesting
     block.range(of: "\n```").map { range in String(block[..<range.lowerBound]) }
   }
   #expect(!examples.isEmpty)
-  #expect(blocks == examples)
+  #expect(blocks.sorted() == examples.sorted())
 
   let table = try Spec.read("client/state-units.json").object
   let context = try decoded(

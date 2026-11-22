@@ -10,13 +10,19 @@ those capabilities fit together.
 
 ## Install
 
-The SDK is available as a local Swift package in a Xynolog checkout. In Xcode,
-add `swift/sdk` from that checkout as a local package and link the
-`Xynolog` product to your target. With SwiftPM, add a
-`.package(path: "../xynolog/swift/sdk")` dependency, adjusting the path
-for your project, and add `.product(name: "Xynolog", package: "sdk")` to the
-target's dependencies. Add the `AsyncHTTPClient` product from
-[AsyncHTTPClient][http-client] to targets that create the HTTP client.
+Add the package to your `Package.swift` by its URL. `<version>` is a
+release's. Below 1.0 the minor number is the break, so take releases up to
+the next minor:
+
+```
+.package(url: "https://github.com/xynolog/sdk-swift.git", .upToNextMinor(from: "<version>"))
+```
+
+and add `.product(name: "Xynolog", package: "sdk-swift")` to your target's
+dependencies. In Xcode, add the package by the same URL with the rule Up to
+Next Minor Version, and link the `Xynolog` product to your target. Add the
+`AsyncHTTPClient` product from [AsyncHTTPClient][http-client] to targets
+that create the HTTP client.
 
 See [the pinned Swift toolchain][toolchain]
 for the version used in CI. The SDK supports macOS 15 and iOS 18 or later,
@@ -24,6 +30,27 @@ and CI also runs on Linux.
 
 You need a running knowledge base to connect to. The [Quick Start][quick-start]
 sets one up locally.
+
+## A first program
+
+This program starts from a signed-in client, the `opened.client` of an
+open session: [Connect](#connect) is how a program comes to one. Pass that
+client and the ID of a source resource to this function. It gathers
+context around the resource, delegates a job to generate a summary, and
+waits for the job's result. The knowledge base needs a worker that handles
+generation jobs.
+
+```swift
+func generate(
+  from resource: ResourceId, using client: XynologClient
+) async throws -> YieldJobCompleteCommand {
+  let context = try await client.gather.resource(resource)
+  let run = try client.yield.delegate(
+    params: GenerationJobParams(
+      context: context, storageUri: "file://summary.md", title: "Summary"))
+  return try await run.completed()
+}
+```
 
 ## Connect
 
@@ -67,6 +94,43 @@ existing launcher sign-in, open a `SignInStore(path:)` and pass its entry for
 the knowledge base to `sessionFromKept`. A desktop or mobile app can sign in
 with a browser redirect. See [Registry and state units](#registry-and-state-units).
 
+## Signing in and managing a session
+
+Sign-in uses the same caller-owned HTTP client. `ServiceToken` supports a client
+secret or an RSA key (`CryptoExtras._RSA.Signing.PrivateKey`); `AgentToken` asks
+the gateway for its DID once and keeps its last token when a renewal fails.
+`signInDevice` shows the issuer’s device code through its callback and keeps the
+result in a `SignInKept`. `whoAmI` asks the gateway once without opening a stream.
+
+`SignInStore(path:)` reads the launcher’s `tokens.json`; `entry` selects a stack.
+Writes hold `flock` on the sibling `tokens.lock`, use owner-only modes generated
+from the contract, and rename a sibling temporary file. Unknown document members
+survive. `MemorySignIn` follows the same renewal rules. `stateDir` computes the
+launcher’s directory from values the application supplies; it reads no environment.
+
+`sessionFromKept` returns an `OpenedSession`, which owns the session and its HTTP
+transport. Dispose that owner before shutting down the HTTP client. The session asks the
+gateway who its token is unless it is opened with `validate: false`. Its `ready()` raises
+startup task failures; `errors()` is its one stream of what went wrong: its own
+`SessionError`s (a sign-in it could not check, renew, read or record, a write its storage
+refused) and its transport’s failures, each said once, in the order they were met. A session
+listens to its client’s transport, whatever the transport, from when it is made, and says each
+failure as the transport tells it; taken first, its listener is told what the transport kept,
+which is said ahead of everything the session says. Of what it
+says before anyone reads `errors()`, the latest `errorsKeptForFirstReaderCount` are kept for
+the first reader. The stream ends when the session ends. Disposing the
+`OpenedSession` closes the client first and ends the session once the client’s closing flush
+has written, so what that flush meets arrives first; what the client meets once its session has
+ended is said nowhere. Startup is bounded, overlapping refusals share
+one renewal, and a renewal that gets no answer, whatever failed, keeps the stored sign-in for
+another attempt. The transport tells the session the token refused:
+a refusal of a token the session has already replaced is given the token it holds, and renews nothing. Session token and
+user state are read-only, and their sequences finish on disposal.
+
+Use `XynologClient.fromHttp(baseUrl:httpClient:token:)` for a short-lived
+program that already holds an access token. Use a session when the program
+needs renewal. See [Signing in][sign-in] for the available flows.
+
 ## Eight verbs
 
 The client's namespaces follow the [eight protocol verbs][flows].
@@ -84,25 +148,6 @@ The client's namespaces follow the [eight protocol verbs][flows].
 
 The client also exposes `job`, plus `auth` and `system` when it has gateway
 operations.
-
-## A first program
-
-With an open session, pass `opened.client` and the ID of a source resource
-to this function. It gathers context around the resource, delegates a job
-to generate a summary, and waits for the job's result. The knowledge base
-needs a worker that handles generation jobs.
-
-```swift
-func generate(
-  from resource: ResourceId, using client: XynologClient
-) async throws -> YieldJobCompleteCommand {
-  let context = try await client.gather.resource(resource)
-  let run = try client.yield.delegate(
-    params: GenerationJobParams(
-      context: context, storageUri: "file://summary.md", title: "Summary"))
-  return try await run.completed()
-}
-```
 
 ## Live queries
 
@@ -146,43 +191,6 @@ them, and forgetting that sign-in, however it is forgotten, signing in again
 included, deletes what was kept. A session the SDK builds, `sessionFromKept`
 with a storage too, writes only while the sign-in it holds names its person; a
 client you construct with a `CachePersistence` of your own writes unchecked.
-
-## Signing in and managing a session
-
-Sign-in uses the same caller-owned HTTP client. `ServiceToken` supports a client
-secret or an RSA key (`CryptoExtras._RSA.Signing.PrivateKey`); `AgentToken` asks
-the gateway for its DID once and keeps its last token when a renewal fails.
-`signInDevice` shows the issuer’s device code through its callback and keeps the
-result in a `SignInKept`. `whoAmI` asks the gateway once without opening a stream.
-
-`SignInStore(path:)` reads the launcher’s `tokens.json`; `entry` selects a stack.
-Writes hold `flock` on the sibling `tokens.lock`, use owner-only modes generated
-from the contract, and rename a sibling temporary file. Unknown document members
-survive. `MemorySignIn` follows the same renewal rules. `stateDir` computes the
-launcher’s directory from values the application supplies; it reads no environment.
-
-`sessionFromKept` returns an `OpenedSession`, which owns the session and its HTTP
-transport. Dispose that owner before shutting down the HTTP client. The session asks the
-gateway who its token is unless it is opened with `validate: false`. Its `ready()` raises
-startup task failures; `errors()` is its one stream of what went wrong: its own
-`SessionError`s (a sign-in it could not check, renew, read or record, a write its storage
-refused) and its transport’s failures, each said once, in the order they were met. A session
-listens to its client’s transport, whatever the transport, from when it is made, and says each
-failure as the transport tells it; taken first, its listener is told what the transport kept,
-which is said ahead of everything the session says. Of what it
-says before anyone reads `errors()`, the latest `errorsKeptForFirstReaderCount` are kept for
-the first reader. The stream ends when the session ends. Disposing the
-`OpenedSession` closes the client first and ends the session once the client’s closing flush
-has written, so what that flush meets arrives first; what the client meets once its session has
-ended is said nowhere. Startup is bounded, overlapping refusals share
-one renewal, and a renewal that gets no answer, whatever failed, keeps the stored sign-in for
-another attempt. The transport tells the session the token refused:
-a refusal of a token the session has already replaced is given the token it holds, and renews nothing. Session token and
-user state are read-only, and their sequences finish on disposal.
-
-Use `XynologClient.fromHttp(baseUrl:httpClient:token:)` for a short-lived
-program that already holds an access token. Use a session when the program
-needs renewal. See [Signing in][sign-in] for the available flows.
 
 ## Delegated work and workers
 
@@ -354,30 +362,7 @@ The HTTP transport uses the caller's AsyncHTTPClient `HTTPClient` for every requ
 
 `HttpTransport` is always given the global channels its stream names, and assumes none of its own: a full client's transport is given `bridgedChannels`, which `XynologClient.fromHttp` and `sessionFromKept` pass. A request whose reply channels it was not given fails at once as `bus.unsubscribed`. It exposes connection state, independent lossless `frames` sequences of `Carried` (several channels can share one ordered sequence), scoped holds, correlated requests, uploads and content reads. `dispose()` synchronously cancels owned work and finishes sequences. A second iterator on an events, upload or content stream throws `MultipleConsumers`. Each frame is held to `BusFrame`: one it allows is `Carried.frame`, one it does not that names its channel's readers is `Carried.refused`, and anything else is a failure. Each failure a transport meets (a refusal, a request the gateway never answered, a line no reader can read) is told to every listener taken with `tellFailures(to:)` before the call that met it returns, so in the order met; the first listener is told at once the latest `errorsKeptForFirstReaderCount` met before it came, and one taken after the transport is disposed is told nothing. A listener must not wait. Incoming trace carriers are lifted out of payloads into `ReceivedFrame.trace`. OpenTelemetry's API is the library's only telemetry dependency; the application selects its provider and exporters.
 
-## Working on the SDK
-
-CI runs the SDK tests in the pinned Swift container on Linux and
-natively on Apple silicon. Both jobs run the formatter, census, and
-compile-failure checks. On a provisioned macOS runner, use
-`swift test --jobs 4 --force-resolved-versions` from `swift/sdk`.
-The dependency lock includes the OpenTelemetry exporter's macOS dependencies.
-Both jobs use the same lock.
-
-Run the Linux checks from the repository root.
-
-```bash
-container run --rm --memory 8g -e HOME=/tmp/swift-home -v "$PWD":/w -w /w/swift/sdk "swift:$(swift/scripts/swift-version.sh)" sh -c 'mkdir -p "$HOME" && Scripts/test.sh && Scripts/coverage.sh && swift format lint --strict --recursive . && Scripts/census.sh && Scripts/refusals.sh'
-```
-
-Swift 6 language mode and warnings as errors apply to every target. The canary must fail with the concurrency diagnostic. Each future `Refusals/*.swift` program begins `// refused: <text>` and must fail with that message. The census forbids unchecked concurrency escapes, environment reads beyond `XYNOLOG_BUS_LOG`, and a test wait bounded by anything but `testDeadlineMs`: every test starts at once, and on a small runner a second can pass before a test's tasks are scheduled. The formatter forbids force unwraps, force casts, force tries and implicitly unwrapped optionals throughout the package.
-
-The tests round-trip payloads from the three conformance corpora, run every identifier case, and verify nullable members and open objects.
-
-The models, the tables and the tests' dispatch are generated from `protocol/specs/src` by `make generate` (codegen/lib/swift_sdk) and committed under `Sources/Xynolog/Generated` and `Tests/XynologTests/Generated`; the generator's own tests, refused schema shapes among them, are the codegen's. Models keep timestamps and URIs as strings, use checked value types for identifiers, and preserve the three states of an optional nullable member with `Stated`. `JSONValue` carries values in open objects. Required nullable members must be present, even when null.
-
-`Scripts/test.sh` builds instrumented tests and collects their LLVM profiles directly. `Scripts/coverage.sh` exports the compiled test libraries, leaving out the generated sources and avoiding SwiftPM's automatic JSON export of dependency coverage.
-
-`Scripts/install-driver.sh` builds the instrumented Linux wire driver and bundles its Swift runtime. The conformance application chooses OTLP/HTTP exporters when the harness supplies `OTEL_EXPORTER_OTLP_ENDPOINT`. Its runtime matches Ubuntu 26.04. `Scripts/conformance-coverage.sh` reports the library code the driver exercised, separately from Rust's LLVM profiles.
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
 
 [protocol]: https://github.com/xynolog/protocol/blob/main/contract/README.md
 [conformance]: https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md
