@@ -123,6 +123,8 @@ This library follows strict quality standards:
 
 `python/` holds the `xynolog` distribution, in `python/sdk`. `make python` builds and stages its packages, and `make test-python` runs its tests, type checks, lints and format checks, in its toolchain's container.
 
+The package is [`python/sdk`](https://github.com/xynolog/sdk/tree/main/python/sdk) of the [Xynolog repository](https://github.com/xynolog/sdk), and [Testing](https://github.com/xynolog/docs/blob/main/contributor/TESTING.md) says how its checks and its tests are run. The programs its README shows are files of its tests, word for word: both type checkers check them, and each one is run.
+
 ### Rust
 
 `rust/` holds the three crates of one workspace: `sdk`, `http-transport` and `telemetry`. `make rust` builds and stages its packages, and `make test-rust` runs its tests, type checks, lints and format checks, in its toolchain's container.
