@@ -71,6 +71,18 @@ PATCH
   cargo --config "$patch" "$@" --package "$crate"
 }
 
+# Fails unless the archive cargo wrote for a crate is the bundle's.
+released() {
+  local crate="$1"
+  local packaged released
+  packaged="$(sha256sum "$CARGO_TARGET_DIR/package/$crate-$version.crate" | cut -d' ' -f1)"
+  released="$(sha256sum "/bundle/rust/$crate-$version.crate" | cut -d' ' -f1)"
+  if [[ "$packaged" != "$released" ]]; then
+    echo "$crate $version packages as $packaged, not the released $released" >&2
+    exit 1
+  fi
+}
+
 # Cargo writes one .crate archive per crate to target/package; no registry is
 # involved.
 for crate in "${crates[@]}"; do
@@ -84,13 +96,8 @@ for crate in "${crates[@]}"; do
     cp -f "$archive" /artifacts/
     printf 'Created %s %s\n' "$crate" "$version"
   else
-    packaged="$(sha256sum "$archive" | cut -d' ' -f1)"
-    released="$(sha256sum "/bundle/rust/$crate-$version.crate" | cut -d' ' -f1)"
-    if [[ "$packaged" != "$released" ]]; then
-      echo "$crate $version packages as $packaged, not the released $released" >&2
-      exit 1
-    fi
-    printf '%s %s is the released archive: %s\n' "$crate" "$version" "$packaged"
+    released "$crate"
+    printf '%s %s is the released archive\n' "$crate" "$version"
   fi
 done
 
