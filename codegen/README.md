@@ -342,9 +342,10 @@ it names each of them and no other. Its SDKs are the Makefile's `LANGUAGES`,
 and the compiler holds every table to a coverage for each one. A named test
 is a file this checkout has under the SDK's directory, and it names the
 module `case-data` writes its table's rows to, or, for an SDK the group has
-no writer for, its table's path. Every surface item named is one the surface
-has, named once, and each SDK lacking it once; that an SDK has an item named
-nowhere is its own surface test's to hold. The readers
+no writer for, its table's path. Every module `case-data` writes is read by
+a file of its SDK other than itself. Every surface item named is one the
+surface has, named once, and each SDK lacking it once; that an SDK has an
+item named nowhere is its own surface test's to hold. The readers
 `annotations/reader-cases.json` names are the annotations module's readers
 that no SDK lacks.
 
