@@ -368,7 +368,7 @@ Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/
 [conformance]: https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md
 [guide]: https://github.com/xynolog/docs/blob/main/builder/DEVELOPER-GUIDE.md
 [http-client]: https://github.com/swift-server/async-http-client
-[toolchain]: .swift-version
+[toolchain]: https://github.com/xynolog/sdk/blob/v0.8.1/swift/sdk/.swift-version
 [quick-start]: https://github.com/xynolog/docs/blob/main/builder/QUICK-START.md
 [flows]: https://github.com/xynolog/protocol/tree/main/contract/flows
 [sign-in]: https://github.com/xynolog/docs/blob/main/builder/SIGN-IN.md

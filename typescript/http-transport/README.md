@@ -4,9 +4,9 @@
 [![codecov](https://codecov.io/gh/xynolog/sdk/graph/badge.svg?component=typescript-http-transport)](https://app.codecov.io/gh/xynolog/sdk/components)
 [![npm version](https://img.shields.io/npm/v/@xynolog/http-transport.svg)](https://www.npmjs.com/package/@xynolog/http-transport)
 [![npm downloads](https://img.shields.io/npm/dm/@xynolog/http-transport.svg)](https://www.npmjs.com/package/@xynolog/http-transport)
-[![License](https://img.shields.io/npm/l/@xynolog/http-transport.svg)](https://github.com/xynolog/sdk/blob/main/LICENSE)
+[![License](https://img.shields.io/npm/l/@xynolog/http-transport.svg)](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE)
 
-How the TypeScript SDK reaches a knowledge base over HTTP. It implements the three transport contracts [`@xynolog/core`](../core/README.md) states (`ITransport`, `IContentTransport`, `IGatewayOperations`) against a knowledge base's gateway.
+How the TypeScript SDK reaches a knowledge base over HTTP. It implements the three transport contracts [`@xynolog/core`](https://github.com/xynolog/sdk/blob/v0.8.1/typescript/core/README.md) states (`ITransport`, `IContentTransport`, `IGatewayOperations`) against a knowledge base's gateway.
 
 ## Install
 
@@ -36,9 +36,9 @@ const client = new XynologClient(transport, new HttpContentTransport(transport),
 
 ## Who uses it
 
-- **[`@xynolog/sdk`](../sdk/README.md)** builds one for every session, and re-exports `HttpTransport` and `HttpContentTransport`.
+- **[`@xynolog/sdk`](https://github.com/xynolog/sdk/blob/v0.8.1/typescript/sdk/README.md)** builds one for every session, and re-exports `HttpTransport` and `HttpContentTransport`.
 
-**Building an application?** Import from [`@xynolog/sdk`](../sdk/README.md), not from here. A session gives you a connected client, and the two transport classes are re-exported there for the rare program that wires its own.
+**Building an application?** Import from [`@xynolog/sdk`](https://github.com/xynolog/sdk/blob/v0.8.1/typescript/sdk/README.md), not from here. A session gives you a connected client, and the two transport classes are re-exported there for the rare program that wires its own.
 
 ## What is in it
 
@@ -69,9 +69,9 @@ const transport = new HttpTransport({ baseUrl: baseUrl('https://kb.example/'), c
 
 ## Documentation
 
-- [Reference](docs/API-Reference.md): each export.
-- [Logging](docs/LOGGING.md): what the transport logs, and the bus log.
-- [Media tokens](docs/MEDIA-TOKENS.md): how a browser fetches a resource's bytes without an `Authorization` header.
+- [Reference](https://github.com/xynolog/sdk/blob/v0.8.1/typescript/http-transport/docs/API-Reference.md): each export.
+- [Logging](https://github.com/xynolog/sdk/blob/v0.8.1/typescript/http-transport/docs/LOGGING.md): what the transport logs, and the bus log.
+- [Media tokens](https://github.com/xynolog/sdk/blob/v0.8.1/typescript/http-transport/docs/MEDIA-TOKENS.md): how a browser fetches a resource's bytes without an `Authorization` header.
 
 ## License
 
