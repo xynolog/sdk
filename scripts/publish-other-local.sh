@@ -71,9 +71,11 @@ run_container_quietly "$RUNTIME" run --rm \
     cp -a /source /tmp/sdk
     rm -rf /tmp/sdk/protocol
     cp -a /protocol /tmp/sdk/protocol
+    # ContinuousIntegrationBuild writes /_/ into the PDBs in place of the
+    # paths of the container, so two builds of one commit write the same bytes.
     dotnet pack /tmp/sdk/csharp/sdk/src/Xynolog/Xynolog.csproj -c Release --verbosity quiet \
       -p:IsPackable=true -p:PackageId=Xynolog -p:PackageVersion="$version" \
-      -p:CheckRefusals=false -o /out
+      -p:ContinuousIntegrationBuild=true -p:CheckRefusals=false -o /out
   '
 fi
 
