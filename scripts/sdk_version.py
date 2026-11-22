@@ -19,7 +19,7 @@ would sort before the release it follows.
     sdk_version.py release          the coming release, X.Y.Z
     sdk_version.py tags             its release tags, the SDK's first
     sdk_version.py <language>       that language's version for this commit
-    sdk_version.py check            the committed manifests hold the release's versions
+    sdk_version.py check            the committed manifests and tagged links hold the release's versions
     sdk_version.py write            write them there
     sdk_version.py unreleased       the coming release is not yet tagged, but on this commit
     sdk_version.py move X.Y.Z       make X.Y.Z, a later release, the coming one
@@ -50,6 +50,11 @@ class Config(TypedDict):
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 GO_MODULE = "github.com/xynolog/sdk/go"
+# A link to a file or directory of sdk as a release tag holds it, which a
+# registry shows beside the release: it names the coming release, as the
+# manifests do. A changelog's links name the releases they describe.
+TAGGED_LINK = re.compile(r"(github\.com/xynolog/sdk/(?:blob|tree)/v)((?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*))/")
+CHANGELOGS = {"CHANGELOG.md", "CHANGES.md"}
 
 
 def makefile_languages() -> tuple[str, ...]:
@@ -163,15 +168,44 @@ def manifests(data: Config) -> list[tuple[str, str | None, str]]:
     return [(path, value, released(data, language)) for path, value, language in found]
 
 
+def tagged_files() -> list[Path]:
+    """Each tracked file outside a changelog that links to sdk at a release tag."""
+    listed = git("ls-files", "-z").split("\0")
+    found: list[Path] = []
+    for name in listed:
+        path = ROOT / name
+        if not name or Path(name).name in CHANGELOGS or not path.is_file() or path.is_symlink():
+            continue
+        try:
+            text = path.read_text()
+        except UnicodeDecodeError:
+            continue
+        if TAGGED_LINK.search(text):
+            found.append(path)
+    return found
+
+
+def tagged_links(data: Config) -> list[tuple[str, str | None, str]]:
+    """Each tagged link's release, as (path:line, found, wanted)."""
+    found: list[tuple[str, str | None, str]] = []
+    for path in tagged_files():
+        for number, line in enumerate(path.read_text().splitlines(), start=1):
+            for link in TAGGED_LINK.finditer(line):
+                found.append((f"{path.relative_to(ROOT)}:{number}", link.group(2), data["release"]))
+    return found
+
+
 def check() -> None:
     data = config()
-    wrong = [f"  {path}: {value}, not {wanted}" for path, value, wanted in manifests(data) if value != wanted]
+    wrong = [f"  {path}: {value}, not {wanted}" for path, value, wanted in manifests(data) + tagged_links(data) if value != wanted]
     module = re.findall(r"(?m)^module (\S+)$", (ROOT / "go/go.mod").read_text())
     if module != [go_module(data)]:
         wrong.append(f"  go/go.mod: module {' '.join(module)}, not {go_module(data)}")
     if wrong:
-        raise SystemExit("The committed manifests must hold the release's versions (sdk_version.py write):\n" + "\n".join(wrong))
-    print("The committed manifests hold the release's versions.")
+        raise SystemExit(
+            "The committed manifests and tagged links must hold the release's versions (sdk_version.py write):\n" + "\n".join(wrong)
+        )
+    print("The committed manifests and tagged links hold the release's versions.")
 
 
 def write() -> None:
@@ -186,6 +220,8 @@ def write() -> None:
         manifest = json.loads(path.read_text())
         manifest["version"] = released(data, "typescript")
         path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
+    for path in tagged_files():
+        path.write_text(TAGGED_LINK.sub(lambda link: f"{link.group(1)}{data['release']}/", path.read_text()))
     check()
 
 
