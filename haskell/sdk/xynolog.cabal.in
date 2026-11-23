@@ -15,6 +15,7 @@ build-type: Simple
 -- The lowest is cabal.project's with-compiler, which the tests build with.
 tested-with: GHC == 9.10.3 || == 9.12.4
 extra-source-files: test/store-owner-policy.py, test/store-owner-policy.ps1, test/store-lock-peer.py, generated/Xynolog/Internal/Generated/xynolog_store_policy.h, test/fixtures/*.pem, xynolog.cabal.in, README.md, run.sh, api.py, public-api.inputs.json, public-api.json, test/refusals.py, test/refusals/*.hs, test/http-peer.py, conformance/README.md, conformance/launch.sh
+extra-doc-files: CHANGELOG.md
 
 source-repository head
   type: git

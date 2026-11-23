@@ -19,13 +19,24 @@ let open_lock path =
     [ Unix.O_CREAT; Unix.O_RDWR; Unix.O_CLOEXEC ]
     Store_policy.file_mode
 
+(* The holder this executable is when started as [storage.exe hold PATH]: it
+   takes PATH's flock, says so, and on "exit" ends by [Unix._exit], which
+   runs no cleanup, so only the kernel releases the lock. *)
+let hold path =
+  let fd = open_lock path in
+  if not (Native_lock.try_exclusive fd) then failwith ("cannot lock " ^ path);
+  print_endline "held";
+  match In_channel.input_line stdin with
+  | Some "exit" -> Unix._exit 0
+  | _ -> failwith "expected exit command"
+
 let independent_holder env ~sw path =
   let mgr = Eio.Stdenv.process_mgr env in
   let output, child_output = Eio.Process.pipe ~sw mgr in
   let child_input, input = Eio.Process.pipe ~sw mgr in
   let process =
     Eio.Process.spawn ~sw mgr ~stdin:child_input ~stdout:child_output
-      [ "python3"; "lock_holder.py"; path ]
+      [ Sys.executable_name; "hold"; path ]
   in
   Eio.Resource.close child_input;
   Eio.Resource.close child_output;
@@ -42,7 +53,7 @@ let interoperability () =
   Fun.protect ~finally:(fun () -> Unix.close fd) @@ fun () ->
   Switch.run @@ fun sw ->
   let process, input = independent_holder env ~sw path in
-  check "C flock excludes Python's real flock" false
+  check "flock excludes another process's flock" false
     (Native_lock.try_exclusive fd);
   Eio.Flow.copy_string "exit\n" input;
   Eio.Process.await_exn process;
@@ -179,18 +190,22 @@ let atomic_replace () =
     [ target; lock ]
 
 let () =
-  Alcotest.run "OCaml native store substrate"
-    [
-      ( "flock",
+  match Sys.argv with
+  | [| _; "hold"; path |] -> hold path
+  | _ ->
+      Alcotest.run "OCaml native store substrate"
         [
-          Alcotest.test_case "cross-process exclusion and process death" `Quick
-            interoperability;
-          Alcotest.test_case "cancelled acquisition releases descriptor" `Quick
-            cancelled_acquisition;
-        ] );
-      ( "replace",
-        [
-          Alcotest.test_case "atomic owner-only replacement and failure cleanup"
-            `Quick atomic_replace;
-        ] );
-    ]
+          ( "flock",
+            [
+              Alcotest.test_case "cross-process exclusion and process death"
+                `Quick interoperability;
+              Alcotest.test_case "cancelled acquisition releases descriptor"
+                `Quick cancelled_acquisition;
+            ] );
+          ( "replace",
+            [
+              Alcotest.test_case
+                "atomic owner-only replacement and failure cleanup" `Quick
+                atomic_replace;
+            ] );
+        ]

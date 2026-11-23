@@ -31,6 +31,10 @@ cargo add xynolog
 cargo add xynolog-http-transport --features sign-in
 ```
 
+Below 1.0 the minor number is the break, and the requirement `cargo add`
+writes into `Cargo.toml` takes the releases up to the next minor and no
+further.
+
 Two crates, because the client does no networking of its own:
 
 - **`xynolog`** is the client, the protocol's types, and what an application
@@ -50,49 +54,6 @@ machine.
 | `testing` | Doubles and harnesses for the tests of code built on the client. See [Testing your code](#testing-your-code). |
 
 Every type and method is documented on [docs.rs](https://docs.rs/xynolog).
-
-## Connect
-
-A client comes from signing in. A person signs in at the identity provider
-the knowledge base trusts, never at the gateway, and their password never
-passes through the process. How depends on what is signing in, and each way
-is the transport crate's:
-
-| Who | Signs in with | |
-|---|---|---|
-| A script, after `xynolog login` | `session_from_kept` | The launcher's sign-in, reused. |
-| A script on its own | `sign_in_device`, then `session_from_kept` | The person approves a code in any browser. |
-| An application | `begin_sign_in`, `complete_sign_in` | The person is sent to the issuer and back to this machine. |
-| A daemon | `AgentToken::sign_in` | A service account. It needs no `sign-in` feature. |
-
-Each is shown, compiled and run, in
-[the transport's README](../http-transport/README.md#signing-in).
-A script's sign-in gives an `OpenedSession`: `opened.session()` is its
-`XynologSession`, and `session.client()` is the `XynologClient` the examples
-below start from. A daemon builds its client
-directly, with `client(config, options)`.
-
-## Eight verbs
-
-Every operation belongs to one of eight flows: verbs for what a participant
-does with a shared corpus. Four write, three read, and one directs
-attention. Each is a namespace of the client.
-
-| | Verb | What it does | Among its methods |
-|---|---|---|---|
-| Writing | `yield_` | Introduce a resource, uploaded or generated from gathered context | `yield_.resource`, `yield_.delegate` |
-| | `mark` | Annotate a resource | `mark.annotation`, `mark.delegate`, `mark.update_entity_types`, `mark.archive` |
-| | `bind` | Resolve an ambiguous reference to a specific resource | `bind.body`, `bind.initiate` |
-| | `frame` | Define and grow the schema vocabulary | `frame.add_entity_types`, `frame.add_tag_schema` |
-| Reading | `browse` | Navigate, read and observe, including the knowledge base's engines | `browse.resource`, `browse.annotations`, `browse.engines`, `browse.click` |
-| | `match_` | Search the corpus: resources by text, and candidates for a reference | `match_.resources`, `match_.search` |
-| | `gather` | Assemble grounding context around a resource or an annotation, and list what refers to a resource | `gather.resource`, `gather.annotation`, `gather.referenced_by` |
-| Attention | `beckon` | Direct attention across participants | `beckon.hover`, `beckon.sparkle`, `beckon.open_resource` |
-
-`yield` and `match` are Rust's own words, so those two namespaces take a
-trailing underscore. Beside the eight are `job`, and `auth` and `system`
-when the client has a gateway. What each flow means is in
-[protocol/contract/flows](https://github.com/xynolog/protocol/blob/main/contract/flows/README.md).
 
 ## A first program
 
@@ -171,6 +132,49 @@ Where to go from here:
   one per task, for an AI coding assistant to load: ingesting a corpus,
   annotating it, linking it, and the layers built on those. They are
   TypeScript as well.
+
+## Connect
+
+A client comes from signing in. A person signs in at the identity provider
+the knowledge base trusts, never at the gateway, and their password never
+passes through the process. How depends on what is signing in, and each way
+is the transport crate's:
+
+| Who | Signs in with | |
+|---|---|---|
+| A script, after `xynolog login` | `session_from_kept` | The launcher's sign-in, reused. |
+| A script on its own | `sign_in_device`, then `session_from_kept` | The person approves a code in any browser. |
+| An application | `begin_sign_in`, `complete_sign_in` | The person is sent to the issuer and back to this machine. |
+| A daemon | `AgentToken::sign_in` | A service account. It needs no `sign-in` feature. |
+
+Each is shown, compiled and run, in
+[the transport's README](../http-transport/README.md#signing-in).
+A script's sign-in gives an `OpenedSession`: `opened.session()` is its
+`XynologSession`, and `session.client()` is the `XynologClient` the examples
+on this page start from. A daemon builds its client
+directly, with `client(config, options)`.
+
+## Eight verbs
+
+Every operation belongs to one of eight flows: verbs for what a participant
+does with a shared corpus. Four write, three read, and one directs
+attention. Each is a namespace of the client.
+
+| | Verb | What it does | Among its methods |
+|---|---|---|---|
+| Writing | `yield_` | Introduce a resource, uploaded or generated from gathered context | `yield_.resource`, `yield_.delegate` |
+| | `mark` | Annotate a resource | `mark.annotation`, `mark.delegate`, `mark.update_entity_types`, `mark.archive` |
+| | `bind` | Resolve an ambiguous reference to a specific resource | `bind.body`, `bind.initiate` |
+| | `frame` | Define and grow the schema vocabulary | `frame.add_entity_types`, `frame.add_tag_schema` |
+| Reading | `browse` | Navigate, read and observe, including the knowledge base's engines | `browse.resource`, `browse.annotations`, `browse.engines`, `browse.click` |
+| | `match_` | Search the corpus: resources by text, and candidates for a reference | `match_.resources`, `match_.search` |
+| | `gather` | Assemble grounding context around a resource or an annotation, and list what refers to a resource | `gather.resource`, `gather.annotation`, `gather.referenced_by` |
+| Attention | `beckon` | Direct attention across participants | `beckon.hover`, `beckon.sparkle`, `beckon.open_resource` |
+
+`yield` and `match` are Rust's own words, so those two namespaces take a
+trailing underscore. Beside the eight are `job`, and `auth` and `system`
+when the client has a gateway. What each flow means is in
+[protocol/contract/flows](https://github.com/xynolog/protocol/blob/main/contract/flows/README.md).
 
 ## Three ways to use it
 
@@ -616,3 +620,5 @@ environment and says what it found.
 ## License
 
 Apache-2.0. See [LICENSE](../../LICENSE).
+
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

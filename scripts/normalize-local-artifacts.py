@@ -64,7 +64,7 @@ def normalize_tar_gz(path: Path) -> None:
 def main() -> None:
     for raw_path in sys.argv[1:]:
         path = Path(raw_path)
-        if path.suffix in {".zip", ".nupkg", ".jar", ".whl"}:
+        if path.suffix in {".zip", ".nupkg", ".snupkg", ".jar", ".whl"}:
             normalize_zip(path)
         elif path.name.endswith(".tar.gz"):
             normalize_tar_gz(path)

@@ -1,6 +1,8 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net11.0</TargetFramework>
+    <!-- The framework every project builds for. The SDK's library also builds for .NET 10 (src/Xynolog/Xynolog.csproj). -->
+    <XynologTargetFramework>net11.0</XynologTargetFramework>
+    <TargetFramework>$(XynologTargetFramework)</TargetFramework>
     <!-- Locked restore covers both self-contained driver deployment graphs. -->
     <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
     <XynologBuildToolGlobalPropertiesToRemove>RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishReadyToRun;PublishAot</XynologBuildToolGlobalPropertiesToRemove>
