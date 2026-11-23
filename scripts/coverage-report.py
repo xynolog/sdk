@@ -15,7 +15,10 @@ FORMAT is what the tool writes, and each format is written as itself, but
 JaCoCo's XML and Coveralls' JSON, which are written as lcov:
   lcov       an lcov tracefile
   go         a Go cover profile, whose import paths are below sdk_version.GO_MODULE
-  jacoco     JaCoCo's XML report, which names a source by its package's directory
+  jacoco     JaCoCo's XML report, which names a source by its package's directory.
+             A class Kotlin built of a library's inline function names the
+             library's file, which is no file of the package's directory: it
+             is left out, and said so
   coveralls  Coveralls' JSON, as bisect-ppx-report writes it
 """
 
@@ -84,8 +87,12 @@ def jacoco(report: Path, copy: str, bases: list[str]) -> tuple[str, int]:
     records: list[str] = []
     for package in ElementTree.parse(report).getroot().iter("package"):
         directory = attribute(package, "name")
+        held = [base for base in bases if (ROOT / base / directory).is_dir()]
         for sourcefile in package.iter("sourcefile"):
             name = attribute(sourcefile, "name")
+            if held and not any((ROOT / base / directory / name).is_file() for base in held):
+                print(f"coverage-report.py: {directory}/{name} is a library's, inlined into {directory}: left out")
+                continue
             records.append(f"SF:{source(f'{directory}/{name}' if directory else name, copy, bases)}\n")
             for line in sourcefile.iter("line"):
                 number = attribute(line, "nr")
