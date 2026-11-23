@@ -20,3 +20,5 @@ the coming release's, and gathers its changes as they land.
   minor), and, for `xynolog`, a first program before connecting and the
   eight verbs. How the crates' own READMEs are held to their tests moved to
   the repository's CONTRIBUTING.md, which each README's last line links to.
+- Each crate's README links to the repository's files at the release's tag,
+  so its links resolve on crates.io and show the files as of the release.

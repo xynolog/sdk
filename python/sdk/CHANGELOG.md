@@ -16,3 +16,5 @@ the coming release's, and gathers its changes as they land.
   install it and take releases up to the next minor, and then shows a first
   program before signing in and the eight verbs. How the SDK itself is
   checked moves to CONTRIBUTING.md, which the README's last line links to.
+- The README links to the repository's files at the release's tag, so its
+  links resolve on PyPI and show the files as of the release.

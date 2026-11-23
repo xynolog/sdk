@@ -3,10 +3,10 @@
 [![crates.io](https://img.shields.io/crates/v/xynolog.svg)](https://crates.io/crates/xynolog)
 [![docs.rs](https://img.shields.io/docsrs/xynolog)](https://docs.rs/xynolog)
 [![CI](https://github.com/xynolog/sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/xynolog/sdk/actions/workflows/ci.yml?query=branch%3Amain)
-[![License](https://img.shields.io/crates/l/xynolog.svg)](https://github.com/xynolog/sdk/blob/main/LICENSE)
+[![License](https://img.shields.io/crates/l/xynolog.svg)](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE)
 [![codecov](https://codecov.io/gh/xynolog/sdk/graph/badge.svg?component=rust-sdk)](https://app.codecov.io/gh/xynolog/sdk/components)
 
-The Rust SDK for [Xynolog](../../README.md), an open platform for building
+The Rust SDK for [Xynolog](https://github.com/xynolog/sdk/blob/v0.8.1/README.md), an open platform for building
 trusted AI knowledge bases: a shared workspace where humans and AI agents
 annotate, connect and govern a corpus of documents.
 
@@ -17,8 +17,8 @@ A person's application and an AI agent use the same client. The SDK does not
 tell them apart.
 
 It has the same namespaces, methods and behaviour as the
-[TypeScript SDK](../../typescript/sdk/README.md), the [Python SDK](../../python/sdk/README.md)
-the [Go SDK](../../go/README.md) and the [Kotlin SDK](../../kotlin/sdk/README.md), and the five are held to the same
+[TypeScript SDK](https://github.com/xynolog/sdk/blob/v0.8.1/typescript/sdk/README.md), the [Python SDK](https://github.com/xynolog/sdk/blob/v0.8.1/python/sdk/README.md)
+the [Go SDK](https://github.com/xynolog/sdk/blob/v0.8.1/go/README.md) and the [Kotlin SDK](https://github.com/xynolog/sdk/blob/v0.8.1/kotlin/sdk/README.md), and the five are held to the same
 [conformance suite](https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md). New to Xynolog?
 The [Introduction](https://github.com/xynolog/docs/blob/main/builder/INTRODUCTION.md) explains the domain
 and the ideas the API falls out of. Its code is TypeScript, and the ideas
@@ -39,7 +39,7 @@ Two crates, because the client does no networking of its own:
 
 - **`xynolog`** is the client, the protocol's types, and what an application
   holds: sessions, state, storage. It links no HTTP library.
-- **[`xynolog-http-transport`](../http-transport/README.md)** carries
+- **[`xynolog-http-transport`](https://github.com/xynolog/sdk/blob/v0.8.1/rust/http-transport/README.md)** carries
   it to a knowledge base's gateway and signs people and services in. Its
   README covers TLS and each way to sign in.
 
@@ -148,7 +148,7 @@ is the transport crate's:
 | A daemon | `AgentToken::sign_in` | A service account. It needs no `sign-in` feature. |
 
 Each is shown, compiled and run, in
-[the transport's README](../http-transport/README.md#signing-in).
+[the transport's README](https://github.com/xynolog/sdk/blob/v0.8.1/rust/http-transport/README.md#signing-in).
 A script's sign-in gives an `OpenedSession`: `opened.session()` is its
 `XynologSession`, and `session.client()` is the `XynologClient` the examples
 on this page start from. A daemon builds its client
@@ -252,7 +252,7 @@ lifecycle.
 
 A worker signs in as an agent, which is the transport crate's to do, so a
 whole worker is shown, compiled and run, in
-[the transport's README](../http-transport/README.md#a-daemon).
+[the transport's README](https://github.com/xynolog/sdk/blob/v0.8.1/rust/http-transport/README.md#a-daemon).
 
 What a worker does with a job it holds is its own. One that marks a text
 asks a model what to mark, and the model quotes the text. `annotations` turns
@@ -614,11 +614,11 @@ environment and says what it found.
 
 | Crate | |
 |---|---|
-| [`xynolog-http-transport`](../http-transport/README.md) | The transport over a gateway, and signing in. A program that reaches a knowledge base uses it. |
-| [`xynolog-telemetry`](../telemetry/README.md) | The spans and counts the transport reports, to whatever OpenTelemetry an application installs. Its README says how to turn tracing on. |
+| [`xynolog-http-transport`](https://github.com/xynolog/sdk/blob/v0.8.1/rust/http-transport/README.md) | The transport over a gateway, and signing in. A program that reaches a knowledge base uses it. |
+| [`xynolog-telemetry`](https://github.com/xynolog/sdk/blob/v0.8.1/rust/telemetry/README.md) | The spans and counts the transport reports, to whatever OpenTelemetry an application installs. Its README says how to turn tracing on. |
 
 ## License
 
-Apache-2.0. See [LICENSE](../../LICENSE).
+Apache-2.0. See [LICENSE](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE).
 
 Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
