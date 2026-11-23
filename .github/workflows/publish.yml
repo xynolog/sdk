@@ -1,8 +1,9 @@
 name: Publish the SDK to a registry
 
 # Library publishing (versioning R17, R18, R20): a person dispatches this at a
-# released tag, one registry at a time, and approves it in the `release`
-# environment:
+# released tag, one run per registry, and approves it in the `release`
+# environment. `make publish` dispatches it for each registry below at once,
+# and `make publish-pypi` for one (scripts/publish-release.sh):
 #
 #   gh workflow run publish.yml --ref v0.8.0 -f registry=pypi
 #
@@ -12,9 +13,9 @@ name: Publish the SDK to a registry
 # holds a registry credential. A registry that failed spends only its own
 # version.
 #
-#   go      Go's release is the person's signed go/vX.Y.Z (scripts/tag-release.sh
-#           go). This checks that tag, and that the module the Go proxy serves
-#           is the one the bundle released.
+#   go      Go's release is the person's signed go/vX.Y.Z (make tag-release,
+#           scripts/tag-release.sh). This checks that tag, and that the module
+#           the Go proxy serves is the one the bundle released.
 #   pypi    the wheel and the source distribution
 #   npm     the five TypeScript packages, in version.json's order
 #   crates  the three Rust crates, dependencies first. cargo publishes only what
@@ -27,6 +28,7 @@ on:
         description: The registry to publish to
         type: choice
         required: true
+        # make publish reads this line for the registries, in this order.
         options: [go, pypi, npm, crates]
 
 permissions: {}

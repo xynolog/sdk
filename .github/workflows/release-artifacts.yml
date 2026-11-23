@@ -1,9 +1,10 @@
 name: Publish SDK artifact bundle
 
 # Library tagging (versioning R17): a person pushes the signed vX.Y.Z
-# (scripts/tag-release.sh), and this builds, verifies and releases the
-# nine-language bundle at it. `v*` matches the SDK's tag, not Go's `go/v…`,
-# which the person pushes only once this has released the bundle (R16).
+# (make tag-release, scripts/tag-release.sh), and this builds, verifies and
+# releases the nine-language bundle at it. `v*` matches the SDK's tag, not
+# Go's `go/v…`, which the person pushes only once this has released the
+# bundle (R16).
 on:
   push:
     tags: ["v*"]
