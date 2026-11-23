@@ -27,7 +27,7 @@ if [ "$#" -eq 1 ]; then
 else
   # publish.yml's one choice input, `registry`, lists the registries.
   options="$(sed -n 's/^ *options: \[\(.*\)\]$/\1/p' .github/workflows/publish.yml)"
-  test -n "$options" && test "$(wc -l <<< "$options")" -eq 1 \
+  [[ -n "$options" && "$options" != *$'\n'* ]] \
     || fail "publish.yml must list its registries as one input's options: [a, b, ...]"
   IFS=', ' read -r -a registries <<< "$options"
 fi
