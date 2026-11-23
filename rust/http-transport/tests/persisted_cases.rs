@@ -14,6 +14,7 @@
 //! events on a scope the client holds. Then a save being written as the
 //! session forgets its sign-in: no save lands after the delete.
 
+use axum::Json;
 use axum::Router;
 use axum::body::Body;
 use axum::extract::State;
@@ -419,12 +420,8 @@ async fn token(State(staged): State<Arc<Staged>>) -> Response {
     }
 }
 
-async fn subscribe(State(staged): State<Arc<Staged>>, body: String) -> Response {
-    staged
-        .subscriptions
-        .lock()
-        .unwrap()
-        .push(serde_json::from_str(&body).expect("a subscription"));
+async fn subscribe(State(staged): State<Arc<Staged>>, Json(subscription): Json<Value>) -> Response {
+    staged.subscriptions.lock().unwrap().push(subscription);
     let (events, stream) = mpsc::unbounded_channel();
     staged.streams.lock().unwrap().push(events);
     staged.opened.send_modify(|opened| *opened += 1);
@@ -438,8 +435,7 @@ async fn subscribe(State(staged): State<Arc<Staged>>, body: String) -> Response 
 
 /// A read of a resource is answered with the resource named `fresh`, and
 /// the knowledge base says what it is.
-async fn emit(State(staged): State<Arc<Staged>>, body: String) -> Response {
-    let sent: Value = serde_json::from_str(&body).expect("an emit");
+async fn emit(State(staged): State<Arc<Staged>>, Json(sent): Json<Value>) -> Response {
     let Some(correlation_id) = sent["correlationId"].as_str().map(str::to_owned) else {
         return json_answer(202, json!({}));
     };
