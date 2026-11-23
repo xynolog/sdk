@@ -7,7 +7,9 @@ import javax.tools.ToolProvider
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.dokka.javadoc)
     jacoco
+    `maven-publish`
 }
 
 kotlin {
@@ -56,15 +58,17 @@ kotlin.sourceSets.named("main") {
 
 // The SDK as a Java program calls it: Java alone, over the SDK's classes and
 // the Kotlin tests' dependencies.
-val javaTest: SourceSet = sourceSets.create("javaTest") {
+// Named so that Dokka, which names Java's source sets "java" and their own
+// name ("javaTest" for test), names this one apart from them.
+val fromJava: SourceSet = sourceSets.create("fromJava") {
     compileClasspath += sourceSets.main.get().output
     runtimeClasspath += sourceSets.main.get().output
 }
-kotlin.sourceSets.named("javaTest") {
+kotlin.sourceSets.named("fromJava") {
     kotlin.setSrcDirs(emptyList<File>())
 }
-configurations.named(javaTest.implementationConfigurationName) { extendsFrom(configurations.testImplementation.get()) }
-configurations.named(javaTest.runtimeOnlyConfigurationName) { extendsFrom(configurations.testRuntimeOnly.get()) }
+configurations.named(fromJava.implementationConfigurationName) { extendsFrom(configurations.testImplementation.get()) }
+configurations.named(fromJava.runtimeOnlyConfigurationName) { extendsFrom(configurations.testRuntimeOnly.get()) }
 
 dependencies {
     // The public API takes and returns their types (JsonObject, KSerializer,
@@ -95,8 +99,8 @@ tasks.withType<Test>().configureEach {
 val javaTestRun = tasks.register<Test>("javaTest") {
     description = "Runs the Java tests: the SDK as a Java program calls it."
     group = LifecycleBasePlugin.VERIFICATION_GROUP
-    testClassesDirs = javaTest.output.classesDirs
-    classpath = javaTest.runtimeClasspath
+    testClassesDirs = fromJava.output.classesDirs
+    classpath = fromJava.runtimeClasspath
 }
 
 jacoco {
@@ -171,7 +175,7 @@ abstract class Census : DefaultTask() {
                     }
                 }
             }
-            if (path.startsWith("javaTest/") && !path.endsWith(".java")) {
+            if (path.startsWith("fromJava/") && !path.endsWith(".java")) {
                 failures += "$path is in the Java tests and is not Java"
             }
         }
@@ -374,4 +378,88 @@ tasks.register<JavaExec>("ktlintFormat") {
 
 tasks.check {
     dependsOn(javaTestRun, census, refusals, tasks.jacocoTestReport, ktlintCheck)
+}
+
+// The publication Maven Central takes: the jar, its sources and its Javadoc
+// (Dokka's, from the KDoc), and a POM that says what the package is, under
+// what licence, and where its source and issues are. The version is the
+// build's, given as -Pversion (scripts/publish-other-local.sh); signing is
+// the publisher's, after the build, so the build's files stay the same for
+// every build of a commit.
+java {
+    withSourcesJar()
+}
+// The published API alone: the tests, the Java callers and the conformance
+// drivers are no part of it.
+// Dokka's generator runs while the javadoc jar is built and is never shipped;
+// its jackson is held past the advisories libs.versions.toml names.
+dependencies {
+    "dokkaJavadocGeneratorRuntime"(platform(libs.jackson.bom))
+}
+dokka {
+    dokkaSourceSets.configureEach {
+        suppress = name != "main"
+    }
+}
+val javadocJar = tasks.register<Jar>("javadocJar") {
+    description = "Assembles the Javadoc that Dokka writes from the KDoc."
+    group = LifecycleBasePlugin.BUILD_GROUP
+    archiveClassifier = "javadoc"
+    from(tasks.dokkaGeneratePublicationJavadoc.flatMap { it.outputDirectory })
+}
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            groupId = "org.xynolog"
+            artifactId = "xynolog"
+            from(components["java"])
+            artifact(javadocJar)
+            pom {
+                name = "Xynolog SDK for Kotlin"
+                description = "Xynolog's Kotlin SDK, for Kotlin and Java on the JVM: the protocol's types, and a client of a Xynolog knowledge base's bus."
+                url = "https://github.com/xynolog/sdk"
+                licenses {
+                    license {
+                        name = "Apache-2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "xynolog"
+                        name = "Xynolog"
+                        url = "https://github.com/xynolog"
+                    }
+                }
+                scm {
+                    url = "https://github.com/xynolog/sdk"
+                    connection = "scm:git:https://github.com/xynolog/sdk.git"
+                    developerConnection = "scm:git:ssh://git@github.com/xynolog/sdk.git"
+                }
+                issueManagement {
+                    system = "GitHub"
+                    url = "https://github.com/xynolog/sdk/issues"
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "build"
+            url = uri(layout.buildDirectory.dir("repository"))
+        }
+    }
+}
+tasks.withType<PublishToMavenRepository>().configureEach {
+    val published = project.version.toString()
+    doFirst {
+        if (published == Project.DEFAULT_VERSION) {
+            throw GradleException("publish with -Pversion=<the build's version>: python3 scripts/sdk_version.py kotlin")
+        }
+    }
 }

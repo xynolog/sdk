@@ -76,8 +76,12 @@ def files(language: str) -> list[tuple[Path, str, str]]:
     if language == "haskell":
         return [(STATE / "haskell" / f"xynolog-{version}.tar.gz", "hackage-sdist", "xynolog")]
     if language == "kotlin":
+        # What Maven Central takes of a release, before the publisher signs it
+        # and sums it: Gradle's own sums are of the files as they were before
+        # they were normalized.
         root = STATE / f"kotlin-maven/org/xynolog/xynolog/{version}"
-        return [(p, "maven", "org.xynolog:xynolog") for p in sorted(root.glob(f"xynolog-{version}.*")) if p.is_file()]
+        names = [f"xynolog-{version}{suffix}" for suffix in (".pom", ".module", ".jar", "-sources.jar", "-javadoc.jar")]
+        return [(root / name, "maven", "org.xynolog:xynolog") for name in names]
     if language == "ocaml":
         source = STATE / "opam-repo/repo" / f"archives/xynolog.{version}.tar.gz"
         return [(source, "opam-source", "xynolog")]
