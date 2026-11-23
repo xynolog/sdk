@@ -19,10 +19,12 @@ would sort before the release it follows.
     sdk_version.py release          the coming release, X.Y.Z
     sdk_version.py tags             its release tags, the SDK's first
     sdk_version.py <language>       that language's version for this commit
-    sdk_version.py check            the committed manifests and tagged links hold the release's versions
+    sdk_version.py check            the committed manifests, tagged links and changelogs hold the release's versions
     sdk_version.py write            write them there
     sdk_version.py unreleased       the coming release is not yet tagged, but on this commit
-    sdk_version.py move X.Y.Z       make X.Y.Z, a later release, the coming one
+    sdk_version.py move X.Y.Z       make X.Y.Z, a later release, the coming one, with a changelog section of its own
+
+Each language keeps one changelog, whose latest section is the coming release's.
 """
 
 # Hosts run this with their own python3, which may be older than the `X | None` it is typed with.
@@ -168,6 +170,24 @@ def manifests(data: Config) -> list[tuple[str, str | None, str]]:
     return [(path, value, released(data, language)) for path, value, language in found]
 
 
+def changelog(language: str) -> Path:
+    """The language's changelog: the one tracked file under its directory that CHANGELOGS names."""
+    found = [name for name in git("ls-files", "-z", "--", language).split("\0") if name and Path(name).name in CHANGELOGS]
+    if len(found) != 1:
+        raise SystemExit(f"sdk_version.py: {language} keeps one changelog, named {' or '.join(sorted(CHANGELOGS))}, not {found}")
+    return ROOT / found[0]
+
+
+def changelog_releases(data: Config) -> list[tuple[str, str | None, str]]:
+    """Each changelog's latest release, its first `## ` heading, as (path, found, wanted)."""
+    found: list[tuple[str, str | None, str]] = []
+    for language in LANGUAGES:
+        path = changelog(language)
+        headings = re.findall(r"(?m)^## (.+)$", path.read_text())
+        found.append((f"{path.relative_to(ROOT)}'s latest release", headings[0] if headings else None, released(data, language)))
+    return found
+
+
 def tagged_files() -> list[Path]:
     """Each tracked file outside a changelog that links to sdk at a release tag."""
     listed = git("ls-files", "-z").split("\0")
@@ -197,15 +217,17 @@ def tagged_links(data: Config) -> list[tuple[str, str | None, str]]:
 
 def check() -> None:
     data = config()
-    wrong = [f"  {path}: {value}, not {wanted}" for path, value, wanted in manifests(data) + tagged_links(data) if value != wanted]
+    found = manifests(data) + tagged_links(data) + changelog_releases(data)
+    wrong = [f"  {path}: {value}, not {wanted}" for path, value, wanted in found if value != wanted]
     module = re.findall(r"(?m)^module (\S+)$", (ROOT / "go/go.mod").read_text())
     if module != [go_module(data)]:
         wrong.append(f"  go/go.mod: module {' '.join(module)}, not {go_module(data)}")
     if wrong:
         raise SystemExit(
-            "The committed manifests and tagged links must hold the release's versions (sdk_version.py write):\n" + "\n".join(wrong)
+            "The committed manifests, tagged links and changelogs must hold the release's versions (sdk_version.py write, or move):\n"
+            + "\n".join(wrong)
         )
-    print("The committed manifests and tagged links hold the release's versions.")
+    print("The committed manifests, tagged links and changelogs hold the release's versions.")
 
 
 def write() -> None:
@@ -247,6 +269,13 @@ def move(release: str) -> None:
         raise SystemExit(f"sdk_version.py: {release} does not come after {data['release']}")
     data["release"] = release
     (ROOT / "version.json").write_text(json.dumps(data, indent=2) + "\n")
+    for language in LANGUAGES:
+        path = changelog(language)
+        text = path.read_text()
+        latest = re.search(r"(?m)^## ", text)
+        if latest is None:
+            raise SystemExit(f"sdk_version.py: {path.relative_to(ROOT)} has no release section")
+        path.write_text(f"{text[: latest.start()]}## {released(data, language)}\n\n{text[latest.start() :]}")
     write()
 
 

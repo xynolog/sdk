@@ -20,6 +20,8 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- What nuget.org shows as the release notes: the changelog as of the release, which sdk_version.py write keeps at the coming release's tag. -->
+    <PackageReleaseNotes>https://github.com/xynolog/sdk/blob/v0.8.1/csharp/sdk/CHANGELOG.md</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" />

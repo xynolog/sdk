@@ -54,9 +54,11 @@ Run `git clone --recurse-submodules https://github.com/xynolog/sdk.git` (or init
 
 `version.json` names the coming release, one semantic version `X.Y.Z` for all nine languages; `scripts/sdk_version.py` derives every package version from it. Below 1.0 the minor number is the break: a breaking change raises it, anything else the patch number. A commit tagged `vX.Y.Z` builds the release; every other commit builds a development version, which no registry receives.
 
+Each language keeps a changelog beside its README (OCaml's is `CHANGES.md`, as dune-release names it), whose latest section is the coming release's. A pull request that changes a language's directory adds an entry there, or carries the `no-changelog` label; the Changelog workflow checks it.
+
 To release, check out `main`'s latest commit (`git switch main && git pull --ff-only`) and run `bash scripts/tag-release.sh`; it refuses any other commit. It runs `scripts/release-ready.sh`, which checks five things:
 
-- the committed manifests and tagged links hold the release's versions;
+- the committed manifests, tagged links and changelogs hold the release's versions;
 - the release is not tagged on another commit;
 - `main` holds the commit;
 - CI's run for the commit's push to `main`, which builds and tests all nine languages, finished green;
@@ -68,7 +70,7 @@ Once that release exists, run `bash scripts/tag-release.sh go` on the same commi
 
 Each registry then takes the released bundle, never a rebuild: dispatch `publish.yml` at the tag, one registry at a time, and approve it in the `release` environment, for example `gh workflow run publish.yml --ref vX.Y.Z -f registry=pypi`. Each registry accepts the SDK only through trusted publishing from that workflow and environment. cargo publishes only a crate it packages itself, so `registry=crates` packages each crate from the tag as the release did, and publishes none unless every archive is the bundle's. `registry=go` checks the signed Go tag and that the module the Go proxy serves is the bundle's.
 
-Once the release is tagged, CI fails until the coming release moves on: `python3 scripts/sdk_version.py move X.Y.Z` writes a later one into `version.json` and every manifest, in a pull request of its own.
+Once the release is tagged, CI fails until the coming release moves on: `python3 scripts/sdk_version.py move X.Y.Z` writes a later one into `version.json` and every manifest, and opens its section in each language's changelog, in a pull request of its own.
 
 ## License
 
