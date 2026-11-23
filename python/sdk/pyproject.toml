@@ -43,11 +43,11 @@ axioms = ["hypothesis>=6.130,<7"]
 [project.urls]
 Homepage = "https://github.com/xynolog/sdk"
 # The README as of the release, which sdk_version.py write keeps at the coming release's tag.
-Documentation = "https://github.com/xynolog/sdk/tree/v0.8.1/python/sdk#readme"
+Documentation = "https://github.com/xynolog/sdk/tree/v0.8.2/python/sdk#readme"
 Repository = "https://github.com/xynolog/sdk"
 Issues = "https://github.com/xynolog/sdk/issues"
 # Also at the coming release's tag: the changelog as of the release.
-Changelog = "https://github.com/xynolog/sdk/blob/v0.8.1/python/sdk/CHANGELOG.md"
+Changelog = "https://github.com/xynolog/sdk/blob/v0.8.2/python/sdk/CHANGELOG.md"
 
 # The checkers, the formatter and the model generator are pinned to a version
 # each: what they say of this package, and what the generator writes, is held

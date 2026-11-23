@@ -1143,7 +1143,7 @@ log keeps) is written as `[withheld]`.
 | `api` | `types_gen.go`: a Go type for every component schema of the spec, and for every record Protocol states in its tables: a registry's types (`SignedIn`, `SignInOutcome`, `KbReadVerdict`, `TabCheck`, `KbSessionStatus` and the rest), the state units' notices (`SessionEnded`, `PermissionDenied`, `KbIdentityConflict`), why a session ended (`SessionEndReason`) and the stored session (`StoredSession`); each type that holds a list its schema requires writes it as `[]` where Go holds it as nil, so a caller may leave an empty list nil. `ids_gen.go`: the kinds of id, each a type made only through its kind's rule (`ParseResourceId` and the others). `union.go` and `written.go`: how a union and an object that keeps the members its schema does not name are read and written | [`protocol/specs/src/openapi.json`](https://github.com/xynolog/protocol/blob/main/specs/src/openapi.json), bundled; [`protocol/specs/src/identifiers/kinds.json`](https://github.com/xynolog/protocol/blob/main/specs/src/identifiers/kinds.json); each component schema's `required`; the records of [`protocol/specs/src/client/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/registry.json), [`protocol/specs/src/client/state-units.json`][state-units-cases], [`protocol/specs/src/session/cases.json`][session-cases] and [`protocol/specs/src/session/stored.json`](https://github.com/xynolog/protocol/blob/main/specs/src/session/stored.json) |
 | `bus` | The bus's channels, each typed by its payload, its request and reply operations, and the channels a transport delivers | [`protocol/specs/src/bus/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/bus/registry.json) |
 | `state` | The state units a client's bus moves | hand-written |
-| `annotations` | Reading an annotation, building one of a span or of a resource, and `Reconcile`; and the generated table of Unicode's Cased and Case_Ignorable properties (`unicodecase_gen.go`), which decide whether a capital sigma ends a word | hand-written; Unicode's [`DerivedCoreProperties.txt`](https://github.com/xynolog/sdk/blob/v0.8.1/codegen/ucd/DerivedCoreProperties.txt), by [`codegen/lib/unicode_case`](https://github.com/xynolog/sdk/tree/v0.8.1/codegen/lib/unicode_case) |
+| `annotations` | Reading an annotation, building one of a span or of a resource, and `Reconcile`; and the generated table of Unicode's Cased and Case_Ignorable properties (`unicodecase_gen.go`), which decide whether a capital sigma ends a word | hand-written; Unicode's [`DerivedCoreProperties.txt`](https://github.com/xynolog/sdk/blob/v0.8.2/codegen/ucd/DerivedCoreProperties.txt), by [`codegen/lib/unicode_case`](https://github.com/xynolog/sdk/tree/v0.8.2/codegen/lib/unicode_case) |
 | `registry` | Several knowledge bases: `XynologBrowser`, its storage and its keys, `HttpSessionFactory`, and a person's sign-in landing on the knowledge base that answered | hand-written |
 | `discovery` | The document a launcher publishes of the knowledge bases it manages, read and followed | [`protocol/specs/src/discovery/DiscoveryDocument.json`](https://github.com/xynolog/protocol/blob/main/specs/src/discovery/DiscoveryDocument.json), through `api` |
 | `xynologtest` | What a consumer's tests are built on: `NewTestClient`, a real client over `FaultyTransport`, `InMemoryContent` and `StubGateway`; `NewTestSession`; `ScriptedSessions` and `SharedStorage`, for a registry; `AssertStateUnitAxioms`; and the liveness axioms | hand-written |
@@ -1157,7 +1157,7 @@ differs from what the spec generates.
 
 ## License
 
-Apache-2.0. See [LICENSE](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE).
+Apache-2.0. See [LICENSE](https://github.com/xynolog/sdk/blob/v0.8.2/LICENSE).
 
 Working on the SDK itself is in [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
 
@@ -1176,10 +1176,10 @@ Working on the SDK itself is in [CONTRIBUTING.md](https://github.com/xynolog/sdk
 [conformance]: https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md
 [worker-contract]: https://github.com/xynolog/protocol/blob/main/contract/WORKER-CONTRACT.md
 [worker-conformance]: https://github.com/xynolog/protocol/blob/main/conformance/worker/README.md
-[sdk-typescript]: https://github.com/xynolog/sdk/blob/v0.8.1/typescript/sdk/README.md
-[sdk-rust]: https://github.com/xynolog/sdk/blob/v0.8.1/rust/sdk/README.md
-[sdk-python]: https://github.com/xynolog/sdk/blob/v0.8.1/python/sdk/README.md
-[sdk-kotlin]: https://github.com/xynolog/sdk/blob/v0.8.1/kotlin/sdk/README.md
+[sdk-typescript]: https://github.com/xynolog/sdk/blob/v0.8.2/typescript/sdk/README.md
+[sdk-rust]: https://github.com/xynolog/sdk/blob/v0.8.2/rust/sdk/README.md
+[sdk-python]: https://github.com/xynolog/sdk/blob/v0.8.2/python/sdk/README.md
+[sdk-kotlin]: https://github.com/xynolog/sdk/blob/v0.8.2/kotlin/sdk/README.md
 [launcher]: https://github.com/xynolog/cli/blob/main/README.md
 [surface]: https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json
 [refresh]: https://github.com/xynolog/protocol/blob/main/specs/src/client/refresh.json

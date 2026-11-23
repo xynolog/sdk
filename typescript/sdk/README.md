@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/xynolog/sdk/graph/badge.svg?component=typescript-sdk)](https://app.codecov.io/gh/xynolog/sdk/components)
 [![npm version](https://img.shields.io/npm/v/@xynolog/sdk.svg)](https://www.npmjs.com/package/@xynolog/sdk)
 [![npm downloads](https://img.shields.io/npm/dm/@xynolog/sdk.svg)](https://www.npmjs.com/package/@xynolog/sdk)
-[![License](https://img.shields.io/npm/l/@xynolog/sdk.svg)](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE)
+[![License](https://img.shields.io/npm/l/@xynolog/sdk.svg)](https://github.com/xynolog/sdk/blob/v0.8.2/LICENSE)
 
 The TypeScript SDK for [Xynolog](https://github.com/xynolog/sdk), an open platform for building
 trusted AI knowledge bases: a shared workspace where humans and AI agents
@@ -17,10 +17,10 @@ A person's application and an AI agent use the same client. The SDK does not
 tell them apart.
 
 It has the same namespaces, methods and behaviour as the
-[Rust SDK](https://github.com/xynolog/sdk/tree/v0.8.1/rust/sdk) ([`xynolog`](https://crates.io/crates/xynolog) on crates.io)
-the [Python SDK](https://github.com/xynolog/sdk/tree/v0.8.1/python/sdk) ([`xynolog`](https://pypi.org/project/xynolog/) on PyPI)
-the [Go SDK](https://github.com/xynolog/sdk/tree/v0.8.1/go) ([`github.com/xynolog/sdk/go`](https://pkg.go.dev/github.com/xynolog/sdk/go) on pkg.go.dev)
-and the [Kotlin SDK](https://github.com/xynolog/sdk/tree/v0.8.1/kotlin/sdk), for Kotlin and Java programs,
+[Rust SDK](https://github.com/xynolog/sdk/tree/v0.8.2/rust/sdk) ([`xynolog`](https://crates.io/crates/xynolog) on crates.io)
+the [Python SDK](https://github.com/xynolog/sdk/tree/v0.8.2/python/sdk) ([`xynolog`](https://pypi.org/project/xynolog/) on PyPI)
+the [Go SDK](https://github.com/xynolog/sdk/tree/v0.8.2/go) ([`github.com/xynolog/sdk/go`](https://pkg.go.dev/github.com/xynolog/sdk/go) on pkg.go.dev)
+and the [Kotlin SDK](https://github.com/xynolog/sdk/tree/v0.8.2/kotlin/sdk), for Kotlin and Java programs,
 and the five are held to the same [conformance suite](https://github.com/xynolog/protocol/tree/main/conformance/sdk).
 New to Xynolog? The [Introduction](https://github.com/xynolog/docs/blob/main/builder/INTRODUCTION.md)
 explains the domain and the ideas the API falls out of.
@@ -187,7 +187,7 @@ request trusts, and the proxy it goes through, are that fetch's: the SDK reads n
 own for either. In Node, a gateway whose certificate another authority signed is reached with
 undici's `fetch` sent through an `Agent` that trusts that authority; in a browser page, the
 browser decides.
-[`@xynolog/http-transport`](https://github.com/xynolog/sdk/tree/v0.8.1/typescript/http-transport#the-fetch-it-sends-with)
+[`@xynolog/http-transport`](https://github.com/xynolog/sdk/tree/v0.8.2/typescript/http-transport#the-fetch-it-sends-with)
 says which requests that covers.
 
 ## Eight verbs
@@ -334,7 +334,7 @@ claims.subscribe(async (job) => {
   trace OpenTelemetry has active when the reply arrives, so in a process that has set up
   no OpenTelemetry it is `undefined`, as every trace is there.
 
-The [`xynolog-worker` skill](https://github.com/xynolog/sdk/blob/v0.8.1/skills/xynolog-worker/SKILL.md)
+The [`xynolog-worker` skill](https://github.com/xynolog/sdk/blob/v0.8.2/skills/xynolog-worker/SKILL.md)
 is a whole worker, sign-in to shutdown, and
 [`protocol/contract/WORKER-CONTRACT.md`](https://github.com/xynolog/protocol/blob/main/contract/WORKER-CONTRACT.md)
 is what a worker promises the dispatcher.
@@ -383,7 +383,7 @@ is what a worker promises the dispatcher.
 
 This is everything a non-web consumer (TUI, mobile, daemon, agent) needs — nothing
 page-shaped. Page-level state machines and components, including the **embeddable
-`ResourceViewer`**, live in [`@xynolog/react-ui`](https://github.com/xynolog/sdk/tree/v0.8.1/typescript/react-ui).
+`ResourceViewer`**, live in [`@xynolog/react-ui`](https://github.com/xynolog/sdk/tree/v0.8.2/typescript/react-ui).
 
 ## Documentation
 
@@ -399,16 +399,16 @@ who the SDK is for, where it goes, and the docs in reading order.
 
 ## Related packages
 
-- [`xynolog`](https://github.com/xynolog/sdk/tree/v0.8.1/rust/sdk) — the Rust SDK, a full peer of this one, on [crates.io](https://crates.io/crates/xynolog)
-- [`xynolog`](https://github.com/xynolog/sdk/tree/v0.8.1/python/sdk) — the Python SDK, on [PyPI](https://pypi.org/project/xynolog/)
-- [`github.com/xynolog/sdk/go`](https://github.com/xynolog/sdk/tree/v0.8.1/go) — the Go SDK, on [pkg.go.dev](https://pkg.go.dev/github.com/xynolog/sdk/go), which the `xynolog` launcher is built on
-- [`@xynolog/core`](https://github.com/xynolog/sdk/tree/v0.8.1/typescript/core) — domain types, `ITransport` contract, `Bus`, OpenAPI-derived schemas
-- [`@xynolog/http-transport`](https://github.com/xynolog/sdk/tree/v0.8.1/typescript/http-transport) — HTTP transport (`HttpTransport`, `HttpContentTransport`)
-- [`@xynolog/observability`](https://github.com/xynolog/sdk/tree/v0.8.1/typescript/observability) — OpenTelemetry tracing the SDK propagates across the bus
-- [`@xynolog/react-ui`](https://github.com/xynolog/sdk/tree/v0.8.1/typescript/react-ui) — the embeddable `ResourceViewer` (bring-your-own-session) plus React hooks (`useResourceLoader`, `useMediaToken`, `useObservable`) and the web `SessionStorage`; its docs cross-link the [Developer Guide](https://github.com/xynolog/docs/blob/main/builder/DEVELOPER-GUIDE.md)
+- [`xynolog`](https://github.com/xynolog/sdk/tree/v0.8.2/rust/sdk) — the Rust SDK, a full peer of this one, on [crates.io](https://crates.io/crates/xynolog)
+- [`xynolog`](https://github.com/xynolog/sdk/tree/v0.8.2/python/sdk) — the Python SDK, on [PyPI](https://pypi.org/project/xynolog/)
+- [`github.com/xynolog/sdk/go`](https://github.com/xynolog/sdk/tree/v0.8.2/go) — the Go SDK, on [pkg.go.dev](https://pkg.go.dev/github.com/xynolog/sdk/go), which the `xynolog` launcher is built on
+- [`@xynolog/core`](https://github.com/xynolog/sdk/tree/v0.8.2/typescript/core) — domain types, `ITransport` contract, `Bus`, OpenAPI-derived schemas
+- [`@xynolog/http-transport`](https://github.com/xynolog/sdk/tree/v0.8.2/typescript/http-transport) — HTTP transport (`HttpTransport`, `HttpContentTransport`)
+- [`@xynolog/observability`](https://github.com/xynolog/sdk/tree/v0.8.2/typescript/observability) — OpenTelemetry tracing the SDK propagates across the bus
+- [`@xynolog/react-ui`](https://github.com/xynolog/sdk/tree/v0.8.2/typescript/react-ui) — the embeddable `ResourceViewer` (bring-your-own-session) plus React hooks (`useResourceLoader`, `useMediaToken`, `useObservable`) and the web `SessionStorage`; its docs cross-link the [Developer Guide](https://github.com/xynolog/docs/blob/main/builder/DEVELOPER-GUIDE.md)
 
 ## License
 
-Apache-2.0 — see [LICENSE](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE).
+Apache-2.0 — see [LICENSE](https://github.com/xynolog/sdk/blob/v0.8.2/LICENSE).
 
 Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
