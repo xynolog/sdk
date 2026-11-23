@@ -332,9 +332,10 @@ jobs:
 
       # Codecov takes the reports the checks wrote into coverage/<language>/
       # under the language's flag (codecov.py), and knows the run by its OIDC
-      # token. A pull request from a fork is given
-      # no token, and a merge queue's run tests what its pull request's did:
-      # neither uploads.
+      # token. A pull request from a fork is given no token, and a merge
+      # queue's run tests what its pull request's did: neither uploads. A
+      # report the checks did not write fails the job; an upload Codecov
+      # refuses does not, as Codecov is no part of what CI holds a change to.
       - name: The language's coverage reports, and the flag they count under
         id: coverage
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
@@ -349,7 +350,7 @@ jobs:
           flags: ${{ steps.coverage.outputs.flags }}
           disable_search: true
           plugins: noop
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   generated:
     name: Generated files are what their generators write
