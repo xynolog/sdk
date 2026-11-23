@@ -35,13 +35,16 @@ npm run typecheck
 
 ### Coverage Reports
 
-Coverage reports are generated in the `coverage/` directory:
+`npm run test:coverage` runs the suite in the four shards `npm test` runs, and
+writes each shard's report into a directory of its own, `coverage/shard-1/` to
+`coverage/shard-4/`. `make test-typescript` uploads the four together, and
+Codecov adds them up:
 
 ```bash
 npm run test:coverage
 
-# Open coverage report
-open coverage/index.html
+# Open the first shard's report
+open coverage/shard-1/index.html
 ```
 
 ## Writing Tests for Library Components

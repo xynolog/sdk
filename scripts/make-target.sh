@@ -53,12 +53,31 @@ require_protocol_pin "$ROOT" >/dev/null
 
 # Run a language's checks in its toolchain's container, on a copy of the
 # checkout laid out as the checkout is, with the Protocol bundles built.
+COPY=/tmp/sdk
 in_container() {
   local image="$1" script="$2"
   shift 2
   "$RUNTIME" run --rm --volume "$ROOT:/source:ro" --workdir /tmp "$@" "$image" \
-    bash -euc "cp -a /source /tmp/sdk
+    bash -euc "cp -a /source $COPY
 $script"
+}
+
+# A language's tests measure their coverage, and its container writes each
+# report into /coverage, the directory COVERAGE mounts, as its tool names the
+# sources. coverage_reports writes them into coverage/<language>/ by the
+# checkout's paths (coverage-report.py), where CI uploads them to Codecov
+# (codecov.py). A container writes its reports there flat: a directory it
+# made would be root's, and the trap could not empty it.
+measure_coverage() {
+  COVERAGE="$(mktemp -d "${TMPDIR:-/tmp}/xynolog-sdk-coverage.XXXXXX")"
+  trap 'rm -rf "$COVERAGE"' EXIT
+}
+coverage_reports() {
+  local language="$1"
+  shift
+  rm -rf "$ROOT/coverage/$language"
+  mkdir -p "$ROOT/coverage/$language"
+  python3 "$ROOT/scripts/coverage-report.py" "$1" "$COVERAGE" "$ROOT/coverage/$language" "$COPY" "${@:2}"
 }
 
 # The OCaml toolchain's image, which the SDK and the generator build on, each
@@ -74,6 +93,7 @@ fi
 
 case "${1:-}" in
   test-typescript)
+    measure_coverage
     in_container node:26-bookworm '
       # The censuses ask git what the repository holds, and the copy belongs
       # to another user than the container runs as.
@@ -92,7 +112,12 @@ case "${1:-}" in
       bash scripts/compliance/audit-gathered-context-component-state.sh
       bash scripts/compliance/audit-session-typed-factories.sh
       bash react-ui/scripts/audit-toolbar-pref-storage.sh
-      npm test --workspaces' --memory 4g
+      npm run test:coverage --workspaces
+      find . -name node_modules -prune -o -name lcov.info -print | while read -r report; do
+        name="${report#./}"
+        cp "$report" "/coverage/${name//\//-}"
+      done' --memory 4g --volume "$COVERAGE:/coverage"
+    coverage_reports typescript lcov .
     ;;
   test-tooling)
     in_container node:26-bookworm '
@@ -115,6 +140,7 @@ case "${1:-}" in
       bash /tmp/sdk/scripts/check-python-tooling.sh' --memory 4g
     ;;
   test-python)
+    measure_coverage
     in_container python:3.12-bookworm '
       # pyright is a Node program, and its Python wrapper runs the node it
       # finds on PATH.
@@ -129,36 +155,50 @@ case "${1:-}" in
       uv run pyright --pythonplatform Windows
       uv run ruff check
       uv run ruff format --check
-      uv run pytest' --memory 4g
+      uv run pytest --cov --cov-report=lcov:/coverage/python.lcov' --memory 4g --volume "$COVERAGE:/coverage"
+    coverage_reports python lcov python/sdk
     ;;
   test-rust)
+    measure_coverage
     in_container "rust:$(sh "$ROOT/rust/scripts/rust-toolchain.sh")-bookworm" '
       cd /tmp/sdk/rust
       cargo fmt --all --check
       rustfmt --edition 2024 --check sdk/src/generated/*.rs
       cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
-      cargo test --workspace --all-features --locked' --memory 4g
+      # cargo-llvm-cov runs every test but the doctests, which it measures on
+      # nightly alone: they run apart, unmeasured.
+      rustup component add llvm-tools
+      cargo install --locked cargo-llvm-cov@0.9.1
+      cargo llvm-cov --workspace --all-features --locked --lcov --output-path /coverage/rust.lcov
+      cargo test --doc --workspace --all-features --locked' --memory 4g --volume "$COVERAGE:/coverage"
+    coverage_reports rust lcov rust
     ;;
   test-go)
-    COVERAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/xynolog-sdk-coverage.XXXXXX")"
-    trap 'rm -rf "$COVERAGE_DIR"' EXIT
+    measure_coverage
     in_container "golang:$(sh "$ROOT/go/scripts/go-toolchain.sh")-bookworm" '
       cd /tmp/sdk/go
       unformatted="$(gofmt -l .)"
       if [ -n "$unformatted" ]; then echo "not as gofmt writes them:"; echo "$unformatted"; exit 1; fi
       go vet ./...
       go test -race -coverprofile=/coverage/coverage.txt -covermode=atomic ./...' \
-      --volume "$COVERAGE_DIR:/coverage"
-    cp "$COVERAGE_DIR/coverage.txt" "$ROOT/coverage.txt"
+      --volume "$COVERAGE:/coverage"
+    coverage_reports go go go
     ;;
   test-csharp)
+    measure_coverage
     in_container "mcr.microsoft.com/dotnet/sdk:$(sh "$ROOT/csharp/scripts/dotnet-version.sh" --image-tag)" '
       cd /tmp/sdk/csharp/sdk
       test "$(dotnet --version)" = "$(sh ../scripts/dotnet-version.sh)"
       dotnet build -p:RestoreLockedMode=true
-      dotnet test --no-build --settings test.runsettings
+      dotnet test --no-build --settings test.runsettings --results-directory /tmp/test-results
+      # The collector writes its report into a directory of its own.
+      set -- /tmp/test-results/*/coverage.info
+      test "$#" -eq 1
+      cp "$1" /coverage/csharp.lcov
       # The generated files too, but not those a package compiles in.
-      dotnet format --no-restore --verify-no-changes --include-generated --exclude "$HOME/.nuget/packages"' --memory 4g
+      dotnet format --no-restore --verify-no-changes --include-generated --exclude "$HOME/.nuget/packages"' --memory 4g \
+      --volume "$COVERAGE:/coverage"
+    coverage_reports csharp lcov csharp
     ;;
   test-kotlin)
     # Gradle's home (the wrapper's distribution, and the plugins and
@@ -166,9 +206,13 @@ case "${1:-}" in
     # this directory.
     gradle_home="$HOME/.cache/xynolog/kotlin-gradle"
     mkdir -p "$gradle_home"
+    measure_coverage
     in_container "eclipse-temurin:$(sh "$ROOT/kotlin/scripts/jdk-version.sh")-jdk" '
       cd /tmp/sdk/kotlin/sdk
-      ./gradlew --no-daemon --console=plain check' --memory 4g --volume "$gradle_home:/gradle" --env GRADLE_USER_HOME=/gradle
+      ./gradlew --no-daemon --console=plain check
+      cp build/reports/jacoco/test/jacocoTestReport.xml /coverage/kotlin.xml' --memory 4g \
+      --volume "$gradle_home:/gradle" --env GRADLE_USER_HOME=/gradle --volume "$COVERAGE:/coverage"
+    coverage_reports kotlin jacoco kotlin/sdk/src/main/kotlin kotlin/sdk/src/generated/kotlin
     ;;
   test-swift)
     # SwiftPM's build directory (the dependencies' checkouts and what every
@@ -178,15 +222,20 @@ case "${1:-}" in
     # by root alone.
     swift_build="$HOME/.cache/xynolog/swift-build"
     mkdir -p "$swift_build"
+    measure_coverage
     in_container "swift:$(sh "$ROOT/swift/scripts/swift-version.sh")" '
       cd /tmp/sdk/swift/sdk
       rm -rf .build
       ln -s /swift-build .build
       Scripts/test.sh
+      Scripts/coverage.sh
+      mv .build/coverage.lcov /coverage/swift.lcov
       swift format lint --strict --recursive .
       Scripts/census.sh
       Scripts/refusals.sh
-      find /swift-build -mindepth 1 -exec chmod a+rX {} +' --memory 4g --volume "$swift_build:/swift-build"
+      find /swift-build -mindepth 1 -exec chmod a+rX {} +' --memory 4g --volume "$swift_build:/swift-build" \
+      --volume "$COVERAGE:/coverage"
+    coverage_reports swift lcov swift
     ;;
   test-haskell|haskell-dependencies)
     bash "$ROOT/haskell/toolchain/toolchain-image.sh"
@@ -213,6 +262,7 @@ case "${1:-}" in
       # alone.
       haskell_build="$HOME/.cache/xynolog/haskell-build"
       mkdir -p "$haskell_build"
+      measure_coverage
       in_container xynolog-haskell-toolchain '
         cd /tmp/sdk/haskell/sdk
         rm -rf dist-newstyle
@@ -220,12 +270,15 @@ case "${1:-}" in
         find . -name "*.c" -exec touch {} +
         cabal update
         bash run.sh /tmp/sdk
-        python3 ../coverage.py coverage.lcov
+        mv coverage.lcov /coverage/haskell.lcov
         find /haskell-build -mindepth 1 -exec chmod a+rX {} +' --memory 4g \
-        --volume "$cabal_home:/cabal" --env CABAL_DIR=/cabal --volume "$haskell_build:/haskell-build"
+        --volume "$cabal_home:/cabal" --env CABAL_DIR=/cabal --volume "$haskell_build:/haskell-build" \
+        --volume "$COVERAGE:/coverage"
+      coverage_reports haskell lcov haskell/sdk
     fi
     ;;
   test-ocaml)
+    measure_coverage
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/ocaml/sdk
       dune build @all @opam
@@ -235,8 +288,13 @@ case "${1:-}" in
       python3 probes/check-interface.py
       python3 api.py
       python3 probes/check-api-controls.py
-      dune runtest
-      dune build @conformance' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
+      # A test runs in a sandbox that dune deletes, so its coverage files are
+      # written outside the build.
+      mkdir /tmp/ocaml-coverage
+      BISECT_FILE=/tmp/ocaml-coverage/bisect dune runtest --force --instrument-with bisect_ppx_ng
+      dune exec -- bisect-ppx-report coveralls /coverage/ocaml.json --coverage-path /tmp/ocaml-coverage
+      dune build @conformance' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}" --volume "$COVERAGE:/coverage"
+    coverage_reports ocaml coveralls ocaml/sdk
     ;;
   test-codegen)
     # The pinned Protocol reads through its reader, and Swift's table values

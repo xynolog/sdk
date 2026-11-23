@@ -20,3 +20,6 @@ the coming release's, and gathers its changes as they land.
   CONTRIBUTING.md.
 - Each package's README links to the repository's files at the release's
   tag, so its links resolve on npm and show the files as of the release.
+- Each package's coverage badge reads that package: `make test-typescript`
+  measures every package's tests, `@xynolog/react-ui`'s in its four shards,
+  and CI uploads the reports to Codecov.

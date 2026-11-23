@@ -1,4 +1,7 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
+
+const repository = fileURLToPath(new URL('..', import.meta.url));
 
 /**
  * Shared Vitest configuration for packages
@@ -18,7 +21,17 @@ export default defineConfig({
     exclude: ['node_modules', 'dist'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'json-summary', 'html', 'lcov', 'cobertura'],
+      // The lcov tracefile names each source by its path in the repository,
+      // which is how Codecov places it: named relative to their packages, two
+      // packages' files of one name would be one file.
+      reporter: [
+        'text',
+        'json',
+        'json-summary',
+        'html',
+        ['lcov', { projectRoot: repository }],
+        'cobertura',
+      ],
       exclude: [
         'node_modules/',
         'dist/',

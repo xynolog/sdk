@@ -6,6 +6,8 @@ The organization's [contributing guide](https://github.com/xynolog/.github/blob/
 
 Run `git clone --recurse-submodules https://github.com/xynolog/sdk.git` (or initialize submodules after cloning), then run `make` at the repository root to build and stage all nine SDKs, or `make test` to run every SDK's own tests, type checks, lints and format checks (`make test-rust` and the like run one language's); `make generate` rewrites every SDK's generated files from the pinned Protocol, and `make check-generated` fails when a committed one differs from what its generator writes; `make help` lists every target. Build, test, clean, and local artifact targets use the runtime selected by `CONTAINER_RUNTIME`, or auto-detect `container`, `docker`, then `podman`. GitHub Actions runs each changed language's `make test-<language>`. Dependabot checks the supported manifests for Go, Rust and its toolchain, TypeScript, Python (uv), .NET, Kotlin, Swift, and GitHub Actions; Dependabot does not currently support the Haskell or OCaml package manifests.
 
+Each `make test-<language>` measures its tests' coverage and writes the reports into `coverage/<language>/`, each source named by its path in the repository (`scripts/coverage-report.py`). On a push to main, and on a pull request from a branch of this repository, CI's codecov job uploads them to Codecov, signed in by the run's OIDC token, under the language's flag in [`.github/codecov.yml`](.github/codecov.yml), one upload a flag. A refused upload fails that job, which CI Gate does not wait for: Codecov is no part of what CI holds a change to. A pull request from a fork uploads nothing. Each README's coverage badge reads the codecov.yml component of its name, which counts every flag's coverage in its paths, and `python3 scripts/codecov.py census` fails unless the flags are the Makefile's languages, the badges and the components are the same names, and each component's paths name a directory the checkout has.
+
 `make build` (the default) builds and stages all nine SDKs in local, ecosystem-native formats; run `make typescript`, `make python`, `make rust`, `make go`, `make csharp`, `make haskell`, `make kotlin`, `make ocaml`, or `make swift` to build one language. These targets create package archives and local feeds as files; they do not start npm, PyPI, or Cargo registry servers. Every SDK build and package toolchain runs in its language container. Native packages persist under `${XDG_CACHE_HOME:-~/.cache}/xynolog-sdk/local`. Each target also creates an immutable bundle containing its native artifacts and an `artifacts.json` manifest with SDK commit, working-tree digest, pinned Protocol commit, package coordinates, toolchains, and SHA-256 checksums. The default bundle path is under `${XDG_CACHE_HOME:-~/.cache}/xynolog-sdk/bundles`; set `SDK_ARTIFACTS` to select a destination:
 
 | SDK | Output | Format |
@@ -183,7 +185,7 @@ container run --rm --memory 4g -v "$PWD":/work -w /work/csharp/sdk \
 
 The build enables nullable reference types, warnings as errors, analyzers, and explicit accessibility. Its Roslyn census analyzer covers generated code too. It refuses null forgiveness, task blocking, dynamic types, diagnostic suppression, skipped tests, and environment reads other than `XYNOLOG_BUS_LOG`. The analyzer is a build-time dependency; the SDK has no runtime package dependencies.
 
-Every build compiles each file in [refusals](csharp/sdk/refusals) separately and requires its stated diagnostic. The xUnit suite checks valid code that must remain accepted. The test settings make a run with no tests fail. Linux CI uploads Cobertura coverage under `csharp-sdk`; Windows CI builds, tests, and checks formatting as well.
+Every build compiles each file in [refusals](csharp/sdk/refusals) separately and requires its stated diagnostic. The xUnit suite checks valid code that must remain accepted. The test settings make a run with no tests fail. The suite's coverage, which `make test-csharp` writes as lcov, is uploaded by CI to Codecov under `csharp-sdk`.
 
 ### Haskell
 
@@ -292,7 +294,7 @@ bash ocaml/check-source-package.sh
 
 The first command builds the pinned toolchain in a container and runs the development checks. The second builds and installs an isolated source archive and verifies the installed compiler interface. Regenerate protocol-derived sources with `make generate` and verify them with `make check-generated`.
 
-CI runs the tests instrumented by `bisect_ppx_ng` and uploads their line coverage, from `ocaml/sdk`:
+`make test-ocaml` runs the tests instrumented by `bisect_ppx_ng`, a test dependency for that reason, and CI uploads their line coverage. From `ocaml/sdk`:
 
 ```sh
 mkdir -p /tmp/ocaml-coverage

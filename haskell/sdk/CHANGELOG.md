@@ -19,3 +19,9 @@ the coming release's, and gathers its changes as they land.
   and checked moves to CONTRIBUTING.md, which the README's last line links to.
 - The README links to the repository's files at the release's tag, so its
   links resolve on Hackage and show the files as of the release.
+
+### Changed
+
+- The README's coverage badge reads the package: `make test-haskell` writes
+  the suite's coverage, less Cabal's generated `Paths_xynolog`, and CI
+  uploads it to Codecov.

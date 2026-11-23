@@ -7,15 +7,102 @@ coverage:
   range: "70...100"
 
 comment:
-  layout: "reach,diff,flags,files"
+  layout: "reach,diff,flags,components,files"
   behavior: default
   require_changes: true
 
-flags:
-  go-sdk:
-    paths:
-      - go/
+# Each language's tests upload their reports under the language's flag
+# (scripts/codecov.py upload), one upload a flag: Codecov counts an upload's
+# whole report under each flag it carries. A pull request builds only the
+# languages it touches, so each other flag carries forward from the commit
+# before.
+flag_management:
+  default_rules:
+    carryforward: true
+  individual_flags:
+    - name: typescript
+      paths:
+        - typescript/**
+    - name: python
+      paths:
+        - python/**
+    - name: rust
+      paths:
+        - rust/**
+    - name: go
+      paths:
+        - go/**
+    - name: csharp
+      paths:
+        - csharp/**
+    - name: haskell
+      paths:
+        - haskell/**
+    - name: kotlin
+      paths:
+        - kotlin/**
+    - name: ocaml
+      paths:
+        - ocaml/**
+    - name: swift
+      paths:
+        - swift/**
+
+# What each README's coverage badge reads: the badge names the component,
+# which counts every flag's coverage in its paths (scripts/codecov.py census).
+component_management:
+  individual_components:
+    - component_id: typescript
+      paths:
+        - typescript/**
+    - component_id: typescript-core
+      paths:
+        - typescript/core/**
+    - component_id: typescript-observability
+      paths:
+        - typescript/observability/**
+    - component_id: typescript-http-transport
+      paths:
+        - typescript/http-transport/**
+    - component_id: typescript-sdk
+      paths:
+        - typescript/sdk/**
+    - component_id: typescript-react-ui
+      paths:
+        - typescript/react-ui/**
+    - component_id: python-sdk
+      paths:
+        - python/sdk/**
+    - component_id: rust
+      paths:
+        - rust/**
+    - component_id: rust-sdk
+      paths:
+        - rust/sdk/**
+    - component_id: rust-http-transport
+      paths:
+        - rust/http-transport/**
+    - component_id: rust-telemetry
+      paths:
+        - rust/telemetry/**
+    - component_id: go-sdk
+      paths:
+        - go/**
+    - component_id: csharp-sdk
+      paths:
+        - csharp/sdk/**
+    - component_id: kotlin-sdk
+      paths:
+        - kotlin/sdk/**
+    - component_id: swift-sdk
+      paths:
+        - swift/sdk/**
+    - component_id: haskell-sdk
+      paths:
+        - haskell/sdk/**
+    - component_id: ocaml-sdk
+      paths:
+        - ocaml/sdk/**
 
 ignore:
-  - "**/*_test.go"
   - "**/conformance/**"

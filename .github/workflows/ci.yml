@@ -56,6 +56,9 @@ jobs:
       - name: Each published README links to sdk at the release's tag
         run: python3 scripts/readme-links.py
 
+      - name: Each Codecov badge reads a component, and each language uploads under a flag of its own
+        run: python3 scripts/codecov.py census
+
       - name: The coming release is not yet tagged on another commit
         run: python3 scripts/sdk_version.py unreleased
 
@@ -323,14 +326,62 @@ jobs:
           path: ${{ steps.dune.outputs.path }}
           key: ${{ steps.dune.outputs.cache-primary-key }}
 
-      - name: Upload coverage to Codecov
-        if: matrix.language == 'go'
-        # Codecov rejects tokenless uploads for this organization; configure CODECOV_TOKEN to enable reports.
-        uses: codecov/codecov-action@v7
+      # The reports the checks wrote into coverage/<language>/, and the flag
+      # they count under (codecov.py), for the codecov job. A report the
+      # checks did not write fails this job.
+      - name: The language's coverage reports, and the flag they count under
+        run: python3 scripts/codecov.py upload "$LANGUAGE"
+
+      - name: Keep the language's coverage reports for the codecov job
+        uses: actions/upload-artifact@v7
         with:
-          files: coverage.txt
-          flags: go-sdk
-          fail_ci_if_error: false
+          name: coverage-${{ matrix.language }}
+          path: coverage/${{ matrix.language }}/
+          if-no-files-found: error
+          retention-days: 1
+
+  # Codecov takes each language's reports under the language's flag, and
+  # knows the run by its OIDC token. A pull request from a fork is given no
+  # token, and a merge queue's run tests what its pull request's did:
+  # neither uploads. Codecov is no part of what CI holds a change to, so a
+  # refused upload fails this job alone, and CI Gate does not wait for it.
+  codecov:
+    name: ${{ matrix.language }} coverage uploaded to Codecov
+    needs: [checks, tests]
+    if: always() && needs.checks.result == 'success' && needs.checks.outputs.languages != '[]' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJSON(needs.checks.outputs.languages) }}
+    env:
+      LANGUAGE: ${{ matrix.language }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Fetch the language's coverage reports
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage-${{ matrix.language }}
+          path: coverage/${{ matrix.language }}
+
+      - name: The language's coverage reports, and the flag they count under
+        id: coverage
+        run: python3 scripts/codecov.py upload "$LANGUAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the language's coverage to Codecov
+        uses: codecov/codecov-action@v7.1.1
+        with:
+          use_oidc: true
+          files: ${{ steps.coverage.outputs.files }}
+          flags: ${{ steps.coverage.outputs.flags }}
+          disable_search: true
+          plugins: noop
+          fail_ci_if_error: true
 
   generated:
     name: Generated files are what their generators write
@@ -483,9 +534,10 @@ jobs:
         working-directory: rust
         run: cargo deny --locked check bans sources
 
-  # What the ruleset requires. It waits for every other job, a census holds
-  # that list to the workflow's jobs, and it fails when any of them failed or
-  # was cancelled. A job skipped by its own condition passes.
+  # What the ruleset requires. It waits for every other job but codecov's,
+  # whose service is no part of what CI holds a change to; a census holds that
+  # list to the workflow's jobs, and it fails when any of them failed or was
+  # cancelled. A job skipped by its own condition passes.
   gate:
     name: CI Gate
     if: always()
@@ -495,9 +547,9 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           sparse-checkout: .github/workflows
-      - name: The gate waits for every other job
+      - name: The gate waits for every other job but codecov's
         run: |
-          jobs="$(yq '.jobs | keys | .[] | select(. != "gate")' .github/workflows/ci.yml | sort)"
+          jobs="$(yq '.jobs | keys | .[] | select(. != "gate" and . != "codecov")' .github/workflows/ci.yml | sort)"
           waits="$(yq '.jobs.gate.needs[]' .github/workflows/ci.yml | sort)"
           if [ "$jobs" != "$waits" ]; then
             echo "CI Gate's needs differ from the workflow's jobs (< jobs, > needs):" >&2

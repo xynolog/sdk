@@ -3,7 +3,7 @@
   "inputs": {
     ".ocamlformat": "a389416000f8e8466aad27a9209661717699f30fd6fd6f8e36342f646e086354",
     "api.py": "56754abc5d864bb90351a67b139667d063c7cc67bec52776ae1f534c62222907",
-    "dune-project": "8540ef75d5093c775b0fc9a7ffefc5c7f0fe7619e7aee5bba16ebf20a63e74d3",
+    "dune-project": "d96caec7ee334602752aa523caaf2c34fc9fb521016454ea4d7b36c690dc64ce",
     "dune-workspace": "438506487c4eda554c0910f3678debdc577581ab2b5ecc2d8e60bfd7420d35d8",
     "dune.lock/alcotest.1.9.1.pkg": "73922332861e22a3d354aad41ab3e58b637b4bf6ddb04f65bbef1ddca728e34d",
     "dune.lock/ambient-context-eio.0.2.pkg": "78fd6f543af740d9ea110059e4f27eb4b5fe66e4b1a74b30f4eec66788c9c36a",
@@ -17,6 +17,7 @@
     "dune.lock/base.v0.17.3.pkg": "ec54b9b71f1aa33eeda025926e233a47e293f23db057d019022e0af6a75f512f",
     "dune.lock/base64.3.5.2.pkg": "19b4706bfcb7f310349887878b64c4edab99fe2fbf23c5c4b29e4bde67ac8b0f",
     "dune.lock/bigstringaf.0.10.0.pkg": "12faef77bbefcb4003cf7b624febcd3e3c1427bff8e3a3e4c94651c3854927d9",
+    "dune.lock/bisect_ppx_ng.3.0.0.pkg": "1e53487ac6234bd6a888f1ac162d48f418ef1b9c198168e74828732b3fefac1e",
     "dune.lock/cmdliner.2.1.1.pkg": "4b67c4f4ee38a905fc8c6a66f90046bc5430b26343b2c56b98c7b13e532fec37",
     "dune.lock/cohttp-eio.6.3.0.pkg": "41990858058d1092aad621c4fba65a5e73dafe4f9b6c7ca4899b88b13dccee1b",
     "dune.lock/cohttp.6.3.0.pkg": "21ab8c7cdc0106fe90164969fdf34b2d9b3d30d71ca7b748f1f1cfaf8d6b1492",
@@ -44,7 +45,7 @@
     "dune.lock/iomux.0.4.pkg": "d139c9404b8fa7c34eea329e939f83fe4f15faf039aa0325cb0e8852af2c01fe",
     "dune.lock/ipaddr.5.6.2.pkg": "f451a2ce111b990e7fb37f3d792f9cee278af9fd010c041c80c98fc41539b66f",
     "dune.lock/kdf.1.1.2.pkg": "d4639b3daa24b7ec9dc0d903a8ebbfa27e8c4e6aa7834cc1b07cd9efff5c5906",
-    "dune.lock/lock.dune": "17a344c8399e6d300ff170bae29796ba0304fbf72bae31111a740b70af47e2d7",
+    "dune.lock/lock.dune": "22a798259ee6c9f2dd4f62db929705d625fa31f5e82c902dcceebfb92467ed50",
     "dune.lock/logs.0.10.0.pkg": "31c8fe5814797a85b22673c2fc3d337d1ef59173ee8cfd86c6060cf3012f5d04",
     "dune.lock/lwt-dllist.1.1.0.pkg": "72cb6b9b6d506bf02178e3a0c2c0ee6fb529d8fddc9f4c339e273baa2fa3ec65",
     "dune.lock/macaddr.5.6.2.pkg": "5eb4292c994af7d587b64ad9459851d0adcf02c19b958e0a4c7182090ad182f3",
@@ -249,7 +250,7 @@
     "probes/api_inventory.ml": "97b819335b2d6d55f2f4a7c73422ad4df34ca5e459fe4df300f01a0ff5efb36a",
     "probes/dune": "ba1fed5d8ec703fcb895d69c0f59506fc2bcd19d8dcfcfaa6d50a2c72ff01bb1",
     "public-api.inputs.json": "d51dffdaf5479e46082425ce99f6a1de24d4e0443fc1dff943e91df103ee14e0",
-    "xynolog.opam": "9cbf3d5dde91d30cd2dcf0af9c30b044542e2b1dfb077726bf8c3ba2e2cf4398"
+    "xynolog.opam": "68040d9729a552220494a7a9055d55a470629e5259b7ac5d6b2156a4e696f095"
   },
   "entries": [
     {

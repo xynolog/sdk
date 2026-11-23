@@ -21,3 +21,9 @@ the coming release's, and gathers its changes as they land.
 - The distribution's README is this README, as of the release, in place of
   a short page that pointed at it on `main`: the Swift Package Index shows
   the package's whole README.
+
+### Changed
+
+- The README's coverage badge reads the package: `make test-swift` exports
+  the tests' coverage with `Scripts/coverage.sh`, which leaves out the build
+  directory wherever its link leads, and CI uploads it to Codecov.

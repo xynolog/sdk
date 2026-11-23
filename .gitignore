@@ -13,6 +13,5 @@ node_modules/
 **/.venv/
 **/.coverage
 **/coverage/
-coverage.txt
 **/__pycache__/
 **/.pytest_cache/

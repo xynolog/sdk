@@ -38,7 +38,7 @@ verify-artifacts:
 ## test: Every SDK's own tests, type checks, lints and format checks
 test: $(addprefix test-,$(LANGUAGES))
 
-## test-<language>: One SDK's own tests and checks, in its toolchain's container (Go's write coverage.txt): <list>
+## test-<language>: One SDK's own tests and checks, in its toolchain's container, writing the tests' coverage under coverage/: <list>
 $(addprefix test-,$(LANGUAGES)):
 	bash scripts/make-target.sh $@
 

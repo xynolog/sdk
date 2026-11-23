@@ -27,6 +27,8 @@ the coming release's, and gathers its changes as they land.
   line links to.
 - The README links to the repository's files at the release's tag, so its
   links resolve on NuGet and show the files as of the release.
+- The README's coverage badge reads the package: `make test-csharp` writes
+  the suite's coverage as lcov, and CI uploads it to Codecov.
 
 ### Fixed
 
