@@ -9,8 +9,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import {
   cloneFormat,
   derivesTextOf,
@@ -20,37 +18,10 @@ import {
   yieldsGeometryOf,
 } from '../media-types';
 import { deriveStorageUri, storageFileName } from '../storage-uri';
-
-const at = (path: string): string =>
-  fileURLToPath(new URL(`../../../../${path}`, import.meta.url));
-const TABLE = at('protocol/specs/src/media-types/registry.json');
-const CASES = at('protocol/specs/src/media-types/cases.json');
-
-interface Registry {
-  textSource: string[];
-  extensionAliases: Record<string, string>;
-}
-
-interface Cases {
-  cloneFormat: Array<{ why: string; source: string | null; format: string }>;
-  storageFileName: Array<{
-    why: string;
-    name: string;
-    format: string;
-    fileName: string;
-  }>;
-  textSource: Array<{
-    why: string;
-    format: string;
-    textSource: string;
-    yieldsGeometry: boolean;
-    derivesText: boolean;
-  }>;
-}
+import { table as cases } from './cases/media_types_cases';
+import { table as registry } from './cases/media_types_registry';
 
 describe('the rules read from the registry, as every SDK runs them', () => {
-  const cases = JSON.parse(readFileSync(CASES, 'utf8')) as Cases;
-
   it.each(cases.cloneFormat)(
     'a clone of $source: $why',
     ({ source, format }) => {
@@ -80,7 +51,6 @@ describe('the rules read from the registry, as every SDK runs them', () => {
       ]);
     }
     // Each of the registry's words for where a text comes from is some case's answer.
-    const registry = JSON.parse(readFileSync(TABLE, 'utf8')) as Registry;
     expect(
       Array.from(
         new Set(cases.textSource.map((stated) => stated.textSource)),
@@ -98,7 +68,6 @@ describe('the rules read from the registry, as every SDK runs them', () => {
   );
 
   it('reads an alias as the extension it is another spelling of', () => {
-    const registry = JSON.parse(readFileSync(TABLE, 'utf8')) as Registry;
     const aliases = Object.entries(registry.extensionAliases);
     expect(aliases.length).toBeGreaterThan(0);
     for (const [alias, extension] of aliases) {

@@ -2,8 +2,7 @@
    client assertion's lifetime and types (ocaml/sdk/lib/assertion_facts.ml);
    the registry's fixed keys, its session keys' prefix and the discovery
    document's versions (registry_facts.ml); the names a log never prints the
-   value of (log_facts.ml); and the offset cases the capability probe walks
-   (probes/unicode_cases.ml). *)
+   value of (log_facts.ml). *)
 
 module O = Ocaml_syntax
 
@@ -64,31 +63,5 @@ let files (spec : Spec.t) =
             [
               O.let_ "credentials"
                 (O.list (List.map O.string spec.tables.bus_log_cases.names));
-            ];
-          file "ocaml/sdk/probes/unicode_cases.ml"
-            ~from_:"text/offset-cases.json"
-            [
-              O.let_ "cases"
-                (O.list
-                   (List.map
-                      (fun (c : Tables.Text_offset_cases.cases_item) ->
-                        O.tuple
-                          [
-                            O.string c.text;
-                            O.int c.code_points;
-                            O.list
-                              (List.map
-                                 (fun (s : Tables.Text_offset_cases.spans_item)
-                                    ->
-                                   O.tuple
-                                     [
-                                       O.string s.exact;
-                                       O.int s.occurrence;
-                                       O.int s.start;
-                                       O.int s.end_;
-                                     ])
-                                 c.spans);
-                          ])
-                      spec.tables.text_offset_cases.cases));
             ];
         ]

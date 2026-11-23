@@ -264,7 +264,7 @@
     "lib/yield_state.ml": "964626f32956299da2c452708bd8be0e9c69017c7c98b8cef2a96cbfae777cf0",
     "lib/yield_state.mli": "fe746d0f5b1657d53c8a2856e1ee7b0626dd570e0c855ba57fe502958686b978",
     "probes/api_inventory.ml": "97b819335b2d6d55f2f4a7c73422ad4df34ca5e459fe4df300f01a0ff5efb36a",
-    "probes/dune": "8d4e5ec48b37fa80fa367d4eab7c9138cfb375742605e47a1f3a57def45f330f",
+    "probes/dune": "ba1fed5d8ec703fcb895d69c0f59506fc2bcd19d8dcfcfaa6d50a2c72ff01bb1",
     "public-api.inputs.json": "d51dffdaf5479e46082425ce99f6a1de24d4e0443fc1dff943e91df103ee14e0",
     "xynolog.opam": "9d74748a1215ee17ae6f0208eb31f62e269345f9371b61a4da10f1a5a9bb7963"
   },

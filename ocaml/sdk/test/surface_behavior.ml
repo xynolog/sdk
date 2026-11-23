@@ -123,7 +123,24 @@ type observation =
   | Bus of string * string option * Yojson.Safe.t
   | Http of string * string * string
 
-let tests env ~name ~via ~row =
+module Surface = Protocol_cases.Client_surface
+
+let resolved = resolve (Surface.fixtures_json Surface.table.fixtures)
+
+(* Where a call is seen: on a channel of the bus, or as the HTTP request of
+   the content or gateway operation it names. *)
+type seen = On_bus of string | Over_http of string
+
+let seen : Surface.item_via -> seen = function
+  | Request { request = channel }
+  | Emit { emit = channel }
+  | Local { local = channel }
+  | Observes { observes = channel } ->
+      On_bus channel
+  | Content { content = operation } | Gateway { gateway = operation } ->
+      Over_http operation
+
+let tests env ~name ~(via : Surface.item_via) ~(row : Surface.cases_item) =
   Switch.run @@ fun sw ->
   let stream = Eio.Stream.create 32 in
   let read, write = Eio.Process.pipe ~sw (Eio.Stdenv.process_mgr env) in
@@ -151,13 +168,16 @@ let tests env ~name ~via ~row =
     in
     Eio.Flow.copy_string ("event: bus-event\ndata: " ^ json body ^ "\n\n") write
   in
-  let args = field "args" row in
-  let request = option_text "request" via in
-  let observed = option_text "observes" via in
-  let correlation = option_text "correlationId" row in
-  let sends = field "sends" row in
-  let answers = member "answers" (fields row) in
-  let remaining = ref (if answers = None then [] else [ Option.get answers ]) in
+  let args = resolved row.args in
+  let request =
+    match via with Request { request } -> Some request | _ -> None
+  in
+  let observed =
+    match via with Observes { observes } -> Some observes | _ -> None
+  in
+  let correlation = row.correlation_id in
+  let sends = resolved row.sends in
+  let remaining = ref (Option.to_list (Option.map resolved row.answers)) in
   let call ~sw:_ ~meth ~path ~headers:_ ~body ~progress =
     let response status body =
       (status, [ ("content-type", "text/plain") ], Eio.Flow.string_source body)
@@ -197,7 +217,7 @@ let tests env ~name ~via ~row =
   in
   let on_event = function
     | Ok (Wire_stream.Frame { route; payload = Ok payload; _ })
-      when option_text "local" via = Some route.channel ->
+      when via = Local { local = route.channel } ->
         Eio.Stream.add stream
           (Bus
              ( route.channel,
@@ -351,14 +371,10 @@ let tests env ~name ~via ~row =
                (args_payload name args))
         then failwith ("missing surface case dispatch for " ^ name)
   in
-  let expect ~via sends =
+  let expect ~seen sends =
     let next () = Eio.Stream.take stream in
-    match
-      List.find_map
-        (fun name -> option_text name via)
-        [ "request"; "emit"; "local"; "observes" ]
-    with
-    | Some channel ->
+    match seen with
+    | On_bus channel ->
         let matching () =
           match next () with
           | Bus (actual, key, payload) ->
@@ -372,26 +388,21 @@ let tests env ~name ~via ~row =
           | _ -> failwith "expected a bus operation"
         in
         matching ()
-    | None -> (
+    | Over_http operation -> (
         let id = Option.value (option_text "resourceId" sends) ~default:"" in
         let expected =
-          match
-            List.find_map
-              (fun name -> option_text name via)
-              [ "content"; "gateway" ]
-          with
-          | Some "getAnnotations" -> ("GET", "/resources/" ^ id ^ "/annotations")
-          | Some "getResourceGraph" -> ("GET", "/resources/" ^ id ^ "/jsonld")
-          | Some "getAnchoredText" ->
-              ("GET", "/resources/" ^ id ^ "/anchored-text")
-          | Some ("getBinary" | "getBinaryStream") -> ("GET", "/resources/" ^ id)
-          | Some "putBinary" -> ("POST", "/resources")
-          | Some "getCurrentUser" -> ("GET", "/api/users/me")
-          | Some "getMediaToken" -> ("POST", "/api/tokens/media")
-          | Some "getProtectedResourceMetadata" ->
+          match operation with
+          | "getAnnotations" -> ("GET", "/resources/" ^ id ^ "/annotations")
+          | "getResourceGraph" -> ("GET", "/resources/" ^ id ^ "/jsonld")
+          | "getAnchoredText" -> ("GET", "/resources/" ^ id ^ "/anchored-text")
+          | "getBinary" | "getBinaryStream" -> ("GET", "/resources/" ^ id)
+          | "putBinary" -> ("POST", "/resources")
+          | "getCurrentUser" -> ("GET", "/api/users/me")
+          | "getMediaToken" -> ("POST", "/api/tokens/media")
+          | "getProtectedResourceMetadata" ->
               ("GET", "/.well-known/oauth-protected-resource")
-          | Some "healthCheck" -> ("GET", "/api/health")
-          | Some "getStatus" -> ("GET", "/api/status")
+          | "healthCheck" -> ("GET", "/api/health")
+          | "getStatus" -> ("GET", "/api/status")
           | _ -> failwith "unknown HTTP surface operation"
         in
         match next () with
@@ -419,7 +430,7 @@ let tests env ~name ~via ~row =
         | _ -> failwith "expected an HTTP request")
   in
   let expected () =
-    expect ~via sends;
+    expect ~seen:(seen via) sends;
     (if name = "browse.engines" then
        let limits =
          List.init 3 (fun _ ->
@@ -440,15 +451,13 @@ let tests env ~name ~via ~row =
          limits);
 
     List.iter
-      (fun step ->
-        let step_via =
-          `Assoc
-            (List.filter
-               (fun (key, _) -> List.mem key [ "request"; "content" ])
-               (fields step))
-        in
-        expect ~via:step_via (field "sends" step))
-      (match field "then" row with `List steps -> steps | _ -> [])
+      (fun (step : Surface.then_item) ->
+        match step with
+        | Request { request; sends } ->
+            expect ~seen:(On_bus request) (resolved sends)
+        | Content { content; sends } ->
+            expect ~seen:(Over_http content) (resolved sends))
+      (Option.value row.then_ ~default:[])
   in
   let deadline = Eio.Stdenv.clock env in
   Eio.Time.with_timeout_exn deadline 2.0 (fun () ->
@@ -462,26 +471,24 @@ let tests env ~name ~via ~row =
   Session.close session
 
 let () =
-  let table = Protocol.table "client/surface.json" in
-  let fixtures = field "fixtures" table in
   let suites =
-    J.to_list (field "namespaces" table)
-    |> List.map (fun namespace ->
-        let prefix = string "namespace" namespace in
-        let cases =
-          J.to_list (field "methods" namespace)
-          |> List.concat_map (fun method_ ->
-              let name = prefix ^ "." ^ string "method" method_ in
-              let via = field "via" method_ in
-              J.to_list (field "cases" method_)
-              |> List.mapi (fun index row ->
+    List.map
+      (fun (namespace : Surface.namespaces_item) ->
+        let prefix = namespace.namespace in
+        ( prefix,
+          List.concat_map
+            (fun (method_ : Surface.methods_item) ->
+              let name = prefix ^ "." ^ method_.method_ in
+              List.mapi
+                (fun index row ->
                   Alcotest.test_case
                     (Printf.sprintf "%s %d" name (index + 1))
                     `Quick
                     (fun () ->
                       Eio_main.run (fun env ->
-                          tests env ~name ~via ~row:(resolve fixtures row)))))
-        in
-        (prefix, cases))
+                          tests env ~name ~via:method_.via ~row)))
+                method_.cases)
+            namespace.methods ))
+      Surface.table.namespaces
   in
   Alcotest.run "OCaml client surface" suites

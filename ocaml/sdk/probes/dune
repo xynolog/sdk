@@ -45,8 +45,8 @@
 
 (test
  (name capabilities)
- (modules capabilities unicode_cases)
- (libraries eio_main ambient-context-eio opentelemetry x509 uutf cstruct
+ (modules capabilities)
+ (libraries protocol_cases eio_main ambient-context-eio opentelemetry x509 uutf cstruct
   mirage-crypto-rng.unix alcotest)
  (deps peer-key.pem))
 

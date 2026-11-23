@@ -206,7 +206,7 @@ let sign_in_census () =
       let written =
         Yojson.Safe.Util.to_assoc (field key (Yojson.Safe.from_file path))
       in
-      let schema = Protocol.table "sign-in-store/SignIn.json" in
+      let schema = Protocol_cases.Sign_in_store_sign_in_schema.schema in
       let names value =
         List.sort compare (List.map fst (Yojson.Safe.Util.to_assoc value))
       in
@@ -232,25 +232,26 @@ let sign_in_census () =
             (found (List.remove_assoc member written)))
         members)
 
+module Store_cases = Protocol_cases.Sign_in_store_cases
+module Assertion_cases = Protocol_cases.Session_client_assertion_cases
+
 (* Shared rows from sign-in-store/cases.json. *)
 let paths () =
-  Protocol.member "sign-in-store/cases.json" "cases"
-  |> Yojson.Safe.Util.to_list
-  |> List.iter (fun row ->
+  List.iter
+    (fun (row : Store_cases.cases_item) ->
       let platform =
-        match get_text "os" row with
+        match row.os with
         | "macos" -> Store.Macos
         | "windows" -> Store.Windows
         | _ -> Store.Other
       in
-      let optional name = optional (field name row) in
       let actual =
-        Store.state_directory ~platform ~home:(optional "home")
-          ~xdg_state_home:(optional "xdgStateHome")
-          ~local_app_data:(optional "localAppData")
+        Store.state_directory ~platform ~home:row.home
+          ~xdg_state_home:row.xdg_state_home
+          ~local_app_data:(Option.join row.local_app_data)
       in
-      Alcotest.(check (option string))
-        (get_text "why" row) (optional "dir") actual)
+      Alcotest.(check (option string)) row.why row.dir actual)
+    Store_cases.table.cases
 
 let renewals () =
   Eio_main.run @@ fun env ->
@@ -259,7 +260,7 @@ let renewals () =
       ~monotonic:(Eio.Stdenv.mono_clock env)
       ~jitter:(Random.State.make [| 1 |])
   in
-  let run row =
+  let run (row : Store_cases.renewals_item) =
     let dir = Filename.temp_file "xynolog-renewal" "" in
     Unix.unlink dir;
     Unix.mkdir dir 0o700;
@@ -271,84 +272,80 @@ let renewals () =
           (Sys.readdir dir);
         Unix.rmdir dir)
       (fun () ->
-        let why = get_text "why" row in
-        let optional name value = optional (field name value) in
-        let expired = Yojson.Safe.Util.to_list (field "expired" row) in
-        let write entry =
+        let why = row.why in
+        (* The store's file holding [entry], with the members the store
+           writes beside a sign-in's tokens. *)
+        let write (entry : Store_cases.kept option) =
           let entries =
             match entry with
-            | `Null -> []
-            | `Assoc fields ->
-                let is_expired = List.mem (field "token" entry) expired in
+            | None -> []
+            | Some kept ->
                 [
                   ( "local:test",
                     `Assoc
-                      (fields
+                      (Yojson.Safe.Util.to_assoc (Store_cases.kept_json kept)
                       @ [
                           ("issuer", str issuer_url);
                           ("tokenEndpoint", str endpoint);
                           ("obtainedAt", str "2026-01-01T00:00:00Z");
                           ( "expiresAt",
                             str
-                              (if is_expired then "2000-01-01T00:00:00Z"
+                              (if List.mem kept.token row.expired then
+                                 "2000-01-01T00:00:00Z"
                                else "2099-01-01T00:00:00Z") );
                         ]) );
                 ]
-            | _ -> assert false
           in
           Out_channel.with_open_gen [ Open_wronly; Open_creat; Open_trunc ]
             0o600 file (fun stream -> output_string stream (json entries))
         in
-        write (field "kept" row);
-        let meanwhile when_ =
-          let action = field "meanwhile" row in
-          match action with
-          | `Assoc _ when optional "when" action = Some when_ ->
-              write (field "theirs" action)
-          | _ -> ()
+        write (Some row.kept);
+        let meanwhile (moment : Store_cases.when_) =
+          match row.meanwhile with
+          | Some { when_; theirs; _ } when when_ = moment -> write theirs
+          | Some _ | None -> ()
         in
-        meanwhile "before";
+        meanwhile Before;
         let store = Store.make ~clock ~directory:dir in
         let spent = ref [] in
         let http (request : O.request) =
           spent := List.assoc "refresh_token" request.form :: !spent;
-          meanwhile "during";
-          let issued = field "issues" row in
+          meanwhile During;
           ( 200,
             json
-              (("access_token", field "token" issued)
+              (("access_token", str row.issues.token)
               :: Option.to_list
                    (Option.map
                       (fun value -> ("refresh_token", str value))
-                      (optional "refreshToken" issued))) )
+                      row.issues.refresh_token)) )
         in
         let actual =
-          Store.renew store ~key:"local:test" ~http
-            ~holding:(optional "holding" row)
-        in
-        let actual =
-          match actual with
+          match
+            Store.renew store ~key:"local:test" ~http ~holding:row.holding
+          with
           | Session.Renewed value -> Some value
           | Session.Refused -> None
           | Session.Unavailable -> failwith why
         in
-        Alcotest.(check (option string)) why (optional "gives" row) actual;
-        Alcotest.(check (list string))
-          why
-          (Option.to_list (optional "spends" row))
-          !spent;
-        let document = Yojson.Safe.from_file file in
-        let kept = field "local:test" document in
-        let leaves = field "leaves" row in
-        let credentials = function
+        Alcotest.(check (option string)) why row.gives actual;
+        Alcotest.(check (list string)) why (Option.to_list row.spends) !spent;
+        let kept = field "local:test" (Yojson.Safe.from_file file) in
+        let left =
+          match kept with
           | `Null -> None
-          | value -> Some (get_text "token" value, optional "refreshToken" value)
+          | value ->
+              Some
+                (get_text "token" value, optional (field "refreshToken" value))
         in
         Alcotest.(check (option (pair string (option string))))
-          why (credentials leaves) (credentials kept))
+          why
+          (Option.map
+             (fun ({ token; refresh_token } : Store_cases.kept) ->
+               (token, Some refresh_token))
+             row.leaves)
+          left)
   in
-  Protocol.member "sign-in-store/cases.json" "renewals"
-  |> Yojson.Safe.Util.to_list |> List.iter run
+  List.iter run Store_cases.table.renewals
 
 (* Shared rows from session/client-assertion-cases.json. *)
 let rsa () =
@@ -361,18 +358,15 @@ let rsa () =
   let public =
     X509.Private_key.public (get (X509.Private_key.decode_pem pem))
   in
-  let vector = Protocol.table "session/client-assertion-cases.json" in
-  let list = Yojson.Safe.Util.to_list in
-  let thumbprint jwk =
-    O.rsa_thumbprint ~e:(get_text "e" jwk) ~n:(get_text "n" jwk)
-  in
+  let vector = Assertion_cases.table in
+  let thumbprint ({ e; n; _ } : Assertion_cases.jwk) = O.rsa_thumbprint ~e ~n in
   List.iter
-    (fun row ->
-      assert (thumbprint (field "jwk" row) = get_text "thumbprint" row))
-    (list (field "thumbprints" vector));
+    (fun (row : Assertion_cases.thumbprints_item) ->
+      Alcotest.(check string) row.why row.thumbprint (thumbprint row.jwk))
+    vector.thumbprints;
   List.iter
-    (fun row ->
-      let token_endpoint = get_text "tokenEndpoint" row in
+    (fun (row : Assertion_cases.cases_item) ->
+      let token_endpoint = row.token_endpoint in
       let issuer =
         get
           (O.discover ~issuer:issuer_url (fun _ ->
@@ -384,9 +378,8 @@ let rsa () =
                      ("token_endpoint", str token_endpoint);
                    ] )))
       in
-      let issued_at = Yojson.Safe.Util.to_int (field "issuedAt" row) in
       let wall = Eio_mock.Clock.make () in
-      Eio_mock.Clock.set_time wall (float issued_at);
+      Eio_mock.Clock.set_time wall (float row.issued_at);
       let clock =
         Clock.make ~wall
           ~monotonic:(Eio.Stdenv.mono_clock env)
@@ -397,15 +390,11 @@ let rsa () =
       in
       let http (request : O.request) =
         assert (request.url = token_endpoint);
-        let keys = List.map fst request.form in
-        assert (
-          keys
-          = List.map Yojson.Safe.Util.to_string (list (field "form" vector)));
-        assert (
-          List.assoc "grant_type" request.form = get_text "grantType" vector);
+        assert (List.map fst request.form = vector.form);
+        assert (List.assoc "grant_type" request.form = vector.grant_type);
         assert (
           List.assoc "client_assertion_type" request.form
-          = get_text "assertionType" vector);
+          = vector.assertion_type);
         (match
            String.split_on_char '.' (List.assoc "client_assertion" request.form)
          with
@@ -416,27 +405,26 @@ let rsa () =
                 (X509.Public_key.verify `SHA256 ~scheme:`RSA_PKCS1
                    ~signature:(decode signature) public (`Message message)));
             let header = Yojson.Safe.from_string (decode header) in
-            let expected_header = field "header" row in
-            assert (get_text "alg" header = get_text "alg" expected_header);
-            assert (
-              get_text "kid" expected_header = thumbprint (field "jwk" row));
+            assert (get_text "alg" header = row.header.alg);
+            assert (row.header.kid = thumbprint row.jwk);
             assert (String.length (get_text "kid" header) = 43);
-            let sort = List.sort compare in
+            (* The assertion's claims, every one and no other. *)
+            let sort json =
+              List.sort compare (Yojson.Safe.Util.to_assoc json)
+            in
             assert (
-              sort
-                (Yojson.Safe.Util.to_assoc
-                   (Yojson.Safe.from_string (decode claims)))
-              = sort (Yojson.Safe.Util.to_assoc (field "claims" row)))
+              sort (Yojson.Safe.from_string (decode claims))
+              = sort (Assertion_cases.claims_json row.claims))
         | _ -> assert false);
         (200, {|{"access_token":"rsa-token"}|})
       in
       assert (
         (get
            (O.service_key http issuer ~clock
-              ~jti:(fun () -> get_text "jti" row)
-              ~client_id:(get_text "clientId" row) ~key))
+              ~jti:(fun () -> row.jti)
+              ~client_id:row.client_id ~key))
           .access_token = "rsa-token"))
-    (list (field "cases" vector))
+    vector.cases
 
 (* A renewal the issuer answered with a status the refresh retry rule does not
    try again is refused, whatever its body; one it tries again, and one with

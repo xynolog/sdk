@@ -4,34 +4,19 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import type { HttpEndpoint } from '@xynolog/core';
 import { kbGatewayUrl } from '../storage';
-
-interface GatewayUrlCase {
-  why: string;
-  endpoint: HttpEndpoint;
-  origin: string | null;
-}
-
-const TABLE = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../../protocol/specs/src/session/gateway-url-cases.json',
-);
-const { cases } = JSON.parse(readFileSync(TABLE, 'utf-8')) as {
-  cases: GatewayUrlCase[];
-};
+import { table } from '../../__tests__/cases/session_gateway_url_cases';
 
 describe("a gateway's origin, as the shared table states it", () => {
-  it.each(cases)('$why', ({ endpoint, origin }) => {
+  it.each(table.cases)('$why', ({ endpoint, origin }) => {
+    const http = endpoint as HttpEndpoint;
     if (origin === null) {
-      expect(() => kbGatewayUrl(endpoint)).toThrow(
-        `Invalid KB hostname: "${endpoint.host}"`,
+      expect(() => kbGatewayUrl(http)).toThrow(
+        `Invalid KB hostname: "${http.host}"`,
       );
     } else {
-      expect(kbGatewayUrl(endpoint)).toBe(origin);
+      expect(kbGatewayUrl(http)).toBe(origin);
     }
   });
 });

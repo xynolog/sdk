@@ -1,0 +1,4 @@
+; Every case table the tests run, its rows as typed values (codegen case-data).
+(library
+ (name protocol_cases)
+ (libraries yojson))

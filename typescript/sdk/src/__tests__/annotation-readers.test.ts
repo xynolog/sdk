@@ -6,7 +6,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
 import * as core from '@xynolog/core';
 import {
   getAnnotationExactText,
@@ -28,16 +27,7 @@ import {
   isStubReference,
   isTag,
 } from '../index';
-
-const table: { readers: string[] } = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/annotations/reader-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
+import { table } from './cases/annotations_reader_cases';
 
 /** Each reader the SDK exports, under the name the table gives it, beside core's. */
 const READERS = {

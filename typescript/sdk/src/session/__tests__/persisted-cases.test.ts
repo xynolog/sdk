@@ -22,9 +22,6 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import { BehaviorSubject, filter, firstValueFrom, map, take } from 'rxjs';
 import { PERSISTED_QUERIES, resourceId } from '@xynolog/core';
 import type { AccessToken, KnowledgeBase, components } from '@xynolog/core';
@@ -57,88 +54,19 @@ import {
   type StreamConnect,
 } from './fake-gateway';
 import { SharedStorage, freshJwt, testSession } from './test-storage-helpers';
+import {
+  table,
+  type CrossTabItem,
+  type ForgetItem,
+  type InProcessItem,
+  type PeopleValue,
+  type SignedIn,
+  type StartupItem,
+  type Table,
+} from '../../__tests__/cases/session_persisted_cases';
+import { table as stored } from '../../__tests__/cases/session_stored';
 
-type Kept = Readonly<Record<string, string>>;
-type SignedIn = 'named' | 'unnamed' | 'none';
-type Value = 'kept' | 'fresh';
-
-interface Person {
-  did: string;
-  personKey: string;
-}
-
-interface KeysRow {
-  why: string;
-  kbId: string;
-  did: string;
-  personKey: string;
-  lastEventIdKey: string;
-  cacheKeys: Readonly<Record<string, string>>;
-}
-
-interface ForgetRow {
-  why: string;
-  by: 'signOut' | 'removal' | 'signIn' | 'expiry' | 'refusal';
-  /** For `expiry` and `refusal`: the token the session finds stored. */
-  stored?: 'expired' | 'unexpired';
-  signedIn: SignedIn;
-  open: boolean;
-  removes: 'person' | 'nothing';
-}
-
-interface StartupRow {
-  why: string;
-  signedIn: SignedIn;
-  gateway: 'names' | 'unreachable';
-  first: Value;
-  then: Value;
-  recorded: string | null;
-  place: string | null;
-  untouched?: boolean;
-}
-
-interface CrossTabRow {
-  why: string;
-  stored: { personKey: string | null } | null;
-  saved: boolean;
-}
-
-interface ResumeFromRow {
-  why: string;
-  frames: string[];
-  resumes: string | null;
-}
-
-interface PersistedCases {
-  people: Readonly<Record<string, Person>>;
-  keys: KeysRow[];
-  forgetStorage: Kept;
-  forget: ForgetRow[];
-  whoAmI: components['schemas']['UserResponse'];
-  startupStorage: Kept;
-  startup: StartupRow[];
-  crossTab: CrossTabRow[];
-  inProcess: CrossTabRow[];
-  resumeFrom: ResumeFromRow[];
-}
-
-interface StoredTable {
-  lastEventIdKeyPrefix: { prefix: string };
-  cacheKeyPrefix: { prefix: string };
-}
-
-const SPECS = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../../protocol/specs/src',
-);
-const table = JSON.parse(
-  readFileSync(join(SPECS, 'session/persisted-cases.json'), 'utf-8'),
-) as PersistedCases;
-const stored = JSON.parse(
-  readFileSync(join(SPECS, 'session/stored.json'), 'utf-8'),
-) as StoredTable;
-
-const personOf = (name: string): Person => {
+const personOf = (name: string): PeopleValue => {
   const person = table.people[name];
   if (person === undefined) throw new Error(`the table names no ${name}`);
   return person;
@@ -160,7 +88,7 @@ const keysOf = (kbId: string, person: string): string[] => [
   ...PERSISTED_QUERIES.map((query) => cacheKey(kbId, person, query)),
 ];
 
-const seed = (storage: SessionStorage, kept: Kept): void => {
+const seed = (storage: SessionStorage, kept: Table['startupStorage']): void => {
   for (const [key, value] of Object.entries(kept)) storage.set(key, value);
 };
 
@@ -188,7 +116,7 @@ const storeSignIn = (
 
 /** A gateway that names whom the table's `whoAmI` names once `release` is called, or cannot be asked. */
 const heldGateway = (
-  says: StartupRow['gateway'],
+  says: StartupItem['gateway'],
 ): { gateway: FakeGateway; release: () => void } => {
   let release!: () => void;
   const released = new Promise<void>((resolve) => {
@@ -282,7 +210,11 @@ describe('protocol/specs/src/session/persisted-cases.json', () => {
         const storage = new ReadStorage();
         storeSignIn(storage, row.kbId, 'named', row.personKey, freshJwt());
         const gateway = fakeGateway({
-          whoIs: async () => Response.json({ ...table.whoAmI, did: row.did }),
+          whoIs: async () =>
+            Response.json({
+              ...(table.whoAmI as components['schemas']['UserResponse']),
+              did: row.did,
+            }),
           issuer: renews,
           resourceName: 'fresh',
         });
@@ -339,7 +271,7 @@ describe('protocol/specs/src/session/persisted-cases.json', () => {
     /** The registry forgets kb-a's sign-in as it is asked to, with the stand-in for an open client. */
     const forgetByRegistry = async (
       storage: SessionStorage,
-      row: ForgetRow,
+      row: ForgetItem,
     ): Promise<void> => {
       const browser = new XynologBrowser({
         storage,
@@ -363,7 +295,7 @@ describe('protocol/specs/src/session/persisted-cases.json', () => {
      */
     const forgetBySession = async (
       storage: SessionStorage,
-      row: ForgetRow,
+      row: ForgetItem,
     ): Promise<void> => {
       const gateway = fakeGateway({
         whoIs: async () => new Response(null, { status: 401 }),
@@ -521,7 +453,7 @@ describe('protocol/specs/src/session/persisted-cases.json', () => {
     /** What another context writes as kb-a's stored sign-in: nothing, or one with other tokens naming whom the row says. */
     const writeElsewhere = (
       elsewhere: SessionStorage,
-      written: CrossTabRow['stored'],
+      written: CrossTabItem['stored'],
     ): void => {
       if (written === null) {
         elsewhere.delete(sessionKey(KB_A.id));
@@ -567,7 +499,7 @@ describe('protocol/specs/src/session/persisted-cases.json', () => {
      */
     const changeHeld = (
       kept: SignInKept,
-      held: CrossTabRow['stored'],
+      held: InProcessItem['stored'],
     ): void => {
       if (held === null) {
         kept.forget();

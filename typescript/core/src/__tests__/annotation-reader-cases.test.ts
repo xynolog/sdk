@@ -5,7 +5,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
 import type { Annotation } from '../annotation-types';
 import {
   getAnnotationExactText,
@@ -27,22 +26,12 @@ import {
   isStubReference,
   isTag,
 } from '../web-annotation-utils';
+import { table } from './cases/annotations_reader_cases';
 
-interface Case {
-  why: string;
-  annotation: Annotation;
-  reads: Record<string, unknown>;
-}
-
-const table: { readers: string[]; cases: Case[] } = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/annotations/reader-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
+const cases = table.cases.map((c) => ({
+  ...c,
+  annotation: c.annotation as Annotation,
+}));
 
 /** Each reader of the table, given the part of the annotation it reads. Nothing is `null`, as the table writes it. */
 const READERS: Record<string, (annotation: Annotation) => unknown> = {
@@ -77,7 +66,7 @@ describe('the annotation readers (protocol/specs/src/annotations/reader-cases.js
   });
 
   it('states every reader in every case, but the quote selector where there is no selector', () => {
-    for (const { why, annotation, reads } of table.cases) {
+    for (const { why, annotation, reads } of cases) {
       const applies = table.readers.filter(
         (reader) =>
           reader !== 'textQuoteSelector' ||
@@ -87,7 +76,7 @@ describe('the annotation readers (protocol/specs/src/annotations/reader-cases.js
     }
   });
 
-  for (const { why, annotation, reads } of table.cases) {
+  for (const { why, annotation, reads } of cases) {
     it(why, () => {
       for (const [reader, answer] of Object.entries(reads)) {
         expect(

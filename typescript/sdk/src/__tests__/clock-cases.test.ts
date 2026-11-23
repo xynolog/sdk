@@ -11,7 +11,6 @@
  * Protocol's reader, protocol/reader, holds it to.
  */
 
-import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BehaviorSubject, type Observable } from 'rxjs';
 import {
@@ -53,33 +52,18 @@ import {
   refuseUnscriptedOperation,
 } from '../testing';
 import { mockAnnotation } from './fixtures/annotation';
+import {
+  table,
+  type CasesItem,
+  type Given,
+  type PassPass,
+  type StepsItem,
+} from './cases/client_clock_cases';
+import { table as timing } from './cases/client_timing';
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
-type JsonObject = { [key: string]: Json };
 
-interface Case {
-  subject: string;
-  case: string;
-  given?: JsonObject;
-  steps: Json[];
-}
-
-const read = (path: string): unknown =>
-  JSON.parse(
-    readFileSync(
-      new URL(`../../../../protocol/specs/src/${path}`, import.meta.url),
-      'utf8',
-    ),
-  );
-
-const TABLE = read('client/clock-cases.json') as { cases: Case[] };
-const TIMING = new Map(
-  (
-    read('client/timing.json') as {
-      timing: Array<{ name: string; value: Json }>;
-    }
-  ).timing.map(({ name, value }) => [name, value]),
-);
+const TIMING = new Map(timing.timing.map(({ name, value }) => [name, value]));
 
 /**
  * How many turns a settle lets pass. Each hands control to the runtime once,
@@ -103,12 +87,6 @@ function text(value: Json | undefined, what: string): string {
   return value;
 }
 
-function object(value: Json | undefined, what: string): JsonObject {
-  if (value === null || typeof value !== 'object' || Array.isArray(value))
-    throw new Error(`${what} is not an object: ${JSON.stringify(value)}`);
-  return value;
-}
-
 function count(value: Json | undefined, what: string): number {
   if (typeof value !== 'number')
     throw new Error(`${what} is not a number: ${JSON.stringify(value)}`);
@@ -129,34 +107,29 @@ function timingMs(name: string): number {
     throw new Error(
       `${name} is no timing of protocol/specs/src/client/timing.json`,
     );
-  if (member.length === 0) return count(kept, name);
+  if (member.length === 0) {
+    if (typeof kept !== 'number')
+      throw new Error(`${name} is not a number: ${JSON.stringify(kept)}`);
+    return kept;
+  }
   if (member.length > 1) throw new Error(`${name} names a member of a member`);
-  return count(object(kept, budget)[text(member[0], 'a member')], name);
+  if (typeof kept === 'number')
+    throw new Error(`${budget} is not an object: ${kept}`);
+  const members: { [member: string]: number } = { ...kept };
+  return count(members[text(member[0], 'a member')], name);
 }
 
 /** A duration as the table states it, in milliseconds: a whole number of them. */
-function durationMs(value: Json | undefined): number {
+function durationMs(value: PassPass): number {
   if (typeof value === 'number') return value;
-  const stated = object(value, 'a duration');
-  const times =
-    stated['times'] === undefined ? 1 : count(stated['times'], 'times');
-  const plus =
-    stated['plusMs'] === undefined ? 0 : count(stated['plusMs'], 'plusMs');
-  const ms = timingMs(text(stated['timing'], 'a timing')) * times + plus;
+  const times = value.times === undefined ? 1 : value.times;
+  const plus = value.plusMs === undefined ? 0 : value.plusMs;
+  const ms = timingMs(value.timing) * times + plus;
   if (!Number.isInteger(ms))
     throw new Error(
       `${JSON.stringify(value)} is not a whole number of milliseconds`,
     );
   return ms;
-}
-
-/** A span of seconds the case's `given` states, when it states one. */
-function givenSeconds(
-  given: JsonObject | undefined,
-  name: string,
-): number | undefined {
-  const value = given?.[name];
-  return value === undefined ? undefined : count(value, `given.${name}`);
 }
 
 const said = (error: unknown): string =>
@@ -207,7 +180,7 @@ class Held {
   }
 }
 
-type Build = (given: JsonObject | undefined, held: Held) => Promise<Subject>;
+type Build = (given: Given | undefined, held: Held) => Promise<Subject>;
 
 // ── The gateway ─────────────────────────────────────────────────────────
 
@@ -360,21 +333,21 @@ class Gateway {
 const RESOURCE = resourceId('res-1');
 
 async function refusedStream(
-  given: JsonObject | undefined,
+  given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const gateway = new Gateway(
     held,
     'refuses',
     new Set(),
-    givenSeconds(given, 'retryAfterSeconds'),
+    given?.retryAfterSeconds,
   );
   gateway.transport();
   return { counted: () => gateway.asked[SUBSCRIBE] };
 }
 
 async function unansweredStream(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const gateway = new Gateway(held, 'never', new Set());
@@ -383,14 +356,14 @@ async function unansweredStream(
 }
 
 async function degradedStream(
-  given: JsonObject | undefined,
+  given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const gateway = new Gateway(
     held,
     'refuses',
     new Set(),
-    givenSeconds(given, 'retryAfterSeconds'),
+    given?.retryAfterSeconds,
   );
   let degraded = 0;
   const watching = gateway.transport().state$.subscribe((state) => {
@@ -401,7 +374,7 @@ async function degradedStream(
 }
 
 async function scopeTaken(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const gateway = new Gateway(held, 'holds', new Set());
@@ -413,7 +386,7 @@ async function scopeTaken(
 }
 
 async function scopeLetGo(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const gateway = new Gateway(held, 'holds', new Set());
@@ -431,7 +404,7 @@ async function scopeLetGo(
 }
 
 async function handoffLinger(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const gateway = new Gateway(held, 'holds', new Set());
@@ -443,7 +416,7 @@ async function handoffLinger(
 }
 
 async function unansweredRequest(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const gateway = new Gateway(held, 'holds', new Set([HEALTH]));
@@ -463,7 +436,7 @@ async function unansweredRequest(
 }
 
 async function unansweredEmit(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const gateway = new Gateway(held, 'holds', new Set([EMIT]));
@@ -478,14 +451,14 @@ async function unansweredEmit(
 
 /** A bus request of a resource's events, made as the case begins, over a gateway that holds its stream open and refuses every emit. */
 function refusedRequest(
-  given: JsonObject | undefined,
+  given: Given | undefined,
   held: Held,
 ): { gateway: Gateway; asked: Promise<unknown> } {
   const gateway = new Gateway(
     held,
     'holds',
     new Set(),
-    givenSeconds(given, 'retryAfterSeconds'),
+    given?.retryAfterSeconds,
     new Set([EMIT]),
   );
   const asked = new Bus(gateway.transport()).request(
@@ -496,7 +469,7 @@ function refusedRequest(
 }
 
 async function refusedBusRequest(
-  given: JsonObject | undefined,
+  given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const { gateway, asked } = refusedRequest(given, held);
@@ -509,7 +482,7 @@ async function refusedBusRequest(
 }
 
 async function timedOutBusRequest(
-  given: JsonObject | undefined,
+  given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const { asked } = refusedRequest(given, held);
@@ -601,13 +574,13 @@ class Issuer {
 }
 
 async function deviceGrant(
-  given: JsonObject | undefined,
+  given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const issuer = new Issuer(
     held,
-    givenSeconds(given, 'intervalSeconds'),
-    strings(given?.['answers'], 'given.answers'),
+    given?.intervalSeconds,
+    strings(given?.answers, 'given.answers'),
   );
   const abandoned = new AbortController();
   held.later(() => abandoned.abort());
@@ -649,11 +622,8 @@ function token(lifetimeSeconds: number, n: number): string {
   return `${segment({ alg: 'RS256', typ: 'JWT' })}.${segment({ iat: issued, exp: issued + lifetimeSeconds, n })}.${segment('signature')}`;
 }
 
-async function renewal(
-  given: JsonObject | undefined,
-  held: Held,
-): Promise<Subject> {
-  const lifetime = givenSeconds(given, 'lifetimeSeconds');
+async function renewal(given: Given | undefined, held: Held): Promise<Subject> {
+  const lifetime = given?.lifetimeSeconds;
   if (lifetime === undefined)
     throw new Error("a renewal's case states how long its tokens live");
   let renewals = 0;
@@ -723,7 +693,7 @@ function answering(
 }
 
 async function heldJobStall(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   // A worker's transport names what its claims read, and no more.
@@ -776,7 +746,7 @@ class LauncherDocument implements DiscoveryTransport {
 }
 
 async function discovery(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const document = new LauncherDocument();
@@ -810,7 +780,7 @@ const MARK_ADDED: EventMap['mark:added'] = {
 };
 
 async function invalidationWindow(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const { client, transport } = createTestClient({
@@ -850,7 +820,7 @@ class Saves implements CachePersister<string, number> {
 }
 
 async function saveDebounce(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const saves = new Saves();
@@ -888,7 +858,7 @@ const PROGRESSED: EventMap['job:report-progress'] = {
 };
 
 async function jobFollower(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const { client, transport } = createTestClient({
@@ -930,7 +900,7 @@ function polling(held: Held): {
 }
 
 async function jobPoll(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const { transport, poll } = polling(held);
@@ -943,7 +913,7 @@ async function jobPoll(
 }
 
 async function jobPollTimeout(
-  _given: JsonObject | undefined,
+  _given: Given | undefined,
   held: Held,
 ): Promise<Subject> {
   const { poll } = polling(held);
@@ -986,7 +956,7 @@ const SUBJECTS: Record<string, Build> = {
 
 /** Perform one step. Returns how far it moved the clock. */
 async function perform(
-  step: Json,
+  step: StepsItem,
   subject: Subject,
   held: Held,
 ): Promise<number> {
@@ -1000,20 +970,19 @@ async function perform(
     await settle();
     return 0;
   }
-  const stated = object(step, 'a step');
-  if ('pass' in stated) {
-    const ms = durationMs(stated['pass']);
+  if ('pass' in step) {
+    const ms = durationMs(step.pass);
     if (ms < 0) throw new Error('a case passes no time backwards');
     await settle();
     await vi.advanceTimersByTimeAsync(ms);
     await settle();
     return ms;
   }
-  if ('counted' in stated) {
+  if ('counted' in step) {
     await settle();
     if (held.wrong.length > 0) throw new Error(held.wrong.join('; '));
     const counted = subject.counted();
-    const stating = count(stated['counted'], 'counted');
+    const stating = step.counted;
     if (counted !== stating)
       throw new Error(`counted ${counted}, not ${stating}`);
     return 0;
@@ -1021,7 +990,7 @@ async function perform(
   throw new Error('no step this runner performs');
 }
 
-async function play(stated: Case): Promise<void> {
+async function play(stated: CasesItem): Promise<void> {
   const build = SUBJECTS[stated.subject];
   if (build === undefined)
     throw new Error(`this runner builds no ${stated.subject}`);
@@ -1066,12 +1035,12 @@ describe('the time a client keeps, against protocol/specs/src/client/clock-cases
 
   it('builds every subject the table names, and no other', () => {
     expect(new Set(Object.keys(SUBJECTS))).toEqual(
-      new Set(TABLE.cases.map((stated) => stated.subject)),
+      new Set(table.cases.map((stated) => stated.subject)),
     );
   });
 
   it.each(
-    TABLE.cases.map(
+    table.cases.map(
       (stated) => [`${stated.subject}: ${stated.case}`, stated] as const,
     ),
   )('%s', async (_name, stated) => {
@@ -1079,12 +1048,12 @@ describe('the time a client keeps, against protocol/specs/src/client/clock-cases
   });
 
   it('fails a case whose wait ends a millisecond early', async () => {
-    const first = TABLE.cases.find(
+    const first = table.cases.find(
       (stated) => stated.subject === 'refusedStream',
     );
     if (first === undefined)
       throw new Error('the table has no case of refusedStream');
-    const told: Case = structuredClone(first);
+    const told: CasesItem = structuredClone(first);
     // The last millisecond of the first wait: the case is told the stream was opened again in it.
     expect(told.steps[2]).toEqual({ counted: 1 });
     told.steps[2] = { counted: 2 };

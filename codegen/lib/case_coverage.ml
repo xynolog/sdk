@@ -8,7 +8,7 @@ open Coverage_sdk
 
 type coverage =
   (* The SDK's tests that run the table, each a file under the SDK's directory
-     that names the table's path. *)
+     that reads the table (coverage_census.exe). *)
   | Run_by of string list
   (* The SDK has no counterpart of what the table states, with why. *)
   | Absent of string
@@ -23,7 +23,6 @@ let tables : (string * (Coverage_sdk.t -> coverage)) list =
       | Typescript ->
           Run_by
             [
-              "typescript/core/src/__tests__/annotation-of-span.test.ts";
               "typescript/core/src/__tests__/builder-cases.test.ts";
               "typescript/sdk/src/__tests__/annotation-builders.test.ts";
               "typescript/sdk/src/__tests__/worker-skill.test.ts";
@@ -47,11 +46,7 @@ let tables : (string * (Coverage_sdk.t -> coverage)) list =
     ( "annotations/id-cases.json",
       function
       | Typescript ->
-          Run_by
-            [
-              "typescript/core/src/__tests__/annotation-id.test.ts";
-              "typescript/core/src/__tests__/id-cases.test.ts";
-            ]
+          Run_by [ "typescript/core/src/__tests__/id-cases.test.ts" ]
       | Python ->
           Run_by
             [
@@ -124,11 +119,7 @@ let tables : (string * (Coverage_sdk.t -> coverage)) list =
     ( "annotations/reconcile-cases.json",
       function
       | Typescript ->
-          Run_by
-            [
-              "typescript/core/src/__tests__/reconcile-cases.test.ts";
-              "typescript/core/src/__tests__/reconcile.test.ts";
-            ]
+          Run_by [ "typescript/core/src/__tests__/reconcile-cases.test.ts" ]
       | Python -> Run_by [ "python/sdk/tests/test_reconcile.py" ]
       | Rust -> Run_by [ "rust/sdk/tests/reconcile_cases.rs" ]
       | Go -> Run_by [ "go/annotations/reconcile_test.go" ]
