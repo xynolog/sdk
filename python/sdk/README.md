@@ -24,6 +24,10 @@ out of. Its code is TypeScript, and the ideas are this package's too.
 pip install xynolog
 ```
 
+Below 1.0 the minor number is the break, so take releases up to the next
+minor: `pip install "xynolog~=<version>"`, where `<version>` is a release's,
+takes that release and the later ones of its minor.
+
 It requires Python 3.12 or later, and runs on asyncio. It is checked by
 `mypy --strict` and by `pyright` in strict mode, and ships its types
 (`py.typed`): a wrong id, a wrong payload for a channel and an unhandled code
@@ -35,6 +39,66 @@ built on. Its dependencies are `httpx`, `pydantic` and `opentelemetry-api`.
 
 A client speaks to a running knowledge base. The [Quick Start][quick-start]
 sets one up on your own machine.
+
+## A first program
+
+From a signed-in client, this ingests a paper, has a model mark the concepts
+it mentions, gathers the context around it, and generates a summary grounded
+in that context. Those are the [Quick Start][quick-start]'s last two steps,
+from code, and the two that come next. [Signing in](#signing-in) is how a
+client comes to be signed in.
+
+```python
+from xynolog.client import XynologClient
+from xynolog.identifiers import ResourceId
+from xynolog.transport import PutBinaryRequest, Transport
+from xynolog.types import GenerationJobParams, JobDeclined, LinkingJobParams
+
+
+async def summarize(client: XynologClient[Transport], paper: bytes) -> ResourceId | None:
+    # Ingest: the paper's bytes become a resource.
+    created = await client.yield_.resource(
+        PutBinaryRequest(
+            name="Attention Is All You Need",
+            file=paper,
+            format="application/pdf",
+            storage_uri="file://papers/attention-is-all-you-need.pdf",
+        )
+    )
+    paper_id = created.resource_id
+
+    # Annotate: a model reads it and marks each mention of a concept.
+    await client.mark.delegate(paper_id, LinkingJobParams(motivation="linking", entity_types=["Concept"]))
+
+    # Gather: the paper, its annotations, and what the knowledge base holds around it.
+    context = await client.gather.resource(paper_id)
+
+    # Generate: a new resource, grounded in that context and linked to its source.
+    done = await client.yield_.delegate(
+        GenerationJobParams(
+            title="Attention Is All You Need: a summary",
+            storage_uri="file://generated/attention-summary.md",
+            context=context,
+            task="summary",
+        )
+    )
+    # What a `yield` job reports is the resource it made. One that could not read what it was given declines, and makes nothing.
+    made = done.result
+    return None if made is None or isinstance(made, JobDeclined) else made.resource_id
+```
+
+Both resources, and every annotation the model made, are in the knowledge base
+for the next participant, person or agent, to read and build on.
+
+Where to go from here:
+
+- The [Developer Guide][developer-guide] has each of these steps as a recipe,
+  and the ones after them: reading, searching, annotating by hand, reacting to
+  what others do, and testing. Its code is TypeScript, and the calls are this
+  package's too.
+- The [agent skills][skills] are whole scripts, one per task, for an AI coding
+  assistant to load: ingesting a corpus, annotating it, linking it, and the
+  layers built on those. They are TypeScript as well.
 
 ## Signing in
 
@@ -183,66 +247,6 @@ attention. Each is a namespace of the client.
 `yield` is Python's own word, so its namespace is `yield_`. Beside the eight
 are `job`, `auth` and `system`. What each flow means is in
 [protocol/contract/flows][flows].
-
-## A first program
-
-From a signed-in client, this ingests a paper, has a model mark the concepts
-it mentions, gathers the context around it, and generates a summary grounded
-in that context. Those are the [Quick Start][quick-start]'s last two steps,
-from code, and the two that come next. [Signing in](#signing-in) is how a
-client comes to be signed in.
-
-```python
-from xynolog.client import XynologClient
-from xynolog.identifiers import ResourceId
-from xynolog.transport import PutBinaryRequest, Transport
-from xynolog.types import GenerationJobParams, JobDeclined, LinkingJobParams
-
-
-async def summarize(client: XynologClient[Transport], paper: bytes) -> ResourceId | None:
-    # Ingest: the paper's bytes become a resource.
-    created = await client.yield_.resource(
-        PutBinaryRequest(
-            name="Attention Is All You Need",
-            file=paper,
-            format="application/pdf",
-            storage_uri="file://papers/attention-is-all-you-need.pdf",
-        )
-    )
-    paper_id = created.resource_id
-
-    # Annotate: a model reads it and marks each mention of a concept.
-    await client.mark.delegate(paper_id, LinkingJobParams(motivation="linking", entity_types=["Concept"]))
-
-    # Gather: the paper, its annotations, and what the knowledge base holds around it.
-    context = await client.gather.resource(paper_id)
-
-    # Generate: a new resource, grounded in that context and linked to its source.
-    done = await client.yield_.delegate(
-        GenerationJobParams(
-            title="Attention Is All You Need: a summary",
-            storage_uri="file://generated/attention-summary.md",
-            context=context,
-            task="summary",
-        )
-    )
-    # What a `yield` job reports is the resource it made. One that could not read what it was given declines, and makes nothing.
-    made = done.result
-    return None if made is None or isinstance(made, JobDeclined) else made.resource_id
-```
-
-Both resources, and every annotation the model made, are in the knowledge base
-for the next participant, person or agent, to read and build on.
-
-Where to go from here:
-
-- The [Developer Guide][developer-guide] has each of these steps as a recipe,
-  and the ones after them: reading, searching, annotating by hand, reacting to
-  what others do, and testing. Its code is TypeScript, and the calls are this
-  package's too.
-- The [agent skills][skills] are whole scripts, one per task, for an AI coding
-  assistant to load: ingesting a corpus, annotating it, linking it, and the
-  layers built on those. They are TypeScript as well.
 
 ## The client
 
@@ -1127,16 +1131,11 @@ which a resource's text is read) are generated from the
 [specification][specs], and a gate in CI fails when one of them differs from
 what the specification generates.
 
-## Working on it
-
-The package is [`python/sdk`][package] of the
-[Xynolog repository][xynolog], and [Testing][testing] says how its checks and
-its tests are run. The programs this page shows are files of its tests, word
-for word: both type checkers check them, and each one is run.
-
 ## License
 
 Apache-2.0. See [LICENSE][license].
+
+Working on the SDK itself is in [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
 
 [xynolog]: https://github.com/xynolog/sdk
 [introduction]: https://github.com/xynolog/docs/blob/main/builder/INTRODUCTION.md
@@ -1170,8 +1169,6 @@ Apache-2.0. See [LICENSE][license].
 [stored-keys]: https://github.com/xynolog/protocol/blob/main/specs/src/session/stored.json
 [telemetry]: https://github.com/xynolog/protocol/blob/main/specs/src/sdk-telemetry/telemetry.json
 [bus-log]: https://github.com/xynolog/protocol/blob/main/contract/EVENT-BUS.md#wire-format-the-bus-log
-[package]: https://github.com/xynolog/sdk/tree/main/python/sdk
-[testing]: https://github.com/xynolog/docs/blob/main/contributor/TESTING.md
 [state-units]: https://github.com/xynolog/docs/blob/main/builder/STATE-UNITS.md
 [state-units-cases]: https://github.com/xynolog/protocol/blob/main/specs/src/client/state-units.json
 [license]: https://github.com/xynolog/sdk/blob/main/LICENSE

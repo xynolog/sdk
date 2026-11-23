@@ -8,6 +8,31 @@
 
 What every TypeScript package in Xynolog stands on: the protocol's types, generated from the [spec](https://github.com/xynolog/protocol/blob/main/specs/README.md), and the logic that has to be the same wherever it runs. That is ids, the event bus and its channels, the transport contract, annotations and how they are anchored, and identities.
 
+## Install
+
+```bash
+npm install @xynolog/core
+```
+
+Below 1.0 the minor number is the break, and the caret range npm writes into `package.json`
+takes the releases up to the next minor and no further.
+
+## Example
+
+```typescript
+import { resourceId, isResourceId, kbDid, kbResource } from '@xynolog/core';
+
+// An id is made by its constructor, which throws for text its rule refuses.
+const id = resourceId('5bcd259ab1464cf68a556bbad21f513f');
+
+// A guard asks the same rule without throwing.
+const typed = isResourceId('https://kb.example/resources/5bcd');   // false: a URI is not an id
+
+// A knowledge base's did and the audience its tokens carry, from its committed domain.
+const did = kbDid('xynoplex.github.io:xynoplex-caselaw-kb');        // 'did:web:xynoplex.github.io:xynoplex-caselaw-kb'
+const audience = kbResource('xynoplex.github.io:xynoplex-caselaw-kb'); // 'https://xynoplex.github.io/xynoplex-caselaw-kb'
+```
+
 ## Who uses it
 
 Every other TypeScript package, the Browser, and the conformance and end-to-end suites. It depends on no other Xynolog package.
@@ -39,30 +64,6 @@ The main import runs in a browser. What cannot is on a subpath:
 | `@xynolog/core/testing/axioms` | Property-based harnesses for state units and transports. They need `fast-check` |
 | `@xynolog/core/testing/issuer` | An OIDC issuer in one process, for tests that verify tokens |
 
-## Example
-
-```typescript
-import { resourceId, isResourceId, kbDid, kbResource } from '@xynolog/core';
-
-// An id is made by its constructor, which throws for text its rule refuses.
-const id = resourceId('5bcd259ab1464cf68a556bbad21f513f');
-
-// A guard asks the same rule without throwing.
-const typed = isResourceId('https://kb.example/resources/5bcd');   // false: a URI is not an id
-
-// A knowledge base's did and the audience its tokens carry, from its committed domain.
-const did = kbDid('xynoplex.github.io:xynoplex-caselaw-kb');        // 'did:web:xynoplex.github.io:xynoplex-caselaw-kb'
-const audience = kbResource('xynoplex.github.io:xynoplex-caselaw-kb'); // 'https://xynoplex.github.io/xynoplex-caselaw-kb'
-```
-
-## What a change must keep
-
-- **The spec is the source.** Each module that opens `GENERATED FILE`, `src/types.ts` among them, is generated from [`protocol/specs/src`](https://github.com/xynolog/protocol/tree/main/specs/src), and never edited. Those modules are committed, and `make generate` writes them. Change the spec, then run `make generate`. A type written by hand that restates a schema is a second copy that nothing keeps true: use the spec's type, under the spec's name.
-- **The main import runs in a browser.** It uses no Node builtin. The test issuer is reachable only by its subpath, because of the weight `jose` would add to every bundle, and `npm run lint:core-subpaths` fails a re-export of it from the root.
-- **It depends on no other Xynolog package.** Everything else depends on it.
-- **An id is made only by its constructor or its guard.** One kind is never assignable to another.
-- **Its tests read every package.** Three census tests here walk the source of all of `packages/`, `apps/` and `images/`, tests included, so a change somewhere else can fail this package's suite.
-
 ## Documentation
 
 - [API tour](docs/API.md): each area, with examples.
@@ -72,3 +73,5 @@ const audience = kbResource('xynoplex.github.io:xynoplex-caselaw-kb'); // 'https
 ## License
 
 Apache-2.0
+
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
