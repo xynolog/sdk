@@ -163,9 +163,19 @@ writes:
   for it, with the repository's `LICENSE`, which its package ships. The
   `required`, `identifiers`, `timing`, `error-codes`, `cache-refresh`,
   `encodings`, `oauth-clients`, `telemetry`, `sign-in` and `media-types`
-  groups each write the OCaml SDK's module of their own table. The OCaml
-  SDK's tests read Protocol's case tables where the checkout holds them, as
-  every SDK's do; no group copies a table into one.
+  groups each write the OCaml SDK's module of their own table.
+- `case-data`: each table an SDK's tests run or read, as typed values of the
+  model Protocol's reader derives from its schema
+  (`Xynolog_protocol_model`), and each schema they read, as its JSON, in the
+  SDK's test tree: the OCaml SDK's `test/cases`, the `Protocol_cases`
+  library, and, for each TypeScript package whose tests read it,
+  `src/__tests__/cases` of that package, whose `rootDir` its `src/` is. A
+  row the model does not describe is refused by its JSON
+  Pointer. It writes data alone: a test keeps its own loop, which says how a
+  row becomes a call on the SDK, so an SDK's tests read no file of Protocol,
+  and a change to a table's shape is a compile error in each SDK that runs
+  it. An SDK it has no writer for yet reads Protocol's tables where the
+  checkout holds them.
 - `swift-sdk`: the Swift SDK's `Generated/Models.swift`, a model of every
   component schema and the sign-in store's entry with the tables as typed
   values, and its tests' `Generated/TestBridge.swift`, a round trip through
@@ -312,28 +322,37 @@ the drift gate.
 
 Protocol's tables name no consumer: which SDK runs or has what Protocol
 states is sdk's to record, so renaming a test, or an SDK gaining an item of
-the client surface, is a change here alone. [`test/coverage_sdk.ml`](test/coverage_sdk.ml)
+the client surface, is a change here alone. [`lib/coverage_sdk.ml`](lib/coverage_sdk.ml)
 names the SDKs the records speak of.
 
-- [`test/case_coverage.ml`](test/case_coverage.ml): for each case table of
+- [`lib/case_coverage.ml`](lib/case_coverage.ml): for each case table of
   the pinned Protocol and each SDK, the tests that run it, or why the SDK
   runs none: absent, where the SDK has no counterpart of what the table
   states, or not yet reached, where it has one and does not run the table
   yet. A test named there runs every case of its table.
+- [`lib/test_reads.ml`](lib/test_reads.ml): the files of Protocol other
+  than its case tables that each SDK's tests read, tables and schemas,
+  which `case-data` writes for them too, each with the tests that read it.
 - [`test/surface_coverage.ml`](test/surface_coverage.ml): each item of the
   client surface (`client/surface.json`) some SDK lacks, with each SDK that
   lacks it and why: absent, or not yet reached. An item it does not name is
   one every SDK has.
 
-`coverage_census.exe` holds both. Its case tables are the model's tables
+`coverage_census.exe` holds them. Its case tables are the model's tables
 whose file name ends in `cases.json` (`specs/README.md`, "Case tables"), and
 it names each of them and no other. Its SDKs are the Makefile's `LANGUAGES`,
 and the compiler holds every table to a coverage for each one. A named test
-is a file this checkout has under the SDK's directory, and it names its
-table's path. Every surface item named is one the surface has, named once,
-and each SDK lacking it once; that an SDK has an item named nowhere is its own
-surface test's to hold. The readers `annotations/reader-cases.json` names are
-the annotations module's readers that no SDK lacks.
+is a file this checkout has under the SDK's directory, and it names the
+module `case-data` writes its table's rows to, or, for an SDK the group has
+no writer for, its table's path; so is each test `test_reads.ml` names, of
+the module its table or schema is written to. `case-data` writes a module
+for the tests named so and no other, so each module it writes is read,
+and each directory it writes holds no module it does not write.
+Every surface item named is one the
+surface has, named once, and each SDK lacking it once; that an SDK has an
+item named nowhere is its own surface test's to hold. The readers
+`annotations/reader-cases.json` names are the annotations module's readers
+that no SDK lacks.
 
 ## Running it
 

@@ -10,7 +10,10 @@ module J = Yojson.Safe.Util
 let properties schema =
   List.sort compare (List.map fst (J.to_assoc (J.member "properties" schema)))
 
-let schema name = Protocol.table ("client/types/" ^ name ^ ".json")
+let schema = function
+  | "SearchState" -> Protocol_cases.Client_types_search_state_schema.schema
+  | "JobEvent" -> Protocol_cases.Client_types_job_event_schema.schema
+  | name -> failwith ("no client type " ^ name ^ " is written for these tests")
 
 let search_state () =
   let ({ results = _; is_searching = _ } : State_units.Search.search_state) =

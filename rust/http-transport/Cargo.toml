@@ -4,10 +4,18 @@ version.workspace = true
 edition = "2024"
 license = "Apache-2.0"
 repository.workspace = true
+rust-version.workspace = true
 description = "Xynolog's HTTP transport, in Rust: a knowledge base's bus over its gateway, as xynolog's Transport, and the sign-in that reaches it."
 documentation = "https://docs.rs/xynolog-http-transport"
 keywords = ["xynolog", "knowledge-base", "http", "sse", "oauth"]
 categories = ["api-bindings", "web-programming::http-client", "authentication"]
+
+# docs.rs builds the default features alone unless told otherwise: every
+# feature here, so the docs show the whole API, and each item a feature adds
+# is labelled with it (doc_cfg, under docs.rs's --cfg docsrs).
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 # Signing a person in, and sessions over a gateway: the issuer's grants with

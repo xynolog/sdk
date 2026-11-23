@@ -5,8 +5,6 @@
  * the same table and each kind's schema, so nothing here or in core states
  * the rule a second time.
  */
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   annotationId,
@@ -23,18 +21,7 @@ import {
   type UserId,
   type components,
 } from '../index';
-
-const SPEC = resolve(__dirname, '../../../../protocol/specs/src');
-
-interface Kind {
-  schema: string;
-  accepts: Array<{ id: string; why: string }>;
-  refuses: Array<{ id: string; why: string }>;
-}
-
-const { kinds } = JSON.parse(
-  readFileSync(resolve(SPEC, 'identifiers/kinds.json'), 'utf8'),
-) as { kinds: Kind[] };
+import { table } from './cases/identifiers_kinds';
 
 /** Each kind's constructor and its guard. A kind the table names and this does not is a kind no test holds. */
 const MAKES: Record<string, (value: string) => string> = {
@@ -53,12 +40,12 @@ const ASKS: Record<string, (value: string) => boolean> = {
 describe('the kinds of id', () => {
   it('every kind the spec names has a constructor here, and no other does', () => {
     expect(Object.keys(MAKES).sort()).toEqual(
-      kinds.map((kind) => kind.schema).sort(),
+      table.kinds.map((kind) => kind.schema).sort(),
     );
     expect(Object.keys(ASKS).sort()).toEqual(Object.keys(MAKES).sort());
   });
 
-  for (const kind of kinds) {
+  for (const kind of table.kinds) {
     const make = MAKES[kind.schema]!;
 
     const asks = ASKS[kind.schema]!;

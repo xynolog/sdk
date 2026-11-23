@@ -51,7 +51,7 @@ private fun dedented(lines: List<String>): String {
 private fun blocks(): Map<String, String> = MARK.findAll(README).associate { it.groupValues[1] to dedented(it.groupValues[4].lines()) }
 
 /** The regions of the programs' files, by name. */
-private fun regions(): Map<String, String> = listOf(Path.of("src/test/kotlin/xynolog/readme"), Path.of("src/javaTest/java/xynolog/readme"))
+private fun regions(): Map<String, String> = listOf(Path.of("src/test/kotlin/xynolog/readme"), Path.of("src/fromJava/java/xynolog/readme"))
     .flatMap { directory -> Files.list(directory).use { files -> files.filter { it.extension == "kt" || it.extension == "java" }.toList() } }
     .flatMap { file ->
         val lines = file.readText().lines()

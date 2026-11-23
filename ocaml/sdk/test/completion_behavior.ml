@@ -2,46 +2,34 @@ open Eio.Std
 open Xynolog
 module J = Yojson.Safe.Util
 
-let option decode value =
-  match value with `Null -> None | value -> Some (decode value)
-
 let check condition reason = Alcotest.(check bool) reason true condition
-let row_name row = J.member "why" row |> J.to_string
 
 (* All four policies and the header table in retry/cases.json. *)
 let retry_rules () =
-  Protocol.member "retry/cases.json" "rules"
-  |> J.to_list
-  |> List.iter (fun row ->
-      let field key = J.member key row in
-      let rule =
-        match J.to_string (field "rule") with
-        | "boot" -> Retry.Boot
-        | "job" -> Job
-        | "transport" -> Transport
-        | "refresh" -> Refresh
-        | _ -> assert false
+  let module T = Protocol_cases.Retry_cases in
+  List.iter
+    (fun (row : T.rules_item) ->
+      let why, rule, status, meth, keyed, retries =
+        match row with
+        | Boot { why; status; retries; _ } ->
+            (why, Retry.Boot, Some status, None, None, retries)
+        | Job { why; status; retries; _ } ->
+            (why, Retry.Job, Some status, None, None, retries)
+        | Transport { why; status; method_; keyed; retries; _ } ->
+            (why, Retry.Transport, status, method_, keyed, retries)
+        | Refresh { why; status; retries; _ } ->
+            (why, Retry.Refresh, status, None, None, retries)
       in
-      let actual =
-        Retry.retryable rule
-          ?status:(option J.to_int (field "status"))
-          ?meth:(option J.to_string (field "method"))
-          ?keyed:(option J.to_bool (field "keyed"))
-          ()
-      in
-      Alcotest.(check bool) (row_name row) (J.to_bool (field "retries")) actual);
-  Protocol.member "retry/cases.json" "retryAfter"
-  |> J.to_list
-  |> List.iter (fun row ->
-      let actual =
-        Option.bind
-          (option J.to_string (J.member "header" row))
-          Retry.retry_after_ms
-      in
+      Alcotest.(check bool)
+        why retries
+        (Retry.retryable rule ?status ?meth ?keyed ()))
+    T.table.rules;
+  List.iter
+    (fun (row : T.retry_after_item) ->
       Alcotest.(check (option int))
-        (row_name row)
-        (option J.to_int (J.member "ms" row))
-        actual)
+        row.why row.ms
+        (Option.bind row.header Retry.retry_after_ms))
+    T.table.retry_after
 
 let mock_clock () =
   let mono = Eio_mock.Clock.Mono.make () in

@@ -1,9 +1,12 @@
 (* coverage_census.exe SDK: Case_coverage names every case table of the pinned
    Protocol and no other, and the SDKs the Makefile's LANGUAGES names, in its
    order; and for each table and SDK, either tests this checkout has under the
-   SDK's directory that each name the table's path, or a reason. A case table
-   is a table of the model whose file name ends in cases.json (specs/README.md,
-   "Case tables"). Surface_coverage names only items the pinned Protocol's
+   SDK's directory that each read the table, or a reason. A test reads a
+   table by the module the case-data group writes its rows to, where the
+   group has a writer for the SDK, else by the table's path; and every
+   module the group writes is read by a file of its SDK other than itself. A
+   case table is a table of the model whose file name ends in cases.json
+   (specs/README.md, "Case tables"). Surface_coverage names only items the pinned Protocol's
    client surface has, each once, with each SDK that lacks it once and a
    reason; that an SDK has an item it names nowhere is its own surface test's
    to hold. The readers annotations/reader-cases.json names are the readers of
@@ -15,9 +18,20 @@ open Xynolog_codegen
 let root = Sys.argv.(1)
 let read path = In_channel.with_open_bin path In_channel.input_all
 
-let contains text part =
+(* Whether [text] names [part]: has it, followed by no character of a name,
+   so a module's name does not name a longer one it begins. *)
+let names text part =
   let n = String.length text and m = String.length part in
-  let rec from i = i + m <= n && (String.sub text i m = part || from (i + 1)) in
+  let ends i =
+    i + m = n
+    ||
+    match text.[i + m] with
+    | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> false
+    | _ -> true
+  in
+  let rec from i =
+    i + m <= n && ((String.sub text i m = part && ends i) || from (i + 1))
+  in
   from 0
 
 let duplicates names =
@@ -51,6 +65,28 @@ let spec =
       List.iter (fun e -> prerr_endline (Decode.error_to_string e)) errors;
       exit 1
   | Ok spec -> spec
+
+module M = Xynolog_protocol_model.Model
+
+let derived =
+  match M.derive (Filename.concat root "protocol/specs/src") with
+  | Error refusals ->
+      List.iter prerr_endline refusals;
+      exit 1
+  | Ok derived -> derived
+
+(* What a test of [sdk] that reads [table] names: the module the case-data
+   group writes the table's rows to, else, for an SDK it has no writer for,
+   the table's path; or, for a table the model does not derive, a refusal. *)
+let reads_by sdk table =
+  match Case_data.language sdk with
+  | None -> Ok table
+  | Some language -> (
+      match
+        List.find_opt (fun (m : M.model) -> m.path = table) derived.tables
+      with
+      | Some model -> Ok (language.reference model.model_name)
+      | None -> Error "Protocol's reader derives no model of it")
 
 let case_tables =
   List.filter
@@ -97,6 +133,32 @@ let table_refusals =
                table))
       named
 
+(* [where]'s refusals of [tests], each a test of [sdk] that reads what it
+   names, [named]: a file under the SDK's directory, in the checkout, that
+   names it. *)
+let test_refusals where sdk tests named =
+  List.map
+    (Printf.sprintf "%s: names %s more than once" where)
+    (duplicates tests)
+  @ List.concat_map
+      (fun test ->
+        let path = Filename.concat root test in
+        if not (String.starts_with ~prefix:(Coverage_sdk.name sdk ^ "/") test)
+        then
+          [
+            Printf.sprintf "%s: %s is not under %s/" where test
+              (Coverage_sdk.name sdk);
+          ]
+        else if not (Sys.file_exists path && not (Sys.is_directory path)) then
+          [ Printf.sprintf "%s: %s is not in the checkout" where test ]
+        else
+          match named with
+          | Error why -> [ Printf.sprintf "%s: %s" where why ]
+          | Ok name when not (names (read path) name) ->
+              [ Printf.sprintf "%s: %s does not name %s" where test name ]
+          | Ok _ -> [])
+      tests
+
 let coverage_refusals table sdk =
   let where = Printf.sprintf "%s, %s" table (Coverage_sdk.name sdk) in
   match (List.assoc table Case_coverage.tables) sdk with
@@ -104,26 +166,50 @@ let coverage_refusals table sdk =
       if String.trim why = "" then [ where ^ ": states no reason" ] else []
   | Case_coverage.Run_by [] -> [ where ^ ": names no test" ]
   | Case_coverage.Run_by tests ->
-      List.map
-        (Printf.sprintf "%s: names %s more than once" where)
-        (duplicates tests)
-      @ List.concat_map
-          (fun test ->
-            let path = Filename.concat root test in
-            if
-              not
-                (String.starts_with ~prefix:(Coverage_sdk.name sdk ^ "/") test)
-            then
-              [
-                Printf.sprintf "%s: %s is not under %s/" where test
-                  (Coverage_sdk.name sdk);
-              ]
-            else if not (Sys.file_exists path && not (Sys.is_directory path))
-            then [ Printf.sprintf "%s: %s is not in the checkout" where test ]
-            else if not (contains (read path) table) then
-              [ Printf.sprintf "%s: %s does not name %s" where test table ]
-            else [])
-          tests
+      test_refusals where sdk tests (reads_by sdk table)
+
+(* What a test of [sdk] that reads the schema [file] names: the module the
+   case-data group writes it to, else its path. *)
+let schema_read_by sdk file =
+  match Case_data.language sdk with
+  | None -> file
+  | Some language -> language.reference (Case_data.schema_module file)
+
+let test_reads_refusals =
+  List.concat_map
+    (fun sdk ->
+      List.concat_map
+        (fun (read, tests) ->
+          let where =
+            Printf.sprintf "%s, %s" (Test_reads.file read)
+              (Coverage_sdk.name sdk)
+          in
+          match (read, tests) with
+          | _, [] -> [ where ^ ": Test_reads names no test" ]
+          | Test_reads.Table table, tests ->
+              test_refusals where sdk tests (reads_by sdk table)
+          | Schema file, tests ->
+              test_refusals where sdk tests (Ok (schema_read_by sdk file)))
+        (Test_reads.reads sdk))
+    Coverage_sdk.all
+
+(* Each directory the case-data group writes to holds what it writes and
+   no other module: one it no longer writes is no test's. *)
+let stale_refusals =
+  let written = Case_data.paths derived in
+  List.sort_uniq compare (List.map Filename.dirname written)
+  |> List.concat_map (fun dir ->
+      Sys.readdir (Filename.concat root dir)
+      |> Array.to_list |> List.sort compare
+      |> List.filter_map (fun name ->
+          let path = Filename.concat dir name in
+          if name = "dune" || List.mem path written then None
+          else
+            Some
+              (Printf.sprintf
+                 "%s: the case-data group writes no such module, so no test \
+                  reads it"
+                 path)))
 
 module Surface = Tables.Client_surface
 
@@ -250,15 +336,17 @@ let refusals =
   @ List.concat_map
       (fun table -> List.concat_map (coverage_refusals table) Coverage_sdk.all)
       (List.sort_uniq compare named)
-  @ surface_refusals @ reader_refusals
+  @ test_reads_refusals @ stale_refusals @ surface_refusals @ reader_refusals
 
 let () =
   List.iter prerr_endline refusals;
   if refusals <> [] then exit 1;
   Printf.printf
     "PASS every case table is run by a named test or absent with a reason, in \
-     each SDK, and every surface item an SDK lacks is one Protocol has, with a \
-     reason: %d case tables, %d SDKs, %d surface items lacked\n"
+     each SDK, every other file of Protocol a test reads is named with its \
+     tests, the case data is what case-data writes, and every surface item an \
+     SDK lacks is one Protocol has, with a reason: %d case tables, %d SDKs, %d \
+     surface items lacked\n"
     (List.length case_tables)
     (List.length Coverage_sdk.all)
     (List.length Surface_coverage.lacking)

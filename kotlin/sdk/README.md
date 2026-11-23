@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/gh/xynolog/sdk/graph/badge.svg?component=kotlin-sdk)](https://app.codecov.io/gh/xynolog/sdk/components)
 
-The Xynolog SDK for the JVM: one artifact, written in Kotlin, which Java programs call as first-class consumers. Every program below is a file the build compiles and runs (`src/test/kotlin/xynolog/readme`, `src/javaTest/java/xynolog/readme`), held to this page word for word.
+The Xynolog SDK for the JVM: one artifact, written in Kotlin, which Java programs call as first-class consumers. Every program below is a file the build compiles and runs (`src/test/kotlin/xynolog/readme`, `src/fromJava/java/xynolog/readme`), held to this page word for word.
 
 ## Install
 

@@ -1,6 +1,9 @@
 module github.com/xynolog/sdk/go
 
-go 1.27.0
+// The oldest Go that builds the module, for a program that requires it.
+// The toolchain line below is the Go this repository builds and tests with,
+// and a requiring program ignores it.
+go 1.26.0
 
 // Pinned to the patch, not the minor: `go 1.27` alone lets CI resolve to
 // whatever 1.27.x it happens to have, and a stdlib vulnerability fixed in a later patch

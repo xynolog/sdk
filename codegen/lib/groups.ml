@@ -41,6 +41,7 @@ let sdk =
     { name = "haskell-sdk"; files = Haskell_sdk.files };
     { name = "kotlin-sdk"; files = Kotlin_sdk.files };
     { name = "csharp-sdk"; files = Csharp_sdk.files };
+    { name = "case-data"; files = Case_data.files };
   ]
 
 let cli =

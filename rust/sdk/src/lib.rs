@@ -24,6 +24,8 @@
 // No unsafe code, but on Windows the one call that gives the sign-in store's
 // directory its access list (`sign_in_store`), which the system offers only
 // as foreign functions.
+// On docs.rs, each item a feature adds is labelled with the feature.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(not(windows), forbid(unsafe_code))]
 #![cfg_attr(windows, deny(unsafe_code))]
 // What arrives off the wire is never assumed to be what was expected, and

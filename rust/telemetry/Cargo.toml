@@ -4,6 +4,7 @@ version.workspace = true
 edition = "2024"
 license = "Apache-2.0"
 repository.workspace = true
+rust-version.workspace = true
 description = "The telemetry a Xynolog transport and a Xynolog service share: the spans and the count of the SDK telemetry table, and the trace context they travel in, reported to whatever OpenTelemetry the process installed."
 documentation = "https://docs.rs/xynolog-telemetry"
 keywords = ["xynolog", "opentelemetry", "tracing", "telemetry"]

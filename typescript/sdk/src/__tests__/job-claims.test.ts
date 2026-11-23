@@ -13,7 +13,6 @@
  * by hand or by the record the fake plays.
  */
 
-import { readFileSync } from 'node:fs';
 import {
   afterAll,
   beforeAll,
@@ -60,6 +59,7 @@ import {
   type HeldYieldJob,
   type JobFailure,
 } from '../claims';
+import { table as retryCases } from './cases/jobs_retry_cases';
 
 /** The job a `job:claimed` reply carries: running, under the claimant. */
 type ClaimedJob = EventMap['job:claimed']['response'];
@@ -2190,22 +2190,7 @@ describe('job.claim — each job has a trace of its own', () => {
 // queue ACTS on the answer, and the worker REPORTS it on `job:fail` as
 // `willRetry`. Every implementation runs protocol/specs/src/jobs/retry-cases.json.
 describe('willRetryAfter (protocol/specs/src/jobs/retry-cases.json)', () => {
-  interface RetryCase {
-    why: string;
-    retryCount: number;
-    maxRetries: number;
-    failureClass?: NonNullable<JobFailure['failureClass']>;
-    retries: boolean;
-  }
-  const { cases } = JSON.parse(
-    readFileSync(
-      new URL(
-        '../../../../protocol/specs/src/jobs/retry-cases.json',
-        import.meta.url,
-      ),
-      'utf8',
-    ),
-  ) as { cases: RetryCase[] };
+  const { cases } = retryCases;
 
   it('has cases to run', () => {
     expect(cases.length).toBeGreaterThan(0);

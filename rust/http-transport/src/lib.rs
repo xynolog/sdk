@@ -13,6 +13,8 @@
 //! back to (`loopback`), and a launcher's discovery document over HTTP
 //! (`discovery`). A service links none of those.
 
+// On docs.rs, each item a feature adds is labelled with the feature.
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![forbid(unsafe_code)]
 // What arrives off the wire is never assumed to be what was expected, and
 // neither is anything else: the library has no `unwrap` and no `expect`.
