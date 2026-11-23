@@ -10,12 +10,20 @@ using Xynolog.Types;
 
 namespace Xynolog.Http;
 
+/// <summary>A resource's bytes, read whole, with their media type.</summary>
+/// <param name="ContentType">The bytes' media type.</param>
+/// <param name="Bytes">The content, read whole.</param>
 public sealed record BinaryContent(string ContentType, byte[] Bytes);
+/// <summary>A resource's bytes as a stream to read, with their media type; disposing it ends the read.</summary>
+/// <param name="ContentType">The bytes' media type.</param>
+/// <param name="Stream">The bytes, as they arrive.</param>
 public sealed record BinaryStream(string ContentType, Stream Stream) : IDisposable
 {
+    /// <summary>Closes the stream, and the response it reads.</summary>
     public void Dispose() => Stream.Dispose();
 }
 
+/// <summary>Uploads and reads resources' content over a transport's HTTP connection to its gateway.</summary>
 public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
 {
     private readonly CancellationTokenSource lifetime = new();
@@ -23,6 +31,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
     private readonly HashSet<Stream> streams = [];
     private bool closed;
 
+    /// <summary>Ends every read in progress, closing the streams it handed out.</summary>
     public void Dispose()
     {
         Stream[] ending;
@@ -52,6 +61,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
         }
     }
 
+    /// <summary>Uploads a resource, reporting its progress, and returns the new resource's id.</summary>
     public async Task<ResourceId> PutBinaryAsync(ResourceUpload request, IProgress<UploadProgress>? progress = null, CancellationToken cancellation = default) =>
         (await UploadAsync(request, progress, cancellation).ConfigureAwait(Spawning.Captures)).ResourceId;
 
@@ -80,6 +90,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
         return created;
     }
 
+    /// <summary>Reads a resource's representation whole.</summary>
     public async Task<BinaryContent> GetBinaryAsync(ResourceId resource, CancellationToken cancellation = default)
     {
         using var linked = Link(cancellation);
@@ -89,6 +100,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
         return new BinaryContent(ContentType(response.Content), await response.Content.ReadAsByteArrayAsync(cancellation).ConfigureAwait(Spawning.Captures));
     }
 
+    /// <summary>Opens a resource's representation as a stream, which the caller disposes.</summary>
     public async Task<BinaryStream> GetBinaryStreamAsync(ResourceId resource, CancellationToken cancellation = default)
     {
         using var linked = Link(cancellation);
@@ -109,6 +121,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
         catch { activity?.Dispose(); response.Dispose(); throw; }
     }
 
+    /// <summary>Reads a resource's description as JSON-LD.</summary>
     public async Task<GetResourceResponse> GetResourceGraphAsync(ResourceId resource, CancellationToken cancellation = default)
     {
         using var linked = Link(cancellation);
@@ -116,6 +129,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
         using var activity = SdkTelemetry.Start("content.get_graph", new ActivityTagsCollection { { TelemetryKeys.ResourceId, resource.Value } });
         return await transport.AnswerAsync<GetResourceResponse>(GatewayRoute.GetResourceJsonLd.Method, PathOf(GatewayRoute.GetResourceJsonLd, resource), cancellation: cancellation).ConfigureAwait(Spawning.Captures);
     }
+    /// <summary>Reads the annotations on a resource.</summary>
     public async Task<GetAnnotationsResponse> GetAnnotationsAsync(ResourceId resource, CancellationToken cancellation = default)
     {
         using var linked = Link(cancellation);
@@ -123,6 +137,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
         using var activity = SdkTelemetry.Start("content.get_annotations", new ActivityTagsCollection { { TelemetryKeys.ResourceId, resource.Value } });
         return await transport.AnswerAsync<GetAnnotationsResponse>(GatewayRoute.GetResourceAnnotations.Method, PathOf(GatewayRoute.GetResourceAnnotations, resource), cancellation: cancellation).ConfigureAwait(Spawning.Captures);
     }
+    /// <summary>Reads a resource's text with the page locations of its items.</summary>
     public async Task<AnchoredTextAnswer> GetAnchoredTextAsync(ResourceId resource, CancellationToken cancellation = default)
     {
         using var linked = Link(cancellation);

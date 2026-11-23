@@ -13,13 +13,19 @@ using Xynolog.Types;
 
 namespace Xynolog;
 
+/// <summary>A bus channel whose frames carry payloads of <typeparamref name="T"/>; <see cref="BusChannels"/> holds
+/// every one.</summary>
 public sealed class BusChannel<T> where T : class
 {
     internal BusChannel(string name, bool scoped) { Name = name; IsScoped = scoped; }
+    /// <summary>The channel's name on the wire.</summary>
     public string Name { get; }
+    /// <summary>Whether the channel's frames are delivered within one resource's scope, so that reading it names a
+    /// resource.</summary>
     public bool IsScoped { get; }
 }
 
+/// <summary>A request on the bus with the channels its reply comes back on: a result, or a failure.</summary>
 public sealed class BusOperation<TRequest, TResult, TFailure>
     where TRequest : class where TResult : class where TFailure : class
 {
@@ -30,8 +36,11 @@ public sealed class BusOperation<TRequest, TResult, TFailure>
         Failure = failure;
     }
 
+    /// <summary>The channel the request is emitted on.</summary>
     public BusChannel<TRequest> Request { get; }
+    /// <summary>The channel a successful reply comes back on.</summary>
     public BusChannel<TResult> Result { get; }
+    /// <summary>The channel a failed reply comes back on.</summary>
     public BusChannel<TFailure> Failure { get; }
 }
 
@@ -47,13 +56,19 @@ public closed record Carried
     public abstract string? CorrelationId { get; }
 }
 
+/// <summary>A frame a transport delivered, with the trace it was emitted in.</summary>
+/// <param name="Frame">The frame as it came.</param>
+/// <param name="Trace">The trace context the frame carried, which work done for it continues.</param>
 public sealed record ReceivedBusFrame(BusFrame Frame, ActivityContext Trace) : Carried
 {
+    /// <inheritdoc/>
     public override string Channel => Frame.Channel;
+    /// <inheritdoc/>
     public override string? CorrelationId => Frame.CorrelationId;
     internal string? EventId { get; init; }
     internal long Sequence { get; init; }
 
+    /// <summary>The user the gateway stamped on the frame's payload as its sender, if it stamped one.</summary>
     public UserId? UserId =>
         Frame.Payload.TryGetProperty(BusChannels.UserField, out var value) && value.ValueKind == JsonValueKind.String &&
         Identifiers.UserId.TryParse(value.GetString(), out var user) ? user : null;
@@ -68,7 +83,9 @@ public sealed record ReceivedBusFrame(BusFrame Frame, ActivityContext Trace) : C
 public sealed record FrameRefusal(string Channel, string Member, FrameRefusalReason Reason, JsonElement? Payload,
     string? CorrelationId, ResourceId? Scope) : Carried
 {
+    /// <inheritdoc/>
     public override string Channel { get; } = Channel;
+    /// <inheritdoc/>
     public override string? CorrelationId { get; } = CorrelationId;
 }
 
@@ -77,20 +94,32 @@ public sealed record FrameRefusal(string Channel, string Member, FrameRefusalRea
 /// (<see cref="Refused"/>).</summary>
 public closed record Heard<T> where T : class
 {
+    /// <summary>A frame, and its payload decoded.</summary>
+    /// <param name="Received">The frame as it came.</param>
+    /// <param name="Payload">Its payload, decoded as its channel's.</param>
     public sealed record Delivered(ReceivedBusFrame Received, T Payload) : Heard<T>;
+    /// <summary>The refusal of a frame, in its place.</summary>
+    /// <param name="Refusal">Why the frame was refused.</param>
     public sealed record Refused(FrameRefusal Refusal) : Heard<T>;
 }
 
+/// <summary>Typed access to the bus: emits payloads on channels, reads their frames, and makes requests that await a
+/// reply.</summary>
 public sealed class Bus
 {
     private readonly HttpTransport transport;
 
+    /// <summary>Reads and writes the bus through a transport.</summary>
     public Bus(HttpTransport transport) => this.transport = transport;
 
+    /// <summary>Emits a payload on a channel; the result is how many subscribers the gateway delivered it to, or null when
+    /// its acceptance did not say.</summary>
     public Task<long?> EmitAsync<T>(BusChannel<T> channel, T payload, ResourceId? scope = null,
         string? correlationId = null, CancellationToken cancellation = default) where T : class =>
         transport.EmitAsync(channel.Name, JsonSerializer.SerializeToElement(payload), scope, correlationId, cancellation);
 
+    /// <summary>Each frame delivered on a channel from now on, its payload decoded or its refusal in its place; a scoped
+    /// channel is read within one resource, which is required for it and refused for any other.</summary>
     public IAsyncEnumerable<Heard<T>> Frames<T>(BusChannel<T> channel, ResourceId? resource = null,
         CancellationToken cancellation = default) where T : class
     {
@@ -99,6 +128,8 @@ public sealed class Bus
         return DecodeFrames<T>(transport.ReceivedFrames([channel.Name], resource, cancellation), resource, cancellation);
     }
 
+    /// <summary>Emits a request and waits for its reply, giving the decoded result; a failure reply, or none within the
+    /// timeout, throws.</summary>
     public async Task<TResult> RequestAsync<TRequest, TResult, TFailure>(
         BusOperation<TRequest, TResult, TFailure> operation, TRequest payload, int? timeoutMs = null,
         CancellationToken cancellation = default)

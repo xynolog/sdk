@@ -2,6 +2,9 @@ using Xynolog.Protocol;
 
 namespace Xynolog.State;
 
+/// <summary>What a <see cref="SearchPipeline{T}"/> has found for its settled query.</summary>
+/// <param name="Results">The results found so far.</param>
+/// <param name="IsSearching">Whether answers to the query are still awaited.</param>
 public sealed record SearchState<T>(IReadOnlyList<T> Results, bool IsSearching);
 
 /// <summary>Debounces the typed query and follows the latest settled query's answers.</summary>
@@ -15,9 +18,19 @@ public sealed class SearchPipeline<T> : IStateUnit
     private CancellationTokenSource? following;
     private string? searched;
 
+    /// <summary>The query as last typed.</summary>
     public StateValue<string> Query { get; }
+    /// <summary>The results of the latest settled query, and whether it is still being searched.</summary>
     public StateValue<SearchState<T>> State { get; } = new(new SearchState<T>([], false));
 
+    /// <summary>Makes a pipeline that runs <paramref name="search"/> on each query that stays unchanged for
+    /// <paramref name="debounce"/> (the protocol's searchDebounceMs when none is given), starting with
+    /// <paramref name="initialQuery"/>.</summary>
+    /// <param name="search">Answers a trimmed, non-empty query with successive result lists, a null one meaning still
+    /// searching.</param>
+    /// <param name="debounce">How long a query must stay unchanged before it is searched.</param>
+    /// <param name="initialQuery">The query the pipeline starts with.</param>
+    /// <param name="timeProvider">The clock the debounce is counted by; the system's when none is given.</param>
     public SearchPipeline(Func<string, CancellationToken, IAsyncEnumerable<IReadOnlyList<T>?>> search,
         TimeSpan? debounce = null, string initialQuery = "", TimeProvider? timeProvider = null)
     {
@@ -29,6 +42,7 @@ public sealed class SearchPipeline<T> : IStateUnit
         Schedule(initialQuery);
     }
 
+    /// <summary>Takes a newly typed query, which is searched once it has stayed unchanged for the debounce.</summary>
     public void SetQuery(string value)
     {
         lock (work.Gate)
@@ -103,6 +117,7 @@ public sealed class SearchPipeline<T> : IStateUnit
         }
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         lock (work.Gate)

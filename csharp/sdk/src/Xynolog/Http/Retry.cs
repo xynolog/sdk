@@ -2,8 +2,12 @@ using Xynolog.Errors;
 
 namespace Xynolog.Http;
 
+/// <summary>Retries an operation on a jittered, doubling backoff.</summary>
 public static class Retry
 {
+    /// <summary>Runs <paramref name="attempt"/> until it succeeds, making another attempt after each error
+    /// <paramref name="retryable"/> accepts while the policy has attempts left, after a jittered backoff or the error's
+    /// stated wait when that is longer.</summary>
     public static async Task<T> RetryWithBackoffAsync<T>(RetryPolicy policy, Func<CancellationToken, Task<T>> attempt,
         Func<XynologError, bool> retryable, Func<XynologError, TimeSpan?> statedWait,
         TimeProvider? timeProvider = null, Random? random = null, CancellationToken cancellation = default)

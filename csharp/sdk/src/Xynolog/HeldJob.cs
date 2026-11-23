@@ -8,27 +8,50 @@ using Xynolog.Types;
 
 namespace Xynolog;
 
+/// <summary>A job a worker has claimed: what it asks for, and the lifecycle messages that report on it and settle it.</summary>
 public interface IHeldJob
 {
+    /// <summary>The job's identity.</summary>
     public JobId JobId { get; }
+    /// <summary>The kind of work the job asks for.</summary>
     public JobType JobType { get; }
+    /// <summary>The resource the job works on.</summary>
     public ResourceId ResourceId { get; }
+    /// <summary>What the job was asked to do, as its creator stated it.</summary>
     public JobParams Params { get; }
+    /// <summary>The units of work an earlier attempt finished, which this attempt need not do again.</summary>
     public IReadOnlyList<string> CompletedUnits { get; }
+    /// <summary>How far an earlier attempt got within each unfinished unit, by unit.</summary>
     public IReadOnlyDictionary<string, UnitCursor> UnitCursors { get; }
+    /// <summary>How many earlier attempts of the job failed.</summary>
     public long RetryCount { get; }
+    /// <summary>How many failed attempts the job may be retried after.</summary>
     public long MaxRetries { get; }
+    /// <summary>Which attempt of the job this is, counting from 1.</summary>
     public long Attempt { get; }
+    /// <summary>The annotation a yield job's gathered context is focused on, if it is focused on one.</summary>
     public AnnotationId? AnnotationId { get; }
+    /// <summary>The trace the job was dispatched in, which its lifecycle messages continue.</summary>
     public ActivityContext Trace { get; }
+    /// <summary>Signalled when the job is cancelled while held, so its work can stop.</summary>
     public CancellationToken Cancelled { get; }
+    /// <summary>Whether the job has been completed, failed or cancelled, after which it accepts no further
+    /// message.</summary>
     public bool Settled { get; }
+    /// <summary>Announces that work on the job has begun; it must be the job's first lifecycle message.</summary>
     public Task StartAsync(CancellationToken cancellation = default);
+    /// <summary>Reports how far the job has got.</summary>
     public Task ProgressAsync(JobProgress progress, CancellationToken cancellation = default);
+    /// <summary>Records the units finished so far, and how far each unfinished one got, so a later attempt resumes from
+    /// them.</summary>
     public Task CheckpointAsync(IReadOnlyList<string> completedUnits, IReadOnlyDictionary<string, UnitCursor>? unitCursors = null, CancellationToken cancellation = default);
+    /// <summary>Writes annotations the job made to a resource, confirming them by reading back the last one if the write
+    /// times out.</summary>
     public Task CommitAsync(ResourceId resourceId, IReadOnlyList<Annotation> annotations, CancellationToken cancellation = default);
+    /// <summary>Settles the job as failed, saying whether it will be retried and what a retry may resume from.</summary>
     public Task FailAsync(string error, FailureClass? failureClass = null, IReadOnlyList<string>? completedUnits = null,
         IReadOnlyDictionary<string, UnitCursor>? unitCursors = null, CancellationToken cancellation = default);
+    /// <summary>Settles the job as cancelled, with what was finished before it stopped.</summary>
     public Task CancelAsync(IReadOnlyList<string>? completedUnits = null, IReadOnlyDictionary<string, UnitCursor>? unitCursors = null,
         CancellationToken cancellation = default);
 }
@@ -59,22 +82,36 @@ public abstract class HeldJob : IHeldJob
             AnnotationId = anchored.Annotation.Id;
     }
 
+    /// <inheritdoc/>
     public JobId JobId => job.Metadata.Id;
+    /// <inheritdoc/>
     public JobType JobType => job.Metadata.Type;
+    /// <inheritdoc/>
     public ResourceId ResourceId => Params.ResourceId;
+    /// <inheritdoc/>
     public JobParams Params => job.Params;
+    /// <inheritdoc/>
     public IReadOnlyList<string> CompletedUnits => job.Metadata.CompletedUnits ?? [];
+    /// <inheritdoc/>
     public IReadOnlyDictionary<string, UnitCursor> UnitCursors => job.Metadata.UnitCursors ?? EmptyCursors;
+    /// <inheritdoc/>
     public long RetryCount => job.Metadata.RetryCount;
+    /// <inheritdoc/>
     public long MaxRetries => job.Metadata.MaxRetries;
+    /// <inheritdoc/>
     public long Attempt => RetryCount + 1;
+    /// <inheritdoc/>
     public AnnotationId? AnnotationId { get; }
+    /// <inheritdoc/>
     public ActivityContext Trace { get; }
+    /// <inheritdoc/>
     public CancellationToken Cancelled { get; }
+    /// <inheritdoc/>
     public bool Settled => settled;
     private static readonly IReadOnlyDictionary<string, UnitCursor> EmptyCursors =
         System.Collections.ObjectModel.ReadOnlyDictionary<string, UnitCursor>.Empty;
 
+    /// <inheritdoc/>
     public Task StartAsync(CancellationToken cancellation = default) => WhileHeldAsync(async () =>
     {
         if (begun) throw new InvalidOperationException("Start must be the job's first lifecycle message.");
@@ -89,6 +126,7 @@ public abstract class HeldJob : IHeldJob
         }, cancellation: cancellation).ConfigureAwait(Spawning.Captures);
     }, cancellation);
 
+    /// <inheritdoc/>
     public Task ProgressAsync(JobProgress progress, CancellationToken cancellation = default) => WhileHeldAsync(async () =>
     {
         Working();
@@ -104,6 +142,7 @@ public abstract class HeldJob : IHeldJob
         }, cancellation: cancellation).ConfigureAwait(Spawning.Captures);
     }, cancellation);
 
+    /// <inheritdoc/>
     public Task CheckpointAsync(IReadOnlyList<string> completedUnits, IReadOnlyDictionary<string, UnitCursor>? unitCursors = null,
         CancellationToken cancellation = default) => WhileHeldAsync(async () =>
     {
@@ -116,6 +155,7 @@ public abstract class HeldJob : IHeldJob
         }, cancellation: cancellation).ConfigureAwait(Spawning.Captures);
     }, cancellation);
 
+    /// <inheritdoc/>
     public Task CommitAsync(ResourceId resourceId, IReadOnlyList<Annotation> annotations, CancellationToken cancellation = default) =>
         WhileHeldAsync(async () =>
         {
@@ -170,6 +210,7 @@ public abstract class HeldJob : IHeldJob
         if (durability is not { } previous || Weakness(evidence) > Weakness(previous)) durability = evidence;
     }
 
+    /// <inheritdoc/>
     public Task FailAsync(string error, FailureClass? failureClass = null, IReadOnlyList<string>? completedUnits = null,
         IReadOnlyDictionary<string, UnitCursor>? unitCursors = null, CancellationToken cancellation = default) =>
         SettleAsync(() => SayFailureAsync(error, failureClass, completedUnits, unitCursors, cancellation), false, cancellation);
@@ -191,6 +232,7 @@ public abstract class HeldJob : IHeldJob
             Durability = durability is DurabilityEvidence.ProbeRefused or DurabilityEvidence.ProbeUnreachable ? durability : null,
         }, cancellation: cancellation);
 
+    /// <inheritdoc/>
     public Task CancelAsync(IReadOnlyList<string>? completedUnits = null, IReadOnlyDictionary<string, UnitCursor>? unitCursors = null,
         CancellationToken cancellation = default) => SettleAsync(() => wire.EmitAsync(BusChannels.JobCancel, new JobCancelCommand
         {
@@ -277,10 +319,12 @@ public abstract class HeldJob : IHeldJob
     }
 }
 
+/// <summary>A claimed mark job, which completes with the annotations it marked.</summary>
 public sealed class HeldMarkJob : HeldJob
 {
     internal HeldMarkJob(Claims holder, Bus wire, JobRunning job, ActivityContext trace) : base(holder, wire, job, trace) { }
 
+    /// <summary>Settles the job as completed with its result.</summary>
     public Task CompleteAsync(MarkJobResult result, CancellationToken cancellation = default) => CompleteAsync(
         durability => new JobCompleteCommand.MarkJobCompleteCommandCase(new MarkJobCompleteCommand
         {
@@ -292,10 +336,12 @@ public sealed class HeldMarkJob : HeldJob
         }), cancellation);
 }
 
+/// <summary>A claimed yield job, which completes with what it yielded.</summary>
 public sealed class HeldYieldJob : HeldJob
 {
     internal HeldYieldJob(Claims holder, Bus wire, JobRunning job, ActivityContext trace) : base(holder, wire, job, trace) { }
 
+    /// <summary>Settles the job as completed with its result.</summary>
     public Task CompleteAsync(YieldJobResult result, CancellationToken cancellation = default) => CompleteAsync(
         durability => new JobCompleteCommand.YieldJobCompleteCommandCase(new YieldJobCompleteCommand
         {

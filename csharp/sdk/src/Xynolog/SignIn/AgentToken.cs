@@ -6,6 +6,8 @@ using Xynolog.Types;
 
 namespace Xynolog.SignIn;
 
+/// <summary>An agent's access to one knowledge base's gateway, on a service's credentials: signs in once, then
+/// renews the token before it expires and when the gateway refuses it.</summary>
 public sealed class AgentToken : IDisposable
 {
     private readonly ServiceToken service;
@@ -22,6 +24,11 @@ public sealed class AgentToken : IDisposable
     // Completed, under the gate, as the agent is disposed.
     private readonly TaskCompletionSource disposal = new(Spawning.CompletionOptions);
 
+    /// <summary>Prepares access to the gateway at <paramref name="endpoint"/> through <paramref name="service"/>'s
+    /// tokens; nothing is asked until <see cref="SignInAsync"/>.</summary>
+    /// <param name="endpoint">The knowledge base's gateway.</param>
+    /// <param name="service">The service whose credentials the tokens are issued on.</param>
+    /// <param name="httpClient">The client the gateway is asked with, if not the shared one.</param>
     public AgentToken(HttpEndpoint endpoint, ServiceToken service, HttpClient? httpClient = null)
     {
         Gateway = Session.Gateway.Origin(endpoint);
@@ -30,11 +37,16 @@ public sealed class AgentToken : IDisposable
         clock = service.Clock;
     }
 
+    /// <summary>The gateway's origin.</summary>
     public string Gateway { get; }
+    /// <summary>The access token held now, or null before the agent has signed in.</summary>
     public string? Token { get { lock (gate) return token; } }
+    /// <summary>The agent's identity as the gateway named it on signing in, or null before then.</summary>
     public UserId? Did { get { lock (gate) return did; } }
+    /// <summary>Each access token the agent holds, the current one first, until it is disposed.</summary>
     public IAsyncEnumerable<string> TokensChanged(CancellationToken cancellation = default) => tokens.Observe(cancellation);
 
+    /// <summary>Signs the agent in, once: takes a token from the service and asks the gateway who it names.</summary>
     public async Task SignInAsync(CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -144,6 +156,7 @@ public sealed class AgentToken : IDisposable
         }
     }
 
+    /// <summary>Stops renewing, ends any renewal in flight and closes <see cref="TokensChanged"/>.</summary>
     public void Dispose()
     {
         lock (gate)

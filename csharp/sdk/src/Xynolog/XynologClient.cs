@@ -3,12 +3,15 @@ using Xynolog.Namespaces;
 
 namespace Xynolog;
 
+/// <summary>A client of one knowledge base's gateway, its operations grouped by the protocol's namespaces.</summary>
 public sealed class XynologClient : IDisposable
 {
     private readonly HttpContentTransport content;
     private readonly LiveQueries live;
     private readonly IDisposable attachedBus;
 
+    /// <summary>Connects to the gateway at <paramref name="baseUrl"/>, subscribed to every channel the client bridges,
+    /// sending <paramref name="token"/>.</summary>
     public XynologClient(string baseUrl, string? token = null, HttpClient? httpClient = null,
         TimeProvider? timeProvider = null, Random? random = null, Timing? timing = null, CachePersistence? persistence = null)
         : this(new HttpTransport(baseUrl, token, BusRegistry.BridgedChannels,
@@ -41,21 +44,38 @@ public sealed class XynologClient : IDisposable
         _ = CloseWithTransportAsync();
     }
 
+    /// <summary>The typed bus on the gateway: emits, frames and requests.</summary>
     public Bus Wire { get; }
+    /// <summary>The in-process bus that carries the client's local signals and the frames it receives.</summary>
     public EventBus Bus { get; }
+    /// <summary>Binds references' bodies to resources.</summary>
     public BindNamespace Bind { get; }
+    /// <summary>Draws a viewer's attention to resources and annotations.</summary>
     public BeckonNamespace Beckon { get; }
+    /// <summary>Gathers the context of resources and annotations.</summary>
     public GatherNamespace Gather { get; }
+    /// <summary>Searches for resources, by text or for a reference.</summary>
     public MatchNamespace Match { get; }
+    /// <summary>Creates, deletes and archives annotations and resources, and delegates annotation jobs.</summary>
     public MarkNamespace Mark { get; }
+    /// <summary>Reads resources, annotations, events and the knowledge base's vocabularies, live and cached.</summary>
     public BrowseNamespace Browse { get; }
+    /// <summary>Creates resources: uploads, clones and generation jobs.</summary>
     public YieldNamespace Yield { get; }
+    /// <summary>Claims, follows and cancels jobs.</summary>
     public JobNamespace Job { get; }
+    /// <summary>The connection to the gateway, which the client owns and closes.</summary>
     public HttpTransport Transport { get; }
+    /// <summary>The gateway's address.</summary>
     public string BaseUrl => Transport.BaseUrl;
+    /// <summary>Where the client's connection to the gateway stands now.</summary>
     public ConnectionState State => Transport.State;
+    /// <summary>Adds to the knowledge base's vocabulary: entity types and tag schemas.</summary>
     public FrameNamespace Frame { get; }
+    /// <summary>Asks whom the credential belongs to, for media tokens, and for the gateway's protected resource
+    /// metadata.</summary>
     public AuthNamespace Auth { get; }
+    /// <summary>Asks for the gateway's health and status.</summary>
     public SystemNamespace System { get; }
 
     /// <summary>What the client's closing save still writes once it is disposed: complete when that save has written what
@@ -70,6 +90,7 @@ public sealed class XynologClient : IDisposable
         finally { Bus.Dispose(); }
     }
 
+    /// <summary>Closes the client's caches, content reads, bus and transport.</summary>
     public void Dispose()
     {
         try { live.Dispose(); }

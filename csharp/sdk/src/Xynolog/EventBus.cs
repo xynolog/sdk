@@ -16,6 +16,9 @@ public sealed class EventBus : IDisposable
     private readonly Dictionary<string, HashSet<ChannelWriter<Carried>>> channels = new(StringComparer.Ordinal);
     private bool closed;
 
+    /// <summary>Delivers a payload to the in-process listeners of a channel, scoped to a resource exactly when the channel
+    /// is.</summary>
+    /// <exception cref="BusRequestError">The bus is closed.</exception>
     public void Emit<T>(BusChannel<T> channel, T payload, ResourceId? scope = null,
         string? correlationId = null) where T : class
     {
@@ -36,6 +39,8 @@ public sealed class EventBus : IDisposable
         }
     }
 
+    /// <summary>The frames heard on a channel from now on, decoded, and for a scoped channel only those of the
+    /// resource.</summary>
     public IAsyncEnumerable<Heard<T>> Frames<T>(BusChannel<T> channel, ResourceId? resource = null,
         CancellationToken cancellation = default) where T : class
     {
@@ -99,6 +104,7 @@ public sealed class EventBus : IDisposable
             foreach (var listener in listeners) listener.TryWrite(carried);
     }
 
+    /// <summary>Closes the bus: every listener's stream ends, and a later emit throws.</summary>
     public void Dispose()
     {
         lock (gate)

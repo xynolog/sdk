@@ -4,8 +4,10 @@ namespace Xynolog.Testing;
 /// disposes <see cref="End"/>, what ends the composition.</summary>
 public sealed partial record LivenessScenario : IDisposable
 {
+    /// <summary>What ends the composition the scenario runs.</summary>
     public IDisposable? End { get; init; }
 
+    /// <summary>Disposes <see cref="End"/>.</summary>
     public void Dispose() => End?.Dispose();
 }
 
@@ -13,24 +15,32 @@ public sealed partial record LivenessScenario : IDisposable
 /// are drawn from <see cref="Random"/>, each the system's or a fixed seed's when it gives none.</summary>
 public sealed partial record LivenessSpec
 {
+    /// <summary>The clock the spec's cases wait on; the system's when null.</summary>
     public TimeProvider? TimeProvider { get; init; }
+    /// <summary>What the spec's schedules are drawn from; a fixed seed's when null.</summary>
     public Random? Random { get; init; }
 }
 
 /// <summary>A connection model or real connection whose transitions can interleave with writes.</summary>
 public interface DeliverySubject : IDisposable
 {
+    /// <summary>Writes an event with the id <paramref name="eventId"/>.</summary>
     public void Write(string eventId);
+    /// <summary>Moves the connection through a transition, such as a reconnect or a handoff.</summary>
     public void Transition();
+    /// <summary>The ids of the events delivered, each as often as it was delivered.</summary>
     public Task<IReadOnlyList<string>> DeliveredAsync(CancellationToken cancellation = default);
 }
 
+/// <summary>Checks a composition under drawn fault schedules: that its outputs speak and its awaited paths settle (L1,
+/// L2), and that each write is delivered once (L3).</summary>
 public static class Liveness
 {
     /// <summary>The seed a spec's schedules are drawn from when it gives no Random, so a drawn run is the same run each
     /// time.</summary>
     private const int DrawnSeed = 7;
 
+    /// <summary>Draws one of the protocol's faults, a delay's length drawn within its bounds.</summary>
     public static FaultAction FaultActions(Random random) => TestingKit.Faults[random.Next(TestingKit.Faults.Count)] switch
     {
         FaultAction.Delay => new FaultAction.Delay(
@@ -38,6 +48,7 @@ public static class Liveness
         var fault => fault,
     };
 
+    /// <summary>Draws <paramref name="count"/> fault schedules, each of a drawn length.</summary>
     public static IReadOnlyList<IReadOnlyList<FaultAction>> FaultSchedules(int count, Random random) =>
         Enumerable.Range(0, count).Select(_ => (IReadOnlyList<FaultAction>)Enumerable
             .Range(0, random.Next(TestingKit.ScheduleLengthMinimum, TestingKit.ScheduleLengthMaximum + 1))
@@ -81,6 +92,8 @@ public static class Liveness
         }
     }
 
+    /// <summary>Draws <paramref name="count"/> interleavings of writes and transitions, each of at most
+    /// <paramref name="longest"/> steps and at least one write.</summary>
     public static IReadOnlyList<IReadOnlyList<DeliveryOp>> DeliveryOps(int count, int longest, Random random)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(longest);

@@ -16,12 +16,19 @@ public sealed class XynologSession : IStateUnit
     private readonly UnitWork work;
     private readonly IDisposable relayed;
 
+    /// <summary>A random identifier, new for each session.</summary>
     public string Id { get; } = Guid.NewGuid().ToString();
+    /// <summary>The knowledge base the session is signed in to.</summary>
     public KbTarget Kb { get; }
+    /// <summary>The client whose transport carries the session's token.</summary>
     public XynologClient Client { get; }
+    /// <summary>The access token the session holds, null before it has one and once it ends.</summary>
     public StateValue<string?> Token { get; }
+    /// <summary>Who the gateway says the token signs in as, null until it has said and once the session ends.</summary>
     public StateValue<UserResponse?> User { get; }
+    /// <summary>The state of the client's event stream.</summary>
     public StateValue<ConnectionState> StreamState { get; }
+    /// <summary>When the token held expires, in Unix seconds, or null when none is held or it states no expiry.</summary>
     public double? ExpiresAt => Token.Value is { } token ? Tokens.TokenExpiry(token) : null;
 
     /// <summary>
@@ -110,12 +117,16 @@ public sealed class XynologSession : IStateUnit
     /// </summary>
     public IAsyncEnumerable<XynologError> Errors(CancellationToken cancellation = default) => kept.Errors(cancellation);
 
+    /// <summary>Waits until the session has read its kept sign-in, renewed an expired token and, unless told not to, asked
+    /// the gateway who the token is.</summary>
     public async Task ReadyAsync(CancellationToken cancellation = default)
     {
         await kept.ReadyAsync(cancellation).ConfigureAwait(Spawning.Captures);
         UpdateIdentity();
     }
 
+    /// <summary>Answers the gateway's refusal of <paramref name="refused"/>: the token renewed, the one held for a token
+    /// already replaced, or null once the session has ended.</summary>
     public async Task<string?> RefreshAsync(string? refused, CancellationToken cancellation = default)
     {
         var token = await kept.RefreshAsync(refused, cancellation).ConfigureAwait(Spawning.Captures);
@@ -147,6 +158,7 @@ public sealed class XynologSession : IStateUnit
         }
     }
 
+    /// <summary>Ends the session: stops renewing, clears the client's token, and closes its state values.</summary>
     public void Dispose()
     {
         lock (work.Gate)

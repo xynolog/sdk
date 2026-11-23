@@ -10,10 +10,32 @@ using Xynolog.Types;
 
 namespace Xynolog;
 
+/// <summary>Why a claim the worker made was refused.</summary>
+/// <param name="Code">The bus error code the refusal carried, or null when the claim failed in transport or its reply could
+/// not be read.</param>
+/// <param name="Detail">The refusal's message.</param>
 public sealed record ClaimRefusal(string? Code, string Detail);
+/// <summary>The job a worker holds now.</summary>
+/// <param name="JobId">Which job the worker holds.</param>
+/// <param name="Type">What kind of job it is.</param>
+/// <param name="Since">When the worker claimed it.</param>
 public sealed record ActiveJob(JobId JobId, JobType Type, DateTimeOffset Since);
+/// <summary>A snapshot of a worker's activity, for telling a healthy worker from a stuck one.</summary>
+/// <param name="LastQueuedEventAt">When the worker last saw a job announced, if it has.</param>
+/// <param name="LastClaimAt">When the worker last claimed a job, if it has.</param>
+/// <param name="LastFinishedAt">When the worker last let go of a job, completed or not, if it has.</param>
+/// <param name="LastActivityAt">When the worker last claimed, worked on or let go of a job, if it has.</param>
+/// <param name="ActiveJob">The job the worker holds now, if any.</param>
+/// <param name="JobsCompleted">How many jobs the worker has completed.</param>
 public sealed record WorkerVitals(DateTimeOffset? LastQueuedEventAt, DateTimeOffset? LastClaimAt,
     DateTimeOffset? LastFinishedAt, DateTimeOffset? LastActivityAt, ActiveJob? ActiveJob, long JobsCompleted);
+/// <summary>A held job that has shown no activity for longer than the stall threshold.</summary>
+/// <param name="JobId">The stalled job.</param>
+/// <param name="JobType">What kind of job it is.</param>
+/// <param name="HeldSince">When the worker claimed it.</param>
+/// <param name="LastActivityAt">When the job last showed activity.</param>
+/// <param name="SilentForMs">How long, in milliseconds, the job had been silent when found stalled.</param>
+/// <param name="ThresholdMs">The silence, in milliseconds, past which a held job counts as stalled.</param>
 public sealed record HeldJobStall(JobId JobId, JobType JobType, DateTimeOffset HeldSince,
     DateTimeOffset LastActivityAt, long SilentForMs, int ThresholdMs);
 
@@ -61,6 +83,8 @@ public sealed class Claims
 
     internal int CommitTimeoutMs => timing.MarkCommitTimeoutMs;
 
+    /// <summary>Waits for the next job this worker claims, starting the worker on the first call; null once the worker is
+    /// stopped.</summary>
     public async Task<IHeldJob?> NextAsync(CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -86,6 +110,7 @@ public sealed class Claims
     /// found.</summary>
     public IAsyncEnumerable<HeldJobStall> Stalled(CancellationToken cancellation = default) => stalls.Observe(cancellation);
 
+    /// <summary>A snapshot of the worker's activity now.</summary>
     public WorkerVitals Vitals()
     {
         lock (gate)
@@ -95,6 +120,7 @@ public sealed class Claims
         }
     }
 
+    /// <summary>Stops the worker, failing the job it holds and waiting for a claim in flight to settle.</summary>
     public Task StopAsync()
     {
         lock (gate)

@@ -3,12 +3,15 @@ using Xynolog.Types;
 
 namespace Xynolog.State;
 
+/// <summary>Answers each search request on this client's own bus with its results, or its failure, under the request's
+/// correlation id.</summary>
 public sealed class MatchStateUnit : IStateUnit
 {
     private readonly XynologClient client;
     private readonly UnitWork work;
     private readonly EventBus.Subscription events;
 
+    /// <summary>Starts answering the search requests on the client's own bus.</summary>
     public MatchStateUnit(XynologClient client)
     {
         this.client = client;
@@ -48,6 +51,7 @@ public sealed class MatchStateUnit : IStateUnit
         }
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         lock (work.Gate) { work.Dispose(); events.Dispose(); }

@@ -9,9 +9,14 @@ using Xynolog.Types;
 
 namespace Xynolog.Testing;
 
+/// <summary>A scripted answer to one renewal of a credential: a token, or a failure.</summary>
 public closed record Renewal
 {
+    /// <summary>Renews the credential to a token.</summary>
+    /// <param name="Value">The renewed token, or null for a renewal that yields none.</param>
     public sealed record Token(string? Value) : Renewal;
+    /// <summary>Fails the renewal.</summary>
+    /// <param name="Error">The error the renewal throws.</param>
     public sealed record Failure(SignInError Error) : Renewal;
 }
 
@@ -30,21 +35,32 @@ public sealed class ScriptedSessions(Func<string, string, JsonElement, JsonEleme
     private long identityDelayTicks;
     private int renewed;
 
+    /// <summary>The stored sessions revoked through the factory, in order.</summary>
     public IReadOnlyList<StoredSession> Revoked => revoked.ToArray();
+    /// <summary>How many renewals the factory's sessions have asked for.</summary>
     public int Renewed => Volatile.Read(ref renewed);
+    /// <summary>The scripted transports the factory built for a knowledge base, in the order it opened them.</summary>
     public IReadOnlyList<FaultyTransport> Transports(string kbId) =>
         built.Where(entry => entry.KbId == kbId).Select(entry => entry.Transport).ToArray();
 
+    /// <summary>Queues the answers to the next renewals, one renewal each, in order.</summary>
     public void QueueRenewals(params Renewal[] scripted)
     {
         foreach (var renewal in scripted) renewals.Enqueue(renewal);
     }
 
+    /// <summary>Scripts whom the credential of every later session belongs to.</summary>
     public void SaysWho(UserResponse identity) => user = identity;
+    /// <summary>Makes every later identity check wait <paramref name="delay"/> before it answers.</summary>
     public void AnswersAfter(TimeSpan delay) => Interlocked.Exchange(ref identityDelayTicks, delay.Ticks);
+    /// <summary>Makes every later open fail with <paramref name="reason"/>, or, given null, succeed again.</summary>
     public void RefuseToBuild(string? reason) => constructFailure = reason;
+    /// <summary>Scripts refusals of correlated requests: given the knowledge base, the operation and the payload, a
+    /// failure body it returns refuses the request; null scripts none.</summary>
     public void RefuseWhen(Func<string, string, JsonElement, JsonElement?>? refuse) => refusal = refuse;
 
+    /// <summary>Opens a real session to the options' knowledge base over a scripted transport, its identity and
+    /// renewals as scripted.</summary>
     public async Task<OpenedSession> OpenAsync(SessionFactoryOptions options, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -122,6 +138,7 @@ public sealed class ScriptedSessions(Func<string, string, JsonElement, JsonEleme
         }
     }
 
+    /// <summary>Records the stored session as revoked, without a request.</summary>
     public Task RevokeAsync(StoredSession stored, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
