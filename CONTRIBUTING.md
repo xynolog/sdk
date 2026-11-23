@@ -48,7 +48,7 @@ Each language keeps a changelog beside its README (OCaml's is `CHANGES.md`, as d
 
 `version.json` names the coming release, one semantic version `X.Y.Z` for all nine languages; `scripts/sdk_version.py` derives every package version from it. Below 1.0 the minor number is the break: a breaking change raises it, anything else the patch number. A commit tagged `vX.Y.Z` builds the release; every other commit builds a development version, which no registry receives.
 
-To release, check out `main`'s latest commit (`git switch main && git pull --ff-only`) and run `bash scripts/tag-release.sh`; it refuses any other commit. It runs `scripts/release-ready.sh`, which checks five things:
+To release, run `make tag-release` on `main`. It refuses a working tree with changes, or any other branch, and discards nothing. It pulls `main`'s latest commit and the pinned submodules, then runs `scripts/release-ready.sh`, which checks five things:
 
 - the committed manifests, tagged links and changelogs hold the release's versions;
 - the release is not tagged on another commit;
@@ -58,9 +58,9 @@ To release, check out `main`'s latest commit (`git switch main && git pull --ff-
 
 It then signs and pushes `vX.Y.Z`. That starts the release workflow, which does nothing until it has fetched the tag and found it annotated, named as pushed, on a commit `main` holds, and signed by the release signer (`xynolog/.github`'s `release-tag.yml`); it then runs the same checks again, and builds, verifies and releases the nine-language bundle as the GitHub release `vX.Y.Z`.
 
-Once that release exists, run `bash scripts/tag-release.sh go` on the same commit. It signs and pushes Go's `go/vX.Y.Z`, which is itself the Go release, since the Go module proxy serves the tag from then on; so it waits for the bundle, and a failed build spends no Go version.
+`make tag-release` watches that run. Once the release exists, it signs and pushes Go's `go/vX.Y.Z` on the same commit, which is itself the Go release, since the Go module proxy serves the tag from then on; so it waits for the bundle, and a failed build spends no Go version. A tag already on the commit is pushed again rather than signed again, so a `make tag-release` that stopped can be run again. If `main` has moved on since, finish the Go tag on the release's commit instead: `git switch --detach vX.Y.Z && bash scripts/tag-release.sh go`.
 
-Each registry then takes the released bundle, never a rebuild: dispatch `publish.yml` at the tag, one registry at a time, and approve it in the `release` environment, for example `gh workflow run publish.yml --ref vX.Y.Z -f registry=pypi`. Each registry accepts the SDK only through trusted publishing from that workflow and environment. cargo publishes only a crate it packages itself, so `registry=crates` packages each crate from the tag as the release did, and publishes none unless every archive is the bundle's. `registry=go` checks the signed Go tag and that the module the Go proxy serves is the bundle's.
+Each registry then takes the released bundle, never a rebuild. On the release's commit, `make publish` dispatches `publish.yml` at its tag for each registry the workflow offers, one at a time, and watches each run to its end. A person approves each run in the `release` environment. A run that fails stops the rest, and the registries still to publish are named. `make publish-<registry>`, as `make publish-pypi`, publishes to one. Each registry accepts the SDK only through trusted publishing from that workflow and environment. cargo publishes only a crate it packages itself, so `crates` packages each crate from the tag as the release did, and publishes none unless every archive is the bundle's. `go` checks the signed Go tag and that the module the Go proxy serves is the bundle's.
 
 Once the release is tagged, CI fails until the coming release moves on: `python3 scripts/sdk_version.py move X.Y.Z` writes a later one into `version.json` and every manifest, and opens its section in each language's changelog, in a pull request of its own.
 

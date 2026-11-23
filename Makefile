@@ -2,7 +2,7 @@
 
 LANGUAGES := typescript python rust go csharp haskell kotlin ocaml swift
 
-.PHONY: help build codegen test test-tooling generate check-generated test-codegen verify-artifacts clean clean-local $(LANGUAGES) $(addprefix test-,$(LANGUAGES)) $(addsuffix -clean,$(LANGUAGES))
+.PHONY: help build codegen test test-tooling generate check-generated test-codegen verify-artifacts tag-release publish clean clean-local $(LANGUAGES) $(addprefix test-,$(LANGUAGES)) $(addsuffix -clean,$(LANGUAGES))
 
 # `make help` prints the `##` lines below, in order (build-tools/make-help.awk).
 ##@ Xynolog SDK: make [target] [VARIABLE=value ...]
@@ -58,6 +58,19 @@ check-generated:
 ## test-codegen: The generator's own tests and checks: its model reads every file of the pinned Protocol, each case table is run by a named test of each SDK or absent for a reason, each surface item an SDK lacks is one Protocol has, and every sdk path that Protocol names is here
 test-codegen:
 	bash scripts/make-target.sh test-codegen
+
+##@ Release
+## tag-release: On main, pull its latest commit and tag it as the release version.json names, once it is ready: sign and push vX.Y.Z, wait for its release workflow to release the bundle, then sign and push Go's go/vX.Y.Z
+tag-release:
+	bash scripts/tag-release.sh
+
+## publish: Publish the release this commit is tagged as to each registry publish.yml offers, one run at a time, each approved in the release environment and watched to its end
+publish:
+	bash scripts/publish-release.sh
+
+## publish-<registry>: Publish it to one of those registries, as publish-npm
+publish-%:
+	bash scripts/publish-release.sh $*
 
 ##@ Clean
 ## clean: Remove every language's output, the local artifacts, caches and bundles
