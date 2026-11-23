@@ -31,10 +31,14 @@ def normalize_tar_gz(path: Path) -> None:
     temporary = path.with_name(path.name + ".normalized")
     with tarfile.open(path, "r:gz") as source:
         members = sorted(source.getmembers(), key=lambda item: item.name)
+        # Ustar, whose prefix field holds a name past 100 bytes: Cabal's tar
+        # reader ignores a PAX path record, so a source distribution written
+        # with one unpacks under truncated names. A name ustar cannot hold
+        # fails here.
         with (
             temporary.open("wb") as raw,
             gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as compressed,
-            tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as target,
+            tarfile.open(fileobj=compressed, mode="w", format=tarfile.USTAR_FORMAT) as target,
         ):
             for original in members:
                 item = tarfile.TarInfo(original.name)
@@ -48,7 +52,6 @@ def normalize_tar_gz(path: Path) -> None:
                 item.mtime = 0
                 item.devmajor = original.devmajor
                 item.devminor = original.devminor
-                item.pax_headers = {}
                 if original.isfile():
                     stream = source.extractfile(original)
                     if stream is None:

@@ -140,6 +140,12 @@ jobs:
           make "$LANGUAGE"
           SDK_ARTIFACTS="$(python3 scripts/create-artifact-bundle.py --path "$LANGUAGE")" make verify-artifacts
 
+      # The bundle's packages install as a consumer installs them from the
+      # registry, on each runtime they admit at their edges, and a program
+      # builds on them.
+      - name: The language's packages install in a clean room
+        run: bash scripts/clean-room.sh "$LANGUAGE" "$(python3 scripts/create-artifact-bundle.py --path "$LANGUAGE")"
+
       - name: Save the Haskell artifact's Cabal home
         if: github.event_name == 'push' && matrix.language == 'haskell' && steps.bundle.outcome == 'success' && steps.cabal.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0
