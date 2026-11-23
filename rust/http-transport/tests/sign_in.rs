@@ -9,6 +9,7 @@
 
 mod quick_clock;
 
+use axum::Json;
 use axum::Router;
 use axum::body::Body;
 use axum::extract::{Path as Named, State};
@@ -306,13 +307,9 @@ fn claims_of(token: &str) -> Option<serde_json::Map<String, Value>> {
 async fn subscribe(
     State(staged): State<Arc<Staged>>,
     headers: HeaderMap,
-    body: String,
+    Json(subscription): Json<Value>,
 ) -> Response {
-    staged
-        .subscriptions
-        .lock()
-        .unwrap()
-        .push(serde_json::from_str(&body).expect("a subscription"));
+    staged.subscriptions.lock().unwrap().push(subscription);
     staged
         .subscribed_with
         .lock()
@@ -331,7 +328,11 @@ async fn subscribe(
         .into_response()
 }
 
-async fn emit(State(staged): State<Arc<Staged>>, headers: HeaderMap, body: String) -> Response {
+async fn emit(
+    State(staged): State<Arc<Staged>>,
+    headers: HeaderMap,
+    Json(sent): Json<Value>,
+) -> Response {
     if staged
         .refused_on_the_bus
         .lock()
@@ -340,7 +341,6 @@ async fn emit(State(staged): State<Arc<Staged>>, headers: HeaderMap, body: Strin
     {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    let sent: Value = serde_json::from_str(&body).expect("an emit");
     staged.emitted.lock().unwrap().push(sent.clone());
     let asked = sent["channel"].as_str().unwrap_or_default();
     let answer = if asked == "job:claim" {
