@@ -30,13 +30,16 @@
      reads a member holding any other text as absent; a writer holds the
      member to these as to an [enum];
    - [enum]: the value is one of these, a number by its value (1.0 is 1);
-   - [pattern]: a text is a series of steps, each a set of code points ([of],
-     ranges from and to, both included) the text's next code points are in, at
-     least [min] of them and at most [max] (no [max]: any number). It is the
+   - [pattern]: a text is a series of terms. A step is a set of code points
+     ([of], ranges from and to, both included) the text's next code points
+     are in; a group is alternatives ([either]), each a series of terms, the
+     text's next code points being one of them. Each is repeated at least
+     [min] times and at most [max] (no [max]: any number), a repetition of a
+     group past its [min] taking at least one code point. A text is of the
+     pattern when some way of reading it so takes all of it. It is the
      schema's pattern, searched for in the whole text as ECMA-262 reads it,
-     an end the pattern does not anchor a step of any code points,
-     spelled out so that no SDK reads it by a regular-expression engine of its
-     own;
+     an end the pattern does not anchor a step of any code points, spelled
+     out so that no SDK reads it by a regular-expression engine of its own;
    - [minLength], [maxLength]: the fewest and most code points of a text;
    - [minimum], [maximum]: the least and greatest a number is, each allowed;
    - [minItems], [maxItems]: the fewest and most items of an array;
@@ -76,6 +79,9 @@ let kind_name = function
   | Null -> "null"
 
 type step = { of_ : (int * int) list; min : int; max : int option }
+
+type term = Step of step | Group of group
+and group = { either : term list list; min : int; max : int option }
 type discriminator = { property : string; mapping : (string * int) list }
 
 type shape = Ref of string | Shape of body
@@ -84,7 +90,7 @@ and body = {
   kinds : kind list option;
   recognized : string list option;
   enum : Schema.literal list option;
-  pattern : step list option;
+  pattern : term list option;
   min_length : int option;
   max_length : int option;
   minimum : float option;
@@ -187,13 +193,16 @@ let code_points text =
 
 exception Unspellable
 
-(* A pattern as the steps a text of its form takes: a series of single characters, sets ([[...]], [[^...]]), [.], [\s], [\S],
-   [\d], [\D], [\w] and [\W], each with no quantifier or with [?], [*], [+],
-   [{n}], [{n,}] or [{n,m}]. Any other is unspellable. *)
-let steps_of pattern =
+(* A pattern as the terms a text of its form is: a series of steps and
+   groups. A step is a single character, a set ([[...]], [[^...]], which may
+   hold [\s], [\S], [\d], [\D], [\w] and [\W]), [.],
+   [\s], [\S], [\d], [\D], [\w] or [\W]; a group, [(...)], is alternatives
+   ([|]), each a series of its own; and each is with no quantifier or with
+   [?], [*], [+], [{n}], [{n,}] or [{n,m}]. The pattern's top is a group of
+   one repetition when it states alternatives there. Any other is
+   unspellable. *)
+let terms_of pattern =
   let n = String.length pattern in
-  (* A pattern is searched for anywhere in a text: an end it does not anchor
-     is a step of any code points, as many as there are. *)
   let starts = n > 0 && pattern.[0] = '^' in
   let ends =
     n > (if starts then 1 else 0)
@@ -203,12 +212,6 @@ let steps_of pattern =
   let from = if starts then 1 else 0 in
   let body =
     code_points (String.sub pattern from (n - from - if ends then 1 else 0))
-  in
-  let anywhere = { of_ = [ (0, last) ]; min = 0; max = None } in
-  let anchored steps =
-    (if starts then [] else [ anywhere ])
-    @ steps
-    @ if ends then [] else [ anywhere ]
   in
   let length = Array.length body in
   let at i = if i < length then Some body.(i) else None in
@@ -236,6 +239,8 @@ let steps_of pattern =
     | Some c when c = Char.code ']' ->
         if ranges = [] then raise Unspellable else (i + 1, ranges)
     | Some c when c = Char.code '[' -> raise Unspellable
+    | Some c when c = Char.code '\\' && among "sSdDwW" (i + 1) ->
+        set (i + 2) (escaped (i + 1) @ ranges)
     | Some c ->
         let i, from =
           if c = Char.code '\\' then
@@ -287,45 +292,54 @@ let steps_of pattern =
         (j + 1, min, max)
     | _ -> (i, 1, Some 1)
   in
-  let rec steps i acc =
-    if i >= length then List.rev acc
+  (* The series that starts at [i], up to the [|] or [)] that ends it, and
+     where that is. *)
+  let rec series i acc =
+    if i >= length || is '|' i || is ')' i then (i, List.rev acc)
     else
-      let i, of_ =
+      let i, term =
         match body.(i) with
-        | c when c = Char.code '[' ->
-            let negated = is '^' (i + 1) in
-            let i, ranges = set (if negated then i + 2 else i + 1) [] in
-            (i, if negated then complement ranges else merged ranges)
-        | c when c = Char.code '.' -> (i + 1, complement line_terminators)
-        | c when c = Char.code '\\' -> (i + 2, escaped (i + 1))
-        | _ when among "^$|?*+(){}]" i -> raise Unspellable
-        | c -> (i + 1, single c)
+        | c when c = Char.code '(' ->
+            if is '?' (i + 1) then raise Unspellable;
+            let i, either = alternatives (i + 1) [] in
+            if not (is ')' i) then raise Unspellable;
+            let i, min, max = quantifier (i + 1) in
+            (i, Group { either; min; max })
+        | c ->
+            let i, of_ =
+              match c with
+              | c when c = Char.code '[' ->
+                  let negated = is '^' (i + 1) in
+                  let i, ranges = set (if negated then i + 2 else i + 1) [] in
+                  (i, if negated then complement ranges else merged ranges)
+              | c when c = Char.code '.' -> (i + 1, complement line_terminators)
+              | c when c = Char.code '\\' -> (i + 2, escaped (i + 1))
+              | _ when among "^$?*+{}]" i -> raise Unspellable
+              | c -> (i + 1, single c)
+            in
+            let i, min, max = quantifier i in
+            (i, Step { of_; min; max })
       in
-      let i, min, max = quantifier i in
       if among "?*+{" i then raise Unspellable;
-      steps i ({ of_; min; max } :: acc)
+      series i (term :: acc)
+  and alternatives i acc =
+    let i, one = series i [] in
+    if is '|' i then alternatives (i + 1) (one :: acc)
+    else (i, List.rev (one :: acc))
   in
-  anchored (steps 0 [])
-
-(* A pattern whose one group is where it starts, [^(A|B)rest], as the
-   patterns it is one of, [^Arest] and [^Brest]: a text is of the pattern when
-   it is of one of them. Any other pattern is itself alone. *)
-let alternatives pattern =
-  let from = if String.starts_with ~prefix:"^" pattern then 1 else 0 in
-  let n = String.length pattern in
-  match String.index_from_opt pattern from ')' with
-  | Some close
-    when n > from
-         && pattern.[from] = '('
-         && (not (String.contains (String.sub pattern (from + 1) (close - from - 1)) '('))
-         && (not (String.contains (String.sub pattern (from + 1) (close - from - 1)) '\\'))
-         && not (String.contains (String.sub pattern (close + 1) (n - close - 1)) '(') ->
-      let anchor = String.sub pattern 0 from
-      and rest = String.sub pattern (close + 1) (n - close - 1) in
-      List.map
-        (fun alternative -> anchor ^ alternative ^ rest)
-        (String.split_on_char '|' (String.sub pattern (from + 1) (close - from - 1)))
-  | _ -> [ pattern ]
+  let i, either = alternatives 0 [] in
+  if i < length then raise Unspellable;
+  (* A pattern is searched for anywhere in a text: an end it does not anchor
+     is a step of any code points, as many as there are. *)
+  let anywhere = Step { of_ = [ (0, last) ]; min = 0; max = None } in
+  let terms =
+    match either with
+    | [ one ] -> one
+    | either -> [ Group { either; min = 1; max = Some 1 } ]
+  in
+  (if starts then [] else [ anywhere ])
+  @ terms
+  @ if ends then [] else [ anywhere ]
 
 (* ── Kinds ────────────────────────────────────────────────────────────── *)
 
@@ -610,9 +624,10 @@ let derive ~ids ~unrecognized components =
               then [ Object ]
               else if schema.items <> None then [ Array ]
               else
-                match schema.enum with
-                | Some values -> ordered_set (List.map kind_of_literal values)
-                | None -> all_kinds))
+                match (schema.enum, schema.const) with
+                | Some values, _ -> ordered_set (List.map kind_of_literal values)
+                | None, Some value -> [ kind_of_literal value ]
+                | None, None -> all_kinds))
     and closed_schema l file at =
       match view file at l with
       | Or_null _ -> false
@@ -708,35 +723,14 @@ let derive ~ids ~unrecognized components =
                 refuse file (at ^ "/" ^ keyword) "is %d, which is no count" n
             | bound -> bound
           in
-          let pattern, alternated =
-            match
-              Option.map
-                (fun text ->
-                  List.map
-                    (fun alternative ->
-                      try steps_of alternative
-                      with Unspellable ->
-                        refuse file (at ^ "/pattern")
-                          "is %s, which is not a pattern the table can spell \
-                           out"
-                          text)
-                    (alternatives text))
-                pattern
-            with
-            | None -> (None, [])
-            | Some [ steps ] -> (Some steps, [])
-            | Some many ->
-                ( None,
-                  [
-                    Shape
-                      {
-                        empty with
-                        one_of =
-                          List.map
-                            (fun steps -> Shape { empty with pattern = Some steps })
-                            many;
-                      };
-                  ] )
+          let pattern =
+            Option.map
+              (fun text ->
+                try terms_of text
+                with Unspellable ->
+                  refuse file (at ^ "/pattern")
+                    "is %s, which is not a pattern the table can spell out" text)
+              pattern
           in
           let names =
             List.sort String.compare
@@ -840,7 +834,6 @@ let derive ~ids ~unrecognized components =
                     part.shape_of file (Printf.sprintf "%s/allOf/%d" at i))
                   parts
           in
-          let all_of = all_of @ alternated in
           Shape
             {
               kinds = (if any_kind kinds then None else Some (ordered kinds));
@@ -994,6 +987,29 @@ let strings list = `List (List.map (fun s -> `String s) list)
 
 (* A shape as the table writes it. [pairs] writes an object's members as
    [name, shape] pairs, for a reader whose JSON objects keep no order. *)
+let rec term_json = function
+  | Step step ->
+      `Assoc
+        ([
+           ( "of",
+             `List
+               (List.map (fun (from, to_) -> `List [ `Int from; `Int to_ ]) step.of_)
+           );
+           ("min", `Int step.min);
+         ]
+        @ Option.fold ~none:[] ~some:(fun max -> [ ("max", `Int max) ]) step.max)
+  | Group group ->
+      `Assoc
+        ([
+           ( "either",
+             `List
+               (List.map
+                  (fun terms -> `List (List.map term_json terms))
+                  group.either) );
+           ("min", `Int group.min);
+         ]
+        @ Option.fold ~none:[] ~some:(fun max -> [ ("max", `Int max) ]) group.max)
+
 let rec to_json ~pairs = function
   | Ref name -> `Assoc [ ("ref", `String name) ]
   | Shape b ->
@@ -1012,26 +1028,7 @@ let rec to_json ~pairs = function
              part "enum"
                (Option.map (fun vs -> `List (List.map literal vs)) b.enum);
              part "pattern"
-               (Option.map
-                  (fun steps ->
-                    `List
-                      (List.map
-                         (fun step ->
-                           `Assoc
-                             ([
-                                ( "of",
-                                  `List
-                                    (List.map
-                                       (fun (from, to_) ->
-                                         `List [ `Int from; `Int to_ ])
-                                       step.of_) );
-                                ("min", `Int step.min);
-                              ]
-                             @ Option.fold ~none:[]
-                                 ~some:(fun max -> [ ("max", `Int max) ])
-                                 step.max))
-                         steps))
-                  b.pattern);
+               (Option.map (fun terms -> `List (List.map term_json terms)) b.pattern);
              part "minLength" (int b.min_length);
              part "maxLength" (int b.max_length);
              part "minimum" (Option.map number b.minimum);

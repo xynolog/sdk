@@ -450,6 +450,9 @@ let rec shape_literal : Shape.shape -> S.expr = function
         one_of;
         discriminator;
         all_of;
+        not_all;
+        min_members;
+        names;
       } ->
       let part label write = Option.map (fun v -> arg label (write v)) in
       let listed label write = function
@@ -462,18 +465,38 @@ let rec shape_literal : Shape.shape -> S.expr = function
             call (S.Implicit_member "number") [ S.Float (float_of_int i) ]
         | Bool_literal b -> call (S.Implicit_member "bool") [ S.Bool b ]
       in
-      let step ({ of_; min; max } : Shape.step) =
-        labelled (name "Step")
-          [
-            arg "of"
-              (S.Array
-                 ( S.Inline,
-                   List.map
-                     (fun (lo, hi) -> S.Binary (S.Int lo, "...", S.Int hi))
-                     of_ ));
-            arg "min" (S.Int min);
-            arg "max" (match max with Some m -> S.Int m | None -> S.Nil);
-          ]
+      let max = function Some m -> S.Int m | None -> S.Nil in
+      let rec term : Shape.term -> S.expr = function
+        | Step { of_; min; max = most } ->
+            call (S.Implicit_member "step")
+              [
+                labelled (name "Step")
+                  [
+                    arg "of"
+                      (S.Array
+                         ( S.Inline,
+                           List.map
+                             (fun (lo, hi) -> S.Binary (S.Int lo, "...", S.Int hi))
+                             of_ ));
+                    arg "min" (S.Int min);
+                    arg "max" (max most);
+                  ];
+              ]
+        | Group { either; min; max = most } ->
+            call (S.Implicit_member "group")
+              [
+                labelled (name "Group")
+                  [
+                    arg "either"
+                      (S.Array
+                         ( S.Inline,
+                           List.map
+                             (fun terms -> S.Array (S.Inline, List.map term terms))
+                             either ));
+                    arg "min" (S.Int min);
+                    arg "max" (max most);
+                  ];
+              ]
       in
       labelled (name "Shape")
         (List.filter_map Fun.id
@@ -491,7 +514,7 @@ let rec shape_literal : Shape.shape -> S.expr = function
                (fun vs -> S.Array (S.Inline, List.map listed_literal vs))
                enum;
              part "pattern"
-               (fun steps -> S.Array (S.Inline, List.map step steps))
+               (fun terms -> S.Array (S.Inline, List.map term terms))
                pattern;
              part "minLength" (fun n -> S.Int n) min_length;
              part "maxLength" (fun n -> S.Int n) max_length;
@@ -532,6 +555,9 @@ let rec shape_literal : Shape.shape -> S.expr = function
                    ])
                discriminator;
              listed "allOf" shape_literal all_of;
+             listed "notAll" strings not_all;
+             part "minMembers" (fun n -> S.Int n) min_members;
+             part "names" shape_literal names;
            ])
 
 (* A table of shapes by name, built one entry to a statement: the type

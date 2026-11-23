@@ -114,7 +114,7 @@ let components (spec : Spec.t) =
          ^ name)
       else
         match List.assoc_opt file spec.schemas with
-        | Some s -> Result.map (fun s -> (name, s)) (in_place s)
+        | Some s -> Result.map (fun s -> (name, s)) (in_place (Normalize.shape_only s))
         | None -> Error ("no schema file " ^ file))
     (Roots.all spec)
 
@@ -233,15 +233,11 @@ let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
     held "session/stored.json#/storedSession"
       tables.session_stored.stored_session
   in
-  let* open_resource =
-    held "session/stored.json#/openResource" tables.session_stored.open_resource
-  in
   let stored =
     List.sort (fun (a, _) (b, _) -> String.compare a b) (adapters @ records)
     @ [
         ("SignIn", sign_in);
         ("StoredSession", stored_session);
-        ("OpenResource", open_resource);
         ("IssuerEndpoints", issuer);
         ( "PendingAuthorization",
           Schema.Schema

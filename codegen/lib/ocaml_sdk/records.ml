@@ -112,7 +112,7 @@ let tabled (spec : Spec.t) table =
     raise (Refused { Decode.file; pointer = pointer ^ at; message })
   in
   let enums = Enums.tabled spec.ids table in
-  let whole = Definitions.whole spec in
+  let whole = Definitions.typed spec in
   let clients =
     List.filter_map
       (fun name ->

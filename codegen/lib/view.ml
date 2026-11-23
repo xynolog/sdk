@@ -48,6 +48,14 @@ let discriminant (s : D.t) =
       List.find_map (fun (_, p) -> only_value p) ps
   | _ -> None
 
+(* What an inline member of a union is named by: the one value its
+   discriminant takes, else its title. *)
+let member_name (s : D.t) =
+  match (discriminant s, s) with
+  | Some d, _ -> Some (Text.pascal d)
+  | None, D.Node { title = Some title; _ } -> Some (Text.pascal title)
+  | None, _ -> None
+
 (* What [s] says of itself, or, when it only admits null beside another
    schema, what that schema says: never what a schema its [allOf] names says,
    which the view gives a schema that states one. *)

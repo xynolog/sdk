@@ -898,11 +898,14 @@ and union_declaration st name members told_apart doc =
               (* An inline member is named by the one value its discriminant
                  takes, when it has one. *)
               let variant =
-                match View.discriminant member with
-                | Some d -> Text.pascal d
+                match View.member_name member with
+                | Some named -> named
                 | None -> "Object"
               in
               (variant, type_of st name variant member)
+          | D.Node { type_ = Some (D.One Integer); _ } -> ("Integer", ty "i64")
+          | D.Node { type_ = Some (D.One Number); _ } -> ("Number", ty "f64")
+          | D.Node { type_ = Some (D.One Boolean); _ } -> ("Boolean", ty "bool")
           | _ -> refuse "%s: a union member the generator does not know" name
         in
         if List.mem_assoc variant acc then

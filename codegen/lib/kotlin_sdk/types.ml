@@ -179,14 +179,6 @@ let without_null what n =
       Some (Node { s; null_form = Not_null })
   | None, _ -> None
 
-(* [const] is a keyword no SDK reads ([Schema.unread]): a schema that admits
-   one value states it as an [enum] of one. *)
-let refuse_const what n =
-  if field (fun (s : Schema.schema) -> s.const) n <> None then
-    refuse
-      "%s: `const`, which no SDK reads: state the one value as an `enum` of one"
-      what
-
 (* What a generation reads: the schemas it writes, by name, the kinds of id
    among them, and the name of each schema a [$ref] names, by where it points
    ([Table_records.key]). *)
@@ -365,7 +357,6 @@ and type_of st owner property n =
   | Some name -> t (named st name)
   | None when is_empty n -> t "JsonElement"
   | None -> (
-      refuse_const what n;
       match without_null what n with
       | Some n -> type_of st owner property n
       | None -> (
@@ -374,7 +365,6 @@ and type_of st owner property n =
           | None -> (
               match union n with
               | Some members ->
-                  List.iter (refuse_const what) members;
                   if List.for_all (is_string st) members then t "String"
                   else inline st (inline_name st owner property) n
               | None -> (
@@ -451,7 +441,6 @@ and plain_declaration st name ~owner raw : written =
       in
       union_declaration st name members told_apart about
   | None -> (
-      refuse_const name raw;
       match enum raw with
       | Some values ->
           if type_name raw <> Some String then
@@ -1023,12 +1012,14 @@ and union_declaration st name members told_apart about : written =
                (list_of (type_of st name "Item" (node_of_items name m))))
             [ `List ]
       | _ when type_name m = Some Object -> (
-          (* An inline member is named by the one value its discriminant takes, when it has one. *)
+          (* An inline member is named by the one value its discriminant
+             takes, else by its title. *)
           let type_ =
             type_of st name
-              (match discriminant m with
-              | Some d -> Names.pascal d
-              | None -> "Object")
+              (match (discriminant m, field (fun (s : Schema.schema) -> s.title) m) with
+              | Some d, _ -> Names.pascal d
+              | None, Some title -> Names.pascal title
+              | None, None -> "Object")
               m
           in
           match name_of type_ with

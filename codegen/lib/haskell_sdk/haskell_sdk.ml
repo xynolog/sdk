@@ -122,22 +122,6 @@ let files ~root (spec : Spec.t) =
          ~carrier:(Transport.carrier_schema transport)
          ~http:http.schemas ~envelopes:bus.envelopes)
   in
-  let* () =
-    within "openapi.json"
-      (match
-         List.find_map
-           (fun (name, schema) ->
-             match Schema.unread_anywhere schema with
-             | [] -> None
-             | keyword :: _ ->
-                 Some
-                   (name ^ " states " ^ keyword
-                  ^ ", which the SDK does not read"))
-           definitions
-       with
-      | Some refusal -> Error refusal
-      | None -> Ok ())
-  in
   let identifiers =
     List.map
       (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)

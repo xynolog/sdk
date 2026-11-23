@@ -97,9 +97,14 @@ let roots ~root (spec : Spec.t) =
       (fun message -> [ { Decode.file = specs; pointer = ""; message } ])
       (Table_records.all spec)
   in
-  let read ~file name path schema json =
-    ((name, path, { Models.schema; json = titled spec.ids ~file records json })
-      : _)
+  let read ~file name path validated json =
+    ( name,
+      path,
+      {
+        Models.schema = Normalize.shape_only validated;
+        validated;
+        json = titled spec.ids ~file records json;
+      } )
   in
   let written = Definitions.whole spec in
   (* A schema is read as a writer reads one whole ([Definitions.whole]), and
@@ -344,7 +349,8 @@ let files ~root (spec : Spec.t) =
          ~roots
          ~made:
            (List.map
-              (fun (name, json, schema) -> (name, { Models.schema; json }))
+              (fun (name, json, schema) ->
+                (name, { Models.schema; validated = schema; json }))
               made))
   in
   let* failures = failure_codes spec models in

@@ -143,9 +143,9 @@ let adapted spec =
            [ "PendingAnnotation"; "UploadProgress"; "FrameRefusalReason" ]))
     (Definitions.generated_client_types spec)
 
-(* A client type of [spec] read whole ([Definitions.whole]), by its name. *)
+(* A client type of [spec] as a writer of types reads it ([Definitions.typed]), by its name. *)
 let whole (spec : Spec.t) =
-  let written = Definitions.whole spec in
+  let written = Definitions.typed spec in
   fun name ->
     let file = Roots.client_types ^ name ^ ".json" in
     Result.map_error

@@ -19,7 +19,7 @@ let types_directory = directory ^ "/xynolog/types"
    component of the API. *)
 let spec_of (spec : Spec.t) : (Types.spec, string) result =
   let schema_of file = List.assoc_opt file spec.schemas in
-  let whole = Definitions.whole spec in
+  let whole = Definitions.typed spec in
   let components =
     List.map
       (fun (name, reference) ->

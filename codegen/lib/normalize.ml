@@ -333,3 +333,79 @@ let rec closed_within ids ~find = function
       | { unevaluated_properties = Some _; _ } ->
           Result.map (fun s -> Schema.Schema s) (closed ids ~find l)
       | l -> Ok (Schema.Schema l))
+
+(* [s] as a writer of types reads it: what a value's type is, without what
+   only holds a value to its rules, which the required table states
+   ([Required.Shape]). A [const] is an [enum] of its one value (JSON Schema
+   2020-12). [not], [minProperties] and [propertyNames] say which values of a
+   type are allowed, not what the type is, and go. So does a [oneOf] or
+   [anyOf] each of whose members only holds an object to its own members:
+   each states no more than which members it carries ([required]), which it
+   does not ([not]), and the one value or values ([const], [enum]) a member
+   the object states takes. *)
+(* A schema of several types but null and nothing else, as the [anyOf] of a
+   schema of each: a value of it is a value of one of them. *)
+let several_types = function
+  | Schema.Schema ({ type_ = Some types; _ } as l)
+    when List.length (List.filter (fun t -> t <> Schema.Null) types) > 1
+         && List.for_all
+              (fun k -> List.mem k [ "type"; "description"; "title"; "$schema"; "$id" ])
+              (Schema.keywords l) ->
+      Schema.Schema
+        {
+          l with
+          type_ = None;
+          any_of =
+            Some
+              (List.map
+                 (fun t ->
+                   Schema.Schema { Schema.empty with type_ = Some [ t ] })
+                 types);
+        }
+  | s -> s
+
+let shape_only : Schema.t -> Schema.t =
+  let constrains (owner : Schema.t Schema.layer) (member : Schema.t) =
+    let narrows = function
+      | Schema.Schema l ->
+          List.for_all
+            (fun k -> List.mem k [ "const"; "enum"; "description" ])
+            (Schema.keywords l)
+      | Schema.Boolean_schema _ -> false
+    in
+    match member with
+    | Schema.Boolean_schema _ -> false
+    | Schema.Schema l ->
+        List.for_all
+          (fun k -> List.mem k [ "required"; "not"; "properties"; "description" ])
+          (Schema.keywords l)
+        && List.for_all
+             (fun (name, value) ->
+               narrows value
+               && List.mem_assoc name (Option.value owner.properties ~default:[]))
+             (Option.value l.properties ~default:[])
+  in
+  Schema.cata
+    ~boolean:(fun b -> Schema.Boolean_schema b)
+    ~schema:(fun l ->
+      let only_constraints = function
+        | Some members -> List.for_all (constrains l) members
+        | None -> false
+      in
+      Schema.Schema
+        {
+          l with
+          comment = None;
+          const = None;
+          enum =
+            (match (l.const, l.enum) with
+            | Some value, None -> Some [ value ]
+            | Some value, Some values when List.mem value values -> Some [ value ]
+            | _, enum -> enum);
+          not_ = None;
+          min_properties = None;
+          property_names = None;
+          one_of = (if only_constraints l.one_of then None else l.one_of);
+          any_of = (if only_constraints l.any_of then None else l.any_of);
+        }
+      |> several_types)

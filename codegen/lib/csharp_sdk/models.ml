@@ -21,7 +21,8 @@
 module C = Csharp_syntax
 
 type definition = {
-  schema : Schema.t;
+  schema : Schema.t;  (** As a writer of types reads it. *)
+  validated : Schema.t;  (** The schema [json] is. *)
   json : Yojson.Safe.t;
       (** As Protocol writes it, a [$ref] into a table naming the record there
           by its title, for WireSchemas. *)
@@ -190,7 +191,7 @@ and inline state owner property (schema, json) =
           owner property
       in
       Hashtbl.replace state.inlined key name;
-      let d = { schema; json } in
+      let d = { schema; validated = schema; json } in
       define state name d;
       Hashtbl.replace state.written name [];
       Hashtbl.replace state.written name (declare state name d);
@@ -264,7 +265,7 @@ and meant state name d =
   | { all_of = None; _ } -> d
   | _ ->
       let schema = Schema.Schema (merged state name d.schema) in
-      { schema; json = Schema.runtime schema }
+      { d with schema; json = Schema.runtime schema }
 
 (* [name]'s [schema] with its allOf merged ([Normalize]). *)
 and merged state name schema =
@@ -540,7 +541,7 @@ let make ~ids ~identifiers ~roots ~made =
   try
     List.iter
       (fun (name, path, d) ->
-        validate path (d.schema, d.json);
+        validate path (d.validated, d.json);
         Hashtbl.replace state.read_from path name;
         define state name d)
       roots;

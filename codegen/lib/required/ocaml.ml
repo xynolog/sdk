@@ -23,6 +23,30 @@ let literal : Schema.literal -> Parsetree.expression = function
 let any = O.ident "any"
 let strings values = O.list (List.map O.string values)
 
+let max = function None -> O.none | Some max -> O.some (O.int max)
+
+let rec term : Shape.term -> Parsetree.expression = function
+  | Step step ->
+      O.construct "Step"
+        ~arg:
+          (O.tuple
+             [
+               O.list
+                 (List.map (fun (lo, hi) -> O.tuple [ O.int lo; O.int hi ]) step.of_);
+               O.int step.min;
+               max step.max;
+             ])
+  | Group group ->
+      O.construct "Group"
+        ~arg:
+          (O.tuple
+             [
+               O.list
+                 (List.map (fun terms -> O.list (List.map term terms)) group.either);
+               O.int group.min;
+               max group.max;
+             ])
+
 let rec shape : Shape.shape -> Parsetree.expression = function
   | Ref name -> O.record ~with_:any [ ("reference", O.some (O.string name)) ]
   | Shape b ->
@@ -46,25 +70,7 @@ let rec shape : Shape.shape -> Parsetree.expression = function
               b.kinds;
             part "recognized" (some strings) b.recognized;
             part "enum" (some (fun e -> O.list (List.map literal e))) b.enum;
-            part "pattern"
-              (some (fun steps ->
-                   O.list
-                     (List.map
-                        (fun (step : Shape.step) ->
-                          O.tuple
-                            [
-                              O.list
-                                (List.map
-                                   (fun (lo, hi) ->
-                                     O.tuple [ O.int lo; O.int hi ])
-                                   step.of_);
-                              O.int step.min;
-                              (match step.max with
-                              | None -> O.none
-                              | Some max -> O.some (O.int max));
-                            ])
-                        steps)))
-              b.pattern;
+            part "pattern" (some (fun terms -> O.list (List.map term terms))) b.pattern;
             part "min_length" (some O.int) b.min_length;
             part "max_length" (some O.int) b.max_length;
             part "minimum" (some (fun n -> O.string (number n))) b.minimum;
