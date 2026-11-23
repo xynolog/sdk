@@ -67,8 +67,10 @@ configurations.named(javaTest.implementationConfigurationName) { extendsFrom(con
 configurations.named(javaTest.runtimeOnlyConfigurationName) { extendsFrom(configurations.testRuntimeOnly.get()) }
 
 dependencies {
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.coroutines.core)
+    // The public API takes and returns their types (JsonObject, KSerializer,
+    // StateFlow, FlowCollector: api/sdk.api), so a consumer compiles against them.
+    api(libs.kotlinx.serialization.json)
+    api(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.jdk9)
     // OpenTelemetry's API alone: what is exported, and where, is the application's.
     implementation(platform(libs.opentelemetry.bom))
