@@ -294,7 +294,7 @@ bash ocaml/check-source-package.sh
 
 The first command builds the pinned toolchain in a container and runs the development checks. The second builds and installs an isolated source archive and verifies the installed compiler interface. Regenerate protocol-derived sources with `make generate` and verify them with `make check-generated`.
 
-CI runs the tests instrumented by `bisect_ppx_ng` and uploads their line coverage, from `ocaml/sdk`:
+`make test-ocaml` runs the tests instrumented by `bisect_ppx_ng`, a test dependency for that reason, and CI uploads their line coverage. From `ocaml/sdk`:
 
 ```sh
 mkdir -p /tmp/ocaml-coverage

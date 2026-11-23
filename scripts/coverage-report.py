@@ -12,16 +12,19 @@ by its path in the checkout. A source that is not a file of the checkout, or
 that two BASEs both name, fails, and so does a report that names no source.
 
 FORMAT is what the tool writes, and each format is written as itself, but
-JaCoCo's XML, which is written as lcov:
-  lcov    an lcov tracefile
-  go      a Go cover profile, whose import paths are below sdk_version.GO_MODULE
-  jacoco  JaCoCo's XML report, which names a source by its package's directory
+JaCoCo's XML and Coveralls' JSON, which are written as lcov:
+  lcov       an lcov tracefile
+  go         a Go cover profile, whose import paths are below sdk_version.GO_MODULE
+  jacoco     JaCoCo's XML report, which names a source by its package's directory
+  coveralls  Coveralls' JSON, as bisect-ppx-report writes it
 """
 
+import json
 import os
 import sys
 import xml.etree.ElementTree as ElementTree
 from pathlib import Path
+from typing import TypedDict
 
 import sdk_version
 
@@ -93,7 +96,27 @@ def jacoco(report: Path, copy: str, bases: list[str]) -> tuple[str, int]:
     return "".join(records), sum(record.startswith("SF:") for record in records)
 
 
-FORMATS = {"lcov": (lcov, ""), "go": (go, ""), "jacoco": (jacoco, ".lcov")}
+class SourceFile(TypedDict):
+    name: str
+    coverage: list[int | None]
+
+
+class Coveralls(TypedDict):
+    source_files: list[SourceFile]
+
+
+def coveralls(report: Path, copy: str, bases: list[str]) -> tuple[str, int]:
+    """Each line's count is its hits, and a line with none is no code."""
+    parsed: Coveralls = json.loads(report.read_text())
+    records: list[str] = []
+    for file in parsed["source_files"]:
+        records.append(f"SF:{source(file['name'], copy, bases)}\n")
+        records.extend(f"DA:{number},{hits}\n" for number, hits in enumerate(file["coverage"], start=1) if hits is not None)
+        records.append("end_of_record\n")
+    return "".join(records), len(parsed["source_files"])
+
+
+FORMATS = {"lcov": (lcov, ""), "go": (go, ""), "jacoco": (jacoco, ".lcov"), "coveralls": (coveralls, ".lcov")}
 
 
 def main() -> None:

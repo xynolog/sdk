@@ -7,9 +7,11 @@ the coming release's, and gathers its changes as they land.
 ## 0.8.1
 
 - The package installs on OCaml 5.5 and later, not on 5.5.2 alone.
-- ocamlformat and bisect_ppx_ng are development tools of the repository
-  (`with-dev-setup`), so `opam install --with-test xynolog` no longer
-  installs them.
+- ocamlformat is a development tool of the repository (`with-dev-setup`),
+  so `opam install --with-test xynolog` no longer installs it.
+- The README's coverage badge reads the package: `make test-ocaml` runs the
+  tests instrumented by bisect_ppx_ng, a test dependency for that reason,
+  and CI uploads their coverage to Codecov.
 - The GitHub release carries the opam source archive as an asset of its
   own, for an opam-repository entry's `url` to name.
 - The README is opam's page for the package: it says what the SDK is, how

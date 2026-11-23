@@ -278,6 +278,7 @@ case "${1:-}" in
     fi
     ;;
   test-ocaml)
+    measure_coverage
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/ocaml/sdk
       dune build @all @opam
@@ -287,8 +288,13 @@ case "${1:-}" in
       python3 probes/check-interface.py
       python3 api.py
       python3 probes/check-api-controls.py
-      dune runtest
-      dune build @conformance' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
+      # A test runs in a sandbox that dune deletes, so its coverage files are
+      # written outside the build.
+      mkdir /tmp/ocaml-coverage
+      BISECT_FILE=/tmp/ocaml-coverage/bisect dune runtest --force --instrument-with bisect_ppx_ng
+      dune exec -- bisect-ppx-report coveralls /coverage/ocaml.json --coverage-path /tmp/ocaml-coverage
+      dune build @conformance' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}" --volume "$COVERAGE:/coverage"
+    coverage_reports ocaml coveralls ocaml/sdk
     ;;
   test-codegen)
     # The pinned Protocol reads through its reader, and Swift's table values
