@@ -1,7 +1,9 @@
 name: CodeQL
 
-# Code scanning of every language the repository holds, under the categories
-# default setup gave them, so each language's alerts keep their history.
+# Code scanning of the languages the repository holds, under the categories
+# default setup gave them, so each language's alerts keep their history. A
+# pull request scans the languages of the SDKs it builds; main and the weekly
+# run scan every one (scripts/codeql-analyses.py).
 
 on:
   push:
@@ -19,8 +21,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  languages:
+    name: The languages to scan
+    runs-on: ubuntu-latest
+    outputs:
+      analyses: ${{ steps.analyses.outputs.analyses }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 2
+
+      - name: List the CodeQL analyses to run
+        id: analyses
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          languages="$(bash scripts/languages-to-build.sh "$EVENT")"
+          analyses="$(python3 scripts/codeql-analyses.py "$languages")"
+          echo "Scanning: $analyses"
+          echo "analyses=$analyses" >> "$GITHUB_OUTPUT"
+
   analyze:
     name: Analyze (${{ matrix.language }})
+    needs: languages
+    if: needs.languages.outputs.analyses != '[]'
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
@@ -28,38 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - language: actions
-            build-mode: none
-            runner: ubuntu-latest
-          - language: c-cpp
-            build-mode: none
-            runner: ubuntu-latest
-          - language: csharp
-            build-mode: none
-            runner: ubuntu-latest
-          - language: go
-            build-mode: autobuild
-            runner: ubuntu-latest
-          - language: java-kotlin
-            build-mode: manual
-            runner: ubuntu-latest
-          - language: javascript-typescript
-            build-mode: none
-            runner: ubuntu-latest
-          - language: python
-            build-mode: none
-            runner: ubuntu-latest
-          - language: rust
-            build-mode: none
-            runner: ubuntu-latest
-          # CodeQL analyzes Swift on macOS alone, and no Swift newer than 6.3
-          # (Xcode 26), nor any build traced under Xcode 27 or macOS 27. The
-          # package's own toolchain, Swift 6.4, is past what CodeQL reads, so
-          # the scan compiles it with Xcode 26's Swift on a macOS 26 runner.
-          - language: swift
-            build-mode: manual
-            runner: macos-26
+        include: ${{ fromJSON(needs.languages.outputs.analyses) }}
     steps:
       - uses: actions/checkout@v7.0.1
 

@@ -63,20 +63,12 @@ jobs:
           broken="$(find "$archive" -xtype l)"
           test -z "$broken" || { printf 'Broken in the source archive GitHub serves to action users:\n%s\n' "$broken" >&2; exit 1; }
 
-      # A pull request builds the languages its change touches; main and the
-      # merge queue build every language, so a read the search misses still
-      # fails before a release.
       - name: List the SDK languages to build
         id: languages
         env:
           EVENT: ${{ github.event_name }}
         run: |
-          languages="$(printf 'print-%%:\n\t@echo $($*)\n' | make -s --no-print-directory -f Makefile -f - print-LANGUAGES)"
-          if [[ "$EVENT" == pull_request ]]; then
-            selected="$(python3 scripts/changed-languages.py HEAD^1 HEAD $languages)"
-          else
-            selected="$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' $languages)"
-          fi
+          selected="$(bash scripts/languages-to-build.sh "$EVENT")"
           echo "Building: $selected"
           echo "languages=$selected" >> "$GITHUB_OUTPUT"
 
