@@ -42,7 +42,7 @@ run_container_quietly "$RUNTIME" run --rm \
   --volume "$STATE_ROOT/go-proxy:/out" --volume "$STATE_ROOT/go-mod-cache:/go/pkg/mod" \
   --volume "$STATE_ROOT/go-build-cache:/root/.cache/go-build" \
   --env "SDK_SOURCE_TIME=$SDK_SOURCE_TIME" --env "XYNOLOG_SDK_VERSION=$go_package_version" \
-  --workdir /tmp golang:1.27.4-bookworm bash -euc '
+  --workdir /tmp "golang:$(sh "$ROOT/go/scripts/go-toolchain.sh")-bookworm" bash -euc '
     version="$XYNOLOG_SDK_VERSION"
     mkdir -p /tmp/sdk && cp -a /source/. /tmp/sdk/ && rm -rf /tmp/sdk/protocol && cp -a /protocol /tmp/sdk/protocol && cd /tmp/sdk/go && go build ./...
     module="github.com/xynolog/sdk/go"
