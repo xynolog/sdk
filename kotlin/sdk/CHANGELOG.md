@@ -12,6 +12,15 @@ the coming release's, and gathers its changes as they land.
   URL, license, developer, SCM, issue tracker), a sources jar and a javadoc
   jar.
 
+### Changed
+
+- The README is the artifact's front page: it says what the SDK is, how to
+  depend on it with Gradle or Maven and take releases up to the next minor,
+  and then shows a first program, connecting to a knowledge base and saying
+  its name, before connecting, signing in and the eight verbs. How the SDK
+  itself is built moves to CONTRIBUTING.md, which the README's last line
+  links to.
+
 ### Fixed
 
 - kotlinx-serialization-json and kotlinx-coroutines-core are `api`
