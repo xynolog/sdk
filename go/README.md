@@ -38,15 +38,10 @@ Each release of Xynolog publishes it at the release's version, by the tag
 `go/v<version>`, and its documentation is on
 [pkg.go.dev][pkg-go-dev]. `@main` takes main's latest commit between releases.
 
-A program in this repository requires it by a `replace` directive on its
-relative path instead, as the launcher's `go.mod` does, so it builds against
-the tree:
-
-```text
-require github.com/xynolog/sdk/go v0.0.0-00010101000000-000000000000
-
-replace github.com/xynolog/sdk/go => ../../go
-```
+Below 1.0 the minor number is the break, so take releases up to the next
+minor: `go get github.com/xynolog/sdk/go@v<version>`, where `<version>` is a
+release's, takes that release, and `go get github.com/xynolog/sdk/go@patch`
+takes the later ones of its minor and no further.
 
 It requires the Go toolchain its `go.mod` names. One module holds all of it:
 the client, the transport that carries it over HTTP to a knowledge base's
@@ -56,6 +51,90 @@ OpenTelemetry's API and `golang.org/x/text`.
 
 A client speaks to a running knowledge base. The [Quick Start][quick-start]
 sets one up on your own machine.
+
+## A first program
+
+From a signed-in client, this ingests a paper, has a model mark the concepts
+it mentions, gathers the context around it, and generates a summary grounded
+in that context. Those are the [Quick Start][quick-start]'s last two steps,
+from code, and the two that come next. [Signing in](#signing-in) is how a
+client comes to be signed in.
+
+```go
+import (
+	"context"
+
+	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/api"
+)
+
+// Summarize ingests a paper, has a model mark the concepts it mentions,
+// gathers the context around it, and generates a summary grounded in it. ok
+// is false when the job declined, and made nothing.
+func Summarize(ctx context.Context, client *xynolog.Client, paper []byte) (summary api.ResourceId, ok bool, err error) {
+	// Ingest: the paper's bytes become a resource.
+	created, err := client.Yield.Resource(ctx, xynolog.PutBinaryRequest{
+		Name:       "Attention Is All You Need",
+		Bytes:      paper,
+		Format:     "application/pdf",
+		StorageURI: "file://papers/attention-is-all-you-need.pdf",
+	}).Wait(ctx)
+	if err != nil {
+		return api.ResourceId{}, false, err
+	}
+	paperID := created.ResourceId
+
+	// Annotate: a model reads it and marks each mention of a concept.
+	var linking api.MarkJobParams
+	if err := linking.From(api.LinkingJobParams{Motivation: api.LinkingJobParamsMotivationLinking, EntityTypes: []string{"Concept"}}); err != nil {
+		return api.ResourceId{}, false, err
+	}
+	if _, err := client.Mark.Delegate(paperID, linking).Wait(ctx); err != nil {
+		return api.ResourceId{}, false, err
+	}
+
+	// Gather: the paper, its annotations, and what the knowledge base holds around it.
+	gathered, err := client.Gather.Resource(ctx, paperID, api.GatherResourceRequestOptions{})
+	if err != nil {
+		return api.ResourceId{}, false, err
+	}
+
+	// Generate: a new resource, grounded in that context and linked to its source.
+	task := "summary"
+	done, err := client.Yield.Delegate(api.GenerationJobParams{
+		Title:      "Attention Is All You Need: a summary",
+		StorageUri: "file://generated/attention-summary.md",
+		Context:    gathered,
+		Task:       &task,
+	}, 0).Wait(ctx)
+	if err != nil {
+		return api.ResourceId{}, false, err
+	}
+	// What a yield job reports is the resource it made. One that could not read what it was given declines, and makes nothing.
+	if done.Result == nil {
+		return api.ResourceId{}, false, nil
+	}
+	var declined api.JobDeclined
+	if done.Result.As(&declined) == nil && declined.Declined == api.JobDeclinedDeclinedTrue {
+		return api.ResourceId{}, false, nil
+	}
+	var made api.YieldJobDone
+	err = done.Result.As(&made)
+	return made.ResourceId, err == nil, err
+}
+```
+
+Both resources, and every annotation the model made, are in the knowledge base
+for the next participant, person or agent, to read and build on.
+
+Where to go from here:
+
+- The [Developer Guide][developer-guide] has each of these steps as a recipe,
+  and the ones after them: reading, searching, annotating by hand, reacting to
+  what others do, and testing. Its code is TypeScript, and the calls are this
+  module's too.
+- The [agent skills][skills] are whole scripts, one per task, for an AI coding
+  assistant to load. They are TypeScript as well.
 
 ## Signing in
 
@@ -274,90 +353,6 @@ attention. Each is a namespace of the client, a field of `*xynolog.Client`.
 
 Beside the eight are `Job`, `Auth` and `System`. What each flow means is in
 [protocol/contract/flows][flows].
-
-## A first program
-
-From a signed-in client, this ingests a paper, has a model mark the concepts
-it mentions, gathers the context around it, and generates a summary grounded
-in that context. Those are the [Quick Start][quick-start]'s last two steps,
-from code, and the two that come next. [Signing in](#signing-in) is how a
-client comes to be signed in.
-
-```go
-import (
-	"context"
-
-	xynolog "github.com/xynolog/sdk/go"
-	"github.com/xynolog/sdk/go/api"
-)
-
-// Summarize ingests a paper, has a model mark the concepts it mentions,
-// gathers the context around it, and generates a summary grounded in it. ok
-// is false when the job declined, and made nothing.
-func Summarize(ctx context.Context, client *xynolog.Client, paper []byte) (summary api.ResourceId, ok bool, err error) {
-	// Ingest: the paper's bytes become a resource.
-	created, err := client.Yield.Resource(ctx, xynolog.PutBinaryRequest{
-		Name:       "Attention Is All You Need",
-		Bytes:      paper,
-		Format:     "application/pdf",
-		StorageURI: "file://papers/attention-is-all-you-need.pdf",
-	}).Wait(ctx)
-	if err != nil {
-		return api.ResourceId{}, false, err
-	}
-	paperID := created.ResourceId
-
-	// Annotate: a model reads it and marks each mention of a concept.
-	var linking api.MarkJobParams
-	if err := linking.From(api.LinkingJobParams{Motivation: api.LinkingJobParamsMotivationLinking, EntityTypes: []string{"Concept"}}); err != nil {
-		return api.ResourceId{}, false, err
-	}
-	if _, err := client.Mark.Delegate(paperID, linking).Wait(ctx); err != nil {
-		return api.ResourceId{}, false, err
-	}
-
-	// Gather: the paper, its annotations, and what the knowledge base holds around it.
-	gathered, err := client.Gather.Resource(ctx, paperID, api.GatherResourceRequestOptions{})
-	if err != nil {
-		return api.ResourceId{}, false, err
-	}
-
-	// Generate: a new resource, grounded in that context and linked to its source.
-	task := "summary"
-	done, err := client.Yield.Delegate(api.GenerationJobParams{
-		Title:      "Attention Is All You Need: a summary",
-		StorageUri: "file://generated/attention-summary.md",
-		Context:    gathered,
-		Task:       &task,
-	}, 0).Wait(ctx)
-	if err != nil {
-		return api.ResourceId{}, false, err
-	}
-	// What a yield job reports is the resource it made. One that could not read what it was given declines, and makes nothing.
-	if done.Result == nil {
-		return api.ResourceId{}, false, nil
-	}
-	var declined api.JobDeclined
-	if done.Result.As(&declined) == nil && declined.Declined == api.JobDeclinedDeclinedTrue {
-		return api.ResourceId{}, false, nil
-	}
-	var made api.YieldJobDone
-	err = done.Result.As(&made)
-	return made.ResourceId, err == nil, err
-}
-```
-
-Both resources, and every annotation the model made, are in the knowledge base
-for the next participant, person or agent, to read and build on.
-
-Where to go from here:
-
-- The [Developer Guide][developer-guide] has each of these steps as a recipe,
-  and the ones after them: reading, searching, annotating by hand, reacting to
-  what others do, and testing. Its code is TypeScript, and the calls are this
-  module's too.
-- The [agent skills][skills] are whole scripts, one per task, for an AI coding
-  assistant to load. They are TypeScript as well.
 
 ## The client
 
@@ -1155,46 +1150,16 @@ log keeps) is written as `[withheld]`.
 | `mediatypes` | The media types a knowledge base admits, and `ForExtension` | [`protocol/specs/src/media-types/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/media-types/registry.json) |
 | `internal/readme` | The programs this page shows, each run by its tests. It is internal, so no program outside the module can import it | hand-written |
 
-Everything generated is committed, as the monorepo's other generated
+Everything generated is committed, as this repository's other generated
 artifacts are. A consumer never needs a generator, and a change to the spec
 shows up as a diff someone reviews. A gate in CI fails when a generated file
 differs from what the spec generates.
 
-## Regenerating
-
-Nothing regenerates by itself. When the spec changes:
-
-```sh
-make generate
-```
-
-That runs the generator, [`codegen/`](../codegen), in a container, so no Go
-or OCaml is needed on the host, and rewrites every generated file of every
-SDK, this module's among them. Commit the result. CI runs
-`make check-generated`, which writes nothing, and fails while a committed file
-differs from what the spec generates.
-
-Package `api`'s types are its Go types group
-([`codegen/lib/go_types`](../codegen/lib/go_types)): a type for every
-component schema and every schema it reaches, so the bus's payloads too, which
-no HTTP path reaches. An enumeration's constants are named by the type and
-then the value, as `LogFormatJson` is the `json` of `LogFormat`, so a schema
-that reuses another's value renames no constant. A union holds its value as
-the wire carries it ([`api/union.go`](api/union.go)): `From` sets it to one of
-its members, `As` reads it into one, and a union that holds no member is
-refused when it is written.
-
-## Working on it
-
-The module is [`go`][package] of the [Xynolog repository][xynolog],
-and [Testing][testing] says how its checks and its tests are run. Go runs in a
-`golang` container at the toolchain its `go.mod` names. The programs this page
-shows are files of package `readme`, in `internal/readme`, word for word: the
-compiler checks them, and its tests run each one.
-
 ## License
 
 Apache-2.0. See [LICENSE](../LICENSE).
+
+Working on the SDK itself is in [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
 
 [xynolog]: https://github.com/xynolog/sdk
 [pkg-go-dev]: https://pkg.go.dev/github.com/xynolog/sdk/go
@@ -1224,7 +1189,5 @@ Apache-2.0. See [LICENSE](../LICENSE).
 [sign-in-store]: https://github.com/xynolog/protocol/blob/main/specs/src/sign-in-store/README.md
 [telemetry]: https://github.com/xynolog/protocol/blob/main/specs/src/sdk-telemetry/telemetry.json
 [bus-log]: https://github.com/xynolog/protocol/blob/main/contract/EVENT-BUS.md#wire-format-the-bus-log
-[package]: .
-[testing]: https://github.com/xynolog/docs/blob/main/contributor/TESTING.md
 [state-units]: https://github.com/xynolog/docs/blob/main/builder/STATE-UNITS.md
 [state-units-cases]: https://github.com/xynolog/protocol/blob/main/specs/src/client/state-units.json

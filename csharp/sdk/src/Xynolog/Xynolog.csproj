@@ -1,12 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <!-- .NET 10, the long-term release most applications target, and the framework the repository's other projects build for. -->
+    <TargetFramework></TargetFramework>
+    <TargetFrameworks>net10.0;$(XynologTargetFramework)</TargetFrameworks>
+    <!-- C# 15 for .NET 10 as well: the generated unions are closed records, a feature of the compiler alone (Compiler/IsClosedTypeAttribute.cs). -->
+    <LangVersion>15.0</LangVersion>
     <Description>The Xynolog SDK for .NET.</Description>
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Authors>Xynolog</Authors>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/xynolog/sdk</PackageProjectUrl>
+    <PackageTags>xynolog;knowledge-base;annotation;agents;sdk</PackageTags>
+    <!-- The nuspec's repository: this URL and the commit. Not PublishRepositoryUrl, which would add the branch a build was checked out at, so two builds of one commit would differ. -->
+    <RepositoryUrl>https://github.com/xynolog/sdk.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!-- Symbols in a .snupkg, with Source Link's map from each file to the commit's on GitHub, so a debugger steps into the SDK's source. -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- What nuget.org shows as the release notes: the changelog as of the release, which sdk_version.py write keeps at the coming release's tag. -->
+    <PackageReleaseNotes>https://github.com/xynolog/sdk/blob/v0.8.1/csharp/sdk/CHANGELOG.md</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" />
-    <ProjectReference Include="../../tools/RefusalRunner/RefusalRunner.csproj" GlobalPropertiesToRemove="$(XynologBuildToolGlobalPropertiesToRemove)" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../tools/RefusalRunner/RefusalRunner.csproj" GlobalPropertiesToRemove="$(XynologBuildToolGlobalPropertiesToRemove)" SetTargetFramework="TargetFramework=$(XynologTargetFramework)" SkipGetTargetFrameworkProperties="true" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

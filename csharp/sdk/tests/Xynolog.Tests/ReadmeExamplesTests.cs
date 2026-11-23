@@ -23,6 +23,20 @@ public sealed partial class TransportTests
     }
 
     [Fact]
+    public async Task ReadmeFirstProgramAsksTheKnowledgeBaseItsName()
+    {
+        using var gateway = new FaultyTransport(respond: (operation, _) =>
+        {
+            Assert.Equal(BusOperations.BrowseKbRequested.Request.Name, operation);
+            return JsonSerializer.SerializeToElement(new KbDescription { Domain = "kb.example", Name = "Papers" });
+        });
+        using var http = new HttpClient(gateway, disposeHandler: false);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        Assert.Equal("Papers", await NameKnowledgeBase.RunAsync("http://unit.test", "test", http, deadline.Token));
+        Assert.Equal(new[] { BusOperations.BrowseKbRequested.Request.Name }, gateway.RequestLog.Select(entry => entry.Channel));
+    }
+
+    [Fact]
     public async Task ReadmeExampleGathersThenCompletesADelegation()
     {
         var gathered = BusOperations.GatherResourceRequested.Request.Name;

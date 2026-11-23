@@ -31,11 +31,63 @@ explains the domain and the ideas the API falls out of.
 npm install @xynolog/sdk
 ```
 
+Below 1.0 the minor number is the break, and the caret range npm writes into `package.json`
+takes the releases up to the next minor and no further.
+
 It runs in a browser and in Node. In a browser it needs Chrome 116, Firefox 124 or Safari 17.4,
 or later: its transport joins abort signals with `AbortSignal.any`, which each of those was the
 first version to have. A client speaks to a running knowledge base.
 The [Quick Start](https://github.com/xynolog/docs/blob/main/builder/QUICK-START.md) sets one up on
 your own machine.
+
+## A first program
+
+From a signed-in session, and the paper's bytes as `file`, this ingests the
+paper, has a model mark the concepts it mentions, gathers the context around
+it, and generates a summary grounded in that context. Those are the [Quick Start](https://github.com/xynolog/docs/blob/main/builder/QUICK-START.md)'s
+last two steps, from code, and the two that come next. [Connect](#connect) is
+how a session comes to be signed in.
+
+```ts
+// Ingest: the paper's bytes become a resource.
+const { resourceId } = await session.client.yield.resource({
+  name: 'Attention Is All You Need',
+  file,                                   // a browser File or a Node Buffer
+  format: 'application/pdf',
+  storageUri: 'file://papers/attention-is-all-you-need.pdf',
+});
+
+// Annotate: a model reads it and marks each mention of a concept.
+await session.client.mark.delegate(resourceId, { motivation: 'linking', entityTypes: ['Concept'] });
+
+// Gather: the paper, its annotations, and what the knowledge base holds around it.
+const context = await session.client.gather.resource(resourceId);
+
+// Generate: a new resource, grounded in that context and linked to its source.
+const done = await session.client.yield.delegate({
+  title: 'Attention Is All You Need: a summary',
+  storageUri: 'file://generated/attention-summary.md',
+  context,
+  task: 'summary',
+});
+if (done.result && 'resourceId' in done.result) {
+  console.log('The summary is', done.result.resourceId);
+}
+
+opened.dispose(); // what the sign-in gave (Connect): its client, then the session
+```
+
+Both resources, and every annotation the model made, are in the knowledge base
+for the next participant, person or agent, to read and build on.
+
+Where to go from here:
+
+- The [Developer Guide](https://github.com/xynolog/docs/blob/main/builder/DEVELOPER-GUIDE.md) has
+  each of these steps as a recipe, and the ones after them: reading, searching,
+  annotating by hand, reacting to what others do, and testing.
+- The [agent skills](https://github.com/xynolog/docs/tree/main/builder/skills) are whole scripts on
+  this SDK, one per task, for an AI coding assistant to load: ingesting a
+  corpus, annotating it, linking it, and the layers built on those.
 
 ## Connect
 
@@ -158,55 +210,6 @@ attention. Each is a namespace of the client.
 Beside the eight are `job`, and `auth` and `system` when the client has a
 gateway. What each flow means is in
 [protocol/contract/flows](https://github.com/xynolog/protocol/tree/main/contract/flows).
-
-## A first program
-
-From a signed-in session, this ingests a paper, has a model mark the concepts
-it mentions, gathers the context around it, and generates a summary grounded
-in that context. Those are the [Quick Start](https://github.com/xynolog/docs/blob/main/builder/QUICK-START.md)'s
-last two steps, from code, and the two that come next. [Connect](#connect) is
-how a session comes to be signed in.
-
-```ts
-// Ingest: the paper's bytes become a resource.
-const { resourceId } = await session.client.yield.resource({
-  name: 'Attention Is All You Need',
-  file,                                   // a browser File or a Node Buffer
-  format: 'application/pdf',
-  storageUri: 'file://papers/attention-is-all-you-need.pdf',
-});
-
-// Annotate: a model reads it and marks each mention of a concept.
-await session.client.mark.delegate(resourceId, { motivation: 'linking', entityTypes: ['Concept'] });
-
-// Gather: the paper, its annotations, and what the knowledge base holds around it.
-const context = await session.client.gather.resource(resourceId);
-
-// Generate: a new resource, grounded in that context and linked to its source.
-const done = await session.client.yield.delegate({
-  title: 'Attention Is All You Need: a summary',
-  storageUri: 'file://generated/attention-summary.md',
-  context,
-  task: 'summary',
-});
-if (done.result && 'resourceId' in done.result) {
-  console.log('The summary is', done.result.resourceId);
-}
-
-opened.dispose(); // what the sign-in gave (Connect): its client, then the session
-```
-
-Both resources, and every annotation the model made, are in the knowledge base
-for the next participant, person or agent, to read and build on.
-
-Where to go from here:
-
-- The [Developer Guide](https://github.com/xynolog/docs/blob/main/builder/DEVELOPER-GUIDE.md) has
-  each of these steps as a recipe, and the ones after them: reading, searching,
-  annotating by hand, reacting to what others do, and testing.
-- The [agent skills](https://github.com/xynolog/docs/tree/main/builder/skills) are whole scripts on
-  this SDK, one per task, for an AI coding assistant to load: ingesting a
-  corpus, annotating it, linking it, and the layers built on those.
 
 ## One call, two ways to consume
 
@@ -407,3 +410,5 @@ who the SDK is for, where it goes, and the docs in reading order.
 ## License
 
 Apache-2.0 — see [LICENSE](https://github.com/xynolog/sdk/blob/main/LICENSE).
+
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
