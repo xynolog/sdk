@@ -11,30 +11,30 @@ let settle () =
     Fiber.yield ()
   done
 
-(* The generated data comes from session/cases.json. *)
+module C = Protocol_cases.Session_cases
+
+(* Shared cases from session/cases.json. *)
 let table () =
-  let open Yojson.Safe.Util in
-  let cases = Protocol.table "session/cases.json" in
-  let expected case field = case |> member field |> to_option to_number in
+  let seconds = Option.map float_of_int in
   List.iter
-    (fun case ->
+    (fun (case : C.refresh_schedule_item) ->
       let jwt =
-        match member "token" case with
-        | `String literal -> literal
-        | _ -> token (Yojson.Safe.to_string (member "claims" case))
+        match (case.token, case.claims) with
+        | Some literal, _ -> literal
+        | None, Some claims ->
+            token (Yojson.Safe.to_string (C.claims_json claims))
+        | None, None -> Alcotest.fail "a schedule case states no token"
       in
       Alcotest.(check (option (float 0.)))
-        (case |> member "why" |> to_string)
-        (expected case "delay")
-        (Session.refresh_delay ~now:(case |> member "now" |> to_number) jwt))
-    (cases |> member "refreshSchedule" |> to_list);
+        case.why (seconds case.delay)
+        (Session.refresh_delay ~now:(float_of_int case.now) jwt))
+    C.table.refresh_schedule;
   List.iter
-    (fun case ->
+    (fun (case : C.token_expiry_item) ->
       Alcotest.(check (option (float 0.)))
-        (case |> member "why" |> to_string)
-        (expected case "exp")
-        (case |> member "token" |> to_string |> Session.token_expiry))
-    (cases |> member "tokenExpiry" |> to_list)
+        case.why (seconds case.exp)
+        (Session.token_expiry case.token))
+    C.table.token_expiry
 
 let proactive () =
   Eio_main.run @@ fun _ ->
@@ -386,9 +386,11 @@ let kept_renewal_runs_to_its_end () =
     (Session.refresh_refused session ~refused:"renewed");
   Alcotest.(check int) "the issuer is asked once" 1 !asked
 
-let lifecycle phase row =
+(* A lifecycle case of either phase: a refusal's states what the refusal
+   names and whether it is given a token; a startup's, what is stored. *)
+let lifecycle ~stored ~refusal ~gateway ~issuer ~asks ~renewals ~ends
+    ~told:reason ~error ~kept:still_kept ~then_ =
   let open Xynolog in
-  let open Yojson.Safe.Util in
   Eio_mock.Backend.run @@ fun () ->
   Switch.run @@ fun sw ->
   let mono = Eio_mock.Clock.Mono.make () in
@@ -422,12 +424,10 @@ let lifecycle phase row =
         factory = (fun _ -> assert false);
       }
   in
-  let stored =
-    if phase = "startup" then row |> member "stored" |> to_string
-    else "unexpired"
-  in
   let original =
-    if stored = "expired" then token {|{"iat":-100,"exp":-1}|} else "original"
+    match (stored : C.stored) with
+    | Expired -> token {|{"iat":-100,"exp":-1}|}
+    | Unexpired | C.None -> "original"
   in
   let kept = Registry.kept_in storage "kb" in
   let credential : Records.Stored_session.t =
@@ -452,22 +452,28 @@ let lifecycle phase row =
            expected_name = None;
          })
   in
-  if stored = "none" then kept.forget ();
-  let asked = ref 0 and renewed = ref 0 and started = ref (phase = "startup") in
-  let scripted name count =
-    let answers = row |> member name |> to_list in
+  let absent =
+    match (stored : C.stored) with
+    | C.None -> true
+    | Expired | Unexpired -> false
+  in
+  if absent then kept.forget ();
+  let asked = ref 0
+  and renewed = ref 0
+  and started = ref (Option.is_none refusal) in
+  (* The answer a script gives its [count]th ask; its last, once it runs out. *)
+  let scripted answers count =
     let answer = List.nth answers (min !count (List.length answers - 1)) in
     incr count;
-    to_string answer
+    answer
   in
   let issuer _ =
-    match scripted "issuer" renewed with
-    | "renews" -> (200, {|{"access_token":"renewed","refresh_token":"rotated"}|})
-    | "refuses" -> (400, {|{"error":"invalid_grant"}|})
-    | "unreachable" -> (503, {|{}|})
-    | _ -> assert false
+    match (scripted issuer renewed : C.issuer_item) with
+    | Renews -> (200, {|{"access_token":"renewed","refresh_token":"rotated"}|})
+    | Refuses -> (400, {|{"error":"invalid_grant"}|})
+    | Unreachable -> (503, {|{}|})
   in
-  let started_on = if stored = "none" then None else Some original in
+  let started_on = if absent then None else Some original in
   let handed = ref [] in
   let credentials =
     Session.start ~keep_on_unavailable:true
@@ -487,14 +493,16 @@ let lifecycle phase row =
     | "/bus/subscribe" -> Fiber.await_cancel ()
     | "/api/users/me" ->
         let status, body =
-          match if !started then scripted "gateway" asked else "accepts" with
-          | "accepts" ->
+          match
+            (if !started then scripted gateway asked else Accepts
+              : C.gateway_item)
+          with
+          | Accepts ->
               ( 200,
                 {|{"did":"did:web:kb.example:users:alice","email":null,"name":"Alice","image":null,"domain":"kb.example"}|}
               )
-          | "refuses" -> (401, "{}")
-          | "unreachable" -> (503, "{}")
-          | _ -> assert false
+          | Refuses -> (401, "{}")
+          | Unreachable -> (503, "{}")
         in
         (status, [], Eio.Flow.string_source body)
     | _ -> assert false
@@ -522,18 +530,17 @@ let lifecycle phase row =
       ~on_close:ignore
   in
   S.ready session;
-  if phase = "refusal" then (
-    started := true;
-    let refused =
-      if row |> member "refused" |> to_string = "held" then original
-      else "previous"
-    in
-    let given = S.refresh session ~refused () in
-    Alcotest.(check bool)
-      "given"
-      (row |> member "given" |> to_bool)
-      (Option.is_some given));
-  let ends () =
+  Option.iter
+    (fun ((refused : C.refused), given) ->
+      started := true;
+      let refused =
+        match refused with Held -> original | Replaced -> "previous"
+      in
+      Alcotest.(check bool)
+        "given" given
+        (Option.is_some (S.refresh session ~refused ())))
+    refusal;
+  let ended () =
     match
       (State_value.get (S.token session), State_value.get (S.user session))
     with
@@ -542,40 +549,25 @@ let lifecycle phase row =
     | Some _, None -> "unconfirmed"
     | None, Some _ -> "user without token"
   in
-  let check_checkpoint expected =
+  let check_checkpoint (asks, renewals, ends') =
     List.iter
       (Alcotest.(check (option string))
          "each renewal is handed the token it renews" started_on)
       (List.rev !handed);
-    Alcotest.(check int)
-      "gateway asks"
-      (expected |> member "asks" |> to_int)
-      !asked;
-    Alcotest.(check int)
-      "issuer renewals"
-      (expected |> member "renewals" |> to_int)
-      !renewed;
-    Alcotest.(check string)
-      "ends"
-      (expected |> member "ends" |> to_string)
-      (ends ())
+    Alcotest.(check int) "gateway asks" asks !asked;
+    Alcotest.(check int) "issuer renewals" renewals !renewed;
+    Alcotest.(check string) "ends" (C.ends_value ends') (ended ())
   in
-  check_checkpoint row;
-  Alcotest.(check bool)
-    "kept"
-    (row |> member "kept" |> to_bool)
-    (Option.is_some (kept.held ()));
+  check_checkpoint (asks, renewals, ends);
+  Alcotest.(check bool) "kept" still_kept (Option.is_some (kept.held ()));
   Alcotest.(check (option string))
     "told"
-    (row |> member "told" |> to_string_option)
+    (Option.map C.session_end_reason_value reason)
     !told;
-  Alcotest.(check (option string))
-    "error"
-    (row |> member "error" |> to_string_option)
-    !reported;
-  (match member "then" row with
-  | `Null -> ()
-  | expected ->
+  Alcotest.(check (option string)) "error" error !reported;
+  (match then_ with
+  | None -> ()
+  | Some expected ->
       settle ();
       Eio_mock.Clock.Mono.set_time mono
         (Option.get
@@ -586,21 +578,43 @@ let lifecycle phase row =
   Client.close client;
   Client.await_closed client
 
-let lifecycle_cases phase =
-  let open Yojson.Safe.Util in
-  Protocol.table "session/cases.json"
-  |> member phase |> to_list
-  |> List.map (fun row ->
-      Alcotest.test_case
-        (row |> member "why" |> to_string)
-        `Quick
-        (fun () -> lifecycle phase row))
+let lifecycle_case why run = Alcotest.test_case why `Quick run
+
+let startup =
+  List.map
+    (fun (row : C.startup_item) ->
+      lifecycle_case row.why (fun () ->
+          lifecycle ~stored:row.stored ~refusal:None ~gateway:row.gateway
+            ~issuer:row.issuer ~asks:row.asks ~renewals:row.renewals
+            ~ends:row.ends ~told:row.told ~error:row.error ~kept:row.kept
+            ~then_:
+              (Option.map
+                 (fun ({ asks; renewals; ends } : C.then_) ->
+                   (asks, renewals, ends))
+                 row.then_)))
+    C.table.startup
+
+let refusal =
+  List.map
+    (fun (row : C.refusal_item) ->
+      lifecycle_case row.why (fun () ->
+          lifecycle ~stored:Unexpired
+            ~refusal:(Some (row.refused, row.given))
+            ~gateway:row.gateway ~issuer:row.issuer ~asks:row.asks
+            ~renewals:row.renewals ~ends:row.ends ~told:row.told
+            ~error:row.error ~kept:row.kept
+            ~then_:
+              (Option.map
+                 (fun ({ asks; renewals; ends } : C.item_then) ->
+                   (asks, renewals, ends))
+                 row.then_)))
+    C.table.refusal
 
 let () =
   Alcotest.run "session renewal"
     [
-      ("startup", lifecycle_cases "startup");
-      ("refusal", lifecycle_cases "refusal");
+      ("startup", startup);
+      ("refusal", refusal);
       ( "session",
         [
           Alcotest.test_case "shared expiry and schedule" `Quick table;

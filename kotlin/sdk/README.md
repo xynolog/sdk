@@ -2,34 +2,57 @@
 
 [![codecov](https://codecov.io/gh/xynolog/sdk/graph/badge.svg?component=kotlin-sdk)](https://app.codecov.io/gh/xynolog/sdk/components)
 
-The Xynolog SDK for the JVM: one artifact, written in Kotlin, which Java programs call as first-class consumers. Every program below is a file the build compiles and runs (`src/test/kotlin/xynolog/readme`, `src/javaTest/java/xynolog/readme`), held to this page word for word.
+The Xynolog SDK for the JVM: one artifact, written in Kotlin, which Java programs call as first-class consumers. Every program below is a file the build compiles and runs (`src/test/kotlin/xynolog/readme`, `src/fromJava/java/xynolog/readme`), held to this page word for word.
 
-## Installing
+## Install
 
-The SDK is not published yet. Build its jar from source, in a container whose JDK is the one `.java-version` names (Kotlin 2.4, JDK 25), and put it on your program's classpath with its dependencies:
+The SDK is `org.xynolog:xynolog` on Maven Central. With Gradle:
 
-```bash
-container run --rm -v "$PWD":/w -w /w/kotlin/sdk eclipse-temurin:"$(kotlin/scripts/jdk-version.sh)"-jdk ./gradlew --no-daemon jar
+```kts
+implementation("org.xynolog:xynolog:<version>")
 ```
 
-## The verbs
+With Maven:
 
-A client's namespaces are the protocol's eight verbs, and three of its own:
+```xml
+<dependency>
+  <groupId>org.xynolog</groupId>
+  <artifactId>xynolog</artifactId>
+  <version><version></version>
+</dependency>
+```
 
-| Namespace | What it does |
-|---|---|
-| `frame` | the vocabulary: what kinds of things exist |
-| `browse` | reads, as live queries, and this viewer's own signals |
-| `mark` | annotations, and annotating a resource delegated as a job |
-| `bind` | linking a reference to what it refers to |
-| `gather` | the context a model is given, and what refers to a resource |
-| `match` | searching, for what a reference could refer to and for resources |
-| `yield` | creating resources, and generating one delegated as a job |
-| `beckon` | attention: driving the other participants' viewers |
-| `job` | jobs: their lifecycle, their status, cancelling one, and claiming work |
-| `auth`, `system` | who is signed in, and what the knowledge base says of itself |
+`<version>` is a release's. Below 1.0 the minor number is the break, so take releases up to the next minor. Gradle says so with a prefix, where `<minor>` is a release's version without its patch number:
 
-Kotlin calls a `suspend` member and collects a `Flow`. Java calls the member's twin that returns a `CompletableFuture` (`awaitFuture`, `…Future`) and reads a stream as a `java.util.concurrent.Flow.Publisher` (`asPublisher()`). `yield` is no keyword in Kotlin; Java calls it as `getYield()`.
+```kts
+implementation("org.xynolog:xynolog:<minor>.+")
+```
+
+Maven says so with a version range in place of the version, `[<version>,<next minor>)`, where `<next minor>` is the first release of the minor after it: the bracket takes `<version>` in, and the parenthesis leaves `<next minor>` out.
+
+It runs on Java 25 or later.
+
+## A first program
+
+Connect to a knowledge base and say its name. Run it with the gateway's URL and a current access token: [Signing in](#signing-in) is how a program comes to hold one, and [Connecting](#connecting) says what each part of the client is. The program closes the client, then the transport it made.
+
+<!-- readme: a-first-program -->
+```kotlin
+import kotlinx.coroutines.flow.MutableStateFlow
+import xynolog.XynologClient
+import xynolog.channels.BRIDGED_CHANNELS
+import xynolog.http.HttpContentTransport
+import xynolog.http.HttpTransport
+
+suspend fun main(args: Array<String>) {
+    val (baseUrl, token) = args
+    HttpTransport(baseUrl, MutableStateFlow(token), BRIDGED_CHANNELS).use { transport ->
+        XynologClient(transport, HttpContentTransport(transport), transport).use { client ->
+            println(client.browse.kb().name)
+        }
+    }
+}
+```
 
 ## Connecting
 
@@ -50,6 +73,38 @@ XynologClient client = new XynologClient(transport, new HttpContentTransport(tra
 ```
 
 Closing the client ends what it runs and its own bus; whoever made the transport closes it.
+
+## Signing in
+
+- **The sign-in store** (`xynolog.signin`): `SignInStore` is the launcher's `tokens.json`, so a program and `xynolog login` share their sign-ins. `stateDir` says where it is from the directories the application hands in; the SDK reads no environment variable for it. `MemorySignIn` keeps a sign-in for the life of the process. `renewKept` renews a kept sign-in at its issuer against what is kept then, so another program's renewal or sign-out in between stands.
+- **Its lock:** every writer of the store takes `flock` on `tokens.lock`, and on Windows `LockFileEx` on its one byte (protocol/specs/src/sign-in-store/README.md). The JDK's own file lock does not exclude `flock` on Linux, so the store calls `flock` through the foreign-function API. An application that uses the store enables native access for it, or the JVM warns when it is first taken:
+
+  ```bash
+  java --enable-native-access=ALL-UNNAMED -jar app.jar
+  ```
+
+- **A person** signs in from a process with no browser through the device grant: `signInDevice(kb, kept) { code -> ... }` shows the code, and keeps the sign-in once it is approved. `signOut(kept)` revokes it at the issuer and forgets it.
+- **A service** signs in as itself with `ServiceToken(credential)`, proving itself with its client secret (`SecretCredential`) or with a key (`KeyCredential`). With a key, each grant carries an assertion signed for it alone (RFC 7523, `private_key_jwt`), which the issuer checks with the public half registered on the client, and no secret is sent. A worker signs in by key: the launcher hands it its client id in `XYNOLOG_OIDC_CLIENT_ID` and its RSA key as PKCS#8 PEM in `XYNOLOG_OIDC_CLIENT_KEY`, and the worker reads them itself, into `ServiceToken(KeyCredential.fromPem(issuer, clientId, pem))`. A PEM that is not an RSA key in PKCS#8 throws `IllegalArgumentException`, which never says the key.
+- **An agent** is an account, as a person is: `AgentToken` signs it in with its account's token, learns the DID the gateway names it by from `GET /api/users/me`, and renews by a new grant at its issuer, when the token is due and at once when the gateway refuses it. A transport takes it as its token and its refresher. An agent whose renewal fails keeps the token it has and tries again.
+
+## The verbs
+
+A client's namespaces are the protocol's eight verbs, and three of its own:
+
+| Namespace | What it does |
+|---|---|
+| `frame` | the vocabulary: what kinds of things exist |
+| `browse` | reads, as live queries, and this viewer's own signals |
+| `mark` | annotations, and annotating a resource delegated as a job |
+| `bind` | linking a reference to what it refers to |
+| `gather` | the context a model is given, and what refers to a resource |
+| `match` | searching, for what a reference could refer to and for resources |
+| `yield` | creating resources, and generating one delegated as a job |
+| `beckon` | attention: driving the other participants' viewers |
+| `job` | jobs: their lifecycle, their status, cancelling one, and claiming work |
+| `auth`, `system` | who is signed in, and what the knowledge base says of itself |
+
+Kotlin calls a `suspend` member and collects a `Flow`. Java calls the member's twin that returns a `CompletableFuture` (`awaitFuture`, `…Future`) and reads a stream as a `java.util.concurrent.Flow.Publisher` (`asPublisher()`). `yield` is no keyword in Kotlin; Java calls it as `getYield()`.
 
 ## Gathering, then delegating
 
@@ -171,19 +226,6 @@ Five interfaces are implemented in Kotlin, not in Java, since their members susp
 
 - **The bus log:** with `XYNOLOG_BUS_LOG` set to anything but nothing, a line on standard output for each frame sent or received and each read and upload, in the form every Xynolog SDK writes, with every credential's value withheld.
 
-## Signing in
-
-- **The sign-in store** (`xynolog.signin`): `SignInStore` is the launcher's `tokens.json`, so a program and `xynolog login` share their sign-ins. `stateDir` says where it is from the directories the application hands in; the SDK reads no environment variable for it. `MemorySignIn` keeps a sign-in for the life of the process. `renewKept` renews a kept sign-in at its issuer against what is kept then, so another program's renewal or sign-out in between stands.
-- **Its lock:** every writer of the store takes `flock` on `tokens.lock`, and on Windows `LockFileEx` on its one byte (protocol/specs/src/sign-in-store/README.md). The JDK's own file lock does not exclude `flock` on Linux, so the store calls `flock` through the foreign-function API. An application that uses the store enables native access for it, or the JVM warns when it is first taken:
-
-  ```bash
-  java --enable-native-access=ALL-UNNAMED -jar app.jar
-  ```
-
-- **A person** signs in from a process with no browser through the device grant: `signInDevice(kb, kept) { code -> ... }` shows the code, and keeps the sign-in once it is approved. `signOut(kept)` revokes it at the issuer and forgets it.
-- **A service** signs in as itself with `ServiceToken(credential)`, proving itself with its client secret (`SecretCredential`) or with a key (`KeyCredential`). With a key, each grant carries an assertion signed for it alone (RFC 7523, `private_key_jwt`), which the issuer checks with the public half registered on the client, and no secret is sent. A worker signs in by key: the launcher hands it its client id in `XYNOLOG_OIDC_CLIENT_ID` and its RSA key as PKCS#8 PEM in `XYNOLOG_OIDC_CLIENT_KEY`, and the worker reads them itself, into `ServiceToken(KeyCredential.fromPem(issuer, clientId, pem))`. A PEM that is not an RSA key in PKCS#8 throws `IllegalArgumentException`, which never says the key.
-- **An agent** is an account, as a person is: `AgentToken` signs it in with its account's token, learns the DID the gateway names it by from `GET /api/users/me`, and renews by a new grant at its issuer, when the token is due and at once when the gateway refuses it. A transport takes it as its token and its refresher. An agent whose renewal fails keeps the token it has and tries again.
-
 ## What an application enables
 
 The SDK installs nothing and reads no setting of its own but `XYNOLOG_BUS_LOG`. What it can use, the application turns on:
@@ -209,23 +251,8 @@ Given none, a part uses the SDK's own client: the JDK's, with the JDK's default 
 
 Untested. The SDK is a JVM library, and nothing in it was built or run on Android.
 
-## Building it
-
-Nothing but a container runtime is needed. In the JDK image `.java-version` names:
-
-```bash
-container run --rm -v "$PWD":/w -w /w/kotlin/sdk eclipse-temurin:"$(kotlin/scripts/jdk-version.sh)"-jdk ./gradlew --no-daemon check
-```
-
-`check` runs, beside the build and the tests:
-
-- `checkKotlinAbi`: the public API written by hand against the committed dump, `api/sdk.api`. A change to that API is a change to the dump, made with `./gradlew updateKotlinAbi`. What the generator writes is the spec's, and is not in it.
-- `javaTest`: the tests under `src/javaTest/java`, which call the SDK as a Java program does. They are Java alone.
-- `refusals`: the programs under `src/refusals`, Kotlin and Java, that must not compile against the SDK. Each begins `// refused: <text>`, and the compiler must refuse it with a message holding that text.
-- `census`: no source suppresses a warning (every warning is an error, so a suppression is the one way an unchecked cast gets in), and the SDK reads no environment variable but `XYNOLOG_BUS_LOG`.
-
-Every public declaration says it is public: the build runs Kotlin's explicit API mode.
-
 ## License
 
 Apache-2.0
+
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

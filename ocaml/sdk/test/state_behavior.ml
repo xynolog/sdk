@@ -58,8 +58,41 @@ let rec substitute fixture = function
   | `List values -> `List (List.map (substitute fixture) values)
   | value -> value
 
+module Units = Protocol_cases.Client_state_units
+module Timing = Protocol_cases.Client_timing
+
+(* A timing of client/timing.json that is a duration, in milliseconds. *)
+let duration name =
+  match
+    (List.find
+       (fun (entry : Timing.timing_item) -> entry.name = name)
+       Timing.table.timing)
+      .value
+  with
+  | Integer milliseconds -> milliseconds
+  | Object _ -> failwith (name ^ " is no duration")
+
+(* A time a case passes: milliseconds, or a timing scaled and extended. *)
+let elapsed : Units.pass -> int = function
+  | Integer milliseconds -> milliseconds
+  | Object { timing; times; plus_ms } ->
+      int_of_float
+        ((float (duration timing) *. Option.value times ~default:1.)
+        +. float (Option.value plus_ms ~default:0))
+
+(* A time an invocation's arguments pass, which the model leaves as JSON. *)
+let elapsed_json = function
+  | `Int milliseconds -> milliseconds
+  | value ->
+      int_of_float
+        (float (duration (string "timing" value))
+         *. Option.value (J.to_number_option (field "times" value)) ~default:1.
+        +. Option.value (J.to_number_option (field "plusMs" value)) ~default:0.
+        )
+
 (* Public units driven by the shared client/state-units.json cases. *)
-let run_case row =
+let run_case ~fixture (row : Units.cases_item) =
+  let sub = substitute fixture in
   Eio_main.run @@ fun env ->
   Switch.run @@ fun sw ->
   let mono = Eio_mock.Clock.Mono.make () in
@@ -67,48 +100,21 @@ let run_case row =
     Clock.make ~monotonic:mono ~wall:(Eio.Stdenv.clock env)
       ~jitter:(Random.State.make [| 1 |])
   in
-  let timing = Protocol.timing () in
-  let number fallback = function
-    | `Int n -> float n
-    | `Float n -> n
-    | _ -> fallback
-  in
-  let elapsed = function
-    | `Int n -> n
-    | value ->
-        let base = J.to_int (field (string "timing" value) timing) in
-        int_of_float
-          ((float base *. number 1. (field "times" value))
-          +. number 0. (field "plusMs" value))
-  in
   let settle () =
     for _ = 1 to 40 do
       Fiber.yield ()
     done
   in
-  let listen =
-    match field "listen" row with
-    | `List names -> List.map J.to_string names
-    | _ -> []
-  in
+  let listen = Option.value row.listen ~default:[] in
   let heard = ref [] in
   let on_event = function
     | Ok (Wire_stream.Frame { route; payload = Ok payload; _ })
       when List.mem route.channel listen ->
-        let fields =
-          [
-            ("channel", text route.channel);
-            ("payload", Yojson.Safe.from_string (B.encode payload));
-          ]
-        in
-        let fields =
-          fields
-          @ Option.to_list
-              (Option.map
-                 (fun id -> ("correlationId", text id))
-                 route.correlation_id)
-        in
-        heard := assoc fields :: !heard
+        heard :=
+          ( route.channel,
+            route.correlation_id,
+            Yojson.Safe.from_string (B.encode payload) )
+          :: !heard
     | _ -> ()
   in
   let read, write = Eio.Process.pipe ~sw (Eio.Stdenv.process_mgr env) in
@@ -123,14 +129,11 @@ let run_case row =
       ("event: bus-event\ndata: " ^ json (assoc fields) ^ "\n\n")
       write
   in
-  let transport = field "transport" row in
+  let transport = row.transport in
   let replies = Hashtbl.create 4 in
-  (match field "replies" transport with
-  | `Assoc entries ->
-      List.iter
-        (fun (name, values) -> Hashtbl.replace replies name (J.to_list values))
-        entries
-  | _ -> ());
+  List.iter
+    (fun (name, values) -> Hashtbl.replace replies name (List.map sub values))
+    (Option.value transport.replies ~default:[]);
   let enqueue name response =
     let values = Option.value (Hashtbl.find_opt replies name) ~default:[] in
     Hashtbl.replace replies name (values @ [ response ])
@@ -145,17 +148,16 @@ let run_case row =
       | _ -> None
     in
     let response =
-      match (explicit, field "answers" transport, name) with
+      match (explicit, transport.answers, name) with
       | Some response, _, _ -> Some response
-      | None, `String "jobs", "job:create" ->
-          Some (assoc [ ("jobId", text "job-1") ])
-      | None, `String "jobs", "job:status-requested" ->
+      | None, Jobs, "job:create" -> Some (assoc [ ("jobId", text "job-1") ])
+      | None, Jobs, "job:status-requested" ->
           Some
             (assoc
                [
                  ("jobId", text "job-1");
                  ("status", text "running");
-                 ("type", field "unit" row);
+                 ("type", text row.unit);
                  ("userId", text "did:web:example.org:users:alice");
                  ("created", text "2026-10-01T00:00:00.000Z");
                ])
@@ -173,8 +175,8 @@ let run_case row =
         let deliver () =
           send_frame ~correlation_id reply (assoc [ ("response", response) ])
         in
-        match field "delayMs" transport with
-        | `Int delay ->
+        match transport.delay_ms with
+        | Some delay ->
             let deadline =
               Option.get
                 (Mtime.add_span
@@ -185,11 +187,10 @@ let run_case row =
                 Clock.sleep_until clock deadline;
                 deliver ();
                 `Stop_daemon)
-        | _ -> deliver ())
+        | None -> deliver ())
     | Some (B.Operation operation), None
-      when field "answers" transport = text "refuses"
-           || name = "mark:create-request"
-              && field "answers" transport = text "jobs" ->
+      when transport.answers = Refuses
+           || (name = "mark:create-request" && transport.answers = Jobs) ->
         send_frame
           ~correlation_id:(string "correlationId" request)
           (B.name (B.failure operation))
@@ -235,7 +236,7 @@ let run_case row =
   let searched = ref [] and answers = ref [] in
   let lookup query receive =
     let active = ref true in
-    searched := !searched @ [ text query ];
+    searched := !searched @ [ query ];
     answers := !answers @ [ (fun value -> if !active then receive value) ];
     fun () -> active := false
   in
@@ -247,16 +248,16 @@ let run_case row =
     in
     (name, fun () -> encode (V.get state))
   in
-  let make unit_name made =
+  let make unit_name (made : Units.made_value) =
     let watch name state encode = watch unit_name name state encode in
-    match string "unit" row with
+    let resource_id () =
+      Result.get_ok
+        (Identifiers.Resource_id.of_string (Option.get made.resource_id))
+    in
+    match row.unit with
     | "mark" ->
         let module M = U.Mark in
-        let resource =
-          Result.get_ok
-            (Identifiers.Resource_id.of_string (string "resourceId" made))
-        in
-        let unit = M.make client ~resource in
+        let unit = M.make client ~resource:(resource_id ()) in
         let invoke name args =
           match name with
           | "cancelPending" -> M.cancel_pending unit
@@ -302,13 +303,13 @@ let run_case row =
           ] )
     | "yield" ->
         let module Y = U.Yield in
-        let unit = Y.make client ~locale:(string "locale" made) in
+        let unit = Y.make client ~locale:(Option.get made.locale) in
         let invoke name args =
           match name with
           | "dismissProgress" -> Y.dismiss_progress unit
           | "generate" ->
               Y.generate unit
-                ?stall_ms:(option elapsed (field "stallDeadlineMs" args))
+                ?stall_ms:(option elapsed_json (field "stallDeadlineMs" args))
                 (Result.get_ok
                    (Models.decode Models.generation_job_request
                       (json (field "params" args))))
@@ -340,7 +341,7 @@ let run_case row =
         let resource name value =
           Result.get_ok (Identifiers.Resource_id.of_string (string name value))
         in
-        let unit = G.make client ~resource:(resource "resourceId" made) in
+        let unit = G.make client ~resource:(resource_id ()) in
         let invoke name args =
           match name with
           | "gatherAnnotation" ->
@@ -370,7 +371,9 @@ let run_case row =
           ] )
     | "hoverDwell" ->
         let unit =
-          U.Hover_dwell.make ~delay_ms:(elapsed (field "delayMs" made)) client
+          U.Hover_dwell.make
+            ~delay_ms:(elapsed (Option.get made.delay_ms))
+            client
         in
         ( (fun () -> U.Hover_dwell.dispose unit),
           (fun name args ->
@@ -381,11 +384,7 @@ let run_case row =
             | _ -> assert false),
           [] )
     | "beckon" ->
-        let resource =
-          Result.get_ok
-            (Identifiers.Resource_id.of_string (string "resourceId" made))
-        in
-        let unit = U.Beckon.make client ~resource in
+        let unit = U.Beckon.make client ~resource:(resource_id ()) in
         ( (fun () -> U.Beckon.dispose unit),
           (fun name args ->
             assert (name = "focus");
@@ -396,10 +395,9 @@ let run_case row =
               annotation;
           ] )
     | "search" ->
-        let debounce_ms = option elapsed (field "debounceMs" made) in
-        let initial_query = option J.to_string (field "initialQuery" made) in
         let unit =
-          U.Search.make ?debounce_ms ?initial_query ~sw ~clock ~search:lookup ()
+          U.Search.make ?debounce_ms:made.debounce_ms
+            ?initial_query:made.initial_query ~sw ~clock ~search:lookup ()
         in
         ( (fun () -> U.Search.dispose unit),
           (fun name args ->
@@ -466,148 +464,120 @@ let run_case row =
           ] )
     | _ -> assert false
   in
-  let units =
-    List.map
-      (fun (name, config) -> (name, make name config))
-      (J.to_assoc (field "made" row))
+  let units = List.map (fun (name, made) -> (name, make name made)) row.made in
+  let pass milliseconds =
+    settle ();
+    Eio_mock.Clock.Mono.set_time mono
+      (Option.get
+         (Mtime.add_span
+            (Clock.monotonic_now clock)
+            Mtime.Span.(milliseconds * ms)));
+    settle ()
   in
   List.iter
-    (fun step ->
+    (fun (step : Units.steps_item) ->
       match step with
-      | `String "settle" -> settle ()
-      | `Assoc fields -> (
-          match List.hd fields with
-          | "invoke", `String name ->
-              let _, invoke, _ = List.assoc (string "of" step) units in
-              invoke name (field "args" step)
-          | "dispose", `String name ->
-              let dispose, _, _ = List.assoc name units in
-              dispose ()
-          | "pass", value ->
-              settle ();
-              let duration = elapsed value in
-              Eio_mock.Clock.Mono.set_time mono
-                (Option.get
-                   (Mtime.add_span
-                      (Clock.monotonic_now clock)
-                      Mtime.Span.(duration * ms)));
-              settle ()
-          | "queueReply", `String channel ->
-              enqueue channel (field "response" step)
-          | "say", `String channel
-            when String.starts_with ~prefix:"job:" channel ->
-              send_frame channel (field "payload" step)
-          | "say", `String channel ->
-              local
-                ?correlation_id:
-                  (option J.to_string (field "correlationId" step))
-                channel (field "payload" step)
-          | "deliver", `String channel ->
-              settle ();
-              send_frame channel (field "payload" step);
-              settle ()
-          | "nothingSent", _ ->
-              settle ();
-              check (`List []) (`List !sent)
-          | "sent", `String channel -> (
-              settle ();
-              let messages = on_channel channel in
-              match field "count" step with
-              | `Int expected ->
-                  Alcotest.(check int)
-                    "sent count" expected (List.length messages)
-              | _ ->
-                  let expected = field "payloads" step in
-                  let actual = `List (List.map (field "payload") messages) in
-                  if not (matches expected actual) then check expected actual)
-          | "answer", `String channel ->
-              settle ();
-              let correlation_id =
-                correlation channel (J.to_int (field "nth" step))
-              in
-              send_frame ~correlation_id (string "reply" step)
-                (field "payload" step);
-              settle ()
-          | "expect", expected ->
+      | String -> settle ()
+      | Invoke { invoke; of_; args } ->
+          let _, run, _ = List.assoc of_ units in
+          run invoke
+            (`Assoc (List.map (fun (name, value) -> (name, sub value)) args))
+      | Dispose { dispose } ->
+          let dispose, _, _ = List.assoc dispose units in
+          dispose ()
+      | Pass { pass = time } -> pass (elapsed time)
+      | Queue_reply { queue_reply; response } ->
+          enqueue queue_reply (sub response)
+      | Say { say; payload; _ } when String.starts_with ~prefix:"job:" say ->
+          send_frame say (sub payload)
+      | Say { say; correlation_id; payload } ->
+          local ?correlation_id say (sub payload)
+      | Deliver { deliver; payload; _ } ->
+          settle ();
+          send_frame deliver (sub payload);
+          settle ()
+      | Nothing_sent _ ->
+          settle ();
+          check (`List []) (`List !sent)
+      | Sent_count { sent = channel; count } ->
+          settle ();
+          Alcotest.(check int)
+            "sent count" count
+            (List.length (on_channel channel))
+      | Sent_payloads { sent = channel; payloads } ->
+          settle ();
+          let expected = `List (List.map sub payloads) in
+          let actual =
+            `List (List.map (field "payload") (on_channel channel))
+          in
+          if not (matches expected actual) then check expected actual
+      | Answer { answer; nth; reply; payload } ->
+          settle ();
+          send_frame ~correlation_id:(correlation answer nth) reply
+            (sub payload);
+          settle ()
+      | Expect { expect } ->
+          List.iter
+            (fun (unit_name, expected) ->
+              let _, _, values = List.assoc unit_name units in
               List.iter
-                (fun (unit_name, expected) ->
-                  let _, _, values = List.assoc unit_name units in
-                  List.iter
-                    (fun (name, value) ->
-                      let actual = (List.assoc name values) () in
-                      if not (matches value actual) then check value actual)
-                    (J.to_assoc expected))
-                (J.to_assoc expected)
-          | "heard", expected ->
-              settle ();
-              let expected =
-                J.to_list expected
-                |> List.map (fun row ->
-                    match field "correlationId" row with
-                    | `Assoc ref_ ->
-                        let actual =
-                          correlation
-                            (string "sent" (`Assoc ref_))
-                            (J.to_int (field "nth" (`Assoc ref_)))
-                        in
-                        assoc
-                          (("correlationId", text actual)
-                          :: List.remove_assoc "correlationId" (J.to_assoc row)
-                          )
-                    | _ -> row)
-              in
-              let actual = List.rev !heard in
-              let matches_payload expected actual =
-                normalize
-                  (assoc (List.remove_assoc "payload" (J.to_assoc expected)))
-                = normalize
-                    (assoc (List.remove_assoc "payload" (J.to_assoc actual)))
-                && matches (field "payload" expected) (field "payload" actual)
-              in
-              if
-                List.length expected <> List.length actual
-                || not (List.for_all2 matches_payload expected actual)
-              then check (`List expected) (`List actual);
-              heard := []
-          | "searched", expected ->
-              settle ();
-              check expected (`List !searched)
-          | "answerSearch", `Int index ->
-              (List.nth !answers index)
-                (option J.to_list (field "results" step));
-              settle ()
-          | "ended", ended_ ->
+                (fun (name, value) ->
+                  let value = sub value
+                  and actual = (List.assoc name values) () in
+                  if not (matches value actual) then check value actual)
+                expected)
+            expect
+      | Heard { heard = expected } ->
+          settle ();
+          let actual = List.rev !heard in
+          Alcotest.(check int)
+            "heard" (List.length expected) (List.length actual);
+          List.iter2
+            (fun (expected : Units.heard_item)
+                 (channel, correlation_id, payload) ->
+              Alcotest.(check string) "heard channel" expected.channel channel;
+              Alcotest.(check (option string))
+                "heard correlation"
+                (Option.map
+                   (fun (id : Units.correlation_id) ->
+                     match id with
+                     | String id -> id
+                     | Object { sent; nth } -> correlation sent nth)
+                   expected.correlation_id)
+                correlation_id;
+              let expected = sub expected.payload in
+              if not (matches expected payload) then check expected payload)
+            expected actual;
+          heard := []
+      | Searched { searched = expected } ->
+          settle ();
+          Alcotest.(check (list string)) "searched" expected !searched
+      | Answer_search { answer_search; results } ->
+          (List.nth !answers answer_search) (Option.map (List.map text) results);
+          settle ()
+      | Ended { ended = expected } ->
+          List.iter
+            (fun (unit_name, names) ->
               List.iter
-                (fun (unit_name, names) ->
-                  List.iter
-                    (fun name ->
-                      assert (Hashtbl.mem ended (unit_name, J.to_string name)))
-                    (J.to_list names))
-                (J.to_assoc ended_)
-          | "busDestroyed", `Bool expected ->
-              assert (
-                Subscription.state (Client.subscription client)
-                = Subscription.Closed = expected)
-          | _ -> failwith ("unknown state unit step: " ^ json step))
-      | _ -> assert false)
-    (J.to_list (field "steps" row));
+                (fun name -> assert (Hashtbl.mem ended (unit_name, name)))
+                names)
+            expected
+      | Bus_destroyed { bus_destroyed } ->
+          assert (
+            Subscription.state (Client.subscription client)
+            = Subscription.Closed = bus_destroyed))
+    row.steps;
   List.iter (fun (_, (dispose, _, _)) -> dispose ()) units;
   Client.close client;
   Session.close session
 
 let () =
-  let fixture = Protocol.member "client/state-units.json" "fixtures" in
-  let cases =
-    Protocol.member "client/state-units.json" "cases"
-    |> J.to_list
-    |> List.map (substitute fixture)
-  in
+  let fixture = Units.fixtures_json Units.table.fixtures in
   Alcotest.run "OCaml state units"
     [
       ( "shared",
         List.map
-          (fun row ->
-            Alcotest.test_case (string "case" row) `Quick (fun () ->
-                run_case row))
-          cases );
+          (fun (row : Units.cases_item) ->
+            Alcotest.test_case row.case `Quick (fun () -> run_case ~fixture row))
+          Units.table.cases );
     ]

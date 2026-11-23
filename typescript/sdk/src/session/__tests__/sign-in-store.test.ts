@@ -13,9 +13,6 @@
  */
 
 import { describe, it, expect, afterEach } from 'vitest';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import {
   BROWSER_CLIENT_ID,
   SCRIPT_CLIENT_ID,
@@ -35,55 +32,8 @@ import {
   type System,
 } from '../sign-in-store';
 import type { StoredSession } from '@xynolog/core';
-
-const SPECS = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../../protocol/specs/src/sign-in-store',
-);
-
-interface StateCase {
-  why: string;
-  os: string;
-  home: string | null;
-  xdgStateHome?: string | null;
-  localAppData?: string | null;
-  dir: string | null;
-}
-
-/** A sign-in as the table names one: its access token's name and its refresh token. */
-interface Named {
-  token: string;
-  refreshToken: string;
-}
-
-interface Renewal {
-  why: string;
-  kept: Named;
-  holding: string | null;
-  meanwhile:
-    | { when: 'before' | 'during'; does: 'renews'; theirs: Named }
-    | { when: 'before' | 'during'; does: 'signs-out' }
-    | null;
-  expired: string[];
-  issues: { token: string; refreshToken?: string };
-  spends: string | null;
-  leaves: Named | null;
-  gives: string | null;
-}
-
-interface OwnerOnly {
-  directoryMode: { value: string };
-  fileMode: { value: string };
-  directoryAccessList: { value: string };
-}
-
-const table = JSON.parse(readFileSync(join(SPECS, 'cases.json'), 'utf-8')) as {
-  cases: StateCase[];
-  renewals: Renewal[];
-};
-const ownerOnly = JSON.parse(
-  readFileSync(join(SPECS, 'owner-only.json'), 'utf-8'),
-) as OwnerOnly;
+import { table, type Issues } from '../../__tests__/cases/sign_in_store_cases';
+import { table as ownerOnly } from '../../__tests__/cases/sign_in_store_owner_only';
 
 /** A stack's key, as the launcher keys its sign-ins. */
 const KEY = 'local:example.org-my-kb';
@@ -233,7 +183,7 @@ function scriptSession(access: string, refresh: string): StoredSession {
 /** An issuer that answers each refresh grant with `issues`, and records the refresh token each spent. */
 function issuerOf(
   tokens: Tokens,
-  issues: Renewal['issues'],
+  issues: Issues,
   during: () => void,
 ): { fetch: typeof globalThis.fetch; spent: (string | null)[] } {
   const spent: (string | null)[] = [];
@@ -300,14 +250,14 @@ describe.each(STORES)(
         const meanwhile = row.meanwhile;
         const theyAct = (): void => {
           if (meanwhile === null) return;
-          if (meanwhile.does === 'renews')
+          if (meanwhile.does === 'renews') {
+            const theirs = meanwhile.theirs;
+            if (theirs === undefined)
+              throw new Error('a renewal meanwhile names the sign-in it keeps');
             another.keep(
-              scriptSession(
-                tokens.of(meanwhile.theirs.token),
-                meanwhile.theirs.refreshToken,
-              ),
+              scriptSession(tokens.of(theirs.token), theirs.refreshToken),
             );
-          else another.forget();
+          } else another.forget();
         };
         if (meanwhile?.when === 'before') theyAct();
         const issuer = issuerOf(

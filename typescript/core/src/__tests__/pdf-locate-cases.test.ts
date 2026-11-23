@@ -7,35 +7,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { locate, type AnchoredText, type PdfTextItem } from '../pdf-anchoring';
+import { locate, type AnchoredText } from '../pdf-anchoring';
 import { createFragmentSelector } from '../pdf-coordinates';
-import type { PdfCoordinate } from '../payload-types';
-
-interface Span {
-  start: number;
-  end: number;
-}
-
-interface LocateCase {
-  why: string;
-  anchored: AnchoredText;
-  span: Span;
-  overlapping: PdfTextItem[];
-  rects: PdfCoordinate[];
-  /** The FragmentSelector value of each of `rects`, in their order. */
-  fragments: string[];
-}
-
-const table: { cases: LocateCase[] } = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/annotations/pdf-locate-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
+import { table } from './cases/annotations_pdf_locate_cases';
 
 describe('locating a span of a PDF (protocol/specs/src/annotations/pdf-locate-cases.json)', () => {
   it('has cases', () => {
@@ -51,7 +25,7 @@ describe('locating a span of a PDF (protocol/specs/src/annotations/pdf-locate-ca
     fragments,
   } of table.cases) {
     it(why, () => {
-      const located = locate(anchored, span.start, span.end);
+      const located = locate(anchored as AnchoredText, span.start, span.end);
       expect(located.overlap, 'overlapping').toStrictEqual(overlapping);
       expect(located.rects, 'rects').toStrictEqual(rects);
       expect(rects.map(createFragmentSelector), 'fragments').toStrictEqual(

@@ -6,17 +6,27 @@ description: Protocol-derived models for the Xynolog knowledge platform.
 license: Apache-2.0
 license-file: LICENSE
 category: Network
+homepage: https://github.com/xynolog/sdk
+bug-reports: https://github.com/xynolog/sdk/issues
 author: Xynolog
-maintainer: Xynolog contributors
+-- No address: the project is reached through its issue tracker.
+maintainer: Xynolog, at https://github.com/xynolog/sdk/issues
 build-type: Simple
+-- The lowest is cabal.project's with-compiler, which the tests build with.
+tested-with: GHC == 9.10.3 || == 9.12.4
 extra-source-files: test/store-owner-policy.py, test/store-owner-policy.ps1, test/store-lock-peer.py, generated/Xynolog/Internal/Generated/xynolog_store_policy.h, test/fixtures/*.pem, xynolog.cabal.in, README.md, run.sh, api.py, public-api.inputs.json, public-api.json, test/refusals.py, test/refusals/*.hs, test/http-peer.py, conformance/README.md, conformance/launch.sh
 extra-doc-files: CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/xynolog/sdk.git
+  subdir: haskell/sdk
 
 common settings
   default-language: GHC2021
   ghc-options: -Wall -Wincomplete-patterns -Wincomplete-record-updates
   build-depends:
-    base >=4.20 && <4.21,
+    base >=4.20 && <4.22,
     aeson >=2.3 && <2.4,
     async >=2.2 && <2.3,
     bytestring >=0.12 && <0.13,
@@ -38,12 +48,12 @@ common crypto
 
 library
   default-language: GHC2021
-  build-depends: base >=4.20 && <4.21, xynolog:internal
+  build-depends: base >=4.20 && <4.22, xynolog:internal
   reexported-modules: Xynolog.Types, Xynolog.Types.Presence, Xynolog.Channels, Xynolog.Running, Xynolog.ErrorCodes, Xynolog.Timing, Xynolog.Timing.Settings, Xynolog.Retry, Xynolog.Discovery, Xynolog.Discovery.Reasons, Xynolog.Transport, Xynolog.Transport.Facts, Xynolog.StateValue, Xynolog.Errors, Xynolog.EventBus, Xynolog.Bus, Xynolog.Http, Xynolog.Http.Discovery, Xynolog.Content, Xynolog.Gateway, Xynolog.Frame, Xynolog.Auth, Xynolog.System, Xynolog.Client, Xynolog.JobFilter, Xynolog.Claims, Xynolog.HostName, Xynolog.Worker, Xynolog.Worker.Types, Xynolog.Bind, Xynolog.Beckon, Xynolog.Job, Xynolog.Cache, Xynolog.Resources, Xynolog.MediaTypes, Xynolog.Browse, Xynolog.Gather, Xynolog.Match, Xynolog.Delegation, Xynolog.Mark, Xynolog.Yield, Xynolog.Tokens, Xynolog.SessionStorage, Xynolog.Session, Xynolog.Issuer, Xynolog.Registry.Stored, Xynolog.ClientAssertion, Xynolog.ServiceToken, Xynolog.SignIn, Xynolog.SignInStore, Xynolog.Annotations, Xynolog.Identity, Xynolog.StoragePersister, Xynolog.State.SessionSignals, Xynolog.Registry.Identity, Xynolog.Registry.Factory, Xynolog.Registry.Resources, Xynolog.Registry, Xynolog.State.HoverDwell, Xynolog.State.Search, Xynolog.State.Beckon, Xynolog.State.Match, Xynolog.State.Gather, Xynolog.State.Mark, Xynolog.State.Yield, Xynolog.Testing, Xynolog.Testing.Client, Xynolog.Testing.Transport, Xynolog.Testing.Storage, Xynolog.Testing.Sessions, Xynolog.Testing.Liveness
 
 library internal
   import: settings, context-propagation, crypto
-  build-depends: directory >=1.3 && <1.4, filepath >=1.5 && <1.6, time >=1.12 && <1.13
+  build-depends: directory >=1.3 && <1.4, filepath >=1.5 && <1.6, time >=1.12 && <1.15
   visibility: private
   hs-source-dirs: src, internal, generated
   c-sources: internal/Xynolog/Internal/NativeStore.c
@@ -205,7 +215,7 @@ test-suite schema-cases
   hs-source-dirs: test
   other-modules: Xynolog.Internal.Generated.RoundTrip, Xynolog.Internal.Generated.ChannelRoundTrip, Xynolog.Internal.Generated.ErrorRoundTrip, Xynolog.Internal.Generated.TimingValues, Xynolog.Internal.Generated.DiscoveryReasonRoundTrip, Runtime, Discovery, BusCases, SchemaCases, HttpCases, HttpDiscoveryCases, AnnotationCases, IdentityCases, BusLogCases, PersistenceCases, PersistedCases, GatewayStage, CacheDocumentCases, StateUnitCases, FlowCases, ActorCases, TestingCases, RegistryCases, OpenResourceCases, RegistryErrorsCases, RegistryRuntimeCases, LifetimeCases, WorkerCases, GatewayCases, HeldCases, SurfaceCases, CacheCases, ControlledTime, ClockCases, ResourceCases, FrameCases, RefreshCases, TextCases, DelegationCases, TokenStorageCases, SessionCases, IssuerCases, ClientAssertionCases, SignInStoreCases, TestProcess
   ghc-options: -threaded
-  build-depends: xynolog:internal, process >=1.6 && <1.7, directory >=1.3 && <1.4, filepath >=1.5 && <1.6, time >=1.12 && <1.13
+  build-depends: xynolog:internal, process >=1.6 && <1.7, directory >=1.3 && <1.4, filepath >=1.5 && <1.6, time >=1.12 && <1.15
 
 executable xynolog-haskell-wire-driver
   import: settings, context-propagation
@@ -213,7 +223,7 @@ executable xynolog-haskell-wire-driver
   other-modules: DriverProtocol
   hs-source-dirs: conformance
   ghc-options: -threaded
-  build-depends: xynolog, http-client >=0.7 && <0.8, uuid >=1.3 && <1.4, uuid-types >=1.0 && <1.1, random >=1.3 && <1.4, time >=1.12 && <1.13, hs-opentelemetry-sdk >=1.0 && <1.1
+  build-depends: xynolog, http-client >=0.7 && <0.8, uuid >=1.3 && <1.4, uuid-types >=1.0 && <1.1, random >=1.3 && <1.4, time >=1.12 && <1.15, hs-opentelemetry-sdk >=1.0 && <1.1
 
 executable xynolog-haskell-live-driver
   import: settings, context-propagation
@@ -221,4 +231,4 @@ executable xynolog-haskell-live-driver
   other-modules: DriverProtocol, LiveQueries
   hs-source-dirs: conformance
   ghc-options: -threaded
-  build-depends: xynolog, http-client >=0.7 && <0.8, uuid >=1.3 && <1.4, uuid-types >=1.0 && <1.1, random >=1.3 && <1.4, time >=1.12 && <1.13
+  build-depends: xynolog, http-client >=0.7 && <0.8, uuid >=1.3 && <1.4, uuid-types >=1.0 && <1.1, random >=1.3 && <1.4, time >=1.12 && <1.15

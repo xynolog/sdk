@@ -29,20 +29,13 @@ import * as ts from 'typescript';
 import { afterEach, describe, expect, it } from 'vitest';
 import { isObject, isString } from '@xynolog/core';
 import { JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS } from '../claims';
+import { table as builderCases } from './cases/annotations_builder_cases';
+import { table as clientAssertion } from './cases/session_client_assertion_cases';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const PACKAGE = join(REPO, 'typescript/sdk');
 const SKILL_PATH = 'skills/xynolog-worker/SKILL.md';
 const SKILL = readFileSync(join(REPO, SKILL_PATH), 'utf-8');
-/** What a grant that proves an account by its key posts. */
-const ASSERTION: { form: string[]; grantType: string; assertionType: string } =
-  JSON.parse(
-    readFileSync(
-      join(REPO, 'protocol/specs/src/session/client-assertion-cases.json'),
-      'utf-8',
-    ),
-  );
-
 /** The skill's TypeScript blocks: each one's body, and the line of the skill its fence opens on. */
 const FENCES = [
   ...SKILL.matchAll(/^```(?:ts|typescript)\b.*\n([\s\S]*?)^```$/gm),
@@ -100,13 +93,13 @@ function proves(
   const form = new URLSearchParams(body);
   const fields = [...form.keys()];
   if (
-    fields.length !== ASSERTION.form.length ||
-    !ASSERTION.form.every((name) => fields.includes(name))
+    fields.length !== clientAssertion.form.length ||
+    !clientAssertion.form.every((name) => fields.includes(name))
   )
     return false;
   if (
-    form.get('grant_type') !== ASSERTION.grantType ||
-    form.get('client_assertion_type') !== ASSERTION.assertionType
+    form.get('grant_type') !== clientAssertion.grantType ||
+    form.get('client_assertion_type') !== clientAssertion.assertionType
   )
     return false;
   const [head, claimed, signature, ...rest] = text(
@@ -458,13 +451,7 @@ describe('the complete worker of the xynolog-worker skill', () => {
     }
 
     // A case of the table the builders are held by: a text that is one sentence, and the highlight of all of it.
-    const table: unknown = JSON.parse(
-      readFileSync(
-        join(REPO, 'protocol/specs/src/annotations/builder-cases.json'),
-        'utf-8',
-      ),
-    );
-    const stated = list(member(table, 'cases'))[2];
+    const stated = builderCases.cases[2];
     const page = text(member(stated, 'text'));
     expect([
       member(stated, 'resourceId'),

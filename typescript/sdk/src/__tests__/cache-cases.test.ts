@@ -8,8 +8,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { isObject, type CacheValues, type PersistedQuery } from '@xynolog/core';
 import { createCache, type Cache } from '../cache';
 import {
@@ -23,47 +21,19 @@ import {
   type SessionStorage,
 } from '../session/session-storage';
 import { cacheKey, lastEventIdKey, personKey } from '../session/storage';
+import {
+  table,
+  type CasesItem,
+  type PlacesItem,
+  type RefusedWritesItem,
+  type WritesItem,
+} from './cases/session_cache_cases';
 
 /** An entry as the table states it: its key and its value. */
 interface Entry {
   key: unknown;
   value: unknown;
 }
-
-interface Stored {
-  name: string;
-  stored?: unknown;
-  storedText?: string;
-}
-
-interface Load extends Stored {
-  query: string;
-  kept: Entry[];
-}
-
-interface Write {
-  name: string;
-  query: string;
-  held: Entry[];
-  written: { version: number; entries: Entry[] };
-}
-
-interface Places extends Stored {
-  kept: Record<string, string>;
-}
-
-const TABLE = fileURLToPath(
-  new URL(
-    '../../../../protocol/specs/src/session/cache-cases.json',
-    import.meta.url,
-  ),
-);
-const table = JSON.parse(readFileSync(TABLE, 'utf8')) as {
-  cases: Load[];
-  writes: Write[];
-  refusedWrites: Write[];
-  places: Places[];
-};
 
 /** The knowledge base and the person each case's documents and places are kept for. */
 const KEPT_FOR = {
@@ -81,7 +51,7 @@ function keptQuery(name: string): PersistedQuery {
 }
 
 /** The text a case keeps under its key. */
-function text(stated: Stored): string {
+function text(stated: CasesItem | PlacesItem): string {
   if ((stated.stored === undefined) === (stated.storedText === undefined))
     throw new Error(
       `${stated.name}: states not exactly one of stored and storedText`,
@@ -183,7 +153,10 @@ const isStamped = (entry: unknown): entry is [unknown, unknown, number] =>
   entry[2] >= 0;
 
 /** The document a save wrote, held to the one the table writes: its members, its version, and its entries as a map, each stamped. */
-function expectWritten(stated: Write, document: unknown): void {
+function expectWritten(
+  stated: WritesItem | RefusedWritesItem,
+  document: unknown,
+): void {
   if (!isObject(document))
     throw new Error(
       `${stated.name}: the save wrote ${JSON.stringify(document)}, which is no object`,

@@ -1,63 +1,54 @@
 open Xynolog
-module J = Yojson.Safe.Util
 
-let field = J.member
-let text name row = J.to_string (field name row)
-let rows path name = Protocol.table path |> field name |> J.to_list
 let check = Alcotest.(check string)
-let named row = text "why" row
 let json = Yojson.Safe.to_string
 
 (* Shared bus/log-cases.json. Exercise the emitted line, including nested redaction. *)
-let log row =
-  let payload = field "payload" row in
-  let channel =
-    Option.value (J.to_string_option (field "channel" row)) ~default:"test"
-  in
+let log (row : Protocol_cases.Bus_log_cases.cases_item) =
+  let channel = Option.value row.channel ~default:"test" in
   let prefix = "[bus EMIT] " ^ channel ^ " " in
-  let line = Bus_log.line "EMIT" ~channel payload in
-  check (named row) (prefix ^ json (field "shown" row)) line
+  let line = Bus_log.line "EMIT" ~channel (`Assoc row.payload) in
+  check row.why (prefix ^ json (`Assoc row.shown)) line
 
 (* Shared kb-identity/cases.json. An SDK derives identity from a domain
    declared by the gateway, as distinct from reading the launcher's YAML. *)
-let kb row =
-  let domain = text "domain" row in
-  check "DID" (text "did" row) (Identity.knowledge_base_did domain);
-  check "audience" (text "resource" row) (Identity.resource domain)
+let kb (row : Protocol_cases.Kb_identity_cases.cases_item) =
+  match (row.domain, row.did, row.resource) with
+  | Some domain, Some did, Some resource ->
+      check "DID" did (Identity.knowledge_base_did domain);
+      check "audience" resource (Identity.resource domain)
+  | _ ->
+      Alcotest.fail
+        (row.why ^ ": a row with a domain states its DID and audience")
 
 (* Shared principals/cases.json. *)
-let principal kind row =
-  check (named row) (text "did" row)
-    (Identity.principal ~domain:(text "domain" row) ~kind (text "subject" row))
+let principal kind (row : Protocol_cases.Principals_cases.people_item) =
+  check row.why row.did
+    (Identity.principal ~domain:row.domain ~kind row.subject)
 
 (* Shared media-types/cases.json. *)
-let clone row =
-  check (named row) (text "format" row)
-    (Media_types.clone_format
-       (Option.value (J.to_string_option (field "source" row)) ~default:""))
+let clone (row : Protocol_cases.Media_types_cases.clone_format_item) =
+  check row.why row.format
+    (Media_types.clone_format (Option.value row.source ~default:""))
 
-let filename row =
-  check (named row) (text "fileName" row)
-    (Media_types.storage_file_name ~name:(text "name" row)
-       ~format:(text "format" row))
+let filename (row : Protocol_cases.Media_types_cases.storage_file_name_item) =
+  check row.why row.file_name
+    (Media_types.storage_file_name ~name:row.name ~format:row.format)
 
-let text_source row =
-  let format = text "format" row in
+let text_source (row : Protocol_cases.Media_types_cases.text_source_item) =
   let source =
-    match Media_types.text_source format with
+    match Media_types.text_source row.format with
     | Decode -> "decode"
     | Pdf_text_layer -> "pdf-text-layer"
     | No_text -> "none"
   in
-  check "source" (text "textSource" row) source;
+  check "source" row.text_source source;
   Alcotest.(check bool)
-    "geometry"
-    (J.to_bool (field "yieldsGeometry" row))
-    (Media_types.yields_geometry format);
+    "geometry" row.yields_geometry
+    (Media_types.yields_geometry row.format);
   Alcotest.(check bool)
-    "derived"
-    (J.to_bool (field "derivesText" row))
-    (Media_types.derives_text format)
+    "derived" row.derives_text
+    (Media_types.derives_text row.format)
 
 let bytes hex =
   String.split_on_char ' ' hex
@@ -73,66 +64,99 @@ let decode ~content_type data =
       `Assoc [ ("refused", `String name) ]
 
 (* Shared text/decode-cases.json. *)
-let decode_case row =
-  let expected =
-    match field "refused" row with
-    | `String _ as refused -> `Assoc [ ("refused", refused) ]
-    | _ -> field "text" row
+let decode_case (row : Protocol_cases.Text_decode_cases.cases_item) =
+  let why, content_type, data, expected =
+    match row with
+    | Text { why; content_type; bytes = data; text } ->
+        (why, content_type, data, `String text)
+    | Refused { why; content_type; bytes = data; refused } ->
+        (why, content_type, data, `Assoc [ ("refused", `String refused) ])
   in
-  check (named row) (json expected)
-    (json
-       (decode ~content_type:(text "contentType" row)
-          (bytes (text "bytes" row))))
+  check why (json expected) (json (decode ~content_type (bytes data)))
 
 (* Shared text/encoding-cases.json. Exercise every spelling and every byte. *)
-let encoding row =
+let encoding (row : Protocol_cases.Text_encoding_cases.cases_item) =
+  let labels =
+    match row with
+    | Every_byte { labels; _ } | Bytes { labels; _ } | Refused { labels; _ } ->
+        labels
+  in
   List.iter
     (fun label ->
-      let label = J.to_string label in
       let data, expected =
-        match (field "everyByte" row, field "refused" row) with
-        | (`String _ as text), _ -> (String.init 256 Char.chr, text)
-        | _, `Bool true -> ("sample", `Assoc [ ("refused", `String label) ])
-        | _ -> (bytes (text "bytes" row), field "text" row)
+        match row with
+        | Every_byte { every_byte; _ } ->
+            (String.init 256 Char.chr, `String every_byte)
+        | Refused _ -> ("sample", `Assoc [ ("refused", `String label) ])
+        | Bytes { bytes = data; text; _ } -> (bytes data, `String text)
       in
       let content_type =
         "text/plain; charset=\" " ^ String.uppercase_ascii label ^ "\t\""
       in
       check label (json expected) (json (decode ~content_type data)))
-    (field "labels" row |> J.to_list)
+    labels
 
-let cases rows run =
+let cases name rows run =
   List.map
-    (fun row -> Alcotest.test_case (named row) `Quick (fun () -> run row))
+    (fun row -> Alcotest.test_case (name row) `Quick (fun () -> run row))
     rows
+
+module Media = Protocol_cases.Media_types_cases
+module Principals = Protocol_cases.Principals_cases
 
 let () =
   let kb_rows =
-    rows "kb-identity/cases.json" "cases"
-    |> List.filter (fun row -> field "domain" row <> `Null)
+    List.filter
+      (fun (row : Protocol_cases.Kb_identity_cases.cases_item) ->
+        Option.is_some row.domain)
+      Protocol_cases.Kb_identity_cases.table.cases
   in
-  let encodings =
-    rows "text/encoding-cases.json" "cases"
-    |> List.map (fun row ->
-        Alcotest.test_case (text "encoding" row) `Quick (fun () -> encoding row))
+  let decode_name : Protocol_cases.Text_decode_cases.cases_item -> string =
+    function
+    | Text { why; _ } | Refused { why; _ } -> why
+  in
+  let encoding_name : Protocol_cases.Text_encoding_cases.cases_item -> string =
+    function
+    | Every_byte { encoding; _ }
+    | Bytes { encoding; _ }
+    | Refused { encoding; _ } ->
+        encoding
   in
   Alcotest.run "OCaml remaining shared tables"
     [
-      ("bus logs", cases (rows "bus/log-cases.json" "cases") log);
-      ("knowledge base identity", cases kb_rows kb);
+      ( "bus logs",
+        cases
+          (fun (row : Protocol_cases.Bus_log_cases.cases_item) -> row.why)
+          Protocol_cases.Bus_log_cases.table.cases log );
+      ( "knowledge base identity",
+        cases
+          (fun (row : Protocol_cases.Kb_identity_cases.cases_item) -> row.why)
+          kb_rows kb );
       ( "clone formats",
-        cases (rows "media-types/cases.json" "cloneFormat") clone );
+        cases
+          (fun (row : Media.clone_format_item) -> row.why)
+          Media.table.clone_format clone );
       ( "storage filenames",
-        cases (rows "media-types/cases.json" "storageFileName") filename );
+        cases
+          (fun (row : Media.storage_file_name_item) -> row.why)
+          Media.table.storage_file_name filename );
       ( "text sources",
-        cases (rows "media-types/cases.json" "textSource") text_source );
+        cases
+          (fun (row : Media.text_source_item) -> row.why)
+          Media.table.text_source text_source );
       ( "people",
         cases
-          (rows "principals/cases.json" "people")
+          (fun (row : Principals.people_item) -> row.why)
+          Principals.table.people
           (principal Identity.Person) );
       ( "agents",
-        cases (rows "principals/cases.json" "agents") (principal Identity.Agent)
-      );
-      ("decode", cases (rows "text/decode-cases.json" "cases") decode_case);
-      ("encodings", encodings);
+        cases
+          (fun (row : Principals.people_item) -> row.why)
+          Principals.table.agents (principal Identity.Agent) );
+      ( "decode",
+        cases decode_name Protocol_cases.Text_decode_cases.table.cases
+          decode_case );
+      ( "encodings",
+        cases encoding_name Protocol_cases.Text_encoding_cases.table.cases
+          encoding );
     ]

@@ -90,7 +90,7 @@ jobs:
       - if: matrix.language == 'java-kotlin'
         name: Compile the Kotlin SDK
         working-directory: kotlin/sdk
-        run: ./gradlew --no-daemon --console=plain classes testClasses javaTestClasses conformanceClasses
+        run: ./gradlew --no-daemon --console=plain classes testClasses fromJavaClasses conformanceClasses
 
       - if: matrix.language == 'swift'
         name: Compile the Swift SDK

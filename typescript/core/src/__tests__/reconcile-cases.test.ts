@@ -5,27 +5,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
 import { reconcile } from '../annotation-builders';
-import type { QuotedText, ReconciledSpan } from '../payload-types';
-
-interface Case {
-  why: string;
-  text: string;
-  quoted: QuotedText;
-  /** `null` when the span is refused. */
-  reconciled: ReconciledSpan | null;
-}
-
-const table: { cases: Case[] } = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/annotations/reconcile-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
+import type { QuotedText } from '../payload-types';
+import { table } from './cases/annotations_reconcile_cases';
 
 describe('reconciling a quoted span (protocol/specs/src/annotations/reconcile-cases.json)', () => {
   it('has cases', () => {
@@ -34,7 +16,7 @@ describe('reconciling a quoted span (protocol/specs/src/annotations/reconcile-ca
 
   for (const { why, text, quoted, reconciled } of table.cases) {
     it(why, () => {
-      expect(reconcile(text, quoted)).toStrictEqual(reconciled);
+      expect(reconcile(text, quoted as QuotedText)).toStrictEqual(reconciled);
     });
   }
 });
