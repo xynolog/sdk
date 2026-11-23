@@ -5,7 +5,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
 import * as builders from '../annotation-builders';
 import {
   annotationOfResource,
@@ -14,68 +13,20 @@ import {
 } from '../annotation-builders';
 import type { TextSpan } from '../payload-types';
 import type { Annotation } from '../annotation-types';
-import type { Motivation } from '../branded-types';
 import { resourceId } from '../identifiers';
 import type { AnchoredText } from '../pdf-anchoring';
 import type { components } from '../types';
+import { table } from './cases/annotations_builder_cases';
+import { table as codes } from './cases/errors_codes';
 
 type Agent = components['schemas']['Agent'];
-
-/** What a case of a span answers: the annotation, less the members no case can state, or the refusal's name. */
-type Answer = { annotation: Record<string, unknown> } | { refused: string };
-
-type SpanCase = {
-  why: string;
-  resourceId: string;
-  generator: Agent;
-  motivation: Motivation;
-  span: TextSpan;
-  body?: Annotation['body'];
-} & ({ text: string } | { anchored: AnchoredText }) &
-  Answer;
-
-interface ResourceCase {
-  why: string;
-  resourceId: string;
-  motivation: Motivation;
-  generator?: Agent;
-  body?: Annotation['body'];
-  annotation: Record<string, unknown>;
-}
-
-const table: {
-  unstated: { cases: string[]; resources: string[] };
-  builders: string[];
-  cases: SpanCase[];
-  resources: ResourceCase[];
-} = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/annotations/builder-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
 
 /**
  * Every refusal a builder can give: the `spanRefusal` codes of
  * protocol/specs/src/errors/codes.json, which `SpanRefusal`, the type of a refusal's
  * `code`, is generated from.
  */
-const REFUSALS: string[] = (
-  JSON.parse(
-    readFileSync(
-      new URL(
-        '../../../../protocol/specs/src/errors/codes.json',
-        import.meta.url,
-      ),
-      'utf8',
-    ),
-  ) as {
-    spanRefusal: { codes: Array<{ code: string }> };
-  }
-).spanRefusal.codes.map((entry) => entry.code);
+const REFUSALS: string[] = codes.spanRefusal.codes.map((entry) => entry.code);
 
 /** The annotation with the members the table cannot state taken out, each first checked to be an instant. */
 function stated(
@@ -130,15 +81,18 @@ describe('the annotation builders (protocol/specs/src/annotations/builder-cases.
       const { resourceId: id, generator, motivation, span, body } = built;
       const of = {
         resourceId: resourceId(id),
-        generator,
+        generator: generator as Agent,
         motivation,
-        span,
-        ...(body !== undefined ? { body } : {}),
+        span: span as TextSpan,
+        ...(body !== undefined ? { body: body as Annotation['body'] } : {}),
       };
       const build = () =>
         'text' in built
           ? annotationOfSpan({ ...of, text: built.text })
-          : annotationOfSpan({ ...of, anchored: built.anchored });
+          : annotationOfSpan({
+              ...of,
+              anchored: built.anchored as AnchoredText,
+            });
 
       if ('refused' in built) {
         const refusal = thrownBy(build);
@@ -158,8 +112,8 @@ describe('the annotation builders (protocol/specs/src/annotations/builder-cases.
       const annotation = annotationOfResource({
         resourceId: resourceId(id),
         motivation,
-        ...(generator !== undefined ? { generator } : {}),
-        ...(body !== undefined ? { body } : {}),
+        ...(generator !== undefined ? { generator: generator as Agent } : {}),
+        ...(body !== undefined ? { body: body as Annotation['body'] } : {}),
       });
       expect(stated(annotation, table.unstated.resources)).toStrictEqual(
         built.annotation,

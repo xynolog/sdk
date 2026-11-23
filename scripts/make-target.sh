@@ -229,6 +229,7 @@ case "${1:-}" in
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/ocaml/sdk
       dune build @all @opam
+      dune tools install ocamlformat
       dune build @fmt
       python3 test/check-installed-api.py
       python3 probes/check-interface.py

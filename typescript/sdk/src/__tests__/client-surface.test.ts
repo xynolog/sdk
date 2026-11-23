@@ -11,7 +11,6 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { readFileSync } from 'node:fs';
 import { Observable } from 'rxjs';
 import {
   annotationId,
@@ -57,56 +56,17 @@ import type {
   SystemNamespace,
   YieldNamespace,
 } from '../namespaces/types';
+import {
+  table,
+  type Json,
+  type MethodsItem,
+  type Via,
+} from './cases/client_surface';
 
-type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 type Args = { [key: string]: Json };
 
-interface Step {
-  request?: string;
-  emit?: string;
-  local?: string;
-  content?: string;
-  gateway?: string;
-  observes?: string;
-  sends: Json;
-}
-interface Case {
-  why?: string;
-  args: Args;
-  sends: Json;
-  correlationId?: string;
-  answers?: Json;
-  then?: Step[];
-}
-interface Row {
-  method: string;
-  shape:
-    | 'promise'
-    | 'stream'
-    | 'delegation'
-    | 'upload'
-    | 'cache'
-    | 'signal'
-    | 'count'
-    | 'events'
-    | 'claims';
-  via: Omit<Step, 'sends'>;
-  cases: Case[];
-}
-interface Table {
-  fixtures: Record<string, Json>;
-  namespaces: Array<{ namespace: string; methods: Row[] }>;
-}
-
-const TABLE: Table = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/client/surface.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
+/** The table's fixtures, by name. */
+const FIXTURES: { [name: string]: Json } = table.fixtures;
 
 /** `value` with each `{"$fixture": name}` replaced by the table's fixture. */
 function resolved(value: Json): Json {
@@ -114,7 +74,7 @@ function resolved(value: Json): Json {
   if (value === null || typeof value !== 'object') return value;
   const keys = Object.keys(value);
   if (keys.length === 1 && keys[0] === '$fixture') {
-    const fixture = TABLE.fixtures[String(value['$fixture'])];
+    const fixture = FIXTURES[String(value['$fixture'])];
     if (fixture === undefined)
       throw new Error(`the table has no fixture ${String(value['$fixture'])}`);
     return fixture;
@@ -400,7 +360,7 @@ function world() {
 }
 
 /** Start what a call returned, as its shape says a caller would, and hold the shape to the row. */
-function started(row: Row, returned: unknown): void {
+function started(row: MethodsItem, returned: unknown): void {
   switch (row.shape) {
     case 'signal':
       expect(returned).toBeUndefined();
@@ -440,7 +400,7 @@ function started(row: Row, returned: unknown): void {
 async function heldTo(
   w: ReturnType<typeof world>,
   at: number,
-  step: Step,
+  step: Partial<Via>,
   sends: Json,
 ): Promise<void> {
   const named = step.request ?? step.emit;
@@ -472,7 +432,7 @@ function callOf(namespace: string, method: string): Call | undefined {
 }
 
 describe('the client surface (protocol/specs/src/client/surface.json)', () => {
-  const listed = TABLE.namespaces.flatMap(({ namespace, methods }) =>
+  const listed = table.namespaces.flatMap(({ namespace, methods }) =>
     methods.map((row) => ({ namespace, row })),
   );
 
@@ -487,7 +447,7 @@ describe('the client surface (protocol/specs/src/client/surface.json)', () => {
   });
 
   for (const { namespace, row } of listed) {
-    const [[kind, channel]] = Object.entries(row.via) as [[keyof Step, string]];
+    const [[kind, channel]] = Object.entries(row.via) as [[keyof Via, string]];
 
     it.each(row.cases.map((c) => [c.why ?? 'as stated', c] as const))(
       `${namespace}.${row.method}: %s`,
@@ -535,7 +495,7 @@ describe('the client surface (protocol/specs/src/client/surface.json)', () => {
           return;
         }
 
-        await heldTo(w, 0, { ...row.via, sends }, sends);
+        await heldTo(w, 0, row.via, sends);
         for (const [index, step] of (stated.then ?? []).entries()) {
           await heldTo(w, index + 1, step, resolved(step.sends));
         }

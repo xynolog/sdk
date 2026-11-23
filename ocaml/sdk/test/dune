@@ -11,8 +11,7 @@
 (test
  (name client_types_census)
  (modules client_types_census)
- (libraries protocol xynolog yojson alcotest)
- (deps (universe)))
+ (libraries protocol_cases xynolog yojson alcotest))
 
 (test
  (name enums_cases)
@@ -27,20 +26,18 @@
 (test
  (name session_renewal)
  (modules session_renewal)
- (libraries protocol xynolog eio_main eio.mock mtime base64 yojson alcotest)
- (deps (universe)))
+ (libraries protocol_cases xynolog eio_main eio.mock mtime base64 yojson alcotest))
 
 (test
  (name worker_filters)
  (modules worker_filters)
- (libraries protocol xynolog yojson alcotest)
- (deps (universe)))
+ (libraries protocol_cases xynolog yojson alcotest))
 
 (test
  (name sign_in)
  (modules sign_in)
  (libraries
-  protocol
+  protocol_cases
   xynolog
   eio_main
   eio.mock
@@ -50,31 +47,27 @@
   alcotest
   x509
   mirage-crypto-rng.unix)
- (deps (universe) ../probes/peer-key.pem))
+ (deps ../probes/peer-key.pem))
 
 (test
  (name surface_behavior)
  (modules surface_behavior surface_dispatch)
- (libraries protocol xynolog eio_main yojson alcotest)
- (deps (universe)))
+ (libraries protocol_cases xynolog eio_main yojson alcotest))
 
 (test
  (name registry_behavior)
  (modules registry_behavior)
- (libraries protocol xynolog eio_main eio.mock mtime yojson base64 cstruct alcotest)
- (deps (universe)))
+ (libraries protocol_cases xynolog eio_main eio.mock mtime yojson base64 cstruct alcotest))
 
 (test
  (name state_behavior)
  (modules state_behavior)
- (libraries protocol xynolog eio_main eio.mock mtime yojson alcotest)
- (deps (universe)))
+ (libraries protocol_cases xynolog eio_main eio.mock mtime yojson alcotest))
 
 (test
  (name helper_behavior)
  (modules helper_behavior annotation_id)
- (libraries protocol xynolog eio_main eio.mock yojson alcotest base64 digestif zarith)
- (deps (universe)))
+ (libraries protocol_cases xynolog eio_main eio.mock yojson alcotest base64 digestif zarith))
 
 (rule
  (target annotation_id.ml)
@@ -84,16 +77,9 @@
 (test
  (name completion_behavior)
  (modules completion_behavior)
- (libraries protocol xynolog eio_main eio.mock yojson alcotest mtime uri)
- (deps (universe)))
+ (libraries protocol_cases xynolog eio_main eio.mock yojson alcotest mtime uri))
 
 (test
  (name closure_behavior)
  (modules closure_behavior)
- (libraries protocol xynolog yojson alcotest)
- (deps (universe)))
-
-(library
- (name protocol)
- (modules protocol)
- (libraries yojson))
+ (libraries protocol_cases xynolog yojson alcotest))

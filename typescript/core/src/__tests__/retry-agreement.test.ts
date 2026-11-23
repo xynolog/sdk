@@ -5,35 +5,11 @@
  * mirror across implementations, gated by one table rather than generated.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import { RETRY_RULES } from '../retry-rules';
 import { retryAfterMs } from '../retry';
+import { table } from './cases/retry_cases';
 
-interface RuleCase {
-  why: string;
-  rule: string;
-  status?: number;
-  method?: string;
-  keyed?: boolean;
-  retries: boolean;
-}
-
-interface RetryAfterCase {
-  why: string;
-  header: string | null;
-  ms: number | null;
-}
-
-const TABLE = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../protocol/specs/src/retry/cases.json',
-);
-const { rules, retryAfter } = JSON.parse(readFileSync(TABLE, 'utf-8')) as {
-  rules: RuleCase[];
-  retryAfter: RetryAfterCase[];
-};
+const { rules, retryAfter } = table;
 
 const isRuleName = (name: string): name is keyof typeof RETRY_RULES =>
   Object.hasOwn(RETRY_RULES, name);
@@ -55,8 +31,8 @@ describe('retry — core agrees with the shared table', () => {
     expect(
       RETRY_RULES[c.rule].retryable({
         status: c.status,
-        method: c.method,
-        keyed: c.keyed,
+        method: 'method' in c ? c.method : undefined,
+        keyed: 'keyed' in c ? c.keyed : undefined,
       }),
     ).toBe(c.retries);
   });

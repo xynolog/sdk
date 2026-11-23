@@ -5,47 +5,26 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import { resourceId, type KbEndpoint } from '@xynolog/core';
 import { sortOpenResources, type OpenResource } from '../open-resource';
 import { samePlace } from '../xynolog-browser';
-
-interface RegistryCase {
-  why: string;
-  one: KbEndpoint;
-  other: KbEndpoint;
-  samePlace: boolean;
-}
-
-interface OrderCase {
-  why: string;
-  open: (Omit<OpenResource, 'id'> & { id: string })[];
-  shown: string[];
-}
-
-const TABLE = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../../protocol/specs/src/session/registry-cases.json',
-);
-const { cases, openResourceOrder } = JSON.parse(
-  readFileSync(TABLE, 'utf-8'),
-) as {
-  cases: RegistryCase[];
-  openResourceOrder: OrderCase[];
-};
+import { table } from '../../__tests__/cases/session_registry_cases';
 
 describe('one place, as the shared table states it', () => {
-  it.each(cases)('$why', ({ one, other, samePlace: same }) => {
-    expect(samePlace(one, other)).toBe(same);
-    expect(samePlace(other, one)).toBe(same);
+  it.each(table.cases)('$why', ({ one, other, samePlace: same }) => {
+    const a = one as KbEndpoint;
+    const b = other as KbEndpoint;
+    expect(samePlace(a, b)).toBe(same);
+    expect(samePlace(b, a)).toBe(same);
   });
 });
 
 describe('the order open resources are shown in, as the shared table states it', () => {
-  it.each(openResourceOrder)('$why', ({ open, shown }) => {
-    const kept = open.map((entry) => ({ ...entry, id: resourceId(entry.id) }));
+  it.each(table.openResourceOrder)('$why', ({ open, shown }) => {
+    const kept = open.map((entry) => {
+      const stated = entry as Omit<OpenResource, 'id'> & { id: string };
+      return { ...stated, id: resourceId(stated.id) };
+    });
     expect(sortOpenResources(kept).map((entry) => entry.id)).toEqual(shown);
   });
 });

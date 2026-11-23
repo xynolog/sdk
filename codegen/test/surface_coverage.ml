@@ -4,6 +4,7 @@
    coverage_census.exe holds every item named here to the pinned Protocol's
    surface. *)
 
+open Xynolog_codegen
 open Coverage_sdk
 
 (* An item of the surface, by the names the table gives it. *)

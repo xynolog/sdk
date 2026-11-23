@@ -16,19 +16,24 @@ let text value = `String value
 let decode schema value =
   Result.get_ok (Models.decode schema (Yojson.Safe.to_string value))
 
+module Registry_cases = Protocol_cases.Session_registry_cases
+module Gateway_cases = Protocol_cases.Session_gateway_url_cases
+module Clock_cases = Protocol_cases.Client_clock_cases
+module Timing = Protocol_cases.Client_timing
+
 (* Shared origin and ordering rows from session/registry-cases.json. *)
 let shared () =
-  let table = Protocol.table "session/registry-cases.json" in
   List.iter
-    (fun row ->
-      let read name = decode Models.kb_endpoint (field name row) in
+    (fun (row : Registry_cases.cases_item) ->
+      let read value = decode Models.kb_endpoint value in
       Alcotest.(check bool)
-        (string "why" row)
-        (J.to_bool (field "samePlace" row))
-        (R.same_place (read "one") (read "other")))
-    (rows "cases" table);
+        row.why row.same_place
+        (R.same_place (read row.one) (read row.other)))
+    Registry_cases.table.cases;
   List.iter
-    (fun row ->
+    (fun (row : Registry_cases.open_resource_order_item) ->
+      (* An open resource, which the model leaves as the JSON of
+         session/OpenResource.json. *)
       let open_resource value : R.open_resource =
         let optional name =
           match field name value with `String text -> Some text | _ -> None
@@ -42,25 +47,20 @@ let shared () =
           storage_uri = optional "storageUri";
         }
       in
-      let shown =
-        R.sort_open_resources (List.map open_resource (rows "open" row))
-      in
+      let shown = R.sort_open_resources (List.map open_resource row.open_) in
       Alcotest.(check (list string))
-        (string "why" row)
-        (List.map J.to_string (rows "shown" row))
+        row.why row.shown
         (List.map (fun (tab : R.open_resource) -> tab.id) shown))
-    (rows "openResourceOrder" table)
+    Registry_cases.table.open_resource_order
 
 (* Shared endpoint rows from session/gateway-url-cases.json. *)
 let gateway_urls () =
-  Protocol.member "session/gateway-url-cases.json" "cases"
-  |> J.to_list
-  |> List.iter (fun row ->
-      let endpoint = decode Models.http_endpoint (field "endpoint" row) in
+  List.iter
+    (fun (row : Gateway_cases.cases_item) ->
       Alcotest.(check (option string))
-        (string "why" row)
-        (J.to_string_option (field "origin" row))
-        (Host_name.gateway_url endpoint))
+        row.why row.origin
+        (Host_name.gateway_url (decode Models.http_endpoint row.endpoint)))
+    Gateway_cases.table.cases
 
 let discovery () =
   let parse = D.parse_discovery_document in
@@ -97,28 +97,33 @@ let discovery () =
 
 (* Discovery and deviceGrant rows from client/clock-cases.json. *)
 let controlled () =
-  let table = Protocol.member "client/clock-cases.json" "cases" |> J.to_list in
-  let timing = Protocol.timing () in
-  let number fallback = function
-    | `Int n -> float n
-    | `Float n -> n
-    | _ -> fallback
+  (* A timing of client/timing.json, by its name, or by its name and the
+     member of its value, as "name.member" names it. *)
+  let timing path =
+    let value name =
+      (List.find
+         (fun (entry : Timing.timing_item) -> entry.name = name)
+         Timing.table.timing)
+        .value
+    in
+    match String.split_on_char '.' path with
+    | [ name ] -> (
+        match value name with
+        | Integer milliseconds -> milliseconds
+        | Object _ -> failwith (name ^ " is no duration"))
+    | [ name; member ] -> int member (Timing.item_value_json (value name))
+    | _ -> failwith ("no timing is " ^ path)
   in
-  let elapsed = function
-    | `Int elapsed -> elapsed
-    | value ->
-        let base =
-          match String.split_on_char '.' (string "timing" value) with
-          | [ name ] -> int name timing
-          | [ name; key ] -> int key (field name timing)
-          | _ -> assert false
-        in
+  let elapsed : Clock_cases.pass_pass -> int = function
+    | Integer elapsed -> elapsed
+    | Object { timing = path; times; plus_ms } ->
         int_of_float
-          ((float base *. number 1. (field "times" value))
-          +. number 0. (field "plusMs" value))
+          ((float (timing path) *. Option.value times ~default:1.)
+          +. float (Option.value plus_ms ~default:0))
   in
   List.iter
-    (fun row ->
+    (fun (row : Clock_cases.cases_item) ->
+      let given () = Option.get row.given in
       Eio_mock.Backend.run @@ fun () ->
       Switch.run @@ fun sw ->
       let mono = Eio_mock.Clock.Mono.make () in
@@ -129,8 +134,8 @@ let controlled () =
       let count = ref 0 in
       let act = ref ignore in
       let cleanup = ref ignore in
-      (match string "subject" row with
-      | "discovery" ->
+      (match row.subject with
+      | Clock_cases.Discovery ->
           let _release =
             D.subscribe_discovery ~sw ~clock
               (fun () ->
@@ -139,7 +144,7 @@ let controlled () =
               ~on_change:ignore
           in
           ()
-      | "saveDebounce" ->
+      | Clock_cases.Save_debounce ->
           let cache =
             State_units.Cache.make ~sw ~clock
               ~load:(fun _ -> assert false)
@@ -152,8 +157,8 @@ let controlled () =
             fun () ->
               incr changed;
               State_units.Cache.set cache "key" (`Int !changed)
-      | "renewal" ->
-          let lifetime = int "lifetimeSeconds" (field "given" row) in
+      | Clock_cases.Renewal ->
+          let lifetime = Option.get (given ()).lifetime_seconds in
           let token () =
             let now = int_of_float (Clock.wall_now clock) in
             let claims =
@@ -172,8 +177,10 @@ let controlled () =
                  incr count;
                  Session.Renewed (token ()))
                ())
-      | ( "refusedStream" | "unansweredStream" | "degradedStream" | "scopeTaken"
-        | "scopeLetGo" | "handoffLinger" ) as subject -> (
+      | ( Clock_cases.Refused_stream | Clock_cases.Unanswered_stream
+        | Clock_cases.Degraded_stream | Clock_cases.Scope_taken
+        | Clock_cases.Scope_let_go | Clock_cases.Handoff_linger ) as subject
+        -> (
           let clock = Clock.with_jitter clock (fun () -> 0.) in
           let session =
             Session.start ~sw ~clock ~initial_token:(Some "token")
@@ -195,18 +202,21 @@ let controlled () =
           in
           let call ~sw ~meth:_ ~path ~headers:_ ~body:_ ~progress:_ =
             assert (path = "/bus/subscribe");
-            if subject = "handoffLinger" then
+            if subject = Clock_cases.Handoff_linger then
               Switch.on_release sw (fun () -> incr count)
-            else if subject <> "degradedStream" then incr count;
+            else if subject <> Clock_cases.Degraded_stream then incr count;
             match subject with
-            | "refusedStream" | "degradedStream" ->
+            | Clock_cases.Refused_stream | Clock_cases.Degraded_stream ->
                 let headers =
-                  match field "retryAfterSeconds" (field "given" row) with
-                  | `Int seconds -> [ ("retry-after", string_of_int seconds) ]
-                  | _ -> []
+                  match
+                    Option.bind row.given (fun (given : Clock_cases.given) ->
+                        given.retry_after_seconds)
+                  with
+                  | Some seconds -> [ ("retry-after", string_of_int seconds) ]
+                  | None -> []
                 in
                 (503, headers, Eio.Flow.string_source "{}")
-            | "unansweredStream" ->
+            | Clock_cases.Unanswered_stream ->
                 Promise.await never;
                 assert false
             | _ -> (200, [], source)
@@ -230,10 +240,10 @@ let controlled () =
               }
           in
           match subject with
-          | "scopeTaken" | "handoffLinger" ->
+          | Clock_cases.Scope_taken | Clock_cases.Handoff_linger ->
               let release = ref ignore in
               act := fun () -> release := take ()
-          | "scopeLetGo" ->
+          | Clock_cases.Scope_let_go ->
               Fiber.fork_daemon ~sw (fun () ->
                   let rec open_ previous =
                     if previous = Subscription.Open then ()
@@ -243,7 +253,7 @@ let controlled () =
                   open_ (Subscription.state bus);
                   act := take ();
                   `Stop_daemon)
-          | "degradedStream" ->
+          | Clock_cases.Degraded_stream ->
               Fiber.fork_daemon ~sw (fun () ->
                   let rec read previous =
                     let next =
@@ -255,8 +265,9 @@ let controlled () =
                   read Subscription.Initial;
                   `Stop_daemon)
           | _ -> ())
-      | ( "heldJobStall" | "invalidationWindow" | "jobFollower" | "jobPoll"
-        | "jobPollTimeout" ) as subject -> (
+      | ( Clock_cases.Held_job_stall | Clock_cases.Invalidation_window
+        | Clock_cases.Job_follower | Clock_cases.Job_poll
+        | Clock_cases.Job_poll_timeout ) as subject -> (
           let session =
             Session.start ~sw ~clock ~initial_token:(Some "token")
               ~renew:(fun ~holding:_ -> Session.Refused)
@@ -312,7 +323,7 @@ let controlled () =
               | "job:create" ->
                   answer "job:created" (read {|{"response":{"jobId":"job-1"}}|})
               | "job:status-requested" ->
-                  if subject <> "jobPollTimeout" then incr count;
+                  if subject <> Clock_cases.Job_poll_timeout then incr count;
                   answer "job:status-result"
                     (read
                        {|{"response":{"jobId":"job-1","type":"mark","status":"running","userId":"did:web:kb.example:users:one","created":"2026-01-01T00:00:00Z"}}|})
@@ -337,7 +348,7 @@ let controlled () =
             Result.get_ok (Identifiers.Resource_id.of_string "res-1")
           in
           match subject with
-          | "invalidationWindow" ->
+          | Clock_cases.Invalidation_window ->
               let _release =
                 Client.observe
                   (Client.Browse.events client resource)
@@ -347,7 +358,7 @@ let controlled () =
                 fun () ->
                   frame "mark:added"
                     (read {|{"type":"mark:added","resourceId":"res-1"}|})
-          | "jobFollower" ->
+          | Clock_cases.Job_follower ->
               let params =
                 Result.get_ok
                   (Models.decode Models.mark_job_params
@@ -365,7 +376,7 @@ let controlled () =
                   frame "job:report-progress"
                     (read
                        {|{"resourceId":"res-1","jobId":"job-1","jobType":"mark","percentage":10,"progress":{"percentage":10}}|})
-          | "jobPoll" | "jobPollTimeout" ->
+          | Clock_cases.Job_poll | Clock_cases.Job_poll_timeout ->
               let job =
                 Result.get_ok
                   (Bus_registry.decode
@@ -378,10 +389,10 @@ let controlled () =
                        Client.Job.poll_until_complete client ~on_status:ignore
                          job )
                    with
-                  | ( "jobPollTimeout",
+                  | ( Clock_cases.Job_poll_timeout,
                       Error (Client.Transport Subscription.Timeout) ) ->
                       incr count
-                  | "jobPollTimeout", _ ->
+                  | Clock_cases.Job_poll_timeout, _ ->
                       Alcotest.fail "the poll did not time out"
                   | _ -> ());
                   `Stop_daemon)
@@ -402,8 +413,9 @@ let controlled () =
                   (act :=
                      fun () -> Worker.progress job ~percentage:10 ~message:None);
                   `Stop_daemon))
-      | ("refusedBusRequest" | "timedOutBusRequest") as subject ->
-          let count_attempts = subject = "refusedBusRequest" in
+      | (Clock_cases.Refused_bus_request | Clock_cases.Timed_out_bus_request) as
+        subject ->
+          let count_attempts = subject = Clock_cases.Refused_bus_request in
           let clock = Clock.with_jitter clock (fun () -> 0.) in
           let session =
             Session.start ~sw ~clock ~initial_token:(Some "token")
@@ -415,7 +427,7 @@ let controlled () =
               ~respond:(fun ~channel:_ _ -> None)
           in
           let fallback = Testing.call transport in
-          let retry_after = int "retryAfterSeconds" (field "given" row) in
+          let retry_after = Option.get (given ()).retry_after_seconds in
           let call ~sw ~meth ~path ~headers ~body ~progress =
             if path = "/bus/emit" then (
               if count_attempts then incr count;
@@ -443,8 +455,9 @@ let controlled () =
                   if not count_attempts then incr count
               | _ -> Alcotest.fail "request did not time out");
               `Stop_daemon)
-      | ("unansweredRequest" | "unansweredEmit") as subject ->
-          let emit = subject = "unansweredEmit" in
+      | (Clock_cases.Unanswered_request | Clock_cases.Unanswered_emit) as
+        subject ->
+          let emit = subject = Clock_cases.Unanswered_emit in
           let clock = Clock.with_jitter clock (fun () -> 0.) in
           let session =
             Session.start ~sw ~clock ~initial_token:(Some "token")
@@ -478,8 +491,8 @@ let controlled () =
                    assert (!attempts = 1);
                    incr count));
               `Stop_daemon)
-      | "deviceGrant" ->
-          let given = field "given" row in
+      | Clock_cases.Device_grant ->
+          let given = given () in
           let endpoint = "https://issuer.example/token" in
           let issuer =
             Result.get_ok
@@ -497,9 +510,9 @@ let controlled () =
             ]
           in
           let fields =
-            match field "intervalSeconds" given with
-            | `Int n -> ("interval", `Int n) :: fields
-            | _ -> fields
+            match given.interval_seconds with
+            | Some n -> ("interval", `Int n) :: fields
+            | None -> fields
           in
           let device =
             Result.get_ok
@@ -507,7 +520,7 @@ let controlled () =
                  (fun _ -> (200, Yojson.Safe.to_string (`Assoc fields)))
                  issuer)
           in
-          let errors = rows "answers" given in
+          let errors = Option.get given.answers in
           Fiber.fork_daemon ~sw (fun () ->
               ignore
                 (OAuth.await_device ~clock
@@ -517,10 +530,11 @@ let controlled () =
                        List.nth errors (min !count (List.length errors - 1))
                      in
                      incr count;
-                     (400, Yojson.Safe.to_string (`Assoc [ ("error", code) ])))
+                     ( 400,
+                       Yojson.Safe.to_string (`Assoc [ ("error", text code) ])
+                     ))
                    issuer device);
-              `Stop_daemon)
-      | _ -> assert false);
+              `Stop_daemon));
       let settle () =
         for _ = 1 to 20 do
           Fiber.yield ()
@@ -528,28 +542,27 @@ let controlled () =
       in
       settle ();
       List.iter
-        (fun step ->
-          if step = text "act" then (
-            !act ();
-            settle ())
-          else
-            match field "counted" step with
-            | `Int expected ->
-                Alcotest.(check int) (string "case" row) expected !count
-            | _ ->
-                let elapsed = elapsed (field "pass" step) in
-                Eio_mock.Clock.set_time wall
-                  (Clock.wall_now clock +. (float elapsed /. 1000.));
-                Eio_mock.Clock.Mono.set_time mono
-                  (Option.get
-                     (Mtime.add_span
-                        (Clock.monotonic_now clock)
-                        Mtime.Span.(elapsed * ms)));
-                settle ())
-        (rows "steps" row);
+        (fun (step : Clock_cases.steps_item) ->
+          match step with
+          | String Act ->
+              !act ();
+              settle ()
+          | String Settle -> settle ()
+          | Counted { counted } -> Alcotest.(check int) row.case counted !count
+          | Pass { pass } ->
+              let elapsed = elapsed pass in
+              Eio_mock.Clock.set_time wall
+                (Clock.wall_now clock +. (float elapsed /. 1000.));
+              Eio_mock.Clock.Mono.set_time mono
+                (Option.get
+                   (Mtime.add_span
+                      (Clock.monotonic_now clock)
+                      Mtime.Span.(elapsed * ms)));
+              settle ())
+        row.steps;
       !cleanup ();
       settle ())
-    table
+    Clock_cases.table.cases
 
 let sign_in () =
   Eio_main.run @@ fun env ->
@@ -768,8 +781,8 @@ let stored_session_census () =
   let written =
     J.to_assoc (Yojson.Safe.from_string (Option.get (storage.read key)))
   in
-  census ~what:"a stored session" (Protocol.table "session/StoredSession.json")
-    written (fun fields ->
+  census ~what:"a stored session"
+    Protocol_cases.Session_stored_session_schema.schema written (fun fields ->
       storage.write key (Yojson.Safe.to_string (`Assoc fields));
       R.stored_session storage "kb-1" <> None)
 
@@ -808,8 +821,8 @@ let open_resource_census () =
     | `List [ `Assoc fields ] -> fields
     | _ -> Alcotest.fail "the open resource is not written as one object"
   in
-  census ~what:"an open resource" (Protocol.table "session/OpenResource.json")
-    written (fun fields ->
+  census ~what:"an open resource"
+    Protocol_cases.Session_open_resource_schema.schema written (fun fields ->
       storage.write key
         (Yojson.Safe.to_string (`Assoc [ ("kb-1", `List [ `Assoc fields ]) ]));
       R.open_resources browser ~kb_id:"kb-1" <> [])
@@ -874,9 +887,7 @@ let pending_authorization_census () =
                 (Yojson.Safe.from_string
                    {|{"name":"Actual","domain":"kb.example"}|}))))
   in
-  let schema =
-    field "pendingAuthorization" (Protocol.table "session/stored.json")
-  in
+  let schema = Protocol_cases.Session_stored.table.pending_authorization in
   census ~what:"a pending authorization" schema written reads;
   census ~what:"a pending authorization's issuer"
     (field "issuer" (field "properties" schema))
@@ -930,9 +941,7 @@ let redirect_sign_in_census () =
     Hashtbl.replace values key (Yojson.Safe.to_string (`Assoc fields));
     S.take storage <> None
   in
-  let schema =
-    field "pendingAuthorization" (Protocol.table "session/stored.json")
-  in
+  let schema = Protocol_cases.Session_stored.table.pending_authorization in
   census ~what:"a pending authorization Redirect_sign_in keeps" schema written
     reads;
   census ~what:"its issuer"
@@ -1127,7 +1136,16 @@ let pass mono clock elapsed_ms =
 
 (* client/timing.json, errorsKeptForFirstReaderCount: how many of what a stream
    said before its first reader came that reader is given, the oldest dropped. *)
-let kept = int "errorsKeptForFirstReaderCount" (Protocol.timing ())
+let kept =
+  match
+    (List.find
+       (fun (entry : Timing.timing_item) ->
+         entry.name = "errorsKeptForFirstReaderCount")
+       Timing.table.timing)
+      .value
+  with
+  | Integer count -> count
+  | Object _ -> failwith "errorsKeptForFirstReaderCount is no count"
 
 let claims_refused () =
   Eio_mock.Backend.run @@ fun () ->
@@ -1314,7 +1332,7 @@ let claims_stalled () =
 (* protocol/specs/src/session/registry-errors-cases.json: a registry reads the
    errors of each session it activates, from the first thing the session said,
    over a factory that builds a scripted session and reads none of them. *)
-let errors_table = Protocol.table "session/registry-errors-cases.json"
+module Errors_cases = Protocol_cases.Session_registry_errors_cases
 
 let errors_kb =
   decode Models.knowledge_base
@@ -1390,26 +1408,18 @@ let scripted_session ~sw ~clock ~handed ?persister
   in
   State_units.Session.make ~id:"session-a" ~kb:options.kb client
 
-let saying value : Client.said =
-  match (field "own" value, field "transport" value) with
-  | `String code, `Null -> Own { code; message = "the session says " ^ code }
-  | `Null, `String code ->
-      Transport_failure
-        { code; status = None; message = string "message" value }
-  | _ -> Alcotest.fail "says neither an own error nor a transport failure"
+let saying : Errors_cases.said_item -> Client.said = function
+  | Own { own = code } -> Own { code; message = "the session says " ^ code }
+  | Transport { transport = code; message } ->
+      Transport_failure { code; status = None; message }
 
-let registry_errors_case row () =
+let registry_errors_case (row : Errors_cases.cases_item) () =
   Eio_mock.Backend.run @@ fun () ->
   Switch.run @@ fun sw ->
   let _, clock = mock_clock () in
-  let why = string "why" row in
-  let said = List.map saying (rows "said" row) in
-  let opening =
-    match string "while" row with
-    | "opening" -> true
-    | "active" -> false
-    | other -> Alcotest.fail (why ^ ": says what it says while " ^ other)
-  in
+  let why = row.why in
+  let said = List.map saying row.said in
+  let opening = match row.while_ with Opening -> true | Active -> false in
   let handed = ref [] in
   let built = ref None in
   let script = Testing.scripted_sessions () in
@@ -1434,14 +1444,13 @@ let registry_errors_case row () =
   if not opening then List.iter (Testing.say_on session) said;
   Alcotest.(check (list string))
     (why ^ ": said on the registry's errors")
-    (List.map J.to_string (rows "registryErrors" row))
-    !registry_said;
+    row.registry_errors !registry_said;
   Alcotest.(check (list (option string)))
     (why ^ ": tokens a renewal was handed")
     [] !handed;
   Alcotest.(check (option (option string)))
     (why ^ ": said through the signals as a refusal for lack of permission")
-    (Option.map Option.some (J.to_string_option (field "permissionDenied" row)))
+    (Option.map Option.some row.permission_denied)
     (Option.map
        (fun (denied : Records.Permission_denied.t) -> denied.detail)
        (State_value.get (State_units.Session_signals.permission_denied signals)));
@@ -1451,11 +1460,11 @@ let registry_errors_case row () =
 (* The closing rows: the session's client keeps in a storage that refuses every
    write. The monotonic clock never moves, so the save a read leaves owed is
    still waiting out its debounce as the close begins. *)
-let registry_closing row () =
+let registry_closing (row : Errors_cases.closing_item) () =
   Eio_mock.Backend.run @@ fun () ->
   Switch.run @@ fun sw ->
   let _, clock = mock_clock () in
-  let why = string "why" row in
+  let why = row.why in
   let refusing =
     Storage.make
       ~get:(fun _ -> None)
@@ -1488,7 +1497,7 @@ let registry_closing row () =
   let session = Option.get !built in
   State_units.Session.ready session;
   let client = State_units.Session.client session in
-  (if J.to_bool (field "owed" row) then
+  (if row.owed then
      let resource = Result.get_ok (Identifiers.Resource_id.of_string "res-1") in
      match Client.fresh (Client.Browse.annotations client resource) with
      | Ok _ -> ()
@@ -1498,7 +1507,7 @@ let registry_closing row () =
   Alcotest.(check bool) (why ^ ": the registry's errors end") true !ended;
   Alcotest.(check (list string))
     (why ^ ": said on the registry's errors as it closed")
-    (List.map J.to_string (rows "registryErrors" row))
+    row.registry_errors
     (List.filteri (fun index _ -> index >= before) !registry_said);
   Client.await_closed client
 
@@ -1738,17 +1747,16 @@ let () =
         ] );
       ( "registry errors",
         List.map
-          (fun row ->
+          (fun (row : Errors_cases.cases_item) ->
             Alcotest.test_case
-              (string "while" row ^ ": " ^ string "why" row)
+              (Errors_cases.while__value row.while_ ^ ": " ^ row.why)
               `Quick (registry_errors_case row))
-          (rows "cases" errors_table)
+          Errors_cases.table.cases
         @ List.map
-            (fun row ->
-              Alcotest.test_case
-                ("closing: " ^ string "why" row)
-                `Quick (registry_closing row))
-            (rows "closing" errors_table)
+            (fun (row : Errors_cases.closing_item) ->
+              Alcotest.test_case ("closing: " ^ row.why) `Quick
+                (registry_closing row))
+            Errors_cases.table.closing
         @ [
             Alcotest.test_case "a client's errors kept for the first reader"
               `Quick client_errors_kept;

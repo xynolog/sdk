@@ -7,7 +7,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
 import * as core from '@xynolog/core';
 import {
   annotationOfResource,
@@ -15,16 +14,7 @@ import {
   reconcile,
   SpanRefusedError,
 } from '../index';
-
-const table: { builders: string[] } = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/annotations/builder-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
+import { table } from './cases/annotations_builder_cases';
 
 /** Each builder the SDK exports, under the name the table gives it, beside core's. */
 const BUILDERS = {

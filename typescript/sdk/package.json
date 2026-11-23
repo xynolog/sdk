@@ -32,6 +32,10 @@
     "url": "git+https://github.com/xynolog/sdk.git",
     "directory": "typescript/sdk"
   },
+  "homepage": "https://github.com/xynolog/sdk#readme",
+  "bugs": {
+    "url": "https://github.com/xynolog/sdk/issues"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "typecheck:conformance": "tsc -p conformance",

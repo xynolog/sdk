@@ -9,21 +9,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { busLog } from '../bus-log';
 import { isObject } from '../type-guards';
-
-interface Case {
-  why: string;
-  payload: unknown;
-  shown: unknown;
-}
-
-const TABLE = 'protocol/specs/src/bus/log-cases.json';
-const table: { names: string[]; cases: Case[] } = JSON.parse(
-  readFileSync(resolve(__dirname, '../../../..', TABLE), 'utf8'),
-);
+import { table, type CasesItem } from './cases/bus_log_cases';
 
 // The rule reads a name and no channel: every line here is written on this one.
 const CHANNEL = 'yield:clone-create';
@@ -71,7 +59,7 @@ describe('what a bus log shows of a payload (protocol/specs/src/bus/log-cases.js
         expect.arrayContaining(['payload', 'shown']),
       );
     }
-    const carries = (stated: Case): boolean =>
+    const carries = (stated: CasesItem): boolean =>
       JSON.stringify(stated.payload) !== JSON.stringify(stated.shown);
     expect(table.cases.some(carries)).toBe(true);
     expect(table.cases.some((stated) => !carries(stated))).toBe(true);
