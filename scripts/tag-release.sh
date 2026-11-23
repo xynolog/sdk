@@ -28,7 +28,11 @@ test "$#" -le 1 || fail "usage: scripts/tag-release.sh [go]"
 step="${1:-sdk}"
 test "$step" = sdk || test "$step" = go || fail "usage: scripts/tag-release.sh [go]"
 
-test -z "$(git status --porcelain)" || fail "The working tree has changes: tag a commit as it is."
+# A submodule merely behind its pin is no change: the update below checks
+# the pin out. A change inside one is.
+changes="$(git status --porcelain --ignore-submodules=all
+  git submodule foreach --quiet --recursive git status --porcelain --ignore-submodules=all)"
+test -z "$changes" || fail "The working tree has changes: tag a commit as it is."
 
 if [ "$step" = sdk ]; then
   branch="$(git symbolic-ref --quiet --short HEAD)" || fail "HEAD is detached: tag from main (git switch main)."
@@ -72,13 +76,15 @@ test "$(git rev-parse "refs/tags/$release^{commit}")" = "$commit" || fail "$rele
 run=""
 for _ in $(seq 60); do
   run="$(gh run list --repo xynolog/sdk --workflow release-artifacts.yml --event push --commit "$commit" \
-    --json databaseId --jq '.[0].databaseId // empty')"
+    --json databaseId,url --jq '.[0] // empty | "\(.databaseId) \(.url)"')"
   test -n "$run" && break
   sleep 5
 done
 test -n "$run" || fail "release-artifacts.yml has no run for $release after five minutes"
+read -r run url <<< "$run"
+echo "release-artifacts.yml is building and releasing $release: $url"
 gh run watch --repo xynolog/sdk --compact --exit-status "$run" \
-  || fail "release-artifacts.yml's run for $release did not succeed, so $go is not tagged: https://github.com/xynolog/sdk/actions/runs/$run"
+  || fail "release-artifacts.yml's run for $release did not succeed, so $go is not tagged: $url"
 
 target="$(gh api "repos/xynolog/sdk/releases/tags/$release" --jq .target_commitish)" \
   || fail "$release has no GitHub release, though its release workflow succeeded"
