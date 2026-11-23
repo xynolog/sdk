@@ -66,7 +66,7 @@ test-codegen:
 tag-release:
 	bash scripts/tag-release.sh
 
-## publish: Publish the release this commit is tagged as to each registry publish.yml offers, one run at a time, each approved in the release environment and watched to its end
+## publish: Publish the release this commit is tagged as to each registry publish.yml offers, dispatching every run at once for their approvals in the release environment, and watching each to its end
 publish:
 	bash scripts/publish-release.sh $(REGISTRIES)
 

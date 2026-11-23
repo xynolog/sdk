@@ -1,8 +1,8 @@
 name: Publish the SDK to a registry
 
 # Library publishing (versioning R17, R18, R20): a person dispatches this at a
-# released tag, one registry at a time, and approves it in the `release`
-# environment. `make publish` dispatches it for each registry below in turn,
+# released tag, one run per registry, and approves it in the `release`
+# environment. `make publish` dispatches it for each registry below at once,
 # and `make publish-pypi` for one (scripts/publish-release.sh):
 #
 #   gh workflow run publish.yml --ref v0.8.0 -f registry=pypi

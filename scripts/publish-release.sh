@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # Publish the release this commit is tagged as, as `make publish` runs it:
-# dispatch publish.yml at the tag, which publishes the released bundle, never
-# a rebuild, and watch the run to its end.
+# dispatch publish.yml at the tag for each registry at once, each run
+# publishing the released bundle, never a rebuild, and watch every run to its
+# end.
 #
-#   scripts/publish-release.sh <registry> ...   those registries, in that order
+#   scripts/publish-release.sh <registry> ...   those registries
 #
 # `make publish` names each registry publish.yml offers, and
 # `make publish-<registry>` one.
 #
-# A person approves each run in the `release` environment. A registry that
-# failed spends only its own version, so a run that failed stops the rest, and
-# the registries still to publish are named.
+# A person approves each run in the `release` environment, all of them
+# together. A registry that failed spends only its own version, so the others
+# go on, and each that failed is named with its run.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -25,17 +26,29 @@ test "$(git rev-parse --quiet --verify "refs/tags/$release^{commit}")" = "$(git 
   || fail "This commit is not tagged $release, the release its version.json names: check out a release's tag first (git switch --detach vX.Y.Z)."
 
 registries=("$@")
-
-for i in "${!registries[@]}"; do
-  registry="${registries[$i]}"
-  remaining="${registries[*]:i+1}"
-  echo "Publishing $release to $registry"
+runs=()
+already=""
+for registry in "${registries[@]}"; do
   dispatched="$(gh workflow run publish.yml --repo xynolog/sdk --ref "$release" -f "registry=$registry" 2>&1)" \
-    || fail "$dispatched"
-  echo "$dispatched"
+    || fail "$dispatched${already:+$'\n'Already dispatched, each waiting for its approval:$already}"
   url="$(sed -nE 's#.*(https://github\.com/xynolog/sdk/actions/runs/[0-9]+).*#\1#p' <<< "$dispatched")"
-  test -n "$url" || fail "gh workflow run named no run to watch: find publish.yml's run for $registry in the Actions tab."
-  echo "Approve it in the release environment: $url"
-  gh run watch --repo xynolog/sdk --compact --exit-status "${url##*/}" \
-    || fail "$release did not publish to $registry: $url${remaining:+. Not yet published to: $remaining}"
+  test -n "$url" \
+    || fail "gh workflow run named no run for $registry: find it in publish.yml's runs in the Actions tab.${already:+$'\n'Already dispatched, each waiting for its approval:$already}"
+  runs+=("$url")
+  already="$already"$'\n'"  $registry: $url"
+  echo "Publishing $release to $registry: $url"
 done
+echo "Approve each run in the release environment."
+
+failed=()
+for i in "${!registries[@]}"; do
+  gh run watch --repo xynolog/sdk --compact --exit-status "${runs[$i]##*/}" \
+    || failed+=("${registries[$i]}: ${runs[$i]}")
+done
+
+if [ "${#failed[@]}" -gt 0 ]; then
+  printf '%s did not publish to:\n' "$release" >&2
+  printf '  %s\n' "${failed[@]}" >&2
+  exit 1
+fi
+echo "$release published to: ${registries[*]}"
