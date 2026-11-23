@@ -1,3 +1,8 @@
+//go:build go1.27
+
+// Built by Go 1.27 and later only: its fake network is httptest.NewTestServer's,
+// which is new in 1.27, while the module admits 1.26.
+
 package xynolog_test
 
 // The time a client keeps, against protocol/specs/src/client/clock-cases.json.

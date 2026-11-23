@@ -25,6 +25,10 @@ def rust_toolchain() -> str:
     return subprocess.check_output(["sh", str(ROOT / "rust/scripts/rust-toolchain.sh")], text=True).strip()
 
 
+def go_toolchain() -> str:
+    return subprocess.check_output(["sh", str(ROOT / "go/scripts/go-toolchain.sh")], text=True).strip()
+
+
 def digest(path: Path) -> str:
     value = hashlib.sha256()
     with path.open("rb") as stream:
@@ -68,12 +72,16 @@ def files(language: str) -> list[tuple[Path, str, str]]:
             for suffix in ("zip", "mod", "info", "list")
         ]
     if language == "csharp":
-        return [(STATE / "nuget" / f"Xynolog.{version}.nupkg", "nuget", "Xynolog")]
+        return [(STATE / "nuget" / f"Xynolog.{version}.{suffix}", "nuget", "Xynolog") for suffix in ("nupkg", "snupkg")]
     if language == "haskell":
         return [(STATE / "haskell" / f"xynolog-{version}.tar.gz", "hackage-sdist", "xynolog")]
     if language == "kotlin":
+        # What Maven Central takes of a release, before the publisher signs it
+        # and sums it: Gradle's own sums are of the files as they were before
+        # they were normalized.
         root = STATE / f"kotlin-maven/org/xynolog/xynolog/{version}"
-        return [(p, "maven", "org.xynolog:xynolog") for p in sorted(root.glob(f"xynolog-{version}.*")) if p.is_file()]
+        names = [f"xynolog-{version}{suffix}" for suffix in (".pom", ".module", ".jar", "-sources.jar", "-javadoc.jar")]
+        return [(root / name, "maven", "org.xynolog:xynolog") for name in names]
     if language == "ocaml":
         source = STATE / "opam-repo/repo" / f"archives/xynolog.{version}.tar.gz"
         return [(source, "opam-source", "xynolog")]
@@ -172,7 +180,7 @@ def write_bundle(languages: list[str], tree_digest: str, output: Path, staged: P
         "typescript": "node:26-bookworm",
         "python": "python:3.12-bookworm",
         "rust": f"rust:{rust_toolchain()}-bookworm",
-        "go": "golang:1.27.4-bookworm",
+        "go": f"golang:{go_toolchain()}-bookworm",
         "csharp": "mcr.microsoft.com/dotnet/sdk (version from csharp/sdk/global.json)",
         "haskell": "haskell:9.10.3",
         "kotlin": "eclipse-temurin (version from kotlin/sdk/.java-version)",

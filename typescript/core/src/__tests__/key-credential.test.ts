@@ -9,7 +9,6 @@
  * protocol/specs/src/session/client-assertion-cases.json.
  */
 import { generateKeyPairSync, verify, type KeyObject } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import util from 'node:util';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
@@ -21,16 +20,7 @@ import {
 import { ServiceToken, type KeyCredential } from '../service-account';
 import { SignInError } from '../sign-in-error';
 import { isObject } from '../type-guards';
-
-const table: { form: string[]; grantType: string } = JSON.parse(
-  readFileSync(
-    new URL(
-      '../../../../protocol/specs/src/session/client-assertion-cases.json',
-      import.meta.url,
-    ),
-    'utf8',
-  ),
-);
+import { table } from './cases/session_client_assertion_cases';
 
 const CLIENT = 'xynolog-worker-alice-laptop';
 

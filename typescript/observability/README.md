@@ -8,6 +8,30 @@
 
 Tracing and metrics for Xynolog's TypeScript transport and for a Node program built on it, on [OpenTelemetry](https://opentelemetry.io). It is off unless a process is given somewhere to export to: with no endpoint configured, every function here does nothing.
 
+## Install
+
+```bash
+npm install @xynolog/observability
+```
+
+Below 1.0 the minor number is the break, and the caret range npm writes into `package.json`
+takes the releases up to the next minor and no further.
+
+## Example
+
+```typescript
+import { initObservabilityNode } from '@xynolog/observability/node';
+import { withSpan } from '@xynolog/observability';
+
+// Once, at the entry point, before anything that makes a span.
+initObservabilityNode({ serviceName: 'my-program', serviceVersion: '1.0.0' });
+
+const length = await withSpan('read-document', async (span) => {
+  span.setAttribute('document.pages', 12);
+  return 4096;
+});
+```
+
 ## Who uses it
 
 - **[`@xynolog/http-transport`](../http-transport/README.md)** runs each request in a span and carries the trace across the wire. That is how this package comes to be in the Browser's bundle.
@@ -26,29 +50,6 @@ No Xynolog service is a Node process. The gateway, the dispatcher and the Archiv
 
 Each says what it does where it is defined, in [src/index.ts](src/index.ts).
 
-## Example
-
-```typescript
-import { initObservabilityNode } from '@xynolog/observability/node';
-import { withSpan } from '@xynolog/observability';
-
-// Once, at the entry point, before anything that makes a span.
-initObservabilityNode({ serviceName: 'my-program', serviceVersion: '1.0.0' });
-
-const length = await withSpan('read-document', async (span) => {
-  span.setAttribute('document.pages', 12);
-  return 4096;
-});
-```
-
-## What a change must keep
-
-- **Off by default, and free when off.** With no exporter configured, the tracer and the meter are OpenTelemetry's own no-ops. Nothing here may do work, or fail, because telemetry is not set up.
-- **The main import runs in a browser.** It imports no Node builtin. What needs Node is in `/node`.
-- **One trace across the bus.** A request carries the active span as a W3C `traceparent` header, and a frame relayed over the stream carries it in its payload's trace field (`TRACE_FIELD` in `@xynolog/core`, generated from the bus registry). A handler continues that trace rather than starting one.
-- **No domain logic.** The package gives the helpers and the recorder. What is worth a span or a count is decided where the work happens.
-- **Initialized once.** `initObservabilityNode` is called at a process's entry point. A second call does nothing and returns `false`.
-
 ## Documentation
 
 - [API reference](docs/API.md): the helpers, with an example of each.
@@ -57,3 +58,5 @@ const length = await withSpan('read-document', async (span) => {
 ## License
 
 Apache-2.0
+
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

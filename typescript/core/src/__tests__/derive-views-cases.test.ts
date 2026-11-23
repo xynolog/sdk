@@ -6,25 +6,12 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { deriveViews, type GraphViews } from '../knowledge-graph-views';
+import { deriveViews } from '../knowledge-graph-views';
 import { faultOf, said } from '../required';
 import type { components } from '../types';
+import { table } from './cases/librarian_derive_views_cases';
 
 type KnowledgeGraph = components['schemas']['KnowledgeGraph'];
-
-interface Case {
-  why: string;
-  graph: KnowledgeGraph;
-  resource: string;
-  annotation?: string;
-  views: GraphViews;
-}
-
-const TABLE = 'protocol/specs/src/librarian/derive-views-cases.json';
-const table: { cases: Case[] } = JSON.parse(
-  readFileSync(new URL(`../../../../${TABLE}`, import.meta.url), 'utf8'),
-);
 
 describe('the views read off a knowledge graph (protocol/specs/src/librarian/derive-views-cases.json)', () => {
   it('has cases, with a focal annotation and with none', () => {
@@ -51,6 +38,8 @@ describe('the views read off a knowledge graph (protocol/specs/src/librarian/der
   });
 
   it.each(table.cases)('$why', ({ graph, resource, annotation, views }) => {
-    expect(deriveViews(graph, resource, annotation)).toStrictEqual(views);
+    expect(
+      deriveViews(graph as KnowledgeGraph, resource, annotation),
+    ).toStrictEqual(views);
   });
 });

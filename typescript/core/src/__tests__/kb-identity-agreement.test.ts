@@ -8,27 +8,10 @@
  * mirror that spans languages and cannot be generated.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import { kbDid, kbResource } from '../did-utils';
+import { table } from './cases/kb_identity_cases';
 
-interface IdentityCase {
-  why: string;
-  domain: string | null;
-  did: string | null;
-  resource: string | null;
-}
-
-const TABLE = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../protocol/specs/src/kb-identity/cases.json',
-);
-const { cases } = JSON.parse(readFileSync(TABLE, 'utf-8')) as {
-  cases: IdentityCase[];
-};
-
-const declared = cases.flatMap((c) =>
+const declared = table.cases.flatMap((c) =>
   c.domain === null
     ? []
     : [{ why: c.why, domain: c.domain, did: c.did, resource: c.resource }],

@@ -16,8 +16,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import {
   annotationId,
   resourceId,
@@ -46,6 +44,7 @@ import {
   applyHighlights,
   toOverlayAnnotations,
 } from '../annotation-overlay';
+import { table } from '../../__tests__/cases/text_offset_cases';
 
 // ─── The calls under test, each spelled once ─────────────────────────────────
 
@@ -185,24 +184,6 @@ afterEach(() => {
 });
 
 // ─── The offset table ────────────────────────────────────────────────────────
-
-interface Span {
-  exact: string;
-  occurrence: number;
-  start: number;
-  end: number;
-}
-interface Case {
-  why: string;
-  text: string;
-  codePoints: number;
-  spans: Span[];
-}
-
-const TABLE = 'protocol/specs/src/text/offset-cases.json';
-const table: { cases: Case[] } = JSON.parse(
-  readFileSync(resolve(__dirname, '../../../../..', TABLE), 'utf8'),
-);
 
 describe('the offset table, through what makes an offset and what applies one (protocol/specs/src/text/offset-cases.json)', () => {
   it('has cases, and one at least with a character outside the basic plane', () => {

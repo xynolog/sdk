@@ -1,0 +1,36 @@
+name: Changelog
+
+# A pull request that changes a language's directory adds an entry to that
+# language's changelog, unless it carries the no-changelog label. This runs
+# apart from CI, so that labelling a pull request runs this alone.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changelog-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  entries:
+    name: Each changed language has a changelog entry
+    # The merge queue holds pull requests this already passed, and has no
+    # labels to read; there the job is skipped, which a required check takes
+    # as passing.
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'no-changelog')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          # A pull request checks out its merge commit: the first parent is
+          # the base, so HEAD^1..HEAD is the pull request's change.
+          fetch-depth: 2
+
+      - name: Each language the change touches has a changelog entry
+        run: python3 scripts/changelog-entries.py HEAD^1 HEAD

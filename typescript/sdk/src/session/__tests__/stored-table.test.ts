@@ -16,9 +16,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import { filter, firstValueFrom } from 'rxjs';
 import {
   CACHE_PER,
@@ -26,6 +23,7 @@ import {
   faultOf,
   isObject,
   isSchemaName,
+  isString,
   resourceId,
   type CachePer,
   type PersistedQuery,
@@ -53,63 +51,50 @@ import {
   setStoredSession,
 } from '../storage';
 import type { StoredSession } from '@xynolog/core';
-
-/** One key worked out: from a knowledge base's id, a person's did and, for a query, its name. */
-interface Example {
-  kbId: string;
-  did: string;
-  key: string;
-}
-
-/** An object's schema, as this SDK is held to it. */
-interface ObjectSchema {
-  $id: string;
-  properties: Record<string, unknown>;
-  required: string[];
-}
-
-interface StoredTable {
-  keys: { member: string; key: string }[];
-  sessionKeyPrefix: { prefix: string };
-  lastEventIdKeyPrefix: { prefix: string; example: Example };
-  cacheKeyPrefix: { prefix: string; example: Example & { query: string } };
-  storedSession: { $ref: string };
-  openResource: { $ref: string };
-  wholeKey: { key: string };
-  cacheDocument: {
-    properties: { version: { const: number } } & Record<string, unknown>;
-  };
-  lastEventIds: {
-    propertyNames: { $ref: string };
-    additionalProperties: { $ref: string };
-  };
-}
+import { table } from '../../__tests__/cases/session_stored';
+import { schema as openResourceSchema } from '../../__tests__/cases/session_open_resource_schema';
+import { schema as storedSessionSchema } from '../../__tests__/cases/session_stored_session_schema';
 
 /** The person what the tests keep is kept for. */
 const PERSON = personKey('did:web:example.org:users:jo');
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
-const TABLE = join(ROOT, 'protocol/specs/src/session/stored.json');
-const table = JSON.parse(readFileSync(TABLE, 'utf-8')) as StoredTable;
+/** What the table's `member` states at `path`, each step a member of an object. */
+function statedAt(member: string, value: unknown, ...path: string[]): unknown {
+  let at = value;
+  for (const [depth, name] of path.entries()) {
+    if (!isObject(at) || !(name in at))
+      throw new Error(
+        `the table's ${member} states no ${path.slice(0, depth + 1).join('.')}`,
+      );
+    at = at[name];
+  }
+  return at;
+}
 
-/** The schema the table names by its `$id` at `member`: `file`'s, which states that `$id`. */
-function referred(
+/** The `$ref` the table's `member` states at `path`. */
+function refAt(member: string, value: unknown, ...path: string[]): string {
+  const ref = statedAt(member, value, ...path, '$ref');
+  if (!isString(ref)) throw new Error(`the table's ${member} names no schema`);
+  return ref;
+}
+
+/** The schema the table names by its `$id` at `member`: `schema`, which states that `$id`. */
+function referred<S extends { $id: string; title: string }>(
   member: 'storedSession' | 'openResource',
-  file: string,
-): ObjectSchema {
-  const schema = JSON.parse(
-    readFileSync(join(ROOT, 'protocol/specs/src', file), 'utf-8'),
-  ) as ObjectSchema;
-  if (table[member].$ref !== schema.$id)
+  schema: S,
+): S {
+  const ref = refAt(member, table[member]);
+  if (ref !== schema.$id)
     throw new Error(
-      `the table's ${member} names ${table[member].$ref}; ${file} states ${schema.$id}`,
+      `the table's ${member} names ${ref}; ${schema.title} states ${schema.$id}`,
     );
   return schema;
 }
 
-const storedSession = referred('storedSession', 'session/StoredSession.json');
-const openResource = referred('openResource', 'session/OpenResource.json');
+const storedSession = referred('storedSession', storedSessionSchema);
+const openResource = referred('openResource', openResourceSchema);
 const members = Object.keys(storedSession.properties);
+const requiredMembers: readonly string[] = storedSession.required;
 
 /** A key of each kind a kept query's entries are keyed by: a resource's id, an annotation's id, or the whole key. */
 const KEY_OF_KIND: { [P in CachePer[PersistedQuery]]: string } = {
@@ -265,7 +250,7 @@ describe('what a registry keeps, as protocol/specs/src/session/stored.json state
       const storage = new InMemorySessionStorage();
       storage.set(sessionKey('kb-a'), storedWithout(member));
       const read = getStoredSession(storage, 'kb-a');
-      if (storedSession.required.includes(member)) {
+      if (requiredMembers.includes(member)) {
         expect(read).toBeNull();
       } else {
         expect(read).not.toBeNull();
@@ -315,11 +300,16 @@ describe('what a registry keeps, as protocol/specs/src/session/stored.json state
       storage,
       cacheKey('kb-a', PERSON, 'entityTypes'),
     );
-    expect(Object.keys(written).sort()).toEqual(
-      Object.keys(table.cacheDocument.properties).sort(),
+    const properties = statedAt(
+      'cacheDocument',
+      table.cacheDocument,
+      'properties',
     );
+    if (!isObject(properties))
+      throw new Error("the table's cacheDocument states no members");
+    expect(Object.keys(written).sort()).toEqual(Object.keys(properties).sort());
     expect(written['version']).toBe(
-      table.cacheDocument.properties.version.const,
+      statedAt('cacheDocument', properties, 'version', 'const'),
     );
   });
 
@@ -329,8 +319,12 @@ describe('what a registry keeps, as protocol/specs/src/session/stored.json state
     coupled.saveLastEventId(resourceId('res-1'), 'p-res-1-47');
     coupled.storage.set(cacheKey('kb-a', PERSON, 'resource'), '{}');
     const written = writtenUnder(storage, lastEventIdKey('kb-a', PERSON));
-    const scope = holdsAs(table.lastEventIds.propertyNames.$ref);
-    const place = holdsAs(table.lastEventIds.additionalProperties.$ref);
+    const scope = holdsAs(
+      refAt('lastEventIds', table.lastEventIds, 'propertyNames'),
+    );
+    const place = holdsAs(
+      refAt('lastEventIds', table.lastEventIds, 'additionalProperties'),
+    );
     expect(Object.keys(written)).toEqual(['res-1']);
     for (const [key, value] of Object.entries(written)) {
       expect(scope(key), `the scope ${key}`).toBe(true);

@@ -15,6 +15,10 @@ members = [
 [workspace.package]
 version = "0.8.1"
 repository = "https://github.com/xynolog/sdk"
+# The oldest Rust that builds the crates, which is the highest rust-version
+# of any crate Cargo.lock holds. rust-toolchain.toml is the Rust this
+# repository builds and tests with.
+rust-version = "1.89"
 
 # Every crate a member uses, by version, once: a member names the ones it uses
 # with `.workspace = true` and adds the features it needs.

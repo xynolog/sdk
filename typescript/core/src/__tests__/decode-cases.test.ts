@@ -14,37 +14,12 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { XynologError } from '../errors';
 import { textSourceOf } from '../media-types';
 import { decodeRepresentation } from '../resource-utils';
 import { decodeWithCharset } from '../text-encoding';
-
-interface Case {
-  why: string;
-  contentType: string;
-  bytes: string;
-  text?: string;
-  refused?: string;
-}
-interface EncodingCase {
-  encoding: string;
-  labels: string[];
-  everyByte?: string;
-  bytes?: string;
-  text?: string;
-  refused?: true;
-}
-
-const DECODE = 'protocol/specs/src/text/decode-cases.json';
-const ENCODINGS = 'protocol/specs/src/text/encoding-cases.json';
-const decode: { cases: Case[] } = JSON.parse(
-  readFileSync(resolve(__dirname, '../../../..', DECODE), 'utf8'),
-);
-const encodings: { cases: EncodingCase[] } = JSON.parse(
-  readFileSync(resolve(__dirname, '../../../..', ENCODINGS), 'utf8'),
-);
+import { table as decode } from './cases/text_decode_cases';
+import { table as encodings } from './cases/text_encoding_cases';
 
 const EVERY_BYTE = Uint8Array.from({ length: 256 }, (_, byte) => byte);
 
@@ -78,22 +53,18 @@ describe("what text a resource's bytes are (protocol/specs/src/text/decode-cases
     expect(decode.cases.length).toBeGreaterThanOrEqual(90);
     for (const stated of decode.cases) {
       expect(
-        typeof stated.text === 'string'
-          ? stated.refused === undefined
+        'text' in stated
+          ? !('refused' in stated)
           : typeof stated.refused === 'string',
         stated.why,
       ).toBe(true);
     }
-    expect(decode.cases.some((stated) => typeof stated.text === 'string')).toBe(
-      true,
-    );
-    expect(
-      decode.cases.some((stated) => typeof stated.refused === 'string'),
-    ).toBe(true);
+    expect(decode.cases.some((stated) => 'text' in stated)).toBe(true);
+    expect(decode.cases.some((stated) => 'refused' in stated)).toBe(true);
     // A refusal is of a charset, where the media type is one that is decoded,
     // or of the media type: one whose text is derived, and one with none.
     const refusedOf = decode.cases
-      .filter((stated) => stated.refused !== undefined)
+      .filter((stated) => 'refused' in stated)
       .map((stated) => textSourceOf(stated.contentType));
     expect(Array.from(new Set(refusedOf)).sort()).toEqual([
       'decode',
@@ -102,50 +73,54 @@ describe("what text a resource's bytes are (protocol/specs/src/text/decode-cases
     ]);
   });
 
-  it.each(decode.cases)(
-    '$why',
-    ({ contentType, bytes, text, refused: named }) => {
-      if (text !== undefined) {
-        expect(decodeRepresentation(bytesOf(bytes), contentType)).toBe(text);
-      } else if (named !== undefined) {
-        refused(() => decodeRepresentation(bytesOf(bytes), contentType), named);
-      } else {
-        throw new Error(
-          'the case states neither its text nor that it is refused',
-        );
-      }
-    },
-  );
+  it.each(decode.cases)('$why', (stated) => {
+    const { contentType, bytes } = stated;
+    if ('text' in stated) {
+      expect(decodeRepresentation(bytesOf(bytes), contentType)).toBe(
+        stated.text,
+      );
+    } else if ('refused' in stated) {
+      refused(
+        () => decodeRepresentation(bytesOf(bytes), contentType),
+        stated.refused,
+      );
+    } else {
+      throw new Error(
+        'the case states neither its text nor that it is refused',
+      );
+    }
+  });
 });
 
 describe('every label of the Encoding Standard, and every byte of its single-byte encodings (protocol/specs/src/text/encoding-cases.json)', () => {
   it('has cases of each kind', () => {
     expect(
-      encodings.cases.filter((stated) => stated.everyByte !== undefined).length,
+      encodings.cases.filter((stated) => 'everyByte' in stated).length,
     ).toBeGreaterThanOrEqual(29);
-    expect(encodings.cases.some((stated) => stated.text !== undefined)).toBe(
-      true,
-    );
-    expect(encodings.cases.some((stated) => stated.refused === true)).toBe(
-      true,
-    );
+    expect(encodings.cases.some((stated) => 'text' in stated)).toBe(true);
+    expect(
+      encodings.cases.some(
+        (stated) => 'refused' in stated && stated.refused === true,
+      ),
+    ).toBe(true);
   });
 
-  describe.each(encodings.cases)(
-    '$encoding',
-    ({ labels, everyByte, bytes, text, refused: everyLabel }) => {
-      it.each(labels)('%s', (label) => {
-        const contentType = `text/plain; charset=${label}`;
-        if (everyByte !== undefined) {
-          expect(decodeWithCharset(EVERY_BYTE, contentType)).toBe(everyByte);
-        } else if (bytes !== undefined && text !== undefined) {
-          expect(decodeWithCharset(bytesOf(bytes), contentType)).toBe(text);
-        } else if (everyLabel === true) {
-          refused(() => decodeWithCharset(EVERY_BYTE, contentType), label);
-        } else {
-          throw new Error('the case is of no kind this runner knows');
-        }
-      });
-    },
-  );
+  describe.each(encodings.cases)('$encoding', (stated) => {
+    it.each(stated.labels)('%s', (label) => {
+      const contentType = `text/plain; charset=${label}`;
+      if ('everyByte' in stated) {
+        expect(decodeWithCharset(EVERY_BYTE, contentType)).toBe(
+          stated.everyByte,
+        );
+      } else if ('bytes' in stated) {
+        expect(decodeWithCharset(bytesOf(stated.bytes), contentType)).toBe(
+          stated.text,
+        );
+      } else if (stated.refused === true) {
+        refused(() => decodeWithCharset(EVERY_BYTE, contentType), label);
+      } else {
+        throw new Error('the case is of no kind this runner knows');
+      }
+    });
+  });
 });

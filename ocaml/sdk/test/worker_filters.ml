@@ -1,12 +1,11 @@
 (* Shared worker filter cases from jobs/filter-cases.json. *)
+module T = Protocol_cases.Jobs_filter_cases
+
 let () =
-  let open Yojson.Safe.Util in
-  Protocol.member "jobs/filter-cases.json" "cases"
-  |> to_list
-  |> List.iter (fun row ->
-      let filters = `List [ member "filter" row ] in
-      let announcement = member "job" row in
+  List.iter
+    (fun (row : T.cases_item) ->
       Alcotest.(check bool)
-        (member "why" row |> to_string)
-        (member "matches" row |> to_bool)
-        (Xynolog.Worker.accepts ~filters ~announcement))
+        row.why row.matches
+        (Xynolog.Worker.accepts ~filters:(`List [ row.filter ])
+           ~announcement:(T.job_json row.job)))
+    T.table.cases

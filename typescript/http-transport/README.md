@@ -8,21 +8,14 @@
 
 How the TypeScript SDK reaches a knowledge base over HTTP. It implements the three transport contracts [`@xynolog/core`](../core/README.md) states (`ITransport`, `IContentTransport`, `IGatewayOperations`) against a knowledge base's gateway.
 
-## Who uses it
+## Install
 
-- **[`@xynolog/sdk`](../sdk/README.md)** builds one for every session, and re-exports `HttpTransport` and `HttpContentTransport`.
+```bash
+npm install @xynolog/http-transport
+```
 
-**Building an application?** Import from [`@xynolog/sdk`](../sdk/README.md), not from here. A session gives you a connected client, and the two transport classes are re-exported there for the rare program that wires its own.
-
-## What is in it
-
-| | |
-|---|---|
-| `HttpTransport` | The bus over a gateway: `POST /bus/emit` for what a client sends, one stream (`POST /bus/subscribe`) for what it receives, and the gateway's plain operations |
-| `HttpContentTransport` | A resource's bytes, up with progress and cancellation, and down whole or as a stream; its linked-data description; and its anchored text |
-| `HttpTransportConfig` | What a transport is given: the gateway's address, a token source, a `TokenRefresher`, the channels its stream names, and the `fetch` it sends with |
-| `currentUserOf(baseUrl, token, fetch?)` | One request asking the gateway who a token is, with no transport behind it. A session asks this of a stored credential before it trusts it |
-| `APIError` | What an HTTP failure is thrown as |
+Below 1.0 the minor number is the break, and the caret range npm writes into `package.json`
+takes the releases up to the next minor and no further.
 
 ## Example
 
@@ -41,6 +34,22 @@ const transport = new HttpTransport({ baseUrl: baseUrl('https://kb.example/'), c
 const client = new XynologClient(transport, new HttpContentTransport(transport), transport);
 ```
 
+## Who uses it
+
+- **[`@xynolog/sdk`](../sdk/README.md)** builds one for every session, and re-exports `HttpTransport` and `HttpContentTransport`.
+
+**Building an application?** Import from [`@xynolog/sdk`](../sdk/README.md), not from here. A session gives you a connected client, and the two transport classes are re-exported there for the rare program that wires its own.
+
+## What is in it
+
+| | |
+|---|---|
+| `HttpTransport` | The bus over a gateway: `POST /bus/emit` for what a client sends, one stream (`POST /bus/subscribe`) for what it receives, and the gateway's plain operations |
+| `HttpContentTransport` | A resource's bytes, up with progress and cancellation, and down whole or as a stream; its linked-data description; and its anchored text |
+| `HttpTransportConfig` | What a transport is given: the gateway's address, a token source, a `TokenRefresher`, the channels its stream names, and the `fetch` it sends with |
+| `currentUserOf(baseUrl, token, fetch?)` | One request asking the gateway who a token is, with no transport behind it. A session asks this of a stored credential before it trusts it |
+| `APIError` | What an HTTP failure is thrown as |
+
 ## The fetch it sends with
 
 Every request of a transport is sent with the `fetch` its config gives, or with the runtime's own when it gives none: the stream, every emit, the gateway's plain operations, and the content transport's reads and uploads. `currentUserOf` takes one as its last argument, and `agentToken` one for the gateway as `fetch`, beside the `ServiceToken` it signs in with, which asks the issuer with the one it was made with. The certificates a request trusts, and the proxy it goes through, are that fetch's: this package reads no setting of its own for either.
@@ -58,16 +67,6 @@ declare const trusting: typeof fetch;
 const transport = new HttpTransport({ baseUrl: baseUrl('https://kb.example/'), channels: BRIDGED_CHANNELS, fetch: trusting });
 ```
 
-## What a change must keep
-
-- **The transport contract.** What every transport must do is [TRANSPORT-CONTRACT](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-CONTRACT.md), and what this one does on the wire is [TRANSPORT-HTTP](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-HTTP.md). The [SDK conformance suite](https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md) holds it to both, through [conformance/driver.ts](conformance/driver.ts), beside the Rust transport.
-- **One token source.** A transport reads the current token from `token$`. `tokenRefresher` is the only way a token is renewed, for a refused request, emit and stream alike, and it is told the token refused.
-- **Timing is the spec's.** The reconnect, linger and retry values are [`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json)'s. The config fields that override them are for a test or the conformance driver, which cannot wait them out.
-- **A narrowed stream still hears its replies.** A process that passes `channels` names the reply channels of every operation it awaits. A request whose replies are outside the set fails at once with `bus.unsubscribed`, rather than timing out.
-- **Wire shapes are generated.** Requests and responses are `@xynolog/core`'s types, from the spec. None is retyped here.
-
-A transport that is not HTTP implements `ITransport` and `IContentTransport` from `@xynolog/core` and inherits nothing from this package.
-
 ## Documentation
 
 - [Reference](docs/API-Reference.md): each export.
@@ -77,3 +76,5 @@ A transport that is not HTTP implements `ITransport` and `IContentTransport` fro
 ## License
 
 Apache-2.0
+
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

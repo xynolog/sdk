@@ -42,7 +42,7 @@ run_container_quietly "$RUNTIME" run --rm \
   --volume "$STATE_ROOT/go-proxy:/out" --volume "$STATE_ROOT/go-mod-cache:/go/pkg/mod" \
   --volume "$STATE_ROOT/go-build-cache:/root/.cache/go-build" \
   --env "SDK_SOURCE_TIME=$SDK_SOURCE_TIME" --env "XYNOLOG_SDK_VERSION=$go_package_version" \
-  --workdir /tmp golang:1.27.4-bookworm bash -euc '
+  --workdir /tmp "golang:$(sh "$ROOT/go/scripts/go-toolchain.sh")-bookworm" bash -euc '
     version="$XYNOLOG_SDK_VERSION"
     mkdir -p /tmp/sdk && cp -a /source/. /tmp/sdk/ && rm -rf /tmp/sdk/protocol && cp -a /protocol /tmp/sdk/protocol && cd /tmp/sdk/go && go build ./...
     module="github.com/xynolog/sdk/go"
@@ -71,9 +71,11 @@ run_container_quietly "$RUNTIME" run --rm \
     cp -a /source /tmp/sdk
     rm -rf /tmp/sdk/protocol
     cp -a /protocol /tmp/sdk/protocol
+    # ContinuousIntegrationBuild writes /_/ into the PDBs in place of the
+    # paths of the container, so two builds of one commit write the same bytes.
     dotnet pack /tmp/sdk/csharp/sdk/src/Xynolog/Xynolog.csproj -c Release --verbosity quiet \
       -p:IsPackable=true -p:PackageId=Xynolog -p:PackageVersion="$version" \
-      -p:CheckRefusals=false -o /out
+      -p:ContinuousIntegrationBuild=true -p:CheckRefusals=false -o /out
   '
 fi
 
@@ -89,40 +91,20 @@ run_container_quietly "$RUNTIME" run --rm --memory 4g --volume "$ROOT/haskell/sd
 fi
 
 if [[ "$LANGUAGE" == all || "$LANGUAGE" == kotlin ]]; then
-# Gradle's standard Maven publication is injected only for this local publish;
-# the SDK build itself stays unchanged and its locked dependencies stay intact.
+# The build's own publication (kotlin/sdk/build.gradle.kts), written to its
+# build directory and copied into the local Maven repository.
 echo 'Building and publishing the Kotlin SDK to a local Maven repository in a JDK container…'
 kotlin_package_version="$(version_of kotlin)"
 jdk="$(sh "$ROOT/kotlin/scripts/jdk-version.sh")"
-cat > "$STATE_ROOT/kotlin-publish.init.gradle" <<'GRADLE'
-allprojects {
-  plugins.withId('org.jetbrains.kotlin.jvm') {
-    afterEvaluate {
-      apply plugin: 'maven-publish'
-      publishing {
-        publications {
-          mavenJava(MavenPublication) {
-            from components.java
-            groupId = 'org.xynolog'
-            artifactId = 'xynolog'
-            version = System.getenv('XYNOLOG_SDK_VERSION')
-          }
-        }
-        repositories { maven { name = 'xynologLocal'; url = uri('/out') } }
-      }
-    }
-  }
-}
-GRADLE
 run_container_quietly "$RUNTIME" run --rm --memory 4g --volume "$ROOT:/source:ro" \
   --volume "$PROTOCOL:/protocol:ro" --volume "$STATE_ROOT/kotlin-maven:/out" \
   --volume "$STATE_ROOT/gradle-cache:/root/.gradle" \
-  --volume "$STATE_ROOT/kotlin-publish.init.gradle:/tmp/publish.init.gradle:ro" \
   --env "XYNOLOG_SDK_VERSION=$kotlin_package_version" \
   --workdir /tmp eclipse-temurin:"$jdk"-jdk bash -euc '
     mkdir -p /tmp/sdk && cp -a /source/. /tmp/sdk/ && rm -rf /tmp/sdk/protocol && cp -a /protocol /tmp/sdk/protocol
     cd /tmp/sdk/kotlin/sdk
-    ./gradlew --no-daemon -I /tmp/publish.init.gradle assemble -x checkKotlinAbi publishMavenJavaPublicationToXynologLocalRepository
+    ./gradlew --no-daemon -Pversion="$XYNOLOG_SDK_VERSION" assemble -x checkKotlinAbi publishMavenPublicationToBuildRepository
+    cp -R build/repository/. /out/
   '
 fi
 

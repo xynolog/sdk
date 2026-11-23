@@ -13,26 +13,14 @@ Framework-agnostic React component library for building Xynolog knowledge manage
 
 `@xynolog/react-ui` provides reusable React components, hooks, and utilities for creating Xynolog applications. The library is designed to be **completely framework-agnostic**, working seamlessly with Next.js, Create React App, Vite, Remix, or any other React framework.
 
-## Key Features
-
-- **Framework Independence** - Zero dependencies on Next.js, next-auth, or next-intl
-- **Component Composition** - Components accept framework-specific implementations (Link, routing) as props
-- **Provider Pattern** - Consistent approach for session, translations, and routing
-- **SDK Live Queries** - Read data with `useObservable()` over the SDK's read-through cache; no bespoke fetching layer
-- **Authentication Components** - Error display; signing in happens at the knowledge base's issuer
-- **Navigation Components** - Collapsible sidebar with drag & drop resource tabs
-- **Modal Components** - Global search and resource selection modals
-- **Accessibility First** - WCAG compliant with keyboard navigation, screen reader support
-- **Comprehensive Testing** - 1250+ tests with extensive coverage
-- **Annotation System** - Rich annotation and tagging capabilities
-- **Built-in Translations** - one per supported language (`LOCALE_CODES` from `@xynolog/core`), each loaded on demand
-- **Flexible i18n** - Two modes: built-in locales or a custom translation system. There is no default language
-
-## Installation
+## Install
 
 ```bash
 npm install @xynolog/react-ui @xynolog/sdk @xynolog/core
 ```
+
+Below 1.0 the minor number is the break, and the caret range npm writes into `package.json`
+takes the releases up to the next minor and no further.
 
 `@xynolog/sdk` is the primary dependency — it provides the `XynologBrowser`,
 `XynologClient`, the read-through cache, and the state machinery that
@@ -178,6 +166,21 @@ function EmbeddedResource({ session, rId, content }: { session: XynologSession; 
 A locale's strings load the first time a view of that locale mounts; every view after that renders
 at once. Colours, the JSON-LD view's among them, follow the page's `data-theme` attribute through
 react-ui's stylesheet, so dark mode needs nothing more.
+
+## Key Features
+
+- **Framework Independence** - Zero dependencies on Next.js, next-auth, or next-intl
+- **Component Composition** - Components accept framework-specific implementations (Link, routing) as props
+- **Provider Pattern** - Consistent approach for session, translations, and routing
+- **SDK Live Queries** - Read data with `useObservable()` over the SDK's read-through cache; no bespoke fetching layer
+- **Authentication Components** - Error display; signing in happens at the knowledge base's issuer
+- **Navigation Components** - Collapsible sidebar with drag & drop resource tabs
+- **Modal Components** - Global search and resource selection modals
+- **Accessibility First** - WCAG compliant with keyboard navigation, screen reader support
+- **Comprehensive Testing** - 1250+ tests with extensive coverage
+- **Annotation System** - Rich annotation and tagging capabilities
+- **Built-in Translations** - one per supported language (`LOCALE_CODES` from `@xynolog/core`), each loaded on demand
+- **Flexible i18n** - Two modes: built-in locales or a custom translation system. There is no default language
 
 ## Architecture
 
@@ -343,31 +346,6 @@ The Xynolog Browser (`images/browser`, Vite + React Router) is the full referenc
 `images/browser/src/app/providers.tsx` mounts the whole provider stack, with a translation
 manager built over react-i18next.
 
-## Development
-
-```bash
-# Run tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-
-# Type checking
-npm run typecheck
-```
-
-## Contributing
-
-This library follows strict quality standards:
-
-- **100% TypeScript** - All code must be properly typed
-- **No `any` casts** - Without explicit permission
-- **No cruft** - Delete dead code immediately, no "legacy" patterns
-- **Direct fixes** - If something is wrong, fix it directly (no aliases/wrappers)
-
 ## License
 
 [License information to be added]
@@ -378,3 +356,5 @@ This library follows strict quality standards:
 - [@xynolog/core](../core) - Shared API types (`components`) generated from the OpenAPI spec
 - [@xynolog/http-transport](../http-transport) - HTTP transport (`HttpTransport`, `HttpContentTransport`, `APIError`)
 - [xynolog-browser](https://github.com/xynolog/images/tree/main/browser) - Reference implementation (Vite + React Router)
+
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

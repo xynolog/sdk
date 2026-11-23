@@ -4,10 +4,18 @@ version.workspace = true
 edition = "2024"
 license = "Apache-2.0"
 repository.workspace = true
+rust-version.workspace = true
 description = "Xynolog's Rust SDK: the protocol's types, the transport contract and a client of the bus over it, and what a client needs to name its principals and hold its roles, as protocol/specs/ states it."
 documentation = "https://docs.rs/xynolog"
 keywords = ["xynolog", "knowledge-base", "annotation", "agents", "sdk"]
 categories = ["api-bindings", "asynchronous"]
+
+# docs.rs builds the default features alone unless told otherwise: every
+# feature here, so the docs show the whole API, and each item a feature adds
+# is labelled with it (doc_cfg, under docs.rs's --cfg docsrs).
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 # The doubles and the axiom harnesses a consumer's tests use.

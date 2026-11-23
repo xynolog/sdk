@@ -5,22 +5,50 @@
 Use the SDK to read and write a Xynolog knowledge base, follow delegated jobs,
 or run a worker.
 
-[Install](#install) · [Signing in](#signing-in) · [Delegation](#delegation) ·
-[Live queries](#live-queries) · [Running a worker](#running-a-worker)
+[Install](#install) · [A first program](#a-first-program) · [Signing in](#signing-in) ·
+[Delegation](#delegation) · [Live queries](#live-queries) · [Running a worker](#running-a-worker)
 
 ## Install
 
-The SDK targets `net11.0`. Use the .NET SDK version pinned in
-[global.json](global.json) to build from source. From your application project
-directory, add a reference to [Xynolog.csproj](src/Xynolog/Xynolog.csproj) in
-your Xynolog checkout.
-
 ```sh
-dotnet reference add /path/to/xynolog/csharp/sdk/src/Xynolog/Xynolog.csproj
+dotnet add package Xynolog
 ```
 
-See [Building and verifying](#building-and-verifying) for the container command
-and SDK development checks.
+Below 1.0 the minor number is the break. NuGet restores the lowest version a
+`PackageReference` accepts, so to take the releases up to the next minor, float
+the patch number in your project file, where `<minor>` is a release's version
+without its patch number:
+
+```xml
+<PackageReference Include="Xynolog" Version="<minor>.*" />
+```
+
+The SDK targets `net11.0`.
+
+## A first program
+
+Connect to a knowledge base and ask its name. Call `RunAsync` from your program
+with the gateway URL and a current access token; [Signing in](#signing-in) is how
+a program comes to hold one, and [Connect](#connect) says what the client owns.
+The example owns its client and passes the cancellation token to the request.
+
+```csharp
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Xynolog;
+
+public static class NameKnowledgeBase
+{
+    public static async Task<string> RunAsync(string endpoint, string token,
+        HttpClient? http = null, CancellationToken cancellation = default)
+    {
+        using var client = new XynologClient(endpoint, token, http);
+        var kb = await client.Browse.KbAsync(cancellation);
+        return kb.Name;
+    }
+}
+```
 
 ## Signing in
 
@@ -489,27 +517,4 @@ Telemetry uses BCL `ActivitySource` and `Meter`; the application chooses its exp
 to the shared bus-log table. See [the wire driver](conformance/README.md) for self-contained
 builds and black-box conformance.
 
-## Building and verifying
-
-The SDK targets .NET 11. [global.json](global.json) pins the SDK exactly, with roll-forward
-disabled. [dotnet-version.sh](../scripts/dotnet-version.sh) derives the container
-tag from that version. No .NET installation on the host is required.
-
-From the repository root, build and check inside Apple `container`:
-
-```sh
-container run --rm --memory 4g -v "$PWD":/work -w /work/csharp/sdk \
-  "mcr.microsoft.com/dotnet/sdk:$(csharp/scripts/dotnet-version.sh --image-tag)" \
-  sh -c 'dotnet build -p:RestoreLockedMode=true && dotnet test --no-build --settings test.runsettings && dotnet format --no-restore --verify-no-changes'
-```
-
-The build enables nullable reference types, warnings as errors, analyzers, and explicit
-accessibility. Its Roslyn census analyzer covers generated code too. It refuses null
-forgiveness, task blocking, dynamic types, diagnostic suppression, skipped tests, and
-environment reads other than `XYNOLOG_BUS_LOG`. The analyzer is a build-time dependency;
-the SDK has no runtime package dependencies.
-
-Every build compiles each file in [refusals](refusals) separately and requires its stated
-diagnostic. The xUnit suite checks valid code that must remain accepted. The test settings
-make a run with no tests fail. Linux CI uploads Cobertura coverage under `csharp-sdk`;
-Windows CI builds, tests, and checks formatting as well.
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

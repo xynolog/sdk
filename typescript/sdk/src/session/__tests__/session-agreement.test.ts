@@ -5,9 +5,6 @@
  * table rather than generated.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import { BehaviorSubject } from 'rxjs';
 import type { AccessToken } from '@xynolog/core';
 import { RECONNECT_MS, SignInError } from '@xynolog/core';
@@ -25,76 +22,14 @@ import {
   setStoredSession,
 } from '../storage';
 import { userId } from '@xynolog/core';
+import {
+  table,
+  type RefusalItem,
+  type StartupItem,
+  type Then,
+} from '../../__tests__/cases/session_cases';
 
-interface ScheduleCase {
-  why: string;
-  claims?: { iat?: number; exp?: number };
-  token?: string;
-  /** Seconds, like the claims. */
-  now: number;
-  /** Seconds, or null when nothing is scheduled. */
-  delay: number | null;
-}
-
-interface ExpiryCase {
-  why: string;
-  token: string;
-  exp: number | null;
-}
-
-/** What a case that ended signed out and kept what is stored comes to once the reconnect wait has passed. */
-interface Then {
-  asks: number;
-  renewals: number;
-  ends: 'signed-in' | 'signed-out' | 'unconfirmed';
-}
-
-interface StartupCase {
-  why: string;
-  stored: 'unexpired' | 'expired' | 'none';
-  /** What the gateway answers each time it is asked; the last answer repeats. */
-  gateway: Array<'accepts' | 'refuses' | 'unreachable'>;
-  /** What the issuer answers each renewal; the last answer repeats. */
-  issuer: Array<'renews' | 'refuses' | 'unreachable'>;
-  asks: number;
-  renewals: number;
-  ends: 'signed-in' | 'signed-out' | 'unconfirmed';
-  told: SessionEndReason | null;
-  error: string | null;
-  kept: boolean;
-  then?: Then;
-}
-
-interface RefusalCase {
-  why: string;
-  /** Which token the gateway refused: the one the session holds, or one it held before the one it holds. */
-  refused: 'held' | 'replaced';
-  /** What the issuer answers the renewal. */
-  issuer: Array<'renews' | 'refuses' | 'unreachable'>;
-  /** What the gateway answers when asked who the renewed token is. */
-  gateway: Array<'accepts' | 'refuses' | 'unreachable'>;
-  asks: number;
-  renewals: number;
-  given: boolean;
-  ends: 'signed-in' | 'signed-out' | 'unconfirmed';
-  told: SessionEndReason | null;
-  error: string | null;
-  kept: boolean;
-  then?: Then;
-}
-
-const TABLE = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../../protocol/specs/src/session/cases.json',
-);
-const { refreshSchedule, tokenExpiry, startup, refusal } = JSON.parse(
-  readFileSync(TABLE, 'utf-8'),
-) as {
-  refreshSchedule: ScheduleCase[];
-  tokenExpiry: ExpiryCase[];
-  startup: StartupCase[];
-  refusal: RefusalCase[];
-};
+const { refreshSchedule, tokenExpiry, startup, refusal } = table;
 
 const base64Url = (text: string): string =>
   btoa(text).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -144,7 +79,7 @@ describe('session — the SDK agrees with the shared table', () => {
     script[Math.min(n, script.length - 1)]!;
 
   /** A case's `then`, stated of every case that kept what is stored with no token, and of no other. */
-  const thenOf = (c: StartupCase | RefusalCase): Then | undefined => {
+  const thenOf = (c: StartupItem | RefusalItem): Then | undefined => {
     expect(
       c.then !== undefined,
       '`then` is stated of every case that kept what is stored with no token',

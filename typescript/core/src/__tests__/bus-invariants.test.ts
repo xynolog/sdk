@@ -36,12 +36,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import { CHANNEL_ATTRS } from '../bus-classification';
 import { BRIDGED_CHANNELS } from '../bridging';
 import { BUS_OPERATIONS } from '../bus-operations';
 import { PERSISTED_EVENT_TYPES } from '../persisted-events';
+import { schema as browseResourcesRequest } from './cases/components_schemas_browse_resources_request_schema';
+import { schema as listResourcesResponse } from './cases/components_schemas_list_resources_response_schema';
+import { schema as matchResourcesResponse } from './cases/components_schemas_match_resources_response_schema';
 
 /**
  * `BRIDGED_CHANNELS` is DERIVED from `BUS_OPERATIONS` (every op's
@@ -261,19 +262,6 @@ describe('bus channel-classification invariants', () => {
  * cannot search, and what refers to a resource is asked of Gather.
  */
 describe('browse is retrieval, never discovery', () => {
-  const schema = (
-    name: string,
-  ): { properties: Record<string, unknown>; required?: string[] } =>
-    JSON.parse(
-      readFileSync(
-        resolve(
-          __dirname,
-          `../../../../protocol/specs/src/components/schemas/${name}.json`,
-        ),
-        'utf8',
-      ),
-    );
-
   it('no browse channel asks what refers to a resource', () => {
     expect(
       Object.keys(CHANNEL_ATTRS).filter((channel) =>
@@ -283,16 +271,16 @@ describe('browse is retrieval, never discovery', () => {
   });
 
   it('a listing request carries no search', () => {
-    expect(
-      Object.keys(schema('BrowseResourcesRequest').properties),
-    ).not.toContain('search');
+    expect(Object.keys(browseResourcesRequest.properties)).not.toContain(
+      'search',
+    );
   });
 
   it('a listing reply says nothing of how it matched: only a search does', () => {
-    expect(
-      Object.keys(schema('ListResourcesResponse').properties),
-    ).not.toContain('matchKind');
-    expect(Object.keys(schema('MatchResourcesResponse').properties)).toContain(
+    expect(Object.keys(listResourcesResponse.properties)).not.toContain(
+      'matchKind',
+    );
+    expect(Object.keys(matchResourcesResponse.properties)).toContain(
       'matchKind',
     );
   });

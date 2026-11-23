@@ -1,0 +1,101 @@
+name: CodeQL
+
+# Code scanning of every language the repository holds, under the categories
+# default setup gave them, so each language's alerts keep their history.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "23 5 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+            runner: ubuntu-latest
+          - language: c-cpp
+            build-mode: none
+            runner: ubuntu-latest
+          - language: csharp
+            build-mode: none
+            runner: ubuntu-latest
+          - language: go
+            build-mode: autobuild
+            runner: ubuntu-latest
+          - language: java-kotlin
+            build-mode: manual
+            runner: ubuntu-latest
+          - language: javascript-typescript
+            build-mode: none
+            runner: ubuntu-latest
+          - language: python
+            build-mode: none
+            runner: ubuntu-latest
+          - language: rust
+            build-mode: none
+            runner: ubuntu-latest
+          # CodeQL analyzes Swift on macOS alone, and no Swift newer than 6.3
+          # (Xcode 26), nor any build traced under Xcode 27 or macOS 27. The
+          # package's own toolchain, Swift 6.4, is past what CodeQL reads, so
+          # the scan compiles it with Xcode 26's Swift on a macOS 26 runner.
+          - language: swift
+            build-mode: manual
+            runner: macos-26
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - if: matrix.language == 'go'
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version-file: go/go.mod
+          cache: false
+
+      - if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v6.3.0
+        with:
+          distribution: temurin
+          java-version-file: kotlin/sdk/.java-version
+
+      - if: matrix.language == 'swift'
+        name: Select Xcode 26
+        run: sudo xcode-select --switch /Applications/Xcode_26.6.app
+
+      - uses: github/codeql-action/init@v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      # CodeQL reads the compilations of the processes it traces: Gradle runs
+      # in this step's own process, not a daemon's, and compiles every source
+      # set.
+      - if: matrix.language == 'java-kotlin'
+        name: Compile the Kotlin SDK
+        working-directory: kotlin/sdk
+        run: ./gradlew --no-daemon --console=plain classes testClasses fromJavaClasses conformanceClasses
+
+      - if: matrix.language == 'swift'
+        name: Compile the Swift SDK
+        run: swift build --package-path swift/sdk --build-tests
+
+      - uses: github/codeql-action/analyze@v4.39.3
+        with:
+          category: /language:${{ matrix.language }}

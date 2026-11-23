@@ -229,12 +229,14 @@ case "${1:-}" in
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/ocaml/sdk
       dune build @all @opam
+      dune tools install ocamlformat
       dune build @fmt
       python3 test/check-installed-api.py
       python3 probes/check-interface.py
       python3 api.py
       python3 probes/check-api-controls.py
-      dune runtest' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
+      dune runtest
+      dune build @conformance' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
     ;;
   test-codegen)
     # The pinned Protocol reads through its reader, and Swift's table values
