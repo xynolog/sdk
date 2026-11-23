@@ -9,7 +9,10 @@ directory and its own artifact, and is scanned in every CodeQL language its
 directory holds a source file of, as git lists them, under the category
 /sdk:<sdk>/language:<language>. What lies outside the SDKs' directories (the
 workflows, scripts/) is the unit "repository", scanned when the run builds what
-main does: a change outside the SDKs' directories touches every SDK.
+main does: a change outside the SDKs' directories touches every SDK. The
+clean-room consumers are in no unit: each is a program built against an SDK's
+published packages, which only scripts/clean-room.sh installs, so no build here
+compiles them.
 
 An analysis is held to its unit's files. One that runs no build reads only the
 paths its config names. One that builds compiles its unit alone: Gradle in
@@ -24,6 +27,7 @@ import sys
 from pathlib import PurePosixPath
 
 REPOSITORY = "repository"
+CLEAN_ROOM_CONSUMERS = "scripts/clean-room"
 
 # Each analysis's build mode and runner. CodeQL analyzes Swift on macOS alone,
 # and no Swift newer than 6.3 (Xcode 26), nor any build traced under Xcode 27
@@ -81,9 +85,13 @@ def listed(pathspecs: list[str]) -> list[str]:
     return files.splitlines()
 
 
+def outside_repository(sdks: list[str]) -> list[str]:
+    return [*sdks, CLEAN_ROOM_CONSUMERS]
+
+
 def unit_files(unit: str, sdks: list[str]) -> list[str]:
     if unit == REPOSITORY:
-        return listed(["."] + [f":(exclude){sdk}/" for sdk in sdks])
+        return listed(["."] + [f":(exclude){unscanned}/" for unscanned in outside_repository(sdks)])
     files = listed([f"{unit}/"])
     if not files:
         sys.exit(f"codeql-analyses.py: git lists no file under {unit}/")
@@ -99,7 +107,7 @@ def read_in(files: list[str]) -> set[str]:
 
 def scope(unit: str, sdks: list[str]) -> str:
     if unit == REPOSITORY:
-        return json.dumps({"paths-ignore": sdks})
+        return json.dumps({"paths-ignore": outside_repository(sdks)})
     return json.dumps({"paths": [unit]})
 
 
