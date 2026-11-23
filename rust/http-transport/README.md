@@ -24,6 +24,10 @@ cargo add xynolog
 cargo add xynolog-http-transport --features sign-in
 ```
 
+Below 1.0 the minor number is the break, and the requirement `cargo add`
+writes into `Cargo.toml` takes the releases up to the next minor and no
+further.
+
 | Feature | What it adds |
 |---|---|
 | `sign-in` | Signing a person in, and their sessions: the issuer's grants, the redirect back to this machine, and the launcher's stored sign-in. A service signs in as its own account and leaves the feature off. |
@@ -491,19 +495,8 @@ credential goes by (`token`, `password`, `apiKey` and the rest of the list in
 | [`xynolog`](../sdk/README.md) | The client this crate carries, and the contracts it implements. |
 | [`xynolog-telemetry`](../telemetry/README.md) | The spans and counts this crate reports, and how an application turns tracing on. |
 
-## Contributing
-
-Every Rust block on this page is a region of
-[tests/sign_in.rs](tests/sign_in.rs), compiled and run there against a
-stand-in gateway and issuer. The Rust block of the
-[`xynolog-worker` skill](../../skills/xynolog-worker/SKILL.md)
-is held to the same regions. [tests/stream.rs](tests/stream.rs) holds the
-stream's behaviour against a gateway that misbehaves on cue.
-[conformance/](conformance) holds the two drivers the
-[SDK conformance suite](https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md) runs, and the
-one the [worker conformance suite](https://github.com/xynolog/protocol/blob/main/conformance/worker/README.md)
-runs.
-
 ## License
 
 Apache-2.0. See [LICENSE](../../LICENSE).
+
+Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).
