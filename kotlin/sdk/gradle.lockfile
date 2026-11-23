@@ -2,15 +2,15 @@
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
 # To regenerate this file, run: ./gradlew :dependencies --write-locks
-ch.qos.logback:logback-classic:1.6.6=ktlint
-ch.qos.logback:logback-core:1.6.6=ktlint
-com.fasterxml.jackson.core:jackson-annotations:2.22=dokkaJavadocGeneratorRuntimeResolver~internal
-com.fasterxml.jackson.core:jackson-core:2.22.4=dokkaJavadocGeneratorRuntimeResolver~internal
-com.fasterxml.jackson.core:jackson-databind:2.22.4=dokkaJavadocGeneratorRuntimeResolver~internal
-com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.22.4=dokkaJavadocGeneratorRuntimeResolver~internal
-com.fasterxml.jackson.module:jackson-module-kotlin:2.22.4=dokkaJavadocGeneratorRuntimeResolver~internal
-com.fasterxml.jackson:jackson-bom:2.22.4=dokkaJavadocGeneratorRuntimeResolver~internal
-com.fasterxml.woodstox:woodstox-core:7.2.0=dokkaJavadocGeneratorRuntimeResolver~internal
+ch.qos.logback:logback-classic:1.6.7=ktlint
+ch.qos.logback:logback-core:1.6.7=ktlint
+com.fasterxml.jackson.core:jackson-annotations:2.23=dokkaJavadocGeneratorRuntimeResolver~internal
+com.fasterxml.jackson.core:jackson-core:2.23.0=dokkaJavadocGeneratorRuntimeResolver~internal
+com.fasterxml.jackson.core:jackson-databind:2.23.0=dokkaJavadocGeneratorRuntimeResolver~internal
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.23.0=dokkaJavadocGeneratorRuntimeResolver~internal
+com.fasterxml.jackson.module:jackson-module-kotlin:2.23.0=dokkaJavadocGeneratorRuntimeResolver~internal
+com.fasterxml.jackson:jackson-bom:2.23.0=dokkaJavadocGeneratorRuntimeResolver~internal
+com.fasterxml.woodstox:woodstox-core:7.3.0=dokkaJavadocGeneratorRuntimeResolver~internal
 com.github.ajalt.clikt:clikt-core-jvm:5.0.3=ktlint
 com.github.ajalt.clikt:clikt-core:5.0.3=ktlint
 com.github.ajalt.clikt:clikt-jvm:5.0.3=ktlint
@@ -67,7 +67,7 @@ io.opentelemetry:opentelemetry-sdk-trace:1.68.0=conformanceCompileClasspath,conf
 io.opentelemetry:opentelemetry-sdk:1.68.0=conformanceCompileClasspath,conformanceRuntimeClasspath,fromJavaCompileClasspath,fromJavaRuntimeClasspath,javaTestCompileClasspath,javaTestRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
 net.java.dev.jna:jna:5.14.0=ktlint
 org.apiguardian:apiguardian-api:1.1.2=fromJavaCompileClasspath,javaTestCompileClasspath,testCompileClasspath
-org.codehaus.woodstox:stax2-api:4.3.0=dokkaJavadocGeneratorRuntimeResolver~internal
+org.codehaus.woodstox:stax2-api:4.3.1=dokkaJavadocGeneratorRuntimeResolver~internal
 org.ec4j.core:ec4j-core:1.1.1=ktlint
 org.freemarker:freemarker:2.3.35=dokkaJavadocGeneratorRuntimeResolver~internal
 org.jacoco:org.jacoco.agent:0.8.14=jacocoAgent,jacocoAnt
