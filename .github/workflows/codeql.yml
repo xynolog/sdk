@@ -1,9 +1,8 @@
 name: CodeQL
 
-# Code scanning of the languages the repository holds, under the categories
-# default setup gave them, so each language's alerts keep their history. A
-# pull request scans the languages of the SDKs it builds; main and the weekly
-# run scan every one (scripts/codeql-analyses.py).
+# Code scanning of each SDK, in the languages its directory holds, and of the
+# repository's own code outside them (scripts/codeql-analyses.py). A pull
+# request scans the SDKs it builds; main and the weekly run scan every one.
 
 on:
   push:
@@ -21,8 +20,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  languages:
-    name: The languages to scan
+  analyses:
+    name: The analyses to run
     runs-on: ubuntu-latest
     outputs:
       analyses: ${{ steps.analyses.outputs.analyses }}
@@ -36,16 +35,16 @@ jobs:
         env:
           EVENT: ${{ github.event_name }}
         run: |
-          languages="$(bash scripts/languages-to-build.sh "$EVENT")"
+          sdks="$(bash scripts/languages-to-build.sh "$EVENT")"
           main="$(bash scripts/languages-to-build.sh push)"
-          analyses="$(python3 scripts/codeql-analyses.py "$languages" "$main")"
+          analyses="$(python3 scripts/codeql-analyses.py "$sdks" "$main")"
           echo "Scanning: $analyses"
           echo "analyses=$analyses" >> "$GITHUB_OUTPUT"
 
   analyze:
-    name: Analyze (${{ matrix.language }})
-    needs: languages
-    if: needs.languages.outputs.analyses != '[]'
+    name: Analyze ${{ matrix.sdk }} (${{ matrix.language }})
+    needs: analyses
+    if: needs.analyses.outputs.analyses != '[]'
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
@@ -53,14 +52,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.languages.outputs.analyses) }}
+        include: ${{ fromJSON(needs.analyses.outputs.analyses) }}
     steps:
       - uses: actions/checkout@v7.0.1
 
       - if: matrix.language == 'go'
         uses: actions/setup-go@v7.0.0
         with:
-          go-version-file: go/go.mod
+          go-version-file: ${{ fromJSON(matrix.go-modules)[0] }}/go.mod
           cache: false
 
       - if: matrix.language == 'java-kotlin'
@@ -77,6 +76,7 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
+          config: ${{ matrix.config }}
 
       # CodeQL reads the compilations of the processes it traces: Gradle runs
       # in this step's own process, not a daemon's, and compiles every source
@@ -90,6 +90,15 @@ jobs:
         name: Compile the Swift SDK
         run: swift build --package-path swift/sdk --build-tests
 
+      - if: matrix.language == 'go'
+        name: Compile the unit's Go modules
+        env:
+          MODULES: ${{ matrix.go-modules }}
+        run: |
+          for module in $(jq -r '.[]' <<< "$MODULES"); do
+            (cd "$module" && go build ./...)
+          done
+
       - uses: github/codeql-action/analyze@v4.39.3
         with:
-          category: /language:${{ matrix.language }}
+          category: /sdk:${{ matrix.sdk }}/language:${{ matrix.language }}
