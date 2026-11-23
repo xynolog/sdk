@@ -3,18 +3,18 @@
 [![crates.io](https://img.shields.io/crates/v/xynolog-http-transport.svg)](https://crates.io/crates/xynolog-http-transport)
 [![docs.rs](https://img.shields.io/docsrs/xynolog-http-transport)](https://docs.rs/xynolog-http-transport)
 [![CI](https://github.com/xynolog/sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/xynolog/sdk/actions/workflows/ci.yml?query=branch%3Amain)
-[![License](https://img.shields.io/crates/l/xynolog-http-transport.svg)](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE)
+[![License](https://img.shields.io/crates/l/xynolog-http-transport.svg)](https://github.com/xynolog/sdk/blob/v0.8.2/LICENSE)
 [![codecov](https://codecov.io/gh/xynolog/sdk/graph/badge.svg?component=rust-http-transport)](https://app.codecov.io/gh/xynolog/sdk/components)
 
-The HTTP transport of the [Xynolog Rust SDK](https://github.com/xynolog/sdk/blob/v0.8.1/rust/sdk/README.md). It
+The HTTP transport of the [Xynolog Rust SDK](https://github.com/xynolog/sdk/blob/v0.8.2/rust/sdk/README.md). It
 connects a [`xynolog`](https://crates.io/crates/xynolog) client to a
 knowledge base's gateway, and signs in the person or the service that uses
 it.
 
-[Xynolog](https://github.com/xynolog/sdk/blob/v0.8.1/README.md) is an open platform for building trusted AI
+[Xynolog](https://github.com/xynolog/sdk/blob/v0.8.2/README.md) is an open platform for building trusted AI
 knowledge bases. The SDK's client does no networking of its own: this crate
 is how it reaches a knowledge base. Start with the
-[SDK's README](https://github.com/xynolog/sdk/blob/v0.8.1/rust/sdk/README.md) for what the client does, and come
+[SDK's README](https://github.com/xynolog/sdk/blob/v0.8.2/rust/sdk/README.md) for what the client does, and come
 here for how to connect it.
 
 ## Install
@@ -64,7 +64,7 @@ A person signs in at the identity provider the knowledge base trusts, never
 at the gateway, and their password never passes through the process. A
 service signs in with an account of its own. Which way fits depends on the
 program, a script, a daemon or an application, as in the SDK's
-[three ways to use the client](https://github.com/xynolog/sdk/blob/v0.8.1/rust/sdk/README.md#three-ways-to-use-it).
+[three ways to use the client](https://github.com/xynolog/sdk/blob/v0.8.2/rust/sdk/README.md#three-ways-to-use-it).
 
 | Who | Signs in with | Gives |
 |---|---|---|
@@ -373,7 +373,7 @@ on its tokens, and the gateway names a token without it a person. It carries
 the role `xynolog-worker`, without which every claim is refused.
 What claiming does, what a held job is, and what `reconcile` and
 `annotation_of_span` do with a model's words are in the SDK's
-[A worker](https://github.com/xynolog/sdk/blob/v0.8.1/rust/sdk/README.md#a-worker).
+[A worker](https://github.com/xynolog/sdk/blob/v0.8.2/rust/sdk/README.md#a-worker).
 
 ### An application
 
@@ -464,7 +464,7 @@ its `auth` and `system` namespaces are there.
 
 Each emit and each content request runs in a span, and each frame received
 is delivered with the trace it was sent under. The spans are made by
-[`xynolog-telemetry`](https://github.com/xynolog/sdk/blob/v0.8.1/rust/telemetry/README.md) and reported to whatever
+[`xynolog-telemetry`](https://github.com/xynolog/sdk/blob/v0.8.2/rust/telemetry/README.md) and reported to whatever
 OpenTelemetry the application installed. Its README says how to turn that
 on. With none installed, nothing is recorded and no `traceparent` is sent.
 
@@ -492,11 +492,11 @@ credential goes by (`token`, `password`, `apiKey` and the rest of the list in
 
 | Crate | |
 |---|---|
-| [`xynolog`](https://github.com/xynolog/sdk/blob/v0.8.1/rust/sdk/README.md) | The client this crate carries, and the contracts it implements. |
-| [`xynolog-telemetry`](https://github.com/xynolog/sdk/blob/v0.8.1/rust/telemetry/README.md) | The spans and counts this crate reports, and how an application turns tracing on. |
+| [`xynolog`](https://github.com/xynolog/sdk/blob/v0.8.2/rust/sdk/README.md) | The client this crate carries, and the contracts it implements. |
+| [`xynolog-telemetry`](https://github.com/xynolog/sdk/blob/v0.8.2/rust/telemetry/README.md) | The spans and counts this crate reports, and how an application turns tracing on. |
 
 ## License
 
-Apache-2.0. See [LICENSE](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE).
+Apache-2.0. See [LICENSE](https://github.com/xynolog/sdk/blob/v0.8.2/LICENSE).
 
 Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

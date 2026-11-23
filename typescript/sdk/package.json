@@ -1,6 +1,6 @@
 {
   "name": "@xynolog/sdk",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Xynolog SDK — XynologClient, namespaces, session/browser, state units, and the bus-request/cache helpers. Transport-agnostic; pair with @xynolog/http-transport (HttpTransport) for the wire.",
   "type": "module",
   "main": "dist/index.js",

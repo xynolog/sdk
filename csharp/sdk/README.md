@@ -514,7 +514,7 @@ encoding each subject as one DID segment.
 
 Telemetry uses BCL `ActivitySource` and `Meter`; the application chooses its exporter.
 `XYNOLOG_BUS_LOG` enables payload logging to stderr, with credentials withheld according
-to the shared bus-log table. See [the wire driver](https://github.com/xynolog/sdk/blob/v0.8.1/csharp/sdk/conformance/README.md) for self-contained
+to the shared bus-log table. See [the wire driver](https://github.com/xynolog/sdk/blob/v0.8.2/csharp/sdk/conformance/README.md) for self-contained
 builds and black-box conformance.
 
 Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

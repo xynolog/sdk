@@ -782,6 +782,6 @@ Use the caller's clock for those waits; real sockets can use an actual host cloc
 
 ## License
 
-[Apache-2.0](https://github.com/xynolog/sdk/blob/v0.8.1/haskell/sdk/LICENSE).
+[Apache-2.0](https://github.com/xynolog/sdk/blob/v0.8.2/haskell/sdk/LICENSE).
 
 Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

@@ -1151,10 +1151,10 @@ Working on the SDK itself is in [CONTRIBUTING.md](https://github.com/xynolog/sdk
 [conformance]: https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md
 [worker-contract]: https://github.com/xynolog/protocol/blob/main/contract/WORKER-CONTRACT.md
 [worker-conformance]: https://github.com/xynolog/protocol/blob/main/conformance/worker/README.md
-[sdk-typescript]: https://github.com/xynolog/sdk/blob/v0.8.1/typescript/sdk/README.md
-[sdk-rust]: https://github.com/xynolog/sdk/blob/v0.8.1/rust/sdk/README.md
-[sdk-go]: https://github.com/xynolog/sdk/blob/v0.8.1/go/README.md
-[sdk-kotlin]: https://github.com/xynolog/sdk/blob/v0.8.1/kotlin/sdk/README.md
+[sdk-typescript]: https://github.com/xynolog/sdk/blob/v0.8.2/typescript/sdk/README.md
+[sdk-rust]: https://github.com/xynolog/sdk/blob/v0.8.2/rust/sdk/README.md
+[sdk-go]: https://github.com/xynolog/sdk/blob/v0.8.2/go/README.md
+[sdk-kotlin]: https://github.com/xynolog/sdk/blob/v0.8.2/kotlin/sdk/README.md
 [launcher]: https://github.com/xynolog/cli/blob/main/README.md
 [specs]: https://github.com/xynolog/protocol/blob/main/specs/README.md
 [surface]: https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json
@@ -1171,4 +1171,4 @@ Working on the SDK itself is in [CONTRIBUTING.md](https://github.com/xynolog/sdk
 [bus-log]: https://github.com/xynolog/protocol/blob/main/contract/EVENT-BUS.md#wire-format-the-bus-log
 [state-units]: https://github.com/xynolog/docs/blob/main/builder/STATE-UNITS.md
 [state-units-cases]: https://github.com/xynolog/protocol/blob/main/specs/src/client/state-units.json
-[license]: https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE
+[license]: https://github.com/xynolog/sdk/blob/v0.8.2/LICENSE

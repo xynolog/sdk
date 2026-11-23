@@ -4,6 +4,8 @@ The changes to the Xynolog SDK for Haskell, release by release. A release's
 version is the SDK's, the same in all nine languages. The latest section is
 the coming release's, and gathers its changes as they land.
 
+## 0.8.2
+
 ## 0.8.1
 
 ### Added

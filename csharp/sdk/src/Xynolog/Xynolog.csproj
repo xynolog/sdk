@@ -21,7 +21,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- What nuget.org shows as the release notes: the changelog as of the release, which sdk_version.py write keeps at the coming release's tag. -->
-    <PackageReleaseNotes>https://github.com/xynolog/sdk/blob/v0.8.1/csharp/sdk/CHANGELOG.md</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/xynolog/sdk/blob/v0.8.2/csharp/sdk/CHANGELOG.md</PackageReleaseNotes>
     <!-- Xynolog.xml beside each assembly, the summaries IntelliSense and NuGet show. ../../.editorconfig makes a missing or malformed doc comment an error. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

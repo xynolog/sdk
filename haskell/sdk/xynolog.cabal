@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: xynolog
-version: 0.8.1
+version: 0.8.2
 synopsis: Typed Xynolog SDK for Haskell
 description: Protocol-derived models for the Xynolog knowledge platform.
 license: Apache-2.0
