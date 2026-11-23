@@ -18,15 +18,6 @@ let union (s : D.t) =
 
 let node (s : D.t) = match s with D.Node n -> Some n | _ -> None
 
-let refuse_const what (s : D.t) =
-  match s with
-  | D.Node { const = true; _ } ->
-      refuse
-        "%s: `const` is not OpenAPI 3.0: state the one value as an `enum` of \
-         one"
-        what
-  | _ -> ()
-
 (* The one string a schema admits, when it admits exactly one. *)
 let only_value (s : D.t) =
   match s with

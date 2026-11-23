@@ -15,7 +15,6 @@ module D = Definitions
 
 let models_path = "swift/sdk/Sources/Xynolog/Generated/Models.swift"
 let bridge_path = "swift/sdk/Tests/XynologTests/Generated/TestBridge.swift"
-let sign_in_file = "sign-in-store/SignIn.json"
 let banner = Banner.lines ~from_:"protocol/specs/src" __FILE__
 
 (* Why a client that read a launcher's discovery document found no launcher
@@ -70,9 +69,9 @@ let swift_files (spec : Spec.t) =
   match
     let bundle = D.bundle spec in
     let sign_in =
-      match List.assoc_opt sign_in_file spec.schemas with
+      match List.assoc_opt Roots.sign_in_entry spec.schemas with
       | Some s -> bundle.view s
-      | None -> D.refuse "Protocol has no %s" sign_in_file
+      | None -> D.refuse "Protocol has no %s" Roots.sign_in_entry
     in
     let records = List.map (fun (_, name, _) -> name) (D.records spec) in
     let definitions =

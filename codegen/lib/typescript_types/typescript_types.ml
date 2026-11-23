@@ -59,7 +59,6 @@ let type_of ~(named : string -> T.type_) =
     | D.Bool true -> unknown
     | D.Bool false -> T_name "never"
     | D.Node n -> (
-        View.refuse_const "a component schema" s;
         match (n.all_of, View.union s, n.enum, n.type_) with
         | Some members, _, _, _ ->
             (* What it states beside its parts: its members, and the values it

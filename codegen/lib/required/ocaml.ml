@@ -95,6 +95,9 @@ let rec shape : Shape.shape -> Parsetree.expression = function
                      ]))
               b.discriminator;
             nonempty "all_of" (fun s -> O.list (List.map shape s)) b.all_of;
+            nonempty "not_all" (fun sets -> O.list (List.map strings sets)) b.not_all;
+            part "min_members" (some O.int) b.min_members;
+            part "names" (some shape) b.names;
           ]
       in
       if updates = [] then any else O.record ~with_:any updates

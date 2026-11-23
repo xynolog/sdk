@@ -162,7 +162,6 @@ let rec placed st owner held_as (s : D.t) : P.expr =
       | D.Bool false ->
           refuse "%s.%s: a schema that admits nothing" owner held_as
       | D.Node n -> (
-          View.refuse_const (owner ^ "." ^ held_as) s;
           match (n.all_of, View.union s, n.enum) with
           | Some _, _, _ -> (
               match D.meant s with

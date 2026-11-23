@@ -147,7 +147,7 @@ let adapted spec =
 let whole (spec : Spec.t) =
   let written = Definitions.whole spec in
   fun name ->
-    let file = Schema_names.client_types ^ name ^ ".json" in
+    let file = Roots.client_types ^ name ^ ".json" in
     Result.map_error
       (fun message -> [ { Decode.file; pointer = ""; message } ])
       (written (List.assoc file spec.schemas))

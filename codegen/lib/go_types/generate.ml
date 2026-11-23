@@ -106,7 +106,6 @@ and type_of st owner property (s : D.t) =
   | D.Ref { name; _ } -> named_type st name
   | D.Node { keys = []; _ } -> any
   | _ -> (
-      View.refuse_const what s;
       match View.without_null s with
       | Some inner -> type_of st owner property inner
       | None -> (
@@ -116,7 +115,6 @@ and type_of st owner property (s : D.t) =
           | _ -> (
               match View.union s with
               | Some members ->
-                  List.iter (View.refuse_const what) members;
                   if List.for_all (View.is_string st.definitions) members then
                     named "string"
                   else here ()
@@ -166,7 +164,6 @@ and declaration st name (s : D.t) =
   | None -> (
       let owner = D.owners st.definitions name s in
       let s = D.meant s in
-      View.refuse_const name s;
       let n =
         match s with
         | D.Node n -> n

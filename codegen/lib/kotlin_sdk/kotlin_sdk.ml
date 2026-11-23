@@ -12,7 +12,6 @@ module K = Kotlin_syntax
 let ( let* ) = Result.bind
 let directory = "kotlin/sdk/src/generated/kotlin"
 let types_directory = directory ^ "/xynolog/types"
-let sign_in_file = "sign-in-store/SignIn.json"
 
 (* The schemas a generation writes: every root ([Roots]), the
    records Protocol states in its tables ([Table_records]), the client
@@ -46,9 +45,9 @@ let spec_of (spec : Spec.t) : (Types.spec, string) result =
       components (Ok [])
   in
   let* sign_in =
-    match schema_of sign_in_file with
+    match schema_of Roots.sign_in_entry with
     | Some s -> Ok s
-    | None -> Error (sign_in_file ^ " is not in the spec")
+    | None -> Error (Roots.sign_in_entry ^ " is not in the spec")
   in
   let definitions =
     definitions

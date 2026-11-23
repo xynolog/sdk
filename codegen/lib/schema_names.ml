@@ -5,10 +5,6 @@
    place of each [$ref] to it, before any writer reads the schema that
    refers to it. *)
 
-(* What a client hands its callers that no wire message carries: each file of
-   protocol/specs/src/client/types, and the records of the registry and of the
-   state units' notices. *)
-let client_types = "client/types/"
 let stem file = Filename.remove_extension (Filename.basename file)
 
 (* What a schema that states a [$ref] says of the schema it names: a
@@ -44,7 +40,7 @@ let named (spec : Spec.t) =
             if
               (not (String.contains key '#'))
               && (Filename.basename (Filename.dirname key) = "schemas"
-                 || String.starts_with ~prefix:client_types key)
+                 || String.starts_with ~prefix:Roots.client_types key)
             then Some (stem key)
             else None)
     (Table_records.all spec)

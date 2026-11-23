@@ -8,45 +8,9 @@
 
 module Generate = Generate
 
-(* What the SDK holds beside the bodies and the payloads: the job a client
-   watches and what generating one takes, an event as the store keeps it
-   and as a reader is given it, the level and format the public crate's
-   logging takes, the document a launcher publishes of the knowledge bases
-   it manages, a PDF's anchored text, which an annotation of a span of one
-   is built over, and a knowledge base as a client names it: where to
-   connect, what registering one takes, and what a registered one holds. *)
-let beside =
-  [
-    "AnchoredText";
-    "Job";
-    "GenerationJobParams";
-    "StoredEventResponse";
-    "EnrichedResourceEvent";
-    "LogLevel";
-    "LogFormat";
-    "DiscoveryDocument";
-    "KbTarget";
-    "KnowledgeBase";
-    "NewKnowledgeBase";
-  ]
-
-(* A body that is not JSON: an upload is a multipart form, whose fields
-   [xynolog::transport::PutBinaryRequest] carries. *)
-let passed_through = [ "ResourceUpload" ]
-
 (* The mark unit holds the motivation a job's parameters state. *)
 let accessors = [ "MarkJobParams" ]
-let sign_in_file = "sign-in-store/SignIn.json"
 let regenerate from_ = Banner.lines ~from_ __FILE__
-
-let payloads (spec : Spec.t) =
-  List.filter_map
-    (fun (c : Tables.Bus_registry.channels_item) ->
-      match c with
-      | Schema { schema; _ } | Envelope { schema; _ } -> Some schema
-      | Stored_event { payload; _ } -> Some payload
-      | Void _ | Empty _ -> None)
-    spec.tables.bus_registry.channels
 
 (* The SDK's types: [bundle]'s schemas it generates, and how. *)
 let generation (spec : Spec.t) (bundle : Definitions.bundle) :
@@ -59,10 +23,7 @@ let generation (spec : Spec.t) (bundle : Definitions.bundle) :
   {
     roots =
       List.sort_uniq String.compare
-        (payloads spec
-        @ List.filter (fun b -> not (List.mem b passed_through)) bundle.bodies
-        @ beside
-        @ List.map fst (Roots.services spec)
+        (List.map fst (Roots.all spec)
         @ identifiers
         @ Definitions.generated_client_types spec
         @ List.map (fun (_, name, _) -> name) (Definitions.records spec));
@@ -88,15 +49,15 @@ let types (spec : Spec.t) =
 
 let sign_in (spec : Spec.t) =
   let schema =
-    match List.assoc_opt sign_in_file spec.schemas with
+    match List.assoc_opt Roots.sign_in_entry spec.schemas with
     | Some s -> s
-    | None -> Definitions.refuse "Protocol has no %s" sign_in_file
+    | None -> Definitions.refuse "Protocol has no %s" Roots.sign_in_entry
   in
   {
     Output.path = "rust/sdk/src/generated/sign_in.rs";
     text =
       Rust_syntax.text
-        ~header:(regenerate ("protocol/specs/src/" ^ sign_in_file))
+        ~header:(regenerate ("protocol/specs/src/" ^ Roots.sign_in_entry))
         (Generate.items
            (Definitions.alone ~ids:spec.ids ~name:"SignIn" schema)
            {

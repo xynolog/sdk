@@ -138,7 +138,7 @@ let roots ~root (spec : Spec.t) =
   in
   Spec.all
     (components
-    @ [ whole "SignIn" Sign_in.schema_file ]
+    @ [ whole "SignIn" Roots.sign_in_entry ]
     @ List.map
         (fun name -> whole name ("client/types/" ^ name ^ ".json"))
         (Definitions.generated_client_types spec)

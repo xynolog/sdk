@@ -30,7 +30,6 @@ and node = {
   type_ : types option;
   format : Schema.format option;
   enum : Schema.literal list option;
-  const : bool;
   properties : (string * t) list option;
   required : string list option;
   additional_properties : t option;
@@ -53,7 +52,6 @@ let node keys =
     type_ = None;
     format = None;
     enum = None;
-    const = false;
     properties = None;
     required = None;
     additional_properties = None;
@@ -201,7 +199,7 @@ let generated_client_types (spec : Spec.t) =
   let names =
     List.filter_map
       (fun (key, _) ->
-        if String.starts_with ~prefix:Schema_names.client_types key then
+        if String.starts_with ~prefix:Roots.client_types key then
           Some (Filename.remove_extension (Filename.basename key))
         else None)
       spec.schemas
@@ -210,7 +208,7 @@ let generated_client_types (spec : Spec.t) =
     (fun name ->
       if not (List.mem name names) then
         refuse "%s%s.json, which an SDK writes by hand, is gone"
-          Schema_names.client_types name)
+          Roots.client_types name)
     hand_written_client_types;
   List.sort String.compare
     (List.filter (fun n -> not (List.mem n hand_written_client_types)) names)
@@ -222,7 +220,7 @@ let records spec =
 
 let client_roots (spec : Spec.t) =
   List.filter
-    (String.starts_with ~prefix:Schema_names.client_types)
+    (String.starts_with ~prefix:Roots.client_types)
     (List.map fst spec.schemas)
   @ List.filter_map
       (fun (key, _, _) ->
@@ -274,7 +272,23 @@ let view ~ids ~named ~schemas =
       | None ->
           let sub f = f trail in
           let subs = Option.map (List.map sub) in
-          let keys = Schema.keywords s in
+          (* A [const] is an [enum] of its one value (JSON Schema 2020-12),
+             and every writer reads it as one. *)
+          let keys =
+            List.fold_right
+              (fun k keys ->
+                let k = if k = "const" then "enum" else k in
+                if List.mem k keys then keys else k :: keys)
+              (Schema.keywords s) []
+          in
+          let enum =
+            match (s.const, s.enum) with
+            | None, enum -> enum
+            | Some value, None -> Some [ value ]
+            | Some value, Some values when List.mem value values ->
+                Some [ value ]
+            | Some _, Some _ -> refuse "a const that is none of its enum's values"
+          in
           let merged =
             Option.map
               (fun _ ->
@@ -302,8 +316,7 @@ let view ~ids ~named ~schemas =
                 | _ -> s.description);
               type_ = types;
               format = s.format;
-              enum = s.enum;
-              const = Option.is_some s.const;
+              enum;
               properties =
                 Option.map (List.map (fun (k, v) -> (k, sub v))) s.properties;
               required = s.required;

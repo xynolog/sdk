@@ -101,6 +101,11 @@ let rec shape : Shape.shape -> R.expr = function
             nonempty "all_of"
               (fun shapes -> slice (List.map shape shapes))
               b.all_of;
+            nonempty "not_all"
+              (fun sets -> slice (List.map strings sets))
+              b.not_all;
+            part "min_members" (fun n -> some (R.Int n)) b.min_members;
+            part "names" (fun s -> some (R.Ref_of (shape s))) b.names;
           ]
       in
       match fields with

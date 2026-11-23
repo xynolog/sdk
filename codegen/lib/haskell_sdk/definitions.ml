@@ -227,7 +227,7 @@ let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
   let* issuer = property "pending authorization" "issuer" pending in
   let* sign_in =
     Option.to_result ~none:"SignIn schema missing"
-      (List.assoc_opt "sign-in-store/SignIn.json" spec.schemas)
+      (List.assoc_opt Roots.sign_in_entry spec.schemas)
   in
   let* stored_session =
     held "session/stored.json#/storedSession"

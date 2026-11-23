@@ -33,7 +33,8 @@
    - [pattern]: a text is a series of steps, each a set of code points ([of],
      ranges from and to, both included) the text's next code points are in, at
      least [min] of them and at most [max] (no [max]: any number). It is the
-     schema's pattern, anchored at both ends and read as ECMA-262 reads it,
+     schema's pattern, searched for in the whole text as ECMA-262 reads it,
+     an end the pattern does not anchor a step of any code points,
      spelled out so that no SDK reads it by a regular-expression engine of its
      own;
    - [minLength], [maxLength]: the fewest and most code points of a text;
@@ -48,7 +49,14 @@
    - [values]: what each value of a map must be;
    - [oneOf]: the value is one of these variants, and a [discriminator] the
      value states names the one it is, by its place;
-   - [allOf]: the value is what each of these is.
+   - [allOf]: the value is what each of these is;
+   - [notAll]: sets of members an object does not carry all of: one that
+     carries every member of a set, whatever each holds, is malformed. It is
+     what a schema's [not] states of a [required] or an [anyOf] of them, the
+     one [not] the table states;
+   - [minMembers]: the fewest members an object carries;
+   - [names]: what each of an object's members' names must be, a name that is
+     not being a fault of that member.
 
    A part that can be wrong in no way is left out, and so is a union none of
    whose variants can be: what is left is what a value can be wrong in. A
@@ -91,6 +99,9 @@ and body = {
   one_of : shape list;
   discriminator : discriminator option;
   all_of : shape list;
+  not_all : string list list;
+  min_members : int option;
+  names : shape option;
 }
 
 let empty =
@@ -113,6 +124,9 @@ let empty =
     one_of = [];
     discriminator = None;
     all_of = [];
+    not_all = [];
+    min_members = None;
+    names = None;
   }
 
 (* ── Patterns ─────────────────────────────────────────────────────────── *)
@@ -173,19 +187,29 @@ let code_points text =
 
 exception Unspellable
 
-(* A pattern as the steps a text of its form takes: anchored at both ends, a
-   series of single characters, sets ([[...]], [[^...]]), [.], [\s], [\S],
+(* A pattern as the steps a text of its form takes: a series of single characters, sets ([[...]], [[^...]]), [.], [\s], [\S],
    [\d], [\D], [\w] and [\W], each with no quantifier or with [?], [*], [+],
    [{n}], [{n,}] or [{n,m}]. Any other is unspellable. *)
 let steps_of pattern =
   let n = String.length pattern in
-  if
-    n < 2
-    || pattern.[0] <> '^'
-    || pattern.[n - 1] <> '$'
-    || (n >= 3 && pattern.[n - 2] = '\\')
-  then raise Unspellable;
-  let body = code_points (String.sub pattern 1 (n - 2)) in
+  (* A pattern is searched for anywhere in a text: an end it does not anchor
+     is a step of any code points, as many as there are. *)
+  let starts = n > 0 && pattern.[0] = '^' in
+  let ends =
+    n > (if starts then 1 else 0)
+    && pattern.[n - 1] = '$'
+    && not (n >= 2 && pattern.[n - 2] = '\\')
+  in
+  let from = if starts then 1 else 0 in
+  let body =
+    code_points (String.sub pattern from (n - from - if ends then 1 else 0))
+  in
+  let anywhere = { of_ = [ (0, last) ]; min = 0; max = None } in
+  let anchored steps =
+    (if starts then [] else [ anywhere ])
+    @ steps
+    @ if ends then [] else [ anywhere ]
+  in
   let length = Array.length body in
   let at i = if i < length then Some body.(i) else None in
   let is c i = at i = Some (Char.code c) in
@@ -281,7 +305,27 @@ let steps_of pattern =
       if among "?*+{" i then raise Unspellable;
       steps i ({ of_; min; max } :: acc)
   in
-  steps 0 []
+  anchored (steps 0 [])
+
+(* A pattern whose one group is where it starts, [^(A|B)rest], as the
+   patterns it is one of, [^Arest] and [^Brest]: a text is of the pattern when
+   it is of one of them. Any other pattern is itself alone. *)
+let alternatives pattern =
+  let from = if String.starts_with ~prefix:"^" pattern then 1 else 0 in
+  let n = String.length pattern in
+  match String.index_from_opt pattern from ')' with
+  | Some close
+    when n > from
+         && pattern.[from] = '('
+         && (not (String.contains (String.sub pattern (from + 1) (close - from - 1)) '('))
+         && (not (String.contains (String.sub pattern (from + 1) (close - from - 1)) '\\'))
+         && not (String.contains (String.sub pattern (close + 1) (n - close - 1)) '(') ->
+      let anchor = String.sub pattern 0 from
+      and rest = String.sub pattern (close + 1) (n - close - 1) in
+      List.map
+        (fun alternative -> anchor ^ alternative ^ rest)
+        (String.split_on_char '|' (String.sub pattern (from + 1) (close - from - 1)))
+  | _ -> [ pattern ]
 
 (* ── Kinds ────────────────────────────────────────────────────────────── *)
 
@@ -367,6 +411,30 @@ type t = {
     file:string -> pointer:string -> Schema.t -> (shape, Decode.error) result;
 }
 
+(* The sets of members a [not] says an object does not carry all of: a
+   [required], or an [anyOf] of them. Any other [not] is refused: the table
+   holds a [required] member to more than being there (null only where its
+   shape allows null), so a [not] of a schema in general would allow what the
+   schema refuses. *)
+let member_sets file at (negated : Schema.t) =
+  let only_required at (s : Schema.t) =
+    match s with
+    | Schema.Schema ({ required = Some (_ :: _ as names); _ } as l)
+      when Schema.keywords l = [ "required" ] ->
+        names
+    | _ ->
+        refuse file at
+          "is a not of what is no list of required members, which the table \
+           does not know how to state"
+  in
+  match negated with
+  | Schema.Schema ({ any_of = Some parts; _ } as l)
+    when Schema.keywords l = [ "anyOf" ] ->
+      List.mapi
+        (fun i part -> only_required (Printf.sprintf "%s/anyOf/%d" at i) part)
+        parts
+  | s -> [ only_required at s ]
+
 (* [components] are each component's name, its file and its schema.
    [unrecognized] is the failure codes.json reads an unrecognized code as. *)
 let derive ~ids ~unrecognized components =
@@ -444,7 +512,30 @@ let derive ~ids ~unrecognized components =
                 reference.target)
       | _ ->
           refuse reference.file reference.pointer
-            "names %s, a place within a component" reference.target
+            "names %s, a place within a component, where only a whole one is \
+             named"
+            reference.target
+    in
+    (* What a reference names: a whole component, by its name, or a place
+       within one, the schema there and where it is. *)
+    let target (reference : Decode.reference) =
+      match Decode.resolve ids reference with
+      | _, "" -> `Named (referred reference)
+      | file, pointer -> (
+          let within =
+            match Hashtbl.find_opt name_of file with
+            | Some name -> snd (Hashtbl.find file_of name)
+            | None ->
+                refuse reference.file reference.pointer
+                  "names %s, within no component of openapi.json"
+                  reference.target
+          in
+          match Pointer.schema within pointer with
+          | Some schema -> `Within (file, pointer, schema)
+          | None ->
+              refuse reference.file reference.pointer
+                "names %s, a place its component does not have"
+                reference.target)
     in
     let component_kinds = Hashtbl.create 256 in
     let ordered_set kinds = List.filter (fun k -> List.mem k kinds) all_kinds in
@@ -476,9 +567,10 @@ let derive ~ids ~unrecognized components =
           let kinds = plain_kinds file at schema in
           if null then union [ Null ] kinds else kinds
     and plain_kinds file at schema =
-      match schema.ref_ with
-      | Some reference -> (
-          let name = referred reference in
+      match Option.map target schema.ref_ with
+      | Some (`Within (file, pointer, schema)) ->
+          (read schema).kinds_of file pointer
+      | Some (`Named name) -> (
           match Hashtbl.find_opt component_kinds name with
           | Some kinds -> kinds
           | None ->
@@ -525,9 +617,11 @@ let derive ~ids ~unrecognized components =
       match view file at l with
       | Or_null _ -> false
       | Plain { schema; _ } -> (
-          match schema.ref_ with
-          | Some reference ->
-              let file, schema = Hashtbl.find file_of (referred reference) in
+          match Option.map target schema.ref_ with
+          | Some (`Within (file, pointer, schema)) ->
+              (read schema).closed_schema file pointer
+          | Some (`Named name) ->
+              let file, schema = Hashtbl.find file_of name in
               (read schema).closed_schema file ""
           | None ->
               (match schema.additional_properties with
@@ -561,14 +655,14 @@ let derive ~ids ~unrecognized components =
         type_;
         format = _;
         enum;
-        const = _;
+        const;
         default = _;
         examples = _;
         properties;
         required;
         additional_properties;
-        property_names = _;
-        min_properties = _;
+        property_names;
+        min_properties;
         max_properties;
         items;
         min_items;
@@ -582,16 +676,24 @@ let derive ~ids ~unrecognized components =
         all_of;
         any_of;
         one_of;
-        not_ = _;
+        not_;
         discriminator;
       } =
         schema
       in
-      List.iter
-        (refuse file at "states %s, which the table does not know how to state")
-        (Schema.unread schema);
-      match ref_ with
-      | Some reference -> Ref (referred reference)
+      (* A [const] is an [enum] of its one value. *)
+      let enum =
+        match (const, enum) with
+        | None, enum -> enum
+        | Some value, None -> Some [ value ]
+        | Some value, Some values when List.mem value values -> Some [ value ]
+        | Some _, Some _ ->
+            refuse file (at ^ "/const") "is none of the values its enum states"
+      in
+      match Option.map target ref_ with
+      | Some (`Named name) -> Ref name
+      | Some (`Within (file, pointer, schema)) ->
+          (read schema).shape_of file pointer
       | None ->
           let kinds =
             let kinds = plain_kinds file at schema in
@@ -606,14 +708,35 @@ let derive ~ids ~unrecognized components =
                 refuse file (at ^ "/" ^ keyword) "is %d, which is no count" n
             | bound -> bound
           in
-          let pattern =
-            Option.map
-              (fun text ->
-                try steps_of text
-                with Unspellable ->
-                  refuse file (at ^ "/pattern")
-                    "is %s, which is not a pattern the table can spell out" text)
-              pattern
+          let pattern, alternated =
+            match
+              Option.map
+                (fun text ->
+                  List.map
+                    (fun alternative ->
+                      try steps_of alternative
+                      with Unspellable ->
+                        refuse file (at ^ "/pattern")
+                          "is %s, which is not a pattern the table can spell \
+                           out"
+                          text)
+                    (alternatives text))
+                pattern
+            with
+            | None -> (None, [])
+            | Some [ steps ] -> (Some steps, [])
+            | Some many ->
+                ( None,
+                  [
+                    Shape
+                      {
+                        empty with
+                        one_of =
+                          List.map
+                            (fun steps -> Shape { empty with pattern = Some steps })
+                            many;
+                      };
+                  ] )
           in
           let names =
             List.sort String.compare
@@ -717,6 +840,7 @@ let derive ~ids ~unrecognized components =
                     part.shape_of file (Printf.sprintf "%s/allOf/%d" at i))
                   parts
           in
+          let all_of = all_of @ alternated in
           Shape
             {
               kinds = (if any_kind kinds then None else Some (ordered kinds));
@@ -741,6 +865,15 @@ let derive ~ids ~unrecognized components =
               one_of;
               discriminator;
               all_of;
+              not_all =
+                (match not_ with
+                | None -> []
+                | Some (negated, _) -> member_sets file (at ^ "/not") negated);
+              min_members = count "minProperties" min_properties;
+              names =
+                Option.map
+                  (fun (_, n) -> n.shape_of file (at ^ "/propertyNames"))
+                  property_names;
             }
     in
     let unpruned =
@@ -793,6 +926,8 @@ let derive ~ids ~unrecognized components =
           || Option.fold ~none:false ~some:can_fault b.values
           || List.exists can_fault b.one_of
           || List.exists can_fault b.all_of
+          || b.not_all <> [] || b.min_members <> None
+          || Option.fold ~none:false ~some:can_fault b.names
     in
     let rec settle () =
       let found =
@@ -830,6 +965,7 @@ let derive ~ids ~unrecognized components =
               one_of = (if unions then List.map pruned b.one_of else []);
               discriminator = (if unions then b.discriminator else None);
               all_of = List.map pruned (List.filter can_fault b.all_of);
+              names = kept b.names;
             }
     in
     let shapes =
@@ -936,4 +1072,7 @@ let rec to_json ~pairs = function
                       ])
                   b.discriminator);
              list "allOf" (List.map (to_json ~pairs) b.all_of);
+             list "notAll" (List.map strings b.not_all);
+             part "minMembers" (int b.min_members);
+             part "names" (Option.map (to_json ~pairs) b.names);
            ])
