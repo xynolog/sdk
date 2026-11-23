@@ -25,6 +25,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" />
-    <ProjectReference Include="../../tools/RefusalRunner/RefusalRunner.csproj" GlobalPropertiesToRemove="$(XynologBuildToolGlobalPropertiesToRemove)" SetTargetFramework="TargetFramework=$(XynologTargetFramework)" SkipGetTargetFrameworkProperties="true" ReferenceOutputAssembly="false" />
+    <!-- RefusalRunner builds for its own framework alone, so neither framework of this library is offered it. Undefining the inner build's TargetFramework, not setting one, builds it under the global properties the solution builds it under: one project instance, not two writing obj/ at once. -->
+    <ProjectReference Include="../../tools/RefusalRunner/RefusalRunner.csproj" GlobalPropertiesToRemove="$(XynologBuildToolGlobalPropertiesToRemove)" UndefineProperties="TargetFramework" SkipGetTargetFrameworkProperties="true" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>
