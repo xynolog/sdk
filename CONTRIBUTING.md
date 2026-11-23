@@ -266,6 +266,25 @@ close waking pending requests, SSE chunk boundaries, and operation ownership.
 
 `ocaml/` holds the `xynolog` opam package, in `ocaml/sdk`. `make ocaml` builds and stages its packages, and `make test-ocaml` runs its tests, type checks, lints and format checks, in its toolchain's container.
 
+#### Develop and verify
+
+```sh
+make test-ocaml
+bash ocaml/check-source-package.sh
+```
+
+The first command builds the pinned toolchain in a container and runs the development checks. The second builds and installs an isolated source archive and verifies the installed compiler interface. Regenerate protocol-derived sources with `make generate` and verify them with `make check-generated`.
+
+CI runs the tests instrumented by `bisect_ppx_ng` and uploads their line coverage, from `ocaml/sdk`:
+
+```sh
+mkdir -p /tmp/ocaml-coverage
+BISECT_FILE=/tmp/ocaml-coverage/bisect dune runtest --force --instrument-with bisect_ppx_ng
+dune exec -- bisect-ppx-report summary --coverage-path /tmp/ocaml-coverage
+```
+
+A test runs in a sandbox that Dune deletes, so `BISECT_FILE` writes the coverage files outside the build.
+
 ### Swift
 
 `swift/` holds the `Xynolog` and `XynologTesting` products, in `swift/sdk`, and the distribution a release writes to `xynolog/sdk-swift`, in `swift/distribution`. `make swift` builds and stages its packages, and `make test-swift` runs its tests, type checks, lints and format checks, in its toolchain's container.
