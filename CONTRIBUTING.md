@@ -189,6 +189,75 @@ Every build compiles each file in [refusals](csharp/sdk/refusals) separately and
 
 `haskell/` holds the `xynolog` Cabal package, in `haskell/sdk`. `make haskell` builds and stages its packages, and `make test-haskell` runs its tests, type checks, lints and format checks, in its toolchain's container.
 
+#### Building and verifying
+
+From the repository root, build and test in the pinned toolchain's container:
+
+```sh
+make test-haskell
+```
+
+CI runs the same target. Exact project
+dependencies are frozen in [the freeze file](haskell/sdk/cabal.project.freeze). Ordinary
+builds use checked-in generated files and require no npm or schema generation.
+The target checks that every module, generated or written by hand, is laid
+out as ormolu lays it out. Ormolu and what it is built from are pinned by
+[its own freeze file](haskell/toolchain/ormolu/cabal.project.freeze); run
+`ormolu -i` over a module to lay it out.
+
+The target builds `conformance/bin/xynolog-haskell-wire-driver` and
+`conformance/bin/xynolog-haskell-live-driver`. The shared
+[SDK conformance suite](https://github.com/xynolog/protocol/blob/main/conformance/sdk/README.md) drives them
+through the public SDK against the real gateway on both signal planes, including
+OTLP export. Worker conformance uses the wire driver. CI transfers both tested
+drivers to the corresponding conformance jobs.
+
+Inside the development container, from `haskell/sdk`:
+
+```sh
+cabal build all --enable-tests --enable-coverage
+python3 api.py --write
+bash run.sh /work
+```
+
+Here `/work` is the repository root. `make generate`, at the root, writes the
+generated modules: the repository's generator (`codegen/`) derives protocol
+types, channel descriptors, error codes, timing and the module list. It keeps
+the committed manifest's version line, which holds the coming release's Haskell
+version: `scripts/sdk_version.py write` puts it there
+(`haskell/scripts/cabal-version.sh`). The
+manifest is not among `public-api.json`'s inputs, since the template and the
+generated modules are. Refresh
+`public-api.json` after library source changes;
+GHC supplies the reachable types, constructors, and signatures through the
+public Cabal modules, including re-exports. The census checks source
+freshness; the Haskell job compares actual compiled exports.
+
+##### What the checks cover
+
+The schema suite generates samples from the schema definitions, checks JSON
+round trips, absence/null behavior, closed enums, exact large numbers, and
+permitted extra members. It also executes the shared identifier table and
+every shared job-filter, job-retry, and gateway URL case, and checks resolved
+JSON payloads from the wire, live-query, and worker corpora.
+The wire driver additionally executes the transport scenarios against the real
+gateway on both signal planes. The worker driver runs every worker case against
+the real gateway on both planes as well. The live-query driver executes all
+parity cases and table-derived refresh cases.
+All shared state-unit cases execute, with separate cache and session suites.
+All shared clock subjects run in-process at the protocol timings, including
+HTTP waits, scope handoffs, cache saves, discovery, session renewal, device
+polling, delegation, invalidation windows and held-job stalls. Every shared
+session startup/refusal case also runs, including recovery after an unanswered
+renewal. Issuer tests use byte-level HTTP connections for discovery, PKCE,
+one-shot callbacks, atomic grant rotation and revocation.
+`make test-codegen`'s coverage census holds every case table to a Haskell
+test that names it, or to the reason Haskell runs none.
+
+Runtime tests also cover atomic publication of raw replies before request
+continuations, channel/correlation matching, tracking cleanup on cancellation,
+close waking pending requests, SSE chunk boundaries, and operation ownership.
+
 ### Kotlin
 
 `kotlin/` holds the `org.xynolog:xynolog` publication, in `kotlin/sdk`. `make kotlin` builds and stages its packages, and `make test-kotlin` runs its tests, type checks, lints and format checks, in its toolchain's container.
