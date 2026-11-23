@@ -6,6 +6,7 @@
     <DataCollectors>
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
+          <Format>lcov</Format>
           <Include>[Xynolog*]*</Include>
           <Exclude>[Xynolog.Tests]*</Exclude>
         </Configuration>

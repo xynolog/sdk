@@ -18,3 +18,5 @@ the coming release's, and gathers its changes as they land.
   checked moves to CONTRIBUTING.md, which the README's last line links to.
 - The README links to the repository's files at the release's tag, so its
   links resolve on PyPI and show the files as of the release.
+- The README's coverage badge reads the package: `make test-python` measures
+  the tests, and CI uploads the report to Codecov.

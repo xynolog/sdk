@@ -92,7 +92,7 @@ clean_all() {
   for language in "${LANGUAGES[@]}"; do
     clean_language "$language"
   done
-  rm -f "$ROOT/coverage.txt"
+  rm -rf "$ROOT/coverage"
   clean_local_artifacts
   clean_temporary_outputs
   echo 'Clean complete. Downloaded container images and external SDK_ARTIFACTS destinations were left untouched.'

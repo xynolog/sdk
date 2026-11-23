@@ -96,7 +96,8 @@ addopts = ["--strict-markers", "--strict-config", "-ra"]
 xfail_strict = true
 
 # What `pytest --cov` measures: this package's own source, its paths relative to
-# this directory, so Codecov can place them in the tree.
+# this directory, which `make test-python` names by the repository's
+# (scripts/coverage-report.py) for Codecov.
 [tool.coverage.run]
 source = ["xynolog"]
 relative_files = true

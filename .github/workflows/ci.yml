@@ -56,6 +56,9 @@ jobs:
       - name: Each published README links to sdk at the release's tag
         run: python3 scripts/readme-links.py
 
+      - name: Each Codecov badge reads a component, and each language uploads under a flag of its own
+        run: python3 scripts/codecov.py census
+
       - name: The coming release is not yet tagged on another commit
         run: python3 scripts/sdk_version.py unreleased
 
@@ -158,6 +161,10 @@ jobs:
     needs: checks
     if: needs.checks.outputs.languages != '[]'
     runs-on: ubuntu-latest
+    # The upload to Codecov signs in with the run's OIDC token.
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -323,14 +330,26 @@ jobs:
           path: ${{ steps.dune.outputs.path }}
           key: ${{ steps.dune.outputs.cache-primary-key }}
 
-      - name: Upload coverage to Codecov
-        if: matrix.language == 'go'
-        # Codecov rejects tokenless uploads for this organization; configure CODECOV_TOKEN to enable reports.
-        uses: codecov/codecov-action@v7
+      # Codecov takes the reports the checks wrote into coverage/<language>/
+      # under the language's flag (codecov.py), and knows the run by its OIDC
+      # token. A pull request from a fork is given
+      # no token, and a merge queue's run tests what its pull request's did:
+      # neither uploads.
+      - name: The language's coverage reports, and the flag they count under
+        id: coverage
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        run: python3 scripts/codecov.py upload "$LANGUAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the language's coverage to Codecov
+        if: steps.coverage.outcome == 'success'
+        uses: codecov/codecov-action@v7.1.1
         with:
-          files: coverage.txt
-          flags: go-sdk
-          fail_ci_if_error: false
+          use_oidc: true
+          files: ${{ steps.coverage.outputs.files }}
+          flags: ${{ steps.coverage.outputs.flags }}
+          disable_search: true
+          plugins: noop
+          fail_ci_if_error: true
 
   generated:
     name: Generated files are what their generators write

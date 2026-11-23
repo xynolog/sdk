@@ -42,7 +42,7 @@
     "audit:compliance:tests": "./scripts/generate-test-compliance-report.sh",
     "test": "npm run test:split",
     "test:watch": "vitest",
-    "test:coverage": "NODE_OPTIONS=--max-old-space-size=8192 vitest run --coverage",
+    "test:coverage": "npm run test:shard:1 -- --coverage --coverage.reportsDirectory=coverage/shard-1 && npm run test:shard:2 -- --coverage --coverage.reportsDirectory=coverage/shard-2 && npm run test:shard:3 -- --coverage --coverage.reportsDirectory=coverage/shard-3 && npm run test:shard:4 -- --coverage --coverage.reportsDirectory=coverage/shard-4",
     "test:a11y": "NODE_OPTIONS=--max-old-space-size=8192 vitest run -t \"Accessibility\"",
     "test:a11y:watch": "vitest -t \"Accessibility\"",
     "test:components:panels": "NODE_OPTIONS=--max-old-space-size=8192 vitest run src/components/resource/panels",
@@ -61,8 +61,7 @@
     "test:shard:2": "NODE_OPTIONS=--max-old-space-size=8192 vitest run --shard=2/4",
     "test:shard:3": "NODE_OPTIONS=--max-old-space-size=8192 vitest run --shard=3/4",
     "test:shard:4": "NODE_OPTIONS=--max-old-space-size=8192 vitest run --shard=4/4",
-    "test:split": "npm run test:shard:1 && npm run test:shard:2 && npm run test:shard:3 && npm run test:shard:4",
-    "test:split:coverage": "npm run test:coverage"
+    "test:split": "npm run test:shard:1 && npm run test:shard:2 && npm run test:shard:3 && npm run test:shard:4"
   },
   "peerDependencies": {
     "react": "^19.2.8",

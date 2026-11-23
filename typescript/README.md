@@ -16,6 +16,6 @@ The client side: the SDK and what it stands on. These are the consumer-facing Ty
 
 - The packages are npm workspaces of the repository's root, which installs and builds them all (`npm ci`, `npm run build:packages`).
 - [`tsconfig.base.json`](./tsconfig.base.json) is what each package's `tsconfig.json` extends, and [`vitest.shared.config.ts`](./vitest.shared.config.ts) what each package's suite, and the Browser's, merges.
-- Each package measures its coverage with `npm run test:coverage`, which CI uploads under the flag `typescript-<name>`.
+- Each package measures its coverage with `npm run test:coverage`, which `make test-typescript` runs. CI uploads the reports to Codecov under the flag `typescript`, and each package's badge reads the component of its directory, `typescript-<directory>`.
 
 The other languages, and which SDK a program installs, are in [packages/](../README.md).

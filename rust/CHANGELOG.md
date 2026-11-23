@@ -22,3 +22,7 @@ the coming release's, and gathers its changes as they land.
   the repository's CONTRIBUTING.md, which each README's last line links to.
 - Each crate's README links to the repository's files at the release's tag,
   so its links resolve on crates.io and show the files as of the release.
+- Each crate's coverage badge reads that crate: `make test-rust` measures
+  the tests under `cargo llvm-cov`, and CI uploads the report to Codecov.
+  The Rust README no longer lists the crates the Rust services share, which
+  images holds.

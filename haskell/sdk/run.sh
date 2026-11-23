@@ -26,5 +26,5 @@ done
 python3 api.py --compiler-check
 cabal test schema-cases --enable-coverage --test-show-details=direct --test-options="$root"
 python3 test/refusals.py
-cabal exec -- hpc-codecov --format=lcov --ignore-dittos -x Main cabal:schema-cases -o coverage.lcov
+cabal exec -- hpc-codecov --format=lcov --ignore-dittos -x Main -x Paths_xynolog cabal:schema-cases -o coverage.lcov
 cabal sdist
