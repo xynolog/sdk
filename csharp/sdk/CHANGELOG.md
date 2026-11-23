@@ -13,6 +13,9 @@ the coming release's, and gathers its changes as they land.
   release's commit, so a debugger steps into the SDK's source.
 - nuget.org shows the package's license (Apache-2.0), project and repository
   URLs and tags.
+- The package ships XML documentation (`lib/<tfm>/Xynolog.xml`), so
+  IntelliSense and NuGet show a summary for every hand-written public member;
+  a missing or malformed doc comment fails the build.
 
 ### Changed
 
@@ -22,6 +25,8 @@ the coming release's, and gathers its changes as they land.
   asking its name, before signing in and the eight verbs. How the SDK itself
   is built and verified moves to CONTRIBUTING.md, which the README's last
   line links to.
+- The README links to the repository's files at the release's tag, so its
+  links resolve on NuGet and show the files as of the release.
 
 ### Fixed
 

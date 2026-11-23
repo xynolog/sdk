@@ -7,6 +7,8 @@ using Xynolog.Types;
 
 namespace Xynolog.SignIn;
 
+/// <summary>Signs people in and out through the issuer a knowledge base trusts, and renews their kept
+/// sign-ins.</summary>
 public sealed partial class Issuer
 {
     internal sealed record Endpoints(string Issuer, string Authorization, string Token, string? Device, string? Revocation);
@@ -43,6 +45,8 @@ public sealed partial class Issuer
         return await ConfigurationAsync(metadata.AuthorizationServers[0], cancellation).ConfigureAwait(Spawning.Captures);
     }
 
+    /// <summary>Signs a person in by the OAuth device grant: hands <paramref name="onCode"/> the code to enter, waits for
+    /// their approval, and keeps the sign-in.</summary>
     public async Task SignInDeviceAsync(HttpEndpoint endpoint, ISignInKept kept, Action<DeviceCode> onCode, CancellationToken cancellation = default)
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation, lifetime.Token);
@@ -100,6 +104,7 @@ public sealed partial class Issuer
         }
     }
 
+    /// <summary>Revokes the kept sign-in's refresh token where the issuer allows, then forgets the sign-in.</summary>
     public async Task SignOutAsync(ISignInKept kept, CancellationToken cancellation = default)
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation, lifetime.Token);

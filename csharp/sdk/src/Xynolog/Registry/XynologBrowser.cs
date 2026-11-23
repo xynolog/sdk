@@ -13,6 +13,15 @@ using static Xynolog.Resources.ResourceReaders;
 
 namespace Xynolog.Registry;
 
+/// <summary>A registry's knowledge bases, the active one's session, and what is open in it, at one moment.</summary>
+/// <param name="Kbs">The registered knowledge bases.</param>
+/// <param name="ActiveKbId">The active knowledge base's id, or null when none is active.</param>
+/// <param name="ActiveSession">The active knowledge base's open session, or null while none is open.</param>
+/// <param name="ActiveSignals">What the active session signals about itself, or null while none is open.</param>
+/// <param name="SessionActivating">Whether the active knowledge base's session is being opened.</param>
+/// <param name="OpenResources">The resources open in the active knowledge base, in their tab order.</param>
+/// <param name="LastViewedResource">The resource last viewed in the active knowledge base, if one is recorded.</param>
+/// <param name="IdentityToken">The token the application last set with <see cref="XynologBrowser.SetIdentityToken"/>.</param>
 public sealed record BrowserState(IReadOnlyList<KnowledgeBase> Kbs, string? ActiveKbId, OpenedSession? ActiveSession,
     SessionSignals? ActiveSignals, bool SessionActivating, IReadOnlyList<OpenResource> OpenResources,
     ResourceId? LastViewedResource, string? IdentityToken);
@@ -41,6 +50,8 @@ public sealed class XynologBrowser : IAsyncDisposable
     private Task? disposal;
     private Exception? taskFailure;
 
+    /// <summary>Loads the registered knowledge bases from the configured storage and begins opening the active one's
+    /// session.</summary>
     public XynologBrowser(XynologBrowserConfig config)
     {
         Storage = config.Storage;
@@ -69,22 +80,28 @@ public sealed class XynologBrowser : IAsyncDisposable
         }
     }
 
+    /// <summary>The storage the registry keeps its knowledge bases, their sign-ins and their open resources in.</summary>
     public ISessionStorage Storage { get; }
     internal TimeProvider Clock => clock;
     internal Random Random => random;
+    /// <summary>The application's in-process bus, closed with the registry.</summary>
     public EventBus Bus { get; } = new();
+    /// <summary>The registry's state now.</summary>
     public BrowserState State => Volatile.Read(ref state);
+    /// <summary>The registry's latest state and each change to it, until the registry is disposed.</summary>
     public IAsyncEnumerable<BrowserState> States(CancellationToken cancellation = default) => states.Observe(cancellation);
     /// <summary>Each session that could not be opened, and each error a session says of its own, until the registry is
     /// disposed. Of what is said before anyone reads it, the latest errorsKeptForFirstReaderCount
     /// (protocol/specs/src/client/timing.json) are kept for the first reader, in the order said.</summary>
     public IAsyncEnumerable<SessionError> Errors(CancellationToken cancellation = default) => errors.Observe(cancellation);
 
+    /// <summary>Records a token in the state for the application's own use; null clears it.</summary>
     public void SetIdentityToken(string? token)
     {
         lock (gate) { RequireOpen(); Publish(state with { IdentityToken = token }); }
     }
 
+    /// <summary>Whether a knowledge base's stored sign-in is missing, expired or current.</summary>
     public KbSessionStatus KbSessionStatus(string kbId)
     {
         var stored = StoredSession(Storage, kbId);
@@ -93,12 +110,15 @@ public sealed class XynologBrowser : IAsyncDisposable
                 ? Types.KbSessionStatus.Expired : Types.KbSessionStatus.Authenticated;
     }
 
+    /// <summary>Makes a registered knowledge base the active one, or none for null, closing the previous session and
+    /// opening its own.</summary>
     public Task SetActiveKbAsync(string? kbId, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         return Select(kbId, replace: false, background: false, cancellation);
     }
 
+    /// <summary>Registers a knowledge base with its sign-in, makes it the active one, and returns its entry.</summary>
     public async Task<KnowledgeBase> AddKbAsync(NewKnowledgeBase kb, StoredSession session, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -115,6 +135,8 @@ public sealed class XynologBrowser : IAsyncDisposable
         return added;
     }
 
+    /// <summary>Unregisters a knowledge base and forgets its sign-in and open resources; when it was active, the first one
+    /// left becomes active.</summary>
     public Task RemoveKbAsync(string kbId, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -129,6 +151,8 @@ public sealed class XynologBrowser : IAsyncDisposable
         }
     }
 
+    /// <summary>Changes a registered knowledge base's label or the record of its last read, keeping whichever is not
+    /// given.</summary>
     public void UpdateKb(string kbId, string? label = null, KbRead? lastRead = null)
     {
         lock (gate)
@@ -139,6 +163,8 @@ public sealed class XynologBrowser : IAsyncDisposable
         }
     }
 
+    /// <summary>Stores a new sign-in for a registered knowledge base in place of its old one, and makes it active under
+    /// the new sign-in.</summary>
     public Task SignInAsync(string kbId, StoredSession session, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -150,6 +176,8 @@ public sealed class XynologBrowser : IAsyncDisposable
         }
     }
 
+    /// <summary>Registers or updates the knowledge base a completed sign-in reached, stores the sign-in and makes it
+    /// active, saying which knowledge base was expected there.</summary>
     public async Task<SignInOutcome> SignedInAsync(SignedIn signedIn, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -180,6 +208,8 @@ public sealed class XynologBrowser : IAsyncDisposable
         return result ?? throw new InvalidOperationException("The sign-in was not stored.");
     }
 
+    /// <summary>Forgets a knowledge base's sign-in and closes its session, revoking the sign-in at its issuer in the
+    /// background.</summary>
     public Task SignOutAsync(string kbId, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -217,6 +247,8 @@ public sealed class XynologBrowser : IAsyncDisposable
         return Task.CompletedTask;
     }
 
+    /// <summary>Opens a resource in the active knowledge base as its last tab, or updates the tab already open for
+    /// it.</summary>
     public void AddOpenResource(ResourceId resource, string name, string? mediaType = null, string? storageUri = null) =>
         ChangeActiveTabs(tabs =>
         {
@@ -227,11 +259,15 @@ public sealed class XynologBrowser : IAsyncDisposable
             return [.. tabs, new OpenResource(resource, name, clock.GetUtcNow().ToUnixTimeMilliseconds(), order, mediaType, storageUri)];
         });
 
+    /// <summary>Closes a resource's tab in the active knowledge base.</summary>
     public void RemoveOpenResource(ResourceId resource) => ChangeActiveTabs(tabs => tabs.Where(tab => tab.Id != resource).ToArray());
 
+    /// <summary>Renames a resource's tab in the active knowledge base.</summary>
     public void UpdateOpenResourceName(ResourceId resource, string name) =>
         ChangeActiveTabs(tabs => tabs.Select(tab => tab.Id == resource ? tab with { Name = name } : tab).ToArray());
 
+    /// <summary>Moves the tab at one place in the active knowledge base's tab order to another, ignoring a place out of
+    /// range.</summary>
     public void ReorderOpenResources(int from, int to) => ChangeActiveTabs(tabs =>
     {
         if (from < 0 || to < 0 || from >= tabs.Count || to >= tabs.Count || from == to) return tabs;
@@ -242,6 +278,7 @@ public sealed class XynologBrowser : IAsyncDisposable
         return ordered.Select((tab, index) => tab with { Order = index }).ToArray();
     });
 
+    /// <summary>Records the resource last viewed in the active knowledge base.</summary>
     public void SetLastViewedResource(ResourceId resource)
     {
         lock (gate)
@@ -253,6 +290,8 @@ public sealed class XynologBrowser : IAsyncDisposable
         }
     }
 
+    /// <summary>Reads the active knowledge base's description and records it when its DID is the registered one, saying
+    /// whether it was recorded, conflicted, or could not be read.</summary>
     public async Task<KbReadVerdict> ReadActiveKbAsync(CancellationToken cancellation = default)
     {
         LiveSession? current;
@@ -577,6 +616,7 @@ public sealed class XynologBrowser : IAsyncDisposable
         lock (gate) tasks.Remove(task);
     }
 
+    /// <summary>Closes the active session and the bus, and ends the registry's state and error streams.</summary>
     public ValueTask DisposeAsync()
     {
         lock (gate)
@@ -695,12 +735,17 @@ public sealed class XynologBrowser : IAsyncDisposable
     }
 }
 
+/// <summary>Signs a person in to a knowledge base by redirect, and registers what they reach in a
+/// <see cref="XynologBrowser"/>.</summary>
 public static class BrowserSignIn
 {
+    /// <summary>Keeps a pending sign-in in the browser's storage and returns the address to send the person to.</summary>
     public static Task<string> BeginSignInAsync(XynologBrowser browser, BeginAuthorizationOptions options,
         HttpClient? httpClient = null, CancellationToken cancellation = default) =>
         RedirectSignIn.BeginAuthorizationAsync(options, browser.Storage, httpClient, browser.Clock, browser.Random, cancellation);
 
+    /// <summary>Completes the pending sign-in from the address the person was sent back to, then registers and activates
+    /// the knowledge base it reached.</summary>
     public static async Task<SignInOutcome> CompleteSignInAsync(XynologBrowser browser, string callbackUrl,
         HttpClient? httpClient = null, CancellationToken cancellation = default)
     {

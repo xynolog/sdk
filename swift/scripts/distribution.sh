@@ -26,6 +26,6 @@ mv "$work/Package.swift" "$tree/Package.swift"
 python3 "$manifest" spi "$work/dump.json" > "$tree/.spi.yml"
 python3 "$manifest" targets "$work/dump.json" > "$work/targets"
 while IFS= read -r target; do cp -a "Sources/$target" "$tree/Sources/$target"; done < "$work/targets"
-cp "$root/LICENSE" "$root/swift/distribution/NOTICE" "$root/swift/distribution/README.md" "$root/swift/sdk/CHANGELOG.md" "$tree/"
+cp "$root/LICENSE" "$root/swift/distribution/NOTICE" "$root/swift/sdk/README.md" "$root/swift/sdk/CHANGELOG.md" "$tree/"
 
 sh "$root/swift/scripts/consume-distribution.sh" "$tree" "$version" "$root/swift/distribution/consumer"

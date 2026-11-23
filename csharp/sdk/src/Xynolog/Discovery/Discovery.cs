@@ -8,28 +8,48 @@ using Xynolog.Types;
 
 namespace Xynolog.Discovery;
 
+/// <summary>What one read of a launcher's discovery document found: its state, or <see cref="Unchanged"/>.</summary>
 public abstract record DiscoveryRead;
+/// <summary>The knowledge bases a launcher manages, or why none could be read.</summary>
 public abstract record DiscoveryState : DiscoveryRead;
+/// <summary>No discovery document could be read, or what was read is not one.</summary>
+/// <param name="Reason">Why there is none.</param>
+/// <param name="Diagnostic">What went wrong, in prose, when there is more to say.</param>
 public sealed record Absent(DiscoveryAbsentReason Reason, string? Diagnostic = null) : DiscoveryState;
+/// <summary>A discovery document, and the knowledge bases it lists.</summary>
+/// <param name="Kbs">The knowledge bases the launcher manages.</param>
 public sealed record Managed(IReadOnlyList<DiscoveredKB> Kbs) : DiscoveryState;
+/// <summary>The document has not changed since the last read that found one.</summary>
 public sealed record Unchanged : DiscoveryRead;
 
+/// <summary>Where discovery documents are read from: a file, a URL, or anything that yields one.</summary>
 public interface DiscoveryTransport
 {
+    /// <summary>Reads the document once, giving its state, or that it has not changed.</summary>
     public Task<DiscoveryRead> ReadAsync(CancellationToken cancellation = default);
 }
 
+/// <summary>How the knowledge bases a launcher manages changed between two reads, keyed by host and port.</summary>
+/// <param name="State">The state the latest read found.</param>
+/// <param name="Added">The entries at an address the previous state did not list.</param>
+/// <param name="Updated">The entries at an address the previous state listed differently.</param>
+/// <param name="Removed">The entries of the previous state at an address the latest one does not list.</param>
+/// <param name="Duplicated">The addresses the latest state lists more than once, as host:port.</param>
 public sealed record DiscoveryDiff(DiscoveryState State, IReadOnlyList<DiscoveredKB> Added,
     IReadOnlyList<DiscoveredKB> Updated, IReadOnlyList<DiscoveredKB> Removed, IReadOnlyList<string> Duplicated);
 
+/// <summary>Finds the knowledge bases a launcher manages, from its discovery document, and follows them as they
+/// change.</summary>
 public static class LauncherDiscovery
 {
+    /// <summary>How long <see cref="SubscribeDiscovery"/> waits between reads unless told otherwise.</summary>
     public static readonly TimeSpan DiscoveryInterval = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("discoveryIntervalMs").GetInt32());
     private static readonly TimeSpan RequestDeadline = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("httpRequestTimeoutMs").GetInt32());
     private static readonly long Version = JsonSerializer.Deserialize<JsonElement>(ProtocolTables.Discovery)
         .GetProperty("properties").GetProperty("version").GetProperty("enum").EnumerateArray().Single().GetInt64();
     private static readonly HttpClient SharedHttp = new(new SocketsHttpHandler { UseProxy = false }) { Timeout = Timeout.InfiniteTimeSpan };
 
+    /// <summary>Reads a discovery document's text as the knowledge bases it lists, or as why it is not one.</summary>
     public static DiscoveryState ParseDiscoveryDocument(string text)
     {
         JsonDocument parsed;
@@ -54,11 +74,16 @@ public static class LauncherDiscovery
         }
     }
 
+    /// <summary>Reads discovery documents as text a function supplies, such as a file's contents; a missing or unreadable
+    /// file reads as <see cref="Absent"/>.</summary>
     public static DiscoveryTransport TextDiscovery(Func<CancellationToken, Task<string>> readText) => new TextReader(readText);
 
+    /// <summary>Reads discovery documents from a URL, asking with the last document's entity tag so an unchanged one reads
+    /// as <see cref="Unchanged"/>.</summary>
     public static DiscoveryTransport HttpDiscovery(string url, HttpClient? httpClient = null, TimeProvider? timeProvider = null) =>
         new HttpReader(url, httpClient ?? SharedHttp, timeProvider ?? TimeProvider.System);
 
+    /// <summary>Reads the document on an interval and yields each change, the first read's state among them.</summary>
     public static async IAsyncEnumerable<DiscoveryDiff> SubscribeDiscovery(DiscoveryTransport transport, TimeSpan? interval = null,
         TimeProvider? timeProvider = null, [EnumeratorCancellation] CancellationToken cancellation = default)
     {

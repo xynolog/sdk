@@ -3,19 +3,25 @@ using System.Text.Json.Serialization;
 
 namespace Xynolog.Types;
 
+/// <summary>A member a wire object may leave out: absent, the default, or present with a value that may itself be
+/// null.</summary>
 [JsonConverter(typeof(StatedJsonConverterFactory))]
 public readonly struct Stated<T>
 {
     private readonly T? value;
 
+    /// <summary>A member present with <paramref name="value"/>.</summary>
     public Stated(T? value)
     {
         this.value = value;
         IsPresent = true;
     }
 
+    /// <summary>Whether the member is present.</summary>
     public bool IsPresent { get; }
 
+    /// <summary>The present member's value; reading it from an absent member throws
+    /// <see cref="InvalidOperationException"/>.</summary>
     public T? Value => IsPresent ? value : throw new InvalidOperationException("An absent member has no value.");
 }
 

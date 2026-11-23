@@ -5,10 +5,16 @@ using Xynolog.Protocol;
 
 namespace Xynolog;
 
+/// <summary>Where a cache key stands: awaiting its first value, holding one, or failed.</summary>
 public closed record CacheState<T>
 {
+    /// <summary>The key has no value yet and its fetch is in flight.</summary>
     public sealed record Pending : CacheState<T>;
+    /// <summary>The key holds a value.</summary>
+    /// <param name="Value">The value the key holds.</param>
     public sealed record Ready(T Value) : CacheState<T>;
+    /// <summary>The key holds no value: its fetch failed, or it was removed.</summary>
+    /// <param name="Error">Why the key holds no value.</param>
     public sealed record Failed(Exception Error) : CacheState<T>;
 }
 
@@ -17,8 +23,11 @@ public abstract class Cached<T> : IAsyncEnumerable<CacheState<T>>
 {
     private protected Cached() { }
 
+    /// <summary>Reads the key's state now and each change to it, fetching the key if it holds no value.</summary>
     public abstract IAsyncEnumerator<CacheState<T>> GetAsyncEnumerator(CancellationToken cancellationToken = default);
+    /// <summary>Asks the source for the key's current value, joining a fetch already in flight.</summary>
     public abstract Task<T> FreshAsync(CancellationToken cancellation = default);
+    /// <summary>Marks the key's value stale and fetches it again.</summary>
     public abstract void Invalidate();
 }
 

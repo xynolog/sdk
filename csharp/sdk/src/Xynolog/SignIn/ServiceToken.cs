@@ -9,6 +9,8 @@ using Xynolog.Session;
 
 namespace Xynolog.SignIn;
 
+/// <summary>Access tokens for a service, taken from an issuer by the client credentials grant and reused until they
+/// are due for renewal.</summary>
 public sealed class ServiceToken : IDisposable
 {
     private readonly Issuer issuer;
@@ -23,6 +25,7 @@ public sealed class ServiceToken : IDisposable
     private Task<string>? asking;
     private bool disposed;
 
+    /// <summary>Proves the service to the issuer with a client secret.</summary>
     public ServiceToken(string authority, string clientId, string clientSecret, HttpClient? httpClient = null,
         TimeProvider? timeProvider = null, Random? random = null)
     {
@@ -44,6 +47,7 @@ public sealed class ServiceToken : IDisposable
 
     internal TimeProvider Clock => clock;
 
+    /// <summary>A current token as an HTTP Authorization header's value: <c>Bearer</c> and the token.</summary>
     public async Task<string> AuthorizationAsync(CancellationToken cancellation = default) =>
         "Bearer " + await TokenAsync(null, false, cancellation).ConfigureAwait(Spawning.Captures);
 
@@ -81,6 +85,7 @@ public sealed class ServiceToken : IDisposable
         return access;
     }
 
+    /// <summary>Stops asking the issuer; a token asked for after this throws.</summary>
     public void Dispose()
     {
         lock (gate)

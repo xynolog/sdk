@@ -8,6 +8,7 @@ using static Xynolog.Resources.ResourceReaders;
 
 namespace Xynolog.Namespaces;
 
+/// <summary>Creating resources: by upload, by a generation delegated as a job, by cloning.</summary>
 public sealed class YieldNamespace
 {
     private readonly JobFollower follower;
@@ -24,16 +25,21 @@ public sealed class YieldNamespace
         this.content = content;
     }
 
+    /// <summary>Uploads a new resource, reporting its progress and then the id of the resource created.</summary>
     public Upload Resource(ResourceUpload data, CancellationToken cancellation = default) => new(content, data, cancellation);
 
+    /// <summary>Asks for a token, good until it expires, from which the resource can be cloned.</summary>
     public async Task<CloneResourceWithTokenResponse> CloneTokenAsync(ResourceId resourceId, CancellationToken cancellation = default) =>
         (await wire.RequestAsync(BusOperations.YieldCloneTokenRequested, new YieldCloneTokenRequest { ResourceId = resourceId },
             cancellation: cancellation).ConfigureAwait(Spawning.Captures)).Response;
 
+    /// <summary>Asks for the resource a clone token was made from.</summary>
     public async Task<ResourceDescriptor> FromTokenAsync(string token, CancellationToken cancellation = default) =>
         (await wire.RequestAsync(BusOperations.YieldCloneResourceRequested, new YieldCloneResourceRequest { Token = token },
             cancellation: cancellation).ConfigureAwait(Spawning.Captures)).Response.SourceResource;
 
+    /// <summary>Creates a clone of the token's resource with the name and text given, in the source's format, archiving the
+    /// source when asked.</summary>
     public async Task<CreateResourceResponse> CreateFromTokenAsync(string token, string name, string text, bool? archiveOriginal = null,
         CancellationToken cancellation = default)
     {
@@ -51,6 +57,7 @@ public sealed class YieldNamespace
         }, null, cancellation).ConfigureAwait(Spawning.Captures);
     }
 
+    /// <summary>Emits the clone signal, which carries no payload, on this client's own bus.</summary>
     public void Clone() => bus.Emit(BusChannels.YieldClone, new EmptyBusPayload());
 
     /// <summary>Follows generation grounded in the supplied context. The stall deadline applies locally.</summary>

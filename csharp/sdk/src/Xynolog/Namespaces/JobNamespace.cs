@@ -6,6 +6,8 @@ using Xynolog.Types;
 
 namespace Xynolog.Namespaces;
 
+/// <summary>Jobs: their lifecycle as it is announced, their status, their cancellation, and, for a worker, the claiming of
+/// them.</summary>
 public sealed class JobNamespace
 {
     private readonly Bus wire;
@@ -23,21 +25,26 @@ public sealed class JobNamespace
         closed = transport.Closed;
     }
 
+    /// <summary>Claims, for a worker, each job it comes to hold that one of the filters accepts.</summary>
     public Claims Claim(IReadOnlyList<JobFilter> accepts) => new(transport, wire, accepts);
 
     /// <summary>Observes queued jobs. Wire announcements require a transport subscribed to this channel.</summary>
     public IAsyncEnumerable<Heard<JobQueuedEvent>> Queued(CancellationToken cancellation = default) =>
         bus.Frames(BusChannels.JobQueued, cancellation: cancellation);
 
+    /// <summary>Observes jobs' progress reports on this client's own bus, from now on.</summary>
     public IAsyncEnumerable<Heard<JobReportProgressCommand>> Progress(CancellationToken cancellation = default) =>
         bus.Frames(BusChannels.JobReportProgress, cancellation: cancellation);
 
+    /// <summary>Observes jobs' completions on this client's own bus, from now on.</summary>
     public IAsyncEnumerable<Heard<JobCompleteCommand>> Complete(CancellationToken cancellation = default) =>
         bus.Frames(BusChannels.JobComplete, cancellation: cancellation);
 
+    /// <summary>Observes jobs' failures on this client's own bus, from now on.</summary>
     public IAsyncEnumerable<Heard<JobFailCommand>> Fail(CancellationToken cancellation = default) =>
         bus.Frames(BusChannels.JobFail, cancellation: cancellation);
 
+    /// <summary>Asks the queue for the job's status.</summary>
     public async Task<JobStatusResponse> StatusAsync(JobId jobId, CancellationToken cancellation = default) =>
         (await wire.RequestAsync(BusOperations.JobStatusRequested, new JobStatusRequest { JobId = jobId },
             cancellation: cancellation).ConfigureAwait(Spawning.Captures)).Response;

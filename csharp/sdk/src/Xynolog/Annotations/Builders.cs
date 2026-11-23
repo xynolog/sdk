@@ -7,20 +7,40 @@ using Xynolog.Types;
 
 namespace Xynolog.Annotations;
 
+/// <summary>Thrown when a span does not fit the text it claims to select, so no annotation can be built from it.</summary>
 public sealed class SpanRefusedError : XynologError
 {
     internal SpanRefusedError(string code) : base(code, code) { }
 }
 
+/// <summary>The text a span selects from: plain text, or a PDF's text with the page locations of its items.</summary>
 public closed record Spanned
 {
+    /// <summary>Plain text.</summary>
+    /// <param name="Value">The text.</param>
     public sealed record Text(string Value) : Spanned;
+    /// <summary>A PDF's text, whose items carry their page locations.</summary>
+    /// <param name="Value">The text and its located items.</param>
     public sealed record Anchored(AnchoredText Value) : Spanned;
 }
 
+/// <summary>What <see cref="AnnotationTools.AnnotationOfSpan"/> builds an annotation of a span of a resource's text from.</summary>
+/// <param name="ResourceId">The resource the annotation targets.</param>
+/// <param name="Motivation">Why the annotation is made.</param>
+/// <param name="Generator">The agent that made it.</param>
+/// <param name="Span">The span of the text it selects.</param>
+/// <param name="Text">The resource's text the span is checked against.</param>
+/// <param name="Body">The annotation's body, if it has one.</param>
 public sealed record OfSpan(ResourceId ResourceId, Motivation Motivation, Agent Generator, TextSpan Span, Spanned Text,
     AnnotationBodies? Body = null)
 {
+    /// <summary>Selects the span a reconciliation found in the text.</summary>
+    /// <param name="resourceId">The resource the annotation targets.</param>
+    /// <param name="motivation">Why the annotation is made.</param>
+    /// <param name="generator">The agent that made it.</param>
+    /// <param name="span">The reconciled span of the text it selects.</param>
+    /// <param name="text">The resource's text the span is checked against.</param>
+    /// <param name="body">The annotation's body, if it has one.</param>
     public OfSpan(ResourceId resourceId, Motivation motivation, Agent generator, ReconciledSpan span, Spanned text,
         AnnotationBodies? body = null) : this(resourceId, motivation, generator, SpanOf(span), text, body) { }
 
@@ -37,10 +57,18 @@ public sealed record OfSpan(ResourceId ResourceId, Motivation Motivation, Agent 
     };
 }
 
+/// <summary>What <see cref="AnnotationTools.AnnotationOfResource"/> builds an annotation of a whole resource from.</summary>
+/// <param name="ResourceId">The resource the annotation targets.</param>
+/// <param name="Motivation">Why the annotation is made.</param>
+/// <param name="Generator">The agent that made it, if one is named.</param>
+/// <param name="Body">The annotation's body, if it has one.</param>
 public sealed record OfResource(ResourceId ResourceId, Motivation Motivation, Agent? Generator = null, AnnotationBodies? Body = null);
 
+/// <summary>Builds W3C annotations and reads their targets, selectors and bodies.</summary>
 public static partial class AnnotationTools
 {
+    /// <summary>Builds an annotation of a span, after checking the span against the text it selects from.</summary>
+    /// <exception cref="SpanRefusedError">The span lies outside the text or does not match it.</exception>
     public static Annotation AnnotationOfSpan(OfSpan input, TimeProvider? timeProvider = null)
     {
         var anchored = input.Text is Spanned.Anchored(var pdf) ? pdf : null;
@@ -76,6 +104,7 @@ public static partial class AnnotationTools
             input.Generator, input.Body, timeProvider);
     }
 
+    /// <summary>Builds an annotation of a whole resource.</summary>
     public static Annotation AnnotationOfResource(OfResource input, TimeProvider? timeProvider = null) =>
         Build(new AnnotationTarget { Source = input.ResourceId }, input.Motivation, "", input.Generator, input.Body, timeProvider);
 
