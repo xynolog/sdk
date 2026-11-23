@@ -1,8 +1,10 @@
 .DEFAULT_GOAL := build
 
 LANGUAGES := typescript python rust go csharp haskell kotlin ocaml swift
+# The registries publish.yml's `registry` input offers, in its order.
+REGISTRIES := $(shell sed -n '/^ *registry:$$/,/^ *options:/s/^ *options: \[\(.*\)\]$$/\1/p' .github/workflows/publish.yml | tr -d ,)
 
-.PHONY: help build codegen test test-tooling generate check-generated test-codegen verify-artifacts tag-release publish clean clean-local $(LANGUAGES) $(addprefix test-,$(LANGUAGES)) $(addsuffix -clean,$(LANGUAGES))
+.PHONY: help build codegen test test-tooling generate check-generated test-codegen verify-artifacts tag-release publish $(addprefix publish-,$(REGISTRIES)) clean clean-local $(LANGUAGES) $(addprefix test-,$(LANGUAGES)) $(addsuffix -clean,$(LANGUAGES))
 
 # `make help` prints the `##` lines below, in order (build-tools/make-help.awk).
 ##@ Xynolog SDK: make [target] [VARIABLE=value ...]
@@ -66,11 +68,11 @@ tag-release:
 
 ## publish: Publish the release this commit is tagged as to each registry publish.yml offers, one run at a time, each approved in the release environment and watched to its end
 publish:
-	bash scripts/publish-release.sh
+	bash scripts/publish-release.sh $(REGISTRIES)
 
 ## publish-<registry>: Publish it to one of those registries, as publish-npm
-publish-%:
-	bash scripts/publish-release.sh $*
+$(addprefix publish-,$(REGISTRIES)):
+	bash scripts/publish-release.sh $(@:publish-%=%)
 
 ##@ Clean
 ## clean: Remove every language's output, the local artifacts, caches and bundles
