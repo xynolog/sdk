@@ -22,9 +22,12 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- What nuget.org shows as the release notes: the changelog as of the release, which sdk_version.py write keeps at the coming release's tag. -->
     <PackageReleaseNotes>https://github.com/xynolog/sdk/blob/v0.8.1/csharp/sdk/CHANGELOG.md</PackageReleaseNotes>
+    <!-- Xynolog.xml beside each assembly, the summaries IntelliSense and NuGet show. ../../.editorconfig makes a missing or malformed doc comment an error. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" />
-    <ProjectReference Include="../../tools/RefusalRunner/RefusalRunner.csproj" GlobalPropertiesToRemove="$(XynologBuildToolGlobalPropertiesToRemove)" SetTargetFramework="TargetFramework=$(XynologTargetFramework)" SkipGetTargetFrameworkProperties="true" ReferenceOutputAssembly="false" />
+    <!-- RefusalRunner builds for its own framework alone, so neither framework of this library is offered it. Undefining the inner build's TargetFramework, not setting one, builds it under the global properties the solution builds it under: one project instance, not two writing obj/ at once. -->
+    <ProjectReference Include="../../tools/RefusalRunner/RefusalRunner.csproj" GlobalPropertiesToRemove="$(XynologBuildToolGlobalPropertiesToRemove)" UndefineProperties="TargetFramework" SkipGetTargetFrameworkProperties="true" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

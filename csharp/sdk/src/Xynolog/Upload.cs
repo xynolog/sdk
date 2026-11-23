@@ -28,14 +28,17 @@ public sealed class Upload : IAsyncEnumerable<UploadProgress>, IDisposable
         completion = SendAsync(content, request);
     }
 
+    /// <summary>Waits for the knowledge base's answer and returns the resource made; cancelling stops the upload.</summary>
     public async Task<CreateResourceResponse> CompleteAsync(CancellationToken cancellation = default)
     {
         using var registration = cancellation.Register(Dispose);
         return await Spawning.WaitAsync(completion, cancellation).ConfigureAwait(Spawning.Captures);
     }
 
+    /// <summary>Lets the upload be awaited for the resource made, as <see cref="CompleteAsync"/> does.</summary>
     public TaskAwaiter<CreateResourceResponse> GetAwaiter() => CompleteAsync().GetAwaiter();
 
+    /// <summary>Reads the upload's progress, once; the stream ends when the upload does and throws its failure.</summary>
     public IAsyncEnumerator<UploadProgress> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         if (Interlocked.Exchange(ref consumed, 1) != 0)
@@ -43,6 +46,7 @@ public sealed class Upload : IAsyncEnumerable<UploadProgress>, IDisposable
         return ReadAsync(cancellationToken).GetAsyncEnumerator();
     }
 
+    /// <summary>Stops the upload if it has not finished.</summary>
     public void Dispose()
     {
         lock (gate)

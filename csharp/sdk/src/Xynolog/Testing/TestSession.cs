@@ -8,6 +8,14 @@ using Xynolog.Types;
 
 namespace Xynolog.Testing;
 
+/// <summary>What <see cref="TestSessions.CreateTestSessionAsync"/> builds a session on; each part left out takes a
+/// default.</summary>
+/// <param name="Transport">The scripted transport the client talks to, which stays the caller's; a fresh one when null.</param>
+/// <param name="Kb">The knowledge base the session is to; a local test one when null.</param>
+/// <param name="Kept">Where the sign-in is kept; in memory when null.</param>
+/// <param name="TimeProvider">The clock the session keeps; the system's when null.</param>
+/// <param name="Timing">The timing the transport keeps; the protocol's when null.</param>
+/// <param name="Random">What the session's jitter is drawn from; the shared generator when null.</param>
 public sealed record TestSessionOptions(FaultyTransport? Transport = null, KbTarget? Kb = null,
     ISignInKept? Kept = null, TimeProvider? TimeProvider = null, Timing? Timing = null, Random? Random = null);
 
@@ -16,9 +24,13 @@ public sealed class TestSession : IDisposable
 {
     private readonly HttpClient http;
     private readonly KeptSession credentials;
+    /// <summary>The session under test.</summary>
     public XynologSession Session { get; }
+    /// <summary>The session's client.</summary>
     public XynologClient Client => Session.Client;
+    /// <summary>The scripted transport the client talks to.</summary>
     public FaultyTransport Transport { get; }
+    /// <summary>Where the session's sign-in is kept.</summary>
     public ISignInKept Kept { get; }
 
     internal TestSession(XynologSession session, FaultyTransport transport, ISignInKept kept, KeptSession credentials, HttpClient http)
@@ -37,6 +49,7 @@ public sealed class TestSession : IDisposable
         Session.UpdateIdentity();
     }
 
+    /// <summary>Closes the client, then the session, then the HTTP client they shared.</summary>
     public void Dispose()
     {
         try
@@ -48,6 +61,7 @@ public sealed class TestSession : IDisposable
     }
 }
 
+/// <summary>Makes offline sessions for tests.</summary>
 public static class TestSessions
 {
     /// <summary>Starts from the kept token without validating or renewing it. A supplied transport remains caller-owned.</summary>

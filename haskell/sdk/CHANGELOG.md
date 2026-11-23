@@ -17,3 +17,5 @@ the coming release's, and gathers its changes as they land.
   then shows a first program, which connects and reads the knowledge base's
   name, before signing in and the eight verbs. How the SDK itself is built
   and checked moves to CONTRIBUTING.md, which the README's last line links to.
+- The README links to the repository's files at the release's tag, so its
+  links resolve on Hackage and show the files as of the release.

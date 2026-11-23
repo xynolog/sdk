@@ -4,7 +4,7 @@ The Swift package of the Xynolog SDK. Each release of the SDK writes one
 commit here and tags it with the Swift package's version; nothing here is
 edited by hand. The SDK is developed in
 [xynolog/sdk](https://github.com/xynolog/sdk), whose
-[Swift README](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md)
+[Swift README](https://github.com/xynolog/sdk/blob/v0.8.1/swift/sdk/README.md)
 describes its use.
 
 Add the package to your `Package.swift` by this repository's URL, from the

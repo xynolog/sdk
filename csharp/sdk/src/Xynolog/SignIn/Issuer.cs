@@ -16,6 +16,11 @@ public sealed partial class Issuer : IDisposable
     private readonly Random random;
     private readonly CancellationTokenSource lifetime = new();
 
+    /// <summary>Talks to issuers through <paramref name="httpClient"/>, or through a client of its own when none is
+    /// given.</summary>
+    /// <param name="httpClient">The client issuers are asked with, if not one of its own.</param>
+    /// <param name="timeProvider">The clock deadlines and retries keep to, if not the system's.</param>
+    /// <param name="random">The source of retry jitter, if not the shared one.</param>
     public Issuer(HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null)
     {
         client = httpClient;
@@ -24,6 +29,8 @@ public sealed partial class Issuer : IDisposable
         this.random = random ?? Random.Shared;
     }
 
+    /// <summary>Renews the kept sign-in when its access token is <paramref name="holding"/> or has expired, giving the
+    /// access token kept after, or null when none is kept.</summary>
     public Task<string?> RenewAsync(ISignInKept kept, string? holding, CancellationToken cancellation = default)
     {
         lifetime.Token.ThrowIfCancellationRequested();
@@ -108,5 +115,6 @@ public sealed partial class Issuer : IDisposable
 
     private static SignInError Failure(string message, int? status, Exception? inner = null) => new(ProtocolFacts.SignInError("exchange"), message, status, inner);
 
+    /// <summary>Ends every request in flight and releases the client it made, if it made one.</summary>
     public void Dispose() { lifetime.Cancel(); owned?.Dispose(); }
 }

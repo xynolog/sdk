@@ -19,8 +19,10 @@ public sealed class StateValue<T> : IAsyncEnumerable<T>
         changes.Publish(initial);
     }
 
+    /// <summary>The current value.</summary>
     public T Value { get { lock (gate) return value; } }
 
+    /// <summary>Reads the current value, then each change, until the value's unit is disposed.</summary>
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
         changes.Observe(cancellationToken).GetAsyncEnumerator();
 

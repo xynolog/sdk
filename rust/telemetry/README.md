@@ -3,10 +3,10 @@
 [![crates.io](https://img.shields.io/crates/v/xynolog-telemetry.svg)](https://crates.io/crates/xynolog-telemetry)
 [![docs.rs](https://img.shields.io/docsrs/xynolog-telemetry)](https://docs.rs/xynolog-telemetry)
 [![CI](https://github.com/xynolog/sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/xynolog/sdk/actions/workflows/ci.yml?query=branch%3Amain)
-[![License](https://img.shields.io/crates/l/xynolog-telemetry.svg)](https://github.com/xynolog/sdk/blob/main/LICENSE)
+[![License](https://img.shields.io/crates/l/xynolog-telemetry.svg)](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE)
 [![codecov](https://codecov.io/gh/xynolog/sdk/graph/badge.svg?component=rust-telemetry)](https://app.codecov.io/gh/xynolog/sdk/components)
 
-The traces and counts of the [Xynolog Rust SDK](../sdk/README.md), as
+The traces and counts of the [Xynolog Rust SDK](https://github.com/xynolog/sdk/blob/v0.8.1/rust/sdk/README.md), as
 [OpenTelemetry](https://opentelemetry.io). When a Xynolog client sends to a
 knowledge base or receives from it, the transport says so through this
 crate, and this crate reports it to whatever OpenTelemetry the application
@@ -31,7 +31,7 @@ It is built with `opentelemetry` 0.33. Every function is documented on
 ## Do you need it?
 
 - **To see the client's traces in your own telemetry**, you install your
-  OpenTelemetry as usual. [`xynolog-http-transport`](../http-transport/README.md)
+  OpenTelemetry as usual. [`xynolog-http-transport`](https://github.com/xynolog/sdk/blob/v0.8.1/rust/http-transport/README.md)
   already depends on this crate, so its spans appear with yours. See
   [Turning it on](#turning-it-on).
 - **To write a transport** for the SDK, you report through the functions
@@ -124,11 +124,11 @@ four more functions:
 
 | Crate | |
 |---|---|
-| [`xynolog`](../sdk/README.md) | The SDK's client. |
-| [`xynolog-http-transport`](../http-transport/README.md) | The transport over a gateway, which reports through this crate. |
+| [`xynolog`](https://github.com/xynolog/sdk/blob/v0.8.1/rust/sdk/README.md) | The SDK's client. |
+| [`xynolog-http-transport`](https://github.com/xynolog/sdk/blob/v0.8.1/rust/http-transport/README.md) | The transport over a gateway, which reports through this crate. |
 
 ## License
 
-Apache-2.0. See [LICENSE](../../LICENSE).
+Apache-2.0. See [LICENSE](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE).
 
 Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

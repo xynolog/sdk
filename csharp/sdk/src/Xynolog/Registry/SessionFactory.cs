@@ -9,24 +9,40 @@ using Xynolog.Types;
 
 namespace Xynolog.Registry;
 
+/// <summary>What a <see cref="XynologBrowser"/> is made with.</summary>
+/// <param name="Storage">Where the registry keeps its knowledge bases, their sign-ins and their open resources.</param>
+/// <param name="SessionFactory">Opens the active knowledge base's session.</param>
+/// <param name="TimeProvider">The registry's clock; the system's when null.</param>
+/// <param name="Random">The source of its sign-ins' retry jitter; the shared one when null.</param>
 public sealed record XynologBrowserConfig(ISessionStorage Storage, SessionFactory SessionFactory, TimeProvider? TimeProvider = null,
     Random? Random = null);
+/// <summary>What a <see cref="SessionFactory"/> opens a knowledge base's session with.</summary>
+/// <param name="Kb">The knowledge base to open.</param>
+/// <param name="Storage">The registry's storage, which holds the knowledge base's sign-in.</param>
+/// <param name="Signals">Where the session says why it ended, and what else it notices about itself.</param>
 public sealed record SessionFactoryOptions(KnowledgeBase Kb, ISessionStorage Storage, SessionSignals Signals);
 
+/// <summary>Opens the sessions a <see cref="XynologBrowser"/> makes active, and revokes the sign-ins it signs out of.</summary>
 public interface SessionFactory
 {
+    /// <summary>Opens a session with a registered knowledge base under its stored sign-in.</summary>
     public Task<OpenedSession> OpenAsync(SessionFactoryOptions options, CancellationToken cancellation = default);
+    /// <summary>Revokes a sign-in the registry has already forgotten, at its issuer.</summary>
     public Task RevokeAsync(StoredSession stored, CancellationToken cancellation = default);
 }
 
+/// <summary>A knowledge base's open client, its session if it has one, and how to close them.</summary>
 public sealed class OpenedSession : IAsyncDisposable
 {
     private readonly Func<ValueTask> close;
     private readonly object gate = new();
     private Task? closing;
+    /// <summary>The client that speaks to the knowledge base.</summary>
     public XynologClient Client { get; }
+    /// <summary>The session the client runs in, or null for a client opened without one.</summary>
     public XynologSession? Session { get; }
 
+    /// <summary>Pairs a client with its session and its close, which by default disposes the client.</summary>
     public OpenedSession(XynologClient client, Func<ValueTask>? close = null, XynologSession? session = null)
     {
         Client = client;
@@ -34,6 +50,7 @@ public sealed class OpenedSession : IAsyncDisposable
         this.close = close ?? (() => { client.Dispose(); return ValueTask.CompletedTask; });
     }
 
+    /// <summary>Closes the client and its session, once, however often it is called.</summary>
     public ValueTask DisposeAsync()
     {
         lock (gate) return new ValueTask(closing ??= Spawning.Run(CloseAsync));
@@ -49,6 +66,7 @@ public sealed class OpenedSession : IAsyncDisposable
 /// </summary>
 public sealed class HttpSessionFactory(HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null) : SessionFactory
 {
+    /// <inheritdoc/>
     public async Task<OpenedSession> OpenAsync(SessionFactoryOptions options, CancellationToken cancellation = default)
     {
         if (options.Kb.Endpoint is not KbEndpoint.HttpEndpointCase(var endpoint))
@@ -95,6 +113,7 @@ public sealed class HttpSessionFactory(HttpClient? httpClient = null, TimeProvid
         }
     }
 
+    /// <inheritdoc/>
     public async Task RevokeAsync(StoredSession stored, CancellationToken cancellation = default)
     {
         using var issuer = new Issuer(httpClient, timeProvider, random);

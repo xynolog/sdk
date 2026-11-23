@@ -11,15 +11,21 @@ using Xynolog.Types;
 
 namespace Xynolog.Registry;
 
+/// <summary>The storage keys and records under which a registry keeps its knowledge bases, their sign-ins and their
+/// open resources.</summary>
 public static class RegistryStorage
 {
     private static readonly JsonElement Table = JsonSerializer.Deserialize<JsonElement>(ProtocolTables.Stored);
     private static readonly string Prefix = Text(Table.GetProperty("sessionKeyPrefix"), "prefix");
     private static readonly string LastEventIdPrefix = Text(Table.GetProperty("lastEventIdKeyPrefix"), "prefix");
     private static readonly string CachePrefix = Text(Table.GetProperty("cacheKeyPrefix"), "prefix");
+    /// <summary>The storage key of the registered knowledge bases.</summary>
     public static readonly string KnowledgeBasesKey = Key("knowledgeBasesKey");
+    /// <summary>The storage key of the active knowledge base's id.</summary>
     public static readonly string ActiveKey = Key("activeKey");
+    /// <summary>The storage key of the resources open in each knowledge base.</summary>
     public static readonly string OpenResourcesByKbKey = Key("openResourcesByKbKey");
+    /// <summary>The storage key of the resource last viewed in each knowledge base.</summary>
     public static readonly string LastViewedResourceByKbKey = Key("lastViewedResourceByKbKey");
     internal static readonly string PendingKey = Key("pendingAuthorizationKey");
     internal static readonly JsonSerializerOptions Json = new()
@@ -39,8 +45,11 @@ public static class RegistryStorage
     internal static string LastEventIdKey(string kbId, string personKey) => LastEventIdPrefix + kbId + "." + personKey;
     internal static string CacheKey(string kbId, string personKey, string query) => CachePrefix + kbId + "." + personKey + "." + query;
 
+    /// <summary>The storage key of a knowledge base's stored sign-in.</summary>
     public static string SessionKey(string kbId) => Prefix + kbId;
+    /// <summary>The knowledge base whose stored sign-in a storage key holds, or null for a key that holds none.</summary>
     public static string? KbOfSessionKey(string key) => key.StartsWith(Prefix, StringComparison.Ordinal) ? key[Prefix.Length..] : null;
+    /// <summary>A knowledge base's stored sign-in, or null when none is stored or it cannot be read.</summary>
     public static StoredSession? StoredSession(ISessionStorage storage, string kbId) => Read<StoredSession>(storage.Get(SessionKey(kbId)));
 
     /// <summary>
@@ -79,8 +88,11 @@ public static class RegistryStorage
         storage.Delete(LastEventIdKey(kbId, personKey));
     }
 
+    /// <summary>The registered knowledge bases, leaving out any stored entry that cannot be read.</summary>
     public static IReadOnlyList<KnowledgeBase> LoadKnowledgeBases(ISessionStorage storage) => ReadKnowledgeBases(storage.Get(KnowledgeBasesKey));
+    /// <summary>Stores the registered knowledge bases in place of those stored.</summary>
     public static void SaveKnowledgeBases(ISessionStorage storage, IReadOnlyList<KnowledgeBase> kbs) => storage.Set(KnowledgeBasesKey, Write(kbs));
+    /// <summary>What holds a knowledge base's sign-in in the storage, for a session to read, renew and forget.</summary>
     public static ISignInKept KeptIn(ISessionStorage storage, string kbId) => new RegistrySignIn(storage, kbId, () => ClearStoredSession(storage, kbId));
 
     /// <summary>
@@ -164,6 +176,13 @@ public static class RegistryStorage
     }
 }
 
+/// <summary>A resource open as a tab in a knowledge base, as the registry stores it.</summary>
+/// <param name="Id">Which resource is open.</param>
+/// <param name="Name">The resource's name, as its tab shows it.</param>
+/// <param name="OpenedAt">When it was opened, in milliseconds since the Unix epoch.</param>
+/// <param name="Order">Its place in the knowledge base's tab order.</param>
+/// <param name="MediaType">The resource's primary media type, if known.</param>
+/// <param name="StorageUri">The storage URI the application recorded for the resource, if it recorded one.</param>
 public sealed record OpenResource(
     [property: JsonRequired] ResourceId Id,
     [property: JsonRequired] string Name,
@@ -171,11 +190,15 @@ public sealed record OpenResource(
     [property: JsonRequired] int Order,
     string? MediaType = null, string? StorageUri = null);
 
+/// <summary>Orders a knowledge base's tabs, and brings them up to date with what checking their resources found.</summary>
 public static class OpenResources
 {
+    /// <summary>The tabs in their tab order, the earlier opened first among tabs of equal place.</summary>
     public static IReadOnlyList<OpenResource> SortOpenResources(IReadOnlyList<OpenResource> resources) =>
         Array.AsReadOnly(resources.OrderBy(tab => tab.Order).ThenBy(tab => tab.OpenedAt).ToArray());
 
+    /// <summary>Drops the tabs whose resource is gone, and takes the name and media type of each resource found
+    /// ready.</summary>
     public static IReadOnlyList<OpenResource> ApplyTabChecks(IReadOnlyList<OpenResource> opened, IReadOnlyDictionary<ResourceId, TabCheck> checks)
     {
         var tabs = new List<OpenResource>();

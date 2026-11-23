@@ -10,3 +10,11 @@ the coming release's, and gathers its changes as they land.
 
 - The distribution carries a `.spi.yml`, so the Swift Package Index hosts
   the DocC documentation of `Xynolog` and `XynologTesting`.
+- The README reads as the package's front page: what the SDK is, how to
+  install it (by `xynolog/sdk-swift`'s URL, taking releases up to the next
+  minor), and a first program before connecting, signing in and the eight
+  verbs. How to work on the SDK moved to the repository's CONTRIBUTING.md,
+  which the README's last line links to.
+- The README, and the distribution's README the Swift Package Index shows,
+  link to the repository's files at the release's tag, so their links
+  resolve there and show the files as of the release.

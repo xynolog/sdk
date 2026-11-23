@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/xynolog/sdk/graph/badge.svg?component=typescript-react-ui)](https://app.codecov.io/gh/xynolog/sdk/components)
 [![npm version](https://img.shields.io/npm/v/@xynolog/react-ui.svg)](https://www.npmjs.com/package/@xynolog/react-ui)
 [![npm downloads](https://img.shields.io/npm/dm/@xynolog/react-ui.svg)](https://www.npmjs.com/package/@xynolog/react-ui)
-[![License](https://img.shields.io/npm/l/@xynolog/react-ui.svg)](https://github.com/xynolog/sdk/blob/main/LICENSE)
+[![License](https://img.shields.io/npm/l/@xynolog/react-ui.svg)](https://github.com/xynolog/sdk/blob/v0.8.1/LICENSE)
 [![WCAG 2.1 AA](https://img.shields.io/badge/WCAG-2.1%20AA-blue.svg)](https://www.w3.org/WAI/WCAG2AA-Conformance)
 
 Framework-agnostic React component library for building Xynolog knowledge management applications.
@@ -307,7 +307,7 @@ See [TESTING.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/TEST
 - [navigation-components.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/navigation-components.md) - Navigation components (CollapsibleResourceNavigation, SimpleNavigation, NavigationMenu, ObservableLink)
 - [modal-components.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/modal-components.md) - Modal components (SearchModal)
 - [ROUTING.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/ROUTING.md) - Framework-agnostic routing
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Design principles and decisions
+- [ARCHITECTURE.md](https://github.com/xynolog/sdk/blob/v0.8.1/typescript/react-ui/docs/ARCHITECTURE.md) - Design principles and decisions
 - [STYLES.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/STYLES.md) - Using the styles, design tokens and classes
 - [ANNOTATIONS.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/ANNOTATIONS.md) - Annotation system
 - [ACCESSIBILITY.md](https://github.com/xynolog/docs/blob/main/builder/react-ui/ACCESSIBILITY.md) - Accessibility architecture and WCAG compliance
@@ -352,9 +352,9 @@ manager built over react-i18next.
 
 ## Related Packages
 
-- [@xynolog/sdk](../sdk) - `XynologBrowser`, `XynologClient`, the read-through cache, and the state machinery. Its [**Developer Guide**](https://github.com/xynolog/docs/blob/main/builder/DEVELOPER-GUIDE.md) covers end-to-end use, including embedding this package's `ResourceViewer`.
-- [@xynolog/core](../core) - Shared API types (`components`) generated from the OpenAPI spec
-- [@xynolog/http-transport](../http-transport) - HTTP transport (`HttpTransport`, `HttpContentTransport`, `APIError`)
+- [@xynolog/sdk](https://github.com/xynolog/sdk/tree/v0.8.1/typescript/sdk) - `XynologBrowser`, `XynologClient`, the read-through cache, and the state machinery. Its [**Developer Guide**](https://github.com/xynolog/docs/blob/main/builder/DEVELOPER-GUIDE.md) covers end-to-end use, including embedding this package's `ResourceViewer`.
+- [@xynolog/core](https://github.com/xynolog/sdk/tree/v0.8.1/typescript/core) - Shared API types (`components`) generated from the OpenAPI spec
+- [@xynolog/http-transport](https://github.com/xynolog/sdk/tree/v0.8.1/typescript/http-transport) - HTTP transport (`HttpTransport`, `HttpContentTransport`, `APIError`)
 - [xynolog-browser](https://github.com/xynolog/images/tree/main/browser) - Reference implementation (Vite + React Router)
 
 Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

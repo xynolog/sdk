@@ -14,7 +14,22 @@ using Xynolog.Types;
 
 namespace Xynolog.Http;
 
-public enum ConnectionState { Connecting, Open, Reconnecting, Degraded, Unauthenticated, Closed }
+/// <summary>Where a transport's bus stream stands.</summary>
+public enum ConnectionState
+{
+    /// <summary>Opening the stream for the first time.</summary>
+    Connecting,
+    /// <summary>Open, and delivering frames.</summary>
+    Open,
+    /// <summary>Opening the stream again after it failed.</summary>
+    Reconnecting,
+    /// <summary>Reconnecting for longer than the protocol's degraded threshold.</summary>
+    Degraded,
+    /// <summary>Waiting for a usable credential: there is none, or the gateway refused the one it has.</summary>
+    Unauthenticated,
+    /// <summary>Disposed; nothing opens the stream again.</summary>
+    Closed
+}
 
 public sealed partial class HttpTransport : IDisposable
 {
@@ -55,6 +70,9 @@ public sealed partial class HttpTransport : IDisposable
     private ConnectionState state;
     private long outages;
 
+    /// <summary>Starts opening the bus stream to the gateway at <paramref name="baseUrl"/>, subscribed to
+    /// <paramref name="channels"/>, sending <paramref name="token"/> and renewing a refused one with
+    /// <paramref name="refresher"/>.</summary>
     public HttpTransport(string baseUrl, string? token, IEnumerable<string> channels, Timing? timing = null,
         Func<string?, CancellationToken, Task<string?>>? refresher = null, HttpClient? httpClient = null,
         TimeProvider? timeProvider = null, Random? random = null)
@@ -80,8 +98,11 @@ public sealed partial class HttpTransport : IDisposable
     internal Timing Settings => timing;
     internal CancellationToken Closed => lifetime.Token;
 
+    /// <summary>The gateway's address, without a trailing slash.</summary>
     public string BaseUrl { get; }
+    /// <summary>Where the bus stream's connection stands now.</summary>
     public ConnectionState State { get { lock (gate) { return state; } } }
+    /// <summary>Each state the connection enters, starting with the one it is in.</summary>
     public IAsyncEnumerable<ConnectionState> States(CancellationToken cancellation = default) => states.Observe(cancellation);
     /// <summary>The transport's failures. Of those it meets before anyone reads them, the latest
     /// errorsKeptForFirstReaderCount (protocol/specs/src/client/timing.json) are kept for the first reader.</summary>
@@ -91,6 +112,8 @@ public sealed partial class HttpTransport : IDisposable
     /// other is, until the relay is disposed or the transport closes.</summary>
     internal IDisposable RelayFailures(Action<XynologError> to) => failures.Relay(to);
 
+    /// <summary>Replaces the credential the transport sends; a stream that is not open, or one whose credential is
+    /// taken away, is opened again.</summary>
     public void SetToken(string? value)
     {
         lock (gate)
@@ -102,10 +125,15 @@ public sealed partial class HttpTransport : IDisposable
         if (value is null || State != ConnectionState.Open) changed.Writer.TryWrite(Change.Debounced);
     }
 
+    /// <summary>Whether the stream was opened for <paramref name="channel"/>.</summary>
     public bool IsSubscribed(string channel) => channels.Contains(channel, StringComparer.Ordinal);
 
+    /// <summary>What the stream delivers on <paramref name="channel"/>, until cancelled or the transport
+    /// closes.</summary>
     public IAsyncEnumerable<Carried> Frames(string channel, CancellationToken cancellation = default) => Frames([channel], cancellation);
 
+    /// <summary>What the stream delivers on any of <paramref name="channelNames"/>, until cancelled or the transport
+    /// closes.</summary>
     public IAsyncEnumerable<Carried> Frames(IEnumerable<string> channelNames, CancellationToken cancellation = default) =>
         ReceivedFrames(channelNames, null, cancellation);
 
@@ -153,6 +181,8 @@ public sealed partial class HttpTransport : IDisposable
         }
     }
 
+    /// <summary>Hands <paramref name="handler"/> each frame delivered on <paramref name="channel"/> until the returned
+    /// handle is disposed; an exception it throws is reported on <see cref="Errors"/>.</summary>
     public IDisposable On(string channel, Action<Carried> handler)
     {
         var cancellation = new CancellationTokenSource();
@@ -183,6 +213,8 @@ public sealed partial class HttpTransport : IDisposable
         }
     }
 
+    /// <summary>Adds the resource's scoped channels to the stream until the returned handle is disposed, as long as any
+    /// handle on that resource is held.</summary>
     public IDisposable SubscribeToResource(ResourceId resource)
     {
         var name = resource.Value;
@@ -204,6 +236,8 @@ public sealed partial class HttpTransport : IDisposable
         });
     }
 
+    /// <summary>Publishes <paramref name="payload"/> on <paramref name="channel"/>, retrying within the emit's budget,
+    /// and returns how many subscribers the gateway says it reached, when it says.</summary>
     public async Task<long?> EmitAsync(string channel, JsonElement payload, ResourceId? scope = null, string? correlationId = null, CancellationToken cancellation = default)
     {
         using var activity = SdkTelemetry.Start("bus.emit:{channel}", SdkTelemetry.BusTags(channel, scope), channel);
@@ -263,6 +297,8 @@ public sealed partial class HttpTransport : IDisposable
         }
     }
 
+    /// <summary>Sends a request for <paramref name="operation"/> on the bus and returns its reply's response, if it has
+    /// one; a failure reply throws.</summary>
     public async Task<JsonElement?> RequestAsync(string operation, JsonElement payload, int? timeoutMs = null, CancellationToken cancellation = default)
     {
         var frame = await RequestFrameAsync(operation, payload, timeoutMs, cancellation).ConfigureAwait(Spawning.Captures);
@@ -702,6 +738,7 @@ public sealed partial class HttpTransport : IDisposable
         lifetime.Token.ThrowIfCancellationRequested();
     }
 
+    /// <summary>Closes the transport, ending every reader of its frames, states and errors.</summary>
     public void Dispose()
     {
         lock (gate)

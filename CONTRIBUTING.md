@@ -262,6 +262,23 @@ close waking pending requests, SSE chunk boundaries, and operation ownership.
 
 `kotlin/` holds the `org.xynolog:xynolog` publication, in `kotlin/sdk`. `make kotlin` builds and stages its packages, and `make test-kotlin` runs its tests, type checks, lints and format checks, in its toolchain's container.
 
+#### Building it
+
+Nothing but a container runtime is needed. In the JDK image `kotlin/sdk/.java-version` names:
+
+```bash
+container run --rm -v "$PWD":/w -w /w/kotlin/sdk eclipse-temurin:"$(kotlin/scripts/jdk-version.sh)"-jdk ./gradlew --no-daemon check
+```
+
+`check` runs, beside the build and the tests:
+
+- `checkKotlinAbi`: the public API written by hand against the committed dump, `kotlin/sdk/api/sdk.api`. A change to that API is a change to the dump, made with `./gradlew updateKotlinAbi`. What the generator writes is the spec's, and is not in it.
+- `javaTest`: the tests under `kotlin/sdk/src/fromJava/java`, which call the SDK as a Java program does. They are Java alone.
+- `refusals`: the programs under `kotlin/sdk/src/refusals`, Kotlin and Java, that must not compile against the SDK. Each begins `// refused: <text>`, and the compiler must refuse it with a message holding that text.
+- `census`: no source suppresses a warning (every warning is an error, so a suppression is the one way an unchecked cast gets in), and the SDK reads no environment variable but `XYNOLOG_BUS_LOG`.
+
+Every public declaration says it is public: the build runs Kotlin's explicit API mode.
+
 ### OCaml
 
 `ocaml/` holds the `xynolog` opam package, in `ocaml/sdk`. `make ocaml` builds and stages its packages, and `make test-ocaml` runs its tests, type checks, lints and format checks, in its toolchain's container.
@@ -288,3 +305,28 @@ A test runs in a sandbox that Dune deletes, so `BISECT_FILE` writes the coverage
 ### Swift
 
 `swift/` holds the `Xynolog` and `XynologTesting` products, in `swift/sdk`, and the distribution a release writes to `xynolog/sdk-swift`, in `swift/distribution`. `make swift` builds and stages its packages, and `make test-swift` runs its tests, type checks, lints and format checks, in its toolchain's container.
+
+#### Working on the SDK
+
+CI runs the SDK tests in the pinned Swift container on Linux and
+natively on Apple silicon. Both jobs run the formatter, census, and
+compile-failure checks. On a provisioned macOS runner, use
+`swift test --jobs 4 --force-resolved-versions` from `swift/sdk`.
+The dependency lock includes the OpenTelemetry exporter's macOS dependencies.
+Both jobs use the same lock.
+
+Run the Linux checks from the repository root.
+
+```bash
+container run --rm --memory 8g -e HOME=/tmp/swift-home -v "$PWD":/w -w /w/swift/sdk "swift:$(swift/scripts/swift-version.sh)" sh -c 'mkdir -p "$HOME" && Scripts/test.sh && Scripts/coverage.sh && swift format lint --strict --recursive . && Scripts/census.sh && Scripts/refusals.sh'
+```
+
+Swift 6 language mode and warnings as errors apply to every target. The canary must fail with the concurrency diagnostic. Each future `swift/sdk/Refusals/*.swift` program begins `// refused: <text>` and must fail with that message. The census forbids unchecked concurrency escapes, environment reads beyond `XYNOLOG_BUS_LOG`, and a test wait bounded by anything but `testDeadlineMs`: every test starts at once, and on a small runner a second can pass before a test's tasks are scheduled. The formatter forbids force unwraps, force casts, force tries and implicitly unwrapped optionals throughout the package.
+
+The tests round-trip payloads from the three conformance corpora, run every identifier case, and verify nullable members and open objects.
+
+The models, the tables and the tests' dispatch are generated from `protocol/specs/src` by `make generate` (codegen/lib/swift_sdk) and committed under `swift/sdk/Sources/Xynolog/Generated` and `swift/sdk/Tests/XynologTests/Generated`; the generator's own tests, refused schema shapes among them, are the codegen's. Models keep timestamps and URIs as strings, use checked value types for identifiers, and preserve the three states of an optional nullable member with `Stated`. `JSONValue` carries values in open objects. Required nullable members must be present, even when null.
+
+`swift/sdk/Scripts/test.sh` builds instrumented tests and collects their LLVM profiles directly. `swift/sdk/Scripts/coverage.sh` exports the compiled test libraries, leaving out the generated sources and avoiding SwiftPM's automatic JSON export of dependency coverage.
+
+`swift/sdk/Scripts/install-driver.sh` builds the instrumented Linux wire driver and bundles its Swift runtime. The conformance application chooses OTLP/HTTP exporters when the harness supplies `OTEL_EXPORTER_OTLP_ENDPOINT`. Its runtime matches Ubuntu 26.04. `swift/sdk/Scripts/conformance-coverage.sh` reports the library code the driver exercised, separately from Rust's LLVM profiles.
