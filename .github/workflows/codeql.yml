@@ -83,10 +83,12 @@ jobs:
       # extractor runs on every dependency's every file, which the scan
       # reports nothing on. The package and its dependencies are resolved and
       # compiled before the tracer starts; the traced build compiles the
-      # package's own targets alone.
+      # package's own targets alone. CodeQL's tracer is x86_64 code, so the
+      # traced build runs under Rosetta and builds for x86_64: this build
+      # does too, or the traced one would find nothing of its own to reuse.
       - if: matrix.language == 'swift'
         name: Compile the Swift SDK's dependencies, untraced
-        run: swift build --package-path swift/sdk --build-tests
+        run: arch -x86_64 swift build --package-path swift/sdk --build-tests
 
       - uses: github/codeql-action/init@v4.39.3
         with:
