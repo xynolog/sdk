@@ -93,7 +93,7 @@ The client's eight verb namespaces are `Client.Yield`, `Client.Mark`, `Client.Bi
 
 ## Live queries
 
-Get a query from `Client.Browse`, `Client.Match`, or `Client.Gather`. Use `Client.fresh` for a fresh answer, or `Client.observe` for state updates until you release the observation. The [checked example](https://github.com/xynolog/sdk/blob/v0.8.1/ocaml/sdk/examples/builder.ml) reads and watches a resource.
+Get a query from `Client.Browse`, `Client.Match`, or `Client.Gather`. Use `Client.fresh` for a fresh answer, or `Client.observe` for state updates until you release the observation. The [checked example](https://github.com/xynolog/sdk/blob/v0.8.2/ocaml/sdk/examples/builder.ml) reads and watches a resource.
 
 For a durable cache, pass a `Storage_persister` to `Client.connect`. Give it a key scoped to the knowledge base and signed-in principal. The client debounces cache writes and advances a stored replay cursor only when the matching scoped cache values can be saved with it. A write the storage refuses stays owed, and the client says it on `Client.errors` as `session.save-refused`.
 
