@@ -5,11 +5,12 @@
 #   swift/scripts/distribution.sh <version> <out dir>
 #
 # The tree, <out dir>/sdk-swift, holds the SDK's library targets, a manifest
-# distribution-manifest.py derives from swift/sdk's, and the LICENSE, NOTICE,
-# README and changelog. It is then committed to a scratch git repository, tagged
-# <version>, and a package that depends on it by URL at exactly that version
-# is built, as an application would depend on it. Run in the pinned Swift
-# container, from a checkout with python3 and git on the path.
+# and a Swift Package Index .spi.yml that distribution-manifest.py derives
+# from swift/sdk's, and the LICENSE, NOTICE, README and changelog. It is then
+# committed to a scratch git repository, tagged <version>, and a package that
+# depends on it by URL at exactly that version is built, as an application
+# would depend on it. Run in the pinned Swift container, from a checkout with
+# python3 and git on the path.
 set -eu
 version=$1
 tree="$2/sdk-swift"
@@ -23,6 +24,7 @@ swift package dump-package > "$work/dump.json"
 python3 "$manifest" manifest "$work/dump.json" > "$work/Package.swift"
 mkdir -p "$tree/Sources"
 mv "$work/Package.swift" "$tree/Package.swift"
+python3 "$manifest" spi "$work/dump.json" > "$tree/.spi.yml"
 python3 "$manifest" targets "$work/dump.json" > "$work/targets"
 while IFS= read -r target; do cp -a "Sources/$target" "$tree/Sources/$target"; done < "$work/targets"
 cp "$root/LICENSE" "$root/swift/distribution/NOTICE" "$root/swift/distribution/README.md" "$root/swift/sdk/CHANGELOG.md" "$tree/"
