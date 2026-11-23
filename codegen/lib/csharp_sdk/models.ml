@@ -7,9 +7,8 @@
    those made in place too, is what the SDK validates a value against
    (WireSchemas).
 
-   A schema that states an allOf is modelled as what its parts merge to
-   ([Normalize]), each model made in place of that written as the validator
-   reads it ([Schema.runtime]). An object's properties are in order of
+   A schema that states an allOf is modelled as what its validated parts
+   merge to ([Normalize]), and validated as that merge. An object's properties are in order of
    name. One that is required is [required]; one that
    is required, not nullable and admits one string is that string, and is no
    property to set; one that is optional is nullable; and one that is
@@ -22,10 +21,9 @@ module C = Csharp_syntax
 
 type definition = {
   schema : Schema.t;  (** As a writer of types reads it. *)
-  validated : Schema.t;  (** The schema [json] is. *)
-  json : Yojson.Safe.t;
-      (** As Protocol writes it, a [$ref] into a table naming the record there
-          by its title, for WireSchemas. *)
+  validated : Schema.t;
+      (** As the SDK validates a value against it (WireSchemas), of which
+          [schema] is the shape ([Normalize.shape_only]). *)
 }
 
 exception Refused of string
@@ -58,49 +56,51 @@ let layer what = function
   | Schema.Schema s -> s
   | Boolean_schema _ -> refuse "%s is not a schema object." what
 
-(* What a member of [json] is, as Protocol writes it. *)
-let child key = function
-  | `Assoc members -> (
-      match List.assoc_opt key members with
-      | Some v -> v
-      | None -> refuse "a schema has no %s" key)
-  | _ -> refuse "a schema is no object"
+(* What a validated schema states at a place its shape states, which the
+   shape keeps of it ([Normalize.shape_only]). *)
+let stated what = function
+  | Some s -> s
+  | None -> refuse "the schema validated states no %s" what
 
-let nth i = function
-  | `List items -> List.nth items i
-  | _ -> refuse "a schema's composition is no list"
+let property_of key v = stated key (Option.bind (layer key v).properties (List.assoc_opt key))
+let items_of v = stated "items" (layer "items" v).items
+
+let values_of v =
+  match (layer "additionalProperties" v).additional_properties with
+  | Some (Schema _ as values) -> values
+  | Some (Boolean_schema _) | None -> refuse "the schema validated states no additionalProperties"
+
+let member_of keyword i v =
+  let l = layer keyword v in
+  stated keyword
+    (Option.bind
+       (match keyword with "oneOf" -> l.one_of | _ -> l.any_of)
+       (fun members -> List.nth_opt members i))
 
 (* What the models read of a schema: every part a schema object, and a type
    one name, where the model of a schema reads a list of one type as that
    type. A schema of parts the models cannot read fails the run rather than
    making a model of less than it says. *)
-let rec readable path ((schema : Schema.t), json) =
+let rec readable path ((schema : Schema.t), validated) =
   let s = layer path schema in
   (match s.type_ with
   | Some ([ _ ] | [ _; Null ]) | None -> ()
   | Some _ -> refuse "%s has an unsupported type." path);
   Option.iter
-    (fun own ->
-      let members = child "properties" json in
-      List.iter
-        (fun (name, p) -> readable (path ^ "." ^ name) (p, child name members))
-        own)
+    (List.iter (fun (name, p) ->
+         readable (path ^ "." ^ name) (p, property_of name validated)))
     s.properties;
-  Option.iter
-    (fun items -> readable (path ^ "[]") (items, child "items" json))
-    s.items;
+  Option.iter (fun i -> readable (path ^ "[]") (i, items_of validated)) s.items;
   (match s.additional_properties with
-  | Some (Schema _ as values) ->
-      readable (path ^ ".*") (values, child "additionalProperties" json)
+  | Some (Schema _ as v) -> readable (path ^ ".*") (v, values_of validated)
   | Some (Boolean_schema _) | None -> ());
   List.iter
     (fun (keyword, parts) ->
       Option.iter
         (List.iteri (fun i part ->
-             readable (path ^ "." ^ keyword) (part, nth i (child keyword json))))
+             readable (path ^ "." ^ keyword) (part, member_of keyword i validated)))
         parts)
     [ ("oneOf", s.one_of); ("anyOf", s.any_of); ("allOf", s.all_of) ]
-
 
 type state = {
   definitions : (string, definition) Hashtbl.t;
@@ -171,7 +171,7 @@ let rec named state name =
         Hashtbl.replace state.written name (declare state name d));
       C.T (types ^ name))
 
-and inline state owner property (schema, json) =
+and inline state owner property (schema, validated) =
   let key = owner ^ "." ^ property in
   match Hashtbl.find_opt state.inlined key with
   | Some known -> C.T (types ^ known)
@@ -183,20 +183,21 @@ and inline state owner property (schema, json) =
           owner property
       in
       Hashtbl.replace state.inlined key name;
-      let d = { schema; validated = schema; json } in
+      let d = { schema; validated } in
       define state name d;
       Hashtbl.replace state.written name [];
       Hashtbl.replace state.written name (declare state name d);
       C.T (types ^ name)
 
 (* The type of a value of [owner]'s [property], whose schema is [schema]. *)
-and type_of state owner property ((schema, json) as node) =
+and type_of state owner property ((schema, validated) as node) =
   let s = layer (owner ^ "." ^ property) schema in
   match beside_null s with
-  | Some beside -> type_of state owner property (Schema.Schema beside, json)
+  | Some beside ->
+      type_of state owner property (Schema.Schema beside, validated)
   | None -> type_of_beside_null state owner property node s
 
-and type_of_beside_null state owner property ((_, json) as node) s =
+and type_of_beside_null state owner property ((_, validated) as node) s =
   let inline () = inline state owner property node in
   match s with
   | { ref_ = Some r; _ } -> named state (referenced state r)
@@ -210,7 +211,7 @@ and type_of_beside_null state owner property ((_, json) as node) s =
   | { type_ = Some [ Boolean ]; _ } -> T "bool"
   | { type_ = Some [ Array ]; items = Some items; _ } ->
       generic "IReadOnlyList"
-        [ type_of state owner (property ^ "Item") (items, child "items" json) ]
+        [ type_of state owner (property ^ "Item") (items, items_of validated) ]
   | { type_ = Some [ Object ]; properties = Some (_ :: _); _ }
   | { type_ = Some [ Object ]; max_properties = Some 0; _ }
   | {
@@ -228,7 +229,7 @@ and type_of_beside_null state owner property ((_, json) as node) s =
         [
           T "string";
           type_of state owner (property ^ "Value")
-            (values, child "additionalProperties" json);
+            (values, values_of validated);
         ]
   | { type_ = Some [ Object ]; _ } -> element
   | { type_ = None; _ } when Schema.keywords s = [] -> element
@@ -245,45 +246,25 @@ and declare state name original =
   | { enum = Some values; _ } ->
       enum name ~attribute:(read_as "WireEnum") values
   | { one_of = Some members; _ } ->
-      union state name (members, child "oneOf" d.json)
+      union state name "oneOf" (members, d.validated)
   | { any_of = Some members; _ } ->
-      union state name (members, child "anyOf" d.json)
+      union state name "anyOf" (members, d.validated)
   | _ -> object_ state name ~attribute:(read_as "WireObject") ~original d
 
-(* [d] as what it means: one that states an allOf, what its parts merge to,
-   written as the validator reads it. The parts are merged as a writer of
-   types reads them, so one whose validated schema states what that reading
-   drops ([Normalize.dropped]) is refused: its validator would accept what
-   the schema refuses. *)
+(* [d] as what it means: one that states an allOf, what its validated
+   parts merge to, of which the model is the shape. *)
 and meant state name d =
   match layer name d.schema with
   | { all_of = None; _ } -> d
   | _ ->
-      let parts = ref [ d ] in
-      let schema =
-        Schema.Schema
-          (merged state name d.schema ~found:(fun part ->
-               parts := part :: !parts))
-      in
-      List.iter
-        (fun part ->
-          match Normalize.dropped part.validated with
-          | [] -> ()
-          | keyword :: _ ->
-              refuse "%s merges its allOf to a validator that drops %s." name
-                keyword)
-        !parts;
-      { d with schema; json = Schema.runtime schema }
+      let validated = Schema.Schema (merged state name d.validated) in
+      { schema = Normalize.shape_only validated; validated }
 
-(* [name]'s [schema] with its allOf merged ([Normalize]), each definition a
-   part names [found]. *)
-and merged state name ~found schema =
+(* [name]'s validated [schema] with its allOf merged ([Normalize]). *)
+and merged state name schema =
   match
     Normalize.normalize state.ids
-      ~find:(fun r ->
-        let part = definition state (referenced state r) in
-        found part;
-        Ok part.schema)
+      ~find:(fun r -> Ok (definition state (referenced state r)).validated)
       schema
   with
   | Ok s -> s
@@ -329,8 +310,7 @@ and object_ state name ~attribute ~original d =
   let properties =
     match s.properties with
     | Some own ->
-        let members = child "properties" d.json in
-        List.map (fun (key, p) -> (key, (p, child key members))) own
+        List.map (fun (key, p) -> (key, (p, property_of key d.validated))) own
     | None -> []
   in
   let required = Option.value s.required ~default:[] in
@@ -461,7 +441,7 @@ and object_ state name ~attribute ~original d =
 
 (* The case a union's member is: what it refers to, Array, Text, or the one
    string its first property that admits one admits, else Object. *)
-and union state name (members, written) =
+and union state name keyword (members, validated) =
   let variant (s : Schema.schema) =
     match s with
     | { ref_ = Some r; _ } -> referenced state r
@@ -483,9 +463,9 @@ and union state name (members, written) =
   let cases =
     List.mapi
       (fun i member ->
-        let v = variant (merged state name ~found:ignore member) in
+        let v = variant (merged state name member) in
         ( identifier (Text.pascal v) ^ "Case",
-          type_of state name v (member, nth i written) ))
+          type_of state name v (member, member_of keyword i validated) ))
       members
   in
   let names = List.map fst cases in
@@ -529,7 +509,7 @@ and union state name (members, written) =
 
 type t = {
   models : (string * definition * C.decl list) list;  (** By name. *)
-  schemas : (string * Yojson.Safe.t) list;
+  schemas : (string * Schema.t) list;
       (** Every schema the models are made from, in the order each was named. *)
   member_type : string -> string -> string option;
       (** The model of its own a member of a model is made as. *)
@@ -553,7 +533,7 @@ let make ~ids ~identifiers ~roots ~made =
   try
     List.iter
       (fun (name, path, d) ->
-        readable path (d.schema, d.json);
+        readable path (d.schema, d.validated);
         Hashtbl.replace state.read_from path name;
         define state name d)
       roots;
@@ -571,7 +551,7 @@ let make ~ids ~identifiers ~roots ~made =
         models;
         schemas =
           List.rev_map
-            (fun name -> (name, (definition state name).json))
+            (fun name -> (name, (definition state name).validated))
             state.order;
         member_type =
           (fun owner property ->

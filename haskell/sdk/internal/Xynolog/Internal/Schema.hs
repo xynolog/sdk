@@ -104,7 +104,7 @@ checkSchema schemas schema = do
     Nothing -> pure ()
     Just (Number _) -> pure ()
     Just _ -> Left (show key ++ " must be a number")
-  forM_ ["minLength", "maxLength", "minItems", "maxItems", "maxProperties"] $ \key -> case KM.lookup key fields of
+  forM_ ["minLength", "maxLength", "minItems", "maxItems", "minProperties", "maxProperties"] $ \key -> case KM.lookup key fields of
     Nothing -> pure ()
     Just (Number number) -> case floatingOrInteger number :: Either Double Integer of
       Right count -> ensure (count >= 0) (show key ++ " must be non-negative")
@@ -126,7 +126,7 @@ checkSchema schemas schema = do
     Nothing -> pure ()
     Just (Object properties) -> mapM_ (checkSchema schemas) properties
     Just _ -> Left "properties is not an object"
-  forM_ ["items", "additionalProperties"] $ \key -> case KM.lookup key fields of
+  forM_ ["items", "additionalProperties", "propertyNames", "not"] $ \key -> case KM.lookup key fields of
     Nothing -> pure ()
     Just (Bool _) | key == "additionalProperties" -> pure ()
     Just value -> checkSchema schemas value
@@ -150,6 +150,9 @@ checkSchema schemas schema = do
         "additionalProperties",
         "items",
         "enum",
+        "const",
+        "not",
+        "propertyNames",
         "oneOf",
         "anyOf",
         "format",
@@ -161,6 +164,7 @@ checkSchema schemas schema = do
         "minItems",
         "maxItems",
         "uniqueItems",
+        "minProperties",
         "maxProperties",
         "default",
         "examples",
@@ -197,6 +201,9 @@ validate schemas original value = do
       case KM.lookup "enum" schema of
         Just (Array values) -> ensure (value `V.elem` values) "unknown enumeration member"
         _ -> pure ()
+      case KM.lookup "const" schema of
+        Just constant -> ensure (value == constant) "not the constant value"
+        Nothing -> pure ()
       forM_ ["oneOf", "anyOf"] $ \key -> case KM.lookup key schema of
         Just (Array alternatives) -> do
           let accepted = V.length (V.filter (\branch -> either (const False) (const True) (validate schemas branch value)) alternatives)
@@ -204,54 +211,60 @@ validate schemas original value = do
             (if key == "oneOf" then accepted == 1 else accepted > 0)
             (T.unpack (Key.toText key) ++ " rejected value (matched " ++ show accepted ++ " branches)")
         _ -> pure ()
+      case KM.lookup "not" schema of
+        Just refused -> ensure (either (const True) (const False) (validate schemas refused value)) "value matches a schema it must not"
+        Nothing -> pure ()
       case KM.lookup "type" schema of
-        Just (String "string") -> case value of
-          String text -> do
-            lengthBounds schema "minLength" "maxLength" (T.length text)
-            case KM.lookup "pattern" schema of
-              Just (String expression) -> do
-                patternValue <- compilePattern expression
-                ensure (matchTest patternValue (T.unpack text)) "string does not match pattern"
-              _ -> pure ()
-          _ -> Left "expected string"
-        Just (String "integer") -> case value of
-          Number number -> case floatingOrInteger number :: Either Double Integer of
-            Left _ -> Left "expected integer"
-            Right _ -> numberBounds schema number
-          _ -> Left "expected integer"
-        Just (String "number") -> case value of
-          Number number -> numberBounds schema number
-          _ -> Left "expected number"
-        Just (String "boolean") -> case value of Bool _ -> pure (); _ -> Left "expected boolean"
-        Just (String "null") -> case value of Null -> pure (); _ -> Left "expected null"
-        Just (String "array") -> case value of
-          Array items -> do
-            lengthBounds schema "minItems" "maxItems" (V.length items)
-            when
-              (KM.lookup "uniqueItems" schema == Just (Bool True))
-              (ensure (length (nub (toList items)) == V.length items) "duplicate array item")
-            case KM.lookup "items" schema of
-              Just itemSchema -> mapM_ (validate schemas itemSchema) items
-              Nothing -> Left "array schema has no items"
-          _ -> Left "expected array"
-        Just (String "object") -> case value of
-          Object fields -> do
-            lengthBounds schema "minProperties" "maxProperties" (KM.size fields)
-            let properties = case KM.lookup "properties" schema of Just (Object p) -> p; _ -> KM.empty
-            case KM.lookup "required" schema of
-              Just (Array required) -> forM_ required $ \key -> case key of
-                String name -> ensure (KM.member (Key.fromText name) fields) ("missing required field: " ++ T.unpack name)
-                _ -> Left "required field is not a string"
-              _ -> pure ()
-            forM_ (KM.toList fields) $ \(key, member) -> case KM.lookup key properties of
+        Just (String name) -> ensure (admits name value) ("expected " ++ T.unpack name)
+        Nothing -> pure ()
+        _ -> Left "unsupported schema type"
+      case value of
+        String text -> do
+          lengthBounds schema "minLength" "maxLength" (T.length text)
+          case KM.lookup "pattern" schema of
+            Just (String expression) -> do
+              patternValue <- compilePattern expression
+              ensure (matchTest patternValue (T.unpack text)) "string does not match pattern"
+            _ -> pure ()
+        Number number -> numberBounds schema number
+        Array items -> do
+          lengthBounds schema "minItems" "maxItems" (V.length items)
+          when
+            (KM.lookup "uniqueItems" schema == Just (Bool True))
+            (ensure (length (nub (toList items)) == V.length items) "duplicate array item")
+          case KM.lookup "items" schema of
+            Just itemSchema -> mapM_ (validate schemas itemSchema) items
+            Nothing -> ensure (KM.lookup "type" schema /= Just (String "array")) "array schema has no items"
+        Object fields -> do
+          lengthBounds schema "minProperties" "maxProperties" (KM.size fields)
+          let properties = case KM.lookup "properties" schema of Just (Object p) -> p; _ -> KM.empty
+          case KM.lookup "required" schema of
+            Just (Array required) -> forM_ required $ \key -> case key of
+              String name -> ensure (KM.member (Key.fromText name) fields) ("missing required field: " ++ T.unpack name)
+              _ -> Left "required field is not a string"
+            _ -> pure ()
+          forM_ (KM.toList fields) $ \(key, member) -> do
+            case KM.lookup "propertyNames" schema of
+              Just names -> either (Left . ((show key ++ ": ") ++)) Right (validate schemas names (String (Key.toText key)))
+              Nothing -> pure ()
+            case KM.lookup key properties of
               Just fieldSchema -> either (Left . ((show key ++ ": ") ++)) Right (validate schemas fieldSchema member)
               Nothing -> case KM.lookup "additionalProperties" schema of
                 Just (Bool False) -> Left ("unknown object field: " ++ show key)
                 Just extra@(Object _) -> validate schemas extra member
                 _ -> pure ()
-          _ -> Left "expected object"
-        Nothing -> pure ()
-        _ -> Left "unsupported schema type"
+        _ -> pure ()
+
+-- Whether [value] is of the JSON Schema type [name].
+admits :: Text -> Value -> Bool
+admits "string" (String _) = True
+admits "integer" (Number number) = either (const False :: Double -> Bool) (const True :: Integer -> Bool) (floatingOrInteger number)
+admits "number" (Number _) = True
+admits "boolean" (Bool _) = True
+admits "null" Null = True
+admits "array" (Array _) = True
+admits "object" (Object _) = True
+admits _ _ = False
 
 lengthBounds :: Object -> Key.Key -> Key.Key -> Int -> Either String ()
 lengthBounds schema low high size = do
