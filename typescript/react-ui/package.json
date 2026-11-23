@@ -28,8 +28,8 @@
     "dist",
     "!dist/**/*.map",
     "src/styles",
-    "src/components",
-    "src/features",
+    "src/components/**/*.css",
+    "src/features/**/*.css",
     "translations",
     "README.md"
   ],
@@ -107,6 +107,10 @@
     "type": "git",
     "url": "git+https://github.com/xynolog/sdk.git",
     "directory": "typescript/react-ui"
+  },
+  "homepage": "https://github.com/xynolog/sdk#readme",
+  "bugs": {
+    "url": "https://github.com/xynolog/sdk/issues"
   },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.2",

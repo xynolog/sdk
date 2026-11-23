@@ -64,7 +64,7 @@ for (const [name, path] of [
   ['exported JavaScript subpath', 'typescript/core/dist/openapi.js'],
   ['exported type declaration', 'typescript/core/dist/testing/issuer.d.ts'],
   ['exported CSS', 'typescript/react-ui/src/styles/variables.css'],
-  ['required asset directory', 'typescript/react-ui/src/components'],
+  ['CSS that the exported CSS imports', 'typescript/react-ui/src/components'],
 ]) {
   test(`${name} must exist before registry replacement`, () => {
     const f = fixture();
