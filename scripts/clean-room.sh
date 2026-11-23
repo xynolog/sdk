@@ -145,7 +145,9 @@ case "$LANGUAGE" in
     # The source distribution as Hackage builds it: on the newest GHC
     # tested-with names, from a fresh index, with its documentation. The
     # repository's tests build with the lowest, cabal.project's with-compiler,
-    # which tested-with must name.
+    # which tested-with must name. cabal haddock builds every dependency with
+    # its documentation, as a unit apart from one built without, so the build
+    # builds them with it too, and each is built once.
     tested="$(field haskell/sdk/xynolog.cabal '^tested-with: (GHC == .*)$')"
     compiler="$(field haskell/sdk/cabal.project '^with-compiler: ghc-([0-9.]+)$')"
     versions="$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' <<< "$tested" | sort -V)"
@@ -154,7 +156,7 @@ case "$LANGUAGE" in
       cabal update >/dev/null
       mkdir app && cd app && cp /consumer/consumer.cabal /consumer/Main.hs .
       printf "packages: . /bundle/xynolog-%s.tar.gz\n" "$VERSION" > cabal.project
-      cabal build --jobs exe:consumer
+      cabal build --enable-documentation --jobs exe:consumer
       cabal haddock --jobs xynolog'
     ;;
   ocaml)
