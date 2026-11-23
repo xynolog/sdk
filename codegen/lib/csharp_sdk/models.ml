@@ -101,14 +101,6 @@ let rec readable path ((schema : Schema.t), json) =
         parts)
     [ ("oneOf", s.one_of); ("anyOf", s.any_of); ("allOf", s.all_of) ]
 
-(* A schema the SDK validates against states no keyword its validator does
-   not read, as the Haskell SDK's states none of its: a model of one would
-   accept what the schema refuses. *)
-let validate path ((schema : Schema.t), json) =
-  readable path (schema, json);
-  match Schema.unread_anywhere schema with
-  | [] -> ()
-  | keyword :: _ -> refuse "%s uses unsupported schema keyword %s." path keyword
 
 type state = {
   definitions : (string, definition) Hashtbl.t;
@@ -259,19 +251,39 @@ and declare state name original =
   | _ -> object_ state name ~attribute:(read_as "WireObject") ~original d
 
 (* [d] as what it means: one that states an allOf, what its parts merge to,
-   written as the validator reads it. *)
+   written as the validator reads it. The parts are merged as a writer of
+   types reads them, so one whose validated schema states what that reading
+   drops ([Normalize.dropped]) is refused: its validator would accept what
+   the schema refuses. *)
 and meant state name d =
   match layer name d.schema with
   | { all_of = None; _ } -> d
   | _ ->
-      let schema = Schema.Schema (merged state name d.schema) in
+      let parts = ref [ d ] in
+      let schema =
+        Schema.Schema
+          (merged state name d.schema ~found:(fun part ->
+               parts := part :: !parts))
+      in
+      List.iter
+        (fun part ->
+          match Normalize.dropped part.validated with
+          | [] -> ()
+          | keyword :: _ ->
+              refuse "%s merges its allOf to a validator that drops %s." name
+                keyword)
+        !parts;
       { d with schema; json = Schema.runtime schema }
 
-(* [name]'s [schema] with its allOf merged ([Normalize]). *)
-and merged state name schema =
+(* [name]'s [schema] with its allOf merged ([Normalize]), each definition a
+   part names [found]. *)
+and merged state name ~found schema =
   match
     Normalize.normalize state.ids
-      ~find:(fun r -> Ok (definition state (referenced state r)).schema)
+      ~find:(fun r ->
+        let part = definition state (referenced state r) in
+        found part;
+        Ok part.schema)
       schema
   with
   | Ok s -> s
@@ -471,7 +483,7 @@ and union state name (members, written) =
   let cases =
     List.mapi
       (fun i member ->
-        let v = variant (merged state name member) in
+        let v = variant (merged state name ~found:ignore member) in
         ( identifier (Text.pascal v) ^ "Case",
           type_of state name v (member, nth i written) ))
       members
@@ -541,7 +553,7 @@ let make ~ids ~identifiers ~roots ~made =
   try
     List.iter
       (fun (name, path, d) ->
-        validate path (d.validated, d.json);
+        readable path (d.schema, d.json);
         Hashtbl.replace state.read_from path name;
         define state name d)
       roots;

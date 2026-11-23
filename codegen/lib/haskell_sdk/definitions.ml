@@ -114,7 +114,16 @@ let components (spec : Spec.t) =
          ^ name)
       else
         match List.assoc_opt file spec.schemas with
-        | Some s -> Result.map (fun s -> (name, s)) (in_place (Normalize.shape_only s))
+        | Some s -> (
+            match Schema.unread_anywhere s @ Normalize.dropped s with
+            | [] ->
+                Result.map
+                  (fun s -> (name, s))
+                  (in_place (Normalize.shape_only s))
+            | keyword :: _ ->
+                Error
+                  (file ^ " states " ^ keyword
+                 ^ ", which the SDK's validator does not read"))
         | None -> Error ("no schema file " ^ file))
     (Roots.all spec)
 

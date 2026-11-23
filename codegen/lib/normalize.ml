@@ -364,34 +364,55 @@ let several_types = function
         }
   | s -> s
 
-let shape_only : Schema.t -> Schema.t =
-  let constrains (owner : Schema.t Schema.layer) (member : Schema.t) =
-    let narrows = function
-      | Schema.Schema l ->
-          List.for_all
-            (fun k -> List.mem k [ "const"; "enum"; "description" ])
-            (Schema.keywords l)
-      | Schema.Boolean_schema _ -> false
-    in
-    match member with
-    | Schema.Boolean_schema _ -> false
+(* [several_types] at every place of a schema: a schema that validates as it
+   does. *)
+let several_types_throughout : Schema.t -> Schema.t =
+  Schema.cata
+    ~boolean:(fun b -> Schema.Boolean_schema b)
+    ~schema:(fun l -> several_types (Schema.Schema l))
+
+(* Whether [member] of [owner]'s [oneOf] or [anyOf] only holds the object to
+   its own members ([shape_only]). *)
+let constrains (owner : Schema.t Schema.layer) (member : Schema.t) =
+  let narrows = function
     | Schema.Schema l ->
         List.for_all
-          (fun k -> List.mem k [ "required"; "not"; "properties"; "description" ])
+          (fun k -> List.mem k [ "const"; "enum"; "description" ])
           (Schema.keywords l)
-        && List.for_all
-             (fun (name, value) ->
-               narrows value
-               && List.mem_assoc name (Option.value owner.properties ~default:[]))
-             (Option.value l.properties ~default:[])
+    | Schema.Boolean_schema _ -> false
   in
+  match member with
+  | Schema.Boolean_schema _ -> false
+  | Schema.Schema l ->
+      List.for_all
+        (fun k -> List.mem k [ "required"; "not"; "properties"; "description" ])
+        (Schema.keywords l)
+      && List.for_all
+           (fun (name, value) ->
+             narrows value
+             && List.mem_assoc name (Option.value owner.properties ~default:[]))
+           (Option.value l.properties ~default:[])
+
+let only_constraints owner = function
+  | Some members -> List.for_all (constrains owner) members
+  | None -> false
+
+(* What [shape_only] drops of a schema that a validator reads: each keyword,
+   at any place. *)
+let rec dropped = function
+  | Schema.Boolean_schema _ -> []
+  | Schema.Schema l ->
+      List.filter
+        (fun k -> List.mem k [ "not"; "minProperties"; "propertyNames" ])
+        (Schema.keywords l)
+      @ (if only_constraints l l.one_of then [ "oneOf" ] else [])
+      @ (if only_constraints l l.any_of then [ "anyOf" ] else [])
+      @ List.concat_map dropped (Schema.children l)
+
+let shape_only : Schema.t -> Schema.t =
   Schema.cata
     ~boolean:(fun b -> Schema.Boolean_schema b)
     ~schema:(fun l ->
-      let only_constraints = function
-        | Some members -> List.for_all (constrains l) members
-        | None -> false
-      in
       Schema.Schema
         {
           l with
@@ -405,7 +426,7 @@ let shape_only : Schema.t -> Schema.t =
           not_ = None;
           min_properties = None;
           property_names = None;
-          one_of = (if only_constraints l.one_of then None else l.one_of);
-          any_of = (if only_constraints l.any_of then None else l.any_of);
+          one_of = (if only_constraints l l.one_of then None else l.one_of);
+          any_of = (if only_constraints l l.any_of then None else l.any_of);
         }
       |> several_types)

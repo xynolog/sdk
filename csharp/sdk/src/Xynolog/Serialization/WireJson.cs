@@ -41,22 +41,28 @@ internal static partial class WireJson
         if (schema.TryGetProperty("oneOf", out var alternatives) || schema.TryGetProperty("anyOf", out alternatives))
         {
             Select(alternatives, value, path);
-            return;
+        }
+        if (schema.TryGetProperty("not", out var refused) && Admitted(refused, value, path))
+        {
+            throw new JsonException(path + ": matches a schema it must not");
+        }
+        if (schema.TryGetProperty("const", out var constant) && !JsonElement.DeepEquals(constant, value))
+        {
+            throw new JsonException(path + ": not the constant value");
         }
         if (schema.TryGetProperty("enum", out var choices) && !choices.EnumerateArray().Any(choice => JsonElement.DeepEquals(choice, value)))
         {
             throw new JsonException(path + ": unknown enumeration value");
         }
-        if (!schema.TryGetProperty("type", out var type))
+        if (schema.TryGetProperty("type", out var type))
         {
-            return;
-        }
-        var types = type.ValueKind == JsonValueKind.Array
-            ? type.EnumerateArray().Select(name => name.GetString()).ToArray()
-            : [type.GetString()];
-        if (!types.Any(name => Admits(name, value)))
-        {
-            throw new JsonException(path + ": expected " + string.Join(" or ", types));
+            var types = type.ValueKind == JsonValueKind.Array
+                ? type.EnumerateArray().Select(name => name.GetString()).ToArray()
+                : [type.GetString()];
+            if (!types.Any(name => Admits(name, value)))
+            {
+                throw new JsonException(path + ": expected " + string.Join(" or ", types));
+            }
         }
         if (value.ValueKind == JsonValueKind.Object)
         {
@@ -90,6 +96,15 @@ internal static partial class WireJson
                     }
                 }
             }
+            if (schema.TryGetProperty("propertyNames", out var names))
+            {
+                foreach (var member in value.EnumerateObject())
+                {
+                    using var name = JsonDocument.Parse(JsonSerializer.Serialize(member.Name));
+                    Validate(names, name.RootElement, path + "." + member.Name);
+                }
+            }
+            Bound(schema, "minProperties", value.EnumerateObject().Count(), path, true);
             Bound(schema, "maxProperties", value.EnumerateObject().Count(), path, false);
         }
         if (value.ValueKind == JsonValueKind.Array)
@@ -150,6 +165,19 @@ internal static partial class WireJson
         if (schema.TryGetProperty(keyword, out var bound) && (minimum ? value < bound.GetDouble() : value > bound.GetDouble()))
         {
             throw new JsonException(path + ": violates " + keyword);
+        }
+    }
+
+    private static bool Admitted(JsonElement schema, JsonElement value, string path)
+    {
+        try
+        {
+            Validate(schema, value, path);
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
         }
     }
 

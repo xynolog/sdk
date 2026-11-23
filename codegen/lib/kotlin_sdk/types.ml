@@ -447,10 +447,13 @@ and plain_declaration st name ~owner raw : written =
             refuse "%s: only string enumerations are generated" name;
           enum_declaration name values about
       | None ->
-          if is_string st raw then
-            Alias
-              (K.Typealias
-                 { about; visibility = K.Public; name; type_ = t "String" })
+          let alias held =
+            Alias (K.Typealias { about; visibility = K.Public; name; type_ = t held })
+          in
+          if is_string st raw then alias "String"
+          else if type_name raw = Some Integer then alias "Long"
+          else if type_name raw = Some Number then alias "Double"
+          else if type_name raw = Some Boolean then alias "Boolean"
           else if type_name raw <> Some Object then
             refuse "%s: a schema shape the generator does not know" name
           else
@@ -984,7 +987,7 @@ and union_declaration st name members told_apart about : written =
           let target_schema = schema st.spec target in
           let reads =
             if enum target_schema <> None then [ `Text ]
-            else if union target_schema <> None then [ `Text; `List; `Object ]
+            else if union target_schema <> None then [ `Text; `Scalar; `List; `Object ]
             else [ `Object ]
           in
           if implementable st (t type_) then member type_ reads
@@ -1006,6 +1009,12 @@ and union_declaration st name members told_apart about : written =
             [ `Object ]
       | _ when is_string st m ->
           variant "Text" (wrapped name "Text" (t "String")) [ `Text ]
+      | _ when type_name m = Some Integer ->
+          variant "Integer" (wrapped name "Integer" (t "Long")) [ `Scalar ]
+      | _ when type_name m = Some Number ->
+          variant "Number" (wrapped name "Number" (t "Double")) [ `Scalar ]
+      | _ when type_name m = Some Boolean ->
+          variant "Boolean" (wrapped name "Boolean" (t "Boolean")) [ `Scalar ]
       | _ when type_name m = Some Array ->
           variant "List"
             (wrapped name "List"
@@ -1065,6 +1074,7 @@ and union_declaration st name members told_apart about : written =
             [
               K.arg (K.Class_literal name);
               K.arg ~label:"strings" (fits `Text);
+              K.arg ~label:"scalars" (fits `Scalar);
               K.arg ~label:"arrays" (fits `List);
               K.arg ~label:"objects" (fits `Object);
             ]

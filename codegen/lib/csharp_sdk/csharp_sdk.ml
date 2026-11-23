@@ -97,18 +97,40 @@ let roots ~root (spec : Spec.t) =
       (fun message -> [ { Decode.file = specs; pointer = ""; message } ])
       (Table_records.all spec)
   in
-  let read ~file name path validated json =
-    ( name,
-      path,
-      {
-        Models.schema = Normalize.shape_only validated;
-        validated;
-        json = titled spec.ids ~file records json;
-      } )
+  (* What the validator reads of [s] ([Schema.runtime]), which writes no
+     keyword [Schema.unread] names: a schema that states one is refused. *)
+  let runtime path s =
+    match Schema.unread_anywhere s with
+    | [] -> Ok (Schema.runtime s)
+    | keyword :: _ ->
+        Error
+          [
+            {
+              Decode.file = path;
+              pointer = "";
+              message =
+                "is validated as Schema.runtime writes it, which drops "
+                ^ keyword;
+            };
+          ]
+  in
+  (* A schema is validated as what it is, each place of several types the
+     [anyOf] of each ([Normalize.several_types_throughout]): the union a model
+     of it reads. Its source is the bytes Protocol writes where those are what
+     is validated, else what the validator reads of it. *)
+  let read ~file name path schema json =
+    let validated = Normalize.several_types_throughout schema in
+    let* json = if validated = schema then Ok json else runtime path validated in
+    Ok
+      ( name,
+        path,
+        {
+          Models.schema = Normalize.shape_only validated;
+          validated;
+          json = titled spec.ids ~file records json;
+        } )
   in
   let written = Definitions.whole spec in
-  (* A schema is read as a writer reads one whole ([Definitions.whole]), and
-     validated as what it is then. *)
   let whole name path =
     let* stated = schema_of spec path in
     let* schema =
@@ -116,10 +138,9 @@ let roots ~root (spec : Spec.t) =
         (fun message -> [ { Decode.file = path; pointer = ""; message } ])
         (written stated)
     in
-    let* json =
-      if schema = stated then json ~root path else Ok (Schema.runtime schema)
-    in
-    Ok (read ~file:path name path schema json)
+    (* A schema is read as a writer reads one whole ([Definitions.whole]). *)
+    let* json = if schema = stated then json ~root path else runtime path schema in
+    read ~file:path name path schema json
   in
   let record (key, name, schema) =
     let file, pointer =
@@ -131,7 +152,7 @@ let roots ~root (spec : Spec.t) =
     in
     let* table = json ~root file in
     match Decode.at_pointer pointer table with
-    | Some json -> Ok (read ~file name key schema json)
+    | Some json -> read ~file name key schema json
     | None ->
         Error [ { Decode.file; pointer; message = "states no record there" } ]
   in

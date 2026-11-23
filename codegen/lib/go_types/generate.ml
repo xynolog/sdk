@@ -205,7 +205,13 @@ and declaration st name (s : D.t) =
                         def = G.Struct { fields = []; spacing = Packed };
                       };
                   ]
-              | None | Some (D.Bool true) -> alias (G.Map (named "string", any))
+              | None | Some (D.Bool true) ->
+                  (* A type of its own, not an alias: the required table holds
+                     a value of it to whatever rules its schema states. *)
+                  [
+                    G.Type
+                      { doc; name; def = G.Is (G.Map (named "string", any)) };
+                  ]
               | Some values ->
                   alias (G.Map (named "string", type_of st name "Value" values))
               ))

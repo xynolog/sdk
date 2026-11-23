@@ -49,8 +49,8 @@ exception Refused of string
 
 let refuse fmt = Printf.ksprintf (fun message -> raise (Refused message)) fmt
 
-(* [s] with each [$ref] to a file [named] names none of written in its
-   place, from [schemas]. What is said beside such a [$ref] is said of what
+(* [s] with each [$ref] to a file, or to a place within one, that [named]
+   names none of written in its place, from [schemas]. What is said beside such a [$ref] is said of what
    is written there, in place of what that says of itself. A file written in
    place that reaches itself would be written in place without end. *)
 let files_in_place ~ids ~schemas ~named s =
@@ -60,23 +60,32 @@ let files_in_place ~ids ~schemas ~named s =
         match l.ref_ with
         | None -> Schema.Schema (Schema.map (files trail) l)
         | Some r -> (
+            let key = function
+              | file, "" -> file
+              | file, pointer -> file ^ "#" ^ pointer
+            in
             match Decode.resolve ids r with
-            | file, "" when Option.is_none (named file) -> (
-                if List.mem file trail then
+            | (file, pointer) as place
+              when Option.is_none (named (key place))
+                   && not (String.starts_with ~prefix:"/$defs/" pointer) -> (
+                let at = key place in
+                if List.mem at trail then
                   refuse
                     "%s reaches itself through the files written in its place"
-                    file;
+                    at;
                 let description =
                   match said_of_reference l r with
                   | Ok d -> d
                   | Error message -> refuse "%s" message
                 in
-                match
-                  ( Option.map
-                      (files (file :: trail))
-                      (Hashtbl.find_opt schemas file),
-                    description )
-                with
+                (* A place within a file is the schema there; one of its own
+                   [$defs] is the writers' to name. *)
+                let target =
+                  Option.bind (Hashtbl.find_opt schemas file) (fun whole ->
+                      if pointer = "" then Some whole
+                      else Pointer.schema whole pointer)
+                in
+                match (Option.map (files (at :: trail)) target, description) with
                 | None, _ -> refuse "$ref %s names no schema" r.target
                 | Some written, None -> written
                 | Some (Schema.Schema t), Some _ ->

@@ -111,6 +111,19 @@ let common_prefix names =
       !prefix
   | _ -> ""
 
+(* An integer's type: the narrowest its bounds allow of [u16], [u64] and
+   [i64]. *)
+let integer_ty (n : D.node) =
+  let int = function
+    | Some f when Float.is_integer f -> Some (int_of_float f)
+    | _ -> None
+  in
+  ty
+    (match (int n.minimum, int n.maximum) with
+    | Some min, Some max when min >= 0 && max <= 65535 -> "u16"
+    | Some min, _ when min >= 0 -> "u64"
+    | _ -> "i64")
+
 let derive paths =
   R.List
     ( [ "derive" ],
@@ -350,19 +363,7 @@ and type_of st owner property (s : D.t) =
                       | Boolean -> ty "bool"
                       | Number -> ty "f64"
                       | Null -> refuse "%s: null alone" what
-                      | Integer ->
-                          let int = function
-                            | Some f when Float.is_integer f ->
-                                Some (int_of_float f)
-                            | _ -> None
-                          in
-                          ty
-                            (match (int n.minimum, int n.maximum) with
-                            | Some min, Some max when min >= 0 && max <= 65535
-                              ->
-                                "u16"
-                            | Some min, _ when min >= 0 -> "u64"
-                            | _ -> "i64")
+                      | Integer -> integer_ty n
                       | Array -> (
                           match n.items with
                           | Some items ->
@@ -428,6 +429,12 @@ and declaration st name (s : D.t) =
       else if List.mem name st.generation.identifiers then identifier name n doc
       else if View.is_string st.definitions s then
         [ R.Type_alias { doc; vis = Pub; name; ty = string_ty } ]
+      else if n.type_ = Some (D.One Integer) then
+        [ R.Type_alias { doc; vis = Pub; name; ty = integer_ty n } ]
+      else if n.type_ = Some (D.One Number) then
+        [ R.Type_alias { doc; vis = Pub; name; ty = ty "f64" } ]
+      else if n.type_ = Some (D.One Boolean) then
+        [ R.Type_alias { doc; vis = Pub; name; ty = ty "bool" } ]
       else if n.type_ <> Some (D.One Object) then
         refuse "%s: a schema shape the generator does not know" name
       else structure st name ~owner n doc

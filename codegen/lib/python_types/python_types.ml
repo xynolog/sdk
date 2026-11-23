@@ -237,9 +237,10 @@ and member st union (s : D.t) =
   match s with
   | D.Node n when View.without_null s = None && is_class n ->
       let variant =
-        match discriminant n with
-        | Some v -> v
-        | None -> if properties n = [] then "Empty" else "Object"
+        match (discriminant n, n.title) with
+        | Some v, _ -> v
+        | None, Some title -> title
+        | None, None -> if properties n = [] then "Empty" else "Object"
       in
       let name = named st union variant in
       declare st name (declaration st name s);
