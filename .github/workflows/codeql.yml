@@ -37,7 +37,8 @@ jobs:
           EVENT: ${{ github.event_name }}
         run: |
           languages="$(bash scripts/languages-to-build.sh "$EVENT")"
-          analyses="$(python3 scripts/codeql-analyses.py "$languages")"
+          main="$(bash scripts/languages-to-build.sh push)"
+          analyses="$(python3 scripts/codeql-analyses.py "$languages" "$main")"
           echo "Scanning: $analyses"
           echo "analyses=$analyses" >> "$GITHUB_OUTPUT"
 

@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """Print, as a JSON list of matrix entries, the CodeQL analyses for the SDK languages a run builds.
 
-Usage: codeql-analyses.py <sdk-languages>
+Usage: codeql-analyses.py <sdk-languages> <main-languages>
 
-<sdk-languages> is the JSON list languages-to-build.sh prints. Each SDK
-language is scanned as the CodeQL languages its sources are written in; Haskell
-and OCaml, which CodeQL does not read, are scanned for their C. GitHub Actions
-is scanned when every SDK language is built: a change to the workflows touches
-every language, and main's runs build every language.
-
-An SDK language with no CodeQL language here fails the run, so a new SDK
-language is scanned from its first build or the workflow says why not.
+Each argument is a JSON list languages-to-build.sh prints: the SDK languages
+this run builds, and those a push to main builds, every one. An SDK is
+scanned in every CodeQL language its directory holds a source file of, as git
+lists them: Haskell and OCaml, which CodeQL does not read, for their C and
+Python. GitHub Actions is scanned when the run builds what main does: a change
+to the workflows touches every language, and main's runs build every language.
 """
 
 import json
+import subprocess
 import sys
+from pathlib import PurePosixPath
 
 # Each analysis's build mode and runner. CodeQL analyzes Swift on macOS alone,
 # and no Swift newer than 6.3 (Xcode 26), nor any build traced under Xcode 27
@@ -32,38 +32,61 @@ ANALYSES: dict[str, dict[str, str]] = {
     "swift": {"build-mode": "manual", "runner": "macos-26"},
 }
 
-SCANNED_AS: dict[str, str] = {
-    "typescript": "javascript-typescript",
-    "python": "python",
-    "rust": "rust",
-    "go": "go",
-    "csharp": "csharp",
-    "haskell": "c-cpp",
-    "kotlin": "java-kotlin",
-    "ocaml": "c-cpp",
-    "swift": "swift",
+# The CodeQL language that reads a source file, by its extension.
+READ_BY: dict[str, str] = {
+    ".c": "c-cpp",
+    ".cc": "c-cpp",
+    ".cpp": "c-cpp",
+    ".cxx": "c-cpp",
+    ".h": "c-cpp",
+    ".hh": "c-cpp",
+    ".hpp": "c-cpp",
+    ".cs": "csharp",
+    ".go": "go",
+    ".java": "java-kotlin",
+    ".kt": "java-kotlin",
+    ".kts": "java-kotlin",
+    ".cjs": "javascript-typescript",
+    ".cts": "javascript-typescript",
+    ".js": "javascript-typescript",
+    ".jsx": "javascript-typescript",
+    ".mjs": "javascript-typescript",
+    ".mts": "javascript-typescript",
+    ".ts": "javascript-typescript",
+    ".tsx": "javascript-typescript",
+    ".py": "python",
+    ".pyi": "python",
+    ".rs": "rust",
+    ".swift": "swift",
 }
 
 WORKFLOWS = "actions"
 
 
-def analyses(languages: list[str]) -> list[dict[str, str]]:
-    unscanned = [language for language in languages if language not in SCANNED_AS]
-    if unscanned:
-        sys.exit(f"codeql-analyses.py: no CodeQL language scans the SDK language(s) {', '.join(unscanned)}")
-    selected = {SCANNED_AS[language] for language in languages}
-    if set(languages) == set(SCANNED_AS):
+def read_in(language: str) -> set[str]:
+    files = subprocess.run(["git", "ls-files", "--", language], stdout=subprocess.PIPE, text=True, check=True).stdout
+    if not files:
+        sys.exit(f"codeql-analyses.py: git lists no file under {language}/")
+    suffixes = {PurePosixPath(path).suffix for path in files.splitlines()}
+    return {READ_BY[suffix] for suffix in suffixes if suffix in READ_BY}
+
+
+def analyses(languages: list[str], as_main: bool) -> list[dict[str, str]]:
+    selected = {read for language in languages for read in read_in(language)}
+    if as_main:
         selected.add(WORKFLOWS)
     return [{"language": name, **ANALYSES[name]} for name in ANALYSES if name in selected]
 
 
 def main() -> None:
-    unreachable = set(ANALYSES) - set(SCANNED_AS.values()) - {WORKFLOWS}
+    unreachable = set(ANALYSES) - set(READ_BY.values()) - {WORKFLOWS}
     if unreachable:
-        sys.exit(f"codeql-analyses.py: no SDK language selects the analyses {', '.join(sorted(unreachable))}")
-    if len(sys.argv) != 2:
-        sys.exit("Usage: codeql-analyses.py <sdk-languages>")
-    print(json.dumps(analyses(json.loads(sys.argv[1]))))
+        sys.exit(f"codeql-analyses.py: no extension selects the analyses {', '.join(sorted(unreachable))}")
+    if len(sys.argv) != 3:
+        sys.exit("Usage: codeql-analyses.py <sdk-languages> <main-languages>")
+    languages: list[str] = json.loads(sys.argv[1])
+    main_languages: list[str] = json.loads(sys.argv[2])
+    print(json.dumps(analyses(languages, set(languages) == set(main_languages))))
 
 
 if __name__ == "__main__":
