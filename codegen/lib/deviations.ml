@@ -31,6 +31,11 @@ let closed_empty_named (form : T.form) =
    [@context] is, as a map of whatever members it is given, where [Typing]
    has it hold none. *)
 
+(* Go declares a named map whose key and item types carry every constraint
+   its schema states ([LastEventIds]) as a type of its own, where [Typing]
+   has it an alias of the map: go/internal/required attaches what a value
+   is held to to a named type. *)
+
 (* Go and Python hold a member that may be left out and one that may be
    null alike (a pointer, [T | None]), where [Typing] has them apart
    ([member.required], [Nullable]). *)

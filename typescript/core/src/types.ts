@@ -6982,7 +6982,10 @@ export interface records {
    * Where a knowledge base's stream was: for each scope, a resource's id, the
    * id of the last recorded event delivered on it.
    */
-  LastEventIds: { [key: string]: components['schemas']['PersistedEventId'] };
+  LastEventIds: Record<
+    components['schemas']['ResourceId'],
+    components['schemas']['PersistedEventId']
+  >;
   /**
    * Which looser search found a quoted selection, stated of a span whose
    * `anchorMethod` is `fuzzy-match` and only then. Which search finds it is

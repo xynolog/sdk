@@ -92,6 +92,9 @@ the coming release's, and gathers its changes as they land.
   (`components['schemas']['KnowledgeGraph']['nodes'][number]`). A property of
   one value is still that literal. `@xynolog/core` exports every type
   `types.ts` declares, so `records` and `tables` too, beside `components`.
+- `LastEventIds` is keyed by `ResourceId`, as its schema's `propertyNames`
+  states, where any text was a key: a map whose members' names Protocol
+  holds to a kind of id is a `Record` of that kind.
 
 ### Removed
 

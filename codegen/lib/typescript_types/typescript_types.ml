@@ -121,7 +121,9 @@ and form_of ~names (form : Typing.form)
       match form with
       | Record { members; rest } -> object_of ~names members rest
       | Empty { rest; _ } -> object_of ~names [] rest
-      | Map { value; _ } -> object_of ~names [] (Of value)
+      | Map { key = Some key; value } ->
+          T_generic ("Record", [ names.named key; type_of ~names value ])
+      | Map { key = None; value } -> object_of ~names [] (Of value)
       | Enum { values; _ } -> union (List.map literal values)
       | Alias ty -> type_of ~names ty
       | Union { branches; _ } ->
