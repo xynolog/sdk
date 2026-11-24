@@ -8,6 +8,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `ServiceEnvironmentVariable`: every environment variable a Xynolog service
+  reads, beside its configuration document, by its name
+  (`ServiceEnvironmentVariable.xynologBusLog`). The bus log reads its variable
+  by it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,

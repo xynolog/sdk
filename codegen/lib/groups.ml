@@ -22,6 +22,7 @@ let sdk =
     { name = "identifiers"; files = Identifiers.files };
     { name = "oauth-clients"; files = Oauth_clients.files };
     { name = "telemetry"; files = Telemetry.files };
+    { name = "service-environment"; files = Service_environment.files };
     { name = "sign-in"; files = Sign_in.files };
     { name = "media-types"; files = Media_types.files };
     { name = "stored"; files = Stored.files };

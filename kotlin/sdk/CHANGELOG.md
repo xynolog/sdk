@@ -8,6 +8,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `xynolog.services.ServiceEnvironmentVariable`: every environment variable a
+  Xynolog service reads, beside its configuration document, a constant of its
+  name (`XYNOLOG_BUS_LOG`). The bus log reads its variable by it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
@@ -18,7 +21,7 @@ the coming release's, and gathers its changes as they land.
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
 - `xynolog.services.ServiceTables`: every table the services keep to, each
-  read as its schema's type (`GatewayMessages`, `ServiceEnvironmentVariables`,
+  read as its schema's type (`GatewayMessages`, `ServiceEnvironmentVariable`,
   `ArchivistLayout`, …, now in `xynolog.types`): the variables a service
   reads and its boot refusals, its telemetry and log lines, its messages,
   the jobs' budgets and storage, the bounds of the bus's replies, the

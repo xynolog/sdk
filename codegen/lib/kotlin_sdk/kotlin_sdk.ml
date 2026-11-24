@@ -9,6 +9,7 @@ module Rule = Rule
 module Types = Types
 module Service_tables = Service_tables
 module Control = Control
+module Service_environment = Service_environment
 module K = Kotlin_syntax
 
 let ( let* ) = Result.bind
@@ -288,13 +289,21 @@ let control (types_spec : Types.spec) (spec : Spec.t) =
          :: List.map (fun n -> Types.types_package ^ "." ^ n) named)
        decls)
 
+(* The environment variables the services read ([Service_environment]), in
+   the package of the services' tables. *)
+let service_environment (spec : Spec.t) =
+  table ~from_:Service_environment.from_ Service_environment.writer
+    ~package:Service_tables.package ~name:Service_environment.name
+    ~imports:[ "xynolog.Generated" ]
+    (Service_environment.declarations spec.tables.service_environment_variables)
+
 let files ~root (spec : Spec.t) =
   let* tables = service_tables ~root spec in
   let* routes = archivist_routes spec in
   let* control =
     Result.bind (types_of spec) (fun types_spec -> control types_spec spec)
   in
-  let tables = [ control; routes; tables ] in
+  let tables = [ control; routes; tables; service_environment spec ] in
   Result.map_error refused
     (let* files = generate spec in
      let files = files @ tables in

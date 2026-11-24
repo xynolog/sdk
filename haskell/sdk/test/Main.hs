@@ -70,6 +70,7 @@ import Xynolog.Internal.Generated.DiscoveryReasonRoundTrip qualified as Discover
 import Xynolog.Internal.Generated.ErrorRoundTrip (roundTripError)
 import Xynolog.Internal.Generated.RoundTrip (roundTrip)
 import Xynolog.Internal.Generated.Schemas (schemas)
+import Xynolog.Internal.Generated.ServiceEnvironmentValues (serviceEnvironmentValues)
 import Xynolog.Internal.Generated.TimingValues (timingValues)
 import Xynolog.Internal.Required qualified as Required
 import Xynolog.Internal.Schema (checkSchema, validate, validateNamed)
@@ -410,6 +411,9 @@ factCases root = do
         [] -> case ranges status of (_, code) : _ -> code; [] -> at "unclassified" transport
   forM_ [0 .. 600] $ \status ->
     require "HTTP status classifier differs from spec" (String (Errors.transportCode (Errors.transportCodeFromStatus status)) == expected status)
+  environment <- readJSON (root </> "protocol/specs/src/service-environment/variables.json")
+  let expectedEnvironment = Map.fromList [(T.unpack name, T.unpack name) | row <- array (at "variables" environment), String name <- [at "name" row]]
+  require "service environment variables differ from spec" (not (Map.null expectedEnvironment) && expectedEnvironment == serviceEnvironmentValues)
   timings <- readJSON (root </> "protocol/specs/src/client/timing.json")
   let expectedTiming = Map.fromList [(key, at "value" row) | row <- array (at "timing" timings), String key <- [at "name" row]]
   require "timing constants or retry budgets differ from spec" (not (Map.null expectedTiming) && expectedTiming == timingValues)

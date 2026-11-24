@@ -289,15 +289,6 @@ let span_of_row ({ start; end_; exact; prefix; suffix } : Builders.span) :
 
 let created = "2026-01-01T00:00:00.000Z"
 
-let refusal_code : Annotations.span_refusal -> string = function
-  | Span_out_of_range -> "span-out-of-range"
-  | Item_out_of_range -> "item-out-of-range"
-  | Exact_mismatch -> "exact-mismatch"
-  | Nothing_located -> "nothing-located"
-  | Exact_not_covered -> "exact-not-covered"
-  | Prefix_mismatch -> "prefix-mismatch"
-  | Suffix_mismatch -> "suffix-mismatch"
-
 (* What a builder made, held to the annotation a case states, or to the
    refusal it states. *)
 let built expected build =
@@ -316,7 +307,9 @@ let built expected build =
   | exception Annotations.Span_refused { code } -> (
       match expected with
       | `Refused refused ->
-          Alcotest.(check string) "refusal" refused (refusal_code code)
+          Alcotest.(check string)
+            "refusal" refused
+            (Error_codes.Span_refusal.code code)
       | `Annotation _ -> Alcotest.fail "the builder refused the span")
 
 (* Shared span builders from annotations/builder-cases.json. *)

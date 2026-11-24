@@ -8287,7 +8287,7 @@ module Log_record = struct
   type t = {
     request_id : Yojson.Raw.t;
     service : string;
-    stream : string;
+    stream : Enums.Output_stream.t;
     line : string;
     received_at : string;
     extra : (string * Yojson.Raw.t) list;
@@ -8299,7 +8299,7 @@ module Log_record = struct
       {
         request_id = required reader raw "requestId";
         service = required reader string "service";
-        stream = required reader string "stream";
+        stream = required reader (enum Enums.Output_stream.of_string) "stream";
         line = required reader string "line";
         received_at = required reader string "receivedAt";
         extra = [];
@@ -8315,7 +8315,7 @@ module Log_record = struct
       [
         ("requestId", Some (json_raw value.request_id));
         ("service", Some (json_string value.service));
-        ("stream", Some (json_string value.stream));
+        ("stream", Some ((json_enum Enums.Output_stream.to_string) value.stream));
         ("line", Some (json_string value.line));
         ("receivedAt", Some (json_string value.received_at));
       ]
@@ -8705,13 +8705,17 @@ module Roots_list_params = struct
 end
 
 module Runtime_state = struct
-  type t = { name : string; found : bool; extra : (string * Yojson.Raw.t) list }
+  type t = {
+    name : Enums.Runtime.t;
+    found : bool;
+    extra : (string * Yojson.Raw.t) list;
+  }
 
   let project fields =
     let reader = start fields in
     let record =
       {
-        name = required reader string "name";
+        name = required reader (enum Enums.Runtime.of_string) "name";
         found = required reader bool "found";
         extra = [];
       }
@@ -8724,7 +8728,7 @@ module Runtime_state = struct
   let to_json (value : t) =
     write
       [
-        ("name", Some (json_string value.name));
+        ("name", Some ((json_enum Enums.Runtime.to_string) value.name));
         ("found", Some (json_bool value.found));
       ]
       value.extra
@@ -8736,7 +8740,7 @@ end
 module Service_host_params = struct
   type t = {
     api_version : string;
-    runtime : string option;
+    runtime : Enums.Runtime.t option;
     extra : (string * Yojson.Raw.t) list;
   }
 
@@ -8745,7 +8749,7 @@ module Service_host_params = struct
     let record =
       {
         api_version = required reader string "apiVersion";
-        runtime = maybe reader string "runtime";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
         extra = [];
       }
     in
@@ -8758,7 +8762,7 @@ module Service_host_params = struct
     write
       [
         ("apiVersion", Some (json_string value.api_version));
-        ("runtime", Option.map json_string value.runtime);
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
       value.extra
 
@@ -8769,7 +8773,7 @@ end
 
 module Service_host_result = struct
   type t = {
-    runtime : string;
+    runtime : Enums.Runtime.t;
     address : string;
     extra : (string * Yojson.Raw.t) list;
   }
@@ -8778,7 +8782,7 @@ module Service_host_result = struct
     let reader = start fields in
     let record =
       {
-        runtime = required reader string "runtime";
+        runtime = required reader (enum Enums.Runtime.of_string) "runtime";
         address = required reader string "address";
         extra = [];
       }
@@ -8791,7 +8795,7 @@ module Service_host_result = struct
   let to_json (value : t) =
     write
       [
-        ("runtime", Some (json_string value.runtime));
+        ("runtime", Some ((json_enum Enums.Runtime.to_string) value.runtime));
         ("address", Some (json_string value.address));
       ]
       value.extra
@@ -8805,7 +8809,7 @@ module Service_output = struct
   type t = {
     request_id : Yojson.Raw.t;
     instance : string;
-    stream : string;
+    stream : Enums.Output_stream.t;
     line : string;
     extra : (string * Yojson.Raw.t) list;
   }
@@ -8816,7 +8820,7 @@ module Service_output = struct
       {
         request_id = required reader raw "requestId";
         instance = required reader string "instance";
-        stream = required reader string "stream";
+        stream = required reader (enum Enums.Output_stream.of_string) "stream";
         line = required reader string "line";
         extra = [];
       }
@@ -8831,7 +8835,7 @@ module Service_output = struct
       [
         ("requestId", Some (json_raw value.request_id));
         ("instance", Some (json_string value.instance));
-        ("stream", Some (json_string value.stream));
+        ("stream", Some ((json_enum Enums.Output_stream.to_string) value.stream));
         ("line", Some (json_string value.line));
       ]
       value.extra
@@ -8968,7 +8972,7 @@ module Service_status = struct
 
   type t = {
     role : string;
-    group : string;
+    group : Enums.Service_group.t;
     product : string option;
     runs_on : string option;
     state : State.t;
@@ -8987,7 +8991,7 @@ module Service_status = struct
     let record =
       {
         role = required reader string "role";
-        group = required reader string "group";
+        group = required reader (enum Enums.Service_group.of_string) "group";
         product = maybe reader string "product";
         runs_on = maybe reader string "runsOn";
         state = required reader (enum State.of_string) "state";
@@ -9010,7 +9014,7 @@ module Service_status = struct
     write
       [
         ("role", Some (json_string value.role));
-        ("group", Some (json_string value.group));
+        ("group", Some ((json_enum Enums.Service_group.to_string) value.group));
         ("product", Option.map json_string value.product);
         ("runsOn", Option.map json_string value.runs_on);
         ("state", Some ((json_enum State.to_string) value.state));
@@ -12285,7 +12289,7 @@ module Auth_login_params = struct
   type t = {
     api_version : string;
     target : Target.t option;
-    runtime : string option;
+    runtime : Enums.Runtime.t option;
     extra : (string * Yojson.Raw.t) list;
   }
 
@@ -12295,7 +12299,7 @@ module Auth_login_params = struct
       {
         api_version = required reader string "apiVersion";
         target = maybe reader (record Target.project) "target";
-        runtime = maybe reader string "runtime";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
         extra = [];
       }
     in
@@ -12309,7 +12313,7 @@ module Auth_login_params = struct
       [
         ("apiVersion", Some (json_string value.api_version));
         ("target", Option.map Target.to_json value.target);
-        ("runtime", Option.map json_string value.runtime);
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
       value.extra
 
@@ -12322,7 +12326,7 @@ module Auth_logout_params = struct
   type t = {
     api_version : string;
     target : Target.t option;
-    runtime : string option;
+    runtime : Enums.Runtime.t option;
     extra : (string * Yojson.Raw.t) list;
   }
 
@@ -12332,7 +12336,7 @@ module Auth_logout_params = struct
       {
         api_version = required reader string "apiVersion";
         target = maybe reader (record Target.project) "target";
-        runtime = maybe reader string "runtime";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
         extra = [];
       }
     in
@@ -12346,7 +12350,7 @@ module Auth_logout_params = struct
       [
         ("apiVersion", Some (json_string value.api_version));
         ("target", Option.map Target.to_json value.target);
-        ("runtime", Option.map json_string value.runtime);
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
       value.extra
 
@@ -12518,7 +12522,7 @@ module Knowledge_base_status = struct
     site_name : Yojson.Raw.t Types.presence;
     identity_error : string option;
     kb : Discovered_kb.t option;
-    runtime : string option;
+    runtime : Enums.Runtime.t option;
     gateway : string option;
     secret_store : string option;
     lan : string option;
@@ -12544,7 +12548,7 @@ module Knowledge_base_status = struct
         site_name = optional reader raw "siteName";
         identity_error = maybe reader string "identityError";
         kb = maybe reader (record Discovered_kb.project) "kb";
-        runtime = maybe reader string "runtime";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
         gateway = maybe reader string "gateway";
         secret_store = maybe reader string "secretStore";
         lan = maybe reader string "lan";
@@ -12575,7 +12579,7 @@ module Knowledge_base_status = struct
         ("siteName", present json_raw value.site_name);
         ("identityError", Option.map json_string value.identity_error);
         ("kb", Option.map Discovered_kb.to_json value.kb);
-        ("runtime", Option.map json_string value.runtime);
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("gateway", Option.map json_string value.gateway);
         ("secretStore", Option.map json_string value.secret_store);
         ("lan", Option.map json_string value.lan);
@@ -12596,7 +12600,7 @@ module Logs_follow_params = struct
   type t = {
     api_version : string;
     target : Target.t option;
-    runtime : string option;
+    runtime : Enums.Runtime.t option;
     service : string option;
     extra : (string * Yojson.Raw.t) list;
   }
@@ -12607,7 +12611,7 @@ module Logs_follow_params = struct
       {
         api_version = required reader string "apiVersion";
         target = maybe reader (record Target.project) "target";
-        runtime = maybe reader string "runtime";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
         service = maybe reader string "service";
         extra = [];
       }
@@ -12622,7 +12626,7 @@ module Logs_follow_params = struct
       [
         ("apiVersion", Some (json_string value.api_version));
         ("target", Option.map Target.to_json value.target);
-        ("runtime", Option.map json_string value.runtime);
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("service", Option.map json_string value.service);
       ]
       value.extra
@@ -12670,8 +12674,8 @@ module Service_run_params = struct
   type t = {
     api_version : string;
     target : Local_target.t;
-    runtime : string option;
-    service : string;
+    runtime : Enums.Runtime.t option;
+    service : Enums.Run_service.t;
     instance : string;
     document : string option;
     args : string list option;
@@ -12688,8 +12692,8 @@ module Service_run_params = struct
       {
         api_version = required reader string "apiVersion";
         target = required reader (record Local_target.project) "target";
-        runtime = maybe reader string "runtime";
-        service = required reader string "service";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+        service = required reader (enum Enums.Run_service.of_string) "service";
         instance = required reader string "instance";
         document = maybe reader string "document";
         args = maybe reader (list string) "args";
@@ -12710,8 +12714,8 @@ module Service_run_params = struct
       [
         ("apiVersion", Some (json_string value.api_version));
         ("target", Some (Local_target.to_json value.target));
-        ("runtime", Option.map json_string value.runtime);
-        ("service", Some (json_string value.service));
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
+        ("service", Some ((json_enum Enums.Run_service.to_string) value.service));
         ("instance", Some (json_string value.instance));
         ("document", Option.map json_string value.document);
         ("args", Option.map (json_list json_string) value.args);
@@ -12742,7 +12746,7 @@ module Service_signal_params = struct
   type t = {
     api_version : string;
     target : Local_target.t;
-    runtime : string option;
+    runtime : Enums.Runtime.t option;
     instance : string;
     signal : Signal.t;
     extra : (string * Yojson.Raw.t) list;
@@ -12754,7 +12758,7 @@ module Service_signal_params = struct
       {
         api_version = required reader string "apiVersion";
         target = required reader (record Local_target.project) "target";
-        runtime = maybe reader string "runtime";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
         instance = required reader string "instance";
         signal = required reader (enum Signal.of_string) "signal";
         extra = [];
@@ -12770,7 +12774,7 @@ module Service_signal_params = struct
       [
         ("apiVersion", Some (json_string value.api_version));
         ("target", Some (Local_target.to_json value.target));
-        ("runtime", Option.map json_string value.runtime);
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("instance", Some (json_string value.instance));
         ("signal", Some ((json_enum Signal.to_string) value.signal));
       ]
@@ -12854,10 +12858,10 @@ module Stack_start_params = struct
   type t = {
     api_version : string;
     target : Target.t option;
-    runtime : string option;
+    runtime : Enums.Runtime.t option;
     config : string option;
     service : string option;
-    group : string option;
+    group : Enums.Service_group.t option;
     codespace_name : string option;
     machine : string option;
     idle_timeout : string option;
@@ -12874,10 +12878,10 @@ module Stack_start_params = struct
       {
         api_version = required reader string "apiVersion";
         target = maybe reader (record Target.project) "target";
-        runtime = maybe reader string "runtime";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
         config = maybe reader string "config";
         service = maybe reader string "service";
-        group = maybe reader string "group";
+        group = maybe reader (enum Enums.Service_group.of_string) "group";
         codespace_name = maybe reader string "codespaceName";
         machine = maybe reader string "machine";
         idle_timeout = maybe reader string "idleTimeout";
@@ -12898,10 +12902,11 @@ module Stack_start_params = struct
       [
         ("apiVersion", Some (json_string value.api_version));
         ("target", Option.map Target.to_json value.target);
-        ("runtime", Option.map json_string value.runtime);
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("config", Option.map json_string value.config);
         ("service", Option.map json_string value.service);
-        ("group", Option.map json_string value.group);
+        ( "group",
+          Option.map (json_enum Enums.Service_group.to_string) value.group );
         ("codespaceName", Option.map json_string value.codespace_name);
         ("machine", Option.map json_string value.machine);
         ("idleTimeout", Option.map json_string value.idle_timeout);
@@ -12922,9 +12927,9 @@ module Stack_stop_params = struct
   type t = {
     api_version : string;
     target : Target.t option;
-    runtime : string option;
+    runtime : Enums.Runtime.t option;
     service : string option;
-    group : string option;
+    group : Enums.Service_group.t option;
     delete : bool option;
     delete_confirmed : bool option;
     dry_run : bool option;
@@ -12937,9 +12942,9 @@ module Stack_stop_params = struct
       {
         api_version = required reader string "apiVersion";
         target = maybe reader (record Target.project) "target";
-        runtime = maybe reader string "runtime";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
         service = maybe reader string "service";
-        group = maybe reader string "group";
+        group = maybe reader (enum Enums.Service_group.of_string) "group";
         delete = maybe reader bool "delete";
         delete_confirmed = maybe reader bool "deleteConfirmed";
         dry_run = maybe reader bool "dryRun";
@@ -12956,9 +12961,10 @@ module Stack_stop_params = struct
       [
         ("apiVersion", Some (json_string value.api_version));
         ("target", Option.map Target.to_json value.target);
-        ("runtime", Option.map json_string value.runtime);
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("service", Option.map json_string value.service);
-        ("group", Option.map json_string value.group);
+        ( "group",
+          Option.map (json_enum Enums.Service_group.to_string) value.group );
         ("delete", Option.map json_bool value.delete);
         ("deleteConfirmed", Option.map json_bool value.delete_confirmed);
         ("dryRun", Option.map json_bool value.dry_run);
@@ -12974,7 +12980,7 @@ module Status_snapshot_params = struct
   type t = {
     api_version : string;
     target : Target.t option;
-    runtime : string option;
+    runtime : Enums.Runtime.t option;
     extra : (string * Yojson.Raw.t) list;
   }
 
@@ -12984,7 +12990,7 @@ module Status_snapshot_params = struct
       {
         api_version = required reader string "apiVersion";
         target = maybe reader (record Target.project) "target";
-        runtime = maybe reader string "runtime";
+        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
         extra = [];
       }
     in
@@ -12998,7 +13004,7 @@ module Status_snapshot_params = struct
       [
         ("apiVersion", Some (json_string value.api_version));
         ("target", Option.map Target.to_json value.target);
-        ("runtime", Option.map json_string value.runtime);
+        ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
       value.extra
 

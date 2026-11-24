@@ -79,3 +79,18 @@ let file (m : Model.t) =
              m.bus_frame);
         client_secret_form m;
       ])
+
+(* The Archivist's HTTP operations as the OCaml SDK states them
+   (ocaml/sdk/lib/archivist_http.ml): each as its method and its path, whose
+   [{name}]s the caller fills, named for its operationId in snake case. *)
+let archivist (spec : Spec.t) =
+  O.implementation ~path:"ocaml/sdk/lib/archivist_http.ml"
+    ~banner:
+      (Banner.ocaml
+         ~from_:"protocol/specs/src/archivist/openapi.json and its paths"
+         __FILE__)
+    (List.map
+       (fun (operation_id, method_, path) ->
+         O.let_ (Text.snake operation_id)
+           (O.tuple [ O.string method_; O.string path ]))
+       (Model.archivist_operations spec))
