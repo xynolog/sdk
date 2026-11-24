@@ -63,7 +63,17 @@
 
    A part that can be wrong in no way is left out, and so is a union none of
    whose variants can be: what is left is what a value can be wrong in. A
-   component that can be wrong in no way is the empty shape. *)
+   component that can be wrong in no way is the empty shape.
+
+   A value's first fault is found in this order. Its [kinds], its [enum] and
+   its bounds ([pattern], [minLength] to [maxItems], [minMembers]): the value
+   is malformed. Of an object: each member [required] names, in its order,
+   that it lacks; each member [members] names, by name, that it holds; each
+   member [closed] does not name, by name, malformed; each member whose name
+   is not of [names], by name, malformed; each set of [notAll], in its order,
+   that it carries all of, the object malformed. Then [values], each by name;
+   [items], each by place; [oneOf]; and [allOf], each in its order. A reader
+   that meets a part it does not know refuses the table. *)
 
 type kind = Object | Array | String | Integer | Number | Boolean | Null
 

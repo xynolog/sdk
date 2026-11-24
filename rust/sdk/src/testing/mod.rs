@@ -3,7 +3,8 @@
 //! scripted sessions for a registry, a transport that misbehaves on a
 //! schedule, a content transport that keeps what it is given, a gateway
 //! that answers only what it was told to, a storage several contexts share,
-//! a way to write an id as text (`as_id`), and the harnesses that hold a state unit, and a composition over the bus,
+//! a way to write an id as text (`as_id`), the first fault a value has as a
+//! component schema (`schema_fault`), and the harnesses that hold a state unit, and a composition over the bus,
 //! to their axioms. Behind the `testing` feature.
 //!
 //! A double answers what a test told it to and refuses the rest by name. It
@@ -42,4 +43,16 @@ where
 {
     text.parse()
         .unwrap_or_else(|not_one| panic!("a test named an id that is not one: {not_one}"))
+}
+
+/// The first fault `value` has as the component schema `name`, as every SDK
+/// finds it: its way (the names of the members it is within, and its own,
+/// joined by dots; empty for the value itself) and why. Nothing when it has
+/// none. A name that is no component schema of the spec panics.
+pub fn schema_fault(
+    name: &str,
+    value: &mut serde_json::Value,
+) -> Option<(String, crate::types::FrameRefusalReason)> {
+    crate::required::fault_of(crate::required::schema(name), value)
+        .map(|crate::required::Fault { member, reason }| (member, reason))
 }

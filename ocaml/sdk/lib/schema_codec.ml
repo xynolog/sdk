@@ -164,6 +164,10 @@ and validate_all direction path parts value =
 
 and validate_kind direction path shape = function
   | `Assoc fields ->
+      let* () =
+        check path
+          (within Int.compare shape.min_members None (List.length fields))
+      in
       let* fields = validate_object direction path shape fields in
       Ok (`Assoc fields)
   | `List values -> (
@@ -186,7 +190,7 @@ and validate_kind direction path shape = function
         check path
           (within Int.compare shape.min_length shape.max_length length
           && Option.fold ~none:true
-               ~some:(fun steps -> Pattern.matches steps content)
+               ~some:(fun terms -> Pattern.matches terms content)
                shape.pattern)
       in
       Ok value
@@ -202,18 +206,18 @@ and validate_kind direction path shape = function
       Ok value
   | (`Bool _ | `Null) as value -> Ok value
 
-and validate_object direction path shape fields =
+and validate_object direction path shape received =
   let member key = List.assoc_opt key shape.members in
   let fields =
     match direction with
-    | Writing -> fields
+    | Writing -> received
     | Reading ->
         List.filter
           (fun (key, value) ->
             match member key with
             | Some shape -> not (unrecognized shape value)
             | None -> true)
-          fields
+          received
   in
   let* () =
     each
@@ -248,6 +252,25 @@ and validate_object direction path shape fields =
           (fun (key, _) -> check (child path key) (List.mem key names))
           (by_name fields))
       shape.closed
+  in
+  let* () =
+    Option.fold ~none:(Ok ())
+      ~some:(fun names ->
+        each
+          (fun (key, _) ->
+            check (child path key)
+              (Result.is_ok
+                 (validate direction "" names
+                    (`Stringlit (Yojson.Safe.to_string (`String key))))))
+          (by_name received))
+      shape.names
+  in
+  let* () =
+    each
+      (fun set ->
+        check path
+          (not (List.for_all (fun key -> List.mem_assoc key received) set)))
+      shape.not_all
   in
   match shape.values with
   | None -> Ok fields

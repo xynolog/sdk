@@ -6,6 +6,26 @@ the coming release's, and gathers its changes as they land.
 
 ## 0.8.2
 
+### Added
+
+- A type for every schema Protocol states, not only the gateway's components:
+  the Control API's methods, notifications and errors (`AboutParams`,
+  `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
+  `KnowledgeIndex`, `Runner`, …), `ProjectConfig`, `FollowerFollowing`, the
+  conformance documents, and the rest.
+- What a value is held to before it is read takes in more of its schema: a
+  pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
+  object may not carry together, the fewest members it carries, and what its
+  members' names must be.
+
+### Changed
+
+- The smelter's and the weaver's health name how far they have followed the
+  record as `FollowerFollowing`, the type Protocol states, in place of
+  `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
+- A schema of an object that names no members is a type of its own
+  (`type BrowseKbRequest map[string]any`), not an alias of `map[string]any`.
+
 ## 0.8.1
 
 ### Added

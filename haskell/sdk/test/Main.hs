@@ -49,6 +49,7 @@ import ResourceCases (resourceCases)
 import Runtime (runtimeCases)
 import SchemaCases qualified
 import SessionCases (sessionCases, sessionClockCases)
+import ShapeCases (shapeCases)
 import SignInStoreCases (signInStoreCases, storeWriter)
 import StateUnitCases (stateUnitCases)
 import SurfaceCases (surfaceCases)
@@ -373,6 +374,83 @@ retryCases root = do
     require "Retry-After differs from spec" (Retry.retryAfterMs header == expected)
   putStrLn "PASS all retry rules and Retry-After cases"
 
+-- | Holds the JSON text to the shape written as the table writes one.
+faultsAs :: Bytes.ByteString -> Bytes.ByteString -> Maybe Required.Fault -> IO ()
+faultsAs written text expected = do
+  shape <- either (ioError . userError . (("no required shape " ++ show written ++ ": ") ++)) pure (eitherDecodeStrict' written)
+  value <- either (ioError . userError) pure (eitherDecodeStrict' text)
+  let actual = Required.walk shape value ""
+  require (show text ++ " as " ++ show written ++ " has the fault " ++ show actual ++ ", not " ++ show expected) (actual == expected)
+
+-- | A pattern's group is one of its alternatives, repeated as often as it
+-- says, and a text is of the pattern when some reading of it takes all of it.
+-- An object carries no set of notAll whole, a member that holds null being
+-- carried; carries at least minMembers members; and names each of its members
+-- as names says. A reader refuses a part it does not know.
+requiredWalkerCases :: IO ()
+requiredWalkerCases = do
+  let malformed way = Just (Required.Fault way Required.Malformed)
+      lacks way = Just (Required.Fault way Required.Lacks)
+      letter = "{\"of\":[[97,122]],\"min\":1,\"max\":1}"
+      anything = "{\"of\":[[0,1114111]],\"min\":0}"
+      methodThen end = "{\"kinds\":[\"string\"],\"pattern\":[{\"either\":[[{\"of\":[[71,71]],\"min\":1,\"max\":1},{\"of\":[[69,69]],\"min\":1,\"max\":1},{\"of\":[[84,84]],\"min\":1,\"max\":1}],[{\"of\":[[80,80]],\"min\":1,\"max\":1},{\"of\":[[79,79]],\"min\":1,\"max\":1},{\"of\":[[83,83]],\"min\":1,\"max\":1},{\"of\":[[84,84]],\"min\":1,\"max\":1}]],\"min\":1,\"max\":1},{\"of\":[[32,32]],\"min\":1,\"max\":1},{\"of\":[[47,47]],\"min\":1,\"max\":1}" <> end <> "]}"
+      method = methodThen ("," <> anything)
+      anchoredMethod = methodThen ""
+  faultsAs method "\"GET /\"" Nothing
+  faultsAs method "\"POST /kb/x\"" Nothing
+  faultsAs method "\"PUT /\"" (malformed "")
+  faultsAs method "\"GET\"" (malformed "")
+  faultsAs anchoredMethod "\"GET /\"" Nothing
+  faultsAs anchoredMethod "\"GET /kb/x\"" (malformed "")
+
+  let kebab = "{\"kinds\":[\"string\"],\"pattern\":[{\"of\":[[97,122]],\"min\":1},{\"either\":[[{\"of\":[[45,45]],\"min\":1,\"max\":1},{\"of\":[[97,122]],\"min\":1}]],\"min\":0}]}"
+  faultsAs kebab "\"a\"" Nothing
+  faultsAs kebab "\"one-two-three\"" Nothing
+  faultsAs kebab "\"one--two\"" (malformed "")
+  faultsAs kebab "\"one-\"" (malformed "")
+
+  let twoOrThreeLetters = "{\"kinds\":[\"string\"],\"pattern\":[{\"either\":[[" <> letter <> "]],\"min\":2,\"max\":3}]}"
+  faultsAs twoOrThreeLetters "\"ab\"" Nothing
+  faultsAs twoOrThreeLetters "\"abc\"" Nothing
+  faultsAs twoOrThreeLetters "\"a\"" (malformed "")
+  faultsAs twoOrThreeLetters "\"abcd\"" (malformed "")
+
+  let lettersThenLetter = "{\"kinds\":[\"string\"],\"pattern\":[{\"either\":[[" <> letter <> "]],\"min\":0}," <> letter <> "]}"
+  faultsAs lettersThenLetter "\"abc\"" Nothing
+  faultsAs lettersThenLetter "\"\"" (malformed "")
+
+  let emptyRepeated = "{\"kinds\":[\"string\"],\"pattern\":[{\"either\":[[{\"of\":[[97,97]],\"min\":0}]],\"min\":0},{\"of\":[[98,98]],\"min\":1,\"max\":1}]}"
+  faultsAs emptyRepeated "\"aab\"" Nothing
+  faultsAs emptyRepeated "\"aac\"" (malformed "")
+
+  require "a term that is both a step and a group was read" (isLeft (eitherDecodeStrict' "{\"pattern\":[{\"of\":[[97,97]],\"either\":[],\"min\":1}]}" :: Either String Required.Shape))
+  require "a term with a part no reader knows was read" (isLeft (eitherDecodeStrict' "{\"pattern\":[{\"of\":[[97,97]],\"min\":1,\"times\":2}]}" :: Either String Required.Shape))
+  require "a shape with a part no reader knows was read" (isLeft (eitherDecodeStrict' "{\"kinds\":[\"object\"],\"notAny\":[[\"a\"]]}" :: Either String Required.Shape))
+
+  let portOrExternal = "{\"kinds\":[\"object\"],\"notAll\":[[\"port\",\"external\"]]}"
+  faultsAs portOrExternal "{\"port\":1}" Nothing
+  faultsAs portOrExternal "{\"external\":\"x\"}" Nothing
+  faultsAs portOrExternal "{\"port\":1,\"external\":\"x\"}" (malformed "")
+  faultsAs portOrExternal "{\"port\":1,\"external\":null}" (malformed "")
+
+  let oneOrMore = "{\"kinds\":[\"object\"],\"minMembers\":1}"
+  faultsAs oneOrMore "{\"a\":1}" Nothing
+  faultsAs oneOrMore "{}" (malformed "")
+
+  let lower = "{\"kinds\":[\"object\"],\"names\":{\"kinds\":[\"string\"],\"pattern\":[{\"of\":[[97,122]],\"min\":1}]}}"
+  faultsAs lower "{\"ab\":1,\"cd\":2}" Nothing
+  faultsAs lower "{\"ab\":1,\"Cd\":2,\"X\":3}" (malformed "Cd")
+  faultsAs ("{\"kinds\":[\"object\"],\"members\":[[\"providers\"," <> lower <> "]]}") "{\"providers\":{\"Cd\":2}}" (malformed "providers.Cd")
+
+  let ordered = "{\"kinds\":[\"object\"],\"required\":[\"a\"],\"names\":{\"kinds\":[\"string\"],\"pattern\":[{\"of\":[[97,122]],\"min\":1}]},\"notAll\":[[\"a\",\"b\"]]}"
+  faultsAs ordered "{\"B\":1}" (lacks "a")
+  faultsAs ordered "{\"a\":1,\"B\":1}" (malformed "B")
+  faultsAs ordered "{\"a\":1,\"b\":1}" (malformed "")
+  let boundedFirst = "{\"kinds\":[\"object\"],\"minMembers\":2,\"required\":[\"a\"]}"
+  faultsAs boundedFirst "{}" (malformed "")
+  faultsAs boundedFirst "{\"b\":1,\"c\":1}" (lacks "a")
+  putStrLn "PASS common required-shape reader holds patterns, notAll, minMembers and names in order"
+
 main :: IO ()
 main = do
   setFileSystemEncoding utf8
@@ -413,9 +491,11 @@ runCases root = do
       ("common required shape refused native sample: " ++ T.unpack name ++ " " ++ show (Required.faultOf name value))
       (Required.faultOf name value == Nothing)
   putStrLn "PASS common required-shape reader accepts every generated component sample"
+  requiredWalkerCases
   putStrLn "PASS generated schema samples, null presence, open members, exact numbers and enums"
   resourceCases root
   frameCases root
+  shapeCases root
   textCases root
   tokenStorageCases root
   signInStoreCases root

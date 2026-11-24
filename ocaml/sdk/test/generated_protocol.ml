@@ -127,6 +127,69 @@ let component_codecs () =
   | Error (M.Invalid_payload { member = "start"; reason = `Malformed }) -> ()
   | _ -> Alcotest.fail "expected a union branch fault at start"
 
+let required_table () =
+  let module M = Xynolog.Models in
+  let accepts model source =
+    match M.decode model source with
+    | Ok _ -> ()
+    | Error _ -> Alcotest.fail ("refused " ^ source)
+  in
+  let refuses model source =
+    match M.decode model source with
+    | Error (M.Invalid_payload _) -> ()
+    | _ -> Alcotest.fail ("expected a payload fault in " ^ source)
+  in
+  let faults model source member reason =
+    match M.decode model source with
+    | Error (M.Invalid_payload fault) ->
+        Alcotest.(check string) "fault member" member fault.member;
+        Alcotest.(check bool) "fault reason" true (fault.reason = reason)
+    | _ -> Alcotest.fail ("expected a payload fault in " ^ source)
+  in
+  (* A step's wire is ^(GET|POST|PUT|DELETE|PATCH) /, its end unanchored. *)
+  accepts M.conformance_step {|{"wire":"GET /resources"}|};
+  accepts M.conformance_step {|{"wire":"PATCH /"}|};
+  accepts M.conformance_step {|{"wire":"DELETE /a b\nc"}|};
+  refuses M.conformance_step {|{"wire":"HEAD /"}|};
+  refuses M.conformance_step {|{"wire":"GETPOST /"}|};
+  refuses M.conformance_step {|{"wire":"GET/"}|};
+  (* An error's code is ^control\.[a-z]+(-[a-z]+)*$. *)
+  accepts M.error_data {|{"code":"control.unknown","retryable":false}|};
+  accepts M.error_data {|{"code":"control.not-found-here","retryable":false}|};
+  faults M.error_data {|{"code":"control.not-","retryable":false}|} "code"
+    `Malformed;
+  faults M.error_data {|{"code":"control.not--found","retryable":false}|}
+    "code" `Malformed;
+  (* A name is ^[0-9a-z]([-0-9a-z]*[0-9a-z])?$: the step in the group gives
+     back the point the step after it takes. *)
+  accepts M.metadata {|{"name":"a"}|};
+  accepts M.metadata {|{"name":"a-b"}|};
+  faults M.metadata {|{"name":"a-"}|} "name" `Malformed;
+  (* A driver step does not carry both returns and fails, whatever each
+     holds. *)
+  accepts M.conformance_step {|{"driver":"d","returns":{}}|};
+  refuses M.conformance_step {|{"driver":"d","returns":{},"fails":{}}|};
+  refuses M.conformance_step {|{"driver":"d","returns":{},"fails":null}|};
+  (* A let step binds one name or more. *)
+  accepts M.conformance_step {|{"let":{"a":1}}|};
+  faults M.conformance_step {|{"let":{}}|} "let" `Malformed;
+  let inference providers =
+    {|{"apiVersion":"xynolog.org/v1alpha1","kind":"Inference","metadata":{"name":"stack"},"spec":{"engines":{"jobs":{},"actors":{}},"providers":|}
+    ^ providers ^ "}}"
+  in
+  accepts M.inference (inference {|{"ollama":{}}|});
+  faults M.inference (inference "{}") "spec.providers" `Malformed;
+  faults M.inference
+    (inference {|{"ollama":{},"ollma":{}}|})
+    "spec.providers.ollma" `Malformed;
+  (* A name not of [names] is found before a value not of [values]. *)
+  faults M.inference
+    (inference {|{"ollma":{"bogus":1}}|})
+    "spec.providers.ollma" `Malformed;
+  faults M.inference
+    (inference {|{"ollama":{"bogus":1}}|})
+    "spec.providers.bogus" `Malformed
+
 let record_views () =
   let module M = Xynolog.Models in
   let module R = Xynolog.Records in
@@ -180,6 +243,7 @@ let () =
       ( "components",
         [
           Alcotest.test_case "component codecs" `Quick component_codecs;
+          Alcotest.test_case "required table" `Quick required_table;
           Alcotest.test_case "record and variant views" `Quick record_views;
         ] );
     ]

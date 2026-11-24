@@ -38,7 +38,15 @@ internal static partial class WireJson
                 Validate(part, value, path);
             }
         }
-        if (schema.TryGetProperty("oneOf", out var alternatives) || schema.TryGetProperty("anyOf", out alternatives))
+        if (schema.TryGetProperty("oneOf", out var exclusive))
+        {
+            var matched = exclusive.EnumerateArray().Count(alternative => Admitted(alternative, value, path));
+            if (matched != 1)
+            {
+                throw new JsonException(path + ": matches " + matched + " oneOf variants, not one");
+            }
+        }
+        if (schema.TryGetProperty("anyOf", out var alternatives))
         {
             Select(alternatives, value, path);
         }

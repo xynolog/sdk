@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -50,9 +51,19 @@ import xynolog.types.FrameAddEntityTypeCommand
 import xynolog.types.FrameRefusalReason
 import xynolog.types.GatherAnnotationOptions
 import xynolog.types.JobCompleteCommand
+import xynolog.types.wireJson
 import java.util.concurrent.CompletableFuture
 
 private fun json(text: String): JsonObject = Json.parseToJsonElement(text).jsonObject
+
+/** The shape the table writes as the JSON `written`. */
+private fun shape(written: String): Shape = wireJson.decodeFromString(Shape.serializer(), written)
+
+/** The first fault of the JSON `text` as the shape the table writes as `written`. */
+private fun faultAs(written: String, text: String): Fault? = readAt(shape(written), Json.parseToJsonElement(text), "").fault
+
+/** A step of one code point, `code`. */
+private fun point(code: Int): String = """{"of":[[$code,$code]],"min":1,"max":1}"""
 
 private val ALICE = "did:web:kb.example:users:alice"
 private val ONE = ResourceId.parse("res-one")!!
@@ -224,6 +235,76 @@ class BusTest {
             Triple(profiles, """{"dids":["did:web:example.org"],"\ud83d\ude00":1,"\uff61":1}""", malformed("\uff61")),
         )) {
             assertEquals(fault, faultOf(descriptor, Json.parseToJsonElement(text)), text)
+        }
+    }
+
+    @Test
+    fun aPatternsGroupIsOneOfItsAlternativesRepeatedAsOftenAsItSaysAndATextIsOfItWhenSomeReadingTakesAllOfIt() {
+        fun malformed(member: String) = Fault(member, FrameRefusalReason.Malformed)
+        val letter = """{"of":[[97,122]],"min":1,"max":1}"""
+        val letters = """{"of":[[97,122]],"min":1}"""
+        // ^(GET|POST) /, the end it does not anchor a step of any code points.
+        val method = """{"kinds":["string"],"pattern":[{"either":[[${point(71)},${point(69)},${point(84)}],[${point(80)},${point(79)},${point(83)},${point(84)}]],"min":1,"max":1},${point(32)},${point(47)},{"of":[[0,1114111]],"min":0}]}"""
+        // ^[a-z]+(-[a-z]+)*$
+        val kebab = """{"kinds":["string"],"pattern":[$letters,{"either":[[${point(45)},$letters]],"min":0}]}"""
+        // ^[a-z]{2,3}$, as a group
+        val twoOrThree = """{"kinds":["string"],"pattern":[{"either":[[$letter]],"min":2,"max":3}]}"""
+        // ^(a|ab)c$: the first alternative is given back for the second.
+        val givenBack = """{"kinds":["string"],"pattern":[{"either":[[${point(97)}],[${point(97)},${point(98)}]],"min":1,"max":1},${point(99)}]}"""
+        for ((written, text, fault) in listOf(
+            Triple(method, "\"GET /\"", null),
+            Triple(method, "\"POST /kb/x\"", null),
+            Triple(method, "\"PUT /\"", malformed("")),
+            Triple(method, "\"GET\"", malformed("")),
+            Triple(kebab, "\"a\"", null),
+            Triple(kebab, "\"one-two-three\"", null),
+            Triple(kebab, "\"one--two\"", malformed("")),
+            Triple(kebab, "\"one-\"", malformed("")),
+            Triple(twoOrThree, "\"ab\"", null),
+            Triple(twoOrThree, "\"abc\"", null),
+            Triple(twoOrThree, "\"a\"", malformed("")),
+            Triple(twoOrThree, "\"abcd\"", malformed("")),
+            Triple(givenBack, "\"ac\"", null),
+            Triple(givenBack, "\"abc\"", null),
+            Triple(givenBack, "\"abac\"", malformed("")),
+        )) {
+            assertEquals(fault, faultAs(written, text), text)
+        }
+        // A term is a step or a group, never both, and a table part no reader knows is refused.
+        assertThrows(SerializationException::class.java) { shape("""{"pattern":[{"of":[[97,97]],"either":[],"min":1}]}""") }
+        assertThrows(SerializationException::class.java) { shape("""{"pattern":[{"of":[[97,97]],"min":1,"times":2}]}""") }
+        assertThrows(SerializationException::class.java) { shape("""{"kinds":["object"],"notAny":[["a"]]}""") }
+    }
+
+    @Test
+    fun anObjectCarriesNoSetOfNotAllWholeAtLeastMinMembersAndNamesItsMembersAsNamesSays() {
+        fun malformed(member: String) = Fault(member, FrameRefusalReason.Malformed)
+        val lowerNames = """{"kinds":["string"],"pattern":[{"of":[[97,122]],"min":1}]}"""
+        val either = """{"kinds":["object"],"notAll":[["port","external"]]}"""
+        val some = """{"kinds":["object"],"minMembers":1}"""
+        val lower = """{"kinds":["object"],"names":$lowerNames}"""
+        val ordered = """{"kinds":["object"],"required":["a"],"names":$lowerNames,"notAll":[["a","b"]]}"""
+        val fewest = """{"kinds":["object"],"minMembers":2,"required":["a"]}"""
+        for ((written, text, fault) in listOf(
+            Triple(either, """{"port":1}""", null),
+            Triple(either, """{"external":"x"}""", null),
+            Triple(either, """{"port":1,"external":"x"}""", malformed("")),
+            // A member that holds null is carried.
+            Triple(either, """{"port":1,"external":null}""", malformed("")),
+            Triple(some, """{"a":1}""", null),
+            Triple(some, "{}", malformed("")),
+            Triple(lower, """{"ab":1,"cd":2}""", null),
+            // The first name not of names, by code point.
+            Triple(lower, """{"ab":1,"X":3,"Cd":2}""", malformed("Cd")),
+            // What the object requires first, then its members' names, then the sets it carries whole.
+            Triple(ordered, """{"B":1}""", Fault("a", FrameRefusalReason.Lacks)),
+            Triple(ordered, """{"a":1,"B":1,"b":1}""", malformed("B")),
+            Triple(ordered, """{"a":1,"b":1}""", malformed("")),
+            // minMembers is a bound, found before the members it requires.
+            Triple(fewest, """{"b":1}""", malformed("")),
+            Triple(fewest, """{"b":1,"c":1}""", Fault("a", FrameRefusalReason.Lacks)),
+        )) {
+            assertEquals(fault, faultAs(written, text), text)
         }
     }
 

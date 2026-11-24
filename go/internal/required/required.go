@@ -38,7 +38,7 @@ type shape struct {
 	// one that holds a text none of them is left out of what it reads.
 	Recognized []string          `json:"recognized"`
 	Enum       []any             `json:"enum"`
-	Pattern    []step            `json:"pattern"`
+	Pattern    []term            `json:"pattern"`
 	MinLength  *int              `json:"minLength"`
 	MaxLength  *int              `json:"maxLength"`
 	Minimum    *float64          `json:"minimum"`
@@ -55,19 +55,52 @@ type shape struct {
 	OneOf         []*shape       `json:"oneOf"`
 	Discriminator *discriminator `json:"discriminator"`
 	AllOf         []*shape       `json:"allOf"`
+	// NotAll is sets of members an object does not carry all of.
+	NotAll     [][]string `json:"notAll"`
+	MinMembers *int       `json:"minMembers"`
+	// Names is what each of an object's members' names must be.
+	Names *shape `json:"names"`
 }
 
-// step is one step of a pattern: at least Min of a text's next code points,
-// and at most Max (nil: any number), each in one of the ranges Of.
-type step struct {
-	Of  [][2]rune `json:"of"`
-	Min int       `json:"min"`
-	Max *int      `json:"max"`
+// term is one term of a pattern, repeated at least Min times and at most Max
+// (nil: any number): a step, a text's next code point in one of the ranges
+// Of; or a group, the text's next code points one of the series Either.
+type term struct {
+	Of     [][2]rune
+	Either [][]term
+	Min    int
+	Max    *int
 }
 
-// holds is whether point is in one of the step's ranges.
-func (s step) holds(point rune) bool {
-	return slices.ContainsFunc(s.Of, func(r [2]rune) bool { return r[0] <= point && point <= r[1] })
+// UnmarshalJSON reads a term as codegen/lib/required writes it: a step or a
+// group, never both, and no part this reader does not know.
+func (t *term) UnmarshalJSON(source []byte) error {
+	var stated struct {
+		Of     *[][2]rune `json:"of"`
+		Either *[][]term  `json:"either"`
+		Min    int        `json:"min"`
+		Max    *int       `json:"max"`
+	}
+	decoder := json.NewDecoder(bytes.NewReader(source))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&stated); err != nil {
+		return err
+	}
+	if (stated.Of == nil) == (stated.Either == nil) {
+		return fmt.Errorf("a pattern's term is a step or a group: %s", source)
+	}
+	*t = term{Min: stated.Min, Max: stated.Max}
+	if stated.Of != nil {
+		t.Of = *stated.Of
+	} else {
+		t.Either = *stated.Either
+	}
+	return nil
+}
+
+// holds is whether point is in one of a step's ranges.
+func (t term) holds(point rune) bool {
+	return slices.ContainsFunc(t.Of, func(r [2]rune) bool { return r[0] <= point && point <= r[1] })
 }
 
 // discriminator is the member whose value names the variant a union is.
@@ -460,6 +493,18 @@ func faultOf(s *shape, value any, way string) (Fault, []unread, bool) {
 				}
 			}
 		}
+		if s.Names != nil {
+			for _, name := range sortedKeys(object) {
+				if _, _, faulty := faultOf(s.Names, name, ""); faulty {
+					return Fault{Member: within(way, name), Reason: api.FrameRefusalReasonMalformed}, nil, true
+				}
+			}
+		}
+		for _, set := range s.NotAll {
+			if !slices.ContainsFunc(set, func(name string) bool { _, has := object[name]; return !has }) {
+				return Fault{Member: way, Reason: api.FrameRefusalReasonMalformed}, nil, true
+			}
+		}
 		if s.Values != nil {
 			for _, key := range sortedKeys(object) {
 				fault, inner, faulty := faultOf(s.Values, object[key], way)
@@ -503,17 +548,20 @@ func isOneOf(values []any, value any) bool {
 }
 
 // inBounds is whether a text is of s's pattern and has as many code points as
-// s allows, a number is within s's bounds, and an array has as many items as
-// s allows.
+// s allows, a number is within s's bounds, and an array has as many items and
+// an object as many members as s allows.
 func inBounds(s *shape, value any) bool {
 	switch held := value.(type) {
 	case string:
 		points := []rune(held)
-		return counted(s.MinLength, len(points), s.MaxLength) && (s.Pattern == nil || matches(s.Pattern, points))
+		return counted(s.MinLength, len(points), s.MaxLength) &&
+			(s.Pattern == nil || series(s.Pattern, points, 0, func(at int) bool { return at == len(points) }))
 	case float64:
 		return (s.Minimum == nil || held >= *s.Minimum) && (s.Maximum == nil || held <= *s.Maximum)
 	case []any:
 		return counted(s.MinItems, len(held), s.MaxItems)
+	case map[string]any:
+		return counted(s.MinMembers, len(held), nil)
 	default:
 		return true
 	}
@@ -525,24 +573,46 @@ func counted(least *int, count int, most *int) bool {
 	return (least == nil || count >= *least) && (most == nil || count <= *most)
 }
 
-// matches is whether points are of steps: the first step takes as many of
-// them as it may, and gives them back one by one until the steps after it
-// take the rest.
-func matches(steps []step, points []rune) bool {
-	if len(steps) == 0 {
-		return len(points) == 0
+// series is whether points, from at, are of terms, with rest taking what is
+// left after them: a step takes as many points as it may and gives them back
+// one by one, and a group repeats as often as it may and gives repetitions
+// back the same way, until rest takes what is left.
+func series(terms []term, points []rune, at int, rest func(int) bool) bool {
+	if len(terms) == 0 {
+		return rest(at)
 	}
-	first := steps[0]
+	first := terms[0]
+	next := func(after int) bool { return series(terms[1:], points, after, rest) }
+	if first.Either != nil {
+		return repeated(first, points, at, 0, next)
+	}
 	taken := 0
-	for taken < len(points) && (first.Max == nil || taken < *first.Max) && first.holds(points[taken]) {
+	for at+taken < len(points) && (first.Max == nil || taken < *first.Max) && first.holds(points[at+taken]) {
 		taken++
 	}
 	for ; taken >= first.Min; taken-- {
-		if matches(steps[1:], points[taken:]) {
+		if next(at + taken) {
 			return true
 		}
 	}
 	return false
+}
+
+// repeated is whether points, from at, are of group repeated once more than
+// count times or more, then of next: a repetition past the group's Min takes
+// at least one point.
+func repeated(group term, points []rune, at, count int, next func(int) bool) bool {
+	if group.Max == nil || count < *group.Max {
+		for _, alternative := range group.Either {
+			again := func(after int) bool {
+				return (count < group.Min || after > at) && repeated(group, points, after, count+1, next)
+			}
+			if series(alternative, points, at, again) {
+				return true
+			}
+		}
+	}
+	return count >= group.Min && next(at)
 }
 
 // memberShape is what s's member name must be: any, where s does not say.

@@ -42,12 +42,24 @@ class _Discriminator(BaseModel, frozen=True, extra="forbid"):
 
 
 class _Step(BaseModel, frozen=True, extra="forbid"):
-    """One step of a pattern: at least `least` of a text's next code points, and at most `most` (None: any number).
+    """A step of a pattern: at least `least` of a text's next code points, and at most `most` (None: any number).
 
     Each is in one of the ranges `of`, from and to, both included.
     """
 
     of: tuple[tuple[int, int], ...]
+    least: int = Field(alias="min")
+    most: int | None = Field(default=None, alias="max")
+
+
+class _Group(BaseModel, frozen=True, extra="forbid"):
+    """A group of a pattern: a text's next code points one of the series of terms `either`.
+
+    It is repeated at least `least` times and at most `most` (None: any
+    number), a repetition past `least` taking at least one code point.
+    """
+
+    either: tuple[tuple["_Step | _Group", ...], ...]
     least: int = Field(alias="min")
     most: int | None = Field(default=None, alias="max")
 
@@ -60,7 +72,7 @@ class _Shape(BaseModel, frozen=True, extra="forbid"):
     recognized: tuple[str, ...] | None = None
     """Of an object's member, the texts it is read as: one that holds another text is read as absent."""
     enum: tuple[JsonValue, ...] | None = None
-    pattern: tuple[_Step, ...] | None = None
+    pattern: tuple[_Step | _Group, ...] | None = None
     min_length: int | None = Field(default=None, alias="minLength")
     max_length: int | None = Field(default=None, alias="maxLength")
     minimum: float | None = None
@@ -76,6 +88,11 @@ class _Shape(BaseModel, frozen=True, extra="forbid"):
     one_of: tuple["_Shape", ...] | None = Field(default=None, alias="oneOf")
     discriminator: _Discriminator | None = None
     all_of: tuple["_Shape", ...] | None = Field(default=None, alias="allOf")
+    not_all: tuple[tuple[str, ...], ...] | None = Field(default=None, alias="notAll")
+    """Sets of members an object does not carry all of, a member that holds null being carried."""
+    min_members: int | None = Field(default=None, alias="minMembers")
+    names: "_Shape | None" = None
+    """What each of an object's members' names must be."""
 
 
 _SCHEMAS: Final = TypeAdapter(dict[str, _Shape]).validate_json(SCHEMAS)
@@ -178,15 +195,22 @@ def _counted(least: float | None, count: float, most: float | None) -> bool:
     return (least is None or count >= least) and (most is None or count <= most)
 
 
-def _matches(steps: tuple[_Step, ...], text: str, at: int) -> bool:
-    """Whether the code points of `text` from `at` are of `steps`.
+def _series(terms: tuple[_Step | _Group, ...], text: str, at: int, rest: Callable[[int], bool]) -> bool:
+    """Whether the code points of `text` from `at` are of `terms`, with `rest` taking what is left after them.
 
-    The first step takes as many of them as it may, and gives them back one by
-    one until the steps after it take the rest.
+    A step takes as many of them as it may and gives them back one by one, and
+    a group repeats as often as it may and gives repetitions back the same way,
+    until `rest` takes what is left.
     """
-    if not steps:
-        return at == len(text)
-    first, rest = steps[0], steps[1:]
+    if not terms:
+        return rest(at)
+    first, after_first = terms[0], terms[1:]
+
+    def then(after: int) -> bool:
+        return _series(after_first, text, after, rest)
+
+    if isinstance(first, _Group):
+        return _repeated(first, text, at, 0, then)
     taken = 0
     while (
         at + taken < len(text)
@@ -194,11 +218,33 @@ def _matches(steps: tuple[_Step, ...], text: str, at: int) -> bool:
         and any(low <= ord(text[at + taken]) <= high for low, high in first.of)
     ):
         taken += 1
-    return any(_matches(rest, text, at + count) for count in range(taken, first.least - 1, -1))
+    for count in range(taken, first.least - 1, -1):
+        if then(at + count):
+            return True
+    return False
+
+
+def _repeated(group: _Group, text: str, at: int, count: int, then: Callable[[int], bool]) -> bool:
+    """Whether the code points of `text` from `at` are of `group`, repeated `count` times already, repeated more, then of `then`.
+
+    The group repeats as often as it may and gives repetitions back one by
+    one, a repetition past its `least` taking at least one code point.
+    """
+    if group.most is None or count < group.most:
+
+        def again(after: int) -> bool:
+            return (count < group.least or after > at) and _repeated(group, text, after, count + 1, then)
+
+        for alternative in group.either:
+            if _series(alternative, text, at, again):
+                return True
+    return count >= group.least and then(at)
 
 
 def _is_as_stated(shape: _Shape, value: JsonValue) -> bool:
     """Whether `value` is one of `shape`'s values, and is of its form, its sizes and its bounds.
+
+    An object's size is how many members it carries.
 
     A number is one of the values where it is equal to one in value; a
     boolean is never a number.
@@ -206,11 +252,16 @@ def _is_as_stated(shape: _Shape, value: JsonValue) -> bool:
     if shape.enum is not None and not any(one == value and isinstance(one, bool) == isinstance(value, bool) for one in shape.enum):
         return False
     if isinstance(value, str):
-        return _counted(shape.min_length, len(value), shape.max_length) and (shape.pattern is None or _matches(shape.pattern, value, 0))
+        end = len(value)
+        return _counted(shape.min_length, end, shape.max_length) and (
+            shape.pattern is None or _series(shape.pattern, value, 0, lambda at: at == end)
+        )
     if isinstance(value, int | float) and not isinstance(value, bool):
         return _counted(shape.minimum, value, shape.maximum)
     if isinstance(value, list):
         return _counted(shape.min_items, len(value), shape.max_items)
+    if isinstance(value, dict):
+        return _counted(shape.min_members, len(value), None)
     return True
 
 
@@ -250,7 +301,8 @@ def _read_members(shape: _Shape, value: dict[str, JsonValue], way: str) -> dict[
     """An object as it is read, or its first fault.
 
     Its faults are in the members `shape` requires, in what they are, in the
-    members it may not carry, and in its values.
+    members it may not carry, in their names, in the sets of them it may not
+    carry all of, and in its values.
 
     A member `recognized` as texts, that holds a text none of them, is read as
     absent: it is no fault, and what is read does not carry it.
@@ -276,6 +328,13 @@ def _read_members(shape: _Shape, value: dict[str, JsonValue], way: str) -> dict[
         unnamed = min((name for name in value if name not in shape.closed), default=None)
         if unnamed is not None:
             return Fault(member=_within(way, unnamed), reason="malformed")
+    if shape.names is not None:
+        for name in sorted(value):
+            if isinstance(_read_at(shape.names, name, ""), Fault):
+                return Fault(member=_within(way, name), reason="malformed")
+    for together in shape.not_all or ():
+        if all(name in value for name in together):
+            return Fault(member=way, reason="malformed")
     if shape.values is not None:
         for key in sorted(read):
             value_read = _read_at(shape.values, read[key], way)

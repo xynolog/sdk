@@ -202,6 +202,20 @@ let tables : (string * (Coverage_sdk.t -> coverage)) list =
       | Ocaml -> Run_by [ "ocaml/sdk/test/registry_behavior.ml" ]
       | Swift -> Run_by [ "swift/sdk/Tests/XynologTests/ClockCasesTests.swift" ]
     );
+    ( "client/shape-cases.json",
+      function
+      | Typescript ->
+          Run_by [ "typescript/core/src/__tests__/shape-cases.test.ts" ]
+      | Python -> Run_by [ "python/sdk/tests/test_shape_cases.py" ]
+      | Rust -> Run_by [ "rust/sdk/tests/shape_cases.rs" ]
+      | Go -> Run_by [ "go/internal/required/shape_cases_test.go" ]
+      | Csharp -> Run_by [ "csharp/sdk/tests/Xynolog.Tests/ShapeCasesTests.cs" ]
+      | Haskell -> Run_by [ "haskell/sdk/test/ShapeCases.hs" ]
+      | Kotlin ->
+          Run_by [ "kotlin/sdk/src/test/kotlin/xynolog/bus/ShapeCasesTest.kt" ]
+      | Ocaml -> Run_by [ "ocaml/sdk/test/shape_cases.ml" ]
+      | Swift -> Run_by [ "swift/sdk/Tests/XynologTests/ShapeCasesTests.swift" ]
+    );
     ( "control/request-cases.json",
       function
       | Typescript | Python | Rust | Go | Csharp | Haskell | Kotlin | Ocaml

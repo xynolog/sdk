@@ -64,6 +64,14 @@ internal static partial class Required
     /// pattern and not its prefix alone. Only such an id is a place a scope resumes from.</summary>
     internal static bool IsPersistedEventId(JsonElement id) => FaultOf("PersistedEventId", id, out _) is null;
 
+    /// <summary>The first fault <paramref name="value"/> has as <paramref name="shape"/>, a shape as the table writes
+    /// one; null when it has none.</summary>
+    internal static Fault? FaultAs(string shape, JsonElement value)
+    {
+        using var written = JsonDocument.Parse(shape);
+        return FaultAt(ParseShape(written.RootElement), value, "", Place.Value, []);
+    }
+
     /// <summary><paramref name="schema"/>, once the table is read and found to state it.</summary>
     internal static string Stated(string schema)
     {
@@ -73,9 +81,15 @@ internal static partial class Required
 
     private enum Kind { Object, Array, String, Integer, Number, Boolean, Null }
 
-    /// <summary>One step of a pattern: at least <c>Min</c> of a text's next code points, and at most <c>Max</c> (null:
-    /// any number), each in one of the ranges <c>Of</c>.</summary>
-    private sealed record Step(IReadOnlyList<(int From, int To)> Of, int Min, int? Max);
+    /// <summary>One term of a pattern, repeated at least <c>Min</c> times and at most <c>Max</c> (null: any number): a
+    /// step or a group.</summary>
+    private abstract record Term(int Min, int? Max);
+
+    /// <summary>A step of a pattern: a text's next code point, in one of the ranges <c>Of</c>.</summary>
+    private sealed record Step(IReadOnlyList<(int From, int To)> Of, int Min, int? Max) : Term(Min, Max);
+
+    /// <summary>A group of a pattern: the text's next code points, of one of the series <c>Either</c>.</summary>
+    private sealed record Group(IReadOnlyList<IReadOnlyList<Term>> Either, int Min, int? Max) : Term(Min, Max);
 
     /// <summary>The member whose value names the variant of a union a value is.</summary>
     private sealed record Discriminator(string Property, IReadOnlyDictionary<string, int> Mapping);
@@ -98,7 +112,7 @@ internal static partial class Required
         public IReadOnlyList<Kind>? Kinds { get; init; }
         public IReadOnlyList<string>? Recognized { get; init; }
         public IReadOnlyList<JsonElement>? Enum { get; init; }
-        public IReadOnlyList<Step>? Pattern { get; init; }
+        public IReadOnlyList<Term>? Pattern { get; init; }
         public int? MinLength { get; init; }
         public int? MaxLength { get; init; }
         public double? Minimum { get; init; }
@@ -113,6 +127,11 @@ internal static partial class Required
         public IReadOnlyList<Shape>? OneOf { get; init; }
         public Discriminator? Discriminator { get; init; }
         public IReadOnlyList<Shape>? AllOf { get; init; }
+        /// <summary>Sets of members an object does not carry all of.</summary>
+        public IReadOnlyList<IReadOnlyList<string>>? NotAll { get; init; }
+        public int? MinMembers { get; init; }
+        /// <summary>What each of an object's members' names must be.</summary>
+        public Shape? Names { get; init; }
     }
 
     private static Dictionary<string, Shape> ParseTable()
@@ -138,7 +157,7 @@ internal static partial class Required
                 "kinds" => shape with { Kinds = value.EnumerateArray().Select(ParseKind).ToArray() },
                 "recognized" => shape with { Recognized = value.EnumerateArray().Select(Text).ToArray() },
                 "enum" => shape with { Enum = value.EnumerateArray().Select(listed => listed.Clone()).ToArray() },
-                "pattern" => shape with { Pattern = value.EnumerateArray().Select(ParseStep).ToArray() },
+                "pattern" => shape with { Pattern = value.EnumerateArray().Select(ParseTerm).ToArray() },
                 "minLength" => shape with { MinLength = value.GetInt32() },
                 "maxLength" => shape with { MaxLength = value.GetInt32() },
                 "minimum" => shape with { Minimum = value.GetDouble() },
@@ -160,6 +179,9 @@ internal static partial class Required
                         .ToDictionary(named => named.Name, named => named.Value.GetInt32(), StringComparer.Ordinal)),
                 },
                 "allOf" => shape with { AllOf = value.EnumerateArray().Select(ParseShape).ToArray() },
+                "notAll" => shape with { NotAll = value.EnumerateArray().Select(set => set.EnumerateArray().Select(Text).ToArray()).ToArray() },
+                "minMembers" => shape with { MinMembers = value.GetInt32() },
+                "names" => shape with { Names = ParseShape(value) },
                 _ => throw new InvalidOperationException("A shape states " + part.Name + ", which the walk does not read."),
             };
         }
@@ -178,10 +200,41 @@ internal static partial class Required
         var other => throw new InvalidOperationException(other + " is no kind of value."),
     };
 
-    private static Step ParseStep(JsonElement value) => new(
-        value.GetProperty("of").EnumerateArray().Select(range => (range[0].GetInt32(), range[1].GetInt32())).ToArray(),
-        value.GetProperty("min").GetInt32(),
-        value.TryGetProperty("max", out var most) ? most.GetInt32() : null);
+    /// <summary>A term of a pattern: a step or a group, never both. A part this does not know is refused.</summary>
+    private static Term ParseTerm(JsonElement value)
+    {
+        IReadOnlyList<(int From, int To)>? of = null;
+        IReadOnlyList<IReadOnlyList<Term>>? either = null;
+        int? least = null;
+        int? most = null;
+        foreach (var part in value.EnumerateObject())
+        {
+            switch (part.Name)
+            {
+                case "of":
+                    of = part.Value.EnumerateArray().Select(range => (range[0].GetInt32(), range[1].GetInt32())).ToArray();
+                    break;
+                case "either":
+                    either = part.Value.EnumerateArray().Select(series => series.EnumerateArray().Select(ParseTerm).ToArray()).ToArray();
+                    break;
+                case "min":
+                    least = part.Value.GetInt32();
+                    break;
+                case "max":
+                    most = part.Value.GetInt32();
+                    break;
+                default:
+                    throw new InvalidOperationException("A pattern's term states " + part.Name + ", which the walk does not read.");
+            }
+        }
+        var min = least ?? throw new InvalidOperationException("A pattern's term states no min: " + value.GetRawText());
+        return (of, either) switch
+        {
+            ({ } ranges, null) => new Step(ranges, min, most),
+            (null, { } alternatives) => new Group(alternatives, min, most),
+            _ => throw new InvalidOperationException("A pattern's term is a step or a group: " + value.GetRawText()),
+        };
+    }
 
     private static string Text(JsonElement value) => value.GetString() ?? throw new InvalidOperationException("A text is null.");
 
@@ -227,27 +280,51 @@ internal static partial class Required
     private static bool Counted(double? least, double count, double? most) =>
         (least is not { } floor || count >= floor) && (most is not { } ceiling || count <= ceiling);
 
-    /// <summary>Whether the code points from <paramref name="at"/> are of <paramref name="steps"/>: the first step
-    /// takes as many of them as it may, and gives them back one by one until the steps after it take the rest.</summary>
-    private static bool Matches(IReadOnlyList<Step> steps, int step, int[] points, int at)
+    /// <summary>Whether the code points from <paramref name="at"/> are of <paramref name="terms"/> from
+    /// <paramref name="term"/>, with <paramref name="rest"/> taking what is left after them: a step takes as many code
+    /// points as it may and gives them back one by one, and a group repeats as often as it may and gives repetitions back
+    /// the same way, until <paramref name="rest"/> takes what is left.</summary>
+    private static bool Series(IReadOnlyList<Term> terms, int term, int[] points, int at, Func<int, bool> rest)
     {
-        if (step == steps.Count) return at == points.Length;
-        var first = steps[step];
+        if (term == terms.Count) return rest(at);
+        bool Next(int after) => Series(terms, term + 1, points, after, rest);
+        if (terms[term] is Group group) return Repeated(group, points, at, 0, Next);
+        var step = (Step)terms[term];
         var taken = 0;
-        while (at + taken < points.Length && (first.Max is not { } most || taken < most)
-            && first.Of.Any(range => range.From <= points[at + taken] && points[at + taken] <= range.To))
+        while (at + taken < points.Length && (step.Max is not { } most || taken < most)
+            && step.Of.Any(range => range.From <= points[at + taken] && points[at + taken] <= range.To))
         {
             taken++;
         }
-        for (; taken >= first.Min; taken--)
+        for (; taken >= step.Min; taken--)
         {
-            if (Matches(steps, step + 1, points, at + taken)) return true;
+            if (Next(at + taken)) return true;
         }
         return false;
     }
 
+    /// <summary>Whether the code points from <paramref name="at"/> are of <paramref name="group"/> repeated once more
+    /// than <paramref name="count"/> times or more, then of <paramref name="next"/>: a repetition past the group's
+    /// <c>Min</c> takes at least one code point.</summary>
+    private static bool Repeated(Group group, int[] points, int at, int count, Func<int, bool> next)
+    {
+        if (group.Max is not { } most || count < most)
+        {
+            foreach (var alternative in group.Either)
+            {
+                if (Series(alternative, 0, points, at,
+                    after => (count < group.Min || after > at) && Repeated(group, points, after, count + 1, next)))
+                {
+                    return true;
+                }
+            }
+        }
+        return count >= group.Min && next(at);
+    }
+
     /// <summary>Whether <paramref name="value"/> is one of the shape's values, a text is of its pattern and has as many
-    /// code points as it allows, a number is within its bounds, and an array has as many items as it allows.</summary>
+    /// code points as it allows, a number is within its bounds, and an array has as many items and an object as many
+    /// members as it allows.</summary>
     private static bool IsAsStated(Shape shape, JsonElement value)
     {
         if (shape.Enum is { } listed && !listed.Any(one => JsonElement.DeepEquals(one, value))) return false;
@@ -256,11 +333,13 @@ internal static partial class Required
             case JsonValueKind.String:
                 var points = Text(value).EnumerateRunes().Select(rune => rune.Value).ToArray();
                 return Counted(shape.MinLength, points.Length, shape.MaxLength)
-                    && (shape.Pattern is not { } pattern || Matches(pattern, 0, points, 0));
+                    && (shape.Pattern is not { } pattern || Series(pattern, 0, points, 0, end => end == points.Length));
             case JsonValueKind.Number:
                 return Counted(shape.Minimum, NumberOf(value), shape.Maximum);
             case JsonValueKind.Array:
                 return Counted(shape.MinItems, value.GetArrayLength(), shape.MaxItems);
+            case JsonValueKind.Object:
+                return Counted(shape.MinMembers, value.EnumerateObject().Select(member => member.Name).Distinct(StringComparer.Ordinal).Count(), null);
             default:
                 return true;
         }
@@ -319,7 +398,8 @@ internal static partial class Required
         ?? throw new InvalidOperationException("A place holds no value.");
 
     /// <summary>The first fault of an object in the members the shape requires, in what its members are, in the
-    /// members it may not carry, and in its values. A member that holds a text none of its recognized ones is no fault:
+    /// members it may not carry, in its members' names, in the sets of members it may not carry all of, and in its
+    /// values. A member that holds a text none of its recognized ones is no fault:
     /// it is unread. So is a member the object does not require that holds null where its shape does not allow null:
     /// the table states what a member must be only where it is not null.</summary>
     private static Fault? FaultOfMembers(Shape shape, JsonElement value, string way, Place at, List<Place> unread)
@@ -358,6 +438,15 @@ internal static partial class Required
         if (shape.Closed is { } closed && names.FirstOrDefault(name => !closed.Contains(name, StringComparer.Ordinal)) is { } unnamed)
         {
             return new Fault(Within(way, unnamed), FrameRefusalReason.Malformed);
+        }
+        if (shape.Names is { } named
+            && names.FirstOrDefault(name => FaultAt(named, JsonSerializer.SerializeToElement(name), "", Place.Value, []) is not null) is { } misnamed)
+        {
+            return new Fault(Within(way, misnamed), FrameRefusalReason.Malformed);
+        }
+        if (shape.NotAll is { } notAll && notAll.Any(set => set.All(name => value.TryGetProperty(name, out _))))
+        {
+            return new Fault(way, FrameRefusalReason.Malformed);
         }
         if (shape.Values is { } values)
         {

@@ -29,10 +29,24 @@ enum Kind: Sendable {
   case object, array, string, integer, number, boolean, null
 }
 
-/// One step of a pattern: at least `min` of a text's next code points, and at most `max` (none:
-/// any number), each in one of the ranges `of`.
+/// One term of a pattern: a step or a group.
+enum Term: Sendable {
+  case step(Step)
+  case group(Group)
+}
+
+/// A step of a pattern: at least `min` of a text's next code points, and at most `max` (none: any
+/// number), each in one of the ranges `of`.
 struct Step: Sendable {
   let of: [ClosedRange<UInt32>]
+  let min: Int
+  let max: Int?
+}
+
+/// A group of a pattern: a text's next code points one of the series `either`, at least `min` times
+/// and at most `max` (none: any number), a repetition past `min` taking at least one code point.
+struct Group: Sendable {
+  let either: [[Term]]
   let min: Int
   let max: Int?
 }
@@ -50,7 +64,7 @@ final class Shape: Sendable {
   /// Of an object's member, the texts it is read as: one that holds another text is read as absent.
   let recognized: [String]?
   let enumeration: [JSONValue]?
-  let pattern: [Step]?
+  let pattern: [Term]?
   let minLength: Int?
   let maxLength: Int?
   let minimum: Double?
@@ -65,14 +79,20 @@ final class Shape: Sendable {
   let oneOf: [Shape]?
   let discriminator: Discriminator?
   let allOf: [Shape]?
+  /// Sets of members an object does not carry all of.
+  let notAll: [[String]]?
+  let minMembers: Int?
+  /// What each of an object's members' names must be.
+  let names: Shape?
 
   init(
     ref: String? = nil, kinds: [Kind]? = nil, recognized: [String]? = nil,
-    enumeration: [JSONValue]? = nil, pattern: [Step]? = nil, minLength: Int? = nil,
+    enumeration: [JSONValue]? = nil, pattern: [Term]? = nil, minLength: Int? = nil,
     maxLength: Int? = nil, minimum: Double? = nil, maximum: Double? = nil, minItems: Int? = nil,
     maxItems: Int? = nil, required: [String]? = nil, members: [String: Shape]? = nil,
     closed: [String]? = nil, items: Shape? = nil, values: Shape? = nil, oneOf: [Shape]? = nil,
-    discriminator: Discriminator? = nil, allOf: [Shape]? = nil
+    discriminator: Discriminator? = nil, allOf: [Shape]? = nil, notAll: [[String]]? = nil,
+    minMembers: Int? = nil, names: Shape? = nil
   ) {
     self.ref = ref
     self.kinds = kinds
@@ -93,14 +113,23 @@ final class Shape: Sendable {
     self.oneOf = oneOf
     self.discriminator = discriminator
     self.allOf = allOf
+    self.notAll = notAll
+    self.minMembers = minMembers
+    self.names = names
   }
 }
 
 /// The first fault `value` has as the component schema `schema`, by the rules every SDK reads the
 /// table by; nil when it has none.
 func faultOf(_ schema: String, _ value: JSONValue) -> Fault? {
+  faultOf(component(schema), value)
+}
+
+/// The first fault `value` has as a value of `shape`, by the rules every SDK reads the table by;
+/// nil when it has none.
+func faultOf(_ shape: Shape, _ value: JSONValue) -> Fault? {
   var read = value
-  return faultAt(component(schema), &read, way: "")
+  return faultAt(shape, &read, way: "")
 }
 
 /// `payload`, a payload on `channel`, as it is read by the rules every SDK reads the table by: a
@@ -161,25 +190,50 @@ private func counted<Count: Comparable>(_ least: Count?, _ count: Count, _ most:
   return true
 }
 
-/// Whether the code points from `at` are of `steps`: the first step takes as many of them as it
-/// may, and gives them back one by one until the steps after it take the rest.
-private func matches(_ steps: ArraySlice<Step>, _ points: [UInt32], _ at: Int) -> Bool {
-  guard let first = steps.first else { return at == points.count }
-  var taken = 0
-  while at + taken < points.count, counted(nil, taken + 1, first.max),
-    first.of.contains(where: { $0.contains(points[at + taken]) })
-  {
-    taken += 1
+/// Whether the code points from `at` are of `terms`, with `rest` taking what is left after them: a
+/// step takes as many points as it may and gives them back one by one, and a group repeats as often
+/// as it may and gives repetitions back the same way, until `rest` takes what is left.
+private func series(
+  _ terms: ArraySlice<Term>, _ points: [UInt32], _ at: Int, _ rest: (Int) -> Bool
+) -> Bool {
+  guard let first = terms.first else { return rest(at) }
+  switch first {
+  case .group(let group):
+    return repeated(group, points, at, 0) { series(terms.dropFirst(), points, $0, rest) }
+  case .step(let step):
+    var taken = 0
+    while at + taken < points.count, counted(nil, taken + 1, step.max),
+      step.of.contains(where: { $0.contains(points[at + taken]) })
+    {
+      taken += 1
+    }
+    while taken >= step.min {
+      if series(terms.dropFirst(), points, at + taken, rest) { return true }
+      taken -= 1
+    }
+    return false
   }
-  while taken >= first.min {
-    if matches(steps.dropFirst(), points, at + taken) { return true }
-    taken -= 1
+}
+
+/// Whether the code points from `at` are of `group` repeated once more than `count` times or more,
+/// then of `next`: a repetition past the group's `min` takes at least one code point.
+private func repeated(
+  _ group: Group, _ points: [UInt32], _ at: Int, _ count: Int, _ next: (Int) -> Bool
+) -> Bool {
+  if counted(nil, count + 1, group.max) {
+    for alternative in group.either {
+      let matched = series(alternative[...], points, at) { after in
+        (count < group.min || after > at) && repeated(group, points, after, count + 1, next)
+      }
+      if matched { return true }
+    }
   }
-  return false
+  return count >= group.min && next(at)
 }
 
 /// Whether `value` is one of `shape`'s values, a text is of its pattern and has as many code
-/// points as it allows, a number is within its bounds, and an array has as many items as it allows.
+/// points as it allows, a number is within its bounds, and an array has as many items and an object
+/// as many members as it allows.
 private func isAsStated(_ shape: Shape, _ value: JSONValue) -> Bool {
   if let enumeration = shape.enumeration, !enumeration.contains(value) { return false }
   switch value {
@@ -187,10 +241,11 @@ private func isAsStated(_ shape: Shape, _ value: JSONValue) -> Bool {
     let points = text.unicodeScalars.map(\.value)
     guard counted(shape.minLength, points.count, shape.maxLength) else { return false }
     guard let pattern = shape.pattern else { return true }
-    return matches(pattern[...], points, 0)
+    return series(pattern[...], points, 0) { $0 == points.count }
   case .number(let number): return counted(shape.minimum, number, shape.maximum)
   case .array(let items): return counted(shape.minItems, items.count, shape.maxItems)
-  case .null, .bool, .object: return true
+  case .object(let members): return counted(shape.minMembers, members.count, nil)
+  case .null, .bool: return true
   }
 }
 
@@ -235,11 +290,12 @@ private func isUnrecognized(_ shape: Shape, _ value: JSONValue) -> Bool {
 }
 
 /// The first fault of an object in the members `shape` requires, in what its members are, in the
-/// members it may not carry, and in its values. A member it reads as absent is left out of
-/// `object`.
+/// members it may not carry, in its members' names, in the sets of members it may not carry all of,
+/// and in its values. A member it reads as absent is left out of `object`.
 private func faultOfMembers(_ shape: Shape, _ object: inout [String: JSONValue], way: String)
   -> Fault?
 {
+  let carried = Set(object.keys)
   if let required = shape.required {
     for name in required {
       switch object[name] {
@@ -268,6 +324,19 @@ private func faultOfMembers(_ shape: Shape, _ object: inout [String: JSONValue],
     let unnamed = object.keys.filter({ !closed.contains($0) }).min(by: byCodePoint)
   {
     return Fault(member: within(way, unnamed), reason: .malformed)
+  }
+  if let names = shape.names {
+    for name in carried.sorted(by: byCodePoint) {
+      var read = JSONValue.string(name)
+      if faultAt(names, &read, way: "") != nil {
+        return Fault(member: within(way, name), reason: .malformed)
+      }
+    }
+  }
+  if let notAll = shape.notAll,
+    notAll.contains(where: { members in members.allSatisfy { carried.contains($0) } })
+  {
+    return Fault(member: way, reason: .malformed)
   }
   if let values = shape.values {
     for (name, held) in object.sorted(by: { byCodePoint($0.key, $1.key) }) {

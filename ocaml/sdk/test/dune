@@ -83,3 +83,33 @@
  (name closure_behavior)
  (modules closure_behavior)
  (libraries protocol_cases xynolog yojson alcotest))
+
+(test
+ (name shape_cases)
+ (modules shape_cases pattern schema_shape schema_shapes schema_codec strict_json)
+ (libraries protocol_cases yojson uutf zarith alcotest))
+
+(rule
+ (target pattern.ml)
+ (deps ../lib/pattern.ml)
+ (action (copy %{deps} %{target})))
+
+(rule
+ (target schema_shape.ml)
+ (deps ../lib/schema_shape.ml)
+ (action (copy %{deps} %{target})))
+
+(rule
+ (target schema_shapes.ml)
+ (deps ../lib/schema_shapes.ml)
+ (action (copy %{deps} %{target})))
+
+(rule
+ (target schema_codec.ml)
+ (deps ../lib/schema_codec.ml)
+ (action (copy %{deps} %{target})))
+
+(rule
+ (target strict_json.ml)
+ (deps ../lib/strict_json.ml)
+ (action (copy %{deps} %{target})))
