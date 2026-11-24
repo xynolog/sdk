@@ -8,10 +8,11 @@
      ([disputed]). Of those, title, description, $comment, default, examples
      and discriminator only describe a value. The rest are assertions JSON
      Schema applies from every part, which the merge takes from the later
-     one: format, const, propertyNames, minProperties, not, an allOf
-     a part keeps, and additionalProperties and unevaluatedProperties when
-     neither part closes the object. $schema, $id and $defs, which only a
-     file's root states, are the later part's too.
+     one: format, an allOf a part keeps, and additionalProperties and
+     unevaluatedProperties when neither part closes the object. Two
+     propertyNames, or two nots, are joined in the order of their parts.
+     $schema, $id and $defs, which only a file's root states, are the later
+     part's too.
 
    Each law holds up to what the merge's result means: a property two parts
    state differently is the allOf of both, so the properties are compared as
@@ -194,7 +195,7 @@ let undisputed (earlier : Schema.schema)
     type_;
     format = disputed earlier.format format;
     enum;
-    const = disputed earlier.const const;
+    const;
     default = disputed earlier.default default;
     examples = disputed earlier.examples examples;
     properties;
@@ -204,7 +205,7 @@ let undisputed (earlier : Schema.schema)
     unevaluated_properties =
       open_ earlier.unevaluated_properties unevaluated_properties;
     property_names = disputed earlier.property_names property_names;
-    min_properties = disputed earlier.min_properties min_properties;
+    min_properties;
     max_properties;
     items;
     min_items;

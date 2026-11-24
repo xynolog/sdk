@@ -85,7 +85,9 @@ let files_in_place ~ids ~schemas ~named s =
                       if pointer = "" then Some whole
                       else Pointer.schema whole pointer)
                 in
-                match (Option.map (files (at :: trail)) target, description) with
+                match
+                  (Option.map (files (at :: trail)) target, description)
+                with
                 | None, _ -> refuse "$ref %s names no schema" r.target
                 | Some written, None -> written
                 | Some (Schema.Schema t), Some _ ->

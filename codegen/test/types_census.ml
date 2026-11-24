@@ -37,11 +37,11 @@ let declares text (before, after) name =
     match String.index_from_opt text i needle.[0] with
     | None -> false
     | Some at ->
-        (at + length <= String.length text
+        at + length <= String.length text
         && String.sub text at length = needle
         && (after <> ""
            || at + length = String.length text
-           || not (identifier_character text.[at + length])))
+           || not (identifier_character text.[at + length]))
         || from (at + 1)
   in
   from 0
@@ -51,7 +51,8 @@ let plain = List.map (fun before -> (before, ""))
 (* Each SDK: the directory its generated files are under, and what declares a
    type in them. C# makes a schema of one plain value a type of its own
    language (a string, a long), and so names every schema it validates
-   against in WireSchemas; OCaml names each in Models. *)
+   against in WireSchemas; OCaml names each in Models, its value on the line
+   after the name where the two are long. *)
 let sdks =
   [
     ("Go", "go/", plain [ "\ntype " ] @ [ ("\n\t", " =") ]);
@@ -67,10 +68,12 @@ let sdks =
           "public indirect enum ";
           "public typealias ";
         ] );
-    ("Kotlin", "kotlin/", plain [ "class "; "typealias "; "object " ]);
+    ( "Kotlin",
+      "kotlin/",
+      plain [ "class "; "interface "; "typealias "; "object " ] );
     ("C#", "csharp/", [ ({|\"|}, {|\":{|}) ]);
     ("Haskell", "haskell/", plain [ "\nnewtype "; "\ndata "; "\ntype " ]);
-    ("OCaml", "ocaml/", [ ({|= "|}, {|"|}) ]);
+    ("OCaml", "ocaml/", [ ({|= "|}, {|"|}); ("=\n  \"", {|"|}) ]);
   ]
 
 let () =
@@ -89,8 +92,7 @@ let () =
           (fun name ->
             if
               List.exists
-                (fun text ->
-                  List.exists (fun b -> declares text b name) before)
+                (fun text -> List.exists (fun b -> declares text b name) before)
                 texts
             then None
             else Some (Printf.sprintf "%s declares no type for %s" label name))

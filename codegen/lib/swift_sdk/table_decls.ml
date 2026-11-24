@@ -476,7 +476,8 @@ let rec shape_literal : Shape.shape -> S.expr = function
                       (S.Array
                          ( S.Inline,
                            List.map
-                             (fun (lo, hi) -> S.Binary (S.Int lo, "...", S.Int hi))
+                             (fun (lo, hi) ->
+                               S.Binary (S.Int lo, "...", S.Int hi))
                              of_ ));
                     arg "min" (S.Int min);
                     arg "max" (max most);
@@ -491,7 +492,8 @@ let rec shape_literal : Shape.shape -> S.expr = function
                       (S.Array
                          ( S.Inline,
                            List.map
-                             (fun terms -> S.Array (S.Inline, List.map term terms))
+                             (fun terms ->
+                               S.Array (S.Inline, List.map term terms))
                              either ));
                     arg "min" (S.Int min);
                     arg "max" (max most);

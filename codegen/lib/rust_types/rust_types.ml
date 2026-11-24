@@ -29,13 +29,7 @@ let generation (spec : Spec.t) (bundle : Definitions.bundle) :
         @ List.map (fun (_, name, _) -> name) (Definitions.records spec));
     identifiers;
     accessors;
-    elsewhere = [];
   }
-
-(* The types the SDK's [xynolog::types] declares, by name. *)
-let declared (spec : Spec.t) =
-  let bundle = Definitions.bundle spec in
-  Generate.declared bundle.definitions (generation spec bundle)
 
 let types (spec : Spec.t) =
   let bundle = Definitions.bundle spec in
@@ -60,12 +54,7 @@ let sign_in (spec : Spec.t) =
         ~header:(regenerate ("protocol/specs/src/" ^ Roots.sign_in_entry))
         (Generate.items
            (Definitions.alone ~ids:spec.ids ~name:"SignIn" schema)
-           {
-             roots = [ "SignIn" ];
-             identifiers = [];
-             accessors = [];
-             elsewhere = [];
-           });
+           { roots = [ "SignIn" ]; identifiers = []; accessors = [] });
   }
 
 (* Why a client that read a launcher's discovery document found no launcher

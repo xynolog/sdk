@@ -149,17 +149,24 @@ let values =
          {|{"kinds":["string"],"pattern":[
              {"of":[[0,9],[11,12],[14,8231],[8234,1114111]],"min":1,"max":1},
              {"of":[[9,13],[32,32],[160,160],[5760,5760],[8192,8202],[8232,8233],[8239,8239],[8287,8287],[12288,12288],[65279,65279]],"min":1,"max":1}]}|});
-    case "a pattern with an alternative is refused"
-      (refuses
-         [ ("S", {|{"type":"string","pattern":"^(a|b)$"}|}) ]
-         (s
-        ^ ": /pattern: is ^(a|b)$, which is not a pattern the table can spell \
-           out"));
-    case "an unanchored pattern is refused"
-      (refuses
+    case "a group's alternatives are a group of series"
+      (derives
+         [ ("S", {|{"type":"string","pattern":"^(a|bc)+$"}|}) ]
+         "S"
+         {|{"kinds":["string"],"pattern":[
+             {"either":[
+               [{"of":[[97,97]],"min":1,"max":1}],
+               [{"of":[[98,98]],"min":1,"max":1},{"of":[[99,99]],"min":1,"max":1}]],
+              "min":1}]}|});
+    case "an end the pattern does not anchor takes any code points"
+      (derives
          [ ("S", {|{"type":"string","pattern":"ab"}|}) ]
-         (s
-        ^ ": /pattern: is ab, which is not a pattern the table can spell out"));
+         "S"
+         {|{"kinds":["string"],"pattern":[
+             {"of":[[0,1114111]],"min":0},
+             {"of":[[97,97]],"min":1,"max":1},
+             {"of":[[98,98]],"min":1,"max":1},
+             {"of":[[0,1114111]],"min":0}]}|});
     case "a backward range is refused"
       (refuses
          [ ("S", {|{"type":"string","pattern":"^[z-a]$"}|}) ]
@@ -204,6 +211,31 @@ let objects =
          {|{"kinds":["object"],"required":["b","a"],"members":{
              "B":{"kinds":["boolean"]},"b":{"kinds":["string"]},
              "é":{"kinds":["string"]}}}|});
+    case "the sets of members an object does not carry all of"
+      (derives
+         [
+           ( "S",
+             {|{"type":"object","properties":{"a":{},"b":{},"c":{}},
+                "not":{"anyOf":[{"required":["a","b"]},{"required":["c"]}]}}|}
+           );
+         ]
+         "S" {|{"kinds":["object"],"notAll":[["a","b"],["c"]]}|});
+    case "a not of other than required members is refused"
+      (refuses
+         [ ("S", {|{"type":"object","not":{"type":"string"}}|}) ]
+         (s
+        ^ ": /not: is a not of what is no list of required members, which the \
+           table does not know how to state"));
+    case "the fewest members, and what each member's name is"
+      (derives
+         [
+           ( "S",
+             {|{"type":"object","minProperties":1,"propertyNames":{"type":"string","pattern":"^[a-z]+$"},"additionalProperties":{"type":"string"}}|}
+           );
+         ]
+         "S"
+         {|{"kinds":["object"],"values":{"kinds":["string"]},"minMembers":1,
+            "names":{"kinds":["string"],"pattern":[{"of":[[97,122]],"min":1}]}}|});
     case "members as pairs, for a reader whose objects keep no order"
       (derives ~pairs:true
          [
@@ -344,14 +376,15 @@ let references =
          (s
         ^ ": /$ref: names ./Missing.json, which is no component of openapi.json"
          ));
-    case "a reference into a component is refused"
-      (refuses
-         [ string_component; ("S", {|{"$ref":"./Str.json#/type"}|}) ]
-         (s ^ ": /$ref: names ./Str.json#/type, a place within a component"));
-    case "a keyword the table cannot state is refused"
-      (refuses
-         [ ("S", {|{"not":{"type":"string"}}|}) ]
-         (s ^ ": /: states not, which the table does not know how to state"));
+    case "a reference into a component is the schema there"
+      (derives
+         [
+           ( "O",
+             {|{"type":"object","properties":{"a":{"type":"string","minLength":1}}}|}
+           );
+           ("S", {|{"$ref":"./O.json#/properties/a"}|});
+         ]
+         "S" {|{"kinds":["string"],"minLength":1}|});
     case "a schema that allows nothing is refused"
       (refuses
          [ ("S", {|{"type":"array","items":false}|}) ]

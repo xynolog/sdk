@@ -62,13 +62,16 @@ let stated what = function
   | Some s -> s
   | None -> refuse "the schema validated states no %s" what
 
-let property_of key v = stated key (Option.bind (layer key v).properties (List.assoc_opt key))
+let property_of key v =
+  stated key (Option.bind (layer key v).properties (List.assoc_opt key))
+
 let items_of v = stated "items" (layer "items" v).items
 
 let values_of v =
   match (layer "additionalProperties" v).additional_properties with
   | Some (Schema _ as values) -> values
-  | Some (Boolean_schema _) | None -> refuse "the schema validated states no additionalProperties"
+  | Some (Boolean_schema _) | None ->
+      refuse "the schema validated states no additionalProperties"
 
 let member_of keyword i v =
   let l = layer keyword v in
@@ -102,7 +105,9 @@ let rec readable path ((schema : Schema.t), validated) =
     (fun (keyword, parts) ->
       Option.iter
         (List.iteri (fun i part ->
-             readable (path ^ "." ^ keyword) (part, member_of keyword i validated)))
+             readable
+               (path ^ "." ^ keyword)
+               (part, member_of keyword i validated)))
         parts)
     [ ("oneOf", s.one_of); ("anyOf", s.any_of); ("allOf", s.all_of) ]
 
@@ -204,8 +209,7 @@ and inline state owner property (schema, validated) =
 and type_of state owner property ((schema, validated) as node) =
   let s = layer (owner ^ "." ^ property) schema in
   match beside_null s with
-  | Some beside ->
-      type_of state owner property (Schema.Schema beside, validated)
+  | Some beside -> type_of state owner property (Schema.Schema beside, validated)
   | None -> type_of_beside_null state owner property node s
 
 and type_of_beside_null state owner property ((_, validated) as node) s =
@@ -239,8 +243,7 @@ and type_of_beside_null state owner property ((_, validated) as node) s =
       generic "IReadOnlyDictionary"
         [
           T "string";
-          type_of state owner (property ^ "Value")
-            (values, values_of validated);
+          type_of state owner (property ^ "Value") (values, values_of validated);
         ]
   | { type_ = Some [ Object ]; _ } -> element
   | { type_ = None; _ } when Schema.keywords s = [] -> element

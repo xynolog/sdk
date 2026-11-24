@@ -148,7 +148,9 @@ let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
         match Normalize.dropped validated with
         | [] -> Ok ()
         | keyword :: _ ->
-            Error (name ^ " states " ^ keyword ^ ", which what is derived from its shape drops"))
+            Error
+              (name ^ " states " ^ keyword
+             ^ ", which what is derived from its shape drops"))
     | None -> Error (name ^ " schema missing")
   in
   let* () = shaped "ResourceUpload" in

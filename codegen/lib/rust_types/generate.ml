@@ -43,9 +43,6 @@ type generation = {
           given a [pub(crate)] method, named as the property is, saying which
           value of the string enumeration the property names its member states.
       *)
-  elsewhere : string list;
-      (** The schemas the Rust SDK declares, for a crate beside it: each is
-          named in [xynolog::types] rather than written again. *)
 }
 
 let empty_object = "EmptyObject"
@@ -272,30 +269,27 @@ let schema st name = st.definitions.schema name
 let defined st name = List.mem name st.definitions.names
 
 let rec named st name =
-  if List.mem name st.generation.elsewhere then
-    R.Named ([ "xynolog"; "types"; name ], [])
-  else (
-    if not (Hashtbl.mem st.written name) then (
-      let s = schema st name in
-      Hashtbl.replace st.written name [];
-      let items = declaration st name s in
-      let alias =
-        List.exists
-          (function R.Type_alias { name = n; _ } -> n = name | _ -> false)
-          items
-      in
-      let items =
-        if alias then items
-        else
-          let calls_before =
-            match List.rev items with
-            | R.Blank :: (R.Macro_item _ :: _ as before) -> List.rev before
-            | _ -> items
-          in
-          calls_before @ [ R.Macro_item ("schema", [ R.p name ]) ]
-      in
-      Hashtbl.replace st.written name items);
-    ty name)
+  if not (Hashtbl.mem st.written name) then (
+    let s = schema st name in
+    Hashtbl.replace st.written name [];
+    let items = declaration st name s in
+    let alias =
+      List.exists
+        (function R.Type_alias { name = n; _ } -> n = name | _ -> false)
+        items
+    in
+    let items =
+      if alias then items
+      else
+        let calls_before =
+          match List.rev items with
+          | R.Blank :: (R.Macro_item _ :: _ as before) -> List.rev before
+          | _ -> items
+        in
+        calls_before @ [ R.Macro_item ("schema", [ R.p name ]) ]
+    in
+    Hashtbl.replace st.written name items);
+  ty name
 
 and inline_name st owner property =
   Naming.inline ~defined:(defined st) owner property
@@ -1109,11 +1103,6 @@ let run definitions generation =
       if List.mem own definitions.D.names then
         refuse "%s is a schema's name, and the SDK's own" own)
     own_names;
-  List.iter
-    (fun root ->
-      if List.mem root generation.elsewhere then
-        refuse "%s is a root, and the Rust SDK declares it" root)
-    generation.roots;
   let st = { definitions; generation; written = Hashtbl.create 512 } in
   List.iter (fun root -> ignore (named st root)) generation.roots;
   let names =
@@ -1121,9 +1110,6 @@ let run definitions generation =
       (Hashtbl.fold (fun n _ acc -> n :: acc) st.written [])
   in
   (st, names)
-
-(* The types a generation declares, by name. *)
-let declared definitions generation = snd (run definitions generation)
 
 let items definitions generation =
   let st, names = run definitions generation in

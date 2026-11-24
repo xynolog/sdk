@@ -10,7 +10,8 @@ let case name test = Alcotest.test_case name `Quick test
 let ids = Result.get_ok (Decode.ids [])
 
 (* Schemas by name, each a file of a directory of schemas, a [$ref] naming
-   another by its file. *)
+   another by its file, each as a writer of types reads it
+   ([Normalize.shape_only], as [Definitions.bundle] gives it). *)
 let definitions schemas =
   let file name = "components/schemas/" ^ name ^ ".json" in
   let decoded = Hashtbl.create 8 in
@@ -21,7 +22,8 @@ let definitions schemas =
           (Yojson.Safe.from_string json)
           Schema.decode
       with
-      | Ok (s, _) -> Hashtbl.replace decoded (file name) s
+      | Ok (s, _) ->
+          Hashtbl.replace decoded (file name) (Normalize.shape_only s)
       | Error e -> Alcotest.failf "%s" (Decode.error_to_string e))
     schemas;
   let named f =

@@ -524,7 +524,8 @@ and union_declaration st name members (s : D.t) doc =
                         };
                     ];
                   t)
-          | D.Node { type_ = Some (D.One ((Integer | Number | Boolean) as kind)); _ }
+          | D.Node
+              { type_ = Some (D.One ((Integer | Number | Boolean) as kind)); _ }
             ->
               let word, held =
                 match kind with
@@ -540,7 +541,8 @@ and union_declaration st name members (s : D.t) doc =
                       doc =
                         G.prose
                           (t ^ " is a " ^ name ^ " that is "
-                          ^ String.lowercase_ascii word ^ ".");
+                          ^ String.lowercase_ascii word
+                          ^ ".");
                       name = t;
                       def = G.Is (named held);
                     };

@@ -22,7 +22,6 @@ let literal : Schema.literal -> Parsetree.expression = function
 
 let any = O.ident "any"
 let strings values = O.list (List.map O.string values)
-
 let max = function None -> O.none | Some max -> O.some (O.int max)
 
 let rec term : Shape.term -> Parsetree.expression = function
@@ -32,7 +31,9 @@ let rec term : Shape.term -> Parsetree.expression = function
           (O.tuple
              [
                O.list
-                 (List.map (fun (lo, hi) -> O.tuple [ O.int lo; O.int hi ]) step.of_);
+                 (List.map
+                    (fun (lo, hi) -> O.tuple [ O.int lo; O.int hi ])
+                    step.of_);
                O.int step.min;
                max step.max;
              ])
@@ -42,7 +43,9 @@ let rec term : Shape.term -> Parsetree.expression = function
           (O.tuple
              [
                O.list
-                 (List.map (fun terms -> O.list (List.map term terms)) group.either);
+                 (List.map
+                    (fun terms -> O.list (List.map term terms))
+                    group.either);
                O.int group.min;
                max group.max;
              ])
@@ -70,7 +73,9 @@ let rec shape : Shape.shape -> Parsetree.expression = function
               b.kinds;
             part "recognized" (some strings) b.recognized;
             part "enum" (some (fun e -> O.list (List.map literal e))) b.enum;
-            part "pattern" (some (fun terms -> O.list (List.map term terms))) b.pattern;
+            part "pattern"
+              (some (fun terms -> O.list (List.map term terms)))
+              b.pattern;
             part "min_length" (some O.int) b.min_length;
             part "max_length" (some O.int) b.max_length;
             part "minimum" (some (fun n -> O.string (number n))) b.minimum;
@@ -101,7 +106,9 @@ let rec shape : Shape.shape -> Parsetree.expression = function
                      ]))
               b.discriminator;
             nonempty "all_of" (fun s -> O.list (List.map shape s)) b.all_of;
-            nonempty "not_all" (fun sets -> O.list (List.map strings sets)) b.not_all;
+            nonempty "not_all"
+              (fun sets -> O.list (List.map strings sets))
+              b.not_all;
             part "min_members" (some O.int) b.min_members;
             part "names" (some shape) b.names;
           ]

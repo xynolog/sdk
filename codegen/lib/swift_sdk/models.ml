@@ -649,7 +649,8 @@ and union t ~modifiers n members s =
               | tag :: _, _ -> Text.pascal tag
               | [], D.Node { title = Some title; _ } -> Text.pascal title
               | [], _ when is_type Schema.Object resolved -> "Object"
-              | [], _ -> refuse "%s: union member %d has no stable name" n index)
+              | [], _ -> refuse "%s: union member %d has no stable name" n index
+              )
         in
         let label = String.uncapitalize_ascii part in
         if Hashtbl.mem labels label then

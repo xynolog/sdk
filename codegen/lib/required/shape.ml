@@ -92,6 +92,7 @@ type step = { of_ : (int * int) list; min : int; max : int option }
 
 type term = Step of step | Group of group
 and group = { either : term list list; min : int; max : int option }
+
 type discriminator = { property : string; mapping : (string * int) list }
 
 type shape = Ref of string | Shape of body
@@ -215,7 +216,7 @@ let terms_of pattern =
   let n = String.length pattern in
   let starts = n > 0 && pattern.[0] = '^' in
   let ends =
-    n > (if starts then 1 else 0)
+    (n > if starts then 1 else 0)
     && pattern.[n - 1] = '$'
     && not (n >= 2 && pattern.[n - 2] = '\\')
   in
@@ -558,8 +559,8 @@ let derive ~ids ~unrecognized components =
           | Some schema -> `Within (file, pointer, schema)
           | None ->
               refuse reference.file reference.pointer
-                "names %s, a place its component does not have"
-                reference.target)
+                "names %s, a place its component does not have" reference.target
+          )
     in
     let component_kinds = Hashtbl.create 256 in
     let ordered_set kinds = List.filter (fun k -> List.mem k kinds) all_kinds in
@@ -635,7 +636,8 @@ let derive ~ids ~unrecognized components =
               else if schema.items <> None then [ Array ]
               else
                 match (schema.enum, schema.const) with
-                | Some values, _ -> ordered_set (List.map kind_of_literal values)
+                | Some values, _ ->
+                    ordered_set (List.map kind_of_literal values)
                 | None, Some value -> [ kind_of_literal value ]
                 | None, None -> all_kinds))
     and closed_schema l file at =
@@ -1003,11 +1005,13 @@ let rec term_json = function
         ([
            ( "of",
              `List
-               (List.map (fun (from, to_) -> `List [ `Int from; `Int to_ ]) step.of_)
-           );
+               (List.map
+                  (fun (from, to_) -> `List [ `Int from; `Int to_ ])
+                  step.of_) );
            ("min", `Int step.min);
          ]
-        @ Option.fold ~none:[] ~some:(fun max -> [ ("max", `Int max) ]) step.max)
+        @ Option.fold ~none:[] ~some:(fun max -> [ ("max", `Int max) ]) step.max
+        )
   | Group group ->
       `Assoc
         ([
@@ -1018,7 +1022,9 @@ let rec term_json = function
                   group.either) );
            ("min", `Int group.min);
          ]
-        @ Option.fold ~none:[] ~some:(fun max -> [ ("max", `Int max) ]) group.max)
+        @ Option.fold ~none:[]
+            ~some:(fun max -> [ ("max", `Int max) ])
+            group.max)
 
 let rec to_json ~pairs = function
   | Ref name -> `Assoc [ ("ref", `String name) ]
@@ -1038,7 +1044,9 @@ let rec to_json ~pairs = function
              part "enum"
                (Option.map (fun vs -> `List (List.map literal vs)) b.enum);
              part "pattern"
-               (Option.map (fun terms -> `List (List.map term_json terms)) b.pattern);
+               (Option.map
+                  (fun terms -> `List (List.map term_json terms))
+                  b.pattern);
              part "minLength" (int b.min_length);
              part "maxLength" (int b.max_length);
              part "minimum" (Option.map number b.minimum);

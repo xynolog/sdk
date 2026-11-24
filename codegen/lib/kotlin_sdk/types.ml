@@ -448,7 +448,9 @@ and plain_declaration st name ~owner raw : written =
           enum_declaration name values about
       | None ->
           let alias held =
-            Alias (K.Typealias { about; visibility = K.Public; name; type_ = t held })
+            Alias
+              (K.Typealias
+                 { about; visibility = K.Public; name; type_ = t held })
           in
           if is_string st raw then alias "String"
           else if type_name raw = Some Integer then alias "Long"
@@ -987,7 +989,8 @@ and union_declaration st name members told_apart about : written =
           let target_schema = schema st.spec target in
           let reads =
             if enum target_schema <> None then [ `Text ]
-            else if union target_schema <> None then [ `Text; `Scalar; `List; `Object ]
+            else if union target_schema <> None then
+              [ `Text; `Scalar; `List; `Object ]
             else [ `Object ]
           in
           if implementable st (t type_) then member type_ reads
@@ -1025,7 +1028,9 @@ and union_declaration st name members told_apart about : written =
              takes, else by its title. *)
           let type_ =
             type_of st name
-              (match (discriminant m, field (fun (s : Schema.schema) -> s.title) m) with
+              (match
+                 (discriminant m, field (fun (s : Schema.schema) -> s.title) m)
+               with
               | Some d, _ -> Names.pascal d
               | None, Some title -> Names.pascal title
               | None, None -> "Object")

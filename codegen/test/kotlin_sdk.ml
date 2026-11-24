@@ -12,13 +12,14 @@ let file name = "components/schemas/" ^ name ^ ".json"
 (* The references here name schemas by path, so they need no index of [$id]s. *)
 let ids = Result.get_ok (Decode.ids [])
 
-(* Component schemas, each the JSON of its file. *)
+(* Component schemas, each the JSON of its file, as a writer of types reads
+   it ([Normalize.shape_only]). *)
 let spec ?(identifiers = []) schemas : T.spec =
   let decoded (name, json) =
     match
       Decode.run ~file:(file name) (Yojson.Safe.from_string json) Schema.decode
     with
-    | Ok (schema, _) -> (name, schema)
+    | Ok (schema, _) -> (name, Normalize.shape_only schema)
     | Error error -> Alcotest.failf "%s" (Decode.error_to_string error)
   in
   {
@@ -59,12 +60,12 @@ let cases =
           (refused
              [
                ( "Thing",
-                 {|{"type":"object","properties":{"either":{"type":["string","integer"]}}}|}
+                 {|{"type":"object","properties":{"either":{"type":"array"}}}|}
                );
              ]));
-    case "a const is refused" (fun () ->
-        says ~what:"refusal" "`const`, which no SDK reads"
-          (refused
+    case "a const is the enumeration of its one value" (fun () ->
+        says ~what:"type" {|"x"|}
+          (generated
              [
                ( "Thing",
                  {|{"type":"object","properties":{"kind":{"type":"string","const":"x"}}}|}

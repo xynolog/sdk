@@ -102,6 +102,14 @@ let disjuncts = function
       parts
   | s -> [ s ]
 
+(* Each part [s] states beside the others, where it is no more than an
+   [allOf] of them. *)
+let conjuncts = function
+  | Schema.Schema ({ all_of = Some parts; _ } as l)
+    when Schema.keywords l = [ "allOf" ] ->
+      parts
+  | s -> [ s ]
+
 let layer : Schema.t -> Schema.schema outcome = function
   | Schema s -> Ok s
   | Boolean_schema _ -> Error "expected a schema object"
@@ -167,7 +175,8 @@ let rec merge ids (old : Schema.schema) (next : Schema.schema) :
   let composed what =
     merge_option (fun l r ->
         if List.equal (alike ids) l r then Ok r
-        else if only_constraints owner (Some l) && only_constraints owner (Some r)
+        else if
+          only_constraints owner (Some l) && only_constraints owner (Some r)
         then
           all
             (List.concat_map
@@ -206,12 +215,25 @@ let rec merge ids (old : Schema.schema) (next : Schema.schema) :
   let* const = merge_option (agree "\"const\"" ( = )) old.const next.const in
   let* default = last old.default next.default in
   let* examples = last old.examples next.examples in
+  (* The parts of [l] and of [r] that [split] finds, each once, as [joined]
+     joins them: one part is itself. *)
+  let joined split join l r =
+    let parts =
+      List.rev
+        (List.fold_left
+           (fun kept part ->
+             if List.exists (alike ids part) kept then kept else part :: kept)
+           []
+           (split l @ split r))
+    in
+    Ok
+      (match parts with
+      | [ part ] -> part
+      | parts -> Schema.Schema (join parts))
+  in
   let* property_names =
     merge_option
-      (fun l r ->
-        Ok
-          (if alike ids l r then l
-           else Schema.Schema { Schema.empty with all_of = Some [ l; r ] }))
+      (joined conjuncts (fun parts -> { Schema.empty with all_of = Some parts }))
       old.property_names next.property_names
   in
   let* min_properties = bound Int.max old.min_properties next.min_properties in
@@ -219,12 +241,7 @@ let rec merge ids (old : Schema.schema) (next : Schema.schema) :
   (* A value is neither of two when it is not one of either. *)
   let* not_ =
     merge_option
-      (fun l r ->
-        Ok
-          (if alike ids l r then l
-           else
-             Schema.Schema
-               { Schema.empty with any_of = Some (disjuncts l @ disjuncts r) }))
+      (joined disjuncts (fun parts -> { Schema.empty with any_of = Some parts }))
       old.not_ next.not_
   in
   let* discriminator = last old.discriminator next.discriminator in
@@ -424,7 +441,8 @@ let several_types = function
   | Schema.Schema ({ type_ = Some types; _ } as l)
     when List.length (List.filter (fun t -> t <> Schema.Null) types) > 1
          && List.for_all
-              (fun k -> List.mem k [ "type"; "description"; "title"; "$schema"; "$id" ])
+              (fun k ->
+                List.mem k [ "type"; "description"; "title"; "$schema"; "$id" ])
               (Schema.keywords l) ->
       Schema.Schema
         {
@@ -470,7 +488,8 @@ let shape_only : Schema.t -> Schema.t =
           enum =
             (match (l.const, l.enum) with
             | Some value, None -> Some [ value ]
-            | Some value, Some values when List.mem value values -> Some [ value ]
+            | Some value, Some values when List.mem value values ->
+                Some [ value ]
             | _, enum -> enum);
           not_ = None;
           min_properties = None;
