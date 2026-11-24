@@ -32,8 +32,8 @@ type state = {
   identifiers : string list;
   keys : (string * string) list;
       (** The type a named map's keys are, by its name, where its schema's
-          [propertyNames] names one: [Normalize.shape_only] drops the
-          keyword, so the writer of the types is told. *)
+          [propertyNames] names one: [Normalize.shape_only] drops the keyword,
+          so the writer of the types is told. *)
   written : (string, G.decl list) Hashtbl.t;
       (** Every type written, by name, so a schema reached twice is written
           once. *)

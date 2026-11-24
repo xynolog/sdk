@@ -6,7 +6,9 @@ module G = Go_types.Generate
 open Fixture
 
 let generated ?(identifiers = []) schemas root =
-  let { G.decls; _ } = G.generate (definitions schemas) ~identifiers ~keys:[] [ root ] in
+  let { G.decls; _ } =
+    G.generate (definitions schemas) ~identifiers ~keys:[] [ root ]
+  in
   String.concat "\n\n" (List.map Go_syntax.decl decls)
 
 let circle =

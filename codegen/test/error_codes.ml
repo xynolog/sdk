@@ -472,6 +472,8 @@ from xynolog.types import CommandErrorCode
 __all__ = [
     "BUS_REQUEST_ERROR_CODES",
     "BusRequestErrorCode",
+    "CONTROL_ERROR_CODES",
+    "ControlErrorCode",
     "IDENTITY_UNVERIFIABLE_REASONS",
     "IdentityUnverifiableReason",
     "JOB_ERROR_CODES",
@@ -611,6 +613,14 @@ type SpanRefusal = Literal[
 ]
 
 SPAN_REFUSALS: Final[tuple[SpanRefusal, ...]] = ("span-out-of-range",)
+
+# Control.
+type ControlErrorCode = Literal[
+    # Failed.
+    "control.failed",
+]
+
+CONTROL_ERROR_CODES: Final[tuple[ControlErrorCode, ...]] = ("control.failed",)
 |}
 
 let typescript =
@@ -690,6 +700,11 @@ export type IdentityUnverifiableReason =
 export type SpanRefusal =
   /** Out of range. */
   | 'span-out-of-range';
+
+/** Control. */
+export type ControlErrorCode =
+  /** Failed. */
+  | 'control.failed';
 |}
 
 let writers =
