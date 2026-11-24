@@ -11,8 +11,6 @@ namespace Xynolog.SignIn;
 /// sign-ins.</summary>
 public sealed partial class Issuer
 {
-    internal sealed record Endpoints(string Issuer, string Authorization, string Token, string? Device, string? Revocation);
-
     private static string DiscoveryAddress(string address, int? status = null)
     {
         if (!Uri.TryCreate(address, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https") || string.IsNullOrEmpty(uri.Host))
@@ -20,17 +18,22 @@ public sealed partial class Issuer
         return address;
     }
 
-    internal async Task<Endpoints> ConfigurationAsync(string issuer, CancellationToken cancellation)
+    internal async Task<PendingAuthorizationIssuer> ConfigurationAsync(string issuer, CancellationToken cancellation)
     {
         var answer = await AnswerAsync(DiscoveryAddress(issuer).TrimEnd('/') + "/.well-known/openid-configuration", errorCode: SignInErrorCode.Discovery, cancellation: cancellation).ConfigureAwait(Spawning.Captures);
         if (answer.Status is < 200 or >= 300 || answer.Text("issuer") != issuer || answer.Text("authorization_endpoint") is not { Length: > 0 } authorization || answer.Text("token_endpoint") is not string token || token.Length == 0)
             throw new SignInError(SignInErrorCode.Discovery, "The issuer did not describe its endpoints", answer.Status);
-        return new Endpoints(issuer, DiscoveryAddress(authorization, answer.Status), DiscoveryAddress(token, answer.Status),
-            answer.Text("device_authorization_endpoint") is string device ? DiscoveryAddress(device, answer.Status) : null,
-            answer.Text("revocation_endpoint") is string revocation ? DiscoveryAddress(revocation, answer.Status) : null);
+        return new PendingAuthorizationIssuer
+        {
+            Issuer = issuer,
+            Authorization = DiscoveryAddress(authorization, answer.Status),
+            Token = DiscoveryAddress(token, answer.Status),
+            Device = answer.Text("device_authorization_endpoint") is string device ? DiscoveryAddress(device, answer.Status) : null,
+            Revocation = answer.Text("revocation_endpoint") is string revocation ? DiscoveryAddress(revocation, answer.Status) : null,
+        };
     }
 
-    internal async Task<Endpoints> DiscoverAsync(HttpEndpoint endpoint, CancellationToken cancellation)
+    internal async Task<PendingAuthorizationIssuer> DiscoverAsync(HttpEndpoint endpoint, CancellationToken cancellation)
     {
         string origin;
         try { origin = Gateway.Origin(endpoint); }

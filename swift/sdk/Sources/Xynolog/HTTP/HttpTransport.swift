@@ -18,7 +18,7 @@ public actor HttpTransport: Transport, GatewayOperations {
   var renewal: (UUID, Task<String?, Error>)?
   var listeners: [UUID: (channels: Set<String>, hub: Broadcast<Carried>)] = [:]
   var holds: [ResourceId: Int] = [:]
-  var watermarks: [ResourceId: String] = [:]
+  var watermarks: LastEventIds = [:]
   var seen: SeenEventIDs
   struct Connection: Sendable {
     let task: UUID
@@ -93,7 +93,7 @@ public actor HttpTransport: Transport, GatewayOperations {
       spawn { await self?.removeListener(id) }
     }
   }
-  func restoreBookmarks(_ bookmarks: [ResourceId: String]) {
+  func restoreBookmarks(_ bookmarks: LastEventIds) {
     watermarks.merge(bookmarks) { current, _ in current }
   }
 

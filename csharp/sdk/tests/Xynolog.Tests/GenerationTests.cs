@@ -18,6 +18,7 @@ public sealed class GenerationTests
             Assert.NotNull(type);
             var parse = type.GetMethod("Parse", [typeof(string)]);
             Assert.NotNull(parse);
+            var keyed = typeof(Dictionary<,>).MakeGenericType(type, typeof(string));
             foreach (var accepted in kind.GetProperty("accepts").EnumerateArray())
             {
                 var text = accepted.GetProperty("id").GetString();
@@ -25,6 +26,8 @@ public sealed class GenerationTests
                 Assert.Equal(text, value?.ToString());
                 Assert.Equal(JsonSerializer.Serialize(text), JsonSerializer.Serialize(value, type));
                 Assert.Equal(value, JsonSerializer.Deserialize(JsonSerializer.Serialize(text), type));
+                var map = "{" + JsonSerializer.Serialize(text) + ":\"x\"}";
+                Assert.Equal(map, JsonSerializer.Serialize(JsonSerializer.Deserialize(map, keyed), keyed));
             }
             foreach (var refused in kind.GetProperty("refuses").EnumerateArray())
             {
@@ -32,6 +35,7 @@ public sealed class GenerationTests
                 var error = Assert.Throws<TargetInvocationException>(() => parse.Invoke(null, [text]));
                 Assert.IsType<FormatException>(error.InnerException);
                 Assert.Throws<JsonException>(() => JsonSerializer.Deserialize(JsonSerializer.Serialize(text), type));
+                Assert.Throws<JsonException>(() => JsonSerializer.Deserialize("{" + JsonSerializer.Serialize(text) + ":\"x\"}", keyed));
             }
         }
     }

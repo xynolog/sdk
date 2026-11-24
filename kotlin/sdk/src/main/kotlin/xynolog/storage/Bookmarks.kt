@@ -4,14 +4,17 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import xynolog.XynologClient
 import xynolog.http.Bookmarks
 import xynolog.identifiers.ResourceId
-import xynolog.registry.isPersistedEventId
+import xynolog.registry.holdsPlaces
+import xynolog.registry.isPlace
 import xynolog.types.LastEventIds
 import xynolog.types.PersistedEventId
 import xynolog.types.wireJson
+
+/** How places are written and read: `lastEventIds` as its generated type. */
+private val placesSerializer = MapSerializer(ResourceId.serializer(), String.serializer())
 
 /**
  * A stream's place in each scope, kept in `storage` under `key` as
@@ -33,10 +36,9 @@ import xynolog.types.wireJson
  * that flush is the save. A write the storage refused that is owed still
  * holds them back until closing makes it, and they ride it. A place
  * remembered after the reading is of an event
- * whose refetch closing drops, and is not kept. Only a PersistedEventId is a
- * place, and none other is remembered: a pair kept under the key that is not a
- * resource's id and a PersistedEventId is not read, and a value that is no
- * object is no places.
+ * whose refetch closing drops, and is not kept. Only a pair `lastEventIds`
+ * holds is a place, and none other is remembered or read, and a value that is
+ * no object is no places.
  */
 public class CoupledBookmarks(private val beneath: SessionStorage, private val key: String) : Bookmarks {
     private val pending = LinkedHashMap<ResourceId, PersistedEventId>()
@@ -87,16 +89,15 @@ public class CoupledBookmarks(private val beneath: SessionStorage, private val k
         if (kept !is JsonObject) return emptyMap()
         val places = LinkedHashMap<ResourceId, PersistedEventId>()
         for ((scope, place) in kept) {
-            val resource = ResourceId.parse(scope) ?: continue
-            val eventId = (place as? JsonPrimitive)?.takeIf { it.isString }?.content ?: continue
-            if (isPersistedEventId(eventId)) places[resource] = eventId
+            val pair = JsonObject(mapOf(scope to place))
+            if (holdsPlaces(pair)) places += wireJson.decodeFromJsonElement(placesSerializer, pair)
         }
         return places
     }
 
     /** Remember `eventId` as the place of `scope`: the id of a recorded event delivered on it, which the client has taken in. */
     internal fun save(scope: ResourceId, eventId: String) {
-        if (isPersistedEventId(eventId)) synchronized(pending) { if (!closing) pending[scope] = eventId }
+        if (isPlace(scope, eventId)) synchronized(pending) { if (!closing) pending[scope] = eventId }
     }
 
     /**
@@ -119,7 +120,7 @@ public class CoupledBookmarks(private val beneath: SessionStorage, private val k
             if (pending.isEmpty() || !mayWrite()) return
             LinkedHashMap(pending).also { pending.clear() }
         }
-        beneath.set(key, wireJson.encodeToString<LastEventIds>(MapSerializer(ResourceId.serializer(), String.serializer()), load() + reached))
+        beneath.set(key, wireJson.encodeToString(placesSerializer, load() + reached))
     }
 
     /**

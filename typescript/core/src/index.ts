@@ -433,7 +433,7 @@ export { privateKeyFromPem } from './client-assertion';
 export { SignInError } from './sign-in-error';
 export { UnansweredError, jsonOf, whyUnanswered } from './unanswered';
 export { withinDeadline } from './deadline';
-export { faultOf, isSchemaName, said, type Fault } from './required';
+export { faultOf, isPlace, isSchemaName, said, type Fault } from './required';
 
 // Knowledge-graph view derivation — pure fn over the KnowledgeGraph type,
 // run by @xynolog/react-ui.

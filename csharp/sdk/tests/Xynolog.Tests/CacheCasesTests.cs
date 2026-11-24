@@ -110,11 +110,12 @@ public sealed class CacheCasesTests
         var store = new MemoryStorage();
         store.Set(RegistryStorage.LastEventIdKey(Kb, Person), Stored(row));
         using var storage = new LiveCacheStorage(new CachePersistence(store, Kb, Person), new FakeTimeProvider(), () => false);
-        IReadOnlyDictionary<string, string>? restored = null;
+        IReadOnlyDictionary<ResourceId, string>? restored = null;
         storage.Start([], given => restored = given);
         var places = restored ?? throw new InvalidOperationException(name + ": the persistence gave no places");
         var kept = row.GetProperty("kept").EnumerateObject().ToDictionary(place => place.Name, place => Text(row.GetProperty("kept"), place.Name));
-        Assert.Equal(kept.OrderBy(place => place.Key, StringComparer.Ordinal), places.OrderBy(place => place.Key, StringComparer.Ordinal));
+        Assert.Equal(kept.OrderBy(place => place.Key, StringComparer.Ordinal),
+            places.Select(place => KeyValuePair.Create(place.Key.Value, place.Value)).OrderBy(place => place.Key, StringComparer.Ordinal));
     }
 
     private static void SameEntries(JsonElement[] expected, (JsonElement Key, JsonElement Value)[] actual)
