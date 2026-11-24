@@ -9,8 +9,60 @@ import kotlinx.serialization.Serializable
 @Serializable(with = JobSerializer::class)
 public sealed interface Job
 
-internal object JobSerializer : TaggedUnionSerializer<Job>(
+internal object JobSerializer : SignatureUnionSerializer<Job>(
     Job::class,
-    "status",
-    members = { mapOf("pending" to JobPending.serializer(), "running" to JobRunning.serializer(), "complete" to JobComplete.serializer(), "failed" to JobFailed.serializer(), "cancelled" to JobCancelled.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("status", "metadata", "params"),
+                allowed = listOf("status", "metadata", "params"),
+                fixed = listOf("status" to listOf(Literal.Text("pending"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("status", "metadata", "params", "startedAt", "progress"),
+                allowed = listOf("status", "metadata", "params", "startedAt", "progress"),
+                fixed = listOf("status" to listOf(Literal.Text("running"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("status", "metadata", "params", "startedAt", "completedAt", "result"),
+                allowed = listOf("status", "metadata", "params", "startedAt", "completedAt", "result"),
+                fixed = listOf("status" to listOf(Literal.Text("complete"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("status", "metadata", "params", "completedAt", "error"),
+                allowed = listOf("status", "metadata", "params", "startedAt", "completedAt", "error", "failureClass"),
+                fixed = listOf("status" to listOf(Literal.Text("failed")), "failureClass" to listOf(Literal.Text("transient"), Literal.Text("deterministic"), Literal.Text("withheld"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("status", "metadata", "params", "completedAt"),
+                allowed = listOf("status", "metadata", "params", "startedAt", "completedAt"),
+                fixed = listOf("status" to listOf(Literal.Text("cancelled"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        JobPending.serializer(),
+        JobRunning.serializer(),
+        JobComplete.serializer(),
+        JobFailed.serializer(),
+        JobCancelled.serializer(),
+    ) },
 )

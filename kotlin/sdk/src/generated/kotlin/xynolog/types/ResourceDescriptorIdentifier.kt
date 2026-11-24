@@ -21,10 +21,40 @@ public sealed interface ResourceDescriptorIdentifier {
     }
 }
 
-internal object ResourceDescriptorIdentifierSerializer : KindsUnionSerializer<ResourceDescriptorIdentifier>(
+internal object ResourceDescriptorIdentifierSerializer : SignatureUnionSerializer<ResourceDescriptorIdentifier>(
     ResourceDescriptorIdentifier::class,
-    strings = { listOf(ResourceDescriptorIdentifier.Text.serializer()) },
-    scalars = { emptyList() },
-    arrays = { listOf(ResourceDescriptorIdentifier.List.serializer()) },
-    objects = { listOf(ResourceDescriptorIdentifierObject.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.TEXT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.LIST,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        ResourceDescriptorIdentifier.Text.serializer(),
+        ResourceDescriptorIdentifier.List.serializer(),
+        ResourceDescriptorIdentifierObject.serializer(),
+    ) },
 )

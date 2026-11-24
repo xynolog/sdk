@@ -15,10 +15,51 @@ public sealed interface AnnotationSelector {
     }
 }
 
-internal object AnnotationSelectorSerializer : KindsUnionSerializer<AnnotationSelector>(
+internal object AnnotationSelectorSerializer : SignatureUnionSerializer<AnnotationSelector>(
     AnnotationSelector::class,
-    strings = { listOf(Selector.serializer()) },
-    scalars = { listOf(Selector.serializer()) },
-    arrays = { listOf(Selector.serializer(), AnnotationSelector.List.serializer()) },
-    objects = { listOf(Selector.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "start", "end"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("TextPositionSelector"))),
+                values = null,
+            ),
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "exact"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("TextQuoteSelector"))),
+                values = null,
+            ),
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "value"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("SvgSelector"))),
+                values = null,
+            ),
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "value"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("FragmentSelector"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.LIST,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        Selector.serializer(),
+        AnnotationSelector.List.serializer(),
+    ) },
 )

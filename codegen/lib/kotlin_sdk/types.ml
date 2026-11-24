@@ -13,12 +13,12 @@
    type's to state, and is written whatever the encoder's defaults.
 
    A union is a sealed interface its named members implement, so a member is
-   the union wherever the union is wanted. One whose schema names the
-   property its members are told apart by, each member stating its own one
-   value of it, is decoded as the member that value names
-   ([single_tags], [Deviations]). Any other is decoded as the first member that
-   fits. A member that is text, a list or the empty object is a variant of
-   the union's own, since nothing says which union a [String] was meant for.
+   the union wherever the union is wanted. Its serializer states what each
+   member admits ([Typing]'s signatures), and a value is decoded as the one
+   member that admits it, or refused as the one that names it says, or as
+   none of them (SignatureUnionSerializer). A member that is text, a list or
+   the empty object is a variant of the union's own, since nothing says
+   which union a [String] was meant for.
 
    An object whose schema admits members it does not name keeps them, and
    writes them back ([rest]). One whose schema admits none refuses one; any
@@ -43,8 +43,7 @@ let identifiers_package = "xynolog.identifiers"
 let empty_object = "EmptyObject"
 let stated = "Stated"
 let invalid_identifier = "InvalidIdentifier"
-let kinds_union_serializer = "KindsUnionSerializer"
-let tagged_union_serializer = "TaggedUnionSerializer"
+let signature_union_serializer = "SignatureUnionSerializer"
 let wrapper_serializer = "WrapperSerializer"
 let open_object_serializer = "OpenObjectSerializer"
 let rest = "rest"
@@ -188,15 +187,6 @@ let empty_json_object =
   K.call (K.Name "JsonObject") [ K.call (K.Name "emptyMap") [] ]
 
 (* The type a schema of the generation names: written once, here. *)
-(* The property a union's members are told apart by and each one's value,
-   where each states one ([Deviations]). *)
-let single_tags (u : T.union) =
-  match u.tag with
-  | Some { property; values }
-    when List.for_all (fun v -> List.length v = 1) values ->
-      Some (property, List.map List.hd values)
-  | _ -> None
-
 let rec named st name =
   let d = st.spec.find name in
   (match d.form with
@@ -279,7 +269,7 @@ and declaration st name (form : T.form) about : written =
     Alias (K.Typealias { about; visibility = K.Public; name; type_ })
   in
   match form with
-  | T.Union u -> union_declaration st name u (single_tags u) about
+  | T.Union u -> union_declaration st name u about
   | T.Enum { base = Some (T.Text _); values } ->
       enum_declaration name values about
   | T.Enum _ -> refuse "%s: only string enumerations are generated" name
@@ -740,23 +730,30 @@ and implementable st type_ =
       | Some (Alias _) | None -> false)
   | _ -> false
 
-and union_declaration st name (u : T.union) told_apart about : written =
-  (* Each member: the declaration it is, and the kinds of JSON it is read from. *)
+and union_declaration st name (u : T.union) about : written =
+  (match T.apart_by_pattern_only u with
+  | Some (a, b) ->
+      refuse
+        "%s: its members %s and %s are told apart only by a pattern, which the \
+         Kotlin SDK does not read"
+        name a b
+  | None -> ());
+  (* Each member's type, in the union's order, and the variants of its own. *)
   let read = ref [] and variants = ref [] in
-  let variant v decl reads =
+  let variant v decl =
     let type_ = name ^ "." ^ v in
-    if List.mem_assoc type_ !read then
+    if List.mem type_ !read then
       refuse "%s: two union members would both be the variant %s" name v;
     variants := !variants @ [ decl ];
-    read := !read @ [ (type_, reads) ]
+    read := !read @ [ type_ ]
   in
-  let member type_ reads =
+  let member type_ =
     let unions =
       Option.value ~default:[] (Hashtbl.find_opt st.unions_of type_)
     in
     if not (List.mem name unions) then
       Hashtbl.replace st.unions_of type_ (unions @ [ name ]);
-    read := !read @ [ (type_, reads) ]
+    read := !read @ [ type_ ]
   in
   List.iter
     (fun (b : T.branch) ->
@@ -765,20 +762,12 @@ and union_declaration st name (u : T.union) told_apart about : written =
           variant b.variant
             (wrapped name (named st target)
                (t (identifiers_package ^ "." ^ target)))
-            [ `Text ]
       | T.Named target when not (T.admits_only_text b) ->
           let type_ = named st target in
-          let reads =
-            match (st.spec.find target).form with
-            | T.Enum _ -> [ `Text ]
-            | T.Union _ -> [ `Text; `Scalar; `List; `Object ]
-            | _ -> [ `Object ]
-          in
-          if implementable st (t type_) then member type_ reads
+          if implementable st (t type_) then member type_
           else
             variant b.variant
               (wrapped name b.variant (t (types_package ^ "." ^ type_)))
-              reads
       | T.Inline { form = T.Empty _ as form; composition = None; _ }
         when T.holds_none form ->
           variant b.variant
@@ -786,72 +775,84 @@ and union_declaration st name (u : T.union) told_apart about : written =
                ~annotations:[ serializable ] ~visibility:K.Public
                ~supers:[ K.super (t name) ]
                K.Data_object b.variant)
-            [ `Object ]
       | _ when T.admits_only_text b ->
-          variant b.variant (wrapped name b.variant (t "String")) [ `Text ]
+          variant b.variant (wrapped name b.variant (t "String"))
       | T.Scalar (T.Integer _) ->
-          variant b.variant (wrapped name b.variant (t "Long")) [ `Scalar ]
+          variant b.variant (wrapped name b.variant (t "Long"))
       | T.Scalar T.Number ->
-          variant b.variant (wrapped name b.variant (t "Double")) [ `Scalar ]
+          variant b.variant (wrapped name b.variant (t "Double"))
       | T.Scalar T.Boolean ->
           (* Within the member, a bare [Boolean] is the member itself. *)
-          variant b.variant
-            (wrapped name b.variant (t "kotlin.Boolean"))
-            [ `Scalar ]
+          variant b.variant (wrapped name b.variant (t "kotlin.Boolean"))
       | T.List _ ->
-          variant b.variant
-            (wrapped name b.variant (type_of st name b.ty))
-            [ `List ]
+          variant b.variant (wrapped name b.variant (type_of st name b.ty))
       | T.Inline _ -> (
           let type_ = type_of st name b.ty in
           match name_of type_ with
-          | Some key when implementable st type_ -> member key [ `Object ]
-          | _ -> variant b.variant (wrapped name b.variant type_) [ `Object ])
+          | Some key when implementable st type_ -> member key
+          | _ -> variant b.variant (wrapped name b.variant type_))
       | _ -> refuse "%s: a union member the generator does not know" name)
     u.branches;
   let read = !read and variants = !variants in
-  let lazily e = K.Lambda ([], e) in
   let serializer = name ^ "Serializer" in
+  let list = function
+    | [] -> K.call (K.Name "emptyList") []
+    | items -> K.call (K.Name "listOf") items
+  in
+  let stated = function Some e -> e | None -> K.Null in
+  let literal (l : Schema.literal) =
+    match l with
+    | Schema.String_literal s -> K.call (K.Name "Literal.Text") [ K.Str s ]
+    | Schema.Int_literal n -> K.call (K.Name "Literal.Integer") [ K.Int n ]
+    | Schema.Bool_literal b -> K.call (K.Name "Literal.Boolean") [ K.Bool b ]
+  in
+  let words ws = list (List.map (fun w -> K.Str w) ws) in
+  let signature (s : T.signature) =
+    let kind =
+      match s.kind with
+      | T.Text_kind -> "TEXT"
+      | T.Integer_kind -> "INTEGER"
+      | T.Number_kind -> "NUMBER"
+      | T.Boolean_kind -> "BOOLEAN"
+      | T.List_kind -> "LIST"
+      | T.Object_kind -> "OBJECT"
+      | T.Null_kind -> "NULL"
+      | T.Any_kind -> "ANY"
+    in
+    K.named_call ~layout:K.Lines (K.Name "Signature")
+      [
+        ("kind", K.Name ("Kind." ^ kind));
+        ("required", words s.required);
+        ("allowed", stated (Option.map words s.allowed));
+        ( "fixed",
+          list
+            (List.map
+               (fun (p, vs) ->
+                 K.Binary (K.Str p, K.To, list (List.map literal vs)))
+               s.fixed) );
+        ( "values",
+          stated (Option.map (fun vs -> list (List.map literal vs)) s.values) );
+      ]
+  in
   let chooser =
-    match told_apart with
-    | Some (property, tags) ->
-        K.super ~layout:K.Lines
-          ~args:
-            [
-              K.arg (K.Class_literal name);
-              K.arg (K.Str property);
-              K.arg ~label:"members"
-                (lazily
-                   (K.call (K.Name "mapOf")
-                      (List.map2
-                         (fun tag (type_, _) ->
-                           K.Binary (K.Str tag, K.To, serializer_of type_))
-                         tags read)));
-            ]
-          (K.Generic (tagged_union_serializer, [ t name ]))
-    | None ->
-        let fits kind =
-          let members =
-            List.filter_map
-              (fun (type_, reads) ->
-                if List.mem kind reads then Some (serializer_of type_) else None)
-              read
-          in
-          lazily
-            (match members with
-            | [] -> K.call (K.Name "emptyList") []
-            | _ -> K.call (K.Name "listOf") members)
-        in
-        K.super ~layout:K.Lines
-          ~args:
-            [
-              K.arg (K.Class_literal name);
-              K.arg ~label:"strings" (fits `Text);
-              K.arg ~label:"scalars" (fits `Scalar);
-              K.arg ~label:"arrays" (fits `List);
-              K.arg ~label:"objects" (fits `Object);
-            ]
-          (K.Generic (kinds_union_serializer, [ t name ]))
+    K.super ~layout:K.Lines
+      ~args:
+        [
+          K.arg (K.Class_literal name);
+          K.arg ~label:"members"
+            (K.call ~layout:K.Lines (K.Name "listOf")
+               (List.map
+                  (fun (b : T.branch) ->
+                    K.call ~layout:K.Lines (K.Name "listOf")
+                      (List.map signature b.signature))
+                  u.branches));
+          K.arg ~label:"variants"
+            (K.Lambda
+               ( [],
+                 K.call ~layout:K.Lines (K.Name "listOf")
+                   (List.map serializer_of read) ));
+        ]
+      (K.Generic (signature_union_serializer, [ t name ]))
   in
   Declared
     (fun unions ->
@@ -923,8 +924,11 @@ let generate spec =
             empty_object;
             stated;
             invalid_identifier;
-            kinds_union_serializer;
-            tagged_union_serializer;
+            signature_union_serializer;
+            "Signature";
+            "Kind";
+            "Literal";
+            "Found";
             wrapper_serializer;
             open_object_serializer;
           ]

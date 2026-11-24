@@ -13,10 +13,44 @@ public sealed interface JobStoredResult {
     public data object Empty : JobStoredResult
 }
 
-internal object JobStoredResultSerializer : KindsUnionSerializer<JobStoredResult>(
+internal object JobStoredResultSerializer : SignatureUnionSerializer<JobStoredResult>(
     JobStoredResult::class,
-    strings = { listOf(JobResult.serializer()) },
-    scalars = { listOf(JobResult.serializer()) },
-    arrays = { listOf(JobResult.serializer()) },
-    objects = { listOf(JobResult.serializer(), JobStoredResult.Empty.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("found", "persisted"),
+                allowed = listOf("found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"),
+                fixed = emptyList(),
+                values = null,
+            ),
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("resourceId", "resourceName", "truncated"),
+                allowed = listOf("resourceId", "resourceName", "truncated"),
+                fixed = emptyList(),
+                values = null,
+            ),
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("declined", "reason"),
+                allowed = listOf("declined", "reason"),
+                fixed = listOf("declined" to listOf(Literal.Boolean(true)), "reason" to listOf(Literal.Text("no-text-layer"), Literal.Text("encrypted"), Literal.Text("corrupt"), Literal.Text("too-large"), Literal.Text("empty"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = emptyList(),
+                allowed = emptyList(),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        JobResult.serializer(),
+        JobStoredResult.Empty.serializer(),
+    ) },
 )

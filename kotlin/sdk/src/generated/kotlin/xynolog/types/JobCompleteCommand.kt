@@ -9,8 +9,30 @@ import kotlinx.serialization.Serializable
 @Serializable(with = JobCompleteCommandSerializer::class)
 public sealed interface JobCompleteCommand
 
-internal object JobCompleteCommandSerializer : TaggedUnionSerializer<JobCompleteCommand>(
+internal object JobCompleteCommandSerializer : SignatureUnionSerializer<JobCompleteCommand>(
     JobCompleteCommand::class,
-    "jobType",
-    members = { mapOf("mark" to MarkJobCompleteCommand.serializer(), "yield" to YieldJobCompleteCommand.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("resourceId", "jobId", "jobType"),
+                allowed = null,
+                fixed = listOf("jobType" to listOf(Literal.Text("mark")), "durability" to listOf(Literal.Text("acknowledged"), Literal.Text("probe-confirmed"), Literal.Text("probe-refused"), Literal.Text("probe-unreachable"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("resourceId", "jobId", "jobType"),
+                allowed = null,
+                fixed = listOf("jobType" to listOf(Literal.Text("yield")), "durability" to listOf(Literal.Text("acknowledged"), Literal.Text("probe-confirmed"), Literal.Text("probe-refused"), Literal.Text("probe-unreachable"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        MarkJobCompleteCommand.serializer(),
+        YieldJobCompleteCommand.serializer(),
+    ) },
 )

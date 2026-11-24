@@ -9,8 +9,50 @@ import kotlinx.serialization.Serializable
 @Serializable(with = GraphConfigSerializer::class)
 public sealed interface GraphConfig
 
-internal object GraphConfigSerializer : TaggedUnionSerializer<GraphConfig>(
+internal object GraphConfigSerializer : SignatureUnionSerializer<GraphConfig>(
     GraphConfig::class,
-    "type",
-    members = { mapOf("neo4j" to Neo4jGraphConfig.serializer(), "janusgraph" to JanusGraphConfig.serializer(), "neptune" to NeptuneGraphConfig.serializer(), "memory" to MemoryGraphConfig.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "uri", "username", "passwordEnv", "database"),
+                allowed = listOf("type", "uri", "username", "passwordEnv", "database"),
+                fixed = listOf("type" to listOf(Literal.Text("neo4j"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "host", "port"),
+                allowed = listOf("type", "host", "port"),
+                fixed = listOf("type" to listOf(Literal.Text("janusgraph"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "endpoint", "port"),
+                allowed = listOf("type", "endpoint", "port"),
+                fixed = listOf("type" to listOf(Literal.Text("neptune"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type"),
+                allowed = listOf("type"),
+                fixed = listOf("type" to listOf(Literal.Text("memory"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        Neo4jGraphConfig.serializer(),
+        JanusGraphConfig.serializer(),
+        NeptuneGraphConfig.serializer(),
+        MemoryGraphConfig.serializer(),
+    ) },
 )

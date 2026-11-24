@@ -9,8 +9,30 @@ import kotlinx.serialization.Serializable
 @Serializable(with = JobQueuedEventSerializer::class)
 public sealed interface JobQueuedEvent
 
-internal object JobQueuedEventSerializer : TaggedUnionSerializer<JobQueuedEvent>(
+internal object JobQueuedEventSerializer : SignatureUnionSerializer<JobQueuedEvent>(
     JobQueuedEvent::class,
-    "jobType",
-    members = { mapOf("mark" to MarkJobQueuedEvent.serializer(), "yield" to YieldJobQueuedEvent.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("jobId", "jobType", "resourceId", "userId", "params"),
+                allowed = null,
+                fixed = listOf("jobType" to listOf(Literal.Text("mark"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("jobId", "jobType", "resourceId", "userId", "params"),
+                allowed = null,
+                fixed = listOf("jobType" to listOf(Literal.Text("yield"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        MarkJobQueuedEvent.serializer(),
+        YieldJobQueuedEvent.serializer(),
+    ) },
 )

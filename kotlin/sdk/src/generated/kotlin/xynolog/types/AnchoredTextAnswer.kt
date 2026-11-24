@@ -15,10 +15,40 @@ import kotlinx.serialization.Serializable
 @Serializable(with = AnchoredTextAnswerSerializer::class)
 public sealed interface AnchoredTextAnswer
 
-internal object AnchoredTextAnswerSerializer : KindsUnionSerializer<AnchoredTextAnswer>(
+internal object AnchoredTextAnswerSerializer : SignatureUnionSerializer<AnchoredTextAnswer>(
     AnchoredTextAnswer::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(ExtractedText.serializer(), ExtractionDeclined.serializer(), AnchoredTextAbsent.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("text", "items", "kind", "method"),
+                allowed = null,
+                fixed = listOf("kind" to listOf(Literal.Text("extracted")), "method" to listOf(Literal.Text("text-passthrough"), Literal.Text("pdf-text-layer"), Literal.Text("table"), Literal.Text("form"), Literal.Text("ocr")), "pdfClass" to listOf(Literal.Text("A"), Literal.Text("B"), Literal.Text("C"), Literal.Text("D"), Literal.Text("E"), Literal.Text("F"), Literal.Text("G"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("kind", "declined"),
+                allowed = null,
+                fixed = listOf("kind" to listOf(Literal.Text("declined")), "declined" to listOf(Literal.Text("no-text-layer"), Literal.Text("encrypted"), Literal.Text("corrupt"), Literal.Text("too-large"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("kind"),
+                allowed = null,
+                fixed = listOf("kind" to listOf(Literal.Text("not-yet"), Literal.Text("no-map"), Literal.Text("unknown"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        ExtractedText.serializer(),
+        ExtractionDeclined.serializer(),
+        AnchoredTextAbsent.serializer(),
+    ) },
 )

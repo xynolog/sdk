@@ -9,8 +9,40 @@ import kotlinx.serialization.Serializable
 @Serializable(with = AgentSerializer::class)
 public sealed interface Agent : OneOrMoreAgents
 
-internal object AgentSerializer : TaggedUnionSerializer<Agent>(
+internal object AgentSerializer : SignatureUnionSerializer<Agent>(
     Agent::class,
-    "@type",
-    members = { mapOf("Person" to AgentPerson.serializer(), "Organization" to AgentOrganization.serializer(), "Software" to AgentSoftware.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("@type"),
+                allowed = null,
+                fixed = listOf("@type" to listOf(Literal.Text("Person"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("@type", "name"),
+                allowed = null,
+                fixed = listOf("@type" to listOf(Literal.Text("Organization"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("@type"),
+                allowed = null,
+                fixed = listOf("@type" to listOf(Literal.Text("Software"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        AgentPerson.serializer(),
+        AgentOrganization.serializer(),
+        AgentSoftware.serializer(),
+    ) },
 )

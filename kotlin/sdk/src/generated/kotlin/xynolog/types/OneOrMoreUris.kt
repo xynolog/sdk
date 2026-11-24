@@ -21,10 +21,30 @@ public sealed interface OneOrMoreUris {
     }
 }
 
-internal object OneOrMoreUrisSerializer : KindsUnionSerializer<OneOrMoreUris>(
+internal object OneOrMoreUrisSerializer : SignatureUnionSerializer<OneOrMoreUris>(
     OneOrMoreUris::class,
-    strings = { listOf(OneOrMoreUris.Text.serializer()) },
-    scalars = { emptyList() },
-    arrays = { listOf(OneOrMoreUris.List.serializer()) },
-    objects = { emptyList() },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.TEXT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.LIST,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        OneOrMoreUris.Text.serializer(),
+        OneOrMoreUris.List.serializer(),
+    ) },
 )

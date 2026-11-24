@@ -43,14 +43,10 @@ let closed_empty_named (form : T.form) =
 (* Python writes a union in place, but for one a list holds, as what it
    holds, naming none of what [Typing] invents. *)
 
-(* Kotlin describes as Rust and Go do ([node_description]), holds a union
-   every member of which is text as a [String] ([text_union]), and decodes a
-   union whose [discriminator] names one value per member by that value
-   ([Kotlin_sdk.Types]); any other is decoded as the first member, of the
-   kinds of JSON each is read from, that fits, a member that names a union
-   being read from every kind, where [Typing] tells every union's members
-   apart by their signatures. It holds an enumeration in place of integers, numbers or booleans,
-   as a const of one is, as its scalar, dropping its values. *)
+(* Kotlin describes as Rust and Go do ([node_description]), and holds a
+   union every member of which is text as a [String] ([text_union]). It
+   holds an enumeration in place of integers, numbers or booleans, as a
+   const of one is, as its scalar, dropping its values. *)
 
 (* Swift holds an object's members in the order of their names, where
    [Typing] has the schema's order, and so takes them in that order to make

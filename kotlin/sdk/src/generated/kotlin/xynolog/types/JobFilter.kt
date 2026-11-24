@@ -9,8 +9,30 @@ import kotlinx.serialization.Serializable
 @Serializable(with = JobFilterSerializer::class)
 public sealed interface JobFilter
 
-internal object JobFilterSerializer : TaggedUnionSerializer<JobFilter>(
+internal object JobFilterSerializer : SignatureUnionSerializer<JobFilter>(
     JobFilter::class,
-    "jobType",
-    members = { mapOf("mark" to MarkJobFilter.serializer(), "yield" to YieldJobFilter.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("jobType", "params"),
+                allowed = listOf("jobType", "params"),
+                fixed = listOf("jobType" to listOf(Literal.Text("mark"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("jobType"),
+                allowed = listOf("jobType"),
+                fixed = listOf("jobType" to listOf(Literal.Text("yield"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        MarkJobFilter.serializer(),
+        YieldJobFilter.serializer(),
+    ) },
 )

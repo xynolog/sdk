@@ -9,8 +9,30 @@ import kotlinx.serialization.Serializable
 @Serializable(with = VectorsConfigSerializer::class)
 public sealed interface VectorsConfig
 
-internal object VectorsConfigSerializer : TaggedUnionSerializer<VectorsConfig>(
+internal object VectorsConfigSerializer : SignatureUnionSerializer<VectorsConfig>(
     VectorsConfig::class,
-    "type",
-    members = { mapOf("qdrant" to QdrantVectorsConfig.serializer(), "memory" to MemoryVectorsConfig.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "host", "port", "tokenEnv"),
+                allowed = listOf("type", "host", "port", "tokenEnv"),
+                fixed = listOf("type" to listOf(Literal.Text("qdrant"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type"),
+                allowed = listOf("type"),
+                fixed = listOf("type" to listOf(Literal.Text("memory"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        QdrantVectorsConfig.serializer(),
+        MemoryVectorsConfig.serializer(),
+    ) },
 )

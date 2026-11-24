@@ -9,8 +9,40 @@ import kotlinx.serialization.Serializable
 @Serializable(with = KbReadVerdictSerializer::class)
 public sealed interface KbReadVerdict
 
-internal object KbReadVerdictSerializer : TaggedUnionSerializer<KbReadVerdict>(
+internal object KbReadVerdictSerializer : SignatureUnionSerializer<KbReadVerdict>(
     KbReadVerdict::class,
-    "kind",
-    members = { mapOf("recorded" to KbReadVerdictRecorded.serializer(), "conflict" to KbReadVerdictConflict.serializer(), "no-verdict" to KbReadVerdictNoVerdict.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("kind"),
+                allowed = listOf("kind"),
+                fixed = listOf("kind" to listOf(Literal.Text("recorded"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("kind", "observedDid", "observedName"),
+                allowed = listOf("kind", "observedDid", "observedName"),
+                fixed = listOf("kind" to listOf(Literal.Text("conflict"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("kind"),
+                allowed = listOf("kind"),
+                fixed = listOf("kind" to listOf(Literal.Text("no-verdict"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        KbReadVerdictRecorded.serializer(),
+        KbReadVerdictConflict.serializer(),
+        KbReadVerdictNoVerdict.serializer(),
+    ) },
 )

@@ -9,8 +9,30 @@ import kotlinx.serialization.Serializable
 @Serializable(with = DirectoryEntrySerializer::class)
 public sealed interface DirectoryEntry
 
-internal object DirectoryEntrySerializer : TaggedUnionSerializer<DirectoryEntry>(
+internal object DirectoryEntrySerializer : SignatureUnionSerializer<DirectoryEntry>(
     DirectoryEntry::class,
-    "type",
-    members = { mapOf("file" to FileEntry.serializer(), "dir" to DirEntry.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "name", "path", "size", "mtime", "tracked"),
+                allowed = listOf("type", "name", "path", "size", "mtime", "tracked", "resourceId", "entityTypes", "annotationCount", "creator"),
+                fixed = listOf("type" to listOf(Literal.Text("file"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "name", "path", "mtime"),
+                allowed = listOf("type", "name", "path", "mtime"),
+                fixed = listOf("type" to listOf(Literal.Text("dir"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        FileEntry.serializer(),
+        DirEntry.serializer(),
+    ) },
 )

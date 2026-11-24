@@ -28,10 +28,40 @@ public sealed interface ResourceDescriptorContext {
     }
 }
 
-internal object ResourceDescriptorContextSerializer : KindsUnionSerializer<ResourceDescriptorContext>(
+internal object ResourceDescriptorContextSerializer : SignatureUnionSerializer<ResourceDescriptorContext>(
     ResourceDescriptorContext::class,
-    strings = { listOf(ResourceDescriptorContext.Text.serializer()) },
-    scalars = { emptyList() },
-    arrays = { listOf(ResourceDescriptorContext.List.serializer()) },
-    objects = { listOf(ResourceDescriptorContext.Object.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.TEXT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.LIST,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        ResourceDescriptorContext.Text.serializer(),
+        ResourceDescriptorContext.Object.serializer(),
+        ResourceDescriptorContext.List.serializer(),
+    ) },
 )

@@ -13,10 +13,30 @@ public sealed interface JobStoredProgress {
     public data object Empty : JobStoredProgress
 }
 
-internal object JobStoredProgressSerializer : KindsUnionSerializer<JobStoredProgress>(
+internal object JobStoredProgressSerializer : SignatureUnionSerializer<JobStoredProgress>(
     JobStoredProgress::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(JobProgress.serializer(), JobStoredProgress.Empty.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("percentage"),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = emptyList(),
+                allowed = emptyList(),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        JobProgress.serializer(),
+        JobStoredProgress.Empty.serializer(),
+    ) },
 )

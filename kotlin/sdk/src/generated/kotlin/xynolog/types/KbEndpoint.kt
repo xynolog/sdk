@@ -9,8 +9,30 @@ import kotlinx.serialization.Serializable
 @Serializable(with = KbEndpointSerializer::class)
 public sealed interface KbEndpoint
 
-internal object KbEndpointSerializer : TaggedUnionSerializer<KbEndpoint>(
+internal object KbEndpointSerializer : SignatureUnionSerializer<KbEndpoint>(
     KbEndpoint::class,
-    "kind",
-    members = { mapOf("http" to HttpEndpoint.serializer(), "local" to LocalEndpoint.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("kind", "host", "port", "protocol"),
+                allowed = null,
+                fixed = listOf("kind" to listOf(Literal.Text("http")), "protocol" to listOf(Literal.Text("http"), Literal.Text("https"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("kind", "kbId"),
+                allowed = null,
+                fixed = listOf("kind" to listOf(Literal.Text("local"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        HttpEndpoint.serializer(),
+        LocalEndpoint.serializer(),
+    ) },
 )

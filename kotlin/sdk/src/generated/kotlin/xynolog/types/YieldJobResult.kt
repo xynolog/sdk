@@ -9,10 +9,30 @@ import kotlinx.serialization.Serializable
 @Serializable(with = YieldJobResultSerializer::class)
 public sealed interface YieldJobResult
 
-internal object YieldJobResultSerializer : KindsUnionSerializer<YieldJobResult>(
+internal object YieldJobResultSerializer : SignatureUnionSerializer<YieldJobResult>(
     YieldJobResult::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(YieldJobDone.serializer(), JobDeclined.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("resourceId", "resourceName", "truncated"),
+                allowed = listOf("resourceId", "resourceName", "truncated"),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("declined", "reason"),
+                allowed = listOf("declined", "reason"),
+                fixed = listOf("declined" to listOf(Literal.Boolean(true)), "reason" to listOf(Literal.Text("no-text-layer"), Literal.Text("encrypted"), Literal.Text("corrupt"), Literal.Text("too-large"), Literal.Text("empty"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        YieldJobDone.serializer(),
+        JobDeclined.serializer(),
+    ) },
 )

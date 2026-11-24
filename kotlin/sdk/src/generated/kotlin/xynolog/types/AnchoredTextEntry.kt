@@ -9,10 +9,30 @@ import kotlinx.serialization.Serializable
 @Serializable(with = AnchoredTextEntrySerializer::class)
 public sealed interface AnchoredTextEntry
 
-internal object AnchoredTextEntrySerializer : KindsUnionSerializer<AnchoredTextEntry>(
+internal object AnchoredTextEntrySerializer : SignatureUnionSerializer<AnchoredTextEntry>(
     AnchoredTextEntry::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(AnchoredTextExtractedEntry.serializer(), AnchoredTextDeclinedEntry.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("v", "stamp", "text", "lines", "method"),
+                allowed = listOf("v", "stamp", "text", "lines", "method", "pdfClass", "ocrConfidence", "unreadPages"),
+                fixed = listOf("v" to listOf(Literal.Integer(3)), "method" to listOf(Literal.Text("text-passthrough"), Literal.Text("pdf-text-layer"), Literal.Text("table"), Literal.Text("form"), Literal.Text("ocr")), "pdfClass" to listOf(Literal.Text("A"), Literal.Text("B"), Literal.Text("C"), Literal.Text("D"), Literal.Text("E"), Literal.Text("F"), Literal.Text("G"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("v", "stamp", "declined"),
+                allowed = listOf("v", "stamp", "declined"),
+                fixed = listOf("v" to listOf(Literal.Integer(3)), "declined" to listOf(Literal.Text("no-text-layer"), Literal.Text("encrypted"), Literal.Text("corrupt"), Literal.Text("too-large"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = { listOf(
+        AnchoredTextExtractedEntry.serializer(),
+        AnchoredTextDeclinedEntry.serializer(),
+    ) },
 )
