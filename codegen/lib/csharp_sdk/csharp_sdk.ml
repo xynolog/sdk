@@ -116,7 +116,7 @@ let roots (spec : Spec.t) =
      ([Normalize.several_types_throughout]): the union a model of it reads. *)
   let read name path schema =
     let validated = Normalize.several_types_throughout schema in
-    (name, path, { Models.schema = Normalize.shape_only validated; validated })
+    (name, path, validated)
   in
   let written = Definitions.whole spec in
   let whole name path =
@@ -153,7 +153,7 @@ let roots (spec : Spec.t) =
 let refused message =
   [ { Decode.file = "components/schemas"; pointer = ""; message } ]
 
-let model_file (name, _, decls) =
+let model_file (name, decls) =
   file ~nullable:true ~namespace:"Xynolog.Types"
     ~from_:"the schemas of protocol/specs/src the C# SDK models"
     (types ^ "/" ^ name ^ ".g.cs")
@@ -444,19 +444,43 @@ let files ~root (spec : Spec.t) =
   in
   let* models =
     Result.map_error refused
-      (Models.make ~ids:spec.ids
-         ~identifiers:
-           (List.map (fun (k : Identifiers.Table.kind) -> k.name) kinds)
-         ~keys:(Definitions.map_keys spec)
-         ~roots
-         ~made:
-           (List.map
-              (fun (name, _, schema) ->
-                let validated = Normalize.several_types_throughout schema in
-                ( name,
-                  { Models.schema = Normalize.shape_only validated; validated }
-                ))
-              made))
+      (let bundle = Definitions.bundle spec in
+       let sign_in =
+         match List.assoc_opt Roots.sign_in_entry spec.schemas with
+         | Some s -> s
+         | None -> Definitions.refuse "Protocol has no %s" Roots.sign_in_entry
+       in
+       let made =
+         List.map
+           (fun (name, _, schema) ->
+             (name, Normalize.several_types_throughout schema))
+           made
+       in
+       match
+         ( Typing.of_spec spec ~tables:(Roots.service_tables spec),
+           Typing.make
+             {
+               Definitions.names = bundle.definitions.names @ List.map fst made;
+               schema =
+                 (fun name ->
+                   match List.assoc_opt name made with
+                   | Some validated ->
+                       bundle.view (Normalize.shape_only validated)
+                   | None -> bundle.definitions.schema name);
+             }
+             ~roots:(List.map fst made)
+             ~identifiers:
+               (List.map (fun (k : Identifiers.Table.kind) -> k.name) kinds)
+             ~keys:(Definitions.map_keys spec),
+           Typing.make
+             (Definitions.alone ~ids:spec.ids ~name:"SignIn" sign_in)
+             ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[] )
+       with
+       | typing, payloads, signed_in ->
+           Models.make ~ids:spec.ids
+             ~typings:[ typing; signed_in; payloads ]
+             ~roots ~made
+       | exception Definitions.Refused message -> Error message)
   in
   let* codes = Error_codes.Table.derive spec.tables.errors_codes in
   let* failures = failure_codes codes models in

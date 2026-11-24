@@ -10,23 +10,39 @@ module M = Csharp_sdk.Models
 let case name test = Alcotest.test_case name `Quick test
 let file name = "components/schemas/" ^ name ^ ".json"
 
-let definition name text =
+let validated name text =
   let json = Yojson.Safe.from_string text in
   match Decode.run ~file:(file name) json Schema.decode with
-  | Ok (schema, _) ->
-      let validated = Normalize.several_types_throughout schema in
-      { M.schema = Normalize.shape_only validated; validated }
+  | Ok (schema, _) -> Normalize.several_types_throughout schema
   | Error error -> failwith (Decode.error_to_string error)
-
-let roots =
-  List.map (fun (name, text) -> (name, file name, definition name text))
 
 (* The references here name schemas by path, so they need no index of [$id]s. *)
 let ids = Result.get_ok (Decode.ids [])
 
-let made ?(identifiers = []) ?(payloads = []) schemas =
-  M.make ~ids ~identifiers ~keys:[] ~roots:(roots schemas)
-    ~made:(List.map (fun (name, text) -> (name, definition name text)) payloads)
+(* The models of [roots], each a name, the place it is read from and its
+   JSON, and [payloads] beside them, typed as one. *)
+let made_at ?(identifiers = []) ?(payloads = []) roots =
+  match
+    Typing.make
+      (Fixture.definitions_at
+         (roots
+         @ List.map (fun (name, text) -> (name, file name, text)) payloads))
+      ~roots:(List.map (fun (name, _, _) -> name) roots @ List.map fst payloads)
+      ~identifiers ~keys:[]
+  with
+  | typing ->
+      M.make ~ids ~typings:[ typing ]
+        ~roots:
+          (List.map
+             (fun (name, place, text) -> (name, place, validated name text))
+             roots)
+        ~made:
+          (List.map (fun (name, text) -> (name, validated name text)) payloads)
+  | exception Definitions.Refused message -> Error message
+
+let made ?identifiers ?payloads schemas =
+  made_at ?identifiers ?payloads
+    (List.map (fun (name, text) -> (name, file name, text)) schemas)
 
 let refuses ?payloads schemas expected () =
   match made ?payloads schemas with
@@ -38,8 +54,7 @@ let models schemas =
   | Ok t -> t
   | Error message -> Alcotest.failf "refused: %s" message
 
-let names schemas () =
-  List.map (fun (name, _, _) -> name) (models schemas).models
+let names schemas () = List.map fst (models schemas).models
 
 (* What Schema.decode refuses of a component. *)
 let unread text () =
@@ -54,14 +69,10 @@ let object_ properties =
 
 let refusals =
   [
-    case "a schema that is a boolean is refused"
-      (refuses
-         [ ("X", object_ {|"a":true|}) ]
-         "components/schemas/X.json.a is not a schema object.");
     case "a reference to no schema is refused"
       (refuses
          [ ("X", {|{"$ref":"./Absent.json"}|}) ]
-         "./Absent.json names no schema the models are made from");
+         "$ref ./Absent.json names no schema");
     case "a member of no type it can be is refused"
       (refuses
          [ ("X", object_ {|"a":{"type":"array"}|}) ]
@@ -102,43 +113,26 @@ let refusals =
          "X has colliding C# property names.");
     case "a union of two members of one case is refused"
       (refuses
-         [
-           ( "X",
-             {|{"oneOf":[{"type":"string"},{"type":"string","maxLength":3}]}|}
-           );
-         ]
+         [ ("X", {|{"oneOf":[{"type":"integer"},{"type":"boolean"}]}|}) ]
          "X has colliding C# union cases.");
     case "a payload named as a component is refused"
       (refuses
          ~payloads:[ ("X", {|{"type":"object","maxProperties":0}|}) ]
          [ ("X", object_ {|"a":{"type":"string"}|}) ]
          "X is named twice among the schemas the models are made from");
-    case "a reference into a file no root is read from is refused"
-      (refuses
-         [
-           ("X", object_ {|"a":{"$ref":"./Y.json#/properties/b"}|});
-           ("Y", object_ {|"b":{"type":"string"}|});
-         ]
-         "./Y.json#/properties/b names no schema the models are made from");
     case "a reference into a file names the root read from there" (fun () ->
         match
-          M.make ~ids ~identifiers:[] ~keys:[]
-            ~roots:
-              [
-                ( "X",
-                  file "X",
-                  definition "X"
-                    (object_ {|"a":{"$ref":"../../client/t.json#/types/Y"}|}) );
-                ( "Y",
-                  "client/t.json#/types/Y",
-                  definition "Y" (object_ {|"b":{"type":"string"}|}) );
-              ]
-            ~made:[]
+          made_at
+            [
+              ( "X",
+                file "X",
+                object_ {|"a":{"$ref":"../../client/t.json#/types/Y"}|} );
+              ("Y", "client/t.json#/types/Y", object_ {|"b":{"type":"string"}|});
+            ]
         with
         | Ok t ->
             Alcotest.(check (list string))
-              "models" [ "X"; "Y" ]
-              (List.map (fun (name, _, _) -> name) t.models)
+              "models" [ "X"; "Y" ] (List.map fst t.models)
         | Error message -> Alcotest.failf "refused: %s" message);
     case "patternProperties is unread"
       (unread {|{"type":"object","patternProperties":{"x":{"type":"string"}}}|});
@@ -155,8 +149,7 @@ let readings =
     case "a plain text and an identifier are no models of their own" (fun () ->
         Alcotest.(check (list string))
           "models" [ "X" ]
-          (List.map
-             (fun (name, _, _) -> name)
+          (List.map fst
              (match
                 made ~identifiers:[ "XId" ]
                   [
@@ -225,6 +218,20 @@ let readings =
           (Yojson.Safe.to_string
              (Schema.runtime
                 (List.assoc "X" (models [ ("X", stated) ]).schemas))));
+    case "a schema that is true is any JSON, no model of its own" (fun () ->
+        Alcotest.(check (list string))
+          "models" [ "X" ]
+          (names [ ("X", object_ {|"a":true|}) ] ()));
+    case "a reference into a member of a file is that member's schema"
+      (fun () ->
+        Alcotest.(check (list string))
+          "models" [ "X"; "Y" ]
+          (names
+             [
+               ("X", object_ {|"a":{"$ref":"./Y.json#/properties/b"}|});
+               ("Y", object_ {|"b":{"type":"string"}|});
+             ]
+             ()));
     case "a list of two types is a union of each" (fun () ->
         Alcotest.(check (list string))
           "models" [ "X"; "XA" ]

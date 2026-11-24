@@ -1,30 +1,25 @@
-(* The C# SDK's models, in Xynolog.Types: a record of its properties per
-   object schema, an enum per string enumeration, a closed record of a case
-   per member per union, each with the converter System.Text.Json reads and
-   writes it with; a schema of plain text is a string, and a kind of id is
-   Xynolog.Identifiers'. What a schema states in place is a model of its own,
-   named for its owner and its place. Every schema the models are made from,
-   those made in place too, is what the SDK validates a value against
-   (WireSchemas).
+(* The C# SDK's models, in Xynolog.Types, of Protocol's schemas as [Typing]
+   reads them: a record of its properties per object, an enum per string
+   enumeration, a closed record of a case per member per union, each with
+   the converter System.Text.Json reads and writes it with; a schema of
+   plain text is a string, and a kind of id is Xynolog.Identifiers'. What a
+   schema states in place is a model of its own, named as [Typing] names it.
+   Every schema the models are made from, those made in place too, is what
+   the SDK validates a value against (WireSchemas), read at the place
+   [Typing] reads its shape.
 
-   A schema that states an allOf is modelled as what its validated parts
-   merge to ([Normalize]), and validated as that merge. An object's properties are in order of
-   name. One that is required is [required]; one that
-   is required, not nullable and admits one string is that string, and is no
-   property to set; one that is optional is nullable; and one that is
-   optional and nullable is a [Stated]: absent, null or a value. An object
-   that admits properties it does not name keeps them
-   (AdditionalProperties). A union's value is read as the member
-   [WireJson.Variant] says it is. *)
+   A schema that states an allOf is validated as what its validated parts
+   merge to ([Normalize]). An object's properties are in order of name. One
+   that is required is [required]; one that is required, not nullable and
+   admits one string is that string, and is no property to set; one that is
+   optional is nullable; and one that is optional and nullable is a
+   [Stated]: absent, null or a value. An object that admits properties it
+   does not name keeps them (AdditionalProperties). A union's value is read
+   as the member [WireJson.Variant] says it is. Where C# reads otherwise
+   than [Typing], [Deviations] names it. *)
 
 module C = Csharp_syntax
-
-type definition = {
-  schema : Schema.t;  (** As a writer of types reads it. *)
-  validated : Schema.t;
-      (** As the SDK validates a value against it (WireSchemas), of which
-          [schema] is the shape ([Normalize.shape_only]). *)
-}
+module T = Typing
 
 exception Refused of string
 
@@ -32,12 +27,6 @@ let refuse fmt = Printf.ksprintf (fun m -> raise (Refused m)) fmt
 let types = "global::Xynolog.Types."
 let json name = Csharp_converter.json name
 let element = C.T (json "JsonElement")
-
-(* A keyword that says something of a schema but holds a value to nothing: a
-   schema of only these, as JsonSchema.json written in place is, admits any
-   value, an element. *)
-let annotation keyword =
-  List.mem keyword [ "$schema"; "$id"; "$comment"; "title"; "description" ]
 
 let generic name args =
   C.Generic ("global::System.Collections.Generic." ^ name, args)
@@ -79,68 +68,38 @@ let values_of v =
   | Some (Boolean_schema _) | None ->
       refuse "the schema validated states no additionalProperties"
 
-let member_of keyword i v =
-  let l = layer keyword v in
-  stated keyword
+(* The [i]th member of the union [v] states. *)
+let member_of i v =
+  let l = layer "a union" v in
+  stated "union member"
     (Option.bind
-       (match keyword with
-       | "oneOf" -> l.one_of
-       | "anyOf" -> l.any_of
-       | "allOf" -> l.all_of
-       | _ -> refuse "%s composes no schema" keyword)
+       (match (l.one_of, l.any_of) with
+       | Some members, _ | None, Some members -> Some members
+       | None, None -> None)
        (fun members -> List.nth_opt members i))
 
-(* What the models read of a schema: every part a schema object, and a type
-   one name, where the model of a schema reads a list of one type as that
-   type. A schema of parts the models cannot read fails the run rather than
-   making a model of less than it says. *)
-let rec readable path ((schema : Schema.t), validated) =
-  let s = layer path schema in
-  (match s.type_ with
-  | Some ([ _ ] | [ _; Null ]) | None -> ()
-  | Some _ -> refuse "%s has an unsupported type." path);
-  Option.iter
-    (List.iter (fun (name, p) ->
-         readable (path ^ "." ^ name) (p, property_of name validated)))
-    s.properties;
-  Option.iter (fun i -> readable (path ^ "[]") (i, items_of validated)) s.items;
-  (match s.additional_properties with
-  | Some (Schema _ as v) -> readable (path ^ ".*") (v, values_of validated)
-  | Some (Boolean_schema _) | None -> ());
-  List.iter
-    (fun (keyword, parts) ->
-      Option.iter
-        (List.iteri (fun i part ->
-             readable
-               (path ^ "." ^ keyword)
-               (part, member_of keyword i validated)))
-        parts)
-    [ ("oneOf", s.one_of); ("anyOf", s.any_of); ("allOf", s.all_of) ]
-
 type state = {
-  definitions : (string, definition) Hashtbl.t;
-  mutable order : string list;  (** The definitions' names, last first. *)
+  find : string -> T.declaration;
+  validated : (string, Schema.t) Hashtbl.t;
+      (** Each model's schema, as the SDK validates a value against it. *)
+  mutable order : string list;  (** The models' names, last first. *)
   read_from : (string, string) Hashtbl.t;
       (** A root's name, by the file, or the place in a file, it is read from.
       *)
   ids : Decode.ids;  (** Each schema's [$id]: what a reference names. *)
-  identifiers : string list;
-  keys : (string * string) list;
-      (** The type a named map's keys are, by its name ([Definitions.map_keys]).
-      *)
   written : (string, C.decl list) Hashtbl.t;
   inlined : (string, string) Hashtbl.t;  (** [owner.property] → model. *)
 }
 
-let define state name definition =
-  if Hashtbl.mem state.definitions name then
+let define state name validated =
+  if Hashtbl.mem state.validated name then
     refuse "%s is named twice among the schemas the models are made from" name;
-  Hashtbl.replace state.definitions name definition;
+  Hashtbl.replace state.validated name validated;
   state.order <- name :: state.order
 
-let definition state name =
-  match Hashtbl.find_opt state.definitions name with
-  | Some d -> d
+let validated state name =
+  match Hashtbl.find_opt state.validated name with
+  | Some v -> v
   | None -> refuse "No component schema names %s." name
 
 (* The schema a reference names: the root read from where it points. *)
@@ -151,28 +110,14 @@ let referenced state (r : Decode.reference) =
 
 (* The C# type of a schema of one plain value, text of no enumeration or a
    number or a boolean, which is no model of its own. *)
-let rec plain state (s : Schema.schema) =
-  match s with
-  | { ref_ = Some r; _ } ->
-      let name = referenced state r in
-      plain state (layer name (definition state name).schema)
-  | { type_ = Some [ String ]; enum = None; _ } -> Some (C.T "string")
-  | { type_ = Some [ Integer ]; enum = None; _ } -> Some (C.T "long")
-  | { type_ = Some [ Number ]; enum = None; _ } -> Some (C.T "double")
-  | { type_ = Some [ Boolean ]; enum = None; _ } -> Some (C.T "bool")
+let rec plain state (form : T.form) =
+  match form with
+  | T.Alias (T.Named name) -> plain state (state.find name).form
+  | T.Alias (T.Scalar (T.Text _)) | T.Identifier _ -> Some (C.T "string")
+  | T.Alias (T.Scalar (T.Integer _)) -> Some (C.T "long")
+  | T.Alias (T.Scalar T.Number) -> Some (C.T "double")
+  | T.Alias (T.Scalar T.Boolean) -> Some (C.T "bool")
   | _ -> None
-
-(* A schema's one string value, when it admits one. *)
-let constant (s : Schema.schema) =
-  match s.enum with Some [ String_literal c ] -> Some c | _ -> None
-
-(* What [s] is beside null, when it may be null ([Null_form]). *)
-let beside_null (s : Schema.schema) =
-  match Null_form.without_null Fun.id s with
-  | Ok beside -> beside
-  | Error message -> refuse "%s" message
-
-let nullable s = Option.is_some (beside_null s)
 
 type field = {
   wire : string;
@@ -184,111 +129,100 @@ type field = {
 }
 
 let rec named state name =
-  if List.mem name state.identifiers then
-    C.T ("global::Xynolog.Identifiers." ^ name)
-  else
-    let d = definition state name in
-    match plain state (layer name d.schema) with
-    | Some type_ -> type_
-    | None ->
-        if not (Hashtbl.mem state.written name) then (
-          Hashtbl.replace state.written name [];
-          Hashtbl.replace state.written name (declare state name d));
-        C.T (types ^ name)
+  let d = state.find name in
+  match d.form with
+  | T.Identifier _ -> C.T ("global::Xynolog.Identifiers." ^ name)
+  | form -> (
+      match plain state form with
+      | Some type_ -> type_
+      | None ->
+          if not (Hashtbl.mem state.written name) then (
+            Hashtbl.replace state.written name [];
+            Hashtbl.replace state.written name
+              (declare state name form d.composition (validated state name)));
+          C.T (types ^ name))
 
-and inline state owner property (schema, validated) =
-  let key = owner ^ "." ^ property in
-  match Hashtbl.find_opt state.inlined key with
-  | Some known -> C.T (types ^ known)
-  | None ->
-      let name =
-        Naming.inline
-          ~defined:(fun n ->
-            Hashtbl.mem state.definitions n || Hashtbl.mem state.written n)
-          owner property
-      in
-      Hashtbl.replace state.inlined key name;
-      let d = { schema; validated } in
-      define state name d;
-      Hashtbl.replace state.written name [];
-      Hashtbl.replace state.written name (declare state name d);
-      C.T (types ^ name)
+(* A model of its own written in place, named as [Typing] names it. *)
+and inline state owner property (i : T.inline) validated =
+  if not (Hashtbl.mem state.written i.name) then (
+    define state i.name validated;
+    Hashtbl.replace state.written i.name [];
+    Hashtbl.replace state.written i.name
+      (declare state i.name i.form i.composition validated));
+  Hashtbl.replace state.inlined (owner ^ "." ^ property) i.name;
+  C.T (types ^ i.name)
 
-(* The type of a value of [owner]'s [property], whose schema is [schema]. *)
-and type_of state owner property ((schema, validated) as node) =
-  let s = layer (owner ^ "." ^ property) schema in
-  match beside_null s with
-  | Some beside -> type_of state owner property (Schema.Schema beside, validated)
-  | None -> type_of_beside_null state owner property node s
-
-and type_of_beside_null state owner property ((_, validated) as node) s =
-  let inline () = inline state owner property node in
-  match s with
-  | { ref_ = Some r; _ } -> named state (referenced state r)
-  | { all_of = Some _; _ } | { one_of = Some _; _ } | { any_of = Some _; _ } ->
-      inline ()
-  | { type_ = Some [ String ]; format = Some Binary; _ } -> C.Array (T "byte")
-  | { type_ = Some [ String ]; enum = Some _; _ } -> inline ()
-  | { type_ = Some [ String ]; _ } -> T "string"
-  | { type_ = Some [ Integer ]; _ } -> T "long"
-  | { type_ = Some [ Number ]; _ } -> T "double"
-  | { type_ = Some [ Boolean ]; _ } -> T "bool"
-  | { type_ = Some [ Array ]; items = Some items; _ } ->
+(* The type of a value of [owner]'s [property], of [ty], validated as
+   [validated]. *)
+and type_of state owner property ((ty : T.ty), validated) =
+  match ty with
+  | T.Nullable inner -> type_of state owner property (inner, validated)
+  | T.Named name -> named state name
+  | T.Inline i -> in_place state owner property i validated
+  | T.Scalar (T.Text { binary = true; _ }) -> C.Array (T "byte")
+  | T.Scalar (T.Text _) -> T "string"
+  | T.Scalar (T.Integer _) -> T "long"
+  | T.Scalar T.Number -> T "double"
+  | T.Scalar T.Boolean -> T "bool"
+  | T.List (Some items) ->
       generic "IReadOnlyList"
         [ type_of state owner (property ^ "Item") (items, items_of validated) ]
-  | { type_ = Some [ Object ]; properties = Some (_ :: _); _ }
-  | { type_ = Some [ Object ]; max_properties = Some 0; _ }
-  | {
-      type_ = Some [ Object ];
-      additional_properties = Some (Boolean_schema false);
-      _;
-    } ->
+  | T.Any -> element
+  | T.List None | T.Null | T.Nothing ->
+      refuse "%s.%s has an unsupported type shape." owner property
+
+and in_place state owner property (i : T.inline) validated =
+  let inline () = inline state owner property i validated in
+  match (i.form, i.composition) with
+  | _, Some _
+  | (T.Record _ | T.Union _ | T.Enum { base = Some (T.Text _); _ }), None ->
       inline ()
-  | {
-   type_ = Some [ Object ];
-   additional_properties = Some (Schema _ as values);
-   _;
-  } ->
+  | T.Enum { base = Some (T.Integer _); _ }, None -> T "long"
+  | T.Enum { base = Some T.Number; _ }, None -> T "double"
+  | T.Enum { base = Some T.Boolean; _ }, None -> T "bool"
+  | (T.Empty _ as form), None when T.holds_none form -> inline ()
+  | T.Empty _, None -> element
+  | T.Map { value; _ }, None ->
       generic "IReadOnlyDictionary"
         [
           T "string";
-          type_of state owner (property ^ "Value") (values, values_of validated);
+          type_of state owner (property ^ "Value") (value, values_of validated);
         ]
-  | { type_ = Some [ Object ]; _ } -> element
-  | { type_ = None; _ } when List.for_all annotation (Schema.keywords s) ->
-      element
-  | _ -> refuse "%s.%s has an unsupported type shape." owner property
+  | (T.Enum { base = None; _ } | T.Alias _ | T.Identifier _ | T.Json), None ->
+      refuse "%s.%s has an unsupported type shape." owner property
 
 (* A model as the record, union or enumeration it is, named to the
-   hand-written converter that reads and writes it. *)
-and declare state name original =
+   hand-written converter that reads and writes it, validated as
+   [validated], or what its allOf's validated parts merge to. *)
+and declare state name (form : T.form) composition validated =
   let read_as attribute : C.attribute =
     { name = "global::Xynolog.Serialization." ^ attribute; args = [] }
   in
-  let d = meant state name original in
-  match layer name d.schema with
-  | { enum = Some values; _ } ->
-      enum name ~attribute:(read_as "WireEnum") values
-  | { one_of = Some members; _ } ->
-      union state name "oneOf" (members, d.validated)
-  | { any_of = Some members; _ } ->
-      union state name "anyOf" (members, d.validated)
-  | _ -> object_ state name ~attribute:(read_as "WireObject") ~original d
-
-(* [d] as what it means: one that states an allOf, what its validated
-   parts merge to, of which the model is the shape. *)
-and meant state name d =
-  match layer name d.schema with
-  | { all_of = None; _ } -> d
-  | _ ->
-      let validated = Schema.Schema (merged state name d.validated) in
-      { schema = Normalize.shape_only validated; validated }
+  let validated =
+    match composition with
+    | Some _ -> Schema.Schema (merged state name validated)
+    | None -> validated
+  in
+  match form with
+  | T.Enum { values; _ } -> enum name ~attribute:(read_as "WireEnum") values
+  | T.Union u -> union state name u validated
+  | T.Record { members; rest } ->
+      object_ state name ~attribute:(read_as "WireObject") members rest
+        ~key:None validated
+  | T.Empty { rest; _ } ->
+      object_ state name ~attribute:(read_as "WireObject") [] rest ~key:None
+        validated
+  | T.Map { key; value } ->
+      object_ state name ~attribute:(read_as "WireObject") [] (T.Of value) ~key
+        validated
+  | T.Alias _ | T.Identifier _ | T.Json ->
+      refuse "%s is not an object schema." name
 
 (* [name]'s validated [schema] with its allOf merged ([Normalize]). *)
 and merged state name schema =
   match
     Normalize.normalize state.ids
-      ~find:(fun r -> Ok (definition state (referenced state r)).validated)
+      ~find:(fun r -> Ok (validated state (referenced state r)))
       schema
   with
   | Ok s -> s
@@ -327,58 +261,54 @@ and enum name ~attribute values =
       };
   ]
 
-and object_ state name ~attribute ~original d =
-  let s = layer name d.schema in
-  if s.type_ <> Some [ Object ] && (layer name original.schema).all_of = None
-  then refuse "%s is not an object schema." name;
-  let properties =
-    match s.properties with
-    | Some own ->
-        List.map (fun (key, p) -> (key, (p, property_of key d.validated))) own
-    | None -> []
-  in
-  let required = Option.value s.required ~default:[] in
+and object_ state name ~attribute (members : T.member list) (rest : T.rest) ~key
+    validated =
   (* An object whose other members are anything keeps them as JSON; one whose
      other members are of a schema keeps them as that schema's type, keyed as
      its member names' schema is, where that is a schema of its own. *)
   let rest =
-    match s.additional_properties with
-    | Some (Boolean_schema true) -> Some (C.T "string", element)
-    | Some (Schema _ as values) ->
+    match rest with
+    | T.Open -> Some (C.T "string", element)
+    | T.Of value ->
         Some
-          ( (match List.assoc_opt name state.keys with
-            | Some key -> named state key
-            | None -> C.T "string"),
-            type_of state name "Value" (values, values_of d.validated) )
-    | Some (Boolean_schema false) | None -> None
-  in
-  let owner =
-    Inherited.of_schemas
-      ~find:(fun n -> (definition state n).schema)
-      ~referenced:(referenced state) name original.schema
+          ( (match key with Some key -> named state key | None -> C.T "string"),
+            type_of state name "Value" (value, values_of validated) )
+    | T.Closed | T.Unstated -> None
   in
   (* A property another schema states is that schema's, and so are the
      models made in place of it: that schema is modelled first, from what
      Protocol writes of it. *)
   List.iter
-    (fun (wire, _) ->
-      if owner wire <> name then ignore (named state (owner wire)))
-    properties;
+    (fun (m : T.member) -> if m.owner <> name then ignore (named state m.owner))
+    members;
   let fields =
     List.map
-      (fun (wire, ((schema, _) as node)) ->
-        let field = field_name name wire in
-        let p = layer (name ^ "." ^ wire) schema in
-        let required = List.mem wire required in
-        let nullable = nullable p in
-        let constant = if required && not nullable then constant p else None in
+      (fun (m : T.member) ->
+        let field = field_name name m.wire in
+        let nullable = match m.ty with T.Nullable _ -> true | _ -> false in
+        let constant =
+          match m.fixed with
+          | Some (Schema.String_literal c) when m.required && not nullable ->
+              Some c
+          | _ -> None
+        in
         let type_ =
           match constant with
           | Some _ -> C.T "string"
-          | None -> type_of state (owner wire) field node
+          | None ->
+              type_of state m.owner field (m.ty, property_of m.wire validated)
         in
-        { wire; name = field; type_; required; nullable; constant })
-      (List.sort (fun (a, _) (b, _) -> String.compare a b) properties)
+        {
+          wire = m.wire;
+          name = field;
+          type_;
+          required = m.required;
+          nullable;
+          constant;
+        })
+      (List.sort
+         (fun (a : T.member) (b : T.member) -> String.compare a.wire b.wire)
+         members)
   in
   (* A constant member's value is also the model's own, so code that reads
      the wire before it is a model names it. *)
@@ -478,36 +408,43 @@ and object_ state name ~attribute ~original d =
       };
   ]
 
-(* The case a union's member is: what it refers to, Array, Text, the one
-   string its first property that admits one admits, else its title, else
-   Object. *)
-and union state name keyword (members, validated) =
-  let titled (s : Schema.schema) = Option.value s.title ~default:"Object" in
-  let variant (s : Schema.schema) =
-    match s with
-    | { ref_ = Some r; _ } -> referenced state r
-    | { type_ = Some [ Array ]; _ } -> "Array"
-    | { type_ = Some [ String ]; _ } -> "Text"
-    | { properties = Some properties; _ } -> (
-        match
-          List.find_map
-            (fun (_, p) ->
-              match p with
-              | Schema.Schema p -> constant p
-              | Boolean_schema _ -> None)
-            properties
-        with
-        | Some tag -> tag
-        | None -> titled s)
-    | _ -> titled s
+(* The case a union's member is: what it refers to, Array, Text, an object's
+   variant ([Typing]), else Object. *)
+and union state name (u : T.union) validated =
+  let variant (b : T.branch) =
+    match b.ty with
+    | T.Named _ -> b.variant
+    | T.List _ -> "Array"
+    | T.Scalar (T.Text _) -> "Text"
+    | T.Inline { form = T.Record _; _ } -> b.variant
+    | _ -> "Object"
+  in
+  (* A member of no named member is the union's [Object], and a list's
+     items its [ArrayItem] ([Deviations]). *)
+  let renamed part (i : T.inline) =
+    T.Inline
+      {
+        i with
+        name =
+          Naming.inline
+            ~defined:(fun n ->
+              Hashtbl.mem state.validated n || Hashtbl.mem state.written n)
+            name part;
+      }
+  in
+  let held (ty : T.ty) =
+    match ty with
+    | T.Inline ({ form = T.Empty _; _ } as i) -> renamed "Object" i
+    | T.List (Some (T.Inline i)) -> T.List (Some (renamed "ArrayItem" i))
+    | ty -> ty
   in
   let cases =
     List.mapi
-      (fun i member ->
-        let v = variant (merged state name member) in
+      (fun i (b : T.branch) ->
+        let v = variant b in
         ( identifier (Text.pascal v) ^ "Case",
-          type_of state name v (member, member_of keyword i validated) ))
-      members
+          type_of state name v (held b.ty, member_of i validated) ))
+      u.branches
   in
   let names = List.map fst cases in
   if List.length (List.sort_uniq String.compare names) <> List.length names then
@@ -549,55 +486,59 @@ and union state name keyword (members, validated) =
   ]
 
 type t = {
-  models : (string * definition * C.decl list) list;  (** By name. *)
+  models : (string * C.decl list) list;  (** By name. *)
   schemas : (string * Schema.t) list;
-      (** Every schema the models are made from, in the order each was named. *)
+      (** Every schema the models are made from, as the SDK validates a value
+          against it, in the order each was named. *)
   member_type : string -> string -> string option;
       (** The model of its own a member of a model is made as. *)
 }
 
-(* [roots] are the schemas the models are made from, in order, each
-   validated, and each what a [$ref] to where it is read from names; [made]
-   are the bus's payload types beside them. *)
-let make ~ids ~identifiers ~keys ~roots ~made =
+(* The models of [typings]' schemas: [roots] are the schemas the models are
+   made from, in order, each validated, and each what a [$ref] to where it
+   is read from names; [made] are the bus's payload types beside them. *)
+let make ~ids ~(typings : T.t list) ~roots ~made =
   let state =
     {
-      definitions = Hashtbl.create 1024;
+      find =
+        (fun name ->
+          match
+            List.find_opt (fun (t : T.t) -> List.mem name t.names) typings
+          with
+          | Some t -> t.find name
+          | None -> refuse "No component schema names %s." name);
+      validated = Hashtbl.create 1024;
       order = [];
       read_from = Hashtbl.create 1024;
       ids;
-      identifiers;
-      keys;
       written = Hashtbl.create 1024;
       inlined = Hashtbl.create 256;
     }
   in
   try
     List.iter
-      (fun (name, path, d) ->
-        readable path (d.schema, d.validated);
+      (fun (name, path, validated) ->
         Hashtbl.replace state.read_from path name;
-        define state name d)
+        define state name validated)
       roots;
-    List.iter (fun (name, d) -> define state name d) made;
+    List.iter (fun (name, validated) -> define state name validated) made;
     List.iter
       (fun name -> ignore (named state name))
       (List.sort String.compare (List.rev state.order));
-    let models =
-      Hashtbl.fold (fun name decls acc -> (name, decls) :: acc) state.written []
-      |> List.sort (fun (a, _) (b, _) -> String.compare a b)
-      |> List.map (fun (name, decls) -> (name, definition state name, decls))
-    in
     Ok
       {
-        models;
+        models =
+          Hashtbl.fold
+            (fun name decls acc -> (name, decls) :: acc)
+            state.written []
+          |> List.sort (fun (a, _) (b, _) -> String.compare a b);
         schemas =
-          List.rev_map
-            (fun name -> (name, (definition state name).validated))
-            state.order;
+          List.rev_map (fun name -> (name, validated state name)) state.order;
         member_type =
           (fun owner property ->
             Hashtbl.find_opt state.inlined
               (owner ^ "." ^ field_name owner property));
       }
-  with Refused message -> Error message
+  with
+  | Refused message -> Error message
+  | Definitions.Refused message -> Error message

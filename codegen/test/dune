@@ -110,7 +110,7 @@
 (test
  (name csharp_sdk)
  (modules csharp_sdk)
- (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema yojson alcotest))
+ (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema fixture yojson alcotest))
 
 (test
  (name rust_syntax)

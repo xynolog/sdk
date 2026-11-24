@@ -9,37 +9,42 @@ let case name test = Alcotest.test_case name `Quick test
 (* The references here name schemas by path, so they need no index of [$id]s. *)
 let ids = Result.get_ok (Decode.ids [])
 
-(* Schemas by name, each a file of a directory of schemas, a [$ref] naming
-   another by its file, each as a writer of types reads it
-   ([Normalize.shape_only], as [Definitions.bundle] gives it). *)
-let definitions schemas =
-  let file name = "components/schemas/" ^ name ^ ".json" in
+(* Schemas by name, each read from its place, a [$ref] naming another by
+   its place, each as a writer of types reads it ([Normalize.shape_only], as
+   [Definitions.bundle] gives it). *)
+let definitions_at schemas =
   let decoded = Hashtbl.create 8 in
   List.iter
-    (fun (name, json) ->
+    (fun (_, place, json) ->
       match
-        Decode.run ~file:(file name)
-          (Yojson.Safe.from_string json)
-          Schema.decode
+        Decode.run ~file:place (Yojson.Safe.from_string json) Schema.decode
       with
-      | Ok (s, _) ->
-          Hashtbl.replace decoded (file name) (Normalize.shape_only s)
+      | Ok (s, _) -> Hashtbl.replace decoded place (Normalize.shape_only s)
       | Error e -> Alcotest.failf "%s" (Decode.error_to_string e))
     schemas;
-  let named f =
-    if Hashtbl.mem decoded f then
-      Some (Filename.remove_extension (Filename.basename f))
-    else None
+  let named place =
+    List.find_map
+      (fun (name, p, _) -> if p = place then Some name else None)
+      schemas
   in
   let views =
     List.map
-      (fun (name, _) ->
-        ( name,
-          D.view ~ids ~named ~schemas:decoded (Hashtbl.find decoded (file name))
-        ))
+      (fun (name, place, _) ->
+        (name, D.view ~ids ~named ~schemas:decoded (Hashtbl.find decoded place)))
       schemas
   in
-  { D.names = List.map fst schemas; schema = (fun n -> List.assoc n views) }
+  {
+    D.names = List.map (fun (name, _, _) -> name) schemas;
+    schema = (fun n -> List.assoc n views);
+  }
+
+(* Schemas by name, each a file of a directory of schemas. *)
+let definitions schemas =
+  definitions_at
+    (List.map
+       (fun (name, json) ->
+         (name, "components/schemas/" ^ name ^ ".json", json))
+       schemas)
 
 let contains ~sub text =
   let n = String.length sub and m = String.length text in

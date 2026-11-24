@@ -85,3 +85,22 @@ let closed_empty_named (form : T.form) =
    declares an object of no member that says nothing of others
    ([Unstated]) as a type that drops them, and holds one in place that
    holds any ([Open]) as a dictionary. *)
+
+(* C# holds an object's members in the order of their names, where [Typing]
+   has the schema's order, and so takes them in that order to make one. It
+   names a union's member [Case] after its variant, and the variant of a
+   member that is a list [Array], and of one that is neither a reference,
+   text nor an object of named members [Object], where [Typing] has [List],
+   [Integer], [Number], [Boolean] and [Empty]; the type of a member that is
+   an object of no named member is the union's place and [Object], and of
+   the items of one that is a list its place and [ArrayItem], where
+   [Typing] has [Empty] and [Item]. It holds a member that is required, not
+   null and of one string as a constant of [string], no type of its own. It
+   reads a union's value as the one member it validates against, of the
+   schemas it validates each value against (WireSchemas), where [Typing]
+   has each member's signature. It holds an enumeration in place of
+   integers, numbers or booleans as its scalar, dropping its values; an
+   object in place of no member that says nothing of others ([Unstated]) as
+   JSON, which keeps them, and declares a named one as a record that drops
+   them; and declares a map as a record that keeps its members
+   ([AdditionalProperties]), where [Typing] has an alias. *)
