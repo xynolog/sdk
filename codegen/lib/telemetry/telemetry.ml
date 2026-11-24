@@ -1,9 +1,9 @@
 (* The telemetry group: every span and metric an SDK's transports export
    (protocol/specs/src/sdk-telemetry/telemetry.json), its kind or instrument,
    what it means, and its attributes, for the Go, Python, OCaml and Kotlin
-   SDKs; the name of each, for the TypeScript SDK; and every attribute key a
-   row lists, for those and the C#, Swift and Haskell SDKs. The Rust SDK's
-   telemetry is held to the table by its own tests.
+   SDKs; the name of each, for the TypeScript and C# SDKs; and every
+   attribute key a row lists, for those and the Swift and Haskell SDKs. The
+   Rust SDK's telemetry is held to the table by its own tests.
 
    A metric's instrument is a counter, and a span's name holds no placeholder
    but {channel}. A row says what it means and lists each attribute once;
@@ -475,6 +475,49 @@ let csharp (t : t) =
         };
   }
 
+let csharp_names (t : t) =
+  let module C = Csharp_syntax in
+  let constant name value =
+    C.Field
+      {
+        modifiers = [ Internal; Const ];
+        type_ = C.T "string";
+        name;
+        value = Some (C.Str value);
+      }
+  in
+  let class_ name fields =
+    C.Type
+      {
+        attributes = [];
+        modifiers = [ Internal; Static ];
+        kind = Class;
+        name;
+        params = None;
+        base = None;
+        body = Some (Packed, fields);
+      }
+  in
+  {
+    Output.path = "csharp/sdk/src/Xynolog/Generated/TelemetryNames.g.cs";
+    text =
+      C.text
+        {
+          header = Banner.lines ~from_:("protocol/specs/src/" ^ file) __FILE__;
+          nullable = false;
+          usings = [];
+          namespace = "Xynolog";
+          decls =
+            [
+              class_ "TelemetrySpans"
+                (constant "Channel" channel
+                :: List.map (fun r -> constant (row_pascal r) r.name) t.spans);
+              class_ "TelemetryMetrics"
+                (List.map (fun r -> constant (row_pascal r) r.name) t.metrics);
+            ];
+        };
+  }
+
 let swift (t : t) =
   let module S = Swift_syntax in
   {
@@ -532,6 +575,7 @@ let files ~root:_ (spec : Spec.t) =
             typescript t;
             typescript_names t;
             csharp t;
+            csharp_names t;
             swift t;
             haskell t;
           ])
