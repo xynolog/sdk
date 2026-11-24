@@ -255,10 +255,10 @@ internal sealed class LiveCacheStorage(CachePersistence persistence, TimeProvide
     internal static readonly int ByteLimit = Timings.MaxStoredBytesCount;
     internal static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(Timings.SaveDebounceMs);
     private readonly object gate = new();
-    private readonly Dictionary<string, string> pendingPlaces = new(StringComparer.Ordinal);
+    private readonly Dictionary<ResourceId, string> pendingPlaces = new();
     private readonly TaskCompletionSource flushed = new(Spawning.CompletionOptions);
     private IReadOnlyDictionary<string, IKeptQuery> kept = new Dictionary<string, IKeptQuery>(StringComparer.Ordinal);
-    private Action<IReadOnlyDictionary<string, string>>? placesKept;
+    private Action<IReadOnlyDictionary<ResourceId, string>>? placesKept;
     private string? person;
     private bool abandoned;
     private bool closed;
@@ -288,7 +288,7 @@ internal sealed class LiveCacheStorage(CachePersistence persistence, TimeProvide
     /// Keeps <paramref name="queries"/>, for the persistence's person from when it has one. <paramref name="placesKept"/>
     /// is given the stream's places kept for that person.
     /// </summary>
-    internal void Start(IKeptQuery[] queries, Action<IReadOnlyDictionary<string, string>> placesKept)
+    internal void Start(IKeptQuery[] queries, Action<IReadOnlyDictionary<ResourceId, string>> placesKept)
     {
         lock (gate)
         {
@@ -334,7 +334,7 @@ internal sealed class LiveCacheStorage(CachePersistence persistence, TimeProvide
             // place is noted.
             if (person is not null && !abandoned && carried is ReceivedBusFrame { Frame.Scope: ResourceId resource } frame &&
                 frame.EventId is { } id && Required.IsPlace(resource, id))
-                pendingPlaces[resource.Value] = id;
+                pendingPlaces[resource] = id;
         }
     }
 
@@ -387,17 +387,19 @@ internal sealed class LiveCacheStorage(CachePersistence persistence, TimeProvide
         if (pendingPlaces.Count == 0) return;
         var places = ReadPlaces(named);
         foreach (var (scope, id) in pendingPlaces) places[scope] = id;
-        if (Set(RegistryStorage.LastEventIdKey(persistence.KbId, named), JsonSerializer.Serialize(places))) pendingPlaces.Clear();
+        if (Set(RegistryStorage.LastEventIdKey(persistence.KbId, named), JsonSerializer.Serialize(new LastEventIds { AdditionalProperties = places })))
+            pendingPlaces.Clear();
     }
 
-    private Dictionary<string, string> ReadPlaces(string named)
+    /// <summary>The places kept for <paramref name="named"/>: each pair <see cref="LastEventIds"/> holds, and none of
+    /// what is no object.</summary>
+    private Dictionary<ResourceId, string> ReadPlaces(string named)
     {
-        var places = new Dictionary<string, string>(StringComparer.Ordinal);
+        var places = new Dictionary<ResourceId, string>();
         if (Parse(Get(RegistryStorage.LastEventIdKey(persistence.KbId, named))) is not { ValueKind: JsonValueKind.Object } read) return places;
         foreach (var place in read.EnumerateObject())
-            if (Required.HoldsPlaces(JsonSerializer.SerializeToElement(new Dictionary<string, JsonElement> { [place.Name] = place.Value })) &&
-                place.Value.GetString() is { } id)
-                places[place.Name] = id;
+            if (Required.TryRead<LastEventIds>(JsonSerializer.SerializeToElement(new Dictionary<string, JsonElement> { [place.Name] = place.Value }), out var pair, out _))
+                foreach (var (scope, id) in pair.AdditionalProperties) places[scope] = id;
         return places;
     }
 

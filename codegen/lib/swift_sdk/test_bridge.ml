@@ -34,7 +34,7 @@ let fixture_declaration () =
       (D.alone
          ~ids:(Result.get_ok (Decode.ids []))
          ~name:"FidelityFixture" schema)
-      ~identifiers:[]
+      ~identifiers:[] ~keys:[]
   in
   M.generate models;
   M.declarations models

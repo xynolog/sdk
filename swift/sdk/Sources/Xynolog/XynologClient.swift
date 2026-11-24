@@ -33,7 +33,7 @@ public final class XynologClient: Sendable {
     self.clock = clock
     let keeping = persistence.map { KeptQueries($0, clock: clock) }
     self.keeping = keeping
-    var places: [ResourceId: String]?
+    var places: LastEventIds?
     if let keeping, let person = persistence?.person { places = keeping.attach(person) }
     if let http = transport as? HttpTransport, let places { await http.restoreBookmarks(places) }
     let source = try await transport.frames([])

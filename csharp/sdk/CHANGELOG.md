@@ -68,6 +68,11 @@ the coming release's, and gathers its changes as they land.
   Protocol states, in place of `Xynolog.Authorization.PendingAuthorization`,
   and its issuer is `PendingAuthorizationIssuer` in place of
   `AuthorizationIssuer`: both are built with an initializer.
+- `LastEventIds.AdditionalProperties` is an
+  `IReadOnlyDictionary<ResourceId, string>`, keyed as Protocol keys it, in
+  place of JSON values under text. A model whose other members are of a
+  schema holds each as that schema's type, and each id is a key
+  System.Text.Json reads and writes.
 
 ## 0.8.1
 

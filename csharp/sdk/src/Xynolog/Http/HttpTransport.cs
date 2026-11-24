@@ -204,12 +204,12 @@ public sealed partial class HttpTransport : IDisposable
         }
     }
 
-    internal void RestoreWatermarks(IReadOnlyDictionary<string, string> saved)
+    internal void RestoreWatermarks(IReadOnlyDictionary<ResourceId, string> saved)
     {
         lock (gate)
         {
             if (closed) return;
-            foreach (var (scope, id) in saved) watermarks.TryAdd(scope, id);
+            foreach (var (scope, id) in saved) watermarks.TryAdd(scope.Value, id);
         }
     }
 

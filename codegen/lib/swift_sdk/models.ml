@@ -118,12 +118,15 @@ let schema_value = codable @ [ S.Named "Hashable" ]
 type t = {
   definitions : D.definitions;
   identifiers : string list;
+  keys : (string * string) list;
+      (** The type a named map's keys are, by its name ([Definitions.map_keys]).
+      *)
   written : (string, S.decl option) Hashtbl.t;
       (** Each declaration by its name; [None] while it is being written. *)
 }
 
-let create definitions ~identifiers =
-  { definitions; identifiers; written = Hashtbl.create 1024 }
+let create definitions ~identifiers ~keys =
+  { definitions; identifiers; keys; written = Hashtbl.create 1024 }
 
 let defined t name = List.mem name t.definitions.names
 
@@ -289,7 +292,12 @@ and plain_declaration t ~modifiers ~owner n s =
               match (node.properties, node.additional_properties) with
               | None, Some (D.Bool true) -> alias (dictionary_of json_value)
               | None, Some ((D.Ref _ | D.Node _) as value) ->
-                  alias (dictionary_of (type_ t n "Value" value))
+                  let key =
+                    match List.assoc_opt n t.keys with
+                    | Some key -> S.Named key
+                    | None -> string_type
+                  in
+                  alias (S.Dictionary_of (key, type_ t n "Value" value))
               | _ -> object_ t ~modifiers ~owner n s)
           | Schema.String -> alias string_type
           | Schema.Integer -> alias (S.Named "Int")
@@ -999,13 +1007,7 @@ and identifier n s =
        {
          name = n;
          generics = [];
-         inherits =
-           [
-             S.Named "Hashable";
-             S.Named "Sendable";
-             S.Named "Codable";
-             S.Named "CustomStringConvertible";
-           ];
+         inherits = [ S.Named "Identifier" ];
          layout = S.Lines;
          members =
            [

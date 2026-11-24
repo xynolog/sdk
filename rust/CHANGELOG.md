@@ -81,6 +81,9 @@ the coming release's, and gathers its changes as they land.
   `PendingAuthorizationIssuer` in place of `oauth::IssuerEndpoints`, which
   `discover_issuer`, `stored_session_of` and `sign_in_with_device_grant` take
   and give. `CoupledBookmarks::load` gives the generated `LastEventIds`.
+- `xynolog::resume::is_place(scope, event_id)`, whether `LastEventIds` holds
+  the id as the place reached in the scope, in place of
+  `is_persisted_event_id(id)`. The stream and the places kept both ask it.
 
 ## 0.8.1
 

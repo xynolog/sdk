@@ -446,6 +446,7 @@ let files ~root (spec : Spec.t) =
       (Models.make ~ids:spec.ids
          ~identifiers:
            (List.map (fun (k : Identifiers.Table.kind) -> k.name) kinds)
+         ~keys:(Definitions.map_keys spec)
          ~roots
          ~made:
            (List.map

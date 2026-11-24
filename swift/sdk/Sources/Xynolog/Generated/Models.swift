@@ -703,7 +703,7 @@ public enum AnnotationContext: String, Codable, Sendable, CaseIterable {
   case httpWwwW3OrgNsAnnoJsonld = "http://www.w3.org/ns/anno.jsonld"
 }
 
-public struct AnnotationId: Hashable, Sendable, Codable, CustomStringConvertible {
+public struct AnnotationId: Identifier {
   public let value: String
   public var description: String { value }
   public init(_ value: String) throws {
@@ -9448,7 +9448,7 @@ public indirect enum JobFilter: Codable, Sendable, Hashable {
   }
 }
 
-public struct JobId: Hashable, Sendable, Codable, CustomStringConvertible {
+public struct JobId: Identifier {
   public let value: String
   public var description: String { value }
   public init(_ value: String) throws {
@@ -11327,7 +11327,7 @@ public struct KnowledgeIndexSpecWeaver: Codable, Sendable, Hashable {
   }
 }
 
-public typealias LastEventIds = [String: PersistedEventId]
+public typealias LastEventIds = [ResourceId: PersistedEventId]
 
 public struct LibrarianConfig: Codable, Sendable, Hashable {
   public var archivist: ServiceAddress
@@ -14403,7 +14403,7 @@ public struct ResourceErrorEvent: Codable, Sendable, Hashable {
   }
 }
 
-public struct ResourceId: Hashable, Sendable, Codable, CustomStringConvertible {
+public struct ResourceId: Identifier {
   public let value: String
   public var description: String { value }
   public init(_ value: String) throws {
@@ -18992,7 +18992,7 @@ public struct UserAction: Codable, Sendable, Hashable {
   }
 }
 
-public struct UserId: Hashable, Sendable, Codable, CustomStringConvertible {
+public struct UserId: Identifier {
   public let value: String
   public var description: String { value }
   public init(_ value: String) throws {
