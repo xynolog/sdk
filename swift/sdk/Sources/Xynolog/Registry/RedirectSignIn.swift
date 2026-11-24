@@ -3,17 +3,6 @@ import Crypto
 import Foundation
 import Synchronization
 
-public struct PendingAuthorization: Codable, Sendable {
-  public let state: String
-  public let verifier: String
-  public let redirectUri: String
-  public let target: HttpEndpoint
-  let issuer: IssuerEndpoints
-  public let kbId: String?
-  public let expectedDid: String?
-  public let expectedName: String?
-}
-
 private var browserClientId: String {
   guard let client = oauthClients.first(where: { $0.name == "browser" }) else {
     preconditionFailure("No browser OAuth client")
@@ -41,9 +30,9 @@ public func beginAuthorization(
     URLComponents(string: options.redirectUri)?.scheme != nil
   else { throw SignInError(.discovery, "Sign-in needs valid authorization and redirect addresses") }
   let record = PendingAuthorization(
-    state: randomURLSafe(24), verifier: randomURLSafe(48), redirectUri: options.redirectUri,
-    target: options.target, issuer: issuer, kbId: options.kbId, expectedDid: options.expectedDid,
-    expectedName: options.expectedName)
+    expectedDid: options.expectedDid, expectedName: options.expectedName, issuer: issuer,
+    kbId: options.kbId, redirectUri: options.redirectUri, state: randomURLSafe(24),
+    target: options.target, verifier: randomURLSafe(48))
   let parameters = [
     ("response_type", "code"),
     ("client_id", browserClientId),

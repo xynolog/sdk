@@ -10,9 +10,8 @@
  * what it says, as the generated refresh table (`PERSISTED_QUERIES`,
  * `CACHE_PER`) states them. A key or a member the table gains, or a change in
  * what it requires, fails here until this SDK has it.
- * oauth.test.ts holds a pending sign-in's members; persisted-cases.test.ts
- * every key a person's client keeps; cache-cases.test.ts what a load keeps of
- * a document and of `lastEventIds`.
+ * persisted-cases.test.ts holds every key a person's client keeps;
+ * cache-cases.test.ts what a load keeps of a document and of `lastEventIds`.
  */
 
 import { describe, it, expect } from 'vitest';

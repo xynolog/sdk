@@ -22,7 +22,6 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
-	"github.com/xynolog/sdk/go/internal/optional"
 )
 
 // renewing is a kept sign-in's renewals, one at a time: a renewal asked for
@@ -487,21 +486,21 @@ func (r *refresherToCome) Refresh(ctx context.Context, refused string) (string, 
 // the sign-in in kept. The issuer the knowledge base at baseURL trusts mints a
 // code, onCode shows the person where to approve it, and the tokens come back
 // here: no password passes through this process.
-func SignInWithDevice(ctx context.Context, issuer Issuer, baseURL string, kept SignInKept, onCode func(api.DeviceCode)) (IssuerEndpoints, error) {
+func SignInWithDevice(ctx context.Context, issuer Issuer, baseURL string, kept SignInKept, onCode func(api.DeviceCode)) (api.PendingAuthorizationIssuer, error) {
 	endpoints, err := issuer.Discover(ctx, baseURL)
 	if err != nil {
-		return IssuerEndpoints{}, err
+		return api.PendingAuthorizationIssuer{}, err
 	}
 	tokens, err := issuer.SignInWithDeviceGrant(ctx, endpoints, onCode)
 	if err != nil {
-		return IssuerEndpoints{}, err
+		return api.PendingAuthorizationIssuer{}, err
 	}
 	return endpoints, kept.Keep(ctx, api.StoredSession{
 		Access:             tokens.Access,
 		Refresh:            tokens.Refresh,
 		ClientId:           ScriptClientID,
 		TokenEndpoint:      endpoints.Token,
-		RevocationEndpoint: optional.Text(endpoints.Revocation),
+		RevocationEndpoint: endpoints.Revocation,
 	})
 }
 

@@ -42,19 +42,16 @@ func CompleteSignIn(ctx context.Context, browser *XynologBrowser, issuer xynolog
 	signedIn := api.SignedIn{
 		Endpoint:     endpoint,
 		Description:  identity.Description,
-		KbId:         pending.KbID,
+		KbId:         pending.KbId,
 		ExpectedDid:  pending.ExpectedDid,
 		ExpectedName: pending.ExpectedName,
 		Session: api.StoredSession{
-			Access:        tokens.Access,
-			Refresh:       tokens.Refresh,
-			ClientId:      xynolog.BrowserClientID,
-			TokenEndpoint: pending.Issuer.Token,
+			Access:             tokens.Access,
+			Refresh:            tokens.Refresh,
+			ClientId:           xynolog.BrowserClientID,
+			TokenEndpoint:      pending.Issuer.Token,
+			RevocationEndpoint: pending.Issuer.Revocation,
 		},
-	}
-	// The pending sign-in's issuer holds "" for an endpoint it offers none of.
-	if pending.Issuer.Revocation != "" {
-		signedIn.Session.RevocationEndpoint = &pending.Issuer.Revocation
 	}
 	return browser.SignedIn(signedIn)
 }

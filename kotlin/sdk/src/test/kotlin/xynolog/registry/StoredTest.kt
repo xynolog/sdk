@@ -94,11 +94,10 @@ private fun writtenOpen(): List<JsonObject> = runBlocking {
  * is kept as, and what is kept of its stream. A key or a member the table
  * gains, a query the refresh table comes to persist, or a change to what
  * either requires, fails here until Kotlin has it. And the registry's
- * readers and writers of what it keeps. AuthorizationTest holds what is kept
- * of a sign-in begun; QueryValuesTest, what every live query's cache holds;
- * PersistedCasesTest, when each person's keys are read, written and deleted;
- * and CacheCasesTest, what a session keeps of its queries and its stream,
- * case by case.
+ * readers and writers of what it keeps. QueryValuesTest holds what every
+ * live query's cache holds; PersistedCasesTest, when each person's keys are
+ * read, written and deleted; and CacheCasesTest, what a session keeps of its
+ * queries and its stream, case by case.
  */
 class StoredTest {
     @Test
@@ -176,7 +175,6 @@ class StoredTest {
 
     @Test
     fun whereAStreamWasIsKeptAsTheTableSaysFromEachScopeToItsPlace() {
-        assertEquals(ResourceId.serializer().descriptor.serialName.substringAfterLast('.'), schemaOf(lastEventIds.getValue("propertyNames").jsonObject))
         assertEquals(PLACE_SCHEMA, schemaOf(lastEventIds.getValue("additionalProperties").jsonObject))
         val storage = MemoryStorage()
         val places = CoupledBookmarks(storage, lastEventIdKey(KB_A, "the key of jo"))

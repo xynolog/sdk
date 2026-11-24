@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/optional"
 )
 
 const deviceGrant = "urn:ietf:params:oauth:grant-type:device_code"
@@ -41,16 +42,6 @@ type Issuer struct {
 	// Random is what the jitter of a renewal tried again is drawn from, as
 	// EqualJitter draws it.
 	Random *rand.Rand
-}
-
-// IssuerEndpoints is an issuer, and the endpoints of it a client uses. Device
-// and Revocation are "" when the issuer offers none.
-type IssuerEndpoints struct {
-	Issuer        string `json:"issuer"`
-	Authorization string `json:"authorization"`
-	Token         string `json:"token"`
-	Device        string `json:"device,omitempty"`
-	Revocation    string `json:"revocation,omitempty"`
 }
 
 // issuerAnswer is what an issuer answered, when that was a JSON object.
@@ -154,7 +145,7 @@ func (i Issuer) do(request *http.Request) (int, issuerAnswer, error) {
 
 // Discover asks the knowledge base at baseURL which issuer it trusts, and the
 // issuer where its endpoints are.
-func (i Issuer) Discover(ctx context.Context, baseURL string) (IssuerEndpoints, error) {
+func (i Issuer) Discover(ctx context.Context, baseURL string) (api.PendingAuthorizationIssuer, error) {
 	// Its resource metadata is public: asked with no token, by a transport
 	// that opens no stream without one.
 	asking := NewHTTPTransport(HTTPTransportConfig{BaseURL: baseURL, Token: NewVariable(""), HTTP: i.HTTP, Timing: i.Timing, Random: i.Random})
@@ -164,33 +155,33 @@ func (i Issuer) Discover(ctx context.Context, baseURL string) (IssuerEndpoints, 
 		var refused *TransportError
 		if errors.As(err, &refused) {
 			if status, ok := refused.Status(); ok && status == http.StatusNotFound {
-				return IssuerEndpoints{}, noIssuer()
+				return api.PendingAuthorizationIssuer{}, noIssuer()
 			} else if ok {
-				return IssuerEndpoints{}, NewSignInError(SignInErrorCodeDiscovery, "The knowledge base did not answer its resource metadata: "+refused.Message, status)
+				return api.PendingAuthorizationIssuer{}, NewSignInError(SignInErrorCodeDiscovery, "The knowledge base did not answer its resource metadata: "+refused.Message, status)
 			}
 		}
-		return IssuerEndpoints{}, signInUnanswered(SignInErrorCodeDiscovery, "The knowledge base did not answer its resource metadata: "+err.Error())
+		return api.PendingAuthorizationIssuer{}, signInUnanswered(SignInErrorCodeDiscovery, "The knowledge base did not answer its resource metadata: "+err.Error())
 	}
 	if len(metadata.AuthorizationServers) == 0 {
-		return IssuerEndpoints{}, noIssuer()
+		return api.PendingAuthorizationIssuer{}, noIssuer()
 	}
 	issuer := metadata.AuthorizationServers[0]
 	status, document, err := i.get(ctx, strings.TrimRight(issuer, "/")+"/.well-known/openid-configuration")
 	if err != nil {
-		return IssuerEndpoints{}, signInUnanswered(SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: discovery was not answered: %v", issuer, err))
+		return api.PendingAuthorizationIssuer{}, signInUnanswered(SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: discovery was not answered: %v", issuer, err))
 	}
 	if status < 200 || status > 299 {
-		return IssuerEndpoints{}, NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: discovery answered HTTP %d", issuer, status), status)
+		return api.PendingAuthorizationIssuer{}, NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: discovery answered HTTP %d", issuer, status), status)
 	}
 	named, _ := document.text("issuer")
 	authorization, hasAuthorization := document.text("authorization_endpoint")
 	token, hasToken := document.text("token_endpoint")
 	if named != issuer || !hasAuthorization || !hasToken {
-		return IssuerEndpoints{}, NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: its discovery document is not an OpenID configuration for it", issuer), status)
+		return api.PendingAuthorizationIssuer{}, NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: its discovery document is not an OpenID configuration for it", issuer), status)
 	}
 	device, _ := document.text("device_authorization_endpoint")
 	revocation, _ := document.text("revocation_endpoint")
-	return IssuerEndpoints{Issuer: issuer, Authorization: authorization, Token: token, Device: device, Revocation: revocation}, nil
+	return api.PendingAuthorizationIssuer{Issuer: issuer, Authorization: authorization, Token: token, Device: optional.Text(device), Revocation: optional.Text(revocation)}, nil
 }
 
 // Refresh is the refresh grant. An issuer that does not rotate refresh tokens
@@ -281,12 +272,12 @@ func codeExpired() *SignInError {
 // the issuer Discover found. The issuer mints a code, onCode shows the person
 // where to approve it, and the token endpoint is asked at the issuer's
 // interval until the tokens arrive. Cancelling ctx abandons the sign-in.
-func (i Issuer) SignInWithDeviceGrant(ctx context.Context, issuer IssuerEndpoints, onCode func(api.DeviceCode)) (api.IssuedTokens, error) {
-	if issuer.Device == "" {
+func (i Issuer) SignInWithDeviceGrant(ctx context.Context, issuer api.PendingAuthorizationIssuer, onCode func(api.DeviceCode)) (api.IssuedTokens, error) {
+	if issuer.Device == nil {
 		return api.IssuedTokens{}, signInUnanswered(SignInErrorCodeDiscovery, fmt.Sprintf(
 			"Issuer %s offers no device authorization endpoint: the device grant needs one enabled for client %s", issuer.Issuer, ScriptClientID))
 	}
-	status, body, err := i.postForm(ctx, issuer.Device, url.Values{"client_id": {ScriptClientID}, "scope": {SignInScope}})
+	status, body, err := i.postForm(ctx, *issuer.Device, url.Values{"client_id": {ScriptClientID}, "scope": {SignInScope}})
 	if err != nil {
 		return api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
 	}

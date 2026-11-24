@@ -35,6 +35,7 @@ import type {
   DeviceCode,
   HttpEndpoint,
   IssuedTokens,
+  PendingAuthorization,
   StoredSession,
 } from '@xynolog/core';
 import { fetchOf } from '../fetch-of';
@@ -56,14 +57,6 @@ export type { SignInErrorCode };
 export const PENDING_AUTHORIZATION_KEY = 'xynolog.pendingAuthorization';
 const DEVICE_GRANT = 'urn:ietf:params:oauth:grant-type:device_code';
 
-export interface IssuerEndpoints {
-  issuer: string;
-  authorization: string;
-  token: string;
-  device?: string;
-  revocation?: string;
-}
-
 /**
  * The knowledge base names its issuer (resource metadata); the issuer names
  * its endpoints (OpenID discovery). A client that knows a gateway's address
@@ -72,7 +65,7 @@ export interface IssuerEndpoints {
 export async function discoverIssuer(
   target: HttpEndpoint,
   fetch?: typeof globalThis.fetch,
-): Promise<IssuerEndpoints> {
+): Promise<PendingAuthorization['issuer']> {
   // It asks one HTTP question and awaits no operation's reply, so its stream names no channel.
   const transport = new HttpTransport({
     baseUrl: baseUrl(kbGatewayUrl(target)),
@@ -168,29 +161,12 @@ export function codeChallenge(verifier: string): string {
 // ---------- Authorization code with PKCE (a browser) ----------
 
 /**
- * Everything a sign-in must remember across the redirect to the issuer and
- * back: the PKCE verifier and state the response must match, where the user
- * was connecting, what they believed they were connecting to, and the
- * issuer's endpoints so the completion asks nothing twice.
- */
-export interface PendingAuthorization {
-  state: string;
-  verifier: string;
-  redirectUri: string;
-  target: HttpEndpoint;
-  issuer: IssuerEndpoints;
-  kbId?: string;
-  expectedDid?: string;
-  expectedName?: string;
-}
-
-/**
  * What is kept of a sign-in a client made, as `clientId`, at `issuer`: the
  * tokens it was issued, and where they are renewed and revoked.
  */
 export function storedSessionOf(
   clientId: string,
-  issuer: Pick<IssuerEndpoints, 'token' | 'revocation'>,
+  issuer: Pick<PendingAuthorization['issuer'], 'token' | 'revocation'>,
   tokens: IssuedTokens,
 ): StoredSession {
   return {
@@ -302,8 +278,8 @@ export async function completeAuthorization(
   };
 }
 
-const isHttpEndpoint = (value: unknown): value is HttpEndpoint =>
-  faultOf('HttpEndpoint', value) === undefined;
+const isPendingAuthorization = (value: unknown): value is PendingAuthorization =>
+  faultOf('PendingAuthorization', value) === undefined;
 
 function parsePending(raw: string): PendingAuthorization | null {
   let value: unknown;
@@ -312,51 +288,7 @@ function parsePending(raw: string): PendingAuthorization | null {
   } catch {
     return null;
   }
-  if (!isObject(value)) return null;
-  const {
-    state,
-    verifier,
-    redirectUri,
-    target,
-    issuer,
-    kbId,
-    expectedDid,
-    expectedName,
-  } = value;
-  if (!isString(state) || !isString(verifier) || !isString(redirectUri))
-    return null;
-  if (!isHttpEndpoint(target)) return null;
-  if (
-    !isObject(issuer) ||
-    !isString(issuer['issuer']) ||
-    !isString(issuer['authorization']) ||
-    !isString(issuer['token'])
-  ) {
-    return null;
-  }
-  return {
-    state,
-    verifier,
-    redirectUri,
-    target: {
-      kind: 'http',
-      host: target.host,
-      port: target.port,
-      protocol: target.protocol,
-    },
-    issuer: {
-      issuer: issuer['issuer'],
-      authorization: issuer['authorization'],
-      token: issuer['token'],
-      ...(isString(issuer['device']) ? { device: issuer['device'] } : {}),
-      ...(isString(issuer['revocation'])
-        ? { revocation: issuer['revocation'] }
-        : {}),
-    },
-    ...(isString(kbId) ? { kbId } : {}),
-    ...(isString(expectedDid) ? { expectedDid } : {}),
-    ...(isString(expectedName) ? { expectedName } : {}),
-  };
+  return isPendingAuthorization(value) ? value : null;
 }
 
 // ---------- Token endpoint ----------
@@ -582,7 +514,7 @@ export interface DeviceGrantOptions {
  */
 export async function signInWithDeviceGrant(
   opts: DeviceGrantOptions,
-): Promise<{ issuer: IssuerEndpoints; tokens: IssuedTokens }> {
+): Promise<{ issuer: PendingAuthorization['issuer']; tokens: IssuedTokens }> {
   const issuer = await discoverIssuer(opts.target, opts.fetch);
   if (!issuer.device) {
     throw new SignInError(

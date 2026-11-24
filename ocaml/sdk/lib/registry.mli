@@ -151,7 +151,7 @@ val begin_sign_in :
   issuer:string ->
   random:(int -> string) ->
   redirect_uri:string ->
-  target:endpoint ->
+  target:[ `HttpEndpoint ] Models.t ->
   ?kb_id:string ->
   ?expected_did:string ->
   ?expected_name:string ->

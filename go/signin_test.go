@@ -123,7 +123,7 @@ func TestTheIssuerIsTheOneTheKnowledgeBaseNames(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if endpoints.Issuer != s.issuer.URL || endpoints.Token != s.issuer.URL+"/token" || endpoints.Device != s.issuer.URL+"/device" || endpoints.Revocation != s.issuer.URL+"/revoke" {
+	if endpoints.Issuer != s.issuer.URL || endpoints.Token != s.issuer.URL+"/token" || endpoints.Device == nil || *endpoints.Device != s.issuer.URL+"/device" || endpoints.Revocation == nil || *endpoints.Revocation != s.issuer.URL+"/revoke" {
 		t.Errorf("found %+v", endpoints)
 	}
 }

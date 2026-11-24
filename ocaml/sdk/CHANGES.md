@@ -40,6 +40,17 @@ the coming release's, and gathers its changes as they land.
   `Records.Pdf_text_item.t`, and `Oauth.device` holds the
   `Records.Device_code.t` the gateway answered, in place of records of their
   own that restated those schemas.
+- A sign-in by a page redirect that is under way is
+  `Records.Pending_authorization.t`, and an issuer is
+  `Records.Pending_authorization_issuer.t`, in place of
+  `Redirect_sign_in.pending_authorization`, `Oauth.issuer` and
+  `Oauth.redirect`, and their hand-written JSON (`Oauth.keep_redirect`,
+  `Oauth.take_redirect`). `Oauth.begin_redirect` takes
+  `Records.Begin_authorization_options.t`, `Oauth.url` and
+  `Oauth.finish_redirect` take the pending sign-in alone, and
+  `Registry.begin_sign_in`'s `~target` is an `HttpEndpoint`.
+  `Oauth.issuer_url`, `Oauth.token_endpoint` and `Oauth.revocation_endpoint`
+  go: the issuer's members are read directly.
 - An optional member that may not be null is an `option`; `Types.presence`
   is left to a member that may be absent and may be null.
 

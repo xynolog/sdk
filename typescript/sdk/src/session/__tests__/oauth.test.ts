@@ -10,9 +10,7 @@ import {
   HTTP_REQUEST_TIMEOUT_MS,
   REFRESH_RETRY,
   SignInError,
-  isArray,
-  isObject,
-  isString,
+  faultOf,
 } from '@xynolog/core';
 import { APIError, HttpTransport } from '@xynolog/http-transport';
 import { keptIn, renewKept } from '../../index';
@@ -29,7 +27,6 @@ import {
   revokeAtIssuer,
   signInWithDeviceGrant,
 } from '../oauth';
-import { table as stored } from '../../__tests__/cases/session_stored';
 
 const TARGET = {
   kind: 'http' as const,
@@ -46,27 +43,6 @@ const DISCOVERY = {
   revocation_endpoint: `${ISSUER}/revoke`,
 };
 const REDIRECT = 'http://localhost:3000/en/auth/callback';
-
-interface ObjectShape {
-  properties: Record<string, unknown>;
-  required: string[];
-}
-
-/** `schema`, which `what` names, as an object schema: its members, and the names of those it requires. */
-function objectShape(schema: unknown, what: string): ObjectShape {
-  if (!isObject(schema)) throw new Error(`${what} is no schema`);
-  const { properties, required } = schema;
-  if (!isObject(properties)) throw new Error(`${what} states no members`);
-  if (!isArray(required) || !required.every(isString))
-    throw new Error(`${what} states no list of the members it requires`);
-  return { properties, required };
-}
-
-/** What protocol/specs/src/session/stored.json states is kept of a sign-in begun. */
-const PENDING = objectShape(
-  stored.pendingAuthorization,
-  'pendingAuthorization',
-);
 
 function reply(json: unknown, status = 200): Response {
   return {
@@ -350,7 +326,7 @@ describe('the authorization-code grant', () => {
     expect(record.issuer.token).toBe(`${ISSUER}/token`);
   });
 
-  it("keeps a sign-in begun with the members stored.json's pendingAuthorization names, and none it was not given", async () => {
+  it('keeps a sign-in begun, with its options and without them, as a PendingAuthorization', async () => {
     const believed = new InMemorySessionStorage();
     await beginAuthorization(
       {
@@ -362,26 +338,16 @@ describe('the authorization-code grant', () => {
       },
       believed,
     );
-    const record = JSON.parse(believed.get(PENDING_AUTHORIZATION_KEY)!) as {
-      issuer: Record<string, unknown>;
-    };
-    expect(Object.keys(record).sort()).toEqual(
-      Object.keys(PENDING.properties).sort(),
-    );
-    expect(Object.keys(record.issuer).sort()).toEqual(
-      Object.keys(
-        objectShape(PENDING.properties['issuer'], 'pendingAuthorization.issuer')
-          .properties,
-      ).sort(),
-    );
-
     const bare = new InMemorySessionStorage();
     await beginAuthorization({ target: TARGET, redirectUri: REDIRECT }, bare);
-    expect(
-      Object.keys(
-        JSON.parse(bare.get(PENDING_AUTHORIZATION_KEY)!) as object,
-      ).sort(),
-    ).toEqual([...PENDING.required].sort());
+    for (const kept of [believed, bare]) {
+      expect(
+        faultOf(
+          'PendingAuthorization',
+          JSON.parse(kept.get(PENDING_AUTHORIZATION_KEY)!),
+        ),
+      ).toBeUndefined();
+    }
   });
 
   async function begun() {

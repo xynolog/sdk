@@ -55,6 +55,9 @@ the coming release's, and gathers its changes as they land.
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
 - `OpenResource` is the type Protocol states: its `openedAt` is an `Int`, and
   its initializer takes its members in their alphabetical order.
+- `PendingAuthorization` is the type Protocol states: its members are
+  variables, its `issuer` is public as `PendingAuthorizationIssuer`, and its
+  initializer takes its members in their alphabetical order.
 - Every type Protocol states is `Hashable`, and so is `JSONValue`.
 - A method's options are the types Protocol states for them:
   `job.claim(ClaimOptions)` in place of the accepts and `WorkerTiming`,

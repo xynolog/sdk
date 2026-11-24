@@ -13,22 +13,6 @@ type 'grant tokens = {
 
 type poll = Issued of script tokens | Pending | Slow_down
 
-type issuer = {
-  issuer : string;
-  authorization : string;
-  token : string;
-  device : string option;
-  revocation : string option;
-}
-
-type redirect = {
-  token_url : string;
-  location : string;
-  redirect_uri : string;
-  state : string;
-  verifier : string;
-}
-
 type device = {
   code : Records.Device_code.t;
   device_code : string;
@@ -110,17 +94,12 @@ let discover http ~issuer =
     let* token = required ~status code (get "token_endpoint") in
     Ok
       {
-        issuer;
+        Records.Pending_authorization_issuer.issuer;
         authorization;
         token;
         device = get "device_authorization_endpoint";
         revocation = get "revocation_endpoint";
       }
-
-let url redirect = redirect.location
-let issuer_url issuer = issuer.issuer
-let token_endpoint issuer = issuer.token
-let revocation_endpoint issuer = issuer.revocation
 
 let encoded bytes =
   Base64.encode_exn ~pad:false ~alphabet:Base64.uri_safe_alphabet bytes
@@ -128,7 +107,22 @@ let encoded bytes =
 let code_challenge verifier =
   Digestif.SHA256.(to_raw_string (digest_string verifier)) |> encoded
 
-let begin_redirect issuer ~random ~redirect_uri =
+let url (pending : Records.Pending_authorization.t) =
+  Uri.add_query_params'
+    (Uri.of_string pending.issuer.authorization)
+    [
+      ("response_type", "code");
+      ("client_id", Oauth_facts.browser);
+      ("redirect_uri", pending.redirect_uri);
+      ("scope", Oauth_facts.scope);
+      ("state", pending.state);
+      ("code_challenge", code_challenge pending.verifier);
+      ("code_challenge_method", "S256");
+    ]
+  |> Uri.to_string
+
+let begin_redirect issuer ~random
+    (options : Records.Begin_authorization_options.t) =
   let draw () =
     let bytes = random 32 in
     if String.length bytes <> 32 then
@@ -137,22 +131,16 @@ let begin_redirect issuer ~random ~redirect_uri =
   in
   let verifier = draw () in
   let state = draw () in
-  let challenge = code_challenge verifier in
-  let authorization = Uri.of_string issuer.authorization in
-  let location =
-    Uri.add_query_params' authorization
-      [
-        ("response_type", "code");
-        ("client_id", Oauth_facts.browser);
-        ("redirect_uri", redirect_uri);
-        ("scope", Oauth_facts.scope);
-        ("state", state);
-        ("code_challenge", challenge);
-        ("code_challenge_method", "S256");
-      ]
-    |> Uri.to_string
-  in
-  { location; redirect_uri; state; verifier; token_url = issuer.token }
+  {
+    Records.Pending_authorization.state;
+    verifier;
+    redirect_uri = options.redirect_uri;
+    target = options.target;
+    issuer;
+    kb_id = options.kb_id;
+    expected_did = options.expected_did;
+    expected_name = options.expected_name;
+  }
 
 (* The tokens an answer of [status] grants. *)
 let issued ~status json =
@@ -172,7 +160,7 @@ let grant http ~token_endpoint form =
   let* status, json = exchange http ~code { meth = "POST"; url; form } in
   issued ~status json
 
-let finish_redirect http issuer redirect ~callback =
+let finish_redirect http (pending : Records.Pending_authorization.t) ~callback =
   let callback = Uri.of_string callback in
   let param name =
     match
@@ -189,24 +177,23 @@ let finish_redirect http issuer redirect ~callback =
   | Some _ -> failed Error_codes.Sign_in.exchange
   | None -> (
       if
-        param "state" <> Some redirect.state
-        || issuer.token <> redirect.token_url
-        || address callback <> address (Uri.of_string redirect.redirect_uri)
+        param "state" <> Some pending.state
+        || address callback <> address (Uri.of_string pending.redirect_uri)
       then failed Error_codes.Sign_in.state
       else
         match param "code" with
         | Some code when code <> "" ->
-            grant http ~token_endpoint:issuer.token
+            grant http ~token_endpoint:pending.issuer.token
               [
                 ("grant_type", "authorization_code");
                 ("client_id", Oauth_facts.browser);
                 ("code", code);
-                ("redirect_uri", redirect.redirect_uri);
-                ("code_verifier", redirect.verifier);
+                ("redirect_uri", pending.redirect_uri);
+                ("code_verifier", pending.verifier);
               ]
         | _ -> failed Error_codes.Sign_in.exchange)
 
-let begin_device http issuer =
+let begin_device http (issuer : Records.Pending_authorization_issuer.t) =
   let code = Error_codes.Sign_in.exchange in
   let* url = required Error_codes.Sign_in.discovery issuer.device in
   let* status, json =
@@ -242,7 +229,7 @@ let begin_device http issuer =
         | _ -> Client_timing.device_poll_ms / 1000);
     }
 
-let poll_device http issuer device =
+let poll_device http (issuer : Records.Pending_authorization_issuer.t) device =
   let* url = required Error_codes.Sign_in.exchange (endpoint issuer.token) in
   let form =
     [
@@ -304,7 +291,8 @@ let refresh_kept http ~token_endpoint ~client_id ~refresh_token =
 let refresh_script http ~token_endpoint ~refresh_token =
   refresh_kept http ~token_endpoint ~client_id:Oauth_facts.script ~refresh_token
 
-let service_secret http issuer ~client_id ~client_secret =
+let service_secret http (issuer : Records.Pending_authorization_issuer.t)
+    ~client_id ~client_secret =
   grant http ~token_endpoint:issuer.token
     (Gateway_http.client_secret_form ~client_id ~client_secret)
 
@@ -346,7 +334,8 @@ let assertion_claims ~client_id ~token_endpoint ~issued_at ~jti =
       ("exp", `Int (issued_at + Assertion_facts.lifetime_seconds));
     ]
 
-let service_key http issuer ~clock ~jti ~client_id ~key =
+let service_key http (issuer : Records.Pending_authorization_issuer.t) ~clock
+    ~jti ~client_id ~key =
   match X509.Private_key.public key with
   | `RSA public -> (
       let kid = rsa_thumbprint ~e:(unsigned public.e) ~n:(unsigned public.n) in
@@ -389,41 +378,3 @@ let revoke_script http ~revocation_endpoint ~refresh_token =
       }
   in
   if status = 200 then Ok () else failed ~status Error_codes.Sign_in.exchange
-
-let keep_redirect issuer redirect =
-  let field key value = (key, `String value) in
-  let optional key value = Option.to_list (Option.map (field key) value) in
-  [
-    field "state" redirect.state;
-    field "verifier" redirect.verifier;
-    field "redirectUri" redirect.redirect_uri;
-    ( "issuer",
-      `Assoc
-        ([
-           field "issuer" issuer.issuer;
-           field "authorization" issuer.authorization;
-           field "token" issuer.token;
-         ]
-        @ optional "device" issuer.device
-        @ optional "revocation" issuer.revocation) );
-  ]
-
-let take_redirect json =
-  let ( let* ) = Option.bind in
-  let* saved = member "issuer" json in
-  let get key = Option.bind (string key saved) endpoint in
-  let* issuer = get "issuer" in
-  let* authorization = get "authorization" in
-  let* token = get "token" in
-  let* state = string "state" json in
-  let* verifier = string "verifier" json in
-  let* redirect_uri = string "redirectUri" json in
-  Some
-    ( {
-        issuer;
-        authorization;
-        token;
-        device = get "device";
-        revocation = get "revocation";
-      },
-      { state; verifier; redirect_uri; token_url = token; location = "" } )

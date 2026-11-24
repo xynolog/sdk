@@ -69,9 +69,14 @@ the coming release's, and gathers its changes as they land.
   table, where each rule listed its statuses by hand.
 - A discovery document is read by its schema; a refused one says the first
   fault the schema finds.
+- A sign-in pending its redirect is read as `PendingAuthorization`, the record
+  Protocol states, which `@xynolog/sdk` exports from `@xynolog/core`; a
+  stored one its schema refuses is no sign-in pending. Where each stream was
+  is written as `LastEventIds`.
 
 ### Removed
 
+- `IssuerEndpoints`, for `PendingAuthorization['issuer']`.
 - `Brand`, and `EventSignature` with `StoredEvent`'s `signature`, which
   nothing wrote or read.
 

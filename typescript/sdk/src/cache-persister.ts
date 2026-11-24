@@ -32,6 +32,7 @@ import type {
   AnnotationId,
   CachePer,
   CacheValues,
+  LastEventIds,
   PersistedQuery,
   ResourceId,
 } from '@xynolog/core';
@@ -278,7 +279,8 @@ export function coupledLastEventId(
   const flush = (): void => {
     if (pending.size === 0 || (!sealed && atRest !== null && !atRest())) return;
     const merged = new Map([...readStored(), ...pending]);
-    storage.set(lastEventIdKey, JSON.stringify(Object.fromEntries(merged)));
+    const places: LastEventIds = Object.fromEntries(merged);
+    storage.set(lastEventIdKey, JSON.stringify(places));
     pending.clear();
   };
   const coupled: SessionStorage = {
