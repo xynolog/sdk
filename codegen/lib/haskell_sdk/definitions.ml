@@ -210,30 +210,18 @@ let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
           (with_property "limits" (reference "InferenceLimits") engine) );
     ]
   in
-  let tables = spec.tables in
-  (* A table's record, the schema it names when it names one by its [$id]. *)
-  let held key s = Result.map snd (Table_records.stated spec (key, s)) in
-  let* told_schema =
-    held "session/cases.json#/told" tables.session_cases.told
+  let* table_records = Table_records.all spec in
+  let* records =
+    match
+      List.map
+        (fun (_, title, s) ->
+          (title, canonical ~rewrite:(titled spec.ids table_records) s))
+        table_records
+    with
+    | records -> Ok records
+    | exception Unresolved message -> Error message
   in
-  let* told_title =
-    match told_schema with
-    | Schema { title = Some t; _ } -> Ok t
-    | _ -> Error "session end reasons have no title"
-  in
-  let* pointed =
-    List.fold_right
-      (fun (n, s) pointed ->
-        let* pointed = pointed in
-        let* s = held n s in
-        Ok ((n, s) :: pointed))
-      (tables.client_registry.types @ tables.client_state_units.notices)
-      (Ok [])
-  in
-  let told = (told_title, told_schema) in
-  let adapter_names =
-    List.map fst adapters @ List.map fst pointed @ [ fst told ]
-  in
+  let adapter_names = List.map fst adapters @ List.map fst records in
   let* () =
     if
       List.length (List.sort_uniq String.compare adapter_names)
@@ -241,39 +229,13 @@ let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
     then Error "an SDK-owned adapter and a record of the spec share a name"
     else Ok ()
   in
-  let* table_records = Table_records.all spec in
-  let* records =
-    match
-      List.map
-        (fun (n, s) ->
-          (n, canonical ~rewrite:(titled spec.ids table_records) s))
-        pointed
-    with
-    | records -> Ok (records @ [ told ])
-    | exception Unresolved message -> Error message
-  in
-  let* pending =
-    layer "pending authorization" tables.session_stored.pending_authorization
-  in
-  let* issuer = property "pending authorization" "issuer" pending in
   let* sign_in =
     Option.to_result ~none:"SignIn schema missing"
       (List.assoc_opt Roots.sign_in_entry spec.schemas)
   in
-  let* stored_session =
-    held "session/stored.json#/storedSession"
-      tables.session_stored.stored_session
-  in
   let stored =
     List.sort (fun (a, _) (b, _) -> String.compare a b) (adapters @ records)
-    @ [
-        ("SignIn", sign_in);
-        ("StoredSession", stored_session);
-        ("IssuerEndpoints", issuer);
-        ( "PendingAuthorization",
-          Schema.Schema
-            (with_property "issuer" (reference "IssuerEndpoints") pending) );
-      ]
+    @ [ ("SignIn", sign_in) ]
   in
   let derived =
     [ ("ResourceUploadMetadata", metadata); ("TraceCarrier", carrier) ]

@@ -4,14 +4,12 @@
 
 """What a registry of knowledge bases keeps in a `SessionStorage` (`protocol/specs/src/session/stored.json`):
 the key each thing it keeps is kept under.
-And what the sessions it makes keep there: which queries, and the stream's
-places. The keys made of these prefixes are `xynolog.storage_keys`'s.
+And which queries the sessions it makes keep there. The keys made of
+these prefixes are `xynolog.storage_keys`'s; where each stream was is
+`xynolog.types.LastEventIds`.
 """
 
 from typing import Final, Literal
-
-from xynolog.identifiers import ResourceId
-from xynolog.types import PersistedEventId
 
 __all__ = [
     "ACTIVE_KEY",
@@ -26,7 +24,6 @@ __all__ = [
     "SESSION_KEY_PREFIX",
     "WHOLE_KEY",
     "KeptQuery",
-    "LastEventIds",
     "WholeKey",
 ]
 
@@ -65,10 +62,6 @@ SESSION_KEY_PREFIX: Final = "xynolog.session."
 # gateway has not named, and forgetting the knowledge base's stored sign-in, however it is
 # forgotten, deletes it.
 LAST_EVENT_ID_KEY_PREFIX: Final = "xynolog.lastEventId."
-
-# Where a knowledge base's stream was: for each scope, a resource's id, the id of the last
-# recorded event delivered on it.
-type LastEventIds = dict[ResourceId, PersistedEventId]
 
 # What a client keeps of a query, for one person, is kept under this followed by the knowledge
 # base's id, a dot, the person's key as `lastEventIdKeyPrefix` makes it, a dot and the query's

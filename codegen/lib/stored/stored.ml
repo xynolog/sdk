@@ -2,14 +2,14 @@
    SessionStorage (protocol/specs/src/session/stored.json), for the Python
    SDK. A registry in one SDK finds what one in another wrote, over one
    storage, only if both say these alike: the key each thing is kept under,
-   the prefixes of the keys made per knowledge base, the stream's places, and
-   the queries a client keeps (those client/refresh.json marks persisted),
-   with the key of one per nothing and the version of what keeps them. The
-   stored session's and an open resource's shapes are xynolog.types'.
+   the prefixes of the keys made per knowledge base, and the queries a client
+   keeps (those client/refresh.json marks persisted), with the key of one per
+   nothing and the version of what keeps them. The records kept, the stored
+   session, an open resource, a pending sign-in and where each stream was,
+   are xynolog.types'.
 
    A fixed key is a constant's name ending in Key, stated once, and begins
-   with no prefix. The stream's places are named by a kind of id, each a
-   component. *)
+   with no prefix. *)
 
 module T = Tables.Session_stored
 
@@ -17,21 +17,14 @@ let file = "session/stored.json"
 
 type kept = { query : string; keyed_by : string option; value : string }
 
-(* A type an embedded schema names, and what it says of it. *)
-type named = { title : string; description : string }
-
 type t = {
   table : T.t;
-  places : named;  (** lastEventIds' type. *)
   version : int;  (** The cache document's version. *)
   version_description : string;
-  scope : string;
-  place : string;
-  kinds : string list;
   kept : kept list;
 }
 
-let derive (spec : Spec.t) ~kinds ~(refresh : Cache_refresh.Table.t) =
+let derive (spec : Spec.t) ~(refresh : Cache_refresh.Table.t) =
   let table = spec.tables.session_stored in
   let refusals = ref [] in
   let refuse pointer message =
@@ -83,54 +76,6 @@ let derive (spec : Spec.t) ~kinds ~(refresh : Cache_refresh.Table.t) =
         table.cache_key_prefix.prefix,
         table.cache_key_prefix.docs );
     ];
-  (* The component a reference to one names. *)
-  let component at : Decode.reference option -> string = function
-    | Some r -> (
-        match Decode.names spec.ids r with
-        | Some (file, "")
-          when Filename.dirname file = "components/schemas"
-               && List.mem_assoc file spec.schemas ->
-            Filename.remove_extension (Filename.basename file)
-        | _ ->
-            refuse at
-              (Printf.sprintf "is %S, not a reference to a component" r.target);
-            "")
-    | None ->
-        refuse at "states no reference to a component";
-        ""
-  in
-  (* The embedded schemas, read through Schema: a property the group reads
-     and the schema lacks is refused, and read on as one that states
-     nothing. *)
-  let layer : Schema.t -> Schema.schema = function
-    | Schema s -> s
-    | Boolean_schema _ -> Schema.empty
-  in
-  let said = function Some text -> text <> "" | None -> false in
-  let named_type (s : Schema.schema) =
-    match s.title with Some t -> Sign_in.Flat.is_type_name t | None -> false
-  in
-  let referred : Schema.t option -> Decode.reference option = function
-    | Some (Schema { ref_ = Some r; _ }) -> Some r
-    | _ -> None
-  in
-  let l = layer table.last_event_ids in
-  let at_last = "/lastEventIds" in
-  if l.type_ <> Some [ Object ] then refuse (at_last ^ "/type") "is not object";
-  if not (named_type l) then refuse (at_last ^ "/title") "names no type";
-  if not (said l.description) then refuse (at_last ^ "/description") "is empty";
-  let scope =
-    component (at_last ^ "/propertyNames/$ref") (referred l.property_names)
-  in
-  if scope <> "" && not (List.mem scope kinds) then
-    refuse
-      (at_last ^ "/propertyNames/$ref")
-      (Printf.sprintf "names its members by %s, which is no kind of id" scope);
-  let place =
-    component
-      (at_last ^ "/additionalProperties/$ref")
-      (referred l.additional_properties)
-  in
   if table.whole_key.docs = "" then refuse "/wholeKey/docs" "is empty";
   (* A cache document is a version and its entries, each a key, a value and a
      whole-number stamp; Haskell's reads it as no more than that. Its schema
@@ -202,12 +147,6 @@ let derive (spec : Spec.t) ~kinds ~(refresh : Cache_refresh.Table.t) =
     refuse ""
       (Cache_refresh.Table.file
      ^ " marks no query persisted, so a client keeps none");
-  let named (s : Schema.schema) =
-    {
-      title = Option.value ~default:"" s.title;
-      description = Option.value ~default:"" s.description;
-    }
-  in
   let version =
     match d "/properties/version/const" with
     | Some (`Int version) -> version
@@ -222,18 +161,7 @@ let derive (spec : Spec.t) ~kinds ~(refresh : Cache_refresh.Table.t) =
     | _ -> ""
   in
   match List.rev !refusals with
-  | [] ->
-      Ok
-        {
-          table;
-          places = named l;
-          version;
-          version_description;
-          scope;
-          place;
-          kinds;
-          kept;
-        }
+  | [] -> Ok { table; version; version_description; kept }
   | errors -> Error errors
 
 let python t =
@@ -241,14 +169,6 @@ let python t =
   let table = t.table in
   let constant ~about name value =
     P.assign ~about:[ Prose about ] name ~annotation:(P.Name "Final") ~value
-  in
-  let named = [ t.scope; t.place ] in
-  let identifiers =
-    List.sort_uniq compare (List.filter (fun n -> List.mem n t.kinds) named)
-  in
-  let components =
-    List.sort_uniq compare
-      (List.filter (fun n -> not (List.mem n t.kinds)) named)
   in
   let constants =
     List.map
@@ -266,16 +186,12 @@ let python t =
           "SESSION_KEY_PREFIX";
           "WHOLE_KEY";
         ])
-    @ List.sort compare [ t.places.title; "KeptQuery"; "WholeKey" ]
+    @ [ "KeptQuery"; "WholeKey" ]
   in
   let kept_as k =
     "Keyed by "
     ^ (match k.keyed_by with None -> "WHOLE_KEY alone" | Some key -> key)
     ^ "; its value is " ^ k.value ^ "."
-  in
-  let from what = function
-    | [] -> []
-    | names -> [ P.From ("xynolog." ^ what, names) ]
   in
   let whole = P.Str table.whole_key.key in
   {
@@ -290,15 +206,12 @@ let python t =
               "What a registry of knowledge bases keeps in a `SessionStorage` \
                (`protocol/specs/src/session/stored.json`):\n\
                the key each thing it keeps is kept under.\n\
-               And what the sessions it makes keep there: which queries, and \
-               the stream's\n\
-               places. The keys made of these prefixes are \
-               `xynolog.storage_keys`'s.\n";
-          imports =
-            [
-              [ P.From ("typing", [ "Final"; "Literal" ]) ];
-              from "identifiers" identifiers @ from "types" components;
-            ];
+               And which queries the sessions it makes keep there. The keys \
+               made of\n\
+               these prefixes are `xynolog.storage_keys`'s; where each stream \
+               was is\n\
+               `xynolog.types.LastEventIds`.\n";
+          imports = [ [ P.From ("typing", [ "Final"; "Literal" ]) ] ];
           body =
             P.assign "__all__"
               ~value:
@@ -315,11 +228,6 @@ let python t =
                 constant ~about:table.last_event_id_key_prefix.docs
                   "LAST_EVENT_ID_KEY_PREFIX"
                   (P.Str table.last_event_id_key_prefix.prefix);
-                P.alias
-                  ~about:[ Prose t.places.description ]
-                  t.places.title
-                  (P.sub "dict"
-                     [ P.item (P.Name t.scope); P.item (P.Name t.place) ]);
                 constant ~about:table.cache_key_prefix.docs "CACHE_KEY_PREFIX"
                   (P.Str table.cache_key_prefix.prefix);
                 P.alias
@@ -446,14 +354,9 @@ let haskell_keys (table : T.t) =
 
 let files ~root:_ (spec : Spec.t) =
   let ( let* ) = Result.bind in
-  let* kinds = Identifiers.Table.derive spec in
   let* context = Cache_refresh.context spec in
   let* refresh =
     Cache_refresh.Table.derive context spec.tables.client_refresh
   in
-  let* t =
-    derive spec
-      ~kinds:(List.map (fun (k : Identifiers.Table.kind) -> k.name) kinds)
-      ~refresh
-  in
+  let* t = derive spec ~refresh in
   Ok [ python t; haskell t; haskell_keys t.table ]

@@ -7227,7 +7227,7 @@ class KnowledgeIndex(WireModel, frozen=True, extra="forbid"):
 
 
 type LastEventIds = Annotated[
-    dict[str, PersistedEventId],
+    dict[ResourceId, PersistedEventId],
     Field(
         description="Where a knowledge base's stream was: for each scope, a resource's id, the id of the last recorded event delivered on it."
     ),
