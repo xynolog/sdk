@@ -9,7 +9,7 @@ public abstract class XynologError : Exception
 {
     /// <summary>How many of what a stream says before anyone reads it are kept for its first reader: a session's errors, a
     /// transport's failures, a registry's own errors, and a worker's claim refusals and stalls.</summary>
-    internal static readonly int KeptForFirstReader = ProtocolFacts.Timing("errorsKeptForFirstReaderCount").GetInt32();
+    internal static readonly int KeptForFirstReader = Timings.ErrorsKeptForFirstReaderCount;
 
     private protected XynologError(string code, string message, int? status = null, Exception? inner = null) : base(message, inner)
     {

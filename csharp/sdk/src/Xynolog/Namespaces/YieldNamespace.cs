@@ -38,22 +38,22 @@ public sealed class YieldNamespace
         (await wire.RequestAsync(BusOperations.YieldCloneResourceRequested, new YieldCloneResourceRequest { Token = token },
             cancellation: cancellation).ConfigureAwait(Spawning.Captures)).Response.SourceResource;
 
-    /// <summary>Creates a clone of the token's resource with the name and text given, in the source's format, archiving the
+    /// <summary>Creates a clone of the token's resource with the name and content given, in the source's format, archiving the
     /// source when asked.</summary>
-    public async Task<CreateResourceResponse> CreateFromTokenAsync(string token, string name, string text, bool? archiveOriginal = null,
-        CancellationToken cancellation = default)
+    public async Task<CreateResourceResponse> CreateFromTokenAsync(CreateFromTokenOptions options, CancellationToken cancellation = default)
     {
-        var source = await FromTokenAsync(token, cancellation).ConfigureAwait(Spawning.Captures);
+        ArgumentNullException.ThrowIfNull(options);
+        var source = await FromTokenAsync(options.Token, cancellation).ConfigureAwait(Spawning.Captures);
         var mediaType = PrimaryMediaType(source);
         var format = MediaTypes.CloneFormat(mediaType);
         return await content.UploadAsync(new ResourceUpload
         {
-            Name = name,
-            File = Encoding.UTF8.GetBytes(text),
+            Name = options.Name,
+            File = Encoding.UTF8.GetBytes(options.Content),
             Format = format,
-            StorageUri = "file://" + MediaTypes.StorageFileName(name, format),
-            CloneToken = token,
-            ArchiveOriginal = archiveOriginal is bool archive ? archive ? "true" : "false" : null,
+            StorageUri = "file://" + MediaTypes.StorageFileName(options.Name, format),
+            CloneToken = options.Token,
+            ArchiveOriginal = options.ArchiveOriginal is bool archive ? archive ? "true" : "false" : null,
         }, null, cancellation).ConfigureAwait(Spawning.Captures);
     }
 
@@ -78,10 +78,10 @@ public sealed class YieldNamespace
 
     private static int GenerationStallMs(double? maxTokens)
     {
-        var tokens = Math.Max(0, maxTokens ?? ProtocolFacts.Timing("generationStallAssumedTokensCount").GetInt32());
-        var duration = Math.Round(tokens * ProtocolFacts.Timing("generationStallPerTokenMs").GetInt32(), MidpointRounding.AwayFromZero);
+        var tokens = Math.Max(0, maxTokens ?? Timings.GenerationStallAssumedTokensCount);
+        var duration = Math.Round(tokens * Timings.GenerationStallPerTokenMs, MidpointRounding.AwayFromZero);
         if (!double.IsFinite(duration) || duration > int.MaxValue)
-            throw new TransportError(ProtocolFacts.Error(0), "The generation's stall deadline cannot be represented.");
-        return Math.Max(ProtocolFacts.Timing("generationStallFloorMs").GetInt32(), (int)duration);
+            throw new TransportError(TransportErrorCode.Error, "The generation's stall deadline cannot be represented.");
+        return Math.Max(Timings.GenerationStallFloorMs, (int)duration);
     }
 }

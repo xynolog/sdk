@@ -35,7 +35,7 @@ public sealed class SearchPipeline<T> : IStateUnit
         TimeSpan? debounce = null, string initialQuery = "", TimeProvider? timeProvider = null)
     {
         this.search = search;
-        this.debounce = debounce ?? TimeSpan.FromMilliseconds(ProtocolFacts.Timing("searchDebounceMs").GetInt32());
+        this.debounce = debounce ?? TimeSpan.FromMilliseconds(Timings.SearchDebounceMs);
         ArgumentOutOfRangeException.ThrowIfLessThan(this.debounce, TimeSpan.Zero);
         clock = timeProvider ?? TimeProvider.System;
         Query = new StateValue<string>(initialQuery);

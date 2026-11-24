@@ -1,6 +1,5 @@
 using Xynolog.Errors;
 using Xynolog.Http;
-using Xynolog.Protocol;
 using Xynolog.Registry;
 using Xynolog.Session;
 using Xynolog.SignIn;
@@ -75,7 +74,7 @@ public static class TestSessions
             Endpoint = new KbEndpoint.HttpEndpointCase(new HttpEndpoint { Host = "localhost", Port = 4000, Protocol = HttpEndpointProtocol.Http }),
         };
         if (kb.Endpoint is not KbEndpoint.HttpEndpointCase(var endpoint))
-            throw new SessionError(ProtocolFacts.SessionError("construct-failed"), "The test session requires an HTTP endpoint.");
+            throw new SessionError(SessionErrorCode.ConstructFailed, "The test session requires an HTTP endpoint.");
         var origin = Gateway.Origin(endpoint);
         var clock = options.TimeProvider ?? TimeProvider.System;
         var random = options.Random ?? Random.Shared;

@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Threading.Channels;
 using Xynolog.Errors;
 using Xynolog.Identifiers;
-using Xynolog.Protocol;
 using Xynolog.State;
 using Xynolog.Types;
 using Xunit;
@@ -147,7 +146,7 @@ public sealed partial class TransportTests
         {
             if (delay != TimeSpan.Zero) await Task.Delay(delay, clock, lifetime.Token);
             var name = Text(request, "channel");
-            var operation = ProtocolFacts.Operation(name);
+            var operation = BusRegistry.Operation(name);
             if (replies.TryGetValue(name, out var queued) && queued.TryDequeue(out var response))
             {
                 if (response.ValueKind != JsonValueKind.Null) Reply(gateway, request, operation.Result, new { response });
@@ -341,7 +340,7 @@ public sealed partial class TransportTests
         private static TimeSpan Duration(JsonElement duration)
         {
             if (duration.ValueKind == JsonValueKind.Number) return TimeSpan.FromMilliseconds(duration.GetInt64());
-            var basis = ProtocolFacts.Timing(Text(duration, "timing")).GetDouble();
+            var basis = ProtocolTiming.Of(Text(duration, "timing")).GetDouble();
             var scale = duration.TryGetProperty("times", out var times) ? times.GetDouble() : 1;
             var extra = duration.TryGetProperty("plusMs", out var plus) ? plus.GetDouble() : 0;
             return TimeSpan.FromMilliseconds(Math.Round(basis * scale, MidpointRounding.AwayFromZero) + extra);

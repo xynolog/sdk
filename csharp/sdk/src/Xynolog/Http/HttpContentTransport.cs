@@ -1,4 +1,3 @@
-using Xynolog.Protocol;
 using Xynolog.Errors;
 using System.Diagnostics;
 using System.Net;
@@ -147,7 +146,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
     }
     private static string ContentType(HttpContent content) =>
         (content.Headers.NonValidated.TryGetValues("Content-Type", out var values) ? values.FirstOrDefault() : null)
-        ?? throw new TransportError(ProtocolFacts.Error(0), "The content response has no media type");
+        ?? throw new TransportError(TransportErrorCode.Error, "The content response has no media type");
 
     private static string PathOf(GatewayRoute route, ResourceId resource) => route.Path.Replace("{id}", Uri.EscapeDataString(resource.Value), StringComparison.Ordinal);
 

@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Xynolog.Errors;
 using Xynolog.Http;
-using Xynolog.Protocol;
 using Xynolog.Registry;
 using Xynolog.Session;
 using Xynolog.Types;
@@ -66,9 +65,9 @@ public sealed class ScriptedSessions(Func<string, string, JsonElement, JsonEleme
         cancellation.ThrowIfCancellationRequested();
         var kb = options.Kb;
         if (constructFailure is { } reason)
-            throw new SessionError(ProtocolFacts.SessionError("construct-failed"), reason);
+            throw new SessionError(SessionErrorCode.ConstructFailed, reason);
         if (kb.Endpoint is not KbEndpoint.HttpEndpointCase(var endpoint))
-            throw new SessionError(ProtocolFacts.SessionError("construct-failed"), "The scripted session requires an HTTP endpoint.");
+            throw new SessionError(SessionErrorCode.ConstructFailed, "The scripted session requires an HTTP endpoint.");
         var origin = Gateway.Origin(endpoint);
         var transport = new FaultyTransport(respond: Answer, timeProvider: clock)
         {
@@ -118,19 +117,19 @@ public sealed class ScriptedSessions(Func<string, string, JsonElement, JsonEleme
 
         JsonElement? Answer(string operation, JsonElement payload) => answer is { } scripted
             ? scripted(kb.Id, operation, payload)
-            : throw new TransportError(ProtocolFacts.Error(0), $"No response scripted for '{operation}' of knowledge base '{kb.Id}'.");
+            : throw new TransportError(TransportErrorCode.Error, $"No response scripted for '{operation}' of knowledge base '{kb.Id}'.");
 
         async Task<UserResponse> IdentifyAsync(string _, CancellationToken stop)
         {
             if (delay > TimeSpan.Zero) await Task.Delay(delay, clock, stop).ConfigureAwait(Spawning.Captures);
-            return identity ?? throw new TransportError(ProtocolFacts.Error(0), $"No identity scripted for knowledge base '{kb.Id}'.");
+            return identity ?? throw new TransportError(TransportErrorCode.Error, $"No identity scripted for knowledge base '{kb.Id}'.");
         }
 
         async Task<string?> RenewAsync(string? _, CancellationToken stop)
         {
             Interlocked.Increment(ref renewed);
             if (!renewals.TryDequeue(out var renewal))
-                throw new SignInError(ProtocolFacts.SignInError("exchange"), $"No renewal scripted for knowledge base '{kb.Id}'.", 503);
+                throw new SignInError(SignInErrorCode.Exchange, $"No renewal scripted for knowledge base '{kb.Id}'.", 503);
             if (renewal is Renewal.Failure(var error)) throw error;
             if (renewal is Renewal.Token(var token) && token is not null && await stored.HeldAsync(stop).ConfigureAwait(Spawning.Captures) is { } read)
                 return await stored.RenewedAsync(read, token, read.Refresh, stop).ConfigureAwait(Spawning.Captures);

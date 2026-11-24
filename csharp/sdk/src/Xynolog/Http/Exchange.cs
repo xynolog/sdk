@@ -35,22 +35,22 @@ public sealed partial class HttpTransport
     /// as every reply is (<see cref="Required.TryRead"/>): one with a fault is refused, naming the fault.</summary>
     internal async Task<T> ReplyAsync<T>(HttpResponseMessage response, string path, CancellationToken cancellation) where T : class
     {
-        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(timing.HttpRequestMs), clock);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(timing.HttpRequestTimeoutMs), clock);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token, lifetime.Token, cancellation);
         try
         {
             var reply = await response.Content.ReadFromJsonAsync<JsonElement>(linked.Token).ConfigureAwait(Spawning.Captures);
             return Required.TryRead<T>(reply, out var decoded, out var fault)
                 ? decoded
-                : throw Report(new TransportError(ProtocolFacts.Error(0), $"{path}: the reply is not a {typeof(T).Name}: {fault}", (int)response.StatusCode));
+                : throw Report(new TransportError(TransportErrorCode.Error, $"{path}: the reply is not a {typeof(T).Name}: {fault}", (int)response.StatusCode));
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
         {
-            throw Report(new TransportError(ProtocolFacts.Error(503), path + ": response was not read"));
+            throw Report(new TransportError(TransportErrorCode.Unavailable, path + ": response was not read"));
         }
         catch (JsonException error)
         {
-            throw Report(new TransportError(ProtocolFacts.Error(0), error.Message, (int)response.StatusCode, error));
+            throw Report(new TransportError(TransportErrorCode.Error, error.Message, (int)response.StatusCode, error));
         }
     }
 
@@ -65,7 +65,7 @@ public sealed partial class HttpTransport
             using var request = Request(method, path, sent);
             if (key is not null) request.Headers.Add(GatewayHeader.IdempotencyKey, key);
             request.Content = content?.Invoke();
-            using var deadline = new CancellationTokenSource(upload ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(timing.HttpRequestMs), clock);
+            using var deadline = new CancellationTokenSource(upload ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(timing.HttpRequestTimeoutMs), clock);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token, lifetime.Token, cancellation);
             HttpResponseMessage response;
             try
@@ -74,20 +74,20 @@ public sealed partial class HttpTransport
             }
             catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
             {
-                throw Report(new TransportError(ProtocolFacts.Error(503), path + ": no response"));
+                throw Report(new TransportError(TransportErrorCode.Unavailable, path + ": no response"));
             }
             catch (HttpRequestException) when (repeatable && attempt == 0 && !lifetime.IsCancellationRequested)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(ProtocolFacts.Timing("requestRetryPauseMs").GetInt32()), clock, cancellation).ConfigureAwait(Spawning.Captures);
+                await Task.Delay(TimeSpan.FromMilliseconds(Timings.RequestRetryPauseMs), clock, cancellation).ConfigureAwait(Spawning.Captures);
                 continue;
             }
             catch (HttpRequestException error)
             {
-                throw Report(new TransportError(ProtocolFacts.Error(503), error.Message, inner: error));
+                throw Report(new TransportError(TransportErrorCode.Unavailable, error.Message, inner: error));
             }
             if (response.IsSuccessStatusCode) return response;
             var failure = await RefusalAsync(response, cancellation).ConfigureAwait(Spawning.Captures);
-            if (failure.Code == ProtocolFacts.Error(401) && !renewed && sent is not null)
+            if (failure.Code == TransportErrorCode.Unauthorized && !renewed && sent is not null)
             {
                 renewed = true;
                 if (await RenewAsync(sent, cancellation).ConfigureAwait(Spawning.Captures) is { } renewal)
@@ -98,9 +98,9 @@ public sealed partial class HttpTransport
                     continue;
                 }
             }
-            if (retry && attempt == 0 && ProtocolFacts.RetryTransport((int)response.StatusCode, method.Method, keyed: key is not null) && failure.Code != ProtocolFacts.Error(401))
+            if (retry && attempt == 0 && ProtocolFacts.RetryTransport((int)response.StatusCode, method.Method, keyed: key is not null) && failure.Code != TransportErrorCode.Unauthorized)
             {
-                var delay = Math.Max(RetryAfter(response), ProtocolFacts.Timing("requestRetryPauseMs").GetInt32());
+                var delay = Math.Max(RetryAfter(response), Timings.RequestRetryPauseMs);
                 response.Dispose();
                 using var waiting = CancellationTokenSource.CreateLinkedTokenSource(cancellation, lifetime.Token);
                 try
@@ -109,7 +109,7 @@ public sealed partial class HttpTransport
                 }
                 catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
                 {
-                    throw Report(new TransportError(ProtocolFacts.Error(0), path + ": the transport is closed"));
+                    throw Report(new TransportError(TransportErrorCode.Error, path + ": the transport is closed"));
                 }
                 continue;
             }

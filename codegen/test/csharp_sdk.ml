@@ -64,7 +64,7 @@ let refusals =
          "./Absent.json names no schema the models are made from");
     case "a member of no type it can be is refused"
       (refuses
-         [ ("X", object_ {|"a":{"description":"Anything?"}|}) ]
+         [ ("X", object_ {|"a":{"type":"array"}|}) ]
          "X.A has an unsupported type shape.");
     case "an enumeration of other than strings is refused"
       (refuses

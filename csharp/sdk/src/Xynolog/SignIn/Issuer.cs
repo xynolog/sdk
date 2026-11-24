@@ -8,7 +8,7 @@ namespace Xynolog.SignIn;
 
 public sealed partial class Issuer : IDisposable
 {
-    private static readonly RetryPolicy RefreshRetry = RetryPolicy.FromTiming("refreshRetry");
+    private static readonly RetryPolicy RefreshRetry = Timings.RefreshRetry;
 
     private readonly HttpClient? client;
     private readonly HttpMessageInvoker? owned;
@@ -37,7 +37,7 @@ public sealed partial class Issuer : IDisposable
         return KeptRenewal.RenewAsync(kept, holding, RefreshAsync, clock, cancellation);
     }
 
-    private Task<(string Access, string? Refresh)> RefreshAsync(StoredSession held, CancellationToken cancellation) =>
+    private Task<IssuedTokens> RefreshAsync(StoredSession held, CancellationToken cancellation) =>
         GrantByRefreshRuleAsync(token => GrantAsync(held, token), cancellation);
 
     internal async Task<T> GrantByRefreshRuleAsync<T>(Func<CancellationToken, Task<T>> grant, CancellationToken cancellation)
@@ -47,7 +47,7 @@ public sealed partial class Issuer : IDisposable
             _ => null, clock, random, linked.Token).ConfigureAwait(Spawning.Captures);
     }
 
-    private async Task<(string Access, string? Refresh)> GrantAsync(StoredSession held, CancellationToken cancellation)
+    private async Task<IssuedTokens> GrantAsync(StoredSession held, CancellationToken cancellation)
     {
         var answer = await AnswerAsync(held.TokenEndpoint, new Dictionary<string, string>
         {
@@ -56,20 +56,22 @@ public sealed partial class Issuer : IDisposable
             ["client_id"] = held.ClientId,
         }, cancellation: cancellation).ConfigureAwait(Spawning.Captures);
         if (answer.Status != 200) throw Failure("The issuer refused the refresh grant", answer.Status);
-        return Issued(answer);
+        return Issued(answer, held.Refresh);
     }
 
-    private static (string Access, string? Refresh) Issued(IssuerAnswer answer)
+    /// <summary>The tokens the issuer's answer issued; a refresh token it does not rotate is the one
+    /// <paramref name="kept"/>, and with none kept it must issue one.</summary>
+    private static IssuedTokens Issued(IssuerAnswer answer, string? kept)
     {
         var access = answer.Text("access_token");
         if (string.IsNullOrEmpty(access)) throw Failure("The issuer answered without an access token", answer.Status);
-        string? refresh = null;
+        var refresh = kept;
         if (answer.Body is JsonElement body && body.TryGetProperty("refresh_token", out var stated))
         {
             if (stated.ValueKind != JsonValueKind.String || string.IsNullOrEmpty(stated.GetString())) throw Failure("The issuer answered with an invalid refresh token", answer.Status);
             refresh = stated.GetString();
         }
-        return (access, refresh);
+        return new IssuedTokens { Access = access, Refresh = refresh ?? throw Failure("The issuer returned no refresh token", answer.Status) };
     }
 
     internal sealed record IssuerAnswer(int Status, JsonElement? Body)
@@ -80,13 +82,13 @@ public sealed partial class Issuer : IDisposable
     }
 
     internal async Task<IssuerAnswer> AnswerAsync(string url, Dictionary<string, string>? form = null,
-        string errorCode = "exchange", CancellationToken cancellation = default)
+        string errorCode = SignInErrorCode.Exchange, CancellationToken cancellation = default)
     {
         lifetime.Token.ThrowIfCancellationRequested();
         using var request = new HttpRequestMessage(form is null ? HttpMethod.Get : HttpMethod.Post, url);
         request.Headers.Accept.ParseAdd("application/json");
         if (form is not null) request.Content = new FormUrlEncodedContent(form);
-        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(ProtocolFacts.Timing("httpRequestTimeoutMs").GetDouble()), clock);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(Timings.HttpRequestTimeoutMs), clock);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation, lifetime.Token, deadline.Token);
         int? status = null;
         try
@@ -106,14 +108,14 @@ public sealed partial class Issuer : IDisposable
             catch (JsonException) when (!response.IsSuccessStatusCode) { return new IssuerAnswer(status.Value, null); }
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested && !lifetime.IsCancellationRequested)
-        { throw new SignInError(ProtocolFacts.SignInError(errorCode), "The issuer did not answer before the deadline"); }
+        { throw new SignInError(errorCode, "The issuer did not answer before the deadline"); }
         catch (Exception error) when (error is HttpRequestException or IOException)
-        { throw new SignInError(ProtocolFacts.SignInError(errorCode), "The issuer did not answer", inner: error); }
+        { throw new SignInError(errorCode, "The issuer did not answer", inner: error); }
         catch (JsonException error)
-        { throw new SignInError(ProtocolFacts.SignInError(errorCode), "The issuer answered with invalid JSON", status, error); }
+        { throw new SignInError(errorCode, "The issuer answered with invalid JSON", status, error); }
     }
 
-    private static SignInError Failure(string message, int? status, Exception? inner = null) => new(ProtocolFacts.SignInError("exchange"), message, status, inner);
+    private static SignInError Failure(string message, int? status, Exception? inner = null) => new(SignInErrorCode.Exchange, message, status, inner);
 
     /// <summary>Ends every request in flight and releases the client it made, if it made one.</summary>
     public void Dispose() { lifetime.Cancel(); owned?.Dispose(); }

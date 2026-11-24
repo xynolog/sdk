@@ -1,6 +1,8 @@
-(* The C# SDK's bus: each channel typed by its payload, each channel's
-   reading by name, each operation typed by its three channels, the limits
-   operations, and what each result states beside its response. A channel
+(* The C# SDK's bus: each channel typed by its payload, the channels of the
+   scoped and the everyone audiences and of the record, each channel's
+   reading by name, each operation typed by its three channels and named with
+   its failure's schema, the limits operations, and what each result states
+   beside its response. A channel
    that carries no component carries one the registry makes: the empty
    payload, or a component's response in an envelope. *)
 
@@ -167,6 +169,35 @@ let operations (bus : Registry.t) =
   @ [
       property ~modifiers:[ Internal; Static ]
         (C.Generic
+           ( "global::System.Collections.Generic.IReadOnlyList",
+             [
+               C.Tuple
+                 (List.map
+                    (fun name -> (C.T "string", name))
+                    [ "Request"; "Result"; "Failure"; "FailureSchema" ]);
+             ] ))
+        "Replies"
+        (C.Collection
+           (List.map
+              (fun (o : R.operations_item) ->
+                C.New
+                  {
+                    type_ = None;
+                    args =
+                      Some
+                        (List.map
+                           (fun name -> C.Arg (Str name))
+                           [
+                             o.request;
+                             o.result;
+                             o.failure;
+                             payload (bus.channel o.failure);
+                           ]);
+                    init = None;
+                  })
+              bus.registry.operations));
+      property ~modifiers:[ Internal; Static ]
+        (C.Generic
            ( "System.Collections.Generic.IReadOnlyList",
              [ operation_type bus first ] ))
         "Limits"
@@ -195,6 +226,14 @@ let operations (bus : Registry.t) =
                    @ [ (Discard, C.Collection []) ] ));
         };
     ]
+
+(* A list of channels, by name. *)
+let named name channels =
+  property ~modifiers:[ Internal; Static ]
+    (C.Generic
+       ("global::System.Collections.Generic.IReadOnlyList", [ C.T "string" ]))
+    name
+    (C.Collection (List.map (fun channel -> C.Str channel) channels))
 
 let static_class name members =
   C.Type
@@ -229,6 +268,15 @@ let file (bus : Registry.t) =
                      name = "UserField";
                      value = Some (C.Str bus.user_field);
                    }
+                :: named "Scoped" bus.registry.audience.scoped
+                :: named "Everyone" bus.registry.audience.everyone
+                :: named "Recorded"
+                     (List.filter_map
+                        (fun (c : R.channels_item) ->
+                          match c with
+                          | Stored_event { channel; _ } -> Some channel
+                          | _ -> None)
+                        bus.registry.channels)
                 :: channels bus.registry);
               static_class "BusOperations" (operations bus);
             ];

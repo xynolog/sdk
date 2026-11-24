@@ -51,7 +51,7 @@ public sealed partial class TransportTests
     [Fact]
     public async Task TheFirstReaderOfARegistryNobodyReadHearsTheLatestItKeptInOrder()
     {
-        var most = ProtocolFacts.Timing("errorsKeptForFirstReaderCount").GetInt32();
+        var most = Timings.ErrorsKeptForFirstReaderCount;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         var clock = new TestClock();
         var built = new TaskCompletionSource<(SessionSignals Signals, KeptSession Kept)>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -65,11 +65,11 @@ public sealed partial class TransportTests
         var (signals, kept) = await built.Task.WaitAsync(deadline.Token);
 
         var said = Enumerable.Range(0, most + 3)
-            .Select<int, XynologError>(at => new SessionError(ProtocolFacts.SessionError("keep-failed"), $"error {at}")).ToArray();
+            .Select<int, XynologError>(at => new SessionError(SessionErrorCode.KeepFailed, $"error {at}")).ToArray();
         foreach (var error in said) kept.Say(error);
         // The registry reads the session's errors in the order said: once the refusal said after them reaches the signals,
         // it has said every one.
-        kept.Say(new TransportError(ProtocolFacts.Error(403), "said after them", 403));
+        kept.Say(new TransportError(TransportErrorCode.Forbidden, "said after them", 403));
         await foreach (var denied in signals.PermissionDenied.WithCancellation(deadline.Token))
             if (denied is not null) break;
 

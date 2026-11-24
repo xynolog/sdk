@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Xynolog.Errors;
-using Xynolog.Protocol;
 
 namespace Xynolog;
 
@@ -158,7 +157,7 @@ internal sealed class CacheEntry<T> : Cached<T>
             if (closed || onlyIfHeld && !Held()) return;
             ForgetPreviousValue();
             changed?.Invoke();
-            Publish(new CacheState<T>.Failed(new BusRequestError(ProtocolFacts.BusError("not-found"), "The cached item was removed.")));
+            Publish(new CacheState<T>.Failed(new BusRequestError(BusRequestErrorCode.NotFound, "The cached item was removed.")));
         }
     }
 
@@ -355,7 +354,7 @@ internal sealed class CacheEntry<T> : Cached<T>
         finally { lifetime.Dispose(); }
     }
 
-    private static BusRequestError ClosedError() => new(ProtocolFacts.BusError("closed"), "The cache is closed.");
+    private static BusRequestError ClosedError() => new(BusRequestErrorCode.Closed, "The cache is closed.");
 
     /// <summary>One fetch of the key, and the patches made while it is the key's current fetch, in the order made. They
     /// go with it: a fetch replaced, let go of or failed applies none.</summary>

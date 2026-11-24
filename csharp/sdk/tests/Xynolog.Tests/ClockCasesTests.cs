@@ -145,8 +145,8 @@ public sealed class ClockCasesTests
     /// <summary>A duration protocol/specs/src/client/timing.json names, as this SDK reads it. A retry budget's member follows its budget and a `.`.</summary>
     private static double TimingMs(string name) => name.Split('.') switch
     {
-        [var single] => ProtocolFacts.Timing(single).GetDouble(),
-        [var budget, var member] => ProtocolFacts.Timing(budget).GetProperty(member).GetDouble(),
+        [var single] => ProtocolTiming.Of(single).GetDouble(),
+        [var budget, var member] => ProtocolTiming.Of(budget).GetProperty(member).GetDouble(),
         _ => throw new CaseFailed($"{name} is no duration of this SDK's timing"),
     };
 
@@ -339,7 +339,7 @@ public sealed class ClockCasesTests
         var http = play.Keep(new HttpClient(dispatcher, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan });
         var client = play.Keep(new XynologClient(new HttpTransport(GatewayUrl, "a-token", WorkerRules.JobClaimChannels,
             httpClient: http, timeProvider: play.Clock, random: play.Random)));
-        var claims = client.Job.Claim(Read<JobFilter[]>("""[{"jobType":"mark","params":{"motivation":"highlighting"}}]"""));
+        var claims = client.Job.Claim(new ClaimOptions { Accepts = Read<JobFilter[]>("""[{"jobType":"mark","params":{"motivation":"highlighting"}}]""") });
         play.Then(claims.StopAsync);
         var job = await claims.NextAsync() ?? throw new CaseFailed("the claims handed no job");
         var stalls = 0;
@@ -398,7 +398,7 @@ public sealed class ClockCasesTests
         var person = Registry.RegistryStorage.PersonKey(UserId.Parse("did:web:example.org:users:alice"));
         var storage = play.Keep(new LiveCacheStorage(new CachePersistence(saves, "kb-a", person), play.Clock, () => false));
         var cache = play.Keep(new Cache<ResourceId, ResourceDescriptor>((key, _) => throw new CaseFailed($"a cache that is only written fetched {key}"), null,
-            play.Clock, TimeSpan.FromMilliseconds(ProtocolFacts.Timing("invalidationWindowMs").GetInt32()), storage.Changed("resource")));
+            play.Clock, TimeSpan.FromMilliseconds(Timings.InvalidationWindowMs), storage.Changed("resource")));
         storage.Start([storage.Keep("resource", cache, KeptKeys.ByResource<ResourceDescriptor>())], _ => { });
         var changes = 0;
         return Task.FromResult(new Subject(() => saves.Count, () =>

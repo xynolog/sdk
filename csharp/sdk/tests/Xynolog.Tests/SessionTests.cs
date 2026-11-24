@@ -129,12 +129,12 @@ public sealed class SessionTests
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var answer = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var grants = 0;
-        async Task<(string Access, string? Refresh)> Grant(StoredSession read, CancellationToken cancellation)
+        async Task<IssuedTokens> Grant(StoredSession read, CancellationToken cancellation)
         {
-            if (Interlocked.Increment(ref grants) == 1) return (renewed, "refresh-2");
+            if (Interlocked.Increment(ref grants) == 1) return new IssuedTokens { Access = renewed, Refresh = "refresh-2" };
             entered.TrySetResult();
             await answer.Task.WaitAsync(cancellation);
-            return (late, "refresh-3");
+            return new IssuedTokens { Access = late, Refresh = "refresh-3" };
         }
         var ended = new ConcurrentQueue<SessionEndReason>();
         using var session = new KeptSession(kept, (holding, cancellation) => KeptRenewal.RenewAsync(kept, holding, Grant, clock, cancellation),
@@ -184,7 +184,7 @@ public sealed class SessionTests
             if (++asks > 1) return User();
             validating.SetResult();
             await refuse.Task.WaitAsync(cancellation);
-            throw new TransportError(ProtocolFacts.Error(401), "refused");
+            throw new TransportError(TransportErrorCode.Unauthorized, "refused");
         }
         using var session = new KeptSession(kept, (_, _) => { renewals++; return Task.FromResult<string?>("renewed"); }, Validate, clock, new ZeroRandom(), onAuthFailed: null);
         await validating.Task;
@@ -220,12 +220,12 @@ public sealed class SessionTests
     public async Task TheFirstReaderOfASessionNobodyReadHearsTheLatestItKeptInOrder()
     {
         var clock = new TestClock();
-        var most = ProtocolFacts.Timing("errorsKeptForFirstReaderCount").GetInt32();
+        var most = Timings.ErrorsKeptForFirstReaderCount;
         using var session = new KeptSession(Stored(clock), (_, _) => Task.FromResult<string?>(null), (_, _) => Task.FromResult(User()),
             clock, new ZeroRandom(), onAuthFailed: null);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await session.ReadyAsync(deadline.Token);
-        var said = Enumerable.Range(0, most + 3).Select<int, XynologError>(at => new TransportError(ProtocolFacts.Error(0), $"failure {at}")).ToArray();
+        var said = Enumerable.Range(0, most + 3).Select<int, XynologError>(at => new TransportError(TransportErrorCode.Error, $"failure {at}")).ToArray();
         foreach (var error in said) session.Say(error);
         await using var errors = session.Errors(deadline.Token).GetAsyncEnumerator();
         Assert.True(await errors.MoveNextAsync(), "the first reader heard nothing");
@@ -389,10 +389,10 @@ public sealed class SessionTests
         var issued = TokenTests.Jwt(new { exp = clock.GetUtcNow().ToUnixTimeSeconds() + 7200 });
         var handed = new ConcurrentQueue<string?>();
         var grants = 0;
-        Task<(string Access, string? Refresh)> Grant(StoredSession read, CancellationToken cancellation) =>
+        Task<IssuedTokens> Grant(StoredSession read, CancellationToken cancellation) =>
             Interlocked.Increment(ref grants) == 1
-                ? Task.FromException<(string, string?)>(new SignInError(ProtocolFacts.SignInError("exchange"), "The issuer did not answer"))
-                : Task.FromResult<(string, string?)>((issued, "refresh-2"));
+                ? Task.FromException<IssuedTokens>(new SignInError(SignInErrorCode.Exchange, "The issuer did not answer"))
+                : Task.FromResult(new IssuedTokens { Access = issued, Refresh = "refresh-2" });
         Task<string?> Renew(string? holding, CancellationToken cancellation)
         {
             handed.Enqueue(holding);
@@ -420,8 +420,8 @@ public sealed class SessionTests
     /// to maxReconnectMs.</summary>
     private static IEnumerable<TimeSpan> Backoff()
     {
-        var step = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("reconnectMs").GetDouble());
-        var most = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("maxReconnectMs").GetDouble());
+        var step = TimeSpan.FromMilliseconds(Timings.ReconnectMs);
+        var most = TimeSpan.FromMilliseconds(Timings.MaxReconnectMs);
         while (true)
         {
             yield return step / 2;
@@ -456,8 +456,8 @@ public sealed class SessionTests
                 return answer switch
                 {
                     "accepts" => Task.FromResult(User()),
-                    "refuses" => throw new TransportError(ProtocolFacts.Error(401), "refused"),
-                    "unreachable" => throw new TransportError(ProtocolFacts.Error(503), "unreachable"),
+                    "refuses" => throw new TransportError(TransportErrorCode.Unauthorized, "refused"),
+                    "unreachable" => throw new TransportError(TransportErrorCode.Unavailable, "unreachable"),
                     _ => throw new InvalidOperationException("Unknown gateway answer"),
                 };
             }
@@ -503,7 +503,7 @@ public sealed class SessionTests
             else Assert.False(errorRead.IsCompleted);
             if (row.TryGetProperty("then", out var next))
             {
-                var pause = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("reconnectMs").GetDouble() / 2);
+                var pause = TimeSpan.FromMilliseconds(Timings.ReconnectMs / 2.0);
                 await clock.WaitForAsync(pause);
                 clock.Advance(pause);
                 await EventuallyAsync(() => renewals == next.GetProperty("renewals").GetInt32() && asks == next.GetProperty("asks").GetInt32() && End(session) == next.GetProperty("ends").GetString());

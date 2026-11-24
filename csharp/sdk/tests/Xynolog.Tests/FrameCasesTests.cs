@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Xynolog.Errors;
 using Xynolog.Http;
-using Xynolog.Protocol;
 using Xynolog.Serialization;
 using Xynolog.Types;
 using Xunit;
@@ -167,7 +166,7 @@ public sealed partial class TransportTests
         {
             case "fails":
                 var failure = await Assert.ThrowsAsync<TransportError>(() => request.WaitAsync(deadline.Token));
-                Assert.Equal(ProtocolFacts.Error(0), failure.Code);
+                Assert.Equal(TransportErrorCode.Error, failure.Code);
                 Assert.Equal("a frame on " + channel + " is not that channel's: " + fault, failure.Message);
                 break;
             case "waits":
@@ -210,7 +209,7 @@ public sealed partial class TransportTests
     private static void AssertToldNoFrame(Fault fault, XynologError failure)
     {
         var error = Assert.IsType<TransportError>(failure);
-        Assert.Equal((ProtocolFacts.Error(0), (int?)null, "the stream carried what is not a frame: " + fault), (error.Code, error.Status, error.Message));
+        Assert.Equal((TransportErrorCode.Error, (int?)null, "the stream carried what is not a frame: " + fault), (error.Code, error.Status, error.Message));
     }
 
     /// <summary>A reading of <paramref name="source"/> begun at once, so it hears what is carried from now on.</summary>

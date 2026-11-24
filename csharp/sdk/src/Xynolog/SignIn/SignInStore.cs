@@ -1,3 +1,4 @@
+using Xynolog.Errors;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -90,7 +91,7 @@ public sealed partial class SignInStore
         public Task KeepAsync(StoredSession signIn, CancellationToken cancellation = default)
         {
             if (signIn.ClientId != SignInPolicy.ScriptClientId) throw new ArgumentException("The store keeps only the script client's sign-ins", nameof(signIn));
-            var issuer = Tokens.TextClaim(signIn.Access, "iss") ?? throw new Xynolog.Errors.SignInError(ProtocolFacts.SignInError("exchange"), "A sign-in names no issuer");
+            var issuer = Tokens.TextClaim(signIn.Access, "iss") ?? throw new Xynolog.Errors.SignInError(SignInErrorCode.Exchange, "A sign-in names no issuer");
             var learned = new global::Xynolog.Types.SignIn
             {
                 Token = signIn.Access,

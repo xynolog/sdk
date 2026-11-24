@@ -141,6 +141,6 @@ internal static class RepresentationText
         value is '\t' or (>= (char)32 and <= (char)126) or (>= (char)128 and <= (char)255);
 
     private static string Required(JsonElement value) => value.GetString() ?? throw new InvalidOperationException("Missing encoding label.");
-    private static TransportError Refusal(string message) => new(ProtocolFacts.Error(0), message);
+    private static TransportError Refusal(string message) => new(TransportErrorCode.Error, message);
     private sealed record Decoder(string Name, string[]? SingleByte, bool Refused);
 }

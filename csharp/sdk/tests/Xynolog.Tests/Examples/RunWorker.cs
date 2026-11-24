@@ -27,7 +27,7 @@ public static class RunWorker
             channels, refresher: agent.RefreshAsync, httpClient: http));
         using var updates = new CancellationTokenSource();
         var following = FollowTokensAsync(agent, client.Transport, updates.Token);
-        var claims = client.Job.Claim(filters);
+        var claims = client.Job.Claim(new ClaimOptions { Accepts = filters });
         try
         {
             while (await claims.NextAsync(cancellation) is { } job)

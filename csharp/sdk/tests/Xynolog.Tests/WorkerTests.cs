@@ -10,6 +10,19 @@ namespace Xynolog.Tests;
 
 public sealed partial class TransportTests
 {
+    // WorkerVitals is WorkerEngineHealth, by hand, without what the worker is told rather than knows: its engine and
+    // the jobs it takes. Protocol states no schema of its own for it.
+    [Fact]
+    public void VitalsAreAWorkersHealthButItsEngineAndJobs()
+    {
+        var health = typeof(WorkerEngineHealth).GetProperties()
+            .Where(property => property.Name is not (nameof(WorkerEngineHealth.Engine) or nameof(WorkerEngineHealth.Jobs)))
+            .Select(property => (property.Name, property.PropertyType)).OrderBy(member => member.Name, StringComparer.Ordinal);
+        var vitals = typeof(WorkerVitals).GetProperties()
+            .Select(property => (property.Name, property.PropertyType)).OrderBy(member => member.Name, StringComparer.Ordinal);
+        Assert.Equal(health, vitals);
+    }
+
     [Fact]
     public void JobFiltersAnswerTheSharedCases()
     {
@@ -44,7 +57,7 @@ public sealed partial class TransportTests
         foreach (var example in row.GetProperty("cases").EnumerateArray())
         {
             var filters = Required<JobFilter[]>(example.GetProperty("args").GetProperty("options").GetProperty("accepts"));
-            var worker = client.Job.Claim(filters);
+            var worker = client.Job.Claim(new ClaimOptions { Accepts = filters });
             Assert.False(server.Emits.Reader.TryPeek(out _));
             var next = worker.NextAsync(deadline.Token);
             var (claim, _) = await server.Emits.Reader.ReadAsync(deadline.Token);
@@ -77,7 +90,7 @@ public sealed partial class TransportTests
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await OpenAsync(transport);
         var filters = Required<JobFilter[]>(JsonSerializer.SerializeToElement(new[] { new { jobType = "mark", @params = new { motivation = "highlighting" } } }));
-        var worker = client.Job.Claim(filters);
+        var worker = client.Job.Claim(new ClaimOptions { Accepts = filters });
         var next = worker.NextAsync(deadline.Token);
         var (first, _) = await server.Emits.Reader.ReadAsync(deadline.Token);
         Reply(server, first, BusOperations.JobClaim.Result.Name, new JobClaimedResult { Response = RunningMarkJob() });
@@ -110,7 +123,7 @@ public sealed partial class TransportTests
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await OpenAsync(transport);
         var filters = Required<JobFilter[]>(JsonSerializer.SerializeToElement(new[] { new { jobType = "yield" } }));
-        var worker = client.Job.Claim(filters);
+        var worker = client.Job.Claim(new ClaimOptions { Accepts = filters });
         var next = worker.NextAsync(deadline.Token);
         var (claim, _) = await server.Emits.Reader.ReadAsync(deadline.Token);
         using var examples = ReadSpec("annotations/reader-cases.json");
@@ -178,7 +191,7 @@ public sealed partial class TransportTests
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await OpenAsync(transport);
         var example = SurfaceMethod("job", "claim").GetProperty("cases")[0];
-        var worker = client.Job.Claim(Required<JobFilter[]>(example.GetProperty("sends").GetProperty("accepts")));
+        var worker = client.Job.Claim(new ClaimOptions { Accepts = Required<JobFilter[]>(example.GetProperty("sends").GetProperty("accepts")) });
         var next = worker.NextAsync(deadline.Token);
         var (claim, _) = await server.Emits.Reader.ReadAsync(deadline.Token);
 
@@ -211,7 +224,7 @@ public sealed partial class TransportTests
         using var client = new XynologClient(transport);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await OpenAsync(transport);
-        var worker = client.Job.Claim(HighlightingFilters());
+        var worker = client.Job.Claim(new ClaimOptions { Accepts = HighlightingFilters() });
         var next = worker.NextAsync(deadline.Token);
         var (first, _) = await server.Emits.Reader.ReadAsync(deadline.Token);
         Reply(server, first, BusOperations.JobClaim.Failure.Name, new { message = "No pending job matches", code = "none-pending" });
@@ -236,7 +249,7 @@ public sealed partial class TransportTests
         using var client = new XynologClient(transport);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await OpenAsync(transport);
-        var worker = client.Job.Claim(HighlightingFilters());
+        var worker = client.Job.Claim(new ClaimOptions { Accepts = HighlightingFilters() });
         var next = worker.NextAsync(deadline.Token);
         var (first, _) = await server.Emits.Reader.ReadAsync(deadline.Token);
 
@@ -261,7 +274,7 @@ public sealed partial class TransportTests
         using var client = new XynologClient(transport);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await OpenAsync(transport);
-        var worker = client.Job.Claim(HighlightingFilters());
+        var worker = client.Job.Claim(new ClaimOptions { Accepts = HighlightingFilters() });
         var next = worker.NextAsync(deadline.Token);
         var (first, _) = await server.Emits.Reader.ReadAsync(deadline.Token);
         Reply(server, first, BusOperations.JobClaim.Result.Name, new JobClaimedResult { Response = RunningMarkJob() });
@@ -286,7 +299,7 @@ public sealed partial class TransportTests
     [Fact]
     public async Task TheFirstReaderOfRefusalsNobodyReadHearsTheLatestInOrder()
     {
-        var most = ProtocolFacts.Timing("errorsKeptForFirstReaderCount").GetInt32();
+        var most = Timings.ErrorsKeptForFirstReaderCount;
         var details = Enumerable.Range(0, most + 3).Select(at => $"refusal {at}").ToArray();
         using var server = new Handler();
         using var http = new HttpClient(server);
@@ -294,7 +307,7 @@ public sealed partial class TransportTests
         using var client = new XynologClient(transport);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await OpenAsync(transport);
-        var worker = client.Job.Claim(HighlightingFilters());
+        var worker = client.Job.Claim(new ClaimOptions { Accepts = HighlightingFilters() });
         var next = worker.NextAsync(deadline.Token);
         foreach (var detail in details)
         {
@@ -327,8 +340,8 @@ public sealed partial class TransportTests
     [Fact]
     public async Task TheFirstReaderOfStallsNobodyReadHearsTheLatestInOrder()
     {
-        var most = ProtocolFacts.Timing("errorsKeptForFirstReaderCount").GetInt32();
-        var quiet = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("heldJobStallMs").GetInt32() + ProtocolFacts.Timing("heldJobStallCheckMs").GetInt32());
+        var most = Timings.ErrorsKeptForFirstReaderCount;
+        var quiet = TimeSpan.FromMilliseconds(Timings.HeldJobStallMs + Timings.HeldJobStallCheckMs);
         await CaseContext.PlayAsync(async context =>
         {
             var clock = new StateCaseClock(DateTimeOffset.UnixEpoch);
@@ -337,7 +350,7 @@ public sealed partial class TransportTests
             using var transport = new HttpTransport("http://unit.test", "token", WorkerRules.JobClaimChannels, httpClient: http, timeProvider: clock);
             using var client = new XynologClient(transport);
             await OpenAsync(transport);
-            var worker = client.Job.Claim(HighlightingFilters());
+            var worker = client.Job.Claim(new ClaimOptions { Accepts = HighlightingFilters() });
             var claimedAt = new List<DateTimeOffset>();
             for (var at = 0; at < most + 3; at++)
             {

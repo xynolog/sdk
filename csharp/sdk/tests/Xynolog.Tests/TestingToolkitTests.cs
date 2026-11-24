@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Xynolog.Errors;
-using Xynolog.Protocol;
 using Xynolog.Registry;
 using Xynolog.SignIn;
 using Xynolog.State;
@@ -104,7 +103,7 @@ public sealed partial class TransportTests
         Task<JsonElement?> AskAsync(int? timeoutMs = null) => session.Client.Transport.RequestAsync(operation, empty, timeoutMs, deadline.Token);
 
         var timeout = await Assert.ThrowsAsync<BusRequestError>(() => AskAsync(200));
-        Assert.Equal(ProtocolFacts.BusError("timeout"), timeout.Code);
+        Assert.Equal(BusRequestErrorCode.Timeout, timeout.Code);
         var rejected = await Assert.ThrowsAsync<TransportError>(() => AskAsync());
         Assert.Equal(400, rejected.Status);
         Assert.Equal(42, (await AskAsync())?.GetProperty("value").GetInt32());

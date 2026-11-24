@@ -52,15 +52,7 @@ public sealed partial class TransportTests
                 case "resource":
                     server.Answer = sent => Reply(server, sent, BusOperations.GatherResourceRequested.Result.Name,
                         new GatherResourceComplete { ResourceId = resource, Response = Required<GatheredContext>(context) });
-                    var gathered = options is null
-                        ? await client.Gather.ResourceAsync(resource, cancellation: deadline.Token)
-                        : options.AsObject().Count == 1
-                            ? await client.Gather.ResourceAsync(resource,
-                                excludeEntityTypes: options["excludeEntityTypes"]?.Deserialize<string[]>(),
-                                cancellation: deadline.Token)
-                            : await GatherResourceAsync(client, resource,
-                                options.Deserialize<GatherResourceRequestOptions>() ?? throw new InvalidOperationException("Missing gather options"),
-                                deadline.Token);
+                    var gathered = await client.Gather.ResourceAsync(resource, options?.Deserialize<GatherResourceOptions>(), deadline.Token);
                     Assert.True(JsonElement.DeepEquals(context, JsonSerializer.SerializeToElement(gathered)));
                     break;
                 case "search":
@@ -68,10 +60,8 @@ public sealed partial class TransportTests
                     var input = ExpandSurfaceFixtures(example.GetProperty("args"));
                     server.Answer = sent => Reply(server, sent, BusOperations.MatchSearchRequested.Result.Name,
                         new MatchSearchResult { ReferenceId = reference, Response = [] });
-                    var search = options is null
-                        ? client.Match.Search(resource, reference, Required<GatheredContext>(input.GetProperty("context")))
-                        : client.Match.Search(resource, reference, Required<GatheredContext>(input.GetProperty("context")),
-                            input.GetProperty("options").GetProperty("limit").GetInt64(), input.GetProperty("options").GetProperty("useSemanticScoring").GetBoolean());
+                    var search = client.Match.Search(resource, reference, Required<GatheredContext>(input.GetProperty("context")),
+                        options?.Deserialize<MatchSearchOptions>());
                     Assert.False(server.Emits.Reader.TryPeek(out _));
                     var matched = await search;
                     Assert.Equal(reference, matched.ReferenceId);
@@ -139,11 +129,6 @@ public sealed partial class TransportTests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => next.WaitAsync(deadline.Token));
         }
     }
-
-    private static Task<GatheredContext> GatherResourceAsync(XynologClient client, ResourceId resource,
-        GatherResourceRequestOptions options, CancellationToken cancellation) =>
-        client.Gather.ResourceAsync(resource, options.Depth, options.MaxResources, options.IncludeContent,
-            options.IncludeSummary, options.ExcludeEntityTypes, cancellation);
 
     private static T Required<T>(JsonElement payload) where T : class =>
         payload.Deserialize<T>() ?? throw new InvalidOperationException("Missing " + typeof(T).Name);

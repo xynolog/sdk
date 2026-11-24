@@ -17,22 +17,29 @@ public sealed class MatchNamespace
         this.live = live;
     }
 
-    /// <summary>A live query of the resources whose text matches the search, a page at a time.</summary>
-    public Cached<MatchResourcesResponse> Resources(string search, long limit = 100, long offset = 0,
-        bool? archived = null, string? entityType = null) =>
-        live.MatchedResources.Observe(new LiveQueries.Search(search, new LiveQueries.Filters(limit, offset, archived, entityType)));
+    /// <summary>A live query of the resources whose text matches the search, a page at a time: the first hundred unless the
+    /// filters name another page.</summary>
+    public Cached<MatchResourcesResponse> Resources(string search, ResourceSearchFilters? filters = null) =>
+        live.MatchedResources.Observe(new MatchResourcesRequest
+        {
+            Search = search,
+            Limit = filters?.Limit ?? 100,
+            Offset = filters?.Offset ?? 0,
+            Archived = filters?.Archived,
+            EntityType = filters?.EntityType,
+        });
 
     /// <summary>Searches for the resources the reference could refer to, scored by its gathered context.</summary>
     public Running<MatchSearchResult> Search(ResourceId resourceId, AnnotationId referenceId, GatheredContext context,
-        long limit = 10, bool useSemanticScoring = true)
+        MatchSearchOptions? options = null)
     {
         var request = new MatchSearchRequest
         {
             ResourceId = resourceId,
             ReferenceId = referenceId,
             Context = context,
-            Limit = limit,
-            UseSemanticScoring = useSemanticScoring,
+            Limit = options?.Limit ?? 10,
+            UseSemanticScoring = options?.UseSemanticScoring ?? true,
         };
         return new((_, cancellation) => wire.RequestAsync(BusOperations.MatchSearchRequested, request, cancellation: cancellation));
     }

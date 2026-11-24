@@ -14,7 +14,7 @@ public sealed class MarkStateUnit : IStateUnit
     private readonly UnitWork work;
     private readonly EventBus.Subscription events;
     private readonly TimeProvider clock;
-    private static readonly TimeSpan Silence = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("delegateSilenceMs").GetInt32());
+    private static readonly TimeSpan Silence = TimeSpan.FromMilliseconds(Timings.DelegateSilenceMs);
     private long revision;
 
     /// <summary>The annotation being composed for the resource, from the selection a request asked for, until it is

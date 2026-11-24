@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Xynolog;
 using Xynolog.Errors;
 using Xynolog.Http;
@@ -43,7 +42,7 @@ internal sealed class WorkerDriver : IDisposable
                     break;
                 case "claim":
                     if (claims is not null) throw new InvalidOperationException("This worker already claims.");
-                    claims = (client ?? throw new InvalidOperationException("No client is open.")).Job.Claim(Required<JobFilter[]>(args, "accepts"));
+                    claims = (client ?? throw new InvalidOperationException("No client is open.")).Job.Claim(new ClaimOptions { Accepts = Required<JobFilter[]>(args, "accepts") });
                     _ = ReportJobsAsync(claims);
                     _ = ReportRefusalsAsync(claims);
                     _ = ReportStallsAsync(claims);
@@ -58,10 +57,10 @@ internal sealed class WorkerDriver : IDisposable
                 case "sync": break;
                 default: await SayForJobAsync(args).ConfigureAwait(false); break;
             }
-            WireDriver.Say(new JsonObject { ["id"] = id, ["ok"] = JsonSerializer.SerializeToNode(answer, CamelJson) });
+            WireDriver.Say(Lines.Ok(id, JsonSerializer.SerializeToElement(answer, CamelJson)));
         }
-        catch (XynologError error) { WireDriver.Say(new { id, error = new { code = error.Code, status = error.Status, detail = error.Message } }); }
-        catch (Exception error) { WireDriver.Say(new { id, misuse = error.Message }); }
+        catch (XynologError error) { WireDriver.Say(Lines.Failed(id, error)); }
+        catch (Exception error) { WireDriver.Say(Lines.Misuse(id, error)); }
     }
 
     private async Task ReportJobsAsync(Claims worker)
@@ -73,25 +72,22 @@ internal sealed class WorkerDriver : IDisposable
             var span = Activities.StartActivity("job:" + verb, ActivityKind.Internal, job.Trace,
                 new ActivityTagsCollection { ["job.id"] = job.JobId.Value });
             Activity.Current = previous;
-            var cancellation = job.Cancelled.Register(() => WireDriver.Say(new { signalled = job.JobId.Value }));
+            var cancellation = job.Cancelled.Register(() => WireDriver.Say(Lines.Signalled(job.JobId)));
             lock (gate)
             {
                 held?.Dispose();
                 held = new Held(job, span, cancellation);
-                WireDriver.Say(new
+                WireDriver.Say(Lines.Claimed(JsonSerializer.SerializeToElement(new
                 {
-                    claimed = new
-                    {
-                        jobId = job.JobId,
-                        jobType = job.JobType,
-                        resourceId = job.ResourceId,
-                        @params = job.Params,
-                        completedUnits = job.CompletedUnits,
-                        unitCursors = job.UnitCursors,
-                        retryCount = job.RetryCount,
-                        maxRetries = job.MaxRetries,
-                    },
-                });
+                    jobId = job.JobId,
+                    jobType = job.JobType,
+                    resourceId = job.ResourceId,
+                    @params = job.Params,
+                    completedUnits = job.CompletedUnits,
+                    unitCursors = job.UnitCursors,
+                    retryCount = job.RetryCount,
+                    maxRetries = job.MaxRetries,
+                }, WireDriver.Json)));
             }
         }
     }
@@ -99,23 +95,23 @@ internal sealed class WorkerDriver : IDisposable
     private static async Task ReportRefusalsAsync(Claims worker)
     {
         await foreach (var refusal in worker.Refused().ConfigureAwait(false))
-            WireDriver.Say(new { refused = new { code = refusal.Code, detail = refusal.Detail } });
+            WireDriver.Say(Lines.Refused(refusal));
     }
 
     private static async Task ReportStallsAsync(Claims worker)
     {
-        await foreach (var stall in worker.Stalled().ConfigureAwait(false)) WireDriver.Say(new { stalled = stall.JobId.Value });
+        await foreach (var stall in worker.Stalled().ConfigureAwait(false)) WireDriver.Say(Lines.Stalled(stall.JobId));
     }
 
     private static async Task ReportStatesAsync(HttpTransport transport)
     {
-        await foreach (var state in transport.States().ConfigureAwait(false)) WireDriver.Say(new { state = state.ToString().ToLowerInvariant() });
+        await foreach (var state in transport.States().ConfigureAwait(false)) WireDriver.Say(Lines.State(state));
     }
 
     private static async Task ReportErrorsAsync(HttpTransport transport)
     {
         await foreach (var error in transport.Errors().ConfigureAwait(false))
-            WireDriver.Say(new { error = new { code = error.Code, status = error.Status, detail = error.Message } });
+            WireDriver.Say(Lines.ErrorStream(error));
     }
 
     private async Task SayForJobAsync(JsonElement args)

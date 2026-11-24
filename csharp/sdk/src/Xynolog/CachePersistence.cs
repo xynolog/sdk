@@ -171,7 +171,7 @@ internal sealed class WritesWhileNamed(ISignInKept kept, string kbId, Action<Ses
 
     public bool Refused(Exception error)
     {
-        sessionErrors(new SessionError(ProtocolFacts.SessionError("save-refused"),
+        sessionErrors(new SessionError(SessionErrorCode.SaveRefused,
             "The storage refused a write of what the client keeps for knowledge base " + kbId + ": " + error.Message, error));
         return true;
     }
@@ -179,7 +179,7 @@ internal sealed class WritesWhileNamed(ISignInKept kept, string kbId, Action<Ses
     private void End(string why, Exception error)
     {
         if (Interlocked.Exchange(ref ended, 1) == 0)
-            sessionErrors(new SessionError(ProtocolFacts.SessionError("keep-failed"),
+            sessionErrors(new SessionError(SessionErrorCode.KeepFailed,
                 "The sign-in kept for knowledge base " + kbId + " " + why + ", so the client keeps nothing more.", error));
     }
 }
@@ -252,8 +252,8 @@ internal interface IKeptQuery
 /// whether the refresher owes a refetch: a B19 window that holds an invalidation it has not yet run.</summary>
 internal sealed class LiveCacheStorage(CachePersistence persistence, TimeProvider clock, Func<bool> refetchOwed) : IDisposable
 {
-    internal static readonly int ByteLimit = ProtocolFacts.Timing("maxStoredBytesCount").GetInt32();
-    internal static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("saveDebounceMs").GetInt32());
+    internal static readonly int ByteLimit = Timings.MaxStoredBytesCount;
+    internal static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(Timings.SaveDebounceMs);
     private readonly object gate = new();
     private readonly Dictionary<string, string> pendingPlaces = new(StringComparer.Ordinal);
     private readonly TaskCompletionSource flushed = new(Spawning.CompletionOptions);

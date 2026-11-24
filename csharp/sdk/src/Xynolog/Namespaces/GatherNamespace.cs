@@ -36,8 +36,7 @@ public sealed class GatherNamespace
 
     /// <summary>Gathers the context of the resource by following its links to related resources, as deep and as many as
     /// asked.</summary>
-    public async Task<GatheredContext> ResourceAsync(ResourceId resourceId, long depth = 2, long maxResources = 10,
-        bool includeContent = true, bool includeSummary = false, IReadOnlyList<string>? excludeEntityTypes = null,
+    public async Task<GatheredContext> ResourceAsync(ResourceId resourceId, GatherResourceOptions? options = null,
         CancellationToken cancellation = default)
     {
         var request = new GatherResourceRequest
@@ -45,11 +44,11 @@ public sealed class GatherNamespace
             ResourceId = resourceId,
             Options = new GatherResourceRequestOptions
             {
-                Depth = depth,
-                MaxResources = maxResources,
-                IncludeContent = includeContent,
-                IncludeSummary = includeSummary,
-                ExcludeEntityTypes = excludeEntityTypes is { Count: > 0 } ? excludeEntityTypes : null,
+                Depth = options?.Depth ?? 2,
+                MaxResources = options?.MaxResources ?? 10,
+                IncludeContent = options?.IncludeContent ?? true,
+                IncludeSummary = options?.IncludeSummary ?? false,
+                ExcludeEntityTypes = options?.ExcludeEntityTypes is { Count: > 0 } excluded ? excluded : null,
             },
         };
         return (await wire.RequestAsync(BusOperations.GatherResourceRequested, request, cancellation: cancellation)

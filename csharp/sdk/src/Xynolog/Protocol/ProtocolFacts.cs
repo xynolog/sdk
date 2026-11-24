@@ -5,90 +5,30 @@ namespace Xynolog.Protocol;
 internal static class ProtocolFacts
 {
     private static readonly JsonDocument Registry = JsonDocument.Parse(ProtocolTables.Registry);
-    private static readonly JsonDocument Timings = JsonDocument.Parse(ProtocolTables.Timing);
-    private static readonly JsonDocument Errors = JsonDocument.Parse(ProtocolTables.Errors);
-    private static readonly JsonDocument Retry = JsonDocument.Parse(ProtocolTables.Retry);
-
-    internal static JsonElement Timing(string name) => Timings.RootElement.GetProperty("timing").EnumerateArray()
-        .Single(row => row.GetProperty("name").GetString() == name).GetProperty("value");
-
-    internal static string[] Channels(string audience) => Registry.RootElement.GetProperty("audience").GetProperty(audience)
-        .EnumerateArray().Select(value => value.GetString() ?? throw new InvalidOperationException("A channel is null")).ToArray();
+    private static readonly JsonDocument RetryRules = JsonDocument.Parse(ProtocolTables.RetryRules);
 
     internal static string TraceField => Registry.RootElement.GetProperty("trace").GetProperty("field").GetString()
         ?? throw new InvalidOperationException("No trace field");
 
-    internal static IEnumerable<(string Request, string Result, string Failure)> Operations() =>
-        Registry.RootElement.GetProperty("operations").EnumerateArray().Select(operation => (
-            operation.GetProperty("request").GetString() ?? throw new InvalidOperationException("Missing request channel"),
-            operation.GetProperty("result").GetString() ?? throw new InvalidOperationException("Missing result channel"),
-            operation.GetProperty("failure").GetString() ?? throw new InvalidOperationException("Missing failure channel")));
+    /// <summary>The members a rule of retry/rules.json may state, each of which <see cref="Retries"/> reads.</summary>
+    internal static IReadOnlyList<string> RetryRuleMembers { get; } = ["statuses", "statusFrom", "idempotentMethods", "noResponse"];
 
-    internal static (string Result, string Failure) Operation(string channel)
+    private static bool Retries(string rule, int? status, string? method = null, bool keyed = false)
     {
-        var (_, result, failure) = Operations().Single(operation => operation.Request == channel);
-        return (result, failure);
+        var stated = RetryRules.RootElement.GetProperty(rule);
+        if (status is not int answered) return stated.TryGetProperty("noResponse", out var unanswered) && unanswered.GetBoolean();
+        if (!keyed && stated.TryGetProperty("idempotentMethods", out var methods) &&
+            !methods.EnumerateArray().Any(idempotent => string.Equals(idempotent.GetString(), method, StringComparison.OrdinalIgnoreCase)))
+            return false;
+        return stated.GetProperty("statuses").EnumerateArray().Any(retried => retried.GetInt32() == answered) ||
+            (stated.TryGetProperty("statusFrom", out var from) && answered >= from.GetInt32());
     }
 
-    /// <summary>The component schema a payload on <paramref name="channel"/> is.</summary>
-    internal static string PayloadSchema(string channel)
-    {
-        var row = Registry.RootElement.GetProperty("channels").EnumerateArray()
-            .Single(row => row.GetProperty("channel").GetString() == channel);
-        if (row.GetProperty("shape").GetString() != "schema")
-            throw new InvalidOperationException($"A payload on {channel} is no component schema.");
-        return row.GetProperty("schema").GetString() ?? throw new InvalidOperationException($"{channel} names a null schema.");
-    }
+    internal static bool RetryEmit(int status) => Retries("boot", status);
 
-    internal static IEnumerable<string> EventChannels() => Registry.RootElement.GetProperty("channels").EnumerateArray()
-        .Where(row => row.TryGetProperty("event", out _))
-        .Select(row => row.GetProperty("channel").GetString() ?? throw new InvalidOperationException("A channel is null"));
+    internal static bool RetryTransport(int? status, string? method, bool keyed) => Retries("transport", status, method, keyed);
 
-    internal static string BusError(string name) => Errors.RootElement.GetProperty("busRequest").GetProperty("codes").EnumerateArray()
-        .Select(row => row.GetProperty("code").GetString() ?? throw new InvalidOperationException("Null error code"))
-        .Single(code => code == "bus." + name);
-
-    internal static string Error(int status)
-    {
-        var family = Errors.RootElement.GetProperty("transport");
-        foreach (var row in family.GetProperty("codes").EnumerateArray())
-        {
-            if (row.TryGetProperty("status", out var exact) && exact.GetInt32() == status ||
-                row.TryGetProperty("statusFrom", out var minimum) && status >= minimum.GetInt32())
-            {
-                return row.GetProperty("code").GetString() ?? throw new InvalidOperationException("Null error code");
-            }
-        }
-        return family.GetProperty("unclassified").GetString() ?? throw new InvalidOperationException("No unclassified error code");
-    }
-
-    private static bool RetryStatus(string rule, int? status) => Retry.RootElement.GetProperty("rules").EnumerateArray().Any(row =>
-        row.GetProperty("rule").GetString() == rule && row.GetProperty("retries").GetBoolean() &&
-        (row.TryGetProperty("status", out var stated) ? stated.GetInt32() == status : status is null));
-
-    internal static bool RetryEmit(int status) => RetryStatus("boot", status);
-
-    internal static bool RetryTransport(int? status, string? method, bool keyed) =>
-        status is not null && (keyed || method?.ToUpperInvariant() is ("GET" or "HEAD" or "PUT" or "DELETE" or "OPTIONS" or "TRACE")) &&
-        RetryStatus("transport", status);
-
-    internal static string SignInError(string name) => Errors.RootElement.GetProperty("signIn").GetProperty("codes").EnumerateArray()
-        .Select(row => row.GetProperty("code").GetString() ?? throw new InvalidOperationException("Null error code"))
-        .Single(code => code == name);
-
-    internal static string SessionError(string name) => Errors.RootElement.GetProperty("session").GetProperty("codes").EnumerateArray()
-        .Select(row => row.GetProperty("code").GetString() ?? throw new InvalidOperationException("Null error code"))
-        .Single(code => code == "session." + name);
-
-    internal static string JobError(string name) => Errors.RootElement.GetProperty("job").GetProperty("codes").EnumerateArray()
-        .Select(row => row.GetProperty("code").GetString() ?? throw new InvalidOperationException("Null error code"))
-        .Single(code => code == "job." + name);
-
-    internal static string SpanRefusal(string code) => Errors.RootElement.GetProperty("spanRefusal").GetProperty("codes").EnumerateArray()
-        .Select(row => row.GetProperty("code").GetString() ?? throw new InvalidOperationException("Null error code"))
-        .Single(declared => declared == code);
-
-    internal static bool RetryRefresh(int? status) => RetryStatus("refresh", status >= 500 ? 500 : status);
+    internal static bool RetryRefresh(int? status) => Retries("refresh", status);
 
     internal static long? RetryAfterMilliseconds(string? header)
     {

@@ -6,7 +6,6 @@ using System.Text.Json.Serialization;
 using Xynolog.Errors;
 using Xynolog.Http;
 using Xynolog.Identifiers;
-using Xynolog.Protocol;
 using Xynolog.Registry;
 using Xynolog.Session;
 using Xynolog.SignIn;
@@ -84,7 +83,7 @@ public static class RedirectSignIn
         };
         var existing = destination.Query.TrimStart('?');
         if (ParseQuery(existing).Any(pair => query.ContainsKey(pair.Key)))
-            throw Refused("discovery", "The issuer's authorization endpoint already names a grant parameter.");
+            throw Refused(SignInErrorCode.Discovery, "The issuer's authorization endpoint already names a grant parameter.");
         destination.Query = string.Join("&", (existing.Length == 0 ? Array.Empty<string>() : [existing])
             .Concat(query.Select(pair => pair.Key + "=" + Uri.EscapeDataString(pair.Value))));
         cancellation.ThrowIfCancellationRequested();
@@ -104,16 +103,16 @@ public static class RedirectSignIn
         var record = RegistryStorage.Read<PendingAuthorization>(stored);
         if (record is null || string.IsNullOrEmpty(record.State) || string.IsNullOrEmpty(record.Verifier) ||
             record.Target is null || record.Issuer is null)
-            throw Refused("no-pending", "No sign-in is pending here.");
+            throw Refused(SignInErrorCode.NoPending, "No sign-in is pending here.");
         var callback = RequireHttpAddress(callbackUrl);
         var redirect = RequireHttpAddress(record.RedirectUri);
         if (callback.GetLeftPart(UriPartial.Path) != redirect.GetLeftPart(UriPartial.Path))
-            throw Refused("state", "The response arrived at a different redirect address.");
+            throw Refused(SignInErrorCode.State, "The response arrived at a different redirect address.");
         var query = ParseQuery(callback.Query.TrimStart('?')).ToLookup(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
         string? One(string name) => query[name].Take(2).ToArray() is [var only] ? only : null;
-        if (One("state") != record.State) throw Refused("state", "The response does not belong to the pending sign-in.");
-        if (One("error") is { } error) throw Refused(error == "access_denied" ? "denied" : "exchange", "The issuer refused the sign-in.");
-        if (One("code") is not { Length: > 0 } code) throw Refused("exchange", "The response has no authorization code.");
+        if (One("state") != record.State) throw Refused(SignInErrorCode.State, "The response does not belong to the pending sign-in.");
+        if (One("error") is { } error) throw Refused(error == "access_denied" ? SignInErrorCode.Denied : SignInErrorCode.Exchange, "The issuer refused the sign-in.");
+        if (One("code") is not { Length: > 0 } code) throw Refused(SignInErrorCode.Exchange, "The response has no authorization code.");
         RequireHttpAddress(record.Issuer.Token);
 
         using var issuer = new SignIn.Issuer(httpClient, timeProvider, random);
@@ -127,7 +126,7 @@ public static class RedirectSignIn
         }, cancellation: cancellation).ConfigureAwait(Spawning.Captures);
         if (answer.Status != 200 || answer.Text("access_token") is not { Length: > 0 } access ||
             answer.Text("refresh_token") is not { Length: > 0 } refresh)
-            throw Refused("exchange", "The issuer did not return both tokens.", answer.Status);
+            throw Refused(SignInErrorCode.Exchange, "The issuer did not return both tokens.", answer.Status);
         return (record, new StoredSession
         {
             Access = access,
@@ -155,17 +154,17 @@ public static class RedirectSignIn
         }
         catch (Exception error) when (error is XynologError or JsonException)
         {
-            var reason = error is BusRequestError rejected && rejected.Code == ProtocolFacts.BusError("rejected") ? "not-reported" : "unreachable";
+            var reason = error is BusRequestError rejected && rejected.Code == BusRequestErrorCode.Rejected ? IdentityUnverifiableReason.NotReported : IdentityUnverifiableReason.Unreachable;
             throw new IdentityUnverifiableError(reason, error.Message, error);
         }
         try { return new ConnectionIdentity { Did = Identity.KbDid(description.Domain), Description = description }; }
-        catch (FormatException error) { throw new IdentityUnverifiableError("not-reported", error.Message, error); }
+        catch (FormatException error) { throw new IdentityUnverifiableError(IdentityUnverifiableReason.NotReported, error.Message, error); }
     }
 
     private static Uri RequireHttpAddress(string? address) =>
         Uri.TryCreate(address, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http" &&
         string.IsNullOrEmpty(uri.UserInfo) && string.IsNullOrEmpty(uri.Fragment)
-        ? uri : throw Refused("exchange", "The sign-in requires a valid HTTP address.");
+        ? uri : throw Refused(SignInErrorCode.Exchange, "The sign-in requires a valid HTTP address.");
 
     private static IEnumerable<KeyValuePair<string, string>> ParseQuery(string query)
     {
@@ -177,5 +176,5 @@ public static class RedirectSignIn
     }
 
     private static string Base64Url(byte[] bytes) => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
-    private static SignInError Refused(string name, string message, int? status = null) => new(ProtocolFacts.SignInError(name), message, status);
+    private static SignInError Refused(string code, string message, int? status = null) => new(code, message, status);
 }

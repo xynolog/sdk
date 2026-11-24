@@ -1,6 +1,5 @@
 using Xynolog.Errors;
 using Xynolog.Http;
-using Xynolog.Protocol;
 using Xynolog.Registry;
 using Xynolog.SignIn;
 using Xynolog.State;
@@ -54,7 +53,7 @@ public sealed class XynologSession : IStateUnit
         ArgumentNullException.ThrowIfNull(kb);
         ArgumentNullException.ThrowIfNull(kept);
         if (kb.Endpoint is not KbEndpoint.HttpEndpointCase(var endpoint))
-            throw new SessionError(ProtocolFacts.SessionError("construct-failed"), "A session from a kept sign-in requires an HTTP endpoint.");
+            throw new SessionError(SessionErrorCode.ConstructFailed, "A session from a kept sign-in requires an HTTP endpoint.");
         var held = await kept.HeldAsync(cancellation).ConfigureAwait(Spawning.Captures);
         var errors = new Broadcast<XynologError>(keptForFirst: XynologError.KeptForFirstReader);
         var persistence = storage is null ? null : new CachePersistence(storage, kb.Id, kept, errors.Publish);

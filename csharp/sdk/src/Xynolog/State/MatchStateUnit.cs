@@ -39,7 +39,7 @@ public sealed class MatchStateUnit : IStateUnit
         try
         {
             var found = await client.Match.Search(request.ResourceId, request.ReferenceId, request.Context,
-                request.Limit ?? 10, request.UseSemanticScoring ?? true).CompleteAsync(cancellation).ConfigureAwait(Spawning.Captures);
+                new MatchSearchOptions { Limit = request.Limit, UseSemanticScoring = request.UseSemanticScoring }).CompleteAsync(cancellation).ConfigureAwait(Spawning.Captures);
             lock (work.Gate)
                 if (work.Active) client.Bus.Emit(BusChannels.MatchSearchResults, found, correlationId: correlationId);
         }

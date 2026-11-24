@@ -33,6 +33,12 @@ let types = "global::Xynolog.Types."
 let json name = Csharp_converter.json name
 let element = C.T (json "JsonElement")
 
+(* A keyword that says something of a schema but holds a value to nothing: a
+   schema of only these, as JsonSchema.json written in place is, admits any
+   value, an element. *)
+let annotation keyword =
+  List.mem keyword [ "$schema"; "$id"; "$comment"; "title"; "description" ]
+
 let generic name args =
   C.Generic ("global::System.Collections.Generic." ^ name, args)
 
@@ -246,7 +252,8 @@ and type_of_beside_null state owner property ((_, validated) as node) s =
           type_of state owner (property ^ "Value") (values, values_of validated);
         ]
   | { type_ = Some [ Object ]; _ } -> element
-  | { type_ = None; _ } when Schema.keywords s = [] -> element
+  | { type_ = None; _ } when List.for_all annotation (Schema.keywords s) ->
+      element
   | _ -> refuse "%s.%s has an unsupported type shape." owner property
 
 (* A model as the record, union or enumeration it is, named to the
