@@ -290,7 +290,8 @@ let refused_member value = function
   | _ -> None
 
 (* The reports' sums: each branch a constructor holding its members but the
-   tag, in order, and written back to the branch's JSON. *)
+   tag, in order, and written back to the branch's JSON; and the types of
+   Xynolog.Types they hold. *)
 let report ~shape ~native ~prefix name =
   let* s = found ~shape name in
   let* tag, branches =
@@ -359,7 +360,19 @@ let report ~shape ~native ~prefix name =
   in
   let params = if generic then [ completion ] else [] in
   let value i = Printf.sprintf "value%d" i in
+  let named =
+    List.concat_map
+      (fun (_, members) ->
+        List.filter_map
+          (fun (m : member) ->
+            match m.held with
+            | Named { name = n; union = false } -> Some n
+            | _ -> None)
+          members)
+      branches
+  in
   Ok
+    ( named,
     [
       H.data native ~params ~deriving:[ "Eq"; "Show" ]
         (List.map
@@ -398,7 +411,7 @@ let report ~shape ~native ~prefix name =
                        ] );
                } ))
            rows);
-    ]
+    ] )
 
 let operation_reports ~shape =
   let* reasons =
@@ -406,8 +419,10 @@ let operation_reports ~shape =
     | Some (Words words) -> Ok words
     | _ -> Error [ refusal "FrameRefusalReason" "is no enum of words" ]
   in
-  let* jobs = report ~shape ~native:"JobEvent" ~prefix:"" "JobEvent" in
-  let* uploads =
+  let* jobs_named, jobs =
+    report ~shape ~native:"JobEvent" ~prefix:"" "JobEvent"
+  in
+  let* uploads_named, uploads =
     report ~shape ~native:"UploadEvent" ~prefix:"Upload" "UploadProgress"
   in
   Ok
@@ -430,7 +445,11 @@ let operation_reports ~shape =
                 H.import "Data.Aeson"
                   ~items:[ All "ToJSON"; Plain "object"; Op ".=" ];
                 H.import "Data.Text" ~items:[ Plain "Text" ];
-                H.import "Xynolog.Types";
+                H.import "Xynolog.Types"
+                  ~items:
+                    (List.map
+                       (fun n -> H.Plain n)
+                       (List.sort_uniq compare (jobs_named @ uploads_named)));
                 H.import "Xynolog.Internal.Transport"
                   ~items:[ All "FrameRefusal" ];
                 H.import "Xynolog.Internal.Required"

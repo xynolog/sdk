@@ -69,7 +69,7 @@ import Xynolog.JobFilter (jobMatchesFilter)
 import Xynolog.StateValue qualified as State
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
-import Xynolog.Types hiding (JobComplete, annotationId)
+import Xynolog.Types hiding (JobComplete, Runtime, annotationId)
 import Xynolog.Types qualified as Types
 import Xynolog.Worker.Types
 import Prelude hiding (fail)

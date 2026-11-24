@@ -8,7 +8,7 @@ import Data.Aeson (ToJSON (..), object, (.=))
 import Data.Text (Text)
 import Xynolog.Internal.Required (Fault (..), FaultReason (..))
 import Xynolog.Internal.Transport (FrameRefusal (..))
-import Xynolog.Types
+import Xynolog.Types (JobCreatedResultResponse, JobFailCommand, JobProgress, ResourceId)
 
 refusalReason :: FaultReason -> Text
 refusalReason Lacks = "lacks"

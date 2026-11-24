@@ -17,7 +17,9 @@ fn shape_cases() {
     for case in cases {
         let schema = case["schema"].as_str().expect("a case names a schema");
         let fault = (case["refused"].as_bool() == Some(true)).then(|| {
-            let member = case["member"].as_str().expect("a refused case states its member");
+            let member = case["member"]
+                .as_str()
+                .expect("a refused case states its member");
             let reason: FrameRefusalReason = serde_json::from_value(case["reason"].clone())
                 .expect("a refused case states its reason");
             (member.to_owned(), reason)

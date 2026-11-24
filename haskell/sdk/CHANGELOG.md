@@ -23,6 +23,8 @@ the coming release's, and gathers its changes as they land.
 - The smelter's and the weaver's health name how far they have followed the
   record as `FollowerFollowing`, the type Protocol states, in place of
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
+- A service health's `kb` is a `KbDid`, the type Protocol states, in place of
+  `Text`.
 - A value is validated against its schema as Protocol states it: `const`,
   `not`, `propertyNames` and `minProperties` among its keywords, and those of
   a schema that states no `type`.
