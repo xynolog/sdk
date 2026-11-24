@@ -40,10 +40,10 @@ let rec words = function
 
 let adapter_name t = String.uppercase_ascii (String.concat "_" (words t))
 
-let file ~kinds (definitions : Definitions.definitions) methods =
+let file ~kinds (typing : Typing.t) methods =
   let adapters = ref [] and hand_read = ref [] in
   let adapter (v : M.value) =
-    let t = Python_types.held ~definitions ?at:v.at v.view in
+    let t = Python_types.held typing ?at:v.at v.view in
     let name = adapter_name t in
     (match t with
     | P.Name n when List.mem n Definitions.hand_written_client_types ->

@@ -319,8 +319,7 @@ and in_place st what (i : T.inline) =
   | T.Enum { base = Some T.Boolean; _ }, None -> ty "bool"
   | T.Enum { base = Some T.Number; _ }, None -> ty "f64"
   | T.Empty _, None when Deviations.closed_empty_named i.form -> declared st i
-  | T.Empty { none = true; _ }, None | T.Empty { rest = T.Closed; _ }, None ->
-      empty st
+  | (T.Empty _ as form), None when T.holds_none form -> empty st
   | T.Empty _, None ->
       R.named ~args:[ string_ty; R.named "serde_json::Value" ] "serde_json::Map"
   | T.Map { value; _ }, None ->

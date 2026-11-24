@@ -47,7 +47,8 @@ and ty =
 and inline = {
   name : string;
       (** The name a writer declares it by ([Naming.inline] of its place), where
-          it is a type of its own ([invented]). *)
+          it is a type of its own: an object of members, an enumeration, a union
+          or an [allOf], no two of which in place share a name. *)
   place : place;
   description : string option;  (** As [member.description]. *)
   node_description : string option;  (** As [member.node_description]. *)
@@ -146,10 +147,6 @@ type t = {
       (** Every schema of the generation: its roots, and every schema they
           reach, in the order of their names. *)
   find : string -> declaration;
-  invented : inline list;
-      (** Every type of its own written in place within them (an object of
-          members, an enumeration, a union, an [allOf]), in the order of their
-          names. *)
   defined : string -> bool;
       (** Whether a schema of the bundle has the name, which no invented name
           takes ([Naming.inline]). *)
@@ -778,19 +775,20 @@ let make (definitions : D.definitions) ~roots ~identifiers ~keys =
         reach (name :: seen) (references (declaration st name) @ rest)
   in
   let names = List.sort String.compare (reach [] roots) in
-  let invented =
-    List.sort
-      (fun (a : inline) b -> String.compare a.name b.name)
-      (Hashtbl.fold (fun _ i acc -> i :: acc) st.inlines [])
-  in
   {
     names;
     find = declaration st;
-    invented;
     defined = defined st;
     gateway = definitions.names;
     place = classify st ~register:false;
   }
+
+(* Whether an object of [form] holds no member: one that names none, and
+   says [maxProperties: 0] or holds no other. *)
+let holds_none (form : form) =
+  match form with
+  | Empty { none = true; _ } | Empty { rest = Closed; _ } -> true
+  | _ -> false
 
 (* Whether a branch admits text alone, of no values it names: a string
    wherever it is held. *)

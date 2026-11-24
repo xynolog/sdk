@@ -10,7 +10,8 @@ module T = Typing
 (* Rust and Go describe a declaration, a member and a type in place by its
    [node_description]: an [allOf]'s by what its merge says, and nothing of a
    schema beside null, where [Typing] has its [description], what the schema
-   says of itself, or beside null what the schema beside it says. *)
+   says of itself, or beside null what the schema beside it says. Python
+   does so of an [allOf] in place it writes as what it merges to. *)
 
 (* Rust and Go hold a union every member of which is text as a string, where
    [Typing] has the union, its members told apart by their patterns. *)
@@ -29,19 +30,33 @@ let single_tags (u : T.union) =
   | _ -> None
 
 (* Rust names an object in place that is closed and names no member, but
-   does not say [maxProperties: 0], for its place, where [Typing] has the one
-   empty object. *)
+   does not say [maxProperties: 0], for its place, and Python every object in
+   place that holds no member ([Typing.holds_none]), where [Typing] has the
+   one empty object, as Go has. *)
 let closed_empty_named (form : T.form) =
   match form with
   | T.Empty { rest = T.Closed; none = false } -> true
   | _ -> false
 
-(* TypeScript holds an object that names no member, and says nothing of
-   others, as one that holds none ([Record<string, never>]), and gives an
-   object that names members and says nothing of others no index signature,
-   where [Typing] has its [rest] [Unstated]. *)
+(* An object that says nothing of the members it does not name ([Unstated])
+   holds any, as [Typing] has it. Every writer drops them where the object
+   names members; TypeScript holds one that names none as holding none
+   ([Record<string, never>]), and Rust and Python declare one so named as a
+   type that drops them, where Go keeps them. *)
 
 (* Go writes a struct's fields in the order of their names, where [Typing]
    has the schema's order. *)
 let by_name (members : T.member list) =
   List.sort (fun (a : T.member) b -> String.compare a.wire b.wire) members
+
+(* Go and Python hold a member that may be left out and one that may be
+   null alike (a pointer, [T | None]), where [Typing] has them apart
+   ([member.required], [Nullable]). *)
+
+(* Rust holds an enumeration in place of integers, numbers or booleans as
+   its scalar, dropping its values, where [Typing] has the enumeration, as
+   Go declares it and Python and TypeScript hold it as its literals. *)
+
+(* TypeScript writes every schema in place as what it holds, and Python a
+   union in place but one a list holds, naming none of what [Typing]
+   invents. *)

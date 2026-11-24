@@ -65,12 +65,6 @@ let mark st member union =
 let identifier st name =
   match (st.typing.find name).form with T.Identifier _ -> true | _ -> false
 
-(* What an object in place holds beside no member it names: none, or any. *)
-let holds_none (form : T.form) =
-  match form with
-  | T.Empty { none = true; _ } | T.Empty { rest = T.Closed; _ } -> true
-  | _ -> false
-
 let rec named_type st name =
   if (not (identifier st name)) && not (Hashtbl.mem st.written name) then (
     let d = st.typing.find name in
@@ -127,7 +121,7 @@ and in_place st what (i : T.inline) =
   | _, Some _ | (T.Record _ | T.Enum _), None -> declared st i
   | T.Union u, None ->
       if Deviations.text_union u then string_ else declared st i
-  | form, None when holds_none form -> empty st
+  | form, None when T.holds_none form -> empty st
   | T.Empty _, None -> G.Map (string_, any)
   | T.Map { value; _ }, None -> G.Map (string_, type_of st what value)
   | (T.Alias _ | T.Identifier _ | T.Json), None -> shape what
@@ -139,7 +133,7 @@ and declaration st name (form : T.form) doc =
   | T.Alias ((T.Scalar _ | T.List _) as ty) ->
       [ G.Aliases { doc; specs = [ (name, type_of st name ty) ] } ]
   | T.Record { members; rest } -> structure st name members rest doc
-  | form when holds_none form ->
+  | form when T.holds_none form ->
       [ G.Type { doc; name; def = G.Struct { fields = []; spacing = Packed } } ]
   | T.Empty _ ->
       (* A type of its own, not an alias: the required table holds a value
@@ -371,21 +365,24 @@ and union_declaration st name (u : T.union) doc =
   let told_apart =
     Option.map (fun (t : T.tag) -> (t.property, t.values)) u.tag
   in
-  (* A member's own type of a scalar: its kind, and the Go type it is. *)
+  (* The Go type a member that is a number or a boolean is. *)
   let scalar (ty : T.ty) =
     match ty with
     | T.Scalar s | T.Inline { form = T.Enum { base = Some s; _ }; _ } -> (
         match s with
-        | T.Integer _ -> Some ("Integer", "int")
-        | T.Number -> Some ("Number", "float64")
-        | T.Boolean -> Some ("Boolean", "bool")
+        | T.Integer _ -> Some "int"
+        | T.Number -> Some "float64"
+        | T.Boolean -> Some "bool"
         | T.Text _ -> None)
     | _ -> None
   in
   let member_types =
     List.fold_left
       (fun acc (b : T.branch) ->
-        let declare t what held =
+        (* A member that is no named schema, as a type of its own named for
+           its variant. *)
+        let declare what held =
+          let t = name ^ b.variant in
           Hashtbl.replace st.written t
             [
               G.Type
@@ -407,21 +404,20 @@ and union_declaration st name (u : T.union) doc =
                   name target;
               ignore (named_type st target);
               target
-          | T.Inline { form; composition = None; _ }, _ when holds_none form ->
+          | T.Inline { form; composition = None; _ }, _ when T.holds_none form
+            ->
               ignore (empty st);
               empty_object
-          | _ when T.admits_only_text b ->
-              declare (name ^ "Text") "text" string_
-          | T.List (Some _), _ ->
-              declare (name ^ "List") "a list" (type_of st name b.ty)
+          | _ when T.admits_only_text b -> declare "text" string_
+          | T.List (Some _), _ -> declare "a list" (type_of st name b.ty)
           | T.List None, _ -> refuse "%s: an array that states no items" name
           | ( T.Inline { form = T.Record _ | T.Empty _ | T.Map _ | T.Union _; _ },
               _ ) -> (
               match type_of st name b.ty with
               | G.Named t -> t
-              | held -> declare (name ^ b.variant) "an object" held)
-          | _, Some (word, held) ->
-              declare (name ^ word) (String.lowercase_ascii word) (named held)
+              | held -> declare "an object" held)
+          | _, Some held ->
+              declare (String.lowercase_ascii b.variant) (named held)
           | _ -> refuse "%s: a union member the generator does not know" name
         in
         if List.mem t acc then
