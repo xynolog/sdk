@@ -102,7 +102,10 @@ pub async fn content_put<T>(format: &str, size_bytes: u64, upload: impl Future<O
 
 /// `content.get`: a read of a resource's bytes, whole or as a `stream`.
 pub async fn content_get<T>(resource_id: &str, stream: bool, read: impl Future<Output = T>) -> T {
-    let mut attributes = vec![KeyValue::new(table::ATTR_RESOURCE_ID, resource_id.to_owned())];
+    let mut attributes = vec![KeyValue::new(
+        table::ATTR_RESOURCE_ID,
+        resource_id.to_owned(),
+    )];
     if stream {
         attributes.push(KeyValue::new(table::ATTR_CONTENT_STREAM, true));
     }
@@ -121,7 +124,10 @@ pub async fn content_get_annotations<T>(resource_id: &str, read: impl Future<Out
     in_span(
         table::SPAN_CONTENT_GET_ANNOTATIONS.to_owned(),
         SpanKind::Client,
-        vec![KeyValue::new(table::ATTR_RESOURCE_ID, resource_id.to_owned())],
+        vec![KeyValue::new(
+            table::ATTR_RESOURCE_ID,
+            resource_id.to_owned(),
+        )],
         Context::current(),
         read,
     )
@@ -133,7 +139,10 @@ pub async fn content_get_graph<T>(resource_id: &str, read: impl Future<Output = 
     in_span(
         table::SPAN_CONTENT_GET_GRAPH.to_owned(),
         SpanKind::Client,
-        vec![KeyValue::new(table::ATTR_RESOURCE_ID, resource_id.to_owned())],
+        vec![KeyValue::new(
+            table::ATTR_RESOURCE_ID,
+            resource_id.to_owned(),
+        )],
         Context::current(),
         read,
     )
@@ -145,7 +154,10 @@ pub async fn content_get_anchored_text<T>(resource_id: &str, read: impl Future<O
     in_span(
         table::SPAN_CONTENT_GET_ANCHORED_TEXT.to_owned(),
         SpanKind::Client,
-        vec![KeyValue::new(table::ATTR_RESOURCE_ID, resource_id.to_owned())],
+        vec![KeyValue::new(
+            table::ATTR_RESOURCE_ID,
+            resource_id.to_owned(),
+        )],
         Context::current(),
         read,
     )
