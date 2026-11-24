@@ -1,8 +1,8 @@
-# Generated from the component schemas of protocol/specs/src/openapi.json, the records of its tables, its client types and client/discovery-absent.json; do not edit.
+# Generated from the component schemas of protocol/specs/src/openapi.json, the records of its tables, its client types, the services' tables' schemas and client/discovery-absent.json; do not edit.
 # Regenerate: make generate (codegen/lib/python_types/python_types.ml)
 # ruff: noqa: E501, I001, RUF002, RUF022, RUF100
 
-"""The protocol's shapes: a model for every component schema and table record that is an object, and a type for every other."""
+"""The protocol's shapes: a model for every component schema, table record and service table that is an object, and a type for every other."""
 
 from __future__ import annotations
 
@@ -41,6 +41,7 @@ __all__ = [
     "ApiVersion",
     "ArchivistConfig",
     "ArchivistConfigStaging",
+    "ArchivistDefaultEntityTypes",
     "ArchivistEngines",
     "ArchivistEnginesActors",
     "ArchivistEnginesJobs",
@@ -48,6 +49,32 @@ __all__ = [
     "ArchivistEventsResponse",
     "ArchivistHealth",
     "ArchivistHealthActorsItem",
+    "ArchivistLayout",
+    "ArchivistLayoutAnchoredTextEntry",
+    "ArchivistLayoutAnchoredTextEntryTree",
+    "ArchivistLayoutAnchoredTextStamp",
+    "ArchivistLayoutAnchoredTextStampTree",
+    "ArchivistLayoutEventFile",
+    "ArchivistLayoutEventStream",
+    "ArchivistLayoutEventStreamTree",
+    "ArchivistLayoutStorageUriIndex",
+    "ArchivistLayoutStorageUriIndexTree",
+    "ArchivistLayoutSystemProjections",
+    "ArchivistLayoutSystemProjectionsFilesItem",
+    "ArchivistLayoutSystemProjectionsTree",
+    "ArchivistLayoutSystemStream",
+    "ArchivistLayoutSystemStreamTree",
+    "ArchivistLayoutView",
+    "ArchivistLayoutViewTree",
+    "ArchivistMessages",
+    "ArchivistMessagesBootItem",
+    "ArchivistMessagesHttpItem",
+    "ArchivistMessagesHttpItemMethod",
+    "ArchivistMessagesLoggedItem",
+    "ArchivistMessagesRefusalsItem",
+    "ArchivistMessagesRefusalsItemCode",
+    "ArchivistMessagesUnauthorized",
+    "ArchivistMessagesUnsentItem",
     "ArchivistStream",
     "ArchivistStreamsResponse",
     "AssessingJobParams",
@@ -118,6 +145,9 @@ __all__ = [
     "BusEventMessage",
     "BusFrame",
     "BusPingMessage",
+    "BusReplyBounds",
+    "BusReplyBoundsRepliesValueValueBy",
+    "BusReplyBoundsRepliesValueValueGrows",
     "BusResumeGap",
     "BusResumeGapReason",
     "BusStreamMessage",
@@ -217,8 +247,15 @@ __all__ = [
     "DispatcherConfigQueue",
     "DispatcherConfigTiming",
     "DispatcherHealth",
+    "DispatcherMessages",
+    "DispatcherMessagesErrorsItem",
+    "DispatcherMessagesRefusalsItem",
+    "DispatcherMessagesRefusalsItemCode",
     "DurabilityEvidence",
     "EmbeddingConfig",
+    "EmbeddingRequests",
+    "EmbeddingRequestsBusy",
+    "EmbeddingRequestsProvidersValue",
     "Engine",
     "EngineEntry",
     "EngineLimits",
@@ -251,6 +288,18 @@ __all__ = [
     "GatewayConfigIdentity",
     "GatewayConfigSignal",
     "GatewayConfigSignalType",
+    "GatewayMediaToken",
+    "GatewayMediaTokenClaims",
+    "GatewayMediaTokenHeader",
+    "GatewayMessages",
+    "GatewayMessagesChallenges",
+    "GatewayMessagesFailuresItem",
+    "GatewayMessagesMessagesItem",
+    "GatewayResponseHeaders",
+    "GatewayResponseHeadersEveryItem",
+    "GatewayResponseHeadersPreflight",
+    "GatewayResponseHeadersPreflightEchoesItem",
+    "GatewayResponseHeadersPreflightHeadersItem",
     "GatherAnnotationComplete",
     "GatherAnnotationOptions",
     "GatherAnnotationRequest",
@@ -288,6 +337,16 @@ __all__ = [
     "GraphAnnotationNode",
     "GraphConfig",
     "GraphResourceNode",
+    "GraphSchema",
+    "GraphSchemaNodes",
+    "GraphSchemaNodesAnnotation",
+    "GraphSchemaNodesEntityType",
+    "GraphSchemaNodesResource",
+    "GraphSchemaRelationships",
+    "GraphSchemaRelationshipsBelongsTo",
+    "GraphSchemaRelationshipsReferences",
+    "GraphSchemaRelationshipsTaggedAs",
+    "GraphSchemaStub",
     "HealthResponse",
     "HighlightingJobParams",
     "HostPort",
@@ -372,6 +431,12 @@ __all__ = [
     "JobStoredResult",
     "JobStoredResultEmpty",
     "JobType",
+    "JobsBudgets",
+    "JobsBudgetsBudgetsItem",
+    "JobsStorage",
+    "JobsStorageBucket",
+    "JobsStorageConsumer",
+    "JobsStorageStream",
     "KbDescription",
     "KbDid",
     "KbEndpoint",
@@ -542,6 +607,15 @@ __all__ = [
     "Selector",
     "SemanticMatch",
     "ServiceAddress",
+    "ServiceEnvironmentBootRefusals",
+    "ServiceEnvironmentBootRefusalsMembersItem",
+    "ServiceEnvironmentBootRefusalsRefusalsItem",
+    "ServiceEnvironmentBootRefusalsServicesItem",
+    "ServiceEnvironmentVariables",
+    "ServiceEnvironmentVariablesVariablesItem",
+    "ServiceEnvironmentVariablesVariablesItemProvidedBy",
+    "ServiceEnvironmentVariablesVariablesItemReadBy",
+    "ServiceEnvironmentVariablesVariablesItemServicesItem",
     "ServiceGroup",
     "ServiceHostParams",
     "ServiceHostResult",
@@ -555,6 +629,29 @@ __all__ = [
     "ServiceStarted",
     "ServiceStatus",
     "ServiceStatusState",
+    "ServiceTelemetryLogLines",
+    "ServiceTelemetryLogLinesBus",
+    "ServiceTelemetryLogLinesBusPartsItem",
+    "ServiceTelemetryLogLinesLogger",
+    "ServiceTelemetryLogLinesLoggerJson",
+    "ServiceTelemetryLogLinesLoggerServicesItem",
+    "ServiceTelemetryLogLinesSupervisor",
+    "ServiceTelemetryTelemetry",
+    "ServiceTelemetryTelemetryMetricsItem",
+    "ServiceTelemetryTelemetryMetricsItemAttributesItem",
+    "ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem",
+    "ServiceTelemetryTelemetryMetricsItemInstrument",
+    "ServiceTelemetryTelemetryMetricsItemPlanesItem",
+    "ServiceTelemetryTelemetryMetricsItemServicesItem",
+    "ServiceTelemetryTelemetryMetricsItemWhen",
+    "ServiceTelemetryTelemetryResourceItem",
+    "ServiceTelemetryTelemetryResourceItemServicesItem",
+    "ServiceTelemetryTelemetrySpansItem",
+    "ServiceTelemetryTelemetrySpansItemAttributesItem",
+    "ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem",
+    "ServiceTelemetryTelemetrySpansItemKind",
+    "ServiceTelemetryTelemetrySpansItemServicesItem",
+    "ServiceTelemetryTelemetrySpansItemWhen",
     "Session",
     "SessionEndReason",
     "SessionEnded",
@@ -591,6 +688,9 @@ __all__ = [
     "SmelterHealthReconcile",
     "SmelterHealthReconcilePhase",
     "SmelterHealthStream",
+    "SmelterMessages",
+    "SmelterMessagesLoggedItem",
+    "SmelterMessagesRefusalsItem",
     "SmelterReconcileSummary",
     "SpecificResource",
     "StackApiVersion",
@@ -655,6 +755,8 @@ __all__ = [
     "WeaverHealthReconcile",
     "WeaverHealthReconcilePhase",
     "WeaverHealthReconcileSummary",
+    "WorkerAnswerFormats",
+    "WorkerAnswerFormatsFormatsItem",
     "WorkerConfig",
     "WorkerEngineConfig",
     "WorkerEngineHealth",
@@ -664,6 +766,16 @@ __all__ = [
     "WorkerKnowledgeBaseConfigIdentity",
     "WorkerKnowledgeBaseHealth",
     "WorkerKnowledgeBaseHealthState",
+    "WorkerMessages",
+    "WorkerMessagesBootItem",
+    "WorkerMessagesBootItemOwnBootRefusal",
+    "WorkerMessagesBootItemSharedBootRefusal",
+    "WorkerMessagesDetailsItem",
+    "WorkerMessagesErrorsItem",
+    "WorkerMessagesJob",
+    "WorkerMessagesLoggedItem",
+    "WorkerMessagesReasonsItem",
+    "WorkerMessagesWaitsItem",
     "WorkerPool",
     "WorkerPoolSpec",
     "WorkerPoolSpecWorker",
@@ -1416,6 +1528,15 @@ class ArchivistConfig(WireModel, frozen=True, extra="forbid"):
     log_format: Annotated[LogFormat, Field(alias="logFormat")]
 
 
+class ArchivistDefaultEntityTypes(WireModel, frozen=True, extra="forbid"):
+    """
+    archivist/default-entity-types.json: the entity types an Archivist seeds, in the order it seeds them.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    entity_types: Annotated[list[str], Field(alias="entityTypes", description="The default entity types, in seed order.")]
+
+
 class EventMetadata(WireModel, frozen=True):
     """
     Metadata added at persistence time. Part of every StoredEvent. Integrity is provided by git at the commit level (when gitSync is enabled), not by in-event metadata fields.
@@ -1468,6 +1589,281 @@ class ArchivistHealth(WireModel, frozen=True):
     actors: Annotated[
         list[ArchivistHealthActorsItem],
         Field(description="The record actors this process hosts: each of the enum's, once, in the order the enum lists them."),
+    ]
+
+
+type ArchivistLayoutEventStreamTree = Annotated[
+    Literal["root", "stateHome", "anchoredTextDir"],
+    Field(
+        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+    ),
+]
+
+
+class ArchivistLayoutEventStream(WireModel, frozen=True, extra="forbid"):
+    """
+    A resource's event stream: a directory of event files.
+    """
+
+    tree: ArchivistLayoutEventStreamTree
+    path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
+
+
+type ArchivistLayoutSystemStreamTree = Annotated[
+    Literal["root", "stateHome", "anchoredTextDir"],
+    Field(
+        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+    ),
+]
+
+
+class ArchivistLayoutSystemStream(WireModel, frozen=True, extra="forbid"):
+    """
+    The knowledge base's own stream, of the events that name no resource. It is not sharded.
+    """
+
+    tree: ArchivistLayoutSystemStreamTree
+    path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
+
+
+class ArchivistLayoutEventFile(WireModel, frozen=True, extra="forbid"):
+    """
+    The files of a stream.
+    """
+
+    name: Annotated[str, Field(description="A file's name, `{number}` its number in `digits` decimal digits.")]
+    digits: Annotated[int, Field(description="How many decimal digits a file's number is written in, with leading zeros.")]
+    first: Annotated[int, Field(description="The first file's number. It is created, empty, with the stream's directory.")]
+    max_events: Annotated[int, Field(alias="maxEvents", description="The most events a file holds.")]
+
+
+type ArchivistLayoutViewTree = Annotated[
+    Literal["root", "stateHome", "anchoredTextDir"],
+    Field(
+        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+    ),
+]
+
+
+class ArchivistLayoutView(WireModel, frozen=True, extra="forbid"):
+    """
+    A resource's view, in the state directory.
+    """
+
+    tree: ArchivistLayoutViewTree
+    path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
+    schema_: Annotated[JsonValue, Field(alias="schema", description="The schema a view is.")]
+
+
+type ArchivistLayoutSystemProjectionsTree = Annotated[
+    Literal["root", "stateHome", "anchoredTextDir"],
+    Field(
+        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+    ),
+]
+
+
+class ArchivistLayoutSystemProjectionsFilesItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The file's name.")]
+    schema_: Annotated[JsonValue, Field(alias="schema", description="The schema the projection is.")]
+
+
+class ArchivistLayoutSystemProjections(WireModel, frozen=True, extra="forbid"):
+    """
+    The projections of what the `__system__` stream adds up to, in the state directory.
+    """
+
+    tree: ArchivistLayoutSystemProjectionsTree
+    path: Annotated[str, Field(description="The directory that holds them, in its tree, `/`-separated.")]
+    files: Annotated[list[ArchivistLayoutSystemProjectionsFilesItem], Field(description="Each projection's file.")]
+
+
+type ArchivistLayoutStorageUriIndexTree = Annotated[
+    Literal["root", "stateHome", "anchoredTextDir"],
+    Field(
+        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+    ),
+]
+
+
+class ArchivistLayoutStorageUriIndex(WireModel, frozen=True, extra="forbid"):
+    """
+    An entry of the storage-uri index, which names the resource whose content is at a storage URI.
+    """
+
+    tree: ArchivistLayoutStorageUriIndexTree
+    path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
+    schema_: Annotated[JsonValue, Field(alias="schema", description="The schema an entry is.")]
+
+
+type ArchivistLayoutAnchoredTextEntryTree = Annotated[
+    Literal["root", "stateHome", "anchoredTextDir"],
+    Field(
+        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+    ),
+]
+
+
+class ArchivistLayoutAnchoredTextEntry(WireModel, frozen=True, extra="forbid"):
+    """
+    An entry of the anchored-text store, keyed by the checksum of the content it was extracted from.
+    """
+
+    tree: ArchivistLayoutAnchoredTextEntryTree
+    path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
+    schema_: Annotated[JsonValue, Field(alias="schema", description="The schema an entry is.")]
+
+
+type ArchivistLayoutAnchoredTextStampTree = Annotated[
+    Literal["root", "stateHome", "anchoredTextDir"],
+    Field(
+        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+    ),
+]
+
+
+class ArchivistLayoutAnchoredTextStamp(WireModel, frozen=True, extra="forbid"):
+    """
+    The file holding the stamp the anchored-text store's entries are taken under: the stamp, followed by a newline.
+    """
+
+    tree: ArchivistLayoutAnchoredTextStampTree
+    path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
+
+
+class ArchivistLayout(WireModel, frozen=True, extra="forbid"):
+    """
+    archivist/layout.json: where the Archivist keeps the record on disk.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    event_stream: Annotated[ArchivistLayoutEventStream, Field(alias="eventStream")]
+    system_stream: Annotated[ArchivistLayoutSystemStream, Field(alias="systemStream")]
+    event_file: Annotated[ArchivistLayoutEventFile, Field(alias="eventFile")]
+    stored_event: Annotated[JsonValue, Field(alias="storedEvent", description="The schema a stored event, one line of an event file, is.")]
+    view: ArchivistLayoutView
+    system_projections: Annotated[ArchivistLayoutSystemProjections, Field(alias="systemProjections")]
+    storage_uri_index: Annotated[ArchivistLayoutStorageUriIndex, Field(alias="storageUriIndex")]
+    anchored_text_entry: Annotated[ArchivistLayoutAnchoredTextEntry, Field(alias="anchoredTextEntry")]
+    anchored_text_stamp: Annotated[ArchivistLayoutAnchoredTextStamp, Field(alias="anchoredTextStamp")]
+
+
+class ArchivistMessagesBootItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    refusal: Annotated[
+        str,
+        Field(
+            description="The refusal, in place of the line's `{refusal}`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+class ArchivistMessagesUnsentItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    message: Annotated[
+        str,
+        Field(
+            description="The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+type ArchivistMessagesRefusalsItemCode = Annotated[
+    Literal["peer-unavailable", "not-found", "unauthorized", "none-pending"],
+    Field(
+        description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
+    ),
+]
+
+
+class ArchivistMessagesRefusalsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    operations: Annotated[
+        list[str],
+        Field(
+            description="The operations it refuses: requests of bus/registry.json's operations that the Archivist answers. `{channel}` in the message is the one refused."
+        ),
+    ]
+    code: ArchivistMessagesRefusalsItemCode | None = None
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    message: Annotated[
+        str,
+        Field(
+            description="The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+type HttpStatus = Annotated[
+    int, Field(description="An HTTP response's status code, as the tables state one. No API states it, so it is no component.")
+]
+
+
+class ArchivistMessagesUnauthorized(WireModel, frozen=True, extra="forbid"):
+    """
+    The refusal of every route of the HTTP surface but `/health`: a token that is missing, or not of the knowledge base's issuer and audience, or without the service role.
+    """
+
+    status: HttpStatus
+    error: Annotated[str, Field(description="The body's `error`.")]
+    presented: Annotated[str, Field(description="The `WWW-Authenticate` header when a token was presented.")]
+    absent: Annotated[str, Field(description="The `WWW-Authenticate` header when none was.")]
+
+
+type ArchivistMessagesHttpItemMethod = Annotated[Literal["GET", "PUT", "POST"], Field(description="The route's method.")]
+
+
+class ArchivistMessagesHttpItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    method: ArchivistMessagesHttpItemMethod
+    route: Annotated[str, Field(description="The route, as the Archivist's API names its path.")]
+    status: HttpStatus
+    code: Annotated[str | None, Field(description="The body's `code`, where it carries one.")] = None
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    error: Annotated[
+        str,
+        Field(
+            description="The body's `error`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+class ArchivistMessagesLoggedItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    level: LogLevel
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    message: Annotated[str, Field(description="The line's message, word for word.")]
+    fields: Annotated[
+        dict[str, str],
+        Field(
+            description="The fields the line is logged with whose form is stated, by name: each a text whose `{name}` is filled as the row's `situation` says. The line may carry others."
+        ),
+    ]
+
+
+class ArchivistMessages(WireModel, frozen=True, extra="forbid"):
+    """
+    archivist/messages.json: the words of the Archivist's own refusals, and of the messages it logs that a reader relies on.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    boot: Annotated[
+        list[ArchivistMessagesBootItem],
+        Field(description="Each refusal to start of the Archivist's own, written in service-environment/boot-refusals.json's `line`."),
+    ]
+    unsent: Annotated[
+        list[ArchivistMessagesUnsentItem],
+        Field(description="The failure a reply that cannot be sent is answered with instead, on the operation's failure channel."),
+    ]
+    refusals: Annotated[
+        list[ArchivistMessagesRefusalsItem], Field(description="Each refusal of an operation, on the operation's failure channel.")
+    ]
+    unauthorized: ArchivistMessagesUnauthorized
+    http: Annotated[list[ArchivistMessagesHttpItem], Field(description="Each other error a route of the HTTP surface answers with.")]
+    logged: Annotated[
+        list[ArchivistMessagesLoggedItem], Field(description="Each message the Archivist logs that a reader of its output relies on.")
     ]
 
 
@@ -2531,6 +2927,34 @@ class BusPingMessage(WireModel, frozen=True, extra="forbid"):
 
     event: Literal["ping"]
     data: str
+
+
+class BusReplyBoundsRepliesValueValueBy(WireModel, frozen=True, extra="forbid"):
+    """
+    A list or map bounded by a member of the request.
+    """
+
+    by: Annotated[str, Field(description="The member of the request that bounds it: an array, or an integer with a maximum.")]
+
+
+class BusReplyBoundsRepliesValueValueGrows(WireModel, frozen=True, extra="forbid"):
+    """
+    A list or map not yet bounded, which grows.
+    """
+
+    grows: Annotated[str, Field(description="What it grows with.")]
+
+
+class BusReplyBounds(WireModel, frozen=True, extra="forbid"):
+    """
+    bus/reply-bounds.json: each list or map an operation's reply carries that its own schema does not bound, and what bounds it.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    replies: Annotated[
+        dict[str, dict[str, BusReplyBoundsRepliesValueValueBy | BusReplyBoundsRepliesValueValueGrows]],
+        Field(description="Each operation, by its request's channel."),
+    ]
 
 
 type BusResumeGapReason = Annotated[
@@ -3629,6 +4053,57 @@ class DispatcherHealth(WireModel, frozen=True, extra="forbid"):
     queue: Annotated[Literal["jetstream"], Field(description="The queue it holds.")]
 
 
+type DispatcherMessagesRefusalsItemCode = Annotated[
+    Literal["peer-unavailable", "not-found", "unauthorized", "none-pending"],
+    Field(
+        description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
+    ),
+]
+
+
+class DispatcherMessagesRefusalsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    operation: Annotated[
+        str, Field(description="The operation it refuses: a request of bus/registry.json's operations that the dispatcher answers.")
+    ]
+    code: DispatcherMessagesRefusalsItemCode | None = None
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    message: Annotated[
+        str,
+        Field(
+            description="The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+class DispatcherMessagesErrorsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    error: Annotated[
+        str,
+        Field(
+            description="The `error` it writes into the job. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+    failure_class: Annotated[FailureClass, Field(alias="failureClass")]
+
+
+class DispatcherMessages(WireModel, frozen=True, extra="forbid"):
+    """
+    dispatcher/messages.json: the words of the dispatcher's own refusals, and of the errors it writes into a job.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    refusals: Annotated[
+        list[DispatcherMessagesRefusalsItem],
+        Field(description="Each refusal the dispatcher makes itself, on the operation's failure channel."),
+    ]
+    errors: Annotated[
+        list[DispatcherMessagesErrorsItem],
+        Field(description="Each error the dispatcher writes into a job on its own, as a `job:fail` would."),
+    ]
+
+
 type DurabilityEvidence = Annotated[
     Literal["acknowledged", "probe-confirmed", "probe-refused", "probe-unreachable"],
     Field(
@@ -3667,6 +4142,56 @@ type EmbeddingConfig = Annotated[
         discriminator="type",
     ),
 ]
+
+
+class EmbeddingRequestsProvidersValue(WireModel, frozen=True, extra="forbid"):
+    texts_per_request: Annotated[
+        int,
+        Field(
+            alias="textsPerRequest",
+            description="How many texts one request carries, at most: a batch is cut into slices of this many, each one request, in the order of the texts.",
+        ),
+    ]
+    at_once: Annotated[
+        int,
+        Field(alias="atOnce", description="How many requests are made of the provider at once, however many resources are being indexed."),
+    ]
+
+
+class EmbeddingRequestsBusy(WireModel, frozen=True, extra="forbid"):
+    """
+    A request for the vectors of documents that the provider answers busy is asked again, after each wait in turn, while the request's own time allows the wait. A provider busy at every asking fails the request with that status. A query is asked once.
+    """
+
+    statuses: Annotated[list[int], Field(description="The statuses by which a provider says it is busy.")]
+    again_after_seconds: Annotated[list[int], Field(alias="againAfterSeconds", description="The wait before each asking again, in order.")]
+
+
+class EmbeddingRequests(WireModel, frozen=True, extra="forbid"):
+    """
+    embedding/requests.json: how a service asks its embedding provider for the vectors of many texts.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    providers: Annotated[
+        dict[str, EmbeddingRequestsProvidersValue],
+        Field(description="How each kind of provider is asked, by its `type` (EmbeddingConfig): every kind, and no other."),
+    ]
+    request_seconds: Annotated[
+        int,
+        Field(
+            alias="requestSeconds",
+            description="How long each request has, counted from when it is sent and not from when its batch began. Asking a busy provider again is within it.",
+        ),
+    ]
+    busy: EmbeddingRequestsBusy
+    start_again: Annotated[
+        int,
+        Field(
+            alias="startAgain",
+            description="How many times, at most, a starting service asks again a provider that answered 404, taken to be still fetching the model, or could not be reached, taken to be still starting: within the time the service has to start.",
+        ),
+    ]
 
 
 class InferenceLimits(WireModel, frozen=True):
@@ -3933,6 +4458,139 @@ class GatewayConfig(WireModel, frozen=True, extra="forbid"):
     log_level: Annotated[LogLevel, Field(alias="logLevel")]
     log_format: Annotated[LogFormat, Field(alias="logFormat")]
     capacity: GatewayConfigCapacity
+
+
+class GatewayMediaTokenHeader(WireModel, frozen=True, extra="forbid"):
+    """
+    Its JOSE header, exactly.
+    """
+
+    alg: Literal["HS256"]
+    typ: Literal["JWT"]
+
+
+class GatewayMediaTokenClaims(WireModel, frozen=True, extra="forbid"):
+    """
+    Its claims beside `iat` and `exp`, each filled as the table says.
+    """
+
+    purpose: Literal["media"]
+    iss: Literal["{domain}"]
+    sub: Literal["{resourceId}"]
+
+
+class GatewayMediaToken(WireModel, frozen=True, extra="forbid"):
+    """
+    gateway/media-token.json: what a media token is.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    header: GatewayMediaTokenHeader
+    claims: GatewayMediaTokenClaims
+    lifetime_seconds: Annotated[int, Field(alias="lifetimeSeconds", description="`exp` less `iat`.")]
+
+
+class GatewayMessagesMessagesItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    status: HttpStatus
+    code: Annotated[
+        str | None,
+        Field(
+            description="Its `code`, where it carries one: a LimitRefusal's, or the transport code errors/codes.json names for its status."
+        ),
+    ] = None
+    situation: Annotated[str, Field(description="When the gateway answers it, and what fills each `{name}` of its texts.")]
+    error: Annotated[
+        str, Field(description="Its text. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.")
+    ]
+    hint: Annotated[str | None, Field(description="Its `hint`, where it carries one.")] = None
+
+
+class GatewayMessagesFailuresItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    code: Annotated[str, Field(description="Its `code`.")]
+    situation: Annotated[str, Field(description="When the gateway answers it, and what fills each `{name}` of its texts.")]
+    message: Annotated[
+        str, Field(description="Its text. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.")
+    ]
+
+
+class GatewayMessagesChallenges(WireModel, frozen=True, extra="forbid"):
+    """
+    The `WWW-Authenticate` of a 401.
+    """
+
+    no_credential: Annotated[
+        str,
+        Field(
+            alias="noCredential",
+            description="For a request that presents no credential. The challenge. `{origin}` is the origin the Unauthorized response names: `http://` and the request's `Host`, or, for a request that names none, the gateway's `publicUrl`.",
+        ),
+    ]
+    refused: Annotated[
+        str,
+        Field(
+            description="For a request whose credential, a bearer token or a media token, is refused. The challenge. `{origin}` is the origin the Unauthorized response names: `http://` and the request's `Host`, or, for a request that names none, the gateway's `publicUrl`."
+        ),
+    ]
+
+
+class GatewayMessages(WireModel, frozen=True, extra="forbid"):
+    """
+    gateway/messages.json: the words of the gateway's own refusals.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    messages: Annotated[list[GatewayMessagesMessagesItem], Field(description="Each refusal the gateway makes itself.")]
+    failures: Annotated[
+        list[GatewayMessagesFailuresItem],
+        Field(description="Each failure frame the gateway delivers itself, on the stream of the client whose request it answers."),
+    ]
+    challenges: GatewayMessagesChallenges
+
+
+class GatewayResponseHeadersEveryItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="A header's name, as HTTP spells it; a receiver reads it in any case.")]
+    value: Annotated[str, Field(description="Its value, exactly.")]
+
+
+class GatewayResponseHeadersPreflightHeadersItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="A header's name, as HTTP spells it; a receiver reads it in any case.")]
+    value: Annotated[str, Field(description="Its value, exactly.")]
+
+
+class GatewayResponseHeadersPreflightEchoesItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="A header's name, as HTTP spells it; a receiver reads it in any case.")]
+    of: Annotated[str, Field(description="The request's header whose value it carries.")]
+
+
+class GatewayResponseHeadersPreflight(WireModel, frozen=True, extra="forbid"):
+    """
+    How the gateway answers an `OPTIONS` request.
+    """
+
+    status: HttpStatus
+    headers: Annotated[
+        list[GatewayResponseHeadersPreflightHeadersItem],
+        Field(description="Each header it carries beside those of `every`, and its value."),
+    ]
+    echoes: Annotated[
+        list[GatewayResponseHeadersPreflightEchoesItem],
+        Field(description="Each header it carries when the request carries the header it echoes, with that header's value."),
+    ]
+    vary: Annotated[str, Field(description="The value of the `Vary` it carries when it echoes a header: the request headers it echoes.")]
+
+
+class GatewayResponseHeaders(WireModel, frozen=True, extra="forbid"):
+    """
+    gateway/response-headers.json: the headers on every response the gateway sends.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    every: Annotated[list[GatewayResponseHeadersEveryItem], Field(description="Each header every response carries, and its value.")]
+    request_id: Annotated[str, Field(alias="requestId", description="The header that names the request.")]
+    absent: Annotated[list[str], Field(description="Each header no response carries.")]
+    preflight: GatewayResponseHeadersPreflight
 
 
 class GatheredContextFocusAnnotationSelected(WireModel, frozen=True):
@@ -4563,6 +5221,127 @@ type GraphConfig = Annotated[
 ]
 
 
+class GraphSchemaNodesResource(WireModel, frozen=True, extra="forbid"):
+    """
+    A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
+    """
+
+    label: Annotated[str, Field(description="Its label.")]
+    row: Annotated[
+        str | None,
+        Field(
+            description="The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone."
+        ),
+    ] = None
+    key: Annotated[str, Field(description="The property no two nodes of its kind share.")]
+    lookups: Annotated[list[str], Field(description="The properties other than its key that a reader finds a node of its kind by.")]
+
+
+class GraphSchemaNodesAnnotation(WireModel, frozen=True, extra="forbid"):
+    """
+    A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
+    """
+
+    label: Annotated[str, Field(description="Its label.")]
+    row: Annotated[
+        str | None,
+        Field(
+            description="The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone."
+        ),
+    ] = None
+    key: Annotated[str, Field(description="The property no two nodes of its kind share.")]
+    lookups: Annotated[list[str], Field(description="The properties other than its key that a reader finds a node of its kind by.")]
+
+
+class GraphSchemaNodesEntityType(WireModel, frozen=True, extra="forbid"):
+    """
+    A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
+    """
+
+    label: Annotated[str, Field(description="Its label.")]
+    row: Annotated[
+        str | None,
+        Field(
+            description="The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone."
+        ),
+    ] = None
+    key: Annotated[str, Field(description="The property no two nodes of its kind share.")]
+    lookups: Annotated[list[str], Field(description="The properties other than its key that a reader finds a node of its kind by.")]
+
+
+class GraphSchemaNodes(WireModel, frozen=True, extra="forbid"):
+    """
+    Each kind of node the graph holds.
+    """
+
+    resource: GraphSchemaNodesResource
+    annotation: GraphSchemaNodesAnnotation
+    entity_type: Annotated[GraphSchemaNodesEntityType, Field(alias="entityType")]
+
+
+class GraphSchemaRelationshipsBelongsTo(WireModel, frozen=True, extra="forbid"):
+    """
+    A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
+    """
+
+    type: Annotated[str, Field(description="Its type.")]
+    from_: Annotated[str, Field(alias="from", description="The kind of node it goes from, by its name under `nodes`.")]
+    to: Annotated[str, Field(description="The kind of node it goes to, by its name under `nodes`.")]
+    says: Annotated[str, Field(description="What one says.")]
+
+
+class GraphSchemaRelationshipsReferences(WireModel, frozen=True, extra="forbid"):
+    """
+    A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
+    """
+
+    type: Annotated[str, Field(description="Its type.")]
+    from_: Annotated[str, Field(alias="from", description="The kind of node it goes from, by its name under `nodes`.")]
+    to: Annotated[str, Field(description="The kind of node it goes to, by its name under `nodes`.")]
+    says: Annotated[str, Field(description="What one says.")]
+
+
+class GraphSchemaRelationshipsTaggedAs(WireModel, frozen=True, extra="forbid"):
+    """
+    A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
+    """
+
+    type: Annotated[str, Field(description="Its type.")]
+    from_: Annotated[str, Field(alias="from", description="The kind of node it goes from, by its name under `nodes`.")]
+    to: Annotated[str, Field(description="The kind of node it goes to, by its name under `nodes`.")]
+    says: Annotated[str, Field(description="What one says.")]
+
+
+class GraphSchemaRelationships(WireModel, frozen=True, extra="forbid"):
+    """
+    Each kind of relationship the graph holds.
+    """
+
+    belongs_to: Annotated[GraphSchemaRelationshipsBelongsTo, Field(alias="belongsTo")]
+    references: GraphSchemaRelationshipsReferences
+    tagged_as: Annotated[GraphSchemaRelationshipsTaggedAs, Field(alias="taggedAs")]
+
+
+class GraphSchemaStub(WireModel, frozen=True, extra="forbid"):
+    """
+    A link's target the graph has not been given yet: a node of its kind that holds its key and the marker, `true`, and nothing else. A node without the marker is no stub.
+    """
+
+    node: Annotated[str, Field(description="The kind of node a stub is, by its name under `nodes`.")]
+    marker: Annotated[str, Field(description="The property that marks a stub.")]
+
+
+class GraphSchema(WireModel, frozen=True, extra="forbid"):
+    """
+    graph/schema.json: the shape of the graph a store keeps, as a reader of the store finds it.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    nodes: GraphSchemaNodes
+    relationships: GraphSchemaRelationships
+    stub: GraphSchemaStub
+
+
 class HealthResponse(WireModel, frozen=True):
     """
     Liveness: the process is up and serving. It asks nothing of the Archivist or the broker — a gateway that cannot reach them refuses to start, so one that answers here got past both at boot.
@@ -4594,11 +5373,6 @@ class HostPort(WireModel, frozen=True, extra="forbid"):
 
     host: Annotated[str, Field(description="A host name or address the stack's containers can reach.")]
     port: Annotated[int, Field(description="The port it listens on.")]
-
-
-type HttpStatus = Annotated[
-    int, Field(description="An HTTP response's status code, as the tables state one. No API states it, so it is no component.")
-]
 
 
 class IdentityUser(WireModel, frozen=True, extra="forbid"):
@@ -5910,6 +6684,69 @@ class JobStatusResult(WireModel, frozen=True):
     """
 
     response: JobStatusResponse
+
+
+class JobsBudgetsBudgetsItem(WireModel, frozen=True, extra="forbid"):
+    job_type: Annotated[JobType, Field(alias="jobType")]
+    max_retries: Annotated[
+        int,
+        Field(
+            alias="maxRetries",
+            description="How many times a failed attempt of a job of this type may be retried: its record's `metadata.maxRetries`.",
+        ),
+    ]
+
+
+class JobsBudgets(WireModel, frozen=True, extra="forbid"):
+    """
+    jobs/budgets.json: the retry budget of each job type.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    budgets: Annotated[list[JobsBudgetsBudgetsItem], Field(description="One row for each job type.")]
+
+
+class JobsStorageStream(WireModel, frozen=True, extra="forbid"):
+    """
+    The work-queue stream every job is published into.
+    """
+
+    name: str
+    subject_root: Annotated[
+        str,
+        Field(
+            alias="subjectRoot",
+            description="The root of the subjects the stream captures: a job is published on `<subjectRoot>.<jobType>`.",
+        ),
+    ]
+
+
+class JobsStorageConsumer(WireModel, frozen=True, extra="forbid"):
+    """
+    The durable consumer that delivers each job to the dispatcher holding its lease.
+    """
+
+    durable_name: Annotated[str, Field(alias="durableName")]
+
+
+class JobsStorageBucket(WireModel, frozen=True, extra="forbid"):
+    """
+    The KV bucket that keeps one record per job, keyed by the job's id.
+    """
+
+    name: str
+    record: Annotated[str, Field(description="The component schema each of the bucket's values is.")]
+
+
+class JobsStorage(WireModel, frozen=True, extra="forbid"):
+    """
+    jobs/storage.json: where the job queue keeps its state on the broker.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    stream: JobsStorageStream
+    consumer: JobsStorageConsumer
+    bucket: JobsStorageBucket
 
 
 type KbDid = Annotated[
@@ -7609,6 +8446,75 @@ type RunService = Annotated[
     ),
 ]
 
+type ServiceEnvironmentBootRefusalsServicesItem = Annotated[
+    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
+    Field(description="A Xynolog service, by its name."),
+]
+
+
+class ServiceEnvironmentBootRefusalsRefusalsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    refusal: Annotated[
+        str, Field(description="Its text. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.")
+    ]
+
+
+class ServiceEnvironmentBootRefusalsMembersItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    line: Annotated[str, Field(description="The line, filled as the row's `situation` says.")]
+
+
+class ServiceEnvironmentBootRefusals(WireModel, frozen=True, extra="forbid"):
+    """
+    service-environment/boot-refusals.json: what a service writes when it refuses to start on its configuration document or its environment.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    services: Annotated[list[ServiceEnvironmentBootRefusalsServicesItem], Field(description="The services that refuse to start so.")]
+    line: Annotated[
+        str, Field(description="The one line the service writes to stderr, its refusal in place of `{refusal}`, before it exits.")
+    ]
+    exit_code: Annotated[int, Field(alias="exitCode", description="The status it exits with.")]
+    refusals: Annotated[list[ServiceEnvironmentBootRefusalsRefusalsItem], Field(description="Each refusal.")]
+    members: Annotated[
+        list[ServiceEnvironmentBootRefusalsMembersItem],
+        Field(description="Each line of the refusal `invalid`: one for each way the document is not its schema's."),
+    ]
+
+
+type ServiceEnvironmentVariablesVariablesItemServicesItem = Annotated[
+    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
+    Field(description="A Xynolog service, by its name."),
+]
+
+type ServiceEnvironmentVariablesVariablesItemReadBy = Annotated[
+    Literal["service", "opentelemetry"], Field(description="What reads it: the service's own code, or the OpenTelemetry SDK.")
+]
+
+type ServiceEnvironmentVariablesVariablesItemProvidedBy = Annotated[
+    Literal["launcher", "image", "operator"], Field(description="What sets it where the launcher runs the service.")
+]
+
+
+class ServiceEnvironmentVariablesVariablesItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The variable's name.")]
+    services: Annotated[list[ServiceEnvironmentVariablesVariablesItemServicesItem], Field(description="The services that read it.")]
+    read_by: Annotated[ServiceEnvironmentVariablesVariablesItemReadBy, Field(alias="readBy")]
+    provided_by: Annotated[ServiceEnvironmentVariablesVariablesItemProvidedBy, Field(alias="providedBy")]
+    required: Annotated[bool, Field(description="Whether the service refuses to start without it.")]
+    effect: Annotated[str, Field(description="What it does.")]
+
+
+class ServiceEnvironmentVariables(WireModel, frozen=True, extra="forbid"):
+    """
+    service-environment/variables.json: every environment variable a Xynolog service reads, beside its configuration document.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    variables: list[ServiceEnvironmentVariablesVariablesItem]
+
 
 class ServiceHostParams(WireModel, frozen=True, extra="forbid"):
     """
@@ -7780,6 +8686,189 @@ class ServiceStarted(WireModel, frozen=True, extra="forbid"):
     address: Annotated[
         str, Field(description="The host address the instance's ports are published on, as service.host names it for the run's runtime.")
     ]
+
+
+type ServiceTelemetryLogLinesLoggerServicesItem = Literal["archivist", "dispatcher", "gateway"]
+
+
+class ServiceTelemetryLogLinesLoggerJson(WireModel, frozen=True, extra="forbid"):
+    """
+    A line of the `json` format.
+    """
+
+    first: Annotated[list[str], Field(description="Its first members, in order.")]
+    request_id: Annotated[str, Field(alias="requestId", description="The member that names the request a line was logged while answering.")]
+    trace: Annotated[list[str], Field(description="The members that name the active trace and span, in that order.")]
+    last: Annotated[str, Field(description="Its last member: the moment.")]
+
+
+class ServiceTelemetryLogLinesLogger(WireModel, frozen=True, extra="forbid"):
+    """
+    The lines of a service's logger.
+    """
+
+    services: Annotated[
+        list[ServiceTelemetryLogLinesLoggerServicesItem], Field(description="The services whose document names a LogFormat.")
+    ]
+    json_: Annotated[ServiceTelemetryLogLinesLoggerJson, Field(alias="json")]
+    simple: Annotated[str, Field(description="A line of the `simple` format.")]
+
+
+class ServiceTelemetryLogLinesBusPartsItem(WireModel, frozen=True, extra="forbid"):
+    part: Annotated[str, Field(description="What it shows.")]
+    text: Annotated[str, Field(description="Its text.")]
+    characters: Annotated[int | None, Field(description="How many characters of it are shown, from its first.")] = None
+
+
+class ServiceTelemetryLogLinesBus(WireModel, frozen=True, extra="forbid"):
+    """
+    A line of the bus log.
+    """
+
+    line: Annotated[str, Field(description="Its head.")]
+    parts: Annotated[
+        list[ServiceTelemetryLogLinesBusPartsItem], Field(description="What follows the head, in order, each where there is one.")
+    ]
+    ops: Annotated[list[str], Field(description="Each operation a line names.")]
+
+
+class ServiceTelemetryLogLinesSupervisor(WireModel, frozen=True, extra="forbid"):
+    """
+    The line the supervisor writes when it starts a service.
+    """
+
+    line: Annotated[str, Field(description="The line.")]
+    counted: Annotated[str, Field(description="What a service counts the lines that hold of, for each of its lives.")]
+
+
+class ServiceTelemetryLogLines(WireModel, frozen=True, extra="forbid"):
+    """
+    service-telemetry/log-lines.json: the lines a service writes to its log, and the line of its supervisor it counts.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    logger: ServiceTelemetryLogLinesLogger
+    bus: ServiceTelemetryLogLinesBus
+    supervisor: ServiceTelemetryLogLinesSupervisor
+
+
+type ServiceTelemetryTelemetryResourceItemServicesItem = Annotated[
+    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
+    Field(description="A Xynolog service, by its name."),
+]
+
+
+class ServiceTelemetryTelemetryResourceItem(WireModel, frozen=True, extra="forbid"):
+    """
+    An attribute of the resource the services' spans and metrics are exported under.
+    """
+
+    key: Annotated[str, Field(description="The attribute's key.")]
+    services: Annotated[list[ServiceTelemetryTelemetryResourceItemServicesItem], Field(description="The services that export the row.")]
+    meaning: Annotated[str, Field(description="What the attribute says.")]
+    default: Annotated[str | None, Field(description="Its value when nothing says another, with `{service}` the service's name.")] = None
+
+
+type ServiceTelemetryTelemetrySpansItemServicesItem = Annotated[
+    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
+    Field(description="A Xynolog service, by its name."),
+]
+
+type ServiceTelemetryTelemetrySpansItemKind = Annotated[
+    Literal["client", "consumer", "internal", "producer", "server"], Field(description="The span's kind, in OTLP's words.")
+]
+
+type ServiceTelemetryTelemetrySpansItemWhen = Annotated[
+    Literal["export", "traffic", "supervised", "fatal"], Field(description="When the row arrives.")
+]
+
+type ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem = str | bool
+
+
+class ServiceTelemetryTelemetrySpansItemAttributesItem(WireModel, frozen=True, extra="forbid"):
+    """
+    An attribute a row carries.
+    """
+
+    key: Annotated[str, Field(description="The attribute's key.")]
+    only: Annotated[
+        str | None, Field(description="When alone the attribute is carried: a row's attribute without it is carried every time.")
+    ] = None
+    values: Annotated[
+        list[ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem] | None,
+        Field(description="The only values it carries, each of the type it is carried as: a string or a boolean."),
+    ] = None
+
+
+class ServiceTelemetryTelemetrySpansItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.")]
+    services: Annotated[list[ServiceTelemetryTelemetrySpansItemServicesItem], Field(description="The services that export the row.")]
+    kind: ServiceTelemetryTelemetrySpansItemKind
+    when: ServiceTelemetryTelemetrySpansItemWhen
+    meaning: Annotated[str, Field(description="What the row says.")]
+    attributes: Annotated[list[ServiceTelemetryTelemetrySpansItemAttributesItem], Field(description="The attributes the span carries.")]
+
+
+type ServiceTelemetryTelemetryMetricsItemServicesItem = Annotated[
+    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
+    Field(description="A Xynolog service, by its name."),
+]
+
+type ServiceTelemetryTelemetryMetricsItemInstrument = Annotated[
+    Literal["counter", "up-down counter", "gauge", "histogram"], Field(description="The metric's instrument.")
+]
+
+type ServiceTelemetryTelemetryMetricsItemWhen = Annotated[
+    Literal["export", "traffic", "supervised", "fatal"], Field(description="When the row arrives.")
+]
+
+type ServiceTelemetryTelemetryMetricsItemPlanesItem = Literal["in-process", "nats"]
+
+type ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem = str | bool
+
+
+class ServiceTelemetryTelemetryMetricsItemAttributesItem(WireModel, frozen=True, extra="forbid"):
+    """
+    An attribute a row carries.
+    """
+
+    key: Annotated[str, Field(description="The attribute's key.")]
+    only: Annotated[
+        str | None, Field(description="When alone the attribute is carried: a row's attribute without it is carried every time.")
+    ] = None
+    values: Annotated[
+        list[ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem] | None,
+        Field(description="The only values it carries, each of the type it is carried as: a string or a boolean."),
+    ] = None
+
+
+class ServiceTelemetryTelemetryMetricsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.")]
+    services: Annotated[list[ServiceTelemetryTelemetryMetricsItemServicesItem], Field(description="The services that export the row.")]
+    instrument: ServiceTelemetryTelemetryMetricsItemInstrument
+    when: ServiceTelemetryTelemetryMetricsItemWhen
+    planes: Annotated[
+        list[ServiceTelemetryTelemetryMetricsItemPlanesItem] | None, Field(description="The only signal planes a gateway row arrives on.")
+    ] = None
+    meaning: Annotated[str, Field(description="What the row says.")]
+    attributes: Annotated[list[ServiceTelemetryTelemetryMetricsItemAttributesItem], Field(description="The attributes the span carries.")]
+
+
+class ServiceTelemetryTelemetry(WireModel, frozen=True, extra="forbid"):
+    """
+    service-telemetry/telemetry.json: the telemetry each Xynolog service exports over OTLP: its spans and metrics, the services that export each, and the attributes each carries.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    sdk: Annotated[
+        dict[str, list[str]],
+        Field(
+            description="The services that reach the bus through an SDK, and for each the SDK transports it uses, or of a transport it uses part of, the rows it exports."
+        ),
+    ]
+    resource: list[ServiceTelemetryTelemetryResourceItem]
+    spans: list[ServiceTelemetryTelemetrySpansItem]
+    metrics: list[ServiceTelemetryTelemetryMetricsItem]
 
 
 type SessionEndReason = Annotated[
@@ -8232,6 +9321,55 @@ class SmelterHealth(WireModel, frozen=True, extra="forbid"):
     ]
     reconcile: SmelterHealthReconcile
     index: SmelterHealthIndex
+
+
+class SmelterMessagesRefusalsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    operation: Annotated[
+        str, Field(description="The operation it refuses: a request of bus/registry.json's operations that the Smelter answers.")
+    ]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    message: Annotated[
+        str,
+        Field(
+            description="The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+class SmelterMessagesLoggedItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    level: LogLevel
+    situation: Annotated[
+        str, Field(description="When it is written, what fills each `{name}` of its fields, and what each fact it carries says.")
+    ]
+    message: Annotated[str, Field(description="The line's message, word for word.")]
+    fields: Annotated[
+        dict[str, str],
+        Field(
+            description="The facts the line is logged with whose form is stated, by name: each a text whose `{name}` is filled as the row's `situation` says. A fact that is a number is its decimal digits."
+        ),
+    ]
+    carries: Annotated[
+        list[str],
+        Field(
+            description="The facts the line is logged with beside `fields`, whose value the row's `situation` says and whose form is not stated. The line may carry others."
+        ),
+    ]
+
+
+class SmelterMessages(WireModel, frozen=True, extra="forbid"):
+    """
+    smelter/messages.json: the words of the Smelter's refusals, and of the messages it logs that a reader relies on.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    refusals: Annotated[
+        list[SmelterMessagesRefusalsItem], Field(description="Each refusal of an operation, on the operation's failure channel.")
+    ]
+    logged: Annotated[
+        list[SmelterMessagesLoggedItem], Field(description="Each message the Smelter logs that a reader of its output relies on.")
+    ]
 
 
 class StackKnowledgeBaseSpecGateway(WireModel, frozen=True, extra="forbid"):
@@ -8857,6 +9995,21 @@ class WeaverHealth(WireModel, frozen=True, extra="forbid"):
     reconcile: WeaverHealthReconcile
 
 
+class WorkerAnswerFormatsFormatsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="A motivation a `mark` job takes, or `count`.")]
+    about: Annotated[str, Field(description="What an element is, in prose.")]
+    element: JsonValue
+
+
+class WorkerAnswerFormats(WireModel, frozen=True, extra="forbid"):
+    """
+    worker/answer-formats.json: the element of the array each kind of detection asks a model for.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    formats: list[WorkerAnswerFormatsFormatsItem]
+
+
 class WorkerKnowledgeBaseConfigIdentity(WireModel, frozen=True, extra="forbid"):
     """
     Where the worker signs in for this knowledge base, and as which client.
@@ -9002,6 +10155,127 @@ class WorkerHealth(WireModel, frozen=True, extra="forbid"):
     knowledge_bases: Annotated[
         list[WorkerKnowledgeBaseHealth],
         Field(alias="knowledgeBases", description="One entry for each of the document's `knowledgeBases`, in its order."),
+    ]
+
+
+class WorkerMessagesBootItemOwnBootRefusal(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    refusal: Annotated[
+        str,
+        Field(
+            description="The refusal, in place of the line's `{refusal}`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+class WorkerMessagesBootItemSharedBootRefusal(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written. What fills its text is the shared row's.")]
+    boot_refusal: Annotated[
+        str,
+        Field(
+            alias="bootRefusal",
+            description="The `name` of the row of service-environment/boot-refusals.json's `refusals` that is this refusal, with `{service}` `worker` and `{schema}` `WorkerConfig`.",
+        ),
+    ]
+
+
+type WorkerMessagesBootItem = WorkerMessagesBootItemOwnBootRefusal | WorkerMessagesBootItemSharedBootRefusal
+
+
+class WorkerMessagesReasonsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    line: Annotated[
+        str,
+        Field(
+            description="The line, indented by two spaces. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+class WorkerMessagesJob(WireModel, frozen=True, extra="forbid"):
+    """
+    How an error names the job, by its type, as `{job}`: `{motivation}` is a mark job's motivation.
+    """
+
+    mark: str
+    yield_: Annotated[str, Field(alias="yield")]
+
+
+class WorkerMessagesErrorsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    error: Annotated[
+        str,
+        Field(
+            description="The error. `{job}` in it is the job, as `job` names it. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+class WorkerMessagesDetailsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    detail: Annotated[
+        str,
+        Field(description="The detail. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."),
+    ]
+
+
+class WorkerMessagesWaitsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
+    said: Annotated[
+        str,
+        Field(
+            description="The wait, as the header stated it. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies."
+        ),
+    ]
+
+
+class WorkerMessagesLoggedItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The situation's name.")]
+    level: LogLevel
+    situation: Annotated[
+        str, Field(description="When it is written, what fills each `{name}` of its fields, and what each fact it carries says.")
+    ]
+    message: Annotated[str, Field(description="The line's message, word for word.")]
+    fields: Annotated[
+        dict[str, str],
+        Field(
+            description="The facts the line is logged with whose form is stated, by name: each a text whose `{name}` is filled as the row's `situation` says. A fact that is a number is its decimal digits."
+        ),
+    ]
+    carries: Annotated[
+        list[str],
+        Field(
+            description="The facts the line is logged with beside `fields`, whose value the row's `situation` says and whose form is not stated. The line may carry others."
+        ),
+    ]
+
+
+class WorkerMessages(WireModel, frozen=True, extra="forbid"):
+    """
+    worker/messages.json: the words of a Worker service's refusals to start, of the errors it fails a job with, and of the messages it logs that a reader relies on.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    boot: Annotated[
+        list[WorkerMessagesBootItem],
+        Field(description="Each refusal to start, written in service-environment/boot-refusals.json's `line`."),
+    ]
+    reasons: Annotated[list[WorkerMessagesReasonsItem], Field(description="Each line of the `{reasons}` of `invalid`.")]
+    job: WorkerMessagesJob
+    errors: Annotated[
+        list[WorkerMessagesErrorsItem],
+        Field(description="Each error a job is failed with that is the worker's own: the `error` of its `job:fail`."),
+    ]
+    details: Annotated[list[WorkerMessagesDetailsItem], Field(description="Each `{detail}` of `unreadable`.")]
+    waits: Annotated[list[WorkerMessagesWaitsItem], Field(description="Each `{said}` of `wait-stated`.")]
+    logged: Annotated[
+        list[WorkerMessagesLoggedItem], Field(description="Each message a Worker service logs that a reader of its output relies on.")
     ]
 
 

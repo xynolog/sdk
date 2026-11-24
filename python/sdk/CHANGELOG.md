@@ -35,6 +35,15 @@ the coming release's, and gathers its changes as they land.
 - `xynolog.locales`, generated from `locales/registry.json`: `LOCALES`, each
   supported language's code, native name and English name, with
   `LOCALE_CODES` and `LocaleCode`.
+- `xynolog.service_tables`: every table the services keep to (each service's
+  messages, `service-environment`, `service-telemetry`, `jobs/budgets.json`
+  and `storage.json`, `bus/reply-bounds.json`, `embedding/requests.json`,
+  `worker/answer-formats.json`, the gateway's media token and response
+  headers, the Archivist's layout and default entity types, the graph's
+  schema), each read as its schema's model, which `xynolog.types` now holds.
+  `SERVICE_TABLES` holds each by its file.
+- `xynolog.http.archivist_http`: each of the Archivist's operations as an
+  `ArchivistRoute`, its method and its path.
 - `xynolog.http.oauth.stored_session_of(client_id, issuer, tokens)`: what is
   kept of a sign-in, for a caller that completes the redirect grant itself.
 - `Bus.answer`, a request's answering side: it runs a handler on a request

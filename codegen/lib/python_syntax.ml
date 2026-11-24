@@ -36,7 +36,7 @@ type expr =
   | Set of items
   | Joined of string list
       (** Strings Python joins into one, in parentheses, one a line where they
-          do not fit on one. *)
+          do not fit on one. The sole argument of a call is in the call's. *)
 
 (* A bracket's elements, one a line when [magic]: the comma after the last,
    which ruff keeps (but for a tuple of one, whose comma is its own). *)
@@ -227,6 +227,13 @@ let rec doc = function
               (fun i e ->
                 (if i > 0 then [ L.Space; L.Text sign ] else []) @ [ operand e ])
               (chain e)))
+  | Call
+      ( f,
+        {
+          elements = [ { about = []; label = Plain; value = Joined texts } ];
+          magic = false;
+        } ) ->
+      joined (flat f ^ "(") texts
   | Call (f, items) -> bracket (flat f ^ "(") ")" items ~sole:`Bare
   | Subscript (e, items) -> bracket (flat e ^ "[") "]" items ~sole:`Bare
   | Tuple { elements = [ one ]; _ } ->
@@ -234,24 +241,26 @@ let rec doc = function
   | Tuple items -> bracket "(" ")" items ~sole:`Broken
   | List items -> bracket "[" "]" items ~sole:`Broken
   | Dict items | Set items -> bracket "{" "}" items ~sole:`Broken
-  | Joined texts ->
-      L.group
+  | Joined texts -> joined "(" texts
+
+and joined opening texts =
+  L.group
+    [
+      L.Text opening;
+      L.Indent
         [
-          L.Text "(";
-          L.Indent
-            [
-              L.Break;
-              L.group
-                (List.concat
-                   (List.mapi
-                      (fun i s ->
-                        (if i > 0 then [ L.Space ] else [])
-                        @ [ L.Text (literal ~ascii:false s) ])
-                      texts));
-            ];
           L.Break;
-          L.Text ")";
-        ]
+          L.group
+            (List.concat
+               (List.mapi
+                  (fun i s ->
+                    (if i > 0 then [ L.Space ] else [])
+                    @ [ L.Text (literal ~ascii:false s) ])
+                  texts));
+        ];
+      L.Break;
+      L.Text ")";
+    ]
 
 (* What follows an [=], as ruff writes it: an operation, or a name or number,
    too long for its line goes in parentheses of its own; a bracket breaks

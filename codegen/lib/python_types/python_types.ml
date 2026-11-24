@@ -111,7 +111,7 @@ let taken =
    gives. *)
 let python_name wire =
   let rec unmarked s =
-    if s <> "" && (s.[0] = '@' || s.[0] = '_') then
+    if s <> "" && (s.[0] = '@' || s.[0] = '_' || s.[0] = '$') then
       unmarked (String.sub s 1 (String.length s - 1))
     else s
   in
@@ -494,13 +494,14 @@ let module_ ~kinds ~also (definitions : D.definitions) =
         Banner.python_lines
           ~from_:
             "the component schemas of protocol/specs/src/openapi.json, the \
-             records of its tables, its client types and \
-             client/discovery-absent.json"
+             records of its tables, its client types, the services' tables' \
+             schemas and client/discovery-absent.json"
           __FILE__;
       doc =
         As_is
-          "The protocol's shapes: a model for every component schema and table \
-           record that is an object, and a type for every other.";
+          "The protocol's shapes: a model for every component schema, table \
+           record and service table that is an object, and a type for every \
+           other.";
       imports =
         [
           [ P.From ("__future__", [ "annotations" ]) ];
@@ -555,13 +556,40 @@ let discovery_absent (spec : Spec.t) =
               P.item (P.Str r.reason))
             reasons)) )
 
+(* Each service table ([Roots.service_tables]) is read as its schema's model
+   of types.py, named as its file is, and is that model's value in
+   service_tables.py. *)
+let table_model table = D.stem (Places.schema_of table)
+
 let text (spec : Spec.t) =
-  let definitions = (Definitions.bundle spec).definitions in
+  let bundle = Definitions.bundle spec in
+  let definitions = bundle.definitions in
+  let declared name =
+    match definitions.schema name with
+    | _ -> true
+    | exception D.Refused _ -> false
+  in
+  let tables =
+    List.map
+      (fun table ->
+        let file = Places.schema_of table and name = table_model table in
+        if declared name then
+          refuse "%s, the schema of %s, is named as a schema already is" file
+            table;
+        match List.assoc_opt file spec.schemas with
+        | Some s -> (name, bundle.view (Normalize.shape_only s))
+        | None -> refuse "%s has no schema %s" table file)
+      (Roots.service_tables spec)
+  in
+  let schema name =
+    match List.assoc_opt name tables with
+    | Some s -> s
+    | None -> definitions.schema name
+  in
   let rec reach written = function
     | [] -> written
     | name :: rest when List.mem name written -> reach written rest
-    | name :: rest ->
-        reach (name :: written) (named_in (definitions.schema name) @ rest)
+    | name :: rest -> reach (name :: written) (named_in (schema name) @ rest)
   in
   module_
     ~also:[ discovery_absent spec ]
@@ -571,12 +599,13 @@ let text (spec : Spec.t) =
             (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)
             spec.tables.identifiers_kinds.kinds))
     {
-      definitions with
+      schema;
       names =
         List.sort compare
           (reach definitions.names
              (List.map (fun (_, name, _) -> name) (Definitions.records spec)
-             @ Definitions.generated_client_types spec));
+             @ Definitions.generated_client_types spec
+             @ List.map fst tables));
     }
 
 (* The launcher's control API as the Python SDK reads it
@@ -831,7 +860,191 @@ let locales_text (t : L.t) =
         ];
     }
 
-let files ~root:_ (spec : Spec.t) =
+let tables_path = "python/sdk/src/xynolog/service_tables.py"
+
+(* [text], JSON, in ASCII: every other character as JSON escapes it. *)
+let ascii_json text =
+  let out = Buffer.create (String.length text) in
+  Text.fold_uchars
+    (fun () u ->
+      let code = Uchar.to_int u in
+      if code < 0x80 then Buffer.add_char out (Char.chr code)
+      else if code <= 0xFFFF then
+        Buffer.add_string out (Printf.sprintf "\\u%04x" code)
+      else
+        let v = code - 0x10000 in
+        Buffer.add_string out
+          (Printf.sprintf "\\u%04x\\u%04x"
+             (0xD800 lor (v lsr 10))
+             (0xDC00 lor (v land 0x3FF))))
+    () text;
+  Buffer.contents out
+
+(* [text] in pieces of [size] characters, the last the rest. *)
+let rec pieces size text =
+  if String.length text <= size then [ text ]
+  else
+    String.sub text 0 size
+    :: pieces size (String.sub text size (String.length text - size))
+
+let tables_text ~root (spec : Spec.t) =
+  let tables = Roots.service_tables spec in
+  let constant table = Bus.Python.constant (Filename.remove_extension table) in
+  let read table =
+    ascii_json
+      (Yojson.Safe.to_string
+         (Yojson.Safe.from_file
+            (Filename.concat root ("protocol/specs/src/" ^ table))))
+  in
+  let table t =
+    P.assign (constant t) ~annotation:(P.Name "Final")
+      ~value:
+        (P.Call
+           ( P.Name (table_model t ^ ".model_validate_json"),
+             P.items [ P.item (P.Joined (pieces 80 (read t))) ] ))
+      ~doc:
+        (Wrapped
+           (Printf.sprintf "protocol/specs/src/%s, read as `%s`." t
+              (table_model t)))
+  in
+  P.text
+    {
+      header =
+        Banner.python_lines ~from_:"the services' tables of protocol/specs/src"
+          __FILE__;
+      doc =
+        Wrapped
+          "The tables the services keep to, each read as its schema's model: \
+           the variables a service reads and why it refuses to start, what it \
+           tells OpenTelemetry and logs, its messages, its jobs' budgets, the \
+           bounds of the bus's replies, and the rest. `SERVICE_TABLES` holds \
+           each by its file.";
+      imports =
+        [
+          [
+            P.From ("collections.abc", [ "Mapping" ]);
+            P.From ("types", [ "MappingProxyType" ]);
+            P.From ("typing", [ "Final" ]);
+          ];
+          [
+            P.From ("xynolog.model", [ "WireModel" ]);
+            P.From
+              ( "xynolog.types",
+                List.sort_uniq compare (List.map table_model tables) );
+          ];
+        ];
+      body =
+        [
+          P.assign "__all__"
+            ~value:
+              (P.List
+                 (P.items ~magic:true
+                    (List.map
+                       (fun n -> P.item (P.Str n))
+                       (List.sort compare
+                          ("SERVICE_TABLES" :: List.map constant tables)))));
+        ]
+        @ List.map table tables
+        @ [
+            P.assign
+              ~about:
+                [ Line "Every table, by its file under protocol/specs/src." ]
+              "SERVICE_TABLES"
+              ~annotation:
+                (P.sub "Final"
+                   [
+                     P.item
+                       (P.sub "Mapping"
+                          [ P.item (P.Name "str"); P.item (P.Name "WireModel") ]);
+                   ])
+              ~value:
+                (P.call "MappingProxyType"
+                   [
+                     P.item
+                       (P.Dict
+                          (P.items ~magic:true
+                             (List.map
+                                (fun t ->
+                                  P.entry (P.Str t) (P.Name (constant t)))
+                                tables)));
+                   ]);
+          ];
+    }
+
+(* The Archivist's HTTP surface as the Python SDK reads it
+   (python/sdk/src/xynolog/http/archivist_http.py, from
+   protocol/specs/src/archivist/openapi.json and its paths): each operation as
+   an ArchivistRoute named for its operationId, with its method and its path,
+   a [{name}] for each parameter, which the caller fills. *)
+let archivist_path = "python/sdk/src/xynolog/http/archivist_http.py"
+
+let archivist_text (spec : Spec.t) =
+  let operations =
+    List.concat_map
+      (fun (path, reference) ->
+        let file, _ = Decode.resolve spec.ids reference in
+        match List.assoc_opt file spec.path_items with
+        | None -> refuse "archivist/openapi.json names no path item %s" file
+        | Some (item : Openapi.path_item) ->
+            List.filter_map
+              (fun (method_, operation) ->
+                Option.map
+                  (fun (o : Openapi.operation) ->
+                    (o.operation_id, method_, path))
+                  operation)
+              [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
+      spec.archivist.paths
+  in
+  let name operation_id = Text.upper_snake operation_id in
+  P.text
+    {
+      header =
+        Banner.python_lines
+          ~from_:"protocol/specs/src/archivist/openapi.json and its paths"
+          __FILE__;
+      doc =
+        Wrapped
+          "The Archivist's HTTP surface: each of its operations, with its \
+           method and its path.";
+      imports =
+        [
+          [
+            P.From ("dataclasses", [ "dataclass" ]);
+            P.From ("typing", [ "Final"; "final" ]);
+          ];
+        ];
+      body =
+        [
+          P.assign "__all__"
+            ~value:
+              (P.List
+                 (P.items ~magic:true
+                    (List.map
+                       (fun n -> P.item (P.Str n))
+                       (List.sort compare
+                          ("ArchivistRoute"
+                          :: List.map (fun (o, _, _) -> name o) operations)))));
+          P.frozen_dataclass "ArchivistRoute"
+            "An operation of the Archivist: its method, and its path, a \
+             `{name}` for each parameter, which the caller fills."
+            [ P.field "method" (P.Name "str"); P.field "path" (P.Name "str") ];
+        ]
+        @ List.map
+            (fun (operation_id, method_, path) ->
+              P.assign
+                ~about:[ Line ("`" ^ operation_id ^ "`.") ]
+                ~annotation:(P.Name "Final")
+                ~value:
+                  (P.call "ArchivistRoute"
+                     [
+                       P.keyword "method" (P.Str method_);
+                       P.keyword "path" (P.Str path);
+                     ])
+                (name operation_id))
+            operations;
+    }
+
+let files ~root (spec : Spec.t) =
   match
     (text spec, control_text spec, Locales.derive spec.tables.locales_registry)
   with
@@ -842,6 +1055,8 @@ let files ~root:_ (spec : Spec.t) =
           { Output.path; text };
           { Output.path = control_path; text = control };
           { Output.path = locales_path; text = locales_text locales };
+          { Output.path = tables_path; text = tables_text ~root spec };
+          { Output.path = archivist_path; text = archivist_text spec };
         ]
   | exception Definitions.Refused message ->
       Error [ { Decode.file = "openapi.json"; pointer = ""; message } ]
