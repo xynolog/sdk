@@ -64,28 +64,28 @@ data Spanned = TextContent Text | PdfContent AnchoredText deriving (Eq, Show)
 
 bodies :: Maybe AnnotationBodies -> [AnnotationBody]
 bodies Nothing = []
-bodies (Just (AnnotationBodiesBranch1 body)) = [body]
-bodies (Just (AnnotationBodiesBranch2 body)) = body
+bodies (Just (AnnotationBodiesAnnotationBody body)) = [body]
+bodies (Just (AnnotationBodiesList body)) = body
 
 selectors :: AnnotationSelector -> [Selector]
-selectors (AnnotationSelectorBranch1 selector) = [selector]
-selectors (AnnotationSelectorBranch2 values) = values
+selectors (AnnotationSelectorSelector selector) = [selector]
+selectors (AnnotationSelectorList values) = values
 
 bodySource :: Maybe AnnotationBodies -> Maybe ResourceId
 bodySource = listToMaybe . mapMaybe source . bodies
   where
-    source (AnnotationBodyBranch2 resource) = Just (specificResourceSource resource); source _ = Nothing
+    source (AnnotationBodySpecificResource resource) = Just (specificResourceSource resource); source _ = Nothing
 
 isBodyResolved :: Maybe AnnotationBodies -> Bool
 isBodyResolved = isJust . bodySource
 
 targetSource :: AnnotationTargetInline -> ResourceId
-targetSource (AnnotationTargetInlineBranch1 resource) = resource
-targetSource (AnnotationTargetInlineBranch2 target) = annotationTargetSource target
+targetSource (AnnotationTargetInlineResourceId resource) = resource
+targetSource (AnnotationTargetInlineAnnotationTarget target) = annotationTargetSource target
 
 targetSelector :: AnnotationTargetInline -> Maybe AnnotationSelector
-targetSelector (AnnotationTargetInlineBranch1 _) = Nothing
-targetSelector (AnnotationTargetInlineBranch2 target) = annotationTargetSelector target
+targetSelector (AnnotationTargetInlineResourceId _) = Nothing
+targetSelector (AnnotationTargetInlineAnnotationTarget target) = annotationTargetSelector target
 
 isHighlight, isReference, isAssessment, isComment, isTag :: Annotation -> Bool
 isHighlight = (== MotivationHighlighting) . annotationMotivation
@@ -96,7 +96,7 @@ isTag = (== MotivationTagging) . annotationMotivation
 
 commentText :: Annotation -> Maybe Text
 commentText annotation
-  | isComment annotation = case bodies (annotationBody annotation) of AnnotationBodyBranch1 body : _ -> Just (textualBodyValue body); _ -> Nothing
+  | isComment annotation = case bodies (annotationBody annotation) of AnnotationBodyTextualBody body : _ -> Just (textualBodyValue body); _ -> Nothing
   | otherwise = Nothing
 
 isStubReference, isResolvedReference :: Annotation -> Bool
@@ -106,22 +106,22 @@ isResolvedReference annotation = isReference annotation && isBodyResolved (annot
 textQuoteSelector :: AnnotationSelector -> Maybe TextQuoteSelector
 textQuoteSelector = listToMaybe . mapMaybe select . selectors
   where
-    select (SelectorBranch2 value) = Just value; select _ = Nothing
+    select (SelectorTextQuoteSelector value) = Just value; select _ = Nothing
 
 textPositionSelector :: AnnotationSelector -> Maybe TextPositionSelector
 textPositionSelector = listToMaybe . mapMaybe select . selectors
   where
-    select (SelectorBranch1 value) = Just value; select _ = Nothing
+    select (SelectorTextPositionSelector value) = Just value; select _ = Nothing
 
 svgSelector :: AnnotationSelector -> Maybe SvgSelector
 svgSelector = listToMaybe . mapMaybe select . selectors
   where
-    select (SelectorBranch3 value) = Just value; select _ = Nothing
+    select (SelectorSvgSelector value) = Just value; select _ = Nothing
 
 fragmentSelector :: AnnotationSelector -> Maybe FragmentSelector
 fragmentSelector = listToMaybe . mapMaybe select . selectors
   where
-    select (SelectorBranch4 value) = Just value; select _ = Nothing
+    select (SelectorFragmentSelector value) = Just value; select _ = Nothing
 
 exactText :: Maybe AnnotationSelector -> Text
 exactText selector = maybe "" textQuoteSelectorExact (selector >>= textQuoteSelector)
@@ -130,7 +130,7 @@ annotationExactText :: Annotation -> Text
 annotationExactText = exactText . targetSelector . annotationTarget
 
 textsFor :: BodyPurpose -> Annotation -> [Text]
-textsFor purpose annotation = [textualBodyValue body | AnnotationBodyBranch1 body <- bodies (annotationBody annotation), textualBodyPurpose body == Just purpose]
+textsFor purpose annotation = [textualBodyValue body | AnnotationBodyTextualBody body <- bodies (annotationBody annotation), textualBodyPurpose body == Just purpose]
 
 entityTypes :: Annotation -> [Text]
 entityTypes = filter (not . Text.null) . textsFor BodyPurposeTagging
@@ -150,11 +150,11 @@ built wall resource motivation anchor target generator body = do
         body
         created
         Nothing
-        (OneOrMoreAgentsBranch1 <$> generator)
+        (OneOrMoreAgentsAgent <$> generator)
         identity
         Nothing
         motivation
-        (AnnotationTargetInlineBranch2 target)
+        (AnnotationTargetInlineAnnotationTarget target)
         AnnotationTypeAnnotation
         Nothing
         mempty
@@ -166,10 +166,10 @@ annotationOfResource wall resource motivation generator body =
 
 -- | The span a reconciliation found, as 'annotationOfSpan' takes one.
 textSpanOf :: ReconciledSpan -> TextSpan
-textSpanOf (ReconciledSpanBranch1 found) = TextSpan (reconciledSpanUniqueMatchEnd found) (reconciledSpanUniqueMatchExact found) (reconciledSpanUniqueMatchPrefix found) (reconciledSpanUniqueMatchStart found) (reconciledSpanUniqueMatchSuffix found)
-textSpanOf (ReconciledSpanBranch2 found) = TextSpan (reconciledSpanContextRecoveredEnd found) (reconciledSpanContextRecoveredExact found) (reconciledSpanContextRecoveredPrefix found) (reconciledSpanContextRecoveredStart found) (reconciledSpanContextRecoveredSuffix found)
-textSpanOf (ReconciledSpanBranch3 found) = TextSpan (reconciledSpanFirstOfManyEnd found) (reconciledSpanFirstOfManyExact found) (reconciledSpanFirstOfManyPrefix found) (reconciledSpanFirstOfManyStart found) (reconciledSpanFirstOfManySuffix found)
-textSpanOf (ReconciledSpanBranch4 found) = TextSpan (reconciledSpanFuzzyMatchEnd found) (reconciledSpanFuzzyMatchExact found) (reconciledSpanFuzzyMatchPrefix found) (reconciledSpanFuzzyMatchStart found) (reconciledSpanFuzzyMatchSuffix found)
+textSpanOf (ReconciledSpanReconciledSpanUniqueMatch found) = TextSpan (reconciledSpanUniqueMatchEnd found) (reconciledSpanUniqueMatchExact found) (reconciledSpanUniqueMatchPrefix found) (reconciledSpanUniqueMatchStart found) (reconciledSpanUniqueMatchSuffix found)
+textSpanOf (ReconciledSpanReconciledSpanContextRecovered found) = TextSpan (reconciledSpanContextRecoveredEnd found) (reconciledSpanContextRecoveredExact found) (reconciledSpanContextRecoveredPrefix found) (reconciledSpanContextRecoveredStart found) (reconciledSpanContextRecoveredSuffix found)
+textSpanOf (ReconciledSpanReconciledSpanFirstOfMany found) = TextSpan (reconciledSpanFirstOfManyEnd found) (reconciledSpanFirstOfManyExact found) (reconciledSpanFirstOfManyPrefix found) (reconciledSpanFirstOfManyStart found) (reconciledSpanFirstOfManySuffix found)
+textSpanOf (ReconciledSpanReconciledSpanFuzzyMatch found) = TextSpan (reconciledSpanFuzzyMatchEnd found) (reconciledSpanFuzzyMatchExact found) (reconciledSpanFuzzyMatchPrefix found) (reconciledSpanFuzzyMatchStart found) (reconciledSpanFuzzyMatchSuffix found)
 
 annotationOfSpan :: IO UTCTime -> Spanned -> TextSpan -> ResourceId -> Motivation -> Agent -> Maybe AnnotationBodies -> IO Annotation
 annotationOfSpan wall content spanValue resource motivation generator body = do
@@ -194,7 +194,7 @@ annotationOfSpan wall content spanValue resource motivation generator body = do
       unless
         (between whole (fromInteger start) (fromInteger end) == exact)
         (refuse SpanRefusalExactMismatch "The span's words differ from the text between its offsets")
-      pure [SelectorBranch1 (TextPositionSelector end start TextPositionSelectorTypeTextPositionSelector mempty)]
+      pure [SelectorTextPositionSelector (TextPositionSelector end start TextPositionSelectorTypeTextPositionSelector mempty)]
     PdfContent anchored -> do
       let (overlapping, rectangles) = Pdf.locate anchored start end
       unless (not (null rectangles)) (refuse SpanRefusalNothingLocated "No anchored-text item overlaps the span")
@@ -202,7 +202,7 @@ annotationOfSpan wall content spanValue resource motivation generator body = do
       unless
         (collapsed exact `Text.isInfixOf` collapsed covered)
         (refuse SpanRefusalExactNotCovered "The overlapping items do not cover the span's words")
-      pure [SelectorBranch4 (FragmentSelector (Just "http://tools.ietf.org/rfc/rfc3778") FragmentSelectorTypeFragmentSelector (Pdf.fragmentOf rectangle) mempty) | rectangle <- rectangles]
+      pure [SelectorFragmentSelector (FragmentSelector (Just "http://tools.ietf.org/rfc/rfc3778") FragmentSelectorTypeFragmentSelector (Pdf.fragmentOf rectangle) mempty) | rectangle <- rectangles]
   forM_ (textSpanPrefix spanValue) $ \prefix ->
     unless
       (prefix `Text.isSuffixOf` Text.take (fromInteger start) whole)
@@ -212,7 +212,7 @@ annotationOfSpan wall content spanValue resource motivation generator body = do
       (suffix `Text.isPrefixOf` Text.drop (fromInteger end) whole)
       (refuse SpanRefusalSuffixMismatch "The span's suffix differs from the text after it")
   let nonempty = (>>= \value -> if Text.null value then Nothing else Just value)
-      quote = SelectorBranch2 (TextQuoteSelector exact (nonempty (textSpanPrefix spanValue)) (nonempty (textSpanSuffix spanValue)) TextQuoteSelectorTypeTextQuoteSelector mempty)
-      target = AnnotationTarget (Just (AnnotationSelectorBranch2 (places ++ [quote]))) resource (Just AnnotationTargetTypeSpecificResource) mempty
+      quote = SelectorTextQuoteSelector (TextQuoteSelector exact (nonempty (textSpanPrefix spanValue)) (nonempty (textSpanSuffix spanValue)) TextQuoteSelectorTypeTextQuoteSelector mempty)
+      target = AnnotationTarget (Just (AnnotationSelectorList (places ++ [quote]))) resource (Just AnnotationTargetTypeSpecificResource) mempty
       anchor = Text.pack (show start) <> ":" <> Text.pack (show end) <> ":" <> exact
   built wall resource motivation anchor target (Just generator) body

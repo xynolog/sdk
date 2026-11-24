@@ -68,11 +68,12 @@ from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from types import TracebackType
-from typing import Final, Literal, Self, assert_never, final
+from typing import Annotated, Final, Literal, Self, assert_never, final
 
-from pydantic import JsonValue, TypeAdapter, ValidationError
+from pydantic import Field, JsonValue, TypeAdapter, ValidationError
 
 from xynolog import telemetry
+from xynolog._instant import instant
 from xynolog._kept_for_first_reader import KeptForFirstReader, Latest
 from xynolog._reading import Reading
 from xynolog.bus import Bus, answer_of, reply_channels_for, request
@@ -119,6 +120,7 @@ from xynolog.types import (
     MarkJobCompleteCommand,
     MarkJobResult,
     UnitCursor,
+    WorkerEngineHealthActiveJob,
     YieldJobCompleteCommand,
     YieldJobResult,
 )
@@ -127,7 +129,6 @@ from xynolog.watched import Variable, Watched
 __all__ = [
     "JOB_CLAIM_CHANNELS",
     "JOB_COMMIT_CHANNELS",
-    "ActiveJob",
     "ClaimRefusal",
     "Claims",
     "HeldJob",
@@ -230,35 +231,26 @@ class ClaimRefusal:
 
 
 @final
-@dataclass(frozen=True, slots=True)
-class ActiveJob:
-    """The job a worker holds, as its vitals name it."""
-
-    job_id: JobId
-    job_type: JobType
-    since: datetime
-
-
-@final
-@dataclass(frozen=True, slots=True)
-class WorkerVitals:
+class WorkerVitals(WireModel, frozen=True, extra="forbid"):
     """What a worker can say of itself at any moment (WORKER-CONTRACT V1).
+
+    It is `WorkerEngineHealth` less its engine and jobs, which are its host's.
 
     `last_queued_event_at` is any `job:queued` received, matching or not. On
     an idle stack with an empty queue it stands still by design, so a still
     stamp alone is not a fault of the stream. `last_activity_at` (a claim, a
     progress report, a checkpoint, a settle) is the liveness of the work: a
     job stuck partway stops advancing it, and that is what the stall rule
-    reads.
+    reads. `last_finished_at` is the last settle, whatever its outcome: a
+    worker that fails and moves on is alive.
     """
 
-    last_queued_event_at: datetime | None
-    last_claim_at: datetime | None
-    last_finished_at: datetime | None
-    """The last settle, whatever its outcome: a worker that fails and moves on is alive."""
-    last_activity_at: datetime | None
-    active_job: ActiveJob | None
-    jobs_completed: int
+    last_queued_event_at: Annotated[str | None, Field(alias="lastQueuedEventAt")]
+    last_claim_at: Annotated[str | None, Field(alias="lastClaimAt")]
+    last_finished_at: Annotated[str | None, Field(alias="lastFinishedAt")]
+    last_activity_at: Annotated[str | None, Field(alias="lastActivityAt")]
+    active_job: Annotated[WorkerEngineHealthActiveJob | None, Field(alias="activeJob")]
+    jobs_completed: Annotated[int, Field(alias="jobsCompleted")]
 
 
 @final
@@ -272,6 +264,10 @@ class HeldJobStall:
     last_activity_at: datetime
     silent_for_ms: int
     threshold_ms: int
+
+
+def _instant_or_none(at: datetime | None) -> str | None:
+    return None if at is None else instant(at)
 
 
 def _anchor_of(job_type: JobType, params: Mapping[str, JsonValue]) -> AnnotationId | None:
@@ -301,6 +297,8 @@ class _Holder:
     wire: Bus
     mark_commit_timeout_ms: int
     """How long each of a commit's requests waits to be answered."""
+    filters: tuple[Mapping[str, JsonValue], ...]
+    """Each filter of the claim, as the wire carries it."""
     active: Callable[[], None]
     """The work showed it is alive."""
     released: Callable[["_Held", bool], None]
@@ -340,6 +338,9 @@ class _Held:
         self.annotation_id: Final = _anchor_of(metadata.type, written(params))
         """The annotation the job is anchored to: the one a `yield` job's context is focused on."""
         self._type: Final[JobType] = metadata.type
+        description: Mapping[str, JsonValue] = {"jobType": metadata.type, "params": written(params)}
+        self.accepted: Final = any(job_matches_filter(accepted, description) for accepted in holder.filters)
+        """Whether its claim accepts the job. The dispatcher hands out no other, so a job it does not is one the two disagree about."""
         self._cancelled: Final = cancelled
         self._begun = False
         self._settled = False
@@ -705,6 +706,7 @@ class Claims:
             transport=transport,
             wire=Bus(transport),
             mark_commit_timeout_ms=mark_commit_timeout_ms,
+            filters=self._filters,
             active=self._active,
             released=self._released,
         )
@@ -948,13 +950,13 @@ class Claims:
         """What this worker can say of itself now."""
         held = self._held
         return WorkerVitals(
-            last_queued_event_at=self._last_queued_event_at,
-            last_claim_at=self._last_claim_at,
-            last_finished_at=self._last_finished_at,
-            last_activity_at=self._last_activity_at,
+            last_queued_event_at=_instant_or_none(self._last_queued_event_at),
+            last_claim_at=_instant_or_none(self._last_claim_at),
+            last_finished_at=_instant_or_none(self._last_finished_at),
+            last_activity_at=_instant_or_none(self._last_activity_at),
             active_job=None
             if held is None or self._held_since is None
-            else ActiveJob(job_id=held.job_id, job_type=held.job_type, since=self._held_since),
+            else WorkerEngineHealthActiveJob(job_id=held.job_id, type=held.job_type, since=instant(self._held_since)),
             jobs_completed=self._jobs_completed,
         )
 

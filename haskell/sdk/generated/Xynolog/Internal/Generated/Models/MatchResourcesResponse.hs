@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.MatchResourcesResponse (MatchResourcesResponse (..), MatchResourcesResponseMatchKind (..)) where
+module Xynolog.Internal.Generated.Models.MatchResourcesResponse (MatchResourcesResponse (..), MatchResourcesResponseMatchKind (..), matchResourcesResponseMatchKindText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceDescriptor
 
@@ -30,3 +31,7 @@ instance FromJSON MatchResourcesResponseMatchKind where parseJSON = checked "Mat
 instance ToJSON MatchResourcesResponseMatchKind where
   toJSON MatchResourcesResponseMatchKindLexical = String "lexical"
   toJSON MatchResourcesResponseMatchKindSemantic = String "semantic"
+
+matchResourcesResponseMatchKindText :: MatchResourcesResponseMatchKind -> Text
+matchResourcesResponseMatchKindText MatchResourcesResponseMatchKindLexical = "lexical"
+matchResourcesResponseMatchKindText MatchResourcesResponseMatchKindSemantic = "semantic"

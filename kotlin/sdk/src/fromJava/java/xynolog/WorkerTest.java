@@ -33,6 +33,7 @@ import xynolog.jobs.HeldYieldJob;
 import xynolog.jobs.JobFilterKt;
 import xynolog.jobs.RetriesKt;
 import xynolog.transport.Events;
+import xynolog.types.ClaimOptions;
 import xynolog.types.FailureClass;
 import xynolog.types.JobFilter;
 import xynolog.types.JobProgress;
@@ -145,7 +146,7 @@ final class WorkerTest {
     @Test
     void aJavaWorkerClaimsHoldsAndSettlesAJob() throws Exception {
         try (Opened opened = new Opened()) {
-            Claims claims = opened.client.getJob().claim(List.<JobFilter>of(YieldJobFilter.builder().build()));
+            Claims claims = opened.client.getJob().claim(ClaimOptions.builder(List.<JobFilter>of(YieldJobFilter.builder().build())).build());
             HeldJob job = claims.nextFuture().get(10, SECONDS);
             HeldYieldJob held = assertInstanceOf(HeldYieldJob.class, job);
             assertEquals(new JobId("job-1"), held.getJobId());
@@ -175,7 +176,7 @@ final class WorkerTest {
     @Test
     void aJobAJavaWorkerLetsGoOfUnsettledIsFailed() throws Exception {
         try (Opened opened = new Opened()) {
-            Claims claims = opened.client.getJob().claim(List.<JobFilter>of(YieldJobFilter.builder().build()));
+            Claims claims = opened.client.getJob().claim(ClaimOptions.builder(List.<JobFilter>of(YieldJobFilter.builder().build())).build());
             HeldJob job = claims.nextFuture().get(10, SECONDS);
             job.close();
             assertTrue(opened.next("job:fail").contains("The worker let go of the job without settling it"));
@@ -187,7 +188,7 @@ final class WorkerTest {
     @Test
     void aJavaWorkerReadsWhatItWasHandedAndCompletesIt() throws Exception {
         try (Opened opened = new Opened()) {
-            Claims claims = opened.client.getJob().claim(List.<JobFilter>of(YieldJobFilter.builder().build()));
+            Claims claims = opened.client.getJob().claim(ClaimOptions.builder(List.<JobFilter>of(YieldJobFilter.builder().build())).build());
             Events<HeldJobStall> stalls = claims.stalled();
             HeldYieldJob held = assertInstanceOf(HeldYieldJob.class, claims.nextFuture().get(10, SECONDS));
             assertEquals(JobType.Yield, held.getJobType());
@@ -216,7 +217,7 @@ final class WorkerTest {
     @Test
     void aJavaWorkerCancelsTheJobItHolds() throws Exception {
         try (Opened opened = new Opened()) {
-            Claims claims = opened.client.getJob().claim(List.<JobFilter>of(YieldJobFilter.builder().build()));
+            Claims claims = opened.client.getJob().claim(ClaimOptions.builder(List.<JobFilter>of(YieldJobFilter.builder().build())).build());
             HeldJob held = claims.nextFuture().get(10, SECONDS);
             held.startFuture().get(10, SECONDS);
             held.cancelFuture(List.of(), Map.of()).get(10, SECONDS);
@@ -233,7 +234,7 @@ final class WorkerTest {
                     ? "{\"channel\":\"job:claim-failed\",\"payload\":{\"message\":\"This account may not claim\",\"code\":\"unauthorized\"},\"correlationId\":\""
                             + Gateway.correlationOf(body) + "\"}"
                     : null;
-            Claims claims = opened.client.getJob().claim(List.<JobFilter>of(YieldJobFilter.builder().build()));
+            Claims claims = opened.client.getJob().claim(ClaimOptions.builder(List.<JobFilter>of(YieldJobFilter.builder().build())).build());
             try (Events<ClaimRefusal> refused = claims.refused()) {
                 // The worker claims once it is asked for a job.
                 CompletableFuture<HeldJob> reading = claims.nextFuture();

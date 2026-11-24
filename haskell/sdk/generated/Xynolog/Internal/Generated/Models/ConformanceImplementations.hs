@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceImplementations (ConformanceImplementations (..), ConformanceImplementationsSdks (..), ConformanceImplementationsSdksAdditionalValue (..), ConformanceImplementationsSdksAdditionalValueExempt (..), ConformanceImplementationsSdksAdditionalValueLive (..), ConformanceImplementationsSdksAdditionalValueLiveTier (..)) where
+module Xynolog.Internal.Generated.Models.ConformanceImplementations (ConformanceImplementations (..), ConformanceImplementationsSdks (..), ConformanceImplementationsSdksAdditionalValue (..), ConformanceImplementationsSdksAdditionalValueExempt (..), ConformanceImplementationsSdksAdditionalValueLive (..), ConformanceImplementationsSdksAdditionalValueLiveTier (..), conformanceImplementationsSdksAdditionalValueLiveTierText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -69,3 +69,7 @@ instance FromJSON ConformanceImplementationsSdksAdditionalValueLiveTier where pa
 instance ToJSON ConformanceImplementationsSdksAdditionalValueLiveTier where
   toJSON ConformanceImplementationsSdksAdditionalValueLiveTierFleet = String "fleet"
   toJSON ConformanceImplementationsSdksAdditionalValueLiveTierParity = String "parity"
+
+conformanceImplementationsSdksAdditionalValueLiveTierText :: ConformanceImplementationsSdksAdditionalValueLiveTier -> Text
+conformanceImplementationsSdksAdditionalValueLiveTierText ConformanceImplementationsSdksAdditionalValueLiveTierFleet = "fleet"
+conformanceImplementationsSdksAdditionalValueLiveTierText ConformanceImplementationsSdksAdditionalValueLiveTierParity = "parity"

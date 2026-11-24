@@ -5,20 +5,22 @@ public struct MatchNamespace: Sendable {
   let live: LiveQueries
 
   public func resources(
-    _ search: String, filters: ResourceFilters = ResourceFilters()
+    _ search: String, filters: ResourceSearchFilters = ResourceSearchFilters()
   ) -> Cached<MatchResourcesResponse> {
-    live.matchedResources.observe(LiveQueries.SearchKey(text: search, filters: filters))
+    live.matchedResources.observe(MatchResourcesRequest(search, paging: filters))
   }
   public func search(
-    resourceId: ResourceId, referenceId: AnnotationId, context: GatheredContext, limit: Int = 10,
-    useSemanticScoring: Bool = true
+    resourceId: ResourceId, referenceId: AnnotationId, context: GatheredContext,
+    options: MatchSearchOptions = MatchSearchOptions()
   ) -> Running<MatchSearchResult> {
-    let request = MatchSearchRequest(
-      context: context, limit: limit, referenceId: referenceId, resourceId: resourceId,
-      useSemanticScoring: useSemanticScoring)
-    return search(request)
+    search(
+      MatchSearchRequest(
+        context: context, limit: options.limit, referenceId: referenceId, resourceId: resourceId,
+        useSemanticScoring: options.useSemanticScoring))
   }
 
+  /// The search `request` asks for, its limit and scoring filled where it leaves them out, as
+  /// client/surface.json's `match.search` cases state them.
   func search(_ request: MatchSearchRequest) -> Running<MatchSearchResult> {
     var request = request
     if request.limit == nil { request.limit = 10 }

@@ -1,0 +1,2888 @@
+// ⚠ GENERATED FILE — do not edit.
+//
+// Authority:   the services' tables of protocol/specs/src
+// Regenerate:  make generate  (codegen/lib/typescript_types/table_modules.ml)
+
+import type { tables } from './types';
+
+/** protocol/specs/src/archivist/default-entity-types.json, as `ArchivistDefaultEntityTypes` types it. */
+export const ARCHIVIST_DEFAULT_ENTITY_TYPES: tables['ArchivistDefaultEntityTypes'] =
+  {
+    $comment:
+      'AUTHORITY for the vocabulary an Archivist seeds at boot (ARCHIVIST.md § Boot and shutdown, step 8): each of `entityTypes` that the `__system__` stream has not recorded is added, in this order, as a `frame:entity-type-added` sent by the knowledge base itself (`did:web:<domain>`), before the Archivist subscribes to its channels; its facts are the first it publishes.',
+    entityTypes: [
+      'Person',
+      'Organization',
+      'Location',
+      'Event',
+      'Concept',
+      'Product',
+      'Technology',
+      'Date',
+      'Author',
+    ],
+  };
+
+/** protocol/specs/src/archivist/layout.json, as `ArchivistLayout` types it. */
+export const ARCHIVIST_LAYOUT: tables['ArchivistLayout'] = {
+  $comment:
+    "AUTHORITY for where the Archivist keeps the record on disk (ARCHIVIST.md § The record on disk), as far as a reader of its files needs it: each file's tree, `root` (the working tree), `stateHome` (the state directory) or `anchoredTextDir` (the anchored-text store), and its path in that tree. A path's `{resourceId}` is the resource's id, `{uriHash}` the SHA-256 of a storage URI's UTF-8 bytes in lowercase hex, `{contentChecksum}` a content checksum, and its `{shard}` the two-level shard, `<ab>/<cd>`, of the key the file is filed by (the resource id, the URI, or the checksum), as archivist/shard-cases.json states the arithmetic. A stream is a directory of event files, named by `eventFile`, numbered from `first` in `digits` decimal digits, each holding at most `maxEvents` events, the next event opening the next file; each line of one is a stored event, compact JSON ended by a single newline, as `storedEvent` names it. A resource's view is JSON indented by two spaces, as `view.schema` names it, and so is each projection of what the `__system__` stream adds up to, as its `schema` names it, and each entry of the storage-uri index, as `storageUriIndex.schema` names it; a projection file that is absent reads as empty. An anchored-text entry is compact JSON, as `anchoredTextEntry.schema` names it. The stamp its entries are taken under is the file `anchoredTextStamp`: the stamp alone, as AnchoredTextStamp's `stamp` is, followed by a newline.",
+  eventStream: {
+    tree: 'root',
+    path: '.xynolog/events/{shard}/{resourceId}',
+  },
+  systemStream: {
+    tree: 'root',
+    path: '.xynolog/events/__system__',
+  },
+  eventFile: {
+    name: 'events-{number}.jsonl',
+    digits: 6,
+    first: 1,
+    maxEvents: 10000,
+  },
+  storedEvent: {
+    $ref: 'https://xynolog.org/protocol/StoredEventResponse.json',
+  },
+  view: {
+    tree: 'stateHome',
+    path: 'resources/{shard}/{resourceId}.json',
+    schema: {
+      $ref: 'https://xynolog.org/protocol/ResourceView.json',
+    },
+  },
+  systemProjections: {
+    tree: 'stateHome',
+    path: 'projections/__system__',
+    files: [
+      {
+        name: 'entitytypes.json',
+        schema: {
+          $ref: 'https://xynolog.org/protocol/EntityTypesProjection.json',
+        },
+      },
+      {
+        name: 'tagschemas.json',
+        schema: {
+          $ref: 'https://xynolog.org/protocol/TagSchemasProjection.json',
+        },
+      },
+      {
+        name: 'profiles.json',
+        schema: {
+          $ref: 'https://xynolog.org/protocol/ProfilesProjection.json',
+        },
+      },
+    ],
+  },
+  storageUriIndex: {
+    tree: 'stateHome',
+    path: 'projections/storage-uri/{shard}/{uriHash}.json',
+    schema: {
+      $ref: 'https://xynolog.org/protocol/StorageUriEntry.json',
+    },
+  },
+  anchoredTextEntry: {
+    tree: 'anchoredTextDir',
+    path: '{shard}/{contentChecksum}.json',
+    schema: {
+      $ref: 'https://xynolog.org/protocol/AnchoredTextEntry.json',
+    },
+  },
+  anchoredTextStamp: {
+    tree: 'anchoredTextDir',
+    path: 'STAMP',
+  },
+};
+
+/** protocol/specs/src/archivist/messages.json, as `ArchivistMessages` types it. */
+export const ARCHIVIST_MESSAGES: tables['ArchivistMessages'] = {
+  $comment:
+    "AUTHORITY for the words of the Archivist's own refusals and of the messages it logs that a reader of its output relies on (ARCHIVIST.md), word for word. A text's `{name}` is filled as the row's `situation` says, and nothing else in it varies. `boot` is each refusal to start of the Archivist's own, beside the document and account refusals of service-environment/boot-refusals.json: written in that table's `line`, once, to stderr, before it exits with that table's `exitCode`; unlike those, these name what the Archivist was pointed at, the gateway and the working tree. `unsent` is the failure a reply that cannot be sent is answered with instead, on the operation's failure channel. `refusals` is each refusal of an operation, the `message` of its failure, and its `code` where it carries one; `{channel}` is the operation's request channel. `unauthorized` is the refusal of every route of the HTTP surface but `/health`. `http` is each other error a route answers with: its status and the body's `error`, and its `code` where the body carries one. `logged` is each message the Archivist logs, at its `level`, with the fields named in `fields`, each of the form given.",
+  boot: [
+    {
+      name: 'no-project-file',
+      situation:
+        'The working tree commits no `.xynolog/config.yaml`, so it declares no `site.domain` (step 3).',
+      refusal:
+        'The knowledge base commits no .xynolog/config.yaml, so declares no site.domain: it is the identity this knowledge base acts under, and the audience it accepts tokens for',
+    },
+    {
+      name: 'not-a-checkout',
+      situation:
+        "The project file says `git.sync` is true, and git cannot be run in the root or says it is not inside a work tree (step 6): `{root}` is the document's `root`, and `{why}` git's or the system's reason, which varies.",
+      refusal:
+        "The knowledge base's project file says git.sync is true, and {root} is not a git checkout ({why}). Make it one (git init), or set git.sync to false.",
+    },
+    {
+      name: 'gateway-silent',
+      situation:
+        "The gateway does not answer its protected-resource metadata (step 5): `{gateway}` is the document's `gatewayUrl`, and `{reason}` why, which varies.",
+      refusal:
+        'The gateway at {gateway} did not say which knowledge base it serves (/.well-known/oauth-protected-resource): {reason}',
+    },
+    {
+      name: 'gateway-elsewhere',
+      situation:
+        "The gateway serves another knowledge base than the tree (step 5): `{gateway}` is the document's `gatewayUrl`, `{served}` the `resource` its metadata names, `{root}` the document's `root`, `{tree}` the tree's audience (`https://<domain>`, each `:` written `/`), and `{did}` the tree's DID.",
+      refusal:
+        'The gateway at {gateway} serves {served}, and the tree at {root} is {tree} ({did})',
+    },
+  ],
+  unsent: [
+    {
+      name: 'too-large',
+      situation:
+        "A reply whose JSON is larger than a bus message may be: `{bytes}` is its size in bytes, and `{maxBodyBytes}` `POST /bus/emit`'s `x-xynolog-limits.maxBodyBytes` in the gateway's API.",
+      message:
+        'The answer could not be sent: it is {bytes} bytes, and a bus message may be {maxBodyBytes}',
+    },
+    {
+      name: 'not-sent',
+      situation:
+        'Any other reply that cannot be sent, once the transport gives up: `{why}` is why, which varies.',
+      message: 'The answer could not be sent: {why}',
+    },
+  ],
+  refusals: [
+    {
+      name: 'uncited-worker',
+      operations: ['yield:create', 'mark:commit'],
+      situation:
+        'A sender holding the worker role whose command cites no `jobId`.',
+      message:
+        '{channel} refused: a worker-role emitter must cite the job it fulfils in `jobId`',
+    },
+    {
+      name: 'unassigned-job',
+      operations: ['yield:create', 'mark:commit'],
+      situation:
+        'A command citing a job that the log of the resource it is checked against holds no `job:assigned` of, and that did not make the resource: `{jobId}` is the cited job, and `{resourceId}` that resource.',
+      message:
+        '{channel} refused: cites job {jobId}, but the log of {resourceId} holds no assignment of it, and the job did not make it',
+    },
+    {
+      name: 'not-the-holder',
+      operations: ['yield:create', 'mark:commit'],
+      situation:
+        "A command citing a job whose recorded holder is not its sender: `{jobId}` is the cited job, `{holder}` the assignment's `holder` or the sender of the `yield:created` the job made, and `{writer}` the command's sender.",
+      message:
+        "{channel} refused: job {jobId}'s recorded holder is {holder}, not the writer {writer}",
+    },
+    {
+      name: 'sourceless-create',
+      operations: ['yield:create'],
+      situation:
+        'A `yield:create` that cites a job and names no `generatedFrom.resourceId`.',
+      message:
+        'yield:create refused: a create citing a job must name the source resource its job was assigned on (generatedFrom.resourceId)',
+    },
+    {
+      name: 'multi-agent-create',
+      operations: ['yield:create'],
+      situation: 'A `yield:create` whose `generator` is a list.',
+      message:
+        'yield:create refused: a multi-agent generator is not supported; derivation binds one generator to the executor',
+    },
+    {
+      name: 'generator-not-executor',
+      operations: ['yield:create', 'mark:commit'],
+      situation:
+        "A supplied generator that is not the command's sender: `{generator}` is the generator's `@id`, and `{executor}` the sender.",
+      message:
+        '{channel} refused: generator {generator} is not the executor {executor}',
+    },
+    {
+      name: 'executor-not-software',
+      operations: ['yield:create', 'mark:commit'],
+      situation:
+        'A supplied generator from a sender that is not software: `{executor}` is the sender.',
+      message:
+        '{channel} refused: a generator was supplied, but the executor {executor} is not software',
+    },
+    {
+      name: 'annotation-with-creator',
+      operations: ['mark:commit'],
+      situation:
+        'An annotation that arrives with a `creator`: `{annotationId}` is its `id`.',
+      message:
+        '{channel} refused: `creator` on annotation {annotationId} is derived by the knowledge base, never sent',
+    },
+    {
+      name: 'multi-agent-annotation',
+      operations: ['mark:commit'],
+      situation:
+        'An annotation whose `generator` is a list: `{annotationId}` is its `id`.',
+      message:
+        '{channel} refused: annotation {annotationId} carries a multi-agent generator; derivation binds one generator to the executor',
+    },
+    {
+      name: 'not-annotatable',
+      operations: ['mark:create-request'],
+      situation:
+        "A target whose resource's content cannot be annotated: `{mediaType}` is its media type.",
+      message: '"{mediaType}" cannot be annotated',
+    },
+    {
+      name: 'storage-uri-scheme',
+      operations: [
+        'yield:create',
+        'yield:clone-persist',
+        'yield:update',
+        'yield:clone-create',
+        'mark:archive',
+        'mark:unarchive',
+      ],
+      situation:
+        'A storage URI that does not begin `file://`: `{uri}` is the URI.',
+      message: 'Invalid storage URI (must start with file://): {uri}',
+    },
+    {
+      name: 'storage-uri-outside',
+      operations: [
+        'yield:create',
+        'yield:clone-persist',
+        'yield:update',
+        'yield:clone-create',
+        'mark:archive',
+        'mark:unarchive',
+      ],
+      situation:
+        'A storage URI naming a place outside the working tree: `{uri}` is the URI.',
+      message:
+        'Invalid storage URI (must name a file inside the working tree): {uri}',
+    },
+    {
+      name: 'checksum-mismatch',
+      operations: [
+        'yield:create',
+        'yield:clone-persist',
+        'yield:update',
+        'yield:clone-create',
+      ],
+      situation:
+        "Content registered whose file is not the checksum expected: `{uri}` is the URI, `{expected}` the first 8 characters of the checksum expected, and `{actual}` the first 8 of the file's.",
+      message:
+        'Checksum mismatch for {uri}: expected {expected}... but got {actual}...\nThe file on disk differs from the recorded checksum. Has it been modified since staging?',
+    },
+    {
+      name: 'unarchive-without-file',
+      operations: ['mark:unarchive'],
+      situation:
+        'A `mark:unarchive` naming a storage URI with no file at it: `{uri}` is the URI.',
+      message: 'Cannot unarchive: file not found at {uri}',
+    },
+    {
+      name: 'entity-type-not-registered',
+      operations: ['mark:update-entity-types'],
+      situation:
+        'Types to add that are not in the vocabulary: `{types}` is each that is not, in the order the command names them, joined by `, `.',
+      message: 'Entity type not registered: {types}',
+    },
+    {
+      name: 'resource-not-found',
+      operations: ['browse:resource-requested'],
+      code: 'not-found',
+      situation: 'A resource with no events.',
+      message: 'Resource not found',
+    },
+    {
+      name: 'annotation-not-found',
+      operations: [
+        'browse:annotation-requested',
+        'browse:annotation-history-requested',
+      ],
+      situation: "An annotation the resource's view does not hold.",
+      message: 'Annotation not found',
+    },
+    {
+      name: 'path-escapes',
+      operations: ['browse:directory-requested'],
+      situation: 'A path outside the working tree.',
+      message: 'path escapes project root',
+    },
+    {
+      name: 'path-not-found',
+      operations: ['browse:directory-requested'],
+      situation: 'A path of the working tree that is not there.',
+      message: 'path not found',
+    },
+    {
+      name: 'clone-source-not-found',
+      operations: ['yield:clone-token-requested'],
+      situation: 'A token asked for a resource with no view.',
+      message: 'Resource not found',
+    },
+    {
+      name: 'clone-content-not-found',
+      operations: ['yield:clone-token-requested'],
+      situation:
+        'A token asked for a resource whose content is not in the working tree.',
+      message: 'Resource content not found',
+    },
+    {
+      name: 'invalid-token',
+      operations: ['yield:clone-resource-requested', 'yield:clone-create'],
+      situation:
+        'A token the Archivist did not issue, or has forgotten or spent.',
+      message: 'Invalid or expired token',
+    },
+    {
+      name: 'token-expired',
+      operations: ['yield:clone-resource-requested', 'yield:clone-create'],
+      situation: 'A token issued more than fifteen minutes before.',
+      message: 'Token expired',
+    },
+    {
+      name: 'token-source-not-found',
+      operations: ['yield:clone-resource-requested', 'yield:clone-create'],
+      situation: 'A token whose resource is no longer held.',
+      message: 'Source resource not found',
+    },
+  ],
+  unauthorized: {
+    status: 401,
+    error: 'unauthorized',
+    presented: 'Bearer error="invalid_token"',
+    absent: 'Bearer',
+  },
+  http: [
+    {
+      name: 'stream-listing-failed',
+      method: 'GET',
+      route: '/events',
+      status: 500,
+      situation: "A listing of the log's streams that failed.",
+      error: 'stream listing failed',
+    },
+    {
+      name: 'events-bad-request',
+      method: 'GET',
+      route: '/events/{resourceId}',
+      status: 400,
+      situation:
+        'A `fromSequence` that is not an integer of at least 1 in decimal digits, or an id that is not one.',
+      error:
+        'resourceId path segment and integer fromSequence >= 1 are required',
+    },
+    {
+      name: 'event-read-failed',
+      method: 'GET',
+      route: '/events/{resourceId}',
+      status: 500,
+      situation: 'A read of the stream that failed.',
+      error: 'event read failed',
+    },
+    {
+      name: 'content-read-failed',
+      method: 'GET',
+      route: '/resources/{id}/content',
+      status: 500,
+      situation: 'A file missing from the working tree.',
+      error: 'content read failed',
+    },
+    {
+      name: 'content-no-resource',
+      method: 'GET',
+      route: '/resources/{id}/content',
+      status: 404,
+      code: 'resource',
+      situation: "No view of the resource: `{id}` is the path's id.",
+      error: 'Resource not found: {id}',
+    },
+    {
+      name: 'content-no-representation',
+      method: 'GET',
+      route: '/resources/{id}/content',
+      status: 404,
+      code: 'representation',
+      situation: "A view with no storage URI: `{id}` is the path's id.",
+      error: 'Resource representation not found: no storageUri for {id}',
+    },
+    {
+      name: 'jsonld-not-found',
+      method: 'GET',
+      route: '/resources/{id}/jsonld',
+      status: 404,
+      situation: 'A resource with no events.',
+      error: 'Resource not found',
+    },
+    {
+      name: 'annotations-not-found',
+      method: 'GET',
+      route: '/resources/{id}/annotations',
+      status: 404,
+      situation: 'No view of the resource, or an id that is not one.',
+      error: 'Resource not found',
+    },
+    {
+      name: 'anchored-text-read-failed',
+      method: 'GET',
+      route: '/resources/{id}/anchored-text',
+      status: 500,
+      situation: 'A read of the store that failed.',
+      error: 'anchored-text read failed',
+    },
+    {
+      name: 'anchored-text-not-a-write',
+      method: 'PUT',
+      route: '/resources/{id}/anchored-text',
+      status: 400,
+      situation:
+        'A body that is not an AnchoredTextWrite: `{why}` is why, which varies.',
+      error: 'The body is no AnchoredTextWrite: {why}',
+    },
+    {
+      name: 'anchored-text-write-not-found',
+      method: 'PUT',
+      route: '/resources/{id}/anchored-text',
+      status: 404,
+      situation: 'No view of the resource, or an id that is not one.',
+      error: 'Resource not found',
+    },
+    {
+      name: 'anchored-text-stored-not-found',
+      method: 'GET',
+      route: '/resources/{id}/anchored-text/stored',
+      status: 404,
+      situation: 'No view of the resource, or an id that is not one.',
+      error: 'Resource not found',
+    },
+    {
+      name: 'anchored-text-no-entry',
+      method: 'GET',
+      route: '/resources/{id}/anchored-text/stored',
+      status: 404,
+      situation:
+        "No entry stored for the resource's content under the stamp stated.",
+      error: 'No entry is stored for this content',
+    },
+    {
+      name: 'upload-unattributed',
+      method: 'POST',
+      route: '/resources',
+      status: 400,
+      situation: 'An upload without `Xynolog-Principal`.',
+      error:
+        'Xynolog-Principal is required: the record attributes every resource to someone',
+    },
+    {
+      name: 'upload-not-multipart',
+      method: 'POST',
+      route: '/resources',
+      status: 400,
+      situation: 'A body that is not `multipart/form-data`.',
+      error: 'The body is not multipart/form-data',
+    },
+    {
+      name: 'upload-unsupported-media',
+      method: 'POST',
+      route: '/resources',
+      status: 400,
+      situation:
+        'A `format` whose media type is not one Xynolog knows: `{type}` is the media type.',
+      error: 'Unsupported media type: {type}',
+    },
+    {
+      name: 'upload-key-reused',
+      method: 'POST',
+      route: '/resources',
+      status: 422,
+      situation:
+        "An `Idempotency-Key` whose resource was recorded from other fields or other bytes, a copy's key sent with no clone token, or a new resource's sent with one.",
+      error:
+        'This Idempotency-Key names a resource recorded from other fields or other bytes',
+    },
+    {
+      name: 'upload-refused',
+      method: 'POST',
+      route: '/resources',
+      status: 500,
+      situation:
+        "A record that is refused: `{refusal}` is the refusal's message, as `refusals` states it for `yield:create`, or `yield:clone-create` with a clone token.",
+      error: '{refusal}',
+    },
+  ],
+  logged: [
+    {
+      name: 'not-an-event',
+      level: 'warn',
+      situation:
+        "A line of the log that is not an event, found when the views are rebuilt: `{path}` is its event file's path, and `{line}` its line number, counted from 1.",
+      message: 'The event log holds something that is not an event',
+      fields: {
+        what: '{path} line {line} is not an event',
+      },
+    },
+    {
+      name: 'generated-not-linked',
+      level: 'warn',
+      situation:
+        'A generated resource recorded, whose link from the annotation it was generated for could not be recorded.',
+      message: 'A generated resource was not linked from its annotation',
+      fields: {},
+    },
+    {
+      name: 'completion-of-another-verb',
+      level: 'warn',
+      situation:
+        'A `job:complete` whose `jobType` is not the one the stream records for the job, which is not recorded.',
+      message: "job:complete of another verb than the job's",
+      fields: {},
+    },
+  ],
+};
+
+/** protocol/specs/src/dispatcher/messages.json, as `DispatcherMessages` types it. */
+export const DISPATCHER_MESSAGES: tables['DispatcherMessages'] = {
+  $comment:
+    "AUTHORITY for the words of the dispatcher's own refusals (JOBS.md § Channels): for each situation it refuses an operation in itself, the operation, the `message` of the CommandError it replies with on the operation's failure channel, and its `code` where it carries one, word for word. A refusal the dispatcher relays carries the relayed words, not these: a vocabulary read's failure (for an Archivist that is not connected, gateway/messages.json's failure `peer-unavailable`), and the store's error. A text's `{name}` is filled as the row's `situation` says. `errors` is each error the dispatcher writes into a job's record on its own, with its failure class.",
+  refusals: [
+    {
+      name: 'create-without-user',
+      operation: 'job:create',
+      situation:
+        'A `job:create` with no `_userId` (check 1). The gateway stamps `_userId` on every frame it accepts, so only a frame that reached the bus around it is refused so.',
+      message: '_userId is required (injected by bus gateway)',
+    },
+    {
+      name: 'entity-type-not-registered',
+      operation: 'job:create',
+      situation:
+        'A `mark` linking job, or a `yield` job, naming entity types that are not registered (checks 2 and 5): `{types}` is each that is not, in the order the job names them, joined by `, `.',
+      message: 'Entity type not registered: {types}',
+    },
+    {
+      name: 'tag-schema-not-registered',
+      operation: 'job:create',
+      situation:
+        'A `mark` tagging job whose `schemaId` names no registered tag schema (check 3): `{schemaId}` is the `schemaId`.',
+      message: 'Tag schema not registered: {schemaId}',
+    },
+    {
+      name: 'yield-parameter',
+      operation: 'job:create',
+      situation:
+        'A `yield` job given parameters GenerationJobParams does not name (check 4): `{params}` is each, in the order the job gives them, joined by `, `.',
+      message: 'a yield job takes no parameter {params}',
+    },
+    {
+      name: 'not-a-worker',
+      operation: 'job:claim',
+      code: 'unauthorized',
+      situation:
+        'A `job:claim` whose `_roles` does not hold the worker role, checked before the queue is consulted.',
+      message:
+        'job:claim refused: the caller is not a worker for this knowledge base',
+    },
+    {
+      name: 'none-pending',
+      operation: 'job:claim',
+      code: 'none-pending',
+      situation:
+        'A `job:claim` from a worker that no pending job matches: a decline, not an error.',
+      message: 'No pending job matches the claim',
+    },
+    {
+      name: 'claim-without-user',
+      operation: 'job:claim',
+      situation:
+        'A `job:claim` from a worker with no `_userId`, checked after the transition, which leaves the job `running`. The gateway stamps `_userId` on every frame it accepts, so only a frame that reached the bus around it is refused so.',
+      message: 'job:claim missing _userId (gateway injection)',
+    },
+    {
+      name: 'job-not-found',
+      operation: 'job:status-requested',
+      situation:
+        'A `job:status-requested` naming a job the queue holds no record of: never created, or deleted by retention.',
+      message: 'Job not found',
+    },
+  ],
+  errors: [
+    {
+      name: 'presumed-dead',
+      situation:
+        "The dead-worker sweep's, for a running job with no write for `staleRunningMs`: `{minutes}` is `staleRunningMs` divided by 60000, as the shortest decimal that reads back as that number, with no `.0` when it is whole.",
+      error: 'worker presumed dead — no progress within {minutes} minutes',
+      failureClass: 'transient',
+    },
+  ],
+};
+
+/** protocol/specs/src/embedding/requests.json, as `EmbeddingRequests` types it. */
+export const EMBEDDING_REQUESTS: tables['EmbeddingRequests'] = {
+  $comment:
+    "AUTHORITY for how a service asks its embedding provider for vectors (SMELTER.md § The embedding provider), as `xynolog-vectors` asks for every service that embeds. `providers` states, for each kind of provider, how many texts a request carries and how many requests are made of it at once. `requestSeconds` is each request's own time. `busy` is which statuses say a provider is busy, and how long a request for documents waits before each asking again. `startAgain` is how many times a starting service asks again a provider that is still fetching its model, or still starting.",
+  providers: {
+    ollama: {
+      textsPerRequest: 128,
+      atOnce: 1,
+    },
+    voyage: {
+      textsPerRequest: 128,
+      atOnce: 4,
+    },
+  },
+  requestSeconds: 15,
+  busy: {
+    statuses: [429, 503],
+    againAfterSeconds: [1, 2, 4],
+  },
+  startAgain: 12,
+};
+
+/** protocol/specs/src/gateway/media-token.json, as `GatewayMediaToken` types it. */
+export const GATEWAY_MEDIA_TOKEN: tables['GatewayMediaToken'] = {
+  $comment:
+    "AUTHORITY for the media token (the `mediaToken` scheme of the gateway's document): what `POST /api/tokens/media` answers, and the one credential `GET /api/resources/{id}` takes in its `token` query parameter. It is a JSON Web Token with `header`, signed by HS256 with the first key of the gateway's `JWT_SECRET` ring, which signs nothing else; it is accepted under any key of the ring. Its claims are `claims`, with `{domain}` the domain the gateway's document names and `{resourceId}` the resource it was asked for, and `iat`, the second it was minted, and `exp`, `lifetimeSeconds` later. The gateway accepts one with no leeway on `exp`, whose `purpose`, `iss` and `sub` are these, and `sub` the resource the path names; anything else is refused (gateway/messages.json, `refused-media-token`), and anywhere else a media token is no credential.",
+  header: {
+    alg: 'HS256',
+    typ: 'JWT',
+  },
+  claims: {
+    purpose: 'media',
+    iss: '{domain}',
+    sub: '{resourceId}',
+  },
+  lifetimeSeconds: 300,
+};
+
+/** protocol/specs/src/gateway/messages.json, as `GatewayMessages` types it. */
+export const GATEWAY_MESSAGES: tables['GatewayMessages'] = {
+  $comment:
+    "AUTHORITY for the words of the gateway's own refusals (TRANSPORT-HTTP.md § Errors): for each situation it refuses a request in itself, the status, the ErrorResponse's (or LimitRefusal's) `error`, and its `code` and `hint` where it carries them, word for word. A refusal the gateway relays from the Archivist carries the Archivist's words, not these, and a refusal of one of these situations carries no other text. A text's `{name}` is filled as the row's `situation` says. What the gateway logs of a refusal is its own: a refused token is told only that it was refused, and its log says why. `failures` is each failure frame the gateway delivers itself on the stream of the client whose request it answers, in place of an answer nobody can give. `challenges` is the `WWW-Authenticate` of each 401, in the form the Unauthorized response states; a 429 that replaces a 401 carries none.",
+  messages: [
+    {
+      name: 'no-credential',
+      status: 401,
+      situation:
+        'A protected operation, asked with no credential: no `Authorization` header, a scheme that is not `Bearer`, a `Bearer` with no token, or a media token anywhere it is not accepted.',
+      error: 'Unauthorized',
+      hint: 'Authentication required: send an `Authorization: Bearer <token>` header. A raw browser navigation to a protected resource is unauthenticated.',
+    },
+    {
+      name: 'refused-token',
+      status: 401,
+      situation: 'A bearer token the gateway does not accept.',
+      error: 'Invalid token',
+    },
+    {
+      name: 'refused-media-token',
+      status: 401,
+      situation:
+        'A media token `GET /api/resources/{id}` does not accept: expired, of another knowledge base, of another resource, or not one.',
+      error: 'Invalid media token',
+    },
+    {
+      name: 'refusal-rate',
+      status: 429,
+      code: 'refusal-rate',
+      situation:
+        'Any of the 401s above, once the refusals its holder has had have used their allowance.',
+      error:
+        "The credential was refused, and its holder's refused requests have used their allowance",
+    },
+    {
+      name: 'not-json',
+      status: 400,
+      situation: 'An operation whose body is JSON, given one that is not.',
+      error: 'The body is not JSON',
+    },
+    {
+      name: 'no-idempotency-key',
+      status: 400,
+      situation:
+        'An operation that requires an `Idempotency-Key`, asked without one.',
+      error: 'The request carries no Idempotency-Key',
+    },
+    {
+      name: 'idempotency-key-not-text',
+      status: 400,
+      situation:
+        'An `Idempotency-Key` with a character that is not visible ASCII.',
+      error: 'The Idempotency-Key is not text: only visible ASCII characters',
+    },
+    {
+      name: 'idempotency-key-length',
+      status: 400,
+      situation:
+        "An `Idempotency-Key` shorter or longer than its parameter allows: `{minLength}` and `{maxLength}` are its schema's.",
+      error:
+        'The Idempotency-Key must be {minLength} to {maxLength} characters',
+    },
+    {
+      name: 'unknown-channel',
+      status: 400,
+      situation:
+        'An emit on a channel the bus registry does not register: `{channel}` is the one it named.',
+      error: 'Unknown channel: {channel}',
+    },
+    {
+      name: 'invalid-payload',
+      status: 400,
+      situation:
+        "An emit whose payload its channel's schema refuses: `{channel}` is the channel, and `{problems}` each refusal, as `<the member's JSON Pointer, or root>: <the refusal>`, joined by `; `.",
+      error: 'Invalid payload for {channel}: {problems}',
+    },
+    {
+      name: 'correlation-without-client',
+      status: 400,
+      situation:
+        'An emit that carries a `correlationId` and no `clientId`: `{channel}` is its channel.',
+      error: 'clientId is required to emit {channel} with a correlationId',
+    },
+    {
+      name: 'no-subscription',
+      status: 400,
+      situation: 'A subscription with no global channel and no scoped entry.',
+      error: 'At least one global channel or scoped entry is required',
+    },
+    {
+      name: 'duplicate-scope',
+      status: 400,
+      situation:
+        'A subscription whose `scoped` names one scope twice: `{scope}` is that scope.',
+      error: 'duplicate scope "{scope}" in matrix',
+    },
+    {
+      name: 'not-found',
+      status: 404,
+      situation:
+        'A path the gateway does not serve, or a method a path it serves does not take.',
+      error: 'Not found',
+    },
+    {
+      name: 'resource-not-found',
+      status: 404,
+      situation:
+        'A resource the knowledge base does not hold: an `{id}` that is no ResourceId, one the Archivist holds no view of, or one whose bytes the Archivist answers it does not hold the resource of.',
+      error: 'Resource not found',
+    },
+    {
+      name: 'representation-not-found',
+      status: 404,
+      situation:
+        'A resource the knowledge base holds, whose bytes the Archivist answers it does not hold.',
+      error: 'Resource representation not found',
+    },
+    {
+      name: 'correlation-claimed',
+      status: 409,
+      situation:
+        'An emit whose `correlationId` another client has claimed: `{correlationId}` is it.',
+      error: 'correlationId {correlationId} is already claimed',
+    },
+    {
+      name: 'too-large',
+      status: 413,
+      situation:
+        "A body larger than its operation's `maxBodyBytes`, which `{maxBodyBytes}` is.",
+      error:
+        "The body is larger than {maxBodyBytes} bytes, this operation's maxBodyBytes",
+    },
+    {
+      name: 'idempotency-key-reused',
+      status: 422,
+      code: 'unprocessable',
+      situation:
+        'An emit sent again under its `Idempotency-Key` with another body.',
+      error: 'This Idempotency-Key was first sent with another body',
+    },
+    {
+      name: 'emit-rate',
+      status: 429,
+      code: 'emit-rate',
+      situation: "An emit past its principal's emit-rate bucket.",
+      error: "This principal's emits have used its bucket",
+    },
+    {
+      name: 'unanswered-requests',
+      status: 429,
+      code: 'unanswered-requests',
+      situation:
+        "A request on the bus past its client's unanswered requests: `{max}` is the most it may hold.",
+      error: 'client has {max} unanswered requests; retry when one settles',
+    },
+    {
+      name: 'streams',
+      status: 429,
+      code: 'streams',
+      situation: 'A subscription past the streams its principal may hold.',
+      error: 'This principal holds as many streams as it may',
+    },
+    {
+      name: 'internal',
+      status: 500,
+      situation: "A fault of the gateway's own; its log says what.",
+      error: 'Internal server error',
+    },
+    {
+      name: 'content-store-unavailable',
+      status: 503,
+      situation:
+        'A read or an upload the Archivist did not answer as its API states: it could not be reached, it did not answer in time, it refused the gateway, or it answered what its API does not; or the gateway could not get its own service token to ask it with.',
+      error: 'Content store unavailable',
+    },
+    {
+      name: 'plane-unavailable',
+      status: 503,
+      situation:
+        "An emit, or anything that reads or writes a table the replicas share, while the signal plane's broker is not connected.",
+      error: 'The signal plane is unavailable: its broker is not connected',
+    },
+    {
+      name: 'capacity',
+      status: 503,
+      code: 'capacity',
+      situation: 'A subscription past the queued bytes the gateway can hold.',
+      error: 'The gateway holds as many queued bytes as it can',
+    },
+  ],
+  failures: [
+    {
+      name: 'peer-unavailable',
+      code: 'peer-unavailable',
+      situation:
+        "A request on the bus that no subscriber answers: `{channel}` is the request's channel. Its payload carries no stamp.",
+      message:
+        'No subscriber for {channel}: the service that answers it is not connected',
+    },
+  ],
+  challenges: {
+    noCredential:
+      'Bearer resource_metadata="{origin}/.well-known/oauth-protected-resource"',
+    refused:
+      'Bearer error="invalid_token", resource_metadata="{origin}/.well-known/oauth-protected-resource"',
+  },
+};
+
+/** protocol/specs/src/gateway/response-headers.json, as `GatewayResponseHeaders` types it. */
+export const GATEWAY_RESPONSE_HEADERS: tables['GatewayResponseHeaders'] = {
+  $comment:
+    "AUTHORITY for the headers the gateway puts on every response it sends (TRANSPORT-HTTP.md § Every response): on every route, whatever its status, a success, an error, bytes and a stream alike. `every` is each header every response carries, with its value, exactly: the security headers, and CORS that is open to every origin. `requestId` is the header that names the request: a new UUID for each request, in lower case with hyphens, which each line the gateway logs while it answers the request carries as its `requestId` (service-telemetry/log-lines.json). `absent` is each header no response carries: the API is bearer-only, so no origin can ride a browser's ambient credentials. `preflight` is how the gateway answers an `OPTIONS` request, before it routes it and whatever its path: with its `status` and no body, every header of `every` and `requestId`, each of its `headers`, and, when the request carries the header an `echoes` entry names, that entry's header with the request header's value, and then a `Vary` of `vary`.",
+  every: [
+    {
+      name: 'Access-Control-Allow-Origin',
+      value: '*',
+    },
+    {
+      name: 'X-Frame-Options',
+      value: 'DENY',
+    },
+    {
+      name: 'X-Content-Type-Options',
+      value: 'nosniff',
+    },
+    {
+      name: 'Strict-Transport-Security',
+      value: 'max-age=31536000; includeSubDomains',
+    },
+    {
+      name: 'Content-Security-Policy',
+      value:
+        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+    },
+    {
+      name: 'X-XSS-Protection',
+      value: '1; mode=block',
+    },
+    {
+      name: 'Referrer-Policy',
+      value: 'no-referrer',
+    },
+    {
+      name: 'Permissions-Policy',
+      value:
+        'camera=(), geolocation=(), microphone=(), payment=(), usb=(), interest-cohort=()',
+    },
+  ],
+  requestId: 'X-Request-ID',
+  absent: ['Access-Control-Allow-Credentials'],
+  preflight: {
+    status: 204,
+    headers: [
+      {
+        name: 'Access-Control-Allow-Methods',
+        value: 'GET,HEAD,PUT,POST,DELETE,PATCH',
+      },
+    ],
+    echoes: [
+      {
+        name: 'Access-Control-Allow-Headers',
+        of: 'Access-Control-Request-Headers',
+      },
+    ],
+    vary: 'Access-Control-Request-Headers',
+  },
+};
+
+/** protocol/specs/src/graph/schema.json, as `GraphSchema` types it. */
+export const GRAPH_SCHEMA: tables['GraphSchema'] = {
+  $comment:
+    "AUTHORITY for the shape of the graph every store keeps (WEAVER.md § What the graph holds), as a reader of a store finds it: each kind of node by its label, the property it is one of its kind by (`key`) and the properties a reader finds one by (`lookups`); each kind of relationship by its type, the kind of node it goes from and the kind it goes to; and the stub. What a node holds is its codec row, the `properties` and `json` of graph/codec-cases.json's part that `row` names; a node without a row holds its key alone. How a store spells a node, a list or a property is its own dialect, as graph/codec-cases.json says of a row. A link's target the graph has not been given yet is a stub: a node holding its key and the marker, `true`, and nothing else. It is not a resource the graph holds: no read answers it, lists it, counts it or follows it. Storing the resource fills it in, and the marker goes. A store makes what else it likes of its own, such as a second label or an index; no reader reads it.",
+  nodes: {
+    resource: {
+      label: 'Resource',
+      row: 'resourceStored',
+      key: 'id',
+      lookups: ['name', 'entityTypes'],
+    },
+    annotation: {
+      label: 'Annotation',
+      row: 'annotationStored',
+      key: 'id',
+      lookups: ['resourceId'],
+    },
+    entityType: {
+      label: 'EntityType',
+      key: 'name',
+      lookups: [],
+    },
+  },
+  relationships: {
+    belongsTo: {
+      type: 'BELONGS_TO',
+      from: 'annotation',
+      to: 'resource',
+      says: "The resource the annotation is on, the one its row's `resourceId` names. An annotation has one.",
+    },
+    references: {
+      type: 'REFERENCES',
+      from: 'annotation',
+      to: 'resource',
+      says: "The resource the annotation links to, the one its row's `source` names, held or a stub. An annotation has one where its row has a `source`, and none where it has not.",
+    },
+    taggedAs: {
+      type: 'TAGGED_AS',
+      from: 'annotation',
+      to: 'entityType',
+      says: "One of the annotation's entity tags, the entity type of that name. An annotation has one to each of its tags.",
+    },
+  },
+  stub: {
+    node: 'resource',
+    marker: 'stub',
+  },
+};
+
+/** protocol/specs/src/jobs/budgets.json, as `JobsBudgets` types it. */
+export const JOBS_BUDGETS: tables['JobsBudgets'] = {
+  $comment:
+    "AUTHORITY for the retry budget of each job type (JOBS.md § The record): the `maxRetries` the dispatcher writes into a new job's record, by its type. One row for each JobType. Whether a failed attempt is retried within the budget is jobs/retry-cases.json's.",
+  budgets: [
+    {
+      jobType: 'mark',
+      maxRetries: 1,
+    },
+    {
+      jobType: 'yield',
+      maxRetries: 0,
+    },
+  ],
+};
+
+/** protocol/specs/src/jobs/storage.json, as `JobsStorage` types it. */
+export const JOBS_STORAGE: tables['JobsStorage'] = {
+  $comment:
+    "Where the job queue keeps its state on the broker: the names and subjects every implementation of the queue must use, so that work queued by one survives a switch to another. The queue is JetStream. A job is published once, when it is created, on `<subjectRoot>.<jobType>` into the work-queue stream `stream.name`, which captures every subject under the root; the durable consumer `consumer.durableName` delivers each message to the dispatcher that holds it as the job's lease. The job itself lives in the KV bucket `bucket.name`, one JobRecord per job keyed by the job's id, and every change to a record is a compare-and-swap on its revision. The stream is a work queue; the consumer acknowledges explicitly, delivers from the start, and never gives a message up on its own count (the queue decides retries); the bucket keeps one revision per key. The dispatcher creates the stream, the consumer and the bucket when they are missing and never updates them, so a changed setting takes effect only on a broker that has not seen them.",
+  stream: {
+    name: 'JOBS',
+    subjectRoot: 'jobs',
+  },
+  consumer: {
+    durableName: 'dispatcher-leases',
+  },
+  bucket: {
+    name: 'jobs',
+    record: 'JobRecord',
+  },
+};
+
+/** protocol/specs/src/service-environment/boot-refusals.json, as `ServiceEnvironmentBootRefusals` types it. */
+export const SERVICE_ENVIRONMENT_BOOT_REFUSALS: tables['ServiceEnvironmentBootRefusals'] =
+  {
+    $comment:
+      "AUTHORITY for what a service that reads a configuration document writes when it will not start on that document or on its environment: `line`, once, to stderr, with the refusal in place of `{refusal}`, and then it exits with `exitCode` without ever serving. `services` is each service that refuses so; each refusal is one of `refusals`, word for word, with each `{name}` filled as the row's `situation` says and nothing else varying. `{service}` is the service's name, as `services` writes it, and `{schema}` its document's schema: `GatewayConfig`, `ArchivistConfig` or `DispatcherConfig`. The refusals are checked in the order they are listed, and the first that fails is the one written. A refusal never carries a value of the document or of the environment: it names members and variables.",
+    services: ['gateway', 'archivist', 'dispatcher'],
+    line: '[fatal] {refusal}',
+    exitCode: 1,
+    refusals: [
+      {
+        name: 'unnamed',
+        situation:
+          'Started without `--config <path>` or `--config=<path>` naming a path.',
+        refusal:
+          "The {service}'s configuration document is not named: start it with --config <path>",
+      },
+      {
+        name: 'unreadable',
+        situation:
+          "The path names no file the service can read: `{path}` is the path as it was given, and `{reason}` the system's reason, which varies.",
+        refusal:
+          "Cannot read the {service}'s configuration document at {path} ({reason}). The launcher writes it; a {service} started another way is given one ({schema} in protocol/specs/).",
+      },
+      {
+        name: 'not-json',
+        situation:
+          "The file is not JSON: `{path}` is the path as it was given, and `{reason}` the parser's reason, which varies.",
+        refusal: '{path} is not JSON: {reason}',
+      },
+      {
+        name: 'invalid',
+        situation:
+          "The document is not its schema's: `{path}` is the path as it was given, and `{members}` is one line of `members` for each way it is not, each on a line of its own.",
+        refusal:
+          '{path} is not a {service} configuration document ({schema}):\n{members}',
+      },
+      {
+        name: 'no-service-account',
+        situation:
+          '`XYNOLOG_OIDC_CLIENT_ID` or `XYNOLOG_OIDC_CLIENT_SECRET` is unset or empty: `{missing}` is each that is, in that order, joined by ` and `.',
+        refusal:
+          '{missing} not set — this {service} has no service account to sign in with.\nThe launcher passes both for each service it starts; a {service} started another way needs the client its realm registers for it (XYNOLOG_OIDC_CLIENT_ID=xynolog-{service}).',
+      },
+      {
+        name: 'unset',
+        situation:
+          "A member of the document names an environment variable that is unset or empty: `{field}` is the member's JSON pointer, and `{name}` the variable.",
+        refusal:
+          '{field} names the environment variable {name}, which is not set',
+      },
+    ],
+    members: [
+      {
+        name: 'missing',
+        situation:
+          "An object without a member its schema requires: `{pointer}` is the object's JSON pointer, `/` for the document itself, and `{member}` the member.",
+        line: '  {pointer} is missing {member}',
+      },
+      {
+        name: 'undeclared',
+        situation:
+          "An object with members its schema does not declare: `{pointer}` is the object's JSON pointer, `/` for the document itself, and `{members}` the members, joined by `, `.",
+        line: '  {pointer} does not declare {members}',
+      },
+      {
+        name: 'other',
+        situation:
+          "Any other way a member is not its schema's: `{pointer}` is the member's JSON pointer, and `{why}` the validator's words, which vary and never carry the member's value.",
+        line: '  {pointer} {why}',
+      },
+    ],
+  };
+
+/** protocol/specs/src/service-environment/variables.json, as `ServiceEnvironmentVariables` types it. */
+export const SERVICE_ENVIRONMENT_VARIABLES: tables['ServiceEnvironmentVariables'] =
+  {
+    $comment:
+      "Every environment variable a Xynolog service reads, beside its configuration document (GatewayConfig, DispatcherConfig, ArchivistConfig, LibrarianConfig, WeaverConfig, SmelterConfig, WorkerConfig) and the variables that document names (the gateway's signal.userEnv and signal.passwordEnv, the dispatcher's queue.userEnv and queue.passwordEnv, the Librarian's, the Weaver's and the Smelter's secrets for their stores and providers, and the keys a worker's engines name by apiKeyEnv). A service, in any language, reads the rows that list it and no variable the table does not list for it — beyond the standard OTEL_* variables an OpenTelemetry SDK reads on its own, and the options variable of the allocator it links (jemalloc's _RJEM_MALLOC_CONF, which it reads before any of its code runs), which the table neither promises nor refuses. `services` names the services that read each. `readBy` says what reads it: `service`, the service's own code, Xynolog's SDK and libraries among it — which, for a service written in Rust, lint:service-environment scans in both directions, over its crate and every workspace crate it links: a read not listed for that service fails it, and so does a row nothing in it reads; `opentelemetry`, the OpenTelemetry SDK. `providedBy` says what sets each where the launcher runs the service: `launcher` (lint:service-environment checks the service's line of the launcher's boot golden passes it), `image` (the image or its supervisor sets it; checked there too), or `operator` (nothing sets it; an operator may). A service's conformance suite sets only the rows that list it, and exercises each by name; one gateway case also sets a variable a runtime would read for itself (TOKIO_WORKER_THREADS), to show that it changes nothing.",
+    variables: [
+      {
+        name: 'JWT_SECRET',
+        services: ['gateway'],
+        readBy: 'service',
+        providedBy: 'launcher',
+        required: true,
+        effect:
+          "The gateway's signing key ring: comma-separated keys of at least 32 characters, whitespace around each ignored. Media tokens are signed with the first key, and a media token signed with any key is accepted. Unset, or with a key shorter than 32 characters, the gateway refuses to start.",
+      },
+      {
+        name: 'XYNOLOG_OIDC_CLIENT_ID',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+        ],
+        readBy: 'service',
+        providedBy: 'launcher',
+        required: true,
+        effect:
+          "The client id of the service's own account at the issuer, whose token the service signs in with: the gateway's reaches the Archivist, and every other service's is its bearer at the bus. Unset, the service refuses to start.",
+      },
+      {
+        name: 'XYNOLOG_OIDC_CLIENT_SECRET',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+        ],
+        readBy: 'service',
+        providedBy: 'launcher',
+        required: true,
+        effect:
+          "That account's secret. Unset, the service refuses to start, and its output never carries the value.",
+      },
+      {
+        name: 'XYNOLOG_OIDC_CLIENT_KEY',
+        services: ['worker'],
+        readBy: 'service',
+        providedBy: 'launcher',
+        required: true,
+        effect:
+          "The worker's key: an RSA private key, PEM and unencrypted, whose public half each knowledge base's issuer holds on the client the worker's document names there. Each sign-in carries an assertion signed with it (private_key_jwt), and no secret. Unset or empty, a key it cannot read, or one that is not RSA, the worker refuses to start (WORKER-SERVICE.md B3).",
+      },
+      {
+        name: 'OTEL_EXPORTER_OTLP_ENDPOINT',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'service',
+        providedBy: 'launcher',
+        required: false,
+        effect:
+          'The OTLP/HTTP collector spans and metrics are exported to. Unset, with OTEL_CONSOLE_EXPORTER not `true`, nothing is exported.',
+      },
+      {
+        name: 'OTEL_SERVICE_NAME',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'service',
+        providedBy: 'operator',
+        required: false,
+        effect:
+          "The `service.name` exported spans and metrics carry; `xynolog-` and the service's name, such as `xynolog-gateway`, when unset.",
+      },
+      {
+        name: 'OTEL_SDK_DISABLED',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'service',
+        providedBy: 'operator',
+        required: false,
+        effect: '`true` exports nothing, whatever else is set.',
+      },
+      {
+        name: 'OTEL_CONSOLE_EXPORTER',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'service',
+        providedBy: 'operator',
+        required: false,
+        effect:
+          "`true`, with no OTEL_EXPORTER_OTLP_ENDPOINT, writes spans and metrics to the service's output instead of exporting them.",
+      },
+      {
+        name: 'OTEL_METRICS_EXPORTER',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'service',
+        providedBy: 'operator',
+        required: false,
+        effect:
+          "`console` writes metrics to the service's output, while spans still go to OTEL_EXPORTER_OTLP_ENDPOINT.",
+      },
+      {
+        name: 'OTEL_METRIC_EXPORT_INTERVAL',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'service',
+        providedBy: 'operator',
+        required: false,
+        effect:
+          'Milliseconds between metric exports; 30000 when unset or not a positive integer.',
+      },
+      {
+        name: 'OTEL_BSP_SCHEDULE_DELAY',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'opentelemetry',
+        providedBy: 'operator',
+        required: false,
+        effect:
+          'Milliseconds a finished span waits to be exported in a batch; 5000 when unset.',
+      },
+      {
+        name: 'XYNOLOG_BUS_LOG',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'service',
+        providedBy: 'operator',
+        required: false,
+        effect:
+          "Any non-empty value writes one `[bus <op>] <channel> …` line to the service's output for each frame it sends, accepts, receives or delivers, and each content read.",
+      },
+      {
+        name: 'SUPERVISE_EVENTS',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'service',
+        providedBy: 'image',
+        required: false,
+        effect:
+          "The supervisor's events log, one `starting <SUPERVISE_NAME>` line per life of the process. With SUPERVISE_NAME, the service reports `xynolog.process.restarts` from it: its lives, less one. Without either, the metric does not exist.",
+      },
+      {
+        name: 'SUPERVISE_NAME',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'weaver',
+          'smelter',
+          'worker',
+        ],
+        readBy: 'service',
+        providedBy: 'image',
+        required: false,
+        effect:
+          'The name the supervisor records each life under, in SUPERVISE_EVENTS.',
+      },
+    ],
+  };
+
+/** protocol/specs/src/service-telemetry/log-lines.json, as `ServiceTelemetryLogLines` types it. */
+export const SERVICE_TELEMETRY_LOG_LINES: tables['ServiceTelemetryLogLines'] = {
+  $comment:
+    "AUTHORITY for the lines a service writes to its log, and for the supervisor's line it reads. THE LOGGER of a service whose document names a LogFormat writes one line to stdout for each thing it logs at or above its LogLevel. A `json` line is one JSON object: its `first` members, the level's name in lower case and the message; then the fields the line was logged with; then `requestId`, the request's id (gateway/response-headers.json's `requestId`), on a line logged while a request was answered; then the active trace's id and span's id in lower-case hex, 32 and 16 digits, on a line logged inside one; and `last`, the moment in UTC as RFC 3339 with milliseconds. A `simple` line is `simple`, with `{timestamp}` the moment in UTC as `YYYY-MM-DD hh:mm:ss`, `{LEVEL}` the level's name in upper case, and then, when the line has any fields, a space and the JSON object of them, `requestId` and the trace's among them. THE BUS LOG (EVENT-BUS.md § Wire format: the bus log), switched on by XYNOLOG_BUS_LOG, writes one line for each frame its process sends or receives: `line`, with `{op}` one of `ops` and `{channel}` the frame's channel, or `content` for an upload or a read of bytes; then each of `parts` there is one of, with the first `characters` of it; then a space and the payload, as bus/log-cases.json says it is shown. THE SUPERVISOR writes `line` each time it starts the service, with `{time}` the moment in UTC as `YYYY-MM-DDThh:mm:ssZ`, `{name}` SUPERVISE_NAME and `{count}` the rapid failures so far, to the file SUPERVISE_EVENTS names; a service counts each line of that file that holds `counted` as one of its lives.",
+  logger: {
+    services: ['archivist', 'dispatcher', 'gateway'],
+    json: {
+      first: ['level', 'message'],
+      requestId: 'requestId',
+      trace: ['trace_id', 'span_id'],
+      last: 'timestamp',
+    },
+    simple: '{timestamp} [{LEVEL}] {message}',
+  },
+  bus: {
+    line: '[bus {op}] {channel}',
+    parts: [
+      {
+        part: "the frame's scope",
+        text: ' scope={scope}',
+      },
+      {
+        part: "the frame's correlationId",
+        text: ' cid={correlationId}',
+        characters: 8,
+      },
+      {
+        part: "the active trace's id",
+        text: ' trace={traceId}',
+        characters: 8,
+      },
+    ],
+    ops: ['EMIT', 'RECV', 'SSE', 'PUT', 'GET'],
+  },
+  supervisor: {
+    line: '[supervise {time}] starting {name} (rapid failures so far: {count})',
+    counted: 'starting {name}',
+  },
+};
+
+/** protocol/specs/src/service-telemetry/telemetry.json, as `ServiceTelemetryTelemetry` types it. */
+export const SERVICE_TELEMETRY_TELEMETRY: tables['ServiceTelemetryTelemetry'] =
+  {
+    $comment:
+      "The telemetry each Xynolog service exports over OTLP, in any language: every span and metric, the services that export it, its kind, and the attributes it carries. A service exports the rows that list it and no others. Each service's conformance suite holds it to this table from outside, in both directions: every span and metric its observability cases receive must be a row listing the service, of the listed kind, carrying only listed attribute keys (and, where a row lists values, only those values); and every row listing it whose `when` is `export` or `traffic` must arrive, with every attribute not marked `only`. `when`: `export` — whenever export is on; `traffic` — once the service's observability cases' traffic has run; `supervised` — only under the supervisor (SUPERVISE_EVENTS and SUPERVISE_NAME set), checked by the environment cases; `fatal` — only on a fatal error, which no case causes. `planes`, where given, names the only signal planes a gateway row arrives on. `sdk` names the services that reach the bus through an SDK, and for each the SDK transports it uses, or, of a transport it uses part of, the rows it exports, by name: such a service also exports the rows specs/src/sdk-telemetry/telemetry.json lists for those transports, and those rows, and its suite holds it to both tables as one. In a span name, `{channel}` is the bus channel. `{jobType}` is the job's type. Span kinds are OTLP's; a metric's `instrument` is `counter` (a monotonic sum), `up-down counter` (a non-monotonic sum), `gauge` or `histogram`. `resource` lists the attributes of the resource every span and metric of a service is exported under, and the services that carry each: a service's resource carries exactly the keys listed for it.",
+    sdk: {
+      dispatcher: ['bus'],
+      archivist: ['bus'],
+      worker: [
+        'bus',
+        'content.put',
+        'content.get',
+        'content.get_anchored_text',
+      ],
+      weaver: ['bus'],
+      smelter: ['bus'],
+      librarian: ['bus', 'content.get_anchored_text'],
+    },
+    resource: [
+      {
+        key: 'service.name',
+        services: [
+          'archivist',
+          'dispatcher',
+          'gateway',
+          'librarian',
+          'smelter',
+          'weaver',
+          'worker',
+        ],
+        meaning:
+          "The service's name: what `OTEL_SERVICE_NAME` says, or, when it is unset, `default` with `{service}` the service's name.",
+        default: 'xynolog-{service}',
+      },
+      {
+        key: 'service.version',
+        services: [
+          'archivist',
+          'dispatcher',
+          'gateway',
+          'librarian',
+          'smelter',
+          'weaver',
+          'worker',
+        ],
+        meaning: 'The version of Xynolog the service was built as.',
+      },
+      {
+        key: 'xynolog.kb',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'librarian',
+          'smelter',
+          'weaver',
+        ],
+        meaning:
+          "The DID of the knowledge base the service serves: `kb_did` of its document's `kb.domain`, or, for the Archivist, which reads what the knowledge base says of itself from its tree, of the `site.domain` its committed `.xynolog/config.yaml` names. A service that serves several knowledge bases names none in its resource, and carries `xynolog.kb` instead on each span and data point of its own rows that list it: the DID of the knowledge base whose job the work was.",
+      },
+    ],
+    spans: [
+      {
+        name: 'bus.dispatch:{channel}',
+        services: ['gateway'],
+        kind: 'server',
+        when: 'traffic',
+        meaning:
+          "An emit the gateway accepted, in the caller's trace when the request carried one.",
+        attributes: [
+          {
+            key: 'bus.channel',
+          },
+        ],
+      },
+      {
+        name: 'sse.deliver:{channel}',
+        services: ['gateway'],
+        kind: 'producer',
+        when: 'traffic',
+        meaning:
+          'A correlated reply written to the stream of the client whose request it answers.',
+        attributes: [
+          {
+            key: 'bus.channel',
+          },
+          {
+            key: 'bus.cid',
+          },
+          {
+            key: 'bus.scope',
+            only: 'on a reply in a resource scope',
+          },
+        ],
+      },
+      {
+        name: 'content.get.server',
+        services: ['gateway'],
+        kind: 'server',
+        when: 'traffic',
+        meaning: "A read of a resource's bytes.",
+        attributes: [
+          {
+            key: 'resource.id',
+          },
+        ],
+      },
+      {
+        name: 'content.put.server',
+        services: ['gateway'],
+        kind: 'server',
+        when: 'traffic',
+        meaning: 'An upload.',
+        attributes: [],
+      },
+      {
+        name: 'archivist.resources.record',
+        services: ['gateway'],
+        kind: 'client',
+        when: 'traffic',
+        meaning: 'An upload forwarded to the Archivist.',
+        attributes: [
+          {
+            key: 'peer.service',
+            values: ['archivist'],
+          },
+        ],
+      },
+      {
+        name: 'archivist.resources.describe',
+        services: ['gateway'],
+        kind: 'client',
+        when: 'traffic',
+        meaning: 'A JSON-LD description asked of the Archivist.',
+        attributes: [
+          {
+            key: 'peer.service',
+            values: ['archivist'],
+          },
+        ],
+      },
+      {
+        name: 'archivist.resources.annotations',
+        services: ['gateway'],
+        kind: 'client',
+        when: 'traffic',
+        meaning: "A resource's annotations asked of the Archivist.",
+        attributes: [
+          {
+            key: 'peer.service',
+            values: ['archivist'],
+          },
+        ],
+      },
+      {
+        name: 'archivist.resources.anchored_text',
+        services: ['gateway'],
+        kind: 'client',
+        when: 'traffic',
+        meaning: "A resource's anchored text asked of the Archivist.",
+        attributes: [
+          {
+            key: 'peer.service',
+            values: ['archivist'],
+          },
+        ],
+      },
+      {
+        name: 'archivist.content.get',
+        services: ['gateway'],
+        kind: 'client',
+        when: 'traffic',
+        meaning: 'Bytes read from the Archivist.',
+        attributes: [
+          {
+            key: 'peer.service',
+            values: ['archivist'],
+          },
+        ],
+      },
+      {
+        name: 'archivist.events.replay',
+        services: ['gateway'],
+        kind: 'client',
+        when: 'traffic',
+        meaning:
+          "A scope's persisted events read from the Archivist for a replay.",
+        attributes: [
+          {
+            key: 'peer.service',
+            values: ['archivist'],
+          },
+        ],
+      },
+      {
+        name: 'job:{jobType}',
+        services: ['worker'],
+        kind: 'consumer',
+        when: 'traffic',
+        meaning:
+          'A job a worker held, from the claim that handed it over to its conclusion.',
+        attributes: [
+          {
+            key: 'job.type',
+            values: ['mark', 'yield'],
+          },
+          {
+            key: 'job.motivation',
+            values: [
+              'highlighting',
+              'commenting',
+              'assessing',
+              'linking',
+              'tagging',
+            ],
+            only: 'on a mark job',
+          },
+          {
+            key: 'job.id',
+          },
+          {
+            key: 'resource.id',
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'detection:prepare',
+        services: ['worker'],
+        kind: 'internal',
+        when: 'traffic',
+        meaning:
+          "A mark job's reading of its resource: the description's media type, and the text read by it.",
+        attributes: [
+          {
+            key: 'resource.id',
+          },
+          {
+            key: 'media.type',
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'inference:structured',
+        services: ['worker'],
+        kind: 'internal',
+        when: 'traffic',
+        meaning:
+          'One generation a worker asked of its provider for an array of objects, from the request to its answer or its time bound.',
+        attributes: [
+          {
+            key: 'inference.provider',
+            values: [
+              'anthropic',
+              'google',
+              'llamacpp',
+              'ollama',
+              'openai',
+              'together',
+              'vllm',
+            ],
+          },
+          {
+            key: 'inference.model',
+          },
+          {
+            key: 'inference.max_tokens',
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'inference:text',
+        services: ['worker'],
+        kind: 'internal',
+        when: 'traffic',
+        meaning:
+          'One generation a worker asked of its provider for text, from the request to its answer or its time bound.',
+        attributes: [
+          {
+            key: 'inference.provider',
+            values: [
+              'anthropic',
+              'google',
+              'llamacpp',
+              'ollama',
+              'openai',
+              'together',
+              'vllm',
+            ],
+          },
+          {
+            key: 'inference.model',
+          },
+          {
+            key: 'inference.max_tokens',
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+    ],
+    metrics: [
+      {
+        name: 'xynolog.bus.emit',
+        services: ['gateway'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning: 'Emits the gateway accepted.',
+        attributes: [
+          {
+            key: 'bus.channel',
+          },
+          {
+            key: 'bus.scope',
+            only: 'on an emit in a resource scope',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.bus.reply.suppressed',
+        services: ['gateway'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          'Correlated replies withheld from a subscriber that did not ask for them.',
+        attributes: [
+          {
+            key: 'bus.channel',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.bus.resume_gap',
+        services: ['gateway'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning: "Resumes answered with a gap, by the gap's reason.",
+        attributes: [
+          {
+            key: 'bus.resume_gap.reason',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.bus.unanswerable',
+        services: ['gateway'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          'Requests no participant could answer; only a plane that can count subscribers counts them.',
+        attributes: [
+          {
+            key: 'bus.channel',
+          },
+        ],
+        planes: ['in-process'],
+      },
+      {
+        name: 'xynolog.sse.subscribers',
+        services: ['gateway'],
+        instrument: 'up-down counter',
+        when: 'traffic',
+        meaning: 'Open bus streams.',
+        attributes: [],
+      },
+      {
+        name: 'xynolog.gateway.refused',
+        services: ['gateway'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          "Requests a limit refused — a principal's streams or emit bucket, a client's unanswered requests, the process's queued bytes, the requests a holder has had refused — and connections closed at its connection cap.",
+        attributes: [
+          {
+            key: 'refused.reason',
+            values: [
+              'streams',
+              'emit-rate',
+              'unanswered-requests',
+              'capacity',
+              'refusal-rate',
+              'connections',
+            ],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.gateway.unauthenticated',
+        services: ['gateway'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          'Requests answered 401, by why: no bearer token, a bearer token refused, a media token refused.',
+        attributes: [
+          {
+            key: 'unauthenticated.reason',
+            values: ['missing_token', 'invalid_token', 'invalid_media_token'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.bus.correlation.size',
+        services: ['gateway'],
+        instrument: 'gauge',
+        when: 'export',
+        meaning: 'Outstanding request claims, and the cap on them.',
+        attributes: [
+          {
+            key: 'correlation.kind',
+            values: ['claims', 'claims_max'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.process.start_time',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'worker',
+          'weaver',
+          'smelter',
+          'librarian',
+        ],
+        instrument: 'gauge',
+        when: 'export',
+        meaning: 'When the process started.',
+        attributes: [],
+      },
+      {
+        name: 'xynolog.runtime.event_loop.lag',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'worker',
+          'weaver',
+          'smelter',
+          'librarian',
+        ],
+        instrument: 'gauge',
+        when: 'export',
+        meaning:
+          'Time the process could not serve anything, over the last export interval.',
+        attributes: [
+          {
+            key: 'lag.stat',
+            values: ['mean', 'p99', 'max'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.runtime.heap',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'worker',
+          'weaver',
+          'smelter',
+          'librarian',
+        ],
+        instrument: 'gauge',
+        when: 'export',
+        meaning: 'Memory in use, allocated, allowed, and resident.',
+        attributes: [
+          {
+            key: 'heap.stat',
+            values: ['used', 'total', 'limit', 'rss'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.process.restarts',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'worker',
+          'weaver',
+          'smelter',
+          'librarian',
+        ],
+        instrument: 'gauge',
+        when: 'supervised',
+        meaning: 'Lives the supervisor recorded, less one.',
+        attributes: [],
+      },
+      {
+        name: 'xynolog.process.abnormal_exit',
+        services: [
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'worker',
+          'weaver',
+          'smelter',
+          'librarian',
+        ],
+        instrument: 'counter',
+        when: 'fatal',
+        meaning: 'A fatal error, just before the process exits.',
+        attributes: [
+          {
+            key: 'reason',
+            values: ['uncaughtException', 'unhandledRejection'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.job.queue.size',
+        services: ['dispatcher'],
+        instrument: 'gauge',
+        when: 'export',
+        meaning: 'The jobs in the queue, by status.',
+        attributes: [
+          {
+            key: 'job.status',
+            values: ['pending', 'running', 'complete', 'failed', 'cancelled'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.vector.index.size',
+        services: ['smelter'],
+        instrument: 'gauge',
+        when: 'export',
+        meaning:
+          'Points the vector index holds, of resources and of annotations together.',
+        attributes: [],
+      },
+      {
+        name: 'xynolog.archivist.fact_pump.depth',
+        services: ['archivist'],
+        instrument: 'gauge',
+        when: 'export',
+        meaning:
+          'Events appended to the record and not yet published on the bus. Zero at rest; a rising floor means publishing is behind its transport.',
+        attributes: [],
+      },
+      {
+        name: 'xynolog.git.duration',
+        services: ['archivist'],
+        instrument: 'histogram',
+        when: 'traffic',
+        meaning:
+          'How long each git command the staging driver ran took, in milliseconds, the failing ones too.',
+        attributes: [
+          {
+            key: 'git.command',
+            values: ['add', 'rm', 'rev-parse'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.git.staging.failures',
+        services: ['archivist'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          'Staging degradations: changes recorded and not staged, by why.',
+        attributes: [
+          {
+            key: 'reason',
+            values: ['index-lock', 'other'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.job.outcome',
+        services: ['worker'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning: 'The jobs a worker concluded, by how.',
+        attributes: [
+          {
+            key: 'job.type',
+            values: ['mark', 'yield'],
+          },
+          {
+            key: 'job.motivation',
+            values: [
+              'highlighting',
+              'commenting',
+              'assessing',
+              'linking',
+              'tagging',
+            ],
+            only: 'on a mark job',
+          },
+          {
+            key: 'job.outcome',
+            values: ['completed', 'failed', 'cancelled'],
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.job.duration',
+        services: ['worker'],
+        instrument: 'histogram',
+        when: 'traffic',
+        meaning: 'How long a worker held a job, in milliseconds.',
+        attributes: [
+          {
+            key: 'job.type',
+            values: ['mark', 'yield'],
+          },
+          {
+            key: 'job.motivation',
+            values: [
+              'highlighting',
+              'commenting',
+              'assessing',
+              'linking',
+              'tagging',
+            ],
+            only: 'on a mark job',
+          },
+          {
+            key: 'job.outcome',
+            values: ['completed', 'failed', 'cancelled'],
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.inference.calls',
+        services: ['worker', 'librarian'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          'The generations a service asked of its providers, by how each ended.',
+        attributes: [
+          {
+            key: 'inference.provider',
+            values: [
+              'anthropic',
+              'google',
+              'llamacpp',
+              'ollama',
+              'openai',
+              'together',
+              'vllm',
+            ],
+          },
+          {
+            key: 'inference.model',
+          },
+          {
+            key: 'inference.outcome',
+            values: ['success', 'error'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.inference.duration',
+        services: ['worker', 'librarian'],
+        instrument: 'histogram',
+        when: 'traffic',
+        meaning:
+          'How long each generation took, in milliseconds, the failing ones too.',
+        attributes: [
+          {
+            key: 'inference.provider',
+            values: [
+              'anthropic',
+              'google',
+              'llamacpp',
+              'ollama',
+              'openai',
+              'together',
+              'vllm',
+            ],
+          },
+          {
+            key: 'inference.model',
+          },
+          {
+            key: 'inference.outcome',
+            values: ['success', 'error'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.inference.tokens',
+        services: ['worker', 'librarian'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          'The tokens a provider reported for a generation, read and written. A generation whose provider reports none adds nothing.',
+        attributes: [
+          {
+            key: 'inference.provider',
+            values: [
+              'anthropic',
+              'google',
+              'llamacpp',
+              'ollama',
+              'openai',
+              'together',
+              'vllm',
+            ],
+          },
+          {
+            key: 'inference.model',
+          },
+          {
+            key: 'inference.direction',
+            values: ['input', 'output'],
+          },
+        ],
+      },
+      {
+        name: 'xynolog.detection.calls',
+        services: ['worker'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          'The generations a mark job made, by what asked, how each ended, how many times its piece had been halved, and whether it was the second asking of a piece too small to halve.',
+        attributes: [
+          {
+            key: 'detection.label',
+            values: ['highlight', 'comment', 'assessment', 'tag', 'reference'],
+          },
+          {
+            key: 'detection.outcome',
+            values: ['success', 'truncated', 'timeout', 'collapsed', 'error'],
+          },
+          {
+            key: 'detection.depth',
+          },
+          {
+            key: 'detection.reroll',
+            values: [true, false],
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.detection.call.duration',
+        services: ['worker'],
+        instrument: 'histogram',
+        when: 'traffic',
+        meaning:
+          'How long each of those generations took, in milliseconds, the failing ones too.',
+        attributes: [
+          {
+            key: 'detection.label',
+            values: ['highlight', 'comment', 'assessment', 'tag', 'reference'],
+          },
+          {
+            key: 'detection.outcome',
+            values: ['success', 'truncated', 'timeout', 'collapsed', 'error'],
+          },
+          {
+            key: 'detection.depth',
+          },
+          {
+            key: 'detection.reroll',
+            values: [true, false],
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.detection.call.items',
+        services: ['worker'],
+        instrument: 'histogram',
+        when: 'traffic',
+        meaning:
+          'The proposals each of those generations returned; none, for one that failed.',
+        attributes: [
+          {
+            key: 'detection.label',
+            values: ['highlight', 'comment', 'assessment', 'tag', 'reference'],
+          },
+          {
+            key: 'detection.outcome',
+            values: ['success', 'truncated', 'timeout', 'collapsed', 'error'],
+          },
+          {
+            key: 'detection.depth',
+          },
+          {
+            key: 'detection.reroll',
+            values: [true, false],
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.detection.call.tokens',
+        services: ['worker'],
+        instrument: 'histogram',
+        when: 'traffic',
+        meaning:
+          'The tokens a provider reported for each of those generations, read and written. A generation whose provider reports none adds nothing.',
+        attributes: [
+          {
+            key: 'detection.label',
+            values: ['highlight', 'comment', 'assessment', 'tag', 'reference'],
+          },
+          {
+            key: 'detection.outcome',
+            values: ['success', 'truncated', 'timeout', 'collapsed', 'error'],
+          },
+          {
+            key: 'detection.depth',
+          },
+          {
+            key: 'detection.reroll',
+            values: [true, false],
+          },
+          {
+            key: 'detection.direction',
+            values: ['input', 'output'],
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.detection.anchors',
+        services: ['worker'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          'The spans a mark job anchored in its text, by how each was found.',
+        attributes: [
+          {
+            key: 'detection.label',
+            values: ['highlight', 'comment', 'assessment', 'tag', 'reference'],
+          },
+          {
+            key: 'anchor.method',
+            values: [
+              'unique-match',
+              'context-recovered',
+              'first-of-many',
+              'fuzzy-match',
+            ],
+          },
+          {
+            key: 'xynolog.kb',
+          },
+        ],
+      },
+      {
+        name: 'xynolog.gather.degraded',
+        services: ['librarian'],
+        instrument: 'counter',
+        when: 'traffic',
+        meaning:
+          'Gathers that went without something, by what each went without: the graph, which did not come to hold the resource; the vector index, which failed or did not settle in time; or what a model failed to give, which is the summary and suggestions of a resource, the summary of the resource an annotation links to, or the relationship sentence.',
+        attributes: [
+          {
+            key: 'projection',
+            values: [
+              'graph',
+              'vectors',
+              'suggestions',
+              'summary',
+              'relationship',
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+/** protocol/specs/src/smelter/messages.json, as `SmelterMessages` types it. */
+export const SMELTER_MESSAGES: tables['SmelterMessages'] = {
+  $comment:
+    "AUTHORITY for the words of the Smelter's refusals and of the messages it logs that a reader of its output relies on (SMELTER.md), word for word. A text's `{name}` is filled as the row's `situation` says, and nothing else in it varies. `refusals` is each refusal of an operation, the `message` of its failure. `logged` is each message the Smelter logs, at its `level`, with the facts named in `fields`, each of the form given, and the facts named in `carries` beside them.",
+  refusals: [
+    {
+      name: 'rebuild-incomplete',
+      operation: 'smelt:rebuild-anchors',
+      situation:
+        'A rebuild of anchored text that could not do every resource it set out to (SMELTER.md § Rebuild): `{failed}` is how many it could not do, and `{total}` how many it set out to do, each in decimal digits.',
+      message:
+        "{failed} of {total} resources failed to re-anchor: see the Smelter's log",
+    },
+  ],
+  logged: [
+    {
+      name: 'not-indexed',
+      level: 'warn',
+      situation:
+        'A resource the Smelter decided not to index (SMELTER.md § What it decides): `{resourceId}` is the resource, `{reason}` the `reason` its `smelt:settled` carries, `{mediaType}` the media type its bytes were read as, and `{checksum}` the checksum of those bytes.',
+      message: 'Smelter did not index resource',
+      fields: {
+        resourceId: '{resourceId}',
+        reason: '{reason}',
+        contentType: '{mediaType}',
+        contentChecksum: '{checksum}',
+      },
+      carries: [],
+    },
+    {
+      name: 'content-unread',
+      level: 'warn',
+      situation:
+        'A resource whose bytes the Smelter could not read (SMELTER.md § What it decides): `{resourceId}` is the resource. `error` says why.',
+      message: 'Smelter could not read resource content',
+      fields: {
+        resourceId: '{resourceId}',
+      },
+      carries: ['error'],
+    },
+    {
+      name: 'event-failed',
+      level: 'error',
+      situation:
+        "An event the Smelter could not apply because its embedding provider failed a request (SMELTER.md § The embedding provider): `{resourceId}` is the event's resource, `{provider}` the provider's `type` (EmbeddingConfig), `{model}` the model it was asked for, and `{status}` the status it answered with. `slice` is which request of the batch it was, and `error` says why.",
+      message: 'Smelter failed to process event',
+      fields: {
+        resourceId: '{resourceId}',
+        provider: '{provider}',
+        model: '{model}',
+        status: '{status}',
+      },
+      carries: ['slice', 'error'],
+    },
+  ],
+};
+
+/** protocol/specs/src/worker/answer-formats.json, as `WorkerAnswerFormats` types it. */
+export const WORKER_ANSWER_FORMATS: tables['WorkerAnswerFormats'] = {
+  $comment:
+    'AUTHORITY for what a Worker service asks a model to answer in (WORKER-SERVICE.md § The request, § The five kinds of mark job): the JSON Schema of one element of the array a detection asks for. `formats` has one row for each motivation a `mark` job takes (MarkJobParams), named by it, and `count`, the count a linking job asks of each piece beside its extraction. A request asks for an array of `element`: on an Ollama engine as `format`, `{"type": "array", "items": <element>}` (D1), and on an Anthropic one as `output_config`, `{"format": {"type": "json_schema", "schema": {"type": "array", "items": <element>}}}` (D20), the element written as it is here, member for member. A generation (a `yield` job) asks for no format: its answer is the document.',
+  formats: [
+    {
+      name: 'highlighting',
+      about:
+        'A highlight: the passage, and up to 64 characters before and after it (K1).',
+      element: {
+        type: 'object',
+        properties: {
+          exact: {
+            type: 'string',
+          },
+          prefix: {
+            type: 'string',
+          },
+          suffix: {
+            type: 'string',
+          },
+        },
+        required: ['exact'],
+        additionalProperties: false,
+      },
+    },
+    {
+      name: 'commenting',
+      about:
+        'A comment: the passage, the comment, and what stands before and after (K2).',
+      element: {
+        type: 'object',
+        properties: {
+          exact: {
+            type: 'string',
+          },
+          comment: {
+            type: 'string',
+          },
+          prefix: {
+            type: 'string',
+          },
+          suffix: {
+            type: 'string',
+          },
+        },
+        required: ['exact', 'comment'],
+        additionalProperties: false,
+      },
+    },
+    {
+      name: 'assessing',
+      about:
+        'An assessment: the passage, the assessment, and what stands before and after (K3).',
+      element: {
+        type: 'object',
+        properties: {
+          exact: {
+            type: 'string',
+          },
+          assessment: {
+            type: 'string',
+          },
+          prefix: {
+            type: 'string',
+          },
+          suffix: {
+            type: 'string',
+          },
+        },
+        required: ['exact', 'assessment'],
+        additionalProperties: false,
+      },
+    },
+    {
+      name: 'linking',
+      about:
+        'A mention: the passage, the entity type it is a mention of, and what stands before and after (K4).',
+      element: {
+        type: 'object',
+        properties: {
+          exact: {
+            type: 'string',
+          },
+          entityType: {
+            type: 'string',
+          },
+          prefix: {
+            type: 'string',
+          },
+          suffix: {
+            type: 'string',
+          },
+        },
+        required: ['exact', 'entityType'],
+        additionalProperties: false,
+      },
+    },
+    {
+      name: 'tagging',
+      about:
+        'A passage of the category asked for, and what stands before and after (K7).',
+      element: {
+        type: 'object',
+        properties: {
+          exact: {
+            type: 'string',
+          },
+          prefix: {
+            type: 'string',
+          },
+          suffix: {
+            type: 'string',
+          },
+        },
+        required: ['exact'],
+        additionalProperties: false,
+      },
+    },
+    {
+      name: 'count',
+      about:
+        'The count a linking job asks of a piece beside its extraction: how many mentions of the type it holds (K4).',
+      element: {
+        type: 'object',
+        properties: {
+          count: {
+            type: 'integer',
+          },
+        },
+        required: ['count'],
+        additionalProperties: false,
+      },
+    },
+  ],
+};
+
+/** protocol/specs/src/worker/messages.json, as `WorkerMessages` types it. */
+export const WORKER_MESSAGES: tables['WorkerMessages'] = {
+  $comment:
+    "AUTHORITY for the words of a Worker service's refusals to start, of the errors it fails a job with, and of the messages it logs that a reader of its output relies on (WORKER-SERVICE.md), word for word. A text's `{name}` is filled as the row's `situation` says, and nothing else in it varies; a hole whose words the situation says vary is some text on one line. `boot` is each refusal to start, written in service-environment/boot-refusals.json's `line`, once, to stderr, before the service exits with that table's `exitCode`: a row that names `bootRefusal` is that table's refusal of that name, its `{service}` `worker` and its `{schema}` `WorkerConfig`; any other row is the worker's own. `reasons` is each line of the `{reasons}` of `invalid`. `job` is how an error names the job, by its type, as `{job}`. `errors` is each error a job is failed with whose words a clause of WORKER-SERVICE.md names; an error no clause names is the implementation's to word; an error that repeats what another said (the record's refusal of a resource or of a commit, the claim's of a job the worker stopped holding) is that one's words, not these. `logged` is each message a Worker service logs, at its `level`, with the facts named in `fields`, each of the form given, and the facts named in `carries` beside them.",
+  boot: [
+    {
+      name: 'unnamed',
+      situation:
+        'Started without `--config <path>` or `--config=<path>` naming a path.',
+      bootRefusal: 'unnamed',
+    },
+    {
+      name: 'unreadable',
+      situation: 'The path names no file the service can read.',
+      bootRefusal: 'unreadable',
+    },
+    {
+      name: 'not-json',
+      situation: 'The file is not JSON.',
+      bootRefusal: 'not-json',
+    },
+    {
+      name: 'invalid',
+      situation:
+        'The document is not a WorkerConfig: `{path}` is the path as it was given, and `{reasons}` one line of `reasons`, for the first way it is not.',
+      refusal:
+        '{path} is not a worker configuration document (WorkerConfig):\n{reasons}',
+    },
+    {
+      name: 'key-unset',
+      situation: '`XYNOLOG_OIDC_CLIENT_KEY` is unset or empty.',
+      refusal:
+        "XYNOLOG_OIDC_CLIENT_KEY is not set in the worker's environment: a worker signs in as a service account",
+    },
+    {
+      name: 'key-unreadable',
+      situation:
+        '`XYNOLOG_OIDC_CLIENT_KEY` is not a PEM private key the service can read without a passphrase.',
+      refusal:
+        "XYNOLOG_OIDC_CLIENT_KEY in the worker's environment is not an unencrypted PEM private key",
+    },
+    {
+      name: 'key-not-rsa',
+      situation: '`XYNOLOG_OIDC_CLIENT_KEY` is a private key that is not RSA.',
+      refusal:
+        "XYNOLOG_OIDC_CLIENT_KEY in the worker's environment is not an RSA key: a worker signs its assertions with RS256",
+    },
+    {
+      name: 'api-key-unset',
+      situation:
+        "An engine names, by its `apiKeyEnv`, a variable that is unset or empty: `{knowledgeBase}` is the index of its knowledge base in `knowledgeBases`, and `{engine}` its index in that one's `engines`, each in decimal digits.",
+      refusal:
+        "knowledgeBases[{knowledgeBase}].engines[{engine}].apiKeyEnv names a variable that is not set in the worker's environment",
+    },
+    {
+      name: 'domain-twice',
+      situation:
+        'Two of `knowledgeBases` name one `domain`: `{later}` is the index of the later, and `{earlier}` of the earlier, each in decimal digits.',
+      refusal:
+        'knowledgeBases[{later}].domain is the domain of knowledgeBases[{earlier}]: a worker serves a knowledge base once',
+    },
+    {
+      name: 'none-admits',
+      situation:
+        'Every knowledge base refused the service before any was confirmed.',
+      refusal:
+        'No knowledge base admits this worker: each of its knowledgeBases refused it',
+    },
+    {
+      name: 'cannot-listen',
+      situation:
+        "The service cannot listen on its `port`: `{port}` is the port, in decimal digits, and `{why}` the system's reason, which varies.",
+      refusal: 'Cannot listen on port {port}: {why}',
+    },
+  ],
+  reasons: [
+    {
+      name: 'missing',
+      situation:
+        "An object without a member its schema requires: `{member}` is the member's name.",
+      line: '  Missing required property: {member}',
+    },
+    {
+      name: 'other',
+      situation:
+        "Any other way the document is not its schema's: `{member}` is the names on the way from the document to the member, joined by `.`, with no index of an array.",
+      line: '  {member}: is not what the schema states',
+    },
+  ],
+  job: {
+    mark: 'mark ({motivation})',
+    yield: 'yield',
+  },
+  errors: [
+    {
+      name: 'unextractable',
+      situation:
+        'A job on a resource whose media type has no text the worker can read: `{resourceId}` is the resource, and `{mediaType}` its media type.',
+      error:
+        "Cannot run {job} on resource {resourceId}: media type '{mediaType}' has no extractable text to analyze",
+    },
+    {
+      name: 'not-settled',
+      situation:
+        'A job on a resource whose anchored text the Smelter has not yet settled: `{resourceId}` is the resource.',
+      error:
+        'Anchored text not yet derived for resource {resourceId} — Smelter has not settled; retrying',
+    },
+    {
+      name: 'anchored-declined',
+      situation:
+        'A job on a resource the anchored-text consult declines: `{resourceId}` is the resource, and `{declined}` what the consult answered, `no-map` or `unknown`.',
+      error:
+        "Cannot run {job} on resource {resourceId}: anchored-text consult returned '{declined}'",
+    },
+    {
+      name: 'not-served',
+      situation:
+        'A job of a motivation the engine that took it does not serve.',
+      error: 'Worker not configured for job: {job}',
+    },
+    {
+      name: 'no-processor',
+      situation: 'A tagging job handed over without the schema it names.',
+      error: 'No processor for job: {job}',
+    },
+    {
+      name: 'window-too-small',
+      situation:
+        'A model whose window leaves a piece 64 tokens or fewer: `{contextTokens}` is the window, `{scaffoldTokens}` the tokens of the prompt without its piece, and `{inputBudget}` what is left, each in decimal digits.',
+      error:
+        'Inference window too small for detection: context {contextTokens} tokens minus scaffold {scaffoldTokens} leaves an input budget of {inputBudget} (need > 64). Use a model with a larger context window or reduce the prompt scaffold.',
+    },
+    {
+      name: 'ollama-refused',
+      situation:
+        "An Ollama engine's generation refused: `{status}` is the status, and `{body}` the body, as it was sent.",
+      error: 'Ollama API error ({status}): {body}',
+    },
+    {
+      name: 'anthropic-refused',
+      situation:
+        "An Anthropic engine's request refused: `{said}` is what its client says of the refusal, which varies, and carries the refusal's status and the words of its body's `error.message`.",
+      error: '{said}',
+    },
+    {
+      name: 'unreadable',
+      situation:
+        "An answer that cannot be read: `{detail}` is one of `details`, and `{stopReason}` why the model stopped, `end_turn` where an Ollama engine's says `stop`.",
+      error:
+        'Structured response could not be read: {detail} (stop_reason: {stopReason})',
+    },
+    {
+      name: 'wait-stated',
+      situation:
+        "A refusal whose stated wait is over 120 seconds: `{failure}` is the refusal's error, `anthropic-refused` or `anthropic-limits-refused`, and `{said}` one of `waits`.",
+      error:
+        '{failure}; the provider said to wait ({said}), which is longer than the 120 seconds this driver waits',
+    },
+    {
+      name: 'withheld',
+      situation:
+        'An answer the provider withheld: `{why}` is ` ({category})` where it states a category and `: {explanation}` where it states an explanation, in that order, each left out where it states none.',
+      error: 'The provider withheld its answer: refusal{why}',
+    },
+    {
+      name: 'no-structured-outputs',
+      situation:
+        'A mark job on an Anthropic model the Models API does not report strict structured outputs for: `{model}` is the model.',
+      error:
+        "Model '{model}' does not report support for strict structured outputs (Models API capabilities.structured_outputs). It is refused: a generation the provider does not hold to the schema can come back unreadable. Give the agent that does this work a model that reports supported: true.",
+    },
+    {
+      name: 'ollama-limits-refused',
+      situation:
+        '`/api/show` refused: `{model}` is the model, `{status}` the status, and `{said}` the body, as it was sent.',
+      error:
+        "Failed to discover model limits for '{model}' from Ollama's /api/show: refused with status {status}: {said}",
+    },
+    {
+      name: 'anthropic-limits-refused',
+      situation:
+        'The Models API refused: `{model}` is the model, `{status}` the status, and `{said}` what `anthropic-refused` says of the refusal.',
+      error:
+        "Failed to discover model limits for '{model}' from the Models API: refused with status {status}: {said}",
+    },
+    {
+      name: 'no-context-length',
+      situation:
+        '`/api/show` answered with no context length: `{model}` is the model.',
+      error: "/api/show reports no context length for '{model}'",
+    },
+    {
+      name: 'unsupported-output',
+      situation:
+        "A yield job for a media type the worker does not generate: `{mediaType}` is the job's `outputMediaType`, and `{generatable}` each media type media-types/registry.json says is generatable, in its order, joined by ` or `.",
+      error:
+        'Unsupported outputMediaType for generation: {mediaType}. Generation produces {generatable}.',
+    },
+    {
+      name: 'over-window',
+      situation:
+        "A yield job whose prompt and length are together over its model's window: `{promptTokens}` is the tokens of the prompt, `{maxTokens}` the job's `maxTokens`, `{model}` the model, and `{contextTokens}` its window, each number in decimal digits.",
+      error:
+        "The prompt (~{promptTokens} tokens) and the {maxTokens} tokens asked for are together over the context window of '{model}' ({contextTokens} tokens)",
+    },
+  ],
+  details: [
+    {
+      name: 'not-json',
+      situation: 'An answer that is not JSON.',
+      detail: 'response is not valid JSON',
+    },
+    {
+      name: 'not-array',
+      situation:
+        'An answer that is JSON and not an array: `{kind}` is what it is, `object`, `string`, `number`, `boolean` or `null`.',
+      detail: 'parsed to {kind}, not an array',
+    },
+    {
+      name: 'empty',
+      situation: 'An answer with no text.',
+      detail: 'response is empty',
+    },
+  ],
+  waits: [
+    {
+      name: 'seconds',
+      situation: 'A `retry-after` of `{seconds}`, as it was sent.',
+      said: 'retry-after: {seconds}',
+    },
+    {
+      name: 'milliseconds',
+      situation: 'A `retry-after-ms` of `{milliseconds}`, as it was sent.',
+      said: 'retry-after-ms: {milliseconds}',
+    },
+  ],
+  logged: [
+    {
+      name: 'confirmed',
+      level: 'info',
+      situation:
+        'A knowledge base confirmed: `{domain}` is its domain, and `{did}` the DID it names the worker by.',
+      message: 'Knowledge base confirmed',
+      fields: {
+        domain: '{domain}',
+        did: '{did}',
+      },
+      carries: [],
+    },
+    {
+      name: 'refused',
+      level: 'error',
+      situation:
+        'A knowledge base that refused the worker: `{domain}` is its domain. `reason` says why.',
+      message: 'Knowledge base refused the worker',
+      fields: {
+        domain: '{domain}',
+      },
+      carries: ['reason'],
+    },
+    {
+      name: 'trouble',
+      level: 'warn',
+      situation:
+        'A knowledge base in trouble, which the worker starts again: `{domain}` is its domain. `error` says what the trouble was, and `waitMs` how long it waits, in milliseconds.',
+      message: 'Knowledge base in trouble — starting it again',
+      fields: {
+        domain: '{domain}',
+      },
+      carries: ['error', 'waitMs'],
+    },
+  ],
+};
+
+/** protocol/specs/src/bus/reply-bounds.json, as `BusReplyBounds` types it. */
+export const BUS_REPLY_BOUNDS: tables['BusReplyBounds'] = {
+  $comment:
+    "AUTHORITY for how large each answer on the bus can be. A bus message is bounded by its question: an answer whose size follows a document or a collection is read over HTTP. Every list or map an operation's reply carries is bounded by its own schema (`maxItems`, `maxProperties`), or is named here: `by` a member of the request (an array, so the answer is no larger than what was asked, or an integer with a `maximum`), or as one that `grows`, saying with what. A `grows` entry is an answer not yet bounded. Lists inside a resource's descriptor or an annotation are the record's, bounded by the write that made them, and are not walked. The reader in reader/ holds the registry to this table both ways: a list it names that is gone or bounded fails, and so does a reply's list it does not name.",
+  replies: {
+    'browse:resources-requested': {
+      'response.resources': {
+        grows:
+          'with the knowledge base: a page whose `limit` states no maximum',
+      },
+    },
+    'browse:annotation-history-requested': {
+      'response.events': {
+        grows: "with the annotation's history",
+      },
+    },
+    'browse:events-requested': {
+      'response.events': {
+        grows:
+          "with the resource's history: the request's `limit` states no maximum",
+      },
+    },
+    'browse:entity-types-requested': {
+      'response.entityTypes': {
+        grows: "with the knowledge base's entity types",
+      },
+    },
+    'browse:tag-schemas-requested': {
+      'response.tagSchemas': {
+        grows: "with the knowledge base's tag schemas",
+      },
+    },
+    'browse:engines-requested': {
+      'response.engines': {
+        grows: "with the knowledge base's engines",
+      },
+    },
+    'browse:profiles-requested': {
+      'response.profiles': {
+        by: 'dids',
+      },
+    },
+    'browse:directory-requested': {
+      'response.entries': {
+        grows: 'with one directory of the working tree',
+      },
+    },
+    'gather:requested': {
+      'response.focus.suggestedReferences': {
+        grows: "with the focus's neighbourhood in the graph",
+      },
+      'response.focus.content.related': {
+        grows: "with the focus's neighbourhood in the graph",
+      },
+      'response.graph.nodes': {
+        grows: "with the focus's neighbourhood in the graph",
+      },
+      'response.graph.edges': {
+        grows: "with the focus's neighbourhood in the graph",
+      },
+      'response.semanticContext.similar': {
+        grows: 'with the passages the recall ranks',
+      },
+      'response.semanticContext.excludedEntityTypes': {
+        grows: 'with the entity types the recall excluded',
+      },
+      'response.metadata.entityTypes': {
+        grows: "with the focal anchor's entity types",
+      },
+      'response.metadata.entityTypeFrequencies': {
+        grows: "with the knowledge base's entity types",
+      },
+    },
+    'gather:resource-requested': {
+      'response.focus.suggestedReferences': {
+        grows: "with the focus's neighbourhood in the graph",
+      },
+      'response.focus.content.related': {
+        grows: "with the focus's neighbourhood in the graph",
+      },
+      'response.graph.nodes': {
+        grows: "with the focus's neighbourhood in the graph",
+      },
+      'response.graph.edges': {
+        grows: "with the focus's neighbourhood in the graph",
+      },
+      'response.semanticContext.similar': {
+        grows: 'with the passages the recall ranks',
+      },
+      'response.semanticContext.excludedEntityTypes': {
+        grows: 'with the entity types the recall excluded',
+      },
+      'response.metadata.entityTypes': {
+        grows: "with the focal anchor's entity types",
+      },
+      'response.metadata.entityTypeFrequencies': {
+        grows: "with the knowledge base's entity types",
+      },
+    },
+    'gather:referenced-by-requested': {
+      'response.referencedBy': {
+        grows: 'with the annotations elsewhere that refer to the resource',
+      },
+    },
+    'gather:limits-requested': {
+      'response.limits': {
+        grows: 'with the engines the service holds a client for',
+      },
+    },
+    'job:limits-requested': {
+      'response.limits': {
+        grows: 'with the engines the service holds a client for',
+      },
+    },
+    'match:limits-requested': {
+      'response.limits': {
+        grows: 'with the engines the service holds a client for',
+      },
+    },
+    'job:status-requested': {
+      'response.progress.completedItems': {
+        grows: 'with the items the job has finished',
+      },
+      'response.progress.requestParams': {
+        grows: "with the job's parameters",
+      },
+      'response.result.byCategory': {
+        grows: "with the tagging job's categories",
+      },
+    },
+    'job:claim': {
+      'response.metadata.completedUnits': {
+        grows: 'with the units the job has finished',
+      },
+      'response.metadata.unitCursors': {
+        grows: 'with the units the job has begun',
+      },
+      'response.params.schema.tags': {
+        grows: "with the tag schema's tags",
+      },
+      'response.progress.completedItems': {
+        grows: 'with the items the job has finished',
+      },
+      'response.progress.requestParams': {
+        grows: "with the job's parameters",
+      },
+    },
+    'mark:commit': {
+      'response.annotationIds': {
+        by: 'annotations',
+      },
+    },
+    'match:search-requested': {
+      response: {
+        by: 'limit',
+      },
+    },
+    'match:resources-requested': {
+      'response.resources': {
+        by: 'limit',
+      },
+    },
+  },
+};
+
+/** Every table, by its file under protocol/specs/src. */
+export const SERVICE_TABLES = {
+  'archivist/default-entity-types.json': ARCHIVIST_DEFAULT_ENTITY_TYPES,
+  'archivist/layout.json': ARCHIVIST_LAYOUT,
+  'archivist/messages.json': ARCHIVIST_MESSAGES,
+  'dispatcher/messages.json': DISPATCHER_MESSAGES,
+  'embedding/requests.json': EMBEDDING_REQUESTS,
+  'gateway/media-token.json': GATEWAY_MEDIA_TOKEN,
+  'gateway/messages.json': GATEWAY_MESSAGES,
+  'gateway/response-headers.json': GATEWAY_RESPONSE_HEADERS,
+  'graph/schema.json': GRAPH_SCHEMA,
+  'jobs/budgets.json': JOBS_BUDGETS,
+  'jobs/storage.json': JOBS_STORAGE,
+  'service-environment/boot-refusals.json': SERVICE_ENVIRONMENT_BOOT_REFUSALS,
+  'service-environment/variables.json': SERVICE_ENVIRONMENT_VARIABLES,
+  'service-telemetry/log-lines.json': SERVICE_TELEMETRY_LOG_LINES,
+  'service-telemetry/telemetry.json': SERVICE_TELEMETRY_TELEMETRY,
+  'smelter/messages.json': SMELTER_MESSAGES,
+  'worker/answer-formats.json': WORKER_ANSWER_FORMATS,
+  'worker/messages.json': WORKER_MESSAGES,
+  'bus/reply-bounds.json': BUS_REPLY_BOUNDS,
+} as const;

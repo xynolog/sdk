@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobRunning (JobRunning (..), JobRunningStatus (..)) where
+module Xynolog.Internal.Generated.Models.JobRunning (JobRunning (..), JobRunningStatus (..), jobRunningStatusText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,3 +30,6 @@ data JobRunningStatus = JobRunningStatusRunning deriving (Eq, Show)
 instance FromJSON JobRunningStatus where parseJSON = checked "JobRunningStatus" $ \value -> if value == String "running" then pure JobRunningStatusRunning else fail "unknown enumeration member"
 
 instance ToJSON JobRunningStatus where toJSON JobRunningStatusRunning = String "running"
+
+jobRunningStatusText :: JobRunningStatus -> Text
+jobRunningStatusText JobRunningStatusRunning = "running"

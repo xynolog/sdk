@@ -19,10 +19,9 @@
 import type { components } from './types';
 import type { ResourceId } from './identifiers';
 import type { EventBase } from './event-base';
-import type { EventPayloadRefinements } from './bus-refinements';
 
 /** Each persisted event type and the payload the registry states it carries. */
-export type StatedPersistedEventCatalog = {
+type PersistedEventCatalog = {
   'yield:created': components['schemas']['ResourceCreatedPayload'];
   'yield:cloned': components['schemas']['ResourceClonedPayload'];
   'yield:updated': components['schemas']['ResourceUpdatedPayload'];
@@ -43,20 +42,6 @@ export type StatedPersistedEventCatalog = {
   'job:assigned': components['schemas']['JobAssignedPayload'];
   'job:completed': components['schemas']['JobCompletedPayload'];
   'job:failed': components['schemas']['JobFailedPayload'];
-};
-
-/**
- * Each persisted event type and the payload it carries: the stated one, or
- * its refinement where bus-refinements.ts narrows it to this layer's branded
- * types, so consumers read `payload.annotation.id` as `AnnotationId` without
- * an upcast at every seam.
- */
-type PersistedEventCatalog = {
-  [
-    K in keyof StatedPersistedEventCatalog
-  ]: K extends keyof EventPayloadRefinements
-    ? EventPayloadRefinements[K]
-    : StatedPersistedEventCatalog[K];
 };
 
 /** System event types — persisted events that have no resourceId. */

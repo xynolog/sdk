@@ -124,5 +124,5 @@ public sealed class YieldStateUnit : IStateUnit
 
 internal static class DisplayFailure
 {
-    internal static bool WasCancelled(XynologError error) => error is JobError && error.Code == Protocol.ProtocolFacts.JobError("cancelled");
+    internal static bool WasCancelled(XynologError error) => error is JobError && error.Code == JobErrorCode.Cancelled;
 }

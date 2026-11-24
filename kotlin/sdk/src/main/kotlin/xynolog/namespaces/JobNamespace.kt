@@ -12,10 +12,11 @@ import xynolog.errors.BusRequestError
 import xynolog.errors.BusRequestErrorCode
 import xynolog.identifiers.JobId
 import xynolog.jobs.Claims
+import xynolog.types.ClaimOptions
 import xynolog.types.JobCancelRequest
 import xynolog.types.JobCompleteCommand
 import xynolog.types.JobFailCommand
-import xynolog.types.JobFilter
+import xynolog.types.JobPollOptions
 import xynolog.types.JobQueuedEvent
 import xynolog.types.JobReportProgressCommand
 import xynolog.types.JobStatusRequest
@@ -39,25 +40,18 @@ public class JobNamespace internal constructor(private val links: Links) {
     public fun fail(): Typed<JobFailCommand> = links.own.frames(Channels.JOB_FAIL, null)
 
     /**
-     * A worker's claims of the jobs `accepts` takes: each job it comes to hold,
-     * one at a time, and each claim it was refused
-     * (protocol/contract/WORKER-CONTRACT.md). Nothing is claimed until they are
-     * first read. A claim waits `jobClaimTimeoutMs` for its answer; a held job
-     * silent for `heldJobStallMs` is stalled, looked for every
+     * A worker's claims of the jobs `options.accepts` takes: each job it comes
+     * to hold, one at a time, and each claim it was refused
+     * (protocol/contract/WORKER-CONTRACT.md). Nothing is claimed until they
+     * are first read. A claim waits `jobClaimTimeoutMs` for its answer; a held
+     * job silent for `heldJobStallMs` is stalled, looked for every
      * `heldJobStallCheckMs`; each of a commit's requests waits
-     * `markCommitTimeoutMs`. The transport's stream names the replies of
-     * `job:claim`, `job:queued` and `job:cancel-requested`, and, for a worker
-     * that commits, the replies of `mark:commit` and
-     * `browse:annotation-requested`.
+     * `markCommitTimeoutMs`, each client/timing.json's when `options` states
+     * none. The transport's stream names the replies of `job:claim`,
+     * `job:queued` and `job:cancel-requested`, and, for a worker that commits,
+     * the replies of `mark:commit` and `browse:annotation-requested`.
      */
-    @JvmOverloads
-    public fun claim(
-        accepts: List<JobFilter>,
-        jobClaimTimeoutMs: Long = Timings.JOB_CLAIM_TIMEOUT_MS,
-        heldJobStallMs: Long = Timings.HELD_JOB_STALL_MS,
-        heldJobStallCheckMs: Long = Timings.HELD_JOB_STALL_CHECK_MS,
-        markCommitTimeoutMs: Long = Timings.MARK_COMMIT_TIMEOUT_MS,
-    ): Claims = Claims(links.transport, accepts, links.scope, links.clock, jobClaimTimeoutMs, heldJobStallMs, heldJobStallCheckMs, markCommitTimeoutMs)
+    public fun claim(options: ClaimOptions): Claims = Claims(links.transport, options, links.scope, links.clock)
 
     /** A job's status, asked for now. */
     public suspend fun status(jobId: JobId): JobStatusResponse = links.request(Operations.JOB_STATUS_REQUESTED, JobStatusRequest(jobId = jobId)).response
@@ -67,19 +61,20 @@ public class JobNamespace internal constructor(private val links: Links) {
     public fun statusFuture(jobId: JobId): CompletableFuture<JobStatusResponse> = links.future { status(jobId) }
 
     /**
-     * Ask a job's status every `everyMs` (`jobPollMs`) until it has ended: the
-     * status it ended with. One that has not ended `withinMs`
-     * (`jobPollTimeoutMs`) from the first ask, the asks and the waits between
-     * them included, fails as a timeout at that moment: the last wait is cut
-     * short there, and an ask still unanswered then is given up. `onStatus` is
-     * told each status as it is answered.
+     * Ask a job's status every `everyMs` (`jobPollMs` when `options` states
+     * none) until it has ended: the status it ended with. One that has not
+     * ended `withinMs` (`jobPollTimeoutMs`) from the first ask, the asks and
+     * the waits between them included, fails as a timeout at that moment: the
+     * last wait is cut short there, and an ask still unanswered then is given
+     * up. `onStatus` is told each status as it is answered.
      */
     public suspend fun pollUntilComplete(
         jobId: JobId,
-        everyMs: Long = Timings.JOB_POLL_MS,
-        withinMs: Long = Timings.JOB_POLL_TIMEOUT_MS,
+        options: JobPollOptions = JobPollOptions(),
         onStatus: ((JobStatusResponse) -> Unit)? = null,
     ): JobStatusResponse {
+        val everyMs = options.everyMs ?: Timings.JOB_POLL_MS
+        val withinMs = options.withinMs ?: Timings.JOB_POLL_TIMEOUT_MS
         val began = links.clock.markNow()
         fun left(): Long = withinMs - began.elapsedNow().inWholeMilliseconds
         while (true) {
@@ -95,11 +90,10 @@ public class JobNamespace internal constructor(private val links: Links) {
     @JvmExposeBoxed
     public fun pollUntilCompleteFuture(
         jobId: JobId,
-        everyMs: Long = Timings.JOB_POLL_MS,
-        withinMs: Long = Timings.JOB_POLL_TIMEOUT_MS,
+        options: JobPollOptions = JobPollOptions(),
         onStatus: Consumer<JobStatusResponse>? = null,
     ): CompletableFuture<JobStatusResponse> =
-        links.future { pollUntilComplete(jobId, everyMs, withinMs, onStatus?.let { told -> { told.accept(it) } }) }
+        links.future { pollUntilComplete(jobId, options, onStatus?.let { told -> { told.accept(it) } }) }
 
     /**
      * Cancel a job. A pending job is cancelled outright; a running one is left

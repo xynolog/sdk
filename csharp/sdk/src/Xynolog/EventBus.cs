@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Xynolog.Errors;
 using Xynolog.Identifiers;
-using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog;
@@ -34,7 +33,7 @@ public sealed class EventBus : IDisposable
         };
         lock (gate)
         {
-            if (closed) throw new BusRequestError(ProtocolFacts.BusError("closed"), "The local bus is closed");
+            if (closed) throw new BusRequestError(BusRequestErrorCode.Closed, "The local bus is closed");
             Publish(new ReceivedBusFrame(frame, Activity.Current?.Context ?? default));
         }
     }

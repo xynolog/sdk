@@ -39,17 +39,26 @@ public enum ConnectionState: String, Sendable, CaseIterable {
   }
 }
 
-enum RetryContext: String, CaseIterable {
+/// The four retry rules of `retryRules`, each asked whether it retries an answer: its status, or
+/// nil when there was no answer; the request's method; and whether it carries an `Idempotency-Key`.
+public enum RetryContext: String, CaseIterable, Sendable {
   case boot, transport, refresh, job
-  private static let idempotentMethods: Set = ["GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE"]
-  func retryable(status: Int?, method: String?, keyed: Bool) -> Bool {
+  public func retryable(status: Int?, method: String?, keyed: Bool) -> Bool {
     switch self {
-    case .boot: status.map { [429, 503, 504].contains($0) } == true
+    case .boot:
+      return status.map(retryRules.boot.statuses.contains) == true
     case .transport:
-      status.map { [408, 413, 429, 500, 502, 503, 504].contains($0) } == true
-        && (keyed || method.map { Self.idempotentMethods.contains($0.uppercased()) } == true)
-    case .refresh: status.map { $0 == 408 || $0 == 429 || $0 >= 500 } ?? true
-    case .job: status.map { $0 == 408 || $0 == 429 || $0 >= 500 } == true
+      let rule = retryRules.transport
+      return status.map(rule.statuses.contains) == true
+        && (keyed || method.map { rule.idempotentMethods.contains($0.uppercased()) } == true)
+    case .refresh:
+      let rule = retryRules.refresh
+      guard let status else { return rule.noResponse }
+      return rule.statuses.contains(status) || status >= rule.statusFrom
+    case .job:
+      let rule = retryRules.job
+      guard let status else { return false }
+      return rule.statuses.contains(status) || status >= rule.statusFrom
     }
   }
 }

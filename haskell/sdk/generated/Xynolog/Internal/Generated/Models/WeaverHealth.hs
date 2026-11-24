@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.WeaverHealth (WeaverHealth (..), WeaverHealthReconcile (..), WeaverHealthReconcilePhase (..), WeaverHealthReconcileSummary (..), WeaverHealthStatus (..)) where
+module Xynolog.Internal.Generated.Models.WeaverHealth (WeaverHealth (..), WeaverHealthReconcile (..), WeaverHealthReconcilePhase (..), weaverHealthReconcilePhaseText, WeaverHealthReconcileSummary (..), WeaverHealthStatus (..), weaverHealthStatusText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -44,6 +44,12 @@ instance ToJSON WeaverHealthReconcilePhase where
   toJSON WeaverHealthReconcilePhaseDone = String "done"
   toJSON WeaverHealthReconcilePhaseFailed = String "failed"
 
+weaverHealthReconcilePhaseText :: WeaverHealthReconcilePhase -> Text
+weaverHealthReconcilePhaseText WeaverHealthReconcilePhasePending = "pending"
+weaverHealthReconcilePhaseText WeaverHealthReconcilePhaseRunning = "running"
+weaverHealthReconcilePhaseText WeaverHealthReconcilePhaseDone = "done"
+weaverHealthReconcilePhaseText WeaverHealthReconcilePhaseFailed = "failed"
+
 data WeaverHealthReconcileSummary = WeaverHealthReconcileSummary
   { weaverHealthReconcileSummaryDivergent :: Integer,
     weaverHealthReconcileSummaryHealFailures :: Integer,
@@ -62,3 +68,6 @@ data WeaverHealthStatus = WeaverHealthStatusOk deriving (Eq, Show)
 instance FromJSON WeaverHealthStatus where parseJSON = checked "WeaverHealthStatus" $ \value -> if value == String "ok" then pure WeaverHealthStatusOk else fail "unknown enumeration member"
 
 instance ToJSON WeaverHealthStatus where toJSON WeaverHealthStatusOk = String "ok"
+
+weaverHealthStatusText :: WeaverHealthStatus -> Text
+weaverHealthStatusText WeaverHealthStatusOk = "ok"

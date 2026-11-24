@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.LocalTarget (LocalTarget (..), LocalTargetKind (..)) where
+module Xynolog.Internal.Generated.Models.LocalTarget (LocalTarget (..), LocalTargetKind (..), localTargetKindText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -24,3 +24,6 @@ data LocalTargetKind = LocalTargetKindLocal deriving (Eq, Show)
 instance FromJSON LocalTargetKind where parseJSON = checked "LocalTargetKind" $ \value -> if value == String "local" then pure LocalTargetKindLocal else fail "unknown enumeration member"
 
 instance ToJSON LocalTargetKind where toJSON LocalTargetKindLocal = String "local"
+
+localTargetKindText :: LocalTargetKind -> Text
+localTargetKindText LocalTargetKindLocal = "local"

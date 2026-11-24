@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.MemoryVectorsConfig
 import Xynolog.Internal.Generated.Models.QdrantVectorsConfig
 
-data VectorsConfig = VectorsConfigBranch1 QdrantVectorsConfig | VectorsConfigBranch2 MemoryVectorsConfig deriving (Eq, Show)
+data VectorsConfig = VectorsConfigQdrantVectorsConfig QdrantVectorsConfig | VectorsConfigMemoryVectorsConfig MemoryVectorsConfig deriving (Eq, Show)
 
-instance FromJSON VectorsConfig where parseJSON = checked "VectorsConfig" $ \value -> (VectorsConfigBranch1 <$> parseJSON value) <|> (VectorsConfigBranch2 <$> parseJSON value)
+instance FromJSON VectorsConfig where parseJSON = checked "VectorsConfig" $ \value -> (VectorsConfigQdrantVectorsConfig <$> parseJSON value) <|> (VectorsConfigMemoryVectorsConfig <$> parseJSON value)
 
 instance ToJSON VectorsConfig where
-  toJSON (VectorsConfigBranch1 value) = toJSON value
-  toJSON (VectorsConfigBranch2 value) = toJSON value
+  toJSON (VectorsConfigQdrantVectorsConfig value) = toJSON value
+  toJSON (VectorsConfigMemoryVectorsConfig value) = toJSON value

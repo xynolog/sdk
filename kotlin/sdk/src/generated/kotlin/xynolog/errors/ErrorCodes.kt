@@ -270,6 +270,133 @@ public enum class SpanRefusal(
     ItemOutOfRange("item-out-of-range"),
 }
 
+/** Why a request of the launcher's control API (`xynolog control`, contract/LAUNCHER-CONTROL.md) failed. The launcher sends one in each error's data, and Desktop reads it. A knowledge base never sends one. */
+@Generated
+public enum class ControlErrorCode(
+    /** The code as the wire and every SDK spell it. */
+    public val code: String,
+) {
+    /**
+     * The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it.
+     */
+    InvalidParams("control.invalid-params"),
+
+    /**
+     * The request is written to a version of the control API this launcher does not speak. The error's supported field names the ones it does.
+     */
+    UnsupportedApiVersion("control.unsupported-api-version"),
+
+    /**
+     * The launcher refuses the request as the command line refuses the same options: they contradict each other, or do not apply to what they name.
+     */
+    InvalidRequest("control.invalid-request"),
+
+    /**
+     * The request names a service or a group the launcher has none of.
+     */
+    InvalidService("control.invalid-service"),
+
+    /**
+     * The launcher refuses a setting's value, as a start would refuse it. The previous value is kept.
+     */
+    InvalidValue("control.invalid-value"),
+
+    /**
+     * The request names a setting the launcher does not keep.
+     */
+    UnknownSetting("control.unknown-setting"),
+
+    /**
+     * Several stacks could be meant and the request names none of them. The error's choices name each; nothing was done.
+     */
+    TargetRequired("control.target-required"),
+
+    /**
+     * The root the request names is the basename of several registered roots. The error's choices name each by its path; nothing was done.
+     */
+    TargetAmbiguous("control.target-ambiguous"),
+
+    /**
+     * The root the request names is not a knowledge base's clone: no such directory, no .xynolog/ in it, or a project file the launcher refuses.
+     */
+    RootNotFound("control.root-not-found"),
+
+    /**
+     * The root the request names is not in the registry.
+     */
+    RootNotRegistered("control.root-not-registered"),
+
+    /**
+     * The request needs a stack of its target recorded on this machine, and none is.
+     */
+    StackNotRunning("control.stack-not-running"),
+
+    /**
+     * The request would change what a recorded stack depends on: stop the stack first.
+     */
+    StackRunning("control.stack-running"),
+
+    /**
+     * Another xynolog start of the same knowledge base holds its start lock.
+     */
+    StartInProgress("control.start-in-progress"),
+
+    /**
+     * No container runtime the request can use is on the launcher's PATH.
+     */
+    RuntimeUnavailable("control.runtime-unavailable"),
+
+    /**
+     * A program the request needs besides a container runtime (gh, for a codespace) is not on the launcher's PATH.
+     */
+    DependencyUnavailable("control.dependency-unavailable"),
+
+    /**
+     * What the request needs to reach did not answer: the knowledge base, its issuer, or a codespace's forward.
+     */
+    Unreachable("control.unreachable"),
+
+    /**
+     * An instance of the name the run gives already runs on this machine for its target, whichever control server or command started it. Nothing was started.
+     */
+    InstanceInUse("control.instance-in-use"),
+
+    /**
+     * No run of an instance of the name the request gives is in flight on this machine for its target: none was started, or its run has been answered.
+     */
+    InstanceNotFound("control.instance-not-found"),
+
+    /**
+     * The request would destroy something, and does not state that a person confirmed it.
+     */
+    ConfirmationRequired("control.confirmation-required"),
+
+    /**
+     * The launcher's own record of this machine (the stack record, the registry, the sign-in store) cannot be read. Nothing was assumed in its place.
+     */
+    UnreadableState("control.unreadable-state"),
+
+    /**
+     * The launcher's stored session for the target is valid: there is nothing to sign in to.
+     */
+    AlreadySignedIn("control.already-signed-in"),
+
+    /**
+     * The person was not signed in: the issuer refused or the code expired, the gateway refused the token, or the session could not be kept. Nothing was stored.
+     */
+    SignInFailed("control.sign-in-failed"),
+
+    /**
+     * The client cancelled the request before it ended.
+     */
+    Cancelled("control.cancelled"),
+
+    /**
+     * The request failed for a reason no other code names. Its message says why, as the command line would.
+     */
+    Failed("control.failed"),
+}
+
 /** The code a refusal of `status` fails with. */
 internal fun transportErrorCodeFor(status: Int): TransportErrorCode = when {
     status == 401 -> TransportErrorCode.Unauthorized

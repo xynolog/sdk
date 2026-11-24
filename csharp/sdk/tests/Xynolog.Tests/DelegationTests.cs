@@ -12,8 +12,8 @@ public sealed partial class TransportTests
 {
     private static readonly JobId DelegatedJob = JobId.Parse("job-1");
     private static readonly ResourceId DelegatedResource = ResourceId.Parse("res-1");
-    private static readonly TimeSpan JobSilence = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("jobSilenceMs").GetInt32());
-    private static readonly TimeSpan JobPoll = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("jobStatusPollMs").GetInt32());
+    private static readonly TimeSpan JobSilence = TimeSpan.FromMilliseconds(Timings.JobSilenceMs);
+    private static readonly TimeSpan JobPoll = TimeSpan.FromMilliseconds(Timings.JobStatusPollMs);
 
     [Theory]
     [InlineData("mark")]
@@ -277,7 +277,7 @@ public sealed partial class TransportTests
         }
 
         var error = await Assert.ThrowsAsync<TransportError>(() => following.WaitAsync(deadline.Token));
-        Assert.Equal(ProtocolFacts.Error(0), error.Code);
+        Assert.Equal(TransportErrorCode.Error, error.Code);
     }
 
     [Fact]
@@ -356,7 +356,7 @@ public sealed partial class TransportTests
         using var client = new XynologClient("http://unit.test", "token", http, clock);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await OpenAsync(client.Transport);
-        var silence = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("delegateSilenceMs").GetInt32());
+        var silence = TimeSpan.FromMilliseconds(Timings.DelegateSilenceMs);
         using var unit = new MarkStateUnit(client, DelegatedResource);
         await using var timeouts = client.Bus.Frames(BusChannels.MarkDelegateTimeout, cancellation: deadline.Token).GetAsyncEnumerator();
         var timedOut = timeouts.MoveNextAsync().AsTask();

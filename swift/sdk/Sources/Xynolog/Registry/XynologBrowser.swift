@@ -634,9 +634,7 @@ func samePlace(_ lhs: KbEndpoint, _ rhs: KbEndpoint) -> Bool {
 }
 
 private func lastRead(_ description: KbDescription) -> KbRead {
-  KbRead(
-    at: Date().formatted(.iso8601.time(includingFractionalSeconds: true)),
-    gitBranch: description.gitBranch)
+  KbRead(at: dateTime(Date()), gitBranch: description.gitBranch)
 }
 
 public func newXynologBrowser(_ config: XynologBrowserConfig) async throws -> XynologBrowser {

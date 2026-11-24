@@ -5,6 +5,7 @@ package xynolog.annotations
 import xynolog.errors.SpanRefusal
 import xynolog.errors.SpanRefusedError
 import xynolog.identifiers.ResourceId
+import xynolog.stamped
 import xynolog.types.Agent
 import xynolog.types.AnchoredText
 import xynolog.types.Annotation
@@ -31,9 +32,6 @@ import xynolog.types.TextSpan
 import xynolog.types.TextualBody
 import xynolog.types.wireJson
 import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 /*
  * Reading an annotation, and building one. An annotation's target is a
@@ -170,8 +168,6 @@ public fun ReconciledSpan.toTextSpan(): TextSpan = when (this) {
 /** What a PDF's fragment conforms to. */
 private const val PDF_FRAGMENTS = "http://tools.ietf.org/rfc/rfc3778"
 
-private val INSTANT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
-
 /** Whether two offsets are a span of a text of `length` code points: in order, inside the text. */
 private fun isASpanOf(length: Int, start: Long, end: Long): Boolean = start in 0..end && end <= length
 
@@ -195,7 +191,7 @@ private fun built(target: AnnotationTarget, motivation: Motivation, anchor: Stri
         target = target,
         body = body,
         generator = generator,
-        created = INSTANT.format(Instant.now().truncatedTo(ChronoUnit.MILLIS)),
+        created = stamped(Instant.now()),
     )
 }
 

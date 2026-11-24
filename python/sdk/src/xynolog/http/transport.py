@@ -25,7 +25,10 @@ from xynolog._kept_for_first_reader import KeptForFirstReader
 from xynolog.channels import RESOURCE_SCOPED_CHANNELS
 from xynolog.errors import TransportError, XynologError
 from xynolog.events import Events
-from xynolog.http._gateway_http import (
+from xynolog.http._withheld import why_unanswered
+from xynolog.http.content import HttpContentTransport
+from xynolog.http.exchange import Exchange, TokenRefresher, refusal
+from xynolog.http.gateway_http import (
     CREATE_MEDIA_TOKEN,
     CREATE_MEDIA_TOKEN_SENDS,
     EMIT_ON_BUS,
@@ -37,9 +40,6 @@ from xynolog.http._gateway_http import (
     IDEMPOTENCY_KEY,
     RETRY_AFTER,
 )
-from xynolog.http._withheld import why_unanswered
-from xynolog.http.content import HttpContentTransport
-from xynolog.http.exchange import Exchange, TokenRefresher, refusal
 from xynolog.http.stream import Bookmarks, Stream, Timing
 from xynolog.identifiers import ResourceId
 from xynolog.retry import BOOT, RetryFacts, retry_after_ms, retry_with_backoff

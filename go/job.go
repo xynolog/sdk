@@ -50,19 +50,19 @@ func (n *JobNamespace) Status(ctx context.Context, jobID api.JobId) (api.JobStat
 	return status.Response, err
 }
 
-// PollUntilComplete asks for a job's status every every until it has ended,
-// giving each answer to onStatus when it is not nil. It gives the status the
-// job ended with. One that has not ended within within of the first ask, its
-// asks and the waits between them included, fails as a timeout then: an ask
-// or a wait under way at that instant is cut short. When every is zero, it
-// asks every JobPoll of the client's timing; when within is zero, it goes on
-// for its JobPollTimeout.
-func (n *JobNamespace) PollUntilComplete(ctx context.Context, jobID api.JobId, every, within time.Duration, onStatus func(api.JobStatusResponse)) (api.JobStatusResponse, error) {
-	if every == 0 {
-		every = n.links.timing.JobPoll
+// PollUntilComplete asks for a job's status every options.EveryMs until it
+// has ended, giving each answer to onStatus when it is not nil. It gives the
+// status the job ended with. One that has not ended within options.WithinMs
+// of the first ask, its asks and the waits between them included, fails as a
+// timeout then: an ask or a wait under way at that instant is cut short. A
+// wait left out (nil) is the client timing's JobPoll and JobPollTimeout.
+func (n *JobNamespace) PollUntilComplete(ctx context.Context, jobID api.JobId, options api.JobPollOptions, onStatus func(api.JobStatusResponse)) (api.JobStatusResponse, error) {
+	every, within := n.links.timing.JobPoll, n.links.timing.JobPollTimeout
+	if options.EveryMs != nil {
+		every = time.Duration(*options.EveryMs) * time.Millisecond
 	}
-	if within == 0 {
-		within = n.links.timing.JobPollTimeout
+	if options.WithinMs != nil {
+		within = time.Duration(*options.WithinMs) * time.Millisecond
 	}
 	deadline := time.Now().Add(within)
 	polling, stop := context.WithDeadline(ctx, deadline)
@@ -110,13 +110,13 @@ func (n *JobNamespace) Cancel(ctx context.Context, jobID api.JobId) (bool, error
 	return answer.Response.Cancelled, err
 }
 
-// Claim is a worker's side: claim the jobs accepts describes, and hold one at
-// a time. Claiming begins when the claims are first ranged over, and each job
+// Claim is a worker's side: claim the jobs options.Accepts describes, and
+// hold one at a time. Claiming begins when the claims are first ranged over, and each job
 // they hand out says its own lifecycle, commits its own annotations and
 // settles once (protocol/contract/WORKER-CONTRACT.md). The transport's stream
 // must name JobClaimChannels, and JobCommitChannels for a worker that
-// commits. The waits are the client's Timing: JobClaimTimeout, HeldJobStall,
-// HeldJobStallCheck and MarkCommitTimeout.
-func (n *JobNamespace) Claim(accepts []api.JobFilter) *Claims {
-	return newClaims(n.links, accepts)
+// commits. Each wait options leaves out (nil) is the client's Timing:
+// JobClaimTimeout, HeldJobStall, HeldJobStallCheck and MarkCommitTimeout.
+func (n *JobNamespace) Claim(options api.ClaimOptions) *Claims {
+	return newClaims(n.links, options)
 }

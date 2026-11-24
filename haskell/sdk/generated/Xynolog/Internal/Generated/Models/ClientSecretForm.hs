@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ClientSecretForm (ClientSecretForm (..), ClientSecretFormGrantU5f_type (..)) where
+module Xynolog.Internal.Generated.Models.ClientSecretForm (ClientSecretForm (..), ClientSecretFormGrantU5f_type (..), clientSecretFormGrantU5f_typeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -26,3 +26,6 @@ data ClientSecretFormGrantU5f_type = ClientSecretFormGrantU5f_typeClientU5f_cred
 instance FromJSON ClientSecretFormGrantU5f_type where parseJSON = checked "ClientSecretFormGrantU5f_type" $ \value -> if value == String "client_credentials" then pure ClientSecretFormGrantU5f_typeClientU5f_credentials else fail "unknown enumeration member"
 
 instance ToJSON ClientSecretFormGrantU5f_type where toJSON ClientSecretFormGrantU5f_typeClientU5f_credentials = String "client_credentials"
+
+clientSecretFormGrantU5f_typeText :: ClientSecretFormGrantU5f_type -> Text
+clientSecretFormGrantU5f_typeText ClientSecretFormGrantU5f_typeClientU5f_credentials = "client_credentials"

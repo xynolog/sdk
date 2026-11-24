@@ -6,7 +6,7 @@ let request client ?timeout_ms operation payload =
   Client_core.request client ?timeout_ms ~normalize_refusals:true operation
     payload
 
-type frame_refusal_reason = Wire_stream.frame_refusal_reason
+type frame_refusal_reason = Enums.Frame_refusal_reason.t
 type frame_refusal = Wire_stream.frame_refusal
 
 let frames client ?(on_unroutable = ignore) receive =

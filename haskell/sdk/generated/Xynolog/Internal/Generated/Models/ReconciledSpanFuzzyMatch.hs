@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ReconciledSpanFuzzyMatch (ReconciledSpanFuzzyMatch (..), ReconciledSpanFuzzyMatchAnchorMethod (..)) where
+module Xynolog.Internal.Generated.Models.ReconciledSpanFuzzyMatch (ReconciledSpanFuzzyMatch (..), ReconciledSpanFuzzyMatchAnchorMethod (..), reconciledSpanFuzzyMatchAnchorMethodText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,3 +30,6 @@ data ReconciledSpanFuzzyMatchAnchorMethod = ReconciledSpanFuzzyMatchAnchorMethod
 instance FromJSON ReconciledSpanFuzzyMatchAnchorMethod where parseJSON = checked "ReconciledSpanFuzzyMatchAnchorMethod" $ \value -> if value == String "fuzzy-match" then pure ReconciledSpanFuzzyMatchAnchorMethodFuzzyU2d_match else fail "unknown enumeration member"
 
 instance ToJSON ReconciledSpanFuzzyMatchAnchorMethod where toJSON ReconciledSpanFuzzyMatchAnchorMethodFuzzyU2d_match = String "fuzzy-match"
+
+reconciledSpanFuzzyMatchAnchorMethodText :: ReconciledSpanFuzzyMatchAnchorMethod -> Text
+reconciledSpanFuzzyMatchAnchorMethodText ReconciledSpanFuzzyMatchAnchorMethodFuzzyU2d_match = "fuzzy-match"

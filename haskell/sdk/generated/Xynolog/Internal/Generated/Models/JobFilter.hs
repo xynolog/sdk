@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.MarkJobFilter
 import Xynolog.Internal.Generated.Models.YieldJobFilter
 
-data JobFilter = JobFilterBranch1 MarkJobFilter | JobFilterBranch2 YieldJobFilter deriving (Eq, Show)
+data JobFilter = JobFilterMarkJobFilter MarkJobFilter | JobFilterYieldJobFilter YieldJobFilter deriving (Eq, Show)
 
-instance FromJSON JobFilter where parseJSON = checked "JobFilter" $ \value -> (JobFilterBranch1 <$> parseJSON value) <|> (JobFilterBranch2 <$> parseJSON value)
+instance FromJSON JobFilter where parseJSON = checked "JobFilter" $ \value -> (JobFilterMarkJobFilter <$> parseJSON value) <|> (JobFilterYieldJobFilter <$> parseJSON value)
 
 instance ToJSON JobFilter where
-  toJSON (JobFilterBranch1 value) = toJSON value
-  toJSON (JobFilterBranch2 value) = toJSON value
+  toJSON (JobFilterMarkJobFilter value) = toJSON value
+  toJSON (JobFilterYieldJobFilter value) = toJSON value

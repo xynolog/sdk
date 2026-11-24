@@ -1,6 +1,5 @@
 using Xynolog.Errors;
 using Xynolog.Http;
-using Xynolog.Protocol;
 using Xynolog.Session;
 using Xynolog.SignIn;
 using Xynolog.Storage;
@@ -70,7 +69,7 @@ public sealed class HttpSessionFactory(HttpClient? httpClient = null, TimeProvid
     public async Task<OpenedSession> OpenAsync(SessionFactoryOptions options, CancellationToken cancellation = default)
     {
         if (options.Kb.Endpoint is not KbEndpoint.HttpEndpointCase(var endpoint))
-            throw new SessionError(ProtocolFacts.SessionError("construct-failed"), "This factory requires an HTTP endpoint.");
+            throw new SessionError(SessionErrorCode.ConstructFailed, "This factory requires an HTTP endpoint.");
         var errors = new Broadcast<XynologError>(keptForFirst: XynologError.KeptForFirstReader);
         // The client writes only while the sign-in stored beside it names its person, read through what holds it there.
         var persistence = new CachePersistence(options.Storage, options.Kb.Id, RegistryStorage.KeptIn(options.Storage, options.Kb.Id), errors.Publish);

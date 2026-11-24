@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Neo4jGraphConfig (Neo4jGraphConfig (..), Neo4jGraphConfigType (..)) where
+module Xynolog.Internal.Generated.Models.Neo4jGraphConfig (Neo4jGraphConfig (..), Neo4jGraphConfigType (..), neo4jGraphConfigTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -27,3 +27,6 @@ data Neo4jGraphConfigType = Neo4jGraphConfigTypeNeo4j deriving (Eq, Show)
 instance FromJSON Neo4jGraphConfigType where parseJSON = checked "Neo4jGraphConfigType" $ \value -> if value == String "neo4j" then pure Neo4jGraphConfigTypeNeo4j else fail "unknown enumeration member"
 
 instance ToJSON Neo4jGraphConfigType where toJSON Neo4jGraphConfigTypeNeo4j = String "neo4j"
+
+neo4jGraphConfigTypeText :: Neo4jGraphConfigType -> Text
+neo4jGraphConfigTypeText Neo4jGraphConfigTypeNeo4j = "neo4j"

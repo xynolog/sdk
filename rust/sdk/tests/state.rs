@@ -23,7 +23,7 @@ use xynolog::testing::axioms::{AxiomSubject, Fresh, Surface, assert_state_unit_a
 use xynolog::testing::{FaultyTransport, TestClientOptions, create_test_client};
 use xynolog::timing::HOVER_DELAY;
 use xynolog::types::{
-    AnnotationSelector, GatherAnnotationOptions, GatherResourceRequestOptions, GenerationJobParams,
+    AnnotationSelector, GatherAnnotationOptions, GatherResourceOptions, GenerationJobParams,
     MarkJobParams, Motivation, PendingAnnotation,
 };
 
@@ -188,7 +188,7 @@ impl AxiomSubject for Gatherings {
                 unit.gather_annotation(&as_id("ann-1"), GatherAnnotationOptions::default())
             }),
             Box::new(|| {
-                unit.gather_resource(&as_id(RES), GatherResourceRequestOptions::default());
+                unit.gather_resource(&as_id(RES), GatherResourceOptions::default());
             }),
         ]
     }

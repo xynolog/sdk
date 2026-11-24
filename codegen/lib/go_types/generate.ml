@@ -30,6 +30,10 @@ let refuse = D.refuse
 type state = {
   definitions : D.definitions;
   identifiers : string list;
+  keys : (string * string) list;
+      (** The type a named map's keys are, by its name, where its schema's
+          [propertyNames] names one: [Normalize.shape_only] drops the keyword,
+          so the writer of the types is told. *)
   written : (string, G.decl list) Hashtbl.t;
       (** Every type written, by name, so a schema reached twice is written
           once. *)
@@ -59,7 +63,7 @@ let doc_of name (s : D.t) =
   | _ -> []
 
 let marker union = "memberOf" ^ union
-let member_interface union = lower union ^ "Member"
+let member_interface union = union ^ "Member"
 
 let mark st member union =
   let unions = Option.value ~default:[] (Hashtbl.find_opt st.markers member) in
@@ -98,13 +102,18 @@ and empty st =
       ];
   named empty_object
 
+(* A keyword that constrains nothing, so a schema of these alone, as
+   JsonSchema.json written in place is, admits any value. *)
+and annotation key =
+  List.mem key [ "$schema"; "$id"; "$comment"; "title"; "description" ]
+
 (* The Go type of a value [owner]'s property [property] holds, without the
    pointer its field may be. *)
 and type_of st owner property (s : D.t) =
   let what = owner ^ "." ^ property in
   match s with
   | D.Ref { name; _ } -> named_type st name
-  | D.Node { keys = []; _ } -> any
+  | D.Node { keys; _ } when List.for_all annotation keys -> any
   | _ -> (
       match View.without_null s with
       | Some inner -> type_of st owner property inner
@@ -213,8 +222,21 @@ and declaration st name (s : D.t) =
                       { doc; name; def = G.Is (G.Map (named "string", any)) };
                   ]
               | Some values ->
-                  alias (G.Map (named "string", type_of st name "Value" values))
-              ))
+                  (* A type of its own too: an alias is read by its kind
+                     alone, and this one states its keys and values. *)
+                  let key =
+                    match List.assoc_opt name st.keys with
+                    | Some key -> named_type st key
+                    | None -> named "string"
+                  in
+                  [
+                    G.Type
+                      {
+                        doc;
+                        name;
+                        def = G.Is (G.Map (key, type_of st name "Value" values));
+                      };
+                  ]))
       | _ -> refuse "%s: a schema shape the generator does not know" name)
 
 (* A named enumeration: its type, a constant per value named after it, and
@@ -707,11 +729,12 @@ type generated = {
 
 (* Every type of [roots], with every type they reach, in the order of their
    names. *)
-let generate definitions ~identifiers roots =
+let generate definitions ~identifiers ~keys roots =
   let st =
     {
       definitions;
       identifiers;
+      keys;
       written = Hashtbl.create 1024;
       markers = Hashtbl.create 256;
       told = Hashtbl.create 64;

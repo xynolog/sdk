@@ -4,7 +4,7 @@
 module Xynolog.Internal.Refresh
   ( Refresher,
     SubjectInfo (..),
-    Target (..),
+    RefreshTarget (..),
     Write,
     Acts (..),
     newRefresher,
@@ -51,16 +51,16 @@ data SubjectInfo = SubjectInfo
   }
   deriving (Eq, Show)
 
-data Target = Target Text (STM (IO ()))
+data RefreshTarget = RefreshTarget Text (STM (IO ()))
 
 -- | A replaced value settles what its key's window owes. A patched one changes
 -- only its written member, so the refetch the window owes still runs.
-data Write = Replace (SubjectInfo -> STM [Target]) | Patch (SubjectInfo -> STM [Target])
+data Write = Replace (SubjectInfo -> STM [RefreshTarget]) | Patch (SubjectInfo -> STM [RefreshTarget])
 
 data Acts = Acts
-  { refetch :: SubjectInfo -> Fact.Reach -> STM [Target],
+  { refetch :: SubjectInfo -> Fact.Reach -> STM [RefreshTarget],
     write :: Maybe Write,
-    end :: Maybe (SubjectInfo -> STM [Target])
+    end :: Maybe (SubjectInfo -> STM [RefreshTarget])
   }
 
 type Parent = Maybe Context.Context
@@ -186,7 +186,7 @@ apply runtime trigger parent info = do
         immediate select query = forM_ (Map.lookup query (acts runtime)) $ \control -> do
           (settles, action) <- case select control of Just value -> pure value; Nothing -> throwSTM (userError "refresh action has no implementation")
           targets <- action info
-          forM_ targets $ \(Target identity mutation) -> do
+          forM_ targets $ \(RefreshTarget identity mutation) -> do
             when settles (modifyTVar' (windows runtime) (Map.delete (query, identity)))
             launch <- mutation
             writeTQueue (queue runtime) (parent, launch)
@@ -199,7 +199,7 @@ apply runtime trigger parent info = do
     mapM_ (immediate ended) removes
     forM_ fetches $ \query -> forM_ (Map.lookup query (acts runtime)) $ \control -> do
       targets <- refetch control info reach
-      forM_ targets $ \(Target identity mutation) -> coalesce runtime (query, identity) parent mutation
+      forM_ targets $ \(RefreshTarget identity mutation) -> coalesce runtime (query, identity) parent mutation
 
 coalesce :: Refresher -> (Fact.Query, Text) -> Parent -> STM (IO ()) -> STM ()
 coalesce runtime key parent mutation = do
@@ -251,12 +251,12 @@ dispose runtime = mask_ $ do
 
 -- Select only keys held by this cache. Re-read a key at execution time so a
 -- coalesced invalidation keeps the latest resource-routing hint.
-cacheTargets :: Cache.Cache key value -> (SubjectInfo -> key -> Bool) -> SubjectInfo -> Fact.Reach -> STM [Target]
+cacheTargets :: Cache.Cache key value -> (SubjectInfo -> key -> Bool) -> SubjectInfo -> Fact.Reach -> STM [RefreshTarget]
 cacheTargets cache matches info reach = do
   keys <- Cache.keys cache
   let selected = filter (\key -> reach == Fact.Held || matches info key) keys
   pure
-    [ Target
+    [ RefreshTarget
         (Cache.encodeKey cache key)
         ( do
             current <- Cache.keys cache
@@ -271,18 +271,18 @@ writeTargets :: Cache.Cache key value -> (SubjectInfo -> key -> Bool) -> (Subjec
 writeTargets cache matches update = Replace $ \info -> do
   keys <- Cache.keys cache
   found <- mapM (\key -> do value <- Cache.get cache key; pure (key, update info value)) (filter (matches info) keys)
-  pure [Target (Cache.encodeKey cache key) (Cache.setSTM cache key value) | (key, Just value) <- found]
+  pure [RefreshTarget (Cache.encodeKey cache key) (Cache.setSTM cache key value) | (key, Just value) <- found]
 
 patchTargets :: Cache.Cache key value -> (SubjectInfo -> key -> Bool) -> (SubjectInfo -> value -> value) -> Write
 patchTargets cache matches change = Patch $ \info -> do
   keys <- Cache.keys cache
-  pure [Target (Cache.encodeKey cache key) (Cache.patchSTM cache key (change info)) | key <- keys, matches info key]
+  pure [RefreshTarget (Cache.encodeKey cache key) (Cache.patchSTM cache key (change info)) | key <- keys, matches info key]
 
-endTargets :: Cache.Cache key value -> (SubjectInfo -> key -> Bool) -> SubjectInfo -> STM [Target]
+endTargets :: Cache.Cache key value -> (SubjectInfo -> key -> Bool) -> SubjectInfo -> STM [RefreshTarget]
 endTargets cache matches info = do
   keys <- Cache.keys cache
   pure
-    [ Target
+    [ RefreshTarget
         (Cache.encodeKey cache key)
         ( Cache.removeSTM
             cache

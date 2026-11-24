@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobDeclined (JobDeclined (..), JobDeclinedDeclined (..), JobDeclinedReason (..)) where
+module Xynolog.Internal.Generated.Models.JobDeclined (JobDeclined (..), JobDeclinedDeclined (..), JobDeclinedReason (..), jobDeclinedReasonText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data JobDeclined = JobDeclined
@@ -34,3 +35,10 @@ instance ToJSON JobDeclinedReason where
   toJSON JobDeclinedReasonCorrupt = String "corrupt"
   toJSON JobDeclinedReasonTooU2d_large = String "too-large"
   toJSON JobDeclinedReasonEmpty = String "empty"
+
+jobDeclinedReasonText :: JobDeclinedReason -> Text
+jobDeclinedReasonText JobDeclinedReasonNoU2d_textU2d_layer = "no-text-layer"
+jobDeclinedReasonText JobDeclinedReasonEncrypted = "encrypted"
+jobDeclinedReasonText JobDeclinedReasonCorrupt = "corrupt"
+jobDeclinedReasonText JobDeclinedReasonTooU2d_large = "too-large"
+jobDeclinedReasonText JobDeclinedReasonEmpty = "empty"

@@ -183,7 +183,7 @@ public sealed partial class TransportTests
                     var statuses = new List<JobStatusResponseStatus>();
                     var responses = new Queue<JobStatusResult>([JobStatus(job, JobStatusResponseStatus.Running), finished]);
                     server.Answer = sent => Reply(server, sent, BusOperations.JobStatusRequested.Result.Name, responses.Dequeue());
-                    Assert.Equal(finished.Response, await client.Job.PollUntilCompleteAsync(job, intervalMs: 1,
+                    Assert.Equal(finished.Response, await client.Job.PollUntilCompleteAsync(job, new JobPollOptions { EveryMs = 1 },
                         onStatus: status => statuses.Add(status.Status), cancellation: deadline.Token));
                     Assert.Equal([JobStatusResponseStatus.Running, JobStatusResponseStatus.Complete], statuses);
                     await ExpectRequestAsync(server, row, example, deadline.Token);
@@ -204,7 +204,7 @@ public sealed partial class TransportTests
         using var client = new XynologClient("http://unit.test", "token", http, clock);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await OpenAsync(client.Transport);
-        var polling = client.Job.PollUntilCompleteAsync(JobId.Parse("job-1"), timeoutMs: 100, cancellation: deadline.Token);
+        var polling = client.Job.PollUntilCompleteAsync(JobId.Parse("job-1"), new JobPollOptions { WithinMs = 100 }, cancellation: deadline.Token);
         await server.Emits.Reader.ReadAsync(deadline.Token);
         clock.Advance(TimeSpan.FromMilliseconds(100));
         var error = await Assert.ThrowsAsync<BusRequestError>(() => polling);

@@ -1,8 +1,8 @@
-(* The Haskell SDK's client types. The schemas of nine, which the haskell-sdk
-   group writes models of into Xynolog.Types; and four modules: the
-   records of a pending annotation and of a search's state, the events a
-   delegation and an upload report, and the form a client secret proves an
-   account with.
+(* The Haskell SDK's client types. The schemas of each it generates, which
+   the haskell-sdk group writes models of into Xynolog.Types; and four
+   modules: the records of a pending annotation and of a search's state, the
+   events a delegation and an upload report, and the form a client secret
+   proves an account with.
 
    Haskell's own choices are this writer's rules: a scalar's type, a record's
    field names (the type's name, then the member's), an open list's items as
@@ -134,13 +134,10 @@ let adapter ~whole name =
 
 (* The client types the Haskell SDK models as their group states them: each
    it generates but PendingAnnotation, which [pending_annotation] writes, and
-   UploadProgress and FrameRefusalReason, which [operation_reports] writes. *)
+   UploadProgress, which [operation_reports] writes. *)
 let adapted spec =
   List.filter
-    (fun n ->
-      not
-        (List.mem n
-           [ "PendingAnnotation"; "UploadProgress"; "FrameRefusalReason" ]))
+    (fun n -> not (List.mem n [ "PendingAnnotation"; "UploadProgress" ]))
     (Definitions.generated_client_types spec)
 
 (* A client type of [spec] as a writer of types reads it ([Definitions.typed]), by its name. *)
@@ -283,10 +280,7 @@ let refused_member value = function
   | "member" ->
       Some (H.Apply (Name "member", [ Apply (Name "fault", [ value ]) ]))
   | "reason" ->
-      Some
-        (H.Apply
-           ( Name "refusalReason",
-             [ Apply (Name "reason", [ Apply (Name "fault", [ value ]) ]) ] ))
+      Some (H.Apply (Name "reason", [ Apply (Name "fault", [ value ]) ]))
   | _ -> None
 
 (* The reports' sums: each branch a constructor holding its members but the
@@ -414,11 +408,6 @@ let report ~shape ~native ~prefix name =
       ] )
 
 let operation_reports ~shape =
-  let* reasons =
-    match shape "FrameRefusalReason" with
-    | Some (Words words) -> Ok words
-    | _ -> Error [ refusal "FrameRefusalReason" "is no enum of words" ]
-  in
   let* jobs_named, jobs =
     report ~shape ~native:"JobEvent" ~prefix:"" "JobEvent"
   in
@@ -434,9 +423,7 @@ let operation_reports ~shape =
             banner =
               Banner.lines
                 ~from_:
-                  (from_type "JobEvent" ^ ", " ^ from_type "UploadProgress"
-                 ^ " and "
-                  ^ from_type "FrameRefusalReason")
+                  (from_type "JobEvent" ^ " and " ^ from_type "UploadProgress")
                 __FILE__;
             extensions = [ "OverloadedStrings" ];
             name = "Xynolog.Internal.Generated.OperationReports";
@@ -452,26 +439,9 @@ let operation_reports ~shape =
                        (List.sort_uniq compare (jobs_named @ uploads_named)));
                 H.import "Xynolog.Internal.Transport"
                   ~items:[ All "FrameRefusal" ];
-                H.import "Xynolog.Internal.Required"
-                  ~items:[ All "Fault"; All "FaultReason" ];
+                H.import "Xynolog.Internal.Required" ~items:[ All "Fault" ];
               ];
-            body =
-              H.Value
-                {
-                  about = [];
-                  name = "refusalReason";
-                  type_ = T_fun (T_name "FaultReason", T_name "Text");
-                  clauses =
-                    List.map
-                      (fun word ->
-                        {
-                          H.patterns =
-                            [ Constructor (String.capitalize_ascii word, []) ];
-                          body = Str word;
-                        })
-                      reasons;
-                }
-              :: (jobs @ uploads);
+            body = jobs @ uploads;
           };
     }
 

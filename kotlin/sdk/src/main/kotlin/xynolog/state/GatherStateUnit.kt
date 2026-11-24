@@ -7,13 +7,10 @@ import xynolog.XynologClient
 import xynolog.errors.XynologError
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
-import xynolog.namespaces.CONTEXT_WINDOW
-import xynolog.namespaces.INCLUDES_CONTENT
-import xynolog.namespaces.INCLUDES_SUMMARY
-import xynolog.namespaces.RESOURCE_DEPTH
-import xynolog.namespaces.RESOURCE_LIMIT
 import xynolog.transport.Variable
 import xynolog.transport.Watched
+import xynolog.types.GatherAnnotationOptions
+import xynolog.types.GatherResourceOptions
 import xynolog.types.GatheredContext
 
 /** One gather's state: its context, whether it is being gathered, and the failure it met. */
@@ -87,35 +84,23 @@ public class GatherStateUnit @JvmExposeBoxed constructor(private val client: Xyn
     /** Gather the context around an annotation of this unit's resource, with what `client.gather.annotation` takes. */
     @JvmOverloads
     @JvmExposeBoxed
-    public fun gatherAnnotation(
-        annotationId: AnnotationId,
-        contextWindow: Long = CONTEXT_WINDOW,
-        includeSourceContext: Boolean? = null,
-        includeTargetContext: Boolean? = null,
-    ) {
+    public fun gatherAnnotation(annotationId: AnnotationId, options: GatherAnnotationOptions = GatherAnnotationOptions()) {
         if (closed) return
         annotation.begin()
         asked.set(annotationId)
         tasks.run {
-            annotation.land { client.gather.annotation(resourceId, annotationId, contextWindow, includeSourceContext, includeTargetContext).await().response }
+            annotation.land { client.gather.annotation(resourceId, annotationId, options).await().response }
         }
     }
 
     /** Gather the context around a whole resource, with what `client.gather.resource` takes. */
     @JvmOverloads
     @JvmExposeBoxed
-    public fun gatherResource(
-        resourceId: ResourceId,
-        depth: Long = RESOURCE_DEPTH,
-        maxResources: Long = RESOURCE_LIMIT,
-        includeContent: Boolean = INCLUDES_CONTENT,
-        includeSummary: Boolean = INCLUDES_SUMMARY,
-        excludeEntityTypes: List<String> = emptyList(),
-    ) {
+    public fun gatherResource(resourceId: ResourceId, options: GatherResourceOptions = GatherResourceOptions()) {
         if (closed) return
         resource.begin()
         tasks.run {
-            resource.land { client.gather.resource(resourceId, depth, maxResources, includeContent, includeSummary, excludeEntityTypes) }
+            resource.land { client.gather.resource(resourceId, options) }
         }
     }
 

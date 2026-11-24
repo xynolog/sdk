@@ -99,8 +99,6 @@ let typed_channels =
       Channel Channels.gather_failed;
     ]
 
-let refusal_reason = function `Lacks -> "lacks" | `Malformed -> "malformed"
-
 (* Shared cases from bus/frame-cases.json. *)
 let frame (row : Frames.cases_item) =
   let source, request, member =
@@ -124,7 +122,7 @@ let frame (row : Frames.cases_item) =
         Alcotest.(check string)
           "reason"
           (Frames.frame_refusal_reason_value reason)
-          (refusal_reason fault.reason);
+          (Enums.Frame_refusal_reason.to_string fault.reason);
         Alcotest.(check string)
           "recipient" (Frames.told_value told)
           (if Option.is_some fault.route then "readers" else "failure-report");
@@ -202,7 +200,9 @@ let annotation (row : Readers.cases_item) =
   Option.iter
     (fun expected ->
       check "textQuoteSelector" (nullable Fun.id expected)
-        (nullable Fun.id (Option.bind selection A.text_quote_selector)))
+        (nullable
+           (fun s -> Selector.to_json (TextQuoteSelector s))
+           (Option.bind selection A.text_quote_selector)))
     reads.text_quote_selector;
   Alcotest.(check strings)
     "entityTypes" reads.entity_types
@@ -227,7 +227,7 @@ let resource (row : Resource_cases.cases_item) =
           Alcotest.(check string)
             "reason"
             (Resource_cases.reason_value reason)
-            (refusal_reason fault.reason)
+            (Enums.Frame_refusal_reason.to_string fault.reason)
       | _ -> Alcotest.fail "the resource was not refused")
   | Read
       { resource; primary_representation; primary_media_type; entity_types; _ }
@@ -416,20 +416,10 @@ let reconcile (row : Reconcile.cases_item) =
 (* SDK geometry cases from annotations/pdf-locate-cases.json. *)
 let pdf (row : Locate.cases_item) =
   let module A = Annotations in
-  let number key item = J.to_number (field key item)
-  and int key item = J.to_int (field key item) in
-  (* The anchored text's items, which the model leaves as the JSON of
-     Protocol's own schema. *)
-  let read item : A.pdf_item =
-    {
-      start = int "start" item;
-      end_ = int "end" item;
-      page = int "page" item;
-      x = number "x" item;
-      y = number "y" item;
-      width = number "width" item;
-      height = number "height" item;
-    }
+  let read item =
+    Records.Pdf_text_item.of_model
+      (Result.get_ok
+         (Models.decode Models.pdf_text_item (Yojson.Safe.to_string item)))
   in
   let entries =
     List.map

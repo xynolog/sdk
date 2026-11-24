@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text.Json;
 using Xynolog.Errors;
 using Xynolog.Identifiers;
-using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog.Annotations;
@@ -79,15 +78,15 @@ public static partial class AnnotationTools
         };
         var text = new ScalarText(source);
         if (anchored is not null && anchored.Items.Any(item => !ValidSpan(item.Start, item.End, text.Length)))
-            throw Refused("item-out-of-range");
+            throw Refused(SpanRefusal.ItemOutOfRange);
 
         var span = input.Span;
-        if (!ValidSpan(span.Start, span.End, text.Length)) throw Refused("span-out-of-range");
+        if (!ValidSpan(span.Start, span.End, text.Length)) throw Refused(SpanRefusal.SpanOutOfRange);
         var selectors = anchored is null ? TextSelectors(text, span) : PdfSelectors(text, anchored, span);
         if (span.Prefix is string prefix && !text.Slice(0, (int)span.Start).EndsWith(prefix, StringComparison.Ordinal))
-            throw Refused("prefix-mismatch");
+            throw Refused(SpanRefusal.PrefixMismatch);
         if (span.Suffix is string suffix && !text.Slice((int)span.End, text.Length).StartsWith(suffix, StringComparison.Ordinal))
-            throw Refused("suffix-mismatch");
+            throw Refused(SpanRefusal.SuffixMismatch);
         selectors.Add(new Selector.TextQuoteSelectorCase(new TextQuoteSelector
         {
             Exact = span.Exact,
@@ -111,18 +110,18 @@ public static partial class AnnotationTools
     private static List<Selector> TextSelectors(ScalarText text, TextSpan span)
     {
         if (!string.Equals(text.Slice((int)span.Start, (int)span.End), span.Exact, StringComparison.Ordinal))
-            throw Refused("exact-mismatch");
+            throw Refused(SpanRefusal.ExactMismatch);
         return [new Selector.TextPositionSelectorCase(new TextPositionSelector { Start = span.Start, End = span.End })];
     }
 
     private static List<Selector> PdfSelectors(ScalarText text, AnchoredText anchored, TextSpan span)
     {
         var (items, rectangles) = PdfLocation.Locate(anchored, span.Start, span.End);
-        if (rectangles.Count == 0) throw Refused("nothing-located");
+        if (rectangles.Count == 0) throw Refused(SpanRefusal.NothingLocated);
         var covered = text.Slice(checked((int)items.Min(item => item.Start)), checked((int)items.Max(item => item.End)));
         var words = ScalarText.Collapse(span.Exact);
         if (words.Length == 0 || !ScalarText.Collapse(covered).Contains(words, StringComparison.Ordinal))
-            throw Refused("exact-not-covered");
+            throw Refused(SpanRefusal.ExactNotCovered);
         return rectangles.Select(rectangle => (Selector)new Selector.FragmentSelectorCase(new FragmentSelector
         {
             ConformsTo = "http://tools.ietf.org/rfc/rfc3778",
@@ -144,5 +143,5 @@ public static partial class AnnotationTools
 
     private static bool ValidSpan(long start, long end, int length) => start >= 0 && start <= end && end <= length;
 
-    private static SpanRefusedError Refused(string name) => new(ProtocolFacts.SpanRefusal(name));
+    private static SpanRefusedError Refused(string code) => new(code);
 }

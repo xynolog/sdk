@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.WorkerPool (WorkerPool (..), WorkerPoolKind (..), WorkerPoolSpec (..), WorkerPoolSpecWorker (..)) where
+module Xynolog.Internal.Generated.Models.WorkerPool (WorkerPool (..), WorkerPoolKind (..), workerPoolKindText, WorkerPoolSpec (..), WorkerPoolSpecWorker (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.Image
 import Xynolog.Internal.Generated.Models.LogLevel
@@ -30,6 +31,9 @@ data WorkerPoolKind = WorkerPoolKindWorkerPool deriving (Eq, Show)
 instance FromJSON WorkerPoolKind where parseJSON = checked "WorkerPoolKind" $ \value -> if value == String "WorkerPool" then pure WorkerPoolKindWorkerPool else fail "unknown enumeration member"
 
 instance ToJSON WorkerPoolKind where toJSON WorkerPoolKindWorkerPool = String "WorkerPool"
+
+workerPoolKindText :: WorkerPoolKind -> Text
+workerPoolKindText WorkerPoolKindWorkerPool = "WorkerPool"
 
 data WorkerPoolSpec = WorkerPoolSpec
   { workerPoolSpecLogLevel :: LogLevel,

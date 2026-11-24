@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.SvgSelector (SvgSelector (..), SvgSelectorType (..)) where
+module Xynolog.Internal.Generated.Models.SvgSelector (SvgSelector (..), SvgSelectorType (..), svgSelectorTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -25,3 +25,6 @@ data SvgSelectorType = SvgSelectorTypeSvgSelector deriving (Eq, Show)
 instance FromJSON SvgSelectorType where parseJSON = checked "SvgSelectorType" $ \value -> if value == String "SvgSelector" then pure SvgSelectorTypeSvgSelector else fail "unknown enumeration member"
 
 instance ToJSON SvgSelectorType where toJSON SvgSelectorTypeSvgSelector = String "SvgSelector"
+
+svgSelectorTypeText :: SvgSelectorType -> Text
+svgSelectorTypeText SvgSelectorTypeSvgSelector = "SvgSelector"

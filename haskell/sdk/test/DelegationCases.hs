@@ -152,7 +152,7 @@ complete rig value =
     ( BusFrame
         (Channel.channelName Channel.JobComplete)
         Nothing
-        (payload Channel.JobComplete (JobCompleteCommandBranch1 value))
+        (payload Channel.JobComplete (JobCompleteCommandMarkJobCompleteCommand value))
         Nothing
     )
 
@@ -255,7 +255,7 @@ statusCases samples = do
             value
               { jobStatusResponseStatus = JobStatusResponseStatusComplete,
                 jobStatusResponseType = if wrongType then JobTypeYield else JobTypeMark,
-                jobStatusResponseResult = if wrongType then Nothing else Just (JobStoredResultBranch1 (JobResultBranch2 otherResult))
+                jobStatusResponseResult = if wrongType then Nothing else Just (JobStoredResultJobResult (JobResultYieldJobDone otherResult))
               }
         )
     operation <- markRun rig

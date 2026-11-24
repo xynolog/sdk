@@ -19,6 +19,8 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+
+	xynolog "github.com/xynolog/sdk/go"
 )
 
 // Exporting installs telemetry exported over OTLP/HTTP when the suite says
@@ -27,7 +29,7 @@ import (
 // installed, and there is nothing to send. The exporters read the endpoint
 // from the environment themselves.
 func Exporting() (flush func(), exporting bool) {
-	if _, named := os.LookupEnv("OTEL_EXPORTER_OTLP_ENDPOINT"); !named {
+	if _, named := os.LookupEnv(string(xynolog.ServiceEnvironmentVariableOtelExporterOtlpEndpoint)); !named {
 		return nil, false
 	}
 	ctx := context.Background()

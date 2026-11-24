@@ -39,7 +39,8 @@ from xynolog._kept_for_first_reader import KeptForFirstReader
 from xynolog._reading import Reading
 from xynolog.channels import RESOURCE_SCOPED_CHANNELS, TRACE_FIELD
 from xynolog.errors import TransportError, XynologError
-from xynolog.http._gateway_http import (
+from xynolog.http.exchange import TokenRefresher, refusal
+from xynolog.http.gateway_http import (
     BUS_FRAME_CHANNEL,
     BUS_FRAME_CORRELATION_ID,
     BUS_FRAME_PAYLOAD,
@@ -49,7 +50,6 @@ from xynolog.http._gateway_http import (
     SUBSCRIBE_TO_BUS_ANSWERS,
     SUBSCRIBE_TO_BUS_SENDS,
 )
-from xynolog.http.exchange import TokenRefresher, refusal
 from xynolog.http.sse import SseParser
 from xynolog.identifiers import ResourceId
 from xynolog.required import Fault, read_as

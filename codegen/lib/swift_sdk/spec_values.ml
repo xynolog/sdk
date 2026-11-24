@@ -182,6 +182,19 @@ let cache_queries (t : Tables.Client_refresh.t) =
 
 let credential_names (t : Tables.Bus_log_cases.t) = strings t.names
 
+let locales (t : Tables.Locales_registry.t) =
+  `List
+    (List.map
+       (fun ({ code; native_name; english_name } :
+              Tables.Locales_registry.locales_item) ->
+         `Assoc
+           [
+             ("code", string code);
+             ("nativeName", string native_name);
+             ("englishName", string english_name);
+           ])
+       t.locales)
+
 (* Each value: its file, its member there, and its name in the SDK. *)
 let all (tables : Tables.t) =
   [
@@ -225,4 +238,8 @@ let all (tables : Tables.t) =
       "names",
       "credentialNames",
       credential_names tables.bus_log_cases );
+    ( "locales/registry.json",
+      "locales",
+      "locales",
+      locales tables.locales_registry );
   ]

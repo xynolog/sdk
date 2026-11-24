@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.AnnotationTarget (AnnotationTarget (..), AnnotationTargetType (..)) where
+module Xynolog.Internal.Generated.Models.AnnotationTarget (AnnotationTarget (..), AnnotationTargetType (..), annotationTargetTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationSelector
 import Xynolog.Internal.Generated.Models.ResourceId
@@ -27,3 +28,6 @@ data AnnotationTargetType = AnnotationTargetTypeSpecificResource deriving (Eq, S
 instance FromJSON AnnotationTargetType where parseJSON = checked "AnnotationTargetType" $ \value -> if value == String "SpecificResource" then pure AnnotationTargetTypeSpecificResource else fail "unknown enumeration member"
 
 instance ToJSON AnnotationTargetType where toJSON AnnotationTargetTypeSpecificResource = String "SpecificResource"
+
+annotationTargetTypeText :: AnnotationTargetType -> Text
+annotationTargetTypeText AnnotationTargetTypeSpecificResource = "SpecificResource"

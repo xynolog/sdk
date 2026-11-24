@@ -32,12 +32,14 @@ from xynolog.claims import (
     HeldJob,
     HeldMarkJob,
     HeldYieldJob,
+    WorkerVitals,
     will_retry_after,
 )
 from xynolog.client import XynologClient
 from xynolog.errors import BusRequestError, TransportError
-from xynolog.identifiers import ResourceId
+from xynolog.identifiers import JobId, ResourceId
 from xynolog.job_filter import job_matches_filter
+from xynolog.model import WireModel, written
 from xynolog.testing import (
     Delay,
     Deliver,
@@ -55,11 +57,14 @@ from xynolog.types import (
     Annotation,
     ClaimOptions,
     DurabilityEvidence,
+    Engine,
     FailureClass,
     JobFilter,
     JobProgress,
     MarkJobDone,
     UnitCursor,
+    WorkerEngineHealth,
+    WorkerEngineHealthActiveJob,
     YieldJobDone,
 )
 from xynolog.watched import Watched
@@ -1099,6 +1104,41 @@ def test_a_yield_job_commits_and_says_how_its_commits_were_established_as_a_mark
         await w.over()
 
     run(scenario())
+
+
+def test_a_held_job_says_whether_its_claim_accepts_it() -> None:
+    async def scenario() -> None:
+        for accepts, accepted in ((EVERYTHING, True), (TAGGING, False)):
+            w = World(channels=WORKER)
+            w.offered.append(running("job-1", params={"motivation": "highlighting"}))
+            async with w.client.job.claim(ClaimOptions(accepts=accepts)) as claims:
+                job = await held(claims)
+                assert job.accepted is accepted
+                await finish(job)
+            await w.over()
+
+    run(scenario())
+
+
+def test_vitals_are_an_engines_health_less_its_engine_and_jobs() -> None:
+    def members(shape: type[WireModel]) -> dict[str, tuple[str | None, object]]:
+        return {name: (field.alias, field.annotation) for name, field in shape.model_fields.items()}
+
+    health = members(WorkerEngineHealth)
+    del health["engine"], health["jobs"]
+    assert members(WorkerVitals) == health
+
+    vitals = WorkerVitals(
+        last_queued_event_at=None,
+        last_claim_at="2026-01-01T00:00:01.000Z",
+        last_finished_at=None,
+        last_activity_at="2026-01-01T00:00:01.000Z",
+        active_job=WorkerEngineHealthActiveJob(job_id=JobId("job-1"), type="mark", since="2026-01-01T00:00:01.000Z"),
+        jobs_completed=0,
+    )
+    engine = Engine(provider="ollama", model="m")
+    said = WorkerEngineHealth(engine=engine, jobs=TAGGING, **dict(vitals))
+    assert written(said) == {"engine": written(engine), "jobs": [written(job) for job in TAGGING], **written(vitals)}
 
 
 def test_vitals_say_what_the_worker_holds_and_has_done_and_a_silent_held_job_is_stalled() -> None:

@@ -23,7 +23,7 @@ public sealed class HoverDwell : IStateUnit
     public HoverDwell(Action<AnnotationId?> say, TimeSpan? delay = null, TimeProvider? timeProvider = null)
     {
         this.say = say;
-        this.delay = delay ?? TimeSpan.FromMilliseconds(ProtocolFacts.Timing("hoverDelayMs").GetInt32());
+        this.delay = delay ?? TimeSpan.FromMilliseconds(Timings.HoverDelayMs);
         ArgumentOutOfRangeException.ThrowIfLessThan(this.delay, TimeSpan.Zero);
         clock = timeProvider ?? TimeProvider.System;
     }

@@ -1,15 +1,15 @@
 // ⚠ GENERATED FILE — do not edit.
 //
-// Authority:   the component schemas of protocol/specs/src/openapi.json
+// Authority:   every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, and protocol/specs/src/client/discovery-absent.json
 // Regenerate:  make generate  (codegen/lib/required/typescript.ml)
 // The rules:   codegen/lib/required/shape.ml
 
 import type { Shape } from './required';
-import type { components } from './types';
+import type { components, records } from './types';
 
-/** What each component schema requires of a value, by its name. */
+/** What each schema and each table record requires of a value, by its name. */
 export const REQUIRED_SCHEMAS: {
-  readonly [Name in keyof components['schemas']]: Shape;
+  readonly [Name in keyof components['schemas'] | keyof records]: Shape;
 } = {
   AboutParams: {
     kinds: ['object'],
@@ -85,6 +85,10 @@ export const REQUIRED_SCHEMAS: {
       parameters: { kinds: ['object'] },
       provider: { kinds: ['string'] },
     },
+  },
+  AnchorMethod: {
+    kinds: ['string'],
+    enum: ['unique-match', 'context-recovered', 'first-of-many', 'fuzzy-match'],
   },
   AnchorRect: {
     kinds: ['object'],
@@ -584,6 +588,18 @@ export const REQUIRED_SCHEMAS: {
     required: ['annotationId'],
     members: { annotationId: { ref: 'AnnotationId' } },
   },
+  BeginAuthorizationOptions: {
+    kinds: ['object'],
+    required: ['target', 'redirectUri'],
+    members: {
+      expectedDid: { kinds: ['string'] },
+      expectedName: { kinds: ['string'] },
+      kbId: { kinds: ['string'] },
+      redirectUri: { kinds: ['string'] },
+      target: { ref: 'HttpEndpoint' },
+    },
+    closed: ['expectedDid', 'expectedName', 'kbId', 'redirectUri', 'target'],
+  },
   BindBodyOperation: {
     kinds: ['object'],
     required: ['op'],
@@ -1037,6 +1053,24 @@ export const REQUIRED_SCHEMAS: {
     required: ['requestId'],
     members: { reason: { kinds: ['string'] }, requestId: { ref: 'RequestId' } },
     closed: ['reason', 'requestId'],
+  },
+  ClaimOptions: {
+    kinds: ['object'],
+    required: ['accepts'],
+    members: {
+      accepts: { kinds: ['array'], minItems: 1, items: { ref: 'JobFilter' } },
+      heldJobStallCheckMs: { kinds: ['integer'], minimum: 0 },
+      heldJobStallMs: { kinds: ['integer'], minimum: 0 },
+      jobClaimTimeoutMs: { kinds: ['integer'], minimum: 0 },
+      markCommitTimeoutMs: { kinds: ['integer'], minimum: 0 },
+    },
+    closed: [
+      'accepts',
+      'heldJobStallCheckMs',
+      'heldJobStallMs',
+      'jobClaimTimeoutMs',
+      'markCommitTimeoutMs',
+    ],
   },
   ClientSecretForm: {
     kinds: ['object'],
@@ -1996,6 +2030,12 @@ export const REQUIRED_SCHEMAS: {
       { kinds: ['object'], required: ['stalled'], closed: ['stalled'] },
     ],
   },
+  ConnectionIdentity: {
+    kinds: ['object'],
+    required: ['did', 'description'],
+    members: { description: { ref: 'KbDescription' }, did: { ref: 'UserId' } },
+    closed: ['description', 'did'],
+  },
   ContentFormat: { kinds: ['string'] },
   ContextualSummaryResponse: {
     kinds: ['object'],
@@ -2032,12 +2072,39 @@ export const REQUIRED_SCHEMAS: {
       target: { ref: 'AnnotationTarget' },
     },
   },
+  CreateFromTokenOptions: {
+    kinds: ['object'],
+    required: ['token', 'name', 'content'],
+    members: {
+      archiveOriginal: { kinds: ['boolean'] },
+      content: { kinds: ['string'] },
+      name: { kinds: ['string'] },
+      token: { kinds: ['string'] },
+    },
+    closed: ['archiveOriginal', 'content', 'name', 'token'],
+  },
   CreateResourceResponse: {
     kinds: ['object'],
     required: ['resourceId'],
     members: { resourceId: { ref: 'ResourceId' } },
   },
   CursorsPath: { kinds: ['string'], minLength: 1 },
+  DeviceCode: {
+    kinds: ['object'],
+    required: ['userCode', 'verificationUri', 'expiresIn'],
+    members: {
+      expiresIn: { kinds: ['integer'], minimum: 0 },
+      userCode: { kinds: ['string'] },
+      verificationUri: { kinds: ['string'] },
+      verificationUriComplete: { kinds: ['string'] },
+    },
+    closed: [
+      'expiresIn',
+      'userCode',
+      'verificationUri',
+      'verificationUriComplete',
+    ],
+  },
   DirEntry: {
     kinds: ['object'],
     required: ['type', 'name', 'path', 'mtime'],
@@ -2066,6 +2133,16 @@ export const REQUIRED_SCHEMAS: {
       repo: { kinds: ['string'] },
       siteName: { kinds: ['string'] },
     },
+  },
+  DiscoveryAbsentReason: {
+    kinds: ['string'],
+    enum: [
+      'not-found',
+      'not-json',
+      'invalid',
+      'unsupported-version',
+      'unreadable',
+    ],
   },
   DiscoveryDocument: {
     kinds: ['object'],
@@ -2299,6 +2376,12 @@ export const REQUIRED_SCHEMAS: {
     required: ['sequenceNumber'],
     members: { sequenceNumber: { kinds: ['integer'] } },
   },
+  Expected: {
+    kinds: ['object'],
+    required: ['did'],
+    members: { did: { kinds: ['string'] }, name: { kinds: ['string'] } },
+    closed: ['did', 'name'],
+  },
   ExtractedText: {
     kinds: ['object'],
     allOf: [
@@ -2405,6 +2488,7 @@ export const REQUIRED_SCHEMAS: {
     required: ['schema'],
     members: { _userId: { ref: 'UserId' }, schema: { ref: 'TagSchema' } },
   },
+  FrameRefusalReason: { kinds: ['string'], enum: ['lacks', 'malformed'] },
   GatewayConfig: {
     kinds: ['object'],
     required: [
@@ -2533,6 +2617,23 @@ export const REQUIRED_SCHEMAS: {
         required: ['resourceId'],
         members: { resourceId: { ref: 'ResourceId' } },
       },
+    ],
+  },
+  GatherResourceOptions: {
+    kinds: ['object'],
+    members: {
+      depth: { kinds: ['integer'], minimum: 1, maximum: 3 },
+      excludeEntityTypes: { kinds: ['array'], items: { kinds: ['string'] } },
+      includeContent: { kinds: ['boolean'] },
+      includeSummary: { kinds: ['boolean'] },
+      maxResources: { kinds: ['integer'], minimum: 1, maximum: 200 },
+    },
+    closed: [
+      'depth',
+      'excludeEntityTypes',
+      'includeContent',
+      'includeSummary',
+      'maxResources',
     ],
   },
   GatherResourceRequest: {
@@ -2975,6 +3076,12 @@ export const REQUIRED_SCHEMAS: {
       },
     },
   },
+  IssuedTokens: {
+    kinds: ['object'],
+    required: ['access', 'refresh'],
+    members: { access: { kinds: ['string'] }, refresh: { kinds: ['string'] } },
+    closed: ['access', 'refresh'],
+  },
   Issuer: {
     kinds: ['object'],
     required: ['apiVersion', 'kind', 'metadata', 'spec'],
@@ -3368,6 +3475,14 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['metadata', 'params', 'status'],
   },
+  JobPollOptions: {
+    kinds: ['object'],
+    members: {
+      everyMs: { kinds: ['integer'], minimum: 0 },
+      withinMs: { kinds: ['integer'], minimum: 0 },
+    },
+    closed: ['everyMs', 'withinMs'],
+  },
   JobProgress: {
     kinds: ['object'],
     required: ['percentage'],
@@ -3700,10 +3815,74 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['domain', 'name'],
   },
+  KbIdentityConflict: {
+    kinds: ['object'],
+    required: ['expectedDid', 'observedDid'],
+    members: {
+      expectedDid: { kinds: ['string'] },
+      observedDid: { kinds: ['string'] },
+    },
+    closed: ['expectedDid', 'observedDid'],
+  },
   KbRead: {
     kinds: ['object'],
     required: ['at'],
     members: { at: { kinds: ['string'] }, gitBranch: { kinds: ['string'] } },
+  },
+  KbReadKind: {
+    kinds: ['string'],
+    enum: ['recorded', 'conflict', 'no-verdict'],
+  },
+  KbReadVerdict: {
+    kinds: ['object'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        required: ['kind'],
+        members: {
+          kind: {
+            kinds: ['string'],
+            enum: ['recorded'],
+            allOf: [{ ref: 'KbReadKind' }],
+          },
+        },
+        closed: ['kind'],
+      },
+      {
+        kinds: ['object'],
+        required: ['kind', 'observedDid', 'observedName'],
+        members: {
+          kind: {
+            kinds: ['string'],
+            enum: ['conflict'],
+            allOf: [{ ref: 'KbReadKind' }],
+          },
+          observedDid: { kinds: ['string'] },
+          observedName: { kinds: ['string'] },
+        },
+        closed: ['kind', 'observedDid', 'observedName'],
+      },
+      {
+        kinds: ['object'],
+        required: ['kind'],
+        members: {
+          kind: {
+            kinds: ['string'],
+            enum: ['no-verdict'],
+            allOf: [{ ref: 'KbReadKind' }],
+          },
+        },
+        closed: ['kind'],
+      },
+    ],
+    discriminator: {
+      property: 'kind',
+      mapping: { recorded: 0, conflict: 1, 'no-verdict': 2 },
+    },
+  },
+  KbSessionStatus: {
+    kinds: ['string'],
+    enum: ['authenticated', 'expired', 'signed-out'],
   },
   KbTarget: {
     kinds: ['object'],
@@ -4425,6 +4604,10 @@ export const REQUIRED_SCHEMAS: {
       updatedEntityTypes: { kinds: ['array'], items: { kinds: ['string'] } },
     },
   },
+  MatchQuality: {
+    kinds: ['string'],
+    enum: ['normalized', 'case-insensitive', 'fuzzy'],
+  },
   MatchResourcesRequest: {
     kinds: ['object'],
     required: ['search'],
@@ -4462,6 +4645,14 @@ export const REQUIRED_SCHEMAS: {
         members: { referenceId: { ref: 'AnnotationId' } },
       },
     ],
+  },
+  MatchSearchOptions: {
+    kinds: ['object'],
+    members: {
+      limit: { kinds: ['integer'], minimum: 1, maximum: 200 },
+      useSemanticScoring: { kinds: ['boolean'] },
+    },
+    closed: ['limit', 'useSemanticScoring'],
   },
   MatchSearchRequest: {
     kinds: ['object'],
@@ -4679,6 +4870,18 @@ export const REQUIRED_SCHEMAS: {
   },
   OutputStream: { kinds: ['string'], enum: ['stdout', 'stderr'] },
   PdfClass: { kinds: ['string'], enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G'] },
+  PdfCoordinate: {
+    kinds: ['object'],
+    required: ['page', 'x', 'y', 'width', 'height'],
+    members: {
+      height: { kinds: ['number'] },
+      page: { kinds: ['integer'] },
+      width: { kinds: ['number'] },
+      x: { kinds: ['number'] },
+      y: { kinds: ['number'] },
+    },
+    closed: ['height', 'page', 'width', 'x', 'y'],
+  },
   PdfTextItem: {
     kinds: ['object'],
     required: ['start', 'end', 'page', 'x', 'y', 'width', 'height'],
@@ -4691,6 +4894,21 @@ export const REQUIRED_SCHEMAS: {
       x: { kinds: ['number'] },
       y: { kinds: ['number'] },
     },
+  },
+  PendingAnnotation: {
+    kinds: ['object'],
+    required: ['selector', 'motivation'],
+    members: {
+      motivation: { ref: 'Motivation' },
+      selector: { ref: 'AnnotationSelector' },
+    },
+    closed: ['motivation', 'selector'],
+  },
+  PermissionDenied: {
+    kinds: ['object'],
+    required: ['detail'],
+    members: { detail: { kinds: ['string', 'null'] } },
+    closed: ['detail'],
   },
   PersistedEventId: {
     kinds: ['string'],
@@ -4845,6 +5063,91 @@ export const REQUIRED_SCHEMAS: {
       type: { kinds: ['string'], enum: ['qdrant'] },
     },
     closed: ['host', 'port', 'tokenEnv', 'type'],
+  },
+  QuotedText: {
+    kinds: ['object'],
+    required: ['exact'],
+    members: {
+      exact: { kinds: ['string'] },
+      prefix: { kinds: ['string'] },
+      suffix: { kinds: ['string'] },
+    },
+    closed: ['exact', 'prefix', 'suffix'],
+  },
+  ReconciledSpan: {
+    kinds: ['object'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        required: ['start', 'end', 'exact', 'anchorMethod'],
+        members: {
+          anchorMethod: { kinds: ['string'], enum: ['unique-match'] },
+          end: { kinds: ['integer'], minimum: 0 },
+          exact: { kinds: ['string'] },
+          prefix: { kinds: ['string'] },
+          start: { kinds: ['integer'], minimum: 0 },
+          suffix: { kinds: ['string'] },
+        },
+        closed: ['anchorMethod', 'end', 'exact', 'prefix', 'start', 'suffix'],
+      },
+      {
+        kinds: ['object'],
+        required: ['start', 'end', 'exact', 'anchorMethod'],
+        members: {
+          anchorMethod: { kinds: ['string'], enum: ['context-recovered'] },
+          end: { kinds: ['integer'], minimum: 0 },
+          exact: { kinds: ['string'] },
+          prefix: { kinds: ['string'] },
+          start: { kinds: ['integer'], minimum: 0 },
+          suffix: { kinds: ['string'] },
+        },
+        closed: ['anchorMethod', 'end', 'exact', 'prefix', 'start', 'suffix'],
+      },
+      {
+        kinds: ['object'],
+        required: ['start', 'end', 'exact', 'anchorMethod'],
+        members: {
+          anchorMethod: { kinds: ['string'], enum: ['first-of-many'] },
+          end: { kinds: ['integer'], minimum: 0 },
+          exact: { kinds: ['string'] },
+          prefix: { kinds: ['string'] },
+          start: { kinds: ['integer'], minimum: 0 },
+          suffix: { kinds: ['string'] },
+        },
+        closed: ['anchorMethod', 'end', 'exact', 'prefix', 'start', 'suffix'],
+      },
+      {
+        kinds: ['object'],
+        required: ['start', 'end', 'exact', 'anchorMethod', 'matchQuality'],
+        members: {
+          anchorMethod: { kinds: ['string'], enum: ['fuzzy-match'] },
+          end: { kinds: ['integer'], minimum: 0 },
+          exact: { kinds: ['string'] },
+          matchQuality: { ref: 'MatchQuality' },
+          prefix: { kinds: ['string'] },
+          start: { kinds: ['integer'], minimum: 0 },
+          suffix: { kinds: ['string'] },
+        },
+        closed: [
+          'anchorMethod',
+          'end',
+          'exact',
+          'matchQuality',
+          'prefix',
+          'start',
+          'suffix',
+        ],
+      },
+    ],
+    discriminator: {
+      property: 'anchorMethod',
+      mapping: {
+        'unique-match': 0,
+        'context-recovered': 1,
+        'first-of-many': 2,
+        'fuzzy-match': 3,
+      },
+    },
   },
   ReplyEventId: {
     kinds: ['string'],
@@ -5092,6 +5395,16 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     required: ['fromUri', 'toUri'],
     members: { fromUri: { kinds: ['string'] }, toUri: { kinds: ['string'] } },
+  },
+  ResourceSearchFilters: {
+    kinds: ['object'],
+    members: {
+      archived: { kinds: ['boolean'] },
+      entityType: { kinds: ['string'] },
+      limit: { kinds: ['integer'], minimum: 1, maximum: 200 },
+      offset: { kinds: ['integer'], minimum: 0 },
+    },
+    closed: ['archived', 'entityType', 'limit', 'offset'],
   },
   ResourceUnarchivedPayload: { kinds: ['object'] },
   ResourceUpdatedPayload: {
@@ -5623,6 +5936,13 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['email', 'state'],
   },
+  SessionEndReason: { kinds: ['string'], enum: ['expired', 'refused'] },
+  SessionEnded: {
+    kinds: ['object'],
+    required: ['reason'],
+    members: { reason: { ref: 'SessionEndReason' } },
+    closed: ['reason'],
+  },
   SessionJoinedEvent: {
     kinds: ['object'],
     required: ['participant', 'connectionId'],
@@ -5745,6 +6065,32 @@ export const REQUIRED_SCHEMAS: {
       root: { kinds: ['string'], minLength: 1 },
     },
     closed: ['apiVersion', 'default', 'name', 'root'],
+  },
+  SignInOutcome: {
+    kinds: ['object'],
+    required: ['kb'],
+    members: { expected: { ref: 'Expected' }, kb: { ref: 'KnowledgeBase' } },
+    closed: ['expected', 'kb'],
+  },
+  SignedIn: {
+    kinds: ['object'],
+    required: ['endpoint', 'description', 'session'],
+    members: {
+      description: { ref: 'KbDescription' },
+      endpoint: { ref: 'KbEndpoint' },
+      expectedDid: { kinds: ['string'] },
+      expectedName: { kinds: ['string'] },
+      kbId: { kinds: ['string'] },
+      session: { ref: 'StoredSession' },
+    },
+    closed: [
+      'description',
+      'endpoint',
+      'expectedDid',
+      'expectedName',
+      'kbId',
+      'session',
+    ],
   },
   SmeltRebuildAnchorsCommand: {
     kinds: ['object'],
@@ -6231,6 +6577,18 @@ export const REQUIRED_SCHEMAS: {
       version: { kinds: ['integer'] },
     },
   },
+  StoredSession: {
+    kinds: ['object'],
+    required: ['access', 'refresh', 'clientId', 'tokenEndpoint'],
+    members: {
+      access: { kinds: ['string'] },
+      clientId: { kinds: ['string'] },
+      personKey: { kinds: ['string'] },
+      refresh: { kinds: ['string'] },
+      revocationEndpoint: { kinds: ['string'] },
+      tokenEndpoint: { kinds: ['string'] },
+    },
+  },
   SupportedMediaType: {
     kinds: ['string'],
     enum: [
@@ -6307,6 +6665,54 @@ export const REQUIRED_SCHEMAS: {
       value: { kinds: ['string'] },
     },
   },
+  TabCheck: {
+    kinds: ['object'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        required: ['verdict'],
+        members: {
+          verdict: {
+            kinds: ['string'],
+            enum: ['gone'],
+            allOf: [{ ref: 'TabVerdict' }],
+          },
+        },
+        closed: ['verdict'],
+      },
+      {
+        kinds: ['object'],
+        required: ['verdict', 'name'],
+        members: {
+          mediaType: { kinds: ['string'] },
+          name: { kinds: ['string'] },
+          verdict: {
+            kinds: ['string'],
+            enum: ['ready'],
+            allOf: [{ ref: 'TabVerdict' }],
+          },
+        },
+        closed: ['mediaType', 'name', 'verdict'],
+      },
+      {
+        kinds: ['object'],
+        required: ['verdict'],
+        members: {
+          verdict: {
+            kinds: ['string'],
+            enum: ['unknown'],
+            allOf: [{ ref: 'TabVerdict' }],
+          },
+        },
+        closed: ['verdict'],
+      },
+    ],
+    discriminator: {
+      property: 'verdict',
+      mapping: { gone: 0, ready: 1, unknown: 2 },
+    },
+  },
+  TabVerdict: { kinds: ['string'], enum: ['gone', 'ready', 'unknown'] },
   TagCategory: {
     kinds: ['object'],
     required: ['name', 'description', 'examples'],
@@ -6441,6 +6847,18 @@ export const REQUIRED_SCHEMAS: {
       type: { kinds: ['string'], enum: ['TextQuoteSelector'] },
     },
   },
+  TextSpan: {
+    kinds: ['object'],
+    required: ['start', 'end', 'exact'],
+    members: {
+      end: { kinds: ['integer'], minimum: 0 },
+      exact: { kinds: ['string'] },
+      prefix: { kinds: ['string'] },
+      start: { kinds: ['integer'], minimum: 0 },
+      suffix: { kinds: ['string'] },
+    },
+    closed: ['end', 'exact', 'prefix', 'start', 'suffix'],
+  },
   TextualBody: {
     kinds: ['object'],
     required: ['type', 'value'],
@@ -6473,6 +6891,43 @@ export const REQUIRED_SCHEMAS: {
         items: { ref: 'BodyOperation' },
       },
       resourceId: { ref: 'ResourceId' },
+    },
+  },
+  UploadProgress: {
+    kinds: ['object'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        required: ['phase', 'totalBytes'],
+        members: {
+          phase: { kinds: ['string'], enum: ['started'] },
+          totalBytes: { kinds: ['integer'], minimum: 0 },
+        },
+        closed: ['phase', 'totalBytes'],
+      },
+      {
+        kinds: ['object'],
+        required: ['phase', 'bytesUploaded', 'totalBytes'],
+        members: {
+          bytesUploaded: { kinds: ['integer'], minimum: 0 },
+          phase: { kinds: ['string'], enum: ['progress'] },
+          totalBytes: { kinds: ['integer'], minimum: 0 },
+        },
+        closed: ['bytesUploaded', 'phase', 'totalBytes'],
+      },
+      {
+        kinds: ['object'],
+        required: ['phase', 'resourceId'],
+        members: {
+          phase: { kinds: ['string'], enum: ['finished'] },
+          resourceId: { ref: 'ResourceId' },
+        },
+        closed: ['phase', 'resourceId'],
+      },
+    ],
+    discriminator: {
+      property: 'phase',
+      mapping: { started: 0, progress: 1, finished: 2 },
     },
   },
   UserAction: {

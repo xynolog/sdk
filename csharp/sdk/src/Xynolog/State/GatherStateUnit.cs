@@ -50,14 +50,12 @@ public sealed class GatherStateUnit : IStateUnit
     }
 
     /// <summary>Gathers the context around the resource by following its links, replacing what was gathered before.</summary>
-    public void GatherResource(ResourceId resourceId, long depth = 2, long maxResources = 10, bool includeContent = true,
-        bool includeSummary = false, IReadOnlyList<string>? excludeEntityTypes = null)
+    public void GatherResource(ResourceId resourceId, GatherResourceOptions? options = null)
     {
         lock (work.Gate)
         {
             if (!work.Active) return;
-            Start(resource, token => client.Gather.ResourceAsync(resourceId, depth, maxResources, includeContent,
-                includeSummary, excludeEntityTypes, token));
+            Start(resource, token => client.Gather.ResourceAsync(resourceId, options, token));
         }
     }
 

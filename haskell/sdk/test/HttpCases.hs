@@ -37,7 +37,7 @@ import TestProcess (python)
 import Text.Read (readMaybe)
 import Xynolog.Auth qualified as Auth
 import Xynolog.Bus qualified as Bus
-import Xynolog.Channels (Channel (FrameEntityTypeAddOk), channelName, globalChannels)
+import Xynolog.Channels (Channel (BrowseKbRequested, FrameEntityTypeAddOk), channelName, globalChannels)
 import Xynolog.Client qualified as Client
 import Xynolog.Content qualified as Content
 import Xynolog.Delegation (UploadEvent (..))
@@ -167,13 +167,13 @@ httpCases root fixtures = do
             ( any
                 ( \value -> case field "body" value of
                     Just (Object body) ->
-                      KM.lookup "channel" body == Just (String "browse:kb-requested")
+                      KM.lookup "channel" body == Just (String (channelName BrowseKbRequested))
                         && field "token" value == Just (String "Bearer proof-credential-not-for-log")
                     _ -> False
                 )
                 (values "requests" proofRequests)
             )
-          postControl peer "/test/config" (object ["refusedOperations" .= [String "browse:kb-requested"]])
+          postControl peer "/test/config" (object ["refusedOperations" .= [String (channelName BrowseKbRequested)]])
           notReported <- try (Identity.describeConnection (options pool) target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
           require "a KB which refused to describe itself was reported as unreachable" (case notReported of Left failure -> Identity.identityUnverifiableReason failure == Code.KbIdentityNotReported; _ -> False)
           postControl peer "/test/config" (object ["refusedOperations" .= ([] :: [Text]), "emitStatuses" .= ([403] :: [Int])])
@@ -285,14 +285,14 @@ httpCases root fixtures = do
               bytes = encodeUtf8 "complete upload λ"
               source = (Content.bytesBody bytes) {Content.openBody = \consume -> modifyIORef' opens (+ 1) >> Content.openBody (Content.bytesBody bytes) consume}
           uploaded <- Content.putBinary contents Nothing metadata source (\value -> modifyIORef' progress (++ [value]))
-          require "upload response changed" (uploaded == createResourceResponseResourceId (fromFixture "CreateResourceResponse"))
+          require "upload response changed" (uploaded == fromFixture "CreateResourceResponse")
           readIORef opens >>= require "renewal did not reopen the complete upload" . (== 2)
           readIORef renewals >>= require "renewal did not receive the refused token exactly once" . (== ["renew-upload"])
           notices <- readIORef progress
           let total = fromIntegral (Bytes.length bytes)
               sending reports = [report | report@(UploadProgress _ _) <- reports]
               sent reports = [done | UploadProgress done _ <- reports]
-          require "upload reports are not its size, its progress and its resource" (notices == [UploadStarted total] ++ sending notices ++ [UploadFinished uploaded])
+          require "upload reports are not its size, its progress and its resource" (notices == [UploadStarted total] ++ sending notices ++ [UploadFinished (createResourceResponseResourceId uploaded)])
           require "upload progress decreased across replay" (and (zipWith (<=) (sent notices) (drop 1 (sent notices))))
           require "upload progress lost its total" (drop (length (sending notices) - 1) (sending notices) == [UploadProgress total total])
           state <- readState peer
@@ -322,7 +322,7 @@ httpCases root fixtures = do
           beforeExplicitUpload <- readIORef renewals
           Content.putBinary contents (Just "content-override") metadata source (const (pure ())) >>= require "explicit upload returned another resource" . (== uploaded)
           postControl peer "/test/config" (object ["uploadStatuses" .= ([401] :: [Int])])
-          failedExplicitUpload <- try (Content.putBinary contents (Just "refused-content-override") metadata source (const (pure ()))) :: IO (Either TransportError ResourceId)
+          failedExplicitUpload <- try (Content.putBinary contents (Just "refused-content-override") metadata source (const (pure ()))) :: IO (Either TransportError CreateResourceResponse)
           require "explicit upload credential refusal was not final" (case failedExplicitUpload of Left problem -> transportErrorCode problem == Code.TransportUnauthorized; Right _ -> False)
           readIORef renewals >>= require "explicit upload refusal renewed the held token" . (== beforeExplicitUpload)
           afterExplicitUpload <- readState peer
@@ -330,7 +330,7 @@ httpCases root fixtures = do
           require "explicit upload inherited or retried a credential" (map (field "token") explicitUploads == [Just (String "Bearer content-override"), Just (String "Bearer refused-content-override")])
           Content.getBinary contents Nothing resource >>= require "explicit refusal quarantined the held credential" . (\value -> Content.contentBytes value == encodeUtf8 "hello λ")
           let invalidSource = (Content.bytesBody bytes) {Content.bodyLength = Just (-1)}
-          invalidUpload <- try (Content.putBinary contents Nothing metadata invalidSource (const (pure ()))) :: IO (Either TransportError ResourceId)
+          invalidUpload <- try (Content.putBinary contents Nothing metadata invalidSource (const (pure ()))) :: IO (Either TransportError CreateResourceResponse)
           require "negative upload size was accepted" (either ((== Code.TransportBadRequest) . transportErrorCode) (const False) invalidUpload)
           malformed <- either (ioError . userError) pure (mkResourceId "malformed")
           malformedAnswer <- try (Content.getResourceGraph contents Nothing malformed) :: IO (Either TransportError GetResourceResponse)

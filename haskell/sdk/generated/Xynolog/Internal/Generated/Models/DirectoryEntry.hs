@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.DirEntry
 import Xynolog.Internal.Generated.Models.FileEntry
 
-data DirectoryEntry = DirectoryEntryBranch1 FileEntry | DirectoryEntryBranch2 DirEntry deriving (Eq, Show)
+data DirectoryEntry = DirectoryEntryFileEntry FileEntry | DirectoryEntryDirEntry DirEntry deriving (Eq, Show)
 
-instance FromJSON DirectoryEntry where parseJSON = checked "DirectoryEntry" $ \value -> (DirectoryEntryBranch1 <$> parseJSON value) <|> (DirectoryEntryBranch2 <$> parseJSON value)
+instance FromJSON DirectoryEntry where parseJSON = checked "DirectoryEntry" $ \value -> (DirectoryEntryFileEntry <$> parseJSON value) <|> (DirectoryEntryDirEntry <$> parseJSON value)
 
 instance ToJSON DirectoryEntry where
-  toJSON (DirectoryEntryBranch1 value) = toJSON value
-  toJSON (DirectoryEntryBranch2 value) = toJSON value
+  toJSON (DirectoryEntryFileEntry value) = toJSON value
+  toJSON (DirectoryEntryDirEntry value) = toJSON value

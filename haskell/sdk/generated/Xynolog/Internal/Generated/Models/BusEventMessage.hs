@@ -2,11 +2,12 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BusEventMessage (BusEventMessage (..), BusEventMessageEvent (..), BusEventMessageId (..)) where
+module Xynolog.Internal.Generated.Models.BusEventMessage (BusEventMessage (..), BusEventMessageEvent (..), busEventMessageEventText, BusEventMessageId (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.BusFrame
 import Xynolog.Internal.Generated.Models.EphemeralEventId
@@ -30,11 +31,14 @@ instance FromJSON BusEventMessageEvent where parseJSON = checked "BusEventMessag
 
 instance ToJSON BusEventMessageEvent where toJSON BusEventMessageEventBusU2d_event = String "bus-event"
 
-data BusEventMessageId = BusEventMessageIdBranch1 PersistedEventId | BusEventMessageIdBranch2 ReplyEventId | BusEventMessageIdBranch3 EphemeralEventId deriving (Eq, Show)
+busEventMessageEventText :: BusEventMessageEvent -> Text
+busEventMessageEventText BusEventMessageEventBusU2d_event = "bus-event"
 
-instance FromJSON BusEventMessageId where parseJSON = checked "BusEventMessageId" $ \value -> (BusEventMessageIdBranch1 <$> parseJSON value) <|> (BusEventMessageIdBranch2 <$> parseJSON value) <|> (BusEventMessageIdBranch3 <$> parseJSON value)
+data BusEventMessageId = BusEventMessageIdPersistedEventId PersistedEventId | BusEventMessageIdReplyEventId ReplyEventId | BusEventMessageIdEphemeralEventId EphemeralEventId deriving (Eq, Show)
+
+instance FromJSON BusEventMessageId where parseJSON = checked "BusEventMessageId" $ \value -> (BusEventMessageIdPersistedEventId <$> parseJSON value) <|> (BusEventMessageIdReplyEventId <$> parseJSON value) <|> (BusEventMessageIdEphemeralEventId <$> parseJSON value)
 
 instance ToJSON BusEventMessageId where
-  toJSON (BusEventMessageIdBranch1 value) = toJSON value
-  toJSON (BusEventMessageIdBranch2 value) = toJSON value
-  toJSON (BusEventMessageIdBranch3 value) = toJSON value
+  toJSON (BusEventMessageIdPersistedEventId value) = toJSON value
+  toJSON (BusEventMessageIdReplyEventId value) = toJSON value
+  toJSON (BusEventMessageIdEphemeralEventId value) = toJSON value

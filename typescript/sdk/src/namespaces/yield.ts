@@ -20,12 +20,13 @@ import {
 import { delegated, type DelegatedVerb } from './delegation';
 import { deriveStallDeadlineMs } from './generation-stall';
 import type { JobFollowTiming } from './job-status-poll';
-import type {
-  YieldNamespace as IYieldNamespace,
-  CreateResourceInput,
-} from './types';
+import type { YieldNamespace as IYieldNamespace } from './types';
 
-import type { CreateFromTokenOptions, ResourceDescriptor } from '@xynolog/core';
+import type {
+  CreateFromTokenOptions,
+  PutBinaryRequest,
+  ResourceDescriptor,
+} from '@xynolog/core';
 
 type CloneResourceWithTokenResponse =
   components['schemas']['CloneResourceWithTokenResponse'];
@@ -62,7 +63,7 @@ export class YieldNamespace implements IYieldNamespace {
     this.wire = new Bus(transport);
   }
 
-  resource(data: CreateResourceInput): UploadObservable {
+  resource(data: PutBinaryRequest): UploadObservable {
     // `Buffer` is a Node global; referencing it bare in the browser throws
     // ReferenceError. Guard with a typeof check so this code runs in both
     // environments (browser uploads File, Node workers upload Buffer).
@@ -77,45 +78,23 @@ export class YieldNamespace implements IYieldNamespace {
       let cancelled = false;
       const abortController = new AbortController();
       this.content
-        .putBinary(
-          {
-            name: data.name,
-            file: data.file,
-            format: data.format,
-            storageUri: data.storageUri,
-            ...(data.entityTypes ? { entityTypes: data.entityTypes } : {}),
-            ...(data.language ? { language: data.language } : {}),
-            ...(data.sourceAnnotationId
-              ? { sourceAnnotationId: data.sourceAnnotationId }
-              : {}),
-            ...(data.sourceResourceId
-              ? { sourceResourceId: data.sourceResourceId }
-              : {}),
-            ...(data.generationPrompt
-              ? { generationPrompt: data.generationPrompt }
-              : {}),
-            ...(data.generator ? { generator: data.generator } : {}),
-            ...(data.jobId ? { jobId: data.jobId } : {}),
-            ...(data.isDraft !== undefined ? { isDraft: data.isDraft } : {}),
+        .putBinary(data, {
+          // Byte-progress hook. `HttpContentTransport` calls it as the
+          // bytes are sent; a transport with no wire never calls it.
+          onProgress: ({ bytesUploaded, totalBytes: txTotal }) => {
+            if (cancelled) return;
+            // Prefer the transport's reported total; fall back to the
+            // pre-flight size if the transport reports 0 (chunked encoding
+            // or indeterminate length).
+            const total = txTotal > 0 ? txTotal : totalBytes;
+            subscriber.next({
+              phase: 'progress',
+              bytesUploaded,
+              totalBytes: total,
+            });
           },
-          {
-            // Byte-progress hook. `HttpContentTransport` calls it as the
-            // bytes are sent; a transport with no wire never calls it.
-            onProgress: ({ bytesUploaded, totalBytes: txTotal }) => {
-              if (cancelled) return;
-              // Prefer the transport's reported total; fall back to the
-              // pre-flight size if the transport reports 0 (chunked encoding
-              // or indeterminate length).
-              const total = txTotal > 0 ? txTotal : totalBytes;
-              subscriber.next({
-                phase: 'progress',
-                bytesUploaded,
-                totalBytes: total,
-              });
-            },
-            signal: abortController.signal,
-          },
-        )
+          signal: abortController.signal,
+        })
         .then((result) => {
           if (cancelled) return;
           subscriber.next({

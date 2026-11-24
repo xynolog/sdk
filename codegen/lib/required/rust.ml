@@ -136,10 +136,7 @@ let file (shapes : (string * Shape.shape) list) =
     Output.path;
     text =
       R.text
-        ~header:
-          (Banner.lines
-             ~from_:"the component schemas of protocol/specs/src/openapi.json"
-             __FILE__)
+        ~header:(Banner.lines ~from_:Table.authority __FILE__)
         [
           R.Const
             {

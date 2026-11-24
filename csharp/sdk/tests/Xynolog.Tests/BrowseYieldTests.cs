@@ -168,9 +168,9 @@ public sealed partial class TransportTests
                         uploads++;
                         return new HttpResponseMessage(HttpStatusCode.Accepted) { Content = JsonContent.Create(new CreateResourceResponse { ResourceId = copied }) };
                     };
-                    var options = args.GetProperty("options");
-                    var clone = await client.Yield.CreateFromTokenAsync(Text(options, "token"), Text(options, "name"), Text(options, "content"),
-                        cancellation: deadline.Token);
+                    var clone = await client.Yield.CreateFromTokenAsync(
+                        args.GetProperty("options").Deserialize<CreateFromTokenOptions>() ?? throw new InvalidOperationException("Null options"),
+                        deadline.Token);
                     Assert.Equal(copied, clone.ResourceId);
                     Assert.Equal(1, uploads);
                     break;

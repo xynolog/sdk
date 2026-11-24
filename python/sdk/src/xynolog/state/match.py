@@ -8,7 +8,7 @@ said.
 """
 
 from types import TracebackType
-from typing import Final, Self, TypedDict, final, override
+from typing import Final, Self, final, override
 
 from xynolog.bus import Delivered, Typed
 from xynolog.channels import MATCH_SEARCH_FAILED, MATCH_SEARCH_REQUESTED, MATCH_SEARCH_RESULTS
@@ -20,22 +20,6 @@ from xynolog.transport import FrameRefusal, Transport
 from xynolog.types import MatchSearchFailed, MatchSearchRequest
 
 __all__ = ["MatchStateUnit"]
-
-
-class _Options(TypedDict, total=False):
-    """What a request states of the search's options. One it leaves out is the namespace's to choose."""
-
-    limit: int
-    use_semantic_scoring: bool
-
-
-def _options(request: MatchSearchRequest) -> _Options:
-    options: _Options = {}
-    if request.limit is not None:
-        options["limit"] = request.limit
-    if request.use_semantic_scoring is not None:
-        options["use_semantic_scoring"] = request.use_semantic_scoring
-    return options
 
 
 @final
@@ -60,7 +44,13 @@ class MatchStateUnit(StateUnit):
 
     async def _search(self, request: MatchSearchRequest, correlation_id: str | None) -> None:
         try:
-            found = await self._client.match.search(request.resource_id, request.reference_id, request.context, **_options(request))
+            found = await self._client.match.search(
+                request.resource_id,
+                request.reference_id,
+                request.context,
+                limit=request.limit,
+                use_semantic_scoring=request.use_semantic_scoring,
+            )
         except XynologError as error:
             failed = MatchSearchFailed(reference_id=request.reference_id, message=error.message)
             self._client.bus.publish(MATCH_SEARCH_FAILED, failed, correlation_id=correlation_id)

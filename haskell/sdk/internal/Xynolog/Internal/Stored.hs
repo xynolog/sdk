@@ -98,8 +98,8 @@ projectKnowledgeBase kb =
   kb
     { knowledgeBaseAdditionalProperties = KM.empty,
       knowledgeBaseEndpoint = case knowledgeBaseEndpoint kb of
-        KbEndpointBranch1 endpoint -> KbEndpointBranch1 endpoint {httpEndpointAdditionalProperties = KM.empty}
-        KbEndpointBranch2 endpoint -> KbEndpointBranch2 endpoint {localEndpointAdditionalProperties = KM.empty},
+        KbEndpointHttpEndpoint endpoint -> KbEndpointHttpEndpoint endpoint {httpEndpointAdditionalProperties = KM.empty}
+        KbEndpointLocalEndpoint endpoint -> KbEndpointLocalEndpoint endpoint {localEndpointAdditionalProperties = KM.empty},
       knowledgeBaseLastRead = fmap (\readBack -> readBack {kbReadAdditionalProperties = KM.empty}) (knowledgeBaseLastRead kb)
     }
 

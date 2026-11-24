@@ -1,4 +1,4 @@
-// Generated from the component schemas of protocol/specs/src/openapi.json; do not edit.
+// Generated from every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, and protocol/specs/src/client/discovery-absent.json; do not edit.
 // Regenerate: make generate (codegen/lib/required/rust.ml)
 pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
     (
@@ -132,6 +132,19 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("parameters", of(&[Kind::Object])),
                 ("provider", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "AnchorMethod",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("unique-match"),
+                Listed::Text("context-recovered"),
+                Listed::Text("first-of-many"),
+                Listed::Text("fuzzy-match"),
+            ]),
             ..NONE
         },
     ),
@@ -994,6 +1007,28 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             kinds: Some(&[Kind::Object]),
             required: &["annotationId"],
             members: &[("annotationId", reference("AnnotationId"))],
+            ..NONE
+        },
+    ),
+    (
+        "BeginAuthorizationOptions",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["target", "redirectUri"],
+            members: &[
+                ("expectedDid", of(&[Kind::String])),
+                ("expectedName", of(&[Kind::String])),
+                ("kbId", of(&[Kind::String])),
+                ("redirectUri", of(&[Kind::String])),
+                ("target", reference("HttpEndpoint")),
+            ],
+            closed: Some(&[
+                "expectedDid",
+                "expectedName",
+                "kbId",
+                "redirectUri",
+                "target",
+            ]),
             ..NONE
         },
     ),
@@ -1893,6 +1928,64 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("requestId", reference("RequestId")),
             ],
             closed: Some(&["reason", "requestId"]),
+            ..NONE
+        },
+    ),
+    (
+        "ClaimOptions",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["accepts"],
+            members: &[
+                (
+                    "accepts",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&reference("JobFilter")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "heldJobStallCheckMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "heldJobStallMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "jobClaimTimeoutMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "markCommitTimeoutMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "accepts",
+                "heldJobStallCheckMs",
+                "heldJobStallMs",
+                "jobClaimTimeoutMs",
+                "markCommitTimeoutMs",
+            ]),
             ..NONE
         },
     ),
@@ -3375,6 +3468,19 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             ..NONE
         },
     ),
+    (
+        "ConnectionIdentity",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["did", "description"],
+            members: &[
+                ("description", reference("KbDescription")),
+                ("did", reference("UserId")),
+            ],
+            closed: Some(&["description", "did"]),
+            ..NONE
+        },
+    ),
     ("ContentFormat", of(&[Kind::String])),
     (
         "ContextualSummaryResponse",
@@ -3435,6 +3541,21 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "CreateFromTokenOptions",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["token", "name", "content"],
+            members: &[
+                ("archiveOriginal", of(&[Kind::Boolean])),
+                ("content", of(&[Kind::String])),
+                ("name", of(&[Kind::String])),
+                ("token", of(&[Kind::String])),
+            ],
+            closed: Some(&["archiveOriginal", "content", "name", "token"]),
+            ..NONE
+        },
+    ),
+    (
         "CreateResourceResponse",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -3448,6 +3569,33 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         Shape {
             kinds: Some(&[Kind::String]),
             min_length: Some(1),
+            ..NONE
+        },
+    ),
+    (
+        "DeviceCode",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["userCode", "verificationUri", "expiresIn"],
+            members: &[
+                (
+                    "expiresIn",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("userCode", of(&[Kind::String])),
+                ("verificationUri", of(&[Kind::String])),
+                ("verificationUriComplete", of(&[Kind::String])),
+            ],
+            closed: Some(&[
+                "expiresIn",
+                "userCode",
+                "verificationUri",
+                "verificationUriComplete",
+            ]),
             ..NONE
         },
     ),
@@ -3506,6 +3654,20 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("repo", of(&[Kind::String])),
                 ("siteName", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryAbsentReason",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("not-found"),
+                Listed::Text("not-json"),
+                Listed::Text("invalid"),
+                Listed::Text("unsupported-version"),
+                Listed::Text("unreadable"),
+            ]),
             ..NONE
         },
     ),
@@ -4037,6 +4199,16 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Expected",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["did"],
+            members: &[("did", of(&[Kind::String])), ("name", of(&[Kind::String]))],
+            closed: Some(&["did", "name"]),
+            ..NONE
+        },
+    ),
+    (
         "ExtractedText",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -4290,6 +4462,14 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("_userId", reference("UserId")),
                 ("schema", reference("TagSchema")),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "FrameRefusalReason",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[Listed::Text("lacks"), Listed::Text("malformed")]),
             ..NONE
         },
     ),
@@ -4552,6 +4732,50 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     ..NONE
                 },
             ],
+            ..NONE
+        },
+    ),
+    (
+        "GatherResourceOptions",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                (
+                    "depth",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        maximum: Some(3.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "excludeEntityTypes",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                ("includeContent", of(&[Kind::Boolean])),
+                ("includeSummary", of(&[Kind::Boolean])),
+                (
+                    "maxResources",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        maximum: Some(200.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "depth",
+                "excludeEntityTypes",
+                "includeContent",
+                "includeSummary",
+                "maxResources",
+            ]),
             ..NONE
         },
     ),
@@ -5465,6 +5689,19 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "IssuedTokens",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["access", "refresh"],
+            members: &[
+                ("access", of(&[Kind::String])),
+                ("refresh", of(&[Kind::String])),
+            ],
+            closed: Some(&["access", "refresh"]),
+            ..NONE
+        },
+    ),
+    (
         "Issuer",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -6206,6 +6443,32 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "JobPollOptions",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                (
+                    "everyMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "withinMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["everyMs", "withinMs"]),
+            ..NONE
+        },
+    ),
+    (
         "JobProgress",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -6850,6 +7113,19 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "KbIdentityConflict",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["expectedDid", "observedDid"],
+            members: &[
+                ("expectedDid", of(&[Kind::String])),
+                ("observedDid", of(&[Kind::String])),
+            ],
+            closed: Some(&["expectedDid", "observedDid"]),
+            ..NONE
+        },
+    ),
+    (
         "KbRead",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -6858,6 +7134,92 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("at", of(&[Kind::String])),
                 ("gitBranch", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "KbReadKind",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("recorded"),
+                Listed::Text("conflict"),
+                Listed::Text("no-verdict"),
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "KbReadVerdict",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["kind"],
+                    members: &[(
+                        "kind",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[Listed::Text("recorded")]),
+                            all_of: &[reference("KbReadKind")],
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["kind"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["kind", "observedDid", "observedName"],
+                    members: &[
+                        (
+                            "kind",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("conflict")]),
+                                all_of: &[reference("KbReadKind")],
+                                ..NONE
+                            },
+                        ),
+                        ("observedDid", of(&[Kind::String])),
+                        ("observedName", of(&[Kind::String])),
+                    ],
+                    closed: Some(&["kind", "observedDid", "observedName"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["kind"],
+                    members: &[(
+                        "kind",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[Listed::Text("no-verdict")]),
+                            all_of: &[reference("KbReadKind")],
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["kind"]),
+                    ..NONE
+                },
+            ],
+            discriminator: Some(Discriminator {
+                property: "kind",
+                mapping: &[("recorded", 0), ("conflict", 1), ("no-verdict", 2)],
+            }),
+            ..NONE
+        },
+    ),
+    (
+        "KbSessionStatus",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("authenticated"),
+                Listed::Text("expired"),
+                Listed::Text("signed-out"),
+            ]),
             ..NONE
         },
     ),
@@ -8214,6 +8576,18 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "MatchQuality",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("normalized"),
+                Listed::Text("case-insensitive"),
+                Listed::Text("fuzzy"),
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "MatchResourcesRequest",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -8315,6 +8689,26 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     ..NONE
                 },
             ],
+            ..NONE
+        },
+    ),
+    (
+        "MatchSearchOptions",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                (
+                    "limit",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        maximum: Some(200.0),
+                        ..NONE
+                    },
+                ),
+                ("useSemanticScoring", of(&[Kind::Boolean])),
+            ],
+            closed: Some(&["limit", "useSemanticScoring"]),
             ..NONE
         },
     ),
@@ -8767,6 +9161,22 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "PdfCoordinate",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["page", "x", "y", "width", "height"],
+            members: &[
+                ("height", of(&[Kind::Number])),
+                ("page", of(&[Kind::Integer])),
+                ("width", of(&[Kind::Number])),
+                ("x", of(&[Kind::Number])),
+                ("y", of(&[Kind::Number])),
+            ],
+            closed: Some(&["height", "page", "width", "x", "y"]),
+            ..NONE
+        },
+    ),
+    (
         "PdfTextItem",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -8794,6 +9204,29 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("x", of(&[Kind::Number])),
                 ("y", of(&[Kind::Number])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "PendingAnnotation",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["selector", "motivation"],
+            members: &[
+                ("motivation", reference("Motivation")),
+                ("selector", reference("AnnotationSelector")),
+            ],
+            closed: Some(&["motivation", "selector"]),
+            ..NONE
+        },
+    ),
+    (
+        "PermissionDenied",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["detail"],
+            members: &[("detail", of(&[Kind::String, Kind::Null]))],
+            closed: Some(&["detail"]),
             ..NONE
         },
     ),
@@ -9108,6 +9541,187 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
             ],
             closed: Some(&["host", "port", "tokenEnv", "type"]),
+            ..NONE
+        },
+    ),
+    (
+        "QuotedText",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["exact"],
+            members: &[
+                ("exact", of(&[Kind::String])),
+                ("prefix", of(&[Kind::String])),
+                ("suffix", of(&[Kind::String])),
+            ],
+            closed: Some(&["exact", "prefix", "suffix"]),
+            ..NONE
+        },
+    ),
+    (
+        "ReconciledSpan",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["start", "end", "exact", "anchorMethod"],
+                    members: &[
+                        (
+                            "anchorMethod",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("unique-match")]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "end",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                        ("exact", of(&[Kind::String])),
+                        ("prefix", of(&[Kind::String])),
+                        (
+                            "start",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                        ("suffix", of(&[Kind::String])),
+                    ],
+                    closed: Some(&["anchorMethod", "end", "exact", "prefix", "start", "suffix"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["start", "end", "exact", "anchorMethod"],
+                    members: &[
+                        (
+                            "anchorMethod",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("context-recovered")]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "end",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                        ("exact", of(&[Kind::String])),
+                        ("prefix", of(&[Kind::String])),
+                        (
+                            "start",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                        ("suffix", of(&[Kind::String])),
+                    ],
+                    closed: Some(&["anchorMethod", "end", "exact", "prefix", "start", "suffix"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["start", "end", "exact", "anchorMethod"],
+                    members: &[
+                        (
+                            "anchorMethod",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("first-of-many")]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "end",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                        ("exact", of(&[Kind::String])),
+                        ("prefix", of(&[Kind::String])),
+                        (
+                            "start",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                        ("suffix", of(&[Kind::String])),
+                    ],
+                    closed: Some(&["anchorMethod", "end", "exact", "prefix", "start", "suffix"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["start", "end", "exact", "anchorMethod", "matchQuality"],
+                    members: &[
+                        (
+                            "anchorMethod",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("fuzzy-match")]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "end",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                        ("exact", of(&[Kind::String])),
+                        ("matchQuality", reference("MatchQuality")),
+                        ("prefix", of(&[Kind::String])),
+                        (
+                            "start",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                        ("suffix", of(&[Kind::String])),
+                    ],
+                    closed: Some(&[
+                        "anchorMethod",
+                        "end",
+                        "exact",
+                        "matchQuality",
+                        "prefix",
+                        "start",
+                        "suffix",
+                    ]),
+                    ..NONE
+                },
+            ],
+            discriminator: Some(Discriminator {
+                property: "anchorMethod",
+                mapping: &[
+                    ("unique-match", 0),
+                    ("context-recovered", 1),
+                    ("first-of-many", 2),
+                    ("fuzzy-match", 3),
+                ],
+            }),
             ..NONE
         },
     ),
@@ -9557,6 +10171,35 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("fromUri", of(&[Kind::String])),
                 ("toUri", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "ResourceSearchFilters",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                ("archived", of(&[Kind::Boolean])),
+                ("entityType", of(&[Kind::String])),
+                (
+                    "limit",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        maximum: Some(200.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "offset",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["archived", "entityType", "limit", "offset"]),
             ..NONE
         },
     ),
@@ -10541,6 +11184,24 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "SessionEndReason",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[Listed::Text("expired"), Listed::Text("refused")]),
+            ..NONE
+        },
+    ),
+    (
+        "SessionEnded",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["reason"],
+            members: &[("reason", reference("SessionEndReason"))],
+            closed: Some(&["reason"]),
+            ..NONE
+        },
+    ),
+    (
         "SessionJoinedEvent",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -10824,6 +11485,43 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
             ],
             closed: Some(&["apiVersion", "default", "name", "root"]),
+            ..NONE
+        },
+    ),
+    (
+        "SignInOutcome",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["kb"],
+            members: &[
+                ("expected", reference("Expected")),
+                ("kb", reference("KnowledgeBase")),
+            ],
+            closed: Some(&["expected", "kb"]),
+            ..NONE
+        },
+    ),
+    (
+        "SignedIn",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["endpoint", "description", "session"],
+            members: &[
+                ("description", reference("KbDescription")),
+                ("endpoint", reference("KbEndpoint")),
+                ("expectedDid", of(&[Kind::String])),
+                ("expectedName", of(&[Kind::String])),
+                ("kbId", of(&[Kind::String])),
+                ("session", reference("StoredSession")),
+            ],
+            closed: Some(&[
+                "description",
+                "endpoint",
+                "expectedDid",
+                "expectedName",
+                "kbId",
+                "session",
+            ]),
             ..NONE
         },
     ),
@@ -11806,6 +12504,22 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "StoredSession",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["access", "refresh", "clientId", "tokenEndpoint"],
+            members: &[
+                ("access", of(&[Kind::String])),
+                ("clientId", of(&[Kind::String])),
+                ("personKey", of(&[Kind::String])),
+                ("refresh", of(&[Kind::String])),
+                ("revocationEndpoint", of(&[Kind::String])),
+                ("tokenEndpoint", of(&[Kind::String])),
+            ],
+            ..NONE
+        },
+    ),
+    (
         "SupportedMediaType",
         Shape {
             kinds: Some(&[Kind::String]),
@@ -11897,6 +12611,80 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
                 ("value", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "TabCheck",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["verdict"],
+                    members: &[(
+                        "verdict",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[Listed::Text("gone")]),
+                            all_of: &[reference("TabVerdict")],
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["verdict"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["verdict", "name"],
+                    members: &[
+                        ("mediaType", of(&[Kind::String])),
+                        ("name", of(&[Kind::String])),
+                        (
+                            "verdict",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("ready")]),
+                                all_of: &[reference("TabVerdict")],
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["mediaType", "name", "verdict"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["verdict"],
+                    members: &[(
+                        "verdict",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[Listed::Text("unknown")]),
+                            all_of: &[reference("TabVerdict")],
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["verdict"]),
+                    ..NONE
+                },
+            ],
+            discriminator: Some(Discriminator {
+                property: "verdict",
+                mapping: &[("gone", 0), ("ready", 1), ("unknown", 2)],
+            }),
+            ..NONE
+        },
+    ),
+    (
+        "TabVerdict",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("gone"),
+                Listed::Text("ready"),
+                Listed::Text("unknown"),
+            ]),
             ..NONE
         },
     ),
@@ -12174,6 +12962,36 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "TextSpan",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["start", "end", "exact"],
+            members: &[
+                (
+                    "end",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("exact", of(&[Kind::String])),
+                ("prefix", of(&[Kind::String])),
+                (
+                    "start",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("suffix", of(&[Kind::String])),
+            ],
+            closed: Some(&["end", "exact", "prefix", "start", "suffix"]),
+            ..NONE
+        },
+    ),
+    (
         "TextualBody",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -12262,6 +13080,92 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
                 ("resourceId", reference("ResourceId")),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "UploadProgress",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["phase", "totalBytes"],
+                    members: &[
+                        (
+                            "phase",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("started")]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "totalBytes",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["phase", "totalBytes"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["phase", "bytesUploaded", "totalBytes"],
+                    members: &[
+                        (
+                            "bytesUploaded",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "phase",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("progress")]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "totalBytes",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(0.0),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["bytesUploaded", "phase", "totalBytes"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["phase", "resourceId"],
+                    members: &[
+                        (
+                            "phase",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("finished")]),
+                                ..NONE
+                            },
+                        ),
+                        ("resourceId", reference("ResourceId")),
+                    ],
+                    closed: Some(&["phase", "resourceId"]),
+                    ..NONE
+                },
+            ],
+            discriminator: Some(Discriminator {
+                property: "phase",
+                mapping: &[("started", 0), ("progress", 1), ("finished", 2)],
+            }),
             ..NONE
         },
     ),

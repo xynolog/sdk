@@ -523,15 +523,16 @@ module WorkerExample where
 
 import Control.Exception (bracket)
 import qualified Xynolog.Client as Client
+import qualified Xynolog.Job as Job
 import qualified Xynolog.Worker as Worker
-import Xynolog.Types (MarkJobResult, YieldJobResult)
+import Xynolog.Types (ClaimOptions, MarkJobResult, YieldJobResult)
 
-runWorker :: Client.Client -> Worker.WorkerOptions
+runWorker :: Client.Client -> ClaimOptions
   -> (Worker.HeldJob MarkJobResult -> IO MarkJobResult)
   -> (Worker.HeldJob YieldJobResult -> IO YieldJobResult)
   -> IO ()
 runWorker client options mark yield =
-  bracket (Worker.newClaims (Client.transport client) options) Worker.stop loop
+  bracket (Job.claim (Client.job client) options) Worker.stop loop
   where
     loop claims = do
       next <- Worker.next claims
@@ -547,10 +548,11 @@ runWorker client options mark yield =
           loop claims
 ```
 
-`WorkerOptions` supplies a nonempty list of generated filters, `BusOptions`
-for monotonic time and correlation ids, generated timing settings, and a wall
-clock that returns ISO 8601 timestamps. The transport must subscribe to
-`jobClaimChannels`, plus `jobCommitChannels` when the worker commits annotations.
+`ClaimOptions`, the type Protocol states, supplies a nonempty list of
+generated filters and any of the held-job timings to override; the claims
+take their clock and the rest of their timing from the client. The transport
+must subscribe to `jobClaimChannels`, plus `jobCommitChannels` when the worker
+commits annotations.
 
 A held job exposes the claimed record's identity, parameters, retry budget,
 completed units and unit cursors. Its `cancelled` and `settled` observations

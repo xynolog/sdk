@@ -82,7 +82,7 @@ public sealed class DeviceSignInTests
         var interval = TimeSpan.FromSeconds(5);
         await clock.WaitForAsync(interval);
         clock.Advance(interval);
-        interval += TimeSpan.FromMilliseconds(ProtocolFacts.Timing("deviceSlowDownMs").GetDouble());
+        interval += TimeSpan.FromMilliseconds(Timings.DeviceSlowDownMs);
         await clock.WaitForAsync(interval);
         Assert.Equal(1, handler.Polls);
         clock.Advance(interval);
@@ -109,7 +109,7 @@ public sealed class DeviceSignInTests
         using var issuer = new SignIn.Issuer(client, clock);
         using var cancellation = new CancellationTokenSource();
         var signing = issuer.SignInDeviceAsync(Endpoint(), new MemorySignIn(), _ => { }, cancellation.Token);
-        var wait = interval is null ? ProtocolFacts.Timing("devicePollMs").GetDouble() : ProtocolFacts.Timing("devicePollFloorMs").GetDouble();
+        var wait = interval is null ? Timings.DevicePollMs : Timings.DevicePollFloorMs;
         await clock.WaitForAsync(TimeSpan.FromMilliseconds(wait));
         Assert.Equal(0, handler.Polls);
         cancellation.Cancel();

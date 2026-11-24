@@ -5,17 +5,16 @@ from typing import Final, final
 from xynolog.cached import Cached, Keyed, itself
 from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.namespaces.links import Links
-from xynolog.namespaces.live import Live, ResourceFilters, ResourceSearch
+from xynolog.namespaces.live import LIST_LIMIT, Live
 from xynolog.operations import MATCH_SEARCH_REQUESTED
 from xynolog.running import Running
-from xynolog.types import GatheredContext, MatchResourcesResponse, MatchSearchRequest, MatchSearchResult
+from xynolog.types import GatheredContext, MatchResourcesRequest, MatchResourcesResponse, MatchSearchRequest, MatchSearchResult
 
 __all__ = ["MatchNamespace"]
 
 # What a caller that states nothing is given. Every SDK asks for as many: the
 # cases of protocol/specs/src/client/surface.json hold each to it.
 _CANDIDATES: Final = 10
-_LIST_LIMIT: Final = 100
 
 
 @final
@@ -68,7 +67,13 @@ class MatchNamespace:
         return self._live.query(
             Keyed(
                 self._live.searches,
-                ResourceSearch(search, ResourceFilters(_LIST_LIMIT if limit is None else limit, offset or 0, archived, entity_type)),
+                MatchResourcesRequest(
+                    search=search,
+                    archived=archived,
+                    entity_type=entity_type,
+                    offset=offset or 0,
+                    limit=LIST_LIMIT if limit is None else limit,
+                ),
                 itself,
             )
         )

@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.JobDeclined
 import Xynolog.Internal.Generated.Models.MarkJobDone
 
-data MarkJobResult = MarkJobResultBranch1 MarkJobDone | MarkJobResultBranch2 JobDeclined deriving (Eq, Show)
+data MarkJobResult = MarkJobResultMarkJobDone MarkJobDone | MarkJobResultJobDeclined JobDeclined deriving (Eq, Show)
 
-instance FromJSON MarkJobResult where parseJSON = checked "MarkJobResult" $ \value -> (MarkJobResultBranch1 <$> parseJSON value) <|> (MarkJobResultBranch2 <$> parseJSON value)
+instance FromJSON MarkJobResult where parseJSON = checked "MarkJobResult" $ \value -> (MarkJobResultMarkJobDone <$> parseJSON value) <|> (MarkJobResultJobDeclined <$> parseJSON value)
 
 instance ToJSON MarkJobResult where
-  toJSON (MarkJobResultBranch1 value) = toJSON value
-  toJSON (MarkJobResultBranch2 value) = toJSON value
+  toJSON (MarkJobResultMarkJobDone value) = toJSON value
+  toJSON (MarkJobResultJobDeclined value) = toJSON value

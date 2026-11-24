@@ -30,13 +30,12 @@ type issuer
 type redirect
 
 type device = {
+  code : Records.Device_code.t;
   device_code : string;
-  user_code : string;
-  verification_uri : string;
-  verification_uri_complete : string option;
-  expires_in : int;
   interval : int;
 }
+(** A device grant under way: what the person is shown, and what the polls send
+    and wait by. *)
 
 val discover : http -> issuer:string -> (issuer, error) result
 val issuer_url : issuer -> string

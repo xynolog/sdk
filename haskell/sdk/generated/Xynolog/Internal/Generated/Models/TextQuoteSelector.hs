@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.TextQuoteSelector (TextQuoteSelector (..), TextQuoteSelectorType (..)) where
+module Xynolog.Internal.Generated.Models.TextQuoteSelector (TextQuoteSelector (..), TextQuoteSelectorType (..), textQuoteSelectorTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -27,3 +27,6 @@ data TextQuoteSelectorType = TextQuoteSelectorTypeTextQuoteSelector deriving (Eq
 instance FromJSON TextQuoteSelectorType where parseJSON = checked "TextQuoteSelectorType" $ \value -> if value == String "TextQuoteSelector" then pure TextQuoteSelectorTypeTextQuoteSelector else fail "unknown enumeration member"
 
 instance ToJSON TextQuoteSelectorType where toJSON TextQuoteSelectorTypeTextQuoteSelector = String "TextQuoteSelector"
+
+textQuoteSelectorTypeText :: TextQuoteSelectorType -> Text
+textQuoteSelectorTypeText TextQuoteSelectorTypeTextQuoteSelector = "TextQuoteSelector"

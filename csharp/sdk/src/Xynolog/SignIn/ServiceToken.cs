@@ -70,7 +70,7 @@ public sealed class ServiceToken : IDisposable
         endpoint ??= (await issuer.ConfigurationAsync(authority, cancellation).ConfigureAwait(Spawning.Captures)).Token;
         var answer = await issuer.AnswerAsync(endpoint, proof(endpoint), cancellation: cancellation).ConfigureAwait(Spawning.Captures);
         if (answer.Status is < 200 or >= 300 || answer.Text("access_token") is not { Length: > 0 } access)
-            throw new SignInError(ProtocolFacts.SignInError("exchange"), "The issuer refused the client credentials grant", answer.Status);
+            throw new SignInError(SignInErrorCode.Exchange, "The issuer refused the client credentials grant", answer.Status);
 
         var expires = answer.Seconds("expires_in");
         var delay = Tokens.RefreshDelay(access, clock.GetUtcNow().ToUnixTimeMilliseconds() / 1000d)

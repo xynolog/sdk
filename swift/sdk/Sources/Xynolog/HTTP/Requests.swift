@@ -19,36 +19,27 @@ func projectWire<Value: Codable>(
 }
 /// What a request answered on `channel`, its operation's failure channel, fails with. A failure is
 /// held to its channel's shape before it is read, as a result is: one with a fault is refused,
-/// naming the fault. One the shape passes is read as the shape reads it, a code it does not
+/// naming the fault. One the shape passes is read as a `CommandError`, a code it does not
 /// recognize left out, and is a `BusRequestError` in its own words, under the code its own code
 /// becomes, or, when it states none, the code of a failure that states none.
 func projectFailure(_ payload: [String: JSONValue], on channel: String, stamps: Set<String>)
   -> any Error
 {
-  let failure: [String: JSONValue]
+  let failure: CommandError
   do throws(Fault) {
-    failure = try payloadAsRead(declared(payload, stamps: stamps), on: channel)
+    let read = try payloadAsRead(declared(payload, stamps: stamps), on: channel)
+    do {
+      failure = try JSONDecoder().decode(CommandError.self, from: JSONEncoder().encode(read))
+    } catch { throw .undecoded }
   } catch {
     return TransportError(.error, notTheChannels(channel, error))
   }
-  guard case .string(let message) = failure["message"] else {
-    return TransportError(.error, notTheChannels(channel, .undecoded))
-  }
   let code: BusRequestErrorCode =
-    switch failureCode(failure["code"]) {
+    switch failure.code {
     case nil: unrecognizedBusFailure
     case let wire?: busRequestCode(for: wire)
     }
-  return BusRequestError(code, message)
-}
-/// The code a failure the table passed states, as the closed type: none when it states none, or
-/// null, which is no code.
-private func failureCode(_ held: JSONValue?) -> CommandErrorCode? {
-  guard let held, held != .null else { return nil }
-  guard case .string(let text) = held, let code = CommandErrorCode(rawValue: text) else {
-    preconditionFailure("the table passed the code \(held), which CommandErrorCode does not name")
-  }
-  return code
+  return BusRequestError(code, failure.message)
 }
 extension HttpTransport {
   public func request(operation: String, payload: [String: JSONValue]) async throws

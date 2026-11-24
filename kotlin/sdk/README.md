@@ -179,7 +179,7 @@ A client given a `CachePersistence(storage, kbId, personKey(did))` keeps its sma
 
 ## Taking work
 
-A worker claims jobs from a knowledge base's queue, does each one, and says what became of it. `client.job.claim(accepts)` is its side of the queue, given what the worker accepts, each a `JobFilter`: the `mark` jobs of one motivation, or the `yield` jobs. Its `Claims` hand out the jobs the worker comes to hold, one at a time: each `next()` the next, a `HeldMarkJob` or a `HeldYieldJob`.
+A worker claims jobs from a knowledge base's queue, does each one, and says what became of it. `client.job.claim(ClaimOptions(accepts))` is its side of the queue, given what the worker accepts, each a `JobFilter`: the `mark` jobs of one motivation, or the `yield` jobs. `ClaimOptions` also takes the claim's waits, each client/timing.json's when left out. Its `Claims` hand out the jobs the worker comes to hold, one at a time: each `next()` the next, a `HeldMarkJob` or a `HeldYieldJob`.
 
 - **A worker is an agent.** Its process signs in at its issuer as its account, `AgentToken(gateway, ServiceToken(SecretCredential(...)))`, and the gateway names it by that account: `agent.did`, once `signIn()` has returned. The account needs two roles at the issuer: `xynolog-service`, which marks a service's account, and `xynolog-worker`, without which every claim is refused as `bus.unauthorized`.
 - **It says what it is called**, as itself: `client.wire.emit(Channels.PRINCIPAL_PROFILE, PrincipalProfileCommand(name = clientId))`, here its client id. Readers name it by the last name it said, as they name a person.

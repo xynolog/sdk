@@ -176,8 +176,8 @@ factoryOf why doubles http person opening = do
         atomically (readTMVar (listening doubles))
         let kb = Factory.sessionFactoryOptionsKb inputs
         endpoint <- case knowledgeBaseEndpoint kb of
-          KbEndpointBranch1 value -> pure value
-          KbEndpointBranch2 _ -> failure why "registers a knowledge base the stage does not serve"
+          KbEndpointHttpEndpoint value -> pure value
+          KbEndpointLocalEndpoint _ -> failure why "registers a knowledge base the stage does not serve"
         base <- either (failure why . Text.unpack) pure (Gateway.gatewayUrl endpoint)
         memory <- SignIn.newMemorySignIn
         SignIn.keep memory (signInOf Issuer.browserClientId (jwt 3600 1) "r1" (Just named))

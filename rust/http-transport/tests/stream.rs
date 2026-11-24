@@ -28,6 +28,7 @@ use tokio_stream::StreamExt;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use xynolog::bus::{Bus, operation};
 use xynolog::errors::{TransportError, TransportErrorCode};
+use xynolog::gateway_http::{EMIT_ON_BUS, SUBSCRIBE_TO_BUS};
 use xynolog::retry::RetryPolicy;
 use xynolog::testing::as_id;
 use xynolog::testing::liveness::{DeliverySubject, assert_exactly_once_delivery_on};
@@ -211,8 +212,8 @@ impl Gateway {
     async fn start() -> Gateway {
         let staged = Arc::new(Staged::default());
         let app = Router::new()
-            .route("/bus/subscribe", post(subscribe))
-            .route("/bus/emit", post(emit))
+            .route(SUBSCRIBE_TO_BUS.path, post(subscribe))
+            .route(EMIT_ON_BUS.path, post(emit))
             .with_state(staged.clone());
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
             .await
@@ -333,7 +334,9 @@ fn deliveries(transport: &HttpTransport) -> Arc<Mutex<Vec<String>>> {
     let record = delivered.clone();
     tokio::spawn(async move {
         while let Some(Ok(Ok(frame))) = frames.next().await {
-            let id = frame.payload["annotationId"].as_str().unwrap_or_default();
+            let id = frame.bus_frame.payload["annotationId"]
+                .as_str()
+                .unwrap_or_default();
             record.lock().unwrap().push(id.to_owned());
         }
     });

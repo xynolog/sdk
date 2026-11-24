@@ -14,8 +14,8 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import xynolog.annotations.BY_CODE_POINT
 import xynolog.annotations.codePointsOf
-import xynolog.channels.Empty
 import xynolog.channels.Response
+import xynolog.types.EmptyObject
 import xynolog.types.FrameRefusalReason
 import xynolog.types.wireJson
 import java.util.concurrent.ConcurrentHashMap
@@ -113,10 +113,10 @@ private fun schema(name: String): Shape = schemas.getOrPut(name) {
 }
 
 private val RESPONSE: String = Response.serializer(JsonElement.serializer()).descriptor.serialName
-private val EMPTY: String = Empty.serializer().descriptor.serialName
+private val EMPTY: String = EmptyObject.serializer().descriptor.serialName
 private const val TYPES = "xynolog.types."
 
-/** What a value of `descriptor`'s type must be: a type of `xynolog.types`, `Response` of one, or `Empty`. */
+/** What a value of `descriptor`'s type must be: a type of `xynolog.types`, `Response` of one, or `EmptyObject`. */
 private fun shapeOf(descriptor: SerialDescriptor): Shape = when (val named = descriptor.serialName) {
     RESPONSE -> Shape(kinds = listOf("object"), required = listOf("response"), members = mapOf("response" to shapeOf(descriptor.getElementDescriptor(0))))
     EMPTY -> Shape(kinds = listOf("object"))
@@ -325,6 +325,10 @@ internal fun faultOf(descriptor: SerialDescriptor, value: JsonElement): Fault? =
 
 /** The first fault `value` has as a value of the component schema `name`, which no type of `xynolog.types` is the class of; null when it has none. */
 internal fun faultOfSchema(name: String, value: JsonElement): Fault? = readAt(Shape(ref = name), value, "").fault
+
+/** The values the component schema `name` allows its member `member`, as its `enum` states them. */
+internal fun valuesOf(name: String, member: String): List<JsonPrimitive> =
+    checkNotNull(resolved(schema(name)).members?.get(member)?.let(::resolved)?.enum) { "$name's $member states no values" }
 
 /** The first fault of the JSON `text` as a value of `descriptor`'s type: a text that is no JSON is malformed. */
 internal fun faultIn(descriptor: SerialDescriptor, text: String): Fault? {

@@ -36,8 +36,9 @@ use xynolog::testing::{
     FaultAction, FaultyTransport, RequestLogEntry, TestClientOptions, create_test_client,
 };
 use xynolog::transport::{Envelope, Frame, FrameRefusal, Lagged};
+use xynolog::types::BusFrame;
 use xynolog::types::{
-    GatherAnnotationOptions, GatherResourceRequestOptions, GenerationJobParams, MarkJobParams,
+    GatherAnnotationOptions, GatherResourceOptions, GenerationJobParams, MarkJobParams,
 };
 use xynolog::types::{KbIdentityConflict, SessionEndReason};
 
@@ -525,10 +526,8 @@ fn adapters() -> Vec<Adapter> {
             method: "gatherResource",
             parameters: &["resourceId"],
             call: |unit, args| {
-                unit.as_gather()?.gather_resource(
-                    &id(args, "resourceId")?,
-                    GatherResourceRequestOptions::default(),
-                );
+                unit.as_gather()?
+                    .gather_resource(&id(args, "resourceId")?, GatherResourceOptions::default());
                 Ok(())
             },
         },
@@ -1067,10 +1066,12 @@ impl World {
             );
         } else if let Some(channel) = step.get("deliver") {
             self.transport.deliver(Frame {
-                channel: text(channel, "a channel")?.to_owned(),
-                payload: payload(field(step, "payload")?)?,
-                correlation_id: correlation(step)?,
-                scope: None,
+                bus_frame: BusFrame {
+                    channel: text(channel, "a channel")?.to_owned(),
+                    payload: payload(field(step, "payload")?)?,
+                    correlation_id: correlation(step)?,
+                    scope: None,
+                },
                 trace: None,
                 stream_id: None,
             });
@@ -1081,10 +1082,12 @@ impl World {
                 index(field(step, "nth")?, "a request's place")?,
             )?;
             self.transport.deliver(Frame {
-                channel: text(field(step, "reply")?, "a reply's channel")?.to_owned(),
-                payload: payload(field(step, "payload")?)?,
-                correlation_id: asked,
-                scope: None,
+                bus_frame: BusFrame {
+                    channel: text(field(step, "reply")?, "a reply's channel")?.to_owned(),
+                    payload: payload(field(step, "payload")?)?,
+                    correlation_id: asked,
+                    scope: None,
+                },
                 trace: None,
                 stream_id: None,
             });
@@ -1215,9 +1218,9 @@ impl World {
                 .iter()
                 .map(|frame| {
                     json!({
-                        "channel": frame.channel,
-                        "payload": frame.payload,
-                        "correlationId": frame.correlation_id,
+                        "channel": frame.bus_frame.channel,
+                        "payload": frame.bus_frame.payload,
+                        "correlationId": frame.bus_frame.correlation_id,
                     })
                 })
                 .collect(),
@@ -1240,9 +1243,9 @@ impl World {
                 }
             };
             let payload = resolved(field(wanted, "payload")?)?;
-            if frame.channel != text(field(wanted, "channel")?, "a channel")?
-                || !matches(&payload, &Value::Object(frame.payload.clone()))
-                || frame.correlation_id != expected_id
+            if frame.bus_frame.channel != text(field(wanted, "channel")?, "a channel")?
+                || !matches(&payload, &Value::Object(frame.bus_frame.payload.clone()))
+                || frame.bus_frame.correlation_id != expected_id
             {
                 return Err(format!("heard {got}"));
             }

@@ -16,7 +16,8 @@ let gateway_url endpoint =
   let endpoint = Records.Http_endpoint.of_model endpoint in
   if is_valid_hostname endpoint.host then
     Some
-      (Printf.sprintf "%s://%s:%s" endpoint.protocol
+      (Printf.sprintf "%s://%s:%d"
+         (Records.Http_endpoint.Protocol.to_string endpoint.protocol)
          (String.lowercase_ascii endpoint.host)
-         (Yojson.Raw.to_string endpoint.port))
+         endpoint.port)
   else None

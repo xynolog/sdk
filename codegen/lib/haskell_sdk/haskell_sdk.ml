@@ -111,7 +111,14 @@ let files ~root (spec : Spec.t) =
   let* transport =
     within Transport.contract (Transport.derive ~root ~user_field spec)
   in
-  let* http = within "openapi.json" (Http.routes spec) in
+  let* http =
+    within "openapi.json"
+      (Http.routes ~prefix:"" ~no_content:false spec spec.gateway)
+  in
+  let* archivist =
+    within "archivist/openapi.json"
+      (Http.routes ~prefix:"Archivist" ~no_content:true spec spec.archivist)
+  in
   let* bus =
     within "bus/registry.json" (Channels.derive spec.tables.bus_registry)
   in
@@ -120,7 +127,8 @@ let files ~root (spec : Spec.t) =
     within "openapi.json"
       (Definitions.derive ~root spec ~adapters
          ~carrier:(Transport.carrier_schema transport)
-         ~http:http.schemas ~envelopes:bus.envelopes)
+         ~http:(http.schemas @ archivist.schemas)
+         ~envelopes:bus.envelopes)
   in
   let identifiers =
     List.map
@@ -184,6 +192,13 @@ let files ~root (spec : Spec.t) =
       | Error e -> Error e)
   in
   let* constants = within "client/surface.json" (Constants.modules spec) in
+  let tables =
+    List.map
+      (Companions.tables_module
+         ~banner:(banner "the tables of protocol/specs/src")
+         ~root)
+      (Carried_tables.modules spec)
+  in
   let* worker = Worker.modules ~root in
   let* manifest =
     within "haskell/sdk/xynolog.cabal.in" (manifest ~root models.module_names)
@@ -239,6 +254,11 @@ let files ~root (spec : Spec.t) =
                    reference credential classifier")
              http ~credential ~bus_event);
         file ~under:"src"
+          (Http.archivist_file
+             ~banner:
+               (banner "protocol/specs/src/archivist/openapi.json and its paths")
+             archivist);
+        file ~under:"src"
           (Transport.file
              ~banner:
                (banner
@@ -261,6 +281,7 @@ let files ~root (spec : Spec.t) =
                    protocol/specs/src/errors/codes.json")
              ~unrecognized readers);
       ]
+    @ List.map (file ~under:"src") tables
     @ List.map (file ~under:"generated") constants
     @ List.map (file ~under:"generated") worker
     @ manifest

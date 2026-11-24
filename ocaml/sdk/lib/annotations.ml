@@ -56,18 +56,35 @@ let comment_text annotation =
     Option.bind (List.nth_opt (many annotation.body) 0) (text "value")
   else None
 
-let selector kind value =
-  List.find_opt (fun item -> text "type" item = Some kind) (many value)
+let selectors value =
+  List.filter_map
+    (fun item -> Result.to_option (Selector.of_json item))
+    (many value)
 
-let text_quote_selector = selector "TextQuoteSelector"
-let text_position_selector = selector "TextPositionSelector"
-let svg_selector = selector "SvgSelector"
-let fragment_selector = selector "FragmentSelector"
+let text_quote_selector value =
+  List.find_map
+    (function Selector.TextQuoteSelector s -> Some s | _ -> None)
+    (selectors value)
+
+let text_position_selector value =
+  List.find_map
+    (function Selector.TextPositionSelector s -> Some s | _ -> None)
+    (selectors value)
+
+let svg_selector value =
+  List.find_map
+    (function Selector.SvgSelector s -> Some s | _ -> None)
+    (selectors value)
+
+let fragment_selector value =
+  List.find_map
+    (function Selector.FragmentSelector s -> Some s | _ -> None)
+    (selectors value)
 
 let exact_text selection =
-  Option.bind selection text_quote_selector
-  |> Fun.flip Option.bind (text "exact")
-  |> Option.value ~default:""
+  match Option.bind selection text_quote_selector with
+  | Some selector -> selector.exact
+  | None -> ""
 
 let annotation_exact_text annotation = exact_text (target_selector annotation)
 
@@ -176,30 +193,8 @@ let annotation_of_resource ~created ~resource ~motivation ?generator ?body () =
   in
   build ~created ~resource ~motivation ~anchor:"" ~target ~generator ~body
 
-type pdf_item = {
-  start : int;
-  end_ : int;
-  page : int;
-  x : float;
-  y : float;
-  width : float;
-  height : float;
-}
-
-let pdf_item json =
-  let number key = J.member key json |> J.to_number in
-  let int key = J.member key json |> J.to_int in
-  {
-    start = int "start";
-    end_ = int "end";
-    page = int "page";
-    x = number "x";
-    y = number "y";
-    width = number "width";
-    height = number "height";
-  }
-
-let locate_pdf items start end_ =
+let locate_pdf (items : Records.Pdf_text_item.t list) start end_ =
+  let open Records.Pdf_text_item in
   let overlap =
     if start = end_ then []
     else List.filter (fun item -> item.start < end_ && item.end_ > start) items
@@ -270,15 +265,14 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
     match content with
     | Text source -> (source, None)
     | Pdf model ->
-        let raw = Yojson.Safe.from_string (Models.encode model) in
-        ( J.to_string (J.member "text" raw),
-          Some (List.map pdf_item (J.to_list (J.member "items" raw))) )
+        let anchored = Records.Anchored_text.of_model model in
+        (anchored.text, Some anchored.items)
   in
   let source = points source in
   let length = Array.length source in
   let valid start end_ = start >= 0 && end_ >= start && end_ <= length in
   Option.iter
-    (List.iter (fun item ->
+    (List.iter (fun (item : Records.Pdf_text_item.t) ->
          if not (valid item.start item.end_) then refuse Item_out_of_range))
     items;
   let { Records.Text_span.start; end_; exact; prefix; suffix } = span in
@@ -288,19 +282,15 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
     | None ->
         if between source start end_ <> exact then refuse Exact_mismatch;
         [
-          `Assoc
-            [
-              ("type", text "TextPositionSelector");
-              ("start", `Int start);
-              ("end", `Int end_);
-            ];
+          Selector.TextPositionSelector
+            { start = Z.of_int start; end_ = Z.of_int end_; extra = [] };
         ]
     | Some items ->
         let overlap, rectangles = locate_pdf items start end_ in
         if rectangles = [] then refuse Nothing_located;
         let left, right =
           List.fold_left
-            (fun (left, right) item ->
+            (fun (left, right) (item : Records.Pdf_text_item.t) ->
               (min left item.start, max right item.end_))
             (length, 0) overlap
         in
@@ -309,12 +299,12 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
         then refuse Exact_not_covered;
         List.map
           (fun rectangle ->
-            `Assoc
-              [
-                ("type", text "FragmentSelector");
-                ("value", text (fragment rectangle));
-                ("conformsTo", text "http://tools.ietf.org/rfc/rfc3778");
-              ])
+            Selector.FragmentSelector
+              {
+                value = fragment rectangle;
+                conforms_to = Some "http://tools.ietf.org/rfc/rfc3778";
+                extra = [];
+              })
           rectangles
   in
   Option.iter
@@ -328,17 +318,16 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
       then refuse Suffix_mismatch)
     suffix;
   let quote_selector =
-    `Assoc
-      ([ ("type", text "TextQuoteSelector"); ("exact", text exact) ]
-      @ optional "prefix" (Option.map text (nonempty prefix))
-      @ optional "suffix" (Option.map text (nonempty suffix)))
+    Selector.TextQuoteSelector
+      { exact; prefix = nonempty prefix; suffix = nonempty suffix; extra = [] }
   in
   let target =
     `Assoc
       [
         ("type", text "SpecificResource");
         ("source", text (Identifiers.Resource_id.to_string resource));
-        ("selector", `List (places @ [ quote_selector ]));
+        ( "selector",
+          `List (List.map Selector.to_json (places @ [ quote_selector ])) );
       ]
   in
   let anchor = Printf.sprintf "%d:%d:%s" start end_ exact in

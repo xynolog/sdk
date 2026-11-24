@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.DispatcherHealth (DispatcherHealth (..), DispatcherHealthQueue (..), DispatcherHealthStatus (..)) where
+module Xynolog.Internal.Generated.Models.DispatcherHealth (DispatcherHealth (..), DispatcherHealthQueue (..), dispatcherHealthQueueText, DispatcherHealthStatus (..), dispatcherHealthStatusText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data DispatcherHealth = DispatcherHealth
@@ -24,8 +25,14 @@ instance FromJSON DispatcherHealthQueue where parseJSON = checked "DispatcherHea
 
 instance ToJSON DispatcherHealthQueue where toJSON DispatcherHealthQueueJetstream = String "jetstream"
 
+dispatcherHealthQueueText :: DispatcherHealthQueue -> Text
+dispatcherHealthQueueText DispatcherHealthQueueJetstream = "jetstream"
+
 data DispatcherHealthStatus = DispatcherHealthStatusOk deriving (Eq, Show)
 
 instance FromJSON DispatcherHealthStatus where parseJSON = checked "DispatcherHealthStatus" $ \value -> if value == String "ok" then pure DispatcherHealthStatusOk else fail "unknown enumeration member"
 
 instance ToJSON DispatcherHealthStatus where toJSON DispatcherHealthStatusOk = String "ok"
+
+dispatcherHealthStatusText :: DispatcherHealthStatus -> Text
+dispatcherHealthStatusText DispatcherHealthStatusOk = "ok"

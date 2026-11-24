@@ -38,8 +38,8 @@ public static class Tokens
     /// <summary>How many seconds to wait before renewing a token with <paramref name="remaining"/> seconds left of a
     /// <paramref name="lifetime"/>, keeping to the protocol's lead time and minimum delay.</summary>
     public static double RenewalDelay(double lifetime, double remaining) => Math.Max(
-        remaining - Math.Min(ProtocolFacts.Timing("refreshBeforeExpMs").GetDouble() / 1000, lifetime / 2),
-        ProtocolFacts.Timing("minRefreshDelayMs").GetDouble() / 1000);
+        remaining - Math.Min(Timings.RefreshBeforeExpMs / 1000.0, lifetime / 2),
+        Timings.MinRefreshDelayMs / 1000.0);
 
     /// <summary>How many seconds from <paramref name="now"/>, in Unix seconds, to wait before renewing the token, or null
     /// when it states no readable expiry.</summary>

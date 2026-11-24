@@ -69,6 +69,7 @@ import xynolog.testing.REFUSE_UNSCRIPTED
 import xynolog.testing.Respond
 import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
+import xynolog.types.ClaimOptions
 import xynolog.types.DiscoveredKB
 import xynolog.types.HighlightingJobParams
 import xynolog.types.JobFilter
@@ -501,7 +502,7 @@ private suspend fun heldJobStall(given: JsonObject, bench: Bench): Subject {
     val transport = bench.held(FaultyTransport(JOB_CLAIM_CHANNELS, emptyList(), dispatcher, bench.context))
     val gateway = Recording()
     val client = bench.held(XynologClient(transport, gateway, gateway, ClientTiming(), null, bench.context, bench.clock))
-    val claims = client.job.claim(MARK_JOBS)
+    val claims = client.job.claim(ClaimOptions(MARK_JOBS))
     val claiming = bench.work.async { claims.next() }
     bench.test.runCurrent()
     val job = claiming.getCompleted() ?: throw AssertionError("the claims ended before they held a job")

@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
 import xynolog.channels.CHANNEL_NAMES
 import xynolog.channels.Channel
 import xynolog.channels.Channels
-import xynolog.channels.Empty
 import xynolog.channels.ScopedChannel
 import xynolog.channels.TRACE_FIELD
 import xynolog.errors.BusRequestError
@@ -47,6 +46,7 @@ import xynolog.transport.Watched
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.BrowseProfilesRequest
 import xynolog.types.BusPingMessage
+import xynolog.types.EmptyObject
 import xynolog.types.FrameAddEntityTypeCommand
 import xynolog.types.FrameRefusalReason
 import xynolog.types.GatherAnnotationOptions
@@ -161,7 +161,7 @@ class BusTest {
         val frames = Bus(wire).frames(Channels.PANEL_CLOSE)
         wire.deliver(Frame("panel:close", json("""{"_userId":"$ALICE","$TRACE_FIELD":{"traceparent":"00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01"}}""")))
         val delivered = withTimeout(5_000) { frames.first() }.delivered()
-        assertEquals(Empty, delivered.payload)
+        assertEquals(EmptyObject, delivered.payload)
         assertEquals(UserId.parse(ALICE), delivered.userId)
     }
 
@@ -349,7 +349,7 @@ class BusTest {
     fun aTypedRequestGivesItsOperationsResult() = runBlocking {
         val wire = Wire(replyChannelsFor(ADD).toSet())
         wire.answer = { sent -> wire.deliver(Frame("frame:entity-type-add-ok", json("{}"), sent.correlationId)) }
-        assertEquals(Empty, Bus(wire).request(ADD, added("Person"), timeoutMs = 5_000))
+        assertEquals(EmptyObject, Bus(wire).request(ADD, added("Person"), timeoutMs = 5_000))
         assertEquals("frame:add-entity-type", wire.emitted.single().channel)
         assertEquals(json("""{"tag":"Person"}"""), wire.emitted.single().payload)
     }

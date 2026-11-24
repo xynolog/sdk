@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobProgressGeneratingResource (JobProgressGeneratingResource (..), JobProgressGeneratingResourceCode (..)) where
+module Xynolog.Internal.Generated.Models.JobProgressGeneratingResource (JobProgressGeneratingResource (..), JobProgressGeneratingResourceCode (..), jobProgressGeneratingResourceCodeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data JobProgressGeneratingResource = JobProgressGeneratingResource
@@ -23,3 +24,6 @@ data JobProgressGeneratingResourceCode = JobProgressGeneratingResourceCodeGenera
 instance FromJSON JobProgressGeneratingResourceCode where parseJSON = checked "JobProgressGeneratingResourceCode" $ \value -> if value == String "generating-resource" then pure JobProgressGeneratingResourceCodeGeneratingU2d_resource else fail "unknown enumeration member"
 
 instance ToJSON JobProgressGeneratingResourceCode where toJSON JobProgressGeneratingResourceCodeGeneratingU2d_resource = String "generating-resource"
+
+jobProgressGeneratingResourceCodeText :: JobProgressGeneratingResourceCode -> Text
+jobProgressGeneratingResourceCodeText JobProgressGeneratingResourceCodeGeneratingU2d_resource = "generating-resource"

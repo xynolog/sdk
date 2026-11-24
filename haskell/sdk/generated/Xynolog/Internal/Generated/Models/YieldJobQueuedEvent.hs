@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.YieldJobQueuedEvent (YieldJobQueuedEvent (..), YieldJobQueuedEventJobType (..)) where
+module Xynolog.Internal.Generated.Models.YieldJobQueuedEvent (YieldJobQueuedEvent (..), YieldJobQueuedEventJobType (..), yieldJobQueuedEventJobTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.GenerationJobRequest
 import Xynolog.Internal.Generated.Models.JobId
@@ -31,3 +32,6 @@ data YieldJobQueuedEventJobType = YieldJobQueuedEventJobTypeYield deriving (Eq, 
 instance FromJSON YieldJobQueuedEventJobType where parseJSON = checked "YieldJobQueuedEventJobType" $ \value -> if value == String "yield" then pure YieldJobQueuedEventJobTypeYield else fail "unknown enumeration member"
 
 instance ToJSON YieldJobQueuedEventJobType where toJSON YieldJobQueuedEventJobTypeYield = String "yield"
+
+yieldJobQueuedEventJobTypeText :: YieldJobQueuedEventJobType -> Text
+yieldJobQueuedEventJobTypeText YieldJobQueuedEventJobTypeYield = "yield"

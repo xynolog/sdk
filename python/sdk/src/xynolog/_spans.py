@@ -12,7 +12,6 @@ offset is a string's own index and a length is `len`: nothing is converted.
 
 from typing import Final
 
-from xynolog._white_space import WHITE_SPACE, trimmed
 from xynolog.types import (
     MatchQuality,
     QuotedText,
@@ -23,6 +22,7 @@ from xynolog.types import (
     ReconciledSpanUniqueMatch,
     TextSpan,
 )
+from xynolog.white_space import WHITE_SPACE, trimmed
 
 type _Place = tuple[int, int]
 """A span of the text as its two offsets."""

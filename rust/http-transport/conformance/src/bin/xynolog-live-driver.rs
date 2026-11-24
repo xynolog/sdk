@@ -6,30 +6,37 @@
 //! It reaches the SDK only as an application does, through what `xynolog` and
 //! `xynolog-http-transport` export.
 
-use xynolog::cache::CacheState;
-use xynolog::cached::Observed;
-use xynolog::channels::BRIDGED_CHANNELS;
-use xynolog::client::{CachePersistence, ClientOptions, ClientTiming, XynologClient};
-use xynolog::namespaces::{Delegation, ResourceFilters};
-use xynolog::refresh::CacheQuery;
-use xynolog::resume::CoupledBookmarks;
-use xynolog::session::{last_event_id_key, person_key};
-use xynolog::storage::InMemorySessionStorage;
-use xynolog::transport::ConnectionState;
-use xynolog::types::{AnnotationId, GenerationJobParams, MarkJobParams, ResourceId};
-use xynolog_conformance_drivers::{
-    Arguments, Driver, Ended, Running, count, failed, failure, identifier, locked, object, say,
-    serve, text,
-};
-use xynolog_http_transport::client::client;
-use xynolog_http_transport::transport::{HttpTransportConfig, Timing};
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::sync::watch;
 use tokio::task::{AbortHandle, JoinSet};
+use xynolog::cache::CacheState;
+use xynolog::cached::Observed;
+use xynolog::channels::BRIDGED_CHANNELS;
+use xynolog::client::{CachePersistence, ClientOptions, ClientTiming, XynologClient};
+use xynolog::namespaces::Delegation;
+use xynolog::refresh::CacheQuery;
+use xynolog::resume::CoupledBookmarks;
+use xynolog::session::{last_event_id_key, person_key};
+use xynolog::storage::InMemorySessionStorage;
+use xynolog::transport::ConnectionState;
+use xynolog::types::{
+    AnnotationId, ConformanceDriverLine, ConformanceDriverLineCompleted,
+    ConformanceDriverLineEmission, ConformanceDriverLineEmissionEmission,
+    ConformanceDriverLineEmissionEmissionState, ConformanceDriverLineEmissionEmissionStateFailed,
+    ConformanceDriverLineEmissionEmissionStateReady, ConformanceDriverLineErrorStream,
+    ConformanceDriverLineState, GenerationJobParams, MarkJobParams, ResourceId,
+};
+use xynolog_conformance_drivers::{
+    Arguments, Driver, Ended, Running, count, failed, failure, identifier, locked, object, say,
+    serve, text,
+};
+use xynolog_http_transport::client::client;
+use xynolog_http_transport::transport::{HttpTransportConfig, Timing};
 
 /// The knowledge base and the person a persisting client keeps for: every
 /// SDK's driver keeps for these, so the suite's `persist` cases rehydrate.
@@ -64,24 +71,14 @@ fn value<T: Serialize>(of: &T) -> Result<Value, Ended> {
         .map_err(|e| Ended::Misuse(format!("a value that does not serialize: {e}")))
 }
 
-/// The filters a case states for a list of resources, or for a search.
-fn filters(query: &Arguments) -> Result<ResourceFilters, Ended> {
-    let mut filters = ResourceFilters::default();
-    if query.get("filters").is_some() {
-        for (name, stated) in object(query, "filters")? {
-            match name.as_str() {
-                "limit" => filters.limit = stated.as_u64(),
-                "archived" => filters.archived = stated.as_bool(),
-                "entityType" => filters.entity_type = stated.as_str().map(str::to_owned),
-                other => {
-                    return Err(Ended::Misuse(format!(
-                        "a filter by {other}, which no query of resources takes"
-                    )));
-                }
-            }
-        }
+/// The filters a case states for a list of resources, or for a search, as
+/// the type the query takes: none stated when the case states none.
+fn filters<T: DeserializeOwned + Default>(query: &Arguments) -> Result<T, Ended> {
+    match query.get("filters") {
+        None => Ok(T::default()),
+        Some(stated) => serde_json::from_value(stated.clone())
+            .map_err(|error| Ended::Misuse(format!("filters the query does not take: {error}"))),
     }
-    Ok(filters)
 }
 
 /// The live query of protocol/specs/src/client/refresh.json a case names.
@@ -150,13 +147,52 @@ macro_rules! with_query {
 }
 
 /// The line that says the observer `name` was given `state`.
-fn emission<T: Serialize>(name: &str, state: CacheState<T>) -> Value {
-    let state = match state {
-        CacheState::Pending => json!({ "status": "pending" }),
-        CacheState::Ready(value) => json!({ "status": "ready", "value": value }),
-        CacheState::Failed(error) => json!({ "status": "failed", "error": failed(error.as_ref()) }),
-    };
-    json!({ "emission": { "observer": name, "state": state } })
+fn emission<T: Serialize>(name: &str, state: CacheState<T>) -> ConformanceDriverLine {
+    said(
+        name,
+        match state {
+            CacheState::Pending => {
+                ConformanceDriverLineEmissionEmissionState::Pending(Default::default())
+            }
+            CacheState::Ready(value) => ready(&value),
+            CacheState::Failed(error) => failed_state(error.as_ref()),
+        },
+    )
+}
+
+/// An observer was given `state`.
+fn said(
+    observer: &str,
+    state: ConformanceDriverLineEmissionEmissionState,
+) -> ConformanceDriverLine {
+    ConformanceDriverLine::Emission(ConformanceDriverLineEmission {
+        emission: ConformanceDriverLineEmissionEmission {
+            observer: observer.to_owned(),
+            state,
+        },
+    })
+}
+
+fn ready<T: Serialize>(value: &T) -> ConformanceDriverLineEmissionEmissionState {
+    ConformanceDriverLineEmissionEmissionState::Ready(
+        ConformanceDriverLineEmissionEmissionStateReady::new(
+            serde_json::to_value(value).expect("a value the SDK gave serializes"),
+        ),
+    )
+}
+
+fn failed_state(
+    error: &(dyn std::error::Error + Send + Sync + 'static),
+) -> ConformanceDriverLineEmissionEmissionState {
+    ConformanceDriverLineEmissionEmissionState::Failed(
+        ConformanceDriverLineEmissionEmissionStateFailed::new(failed(error)),
+    )
+}
+
+fn completed(observer: String) -> ConformanceDriverLine {
+    ConformanceDriverLine::Completed(ConformanceDriverLineCompleted {
+        completed: observer,
+    })
 }
 
 impl Live {
@@ -172,7 +208,9 @@ impl Live {
         let mut reported = locked(&self.reported);
         if *reported != Some(state) {
             *reported = Some(state);
-            say(json!({ "state": state.as_str() }));
+            say(ConformanceDriverLine::State(ConformanceDriverLineState {
+                state: state.as_str().to_owned(),
+            }));
         }
     }
 
@@ -253,9 +291,11 @@ impl Live {
         reporters.spawn(async move {
             while let Some(reported) = failures.next().await {
                 match reported {
-                    Ok(error) => say(json!({
-                        "error": failure(error.code.as_str(), error.status, error.message)
-                    })),
+                    Ok(error) => say(ConformanceDriverLine::ErrorStream(
+                        ConformanceDriverLineErrorStream {
+                            error: failure(error.code.as_str(), error.status, error.message),
+                        },
+                    )),
                     Err(lagged) => eprintln!("the error stream: {lagged}"),
                 }
             }
@@ -304,7 +344,7 @@ impl Live {
             while observing && let Some(state) = observed.next().await {
                 say(emission(&name, state));
             }
-            say(json!({ "completed": name }));
+            say(completed(name));
         })
     }
 
@@ -364,12 +404,12 @@ impl Live {
         let task = locked(&self.reporters).spawn(async move {
             while let Some(reported) = following.next().await {
                 let state = match reported {
-                    Ok(event) => json!({ "status": "ready", "value": event }),
-                    Err(error) => json!({ "status": "failed", "error": failed(&error) }),
+                    Ok(event) => ready(&event),
+                    Err(error) => failed_state(&error),
                 };
-                say(json!({ "emission": { "observer": name, "state": state } }));
+                say(said(&name, state));
             }
-            say(json!({ "completed": name }));
+            say(completed(name));
         });
         observers.insert(observer, task);
         Ok(Value::Null)

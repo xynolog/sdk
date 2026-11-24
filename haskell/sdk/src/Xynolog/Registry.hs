@@ -548,7 +548,7 @@ setLastViewedResource owner resource = Lifetime.run (lifetime owner) $ do
     atomically (writeTVar (viewedByKb owner) values >> project owner)
 
 noVerdict :: KbReadVerdict
-noVerdict = KbReadVerdictBranch3 (KbReadVerdictBranch3Value KbReadKindNoU2d_verdict)
+noVerdict = KbReadVerdictNoVerdict (KbReadVerdictNoVerdictValue KbReadKindNoU2d_verdict)
 
 readKb :: XynologBrowser -> Session.Session -> Text -> IO KbReadVerdict
 readKb owner session key = do
@@ -567,11 +567,11 @@ readKb owner session key = do
         Nothing -> pure noVerdict
         Just (description, did) ->
           if did /= knowledgeBaseDid entry
-            then pure (KbReadVerdictBranch2 (KbReadVerdictBranch2Value KbReadKindConflict did (kbDescriptionName description)))
+            then pure (KbReadVerdictConflict (KbReadVerdictConflictValue KbReadKindConflict did (kbDescriptionName description)))
             else do
               reading <- readNow owner description
               updateKb owner key (Just (kbDescriptionName description)) (Just reading)
-              pure (KbReadVerdictBranch1 (KbReadVerdictBranch1Value KbReadKindRecorded))
+              pure (KbReadVerdictRecorded (KbReadVerdictRecordedValue KbReadKindRecorded))
 
 readActiveKb :: XynologBrowser -> IO KbReadVerdict
 readActiveKb owner = Lifetime.run (lifetime owner) $ do
@@ -583,7 +583,7 @@ validateOpened owner version session = do
   verdict <- readKb owner session (Session.id session)
   current <- readTVarIO (revision owner)
   when (current == version) $ case verdict of
-    KbReadVerdictBranch2 conflict -> do
+    KbReadVerdictConflict conflict -> do
       changeOpenOf owner (Session.id session) (const [])
       values <- changeDocument owner lastViewedResourceByKbKey (KM.delete (Key.fromText (Session.id session)))
       entries <- atomically (State.current (registered owner))
@@ -596,7 +596,7 @@ validateOpened owner version session = do
             | actual == version ->
                 Signals.notifyKbIdentityConflict
                   signals
-                  (Signals.KbIdentityConflict (knowledgeBaseDid entry) (kbReadVerdictBranch2ValueObservedDid conflict))
+                  (Signals.KbIdentityConflict (knowledgeBaseDid entry) (kbReadVerdictConflictValueObservedDid conflict))
           _ -> pure ()
     _ -> do
       raw <- Storage.get (storage owner) openResourcesByKbKey
@@ -604,14 +604,14 @@ validateOpened owner version session = do
           checkTab tab =
             ( do
                 value <- Cache.fresh (Browse.resource (Client.browse (Session.client session)) (openResourceId tab))
-                pure (openResourceId tab, TabCheckBranch2 (TabCheckBranch2Value (Resources.getPrimaryMediaType value) (resourceDescriptorName value) TabVerdictReady))
+                pure (openResourceId tab, TabCheckReady (TabCheckReadyValue (Resources.getPrimaryMediaType value) (resourceDescriptorName value) TabVerdictReady))
             )
               `catchSync` \problem ->
                 pure
                   ( openResourceId tab,
                     case fromException problem of
-                      Just failure | busRequestErrorCode failure == Code.BusRequestNotFound -> TabCheckBranch1 (TabCheckBranch1Value TabVerdictGone)
-                      _ -> TabCheckBranch3 (TabCheckBranch3Value TabVerdictUnknown)
+                      Just failure | busRequestErrorCode failure == Code.BusRequestNotFound -> TabCheckGone (TabCheckGoneValue TabVerdictGone)
+                      _ -> TabCheckUnknown (TabCheckUnknownValue TabVerdictUnknown)
                   )
       lanes <- newQSem (fromInteger Timing.checksAtOnceCount)
       checks <- Map.fromList <$> mapConcurrently (\tab -> bracket_ (waitQSem lanes) (signalQSem lanes) (checkTab tab)) waiting
@@ -645,7 +645,7 @@ completeSignIn owner callback = Lifetime.run (lifetime owner) $ do
       completed =
         SignedIn
           (connectionIdentityDescription identityProof)
-          (KbEndpointBranch1 (pendingAuthorizationTarget pending))
+          (KbEndpointHttpEndpoint (pendingAuthorizationTarget pending))
           (pendingAuthorizationExpectedDid pending)
           (pendingAuthorizationExpectedName pending)
           (pendingAuthorizationKbId pending)

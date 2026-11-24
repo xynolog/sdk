@@ -29,8 +29,8 @@ use xynolog::transport::{
 };
 use xynolog::types::StoredSession;
 use xynolog::types::{
-    AnchoredTextAnswer, GatherResourceRequestOptions, HttpEndpoint, HttpEndpointProtocol,
-    KbEndpoint, KbTarget, KnowledgeBase, ResourceId, UploadProgress, UploadProgressFinished,
+    AnchoredTextAnswer, GatherResourceOptions, HttpEndpoint, HttpEndpointProtocol, KbEndpoint,
+    KbTarget, KnowledgeBase, ResourceId, UploadProgress, UploadProgressFinished,
     UploadProgressProgress, UploadProgressStarted, UserResponse,
 };
 
@@ -514,7 +514,7 @@ async fn a_reply_that_names_what_it_answers_for_names_what_its_request_named() {
     let context = test
         .client
         .gather
-        .resource(&as_id("res-1"), GatherResourceRequestOptions::default())
+        .resource(&as_id("res-1"), GatherResourceOptions::default())
         .await
         .expect("the queued reply answers it");
     assert_eq!(
@@ -556,7 +556,7 @@ async fn a_reply_that_names_what_it_answers_for_names_what_its_request_named() {
             .expect("no frame was missed")
             .expect("it is no refusal");
         assert_eq!(
-            Value::Object(reply.payload),
+            Value::Object(reply.bus_frame.payload),
             json!({ named: asked[named], "response": "scripted" }),
             "the reply to {request}"
         );
@@ -577,7 +577,7 @@ async fn a_reply_that_names_what_it_answers_for_names_what_its_request_named() {
         .expect("no frame was missed")
         .expect("it is no refusal");
     assert_eq!(
-        Value::Object(reply.payload),
+        Value::Object(reply.bus_frame.payload),
         json!({ "response": "scripted" })
     );
 

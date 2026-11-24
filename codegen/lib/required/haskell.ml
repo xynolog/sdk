@@ -27,9 +27,7 @@ let text ~shapes ~channels ~http =
     {
       banner =
         Banner.lines
-          ~from_:
-            "protocol/specs/src's component schemas, bus registry and \
-             operations"
+          ~from_:(Table.authority ^ ", and the bus registry and operations")
           __FILE__;
       extensions = [ "OverloadedStrings" ];
       name = "Xynolog.Internal.Generated.Required";

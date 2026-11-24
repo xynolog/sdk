@@ -46,3 +46,21 @@ let all (spec : Spec.t) =
               { Decode.target = Filename.basename file; file; pointer = "" } )
         else None)
       spec.schemas
+
+(* The tables the services keep to, which every SDK carries for them, each
+   read as its own schema's model ([Places.schema_of]): every table of a
+   service's area ([Places.services]) and of the services' shared
+   environment, telemetry and jobs that is no case table, and the bounds of
+   the bus's replies. *)
+let service_tables (spec : Spec.t) =
+  let areas =
+    Places.services @ [ "service-environment"; "service-telemetry"; "jobs" ]
+  in
+  List.filter
+    (fun table ->
+      (match String.index_opt table '/' with
+        | Some at -> List.mem (String.sub table 0 at) areas
+        | None -> false)
+      && not (Places.is_case_table table))
+    spec.table_files
+  @ [ "bus/reply-bounds.json" ]

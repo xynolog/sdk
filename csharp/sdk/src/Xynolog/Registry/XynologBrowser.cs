@@ -30,7 +30,7 @@ public sealed record BrowserState(IReadOnlyList<KnowledgeBase> Kbs, string? Acti
 public sealed class XynologBrowser : IAsyncDisposable
 {
     private static readonly KbReadVerdict Unavailable = new KbReadVerdict.NoVerdictCase(new KbReadVerdictNoVerdict());
-    private static readonly int ChecksAtOnce = ProtocolFacts.Timing("checksAtOnceCount").GetInt32();
+    private static readonly int ChecksAtOnce = Timings.ChecksAtOnceCount;
     private readonly SessionFactory factory;
     private readonly TimeProvider clock;
     private readonly Random random;
@@ -369,7 +369,7 @@ public sealed class XynologBrowser : IAsyncDisposable
             catch (XynologError error)
             {
                 if (!token.IsCancellationRequested)
-                    errors.Publish(new SessionError(ProtocolFacts.SessionError("construct-failed"), $"Could not open {kb.Label}.", error));
+                    errors.Publish(new SessionError(SessionErrorCode.ConstructFailed, $"Could not open {kb.Label}.", error));
                 return;
             }
             // Read as soon as the factory hands the session back, so this is the first reader of its errors and hears
@@ -419,7 +419,7 @@ public sealed class XynologBrowser : IAsyncDisposable
         await foreach (var error in session.Errors().ConfigureAwait(Spawning.Captures))
         {
             if (error is SessionError own) errors.Publish(own);
-            else if (error.Code == ProtocolFacts.Error(403)) signals.NotifyPermissionDenied(error.Message);
+            else if (error.Code == TransportErrorCode.Forbidden) signals.NotifyPermissionDenied(error.Message);
         }
     }
 
@@ -452,7 +452,7 @@ public sealed class XynologBrowser : IAsyncDisposable
                     var descriptor = await current.Opened.Client.Browse.Resource(resource).FreshAsync(token).ConfigureAwait(Spawning.Captures);
                     checks[resource] = new TabCheck.ReadyCase(new TabCheckReady { Name = descriptor.Name, MediaType = PrimaryMediaType(descriptor) });
                 }
-                catch (BusRequestError error) when (error.Code == ProtocolFacts.BusError("not-found"))
+                catch (BusRequestError error) when (error.Code == BusRequestErrorCode.NotFound)
                 { checks[resource] = new TabCheck.GoneCase(new TabCheckGone()); }
                 catch (XynologError) { checks[resource] = new TabCheck.UnknownCase(new TabCheckUnknown()); }
             }).ConfigureAwait(Spawning.Captures);
@@ -555,7 +555,7 @@ public sealed class XynologBrowser : IAsyncDisposable
             }
             catch (Exception error)
             {
-                errors.Publish(new SessionError(ProtocolFacts.SessionError("auth-failed"), "Could not read a storage change.", error));
+                errors.Publish(new SessionError(SessionErrorCode.AuthFailed, "Could not read a storage change.", error));
             }
         }
     }

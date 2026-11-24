@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobStatusResponse (JobStatusResponse (..), JobStatusResponseStatus (..)) where
+module Xynolog.Internal.Generated.Models.JobStatusResponse (JobStatusResponse (..), JobStatusResponseStatus (..), jobStatusResponseStatusText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -45,3 +45,10 @@ instance ToJSON JobStatusResponseStatus where
   toJSON JobStatusResponseStatusComplete = String "complete"
   toJSON JobStatusResponseStatusFailed = String "failed"
   toJSON JobStatusResponseStatusCancelled = String "cancelled"
+
+jobStatusResponseStatusText :: JobStatusResponseStatus -> Text
+jobStatusResponseStatusText JobStatusResponseStatusPending = "pending"
+jobStatusResponseStatusText JobStatusResponseStatusRunning = "running"
+jobStatusResponseStatusText JobStatusResponseStatusComplete = "complete"
+jobStatusResponseStatusText JobStatusResponseStatusFailed = "failed"
+jobStatusResponseStatusText JobStatusResponseStatusCancelled = "cancelled"

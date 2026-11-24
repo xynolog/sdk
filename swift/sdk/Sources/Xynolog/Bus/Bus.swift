@@ -120,5 +120,3 @@ public func replyChannelsFor(_ requests: [String]) -> [String] {
 public func unsubscribed(_ channel: String) -> BusRequestError {
   BusRequestError(.busUnsubscribed, "Transport is not subscribed to \(channel)")
 }
-
-public let persistedEventTypes = storedEventChannels

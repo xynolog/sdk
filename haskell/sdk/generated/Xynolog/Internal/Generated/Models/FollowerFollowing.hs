@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.FollowerFollowing (FollowerFollowing (..), FollowerFollowingSweep (..)) where
+module Xynolog.Internal.Generated.Models.FollowerFollowing (FollowerFollowing (..), FollowerFollowingSweep (..), followerFollowingSweepText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data FollowerFollowing = FollowerFollowing
@@ -29,3 +30,9 @@ instance ToJSON FollowerFollowingSweep where
   toJSON FollowerFollowingSweepRunning = String "running"
   toJSON FollowerFollowingSweepDone = String "done"
   toJSON FollowerFollowingSweepDue = String "due"
+
+followerFollowingSweepText :: FollowerFollowingSweep -> Text
+followerFollowingSweepText FollowerFollowingSweepPending = "pending"
+followerFollowingSweepText FollowerFollowingSweepRunning = "running"
+followerFollowingSweepText FollowerFollowingSweepDone = "done"
+followerFollowingSweepText FollowerFollowingSweepDue = "due"

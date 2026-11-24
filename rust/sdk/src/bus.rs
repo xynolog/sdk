@@ -38,6 +38,9 @@
 //! By name (`emit_on`, `frames_on`, `request_of`), the channel is the
 //! registry's name and the payload a JSON object: for what relays frames it
 //! does not read, or is told its channels at run time.
+//!
+//! A service holds the other side of an operation: `questions` gives each
+//! request that reaches it, and `Question::answer` sends its reply.
 
 use crate::channels::{
     Channel, Request, Scoped, USER_FIELD, Unscoped, payload_shape, payload_stamps,
@@ -164,7 +167,7 @@ impl Bus {
         within: Duration,
     ) -> Result<Option<Value>, XynologError> {
         let mut result = self.result_of(operation, payload, within).await?;
-        Ok(result.payload.remove("response"))
+        Ok(result.bus_frame.payload.remove("response"))
     }
 
     /// A request, as far as its result: the frame that answers it on its
@@ -264,10 +267,10 @@ impl Bus {
                 .into());
             }
         };
-        if reply.channel == operation.result {
+        if reply.bus_frame.channel == operation.result {
             return Ok(reply);
         }
-        Err(answered(operation.failure, reply.payload))
+        Err(answered(operation.failure, reply.bus_frame.payload))
     }
 }
 
@@ -359,19 +362,20 @@ fn delivered<C: Channel, E>(
     frame: Frame,
     refused: impl FnOnce(Fault, Frame) -> E,
 ) -> Result<Delivered<C>, E> {
-    let payload = match decoded::<C>(frame.payload.clone()) {
+    let payload = match decoded::<C>(frame.bus_frame.payload.clone()) {
         Ok(payload) => payload,
         Err(fault) => return Err(refused(fault, frame)),
     };
     let user_id = frame
+        .bus_frame
         .payload
         .get(USER_FIELD)
         .and_then(Value::as_str)
         .map(str::to_owned);
     Ok(Delivered {
         payload,
-        correlation_id: frame.correlation_id,
-        scope: frame.scope,
+        correlation_id: frame.bus_frame.correlation_id,
+        scope: frame.bus_frame.scope,
         user_id,
         trace: frame.trace,
     })
@@ -383,12 +387,12 @@ fn delivered<C: Channel, E>(
 fn not_the_channels(fault: Fault, frame: Frame) -> FrameRefusal {
     let Fault { member, reason } = fault.within("payload");
     FrameRefusal {
-        channel: frame.channel,
+        channel: frame.bus_frame.channel,
         member,
         reason,
-        payload: Some(Value::Object(frame.payload)),
-        scope: frame.scope,
-        correlation_id: frame.correlation_id,
+        payload: Some(Value::Object(frame.bus_frame.payload)),
+        scope: frame.bus_frame.scope,
+        correlation_id: frame.bus_frame.correlation_id,
     }
 }
 
@@ -454,7 +458,7 @@ impl Stream for ScopedFrames {
                 // A stream carries every scope it holds on the one channel,
                 // and another reader may hold another resource's.
                 Poll::Ready(Some(Ok(Ok(frame))))
-                    if frame.scope.as_ref() != Some(&self.resource) => {}
+                    if frame.bus_frame.scope.as_ref() != Some(&self.resource) => {}
                 Poll::Ready(Some(Ok(Err(refusal))))
                     if refusal.scope.as_ref() != Some(&self.resource) => {}
                 other => return other,
@@ -555,6 +559,106 @@ impl Bus {
                 TransportErrorCode::Error,
             )
             .into()
+        })
+    }
+}
+
+// ── Answering ───────────────────────────────────────────────────────────
+
+/// A request of the operation `R` that reached this client: what was asked,
+/// by whom, and in which trace. It is answered once, on `R`'s result or
+/// failure channel, under the asker's correlation id.
+pub struct Question<R: Request> {
+    pub asked: Delivered<R>,
+    bus: Bus,
+}
+
+impl<R: Request> Question<R> {
+    /// Send `outcome`: a result on `R`'s result channel, a failure on its
+    /// failure channel. The transport sends it in the trace current where
+    /// this is called, so a service answers from inside the span it opened
+    /// in `asked.trace`.
+    pub async fn answer(
+        self,
+        outcome: Result<<R::Result as Channel>::Payload, <R::Failure as Channel>::Payload>,
+    ) -> Result<(), TransportError> {
+        let envelope = Envelope {
+            correlation_id: self.asked.correlation_id,
+            scope: None,
+        };
+        match outcome {
+            Ok(result) => self.bus.emit::<R::Result>(&result, envelope).await,
+            Err(failure) => self.bus.emit::<R::Failure>(&failure, envelope).await,
+        }
+        .map(|_| ())
+    }
+}
+
+/// The requests of the operation `R` that reach this client, from the
+/// moment it is asked for them.
+pub struct Questions<R: Request> {
+    frames: Typed<R>,
+    bus: Bus,
+}
+
+impl<R: Request + Unscoped> Questions<R> {
+    /// The next request; `None` when the stream has ended. A request whose
+    /// payload is not `R`'s is refused, and its asker is told so on `R`'s
+    /// failure channel when it can be: when the request names a correlation
+    /// id, and states the members `R`'s failure carries beside the error.
+    pub async fn next(&mut self) -> Option<Result<Question<R>, StreamError>> {
+        match self.frames.next().await? {
+            Ok(asked) => Some(Ok(Question {
+                asked,
+                bus: self.bus.clone(),
+            })),
+            Err(StreamError::Refused(refusal)) => {
+                if let (Some(correlation_id), Some(failure)) =
+                    (&refusal.correlation_id, refused_failure::<R>(&refusal))
+                {
+                    let envelope = Envelope {
+                        correlation_id: Some(correlation_id.clone()),
+                        scope: None,
+                    };
+                    // The asker waits until it stops waiting when this is
+                    // not sent; the refusal is given to the reader either way.
+                    let _ = self.bus.emit::<R::Failure>(&failure, envelope).await;
+                }
+                Some(Err(StreamError::Refused(refusal)))
+            }
+            Err(lagged) => Some(Err(lagged)),
+        }
+    }
+}
+
+/// The failure that tells the asker of a refused request why: the refusal,
+/// beside the members of the request that `R`'s failure carries again. None
+/// when the request does not state one the failure needs.
+fn refused_failure<R: Request>(refusal: &FrameRefusal) -> Option<<R::Failure as Channel>::Payload> {
+    let Some(Value::Object(asked)) = &refusal.payload else {
+        return None;
+    };
+    let mut failure: Map<String, Value> = asked
+        .iter()
+        .filter(|(member, _)| !member.starts_with('_'))
+        .map(|(member, value)| (member.clone(), value.clone()))
+        .collect();
+    let refused = payload_of(&CommandError::new(refusal.to_string())).ok()?;
+    for member in ["code", "details"] {
+        failure.remove(member);
+    }
+    failure.extend(refused);
+    serde_json::from_value(Value::Object(failure)).ok()
+}
+
+impl Bus {
+    /// The requests of the operation `R` that reach this client from now on,
+    /// each to be answered (`Question::answer`): the side of an operation a
+    /// service holds.
+    pub fn questions<R: Request + Unscoped>(&self) -> Result<Questions<R>, BusRequestError> {
+        Ok(Questions {
+            frames: self.frames::<R>()?,
+            bus: self.clone(),
         })
     }
 }

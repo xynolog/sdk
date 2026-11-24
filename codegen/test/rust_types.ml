@@ -393,7 +393,7 @@ let cases =
             "Mark"
         in
         has code
-          "#[derive(Debug, Clone, PartialEq, serde::Serialize)]\n\
+          "#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]\n\
            #[serde(untagged)]\n\
            pub enum Mark {";
         has code

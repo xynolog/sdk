@@ -1,11 +1,14 @@
 open Schema_shape
 
-type fault = { member : string; reason : [ `Lacks | `Malformed ] }
+type fault = { member : string; reason : Enums.Frame_refusal_reason.t }
 type error = Invalid_json of string | Invalid_payload of fault
 
 let ( let* ) = Result.bind
-let malformed member = Error { member; reason = `Malformed }
-let lacks member = Error { member; reason = `Lacks }
+
+let malformed member =
+  Error { member; reason = Enums.Frame_refusal_reason.Malformed }
+
+let lacks member = Error { member; reason = Enums.Frame_refusal_reason.Lacks }
 let child path key = if path = "" then key else path ^ "." ^ key
 
 let shapes =

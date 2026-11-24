@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.LogLevel (LogLevel (..)) where
+module Xynolog.Internal.Generated.Models.LogLevel (LogLevel (..), logLevelText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data LogLevel = LogLevelError | LogLevelWarn | LogLevelInfo | LogLevelHttp | LogLevelDebug deriving (Eq, Show)
@@ -17,3 +18,10 @@ instance ToJSON LogLevel where
   toJSON LogLevelInfo = String "info"
   toJSON LogLevelHttp = String "http"
   toJSON LogLevelDebug = String "debug"
+
+logLevelText :: LogLevel -> Text
+logLevelText LogLevelError = "error"
+logLevelText LogLevelWarn = "warn"
+logLevelText LogLevelInfo = "info"
+logLevelText LogLevelHttp = "http"
+logLevelText LogLevelDebug = "debug"

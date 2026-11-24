@@ -2,7 +2,6 @@ using Xynolog.Errors;
 using Xynolog.Identifiers;
 using Xynolog.Http;
 using Xynolog.Namespaces;
-using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog;
@@ -97,7 +96,7 @@ internal sealed class JobFollower(Bus wire, EventBus bus, JobNamespace jobs, Tim
                     if (status is not null)
                     {
                         if (status.JobId != job)
-                            throw new TransportError(ProtocolFacts.Error(0), "The status is not the followed job's.");
+                            throw new TransportError(TransportErrorCode.Error, "The status is not the followed job's.");
                         switch (status.Status)
                         {
                             case JobStatusResponseStatus.Complete:
@@ -105,7 +104,7 @@ internal sealed class JobFollower(Bus wire, EventBus bus, JobNamespace jobs, Tim
                             case JobStatusResponseStatus.Failed:
                                 throw Failed(job, status.Error ?? "Job failed", status.FailureClass);
                             case JobStatusResponseStatus.Cancelled:
-                                throw new JobError(ProtocolFacts.JobError("cancelled"), "The job was cancelled.", job);
+                                throw new JobError(JobErrorCode.Cancelled, "The job was cancelled.", job);
                         }
                     }
                 }
@@ -206,12 +205,12 @@ internal sealed class JobFollower(Bus wire, EventBus bus, JobNamespace jobs, Tim
         };
 
     private static JobError Failed(JobId job, string message, FailureClass? classification) =>
-        new(ProtocolFacts.JobError("failed"), message, job, classification);
+        new(JobErrorCode.Failed, message, job, classification);
 
     private static JobError Stalled(JobId? job) =>
-        new(ProtocolFacts.JobError("stalled"), "The job stalled without an update.", job);
+        new(JobErrorCode.Stalled, "The job stalled without an update.", job);
 
-    private static BusRequestError Closed() => new(ProtocolFacts.BusError("closed"), "The client closed while following a job.");
+    private static BusRequestError Closed() => new(BusRequestErrorCode.Closed, "The client closed while following a job.");
 
     private static async Task ObserveDroppedPollAsync(Task poll) => await poll.ConfigureAwait(Spawning.Options(ConfigureAwaitOptions.SuppressThrowing));
 

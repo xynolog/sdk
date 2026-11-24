@@ -3,4 +3,4 @@
 import Foundation
 
 /// The file every writer of the store locks, beside the store.
-let signInLockName = "tokens.lock"
+public let signInLockName = "tokens.lock"

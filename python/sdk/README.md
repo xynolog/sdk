@@ -588,7 +588,9 @@ async def work(gateway: str, issuer: str, client_id: str, key: str) -> None:
   waits. A `ClaimRefusal` is a claim the dispatcher refused or did not
   answer. While nobody reads the claims, a job claimed waits for the next
   read, and of the refusals the latest `ERRORS_KEPT_FOR_FIRST_READER_COUNT`
-  wait before it, in order, the oldest dropped beyond them.
+  wait before it, in order, the oldest dropped beyond them. A held job's
+  `accepted` says whether its claim accepts it: the dispatcher hands out no
+  other, so one it does not is a job the two disagree about.
 - **A held job settles once**: `complete`, with what its verb reports,
   `fail`, or `cancel`. Each says the outcome and lets the job go, and a
   second is refused. `start` comes first, and `progress` and `checkpoint` as
@@ -617,7 +619,9 @@ async def work(gateway: str, issuer: str, client_id: str, key: str) -> None:
   `with xynolog.telemetry.continuing(job.trace):`.
 - **`claims.vitals()`** is what the worker can say of itself: when it last
   heard an announcement, claimed, was active and settled, the job it holds,
-  and how many it has completed. **`claims.stalled()`** tells of each held
+  and how many it has completed. It is an engine's `WorkerEngineHealth` less
+  the engine and its jobs, its members named and written as that type's are.
+  **`claims.stalled()`** tells of each held
   job that has shown no activity for fifteen minutes. Its first reader is
   given the latest `ERRORS_KEPT_FOR_FIRST_READER_COUNT` found before it came,
   in order; it ends when the claims are closed, once a job still held has
@@ -934,6 +938,15 @@ async def read(origin: str, token: str, resource: ResourceId) -> None:
   own `emit` and `frames`.
 - **A request** waits for the stream to be open before it is sent, is answered
   once, and is abandoned by cancelling the task that awaits it.
+- **A request is answered** with `bus.answer(operation, heard, handle)`, for
+  each `heard` that `bus.frames(operation.request)` gives. `handle` is run in
+  the trace the request was sent under, and what it answers goes back under
+  the request's correlation id: a result on the operation's result channel,
+  and a `CommandError` it answers or raises on its failure channel, with
+  what the failure names beside the error (`MatchSearchFailed`'s
+  `referenceId`) as the request named it. A `FrameRefusal` is answered as
+  failed, naming its fault, when it has a correlation id and names what its
+  failure must; otherwise it is not answered.
 - **Frames** are a sequence: each reader is given every one, in order, however
   far behind it falls. Each is a `Heard`: a `Delivered`, its payload its
   channel's, or a `FrameRefusal` (`xynolog.transport`) in place of a frame
@@ -1105,13 +1118,14 @@ resource is cloned by, `password`, `apiKey` and the rest of the
 | `xynolog.cache`, `xynolog.refresh`, `xynolog.resume` | The cache queries answer from and its three states, which queries each event asks again, and where a stream resumes after a restart |
 | `xynolog.storage` | Where a client keeps what must outlive it: `SessionStorage`, and `MemoryStorage` |
 | `xynolog.session` | `XynologSession`, and `MemorySignIn` |
-| `xynolog.http` | `HttpTransport`, and signing in: `ServiceToken`, `AgentToken`, `sign_in_device`, `session_from_kept`, `sign_out`; a gateway's origin from its endpoint, `gateway_url`. And in `xynolog.http.oauth`, the redirect sign-in (`begin_authorization`, `complete_authorization`); in `xynolog.http.session`, a registry's sessions and sign-in over HTTP (`HttpSessionFactory`, `begin_sign_in`, `complete_sign_in`, `describe_connection`); in `xynolog.http.discovery`, a launcher's document over HTTP |
+| `xynolog.http` | `HttpTransport`, and signing in: `ServiceToken`, `AgentToken`, `sign_in_device`, `session_from_kept`, `sign_out`; a gateway's origin from its endpoint, `gateway_url`. And in `xynolog.http.oauth`, the redirect sign-in (`begin_authorization`, `complete_authorization`, and `stored_session_of`, what is kept of one); in `xynolog.http.session`, a registry's sessions and sign-in over HTTP (`HttpSessionFactory`, `begin_sign_in`, `complete_sign_in`, `describe_connection`); in `xynolog.http.discovery`, a launcher's document over HTTP; in `xynolog.http.gateway_http`, the gateway's routes, the media types each sends and answers with, and the headers they name; in `xynolog.http.archivist_http`, the Archivist's routes |
 | `xynolog.registry`, `xynolog.stored`, `xynolog.storage_keys` | A registry of knowledge bases, `XynologBrowser`: the ones registered, the active one's session, what is open in each; what it keeps in its storage, and the keys it keeps each under |
 | `xynolog.discovery` | The knowledge bases a launcher manages, as it publishes them, and what changed since they were last read |
 | `xynolog.sign_in_store` | The sign-ins `xynolog login` keeps, and where each system keeps them |
 | `xynolog.identifiers`, `xynolog.types` | The kinds of id, and every request, response and event |
 | `xynolog.required` | What each schema requires of a value, read as every SDK reads it: a value's first fault (`fault_of`), the value as read and decoded (`as_read`, `read_as`), and the sizes and bounds a member's schema states (`bounds_of`) |
 | `xynolog.channels`, `xynolog.operations` | The bus's channels and its operations, each a constant that carries its payload's type |
+| `xynolog.control`, `xynolog.control_methods` | The launcher's control API: what a method and a notification are, and each one it has, with the models it is asked with and answers, as `control/methods.json` states them; `CONTROL_API_VERSION`, which every request states. Why one failed is `xynolog.error_codes.ControlErrorCode` |
 | `xynolog.bus`, `xynolog.event_bus` | The typed client of the bus over a transport, and a client's own in-process bus |
 | `xynolog.transport` | The contract a transport implements: `Transport`, `ContentTransport`, `GatewayOperations` |
 | `xynolog.errors`, `xynolog.timing`, `xynolog.retry` | The failure codes, the deadlines and the retry rules every Xynolog SDK shares |
@@ -1120,11 +1134,14 @@ resource is cloned by, `password`, `apiKey` and the rest of the
 | `xynolog.media_types` | The media types a knowledge base admits, with where the text of each comes from and whether it can be authored or generated, and the rules read from them: the format a clone takes and the name content is stored under; and, of any media type, where its text comes from (`text_source_of`), whether that text comes with where each run of it is on a page (`yields_geometry_of`), and whether it is derived from the bytes and not decoded from them (`derives_text_of`) |
 | `xynolog.resources` | The readers of a resource, whether its representations are one or a list: `primary_representation`, `primary_media_type` and `resource_entity_types`. And `decode_representation`, which makes a text of the bytes of a resource whose bytes are its text, and refuses any other |
 | `xynolog.identity` | How a knowledge base is named, and the principals who act in it |
+| `xynolog.service_tables` | The tables the services keep to, each read as its schema's model of `xynolog.types`: the variables a service reads and why it refuses to start, what it tells OpenTelemetry and logs, each service's messages, the jobs' budgets and storage, the bounds of the bus's replies, the embedding requests, the gateway's media token and response headers, and the Archivist's layout and default entity types. `SERVICE_TABLES` holds each by its file |
+| `xynolog.locales` | The languages Xynolog supports, in the registry's order: `LOCALES`, each one's code, what it calls itself and its name in English; `LOCALE_CODES` and `LocaleCode` |
+| `xynolog.white_space` | White space as the protocol's tables count it, Unicode's White_Space and not `str.isspace`'s: `WHITE_SPACE`, `trimmed` and `collapsed` |
 | `xynolog.telemetry` | What the transports tell OpenTelemetry, and `continuing`, which holds the trace a frame or a held job brought |
 | `xynolog.testing` | The doubles: `FaultyTransport`, `InMemoryContent`, `StubGateway`, `create_test_client`, `create_test_session`; a registry's, `ScriptedSessions` and `SharedStorage`; and, in `axioms` and `liveness`, the harnesses that hold a state unit and a composition to their axioms |
 
 Nothing here restates the protocol by hand. `identifiers`, `types`,
-`channels`, `operations`, `error_codes`, `timing`, `refresh`,
+`channels`, `operations`, `control_methods`, `locales`, `service_tables`, `error_codes`, `timing`, `refresh`,
 `telemetry_table`, `oauth_clients`, `sign_in`, `stored`, `media_types_table` and
 `_encodings` (the Encoding Standard's labels and single-byte encodings, by
 which a resource's text is read) are generated from the

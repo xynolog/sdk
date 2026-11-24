@@ -17,7 +17,7 @@ from xynolog.channels import BROWSE_CLICK, BROWSE_RESOURCE_OPEN, BROWSE_RESOURCE
 from xynolog.errors import XynologError
 from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.namespaces.links import Links
-from xynolog.namespaces.live import LIMITS_HOLDERS, Live, ResourceFilters
+from xynolog.namespaces.live import LIMITS_HOLDERS, LIST_LIMIT, Live
 from xynolog.operations import BROWSE_ANNOTATION_HISTORY_REQUESTED, BROWSE_DIRECTORY_REQUESTED, BROWSE_KB_REQUESTED
 from xynolog.resources import decode_representation
 from xynolog.stored import WHOLE_KEY
@@ -34,6 +34,7 @@ from xynolog.types import (
     BrowseDirectoryResultResponse,
     BrowseKbRequest,
     BrowseResourceOpenEvent,
+    BrowseResourcesRequest,
     BrowseResourceViewedEvent,
     EngineEntry,
     EngineLimits,
@@ -48,10 +49,6 @@ from xynolog.types import (
 )
 
 __all__ = ["BrowseNamespace", "EngineWithLimits"]
-
-# How many resources a list asks for when its caller states no limit. Every
-# SDK asks for as many: the cases of protocol/specs/src/client/surface.json hold each to it.
-_LIST_LIMIT: Final = 100
 
 
 @final
@@ -203,8 +200,10 @@ class BrowseNamespace:
         resources this client holds the scope of, and by nothing else.
         Finding resources by text is `match.resources`.
         """
-        filters = ResourceFilters(_LIST_LIMIT if limit is None else limit, offset or 0, archived, entity_type)
-        return self._live.query(Keyed(self._live.lists, filters, itself))
+        request = BrowseResourcesRequest(
+            archived=archived, entity_type=entity_type, offset=offset or 0, limit=LIST_LIMIT if limit is None else limit
+        )
+        return self._live.query(Keyed(self._live.lists, request, itself))
 
     def annotations(self, resource_id: ResourceId) -> Cached[list[Annotation]]:
         """A resource's annotations."""

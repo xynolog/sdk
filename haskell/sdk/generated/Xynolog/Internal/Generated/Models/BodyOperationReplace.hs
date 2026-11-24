@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BodyOperationReplace (BodyOperationReplace (..), BodyOperationReplaceOp (..)) where
+module Xynolog.Internal.Generated.Models.BodyOperationReplace (BodyOperationReplace (..), BodyOperationReplaceOp (..), bodyOperationReplaceOpText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationBody
 
@@ -26,3 +27,6 @@ data BodyOperationReplaceOp = BodyOperationReplaceOpReplace deriving (Eq, Show)
 instance FromJSON BodyOperationReplaceOp where parseJSON = checked "BodyOperationReplaceOp" $ \value -> if value == String "replace" then pure BodyOperationReplaceOpReplace else fail "unknown enumeration member"
 
 instance ToJSON BodyOperationReplaceOp where toJSON BodyOperationReplaceOpReplace = String "replace"
+
+bodyOperationReplaceOpText :: BodyOperationReplaceOp -> Text
+bodyOperationReplaceOpText BodyOperationReplaceOpReplace = "replace"

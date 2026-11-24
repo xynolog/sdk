@@ -37,6 +37,7 @@ use xynolog::channels::BRIDGED_CHANNELS;
 use xynolog::client::{ClientOptions, XynologClient};
 use xynolog::errors::{BusRequestError, SessionError, TransportError};
 use xynolog::event_bus::EventBus;
+use xynolog::gateway_http::{EMIT_ON_BUS, GET_CURRENT_USER, SUBSCRIBE_TO_BUS};
 use xynolog::identity::kb_did;
 use xynolog::refresh::CacheQuery;
 use xynolog::session::{
@@ -499,10 +500,10 @@ impl Gateway {
             opened: watch::channel(0).0,
         });
         let app = Router::new()
-            .route("/api/users/me", get(me))
+            .route(GET_CURRENT_USER.path, get(me))
             .route("/token", post(token))
-            .route("/bus/subscribe", post(subscribe))
-            .route("/bus/emit", post(emit))
+            .route(SUBSCRIBE_TO_BUS.path, post(subscribe))
+            .route(EMIT_ON_BUS.path, post(emit))
             .with_state(staged.clone());
         let server = tokio::spawn(async move {
             let _ = axum::serve(listener, app).await;

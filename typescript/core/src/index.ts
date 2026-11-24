@@ -60,10 +60,8 @@ export type { ResourceDescriptor } from './graph';
 
 // Event base types (persistence model foundations)
 export type {
-  Brand,
   EventBase,
   EventMetadata,
-  EventSignature,
   StoredEvent,
   EnrichedEvent,
   AttributedEvent,
@@ -79,12 +77,7 @@ export type {
 export { PERSISTED_EVENT_TYPES } from './persisted-events';
 
 // Bus protocol (unified EventMap — all channels on the EventBus)
-export type {
-  EventMap,
-  EventName,
-  EmittableChannel,
-  AnchorRect,
-} from './bus-protocol';
+export type { EventMap, EventName, EmittableChannel } from './bus-protocol';
 export {
   ENRICHED_EVENT_TYPES,
   CHANNEL_SCHEMAS,
@@ -94,6 +87,7 @@ export type { EnrichedEventType } from './bus-protocol';
 
 // Payload type aliases (OpenAPI schema shortcuts used across the codebase)
 export type {
+  AnchorRect,
   Selector,
   GatheredContext,
   MarkJobParams,
@@ -176,9 +170,12 @@ export type { Logger } from './logger';
 
 // Bus logging — Tier 1 cross-wire observability
 export {
+  BUS_OPS,
   busLog,
   busLogEnabled,
+  busLogTagOf,
   setBusLogTraceIdProvider,
+  type BusLogTag,
   type BusOp,
 } from './bus-log';
 
@@ -257,6 +254,8 @@ export type {
   IContentTransport,
   PutBinaryRequest,
   PutBinaryOptions,
+  ResourceRepresentation,
+  ResourceRepresentationStream,
   PutBinaryProgress,
   ConnectionState,
   HealthCheckResponse,
@@ -304,11 +303,31 @@ export {
   type SignInErrorCode,
   type IdentityUnverifiableReason,
   type SpanRefusal,
+  type ControlErrorCode,
 } from './error-codes';
+
+// The launcher's control API, generated from protocol/specs/src/control/methods.json:
+// each method's params and result, each notification's params, by their schemas.
+export {
+  CONTROL_API_VERSION,
+  CONTROL_METHODS,
+  CONTROL_NOTIFICATIONS,
+  type ControlMethod,
+  type ControlParams,
+  type ControlResult,
+  type ControlNotification,
+  type ControlNotificationParams,
+  type ControlErrorData,
+} from './control-methods';
 export * from './oauth-clients';
 // The gateway's routes, headers and client secret form, generated from
 // protocol/specs/src/openapi.json and its paths.
 export * from './gateway-http';
+export * from './archivist-http';
+// The tables the services keep to, each typed as its schema, and the
+// schemas of what the Librarian asks a model for.
+export * from './service-tables';
+export * from './librarian-elements';
 export * from './sign-in';
 export {
   BUS_OPERATIONS,

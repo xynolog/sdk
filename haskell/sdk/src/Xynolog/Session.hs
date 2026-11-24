@@ -449,8 +449,8 @@ signInAgent http options budget service = Retry.retryWithBackoff (Http.httpTime 
 
 httpTarget :: SessionOptions -> IO HttpEndpoint
 httpTarget options = case kbTargetEndpoint (sessionKb options) of
-  KbEndpointBranch1 endpoint -> pure endpoint
-  KbEndpointBranch2 _ ->
+  KbEndpointHttpEndpoint endpoint -> pure endpoint
+  KbEndpointLocalEndpoint _ ->
     throwIO
       ( SessionError
           Code.SessionConstructFailed

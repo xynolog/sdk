@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BusResumeGap (BusResumeGap (..), BusResumeGapReason (..)) where
+module Xynolog.Internal.Generated.Models.BusResumeGap (BusResumeGap (..), BusResumeGapReason (..), busResumeGapReasonText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,3 +30,9 @@ instance ToJSON BusResumeGapReason where
   toJSON BusResumeGapReasonScopeU2d_mismatch = String "scope-mismatch"
   toJSON BusResumeGapReasonRetentionU2d_exceeded = String "retention-exceeded"
   toJSON BusResumeGapReasonQueryU2d_error = String "query-error"
+
+busResumeGapReasonText :: BusResumeGapReason -> Text
+busResumeGapReasonText BusResumeGapReasonUnparseableU2d_lastU2d_eventU2d_id = "unparseable-last-event-id"
+busResumeGapReasonText BusResumeGapReasonScopeU2d_mismatch = "scope-mismatch"
+busResumeGapReasonText BusResumeGapReasonRetentionU2d_exceeded = "retention-exceeded"
+busResumeGapReasonText BusResumeGapReasonQueryU2d_error = "query-error"

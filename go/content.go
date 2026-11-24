@@ -18,6 +18,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
+	"net/url"
 	"strings"
 	"sync"
 
@@ -180,7 +181,7 @@ func NewHTTPContentTransport(transport *HTTPTransport) *HTTPContentTransport {
 // a time: the grain its progress is reported in.
 const uploadChunk = 64 * 1024
 
-// form is an upload's body, as routeUploadResource sends it: its members
+// form is an upload's body, as RouteUploadResource sends it: its members
 // every upload sends, then the bytes as the file member, then the others it
 // sends.
 func form(request PutBinaryRequest) (body []byte, contentType string, err error) {
@@ -322,7 +323,7 @@ func (c *HTTPContentTransport) PutBinary(ctx context.Context, putting PutBinaryR
 		var reported int
 		var mu sync.Mutex
 		return answer[api.CreateResourceResponse](ctx, c.shared, request{
-			method: routeUploadResource.method, path: routeUploadResource.path, authenticated: true, contentType: contentType, idempotencyKey: uuid.NewString(),
+			method: RouteUploadResource.Method, path: RouteUploadResource.Path, authenticated: true, contentType: contentType, idempotencyKey: uuid.NewString(),
 			body: func() (io.Reader, int64) {
 				return &progressReader{body: body, reported: &reported, mu: &mu, report: report}, int64(len(body))
 			},
@@ -333,15 +334,15 @@ func (c *HTTPContentTransport) PutBinary(ctx context.Context, putting PutBinaryR
 // resourcePath is route's path for resource. Its id is one segment of the path
 // as it is: the rule a ResourceId is held to admits nothing a path reads as its
 // own.
-func resourcePath(route gatewayRoute, resource api.ResourceId) string {
-	return strings.Replace(route.path, "{id}", resource.String(), 1)
+func resourcePath(route GatewayRoute, resource api.ResourceId) string {
+	return strings.Replace(route.Path, "{id}", resource.String(), 1)
 }
 
 // read is the stored bytes, as they are: no Accept, so the gateway serves them
 // with their own media type. The deadline is on their beginning to arrive:
 // how long they take after that is how many there are.
 func (c *HTTPContentTransport) read(ctx context.Context, resource api.ResourceId) (answered, error) {
-	return c.shared.exchange(ctx, c.get(routeGetResourceRepresentation, resource))
+	return c.shared.exchange(ctx, c.get(RouteGetResourceRepresentation, resource))
 }
 
 func contentType(response *http.Response) string {
@@ -353,7 +354,7 @@ func contentType(response *http.Response) string {
 
 // interrupted is a read whose bytes stopped coming.
 func interrupted(resource api.ResourceId, err error) *TransportError {
-	return transportErrorWithoutResponse(fmt.Sprintf("%s %s ended before its bytes did: %v", routeGetResourceRepresentation.method, resourcePath(routeGetResourceRepresentation, resource), err), TransportErrorCodeUnavailable)
+	return transportErrorWithoutResponse(fmt.Sprintf("%s %s ended before its bytes did: %v", RouteGetResourceRepresentation.Method, resourcePath(RouteGetResourceRepresentation, resource), err), TransportErrorCodeUnavailable)
 }
 
 // GetBinary reads a resource's bytes, whole.
@@ -415,8 +416,8 @@ func (c *HTTPContentTransport) GetBinaryStream(ctx context.Context, resource api
 	}, nil
 }
 
-func (c *HTTPContentTransport) get(route gatewayRoute, resource api.ResourceId) request {
-	return request{method: route.method, path: resourcePath(route, resource), authenticated: true, deadline: c.shared.timing.HttpRequestTimeout}
+func (c *HTTPContentTransport) get(route GatewayRoute, resource api.ResourceId) request {
+	return request{method: route.Method, path: resourcePath(route, resource), authenticated: true, deadline: c.shared.timing.HttpRequestTimeout}
 }
 
 // GetResourceGraph reads a resource's description as linked data.
@@ -424,7 +425,7 @@ func (c *HTTPContentTransport) GetResourceGraph(ctx context.Context, resource ap
 	busLog(ctx, busGet, "content", map[string]any{"resourceId": resource, "graph": true}, Envelope{})
 	ctx, span := reading(ctx, spanContentGetGraph, resource)
 	defer span.End()
-	return answer[api.GetResourceResponse](ctx, c.shared, c.get(routeGetResourceJsonLd, resource))
+	return answer[api.GetResourceResponse](ctx, c.shared, c.get(RouteGetResourceJsonLd, resource))
 }
 
 // GetAnnotations reads a resource's annotations.
@@ -432,7 +433,7 @@ func (c *HTTPContentTransport) GetAnnotations(ctx context.Context, resource api.
 	busLog(ctx, busGet, "content", map[string]any{"resourceId": resource, "annotations": true}, Envelope{})
 	ctx, span := reading(ctx, spanContentGetAnnotations, resource)
 	defer span.End()
-	return answer[api.GetAnnotationsResponse](ctx, c.shared, c.get(routeGetResourceAnnotations, resource))
+	return answer[api.GetAnnotationsResponse](ctx, c.shared, c.get(RouteGetResourceAnnotations, resource))
 }
 
 // GetAnchoredText reads a resource's anchored text. The Archivist may hold
@@ -442,21 +443,21 @@ func (c *HTTPContentTransport) GetAnchoredText(ctx context.Context, resource api
 	busLog(ctx, busGet, "content", map[string]any{"resourceId": resource, "anchoredText": true}, Envelope{})
 	ctx, span := reading(ctx, spanContentGetAnchoredText, resource)
 	defer span.End()
-	return answer[api.AnchoredTextAnswer](ctx, c.shared, c.get(routeGetResourceAnchoredText, resource))
+	return answer[api.AnchoredTextAnswer](ctx, c.shared, c.get(RouteGetResourceAnchoredText, resource))
 }
 
-func (t *HTTPTransport) operation(route gatewayRoute, authenticated bool) request {
-	return request{method: route.method, path: route.path, authenticated: authenticated, deadline: t.shared.timing.HttpRequestTimeout}
+func (t *HTTPTransport) operation(route GatewayRoute, authenticated bool) request {
+	return request{method: route.Method, path: route.Path, authenticated: authenticated, deadline: t.shared.timing.HttpRequestTimeout}
 }
 
 // GetCurrentUser is who the gateway says this client's token is.
 func (t *HTTPTransport) GetCurrentUser(ctx context.Context) (api.UserResponse, error) {
-	return answer[api.UserResponse](ctx, t.shared, t.operation(routeGetCurrentUser, true))
+	return answer[api.UserResponse](ctx, t.shared, t.operation(RouteGetCurrentUser, true))
 }
 
 // GetMediaToken is a token for reading a resource's media.
 func (t *HTTPTransport) GetMediaToken(ctx context.Context, resource api.ResourceId) (api.MediaTokenResponse, error) {
-	spec := t.operation(routeCreateMediaToken, true)
+	spec := t.operation(RouteCreateMediaToken, true)
 	body, err := jsonBody(api.MediaTokenRequest{ResourceId: resource})
 	if err != nil {
 		return api.MediaTokenResponse{}, t.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("a media token request that does not serialize: %v", err), TransportErrorCodeError))
@@ -465,10 +466,17 @@ func (t *HTTPTransport) GetMediaToken(ctx context.Context, resource api.Resource
 	return answer[api.MediaTokenResponse](ctx, t.shared, spec)
 }
 
+// MediaURL is where a reader that sends no bearer, such as a page's <img>,
+// reads resource's representation: getResourceRepresentationWithMediaToken,
+// with a token GetMediaToken gave for that resource.
+func (t *HTTPTransport) MediaURL(resource api.ResourceId, token api.MediaTokenResponse) string {
+	return t.shared.baseURL + resourcePath(RouteGetResourceRepresentationWithMediaToken, resource) + "?" + url.Values{MediaTokenQuery: {token.Token}}.Encode()
+}
+
 // GetProtectedResourceMetadata is the gateway's OAuth protected resource
 // metadata, which any caller may read.
 func (t *HTTPTransport) GetProtectedResourceMetadata(ctx context.Context) (api.ProtectedResourceMetadata, error) {
-	return answer[api.ProtectedResourceMetadata](ctx, t.shared, t.operation(routeGetProtectedResourceMetadata, false))
+	return answer[api.ProtectedResourceMetadata](ctx, t.shared, t.operation(RouteGetProtectedResourceMetadata, false))
 }
 
 // HealthCheck asks the gateway to report itself. A nil error means it
@@ -478,7 +486,7 @@ func (t *HTTPTransport) GetProtectedResourceMetadata(ctx context.Context) (api.P
 // client does not know, since calling that down would take a gateway offline
 // over a field renamed. Liveness is the status; the body is detail.
 func (t *HTTPTransport) HealthCheck(ctx context.Context) (report api.HealthResponse, ok bool, err error) {
-	spec := t.operation(routeGetHealth, true)
+	spec := t.operation(RouteGetHealth, true)
 	got, err := t.shared.exchange(ctx, spec)
 	if err != nil {
 		return api.HealthResponse{}, false, err
@@ -496,5 +504,5 @@ func (t *HTTPTransport) HealthCheck(ctx context.Context) (report api.HealthRespo
 
 // GetStatus is the gateway's status.
 func (t *HTTPTransport) GetStatus(ctx context.Context) (api.StatusResponse, error) {
-	return answer[api.StatusResponse](ctx, t.shared, t.operation(routeGetStatus, true))
+	return answer[api.StatusResponse](ctx, t.shared, t.operation(RouteGetStatus, true))
 }

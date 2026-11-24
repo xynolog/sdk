@@ -106,7 +106,7 @@ private func built(
   }
   return Annotation(
     body: body,
-    created: Date().ISO8601Format(.iso8601(timeZone: .gmt, includingFractionalSeconds: true)),
+    created: dateTime(Date()),
     generator: generator.map { .agent($0) },
     id: try annotationID(
       resourceId: target.source, motivation: motivation, anchor: anchor, body: written),

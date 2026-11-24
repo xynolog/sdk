@@ -36,16 +36,12 @@ let sign_in ~sw ~clock ~issuer ~http ~client_id ~proof ~key ~call () =
           match Models.decode Models.user_response body with
           | Error _ -> Error Invalid_identity
           | Ok user -> (
-              match (Records.User_response.of_model user).did with
-              | `Stringlit value -> (
-                  match
-                    Identifiers.User_id.of_string
-                      (Yojson.Safe.from_string value
-                      |> Yojson.Safe.Util.to_string)
-                  with
-                  | Ok did -> Ok { did; session }
-                  | Error _ -> Error Invalid_identity)
-              | _ -> Error Invalid_identity)
+              match
+                Identifiers.User_id.of_string
+                  (Records.User_response.of_model user).did
+              with
+              | Ok did -> Ok { did; session }
+              | Error _ -> Error Invalid_identity)
         with Http_wire.Failed error -> Error (Gateway error)
       in
       let success = ref false in

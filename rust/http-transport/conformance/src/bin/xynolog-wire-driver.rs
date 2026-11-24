@@ -11,6 +11,12 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use bytes::Bytes;
 use futures::StreamExt;
+use serde_json::{Value, json};
+use std::collections::{HashMap, VecDeque};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tokio::sync::watch;
+use tokio::task::JoinSet;
 use xynolog::bus::{Bus, operation};
 use xynolog::errors::XynologError;
 use xynolog::retry::RetryPolicy;
@@ -18,7 +24,11 @@ use xynolog::transport::{
     BoxFuture, ConnectionState, ContentTransport, Envelope, GatewayOperations, PutBinaryRequest,
     ResourceHold, Transport,
 };
-use xynolog::types::{ResourceId, UploadProgress};
+use xynolog::types::{
+    ConformanceDriverLine, ConformanceDriverLineErrorStream, ConformanceDriverLineFrame,
+    ConformanceDriverLineFrameFrame, ConformanceDriverLineProgress,
+    ConformanceDriverLineProgressProgress, ConformanceDriverLineState, ResourceId, UploadProgress,
+};
 use xynolog_conformance_drivers::{
     Arguments, Driver, Ended, Running, count, failure, identifier, locked, object,
     optional_identifier, optional_text, say, serve, text, texts,
@@ -27,12 +37,6 @@ use xynolog_http_transport::content::HttpContentTransport;
 use xynolog_http_transport::transport::{
     HttpTransport, HttpTransportConfig, Timing, TokenRefresher,
 };
-use serde_json::{Value, json};
-use std::collections::{HashMap, VecDeque};
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-use tokio::sync::watch;
-use tokio::task::JoinSet;
 
 struct Client {
     token: Arc<watch::Sender<Option<String>>>,
@@ -82,7 +86,9 @@ impl Wire {
         let mut reported = locked(&self.reported);
         if *reported != Some(state) {
             *reported = Some(state);
-            say(json!({ "state": state.as_str() }));
+            say(ConformanceDriverLine::State(ConformanceDriverLineState {
+                state: state.as_str().to_owned(),
+            }));
         }
     }
 
@@ -158,9 +164,11 @@ impl Wire {
         reporters.spawn(async move {
             while let Some(reported) = failures.next().await {
                 match reported {
-                    Ok(error) => say(json!({
-                        "error": failure(error.code.as_str(), error.status, error.message)
-                    })),
+                    Ok(error) => say(ConformanceDriverLine::ErrorStream(
+                        ConformanceDriverLineErrorStream {
+                            error: failure(error.code.as_str(), error.status, error.message),
+                        },
+                    )),
                     Err(lagged) => eprintln!("the error stream: {lagged}"),
                 }
             }
@@ -187,14 +195,14 @@ impl Wire {
             while let Some(delivered) = frames.next().await {
                 match delivered {
                     Ok(Ok(frame)) => {
-                        let mut line = json!({ "channel": channel, "payload": frame.payload });
-                        if let Some(correlation_id) = frame.correlation_id {
-                            line["correlationId"] = json!(correlation_id);
-                        }
-                        if let Some(scope) = frame.scope {
-                            line["scope"] = json!(scope);
-                        }
-                        say(json!({ "frame": line }));
+                        say(ConformanceDriverLine::Frame(ConformanceDriverLineFrame {
+                            frame: ConformanceDriverLineFrameFrame {
+                                channel: channel.clone(),
+                                payload: Some(Value::Object(frame.bus_frame.payload)),
+                                correlation_id: frame.bus_frame.correlation_id,
+                                scope: frame.bus_frame.scope,
+                            },
+                        }));
                     }
                     // The suite's backend sends only frames BusFrame allows, and the driver's
                     // lines have none for a refusal: a frame the transport refused is its bug,
@@ -358,11 +366,15 @@ impl Wire {
                 // The driver protocol reports the bytes sent: the upload's
                 // start and its end are its answer's.
                 if let UploadProgress::Progress(progress) = report {
-                    say(json!({ "progress": {
-                        "upload": id,
-                        "bytesUploaded": progress.bytes_uploaded,
-                        "totalBytes": progress.total_bytes,
-                    } }));
+                    say(ConformanceDriverLine::Progress(
+                        ConformanceDriverLineProgress {
+                            progress: ConformanceDriverLineProgressProgress {
+                                upload: id,
+                                bytes_uploaded: progress.bytes_uploaded,
+                                total_bytes: progress.total_bytes,
+                            },
+                        },
+                    ));
                 }
             }
         }

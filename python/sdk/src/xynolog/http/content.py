@@ -23,7 +23,9 @@ from pydantic import TypeAdapter
 from xynolog import telemetry
 from xynolog._bus_log import bus_log
 from xynolog.errors import TransportError
-from xynolog.http._gateway_http import (
+from xynolog.http._withheld import why_unanswered
+from xynolog.http.exchange import Exchange
+from xynolog.http.gateway_http import (
     GET_RESOURCE_ANCHORED_TEXT,
     GET_RESOURCE_ANNOTATIONS,
     GET_RESOURCE_JSON_LD,
@@ -33,8 +35,6 @@ from xynolog.http._gateway_http import (
     UPLOAD_RESOURCE_SENDS,
     GatewayRoute,
 )
-from xynolog.http._withheld import why_unanswered
-from xynolog.http.exchange import Exchange
 from xynolog.identifiers import ResourceId
 from xynolog.transport import Content, ContentStream, ContentTransport, PutBinaryRequest, Upload
 from xynolog.types import (

@@ -28,7 +28,7 @@ public sealed partial class TransportTests
 {
     private const string PersistedCases = "session/persisted-cases.json";
     private const string CaseKb = "kb-a";
-    private static readonly TimeSpan SaveDebounce = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("saveDebounceMs").GetInt32());
+    private static readonly TimeSpan SaveDebounce = TimeSpan.FromMilliseconds(Timings.SaveDebounceMs);
 
     [Fact]
     public void PersistedKeysFollowTheirCases()

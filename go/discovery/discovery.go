@@ -114,31 +114,17 @@ func ParseDiscoveryDocument(text string) DiscoveryState {
 	if faulty {
 		return invalid(fault.String())
 	}
-	var document struct {
-		KBs []json.RawMessage `json:"kbs"`
-	}
+	var document api.DiscoveryDocument
 	if err := json.Unmarshal(read, &document); err != nil {
-		return invalid(fmt.Sprintf("kbs: %v", err))
+		return invalid(err.Error())
 	}
-	kbs := make([]api.DiscoveredKB, 0, len(document.KBs))
-	for i, entry := range document.KBs {
-		var entryMembers map[string]json.RawMessage
-		if json.Unmarshal(entry, &entryMembers) != nil || entryMembers == nil {
-			return invalid(fmt.Sprintf("kbs[%d] is not an object", i))
-		}
-		var kb api.DiscoveredKB
-		if err := json.Unmarshal(entry, &kb); err != nil {
-			return invalid(fmt.Sprintf("kbs[%d]: %v", i, err))
-		}
-		if !kb.Placement.Valid() {
-			return invalid(fmt.Sprintf("kb entry at %s has placement %q, which is not a placement", address(kb), kb.Placement))
-		}
+	// DiscoveredKB states no range for its port.
+	for _, kb := range document.Kbs {
 		if kb.Port < 1 || kb.Port > 65535 {
 			return invalid(fmt.Sprintf("kb entry at %s has port %d, which is not a port", kb.Host, kb.Port))
 		}
-		kbs = append(kbs, kb)
 	}
-	return Managed{KBs: kbs}
+	return Managed{KBs: document.Kbs}
 }
 
 type textDiscovery struct {

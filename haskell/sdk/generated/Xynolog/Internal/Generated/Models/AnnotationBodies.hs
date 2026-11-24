@@ -9,10 +9,10 @@ import Data.Aeson (FromJSON (..), ToJSON (..))
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationBody
 
-data AnnotationBodies = AnnotationBodiesBranch1 AnnotationBody | AnnotationBodiesBranch2 [AnnotationBody] deriving (Eq, Show)
+data AnnotationBodies = AnnotationBodiesAnnotationBody AnnotationBody | AnnotationBodiesList [AnnotationBody] deriving (Eq, Show)
 
-instance FromJSON AnnotationBodies where parseJSON = checked "AnnotationBodies" $ \value -> (AnnotationBodiesBranch1 <$> parseJSON value) <|> (AnnotationBodiesBranch2 <$> parseJSON value)
+instance FromJSON AnnotationBodies where parseJSON = checked "AnnotationBodies" $ \value -> (AnnotationBodiesAnnotationBody <$> parseJSON value) <|> (AnnotationBodiesList <$> parseJSON value)
 
 instance ToJSON AnnotationBodies where
-  toJSON (AnnotationBodiesBranch1 value) = toJSON value
-  toJSON (AnnotationBodiesBranch2 value) = toJSON value
+  toJSON (AnnotationBodiesAnnotationBody value) = toJSON value
+  toJSON (AnnotationBodiesList value) = toJSON value

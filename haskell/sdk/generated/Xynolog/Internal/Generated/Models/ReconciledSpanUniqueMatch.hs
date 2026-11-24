@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ReconciledSpanUniqueMatch (ReconciledSpanUniqueMatch (..), ReconciledSpanUniqueMatchAnchorMethod (..)) where
+module Xynolog.Internal.Generated.Models.ReconciledSpanUniqueMatch (ReconciledSpanUniqueMatch (..), ReconciledSpanUniqueMatchAnchorMethod (..), reconciledSpanUniqueMatchAnchorMethodText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -28,3 +28,6 @@ data ReconciledSpanUniqueMatchAnchorMethod = ReconciledSpanUniqueMatchAnchorMeth
 instance FromJSON ReconciledSpanUniqueMatchAnchorMethod where parseJSON = checked "ReconciledSpanUniqueMatchAnchorMethod" $ \value -> if value == String "unique-match" then pure ReconciledSpanUniqueMatchAnchorMethodUniqueU2d_match else fail "unknown enumeration member"
 
 instance ToJSON ReconciledSpanUniqueMatchAnchorMethod where toJSON ReconciledSpanUniqueMatchAnchorMethodUniqueU2d_match = String "unique-match"
+
+reconciledSpanUniqueMatchAnchorMethodText :: ReconciledSpanUniqueMatchAnchorMethod -> Text
+reconciledSpanUniqueMatchAnchorMethodText ReconciledSpanUniqueMatchAnchorMethodUniqueU2d_match = "unique-match"

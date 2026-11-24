@@ -1,40 +1,27 @@
 open Eio.Std
 
-type kb = {
-  host : string;
-  port : int;
-  did : string;
-  placement : string;
-  managed_by : string;
-  repo : string option;
-  site_name : string option;
-}
-
 type discovery_state =
   | Absent of Enums.Discovery_absent_reason.t
-  | Managed of kb list
+  | Managed of Records.Discovered_kb.t list
 
 type discovery_read = Read of discovery_state | Unchanged
 type discovery_transport = unit -> discovery_read
 
 type discovery_diff = {
   state : discovery_state;
-  added : kb list;
-  updated : kb list;
-  removed : kb list;
+  added : Records.Discovered_kb.t list;
+  updated : Records.Discovered_kb.t list;
+  removed : Records.Discovered_kb.t list;
   duplicated : (string * int) list;
 }
 
 let discovery_interval = Client_timing.discovery_interval_ms
 
-module J = Yojson.Safe.Util
-
 let parse_discovery_document source =
   match Strict_json.parse source with
   | Error _ -> Absent Not_json
   | Ok _ -> (
-      let body = Yojson.Safe.from_string source in
-      match body with
+      match Yojson.Safe.from_string source with
       | `Assoc fields -> (
           match List.assoc_opt "version" fields with
           | Some (`Int version)
@@ -43,36 +30,17 @@ let parse_discovery_document source =
           | _ -> (
               match Models.decode Models.discovery_document source with
               | Error _ -> Absent Invalid
-              | Ok _ -> (
-                  let optional name row =
-                    match J.member name row with
-                    | `String value -> Some value
-                    | _ -> None
+              | Ok model ->
+                  let entries =
+                    (Records.Discovery_document.of_model model).kbs
                   in
-                  let text name row = J.member name row |> J.to_string in
-                  let decode row =
-                    let port = J.member "port" row |> J.to_int in
-                    {
-                      host = text "host" row;
-                      port;
-                      did = text "did" row;
-                      placement = text "placement" row;
-                      managed_by = text "managedBy" row;
-                      repo = optional "repo" row;
-                      site_name = optional "siteName" row;
-                    }
-                  in
-                  try
-                    let entries =
-                      J.member "kbs" body |> J.to_list |> List.map decode
-                    in
-                    if
-                      List.exists
-                        (fun entry -> entry.port < 1 || entry.port > 65535)
-                        entries
-                    then Absent Invalid
-                    else Managed entries
-                  with J.Type_error _ -> Absent Invalid)))
+                  if
+                    List.exists
+                      (fun (entry : Records.Discovered_kb.t) ->
+                        entry.port < 1 || entry.port > 65535)
+                      entries
+                  then Absent Invalid
+                  else Managed entries))
       | _ -> Absent Invalid)
 
 let text_discovery read () =
@@ -118,7 +86,9 @@ let discovery_diff previous state =
   let entries = function Managed entries -> entries | Absent _ -> [] in
   let before = Option.fold ~none:[] ~some:entries previous
   and after = entries state in
-  let address kb = (String.lowercase_ascii kb.host, kb.port) in
+  let address (kb : Records.Discovered_kb.t) =
+    (String.lowercase_ascii kb.host, kb.port)
+  in
   let at key entries = List.filter (fun kb -> address kb = key) entries in
   let added = List.filter (fun kb -> at (address kb) before = []) after in
   let removed = List.filter (fun kb -> at (address kb) after = []) before in

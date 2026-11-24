@@ -7,6 +7,8 @@
 module Names = Names
 module Rule = Rule
 module Types = Types
+module Service_tables = Service_tables
+module Control = Control
 module K = Kotlin_syntax
 
 let ( let* ) = Result.bind
@@ -15,7 +17,8 @@ let types_directory = directory ^ "/xynolog/types"
 
 (* The schemas a generation writes: every root ([Roots]), the
    records Protocol states in its tables ([Table_records]), the client
-   types it generates, and the sign-in store's entry, which is the store's own schema and no
+   types it generates, the schema of each table the services keep to
+   ([Service_tables]), and the sign-in store's entry, which is the store's own schema and no
    component of the API. *)
 let spec_of (spec : Spec.t) : (Types.spec, string) result =
   let schema_of file = List.assoc_opt file spec.schemas in
@@ -28,6 +31,9 @@ let spec_of (spec : Spec.t) : (Types.spec, string) result =
     @ List.map
         (fun name -> (name, "client/types/" ^ name ^ ".json"))
         (Definitions.generated_client_types spec)
+    @ List.map
+        (fun table -> (Service_tables.type_of table, Places.schema_of table))
+        (Roots.service_tables spec)
   in
   let* records = Table_records.all spec in
   let* definitions =
@@ -155,23 +161,22 @@ let written ~from_ write =
   | exception Names.Refused message ->
       Error [ { Decode.file = from_; pointer = ""; message } ]
 
-(* A file in the types' directory that no run writes: refused rather than
-   removed, so the run that drops a schema names the file to delete with
+(* A file in [directory] that no run writes: refused rather than removed, so
+   the run that drops a schema or a table names the file to delete with
    it. *)
-let stale ~root written =
+let stale ~root ~directory written =
   let on_disk =
-    match Sys.readdir (Filename.concat root types_directory) with
+    match Sys.readdir (Filename.concat root directory) with
     | names -> List.sort String.compare (Array.to_list names)
     | exception Sys_error _ -> []
   in
   match
     List.find_opt
-      (fun name -> not (List.mem (types_directory ^ "/" ^ name) written))
+      (fun name -> not (List.mem (directory ^ "/" ^ name) written))
       on_disk
   with
   | Some name ->
-      Error
-        ("a generated file no schema writes: " ^ types_directory ^ "/" ^ name)
+      Error ("a generated file nothing writes: " ^ directory ^ "/" ^ name)
   | None -> Ok ()
 
 (* Why a client that read a launcher's discovery document found no launcher
@@ -234,8 +239,70 @@ let generate (spec : Spec.t) =
               generated.types
         @ [ discovery_absent spec ])
 
+(* The tables the services keep to ([Service_tables]), each read from its
+   file under [root]'s protocol/specs/src. *)
+let service_tables ~root spec =
+  let from_ = "the services' tables" in
+  let read table =
+    Yojson.Safe.from_file (Filename.concat root ("protocol/specs/src/" ^ table))
+  in
+  let* name, named, decls =
+    written ~from_ (fun () -> Service_tables.declarations ~read spec)
+  in
+  Ok
+    (data_file
+       ~banner:
+         (Banner.lines ~from_:"the services' tables of protocol/specs/src"
+            Service_tables.writer)
+       ~package:Service_tables.package ~name
+       ~imports:
+         ("xynolog.Generated" :: "xynolog.types.wireJson"
+         :: List.map (fun n -> Types.types_package ^ "." ^ n) named)
+       decls)
+
+(* The Archivist's routes ([Service_tables.archivist_routes]), a file of the
+   services' package. *)
+let archivist_routes spec =
+  let from_ = "archivist/openapi.json" in
+  let* name, decls =
+    written ~from_ (fun () -> Service_tables.archivist_routes spec)
+  in
+  Ok
+    (table ~from_ Service_tables.writer ~package:Service_tables.package ~name
+       ~imports:[ "xynolog.Generated" ] decls)
+
+(* The control API's methods and notifications ([Control]), naming the
+   types [types_spec] writes. *)
+let control (types_spec : Types.spec) (spec : Spec.t) =
+  let from_ = "control/methods.json" in
+  let* name, named, decls =
+    written ~from_ (fun () ->
+        Control.declarations
+          ~types:(List.map fst types_spec.definitions)
+          spec.tables.control_methods)
+  in
+  Ok
+    (table ~from_ Control.writer ~package:Control.package ~name
+       ~imports:
+         ("xynolog.Generated"
+         :: List.map (fun n -> Types.types_package ^ "." ^ n) named)
+       decls)
+
 let files ~root (spec : Spec.t) =
+  let* tables = service_tables ~root spec in
+  let* routes = archivist_routes spec in
+  let* control =
+    Result.bind (types_of spec) (fun types_spec -> control types_spec spec)
+  in
+  let tables = [ control; routes; tables ] in
   Result.map_error refused
     (let* files = generate spec in
-     let* () = stale ~root (List.map (fun (f : Output.file) -> f.path) files) in
+     let files = files @ tables in
+     let written = List.map (fun (f : Output.file) -> f.path) files in
+     let* () = stale ~root ~directory:types_directory written in
+     let* () =
+       stale ~root
+         ~directory:(Filename.dirname (path Service_tables.package "_"))
+         written
+     in
      Ok files)

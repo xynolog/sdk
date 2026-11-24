@@ -37,10 +37,6 @@ let scope value =
   Option.bind (string value) (fun value ->
       Result.to_option (Identifiers.Resource_id.of_string value))
 
-let present read = function
-  | Types.Absent | Types.Null -> None
-  | Types.Present value -> read value
-
 let recover_route source =
   match Strict_json.parse source with
   | Ok (`Assoc fields) -> (
@@ -85,8 +81,10 @@ let decode id source =
       let route =
         {
           channel = fields.channel;
-          correlation_id = present Option.some fields.correlation_id;
-          scope = present scope fields.scope;
+          correlation_id = fields.correlation_id;
+          scope =
+            Option.bind fields.scope (fun value ->
+                Result.to_option (Identifiers.Resource_id.of_string value));
         }
       in
       match Hashtbl.find_opt channels route.channel with
@@ -132,39 +130,30 @@ type emit_error =
   | Invalid_payload of Bus_registry.decode_error
   | Invalid_envelope of Models.decode_error
 
-let json_string value = `Stringlit (Yojson.Safe.to_string (`String value))
-
 let encode_emit ?scope ?client_id ?correlation_id channel source =
   if not (Bus_registry.emittable channel) then Error Not_emittable
   else
     match Bus_registry.decode channel source with
     | Error fault -> Error (Invalid_payload fault)
     | Ok payload -> (
-        let optional name value =
-          Option.map (fun value -> (name, json_string value)) value
-        in
-        let fields =
-          [
-            Some ("channel", json_string (Bus_registry.name channel));
-            Some ("payload", Bus_registry.json payload);
-            optional "scope"
-              (Option.map Identifiers.Resource_id.to_string scope);
-            optional "clientId" client_id;
-            optional "correlationId" correlation_id;
-          ]
-          |> List.filter_map Fun.id
-        in
-        let body = Yojson.Raw.to_string (`Assoc fields) in
-        match Models.decode Models.bus_emit_request body with
+        match
+          Records.Bus_emit_request.to_model
+            {
+              channel = Bus_registry.name channel;
+              payload = Bus_registry.json payload;
+              scope = Option.map Identifiers.Resource_id.to_string scope;
+              client_id;
+              correlation_id;
+              extra = [];
+            }
+        with
         | Ok model -> Ok (Models.encode model)
         | Error fault -> Error (Invalid_envelope fault))
-
-type frame_refusal_reason = [ `Lacks | `Malformed ]
 
 type frame_refusal = {
   route : route option;
   member : string;
-  reason : frame_refusal_reason;
+  reason : Enums.Frame_refusal_reason.t;
 }
 
 let normalized = function
@@ -172,7 +161,8 @@ let normalized = function
       let member, reason =
         match fault with
         | Bus_registry.Invalid_json _ ->
-            (Gateway_http.Bus_frame.payload, `Malformed)
+            ( Gateway_http.Bus_frame.payload,
+              Enums.Frame_refusal_reason.Malformed )
         | Invalid_payload { member = ""; reason } ->
             (Gateway_http.Bus_frame.payload, reason)
         | Invalid_payload { member; reason } ->
@@ -188,7 +178,7 @@ let normalized = function
         {
           route = Some route;
           member = Gateway_http.Bus_frame.channel;
-          reason = `Malformed;
+          reason = Malformed;
         }
 
 let refusal_message (fault : frame_refusal) =

@@ -25,12 +25,13 @@ use xynolog::errors::{BusRequestError, BusRequestErrorCode, XynologError};
 use xynolog::testing::{FaultAction, FaultyTransport, TestClientOptions, create_test_client};
 use xynolog::timing::ERRORS_KEPT_FOR_FIRST_READER_COUNT;
 use xynolog::transport::{ConnectionState, Events, Frame, FrameRefusal, TraceCarrier};
+use xynolog::types::BusFrame;
 use xynolog::types::DurabilityEvidence::{
     Acknowledged, ProbeConfirmed, ProbeRefused, ProbeUnreachable,
 };
 use xynolog::types::{
-    Annotation, ClaimOptions, DurabilityEvidence, FailureClass, FrameRefusalReason, JobFilter,
-    JobProgress, JobType, MarkJobDone, ResourceId, YieldJobResult,
+    Annotation, ClaimOptions, DurabilityEvidence, Engine, FailureClass, FrameRefusalReason,
+    JobFilter, JobProgress, JobType, MarkJobDone, ResourceId, YieldJobResult,
 };
 
 /// What the stand-in dispatcher answers the next claims with, and what the
@@ -106,6 +107,11 @@ fn described(id: &str) -> Value {
 /// A context gathered for `focus`, as a yield job's params carry one.
 fn gathered(focus: Value) -> Value {
     json!({ "focus": focus, "graph": { "nodes": [], "edges": [] }, "metadata": {} })
+}
+
+/// A yield job's params: what it makes, and from `context`.
+fn generation(context: Value) -> Value {
+    json!({ "title": "A summary", "storageUri": "file://summary.md", "context": context })
 }
 
 /// An annotation as a worker hands one to a commit.
@@ -293,10 +299,12 @@ impl World {
     /// A broadcast the gateway relays to this worker.
     fn relay(&self, channel: &str, payload: Value) {
         self.transport.deliver(Frame {
-            channel: channel.to_owned(),
-            payload: object(payload),
-            correlation_id: None,
-            scope: None,
+            bus_frame: BusFrame {
+                channel: channel.to_owned(),
+                payload: object(payload),
+                correlation_id: None,
+                scope: None,
+            },
             trace: None,
             stream_id: None,
         });
@@ -324,8 +332,8 @@ impl World {
         self.transport
             .emitted()
             .into_iter()
-            .filter(|frame| frame.channel == channel)
-            .map(|frame| Value::Object(frame.payload))
+            .filter(|frame| frame.bus_frame.channel == channel)
+            .map(|frame| Value::Object(frame.bus_frame.payload))
             .collect()
     }
 
@@ -334,7 +342,7 @@ impl World {
         self.transport
             .emitted()
             .into_iter()
-            .filter(|frame| frame.channel == channel)
+            .filter(|frame| frame.bus_frame.channel == channel)
             .collect()
     }
 
@@ -379,16 +387,19 @@ impl World {
             .into_iter()
             .filter(|frame| {
                 !["job:claim", "mark:commit", "browse:annotation-requested"]
-                    .contains(&frame.channel.as_str())
+                    .contains(&frame.bus_frame.channel.as_str())
             })
             .map(|frame| {
                 assert_eq!(
-                    (frame.scope, frame.correlation_id),
+                    (frame.bus_frame.scope, frame.bus_frame.correlation_id),
                     (None, None),
                     "{} is global, and nobody's reply",
-                    frame.channel
+                    frame.bus_frame.channel
                 );
-                (frame.channel, Value::Object(frame.payload))
+                (
+                    frame.bus_frame.channel,
+                    Value::Object(frame.bus_frame.payload),
+                )
             })
             .collect()
     }
@@ -512,6 +523,29 @@ async fn claims_once_read_with_what_it_accepts_and_holds_the_job_as_the_record_s
     assert_eq!(job.annotation_id(), None);
     assert!(!*job.cancelled().borrow());
     finish(job).await;
+}
+
+#[tokio::test(start_paused = true)]
+async fn a_held_job_is_accepted_when_a_filter_it_was_claimed_with_states_what_it_is() {
+    let w = world();
+    for motivation in ["highlighting", "tagging"] {
+        w.offer(running(
+            "job-1",
+            "mark",
+            json!({}),
+            json!({ "motivation": motivation }),
+        ));
+    }
+    let claims = w.claims(vec![mark("highlighting")]);
+
+    let mut accepted = Vec::new();
+    for _ in 0..2 {
+        let job = held(&claims).await;
+        accepted.push(job.accepted());
+        finish(job).await;
+    }
+
+    assert_eq!(accepted, [true, false]);
 }
 
 #[tokio::test(start_paused = true)]
@@ -929,15 +963,17 @@ async fn a_yield_job_focused_on_an_annotation_is_anchored_to_it_and_says_so() {
         "job-1",
         "yield",
         json!({ "maxRetries": 0 }),
-        json!({ "context": gathered(json!({
+        generation(gathered(json!({
             "kind": "annotation", "annotation": annotated("ann-7"), "sourceResource": described("res-1")
-        })) }),
+        }))),
     ));
     w.offer(running(
         "job-2",
         "yield",
         json!({}),
-        json!({ "context": gathered(json!({ "kind": "resource", "resource": described("res-1") })) }),
+        generation(gathered(
+            json!({ "kind": "resource", "resource": described("res-1") }),
+        )),
     ));
     let claims = w.claims(everything());
     let job = held(&claims).await;
@@ -1255,14 +1291,14 @@ async fn a_commit_is_a_request_that_cites_the_job_and_is_established_when_the_re
         assert_eq!(
             commits
                 .iter()
-                .map(|commit| Value::Object(commit.payload.clone()))
+                .map(|commit| Value::Object(commit.bus_frame.payload.clone()))
                 .collect::<Vec<_>>(),
             [
                 json!({ "resourceId": "res-new", "annotations": [annotated("ann-1"), annotated("ann-2")], "jobId": "job-1" })
             ]
         );
         assert!(
-            commits[0].correlation_id.is_some(),
+            commits[0].bus_frame.correlation_id.is_some(),
             "a request, answered at its correlation id"
         );
 
@@ -1381,12 +1417,12 @@ async fn a_commit_nobody_acknowledges_asks_whether_its_last_annotation_is_on_the
     assert_eq!(
         questions
             .iter()
-            .map(|question| Value::Object(question.payload.clone()))
+            .map(|question| Value::Object(question.bus_frame.payload.clone()))
             .collect::<Vec<_>>(),
         [json!({ "resourceId": "res-new", "annotationId": "ann-2" })],
         "the last, on the resource the batch was for"
     );
-    assert!(questions[0].correlation_id.is_some());
+    assert!(questions[0].bus_frame.correlation_id.is_some());
     assert_eq!(
         w.requested("mark:commit").len(),
         1,
@@ -1771,6 +1807,33 @@ async fn vitals_say_what_the_worker_heard_holds_and_has_done() {
     assert_eq!(claims.vitals().jobs_completed, 1);
 }
 
+#[tokio::test(start_paused = true)]
+async fn health_is_the_engine_the_jobs_it_claims_and_its_vitals_as_wire_times() {
+    let w = world();
+    w.offer(running("job-1", "mark", json!({}), json!({})));
+    let claims = w.claims(everything());
+    let engine: Engine =
+        serde_json::from_value(json!({ "provider": "anthropic", "model": "a-model" }))
+            .expect("an engine");
+    let _job = held(&claims).await;
+    let vitals = claims.vitals();
+    let health = claims.health(engine.clone());
+    assert_eq!((health.engine, health.jobs), (engine, everything()));
+    let claimed = health.last_claim_at.as_deref().expect("a claim");
+    assert!(claimed.ends_with('Z') && claimed.len() == "2026-01-01T00:00:00.000Z".len());
+    assert_eq!(health.last_activity_at.as_deref(), Some(claimed));
+    assert_eq!(
+        (health.last_queued_event_at, health.last_finished_at),
+        (None, None)
+    );
+    let active = health.active_job.expect("a job is held");
+    assert_eq!(
+        (active.job_id.as_str(), active.r#type, active.since.as_str()),
+        ("job-1", JobType::Mark, claimed)
+    );
+    assert_eq!(health.jobs_completed, vitals.jobs_completed);
+}
+
 /// Longer than `quick_claims`'s stall threshold, and its next check after it.
 const PAST_THE_STALL: Duration = Duration::from_millis(600);
 
@@ -2003,10 +2066,12 @@ async fn a_held_job_states_the_trace_its_reply_arrived_in_and_none_when_it_arriv
         tracestate: Some("vendor=value".to_owned()),
     };
     w.transport.deliver(Frame {
-        channel: "job:claimed".to_owned(),
-        payload: object(json!({ "response": running("job-1", "mark", json!({}), json!({})) })),
-        correlation_id: claim.correlation_id,
-        scope: None,
+        bus_frame: BusFrame {
+            channel: "job:claimed".to_owned(),
+            payload: object(json!({ "response": running("job-1", "mark", json!({}), json!({})) })),
+            correlation_id: claim.bus_frame.correlation_id,
+            scope: None,
+        },
         trace: Some(arrived_in.clone()),
         stream_id: None,
     });

@@ -14,8 +14,8 @@ import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KM
 import Data.Aeson.Types (parseEither, parseJSON)
 import Data.ByteString qualified as Bytes
-import Data.List.NonEmpty qualified as NE
 import Data.Map.Strict qualified as Map
+import Data.Maybe (fromMaybe)
 import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -95,8 +95,8 @@ withAnswers fixtures answerOverride action = do
               let size = fromIntegral (Bytes.length bytes)
               progress (UploadStarted size)
               progress (UploadProgress size size)
-              created <- createResourceResponseResourceId <$> fixture fixtures "CreateResourceResponse"
-              progress (UploadFinished created)
+              created <- fixture fixtures "CreateResourceResponse"
+              progress (UploadFinished (createResourceResponseResourceId created))
               pure created
           )
           (\_ identity -> recordContent "getBinary" identity >> pure (Content.BinaryContent "text/plain" "surface"))
@@ -255,7 +255,7 @@ runCase fixtures namespace member via row = do
         unless (namespace == "job" && member == "claim") (atomically (isEmptyTQueue calls) >>= require "surface method performed an unlisted extra effect")
 
 invoke :: Rig -> Text -> Text -> Value -> IO ()
-invoke (Rig client _ clock _) namespace member args = case (namespace, member) of
+invoke (Rig client _ _ _) namespace member args = case (namespace, member) of
   ("frame", "addEntityType") -> field "type" args >>= void . Frame.addEntityType (Client.frame client)
   ("frame", "addEntityTypes") -> field "types" args >>= void . Frame.addEntityTypes (Client.frame client)
   ("frame", "addTagSchema") -> field "schema" args >>= void . Frame.addTagSchema (Client.frame client)
@@ -370,22 +370,17 @@ invoke (Rig client _ clock _) namespace member args = case (namespace, member) o
   ("yield", "cloneToken") -> field "resourceId" args >>= void . Yield.cloneToken (Client.yield client)
   ("yield", "fromToken") -> field "token" args >>= void . Yield.fromToken (Client.yield client)
   ("yield", "createFromToken") -> do
-    options <- field "options" args
-    token <- field "token" options
-    name <- field "name" options
-    text <- field "content" options
-    archive <- optional "archiveOriginal" options
-    void (Yield.createFromToken (Client.yield client) token name text archive)
+    field "options" args >>= void . Yield.createFromToken (Client.yield client)
   ("yield", "clone") -> atomically (Yield.clone (Client.yield client))
   ("job", "status") -> field "jobId" args >>= void . Job.status (Client.job client)
   ("job", "pollUntilComplete") -> do
     identity <- field "jobId" args
-    void (Job.pollUntilComplete (Client.job client) identity (Job.PollOptions Nothing Nothing (const (pure ()))))
+    options <- optional "options" args
+    void (Job.pollUntilComplete (Client.job client) identity (fromMaybe (JobPollOptions Nothing Nothing) options) (const (pure ())))
   ("job", "cancel") -> field "jobId" args >>= void . Job.cancel (Client.job client)
   ("job", "claim") -> do
-    config <- field "options" args
-    filters <- field "accepts" config >>= maybe (ioError (userError "empty claim filter fixture")) pure . NE.nonEmpty
-    bracket (Job.claim (Client.job client) (Worker.WorkerOptions filters clock Timing.protocolSettings (pure "2026-11-05T00:00:00Z"))) Worker.stop $ \claims ->
+    options <- field "options" args
+    bracket (Job.claim (Client.job client) options) Worker.stop $ \claims ->
       void (Worker.next claims)
   ("auth", "me") -> auth >>= \value -> void (Auth.me value Nothing)
   ("auth", "mediaToken") -> do resource <- field "resourceId" args; auth >>= \value -> void (Auth.mediaToken value resource)

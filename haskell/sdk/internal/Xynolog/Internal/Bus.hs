@@ -15,7 +15,6 @@ module Xynolog.Internal.Bus
     Heard (..),
     Carried (..),
     Fault (..),
-    FaultReason (..),
     decoded,
     replyChannelsFor,
     unsubscribed,
@@ -42,13 +41,13 @@ import Xynolog.ErrorCodes hiding (TransportError)
 import Xynolog.ErrorCodes qualified as Codes
 import Xynolog.Errors
 import Xynolog.Internal.Generated.OperationFailure qualified as OperationFailure
-import Xynolog.Internal.Required (Fault (..), FaultReason (..))
+import Xynolog.Internal.Required (Fault (..))
 import Xynolog.Internal.Required qualified as Required
 import Xynolog.Internal.StateValue qualified as State
 import Xynolog.Internal.Transport (Carried (..), FrameRefusal (..))
 import Xynolog.Internal.Transport qualified as Transport
 import Xynolog.Transport.Facts (ConnectionState (..), userField)
-import Xynolog.Types (BusFrame (..), BusFramePayload (..), ResourceId, UserId)
+import Xynolog.Types (BusFrame (..), BusFramePayload (..), FrameRefusalReason (..), ResourceId, UserId)
 
 data BusOptions = BusOptions
   { -- | Monotonic nanoseconds in the wait's coordinate system.
@@ -96,7 +95,7 @@ decoded channel (Transport.Arrived frame) =
         _ ->
           let issue = case Required.faultChannel (channelName channel) (Object raw) of
                 Just value -> value
-                Nothing -> case identity of Left () -> Fault userField Malformed; Right _ -> Required.undecoded
+                Nothing -> case identity of Left () -> Fault userField FrameRefusalReasonMalformed; Right _ -> Required.undecoded
               way = if Required.member issue == "" then "payload" else "payload." <> Required.member issue
            in Refused
                 ( FrameRefusal

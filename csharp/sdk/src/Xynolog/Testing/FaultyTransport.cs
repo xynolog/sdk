@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Threading.Channels;
 using Xynolog.Errors;
 using Xynolog.Http;
-using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog.Testing;
@@ -121,7 +120,7 @@ public sealed class FaultyTransport(IEnumerable<FaultAction>? schedule = null, R
 
     private BusFrame Reply(BusEmitRequest sent)
     {
-        var channels = ProtocolFacts.Operation(sent.Channel);
+        var channels = BusRegistry.Operation(sent.Channel);
         var channel = channels.Result;
         JsonElement payload;
         if (Refusal?.Invoke(sent.Channel, sent.Payload) is { } refusal)
@@ -137,7 +136,7 @@ public sealed class FaultyTransport(IEnumerable<FaultAction>? schedule = null, R
                 foreach (var field in BusOperations.ReplyFields(sent.Channel))
                 {
                     if (!sent.Payload.TryGetProperty(field, out var value))
-                        throw new TransportError(ProtocolFacts.Error(0), $"The request '{sent.Channel}' lacks its reply field '{field}'.");
+                        throw new TransportError(TransportErrorCode.Error, $"The request '{sent.Channel}' lacks its reply field '{field}'.");
                     fields.Add(field, value);
                 }
                 if (Response(sent) is { } response) fields.Add("response", response);
@@ -157,7 +156,7 @@ public sealed class FaultyTransport(IEnumerable<FaultAction>? schedule = null, R
         lock (gate)
             if (queued.TryGetValue(sent.Channel, out var replies) && replies.TryDequeue(out var queuedReply)) return queuedReply;
         return respond is { } responder ? responder(sent.Channel, sent.Payload)
-            : throw new TransportError(ProtocolFacts.Error(0), $"No response scripted for '{sent.Channel}'.");
+            : throw new TransportError(TransportErrorCode.Error, $"No response scripted for '{sent.Channel}'.");
     }
 
     private string NextEventId() => (++lastId).ToString(System.Globalization.CultureInfo.InvariantCulture);

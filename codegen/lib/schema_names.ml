@@ -8,11 +8,14 @@
 let stem file = Filename.remove_extension (Filename.basename file)
 
 (* What a schema that states a [$ref] says of the schema it names: a
-   description, or nothing. A constraint on a reference is an [allOf], so
+   description, or nothing. A [$comment] beside one is a note to its reader,
+   which says nothing of it. A constraint on a reference is an [allOf], so
    any other keyword beside one is refused. *)
 let said_of_reference (s : _ Schema.layer) (r : Decode.reference) =
   match
-    List.filter (fun k -> k <> "$ref" && k <> "description") (Schema.keywords s)
+    List.filter
+      (fun k -> k <> "$ref" && k <> "description" && k <> "$comment")
+      (Schema.keywords s)
   with
   | [] -> Ok s.description
   | k :: _ ->

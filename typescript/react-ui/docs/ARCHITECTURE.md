@@ -95,7 +95,7 @@ import { readyValue } from '@xynolog/sdk';
 function ResourceNames() {
   const browser = useXynolog();
   const client = useObservable(browser.activeSession$)?.client; // XynologClient | undefined
-  // `client.browse.resources(...)` emits CacheState<ResourceList> from the
+  // `client.browse.resources(...)` emits CacheState<ListResourcesResponse> from the
   // SDK's read-through cache. `useObservable` turns it into React state;
   // readyValue projects the ready envelope, whose array is `.resources`.
   const state = useObservable(client?.browse.resources({}));
@@ -388,7 +388,7 @@ observables rather than imperative fetches:
 const browser = useXynolog();
 const client = useObservable(browser.activeSession$)?.client;
 const state = useObservable(client?.browse.resources({}));
-const resources = (state && readyValue(state)?.resources) ?? []; // CacheState → ResourceList → array
+const resources = (state && readyValue(state)?.resources) ?? []; // CacheState → ListResourcesResponse → array
 ```
 
 ### Context State

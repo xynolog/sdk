@@ -45,7 +45,7 @@ package xynolog
 // sent in that one; a worker's span for the job continues it with
 // Continuing(ctx, job.Trace()).
 //
-//	claims := client.Job.Claim(accepts)
+//	claims := client.Job.Claim(api.ClaimOptions{Accepts: accepts})
 //	defer claims.Close()
 //	for job, err := range claims.All() {
 //		var refused *xynolog.ClaimRefusal
@@ -193,13 +193,14 @@ func (r *ClaimRefusal) Error() string { return r.Message }
 
 // ActiveJob is the job a worker holds, as its vitals name it.
 type ActiveJob struct {
-	JobId   api.JobId
-	JobType api.JobType
-	Since   time.Time
+	JobId api.JobId
+	Type  api.JobType
+	Since time.Time
 }
 
 // WorkerVitals is what a worker can say of itself at any moment
-// (WORKER-CONTRACT V1). A time that is zero has not happened yet.
+// (WORKER-CONTRACT V1): the members of WorkerEngineHealth a worker knows of
+// itself, each time a time.Time. A time that is zero has not happened yet.
 //
 // LastQueuedEventAt is any job:queued received, matching or not, refused by
 // its transport or not. On an idle stack with an empty queue it stands still
@@ -607,8 +608,7 @@ func (h *heldJob) answered(ctx context.Context, request bus.Channel, payload any
 	if err != nil {
 		return err
 	}
-	links := h.claims.links
-	_, err = links.wire.result(h.inTrace(ctx), request, object, links.timing.MarkCommitTimeout, nil)
+	_, err = h.claims.links.wire.result(h.inTrace(ctx), request, object, h.claims.timing.MarkCommitTimeout, nil)
 	return err
 }
 
@@ -741,10 +741,8 @@ func anchorOf(jobType api.JobType, params api.JobParams) api.AnnotationId {
 	if err != nil {
 		return api.AnnotationId{}
 	}
-	var stated struct {
-		Context *api.GatheredContext `json:"context"`
-	}
-	if json.Unmarshal(encoded, &stated) != nil || stated.Context == nil {
+	var stated api.GenerationJobParams
+	if json.Unmarshal(encoded, &stated) != nil {
 		return api.AnnotationId{}
 	}
 	var focus api.GatheredContextFocusAnnotation
@@ -769,7 +767,9 @@ type handedOut struct {
 // transport's stream ends, or when the client closes; a job still held when
 // Close stops it is failed first.
 type Claims struct {
-	links   *links
+	links *links
+	// timing is the client's, with each wait the claim's options state.
+	timing  Timing
 	accepts []api.JobFilter
 	// filters is each filter as the wire carries it, which is what an
 	// announcement is compared with.
@@ -808,11 +808,12 @@ type Claims struct {
 	jobsCompleted     int
 }
 
-func newClaims(l *links, accepts []api.JobFilter) *Claims {
+func newClaims(l *links, options api.ClaimOptions) *Claims {
 	life, end := context.WithCancel(l.life)
 	c := &Claims{
 		links:   l,
-		accepts: slices.Clone(accepts),
+		timing:  claimTiming(l.timing, options),
+		accepts: slices.Clone(options.Accepts),
 		handed:  kept.NewQueue[handedOut](),
 		stalls:  kept.NewStream[*HeldJobStall](l.timing.ErrorsKeptForFirstReaderCount),
 		life:    life,
@@ -837,6 +838,24 @@ func newClaims(l *links, accepts []api.JobFilter) *Claims {
 		c.filters = append(c.filters, filter)
 	}
 	return c
+}
+
+// claimTiming is timing with each wait options states in its place.
+func claimTiming(timing Timing, options api.ClaimOptions) Timing {
+	for _, each := range []struct {
+		stated *int
+		wait   *time.Duration
+	}{
+		{options.JobClaimTimeoutMs, &timing.JobClaimTimeout},
+		{options.HeldJobStallMs, &timing.HeldJobStall},
+		{options.HeldJobStallCheckMs, &timing.HeldJobStallCheck},
+		{options.MarkCommitTimeoutMs, &timing.MarkCommitTimeout},
+	} {
+		if each.stated != nil {
+			*each.wait = time.Duration(*each.stated) * time.Millisecond
+		}
+	}
+	return timing
 }
 
 // All is the claims as they are ranged over: each job the worker comes to
@@ -896,7 +915,7 @@ func (c *Claims) Vitals() WorkerVitals {
 		JobsCompleted:     c.jobsCompleted,
 	}
 	if c.held != nil && !c.heldSince.IsZero() {
-		vitals.ActiveJob = &ActiveJob{JobId: c.held.jobID, JobType: c.held.jobType, Since: utc(c.heldSince)}
+		vitals.ActiveJob = &ActiveJob{JobId: c.held.jobID, Type: c.held.jobType, Since: utc(c.heldSince)}
 	}
 	return vitals
 }
@@ -1091,7 +1110,7 @@ func (c *Claims) watchTheStream() {
 // lookForStalls looks at the held job every HeldJobStallCheck, and reports
 // one that has shown no activity for longer than HeldJobStall, once.
 func (c *Claims) lookForStalls() {
-	timing := c.links.timing
+	timing := c.timing
 	ticker := time.NewTicker(timing.HeldJobStallCheck)
 	defer ticker.Stop()
 	for {
@@ -1212,7 +1231,7 @@ func (c *Claims) claim() {
 // context of whatever settled the job before it.
 func (c *Claims) claimNext() (HeldJob, *ClaimRefusal) {
 	life := c.links.life
-	answer, err := claimed(life, c.links, c.accepts)
+	answer, err := claimed(life, c.links, c.accepts, c.timing.JobClaimTimeout)
 	if err != nil {
 		if life.Err() != nil {
 			// The client closed: nobody is left to claim for.
@@ -1265,12 +1284,12 @@ func (c *Claims) claimNext() (HeldJob, *ClaimRefusal) {
 
 // claimed is a claim of what accepts describes, as far as the frame that
 // answers it on its result channel: its payload, and the trace it arrived in.
-func claimed(ctx context.Context, l *links, accepts []api.JobFilter) (Delivered[api.JobClaimedResult], error) {
+func claimed(ctx context.Context, l *links, accepts []api.JobFilter, timeout time.Duration) (Delivered[api.JobClaimedResult], error) {
 	object, err := payloadOf(api.JobClaimCommand{Accepts: accepts})
 	if err != nil {
 		return Delivered[api.JobClaimedResult]{}, err
 	}
-	reply, err := l.wire.result(ctx, bus.JobClaim.Request().Channel(), object, l.timing.JobClaimTimeout, nil)
+	reply, err := l.wire.result(ctx, bus.JobClaim.Request().Channel(), object, timeout, nil)
 	if err != nil {
 		return Delivered[api.JobClaimedResult]{}, err
 	}

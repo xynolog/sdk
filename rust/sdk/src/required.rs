@@ -9,6 +9,7 @@
 
 use crate::types::FrameRefusalReason;
 use crate::types::Schema;
+use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 use std::fmt;
 
@@ -205,10 +206,17 @@ impl fmt::Display for Fault {
 
 /// What the component schema `name` requires of a value.
 pub(crate) fn schema(name: &str) -> &'static Shape {
+    held(name).unwrap_or_else(|| panic!("{name} is no component schema of the spec"))
+}
+
+/// What the table states the schema `name` requires: none of a component
+/// that can be wrong in no way, which the table leaves out, nor of a type of
+/// the client's own, which is never read off the wire.
+fn held(name: &str) -> Option<&'static Shape> {
     SCHEMAS
         .binary_search_by(|(named, _)| (*named).cmp(name))
+        .ok()
         .map(|at| &SCHEMAS[at].1)
-        .unwrap_or_else(|_| panic!("{name} is no component schema of the spec"))
 }
 
 fn resolved(shape: &'static Shape) -> &'static Shape {
@@ -500,6 +508,65 @@ pub(crate) fn fault_of(shape: &'static Shape, value: &mut Value) -> Option<Fault
 /// `fault_of` leaves it out.
 pub fn fault_said<T: Schema>(body: &mut Value) -> Option<String> {
     fault_of(schema(T::NAME), body).map(|fault| fault.to_string())
+}
+
+/// `body` read as the schema `T` is generated from: held to what the table
+/// states that schema requires, and refused for its first fault as
+/// `fault_said` says it, then decoded. What serde refuses that has no fault
+/// the table states is refused as malformed.
+pub fn read_as<T: Schema + DeserializeOwned>(mut body: Value) -> Result<T, String> {
+    if let Some(fault) = held(T::NAME).and_then(|shape| fault_of(shape, &mut body)) {
+        return Err(fault.to_string());
+    }
+    serde_json::from_value(body).map_err(|_| Fault::undecoded().to_string())
+}
+
+/// The sizes and bounds a member's schema states, each `None` where it
+/// states none. A text's length counts code points; an array's size counts
+/// its items.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct Bounds {
+    pub min_length: Option<usize>,
+    pub max_length: Option<usize>,
+    pub minimum: Option<f64>,
+    pub maximum: Option<f64>,
+    pub min_items: Option<usize>,
+    pub max_items: Option<usize>,
+}
+
+/// The bounds the component schema `T` is generated from states of
+/// `member`: the way to it, as a fault names one, the names of the members
+/// it is within and its own joined by dots, where a member of an array's
+/// items is named as one of the array's, and a member of a part a value is
+/// all of as one of the value's. `None` when the way names a member of which
+/// the table states nothing.
+pub fn bounds_of<T: Schema>(member: &str) -> Option<Bounds> {
+    let shape = member
+        .split('.')
+        .try_fold(held(T::NAME)?, |shape, name| member_of(shape, name))?;
+    let shape = resolved(shape);
+    Some(Bounds {
+        min_length: shape.min_length,
+        max_length: shape.max_length,
+        minimum: shape.minimum,
+        maximum: shape.maximum,
+        min_items: shape.min_items,
+        max_items: shape.max_items,
+    })
+}
+
+/// The shape of the member `name` of a value of `shape`: of its object, of
+/// its array's items, or of a part it is all of.
+fn member_of(shape: &'static Shape, name: &str) -> Option<&'static Shape> {
+    let own = resolved(shape);
+    if let Some(items) = own.items {
+        return member_of(items, name);
+    }
+    own.members
+        .iter()
+        .find(|(named, _)| *named == name)
+        .map(|(_, member)| member)
+        .or_else(|| own.all_of.iter().find_map(|part| member_of(part, name)))
 }
 
 #[cfg(test)]

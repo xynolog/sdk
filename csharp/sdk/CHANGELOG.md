@@ -17,6 +17,22 @@ the coming release's, and gathers its changes as they land.
   pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
+- Every error-code vocabulary Protocol states is a class of constants in
+  `Xynolog.Errors`: `BusRequestErrorCode`, `TransportErrorCode`,
+  `JobErrorCode`, `SessionErrorCode`, `SignInErrorCode`,
+  `IdentityUnverifiableReason`, `SpanRefusal` and `ControlErrorCode`, so a
+  caller compares `XynologError.Code` to `BusRequestErrorCode.NotFound` in
+  place of `"bus.not-found"`.
+- `Claims.Health(engine)` is the worker's `WorkerEngineHealth`, its vitals
+  with the engine it runs and the jobs it accepts.
+- `Xynolog.Services.ServiceTables` holds each table Protocol states for its
+  services as the type its schema is: the environment a service reads and
+  why it refuses to start, its telemetry and log lines, each service's
+  messages, the jobs' budgets and storage, the bounds of the bus's replies,
+  the embedding requests, the worker's answer formats, the gateway's media
+  token and response headers, and the archivist's layout and default entity
+  types. `ArchivistRoutes` names each operation of the archivist's HTTP
+  surface as a `ServiceRoute`.
 
 ### Changed
 
@@ -30,6 +46,24 @@ the coming release's, and gathers its changes as they land.
 - `OpenResource` is `Xynolog.Types.OpenResource`, the type Protocol states, in
   place of `Xynolog.Registry.OpenResource`: it is built with an initializer,
   and its `Order` is a `long`.
+- A method's options are the records Protocol states for them:
+  `Browse.Resources(BrowseResourcesRequest?)`,
+  `Match.Resources(search, ResourceSearchFilters?)`,
+  `Match.Search(…, MatchSearchOptions?)`,
+  `Gather.ResourceAsync(resourceId, GatherResourceOptions?)`,
+  `Yield.CreateFromTokenAsync(CreateFromTokenOptions)`,
+  `Job.Claim(ClaimOptions)` and
+  `Job.PollUntilCompleteAsync(jobId, JobPollOptions?, onStatus)`, in place
+  of their positional parameters. A worker's claim, stall and commit waits
+  are its `ClaimOptions`, and default to the client's `Timing`.
+- `WorkerVitals.ActiveJob` is `WorkerEngineHealthActiveJob`, the type
+  Protocol states, in place of `ActiveJob`, and the vitals' times are
+  ISO 8601 text, as a worker's health carries them.
+- `Timing.HttpRequestMs` and `Timing.StreamOpenMs` are
+  `HttpRequestTimeoutMs` and `StreamOpenTimeoutMs`, the names the protocol's
+  timing table gives them; each of `Timing`'s defaults is that table's.
+  `RetryPolicy` is a record of its `Attempts`, `InitialDelayMs` and
+  `MaxDelayMs`.
 
 ## 0.8.1
 

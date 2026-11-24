@@ -56,7 +56,7 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
         string origin;
         try { origin = Gateway.Origin(endpoint); }
         catch (Exception error) when (error is SignInError or System.Text.Json.JsonException)
-        { throw new SessionError(ProtocolFacts.SessionError("construct-failed"), "The knowledge-base endpoint is invalid", error); }
+        { throw new SessionError(SessionErrorCode.ConstructFailed, "The knowledge-base endpoint is invalid", error); }
         this.kept = kept;
         this.errors = errors;
         this.onAuthFailed = onAuthFailed;
@@ -139,7 +139,7 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
         }
     }
 
-    private void Report(string name, Exception? cause = null) => errors.Publish(new SessionError(ProtocolFacts.SessionError(name), cause?.Message ?? name, cause));
+    private void Report(string code, Exception? cause = null) => errors.Publish(new SessionError(code, cause?.Message ?? code, cause));
 
     private async Task EndAsync(SessionEndReason reason, string code)
     {
@@ -154,7 +154,7 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
     private async Task ForgetStoredAsync()
     {
         try { await kept.ForgetAsync(lifetime.Token).ConfigureAwait(Spawning.Captures); }
-        catch (Exception error) when (error is not OperationCanceledException) { Report("auth-failed", error); }
+        catch (Exception error) when (error is not OperationCanceledException) { Report(SessionErrorCode.AuthFailed, error); }
     }
 
     private async Task<string?> RenewCoreAsync(bool starting = false)
@@ -187,7 +187,7 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
             // an unkept grant.
             unanswered = true;
             Set(null, State.User);
-            Report(starting ? "auth-failed" : "refresh-exhausted", error);
+            Report(starting ? SessionErrorCode.AuthFailed : SessionErrorCode.RefreshExhausted, error);
             return null;
         }
         // The issuer refused the renewal, or it gave no token while the sign-in is still kept. At the start there was no
@@ -198,7 +198,7 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
             Set(null, null);
             await ForgetStoredAsync().ConfigureAwait(Spawning.Captures);
         }
-        else await EndAsync(SessionEndReason.Expired, "refresh-exhausted").ConfigureAwait(Spawning.Captures);
+        else await EndAsync(SessionEndReason.Expired, SessionErrorCode.RefreshExhausted).ConfigureAwait(Spawning.Captures);
         return null;
     }
 
@@ -256,14 +256,14 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
                     Set(token, user);
                     return;
                 }
-                catch (TransportError error) when (error.Code == ProtocolFacts.Error(401))
+                catch (TransportError error) when (error.Code == TransportErrorCode.Unauthorized)
                 {
-                    if (issued) { await EndAsync(SessionEndReason.Refused, "credential-refused").ConfigureAwait(Spawning.Captures); return; }
+                    if (issued) { await EndAsync(SessionEndReason.Refused, SessionErrorCode.CredentialRefused).ConfigureAwait(Spawning.Captures); return; }
                     token = await RenewCoreAsync().ConfigureAwait(Spawning.Captures);
                     if (token is null) return;
                     issued = true;
                 }
-                catch (XynologError error) { Report("auth-failed", error); return; }
+                catch (XynologError error) { Report(SessionErrorCode.AuthFailed, error); return; }
             }
         }
         finally
@@ -284,8 +284,8 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
             var token = await RenewCoreAsync().ConfigureAwait(Spawning.Captures);
             if (token is null || validate is null) return token;
             try { Set(token, await validate(token, lifetime.Token).ConfigureAwait(Spawning.Captures)); }
-            catch (TransportError error) when (error.Code == ProtocolFacts.Error(401))
-            { await EndAsync(SessionEndReason.Refused, "credential-refused").ConfigureAwait(Spawning.Captures); }
+            catch (TransportError error) when (error.Code == TransportErrorCode.Unauthorized)
+            { await EndAsync(SessionEndReason.Refused, SessionErrorCode.CredentialRefused).ConfigureAwait(Spawning.Captures); }
             catch (XynologError)
             {
                 // An unanswered identity request refuses nothing; keep the renewed token and last confirmed user.
@@ -297,7 +297,7 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
 
     private async Task ScheduleAsync()
     {
-        var step = ProtocolFacts.Timing("reconnectMs").GetDouble();
+        var step = Timings.ReconnectMs;
         try
         {
             while (!ended)
@@ -328,14 +328,14 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
                     if (renewed is not null && retrying && State.User is null && validate is not null)
                     {
                         try { Set(renewed, await validate(renewed, lifetime.Token).ConfigureAwait(Spawning.Captures)); }
-                        catch (TransportError error) when (error.Code == ProtocolFacts.Error(401)) { await EndAsync(SessionEndReason.Refused, "credential-refused").ConfigureAwait(Spawning.Captures); }
-                        catch (XynologError error) { Report("auth-failed", error); }
+                        catch (TransportError error) when (error.Code == TransportErrorCode.Unauthorized) { await EndAsync(SessionEndReason.Refused, SessionErrorCode.CredentialRefused).ConfigureAwait(Spawning.Captures); }
+                        catch (XynologError error) { Report(SessionErrorCode.AuthFailed, error); }
                     }
                 }
                 finally { operations.Release(); }
                 // Only a renewal on the backoff that got no answer doubles the step: the first after any other waits the
                 // jitter of reconnectMs.
-                step = retrying && unanswered ? Math.Min(step * 2, ProtocolFacts.Timing("maxReconnectMs").GetDouble()) : ProtocolFacts.Timing("reconnectMs").GetDouble();
+                step = retrying && unanswered ? Math.Min(step * 2, Timings.MaxReconnectMs) : Timings.ReconnectMs;
             }
         }
         catch (OperationCanceledException) when (disposal.Task.IsCompleted)

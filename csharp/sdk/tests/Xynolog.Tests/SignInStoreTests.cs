@@ -1,3 +1,4 @@
+using Xynolog.Protocol;
 using System.Text.Json;
 using Xynolog.SignIn;
 using Xynolog.Types;
@@ -57,8 +58,11 @@ public sealed class SignInStoreTests
                     spent = read.Refresh;
                     await OtherAsync("during");
                     var issues = row.GetProperty("issues");
-                    return (Access(issues.GetProperty("token")) ?? throw new InvalidOperationException("Missing issued token"),
-                        issues.TryGetProperty("refreshToken", out var refresh) ? refresh.GetString() : null);
+                    return new IssuedTokens
+                    {
+                        Access = Access(issues.GetProperty("token")) ?? throw new InvalidOperationException("Missing issued token"),
+                        Refresh = issues.TryGetProperty("refreshToken", out var refresh) ? refresh.GetString() ?? throw new InvalidOperationException("Null refresh token") : read.Refresh,
+                    };
                 }, clock);
                 var expectedSpent = row.GetProperty("spends");
                 Assert.Equal(expectedSpent.ValueKind == JsonValueKind.Null ? null : expectedSpent.GetString(), spent);

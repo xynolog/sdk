@@ -35,10 +35,9 @@ def test_each_vocabulary_is_its_table_s_codes_as_a_type_and_as_a_tuple() -> None
         "signIn": (error_codes.SignInErrorCode, error_codes.SIGN_IN_ERROR_CODES),
         "kbIdentity": (error_codes.IdentityUnverifiableReason, error_codes.IDENTITY_UNVERIFIABLE_REASONS),
         "spanRefusal": (error_codes.SpanRefusal, error_codes.SPAN_REFUSALS),
+        "control": (error_codes.ControlErrorCode, error_codes.CONTROL_ERROR_CODES),
     }
-    # control: why a request of the launcher's control API failed, which
-    # Desktop reads and no SDK takes on yet.
-    assert set(vocabularies) == {name for name in CODES if name not in ("$comment", "control")}
+    assert set(vocabularies) == {name for name in CODES if name != "$comment"}
     for name, (union, listed) in vocabularies.items():
         assert list(get_args(union.__value__)) == stated(name)
         assert list(listed) == stated(name)

@@ -60,7 +60,8 @@ private let awaited = "c-1"
 private let namesNoChannel = "{"
 
 /// The frame each case's line is followed by, read cleanly.
-private let after = #"{"channel": "beckon:focus", "payload": {"resourceId": "after"}}"#
+private let after =
+  #"{"channel": "\#(Channels.beckonFocus.name)", "payload": {"resourceId": "after"}}"#
 
 private func isAfter(_ heard: Heard<BeckonFocusEvent>) -> Bool {
   guard case .delivered(let delivered) = heard else { return false }

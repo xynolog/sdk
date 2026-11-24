@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.VoyageEmbeddingConfig (VoyageEmbeddingConfig (..), VoyageEmbeddingConfigType (..)) where
+module Xynolog.Internal.Generated.Models.VoyageEmbeddingConfig (VoyageEmbeddingConfig (..), VoyageEmbeddingConfigType (..), voyageEmbeddingConfigTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -26,3 +26,6 @@ data VoyageEmbeddingConfigType = VoyageEmbeddingConfigTypeVoyage deriving (Eq, S
 instance FromJSON VoyageEmbeddingConfigType where parseJSON = checked "VoyageEmbeddingConfigType" $ \value -> if value == String "voyage" then pure VoyageEmbeddingConfigTypeVoyage else fail "unknown enumeration member"
 
 instance ToJSON VoyageEmbeddingConfigType where toJSON VoyageEmbeddingConfigTypeVoyage = String "voyage"
+
+voyageEmbeddingConfigTypeText :: VoyageEmbeddingConfigType -> Text
+voyageEmbeddingConfigTypeText VoyageEmbeddingConfigTypeVoyage = "voyage"

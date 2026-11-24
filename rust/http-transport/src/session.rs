@@ -17,7 +17,7 @@
 use crate::content::HttpContentTransport;
 use crate::oauth::{
     begin_authorization, complete_authorization, renew_kept, revoke_at_issuer,
-    sign_in_with_device_grant,
+    sign_in_with_device_grant, stored_session_of,
 };
 use crate::transport::{HttpTransport, HttpTransportConfig, Timing, TokenRefresher, locked};
 use futures::FutureExt;
@@ -331,15 +331,8 @@ pub async fn sign_in_device(
         .into());
     };
     let (issuer, tokens) = sign_in_with_device_grant(target, on_code, http).await?;
-    kept.keep(StoredSession {
-        access: tokens.access,
-        refresh: tokens.refresh,
-        client_id: SCRIPT_CLIENT_ID.to_owned(),
-        token_endpoint: issuer.token,
-        revocation_endpoint: issuer.revocation,
-        person_key: None,
-    })
-    .await
+    kept.keep(stored_session_of(SCRIPT_CLIENT_ID, issuer, tokens))
+        .await
 }
 
 /// End the sign-in `kept` holds: it is revoked at its issuer, when the
@@ -637,14 +630,7 @@ pub async fn complete_sign_in(
         .signed_in(SignedIn {
             endpoint: KbEndpoint::HttpEndpoint(pending.target),
             description: identity.description,
-            session: StoredSession {
-                access: tokens.access,
-                refresh: tokens.refresh,
-                client_id: BROWSER_CLIENT_ID.to_owned(),
-                token_endpoint: pending.issuer.token,
-                revocation_endpoint: pending.issuer.revocation,
-                person_key: None,
-            },
+            session: stored_session_of(BROWSER_CLIENT_ID, pending.issuer, tokens),
             kb_id: pending.kb_id,
             expected_did: pending.expected_did,
             expected_name: pending.expected_name,

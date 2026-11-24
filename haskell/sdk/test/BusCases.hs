@@ -334,7 +334,7 @@ scopesAndFrames event = rig (const (pure Nothing)) (pure ()) $ \transport input 
     seen <- Stream.toList_ (Stream.take 2 values)
     case seen of
       [Bus.Refused refusal, Bus.Heard delivered] -> do
-        require "missing member refusal lost its path" (Bus.reason (Bus.fault refusal) == Bus.Lacks && Bus.member (Bus.fault refusal) /= "")
+        require "missing member refusal lost its path" (Bus.reason (Bus.fault refusal) == FrameRefusalReasonLacks && Bus.member (Bus.fault refusal) /= "")
         require "frame lost its authenticated emitter" (Bus.emittedBy delivered == Just user)
         require "frame lost its trace carrier" (Transport.frameTrace (Bus.deliveredFrame delivered) == Just carrier)
         let raw = busFramePayloadAdditionalProperties (busFramePayload (Transport.wireFrame (Bus.deliveredFrame delivered)))

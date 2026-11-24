@@ -552,6 +552,18 @@ let () =
     (Model.of_string "fuzzy-match" = Some Model.Fuzzy_match);
   Alcotest.check Alcotest.bool "Anchor_method rejects unknown values" true
     (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Frame_refusal_reason in
+  Alcotest.check Alcotest.string "Frame_refusal_reason encode" "lacks"
+    (Model.to_string Model.Lacks);
+  Alcotest.check Alcotest.bool "Frame_refusal_reason decode" true
+    (Model.of_string "lacks" = Some Model.Lacks);
+  Alcotest.check Alcotest.string "Frame_refusal_reason encode" "malformed"
+    (Model.to_string Model.Malformed);
+  Alcotest.check Alcotest.bool "Frame_refusal_reason decode" true
+    (Model.of_string "malformed" = Some Model.Malformed);
+  Alcotest.check Alcotest.bool "Frame_refusal_reason rejects unknown values"
+    true
+    (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Match_quality in
   Alcotest.check Alcotest.string "Match_quality encode" "normalized"
     (Model.to_string Model.Normalized);

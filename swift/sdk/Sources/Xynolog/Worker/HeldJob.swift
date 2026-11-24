@@ -56,7 +56,7 @@ actor HeldWork<Result: Sendable>: WorkerLease {
 
   private let transport: any Transport
   private weak var owner: Claims?
-  private let timing: WorkerTiming
+  private let options: ClaimOptions
   private let clock: any Clock<Duration>
   private let span: Mutex<(any Span)?>
   private let workingTrace: [String: String]
@@ -67,7 +67,7 @@ actor HeldWork<Result: Sendable>: WorkerLease {
 
   init(
     record: JobRunning, trace: [String: String]?, transport: any Transport, owner: Claims,
-    timing: WorkerTiming, clock: any Clock<Duration>
+    options: ClaimOptions, clock: any Clock<Duration>
   ) {
     let metadata = record.metadata
     jobId = metadata.id
@@ -82,7 +82,7 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     self.trace = trace
     self.transport = transport
     self.owner = owner
-    self.timing = timing
+    self.options = options
     self.clock = clock
     let span = Self.startSpan(jobId: metadata.id, jobType: metadata.type, trace: trace)
     workingTrace = traceCarrier(span)
@@ -213,14 +213,14 @@ actor HeldWork<Result: Sendable>: WorkerLease {
         Operations.markCommit.request.name,
         wirePayload(
           MarkCommitCommand(annotations: annotations, jobId: jobId, resourceId: resourceId)),
-        over: transport, timeoutMs: timing.commitTimeoutMs, clock: clock, parent: workingTrace)
+        over: transport, timeoutMs: options.commitTimeoutMs, clock: clock, parent: workingTrace)
       observed(.acknowledged)
     } catch let timeout as BusRequestError where timeout.reason == .busTimeout {
       do {
         _ = try await resultOf(
           Operations.browseAnnotationRequested.request.name,
           wirePayload(BrowseAnnotationRequest(annotationId: last.id, resourceId: resourceId)),
-          over: transport, timeoutMs: timing.commitTimeoutMs, clock: clock, parent: workingTrace)
+          over: transport, timeoutMs: options.commitTimeoutMs, clock: clock, parent: workingTrace)
         observed(.probeConfirmed)
       } catch {
         let reason = (error as? BusRequestError)?.reason

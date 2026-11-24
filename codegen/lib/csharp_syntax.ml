@@ -18,6 +18,7 @@ type type_ =
   | Nullable of type_
   | Array of type_
   | Member_type of type_ * string  (** A type declared within another. *)
+  | Tuple of (type_ * string) list  (** A value tuple, each element named. *)
 
 type binary = And | Eq | Lt | Le | Ge
 
@@ -117,6 +118,8 @@ type member =
       body : body;
     }
   | Nested of decl
+  | Documented of string * member
+      (** A [/// <summary>] line of prose before the member. *)
 
 (* Members a line each, or a blank line between. *)
 and spacing = Packed | Spaced
@@ -268,6 +271,10 @@ let rec type_text = function
   | Nullable t -> type_text t ^ "?"
   | Array t -> type_text t ^ "[]"
   | Member_type (t, name) -> type_text t ^ "." ^ checked name
+  | Tuple elements ->
+      "("
+      ^ listed (fun (t, name) -> type_text t ^ " " ^ checked name) elements
+      ^ ")"
 
 (* A string literal: printable ASCII as itself, but for the quote and the
    backslash, and every other UTF-16 code unit escaped. *)
@@ -538,6 +545,21 @@ let kind_text = function
   | Record -> "record"
   | Record_struct -> "record struct"
 
+(* Prose as one XML documentation line: its lines joined, and the characters
+   XML reserves escaped. *)
+let summary ~depth text =
+  let b = Buffer.create (String.length text) in
+  String.iter
+    (function
+      | '&' -> Buffer.add_string b "&amp;"
+      | '<' -> Buffer.add_string b "&lt;"
+      | '>' -> Buffer.add_string b "&gt;"
+      | '\n' -> Buffer.add_char b ' '
+      | c -> Buffer.add_char b c)
+    (String.trim text);
+  if Buffer.length b = 0 then refuse "a summary with no prose";
+  [ indent depth ^ "/// <summary>" ^ Buffer.contents b ^ "</summary>" ]
+
 let rec member ~depth = function
   | Field { modifiers; type_; name; value } ->
       line ~depth
@@ -581,6 +603,7 @@ let rec member ~depth = function
         [ modifiers_text modifiers ^ checked name ^ params_text params ]
         body
   | Nested d -> decl ~depth d
+  | Documented (text, m) -> summary ~depth text @ member ~depth m
 
 and decl ~depth = function
   | Type { attributes; modifiers; kind; name; params; base; body } -> (

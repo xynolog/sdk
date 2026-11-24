@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.FailureClass (FailureClass (..)) where
+module Xynolog.Internal.Generated.Models.FailureClass (FailureClass (..), failureClassText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data FailureClass = FailureClassTransient | FailureClassDeterministic | FailureClassWithheld deriving (Eq, Show)
@@ -15,3 +16,8 @@ instance ToJSON FailureClass where
   toJSON FailureClassTransient = String "transient"
   toJSON FailureClassDeterministic = String "deterministic"
   toJSON FailureClassWithheld = String "withheld"
+
+failureClassText :: FailureClass -> Text
+failureClassText FailureClassTransient = "transient"
+failureClassText FailureClassDeterministic = "deterministic"
+failureClassText FailureClassWithheld = "withheld"

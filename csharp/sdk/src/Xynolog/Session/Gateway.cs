@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text.Json;
 using Xynolog.Errors;
 using Xynolog.Http;
-using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog.Session;
@@ -19,7 +18,7 @@ public static class Gateway
     /// <summary>The gateway's origin, as scheme, lowercased host and port.</summary>
     public static string Origin(HttpEndpoint endpoint)
     {
-        if (!IsValidHostname(endpoint.Host)) throw new SignInError(ProtocolFacts.SignInError("discovery"), "Invalid knowledge-base hostname");
+        if (!IsValidHostname(endpoint.Host)) throw new SignInError(SignInErrorCode.Discovery, "Invalid knowledge-base hostname");
         // Serialization checks the generated protocol enum and port bounds before forming an origin.
         var wire = JsonSerializer.SerializeToElement(endpoint);
         return wire.GetProperty("protocol").GetString() + "://" + endpoint.Host.ToLowerInvariant() + ":" + endpoint.Port.ToString(CultureInfo.InvariantCulture);

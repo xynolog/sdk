@@ -1,6 +1,5 @@
 using Xynolog.Errors;
 using Xynolog.Identifiers;
-using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog;
@@ -56,5 +55,5 @@ internal static class JobCompletion
         JobCompleteCommand.YieldJobCompleteCommandCase(var yield) => yield.JobId,
     };
 
-    private static TransportError WrongVerb() => new(ProtocolFacts.Error(0), "The job's completion is not the delegated verb's.");
+    private static TransportError WrongVerb() => new(TransportErrorCode.Error, "The job's completion is not the delegated verb's.");
 }

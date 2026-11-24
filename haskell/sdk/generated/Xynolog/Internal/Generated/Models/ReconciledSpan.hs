@@ -12,12 +12,12 @@ import Xynolog.Internal.Generated.Models.ReconciledSpanFirstOfMany
 import Xynolog.Internal.Generated.Models.ReconciledSpanFuzzyMatch
 import Xynolog.Internal.Generated.Models.ReconciledSpanUniqueMatch
 
-data ReconciledSpan = ReconciledSpanBranch1 ReconciledSpanUniqueMatch | ReconciledSpanBranch2 ReconciledSpanContextRecovered | ReconciledSpanBranch3 ReconciledSpanFirstOfMany | ReconciledSpanBranch4 ReconciledSpanFuzzyMatch deriving (Eq, Show)
+data ReconciledSpan = ReconciledSpanReconciledSpanUniqueMatch ReconciledSpanUniqueMatch | ReconciledSpanReconciledSpanContextRecovered ReconciledSpanContextRecovered | ReconciledSpanReconciledSpanFirstOfMany ReconciledSpanFirstOfMany | ReconciledSpanReconciledSpanFuzzyMatch ReconciledSpanFuzzyMatch deriving (Eq, Show)
 
-instance FromJSON ReconciledSpan where parseJSON = checked "ReconciledSpan" $ \value -> (ReconciledSpanBranch1 <$> parseJSON value) <|> (ReconciledSpanBranch2 <$> parseJSON value) <|> (ReconciledSpanBranch3 <$> parseJSON value) <|> (ReconciledSpanBranch4 <$> parseJSON value)
+instance FromJSON ReconciledSpan where parseJSON = checked "ReconciledSpan" $ \value -> (ReconciledSpanReconciledSpanUniqueMatch <$> parseJSON value) <|> (ReconciledSpanReconciledSpanContextRecovered <$> parseJSON value) <|> (ReconciledSpanReconciledSpanFirstOfMany <$> parseJSON value) <|> (ReconciledSpanReconciledSpanFuzzyMatch <$> parseJSON value)
 
 instance ToJSON ReconciledSpan where
-  toJSON (ReconciledSpanBranch1 value) = toJSON value
-  toJSON (ReconciledSpanBranch2 value) = toJSON value
-  toJSON (ReconciledSpanBranch3 value) = toJSON value
-  toJSON (ReconciledSpanBranch4 value) = toJSON value
+  toJSON (ReconciledSpanReconciledSpanUniqueMatch value) = toJSON value
+  toJSON (ReconciledSpanReconciledSpanContextRecovered value) = toJSON value
+  toJSON (ReconciledSpanReconciledSpanFirstOfMany value) = toJSON value
+  toJSON (ReconciledSpanReconciledSpanFuzzyMatch value) = toJSON value

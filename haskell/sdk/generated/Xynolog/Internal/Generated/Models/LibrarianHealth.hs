@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.LibrarianHealth (LibrarianHealth (..), LibrarianHealthActorsItem (..), LibrarianHealthStatus (..)) where
+module Xynolog.Internal.Generated.Models.LibrarianHealth (LibrarianHealth (..), LibrarianHealthActorsItem (..), librarianHealthActorsItemText, LibrarianHealthStatus (..), librarianHealthStatusText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.KbDid
 
@@ -28,8 +29,15 @@ instance ToJSON LibrarianHealthActorsItem where
   toJSON LibrarianHealthActorsItemMatcher = String "matcher"
   toJSON LibrarianHealthActorsItemGatherer = String "gatherer"
 
+librarianHealthActorsItemText :: LibrarianHealthActorsItem -> Text
+librarianHealthActorsItemText LibrarianHealthActorsItemMatcher = "matcher"
+librarianHealthActorsItemText LibrarianHealthActorsItemGatherer = "gatherer"
+
 data LibrarianHealthStatus = LibrarianHealthStatusOk deriving (Eq, Show)
 
 instance FromJSON LibrarianHealthStatus where parseJSON = checked "LibrarianHealthStatus" $ \value -> if value == String "ok" then pure LibrarianHealthStatusOk else fail "unknown enumeration member"
 
 instance ToJSON LibrarianHealthStatus where toJSON LibrarianHealthStatusOk = String "ok"
+
+librarianHealthStatusText :: LibrarianHealthStatus -> Text
+librarianHealthStatusText LibrarianHealthStatusOk = "ok"

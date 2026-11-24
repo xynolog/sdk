@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobProgressDetectingEntities (JobProgressDetectingEntities (..), JobProgressDetectingEntitiesCode (..)) where
+module Xynolog.Internal.Generated.Models.JobProgressDetectingEntities (JobProgressDetectingEntities (..), JobProgressDetectingEntitiesCode (..), jobProgressDetectingEntitiesCodeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -25,3 +25,6 @@ data JobProgressDetectingEntitiesCode = JobProgressDetectingEntitiesCodeDetectin
 instance FromJSON JobProgressDetectingEntitiesCode where parseJSON = checked "JobProgressDetectingEntitiesCode" $ \value -> if value == String "detecting-entities" then pure JobProgressDetectingEntitiesCodeDetectingU2d_entities else fail "unknown enumeration member"
 
 instance ToJSON JobProgressDetectingEntitiesCode where toJSON JobProgressDetectingEntitiesCodeDetectingU2d_entities = String "detecting-entities"
+
+jobProgressDetectingEntitiesCodeText :: JobProgressDetectingEntitiesCode -> Text
+jobProgressDetectingEntitiesCodeText JobProgressDetectingEntitiesCodeDetectingU2d_entities = "detecting-entities"

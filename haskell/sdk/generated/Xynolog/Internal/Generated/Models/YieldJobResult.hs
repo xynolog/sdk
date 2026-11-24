@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.JobDeclined
 import Xynolog.Internal.Generated.Models.YieldJobDone
 
-data YieldJobResult = YieldJobResultBranch1 YieldJobDone | YieldJobResultBranch2 JobDeclined deriving (Eq, Show)
+data YieldJobResult = YieldJobResultYieldJobDone YieldJobDone | YieldJobResultJobDeclined JobDeclined deriving (Eq, Show)
 
-instance FromJSON YieldJobResult where parseJSON = checked "YieldJobResult" $ \value -> (YieldJobResultBranch1 <$> parseJSON value) <|> (YieldJobResultBranch2 <$> parseJSON value)
+instance FromJSON YieldJobResult where parseJSON = checked "YieldJobResult" $ \value -> (YieldJobResultYieldJobDone <$> parseJSON value) <|> (YieldJobResultJobDeclined <$> parseJSON value)
 
 instance ToJSON YieldJobResult where
-  toJSON (YieldJobResultBranch1 value) = toJSON value
-  toJSON (YieldJobResultBranch2 value) = toJSON value
+  toJSON (YieldJobResultYieldJobDone value) = toJSON value
+  toJSON (YieldJobResultJobDeclined value) = toJSON value

@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ServiceStatus (ServiceStatus (..), ServiceStatusState (..)) where
+module Xynolog.Internal.Generated.Models.ServiceStatus (ServiceStatus (..), ServiceStatusState (..), serviceStatusStateText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -41,3 +41,11 @@ instance ToJSON ServiceStatusState where
   toJSON ServiceStatusStateUnreachable = String "unreachable"
   toJSON ServiceStatusStateAbsent = String "absent"
   toJSON ServiceStatusStateNotU2d_configured = String "not-configured"
+
+serviceStatusStateText :: ServiceStatusState -> Text
+serviceStatusStateText ServiceStatusStateRunning = "running"
+serviceStatusStateText ServiceStatusStateStopped = "stopped"
+serviceStatusStateText ServiceStatusStateReachable = "reachable"
+serviceStatusStateText ServiceStatusStateUnreachable = "unreachable"
+serviceStatusStateText ServiceStatusStateAbsent = "absent"
+serviceStatusStateText ServiceStatusStateNotU2d_configured = "not-configured"

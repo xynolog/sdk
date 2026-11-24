@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.StackKnowledgeBase (StackKnowledgeBase (..), StackKnowledgeBaseKind (..), StackKnowledgeBaseSpec (..), StackKnowledgeBaseSpecArchivist (..), StackKnowledgeBaseSpecDispatcher (..), StackKnowledgeBaseSpecGateway (..), StackKnowledgeBaseSpecIssuer (..), StackKnowledgeBaseSpecIssuerExternal (..), StackKnowledgeBaseSpecIssuerShared (..)) where
+module Xynolog.Internal.Generated.Models.StackKnowledgeBase (StackKnowledgeBase (..), StackKnowledgeBaseKind (..), stackKnowledgeBaseKindText, StackKnowledgeBaseSpec (..), StackKnowledgeBaseSpecArchivist (..), StackKnowledgeBaseSpecDispatcher (..), StackKnowledgeBaseSpecGateway (..), StackKnowledgeBaseSpecIssuer (..), StackKnowledgeBaseSpecIssuerExternal (..), StackKnowledgeBaseSpecIssuerShared (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -33,6 +33,9 @@ data StackKnowledgeBaseKind = StackKnowledgeBaseKindKnowledgeBase deriving (Eq, 
 instance FromJSON StackKnowledgeBaseKind where parseJSON = checked "StackKnowledgeBaseKind" $ \value -> if value == String "KnowledgeBase" then pure StackKnowledgeBaseKindKnowledgeBase else fail "unknown enumeration member"
 
 instance ToJSON StackKnowledgeBaseKind where toJSON StackKnowledgeBaseKindKnowledgeBase = String "KnowledgeBase"
+
+stackKnowledgeBaseKindText :: StackKnowledgeBaseKind -> Text
+stackKnowledgeBaseKindText StackKnowledgeBaseKindKnowledgeBase = "KnowledgeBase"
 
 data StackKnowledgeBaseSpec = StackKnowledgeBaseSpec
   { stackKnowledgeBaseSpecArchivist :: StackKnowledgeBaseSpecArchivist,

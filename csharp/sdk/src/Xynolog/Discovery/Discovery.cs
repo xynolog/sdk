@@ -43,8 +43,8 @@ public sealed record DiscoveryDiff(DiscoveryState State, IReadOnlyList<Discovere
 public static class LauncherDiscovery
 {
     /// <summary>How long <see cref="SubscribeDiscovery"/> waits between reads unless told otherwise.</summary>
-    public static readonly TimeSpan DiscoveryInterval = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("discoveryIntervalMs").GetInt32());
-    private static readonly TimeSpan RequestDeadline = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("httpRequestTimeoutMs").GetInt32());
+    public static readonly TimeSpan DiscoveryInterval = TimeSpan.FromMilliseconds(Timings.DiscoveryIntervalMs);
+    private static readonly TimeSpan RequestDeadline = TimeSpan.FromMilliseconds(Timings.HttpRequestTimeoutMs);
     private static readonly long Version = JsonSerializer.Deserialize<JsonElement>(ProtocolTables.Discovery)
         .GetProperty("properties").GetProperty("version").GetProperty("enum").EnumerateArray().Single().GetInt64();
     private static readonly HttpClient SharedHttp = new(new SocketsHttpHandler { UseProxy = false }) { Timeout = Timeout.InfiniteTimeSpan };

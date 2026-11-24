@@ -4,11 +4,10 @@ import xynolog.StateUnit
 import xynolog.XynologClient
 import xynolog.channels.Channels
 import xynolog.errors.XynologError
-import xynolog.namespaces.SEARCH_LIMIT
-import xynolog.namespaces.SEMANTIC_SCORING
 import xynolog.transport.Delivered
 import xynolog.transport.FrameRefusal
 import xynolog.types.MatchSearchFailed
+import xynolog.types.MatchSearchOptions
 import xynolog.types.MatchSearchRequest
 
 /**
@@ -41,8 +40,7 @@ public class MatchStateUnit(private val client: XynologClient) : StateUnit {
             request.resourceId,
             request.referenceId,
             request.context,
-            request.limit ?: SEARCH_LIMIT,
-            request.useSemanticScoring ?: SEMANTIC_SCORING,
+            MatchSearchOptions(limit = request.limit, useSemanticScoring = request.useSemanticScoring),
         )
         val found = try {
             running.await()

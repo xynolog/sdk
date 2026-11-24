@@ -119,6 +119,7 @@ export * from './components/resource/HistoryEvent';
 export * from './components/resource/ResourceViewer';
 
 // Components - Resource Panels
+export * from './components/resource/panels/agent-label';
 export * from './components/resource/panels/AssessmentEntry';
 export * from './components/resource/panels/AssessmentPanel';
 export * from './components/resource/panels/CollaborationPanel';

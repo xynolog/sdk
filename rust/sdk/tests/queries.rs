@@ -15,7 +15,6 @@ use xynolog::cached::Observed;
 use xynolog::channels::BRIDGED_CHANNELS;
 use xynolog::client::{CachePersistence, ClientOptions, ClientTiming, XynologClient};
 use xynolog::errors::XynologError;
-use xynolog::namespaces::ResourceFilters;
 use xynolog::refresh::CacheQuery;
 use xynolog::resume::CoupledBookmarks;
 use xynolog::session::{cache_key, last_event_id_key};
@@ -31,7 +30,8 @@ use xynolog::testing::{
 };
 use xynolog::timing::SAVE_DEBOUNCE;
 use xynolog::transport::{ConnectionState, Envelope, Frame, STREAM_BACKLOG};
-use xynolog::types::MatchResourcesResponse;
+use xynolog::types::BusFrame;
+use xynolog::types::{BrowseResourcesRequest, MatchResourcesResponse, ResourceSearchFilters};
 
 const WINDOW: Duration = Duration::from_millis(100);
 
@@ -329,12 +329,15 @@ async fn watching_everything() -> Everything {
             .watch(),
     ));
     watching.push(Box::new(
-        client.browse.resources(ResourceFilters::default()).watch(),
+        client
+            .browse
+            .resources(BrowseResourcesRequest::default())
+            .watch(),
     ));
     watching.push(Box::new(
         client
             .match_
-            .resources("cat", ResourceFilters::default())
+            .resources("cat", ResourceSearchFilters::default())
             .watch(),
     ));
     watching.push(Box::new(client.browse.entity_types().watch()));
@@ -873,10 +876,12 @@ async fn b17_b19_closing_takes_the_places_before_it_disposes_of_anything() {
 /// res-1's description changed.
 fn updated_on_its_scope() -> Frame {
     Frame {
-        channel: "yield:updated".to_owned(),
-        payload: recorded("res-1", json!({}), json!({})),
-        correlation_id: None,
-        scope: Some(as_id("res-1")),
+        bus_frame: BusFrame {
+            channel: "yield:updated".to_owned(),
+            payload: recorded("res-1", json!({}), json!({})),
+            correlation_id: None,
+            scope: Some(as_id("res-1")),
+        },
         trace: None,
         stream_id: None,
     }
@@ -1080,10 +1085,13 @@ async fn watching_a_query_of_a_resource_holds_its_scope_and_a_one_shot_read_hold
 async fn a_query_of_the_knowledge_base_as_a_whole_holds_no_scope() {
     let (client, transport, _) = world();
     let _watching = (
-        client.browse.resources(ResourceFilters::default()).watch(),
+        client
+            .browse
+            .resources(BrowseResourcesRequest::default())
+            .watch(),
         client
             .match_
-            .resources("cat", ResourceFilters::default())
+            .resources("cat", ResourceSearchFilters::default())
             .watch(),
         client.browse.entity_types().watch(),
         client.browse.tag_schemas().watch(),
@@ -1098,15 +1106,21 @@ async fn a_query_of_the_knowledge_base_as_a_whole_holds_no_scope() {
 #[tokio::test(start_paused = true)]
 async fn a_list_is_kept_per_set_of_filters_and_every_list_held_is_asked_for_again_as_one() {
     let (client, transport, _) = world();
-    let mut all = client.browse.resources(ResourceFilters::default()).watch();
+    let mut all = client
+        .browse
+        .resources(BrowseResourcesRequest::default())
+        .watch();
     let mut people = client
         .browse
-        .resources(ResourceFilters {
+        .resources(BrowseResourcesRequest {
             entity_type: Some("Person".to_owned()),
-            ..ResourceFilters::default()
+            ..BrowseResourcesRequest::default()
         })
         .watch();
-    let mut same = client.browse.resources(ResourceFilters::default()).watch();
+    let mut same = client
+        .browse
+        .resources(BrowseResourcesRequest::default())
+        .watch();
     holds(&mut all).await;
     holds(&mut people).await;
     holds(&mut same).await;
@@ -1138,7 +1152,7 @@ async fn a_search_asks_for_its_text_among_the_resources_its_filters_admit() {
     let (client, transport, _) = world();
     let found = client
         .match_
-        .resources("cat", ResourceFilters::default())
+        .resources("cat", ResourceSearchFilters::default())
         .fresh()
         .await
         .expect("an answer");
@@ -1151,7 +1165,7 @@ async fn a_search_asks_for_its_text_among_the_resources_its_filters_admit() {
         .match_
         .resources(
             "cat",
-            ResourceFilters {
+            ResourceSearchFilters {
                 limit: Some(5),
                 offset: None,
                 archived: Some(false),
@@ -1170,7 +1184,7 @@ async fn a_search_asks_for_its_text_among_the_resources_its_filters_admit() {
     // A list is asked for with no text, and of another operation.
     let _ = client
         .browse
-        .resources(ResourceFilters::default())
+        .resources(BrowseResourcesRequest::default())
         .fresh()
         .await;
     assert_eq!(
@@ -1192,23 +1206,23 @@ async fn searching() -> (
     Vec<Observed<MatchResourcesResponse>>,
 ) {
     let (client, transport, _) = world();
-    let people = || ResourceFilters {
+    let people = || ResourceSearchFilters {
         entity_type: Some("Person".to_owned()),
-        ..ResourceFilters::default()
+        ..ResourceSearchFilters::default()
     };
     let mut watching = vec![
         client
             .match_
-            .resources("cat", ResourceFilters::default())
+            .resources("cat", ResourceSearchFilters::default())
             .watch(),
         client.match_.resources("cat", people()).watch(),
         client
             .match_
-            .resources("dog", ResourceFilters::default())
+            .resources("dog", ResourceSearchFilters::default())
             .watch(),
         client
             .match_
-            .resources("cat", ResourceFilters::default())
+            .resources("cat", ResourceSearchFilters::default())
             .watch(),
     ];
     for watcher in &mut watching {
@@ -1229,7 +1243,7 @@ async fn a_search_is_kept_per_text_and_set_of_filters_and_every_search_held_is_a
     // The two watchers of one search are shown one answer.
     let first = client
         .match_
-        .resources("cat", ResourceFilters::default())
+        .resources("cat", ResourceSearchFilters::default())
         .fresh()
         .await
         .expect("an answer");
@@ -1290,7 +1304,10 @@ async fn b13_a_stream_that_reopens_asks_again_for_every_search_held() {
 #[tokio::test(start_paused = true)]
 async fn b20_an_event_asks_for_no_search_when_none_is_held() {
     let (client, transport, _) = world();
-    let _list = client.browse.resources(ResourceFilters::default()).watch();
+    let _list = client
+        .browse
+        .resources(BrowseResourcesRequest::default())
+        .watch();
     settle().await;
     heard(
         &client,
@@ -1310,7 +1327,9 @@ async fn b20_an_event_asks_for_no_search_when_none_is_held() {
 #[tokio::test(start_paused = true)]
 async fn a_search_can_be_said_to_be_out_of_date_and_ends_with_its_client() {
     let (client, transport, _) = world();
-    let search = client.match_.resources("cat", ResourceFilters::default());
+    let search = client
+        .match_
+        .resources("cat", ResourceSearchFilters::default());
     let mut watcher = search.watch();
     assert!(holds(&mut watcher).await.is_ready());
     search.invalidate();
@@ -1556,7 +1575,7 @@ async fn b17_a_client_keeps_the_queries_the_table_marks_persisted_and_no_other()
         .expect("the tag schemas");
     client
         .browse
-        .resources(ResourceFilters::default())
+        .resources(BrowseResourcesRequest::default())
         .fresh()
         .await
         .expect("a page of resources");
@@ -1574,7 +1593,7 @@ async fn b17_a_client_keeps_the_queries_the_table_marks_persisted_and_no_other()
         .expect("what refers to it");
     client
         .match_
-        .resources("cat", ResourceFilters::default())
+        .resources("cat", ResourceSearchFilters::default())
         .fresh()
         .await
         .expect("a search");

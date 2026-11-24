@@ -24,8 +24,8 @@
 import type { Observable } from 'rxjs';
 
 import type { components } from './types';
-import type { AccessToken, BaseUrl, ContentFormat } from './branded-types';
-import type { AnnotationId, ResourceId } from './identifiers';
+import type { AccessToken, BaseUrl } from './branded-types';
+import type { AnnotationId, JobId, ResourceId } from './identifiers';
 import type { EventMap } from './bus-protocol';
 import type { BusEnvelope, BusFrame } from './event-bus';
 import type { EventBus } from './event-bus';
@@ -33,7 +33,6 @@ import type { FrameRefusal } from './bus';
 import type { XynologError } from './errors';
 import type { AnchoredTextAnswer } from './pdf-anchoring';
 
-type Agent = components['schemas']['Agent'];
 type GetResourceResponse = components['schemas']['GetResourceResponse'];
 type GetAnnotationsResponse = components['schemas']['GetAnnotationsResponse'];
 
@@ -253,28 +252,40 @@ export interface IGatewayOperations {
 
 // ── IContentTransport ───────────────────────────────────────────────────
 
-export interface PutBinaryRequest {
-  name: string;
-  file: File | Buffer;
-  format: ContentFormat;
-  storageUri: string;
-  entityTypes?: string[];
-  language?: string;
-  sourceAnnotationId?: AnnotationId | string;
-  sourceResourceId?: ResourceId | string;
-  generationPrompt?: string;
-  generator?: Agent | Agent[];
-  /** The job this resource fulfils, when a worker is creating it. Crosses the upload as a form field and lands on yield:create. */
-  jobId?: string;
-  isDraft?: boolean;
-  /**
-   * Clone provenance: when set, the Archivist stores the bytes and routes
-   * creation through `yield:clone-create` — the CloneTokenManager validates
-   * the token and inherits source metadata. Bytes never ride the bus.
-   */
-  cloneToken?: string;
-  /** Clone-only: archive the source resource after a successful clone. */
-  archiveOriginal?: boolean;
+type ResourceUpload = components['schemas']['ResourceUpload'];
+type YieldCreateCommand = components['schemas']['YieldCreateCommand'];
+
+/**
+ * What uploading a resource is handed (client/types/PutBinaryRequest.json),
+ * each member the one its schema refers to. The bytes are what a caller holds
+ * them as, which no schema can say; sdk's client-types census holds the
+ * members to the schema's.
+ */
+export type PutBinaryRequest = Pick<
+  ResourceUpload,
+  'name' | 'format' | 'storageUri'
+> &
+  Partial<
+    Pick<ResourceUpload, 'language' | 'generationPrompt' | 'cloneToken'> &
+      Pick<YieldCreateCommand, 'entityTypes' | 'generator' | 'isDraft'> &
+      Pick<components['schemas']['YieldCloneCreateCommand'], 'archiveOriginal'>
+  > & {
+    file: File | Buffer;
+    sourceAnnotationId?: AnnotationId;
+    sourceResourceId?: ResourceId;
+    jobId?: JobId;
+  };
+
+/** A resource's bytes, whole, with the media type they were answered with (client/types/ResourceRepresentation.json). */
+export interface ResourceRepresentation {
+  data: ArrayBuffer;
+  contentType: string;
+}
+
+/** A resource's bytes as they arrive, read once, with the media type they were answered with (client/types/ResourceRepresentationStream.json). */
+export interface ResourceRepresentationStream {
+  stream: ReadableStream<Uint8Array>;
+  contentType: ResourceRepresentation['contentType'];
 }
 
 /**
@@ -314,12 +325,12 @@ export interface IContentTransport {
   getBinary(
     resourceId: ResourceId,
     options?: { auth?: AccessToken },
-  ): Promise<{ data: ArrayBuffer; contentType: string }>;
+  ): Promise<ResourceRepresentation>;
 
   getBinaryStream(
     resourceId: ResourceId,
     options?: { auth?: AccessToken },
-  ): Promise<{ stream: ReadableStream<Uint8Array>; contentType: string }>;
+  ): Promise<ResourceRepresentationStream>;
 
   /**
    * Fetch the resource's JSON-LD metadata graph (descriptor + annotations).

@@ -78,11 +78,7 @@ let on_frame t event =
               [
                 ("channel", text route.channel);
                 ("member", text member);
-                ( "reason",
-                  text
-                    (match reason with
-                    | `Lacks -> "lacks"
-                    | `Malformed -> "malformed") );
+                ("reason", text (Enums.Frame_refusal_reason.to_string reason));
               ]))
   | _ -> ()
 
@@ -195,7 +191,19 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                 (fun (channel, signal) -> receive channel signal)
                 pending;
               Queue.clear pending;
-              let identity = `Assoc [ ("jobId", text id) ] in
+              let safe value =
+                Yojson.Safe.from_string (Yojson.Raw.to_string value)
+              in
+              let cancel =
+                safe
+                  (Records.Job_cancel_request.to_json
+                     { job_id = id; extra = [] })
+              in
+              let status_request =
+                safe
+                  (Records.Job_status_request.to_json
+                     { job_id = id; extra = [] })
+              in
               let poll_delay () =
                 if !retrying || !polling then t.poll_ms else t.silence_ms
               in
@@ -219,7 +227,7 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                       (try
                          ignore
                            (send t ~correlation_id:(t.correlation_id ())
-                              B.Channels.job_cancel_requested identity)
+                              B.Channels.job_cancel_requested cancel)
                        with H.Failed _ -> ());
                       if not !finished then
                         fail Error_codes.Job.stalled (`Assoc []))
@@ -229,13 +237,20 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                     else
                       let previous_activity = !last_seen in
                       let status =
-                        request t B.Operations.job_status_requested identity
+                        request t B.Operations.job_status_requested
+                          status_request
                       in
                       if not !finished then (
                         (match status with
                         | Ok value -> (
-                            match field "status" value with
-                            | `String "complete" ->
+                            let response =
+                              Records.Job_status_response.project
+                                (Record_reader.fields_of
+                                   (Yojson.Raw.from_string
+                                      (Yojson.Safe.to_string value)))
+                            in
+                            match response.status with
+                            | Complete ->
                                 on_report Complete
                                   (`Assoc
                                      ([
@@ -250,11 +265,9 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                                               ("resourceId", text value))
                                             resource)));
                                 finish ()
-                            | `String "failed" ->
-                                fail Error_codes.Job.failed value
-                            | `String "cancelled" ->
-                                fail Error_codes.Job.cancelled value
-                            | _ -> ())
+                            | Failed -> fail Error_codes.Job.failed value
+                            | Cancelled -> fail Error_codes.Job.cancelled value
+                            | Pending | Running -> ())
                         | Error _ -> ());
                         if Mtime.equal !last_seen previous_activity then (
                           last_seen := Clock.monotonic_now t.clock;

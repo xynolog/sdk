@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.VectorStore (VectorStore (..), VectorStoreKind (..), VectorStoreSpec (..)) where
+module Xynolog.Internal.Generated.Models.VectorStore (VectorStore (..), VectorStoreKind (..), vectorStoreKindText, VectorStoreSpec (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,6 +30,9 @@ data VectorStoreKind = VectorStoreKindVectorStore deriving (Eq, Show)
 instance FromJSON VectorStoreKind where parseJSON = checked "VectorStoreKind" $ \value -> if value == String "VectorStore" then pure VectorStoreKindVectorStore else fail "unknown enumeration member"
 
 instance ToJSON VectorStoreKind where toJSON VectorStoreKindVectorStore = String "VectorStore"
+
+vectorStoreKindText :: VectorStoreKind -> Text
+vectorStoreKindText VectorStoreKindVectorStore = "VectorStore"
 
 data VectorStoreSpec = VectorStoreSpec
   { vectorStoreSpecImage :: Image,

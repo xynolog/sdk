@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BrowseDirectoryRequest (BrowseDirectoryRequest (..), BrowseDirectoryRequestSort (..)) where
+module Xynolog.Internal.Generated.Models.BrowseDirectoryRequest (BrowseDirectoryRequest (..), BrowseDirectoryRequestSort (..), browseDirectoryRequestSortText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -28,3 +28,8 @@ instance ToJSON BrowseDirectoryRequestSort where
   toJSON BrowseDirectoryRequestSortName = String "name"
   toJSON BrowseDirectoryRequestSortMtime = String "mtime"
   toJSON BrowseDirectoryRequestSortAnnotationCount = String "annotationCount"
+
+browseDirectoryRequestSortText :: BrowseDirectoryRequestSort -> Text
+browseDirectoryRequestSortText BrowseDirectoryRequestSortName = "name"
+browseDirectoryRequestSortText BrowseDirectoryRequestSortMtime = "mtime"
+browseDirectoryRequestSortText BrowseDirectoryRequestSortAnnotationCount = "annotationCount"

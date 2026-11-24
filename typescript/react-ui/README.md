@@ -270,7 +270,7 @@ function Example() {
   const client = useObservable(useXynolog().activeSession$)?.client;
 
   // Read: live query over the read-through cache. Emissions are
-  // CacheState<ResourceList>; readyValue projects out the ready envelope.
+  // CacheState<ListResourcesResponse>; readyValue projects out the ready envelope.
   const state = useObservable(client?.browse.resources({ limit: 10 }));
   const resources = state && readyValue(state)?.resources; // undefined until ready
 

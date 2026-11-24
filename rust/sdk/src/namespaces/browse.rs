@@ -56,7 +56,7 @@ use tokio_stream::wrappers::WatchStream;
 /// How many resources a list or a search asks for when its caller states no
 /// limit. Every SDK asks for as many: the cases of
 /// protocol/specs/src/client/surface.json hold each to it.
-const LIST_LIMIT: u64 = 100;
+pub(super) const LIST_LIMIT: u16 = 100;
 
 /// The key of a query the knowledge base has one of. A kept one keeps its one
 /// entry under it, written as protocol/specs/src/session/stored.json's
@@ -86,31 +86,6 @@ impl<'de> Deserialize<'de> for WholeKey {
                 &"the whole key",
             ))
         }
-    }
-}
-
-/// Which resources a list, or a search, is of. Each field that is stated
-/// narrows it.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
-pub struct ResourceFilters {
-    /// How many resources at most: a hundred when not stated.
-    pub limit: Option<u64>,
-    /// How many of the resources admitted are passed over before the page
-    /// begins: none when not stated.
-    pub offset: Option<u64>,
-    pub archived: Option<bool>,
-    pub entity_type: Option<String>,
-}
-
-impl ResourceFilters {
-    /// How many resources a request with these filters asks for.
-    pub(crate) fn limit(&self) -> u64 {
-        self.limit.unwrap_or(LIST_LIMIT)
-    }
-
-    /// How many resources a request with these filters passes over.
-    pub(crate) fn offset(&self) -> u64 {
-        self.offset.unwrap_or(0)
     }
 }
 
@@ -186,7 +161,7 @@ async fn limits_reported(links: &Links, operation: &Operation) -> Vec<EngineLimi
 /// persists is reached by that name (`Live::kept`, generated).
 pub(super) struct Live {
     pub(super) resource: Cache<ResourceId, ResourceDescriptor>,
-    pub(super) resources: Cache<ResourceFilters, ListResourcesResponse>,
+    pub(super) resources: Cache<BrowseResourcesRequest, ListResourcesResponse>,
     pub(super) annotations: Cache<ResourceId, GetAnnotationsResponse>,
     pub(super) annotation: Cache<AnnotationId, Annotation>,
     /// The resource each annotation that was asked for is of: an annotation
@@ -431,14 +406,13 @@ impl Live {
         });
         let resources = Cache::new({
             let links = asking(links);
-            move |filters: ResourceFilters| {
+            move |filters: BrowseResourcesRequest| {
                 let links = links.clone();
                 async move {
                     let request = BrowseResourcesRequest {
-                        limit: Some(filters.limit()),
-                        archived: filters.archived,
-                        offset: Some(filters.offset()),
-                        entity_type: filters.entity_type,
+                        limit: Some(filters.limit.unwrap_or(LIST_LIMIT.into())),
+                        offset: Some(filters.offset.unwrap_or(0)),
+                        ..filters
                     };
                     let answer = links.request::<BrowseResourcesRequested>(&request).await?;
                     Ok(answer.response)
@@ -867,12 +841,13 @@ impl BrowseNamespace {
         self.of_resource(&self.live.resource, resource_id, resource_id, |value| value)
     }
 
-    /// A page of the resources `filters` admits. A list is a query's answer:
+    /// A page of the resources `filters` admits: a hundred when they state no
+    /// limit, from the first when they state no offset. A list is a query's answer:
     /// it is asked for again when a resource is created, updated, cloned or
     /// moved, and when a dropped stream reopens, and not by a change to a
     /// resource whose scope the client does not hold. Finding resources by
     /// text is `match_.resources`.
-    pub fn resources(&self, filters: ResourceFilters) -> Cached<ListResourcesResponse> {
+    pub fn resources(&self, filters: BrowseResourcesRequest) -> Cached<ListResourcesResponse> {
         Cached::of(Keyed {
             cache: self.live.resources.clone(),
             key: filters,

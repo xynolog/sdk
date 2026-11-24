@@ -17,6 +17,31 @@ the coming release's, and gathers its changes as they land.
   pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
+- A generated type derives `Eq` and `Hash` wherever none of its members is a
+  floating-point number, and `Default` when every member is optional. A
+  property that admits one integer is a constant (`DiscoveryDocument::VERSION`).
+- `Claims::health(engine)` composes the generated `WorkerEngineHealth` from the
+  engine, the jobs the worker claims and its vitals, with times at the
+  millisecond.
+- `Route::path_for(resource_id)` fills a gateway route's path for a resource.
+- `bus.questions::<R>()`: the side of an operation a service answers. Each
+  `Question<R>` holds the request as it was asked, and `answer` sends its
+  result or failure, typed by the operation, under the asker's correlation id.
+  A request that is not the operation's is refused, and its asker is told why
+  on the failure channel when the request states what the failure carries.
+- `xynolog::control`: the launcher's control API, from
+  `control/methods.json`. Each method and notification is a marker whose
+  associated types are what it carries (`LauncherAbout`, `RootsInit`,
+  `NotificationsProgress`, …), and `CONTROL_METHODS`, `CONTROL_NOTIFICATIONS`
+  and `control_method(name)` state the table by name.
+- `ControlErrorCode`, the control vocabulary of `errors/codes.json`. Every
+  vocabulary's enum states its codes as `ALL`.
+- `read_as::<T>(value)` reads a value as the schema `T` is generated from,
+  refused for its first fault as `fault_said` says it. `bounds_of::<T>(member)`
+  gives the sizes and bounds the schema states of a member.
+- `stored_session_of(client_id, issuer, tokens)` in `xynolog-http-transport`:
+  the session a completed sign-in keeps.
+- A held job's `accepted()`: whether a filter it was claimed with accepts it.
 
 ### Changed
 
@@ -27,6 +52,22 @@ the coming release's, and gathers its changes as they land.
   (`HttpStatus`).
 - `OpenResource` is `xynolog::types::OpenResource`, the type Protocol states,
   in place of `xynolog::session::OpenResource`.
+- `browse.resources` takes the generated `BrowseResourcesRequest`, and
+  `match.resources` takes `ResourceSearchFilters`. `ResourceFilters` is gone.
+  Both read a hundred when no limit is stated and start from the first when no
+  offset is stated.
+- `gather.resource` takes the generated `GatherResourceOptions`, each member of
+  which a caller may leave out, in place of `GatherResourceRequestOptions`,
+  which no longer has a `Default`. `match.search` takes the resource, the
+  reference, its context and the generated `MatchSearchOptions`, in place of a
+  whole `MatchSearchRequest`. Both follow surface.json.
+- `job.poll_until_complete` takes the generated `JobPollOptions` in place of
+  two durations.
+- A delivered `Frame` holds the generated `BusFrame` as `bus_frame`, beside its
+  `trace` and `stream_id`, in place of restating its members.
+- A held yield job is anchored by its `GenerationJobParams`' focus.
+- The conformance drivers write each line as a generated
+  `ConformanceDriverLine` and each failure as a `ConformanceFailure`.
 
 ## 0.8.1
 

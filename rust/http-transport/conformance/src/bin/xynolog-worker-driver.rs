@@ -16,18 +16,6 @@ use chrono::{DateTime, SecondsFormat, Utc};
 use opentelemetry::context::FutureExt;
 use opentelemetry::trace::{SpanKind, TraceContextExt, Tracer};
 use opentelemetry::{Context, KeyValue, global};
-use xynolog::claims::{
-    Claims, HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, JobFailure,
-};
-use xynolog::client::{ClientOptions, XynologClient};
-use xynolog::transport::{ConnectionState, ResourceHold, Transport};
-use xynolog::types::{Annotation, ClaimOptions, JobProgress, ResourceId};
-use xynolog_conformance_drivers::{
-    Arguments, Driver, Ended, Running, count, failure, identifier, locked, object, say, serve,
-    text, texts,
-};
-use xynolog_http_transport::content::HttpContentTransport;
-use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use std::future::Future;
@@ -35,6 +23,21 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 use tokio::sync::watch;
 use tokio::task::JoinSet;
+use xynolog::claims::{Claims, HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, JobFailure};
+use xynolog::client::{ClientOptions, XynologClient};
+use xynolog::transport::{ConnectionState, ResourceHold, Transport};
+use xynolog::types::{
+    Annotation, ClaimOptions, ConformanceDriverLine, ConformanceDriverLineClaimed,
+    ConformanceDriverLineErrorStream, ConformanceDriverLineRefused, ConformanceDriverLineSignalled,
+    ConformanceDriverLineStalled, ConformanceDriverLineState, ConformanceFailure, JobProgress,
+    ResourceId,
+};
+use xynolog_conformance_drivers::{
+    Arguments, Driver, Ended, Running, count, failure, identifier, locked, object, say, serve,
+    text, texts,
+};
+use xynolog_http_transport::content::HttpContentTransport;
+use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
 
 struct Opened {
     transport: HttpTransport,
@@ -140,7 +143,9 @@ impl Worker {
         let mut reported = locked(&self.reported);
         if *reported != Some(state) {
             *reported = Some(state);
-            say(json!({ "state": state.as_str() }));
+            say(ConformanceDriverLine::State(ConformanceDriverLineState {
+                state: state.as_str().to_owned(),
+            }));
         }
     }
 
@@ -211,9 +216,11 @@ impl Worker {
         reporters.spawn(async move {
             while let Some(reported) = failures.next().await {
                 match reported {
-                    Ok(error) => say(json!({
-                        "error": failure(error.code.as_str(), error.status, error.message)
-                    })),
+                    Ok(error) => say(ConformanceDriverLine::ErrorStream(
+                        ConformanceDriverLineErrorStream {
+                            error: failure(error.code.as_str(), error.status, error.message),
+                        },
+                    )),
                     Err(lagged) => eprintln!("the error stream: {lagged}"),
                 }
             }
@@ -257,7 +264,11 @@ impl Worker {
         reporters.spawn(async move {
             while let Some(stall) = stalled.next().await {
                 if let Ok(stall) = stall {
-                    say(json!({ "stalled": stall.job_id }));
+                    say(ConformanceDriverLine::Stalled(
+                        ConformanceDriverLineStalled {
+                            stalled: stall.job_id.into(),
+                        },
+                    ));
                 }
             }
         });
@@ -279,19 +290,31 @@ impl Worker {
                         let (mut cancelled, job_id) = (job.cancelled(), job.job_id().clone());
                         tokio::spawn(async move {
                             if cancelled.wait_for(|cancelled| *cancelled).await.is_ok() {
-                                say(json!({ "signalled": job_id }));
+                                say(ConformanceDriverLine::Signalled(
+                                    ConformanceDriverLineSignalled {
+                                        signalled: job_id.into(),
+                                    },
+                                ));
                             }
                         });
                         let span = span_of(&job);
                         *driver.held.lock().await = Some((job, span));
-                        say(json!({ "claimed": claimed }));
+                        say(ConformanceDriverLine::Claimed(
+                            ConformanceDriverLineClaimed {
+                                claimed: serde_json::from_value(claimed)
+                                    .expect("a held job's members are an object"),
+                            },
+                        ));
                     }
                     Err(refusal) => {
-                        let mut refused = json!({ "detail": refusal.message });
-                        if let Some(code) = refusal.code {
-                            refused["code"] = json!(code.as_str());
-                        }
-                        say(json!({ "refused": refused }));
+                        say(ConformanceDriverLine::Refused(
+                            ConformanceDriverLineRefused {
+                                refused: ConformanceFailure {
+                                    code: refusal.code.map(|code| code.as_str().to_owned()),
+                                    ..ConformanceFailure::new(refusal.message)
+                                },
+                            },
+                        ));
                     }
                 }
             }

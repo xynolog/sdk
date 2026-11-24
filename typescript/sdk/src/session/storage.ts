@@ -209,26 +209,8 @@ export function storedSessionIn(raw: string | null): StoredSession | null {
   if (!raw) return null;
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (
-      isObject(parsed) &&
-      isString(parsed['access']) &&
-      isString(parsed['refresh']) &&
-      isString(parsed['clientId']) &&
-      isString(parsed['tokenEndpoint'])
-    ) {
-      return {
-        access: parsed['access'],
-        refresh: parsed['refresh'],
-        clientId: parsed['clientId'],
-        tokenEndpoint: parsed['tokenEndpoint'],
-        ...(isString(parsed['revocationEndpoint'])
-          ? { revocationEndpoint: parsed['revocationEndpoint'] }
-          : {}),
-        ...(isString(parsed['personKey'])
-          ? { personKey: parsed['personKey'] }
-          : {}),
-      };
-    }
+    if (faultOf('StoredSession', parsed) === undefined)
+      return parsed as StoredSession;
   } catch {
     // malformed entry — treat as no session
   }
@@ -454,6 +436,28 @@ export function kbGatewayUrl(endpoint: HttpEndpoint): string {
     throw new Error(`Invalid KB hostname: "${endpoint.host}"`);
   }
   return `${endpoint.protocol}://${endpoint.host.toLowerCase()}:${endpoint.port}`;
+}
+
+/**
+ * The HTTP endpoint a gateway's address names: its protocol, which is `http`
+ * or `https`, its host, and its port, the protocol's own when the address
+ * writes none. The inverse of `kbGatewayUrl`; an address that is no URL, or
+ * whose host is not a host's name, is refused.
+ */
+export function httpEndpointOf(address: string): HttpEndpoint {
+  let url: URL;
+  try {
+    url = new URL(address);
+  } catch {
+    throw new Error(`Invalid KB address: "${address}"`);
+  }
+  const protocol = url.protocol.slice(0, -1);
+  if (protocol !== 'http' && protocol !== 'https')
+    throw new Error(`A KB address is http or https, not "${protocol}"`);
+  if (!isValidHostname(url.hostname))
+    throw new Error(`Invalid KB hostname: "${url.hostname}"`);
+  const port = url.port ? Number(url.port) : protocol === 'https' ? 443 : 80;
+  return { kind: 'http', host: url.hostname, port, protocol };
 }
 
 export function generateKbId(): string {

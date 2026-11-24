@@ -7,7 +7,6 @@ using System.Threading.Channels;
 using Xynolog.Errors;
 using Xynolog.Identifiers;
 using Xynolog.Http;
-using Xynolog.Protocol;
 using Xynolog.Registry;
 using Xynolog.Storage;
 using Xynolog.Types;
@@ -78,7 +77,7 @@ public sealed partial class TransportTests
                     break;
                 case ("browse", "resources"):
                     var listed = await VerifyAsync(() => args.TryGetProperty("filters", out var filters)
-                            ? client.Browse.Resources(Limit(filters), Offset(filters), Archived(filters), EntityType(filters))
+                            ? client.Browse.Resources(Required<BrowseResourcesRequest>(filters))
                             : client.Browse.Resources(),
                         BusOperations.BrowseResourcesRequested.Result.Name, new { response = new ListResourcesResponse { Resources = [], Total = 0, Limit = 100, Offset = 0 } }, example);
                     Assert.Empty(listed.Resources);
@@ -133,7 +132,7 @@ public sealed partial class TransportTests
                     break;
                 case ("match", "resources"):
                     var matched = await VerifyAsync(() => args.TryGetProperty("filters", out var filters)
-                            ? client.Match.Resources(Text(args, "search"), Limit(filters), Offset(filters), Archived(filters), EntityType(filters))
+                            ? client.Match.Resources(Text(args, "search"), Required<ResourceSearchFilters>(filters))
                             : client.Match.Resources(Text(args, "search")),
                         BusOperations.MatchResourcesRequested.Result.Name, new { response = new MatchResourcesResponse { Resources = [], Total = 0, Limit = 100, Offset = 0, MatchKind = MatchResourcesResponseMatchKind.Lexical } }, example);
                     Assert.Empty(matched.Resources);
@@ -143,10 +142,6 @@ public sealed partial class TransportTests
             Assert.False(server.Emits.Reader.TryPeek(out _));
         }
 
-        static long Limit(JsonElement filters) => filters.TryGetProperty("limit", out var limit) ? limit.GetInt64() : 100;
-        static long Offset(JsonElement filters) => filters.TryGetProperty("offset", out var offset) ? offset.GetInt64() : 0;
-        static bool? Archived(JsonElement filters) => filters.TryGetProperty("archived", out var archived) ? archived.GetBoolean() : null;
-        static string? EntityType(JsonElement filters) => filters.TryGetProperty("entityType", out var entity) ? entity.GetString() : null;
 
         static JsonElement ReadAnnotationExample()
         {

@@ -128,6 +128,7 @@ let required n =
   Option.value ~default:[] (field (fun (s : Schema.schema) -> s.required) n)
 
 let additional = field (fun (s : Schema.schema) -> s.additional_properties)
+let property_names = field (fun (s : Schema.schema) -> s.property_names)
 let max_properties = field (fun (s : Schema.schema) -> s.max_properties)
 let all_of = field (fun (s : Schema.schema) -> s.all_of)
 let items = field (fun (s : Schema.schema) -> s.items)
@@ -145,8 +146,14 @@ let union n =
         n
       |> Option.map (List.map node)
 
+(* Whether a node admits any value: it says nothing of one, only what it is
+   ([description], [title]) or a note to its reader ([$comment]), as a JSON
+   Schema a table holds does (JsonSchema.json). *)
 let is_empty = function
-  | Node { s; null_form = Not_null } -> Schema.keywords s = []
+  | Node { s; null_form = Not_null } ->
+      List.for_all
+        (fun k -> List.mem k [ "description"; "title"; "$comment" ])
+        (Schema.keywords s)
   | _ -> false
 
 let property_node n key =
@@ -387,17 +394,22 @@ and type_of st owner property n =
                       | _, Some (Boolean_schema false) -> the_empty_object st
                       | _ when max_properties n = Some 0 -> the_empty_object st
                       | _, (None | Some (Boolean_schema true)) -> t "JsonObject"
-                      | _, Some beside ->
-                          K.Generic
-                            ( "kotlin.collections.Map",
-                              [
-                                t "String";
-                                type_of st owner (property ^ "Value")
-                                  (node beside);
-                              ] ))
+                      | _, Some beside -> map_of st owner property n beside)
                   | Some Null | None ->
                       refuse "%s: a schema shape the generator does not know"
                         what))))
+
+(* A map, keyed by what its [propertyNames] names (text, when it names
+   nothing), of what its [additionalProperties] admits. *)
+and map_of st owner property n beside =
+  K.Generic
+    ( "kotlin.collections.Map",
+      [
+        (match property_names n with
+        | Some keys -> type_of st owner (property ^ "Key") (node keys)
+        | None -> t "String");
+        type_of st owner (property ^ "Value") (node beside);
+      ] )
 
 and the_empty_object st =
   if not (Hashtbl.mem st.written empty_object) then
@@ -446,7 +458,7 @@ and plain_declaration st name ~owner raw : written =
           if type_name raw <> Some String then
             refuse "%s: only string enumerations are generated" name;
           enum_declaration name values about
-      | None ->
+      | None -> (
           let alias held =
             Alias
               (K.Typealias
@@ -459,13 +471,26 @@ and plain_declaration st name ~owner raw : written =
           else if type_name raw <> Some Object then
             refuse "%s: a schema shape the generator does not know" name
           else
-            object_declaration st name ~owner
-              {
-                stated_properties = Option.value ~default:[] (properties raw);
-                required_names = required raw;
-                beside = additional raw;
-              }
-              about)
+            match (properties raw, additional raw) with
+            | (None | Some []), Some (Schema.Schema _ as beside) ->
+                (* A map alone, of what each of its members holds. *)
+                Alias
+                  (K.Typealias
+                     {
+                       about;
+                       visibility = K.Public;
+                       name;
+                       type_ = map_of st name "" raw beside;
+                     })
+            | _ ->
+                object_declaration st name ~owner
+                  {
+                    stated_properties =
+                      Option.value ~default:[] (properties raw);
+                    required_names = required raw;
+                    beside = additional raw;
+                  }
+                  about))
 
 and enum_declaration name values about =
   let entries =
@@ -1017,7 +1042,10 @@ and union_declaration st name members told_apart about : written =
       | _ when type_name m = Some Number ->
           variant "Number" (wrapped name "Number" (t "Double")) [ `Scalar ]
       | _ when type_name m = Some Boolean ->
-          variant "Boolean" (wrapped name "Boolean" (t "Boolean")) [ `Scalar ]
+          (* Within the member, a bare [Boolean] is the member itself. *)
+          variant "Boolean"
+            (wrapped name "Boolean" (t "kotlin.Boolean"))
+            [ `Scalar ]
       | _ when type_name m = Some Array ->
           variant "List"
             (wrapped name "List"

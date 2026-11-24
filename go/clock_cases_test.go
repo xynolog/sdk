@@ -599,7 +599,7 @@ func heldJobStall(t *testing.T, _ clockGiven) clockSubject {
 	if err := json.Unmarshal([]byte(`[{"jobType":"mark","params":{"motivation":"highlighting"}}]`), &marks); err != nil {
 		t.Fatal(err)
 	}
-	claims := client.Job.Claim(marks)
+	claims := client.Job.Claim(api.ClaimOptions{Accepts: marks})
 	held := make(chan xynolog.HeldJob, 1)
 	ranged := make(chan struct{})
 	t.Cleanup(func() { <-ranged })
@@ -761,7 +761,7 @@ func polledJob(t *testing.T, ended func(err error)) *xynologtest.FaultyTransport
 		t.Fatal(err)
 	}
 	background(t, func(ctx context.Context) {
-		_, err := client.Job.PollUntilComplete(ctx, job, 0, 0, nil)
+		_, err := client.Job.PollUntilComplete(ctx, job, api.JobPollOptions{}, nil)
 		if ctx.Err() == nil {
 			ended(err)
 		}

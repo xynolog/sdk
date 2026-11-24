@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JanusGraphConfig (JanusGraphConfig (..), JanusGraphConfigType (..)) where
+module Xynolog.Internal.Generated.Models.JanusGraphConfig (JanusGraphConfig (..), JanusGraphConfigType (..), janusGraphConfigTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -25,3 +25,6 @@ data JanusGraphConfigType = JanusGraphConfigTypeJanusgraph deriving (Eq, Show)
 instance FromJSON JanusGraphConfigType where parseJSON = checked "JanusGraphConfigType" $ \value -> if value == String "janusgraph" then pure JanusGraphConfigTypeJanusgraph else fail "unknown enumeration member"
 
 instance ToJSON JanusGraphConfigType where toJSON JanusGraphConfigTypeJanusgraph = String "janusgraph"
+
+janusGraphConfigTypeText :: JanusGraphConfigType -> Text
+janusGraphConfigTypeText JanusGraphConfigTypeJanusgraph = "janusgraph"

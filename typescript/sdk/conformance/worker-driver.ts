@@ -23,7 +23,9 @@ import {
   faultOf,
   resourceId,
   type AccessToken,
+  type ClaimOptions,
   type JobFilter,
+  type components,
 } from '@xynolog/core';
 import type { TraceCarrier } from '@xynolog/core';
 import {
@@ -62,7 +64,7 @@ const isFailureClass = (
 /** The suite sent something this driver cannot act on: the suite's mistake, never the worker's. */
 class Misuse extends Error {}
 
-const say = (line: Record<string, unknown>): void => {
+const say = (line: components['schemas']['ConformanceDriverLine']): void => {
   process.stdout.write(`${JSON.stringify(line)}\n`);
 };
 
@@ -86,11 +88,7 @@ function object(args: Arguments, name: string): Arguments {
 }
 
 /** A failure as the protocol carries it: the SDK's code, and the status when a server stated one. */
-function failure(error: unknown): {
-  code?: string;
-  status?: number;
-  detail: string;
-} {
+function failure(error: unknown): components['schemas']['ConformanceFailure'] {
   const detail =
     error instanceof Error ? `${error.name}: ${error.message}` : String(error);
   if (!(error instanceof XynologError)) return { detail };
@@ -109,7 +107,7 @@ const WORKER_TIMING = [
   'heldJobStallMs',
   'heldJobStallCheckMs',
   'markCommitTimeoutMs',
-] as const;
+] as const satisfies readonly (keyof ClaimOptions)[];
 
 let transport: HttpTransport | undefined;
 let client: XynologClient | undefined;

@@ -17,8 +17,31 @@ the coming release's, and gathers its changes as they land.
   pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
+- Each record of `Records` types its members as their schema states them:
+  strings, booleans, `int`, `float`, the enum a member names or states in
+  place (a module of the record's own, such as
+  `Records.Job_status_response.Status`), and the record it names. Each record
+  is also written back (`to_json`, `to_model`).
+- The records Protocol's tables state are records of `Records` too, read and
+  written as their schemas say, among them the stored session and an open
+  resource.
+- The tables the services keep to, each a module of its own read from
+  Protocol: the variables a service reads and why it refuses to start, what
+  it tells OpenTelemetry and logs, its messages, the jobs' budgets, the bounds
+  of the bus's replies, and the rest.
 
 ### Changed
+
+- `Bus.frame_refusal_reason` is `Enums.Frame_refusal_reason.t`
+  (`Lacks | Malformed`), as is every fault's reason, in place of
+  `` [ `Lacks | `Malformed ] ``.
+- `Registry` hands and takes `Records.Open_resource.t`, `Discovery` hands
+  `Records.Discovered_kb.t`, `Annotations.locate_pdf` takes
+  `Records.Pdf_text_item.t`, and `Oauth.device` holds the
+  `Records.Device_code.t` the gateway answered, in place of records of their
+  own that restated those schemas.
+- An optional member that may not be null is an `option`; `Types.presence`
+  is left to a member that may be absent and may be null.
 
 - `Retry.retry_with_backoff` takes its `budget` as a `Client_timing.retry`,
   the type Protocol's client timing states, in place of `Retry.budget`.

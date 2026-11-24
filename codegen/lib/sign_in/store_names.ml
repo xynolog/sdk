@@ -138,7 +138,7 @@ let swift (names : Contract.t) =
               ( S.Blank,
                 {
                   S.doc = Text.wrapped ~lead:"/// " ~width:100 lock_about;
-                  modifiers = [];
+                  modifiers = [ "public" ];
                   body =
                     S.Property
                       {

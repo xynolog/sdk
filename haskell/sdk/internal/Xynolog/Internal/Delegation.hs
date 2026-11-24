@@ -95,8 +95,8 @@ frameIdentity (Advanced value) = Just (jobReportProgressCommandJobId value)
 frameIdentity (FailedAttempt value) = Just (jobFailCommandJobId value)
 frameIdentity (Unreadable _) = Nothing
 frameIdentity (Finished value) = Just $ case value of
-  JobCompleteCommandBranch1 completed -> markJobCompleteCommandJobId completed
-  JobCompleteCommandBranch2 completed -> yieldJobCompleteCommandJobId completed
+  JobCompleteCommandMarkJobCompleteCommand completed -> markJobCompleteCommandJobId completed
+  JobCompleteCommandYieldJobCompleteCommand completed -> yieldJobCompleteCommandJobId completed
 
 receive :: TQueue Event -> Local.Carried -> Parent -> STM ()
 receive events frame parent

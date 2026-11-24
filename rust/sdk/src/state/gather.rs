@@ -14,9 +14,7 @@ use crate::client::XynologClient;
 use crate::errors::XynologError;
 use crate::state_unit::StateUnit;
 use crate::types::AnnotationId;
-use crate::types::{
-    GatherAnnotationOptions, GatherResourceRequestOptions, GatheredContext, ResourceId,
-};
+use crate::types::{GatherAnnotationOptions, GatherResourceOptions, GatheredContext, ResourceId};
 use std::sync::Arc;
 use tokio::sync::watch;
 
@@ -142,7 +140,7 @@ impl GatherStateUnit {
     }
 
     /// Gather the context around a whole resource.
-    pub fn gather_resource(&self, resource_id: &ResourceId, options: GatherResourceRequestOptions) {
+    pub fn gather_resource(&self, resource_id: &ResourceId, options: GatherResourceOptions) {
         self.shared.resource.begin();
         let (shared, resource_id) = (self.shared.clone(), resource_id.clone());
         self.shared.tasks.spawn(async move {

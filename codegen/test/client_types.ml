@@ -170,9 +170,8 @@ let cases =
         with
         | Ok file ->
             Alcotest.(check bool)
-              "the reason is the generated dispatch's" true
-              (contains "\"reason\" .= refusalReason (reason (fault value0))"
-                 (text file))
+              "the reason is the generated FrameRefusalReason" true
+              (contains "\"reason\" .= reason (fault value0)" (text file))
         | Error errors ->
             Alcotest.failf "refused: %s"
               (String.concat "; " (List.map Decode.error_to_string errors)));

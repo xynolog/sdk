@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Issuer (Issuer (..), IssuerKind (..), IssuerSpec (..), IssuerSpecDatabase (..), IssuerSpecDatabaseExternal (..)) where
+module Xynolog.Internal.Generated.Models.Issuer (Issuer (..), IssuerKind (..), issuerKindText, IssuerSpec (..), IssuerSpecDatabase (..), IssuerSpecDatabaseExternal (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -31,6 +31,9 @@ data IssuerKind = IssuerKindIssuer deriving (Eq, Show)
 instance FromJSON IssuerKind where parseJSON = checked "IssuerKind" $ \value -> if value == String "Issuer" then pure IssuerKindIssuer else fail "unknown enumeration member"
 
 instance ToJSON IssuerKind where toJSON IssuerKindIssuer = String "Issuer"
+
+issuerKindText :: IssuerKind -> Text
+issuerKindText IssuerKindIssuer = "Issuer"
 
 data IssuerSpec = IssuerSpec
   { issuerSpecDatabase :: IssuerSpecDatabase,

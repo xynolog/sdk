@@ -380,12 +380,7 @@ impl Actor {
         {
             return;
         }
-        let BusFrame {
-            channel,
-            correlation_id,
-            mut payload,
-            scope,
-        } = match carried(data) {
+        let mut bus_frame = match carried(data) {
             Line::Frame(frame) => frame,
             Line::Told(refusal) => {
                 self.tell(refusal);
@@ -399,32 +394,35 @@ impl Actor {
                 return;
             }
         };
-        let trace = payload.remove(TRACE_FIELD).and_then(carrier);
+        let trace = bus_frame.payload.remove(TRACE_FIELD).and_then(carrier);
 
         bus_log(
             "RECV",
-            &channel,
-            &Value::Object(payload.clone()),
-            scope.as_deref(),
-            correlation_id.as_deref(),
+            &bus_frame.channel,
+            &Value::Object(bus_frame.payload.clone()),
+            bus_frame.scope.as_deref(),
+            bus_frame.correlation_id.as_deref(),
         );
         if self.superseded.contains(&conn) {
             // A frame an abort at the moment of handoff would have discarded.
-            bus_note("LINGER", &channel, "delivered on superseded connection");
+            bus_note(
+                "LINGER",
+                &bus_frame.channel,
+                "delivered on superseded connection",
+            );
         }
-        let stream_id = match (id, &scope) {
+        let stream_id = match (id, &bus_frame.scope) {
             (Some(event_id), Some(scope)) => Some(StreamId {
                 scope: scope.clone(),
                 event_id,
             }),
             _ => None,
         };
+        let trace =
+            xynolog_telemetry::bus_recv(&bus_frame.channel, bus_frame.scope.as_deref(), trace);
         let frame = Frame {
-            trace: xynolog_telemetry::bus_recv(&channel, scope.as_deref(), trace),
-            channel,
-            payload,
-            correlation_id,
-            scope,
+            bus_frame,
+            trace,
             stream_id,
         };
 
@@ -432,10 +430,13 @@ impl Actor {
         // The client's own bus is given the frame globally, with where on
         // the stream it was delivered: its client notes the place once it
         // has taken the frame in (`xynolog::resume`).
-        if self.bridged(&frame.channel) {
+        if self.bridged(&frame.bus_frame.channel) {
             for bus in locked(&self.shared.bridges).iter() {
                 bus.emit_frame(Frame {
-                    scope: None,
+                    bus_frame: BusFrame {
+                        scope: None,
+                        ..frame.bus_frame.clone()
+                    },
                     trace: None,
                     ..frame.clone()
                 });
@@ -1084,7 +1085,7 @@ mod tests {
         let cases = table["cases"].as_array().expect("the table has cases");
         assert!(!cases.is_empty(), "the table was not read");
         let after = json!({ "channel": READ, "payload": { "resourceId": "after" } });
-        let is_after = |item: &Result<Result<Frame, FrameRefusal>, Lagged>| matches!(item, Ok(Ok(frame)) if frame.payload.get("resourceId") == Some(&json!("after")));
+        let is_after = |item: &Result<Result<Frame, FrameRefusal>, Lagged>| matches!(item, Ok(Ok(frame)) if frame.bus_frame.payload.get("resourceId") == Some(&json!("after")));
         type Reply = <BrowseResourceRequested as Request>::Result;
         type Failure = <BrowseResourceRequested as Request>::Failure;
         for case in cases {
@@ -1138,10 +1139,10 @@ mod tests {
                 };
                 assert_eq!(
                     (
-                        read.channel.as_str(),
-                        Value::Object(read.payload),
-                        read.correlation_id.as_deref(),
-                        read.scope.as_deref(),
+                        read.bus_frame.channel.as_str(),
+                        Value::Object(read.bus_frame.payload),
+                        read.bus_frame.correlation_id.as_deref(),
+                        read.bus_frame.scope.as_deref(),
                     ),
                     (
                         on,

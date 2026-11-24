@@ -28,7 +28,20 @@ from xynolog.refresh import CACHE_QUERIES, CacheQuery
 from xynolog.storage import MemoryStorage
 from xynolog.storage_keys import person_key
 from xynolog.transport import ConnectionState
-from xynolog.types import GenerationJobParams, JobCompleteCommand, MarkJobParams
+from xynolog.types import (
+    ConformanceDriverLineCompleted,
+    ConformanceDriverLineEmission,
+    ConformanceDriverLineEmissionEmission,
+    ConformanceDriverLineEmissionEmissionStateFailed,
+    ConformanceDriverLineEmissionEmissionStatePending,
+    ConformanceDriverLineEmissionEmissionStateReady,
+    ConformanceDriverLineErrorStream,
+    ConformanceDriverLineState,
+    GenerationJobParams,
+    JobCompleteCommand,
+    MarkJobParams,
+    ResourceSearchFilters,
+)
 from xynolog.watched import Variable
 
 type _Shown = WireModel | EngineWithLimits | str | Sequence[_Shown]
@@ -70,14 +83,25 @@ def _as_the_wire_had_it(value: _Shown) -> JsonValue:
     return [_as_the_wire_had_it(item) for item in value]
 
 
-def _state(state: CacheState[_Shown]) -> dict[str, JsonValue]:
+type _Emitted = (
+    ConformanceDriverLineEmissionEmissionStatePending
+    | ConformanceDriverLineEmissionEmissionStateReady
+    | ConformanceDriverLineEmissionEmissionStateFailed
+)
+
+
+def _state(state: CacheState[_Shown]) -> _Emitted:
     match state:
         case Pending():
-            return {"status": "pending"}
+            return ConformanceDriverLineEmissionEmissionStatePending(status="pending")
         case Ready(value=value):
-            return {"status": "ready", "value": _as_the_wire_had_it(value)}
+            return ConformanceDriverLineEmissionEmissionStateReady(status="ready", value=_as_the_wire_had_it(value))
         case Failed(error=error):
-            return {"status": "failed", "error": failure(error)}
+            return ConformanceDriverLineEmissionEmissionStateFailed(status="failed", error=failure(error))
+
+
+def _emission(observer: str, state: _Emitted) -> ConformanceDriverLineEmission:
+    return ConformanceDriverLineEmission(emission=ConformanceDriverLineEmissionEmission(observer=observer, state=state))
 
 
 def _named(query: Arguments) -> CacheQuery:
@@ -89,28 +113,13 @@ def _named(query: Arguments) -> CacheQuery:
     raise Misuse(f"no live query {name}")
 
 
-def _limit(filters: Arguments) -> int:
-    return count(filters, "limit") if "limit" in filters else 100
-
-
-def _archived(filters: Arguments) -> bool | None:
-    stated = filters.get("archived")
-    if stated is not None and not isinstance(stated, bool):
-        raise Misuse("archived must be true or false")
-    return stated
-
-
-def _filters(query: Arguments) -> Arguments:
+def _filters(query: Arguments) -> ResourceSearchFilters:
     """The filters a case states for a list of resources, or for a search."""
-    filters: Arguments = object_of(query, "filters") if "filters" in query else {}
-    for name in filters:
-        if name not in ("limit", "archived", "entityType"):
-            raise Misuse(f"a filter by {name}, which no query of resources takes")
-    return filters
-
-
-def _entity_type(filters: Arguments) -> str | None:
-    return text(filters, "entityType") if "entityType" in filters else None
+    try:
+        return ResourceSearchFilters.model_validate(object_of(query, "filters") if "filters" in query else {}, strict=True)
+    except ValidationError as error:
+        first = error.errors()[0]
+        raise Misuse(f"filters no query of resources takes: {'.'.join(map(str, first['loc']))}: {first['msg']}") from error
 
 
 def _query(client: XynologClient[HttpTransport], query: Arguments) -> Cached[_Shown]:
@@ -129,11 +138,17 @@ def _query(client: XynologClient[HttpTransport], query: Arguments) -> Cached[_Sh
             return client.gather.referenced_by(_resource(query, "resource"))
         case "resources":
             filters = _filters(query)
-            return client.browse.resources(limit=_limit(filters), archived=_archived(filters), entity_type=_entity_type(filters))
+            return client.browse.resources(
+                archived=filters.archived, entity_type=filters.entity_type, offset=filters.offset, limit=filters.limit
+            )
         case "matchedResources":
             filters = _filters(query)
             return client.match.resources(
-                text(query, "search"), limit=_limit(filters), archived=_archived(filters), entity_type=_entity_type(filters)
+                text(query, "search"),
+                archived=filters.archived,
+                entity_type=filters.entity_type,
+                offset=filters.offset,
+                limit=filters.limit,
             )
         case "entityTypes":
             return client.browse.entity_types()
@@ -211,7 +226,7 @@ class Live:
     def _report(self, state: ConnectionState) -> None:
         if state != self._reported:
             self._reported = state
-            say({"state": state})
+            say(ConformanceDriverLineState(state=state))
 
     async def _states(self, transport: HttpTransport) -> None:
         async for state in transport.state:
@@ -219,7 +234,7 @@ class Live:
 
     async def _failures(self, failures: Events[XynologError]) -> None:
         async for error in failures:
-            say({"error": failure(error)})
+            say(ConformanceDriverLineErrorStream(error=failure(error)))
 
     async def open(self, _: int, args: Arguments) -> JsonValue:
         if self._client is not None and not self._closed:
@@ -259,8 +274,8 @@ class Live:
         async with held:
             if observing:
                 async for state in live:
-                    say({"emission": {"observer": name, "state": _state(state)}})
-        say({"completed": name})
+                    say(_emission(name, _state(state)))
+        say(ConformanceDriverLineCompleted(completed=name))
 
     async def observe(self, _: int, args: Arguments) -> JsonValue:
         client = self._opened()
@@ -274,7 +289,7 @@ class Live:
         # `observe` finds it there. None means the query completed before it gave one.
         now = await anext(live, None)
         if now is not None:
-            say({"emission": {"observer": observer, "state": _state(now)}})
+            say(_emission(observer, _state(now)))
         self._observers[observer] = self._reporters.create_task(self._watching(observer, live, held, now is not None))
         return None
 
@@ -311,10 +326,10 @@ class Live:
                     case _:
                         data = event.data.model_dump(mode="json", exclude_unset=True)
                 value: dict[str, JsonValue] = {"kind": event.kind, "data": data}
-                say({"emission": {"observer": name, "state": {"status": "ready", "value": value}}})
+                say(_emission(name, ConformanceDriverLineEmissionEmissionStateReady(status="ready", value=value)))
         except XynologError as error:
-            say({"emission": {"observer": name, "state": {"status": "failed", "error": failure(error)}}})
-        say({"completed": name})
+            say(_emission(name, ConformanceDriverLineEmissionEmissionStateFailed(status="failed", error=failure(error))))
+        say(ConformanceDriverLineCompleted(completed=name))
 
     async def mark_delegate(self, _: int, args: Arguments) -> JsonValue:
         """A `mark` job on `resource`, of the `params` it is created with."""

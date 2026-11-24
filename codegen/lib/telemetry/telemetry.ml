@@ -459,7 +459,7 @@ let swift (t : t) =
                 ( (if i = 0 then S.Blank else S.Line),
                   {
                     S.doc = Text.wrapped ~lead:"/// " ~width:100 about;
-                    modifiers = [];
+                    modifiers = [ "public" ];
                     body =
                       S.Property
                         {

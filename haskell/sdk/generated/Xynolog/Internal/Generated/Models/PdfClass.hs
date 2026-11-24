@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.PdfClass (PdfClass (..)) where
+module Xynolog.Internal.Generated.Models.PdfClass (PdfClass (..), pdfClassText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data PdfClass = PdfClassA | PdfClassB | PdfClassC | PdfClassD | PdfClassE | PdfClassF | PdfClassG deriving (Eq, Show)
@@ -19,3 +20,12 @@ instance ToJSON PdfClass where
   toJSON PdfClassE = String "E"
   toJSON PdfClassF = String "F"
   toJSON PdfClassG = String "G"
+
+pdfClassText :: PdfClass -> Text
+pdfClassText PdfClassA = "A"
+pdfClassText PdfClassB = "B"
+pdfClassText PdfClassC = "C"
+pdfClassText PdfClassD = "D"
+pdfClassText PdfClassE = "E"
+pdfClassText PdfClassF = "F"
+pdfClassText PdfClassG = "G"

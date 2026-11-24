@@ -5,6 +5,7 @@ public enum Stated<Value: Sendable>: Sendable {
   case value(Value)
 }
 extension Stated: Equatable where Value: Equatable {}
+extension Stated: Hashable where Value: Hashable {}
 
 struct WireKey: CodingKey {
   let stringValue: String

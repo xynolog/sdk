@@ -33,7 +33,7 @@ use crate::transport::{
     BoxFuture, ConnectionState, Envelope, Events, FailureListener, FailureStream, Failures, Frame,
     FrameHub, FrameRefusal, Frames, PendingReply, ReplyRouter, ResourceHold, StreamId, Transport,
 };
-use crate::types::ResourceId;
+use crate::types::{BusFrame, ResourceId};
 use serde_json::{Map, Value};
 use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -103,7 +103,10 @@ impl Inner {
             return;
         }
         let (channel, scope) = match &carried {
-            Ok(frame) => (frame.channel.as_str(), frame.scope.as_ref()),
+            Ok(frame) => (
+                frame.bus_frame.channel.as_str(),
+                frame.bus_frame.scope.as_ref(),
+            ),
             Err(refusal) => (refusal.channel.as_str(), refusal.scope.as_ref()),
         };
         if !self.carries(channel, scope) {
@@ -121,7 +124,10 @@ impl Inner {
             match carried {
                 Ok(frame) => {
                     bus.emit_frame(Frame {
-                        scope: None,
+                        bus_frame: BusFrame {
+                            scope: None,
+                            ..frame.bus_frame.clone()
+                        },
                         trace: None,
                         ..frame.clone()
                     });
@@ -269,7 +275,7 @@ impl FaultyTransport {
     /// delivered (`Frame::stream_id`), as a wire transport's does. A frame of
     /// no scope is no test of this.
     pub fn deliver_recorded(&self, frame: Frame, id: &str) {
-        let Some(scope) = frame.scope.clone() else {
+        let Some(scope) = frame.bus_frame.scope.clone() else {
             panic!("FaultyTransport: a recorded frame is delivered on its scope");
         };
         self.inner.deliver(Ok(Frame {
@@ -305,10 +311,12 @@ impl Transport for FaultyTransport {
                 return Ok(None);
             }
             let request = Frame {
-                channel: channel.to_owned(),
-                payload: payload.clone(),
-                correlation_id: envelope.correlation_id.clone(),
-                scope: envelope.scope.clone(),
+                bus_frame: BusFrame {
+                    channel: channel.to_owned(),
+                    payload: payload.clone(),
+                    correlation_id: envelope.correlation_id.clone(),
+                    scope: envelope.scope.clone(),
+                },
                 trace: None,
                 stream_id: None,
             };
@@ -384,10 +392,12 @@ impl Transport for FaultyTransport {
             inner.deliver(Ok(request));
 
             let reply = Frame {
-                channel: reply_channel.to_owned(),
-                payload: reply_payload,
-                correlation_id: envelope.correlation_id,
-                scope: None,
+                bus_frame: BusFrame {
+                    channel: reply_channel.to_owned(),
+                    payload: reply_payload,
+                    correlation_id: envelope.correlation_id,
+                    scope: None,
+                },
                 trace: None,
                 stream_id: None,
             };

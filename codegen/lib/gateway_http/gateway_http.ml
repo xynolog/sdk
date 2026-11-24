@@ -21,7 +21,7 @@ let files ~root:_ (spec : Spec.t) =
         Rust.file m;
         Go.file m;
         Python.file m;
-        Swift.file m;
+        Swift.file spec m;
         Kotlin.file m;
         Csharp.file m;
         Ocaml.file m;

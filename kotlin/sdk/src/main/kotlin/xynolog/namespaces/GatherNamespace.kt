@@ -11,6 +11,7 @@ import xynolog.identifiers.ResourceId
 import xynolog.types.GatherAnnotationComplete
 import xynolog.types.GatherAnnotationOptions
 import xynolog.types.GatherAnnotationRequest
+import xynolog.types.GatherResourceOptions
 import xynolog.types.GatherResourceRequest
 import xynolog.types.GatherResourceRequestOptions
 import xynolog.types.GatheredContext
@@ -36,58 +37,47 @@ internal const val INCLUDES_SUMMARY: Boolean = false
 public class GatherNamespace internal constructor(private val links: Links, private val live: Live) {
     /**
      * The context around one annotation, taking `contextWindow` characters of
-     * its source: two thousand when none is stated. The source's context and
-     * the target's are each included or left out as stated, and as the
-     * gatherer decides when not.
+     * its source: two thousand when `options` states none. The source's
+     * context and the target's are each included or left out as stated, and
+     * as the gatherer decides when not.
      */
     @JvmOverloads
     @JvmExposeBoxed
     public fun annotation(
         resourceId: ResourceId,
         annotationId: AnnotationId,
-        contextWindow: Long = CONTEXT_WINDOW,
-        includeSourceContext: Boolean? = null,
-        includeTargetContext: Boolean? = null,
+        options: GatherAnnotationOptions = GatherAnnotationOptions(),
     ): Running<GatherAnnotationComplete> {
-        val options = GatherAnnotationOptions(contextWindow = contextWindow, includeSourceContext = includeSourceContext, includeTargetContext = includeTargetContext)
-        val request = GatherAnnotationRequest(annotationId = annotationId, resourceId = resourceId, options = options)
+        val request = GatherAnnotationRequest(
+            annotationId = annotationId,
+            resourceId = resourceId,
+            options = options.copy(contextWindow = options.contextWindow ?: CONTEXT_WINDOW),
+        )
         return Running(links.scope) { links.request(Operations.GATHER_REQUESTED, request) }
     }
 
     /**
-     * The context around a whole resource. With nothing stated: two hops of the
-     * graph, ten resources, their content, and no summary. `depth` is how many
-     * links out from the resource the graph reaches, 1 to 3, nearest first. An
-     * empty exclusion excludes nothing, and is not sent.
+     * The context around a whole resource. With nothing stated in `options`:
+     * two hops of the graph, ten resources, their content, and no summary.
+     * `depth` is how many links out from the resource the graph reaches, 1 to
+     * 3, nearest first. An empty exclusion excludes nothing, and is not sent.
      */
-    public suspend fun resource(
-        resourceId: ResourceId,
-        depth: Long = RESOURCE_DEPTH,
-        maxResources: Long = RESOURCE_LIMIT,
-        includeContent: Boolean = INCLUDES_CONTENT,
-        includeSummary: Boolean = INCLUDES_SUMMARY,
-        excludeEntityTypes: List<String> = emptyList(),
-    ): GatheredContext {
-        val options = GatherResourceRequestOptions(
-            depth = depth,
-            maxResources = maxResources,
-            includeContent = includeContent,
-            includeSummary = includeSummary,
-            excludeEntityTypes = excludeEntityTypes.takeIf { it.isNotEmpty() },
+    public suspend fun resource(resourceId: ResourceId, options: GatherResourceOptions = GatherResourceOptions()): GatheredContext {
+        val sent = GatherResourceRequestOptions(
+            depth = options.depth ?: RESOURCE_DEPTH,
+            maxResources = options.maxResources ?: RESOURCE_LIMIT,
+            includeContent = options.includeContent ?: INCLUDES_CONTENT,
+            includeSummary = options.includeSummary ?: INCLUDES_SUMMARY,
+            excludeEntityTypes = options.excludeEntityTypes?.takeIf { it.isNotEmpty() },
         )
-        return links.request(Operations.GATHER_RESOURCE_REQUESTED, GatherResourceRequest(resourceId = resourceId, options = options)).response
+        return links.request(Operations.GATHER_RESOURCE_REQUESTED, GatherResourceRequest(resourceId = resourceId, options = sent)).response
     }
 
     /** `resource`, for Java. */
+    @JvmOverloads
     @JvmExposeBoxed
-    public fun resourceFuture(
-        resourceId: ResourceId,
-        depth: Long,
-        maxResources: Long,
-        includeContent: Boolean,
-        includeSummary: Boolean,
-        excludeEntityTypes: List<String>,
-    ): CompletableFuture<GatheredContext> = links.future { resource(resourceId, depth, maxResources, includeContent, includeSummary, excludeEntityTypes) }
+    public fun resourceFuture(resourceId: ResourceId, options: GatherResourceOptions = GatherResourceOptions()): CompletableFuture<GatheredContext> =
+        links.future { resource(resourceId, options) }
 
     /** The annotations elsewhere that refer to a resource: a live query. */
     @JvmExposeBoxed

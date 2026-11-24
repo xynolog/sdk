@@ -13,26 +13,38 @@ private struct Query: Sendable {
     observe = { name, output, first in
       defer { first.finish() }
       for await state in cache {
-        let written: [String: JSONValue]
+        let written: ConformanceDriverLineEmissionEmissionState
         switch state {
-        case .pending: written = ["status": .string("pending")]
+        case .pending: written = .pending(ConformanceDriverLineEmissionEmissionStatePending())
         case .ready(let value):
-          do { written = ["status": .string("ready"), "value": try encoded(value)] } catch {
-            written = ["status": .string("failed"), "error": failure(error)]
+          do {
+            written = .ready(
+              ConformanceDriverLineEmissionEmissionStateReady(value: try encoded(value)))
+          } catch {
+            written = .failed(
+              ConformanceDriverLineEmissionEmissionStateFailed(error: failure(error)))
           }
-        case .failed(let error): written = ["status": .string("failed"), "error": failure(error)]
+        case .failed(let error):
+          written = .failed(ConformanceDriverLineEmissionEmissionStateFailed(error: failure(error)))
         }
         await output.emission(name, written)
         first.yield()
       }
-      if !Task.isCancelled { await output.say(["completed": .string(name)]) }
+      if !Task.isCancelled {
+        await output.say(.completed(ConformanceDriverLineCompleted(completed: name)))
+      }
     }
   }
 }
 
 extension Output {
-  fileprivate func emission(_ observer: String, _ state: [String: JSONValue]) {
-    say(["emission": .object(["observer": .string(observer), "state": .object(state)])])
+  fileprivate func emission(
+    _ observer: String, _ state: ConformanceDriverLineEmissionEmissionState
+  ) {
+    say(
+      .emission(
+        ConformanceDriverLineEmission(
+          emission: ConformanceDriverLineEmissionEmission(observer: observer, state: state))))
   }
 }
 
@@ -42,16 +54,14 @@ private func decode<Value: Decodable>(_ type: Value.Type, _ value: [String: JSON
   try JSONDecoder().decode(type, from: JSONEncoder().encode(value))
 }
 
-private func resourceFilters(_ query: [String: JSONValue]) throws -> ResourceFilters {
-  guard query["filters"] != nil else { return ResourceFilters() }
-  let filters = try query.object("filters")
-  guard Set(filters.keys).isSubset(of: ["archived", "entityType", "limit", "offset"]) else {
-    throw Misuse(description: "Unknown resource filter")
-  }
-  return try ResourceFilters(
-    archived: filters.optionalBool("archived"), entityType: filters.optionalText("entityType"),
-    limit: filters["limit"] == nil ? 100 : filters.integer("limit"),
-    offset: filters["offset"] == nil ? 0 : filters.integer("offset"))
+/// The query's `filters`, read as `Filters`; none when it names none.
+private func filters<Filters: Decodable>(_ query: [String: JSONValue], as type: Filters.Type)
+  throws -> Filters?
+{
+  guard query["filters"] != nil else { return nil }
+  do {
+    return try decode(type, query.object("filters"))
+  } catch { throw Misuse(description: "The filters are invalid: \(error)") }
 }
 
 private func namedQuery(_ client: XynologClient, _ query: [String: JSONValue]) throws -> Query {
@@ -67,9 +77,15 @@ private func namedQuery(_ client: XynologClient, _ query: [String: JSONValue]) t
   case "events": return try Query(client.browse.events(ResourceId(query.text("resource"))))
   case "referencedBy":
     return try Query(client.gather.referencedBy(ResourceId(query.text("resource"))))
-  case "resources": return try Query(client.browse.resources(filters: resourceFilters(query)))
+  case "resources":
+    return try Query(
+      client.browse.resources(
+        filters: filters(query, as: BrowseResourcesRequest.self) ?? BrowseResourcesRequest()))
   case "matchedResources":
-    return try Query(client.match.resources(query.text("search"), filters: resourceFilters(query)))
+    return try Query(
+      client.match.resources(
+        query.text("search"),
+        filters: filters(query, as: ResourceSearchFilters.self) ?? ResourceSearchFilters()))
   case "entityTypes": return Query(client.browse.entityTypes())
   case "tagSchemas": return Query(client.browse.tagSchemas())
   case "engines": return Query(client.browse.engines())
@@ -152,9 +168,15 @@ actor LiveDriver {
     let output = output
     reporters = [
       Task {
-        for await state in transport.state { await output.say(["state": .string(state.rawValue)]) }
+        for await state in transport.state {
+          await output.say(.state(ConformanceDriverLineState(state: state.rawValue)))
+        }
       },
-      Task { for await error in failures { await output.say(["error": failure(error)]) } },
+      Task {
+        for await error in failures {
+          await output.say(.errorStream(ConformanceDriverLineErrorStream(error: failure(error))))
+        }
+      },
     ]
   }
 
@@ -195,14 +217,20 @@ actor LiveDriver {
           }
           await output.emission(
             observer,
-            ["status": .string("ready"), "value": .object(["kind": .string(kind), "data": data])])
+            .ready(
+              ConformanceDriverLineEmissionEmissionStateReady(
+                value: .object(["kind": .string(kind), "data": data]))))
         }
       } catch {
         if !Task.isCancelled {
-          await output.emission(observer, ["status": .string("failed"), "error": failure(error)])
+          await output.emission(
+            observer,
+            .failed(ConformanceDriverLineEmissionEmissionStateFailed(error: failure(error))))
         }
       }
-      if !Task.isCancelled { await output.say(["completed": .string(observer)]) }
+      if !Task.isCancelled {
+        await output.say(.completed(ConformanceDriverLineCompleted(completed: observer)))
+      }
     }
   }
 

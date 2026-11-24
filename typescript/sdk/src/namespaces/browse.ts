@@ -17,7 +17,12 @@ import type {
   LimitsOperation,
   components,
 } from '@xynolog/core';
-import type { ITransport, IContentTransport } from '@xynolog/core';
+import type {
+  ITransport,
+  IContentTransport,
+  ResourceRepresentation,
+  ResourceRepresentationStream,
+} from '@xynolog/core';
 import { Bus, BusRequestError, LIMITS_OPERATIONS } from '@xynolog/core';
 import {
   PERSISTED_QUERIES,
@@ -50,10 +55,10 @@ import {
 import type {
   BrowseNamespace as IBrowseNamespace,
   AnnotationHistoryResponse,
-  ResourceList,
-  ResourceListFilters,
 } from './types';
 type GetResourceResponse = components['schemas']['GetResourceResponse'];
+type ListResourcesResponse = components['schemas']['ListResourcesResponse'];
+type BrowseResourcesRequest = components['schemas']['BrowseResourcesRequest'];
 
 type EngineLimits = components['schemas']['EngineLimits'];
 
@@ -132,7 +137,10 @@ export class BrowseNamespace implements IBrowseNamespace {
   >;
 
   /** Filter-blob memory so `invalidateResourceLists` can replay per-key. */
-  private readonly resourceListFilters = new Map<string, ResourceListFilters>();
+  private readonly resourceListFilters = new Map<
+    string,
+    BrowseResourcesRequest
+  >();
 
   /**
    * Per-key memo for `annotations()` observables. The cache stores the
@@ -429,7 +437,9 @@ export class BrowseNamespace implements IBrowseNamespace {
     );
   }
 
-  resources(filters?: ResourceListFilters): CacheObservable<ResourceList> {
+  resources(
+    filters?: BrowseResourcesRequest,
+  ): CacheObservable<ListResourcesResponse> {
     const key = JSON.stringify(filters ?? {});
     // Remember the filter blob so `invalidateResourceLists` can drive
     // per-key SWR refetches without the caller re-passing filters.
@@ -561,13 +571,13 @@ export class BrowseNamespace implements IBrowseNamespace {
 
   async resourceRepresentation(
     resourceId: ResourceId,
-  ): Promise<{ data: ArrayBuffer; contentType: string }> {
+  ): Promise<ResourceRepresentation> {
     return this.content.getBinary(resourceId);
   }
 
   async resourceRepresentationStream(
     resourceId: ResourceId,
-  ): Promise<{ stream: ReadableStream<Uint8Array>; contentType: string }> {
+  ): Promise<ResourceRepresentationStream> {
     return this.content.getBinaryStream(resourceId);
   }
 

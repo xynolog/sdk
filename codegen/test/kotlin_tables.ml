@@ -124,11 +124,11 @@ let channels =
     case "a payload named as a type of xynolog.channels is refused" (fun () ->
         refuses
           ~sub:
-            "x:empty carries Empty, which xynolog.channels names a type of its \
-             own"
+            "x:response carries Response, which xynolog.channels names a type \
+             of its own"
           (channels_file
-             ~schemas:(("Empty", object_schema) :: schemas)
-             [ ("x:empty", "Empty") ]));
+             ~schemas:(("Response", object_schema) :: schemas)
+             [ ("x:response", "Response") ]));
   ]
 
 (* ── The refresh table ─────────────────────────────────────────────────── *)

@@ -7,11 +7,11 @@ internal static class FailureCodes
 {
     internal static string Of(global::Xynolog.Types.CommandErrorCode? code) => code switch
     {
-        global::Xynolog.Types.CommandErrorCode.PeerUnavailable => "bus.peer-unavailable",
-        global::Xynolog.Types.CommandErrorCode.NotFound => "bus.not-found",
-        global::Xynolog.Types.CommandErrorCode.Unauthorized => "bus.unauthorized",
-        global::Xynolog.Types.CommandErrorCode.NonePending => "bus.none-pending",
-        null => "bus.rejected",
+        global::Xynolog.Types.CommandErrorCode.PeerUnavailable => global::Xynolog.Errors.BusRequestErrorCode.PeerUnavailable,
+        global::Xynolog.Types.CommandErrorCode.NotFound => global::Xynolog.Errors.BusRequestErrorCode.NotFound,
+        global::Xynolog.Types.CommandErrorCode.Unauthorized => global::Xynolog.Errors.BusRequestErrorCode.Unauthorized,
+        global::Xynolog.Types.CommandErrorCode.NonePending => global::Xynolog.Errors.BusRequestErrorCode.NonePending,
+        null => global::Xynolog.Errors.BusRequestErrorCode.Rejected,
         _ => throw new global::System.ArgumentOutOfRangeException(nameof(code), code, "No code of CommandError."),
     };
 }

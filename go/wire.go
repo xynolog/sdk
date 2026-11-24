@@ -153,10 +153,7 @@ func (w *Wire) result(ctx context.Context, request bus.Channel, payload map[stri
 func failureOf(reply Frame, payload reflect.Type) error {
 	read, fault, faulty := required.ReadFramePayload(reply.Payload, payload)
 	if !faulty {
-		var failure struct {
-			Code    *api.CommandErrorCode `json:"code"`
-			Message string                `json:"message"`
-		}
+		var failure api.CommandError
 		if json.Unmarshal(read, &failure) == nil {
 			return &BusRequestError{Code: BusRequestErrorCodeOfWire(failure.Code), Message: failure.Message, Failure: read}
 		}

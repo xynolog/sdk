@@ -10,33 +10,14 @@
  */
 
 import type { components } from './types';
-import type { Annotation } from './annotation-types';
-import type { ResourceId, UserId } from './identifiers';
 import type { PersistedEvent } from './persisted-events';
-
-// ── Branding utility ─────────────────────────────────────────────────────────
-
-/**
- * Narrow an OpenAPI-generated type by overriding specific fields with branded types.
- *
- * OpenAPI schemas use plain `string` for identifiers. TypeScript branded types
- * (ResourceId, AnnotationId, UserId, JobId) add compile-time safety. Brand<T, B>
- * takes the OpenAPI type T and replaces the fields listed in B with their branded
- * counterparts, preserving all other fields from the schema.
- *
- * @example
- * type MyCommand = Brand<components['schemas']['YieldCreateCommand'], { userId: UserId }>;
- * // Result: YieldCreateCommand with userId narrowed from string to UserId
- */
-export type Brand<T, Overrides> = Omit<T, keyof Overrides> & Overrides;
 
 // ── Core event shape ─────────────────────────────────────────────────────────
 
 /**
  * Fields common to ALL domain events (system and resource-scoped): the spec's
  * `StoredEventResponse` without what each event type states for itself (`type`,
- * `payload`) and what persistence adds (`metadata`), with its identifiers
- * branded.
+ * `payload`) and what persistence adds (`metadata`).
  *
  * `userId` is the one identity fact an event carries: the verified emitter,
  * stamped by the gateway from the token at `emit`. Who *requested* the work
@@ -46,24 +27,13 @@ export type Brand<T, Overrides> = Omit<T, keyof Overrides> & Overrides;
  *
  * `timestamp` is for humans. Ordering is `metadata.sequenceNumber`'s.
  */
-export type EventBase = Brand<
-  Omit<
-    components['schemas']['StoredEventResponse'],
-    'type' | 'payload' | 'metadata'
-  >,
-  { resourceId?: ResourceId; userId: UserId }
+export type EventBase = Omit<
+  components['schemas']['StoredEventResponse'],
+  'type' | 'payload' | 'metadata'
 >;
 
 /** Persistence metadata attached to every stored event. */
 export type EventMetadata = components['schemas']['EventMetadata'];
-
-/** Optional cryptographic signature on a stored event. */
-export interface EventSignature {
-  algorithm: 'ed25519';
-  publicKey: string;
-  signature: string;
-  keyId?: string;
-}
 
 // ── StoredEvent: flat intersection of event + metadata ───────────────────────
 
@@ -73,15 +43,13 @@ export interface EventSignature {
  */
 export type StoredEvent<T extends EventBase = PersistedEvent> = T & {
   metadata: EventMetadata;
-  signature?: EventSignature;
 };
 
 /**
  * A persisted event as the bus delivers it once the EventStore's enrich step
  * has run: the stored event, plus the annotation as it stands in the view. The
- * fields are the spec's (`EnrichedResourceEvent` beyond `StoredEventResponse`),
- * with the annotation branded like every annotation at this layer. Optional,
- * because enrichment declines when the view no longer holds the annotation.
+ * fields are the spec's (`EnrichedResourceEvent` beyond `StoredEventResponse`).
+ * Optional, because enrichment declines when the view no longer holds the annotation.
  *
  * **Which channels carry it is the registry's `enriched` flag, and only that.**
  * A removal is not among them — the view never holds the annotation by then, so
@@ -93,7 +61,7 @@ export type EnrichedEvent<T extends EventBase = PersistedEvent> =
 type EnrichmentFields = Omit<
   components['schemas']['EnrichedResourceEvent'],
   keyof components['schemas']['StoredEventResponse']
-> & { annotation?: Annotation };
+>;
 
 /**
  * A persisted event as a history reply carries it: the stored event, and the

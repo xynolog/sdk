@@ -5,6 +5,7 @@ package xynolog.jobs
 import xynolog.errors.BusRequestErrorCode
 import xynolog.identifiers.JobId
 import xynolog.types.JobType
+import xynolog.types.WorkerEngineHealthActiveJob
 import java.time.Instant
 
 /**
@@ -22,15 +23,10 @@ public class ClaimRefusal internal constructor(
     override fun toString(): String = "ClaimRefusal(${code?.code}, $message)"
 }
 
-/** The job a worker holds, as its vitals name it, and since when. */
-public class ActiveJob internal constructor(
-    @get:JvmExposeBoxed public val jobId: JobId,
-    public val jobType: JobType,
-    public val since: Instant,
-)
-
 /**
- * What a worker can say of itself at any moment (WORKER-CONTRACT V1).
+ * What a worker can say of itself at any moment (WORKER-CONTRACT V1): its
+ * engine's WorkerEngineHealth, but for the engine and the jobs, which are its
+ * host's and its claims'. Each time is RFC 3339, in UTC, to the millisecond.
  * `lastQueuedEventAt` is any `job:queued` received, matching or not: on an
  * idle stack with an empty queue it stands still by design. `lastActivityAt`
  * (a claim, a progress report, a checkpoint, a settle) is the liveness of the
@@ -38,11 +34,11 @@ public class ActiveJob internal constructor(
  * whatever its outcome.
  */
 public class WorkerVitals internal constructor(
-    public val lastQueuedEventAt: Instant?,
-    public val lastClaimAt: Instant?,
-    public val lastFinishedAt: Instant?,
-    public val lastActivityAt: Instant?,
-    public val activeJob: ActiveJob?,
+    public val lastQueuedEventAt: String?,
+    public val lastClaimAt: String?,
+    public val lastFinishedAt: String?,
+    public val lastActivityAt: String?,
+    public val activeJob: WorkerEngineHealthActiveJob?,
     public val jobsCompleted: Long,
 )
 

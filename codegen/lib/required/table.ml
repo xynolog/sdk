@@ -2,11 +2,17 @@
 
 let path = "go/internal/required/schemas_gen.json"
 
+(* What every SDK's table is generated from ([Required.derive]). *)
+let authority =
+  "every schema Protocol roots (codegen/lib/roots.ml), each record its tables \
+   state, each client type every SDK generates, and \
+   protocol/specs/src/client/discovery-absent.json"
+
 let comment =
-  "Generated from the component schemas of protocol/specs/src/openapi.json; do \
-   not edit. Regenerate: make generate (codegen/lib/required). What each \
-   requires of a value, by its name: codegen/lib/required/shape.ml states the \
-   rules."
+  "Generated from " ^ authority
+  ^ "; do not edit. Regenerate: make generate (codegen/lib/required). What \
+     each requires of a value, by its name: codegen/lib/required/shape.ml \
+     states the rules."
 
 (* One schema to a line, so a change to one shows as that line. *)
 let text (shapes : (string * Shape.shape) list) =

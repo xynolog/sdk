@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ExtractionDeclined (ExtractionDeclined (..), ExtractionDeclinedKind (..)) where
+module Xynolog.Internal.Generated.Models.ExtractionDeclined (ExtractionDeclined (..), ExtractionDeclinedKind (..), extractionDeclinedKindText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ExtractionDeclinedReason
 
@@ -25,3 +26,6 @@ data ExtractionDeclinedKind = ExtractionDeclinedKindDeclined deriving (Eq, Show)
 instance FromJSON ExtractionDeclinedKind where parseJSON = checked "ExtractionDeclinedKind" $ \value -> if value == String "declined" then pure ExtractionDeclinedKindDeclined else fail "unknown enumeration member"
 
 instance ToJSON ExtractionDeclinedKind where toJSON ExtractionDeclinedKindDeclined = String "declined"
+
+extractionDeclinedKindText :: ExtractionDeclinedKind -> Text
+extractionDeclinedKindText ExtractionDeclinedKindDeclined = "declined"

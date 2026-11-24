@@ -20,36 +20,37 @@ let header_name h =
     (String.concat "" (List.map String.capitalize_ascii (Model.words h)))
 
 let constant ?(doc = []) name value =
-  decl ~doc [ "static" ]
+  decl ~doc [ "public"; "static" ]
     (S.Property { var = false; name; type_ = None; value = Some value })
 
-let route (r : Model.route) =
+let route ~type_ ~operation_id ~method_ ~path =
   constant
-    ~doc:(member_docs ("`" ^ r.operation_id ^ "`."))
-    (route_name r)
+    ~doc:(member_docs ("`" ^ operation_id ^ "`."))
+    (uncapitalized (Text.pascal operation_id))
     (S.Call
-       ( S.Name "GatewayRoute",
+       ( S.Name type_,
          [
-           { label = Some "method"; value = S.String r.method_ };
-           { label = Some "path"; value = S.String r.path };
+           { label = Some "method"; value = S.String method_ };
+           { label = Some "path"; value = S.String path };
          ] ))
 
-let routes (m : Model.t) =
+let route_table ~name ~of_ routes =
   decl
     ~doc:
       (docs
-         "An operation of the gateway: its method, and its path, a `{name}` \
-          for each parameter, which the caller fills.")
-    []
+         ("An operation of " ^ of_
+        ^ ": its method, and its path, a `{name}` for each parameter, which \
+           the caller fills."))
+    [ "public" ]
     (S.Struct
        {
-         name = "GatewayRoute";
+         name;
          generics = [];
          inherits = [ S.Named "Sendable" ];
          layout = S.Lines;
          members =
            [
-             decl []
+             decl [ "public" ]
                (S.Property
                   {
                     var = false;
@@ -57,7 +58,7 @@ let routes (m : Model.t) =
                     type_ = Some (S.Named "String");
                     value = None;
                   });
-             decl []
+             decl [ "public" ]
                (S.Property
                   {
                     var = false;
@@ -66,11 +67,41 @@ let routes (m : Model.t) =
                     value = None;
                   });
            ]
-           @ List.map route m.routes;
+           @ List.map
+               (fun (operation_id, method_, path) ->
+                 route ~type_:name ~operation_id ~method_ ~path)
+               routes;
        })
 
+let routes (m : Model.t) =
+  route_table ~name:"GatewayRoute" ~of_:"the gateway"
+    (List.map
+       (fun (r : Model.route) -> (r.operation_id, r.method_, r.path))
+       m.routes)
+
+(* The archivist's operations (archivist/openapi.json), by their
+   operationIds, each path's parameters left for the caller to fill. *)
+let archivist_routes (spec : Spec.t) =
+  route_table ~name:"ArchivistRoute" ~of_:"the archivist"
+    (List.concat_map
+       (fun (path, reference) ->
+         let file, _ = Decode.resolve spec.ids reference in
+         match List.assoc_opt file spec.path_items with
+         | None ->
+             Definitions.refuse "archivist/openapi.json names no path item %s"
+               file
+         | Some (item : Openapi.path_item) ->
+             List.filter_map
+               (fun (method_, operation) ->
+                 Option.map
+                   (fun (o : Openapi.operation) ->
+                     (o.operation_id, method_, path))
+                   operation)
+               [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
+       spec.archivist.paths)
+
 let namespace ~doc name members =
-  decl ~doc:(docs doc) []
+  decl ~doc:(docs doc) [ "public" ]
     (S.Enum { name; inherits = []; layout = S.Lines; members })
 
 let media (m : Model.t) =
@@ -104,7 +135,7 @@ let upload_fields (m : Model.t) =
       (docs
          "A member of an upload (`ResourceUpload`), by the name it is sent \
           under.")
-    []
+    [ "public" ]
     (S.Enum
        {
          name = "UploadField";
@@ -140,7 +171,7 @@ let client_secret_form (m : Model.t) =
       (docs
          "The form a service account posts with a client secret, each member \
           by its name, in the schema's order.")
-    []
+    [ "public" ]
     (S.Func
        {
          name = "clientSecretForm";
@@ -179,7 +210,7 @@ let client_secret_form (m : Model.t) =
            };
        })
 
-let file (m : Model.t) =
+let file (spec : Spec.t) (m : Model.t) =
   {
     Output.path;
     text =
@@ -194,6 +225,7 @@ let file (m : Model.t) =
               (fun d -> (S.Blank, d))
               [
                 routes m;
+                archivist_routes spec;
                 media m;
                 headers m;
                 upload_fields m;

@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.StackStartParams (StackStartParams (..), StackStartParamsOllamaCache (..)) where
+module Xynolog.Internal.Generated.Models.StackStartParams (StackStartParams (..), StackStartParamsOllamaCache (..), stackStartParamsOllamaCacheText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -41,3 +41,7 @@ instance FromJSON StackStartParamsOllamaCache where parseJSON = checked "StackSt
 instance ToJSON StackStartParamsOllamaCache where
   toJSON StackStartParamsOllamaCacheHost = String "host"
   toJSON StackStartParamsOllamaCacheVolume = String "volume"
+
+stackStartParamsOllamaCacheText :: StackStartParamsOllamaCache -> Text
+stackStartParamsOllamaCacheText StackStartParamsOllamaCacheHost = "host"
+stackStartParamsOllamaCacheText StackStartParamsOllamaCacheVolume = "volume"

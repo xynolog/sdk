@@ -11,7 +11,7 @@
 //! keeps, each as a sign-in kept (`sign_in_store`); the media types a knowledge base
 //! admits (`media_types`); the readers of a resource's description, and of
 //! its bytes as text (`resources`); the knowledge bases a launcher
-//! manages (`discovery`); when a failure is worth another attempt; whether a
+//! manages (`discovery`), and its control API (`control`); when a failure is worth another attempt; whether a
 //! job is one a claim takes (`job_filter`); where the job queue keeps its
 //! jobs (`job_storage`); a worker's side of the job queue:
 //! its claims, the jobs it holds and whether a failed one is retried
@@ -40,6 +40,7 @@ pub mod cached;
 pub mod channels;
 pub mod claims;
 pub mod client;
+pub mod control;
 pub mod discovery;
 pub mod errors;
 pub mod event_bus;
@@ -70,7 +71,7 @@ pub mod timing;
 pub mod transport;
 pub mod types;
 
-pub use required::fault_said;
+pub use required::{Bounds, bounds_of, fault_said, read_as};
 
 use std::sync::{Mutex, MutexGuard};
 

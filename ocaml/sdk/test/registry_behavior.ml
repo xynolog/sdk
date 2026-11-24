@@ -32,25 +32,13 @@ let shared () =
     Registry_cases.table.cases;
   List.iter
     (fun (row : Registry_cases.open_resource_order_item) ->
-      (* An open resource, which the model leaves as the JSON of
-         session/OpenResource.json. *)
-      let open_resource value : R.open_resource =
-        let optional name =
-          match field name value with `String text -> Some text | _ -> None
-        in
-        {
-          id = string "id" value;
-          name = string "name" value;
-          opened_at = int "openedAt" value;
-          order = int "order" value;
-          media_type = optional "mediaType";
-          storage_uri = optional "storageUri";
-        }
+      let open_resource value =
+        Records.Open_resource.of_model (decode Models.open_resource value)
       in
       let shown = R.sort_open_resources (List.map open_resource row.open_) in
       Alcotest.(check (list string))
         row.why row.shown
-        (List.map (fun (tab : R.open_resource) -> tab.id) shown))
+        (List.map (fun (tab : Records.Open_resource.t) -> tab.id) shown))
     Registry_cases.table.open_resource_order
 
 (* Shared endpoint rows from session/gateway-url-cases.json. *)
@@ -811,6 +799,7 @@ let open_resource_census () =
         order = 0;
         media_type = Some "text/plain";
         storage_uri = Some "file://store/res-1";
+        extra = [];
       };
     ];
   let key = R.open_resources_by_kb_key in

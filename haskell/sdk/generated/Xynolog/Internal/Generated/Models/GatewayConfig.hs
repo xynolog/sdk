@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.GatewayConfig (GatewayConfig (..), GatewayConfigCapacity (..), GatewayConfigIdentity (..), GatewayConfigSignal (..), GatewayConfigSignalType (..)) where
+module Xynolog.Internal.Generated.Models.GatewayConfig (GatewayConfig (..), GatewayConfigCapacity (..), GatewayConfigIdentity (..), GatewayConfigSignal (..), GatewayConfigSignalType (..), gatewayConfigSignalTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -69,3 +69,7 @@ instance FromJSON GatewayConfigSignalType where parseJSON = checked "GatewayConf
 instance ToJSON GatewayConfigSignalType where
   toJSON GatewayConfigSignalTypeInU2d_process = String "in-process"
   toJSON GatewayConfigSignalTypeNats = String "nats"
+
+gatewayConfigSignalTypeText :: GatewayConfigSignalType -> Text
+gatewayConfigSignalTypeText GatewayConfigSignalTypeInU2d_process = "in-process"
+gatewayConfigSignalTypeText GatewayConfigSignalTypeNats = "nats"

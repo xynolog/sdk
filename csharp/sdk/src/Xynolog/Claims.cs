@@ -5,7 +5,6 @@ using Xynolog.Errors;
 using Xynolog.Http;
 using Xynolog.Identifiers;
 using Xynolog.Jobs;
-using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog;
@@ -15,20 +14,16 @@ namespace Xynolog;
 /// not be read.</param>
 /// <param name="Detail">The refusal's message.</param>
 public sealed record ClaimRefusal(string? Code, string Detail);
-/// <summary>The job a worker holds now.</summary>
-/// <param name="JobId">Which job the worker holds.</param>
-/// <param name="Type">What kind of job it is.</param>
-/// <param name="Since">When the worker claimed it.</param>
-public sealed record ActiveJob(JobId JobId, JobType Type, DateTimeOffset Since);
-/// <summary>A snapshot of a worker's activity, for telling a healthy worker from a stuck one.</summary>
+/// <summary>A snapshot of a worker's activity, for telling a healthy worker from a stuck one: the members of
+/// <see cref="WorkerEngineHealth"/> a worker knows of itself, all but the engine it runs and the jobs it takes.</summary>
 /// <param name="LastQueuedEventAt">When the worker last saw a job announced, if it has.</param>
 /// <param name="LastClaimAt">When the worker last claimed a job, if it has.</param>
 /// <param name="LastFinishedAt">When the worker last let go of a job, completed or not, if it has.</param>
 /// <param name="LastActivityAt">When the worker last claimed, worked on or let go of a job, if it has.</param>
-/// <param name="ActiveJob">The job the worker holds now, if any.</param>
+/// <param name="ActiveJob">The job the worker holds now, if any, and since when.</param>
 /// <param name="JobsCompleted">How many jobs the worker has completed.</param>
-public sealed record WorkerVitals(DateTimeOffset? LastQueuedEventAt, DateTimeOffset? LastClaimAt,
-    DateTimeOffset? LastFinishedAt, DateTimeOffset? LastActivityAt, ActiveJob? ActiveJob, long JobsCompleted);
+public sealed record WorkerVitals(string? LastQueuedEventAt, string? LastClaimAt, string? LastFinishedAt,
+    string? LastActivityAt, WorkerEngineHealthActiveJob? ActiveJob, long JobsCompleted);
 /// <summary>A held job that has shown no activity for longer than the stall threshold.</summary>
 /// <param name="JobId">The stalled job.</param>
 /// <param name="JobType">What kind of job it is.</param>
@@ -45,6 +40,7 @@ public sealed class Claims
     private readonly object gate = new();
     private readonly HttpTransport transport;
     private readonly Bus wire;
+    private readonly IReadOnlyList<JobFilter> accepts;
     private readonly JsonElement command;
     private readonly JsonElement[] filters;
     private readonly CancellationTokenSource watching = new();
@@ -52,7 +48,9 @@ public sealed class Claims
     private readonly Broadcast<ClaimRefusal> refusals = new(keptForFirst: XynologError.KeptForFirstReader);
     private readonly Broadcast<HeldJobStall> stalls = new(keptForFirst: XynologError.KeptForFirstReader);
     private readonly TimeProvider clock;
-    private readonly Timing timing;
+    private readonly int claimTimeoutMs;
+    private readonly int stallMs;
+    private readonly int stallCheckMs;
     private Task? pending;
     private Dictionary<JobId, long>? pendingCancellations;
     private Task? stopping;
@@ -69,19 +67,24 @@ public sealed class Claims
     private long activeAt;
     private long jobsCompleted;
 
-    internal Claims(HttpTransport transport, Bus wire, IReadOnlyList<JobFilter> accepts)
+    internal Claims(HttpTransport transport, Bus wire, ClaimOptions options)
     {
-        ArgumentNullException.ThrowIfNull(accepts);
-        if (accepts.Count == 0) throw new ArgumentException("A worker must accept at least one job filter.", nameof(accepts));
+        ArgumentNullException.ThrowIfNull(options);
+        if (options.Accepts.Count == 0) throw new ArgumentException("A worker must accept at least one job filter.", nameof(options));
         this.transport = transport;
         this.wire = wire;
         clock = transport.Clock;
-        timing = transport.Settings;
-        command = JsonSerializer.SerializeToElement(new JobClaimCommand { Accepts = accepts });
-        filters = accepts.Select(filter => JsonSerializer.SerializeToElement(filter)).ToArray();
+        var timing = transport.Settings;
+        claimTimeoutMs = checked((int)(options.JobClaimTimeoutMs ?? timing.JobClaimTimeoutMs));
+        stallMs = checked((int)(options.HeldJobStallMs ?? timing.HeldJobStallMs));
+        stallCheckMs = checked((int)(options.HeldJobStallCheckMs ?? timing.HeldJobStallCheckMs));
+        CommitTimeoutMs = checked((int)(options.MarkCommitTimeoutMs ?? timing.MarkCommitTimeoutMs));
+        accepts = options.Accepts;
+        command = JsonSerializer.SerializeToElement(new JobClaimCommand { Accepts = options.Accepts });
+        filters = options.Accepts.Select(filter => JsonSerializer.SerializeToElement(filter)).ToArray();
     }
 
-    internal int CommitTimeoutMs => timing.MarkCommitTimeoutMs;
+    internal int CommitTimeoutMs { get; }
 
     /// <summary>Waits for the next job this worker claims, starting the worker on the first call; null once the worker is
     /// stopped.</summary>
@@ -115,10 +118,36 @@ public sealed class Claims
     {
         lock (gate)
         {
-            var active = held is { } job && lastClaimed is { } since ? new ActiveJob(job.JobId, job.JobType, since) : null;
-            return new WorkerVitals(lastQueued, lastClaimed, lastFinished, lastActivity, active, jobsCompleted);
+            var active = held is { } job && lastClaimed is { } since
+                ? new WorkerEngineHealthActiveJob { JobId = job.JobId, Type = job.JobType, Since = Stamp(since) }
+                : null;
+            return new WorkerVitals(Stamp(lastQueued), Stamp(lastClaimed), Stamp(lastFinished), Stamp(lastActivity), active, jobsCompleted);
         }
     }
+
+    /// <summary>The worker's health as its engine reports it: its vitals now, the engine it runs, and the jobs it
+    /// takes.</summary>
+    public WorkerEngineHealth Health(Engine engine)
+    {
+        ArgumentNullException.ThrowIfNull(engine);
+        var vitals = Vitals();
+        return new WorkerEngineHealth
+        {
+            Engine = engine,
+            Jobs = accepts,
+            LastQueuedEventAt = vitals.LastQueuedEventAt,
+            LastClaimAt = vitals.LastClaimAt,
+            LastFinishedAt = vitals.LastFinishedAt,
+            LastActivityAt = vitals.LastActivityAt,
+            ActiveJob = vitals.ActiveJob,
+            JobsCompleted = vitals.JobsCompleted,
+        };
+    }
+
+    private static string? Stamp(DateTimeOffset? at) => at is { } known ? Stamp(known) : null;
+
+    private static string Stamp(DateTimeOffset at) =>
+        at.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", System.Globalization.CultureInfo.InvariantCulture);
 
     /// <summary>Stops the worker, failing the job it holds and waiting for a claim in flight to settle.</summary>
     public Task StopAsync()
@@ -147,7 +176,7 @@ public sealed class Claims
             if (begun || stopped) return;
             var missing = WorkerRules.JobClaimChannels.Where(channel => !transport.IsSubscribed(channel)).ToArray();
             if (missing.Length != 0)
-                throw new BusRequestError(ProtocolFacts.BusError("unsubscribed"), "The worker stream is missing " + string.Join(", ", missing));
+                throw new BusRequestError(BusRequestErrorCode.Unsubscribed, "The worker stream is missing " + string.Join(", ", missing));
             begun = true;
             var stop = watching.Token;
             _ = WatchFramesAsync(stop);
@@ -223,7 +252,7 @@ public sealed class Claims
 
     private async Task WatchStallsAsync(CancellationToken stop)
     {
-        using var interval = new PeriodicTimer(TimeSpan.FromMilliseconds(timing.HeldJobStallCheckMs), clock);
+        using var interval = new PeriodicTimer(TimeSpan.FromMilliseconds(stallCheckMs), clock);
         try
         {
             while (await interval.WaitForNextTickAsync(stop).ConfigureAwait(Spawning.Captures))
@@ -233,9 +262,9 @@ public sealed class Claims
                     if (held is not { Settled: false } job || stallReported || lastClaimed is not { } since ||
                         lastActivity is not { } active) continue;
                     var silence = clock.GetElapsedTime(activeAt).TotalMilliseconds;
-                    if (silence <= timing.HeldJobStallMs) continue;
+                    if (silence <= stallMs) continue;
                     stallReported = true;
-                    stalls.Publish(new HeldJobStall(job.JobId, job.JobType, since, active, (long)silence, timing.HeldJobStallMs));
+                    stalls.Publish(new HeldJobStall(job.JobId, job.JobType, since, active, (long)silence, stallMs));
                 }
             }
         }
@@ -262,7 +291,7 @@ public sealed class Claims
         ClaimRefusal? refused = null;
         try
         {
-            var reply = await transport.RequestFrameAsync(BusOperations.JobClaim.Request.Name, command, timing.JobClaimTimeoutMs, default)
+            var reply = await transport.RequestFrameAsync(BusOperations.JobClaim.Request.Name, command, claimTimeoutMs, default)
                 .ConfigureAwait(Spawning.Captures);
             replySequence = reply.Sequence;
             var record = Bus.Decoded<JobClaimedResult>(reply.Frame.Channel, reply.Frame.Payload).Response;
@@ -275,7 +304,7 @@ public sealed class Claims
         }
         catch (BusRequestError error)
         {
-            if (error.Code != ProtocolFacts.BusError("none-pending")) refused = new ClaimRefusal(error.Code, error.Message);
+            if (error.Code != BusRequestErrorCode.NonePending) refused = new ClaimRefusal(error.Code, error.Message);
         }
         catch (Exception error) when (error is TransportError or JsonException)
         {

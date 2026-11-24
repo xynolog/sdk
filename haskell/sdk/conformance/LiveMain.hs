@@ -13,7 +13,6 @@ import Control.Monad (unless, void, when)
 import Data.Aeson hiding (decode)
 import Data.Aeson.KeyMap qualified as KM
 import Data.ByteString.Char8 qualified as Char8
-import Data.ByteString.Lazy qualified as Lazy
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text (Text)
@@ -41,6 +40,21 @@ import Xynolog.StateValue qualified as State
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
 import Xynolog.Transport.Facts (connectionStateName)
+import Xynolog.Types
+  ( ConformanceDriverLine (..),
+    ConformanceDriverLineCompletedValue (..),
+    ConformanceDriverLineEmissionValue (..),
+    ConformanceDriverLineEmissionValueEmission (..),
+    ConformanceDriverLineEmissionValueEmissionState (..),
+    ConformanceDriverLineEmissionValueEmissionStateFailedValue (..),
+    ConformanceDriverLineEmissionValueEmissionStateFailedValueStatus (..),
+    ConformanceDriverLineEmissionValueEmissionStatePendingValue (..),
+    ConformanceDriverLineEmissionValueEmissionStatePendingValueStatus (..),
+    ConformanceDriverLineEmissionValueEmissionStateReadyValue (..),
+    ConformanceDriverLineEmissionValueEmissionStateReadyValueStatus (..),
+    ConformanceDriverLineErrorStreamValue (..),
+    ConformanceDriverLineStateValue (..),
+  )
 import Xynolog.Yield qualified as Yield
 
 data Driver = Driver
@@ -55,19 +69,19 @@ data Driver = Driver
     reported :: TVar (Maybe Text)
   }
 
--- A line is written whole or not at all: a thread cancelled between a line's text and its newline would leave the
--- next line on the same one.
-say :: Driver -> Value -> IO ()
-say driver value = withMVar (output driver) (\() -> uninterruptibleMask_ (Lazy.hPut stdout (encode value <> "\n") >> hFlush stdout))
+say :: Driver -> ConformanceDriverLine -> IO ()
+say driver line = withMVar (output driver) (\() -> writeLine line)
 
 opened :: Driver -> IO Client.Client
 opened driver = readTVarIO (current driver) >>= maybe (throwIO (Misuse "no client is open")) pure
 
-stateJSON :: Cache.CacheState Value -> IO Value
-stateJSON Cache.Pending = pure (object ["status" .= ("pending" :: Text)])
-stateJSON (Cache.Ready value) = pure (object ["status" .= ("ready" :: Text), "value" .= value])
-stateJSON (Cache.Failed problem) = case failure problem of
-  Just reason -> pure (object ["status" .= ("failed" :: Text), "error" .= reason])
+emissionState :: Cache.CacheState Value -> IO ConformanceDriverLineEmissionValueEmissionState
+emissionState Cache.Pending =
+  pure (ConformanceDriverLineEmissionValueEmissionStatePending (ConformanceDriverLineEmissionValueEmissionStatePendingValue ConformanceDriverLineEmissionValueEmissionStatePendingValueStatusPending))
+emissionState (Cache.Ready value) =
+  pure (ConformanceDriverLineEmissionValueEmissionStateReady (ConformanceDriverLineEmissionValueEmissionStateReadyValue ConformanceDriverLineEmissionValueEmissionStateReadyValueStatusReady value))
+emissionState (Cache.Failed problem) = case failure problem of
+  Just reason -> pure (ConformanceDriverLineEmissionValueEmissionStateFailed (ConformanceDriverLineEmissionValueEmissionStateFailedValue reason ConformanceDriverLineEmissionValueEmissionStateFailedValueStatusFailed))
   Nothing -> throwIO problem
 
 queryOf :: Client.Client -> Object -> IO (Cache.Query Value)
@@ -88,7 +102,7 @@ queryOf client args = do
     Engines -> pure (toJSON <$> Browse.engines (Client.browse client))
 
 emitState :: Driver -> Text -> Cache.CacheState Value -> IO ()
-emitState driver observer state = stateJSON state >>= \value -> say driver (object ["emission" .= object ["observer" .= observer, "state" .= value]])
+emitState driver observer state = emissionState state >>= \value -> say driver (ConformanceDriverLineEmission (ConformanceDriverLineEmissionValue (ConformanceDriverLineEmissionValueEmission observer value)))
 
 launch :: Driver -> IO () -> IO (Async ())
 launch driver action = mask $ \restore -> do
@@ -133,7 +147,7 @@ open driver args = do
       ( Stream.mapM_ $ \state -> do
           let name = connectionStateName state
           changed <- atomically $ do before <- readTVar (reported driver); writeTVar (reported driver) (Just name); pure (before /= Just name)
-          when changed (say driver (object ["state" .= name]))
+          when changed (say driver (ConformanceDriverLineState (ConformanceDriverLineStateValue name)))
       )
   void
     $ launch driver
@@ -141,7 +155,7 @@ open driver args = do
       (Client.transport client)
       ( Stream.mapM_ $ \problem ->
           case failure (toException problem) of
-            Just reason -> say driver (object ["error" .= reason])
+            Just reason -> say driver (ConformanceDriverLineErrorStream (ConformanceDriverLineErrorStreamValue reason))
             Nothing -> throwIO problem
       )
   pure Null
@@ -155,15 +169,18 @@ observe driver args = do
   worker <- launch driver $ Cache.watch query $ \states -> do
     first <- Stream.next states
     case first of
-      Left () -> say driver (object ["completed" .= name]) >> atomically (putTMVar ready ())
+      Left () -> say driver (completedLine name) >> atomically (putTMVar ready ())
       Right (value, rest) -> do
         emitState driver name value
         atomically (putTMVar ready ())
         Stream.mapM_ (emitState driver name) rest
-        say driver (object ["completed" .= name])
+        say driver (completedLine name)
   atomically (modifyTVar' (observers driver) (Map.insert name worker))
   outcome <- race (atomically (readTMVar ready)) (wait worker)
   case outcome of { Left () -> pure Null; Right () -> pure Null }
+
+completedLine :: Text -> ConformanceDriverLine
+completedLine observer = ConformanceDriverLineCompleted (ConformanceDriverLineCompletedValue observer)
 
 free :: Driver -> Object -> IO Text
 free driver args = do
@@ -179,7 +196,7 @@ follow driver name run = do
     work `catch` \(problem :: SomeException) -> case failure problem of
       Just _ -> emitState driver name (Cache.Failed problem)
       Nothing -> throwIO problem
-    say driver (object ["completed" .= name])
+    say driver (completedLine name)
   atomically (modifyTVar' (observers driver) (Map.insert name worker))
   pure Null
 
@@ -218,7 +235,7 @@ answer driver identifier action = do
 
 serve :: Driver -> IO ()
 serve driver = do
-  say driver (object ["ready" .= True])
+  say driver readyLine
   let loop = do
         ended <- hIsEOF stdin
         unless ended $ do
@@ -227,7 +244,7 @@ serve driver = do
           identifier <- need args "id"
           operation <- need args "op"
           case perform driver operation args of
-            Nothing -> say driver (object ["id" .= (identifier :: Integer), "unsupported" .= True])
+            Nothing -> say driver (unsupportedLine identifier)
             Just action | operation `elem` ["fresh", "delete"] -> void (launch driver (answer driver identifier action))
             Just action -> answer driver identifier action
           loop

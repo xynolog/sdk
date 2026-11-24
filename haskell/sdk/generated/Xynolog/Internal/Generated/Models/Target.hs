@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Target (Target (..), TargetKind (..)) where
+module Xynolog.Internal.Generated.Models.Target (Target (..), TargetKind (..), targetKindText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -27,3 +27,7 @@ instance FromJSON TargetKind where parseJSON = checked "TargetKind" $ \value -> 
 instance ToJSON TargetKind where
   toJSON TargetKindLocal = String "local"
   toJSON TargetKindCodespace = String "codespace"
+
+targetKindText :: TargetKind -> Text
+targetKindText TargetKindLocal = "local"
+targetKindText TargetKindCodespace = "codespace"

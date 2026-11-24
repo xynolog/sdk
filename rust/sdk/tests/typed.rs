@@ -15,6 +15,7 @@ use xynolog::errors::{TransportErrorCode, XynologError};
 use xynolog::testing::as_id;
 use xynolog::testing::{FaultAction, FaultyTransport};
 use xynolog::transport::{Envelope, Frame, FrameRefusal, Transport};
+use xynolog::types::BusFrame;
 use xynolog::types::FrameRefusalReason;
 use xynolog::types::{
     Annotation, AnnotationBodies, AnnotationTargetValue, BeckonFocusEvent,
@@ -56,9 +57,9 @@ async fn a_typed_emit_sends_the_channels_name_and_its_payload_as_an_object() {
         .expect("a frame")
         .expect("not lagged")
         .expect("not refused");
-    assert_eq!(frame.channel, "beckon:focus");
+    assert_eq!(frame.bus_frame.channel, "beckon:focus");
     assert_eq!(
-        frame.payload,
+        frame.bus_frame.payload,
         object(json!({ "annotationId": "ann-1", "resourceId": "res-1" }))
     );
 }
@@ -69,10 +70,12 @@ async fn a_typed_stream_decodes_each_payload_and_leaves_the_gateways_stamps_out_
     let mut focus = bus.frames::<BeckonFocus>().expect("a stream");
     let deliver = |payload: &Value, correlation_id: Option<&str>| {
         transport.deliver(Frame {
-            channel: BeckonFocus::NAME.to_owned(),
-            payload: object(payload.clone()),
-            correlation_id: correlation_id.map(str::to_owned),
-            scope: Some(as_id("res-1")),
+            bus_frame: BusFrame {
+                channel: BeckonFocus::NAME.to_owned(),
+                payload: object(payload.clone()),
+                correlation_id: correlation_id.map(str::to_owned),
+                scope: Some(as_id("res-1")),
+            },
             trace: None,
             stream_id: None,
         })
@@ -283,19 +286,21 @@ async fn a_resources_channel_is_read_for_a_resource_whose_scope_the_read_holds()
     let _their_archived = bus.frames_of::<MarkArchived>(&theirs).expect("a stream");
 
     let recorded = |resource: &str, id: &str| Frame {
-        channel: MarkArchived::NAME.to_owned(),
-        payload: object(json!({
-            "id": id,
-            "type": "mark:archived",
-            "timestamp": "2026-10-01T12:00:00.000Z",
-            "userId": "did:web:example.org:users:alice",
-            "resourceId": resource,
-            "version": 1,
-            "payload": {},
-            "metadata": { "sequenceNumber": 3 },
-        })),
-        correlation_id: None,
-        scope: Some(as_id(resource)),
+        bus_frame: BusFrame {
+            channel: MarkArchived::NAME.to_owned(),
+            payload: object(json!({
+                "id": id,
+                "type": "mark:archived",
+                "timestamp": "2026-10-01T12:00:00.000Z",
+                "userId": "did:web:example.org:users:alice",
+                "resourceId": resource,
+                "version": 1,
+                "payload": {},
+                "metadata": { "sequenceNumber": 3 },
+            })),
+            correlation_id: None,
+            scope: Some(as_id(resource)),
+        },
         trace: None,
         stream_id: None,
     };

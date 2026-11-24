@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.DiscoveredKB (DiscoveredKB (..), DiscoveredKBPlacement (..)) where
+module Xynolog.Internal.Generated.Models.DiscoveredKB (DiscoveredKB (..), DiscoveredKBPlacement (..), discoveredKBPlacementText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -32,3 +32,7 @@ instance FromJSON DiscoveredKBPlacement where parseJSON = checked "DiscoveredKBP
 instance ToJSON DiscoveredKBPlacement where
   toJSON DiscoveredKBPlacementLocal = String "local"
   toJSON DiscoveredKBPlacementCodespace = String "codespace"
+
+discoveredKBPlacementText :: DiscoveredKBPlacement -> Text
+discoveredKBPlacementText DiscoveredKBPlacementLocal = "local"
+discoveredKBPlacementText DiscoveredKBPlacementCodespace = "codespace"

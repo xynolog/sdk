@@ -6,10 +6,7 @@
 //! The two drivers are this crate's binaries: `xynolog-wire-driver` holds a
 //! transport, and `xynolog-live-driver` the SDK's client over one.
 
-use xynolog::errors::{JobError, XynologError, TransportError};
-use xynolog::types::InvalidIdentifier;
-use xynolog_observability::telemetry;
-use serde_json::{Map, Value, json};
+use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::future::Future;
 use std::io::Write;
@@ -17,6 +14,13 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
 use tokio::io::AsyncBufReadExt;
 use tokio::task::{AbortHandle, JoinHandle, JoinSet};
+use xynolog::errors::{JobError, TransportError, XynologError};
+use xynolog::types::{
+    ConformanceDriverLine, ConformanceDriverLineAbandoned, ConformanceDriverLineFailed,
+    ConformanceDriverLineMisuse, ConformanceDriverLineOk, ConformanceDriverLineReady,
+    ConformanceDriverLineUnsupported, ConformanceFailure, InvalidIdentifier,
+};
+use xynolog_observability::telemetry;
 
 pub type Arguments = Map<String, Value>;
 
@@ -55,37 +59,40 @@ pub fn locked<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
 }
 
 /// Write one line of the protocol.
-pub fn say(line: Value) {
+pub fn say(line: ConformanceDriverLine) {
     let mut out = std::io::stdout().lock();
-    let _ = writeln!(out, "{line}");
+    let _ = writeln!(
+        out,
+        "{}",
+        serde_json::to_string(&line).expect("a driver line serializes")
+    );
 }
 
 /// A failure as the protocol carries it: the SDK's code, and the status when
 /// a server stated one.
-pub fn failure(code: &str, status: Option<u16>, detail: String) -> Value {
-    let mut failure = json!({ "code": code, "detail": detail });
-    if let Some(status) = status {
-        failure["status"] = json!(status);
+pub fn failure(code: &str, status: Option<u16>, detail: String) -> ConformanceFailure {
+    ConformanceFailure {
+        code: Some(code.to_owned()),
+        status: status.map(i64::from),
+        ..ConformanceFailure::new(detail)
     }
-    failure
 }
 
 /// The same, of a failure the SDK reported, with a job failure's class when
 /// it has one. A failure that is no `XynologError` has no code: it says only
 /// what it is, as Go's driver says it.
-pub fn failed(error: &(dyn std::error::Error + Send + Sync + 'static)) -> Value {
+pub fn failed(error: &(dyn std::error::Error + Send + Sync + 'static)) -> ConformanceFailure {
     let Some(error) = error.downcast_ref::<XynologError>() else {
-        return json!({ "detail": error.to_string() });
+        return ConformanceFailure::new(error.to_string());
     };
-    let mut reported = failure(error.code(), error.status(), error.to_string());
-    if let XynologError::Job(JobError {
-        failure_class: Some(class),
-        ..
-    }) = error
-    {
-        reported["failureClass"] = json!(class);
+    let failure_class = match error {
+        XynologError::Job(JobError { failure_class, .. }) => *failure_class,
+        _ => None,
+    };
+    ConformanceFailure {
+        failure_class,
+        ..failure(error.code(), error.status(), error.to_string())
     }
-    reported
 }
 
 pub fn text<'a>(args: &'a Arguments, name: &str) -> Result<&'a str, Ended> {
@@ -192,10 +199,20 @@ async fn answer(running: Arc<Running>, id: u64, operation: JoinHandle<Result<Val
     locked(&running.callers).remove(&id);
     say(match outcome {
         // The suite abandoned it, and the SDK reported nothing else.
-        Err(_) => json!({ "id": id, "abandoned": true }),
-        Ok(Ok(value)) => json!({ "id": id, "ok": value }),
-        Ok(Err(Ended::Misuse(why))) => json!({ "id": id, "misuse": why }),
-        Ok(Err(Ended::Failed(error))) => json!({ "id": id, "error": failed(error.as_ref()) }),
+        Err(_) => ConformanceDriverLine::Abandoned(ConformanceDriverLineAbandoned {
+            id,
+            abandoned: true,
+        }),
+        Ok(Ok(ok)) => ConformanceDriverLine::Ok(ConformanceDriverLineOk { id, ok }),
+        Ok(Err(Ended::Misuse(misuse))) => {
+            ConformanceDriverLine::Misuse(ConformanceDriverLineMisuse { id, misuse })
+        }
+        Ok(Err(Ended::Failed(error))) => {
+            ConformanceDriverLine::Failed(ConformanceDriverLineFailed {
+                id,
+                error: failed(error.as_ref()),
+            })
+        }
     });
 }
 
@@ -215,7 +232,9 @@ pub async fn serve<D: Driver>(driver: D) {
     }
     let driver = Arc::new(driver);
     let running = Arc::new(Running::default());
-    say(json!({ "ready": true }));
+    say(ConformanceDriverLine::Ready(ConformanceDriverLineReady {
+        ready: true,
+    }));
 
     let mut operations = JoinSet::new();
     let mut lines = tokio::io::BufReader::new(tokio::io::stdin()).lines();
@@ -239,7 +258,12 @@ pub async fn serve<D: Driver>(driver: D) {
             operations.spawn(answer(running.clone(), id, operation));
         } else {
             // Said at once, before the next operation is read.
-            say(json!({ "id": id, "unsupported": true }));
+            say(ConformanceDriverLine::Unsupported(
+                ConformanceDriverLineUnsupported {
+                    id,
+                    unsupported: true,
+                },
+            ));
         }
     }
 

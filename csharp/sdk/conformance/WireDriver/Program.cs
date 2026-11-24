@@ -16,7 +16,7 @@ using var metrics = Sdk.CreateMeterProviderBuilder().AddMeter("xynolog").AddOtlp
 var driver = new WireDriver();
 using var live = args.Contains("--live", StringComparer.Ordinal) ? new LiveDriver() : null;
 using var worker = args.Contains("--worker", StringComparer.Ordinal) ? new WorkerDriver() : null;
-WireDriver.Say(new { ready = true });
+WireDriver.Say(Lines.Ready);
 var operations = new List<Task>();
 while (await Console.In.ReadLineAsync() is string line)
 {
@@ -32,14 +32,14 @@ await Task.WhenAll(operations);
 internal sealed class WireDriver : IDisposable
 {
     private static readonly object Output = new();
-    private static readonly JsonSerializerOptions Json = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+    internal static readonly JsonSerializerOptions Json = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
     private readonly object gate = new();
     private readonly Dictionary<long, CancellationTokenSource> callers = [];
     private readonly Dictionary<string, Stack<IDisposable>> holds = [];
     private HttpTransport? transport;
     private ConnectionState? reportedState;
 
-    internal static void Say<T>(T value) { lock (Output) { Console.WriteLine(JsonSerializer.Serialize(value, Json)); } }
+    internal static void Say(ConformanceDriverLine line) { lock (Output) { Console.WriteLine(JsonSerializer.Serialize(line)); } }
     private static string Text(JsonElement args, string name) => args.GetProperty(name).GetString() ?? throw new InvalidOperationException(name + " is null");
     private HttpTransport Current => transport ?? throw new InvalidOperationException("No transport is open");
 
@@ -106,9 +106,10 @@ internal sealed class WireDriver : IDisposable
                     upload.Remove("bytes");
                     upload.Remove("id");
                     upload.Remove("op");
-                    foreach (var field in new[] { "entityTypes", "isDraft" })
+                    // A form field is text: a value the command states as JSON goes as its JSON text.
+                    foreach (var (field, value) in upload.ToList())
                     {
-                        if (upload[field] is JsonNode value) upload[field] = value.ToJsonString();
+                        if (value is not null && value.GetValueKind() != JsonValueKind.String) upload[field] = value.ToJsonString();
                     }
                     var request = upload.Deserialize<ResourceUpload>() ?? throw new InvalidOperationException("Null upload request");
                     var resourceId = await new HttpContentTransport(Current).PutBinaryAsync(request, op == "upload" ? new UploadReporter(id) : null, cancellation.Token);
@@ -135,18 +136,16 @@ internal sealed class WireDriver : IDisposable
                     }
                     break;
                 default:
-                    Say(new { id, unsupported = true });
+                    Say(Lines.Unsupported(id));
                     return;
             }
-            Say(new JsonObject { ["id"] = id, ["ok"] = JsonSerializer.SerializeToNode(answer, Json) });
+            Say(Lines.Ok(id, JsonSerializer.SerializeToElement(answer, Json)));
         }
-        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { Say(new { id, abandoned = true }); }
-        catch (XynologError error) { Say(new { id, error = Failure(error) }); }
-        catch (Exception error) { Say(new { id, misuse = error.Message }); }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { Say(Lines.Abandoned(id)); }
+        catch (XynologError error) { Say(Lines.Failed(id, error)); }
+        catch (Exception error) { Say(Lines.Misuse(id, error)); }
         finally { lock (gate) { callers.Remove(id); } }
     }
-
-    private static object Failure(XynologError error) => new { code = error.Code, status = error.Status, detail = error.Message };
 
     private async Task ReportStatesAsync(HttpTransport transport)
     {
@@ -159,13 +158,13 @@ internal sealed class WireDriver : IDisposable
         {
             if (reportedState == value) return;
             reportedState = value;
-            Say(new { state = value.ToString().ToLowerInvariant() });
+            Say(Lines.State(value));
         }
     }
 
     private static async Task ReportErrorsAsync(HttpTransport transport)
     {
-        await foreach (var error in transport.Errors()) Say(new { error = Failure(error) });
+        await foreach (var error in transport.Errors()) Say(Lines.ErrorStream(error));
     }
 
     private static async Task ReportFramesAsync(HttpTransport transport, string channel)
@@ -175,7 +174,7 @@ internal sealed class WireDriver : IDisposable
             switch (carried)
             {
                 case ReceivedBusFrame received:
-                    Say(new { frame = received.Frame });
+                    Say(Lines.Frame(received.Frame));
                     break;
                 // The suite's backend sends only frames BusFrame allows, and its lines have none for a refusal: a frame
                 // the transport refused is its bug, which ends the driver.
@@ -194,7 +193,7 @@ internal sealed class WireDriver : IDisposable
         public void Report(UploadProgress value)
         {
             if (value is UploadProgress.ProgressCase(var sent))
-                Say(new { progress = new { upload = id, bytesUploaded = sent.BytesUploaded, totalBytes = sent.TotalBytes } });
+                Say(Lines.Progress(id, sent.BytesUploaded, sent.TotalBytes));
         }
     }
 

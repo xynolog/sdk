@@ -6,6 +6,7 @@ package xynolog
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"iter"
 	"reflect"
@@ -28,43 +29,39 @@ func (*whole) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// filterKey is which resources a list, or a search, is of: the values of
-// ResourceFilters, so two lists of the same filters are one key.
-type filterKey struct {
-	limit         int
-	offset        int
-	archived      bool
-	hasArchived   bool
-	entityType    string
-	hasEntityType bool
+// sentKey is a list's filters as the list sends them, with the page a caller
+// left out filled in: two lists that send the same are one key.
+type sentKey string
+
+// sentKeyOf is filters' key. Filters of flags, texts and counts always write.
+func sentKeyOf(filters any) sentKey {
+	text, err := json.Marshal(filters)
+	if err != nil {
+		panic(fmt.Sprintf("filters that do not write: %v", err))
+	}
+	return sentKey(text)
 }
 
-func keyOf(filters ResourceFilters) filterKey {
-	key := filterKey{limit: filters.limit(), offset: filters.Offset}
-	if filters.Archived != nil {
-		key.archived, key.hasArchived = *filters.Archived, true
-	}
-	if filters.EntityType != nil {
-		key.entityType, key.hasEntityType = *filters.EntityType, true
-	}
-	return key
-}
+// into reads the filters k is the key of into request, beside what request
+// already holds.
+func (k sentKey) into(request any) error { return json.Unmarshal([]byte(k), request) }
 
-// request is the filters key as a list asks for it.
-func (k filterKey) request() (limit, offset int, archived *bool, entityType *string) {
-	if k.hasArchived {
-		archived = &k.archived
+// paged is a page as a list sends it: the first hundred where a caller states
+// no limit, from the first where it states no offset.
+func paged(limit, offset *int) (*int, *int) {
+	if limit == nil {
+		limit = new(listLimit)
 	}
-	if k.hasEntityType {
-		entityType = &k.entityType
+	if offset == nil {
+		offset = new(0)
 	}
-	return k.limit, k.offset, archived, entityType
+	return limit, offset
 }
 
 // searchKey is a search for resources by text, among those its filters admit.
 type searchKey struct {
 	search  string
-	filters filterKey
+	filters sentKey
 }
 
 // cacheSubject is what an event names: which of a split channel's rows it
@@ -95,7 +92,7 @@ type live struct {
 	// Each live query's cache, named as the query is, holding the value the
 	// refresh table's `value` names (refresh_gen.go).
 	resource         *Cache[api.ResourceId, resourceValue]
-	resources        *Cache[filterKey, resourcesValue]
+	resources        *Cache[sentKey, resourcesValue]
 	annotations      *Cache[api.ResourceId, annotationsValue]
 	annotation       *Cache[api.AnnotationId, annotationValue]
 	entityTypes      *Cache[whole, entityTypesValue]
@@ -119,9 +116,12 @@ func newLive(l *links, content ContentTransport) *live {
 		answer, err := ask(ctx, l, bus.BrowseResourceRequested, api.BrowseResourceRequest{ResourceId: id})
 		return answer.Response.Resource, err
 	}, l.run, nil, save)
-	v.resources = NewCache(func(ctx context.Context, key filterKey) (api.ListResourcesResponse, error) {
-		limit, offset, archived, entityType := key.request()
-		answer, err := ask(ctx, l, bus.BrowseResourcesRequested, api.BrowseResourcesRequest{Limit: &limit, Offset: &offset, Archived: archived, EntityType: entityType})
+	v.resources = NewCache(func(ctx context.Context, key sentKey) (api.ListResourcesResponse, error) {
+		var request api.BrowseResourcesRequest
+		if err := key.into(&request); err != nil {
+			return api.ListResourcesResponse{}, err
+		}
+		answer, err := ask(ctx, l, bus.BrowseResourcesRequested, request)
 		return answer.Response, err
 	}, l.run, nil, 0)
 	v.annotations = NewCache(func(ctx context.Context, id api.ResourceId) (api.GetAnnotationsResponse, error) {
@@ -161,8 +161,11 @@ func newLive(l *links, content ContentTransport) *live {
 		return answer.Response.ReferencedBy, err
 	}, l.run, nil, 0)
 	v.matchedResources = NewCache(func(ctx context.Context, key searchKey) (api.MatchResourcesResponse, error) {
-		limit, offset, archived, entityType := key.filters.request()
-		answer, err := ask(ctx, l, bus.MatchResourcesRequested, api.MatchResourcesRequest{Search: key.search, Limit: &limit, Offset: &offset, Archived: archived, EntityType: entityType})
+		request := api.MatchResourcesRequest{Search: key.search}
+		if err := key.filters.into(&request); err != nil {
+			return api.MatchResourcesResponse{}, err
+		}
+		answer, err := ask(ctx, l, bus.MatchResourcesRequested, request)
 		return answer.Response, err
 	}, l.run, nil, 0)
 	return v

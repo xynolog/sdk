@@ -15,6 +15,7 @@ package xynolog_test
 // did, not what it was answered.
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -219,25 +220,21 @@ func decodeInto[T any](a args, raw json.RawMessage) T {
 	return value
 }
 
-// filters is the filters a list or a search is given.
-func (a args) filters() xynolog.ResourceFilters {
-	stated := a.stated("filters", "archived", "entityType", "limit", "offset")
-	var filters xynolog.ResourceFilters
-	if raw, ok := stated["limit"]; ok {
-		filters.Limit = decodeInto[int](a, raw)
+// optional is the object under name as T, T's zero when the case states
+// none. A member T has no field for fails the case: left unsent, it would
+// pass unseen.
+func optional[T any](a args, name string) T {
+	a.t.Helper()
+	var value T
+	if !a.has(name) {
+		return value
 	}
-	if raw, ok := stated["offset"]; ok {
-		filters.Offset = decodeInto[int](a, raw)
+	decoder := json.NewDecoder(bytes.NewReader(a.given[name]))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&value); err != nil {
+		a.t.Fatalf("%s: %s: %v", a.method, name, err)
 	}
-	if raw, ok := stated["archived"]; ok {
-		archived := decodeInto[bool](a, raw)
-		filters.Archived = &archived
-	}
-	if raw, ok := stated["entityType"]; ok {
-		entityType := decodeInto[string](a, raw)
-		filters.EntityType = &entityType
-	}
-	return filters
+	return value
 }
 
 // call is one method called as a case states: what it does is the test's
@@ -260,7 +257,7 @@ var calls = map[string]call{
 		fresh(ctx, c.Browse.Resource(a.rid("resourceId")))
 	},
 	"browse.resources": func(ctx context.Context, c *xynolog.Client, a args) {
-		fresh(ctx, c.Browse.Resources(a.filters()))
+		fresh(ctx, c.Browse.Resources(optional[api.BrowseResourcesRequest](a, "filters")))
 	},
 	"browse.annotations": func(ctx context.Context, c *xynolog.Client, a args) {
 		fresh(ctx, c.Browse.Annotations(a.rid("resourceId")))
@@ -388,7 +385,7 @@ var calls = map[string]call{
 		c.Match.RequestSearch(decodeInto[api.MatchSearchRequest](a, a.given["input"]), a.text("correlationId"))
 	},
 	"match.resources": func(ctx context.Context, c *xynolog.Client, a args) {
-		fresh(ctx, c.Match.Resources(a.text("search"), a.filters()))
+		fresh(ctx, c.Match.Resources(a.text("search"), optional[api.ResourceSearchFilters](a, "filters")))
 	},
 	"yield.resource": func(ctx context.Context, c *xynolog.Client, a args) {
 		var data struct {
@@ -452,15 +449,14 @@ var calls = map[string]call{
 		_, _ = c.Job.Status(ctx, a.jid("jobId"))
 	},
 	"job.pollUntilComplete": func(ctx context.Context, c *xynolog.Client, a args) {
-		_, _ = c.Job.PollUntilComplete(ctx, a.jid("jobId"), 0, 0, nil)
+		_, _ = c.Job.PollUntilComplete(ctx, a.jid("jobId"), optional[api.JobPollOptions](a, "options"), nil)
 	},
 	"job.cancel": func(ctx context.Context, c *xynolog.Client, a args) {
 		_, _ = c.Job.Cancel(ctx, a.jid("jobId"))
 	},
 	// The first thing a worker's claims hand out: claiming begins when they are first ranged over.
 	"job.claim": func(ctx context.Context, c *xynolog.Client, a args) {
-		stated := a.stated("options", "accepts")
-		claims := c.Job.Claim(decodeInto[[]api.JobFilter](a, stated["accepts"]))
+		claims := c.Job.Claim(optional[api.ClaimOptions](a, "options"))
 		defer claims.Close()
 		for range claims.All() {
 			return

@@ -10,14 +10,10 @@
 
 let source = "protocol/specs/src/components/schemas"
 
-(* The client types the SDK generates that are words. FrameRefusalReason
-   waits on the decoders, which read a fault's reason as a polymorphic variant
-   of their own. *)
+(* The client types the SDK generates that are words. *)
 let client_types (spec : Spec.t) =
   List.filter
     (fun name ->
-      name <> "FrameRefusalReason"
-      &&
       match List.assoc_opt ("client/types/" ^ name ^ ".json") spec.schemas with
       | Some (Schema.Schema { type_ = Some [ String ]; _ }) -> true
       | _ -> false)
@@ -44,6 +40,25 @@ let constructor value =
        (Text.replace_all ~sub:"+" ~by:"_plus" value))
 
 let module_name name = String.capitalize_ascii (Text.snake name)
+
+(* The module of the component [file] when [schema], its schema, is a string
+   enum, and the enum's members. *)
+let component file schema =
+  match schema with
+  | Schema.Schema { type_ = Some [ String ]; enum = Some members; _ }
+    when String.starts_with ~prefix file
+         && not
+              (String.contains
+                 (String.sub file (String.length prefix)
+                    (String.length file - String.length prefix))
+                 '/') ->
+      Some
+        ( module_name
+            (Filename.remove_extension
+               (String.sub file (String.length prefix)
+                  (String.length file - String.length prefix))),
+          members )
+  | _ -> None
 
 (* The file and the pointer of a table record's [Table_records.key]. *)
 let place key =
@@ -128,21 +143,9 @@ let derive (spec : Spec.t) table =
   let components =
     List.filter_map
       (fun (file, schema) ->
-        match schema with
-        | Schema.Schema { type_ = Some [ String ]; enum = Some members; _ }
-          when String.starts_with ~prefix file
-               && not
-                    (String.contains
-                       (String.sub file (String.length prefix)
-                          (String.length file - String.length prefix))
-                       '/') ->
-            let stem =
-              Filename.remove_extension
-                (String.sub file (String.length prefix)
-                   (String.length file - String.length prefix))
-            in
-            Some (enum ~file ~pointer:"" (module_name stem) members)
-        | _ -> None)
+        Option.map
+          (fun (module_, members) -> enum ~file ~pointer:"" module_ members)
+          (component file schema))
       (List.sort (fun (a, _) (b, _) -> compare a b) spec.schemas)
   in
   let clients =

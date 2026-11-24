@@ -7,11 +7,14 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"iter"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -28,7 +31,7 @@ type query struct {
 	states     func(ctx context.Context) iter.Seq[xynolog.CacheState]
 	fresh      func(ctx context.Context) (any, error)
 	invalidate func()
-	written    func(state xynolog.CacheState) map[string]any
+	written    func(state xynolog.CacheState) api.ConformanceDriverLineEmissionEmissionStateMember
 }
 
 // itself is a query's value as it is: each value of the SDK writes itself as
@@ -47,14 +50,14 @@ func liveQuery[T any](q *xynolog.Cached[T], show func(T) any) query {
 			return show(value), nil
 		},
 		invalidate: q.Invalidate,
-		written: func(state xynolog.CacheState) map[string]any {
+		written: func(state xynolog.CacheState) api.ConformanceDriverLineEmissionEmissionStateMember {
 			switch s := state.(type) {
 			case xynolog.Ready[T]:
-				return map[string]any{"status": "ready", "value": show(s.Value)}
+				return ready(show(s.Value))
 			case xynolog.Failed:
-				return map[string]any{"status": "failed", "error": failure(s.Err)}
+				return failed(s.Err)
 			}
-			return map[string]any{"status": "pending"}
+			return api.ConformanceDriverLineEmissionEmissionStatePending{Status: api.ConformanceDriverLineEmissionEmissionStatePendingStatusPending}
 		},
 	}
 }
@@ -80,12 +83,22 @@ func engines(listed []xynolog.EngineWithLimits) any {
 
 // failure is err as the protocol carries it. An error of none of the SDK's
 // vocabularies has no code to say, and the suite fails it for that.
-func failure(err error) map[string]any {
+func failure(err error) api.ConformanceFailure {
 	var failed xynolog.Error
 	if errors.As(err, &failed) {
 		return protocol.Failure(failed)
 	}
-	return map[string]any{"detail": err.Error()}
+	return api.ConformanceFailure{Detail: err.Error()}
+}
+
+// ready is an observer's state that shows value.
+func ready(value any) api.ConformanceDriverLineEmissionEmissionStateReady {
+	return api.ConformanceDriverLineEmissionEmissionStateReady{Status: api.ConformanceDriverLineEmissionEmissionStateReadyStatusReady, Value: value}
+}
+
+// failed is an observer's state that failed with err.
+func failed(err error) api.ConformanceDriverLineEmissionEmissionStateFailed {
+	return api.ConformanceDriverLineEmissionEmissionStateFailed{Status: api.ConformanceDriverLineEmissionEmissionStateFailedStatusFailed, Error: failure(err)}
 }
 
 func resourceOf(args protocol.Arguments, name string) (api.ResourceId, error) {
@@ -122,42 +135,18 @@ func object(args protocol.Arguments, name string) (protocol.Arguments, error) {
 }
 
 // filters is the filters a case states for a list of resources, or for a
-// search: the first hundred when it states no limit.
-func filters(q protocol.Arguments) (xynolog.ResourceFilters, error) {
-	stated := protocol.Arguments{}
-	if _, given := q["filters"]; given {
-		var err error
-		if stated, err = object(q, "filters"); err != nil {
-			return xynolog.ResourceFilters{}, err
-		}
+// search, as T, the filters that query takes. A filter T has no member for is
+// the suite's mistake.
+func filters[T any](q protocol.Arguments) (T, error) {
+	var listed T
+	raw, given := q["filters"]
+	if !given {
+		return listed, nil
 	}
-	listed := xynolog.ResourceFilters{Limit: 100}
-	for name, raw := range stated {
-		switch name {
-		case "limit":
-			n, err := protocol.Count(stated, name)
-			if err != nil {
-				return listed, err
-			}
-			listed.Limit = int(n)
-		case "archived":
-			if string(raw) == "null" {
-				continue
-			}
-			var archived bool
-			if json.Unmarshal(raw, &archived) != nil {
-				return listed, protocol.Misused("archived must be true or false")
-			}
-			listed.Archived = &archived
-		case "entityType":
-			entityType, err := protocol.Text(stated, name)
-			if err != nil {
-				return listed, err
-			}
-			listed.EntityType = &entityType
-		default:
-			return listed, protocol.Misused("a filter by %s, which no query of resources takes", name)
-		}
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&listed); err != nil {
+		return listed, protocol.Misused("filters: %v", err)
 	}
 	return listed, nil
 }
@@ -205,7 +194,7 @@ func queryOf(c *xynolog.Client, q protocol.Arguments) (query, error) {
 		}
 		return liveQuery(c.Gather.ReferencedBy(resource), itself[[]api.GetReferencedByResponseReferencedByItem]), nil
 	case xynolog.CacheQueryResources:
-		listed, err := filters(q)
+		listed, err := filters[api.BrowseResourcesRequest](q)
 		if err != nil {
 			return query{}, err
 		}
@@ -215,7 +204,7 @@ func queryOf(c *xynolog.Client, q protocol.Arguments) (query, error) {
 		if err != nil {
 			return query{}, err
 		}
-		listed, err := filters(q)
+		listed, err := filters[api.ResourceSearchFilters](q)
 		if err != nil {
 			return query{}, err
 		}
@@ -314,7 +303,7 @@ func (l *live) report(state xynolog.ConnectionState) {
 	defer l.mu.Unlock()
 	if l.reported != state {
 		l.reported = state
-		protocol.Say(map[string]string{"state": string(state)})
+		protocol.Say(api.ConformanceDriverLineState{State: string(state)})
 	}
 }
 
@@ -423,7 +412,7 @@ func (l *live) open(args protocol.Arguments) error {
 	// Taken at once, so every failure from the first request on is said, each
 	// before the call that met it returns, until the transport closes.
 	transport.Failures(func(failed *xynolog.TransportError) {
-		protocol.Say(map[string]any{"error": protocol.Failure(failed)})
+		protocol.Say(api.ConformanceDriverLineErrorStream{Error: protocol.Failure(failed)})
 	})
 	config := xynolog.ClientConfig{Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: timing}
 	if persist {
@@ -481,8 +470,13 @@ func (l *live) free(args protocol.Arguments) (string, context.Context, error) {
 	return observer, ctx, nil
 }
 
-func emission(observer string, state map[string]any) {
-	protocol.Say(map[string]any{"emission": map[string]any{"observer": observer, "state": state}})
+func emission(observer string, member api.ConformanceDriverLineEmissionEmissionStateMember) {
+	var state api.ConformanceDriverLineEmissionEmissionState
+	if err := state.From(member); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	protocol.Say(api.ConformanceDriverLineEmission{Emission: api.ConformanceDriverLineEmissionEmission{Observer: observer, State: state}})
 }
 
 func (l *live) observe(args protocol.Arguments) error {
@@ -524,7 +518,7 @@ func (l *live) observe(args protocol.Arguments) error {
 		// An observer the suite stopped has ended, not completed: only a
 		// query that ended by itself, its client closed, is said to.
 		if ctx.Err() == nil {
-			protocol.Say(map[string]any{"completed": observer})
+			protocol.Say(api.ConformanceDriverLineCompleted{Completed: observer})
 		}
 	}()
 	return nil
@@ -553,15 +547,15 @@ func following[C any](observer string, job *xynolog.Delegation[C], done func()) 
 	defer done()
 	for event, err := range job.Events(context.Background()) {
 		if err != nil {
-			var failed xynolog.Error
-			if errors.As(err, &failed) {
-				emission(observer, map[string]any{"status": "failed", "error": failure(err)})
+			var refused xynolog.Error
+			if errors.As(err, &refused) {
+				emission(observer, failed(err))
 			}
 			break
 		}
-		emission(observer, map[string]any{"status": "ready", "value": event})
+		emission(observer, ready(event))
 	}
-	protocol.Say(map[string]any{"completed": observer})
+	protocol.Say(api.ConformanceDriverLineCompleted{Completed: observer})
 }
 
 func (l *live) markDelegate(args protocol.Arguments) error {

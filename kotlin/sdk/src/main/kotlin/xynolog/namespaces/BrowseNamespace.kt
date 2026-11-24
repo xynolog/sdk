@@ -40,6 +40,7 @@ import xynolog.types.BrowseEventsRequest
 import xynolog.types.BrowseKbRequest
 import xynolog.types.BrowseResourceOpenEvent
 import xynolog.types.BrowseResourceViewedEvent
+import xynolog.types.BrowseResourcesRequest
 import xynolog.types.EngineEntry
 import xynolog.types.EngineLimits
 import xynolog.types.GetAnnotationHistoryResponse
@@ -106,8 +107,8 @@ public class BrowseNamespace internal constructor(private val links: Links, priv
      * else. Finding resources by text is `match.resources`.
      */
     @JvmOverloads
-    public fun resources(limit: Long = LIST_LIMIT, offset: Long = 0, archived: Boolean? = null, entityType: String? = null): Cached<ListResourcesResponse> =
-        live.query(Keyed(live.resources, ResourceFilters(limit, offset, archived, entityType), { it }))
+    public fun resources(filters: BrowseResourcesRequest = BrowseResourcesRequest()): Cached<ListResourcesResponse> =
+        live.query(Keyed(live.resources, filters.copy(offset = filters.offset ?: 0, limit = filters.limit ?: LIST_LIMIT), { it }))
 
     /** A resource's annotations: a live query. */
     @JvmExposeBoxed

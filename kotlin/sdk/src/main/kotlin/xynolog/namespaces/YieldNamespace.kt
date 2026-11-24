@@ -6,7 +6,6 @@ import xynolog.Delegation
 import xynolog.Timings
 import xynolog.bus.Operations
 import xynolog.channels.Channels
-import xynolog.channels.Empty
 import xynolog.identifiers.ResourceId
 import xynolog.mediatypes.cloneFormat
 import xynolog.mediatypes.storageUri
@@ -15,7 +14,9 @@ import xynolog.transport.ContentTransport
 import xynolog.transport.PutBinaryRequest
 import xynolog.transport.Upload
 import xynolog.types.CloneResourceWithTokenResponse
+import xynolog.types.CreateFromTokenOptions
 import xynolog.types.CreateResourceResponse
+import xynolog.types.EmptyObject
 import xynolog.types.GatheredContextFocusAnnotation
 import xynolog.types.GatheredContextFocusResource
 import xynolog.types.GenerationJobParams
@@ -76,29 +77,28 @@ public class YieldNamespace internal constructor(private val links: Links, priva
     public fun fromTokenFuture(token: String): CompletableFuture<ResourceDescriptor> = links.future { fromToken(token) }
 
     /**
-     * Create a resource as a clone of the one `token` was made from. The
-     * source is read first; the clone's content then goes by the upload path,
-     * in the format its source's allows and under a name made from its own.
-     * `archiveOriginal` archives the source once the clone exists.
+     * Create a resource as a clone of the one `options.token` was made from.
+     * The source is read first; the clone's content then goes by the upload
+     * path, in the format its source's allows and under a name made from its
+     * own. `archiveOriginal` archives the source once the clone exists.
      */
-    public suspend fun createFromToken(token: String, name: String, content: String, archiveOriginal: Boolean? = null): CreateResourceResponse {
-        val format = cloneFormat(primaryMediaType(fromToken(token)))
+    public suspend fun createFromToken(options: CreateFromTokenOptions): CreateResourceResponse {
+        val format = cloneFormat(primaryMediaType(fromToken(options.token)))
         val clone = PutBinaryRequest(
-            name = name,
-            file = content.toByteArray(),
+            name = options.name,
+            file = options.content.toByteArray(),
             format = format.mediaType,
-            storageUri = storageUri(name, format),
-            cloneToken = token,
-            archiveOriginal = archiveOriginal,
+            storageUri = storageUri(options.name, format),
+            cloneToken = options.token,
+            archiveOriginal = options.archiveOriginal,
         )
-        return this.content.putBinary(clone).use { it.await() }
+        return content.putBinary(clone).use { it.await() }
     }
 
     /** `createFromToken`, for Java. */
-    @JvmOverloads
-    public fun createFromTokenFuture(token: String, name: String, content: String, archiveOriginal: Boolean? = null): CompletableFuture<CreateResourceResponse> =
-        links.future { createFromToken(token, name, content, archiveOriginal) }
+    public fun createFromTokenFuture(options: CreateFromTokenOptions): CompletableFuture<CreateResourceResponse> =
+        links.future { createFromToken(options) }
 
     /** Signal: a clone is begun in this viewer. */
-    public fun clone(): Unit = links.signal(Channels.YIELD_CLONE, Empty)
+    public fun clone(): Unit = links.signal(Channels.YIELD_CLONE, EmptyObject)
 }

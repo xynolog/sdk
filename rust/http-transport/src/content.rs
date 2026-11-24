@@ -26,7 +26,7 @@ use xynolog::bus_log::bus_log;
 use xynolog::errors::{TransportError, TransportErrorCode};
 use xynolog::gateway_http::{
     GET_RESOURCE_ANCHORED_TEXT, GET_RESOURCE_ANNOTATIONS, GET_RESOURCE_JSON_LD,
-    GET_RESOURCE_REPRESENTATION, IDEMPOTENCY_KEY, Route, UPLOAD_RESOURCE, UploadField,
+    GET_RESOURCE_REPRESENTATION, IDEMPOTENCY_KEY, UPLOAD_RESOURCE, UploadField,
 };
 use xynolog::transport::{
     BoxFuture, Content, ContentStream, ContentTransport, PutBinaryRequest, Upload,
@@ -304,7 +304,7 @@ impl ContentTransport for HttpContentTransport {
                 resource_id,
                 self.shared.answer(
                     method_of(&GET_RESOURCE_JSON_LD),
-                    &path_of(&GET_RESOURCE_JSON_LD, resource_id),
+                    &GET_RESOURCE_JSON_LD.path_for(resource_id),
                     true,
                     |builder| builder,
                 ),
@@ -329,7 +329,7 @@ impl ContentTransport for HttpContentTransport {
                 resource_id,
                 self.shared.answer(
                     method_of(&GET_RESOURCE_ANNOTATIONS),
-                    &path_of(&GET_RESOURCE_ANNOTATIONS, resource_id),
+                    &GET_RESOURCE_ANNOTATIONS.path_for(resource_id),
                     true,
                     |builder| builder,
                 ),
@@ -357,7 +357,7 @@ impl ContentTransport for HttpContentTransport {
                 resource_id,
                 self.shared.answer(
                     method_of(&GET_RESOURCE_ANCHORED_TEXT),
-                    &path_of(&GET_RESOURCE_ANCHORED_TEXT, resource_id),
+                    &GET_RESOURCE_ANCHORED_TEXT.path_for(resource_id),
                     true,
                     |builder| builder,
                 ),
@@ -375,19 +375,12 @@ impl HttpContentTransport {
         self.shared
             .send(
                 method_of(&GET_RESOURCE_REPRESENTATION),
-                &path_of(&GET_RESOURCE_REPRESENTATION, resource_id),
+                &GET_RESOURCE_REPRESENTATION.path_for(resource_id),
                 true,
                 |builder| builder,
             )
             .await
     }
-}
-
-/// Where a resource is read: the route's path, its id one segment of it as it
-/// is: the rule a `ResourceId` is held to admits nothing a path reads as its
-/// own.
-fn path_of(route: &Route, resource_id: &ResourceId) -> String {
-    route.path.replace("{id}", resource_id.as_str())
 }
 
 fn content_type(response: &reqwest::Response) -> String {
@@ -405,7 +398,7 @@ fn interrupted(resource_id: &ResourceId, error: &reqwest::Error) -> TransportErr
         format!(
             "{} {} ended before its bytes did: {error}",
             method_of(&GET_RESOURCE_REPRESENTATION),
-            path_of(&GET_RESOURCE_REPRESENTATION, resource_id)
+            GET_RESOURCE_REPRESENTATION.path_for(resource_id)
         ),
         TransportErrorCode::Unavailable,
     )

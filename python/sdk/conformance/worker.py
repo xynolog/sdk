@@ -20,8 +20,6 @@ import asyncio
 import sys
 from collections.abc import Generator
 from contextlib import AsyncExitStack, contextmanager
-from dataclasses import dataclass
-from datetime import datetime
 from typing import Final, final
 
 from opentelemetry import context as otel_context
@@ -38,12 +36,27 @@ from xynolog.errors import XynologError
 from xynolog.events import Events
 from xynolog.http import HttpTransport, Timing
 from xynolog.identifiers import InvalidIdentifier, ResourceId
-from xynolog.model import written
+from xynolog.model import stated, written
 from xynolog.transport import ConnectionState, ResourceHold
-from xynolog.types import Annotation, ClaimOptions, FailureClass, JobFilter, JobProgress, MarkJobResult, UnitCursor, YieldJobResult
+from xynolog.types import (
+    Annotation,
+    ClaimOptions,
+    ConformanceDriverLineClaimed,
+    ConformanceDriverLineErrorStream,
+    ConformanceDriverLineRefused,
+    ConformanceDriverLineSignalled,
+    ConformanceDriverLineStalled,
+    ConformanceDriverLineState,
+    ConformanceFailure,
+    FailureClass,
+    JobProgress,
+    MarkJobResult,
+    UnitCursor,
+    YieldJobResult,
+)
 from xynolog.watched import Variable
 
-_FILTERS: Final = TypeAdapter[list[JobFilter]](list[JobFilter])
+_CLAIM_OPTIONS: Final = TypeAdapter[ClaimOptions](ClaimOptions)
 _CURSORS: Final = TypeAdapter[dict[str, UnitCursor]](dict[str, UnitCursor])
 _CLASS: Final = TypeAdapter[FailureClass](FailureClass)
 _PROGRESS: Final = TypeAdapter[JobProgress](JobProgress)
@@ -52,25 +65,15 @@ _YIELD_RESULT: Final = TypeAdapter[YieldJobResult](YieldJobResult)
 _ANNOTATIONS: Final = TypeAdapter[list[Annotation]](list[Annotation])
 
 
-@final
-@dataclass(frozen=True, slots=True)
-class _Waits:
-    """A worker's waits, as `open` stated them: None for one a case leaves to the table."""
-
-    job_claim_timeout_ms: int | None = None
-    held_job_stall_ms: int | None = None
-    held_job_stall_check_ms: int | None = None
-    mark_commit_timeout_ms: int | None = None
+_CLAIM_WAITS: Final = frozenset(field.alias or name for name, field in ClaimOptions.model_fields.items() if name != "accepts")
+"""The waits a worker's claiming is told, by their names in `protocol/specs/src/client/timing.json`."""
 
 
-def _timings(stated: Arguments) -> tuple[Timing, _Waits]:
-    """The timing a case states, each entry by its name in `protocol/specs/src/client/timing.json`: the transport's, and a worker's."""
+def _timings(stated: Arguments) -> tuple[Timing, dict[str, int]]:
+    """The timing a case states, each by its name in `protocol/specs/src/client/timing.json`: the transport's, and its claiming's."""
     known = Timing()
     reconnect_ms, lazy_remove_ms, linger_ms = known.reconnect_ms, known.lazy_remove_ms, known.linger_ms
-    job_claim_timeout_ms: int | None = None
-    held_job_stall_ms: int | None = None
-    held_job_stall_check_ms: int | None = None
-    mark_commit_timeout_ms: int | None = None
+    waits: dict[str, int] = {}
     for name in stated:
         match name:
             case "reconnectMs":
@@ -79,14 +82,8 @@ def _timings(stated: Arguments) -> tuple[Timing, _Waits]:
                 lazy_remove_ms = count(stated, name)
             case "lingerMs":
                 linger_ms = count(stated, name)
-            case "jobClaimTimeoutMs":
-                job_claim_timeout_ms = count(stated, name)
-            case "heldJobStallMs":
-                held_job_stall_ms = count(stated, name)
-            case "heldJobStallCheckMs":
-                held_job_stall_check_ms = count(stated, name)
-            case "markCommitTimeoutMs":
-                mark_commit_timeout_ms = count(stated, name)
+            case wait if wait in _CLAIM_WAITS:
+                waits[wait] = count(stated, name)
             case _:
                 raise Misuse(f"this driver cannot override {name}")
     return (
@@ -97,12 +94,7 @@ def _timings(stated: Arguments) -> tuple[Timing, _Waits]:
             emit_retry=known.emit_retry,
             seen_event_ids_count=known.seen_event_ids_count,
         ),
-        _Waits(
-            job_claim_timeout_ms=job_claim_timeout_ms,
-            held_job_stall_ms=held_job_stall_ms,
-            held_job_stall_check_ms=held_job_stall_check_ms,
-            mark_commit_timeout_ms=mark_commit_timeout_ms,
-        ),
+        waits,
     )
 
 
@@ -128,11 +120,6 @@ def _failure_class(args: Arguments) -> FailureClass | None:
     return _as_the_suite_wrote_it(_CLASS, args["failureClass"], "failureClass")
 
 
-def _iso(at: datetime | None) -> str | None:
-    """A time as the protocol carries one."""
-    return None if at is None else at.isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
-
 @final
 class Worker:
     """One worker, and what the suite asked it to report."""
@@ -142,7 +129,7 @@ class Worker:
         self._reporters: Final = reporters
         self._transport: HttpTransport | None = None
         self._client: XynologClient[HttpTransport] | None = None
-        self._waits = _Waits()
+        self._waits: dict[str, int] = {}
         self._claims: Claims | None = None
         self._job: HeldJob | None = None
         """The job the worker last came to hold, as its claims handed it out."""
@@ -198,11 +185,11 @@ class Worker:
         async for state in transport.state:
             if state != self._reported:
                 self._reported = state
-                say({"state": state})
+                say(ConformanceDriverLineState(state=state))
 
     async def _failures(self, failures: Events[XynologError]) -> None:
         async for error in failures:
-            say({"error": failure(error)})
+            say(ConformanceDriverLineErrorStream(error=failure(error)))
 
     async def open(self, _: int, args: Arguments) -> JsonValue:
         if self._client is not None:
@@ -246,16 +233,8 @@ class Worker:
         """Begin claiming, and say what the claims hand out."""
         if self._claims is not None:
             raise Misuse("the worker is already claiming")
-        accepts = _as_the_suite_wrote_it(_FILTERS, args.get("accepts"), "accepts")
-        claims = self._opened().job.claim(
-            ClaimOptions(
-                accepts=accepts,
-                job_claim_timeout_ms=self._waits.job_claim_timeout_ms,
-                held_job_stall_ms=self._waits.held_job_stall_ms,
-                held_job_stall_check_ms=self._waits.held_job_stall_check_ms,
-                mark_commit_timeout_ms=self._waits.mark_commit_timeout_ms,
-            )
-        )
+        options = _as_the_suite_wrote_it(_CLAIM_OPTIONS, {"accepts": args.get("accepts"), **self._waits}, "claim")
+        claims = self._opened().job.claim(options)
         self._claims = claims
         self._telling.append(self._reporters.create_task(self._reading(claims)))
         self._telling.append(self._reporters.create_task(self._stalls(claims.stalled())))
@@ -264,16 +243,13 @@ class Worker:
     async def _reading(self, claims: Claims) -> None:
         async for handed in claims:
             if isinstance(handed, ClaimRefusal):
-                refused: dict[str, JsonValue] = {"detail": handed.message}
-                if handed.code is not None:
-                    refused["code"] = handed.code
-                say({"refused": refused})
+                say(ConformanceDriverLineRefused(refused=stated(ConformanceFailure(code=handed.code, detail=handed.message))))
                 continue
             self._hold(handed)
             self._telling.append(self._reporters.create_task(self._signalled(handed)))
             say(
-                {
-                    "claimed": {
+                ConformanceDriverLineClaimed(
+                    claimed={
                         "jobId": handed.job_id,
                         "jobType": handed.job_type,
                         "resourceId": handed.resource_id,
@@ -283,18 +259,18 @@ class Worker:
                         "retryCount": handed.retry_count,
                         "maxRetries": handed.max_retries,
                     }
-                }
+                )
             )
 
     async def _signalled(self, job: HeldJob) -> None:
         async for cancelled in job.cancelled:
             if cancelled:
-                say({"signalled": job.job_id})
+                say(ConformanceDriverLineSignalled(signalled=job.job_id))
                 return
 
     async def _stalls(self, stalls: Events[HeldJobStall]) -> None:
         async for stall in stalls:
-            say({"stalled": stall.job_id})
+            say(ConformanceDriverLineStalled(stalled=stall.job_id))
 
     async def start(self, _: int, __: Arguments) -> JsonValue:
         with self._working() as job:
@@ -359,16 +335,7 @@ class Worker:
         return None
 
     async def vitals(self, _: int, __: Arguments) -> JsonValue:
-        vitals = self._claiming().vitals()
-        active = vitals.active_job
-        return {
-            "lastQueuedEventAt": _iso(vitals.last_queued_event_at),
-            "lastClaimAt": _iso(vitals.last_claim_at),
-            "lastFinishedAt": _iso(vitals.last_finished_at),
-            "lastActivityAt": _iso(vitals.last_activity_at),
-            "activeJob": None if active is None else {"jobId": active.job_id, "type": active.job_type, "since": _iso(active.since)},
-            "jobsCompleted": vitals.jobs_completed,
-        }
+        return written(self._claiming().vitals())
 
     async def sync(self, _: int, __: Arguments) -> JsonValue:
         """Answers after everything the worker reported before it."""

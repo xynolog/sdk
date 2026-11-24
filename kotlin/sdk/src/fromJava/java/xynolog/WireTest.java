@@ -24,7 +24,6 @@ import xynolog.bus.Operations;
 import xynolog.bus.Typed;
 import xynolog.channels.Channels;
 import xynolog.channels.ChannelsKt;
-import xynolog.channels.Empty;
 import xynolog.http.HttpContentTransport;
 import xynolog.http.HttpTransport;
 import xynolog.identifiers.ResourceId;
@@ -36,6 +35,7 @@ import xynolog.transport.Heard;
 import xynolog.transport.PutBinaryRequest;
 import xynolog.transport.Upload;
 import xynolog.types.BeckonFocusEvent;
+import xynolog.types.EmptyObject;
 import xynolog.types.FrameAddEntityTypeCommand;
 import xynolog.types.FrameRefusalReason;
 import xynolog.types.StatusResponse;
@@ -46,8 +46,8 @@ final class WireTest {
     void aRequestRoundTripsThroughItsFuture() throws Exception {
         try (Gateway gateway = new Gateway(); HttpTransport transport = new HttpTransport(gateway.origin(), StateFlowKt.MutableStateFlow("token"), ChannelsKt.getBRIDGED_CHANNELS())) {
             gateway.answer = body -> "{\"channel\":\"frame:entity-type-add-ok\",\"payload\":{},\"correlationId\":\"" + Gateway.correlationOf(body) + "\"}";
-            Empty added = new Bus(transport).requestFuture(Operations.FRAME_ADD_ENTITY_TYPE, FrameAddEntityTypeCommand.builder("Person").build(), 5_000).get(10, SECONDS);
-            assertSame(Empty.INSTANCE, added);
+            EmptyObject added = new Bus(transport).requestFuture(Operations.FRAME_ADD_ENTITY_TYPE, FrameAddEntityTypeCommand.builder("Person").build(), 5_000).get(10, SECONDS);
+            assertSame(EmptyObject.INSTANCE, added);
             assertTrue(gateway.next().contains("\"payload\":{\"tag\":\"Person\"}"));
         }
     }

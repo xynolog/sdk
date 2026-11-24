@@ -41,6 +41,8 @@ import xynolog.storage.CoupledBookmarks
 import xynolog.storage.MemoryStorage
 import xynolog.storage.SessionStorage
 import xynolog.transport.Frame
+import xynolog.types.BrowseResourcesRequest
+import xynolog.types.ResourceSearchFilters
 import java.util.concurrent.CountDownLatch
 import kotlin.time.TimeSource
 
@@ -136,10 +138,10 @@ class LiveQueriesTest {
 
         val lists = listOf(
             client.browse.resources(),
-            client.browse.resources(limit = 100),
-            client.browse.resources(archived = true),
-            client.browse.resources(entityType = "Person"),
-            client.browse.resources(limit = 5),
+            client.browse.resources(BrowseResourcesRequest(limit = 100)),
+            client.browse.resources(BrowseResourcesRequest(archived = true)),
+            client.browse.resources(BrowseResourcesRequest(entityType = "Person")),
+            client.browse.resources(BrowseResourcesRequest(limit = 5)),
         ).map { world.watch(it) }
         lists.forEach { it.ready() }
         // Stating the limit a list has anyway is the same list.
@@ -151,7 +153,7 @@ class LiveQueriesTest {
         assertEquals(4, asked.size)
 
         val before = kb.askedFor("match:resources-requested").size
-        listOf(client.match.resources("a"), client.match.resources("a"), client.match.resources("b", archived = false)).map { world.watch(it) }.forEach { it.ready() }
+        listOf(client.match.resources("a"), client.match.resources("a"), client.match.resources("b", ResourceSearchFilters(archived = false))).map { world.watch(it) }.forEach { it.ready() }
         assertEquals(
             listOf(json("""{"search":"a","limit":100,"offset":0}"""), json("""{"search":"b","limit":100,"offset":0,"archived":false}""")),
             kb.askedFor("match:resources-requested").drop(before).map { it.payload },

@@ -210,7 +210,8 @@ fn trigger_of(channel: &str) -> Option<RefreshTrigger> {
 /// channel's event is enriched when the member its enriched row carries is
 /// present.
 fn subject(trigger: RefreshTrigger, frame: Frame) -> Result<Subject, Unreadable> {
-    let event = held_to(&frame.channel, frame.payload).map_err(|_| Unreadable)?;
+    let event =
+        held_to(&frame.bus_frame.channel, frame.bus_frame.payload).map_err(|_| Unreadable)?;
     let enriched = trigger
         .rows()
         .iter()
@@ -327,7 +328,7 @@ impl Refresher {
             }
         };
         let stream_id = frame.stream_id.clone();
-        if let Some(trigger) = trigger_of(&frame.channel) {
+        if let Some(trigger) = trigger_of(&frame.bus_frame.channel) {
             match subject(trigger, frame) {
                 Ok(subject) => self.refresh(trigger, &subject),
                 Err(Unreadable) => {

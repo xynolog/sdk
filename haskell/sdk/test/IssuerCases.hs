@@ -38,6 +38,7 @@ import Xynolog.ClientAssertion qualified as Assertion
 import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (BusRequestError, SignInError (..), TransportError (..))
 import Xynolog.Http qualified as Http
+import Xynolog.Http.Routes (HttpRoute (GetCurrentUser, GetProtectedResourceMetadata, SubscribeToBus), routePath)
 import Xynolog.Issuer qualified as Issuer
 import Xynolog.Registry.Stored qualified as Stored
 import Xynolog.Retry qualified as Retry
@@ -127,6 +128,9 @@ discovery =
 route :: Bytes.ByteString -> Bytes.ByteString
 route request = case Char8.words (Char8.takeWhile (/= '\r') request) of [_, path, _] -> path; _ -> error "invalid HTTP request line"
 
+gatewayPath :: HttpRoute request answer -> Bytes.ByteString
+gatewayPath = encodeUtf8 . routePath
+
 bodyOf :: Bytes.ByteString -> Bytes.ByteString
 bodyOf = Bytes.drop 4 . snd . Bytes.breakSubstring "\r\n\r\n"
 
@@ -147,14 +151,14 @@ issuerCases fixtures = do
   options <- peer time $ \request -> do
     atomically (modifyTVar' seen (<> [request]))
     case route request of
-      "/.well-known/oauth-protected-resource" -> pure (200, metadata)
+      path | path == gatewayPath GetProtectedResourceMetadata -> pure (200, metadata)
       "/.well-known/openid-configuration" -> pure (200, discovery)
       "/token" -> do
         waiting <- readTVarIO hold
         mapM_ (atomically . readTMVar) waiting
         (,) <$> readTVarIO status <*> readTVarIO tokenBody
       "/revoke" -> pure (200, object [])
-      "/api/users/me" -> do
+      path | path == gatewayPath GetCurrentUser -> do
         code <-
           if "Bearer refused-override" `Bytes.isInfixOf` request
             then pure 401
@@ -166,7 +170,7 @@ issuerCases fixtures = do
         if code /= 200
           then pure (code, object ["error" .= String "identity refused"])
           else maybe (ioError (userError "factory test has no UserResponse fixture")) (pure . (200,)) (Map.lookup "UserResponse" fixtures)
-      path | "/bus/subscribe" `Bytes.isPrefixOf` path -> pure (503, object [])
+      path | gatewayPath SubscribeToBus `Bytes.isPrefixOf` path -> pure (503, object [])
       _ -> ioError (userError "unhandled issuer route")
   issuer <- Issuer.discoverIssuer options endpoint
   require "issuer discovery lost an endpoint" (issuerEndpointsRevocation issuer == Just "http://issuer.test/revoke")
@@ -219,7 +223,7 @@ issuerCases fixtures = do
   require "issuer refusal lost its terminal status" (case refused of Left failure -> signInStatus failure == Just 400; Right _ -> False)
   Issuer.revokeAtIssuer options "http://issuer.test/revoke" "client" "original"
   atomically (writeTVar status 200 >> writeTVar tokenBody (object ["access_token" .= String "fresh"]))
-  let targetKb = KbTarget (KbEndpointBranch1 endpoint) "http-factory" "HTTP factory" KM.empty
+  let targetKb = KbTarget (KbEndpointHttpEndpoint endpoint) "http-factory" "HTTP factory" KM.empty
       sessionOptions =
         Session.SessionOptions
           "http-factory"
@@ -270,7 +274,7 @@ issuerCases fixtures = do
     requests <- readTVarIO seen
     require
       "the client did not read the session's rotated token cell"
-      (any (\request -> route request == "/api/users/me" && "Authorization: Bearer fresh" `Bytes.isInfixOf` request) requests)
+      (any (\request -> route request == gatewayPath GetCurrentUser && "Authorization: Bearer fresh" `Bytes.isInfixOf` request) requests)
     startup <- Session.errors session (\given -> Session.closeOpenedSession opened >> Stream.toList_ given)
     require "opened session closer left the client open" . (== Transport.Closed)
       =<< atomically (State.current (Client.state (Session.client session)))
@@ -368,7 +372,7 @@ deviceClockCases root = clockCasesFor root ["deviceGrant"] $ \time row -> do
       interval = case given of Object fields -> KM.lookup "intervalSeconds" fields; _ -> error "missing device clock options"
   require "device polling clock has no answers" (not (null script))
   options <- peer time $ \request -> case route request of
-    "/.well-known/oauth-protected-resource" -> pure (200, metadata)
+    path | path == gatewayPath GetProtectedResourceMetadata -> pure (200, metadata)
     "/.well-known/openid-configuration" -> pure (200, discovery)
     "/device" ->
       pure

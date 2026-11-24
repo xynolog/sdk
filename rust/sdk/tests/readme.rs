@@ -26,9 +26,10 @@ use xynolog::testing::{
     TestClientOptions, create_test_client,
 };
 use xynolog::transport::{BoxFuture, Envelope, Frame, PutBinaryRequest};
+use xynolog::types::BusFrame;
 use xynolog::types::StoredSession;
 use xynolog::types::{
-    Agent, ClaimOptions, GatherResourceRequestOptions, GenerationJobParams, HighlightingJobParams,
+    Agent, ClaimOptions, GatherResourceOptions, GenerationJobParams, HighlightingJobParams,
     HttpEndpoint, HttpEndpointProtocol, InvalidIdentifier, JobCompleteCommand, KbEndpoint,
     KnowledgeBase, LinkingJobParams, MarkJobCompleteCommand, MarkJobDone, Motivation,
     PendingAnnotation, QuotedText, ResourceId, TextSpan, YieldJobResult,
@@ -75,7 +76,7 @@ async fn a_first_program(
     // around it.
     let context = client
         .gather
-        .resource(&paper_id, GatherResourceRequestOptions::default())
+        .resource(&paper_id, GatherResourceOptions::default())
         .await?;
 
     // Generate: a new resource, grounded in that context and linked to its
@@ -324,13 +325,15 @@ fn answer(transport: &FaultyTransport, request: &str, nth: usize, response: Valu
     }
     payload.insert("response".to_owned(), response);
     transport.deliver(Frame {
-        channel: operation(request)
-            .expect("a registry operation")
-            .result
-            .to_owned(),
-        payload,
-        correlation_id: asked.correlation_id,
-        scope: None,
+        bus_frame: BusFrame {
+            channel: operation(request)
+                .expect("a registry operation")
+                .result
+                .to_owned(),
+            payload,
+            correlation_id: asked.correlation_id,
+            scope: None,
+        },
         trace: None,
         stream_id: None,
     });
@@ -567,12 +570,15 @@ async fn the_worker_builds_an_annotation_of_each_quote_the_text_has_and_its_job_
     let said: Vec<Frame> = transport
         .emitted()
         .into_iter()
-        .filter(|frame| frame.channel != "job:claim")
+        .filter(|frame| frame.bus_frame.channel != "job:claim")
         .collect();
-    let channels: Vec<&str> = said.iter().map(|frame| frame.channel.as_str()).collect();
+    let channels: Vec<&str> = said
+        .iter()
+        .map(|frame| frame.bus_frame.channel.as_str())
+        .collect();
     assert_eq!(channels, ["job:start", "mark:commit", "job:complete"]);
 
-    let commit = &said[1].payload;
+    let commit = &said[1].bus_frame.payload;
     assert_eq!(
         (&commit["resourceId"], &commit["jobId"]),
         (&case["resourceId"], &json!("job-1"))
@@ -600,7 +606,7 @@ async fn the_worker_builds_an_annotation_of_each_quote_the_text_has_and_its_job_
         "first algorithm"
     );
     assert_eq!(
-        said[2].payload["result"],
+        said[2].bus_frame.payload["result"],
         json!({ "found": 3, "persisted": 2 })
     );
 }

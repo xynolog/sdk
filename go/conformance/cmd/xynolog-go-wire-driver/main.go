@@ -88,7 +88,7 @@ func (w *wire) report(state xynolog.ConnectionState) {
 	defer w.mu.Unlock()
 	if w.reported != state {
 		w.reported = state
-		protocol.Say(map[string]string{"state": string(state)})
+		protocol.Say(api.ConformanceDriverLineState{State: string(state)})
 	}
 }
 
@@ -278,7 +278,7 @@ func (w *wire) open(args protocol.Arguments) (any, error) {
 	// Taken at once, so every failure from the first request on is said, each
 	// before the call that met it returns, until the transport closes.
 	transport.Failures(func(failure *xynolog.TransportError) {
-		protocol.Say(map[string]any{"error": protocol.Failure(failure)})
+		protocol.Say(api.ConformanceDriverLineErrorStream{Error: protocol.Failure(failure)})
 	})
 	reporting, stop := context.WithCancel(context.Background())
 	w.mu.Lock()
@@ -318,14 +318,14 @@ func (w *wire) listen(args protocol.Arguments) (any, error) {
 				refusal := refused.(*xynolog.FrameRefusal)
 				panic(fmt.Sprintf("the transport refused a frame on %s: %s, at its `%s`", channel, refusal.Reason, refusal.Member))
 			}
-			line := map[string]any{"channel": channel, "payload": frame.Payload}
+			line := api.ConformanceDriverLineFrameFrame{Channel: string(channel), Payload: frame.Payload}
 			if frame.CorrelationID != "" {
-				line["correlationId"] = frame.CorrelationID
+				line.CorrelationId = &frame.CorrelationID
 			}
 			if !frame.Scope.IsZero() {
-				line["scope"] = frame.Scope.String()
+				line.Scope = &frame.Scope
 			}
-			protocol.Say(map[string]any{"frame": line})
+			protocol.Say(api.ConformanceDriverLineFrame{Frame: line})
 		}
 	}()
 	return nil, nil
@@ -480,7 +480,7 @@ func (w *wire) put(ctx context.Context, args protocol.Arguments, reporting bool,
 			}
 			// The driver protocol reports the bytes sent: the upload's start and its end are its answer's.
 			if sent, ok := member.(api.UploadProgressProgress); ok {
-				protocol.Say(map[string]any{"progress": map[string]any{"upload": id, "bytesUploaded": sent.BytesUploaded, "totalBytes": sent.TotalBytes}})
+				protocol.Say(api.ConformanceDriverLineProgress{Progress: api.ConformanceDriverLineProgressProgress{Upload: int(id), BytesUploaded: sent.BytesUploaded, TotalBytes: sent.TotalBytes}})
 			}
 		}
 	}

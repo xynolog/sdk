@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Progress (Progress (..), ProgressKind (..)) where
+module Xynolog.Internal.Generated.Models.Progress (Progress (..), ProgressKind (..), progressKindText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -36,3 +36,15 @@ instance ToJSON ProgressKind where
   toJSON ProgressKindStamp = String "stamp"
   toJSON ProgressKindCommand = String "command"
   toJSON ProgressKindOutput = String "output"
+
+progressKindText :: ProgressKind -> Text
+progressKindText ProgressKindLog = "log"
+progressKindText ProgressKindNote = "note"
+progressKindText ProgressKindOk = "ok"
+progressKindText ProgressKindWarn = "warn"
+progressKindText ProgressKindFail = "fail"
+progressKindText ProgressKindBanner = "banner"
+progressKindText ProgressKindSection = "section"
+progressKindText ProgressKindStamp = "stamp"
+progressKindText ProgressKindCommand = "command"
+progressKindText ProgressKindOutput = "output"

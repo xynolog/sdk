@@ -68,6 +68,32 @@ func TestSearchStateHasTheSchemasMembers(t *testing.T) {
 	}
 }
 
+// fieldMembers is the members t would be written with, were each field named
+// as JSON names it.
+func fieldMembers(t reflect.Type) []string {
+	members := make([]string, 0, t.NumField())
+	for i := range t.NumField() {
+		name := t.Field(i).Name
+		members = append(members, strings.ToLower(name[:1])+name[1:])
+	}
+	slices.Sort(members)
+	return members
+}
+
+// Protocol states no type for a worker's vitals: they are WorkerEngineHealth
+// less what its host knows, the engine and the jobs it claims.
+func TestWorkerVitalsAreWorkerEngineHealthsOwnMembers(t *testing.T) {
+	health := slices.DeleteFunc(jsonMembers(reflect.TypeFor[api.WorkerEngineHealth]()), func(member string) bool {
+		return member == "engine" || member == "jobs"
+	})
+	if got := fieldMembers(reflect.TypeFor[xynolog.WorkerVitals]()); !slices.Equal(got, health) {
+		t.Errorf("WorkerVitals has %v, and WorkerEngineHealth less its engine and jobs %v", got, health)
+	}
+	if got, want := fieldMembers(reflect.TypeFor[xynolog.ActiveJob]()), jsonMembers(reflect.TypeFor[api.WorkerEngineHealthActiveJob]()); !slices.Equal(got, want) {
+		t.Errorf("ActiveJob has %v, and WorkerEngineHealth's active job %v", got, want)
+	}
+}
+
 // jobEvents is one of each JobEvent, each carrying what it must to be
 // written.
 func jobEvents(t *testing.T) []xynolog.JobEvent {

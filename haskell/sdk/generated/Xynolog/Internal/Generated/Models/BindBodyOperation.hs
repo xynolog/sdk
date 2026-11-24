@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BindBodyOperation (BindBodyOperation (..), BindBodyOperationOp (..)) where
+module Xynolog.Internal.Generated.Models.BindBodyOperation (BindBodyOperation (..), BindBodyOperationOp (..), bindBodyOperationOpText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationBody
 
@@ -30,3 +31,8 @@ instance ToJSON BindBodyOperationOp where
   toJSON BindBodyOperationOpAdd = String "add"
   toJSON BindBodyOperationOpRemove = String "remove"
   toJSON BindBodyOperationOpReplace = String "replace"
+
+bindBodyOperationOpText :: BindBodyOperationOp -> Text
+bindBodyOperationOpText BindBodyOperationOpAdd = "add"
+bindBodyOperationOpText BindBodyOperationOpRemove = "remove"
+bindBodyOperationOpText BindBodyOperationOpReplace = "replace"

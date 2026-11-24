@@ -205,8 +205,8 @@ func TestB19TheRefetchesEventsAskOfOneKeyInsideAWindowAreOneRefetch(t *testing.T
 	}
 	untilReady(t, watch(t, c.Browse.Resource(resourceOf(t, "res-1"))))
 	untilReady(t, watch(t, c.Browse.Resource(resourceOf(t, "res-2"))))
-	untilReady(t, watch(t, c.Browse.Resources(xynolog.ResourceFilters{})))
-	untilReady(t, watch(t, c.Match.Resources("text", xynolog.ResourceFilters{})))
+	untilReady(t, watch(t, c.Browse.Resources(api.BrowseResourcesRequest{})))
+	untilReady(t, watch(t, c.Match.Resources("text", api.ResourceSearchFilters{})))
 	if asked() != 2 || listsAndSearches() != [2]int{1, 1} {
 		t.Fatalf("asked %d resources, and %v lists and searches", asked(), listsAndSearches())
 	}

@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.TextPositionSelector (TextPositionSelector (..), TextPositionSelectorType (..)) where
+module Xynolog.Internal.Generated.Models.TextPositionSelector (TextPositionSelector (..), TextPositionSelectorType (..), textPositionSelectorTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data TextPositionSelector = TextPositionSelector
@@ -25,3 +26,6 @@ data TextPositionSelectorType = TextPositionSelectorTypeTextPositionSelector der
 instance FromJSON TextPositionSelectorType where parseJSON = checked "TextPositionSelectorType" $ \value -> if value == String "TextPositionSelector" then pure TextPositionSelectorTypeTextPositionSelector else fail "unknown enumeration member"
 
 instance ToJSON TextPositionSelectorType where toJSON TextPositionSelectorTypeTextPositionSelector = String "TextPositionSelector"
+
+textPositionSelectorTypeText :: TextPositionSelectorType -> Text
+textPositionSelectorTypeText TextPositionSelectorTypeTextPositionSelector = "TextPositionSelector"

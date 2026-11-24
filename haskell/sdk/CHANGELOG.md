@@ -17,6 +17,21 @@ the coming release's, and gathers its changes as they land.
   pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
+- An enumeration of words has a function that gives each its word
+  (`httpEndpointProtocolText`, `jobTypeText`, …).
+- `Xynolog.ServiceTables`: every table the services read, each a value of
+  the type its own schema states (`jobsBudgets :: JobsBudgets`,
+  `serviceEnvironmentVariables`, `gatewayMediaToken`, `archivistLayout`,
+  each service's messages, …): every table of a service's area and of
+  `service-environment/`, `service-telemetry/` and `jobs/` but the case
+  tables, and `bus/reply-bounds.json`.
+- `Xynolog.Tables`: the clients' tables no other module carries, each a value
+  of the type its own schema states: `controlMethods`, `localesRegistry` and
+  `retryRules`.
+- `Xynolog.Archivist.Routes`: the Archivist's HTTP operations as
+  `ArchivistRoute`, typed by what each is asked and answers, with its method,
+  path, status, media types and required headers, as `Xynolog.Http.Routes`
+  states the gateway's.
 
 ### Changed
 
@@ -30,6 +45,26 @@ the coming release's, and gathers its changes as they land.
   a schema that states no `type`.
 - A pattern may use the class escapes Protocol's patterns use (`\s`, `\d`,
   `\w`, and outside a class `\S`, `\D`, `\W`), and `\/` and `\:`.
+- A union's members are named by what each is, in place of their place in
+  the union: the type a member names (`KbEndpointLocalEndpoint`), the value
+  its discriminant states, or its title (`ConformanceDriverLineReady`), in
+  place of `KbEndpointBranch1` and the like.
+- A frame's refusal reason is `FrameRefusalReason`, the type Protocol states,
+  in place of `FaultReason` (`FrameRefusalReasonLacks`,
+  `FrameRefusalReasonMalformed`).
+- `Job.claim` and `Worker.newClaims` take `ClaimOptions`, the type Protocol
+  states, in place of `WorkerOptions`; the claims' clock and timing are the
+  client's. A filter list that is empty, a stall check that is not positive,
+  or a claim, stall or commit timeout that is negative, is
+  `InvalidClaimOptions`, in place of `InvalidWorkerTiming`.
+- `Job.pollUntilComplete` takes `JobPollOptions`, the type Protocol states, in
+  place of `PollOptions`, and the callback that is told each status.
+- `Content.putBinary`, `Yield.resource` and `Yield.createFromToken` answer
+  `CreateResourceResponse`, the type Protocol states, in place of the new
+  resource's id; `Yield.createFromToken` takes `CreateFromTokenOptions`.
+- A gateway's URL takes its scheme from the endpoint's `protocol`.
+- What each retry rule retries is read from `retryRules`, the value of
+  `retry/rules.json`, in place of the SDK's own statuses and methods.
 
 ## 0.8.1
 

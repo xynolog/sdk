@@ -11,9 +11,7 @@ let text (shapes : (string * Shape.shape) list) =
   T.text
     {
       banner =
-        Banner.typescript_lines
-          ~authority:
-            [ "the component schemas of protocol/specs/src/openapi.json" ]
+        Banner.typescript_lines ~authority:[ Table.authority ]
           ~notes:[ "The rules:   codegen/lib/required/shape.ml" ]
           __FILE__;
       body =
@@ -21,13 +19,14 @@ let text (shapes : (string * Shape.shape) list) =
           T.Adjacent
             [
               T.import ~type_only:true [ "Shape" ] "./required";
-              T.import ~type_only:true [ "components" ] "./types";
+              T.import ~type_only:true [ "components"; "records" ] "./types";
             ];
           T.const "REQUIRED_SCHEMAS"
             ~about:
               [
                 Doc
-                  "What each component schema requires of a value, by its name.";
+                  "What each schema and each table record requires of a value, \
+                   by its name.";
               ]
             ~annotation:
               (T_mapped
@@ -36,7 +35,12 @@ let text (shapes : (string * Shape.shape) list) =
                    readonly = true;
                    key = "Name";
                    in_ =
-                     T_keyof (T_index (T_name "components", T_str "schemas"));
+                     T_union
+                       [
+                         T_keyof
+                           (T_index (T_name "components", T_str "schemas"));
+                         T_keyof (T_name "records");
+                       ];
                    value = T_name "Shape";
                  })
             (T.rows

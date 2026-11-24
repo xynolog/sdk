@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.RepresentationNotFound (RepresentationNotFound (..), RepresentationNotFoundCode (..)) where
+module Xynolog.Internal.Generated.Models.RepresentationNotFound (RepresentationNotFound (..), RepresentationNotFoundCode (..), representationNotFoundCodeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -29,3 +29,7 @@ instance FromJSON RepresentationNotFoundCode where parseJSON = checked "Represen
 instance ToJSON RepresentationNotFoundCode where
   toJSON RepresentationNotFoundCodeResource = String "resource"
   toJSON RepresentationNotFoundCodeRepresentation = String "representation"
+
+representationNotFoundCodeText :: RepresentationNotFoundCode -> Text
+representationNotFoundCodeText RepresentationNotFoundCodeResource = "resource"
+representationNotFoundCodeText RepresentationNotFoundCodeRepresentation = "representation"

@@ -12,8 +12,6 @@ public sealed record EngineWithLimits(EngineEntry Entry, InferenceLimits? Limits
 
 internal sealed class LiveQueries : IDisposable
 {
-    internal readonly record struct Filters(long Limit, long Offset, bool? Archived, string? EntityType);
-    internal readonly record struct Search(string Text, Filters Filters);
     internal readonly record struct AnnotationKey(ResourceId Resource, AnnotationId Annotation);
 
     private static readonly JsonDocument Table = JsonDocument.Parse(ProtocolTables.CacheRefresh);
@@ -31,12 +29,12 @@ internal sealed class LiveQueries : IDisposable
     private IReadOnlyList<EngineLimits> reportedLimits = [];
 
     internal Cache<ResourceId, ResourceDescriptor> ResourcesById { get; }
-    internal Cache<Filters, ListResourcesResponse> Resources { get; }
+    internal Cache<BrowseResourcesRequest, ListResourcesResponse> Resources { get; }
     internal Cache<ResourceId, GetAnnotationsResponse> Annotations { get; }
     internal Cache<AnnotationKey, Annotation> Annotation { get; }
     internal Cache<ResourceId, IReadOnlyList<AttributedEvent>> Events { get; }
     internal Cache<ResourceId, IReadOnlyList<GetReferencedByResponseReferencedByItem>> ReferencedBy { get; }
-    internal Cache<Search, MatchResourcesResponse> MatchedResources { get; }
+    internal Cache<MatchResourcesRequest, MatchResourcesResponse> MatchedResources { get; }
     internal CacheEntry<IReadOnlyList<string>> EntityTypes { get; }
     internal CacheEntry<IReadOnlyList<TagSchema>> TagSchemas { get; }
     internal CacheEntry<IReadOnlyList<EngineEntry>> Engines { get; }
@@ -53,8 +51,7 @@ internal sealed class LiveQueries : IDisposable
         ResourcesById = new(async (id, token) => (await wire.RequestAsync(BusOperations.BrowseResourceRequested,
             new BrowseResourceRequest { ResourceId = id }, cancellation: token).ConfigureAwait(Spawning.Captures)).Response.Resource, transport.SubscribeToResource, clock, window,
             persistence?.Changed("resource"));
-        Resources = new(async (filters, token) => (await wire.RequestAsync(BusOperations.BrowseResourcesRequested,
-            new BrowseResourcesRequest { Limit = filters.Limit, Offset = filters.Offset, Archived = filters.Archived, EntityType = filters.EntityType },
+        Resources = new(async (request, token) => (await wire.RequestAsync(BusOperations.BrowseResourcesRequested, request,
             cancellation: token).ConfigureAwait(Spawning.Captures)).Response, null, clock, window);
         Annotations = new(content.GetAnnotationsAsync, transport.SubscribeToResource, clock, window, persistence?.Changed("annotations"));
         Annotation = new(async (key, token) => (await wire.RequestAsync(BusOperations.BrowseAnnotationRequested,
@@ -65,14 +62,8 @@ internal sealed class LiveQueries : IDisposable
             new BrowseEventsRequest { ResourceId = id }, cancellation: token).ConfigureAwait(Spawning.Captures)).Response.Events, transport.SubscribeToResource, clock, window);
         ReferencedBy = new(async (id, token) => (await wire.RequestAsync(BusOperations.GatherReferencedByRequested,
             new GatherReferencedByRequest { ResourceId = id }, cancellation: token).ConfigureAwait(Spawning.Captures)).Response.ReferencedBy, transport.SubscribeToResource, clock, window);
-        MatchedResources = new(async (search, token) => (await wire.RequestAsync(BusOperations.MatchResourcesRequested, new MatchResourcesRequest
-        {
-            Search = search.Text,
-            Limit = search.Filters.Limit,
-            Offset = search.Filters.Offset,
-            Archived = search.Filters.Archived,
-            EntityType = search.Filters.EntityType,
-        }, cancellation: token).ConfigureAwait(Spawning.Captures)).Response, null, clock, window);
+        MatchedResources = new(async (request, token) => (await wire.RequestAsync(BusOperations.MatchResourcesRequested, request,
+            cancellation: token).ConfigureAwait(Spawning.Captures)).Response, null, clock, window);
 
         var entityTypes = Singleton<IReadOnlyList<string>>(async token => (await wire.RequestAsync(BusOperations.BrowseEntityTypesRequested,
             new BrowseEntityTypesRequest(), cancellation: token).ConfigureAwait(Spawning.Captures)).Response.EntityTypes, out var types, persistence?.Changed("entityTypes"));
@@ -102,7 +93,7 @@ internal sealed class LiveQueries : IDisposable
         refresh = Table.RootElement.GetProperty("refresh").EnumerateArray().ToLookup(Trigger, StringComparer.Ordinal);
         CheckRefresh();
         var channels = refresh.Select(group => group.Key).Where(BusChannels.Readings.ContainsKey);
-        if (persistence is not null) channels = channels.Concat(ProtocolFacts.Channels("scoped")).Distinct(StringComparer.Ordinal);
+        if (persistence is not null) channels = channels.Concat(BusChannels.Scoped).Distinct(StringComparer.Ordinal);
         events = bus.Listen(channels.ToArray());
         if (persistence is not null)
         {

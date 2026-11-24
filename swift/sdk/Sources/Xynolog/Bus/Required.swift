@@ -9,15 +9,15 @@ import Foundation
 
 /// The first thing wrong with a value: the way to the member it is at (the names of the members it
 /// is within, and its own, joined by dots; empty for the value itself), and why.
-struct Fault: Error, Equatable, Sendable {
-  let member: String
-  let reason: FrameRefusalReason
+public struct Fault: Error, Equatable, Sendable {
+  public let member: String
+  public let reason: FrameRefusalReason
 
   /// The fault of a value its decoder refuses where the table finds none: the value itself.
   static let undecoded = Fault(member: "", reason: .malformed)
 
   /// What every SDK says of it.
-  var said: String {
+  public var said: String {
     switch reason {
     case .lacks: "it has no `\(member)`"
     case .malformed: member.isEmpty ? "it is malformed" : "its `\(member)` is malformed"
@@ -120,8 +120,9 @@ final class Shape: Sendable {
 }
 
 /// The first fault `value` has as the component schema `schema`, by the rules every SDK reads the
-/// table by; nil when it has none.
-func faultOf(_ schema: String, _ value: JSONValue) -> Fault? {
+/// table by; nil when it has none. `schema` names a schema Protocol states: any other name is a
+/// programming error, and traps.
+public func faultOf(_ schema: String, _ value: JSONValue) -> Fault? {
   faultOf(component(schema), value)
 }
 

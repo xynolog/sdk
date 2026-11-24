@@ -35,6 +35,7 @@ import xynolog.transport.Upload;
 import xynolog.types.AgentSoftware;
 import xynolog.types.Annotation;
 import xynolog.types.BeckonHoverEvent;
+import xynolog.types.CreateFromTokenOptions;
 import xynolog.types.GatherAnnotationComplete;
 import xynolog.types.HighlightingJobParams;
 import xynolog.types.JobCompleteCommand;
@@ -219,7 +220,7 @@ final class ClientTest {
         try (Opened opened = new Opened()) {
             String source = "{\"@context\":\"https://schema.org\",\"@id\":\"res-1\",\"name\":\"A resource\",\"representations\":[{\"mediaType\":\"text/markdown\"}]}";
             opened.gateway.answer = body -> reply("yield:clone-resource-result", "{\"response\":{\"sourceResource\":" + source + ",\"expiresAt\":\"2030-01-01T00:00:00.000Z\"}}", body);
-            assertEquals(new ResourceId("res-2"), opened.client.getYield().createFromTokenFuture("tok-1", "A Copy", "hello").get(10, SECONDS).getResourceId());
+            assertEquals(new ResourceId("res-2"), opened.client.getYield().createFromTokenFuture(CreateFromTokenOptions.builder("tok-1", "A Copy", "hello").build()).get(10, SECONDS).getResourceId());
             String sent = new String(opened.gateway.uploaded.get(10, SECONDS), UTF_8);
             assertTrue(sent.contains("file://a-copy.md") && sent.contains("text/markdown") && sent.contains("tok-1"), sent);
         }

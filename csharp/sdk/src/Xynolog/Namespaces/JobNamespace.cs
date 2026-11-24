@@ -25,8 +25,9 @@ public sealed class JobNamespace
         closed = transport.Closed;
     }
 
-    /// <summary>Claims, for a worker, each job it comes to hold that one of the filters accepts.</summary>
-    public Claims Claim(IReadOnlyList<JobFilter> accepts) => new(transport, wire, accepts);
+    /// <summary>Claims, for a worker, each job it comes to hold that one of the options' filters accepts, waiting as long as
+    /// the options say, and as this client's timing says for a wait they leave out.</summary>
+    public Claims Claim(ClaimOptions options) => new(transport, wire, options);
 
     /// <summary>Observes queued jobs. Wire announcements require a transport subscribed to this channel.</summary>
     public IAsyncEnumerable<Heard<JobQueuedEvent>> Queued(CancellationToken cancellation = default) =>
@@ -55,15 +56,15 @@ public sealed class JobNamespace
             cancellation: cancellation).ConfigureAwait(Spawning.Captures)).Response.Cancelled;
 
     /// <summary>Returns the first terminal status, reporting each status received along the way. It asks every
-    /// <paramref name="intervalMs"/>, jobPollMs when named none, and fails as timed out at <paramref name="timeoutMs"/>
-    /// from its first ask, jobPollTimeoutMs when named none.</summary>
-    public async Task<JobStatusResponse> PollUntilCompleteAsync(JobId jobId, int? intervalMs = null, int? timeoutMs = null,
+    /// <see cref="JobPollOptions.EveryMs"/>, jobPollMs when the options name none, and fails as timed out at
+    /// <see cref="JobPollOptions.WithinMs"/> from its first ask, jobPollTimeoutMs when they name none.</summary>
+    public async Task<JobStatusResponse> PollUntilCompleteAsync(JobId jobId, JobPollOptions? options = null,
         Action<JobStatusResponse>? onStatus = null, CancellationToken cancellation = default)
     {
-        var everyMs = intervalMs ?? ProtocolFacts.Timing("jobPollMs").GetInt32();
-        var limitMs = timeoutMs ?? ProtocolFacts.Timing("jobPollTimeoutMs").GetInt32();
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(everyMs, nameof(intervalMs));
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(limitMs, nameof(timeoutMs));
+        var everyMs = options?.EveryMs ?? Timings.JobPollMs;
+        var limitMs = options?.WithinMs ?? Timings.JobPollTimeoutMs;
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(everyMs, nameof(options));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(limitMs, nameof(options));
         var interval = TimeSpan.FromMilliseconds(everyMs);
         using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(limitMs), clock);
         using var waiting = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token, closed, cancellation);
@@ -81,11 +82,11 @@ public sealed class JobNamespace
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested && closed.IsCancellationRequested)
         {
-            throw new BusRequestError(ProtocolFacts.BusError("closed"), "The client closed while polling the job");
+            throw new BusRequestError(BusRequestErrorCode.Closed, "The client closed while polling the job");
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested && deadline.IsCancellationRequested)
         {
-            throw new BusRequestError(ProtocolFacts.BusError("timeout"), "Job polling timed out");
+            throw new BusRequestError(BusRequestErrorCode.Timeout, "Job polling timed out");
         }
     }
 }

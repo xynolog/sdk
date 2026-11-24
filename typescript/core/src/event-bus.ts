@@ -20,6 +20,7 @@ import {
   warnUnobservedRepliesEnabled,
 } from './bus-log';
 import type { EventMap } from './bus-protocol';
+import type { components } from './types';
 import type { ResourceId } from './identifiers';
 
 /**
@@ -34,20 +35,17 @@ import type { ResourceId } from './identifiers';
  *
  * A handler cannot tell which fabric it is on — that is the property the
  * signal plane is built on — so the envelope it reads must not depend on the
- * fabric. This is the same frame the wire carries.
+ * fabric. This is the same frame the wire carries: its envelope is the wire
+ * frame's, its payload the channel's own, and `trace` the trace the frame was
+ * sent under as a wire transport received it (absent on a frame of this
+ * process, and on one that carried none).
  */
-export interface BusFrame<T> {
-  /** Correlates a reply with its request. Absent on an announcement. */
-  readonly correlationId?: string;
-  /** The resource scope this frame was emitted into. Absent means global. */
-  readonly scope?: ResourceId;
-  readonly payload: T;
-  /**
-   * The trace the frame was sent under, as a wire transport received it.
-   * Absent on a frame of this process, and on one that carried none.
-   */
-  readonly trace?: TraceCarrier;
-}
+export type BusFrame<T> = Readonly<
+  Pick<components['schemas']['BusFrame'], 'correlationId' | 'scope'> & {
+    payload: T;
+    trace?: TraceCarrier;
+  }
+>;
 
 /**
  * A W3C trace context: what a frame from the wire was sent under, so its

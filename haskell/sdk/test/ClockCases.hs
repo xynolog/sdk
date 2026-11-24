@@ -379,7 +379,7 @@ jobPollClockCases root fixtures = clockCasesFor root ["jobPoll", "jobPollTimeout
     atomically (modifyTVar' asks (+ 1))
     reply input frame Channel.JobStatusResult running
   poller <- async $ do
-    outcome <- try (Job.pollUntilComplete (Client.job client) identity (Job.PollOptions Nothing Nothing (const (pure ()))))
+    outcome <- try (Job.pollUntilComplete (Client.job client) identity (JobPollOptions Nothing Nothing) (const (pure ())))
     case outcome of
       Left failure | busRequestErrorCode failure == Code.BusRequestTimeout -> atomically (modifyTVar' timedOut (+ 1))
       Left failure -> throwIO failure

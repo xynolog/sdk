@@ -18,6 +18,7 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 use tokio::sync::{Notify, watch};
 use xynolog::channels::BRIDGED_CHANNELS;
+use xynolog::gateway_http::UPLOAD_RESOURCE;
 use xynolog::timing::REQUEST_RETRY_PAUSE;
 use xynolog::transport::{BoxFuture, ContentTransport, PutBinaryRequest};
 use xynolog::types::{UploadProgress, UploadProgressFinished, UploadProgressStarted};
@@ -83,7 +84,7 @@ async fn an_upload_sent_again_with_a_renewed_token_never_reports_less_than_it_la
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let origin = format!("http://{}", listener.local_addr().unwrap());
     let router = Router::new()
-        .route("/resources", post(upload))
+        .route(UPLOAD_RESOURCE.path, post(upload))
         .layer(axum::extract::DefaultBodyLimit::disable())
         .with_state(arrived.clone());
     let serving = tokio::spawn(async move { axum::serve(listener, router).await });

@@ -3,7 +3,6 @@ using System.Text.Json;
 using Xynolog.Errors;
 using Xynolog.Identifiers;
 using Xynolog.Jobs;
-using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog;
@@ -170,7 +169,7 @@ public abstract class HeldJob : IHeldJob
                     Annotations = annotations,
                 }, holder.CommitTimeoutMs, cancellation).ConfigureAwait(Spawning.Captures);
             }
-            catch (BusRequestError error) when (error.Code == ProtocolFacts.BusError("timeout"))
+            catch (BusRequestError error) when (error.Code == BusRequestErrorCode.Timeout)
             {
                 var observed = await ProbeAsync(resourceId, last, cancellation).ConfigureAwait(Spawning.Captures);
                 Observe(observed);
@@ -189,8 +188,8 @@ public abstract class HeldJob : IHeldJob
                 holder.CommitTimeoutMs, cancellation).ConfigureAwait(Spawning.Captures);
             return answer.Response.Annotation.Id == annotationId ? DurabilityEvidence.ProbeConfirmed : DurabilityEvidence.ProbeRefused;
         }
-        catch (BusRequestError error) when (error.Code != ProtocolFacts.BusError("timeout") &&
-            error.Code != ProtocolFacts.BusError("closed") && error.Code != ProtocolFacts.BusError("unsubscribed"))
+        catch (BusRequestError error) when (error.Code != BusRequestErrorCode.Timeout &&
+            error.Code != BusRequestErrorCode.Closed && error.Code != BusRequestErrorCode.Unsubscribed)
         {
             return DurabilityEvidence.ProbeRefused;
         }

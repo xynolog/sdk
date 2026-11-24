@@ -14,10 +14,8 @@
 import { byCodePoint } from './by-code-point';
 import { REQUIRED_SCHEMAS } from './required-schemas';
 import type { FrameRefusalReason } from './payload-types';
-import type { components } from './types';
-
-/** A component schema of the spec, by its name. */
-type SchemaName = keyof components['schemas'];
+/** A component schema of the spec or a table record, by its name. */
+type SchemaName = keyof typeof REQUIRED_SCHEMAS;
 
 /** The kind of a JSON value, as a schema names it. An integer is a number with no fractional part. */
 type Kind =
@@ -393,7 +391,7 @@ function without(value: unknown, leftOut: LeftOut): unknown {
 /** A value as its reader reads it (`read`), or its first fault. */
 export type Reading = { readonly read: unknown } | { readonly fault: Fault };
 
-/** Whether `name` is a component schema's, as a `$ref` a table states names one. */
+/** Whether `name` is a component schema's or a table record's, as a `$ref` a table states names one. */
 export function isSchemaName(name: string): name is SchemaName {
   return Object.hasOwn(REQUIRED_SCHEMAS, name);
 }

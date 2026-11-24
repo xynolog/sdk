@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Xynolog;
 using Xynolog.Errors;
 using Xynolog.Http;
@@ -50,12 +49,12 @@ internal sealed class LiveDriver : IDisposable
                     var yield = Client.Yield.Delegate(Required<GenerationJobParams>(args, "params"), stall);
                     Follow(Text(args, "observer"), yield);
                     break;
-                default: WireDriver.Say(new { id, unsupported = true }); return;
+                default: WireDriver.Say(Lines.Unsupported(id)); return;
             }
-            WireDriver.Say(new JsonObject { ["id"] = id, ["ok"] = JsonSerializer.SerializeToNode(answer) });
+            WireDriver.Say(Lines.Ok(id, JsonSerializer.SerializeToElement(answer)));
         }
-        catch (XynologError error) { WireDriver.Say(new { id, error = Failure(error) }); }
-        catch (Exception error) { WireDriver.Say(new { id, misuse = error.Message }); }
+        catch (XynologError error) { WireDriver.Say(Lines.Failed(id, error)); }
+        catch (Exception error) { WireDriver.Say(Lines.Misuse(id, error)); }
     }
 
     private void Open(JsonElement args)
@@ -86,13 +85,13 @@ internal sealed class LiveDriver : IDisposable
         {
             if (opened != client || state == reported) return;
             reported = state;
-            WireDriver.Say(new { state = state.ToString().ToLowerInvariant() });
+            WireDriver.Say(Lines.State(state));
         }
     }
 
     private static async Task ReportErrorsAsync(XynologClient opened)
     {
-        await foreach (var error in opened.Transport.Errors().ConfigureAwait(false)) WireDriver.Say(new { error = Failure(error) });
+        await foreach (var error in opened.Transport.Errors().ConfigureAwait(false)) WireDriver.Say(Lines.ErrorStream(error));
     }
 
     private Task Begin(string name, Func<string, TaskCompletionSource, CancellationToken, Task> work)
@@ -114,13 +113,13 @@ internal sealed class LiveDriver : IDisposable
         {
             try { await work(name, first, observation.Cancellation.Token).ConfigureAwait(false); }
             catch (OperationCanceledException) when (observation.Cancellation.IsCancellationRequested) { }
-            catch (Exception error) { Emit(name, new { status = "failed", error = Failure(error) }); }
+            catch (Exception error) { WireDriver.Say(Lines.Unread(name, error)); }
             finally
             {
                 lock (gate)
                 {
                     observations.Remove(name);
-                    if (!observation.Cancellation.IsCancellationRequested) WireDriver.Say(new { completed = name });
+                    if (!observation.Cancellation.IsCancellationRequested) WireDriver.Say(Lines.Completed(name));
                     observation.Cancellation.Dispose();
                 }
                 first.TrySetResult();
@@ -151,27 +150,23 @@ internal sealed class LiveDriver : IDisposable
                     JobEvent<T>.Refused(var channel, var member, var reason) => Event("refused", new { channel, member, reason }),
                     JobEvent<T>.Complete(var data) => Event("complete", data),
                 };
-                Emit(observer, new { status = "ready", value });
+                WireDriver.Say(Lines.Value(observer, value));
             }
         });
 
     private IQuery QueryOf(JsonElement args)
     {
         ResourceId Resource() => ResourceId.Parse(Text(args, "resource"));
-        var filters = args.TryGetProperty("filters", out var stated) ? stated : JsonSerializer.SerializeToElement(new { });
-        var limit = filters.TryGetProperty("limit", out var l) ? l.GetInt64() : 100;
-        var offset = filters.TryGetProperty("offset", out var o) ? o.GetInt64() : 0;
-        var archived = filters.TryGetProperty("archived", out var a) ? a.GetBoolean() : (bool?)null;
-        var entityType = filters.TryGetProperty("entityType", out var e) ? e.GetString() : null;
+        T? Filters<T>() where T : class => args.TryGetProperty("filters", out _) ? Required<T>(args, "filters") : null;
         return Text(args, "query") switch
         {
             "resource" => Query(Client.Browse.Resource(Resource())),
-            "resources" => Query(Client.Browse.Resources(limit, offset, archived, entityType)),
+            "resources" => Query(Client.Browse.Resources(Filters<BrowseResourcesRequest>())),
             "annotations" => Query(Client.Browse.Annotations(Resource())),
             "annotation" => Query(Client.Browse.Annotation(Resource(), AnnotationId.Parse(Text(args, "annotation")))),
             "events" => Query(Client.Browse.Events(Resource())),
             "referencedBy" => Query(Client.Gather.ReferencedBy(Resource())),
-            "matchedResources" => Query(Client.Match.Resources(Text(args, "search"), limit, offset, archived, entityType)),
+            "matchedResources" => Query(Client.Match.Resources(Text(args, "search"), Filters<ResourceSearchFilters>())),
             "entityTypes" => Query(Client.Browse.EntityTypes()),
             "tagSchemas" => Query(Client.Browse.TagSchemas()),
             "engines" => Query(Client.Browse.Engines(), Engines),
@@ -192,16 +187,7 @@ internal sealed class LiveDriver : IDisposable
     private static string Text(JsonElement row, string key) => row.GetProperty(key).GetString() ?? throw new InvalidOperationException("Missing " + key);
     private static T Required<T>(JsonElement row, string key) where T : class =>
         row.GetProperty(key).Deserialize<T>() ?? throw new InvalidOperationException("Missing " + key);
-    private static object Failure(Exception error)
-    {
-        var failure = new JsonObject { ["detail"] = error.Message };
-        if (error is XynologError xynolog) failure["code"] = xynolog.Code;
-        if (error is JobError { FailureClass: { } kind }) failure["failureClass"] = JsonSerializer.SerializeToNode(kind);
-        if (error is TransportError { Status: { } status }) failure["status"] = status;
-        return failure;
-    }
-    private static object Event<T>(string kind, T data) => new { kind, data };
-    private static void Emit(string observer, object state) => WireDriver.Say(new { emission = new { observer, state } });
+    private static JsonElement Event<T>(string kind, T data) => JsonSerializer.SerializeToElement(new { kind, data }, WireDriver.Json);
 
     public void Dispose() => client?.Dispose();
 
@@ -223,13 +209,12 @@ internal sealed class LiveDriver : IDisposable
         {
             await foreach (var state in cached.WithCancellation(cancellation).ConfigureAwait(false))
             {
-                object payload = state switch
+                WireDriver.Say(state switch
                 {
-                    CacheState<T>.Pending => new { status = "pending" },
-                    CacheState<T>.Ready(var value) => new { status = "ready", value = encode(value) },
-                    CacheState<T>.Failed(var error) => new { status = "failed", error = Failure(error) },
-                };
-                Emit(observer, payload);
+                    CacheState<T>.Pending => Lines.Pending(observer),
+                    CacheState<T>.Ready(var value) => Lines.Value(observer, encode(value)),
+                    CacheState<T>.Failed(var error) => Lines.Unread(observer, error),
+                });
                 first.TrySetResult();
             }
         }

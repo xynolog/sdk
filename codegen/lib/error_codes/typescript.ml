@@ -1,6 +1,6 @@
 (* The vocabularies as the TypeScript SDK reads them (typescript/core/src): a
-   union type per vocabulary, the bus code each wire code becomes, and the
-   transport code an HTTP status becomes. *)
+   union type per vocabulary, the control plane's among them, the bus code
+   each wire code becomes, and the transport code an HTTP status becomes. *)
 
 module T = Typescript_syntax
 
@@ -66,7 +66,8 @@ let text (t : Table.t) =
                 @ [ Return (code t.unclassified) ];
             };
         ]
-        @ List.map union t.others;
+        @ List.map union t.others
+        @ [ union t.control ];
     }
 
 let file t = { Output.path; text = text t }

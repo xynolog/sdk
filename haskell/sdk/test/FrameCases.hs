@@ -8,7 +8,7 @@ import Control.Concurrent.Async (wait, withAsync)
 import Control.Concurrent.STM
 import Control.Exception (SomeException, bracket, fromException, try)
 import Control.Monad (forM_, unless, when)
-import Data.Aeson (ToJSON, Value (..), eitherDecodeStrict', encode, toJSON)
+import Data.Aeson (Result (..), ToJSON, Value (..), eitherDecodeStrict', encode, fromJSON, toJSON)
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KM
 import Data.ByteString qualified as Bytes
@@ -97,8 +97,7 @@ runCases root = do
         verify told issue = do
           require "a valid stream frame was refused" expectedRefusal
           require "a frame refusal named the wrong member" (String (Required.member issue) == member "member" row)
-          let reason = case Required.reason issue of Required.Lacks -> "lacks"; Required.Malformed -> "malformed"
-          require "a frame refusal named the wrong reason" (String reason == member "reason" row)
+          require "a frame refusal named the wrong reason" (toJSON (Required.reason issue) == member "reason" row)
           require "a frame refusal found the wrong reader" (String told == member "told" row)
         publish input = case parsed of
           Frame.Accepted frame -> Transport.receive input frame
@@ -151,7 +150,7 @@ runCases root = do
                 let issue =
                       Required.Fault
                         (case member "member" row of String value -> value; _ -> error "nontext fault")
-                        (case member "reason" row of String "lacks" -> Required.Lacks; String "malformed" -> Required.Malformed; _ -> error "unknown reason")
+                        (case fromJSON (member "reason" row) of Success reason -> reason; Error unread -> error unread)
                 require
                   "request did not fail with its frame refusal"
                   ( failure

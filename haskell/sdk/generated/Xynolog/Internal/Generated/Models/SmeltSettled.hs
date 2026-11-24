@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.SmeltSettled (SmeltSettled (..), SmeltSettledOutcome (..), SmeltSettledReason (..)) where
+module Xynolog.Internal.Generated.Models.SmeltSettled (SmeltSettled (..), SmeltSettledOutcome (..), smeltSettledOutcomeText, SmeltSettledReason (..), smeltSettledReasonText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -31,6 +31,10 @@ instance ToJSON SmeltSettledOutcome where
   toJSON SmeltSettledOutcomeIndexed = String "indexed"
   toJSON SmeltSettledOutcomeSkipped = String "skipped"
 
+smeltSettledOutcomeText :: SmeltSettledOutcome -> Text
+smeltSettledOutcomeText SmeltSettledOutcomeIndexed = "indexed"
+smeltSettledOutcomeText SmeltSettledOutcomeSkipped = "skipped"
+
 data SmeltSettledReason = SmeltSettledReasonNoU2d_extractor | SmeltSettledReasonEmpty | SmeltSettledReasonNoU2d_textU2d_layer | SmeltSettledReasonEncrypted | SmeltSettledReasonCorrupt | SmeltSettledReasonTooU2d_large deriving (Eq, Show)
 
 instance FromJSON SmeltSettledReason where parseJSON = checked "SmeltSettledReason" $ \value -> if value == String "no-extractor" then pure SmeltSettledReasonNoU2d_extractor else if value == String "empty" then pure SmeltSettledReasonEmpty else if value == String "no-text-layer" then pure SmeltSettledReasonNoU2d_textU2d_layer else if value == String "encrypted" then pure SmeltSettledReasonEncrypted else if value == String "corrupt" then pure SmeltSettledReasonCorrupt else if value == String "too-large" then pure SmeltSettledReasonTooU2d_large else fail "unknown enumeration member"
@@ -42,3 +46,11 @@ instance ToJSON SmeltSettledReason where
   toJSON SmeltSettledReasonEncrypted = String "encrypted"
   toJSON SmeltSettledReasonCorrupt = String "corrupt"
   toJSON SmeltSettledReasonTooU2d_large = String "too-large"
+
+smeltSettledReasonText :: SmeltSettledReason -> Text
+smeltSettledReasonText SmeltSettledReasonNoU2d_extractor = "no-extractor"
+smeltSettledReasonText SmeltSettledReasonEmpty = "empty"
+smeltSettledReasonText SmeltSettledReasonNoU2d_textU2d_layer = "no-text-layer"
+smeltSettledReasonText SmeltSettledReasonEncrypted = "encrypted"
+smeltSettledReasonText SmeltSettledReasonCorrupt = "corrupt"
+smeltSettledReasonText SmeltSettledReasonTooU2d_large = "too-large"

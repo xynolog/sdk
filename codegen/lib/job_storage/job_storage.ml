@@ -20,8 +20,9 @@ let motivation = "components/schemas/Motivation.json"
 type t = {
   table : T.t;
   job_types : string list;
-  mark_motivations : string list;
-      (** The motivation of each of MarkJobParams' branches, in their order. *)
+  mark_motivations : (string * string) list;
+      (** Each of MarkJobParams' branches, in their order: the component it
+          names, and its motivation. *)
 }
 
 (* A schema's enum, when each of its members is a word. *)
@@ -35,7 +36,8 @@ let words = function
       if List.length words = List.length literals then Some words else None
   | _ -> None
 
-(* The motivation of each of MarkJobParams' branches, refusing a branch that
+(* Each of MarkJobParams' branches, by the component it names, and its
+   motivation, refusing a branch that
    is no plain reference to a component whose required motivation is one word
    of Motivation, the mapping naming it for that word. *)
 let branch_motivations ids schemas =
@@ -89,7 +91,7 @@ let branch_motivations ids schemas =
                      when List.mem "motivation" required
                           && List.mem word motivations
                           && List.assoc_opt word mapping = Some ref_.target ->
-                       [ word ]
+                       [ (Definitions.stem target, word) ]
                    | _ ->
                        refuse mark_params pointer
                          "names no component whose required motivation is one \
@@ -194,14 +196,15 @@ let typescript t =
               constant "MARK_MOTIVATIONS" ~as_const:true
                 "Every motivation a `mark` job has: the ones MarkJobParams is \
                  told apart by."
-                (words t.mark_motivations);
+                (words (List.map snd t.mark_motivations));
             ];
         };
   }
 
 (* Haskell's [markMotivation]: the motivation a MarkJobParams holds, by its
    branch. The branches' and motivations' constructor names are the ones
-   the haskell-sdk group gives Xynolog.Types. *)
+   the haskell-sdk group gives Xynolog.Types: a branch is the union's name and
+   the component's. *)
 let haskell t =
   let module H = Haskell_syntax in
   {
@@ -231,14 +234,13 @@ let haskell t =
                   name = "markMotivation";
                   type_ = T_fun (T_name "MarkJobParams", T_name "Motivation");
                   clauses =
-                    List.mapi
-                      (fun i word ->
+                    List.map
+                      (fun (component, word) ->
                         {
                           H.patterns =
                             [
                               Constructor
-                                ( Printf.sprintf "MarkJobParamsBranch%d" (i + 1),
-                                  [ Otherwise ] );
+                                ("MarkJobParams" ^ component, [ Otherwise ]);
                             ];
                           body =
                             Name ("Motivation" ^ String.capitalize_ascii word);

@@ -12,7 +12,7 @@ use crate::client::XynologClient;
 use crate::event_bus::BusFrames;
 use crate::state_unit::StateUnit;
 use crate::transport::Envelope;
-use crate::types;
+use crate::types::{self, MatchSearchOptions, MatchSearchRequest};
 use std::sync::Arc;
 
 struct Shared {
@@ -45,13 +45,28 @@ async fn listen(shared: Arc<Shared>, mut heard: BusFrames) {
             continue;
         };
         let under = Envelope {
-            correlation_id: frame.correlation_id,
+            correlation_id: frame.bus_frame.correlation_id,
             scope: None,
         };
         let searching = shared.clone();
         shared.tasks.spawn(async move {
-            let reference_id = request.reference_id.clone();
-            match searching.client.match_.search(request).await {
+            let MatchSearchRequest {
+                resource_id,
+                reference_id,
+                context,
+                limit,
+                use_semantic_scoring,
+            } = request;
+            let options = MatchSearchOptions {
+                limit,
+                use_semantic_scoring,
+            };
+            let search =
+                searching
+                    .client
+                    .match_
+                    .search(&resource_id, &reference_id, context, options);
+            match search.await {
                 Ok(found) => signal::<MatchSearchResults>(&searching.client, &found, under),
                 Err(error) => signal::<MatchSearchFailed>(
                     &searching.client,

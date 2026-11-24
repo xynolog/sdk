@@ -15,7 +15,6 @@ import Control.Monad (forM_, unless, when)
 import ControlledTime qualified as Time
 import Data.Aeson (FromJSON, Result (..), Value (..), fromJSON, toJSON)
 import Data.Aeson.KeyMap qualified as KM
-import Data.List.NonEmpty qualified as NE
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text (Text)
@@ -69,14 +68,13 @@ rig fixtures action = do
             Timing.heldJobStallMs = 1000,
             Timing.heldJobStallCheckMs = 100
           }
-      configuration = Worker.WorkerOptions (filterValue NE.:| []) clockOptions timing (pure "2026-11-05T00:00:00Z")
   bracket
     (Transport.newTransport (Transport.TransportOptions "local://worker" (Set.fromList channelNames) send (pure ())))
     (Transport.dispose . fst)
     $ \(carrier, input) -> do
       Transport.setState input Transport.Connecting
       Transport.setState input Transport.Open
-      bracket (Worker.newClaims carrier configuration) Worker.stop $ \worker -> action (Rig worker input sent clock failEmission)
+      bracket (Worker.newClaims carrier clockOptions timing (ClaimOptions [filterValue] Nothing Nothing Nothing Nothing)) Worker.stop $ \worker -> action (Rig worker input sent clock failEmission)
 
 outgoing :: Rig -> Text -> IO BusFrame
 outgoing (Rig _ _ sent _ _) expected = do
@@ -345,12 +343,11 @@ heldClockCases root fixtures = clockCasesFor root ["heldJobStall"] $ \clock _ ->
           (Time.now clock)
           (Time.waitUntil clock)
           (atomically (modifyTVar' ids (+ 1) >> T.pack . show <$> readTVar ids))
-      config = Worker.WorkerOptions (accepts NE.:| []) options Timing.protocolSettings (pure "2026-11-05T00:00:00Z")
       send frame = atomically (writeTQueue sent frame) >> pure Nothing
   (carrier, input) <- Transport.newTransport (Transport.TransportOptions "local://clock-worker" (Set.fromList channelNames) send (pure ()))
   Transport.setState input Transport.Connecting
   Transport.setState input Transport.Open
-  worker <- Worker.newClaims carrier config
+  worker <- Worker.newClaims carrier options Timing.protocolSettings (ClaimOptions [accepts] Nothing Nothing Nothing Nothing)
   observer <- async (Worker.stalled worker (Stream.mapM_ (\_ -> atomically (modifyTVar' stalls (+ 1)))))
   reader <- async (Worker.next worker)
   asked <- atomically (readTQueue sent)

@@ -73,16 +73,15 @@ public sealed class IssuerTests
         using var handler = new Handler((_, _) => { calls++; return Task.FromResult(Answer(503, "{}")); });
         using var client = new HttpClient(handler);
         using var issuer = new SignIn.Issuer(client, clock, new ZeroRandom());
-        var budget = ProtocolFacts.Timing("refreshRetry");
-        var attempts = budget.GetProperty("attempts").GetInt32();
-        var cap = budget.GetProperty("initialDelayMs").GetDouble();
+        var attempts = Timings.RefreshRetry.Attempts;
+        double cap = Timings.RefreshRetry.InitialDelayMs;
         var renewal = issuer.RenewAsync(new MemorySignIn(Held()), "old");
         for (var attempt = 1; attempt < attempts; attempt++)
         {
             await clock.WaitForAsync(TimeSpan.FromMilliseconds(cap / 2));
             Assert.Equal(attempt, calls);
             clock.Advance(TimeSpan.FromMilliseconds(cap / 2));
-            cap = Math.Min(cap * 2, budget.GetProperty("maxDelayMs").GetDouble());
+            cap = Math.Min(cap * 2, Timings.RefreshRetry.MaxDelayMs);
         }
         await Assert.ThrowsAsync<SignInError>(() => renewal);
         Assert.Equal(attempts, calls);
@@ -128,12 +127,12 @@ public sealed class IssuerTests
         var renewal = issuer.RenewAsync(kept, "old");
         if (timeout)
         {
-            var deadline = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("httpRequestTimeoutMs").GetDouble());
+            var deadline = TimeSpan.FromMilliseconds(Timings.HttpRequestTimeoutMs);
             await clock.WaitForAsync(deadline);
             Assert.False(renewal.IsCompleted);
             clock.Advance(deadline);
         }
-        var pause = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("refreshRetry").GetProperty("initialDelayMs").GetDouble() / 2);
+        var pause = TimeSpan.FromMilliseconds(Timings.RefreshRetry.InitialDelayMs / 2.0);
         await clock.WaitForAsync(pause);
         Assert.Equal(1, calls);
         clock.Advance(pause);
@@ -153,10 +152,10 @@ public sealed class IssuerTests
         using var client = new HttpClient(handler);
         using var issuer = new SignIn.Issuer(client, clock, new ZeroRandom());
         var renewal = issuer.RenewAsync(new MemorySignIn(Held()), "old");
-        var deadline = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("httpRequestTimeoutMs").GetDouble());
+        var deadline = TimeSpan.FromMilliseconds(Timings.HttpRequestTimeoutMs);
         await clock.WaitForAsync(deadline);
         clock.Advance(deadline);
-        var pause = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("refreshRetry").GetProperty("initialDelayMs").GetDouble() / 2);
+        var pause = TimeSpan.FromMilliseconds(Timings.RefreshRetry.InitialDelayMs / 2.0);
         await clock.WaitForAsync(pause);
         clock.Advance(pause);
         Assert.Equal("new", await renewal);

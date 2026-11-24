@@ -8,7 +8,6 @@ using Xynolog.Discovery;
 using Xynolog.Errors;
 using Xynolog.Http;
 using Xynolog.Identifiers;
-using Xynolog.Protocol;
 using Xynolog.Registry;
 using Xynolog.SignIn;
 using Xynolog.Storage;
@@ -413,7 +412,7 @@ public sealed partial class TransportTests
         store.Set(RegistryStorage.OpenResourcesByKbKey, RegistryStorage.Write(new Dictionary<string, OpenResource[]> { [kb.Id] = [tab] }));
         var factory = new ScriptedSessions((_, operation, _) => operation == BusOperations.BrowseResourceRequested.Request.Name
             ? JsonSerializer.SerializeToElement(new { resource, lastSequence = 1 })
-            : throw new TransportError(ProtocolFacts.Error(503), "the knowledge base does not answer"));
+            : throw new TransportError(TransportErrorCode.Unavailable, "the knowledge base does not answer"));
         factory.SaysWho(Required<UserResponse>(JsonSerializer.Deserialize<JsonElement>(
             """{"did":"did:web:one.test:users:alice","domain":"one.test","email":null,"name":null,"image":null}""")));
         if (refusing)

@@ -117,7 +117,7 @@ let rec shape : Shape.shape -> Parsetree.expression = function
 
 let banner =
   Banner.ocaml
-    ~from_:"OpenAPI component schemas through codegen/lib/required/shape.ml"
+    ~from_:(Table.authority ^ ", through codegen/lib/required/shape.ml")
     __FILE__
 
 let schema = O.type_var "schema"
@@ -127,7 +127,8 @@ let descriptor kind = O.type_ "descriptor" ~args:[ kind ]
 let fault =
   O.Record
     [
-      ("member", O.type_ "string"); ("reason", O.tags [ "Lacks"; "Malformed" ]);
+      ("member", O.type_ "string");
+      ("reason", O.type_ "Enums.Frame_refusal_reason.t");
     ]
 
 let decode_error =

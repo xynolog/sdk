@@ -9,10 +9,10 @@ import Data.Aeson (FromJSON (..), ToJSON (..))
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 
-data OneOrMoreStrings = OneOrMoreStringsBranch1 Text | OneOrMoreStringsBranch2 [Text] deriving (Eq, Show)
+data OneOrMoreStrings = OneOrMoreStringsText Text | OneOrMoreStringsList [Text] deriving (Eq, Show)
 
-instance FromJSON OneOrMoreStrings where parseJSON = checked "OneOrMoreStrings" $ \value -> (OneOrMoreStringsBranch1 <$> parseJSON value) <|> (OneOrMoreStringsBranch2 <$> parseJSON value)
+instance FromJSON OneOrMoreStrings where parseJSON = checked "OneOrMoreStrings" $ \value -> (OneOrMoreStringsText <$> parseJSON value) <|> (OneOrMoreStringsList <$> parseJSON value)
 
 instance ToJSON OneOrMoreStrings where
-  toJSON (OneOrMoreStringsBranch1 value) = toJSON value
-  toJSON (OneOrMoreStringsBranch2 value) = toJSON value
+  toJSON (OneOrMoreStringsText value) = toJSON value
+  toJSON (OneOrMoreStringsList value) = toJSON value

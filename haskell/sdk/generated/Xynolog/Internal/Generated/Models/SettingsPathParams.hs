@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.SettingsPathParams (SettingsPathParams (..), SettingsPathParamsDocument (..)) where
+module Xynolog.Internal.Generated.Models.SettingsPathParams (SettingsPathParams (..), SettingsPathParamsDocument (..), settingsPathParamsDocumentText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ApiVersion
 
@@ -28,3 +29,9 @@ instance ToJSON SettingsPathParamsDocument where
   toJSON SettingsPathParamsDocumentWorker = String "worker"
   toJSON SettingsPathParamsDocumentIssuer = String "issuer"
   toJSON SettingsPathParamsDocumentVectors = String "vectors"
+
+settingsPathParamsDocumentText :: SettingsPathParamsDocument -> Text
+settingsPathParamsDocumentText SettingsPathParamsDocumentBrowser = "browser"
+settingsPathParamsDocumentText SettingsPathParamsDocumentWorker = "worker"
+settingsPathParamsDocumentText SettingsPathParamsDocumentIssuer = "issuer"
+settingsPathParamsDocumentText SettingsPathParamsDocumentVectors = "vectors"

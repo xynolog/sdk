@@ -41,15 +41,17 @@ let create_from_token client ~token ~name ~content ?archive_original () =
           let format = Media_types.clone_format media in
           let fields =
             [
-              ("name", name);
-              ("format", format);
-              ( "storageUri",
+              (Gateway_http.Upload_field.name, name);
+              (Gateway_http.Upload_field.format, format);
+              ( Gateway_http.Upload_field.storage_uri,
                 "file://" ^ Media_types.storage_file_name ~name ~format );
-              ("cloneToken", token);
+              (Gateway_http.Upload_field.clone_token, token);
             ]
             @ Option.to_list
                 (Option.map
-                   (fun value -> ("archiveOriginal", string_of_bool value))
+                   (fun value ->
+                     ( Gateway_http.Upload_field.archive_original,
+                       string_of_bool value ))
                    archive_original)
           in
           Upload.await

@@ -2,11 +2,6 @@ import Foundation
 import Synchronization
 
 struct LiveQueries: Sendable {
-  struct SearchKey: Hashable, Sendable {
-    let text: String
-    let filters: ResourceFilters
-  }
-
   struct AnnotationKey: Hashable, Sendable {
     let resource: ResourceId
     let annotation: AnnotationId
@@ -26,8 +21,8 @@ struct LiveQueries: Sendable {
   let events: Cache<ResourceId, [AttributedEvent]>
   let referencedBy: Cache<ResourceId, [GetReferencedByResponseReferencedByItem]>
   let annotations: Cache<ResourceId, KeptAnnotations>
-  let listedResources: Cache<ResourceFilters, ListResourcesResponse>
-  let matchedResources: Cache<SearchKey, MatchResourcesResponse>
+  let listedResources: Cache<BrowseResourcesRequest, ListResourcesResponse>
+  let matchedResources: Cache<MatchResourcesRequest, MatchResourcesResponse>
   let engines: Cached<[EngineEntry]>
   /// The engines, each joined with the limits reported for it: the one view every observer of the
   /// engines shares (B4).
@@ -44,24 +39,13 @@ struct LiveQueries: Sendable {
     let owed = keeping?.underway
     listedResources = Cache(
       lifetime: lifetime, owed: owed, invalidationWindowMs: invalidationWindowMs, clock: clock
-    ) { filters in
-      try await wire.request(
-        Operations.browseResourcesRequested,
-        BrowseResourcesRequest(
-          archived: filters.archived, entityType: filters.entityType, limit: filters.limit,
-          offset: filters.offset)
-      ).response
+    ) { request in
+      try await wire.request(Operations.browseResourcesRequested, request).response
     }
     matchedResources = Cache(
       lifetime: lifetime, owed: owed, invalidationWindowMs: invalidationWindowMs, clock: clock
-    ) { search in
-      let filters = search.filters
-      return try await wire.request(
-        Operations.matchResourcesRequested,
-        MatchResourcesRequest(
-          archived: filters.archived, entityType: filters.entityType, limit: filters.limit,
-          offset: filters.offset, search: search.text)
-      ).response
+    ) { request in
+      try await wire.request(Operations.matchResourcesRequested, request).response
     }
     let limits = ReportedLimits()
     let engines = Cached(

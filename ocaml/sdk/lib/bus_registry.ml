@@ -38,7 +38,7 @@ type 'a decoded = Yojson.Raw.t
 
 type fault = Schema_codec.fault = {
   member : string;
-  reason : [ `Lacks | `Malformed ];
+  reason : Enums.Frame_refusal_reason.t;
 }
 
 type decode_error = Schema_codec.error =

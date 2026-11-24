@@ -450,8 +450,6 @@ export type EventMap = {
     : StatedEventMap[K];
 };
 
-export type { AnchorRect } from './bus-ui-types';
-
 /**
  * Any valid channel name on the EventBus — `keyof EventMap`, the root channel
  * type. Two subsets matter, and confusing them is a silent-failure trap:

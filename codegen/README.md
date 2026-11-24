@@ -183,7 +183,9 @@ writes:
   `Swift_sdk.Table_decls` the tables, from the other groups' derivations
   where they hold the same data, and `Swift_sdk.Spec_values` the tables
   Swift holds as Protocol writes them, which the census holds to Protocol's
-  own members.
+  own members; and its `Generated/ServiceTables.swift`, each of the
+  services' tables (`Roots.service_tables`) as its schema's model, read
+  from the table's text.
 - `haskell-sdk`: the Haskell SDK's modules that no other group's table owns:
   a model of every schema it reads or writes, from the gateway's components,
   the client registry's records, the stored session's, the HTTP routes'

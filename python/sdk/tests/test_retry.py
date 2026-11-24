@@ -18,11 +18,6 @@ TABLE = read(SPEC / "retry/cases.json")
 RULES = objects(TABLE["rules"], "rules")
 STATED_WAITS = objects(TABLE["retryAfter"], "retryAfter")
 
-# The rules of the table this SDK does not keep, each with what it waits for.
-NOT_KEPT = {
-    "job": "a job's retry budget is its worker's, which is not this SDK's",
-}
-
 
 def whole(row: JsonObject, name: str) -> int | None:
     value = row.get(name)
@@ -30,14 +25,11 @@ def whole(row: JsonObject, name: str) -> int | None:
     return value
 
 
-def test_every_rule_of_the_table_is_kept_or_named_as_not_kept() -> None:
-    stated = {text(row["rule"], "a rule") for row in RULES}
-    assert set(RETRY_RULES) | set(NOT_KEPT) == stated
-    assert set(RETRY_RULES) & set(NOT_KEPT) == set()
-    assert all(why.strip() for why in NOT_KEPT.values())
+def test_every_rule_of_the_table_is_kept() -> None:
+    assert set(RETRY_RULES) == {text(row["rule"], "a rule") for row in RULES}
 
 
-@pytest.mark.parametrize("row", [row for row in RULES if row["rule"] in RETRY_RULES], ids=lambda row: f"{row['rule']}: {row['why']}")
+@pytest.mark.parametrize("row", RULES, ids=lambda row: f"{row['rule']}: {row['why']}")
 def test_a_rule_answers_as_the_table_does(row: JsonObject) -> None:
     rule = RETRY_RULES[text(row["rule"], "a rule")]
     method = row.get("method")

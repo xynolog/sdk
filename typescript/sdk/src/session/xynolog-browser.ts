@@ -54,6 +54,7 @@ import {
   beginAuthorization,
   completeAuthorization,
   revokeAtIssuer,
+  storedSessionOf,
 } from './oauth';
 import type { BeginAuthorizationOptions } from '@xynolog/core';
 import { describeConnection } from './connect';
@@ -402,15 +403,7 @@ export class XynologBrowser {
     );
     const label = identity.description.name;
     const lastRead = kbRead(identity.description, new Date());
-    const session: StoredSession = {
-      access: tokens.access,
-      refresh: tokens.refresh,
-      clientId: BROWSER_CLIENT_ID,
-      tokenEndpoint: pending.issuer.token,
-      ...(pending.issuer.revocation
-        ? { revocationEndpoint: pending.issuer.revocation }
-        : {}),
-    };
+    const session = storedSessionOf(BROWSER_CLIENT_ID, pending.issuer, tokens);
     const kbs = this.kbs$.getValue();
     const atAddress = kbs.filter((kb) =>
       samePlace(kb.endpoint, pending.target),

@@ -43,7 +43,7 @@ delegate :: MarkNamespace -> ResourceId -> MarkJobParams -> IO (Running.Running 
 delegate (MarkNamespace _ _ _ follower) resource params =
   Delegation.follow
     follower
-    (JobCreateCommandBranch1 (MarkJobCreateCommand Nothing Nothing MarkJobCreateCommandJobTypeMark params resource))
+    (JobCreateCommandMarkJobCreateCommand (MarkJobCreateCommand Nothing Nothing MarkJobCreateCommandJobTypeMark params resource))
     Verb.mark
     resource
     Nothing

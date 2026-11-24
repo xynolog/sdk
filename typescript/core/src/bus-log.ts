@@ -36,7 +36,9 @@ const NODE_BUS_LOG =
 
 const IS_NODE = typeof process !== 'undefined' && !!process.versions?.node;
 
-export type BusOp = 'EMIT' | 'RECV' | 'SSE' | 'PUT' | 'GET';
+/** What a bus-log line says was done with a frame. */
+export const BUS_OPS = ['EMIT', 'RECV', 'SSE', 'PUT', 'GET'] as const;
+export type BusOp = (typeof BUS_OPS)[number];
 
 export function busLogEnabled(): boolean {
   const g = globalThis as { __XYNOLOG_BUS_LOG__?: boolean };
@@ -124,6 +126,41 @@ export function busLog(
     (traceId ? ` trace=${traceId.slice(0, 8)}` : '');
   // eslint-disable-next-line no-console
   console.debug(tag, shown(payload, new Map()));
+}
+
+/** A line's tag as `busLog` writes it: the op, the channel, and what is stated beside them. */
+export interface BusLogTag {
+  op: BusOp;
+  channel: string;
+  scope?: string;
+  /** The first 8 characters of the frame's correlation id. */
+  cid?: string;
+  /** The first 8 hex of the active span's trace id. */
+  trace?: string;
+}
+
+const TAG = new RegExp(
+  `^\\[bus (${BUS_OPS.join('|')})\\] (\\S+)(?: scope=(\\S+))?(?: cid=(\\S+))?(?: trace=(\\S+))?`,
+);
+
+const isBusOp = (op: string): op is BusOp =>
+  (BUS_OPS as readonly string[]).includes(op);
+
+/** The tag of a line `busLog` wrote; nothing, for a line it did not. */
+export function busLogTagOf(line: string): BusLogTag | undefined {
+  const m = TAG.exec(line);
+  const op = m?.[1];
+  const channel = m?.[2];
+  if (!m || op === undefined || !isBusOp(op) || channel === undefined)
+    return undefined;
+  const [, , , scope, cid, trace] = m;
+  return {
+    op,
+    channel,
+    ...(scope === undefined ? {} : { scope }),
+    ...(cid === undefined ? {} : { cid }),
+    ...(trace === undefined ? {} : { trace }),
+  };
 }
 
 /**

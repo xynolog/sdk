@@ -36,7 +36,11 @@ import {
 } from '@xynolog/core/testing';
 import { XynologClient } from './client';
 import { XynologSession } from './session/xynolog-session';
-import type { KbTarget } from '@xynolog/core';
+import type {
+  KbTarget,
+  ResourceRepresentation,
+  ResourceRepresentationStream,
+} from '@xynolog/core';
 import { httpKb } from './session/knowledge-base';
 import { keptIn } from './session/storage';
 import { InMemorySessionStorage } from './session/session-storage';
@@ -65,7 +69,7 @@ export {
  * test's to give. A test that needs one passes its own `content`.
  */
 export function inMemoryContent(): IContentTransport {
-  const store = new Map<string, { data: ArrayBuffer; contentType: string }>();
+  const store = new Map<string, ResourceRepresentation>();
   let seq = 0;
   const toBuffer = (file: File | Buffer): Promise<ArrayBuffer> =>
     file instanceof Uint8Array
@@ -90,9 +94,7 @@ export function inMemoryContent(): IContentTransport {
       });
       return { resourceId: rId };
     },
-    async getBinary(
-      rId: ResourceId,
-    ): Promise<{ data: ArrayBuffer; contentType: string }> {
+    async getBinary(rId: ResourceId): Promise<ResourceRepresentation> {
       const hit = store.get(rId as string);
       if (!hit)
         throw new Error(
@@ -102,7 +104,7 @@ export function inMemoryContent(): IContentTransport {
     },
     async getBinaryStream(
       rId: ResourceId,
-    ): Promise<{ stream: ReadableStream<Uint8Array>; contentType: string }> {
+    ): Promise<ResourceRepresentationStream> {
       const { data, contentType } = await this.getBinary(rId);
       return {
         stream: new ReadableStream<Uint8Array>({

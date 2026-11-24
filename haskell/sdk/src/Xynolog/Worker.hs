@@ -7,7 +7,6 @@
 -- | One lazy, single-reader worker. Stop it before closing its transport.
 module Xynolog.Worker
   ( Claims,
-    WorkerOptions (..),
     newClaims,
     next,
     refused,
@@ -47,13 +46,12 @@ import Control.Concurrent.STM
 import Control.Exception
 import Control.Monad (forM_, forever, unless, void, when)
 import Control.Monad.IO.Class (liftIO)
-import Data.Aeson (Result (..), Value (..), fromJSON)
+import Data.Aeson (Result (..), Value (..), fromJSON, toJSON)
 import Data.Aeson.KeyMap qualified as KM
-import Data.List.NonEmpty (NonEmpty)
-import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Text qualified as T
+import Data.Time (defaultTimeLocale, formatTime, getCurrentTime)
 import OpenTelemetry.Context qualified as Context
 import OpenTelemetry.Context.ThreadLocal (attachContext, detachContext)
 import Streaming (Of, Stream)
@@ -69,20 +67,12 @@ import Xynolog.JobFilter (jobMatchesFilter)
 import Xynolog.StateValue qualified as State
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
-import Xynolog.Types hiding (JobComplete, Runtime, annotationId)
+import Xynolog.Types hiding (JobComplete, annotationId)
 import Xynolog.Types qualified as Types
 import Xynolog.Worker.Types
 import Prelude hiding (fail)
 
-data WorkerOptions = WorkerOptions
-  { workerAccepts :: NonEmpty JobFilter,
-    workerBusOptions :: Bus.BusOptions,
-    workerTiming :: Timing.Settings,
-    -- | Current wall time as an ISO 8601 timestamp. Deadlines use the bus's monotonic clock.
-    workerTimestamp :: IO Text
-  }
-
-data WorkerError = ClaimsAlreadyReading | JobAlreadySettled | StartAlreadySaid | InvalidWorkerTiming deriving (Eq, Show)
+data WorkerError = ClaimsAlreadyReading | JobAlreadySettled | StartAlreadySaid | InvalidClaimOptions deriving (Eq, Show)
 
 instance Exception WorkerError
 
@@ -107,7 +97,7 @@ data HeldJob result = HeldJob
     heldGate :: MVar ()
   }
 
-data Runtime = Runtime
+data ClaimsRuntime = ClaimsRuntime
   { phase :: Phase,
     held :: Maybe SomeHeldJob,
     heldAt :: Maybe (Integer, Text),
@@ -120,10 +110,12 @@ data Runtime = Runtime
   }
 
 data Claims = Claims
-  { options :: WorkerOptions,
+  { accepts :: [JobFilter],
+    clock :: Bus.BusOptions,
+    timing :: Timing.Settings,
     transport :: Transport.Transport,
     wire :: Bus.Bus,
-    runtime :: TVar Runtime,
+    runtime :: TVar ClaimsRuntime,
     wake :: TMVar (),
     jobs :: TQueue SomeHeldJob,
     refusals :: Broadcast.Broadcast ClaimRefusal,
@@ -134,14 +126,22 @@ data Claims = Claims
     fatal :: TMVar SomeException
   }
 
-newClaims :: Transport.Transport -> WorkerOptions -> IO Claims
-newClaims carrier configuration = do
-  let timing = workerTiming configuration
+-- | Claims on the transport, waiting by the bus clock, each wait the claim
+-- options leave out the timing's.
+newClaims :: Transport.Transport -> Bus.BusOptions -> Timing.Settings -> ClaimOptions -> IO Claims
+newClaims carrier busClock base (ClaimOptions filters stallCheckMs stallMs claimTimeoutMs commitTimeoutMs) = do
+  let waits =
+        base
+          { Timing.heldJobStallCheckMs = fromMaybe (Timing.heldJobStallCheckMs base) stallCheckMs,
+            Timing.heldJobStallMs = fromMaybe (Timing.heldJobStallMs base) stallMs,
+            Timing.jobClaimTimeoutMs = fromMaybe (Timing.jobClaimTimeoutMs base) claimTimeoutMs,
+            Timing.markCommitTimeoutMs = fromMaybe (Timing.markCommitTimeoutMs base) commitTimeoutMs
+          }
   when
-    (Timing.heldJobStallCheckMs timing <= 0 || any (< 0) [Timing.jobClaimTimeoutMs timing, Timing.heldJobStallMs timing, Timing.markCommitTimeoutMs timing])
-    (throwIO InvalidWorkerTiming)
-  cell <- newTVarIO (Runtime Unread Nothing Nothing Nothing Nothing Nothing Nothing 0 False)
-  Claims configuration carrier (Bus.newBus (workerBusOptions configuration) carrier) cell
+    (null filters || Timing.heldJobStallCheckMs waits <= 0 || any (< 0) [Timing.jobClaimTimeoutMs waits, Timing.heldJobStallMs waits, Timing.markCommitTimeoutMs waits])
+    (throwIO InvalidClaimOptions)
+  cell <- newTVarIO (ClaimsRuntime Unread Nothing Nothing Nothing Nothing Nothing Nothing 0 False)
+  Claims filters busClock waits carrier (Bus.newBus busClock carrier) cell
     <$> newEmptyTMVarIO
     <*> newTQueueIO
     <*> atomically Broadcast.newKeptEvents
@@ -182,10 +182,9 @@ annotationId :: HeldJob result -> Maybe AnnotationId
 annotationId job = case jobType job of
   JobTypeMark -> Nothing
   JobTypeYield -> do
-    stated <- KM.lookup "context" (jobParamsAdditionalProperties (params job))
-    Success context <- Just (fromJSON stated)
-    GatheredContextFocusBranch1 focus <- Just (gatheredContextFocus context)
-    Just (Types.annotationId (gatheredContextFocusBranch1ValueAnnotation focus))
+    Success generation <- Just (fromJSON (toJSON (params job)))
+    GatheredContextFocusAnnotation focus <- Just (gatheredContextFocus (generationJobParamsContext generation))
+    Just (Types.annotationId (gatheredContextFocusAnnotationValueAnnotation focus))
 
 trace :: HeldJob result -> Maybe TraceCarrier
 trace = heldTrace
@@ -201,7 +200,11 @@ withSome (HeldMark job) f = f job
 withSome (HeldYield job) f = f job
 
 stamp :: Claims -> IO (Integer, Text)
-stamp claims = (,) <$> Bus.requestNow (workerBusOptions (options claims)) <*> workerTimestamp (options claims)
+stamp claims = (,) <$> Bus.requestNow (clock claims) <*> wallTimestamp
+
+-- | The wall time an ISO 8601 stamp says. Deadlines use the bus's monotonic clock.
+wallTimestamp :: IO Text
+wallTimestamp = T.pack . formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ" <$> getCurrentTime
 
 wakeIdle :: Claims -> STM ()
 wakeIdle claims = do
@@ -305,19 +308,19 @@ begin claims = modifyMVar_ (workers claims) $ \existing -> mask $ \restore -> do
 
 refusedAnnouncement :: Claims -> IO ()
 refusedAnnouncement claims = do
-  timestamp <- workerTimestamp (options claims)
+  timestamp <- wallTimestamp
   atomically $ do
     modifyTVar' (runtime claims) (\current -> current {lastQueued = Just timestamp})
     wakeIdle claims
 
 announced :: Claims -> KM.KeyMap Value -> IO ()
 announced claims payload = do
-  timestamp <- workerTimestamp (options claims)
+  timestamp <- wallTimestamp
   atomically $ do
     modifyTVar' (runtime claims) (\current -> current {lastQueued = Just timestamp})
     case decodePayload JobQueued (Object payload) of
       Left _ -> wakeIdle claims
-      Right _ -> when (any (\filterValue -> jobMatchesFilter filterValue (Object payload)) (workerAccepts (options claims))) (wakeIdle claims)
+      Right _ -> when (any (\filterValue -> jobMatchesFilter filterValue (Object payload)) (accepts claims)) (wakeIdle claims)
 
 cancellation :: Claims -> KM.KeyMap Value -> IO ()
 cancellation claims payload = case fromJSON (Object payload) of
@@ -343,8 +346,7 @@ claimLoop claims = forever $ mask $ \restore -> do
     connection <- State.current (Transport.state (transport claims))
     check (connection == Transport.Open)
     takeTMVar (wake claims)
-  let configuration = options claims
-      command = JobClaimCommand Nothing Nothing (NE.toList (workerAccepts configuration)) KM.empty
+  let command = JobClaimCommand Nothing Nothing (accepts claims) KM.empty
       rooted action = bracket (attachContext Context.empty) detachContext (const action)
   outcome <-
     restore
@@ -354,7 +356,7 @@ claimLoop claims = forever $ mask $ \restore -> do
         (wire claims)
         JobClaimOperation
         command
-        (Timing.jobClaimTimeoutMs (workerTiming configuration))
+        (Timing.jobClaimTimeoutMs (timing claims))
   case outcome of
     Left problem -> case fromException problem of
       Just refusal | busRequestErrorCode refusal == BusRequestNonePending -> pure ()
@@ -389,20 +391,20 @@ claimLoop claims = forever $ mask $ \restore -> do
 
 checkStalls :: Claims -> IO () -> IO ()
 checkStalls claims ready = do
-  now <- Bus.requestNow clock
+  now <- Bus.requestNow busClock
   ready
   loop now
   where
-    clock = workerBusOptions (options claims)
-    timing = workerTiming (options claims)
+    busClock = clock claims
+    waits = timing claims
     loop before = do
-      Bus.requestWaitUntil clock (before + Timing.heldJobStallCheckMs timing * 1000000)
-      currentTime <- Bus.requestNow clock
+      Bus.requestWaitUntil busClock (before + Timing.heldJobStallCheckMs waits * 1000000)
+      currentTime <- Bus.requestNow busClock
       atomically $ do
         current <- readTVar (runtime claims)
         case (held current, heldAt current, lastActive current) of
           (Just job, Just (_, since), Just (active, activeStamp))
-            | not (stallReported current) && currentTime - active > Timing.heldJobStallMs timing * 1000000 -> do
+            | not (stallReported current) && currentTime - active > Timing.heldJobStallMs waits * 1000000 -> do
                 Broadcast.publish
                   (stalls claims)
                   ( withSome job $ \value ->
@@ -412,7 +414,7 @@ checkStalls claims ready = do
                         since
                         activeStamp
                         (fromRational (toRational (currentTime - active) / 1000000))
-                        (fromInteger (Timing.heldJobStallMs timing))
+                        (fromInteger (Timing.heldJobStallMs waits))
                   )
                 writeTVar (runtime claims) current {stallReported = True}
           _ -> pure ()
@@ -528,7 +530,7 @@ commit job resource annotations = withMVar (heldGate job) $ \() -> do
     [] -> pure ()
     lastAnnotation : _ -> do
       let claims = heldClaims job
-          timeoutMs = Timing.markCommitTimeoutMs (workerTiming (options claims))
+          timeoutMs = Timing.markCommitTimeoutMs (timing claims)
           send = Bus.request (wire claims) MarkCommitOperation (MarkCommitCommand Nothing Nothing annotations (Just (jobId job)) resource KM.empty) timeoutMs
       result <- try send
       case result of
@@ -578,7 +580,7 @@ complete job result = settle job True $ do
   durability <- readTVarIO (heldDurability job)
   let payload = case heldCompletion job of
         MarkCompletion ->
-          JobCompleteCommandBranch1
+          JobCompleteCommandMarkJobCompleteCommand
             ( MarkJobCompleteCommand
                 Nothing
                 (Just (attempt job))
@@ -590,7 +592,7 @@ complete job result = settle job True $ do
                 KM.empty
             )
         YieldCompletion ->
-          JobCompleteCommandBranch2
+          JobCompleteCommandYieldJobCompleteCommand
             ( YieldJobCompleteCommand
                 Nothing
                 (annotationId job)

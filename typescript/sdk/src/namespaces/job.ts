@@ -6,7 +6,7 @@ import type {
   JobId,
   components,
 } from '@xynolog/core';
-import type { ClaimOptions, ITransport } from '@xynolog/core';
+import type { ClaimOptions, ITransport, JobPollOptions } from '@xynolog/core';
 import {
   Bus,
   BUS_REQUEST_TIMEOUT_MS,
@@ -61,14 +61,11 @@ export class JobNamespace implements IJobNamespace {
 
   async pollUntilComplete(
     jobId: JobId,
-    options?: {
-      interval?: number;
-      timeout?: number;
-      onProgress?: (status: JobStatusResponse) => void;
-    },
+    options?: JobPollOptions,
+    onStatus?: (status: JobStatusResponse) => void,
   ): Promise<JobStatusResponse> {
-    const interval = options?.interval ?? JOB_POLL_MS;
-    const timeout = options?.timeout ?? JOB_POLL_TIMEOUT_MS;
+    const interval = options?.everyMs ?? JOB_POLL_MS;
+    const timeout = options?.withinMs ?? JOB_POLL_TIMEOUT_MS;
     const due = Date.now() + timeout;
     const timedOut = () =>
       new BusRequestError(
@@ -86,7 +83,7 @@ export class JobNamespace implements IJobNamespace {
         { jobId },
         Math.min(left, BUS_REQUEST_TIMEOUT_MS),
       );
-      if (options?.onProgress) options.onProgress(status);
+      onStatus?.(status);
       if (
         status.status === 'complete' ||
         status.status === 'failed' ||

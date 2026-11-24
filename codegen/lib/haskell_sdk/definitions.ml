@@ -1,6 +1,6 @@
 (* Every schema the Haskell SDK's models type, by name: the gateway's
-   component schemas, and the schemas the SDK derives beside them. A
-   component is named by its file. Beside them are the form a resource's
+   component schemas, each carried table's own ([Carried_tables]), and the
+   schemas the SDK derives beside them. A component is named by its file. Beside them are the form a resource's
    upload states its metadata in (ResourceUpload without its file), the trace
    carrier, the records of the client registry, of the state units' notices
    and of how a session ends, the stored sign-in, session and resources, an
@@ -104,26 +104,33 @@ let squeeze text =
    ([Normalize.several_types_throughout]). *)
 let components (spec : Spec.t) =
   let in_place = Schema_names.in_place spec in
-  each
-    (fun (name, (r : Decode.reference)) ->
-      let file, fragment = Decode.resolve spec.Spec.ids r in
-      if
-        fragment <> ""
-        || Filename.extension file <> ".json"
-        || stem file <> name
-      then
-        Error
-          ("OpenAPI schema reference needs an explicit Haskell naming rule: "
-         ^ name)
-      else
-        match List.assoc_opt file spec.schemas with
-        | Some s ->
-            let validated = Normalize.several_types_throughout s in
-            let* typed = in_place (Normalize.shape_only validated) in
-            let* validated = in_place validated in
-            Ok (name, (typed, validated))
-        | None -> Error ("no schema file " ^ file))
-    (Roots.all spec)
+  let rooted name s =
+    let validated = Normalize.several_types_throughout s in
+    let* typed = in_place (Normalize.shape_only validated) in
+    let* validated = in_place validated in
+    Ok (name, (typed, validated))
+  in
+  let* roots =
+    each
+      (fun (name, (r : Decode.reference)) ->
+        let file, fragment = Decode.resolve spec.Spec.ids r in
+        if
+          fragment <> ""
+          || Filename.extension file <> ".json"
+          || stem file <> name
+        then
+          Error
+            ("OpenAPI schema reference needs an explicit Haskell naming rule: "
+           ^ name)
+        else
+          match List.assoc_opt file spec.schemas with
+          | Some s -> rooted name s
+          | None -> Error ("no schema file " ^ file))
+      (Roots.all spec)
+  in
+  let* tables = Carried_tables.schemas spec in
+  let* tables = each (fun (name, s) -> rooted name s) tables in
+  Ok (roots @ tables)
 
 (* A table's record that a reference into the table names is named by its
    title. *)

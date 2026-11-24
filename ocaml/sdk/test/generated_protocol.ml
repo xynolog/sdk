@@ -1,4 +1,5 @@
 module Bus = Xynolog.Bus_registry
+module R = Xynolog.Enums.Frame_refusal_reason
 module Selector = Xynolog.Selector
 
 let selector json =
@@ -35,12 +36,12 @@ let selectors () =
                suffix = None;
                extra = [ ("prefix", `String "b"); ("extension", `Int 1) ];
              })));
-  refuses {|{"type":"Unknown"}|} "type" `Malformed;
+  refuses {|{"type":"Unknown"}|} "type" R.Malformed;
   refuses {|{"type":"TextQuoteSelector","exact":"a","suffix":null}|} "suffix"
-    `Malformed;
+    R.Malformed;
   refuses {|{"type":"TextPositionSelector","start":-1,"end":2}|} "start"
-    `Malformed;
-  refuses {|{"type":"TextPositionSelector","start":0}|} "end" `Lacks
+    R.Malformed;
+  refuses {|{"type":"TextPositionSelector","start":0}|} "end" R.Lacks
 
 let operations () =
   Alcotest.(check bool)
@@ -98,14 +99,15 @@ let payload_codecs () =
     {|{"id":"event","type":"yield:created","timestamp":"2026-11-07","userId":"did:web:example:alice","version":1,"payload":{"name":"a","format":"text/plain","contentChecksum":"hash"},"metadata":{"sequenceNumber":1}}|};
   refuse C.yield_created
     {|{"id":"event","type":"yield:created","timestamp":"2026-11-07","userId":"did:web:example:alice","version":1,"payload":{},"metadata":{"sequenceNumber":1}}|}
-    "payload.name" `Lacks;
-  refuse C.browse_resource_requested {|{"resourceId":null}|} "resourceId" `Lacks;
+    "payload.name" R.Lacks;
+  refuse C.browse_resource_requested {|{"resourceId":null}|} "resourceId"
+    R.Lacks;
   refuse C.browse_resource_requested {|{"resourceId":"bad/path"}|} "resourceId"
-    `Malformed;
+    R.Malformed;
   refuse C.job_cancel_ok {|{"response":{"cancelled":"yes"}}|}
-    "response.cancelled" `Malformed;
-  refuse C.job_cancel_ok {|{}|} "response" `Lacks;
-  refuse C.mark_archive_ok {|{"z":0,"a":0}|} "a" `Malformed;
+    "response.cancelled" R.Malformed;
+  refuse C.job_cancel_ok {|{}|} "response" R.Lacks;
+  refuse C.mark_archive_ok {|{"z":0,"a":0}|} "a" R.Malformed;
   match Bus.decode C.mark_archive_ok "{/* comment */}" with
   | Error (Bus.Invalid_json _) -> ()
   | _ -> Alcotest.fail "expected a strict JSON fault"
@@ -124,7 +126,7 @@ let component_codecs () =
     M.decode M.selector
       {|{"type":"TextPositionSelector","start":-0.00000000000000000001,"end":1}|}
   with
-  | Error (M.Invalid_payload { member = "start"; reason = `Malformed }) -> ()
+  | Error (M.Invalid_payload { member = "start"; reason = R.Malformed }) -> ()
   | _ -> Alcotest.fail "expected a union branch fault at start"
 
 let required_table () =
@@ -157,14 +159,14 @@ let required_table () =
   accepts M.error_data {|{"code":"control.unknown","retryable":false}|};
   accepts M.error_data {|{"code":"control.not-found-here","retryable":false}|};
   faults M.error_data {|{"code":"control.not-","retryable":false}|} "code"
-    `Malformed;
+    R.Malformed;
   faults M.error_data {|{"code":"control.not--found","retryable":false}|} "code"
-    `Malformed;
+    R.Malformed;
   (* A name is ^[0-9a-z]([-0-9a-z]*[0-9a-z])?$: the step in the group gives
      back the point the step after it takes. *)
   accepts M.metadata {|{"name":"a"}|};
   accepts M.metadata {|{"name":"a-b"}|};
-  faults M.metadata {|{"name":"a-"}|} "name" `Malformed;
+  faults M.metadata {|{"name":"a-"}|} "name" R.Malformed;
   (* A driver step does not carry both returns and fails, whatever each
      holds. *)
   accepts M.conformance_step {|{"driver":"d","returns":{}}|};
@@ -172,37 +174,44 @@ let required_table () =
   refuses M.conformance_step {|{"driver":"d","returns":{},"fails":null}|};
   (* A let step binds one name or more. *)
   accepts M.conformance_step {|{"let":{"a":1}}|};
-  faults M.conformance_step {|{"let":{}}|} "let" `Malformed;
+  faults M.conformance_step {|{"let":{}}|} "let" R.Malformed;
   let inference providers =
     {|{"apiVersion":"xynolog.org/v1alpha1","kind":"Inference","metadata":{"name":"stack"},"spec":{"engines":{"jobs":{},"actors":{}},"providers":|}
     ^ providers ^ "}}"
   in
   accepts M.inference (inference {|{"ollama":{}}|});
-  faults M.inference (inference "{}") "spec.providers" `Malformed;
+  faults M.inference (inference "{}") "spec.providers" R.Malformed;
   faults M.inference
     (inference {|{"ollama":{},"ollma":{}}|})
-    "spec.providers.ollma" `Malformed;
+    "spec.providers.ollma" R.Malformed;
   (* A name not of [names] is found before a value not of [values]. *)
   faults M.inference
     (inference {|{"ollma":{"bogus":1}}|})
-    "spec.providers.ollma" `Malformed;
+    "spec.providers.ollma" R.Malformed;
   faults M.inference
     (inference {|{"ollama":{"bogus":1}}|})
-    "spec.providers.bogus" `Malformed
+    "spec.providers.bogus" R.Malformed
 
 let record_views () =
   let module M = Xynolog.Models in
   let module R = Xynolog.Records in
   let module T = Xynolog.Types in
-  let frame =
-    Result.get_ok
-      (M.decode M.bus_frame
-         {|{"channel":"mark:archive-ok","correlationId":null,"payload":{}}|})
-    |> R.Bus_frame.of_model
+  let annotations source =
+    (Result.get_ok (M.decode M.get_annotations_response source)
+    |> R.Get_annotations_response.of_model)
+      .motivation
   in
+  Alcotest.(check (option string))
+    "a null correlationId is read as absent" None
+    (Result.get_ok
+       (M.decode M.bus_frame
+          {|{"channel":"mark:archive-ok","correlationId":null,"payload":{}}|})
+    |> R.Bus_frame.of_model)
+      .correlation_id;
   Alcotest.(check bool)
     "null remains distinct from absence" true
-    (frame.correlation_id = T.Null && frame.scope = T.Absent);
+    (annotations {|{"annotations":[],"total":0,"motivation":null}|} = T.Null
+    && annotations {|{"annotations":[],"total":0}|} = T.Absent);
   let endpoint =
     Result.get_ok
       (M.decode M.kb_endpoint
@@ -227,7 +236,7 @@ let record_views () =
       Alcotest.(check string) "composed record inherits text" "sample" view.text;
       Alcotest.(check bool)
         "composed record keeps branch method" true
-        (view.method_ = `Stringlit {|"text-passthrough"|})
+        (view.method_ = Xynolog.Enums.Extraction_method.Text_passthrough)
   | _ -> Alcotest.fail "expected extracted variant"
 
 let () =

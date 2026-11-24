@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceCase (ConformanceCase (..), ConformanceCasePlanesItem (..), ConformanceCaseTelemetry (..), ConformanceCaseTier (..)) where
+module Xynolog.Internal.Generated.Models.ConformanceCase (ConformanceCase (..), ConformanceCasePlanesItem (..), conformanceCasePlanesItemText, ConformanceCaseTelemetry (..), ConformanceCaseTier (..), conformanceCaseTierText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -32,6 +32,10 @@ instance ToJSON ConformanceCasePlanesItem where
   toJSON ConformanceCasePlanesItemInU2d_process = String "in-process"
   toJSON ConformanceCasePlanesItemNats = String "nats"
 
+conformanceCasePlanesItemText :: ConformanceCasePlanesItem -> Text
+conformanceCasePlanesItemText ConformanceCasePlanesItemInU2d_process = "in-process"
+conformanceCasePlanesItemText ConformanceCasePlanesItemNats = "nats"
+
 data ConformanceCaseTelemetry = ConformanceCaseTelemetryTrue deriving (Eq, Show)
 
 instance FromJSON ConformanceCaseTelemetry where parseJSON = checked "ConformanceCaseTelemetry" $ \value -> if value == Bool True then pure ConformanceCaseTelemetryTrue else fail "unknown enumeration member"
@@ -45,3 +49,7 @@ instance FromJSON ConformanceCaseTier where parseJSON = checked "ConformanceCase
 instance ToJSON ConformanceCaseTier where
   toJSON ConformanceCaseTierFleet = String "fleet"
   toJSON ConformanceCaseTierParity = String "parity"
+
+conformanceCaseTierText :: ConformanceCaseTier -> Text
+conformanceCaseTierText ConformanceCaseTierFleet = "fleet"
+conformanceCaseTierText ConformanceCaseTierParity = "parity"

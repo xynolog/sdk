@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.CommandError (CommandError (..), CommandErrorCode (..)) where
+module Xynolog.Internal.Generated.Models.CommandError (CommandError (..), CommandErrorCode (..), commandErrorCodeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,3 +30,9 @@ instance ToJSON CommandErrorCode where
   toJSON CommandErrorCodeNotU2d_found = String "not-found"
   toJSON CommandErrorCodeUnauthorized = String "unauthorized"
   toJSON CommandErrorCodeNoneU2d_pending = String "none-pending"
+
+commandErrorCodeText :: CommandErrorCode -> Text
+commandErrorCodeText CommandErrorCodePeerU2d_unavailable = "peer-unavailable"
+commandErrorCodeText CommandErrorCodeNotU2d_found = "not-found"
+commandErrorCodeText CommandErrorCodeUnauthorized = "unauthorized"
+commandErrorCodeText CommandErrorCodeNoneU2d_pending = "none-pending"

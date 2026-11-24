@@ -11,8 +11,8 @@ use crate::client::Links;
 use crate::errors::{BusRequestError, BusRequestErrorCode, XynologError};
 use crate::event_bus::BusFrames;
 use crate::timing::{JOB_POLL, JOB_POLL_TIMEOUT};
-use crate::types::ClaimOptions;
 use crate::types::JobId;
+use crate::types::{ClaimOptions, JobPollOptions};
 use crate::types::{
     JobCancelRequest, JobStatusRequest, JobStatusResponse, JobStatusResponseStatus,
 };
@@ -60,21 +60,22 @@ impl JobNamespace {
         Ok(status.response)
     }
 
-    /// Ask for a job's status at once, and then every `every`
+    /// Ask for a job's status at once, and then every `options.every_ms`
     /// (`timing::JOB_POLL` when it is `None`), until it has ended, giving
     /// each answer to `on_status`: the status it ended with. One that has not
-    /// ended `within` (`timing::JOB_POLL_TIMEOUT` when it is `None`) of the
-    /// first ask, its asks and the waits between them included, fails as a
-    /// timeout at that limit.
+    /// ended `options.within_ms` (`timing::JOB_POLL_TIMEOUT` when it is
+    /// `None`) of the first ask, its asks and the waits between them included,
+    /// fails as a timeout at that limit.
     pub async fn poll_until_complete(
         &self,
         job_id: &JobId,
-        every: Option<Duration>,
-        within: Option<Duration>,
+        options: JobPollOptions,
         mut on_status: impl FnMut(&JobStatusResponse),
     ) -> Result<JobStatusResponse, XynologError> {
-        let every = every.unwrap_or(JOB_POLL);
-        let within = within.unwrap_or(JOB_POLL_TIMEOUT);
+        let every = options.every_ms.map_or(JOB_POLL, Duration::from_millis);
+        let within = options
+            .within_ms
+            .map_or(JOB_POLL_TIMEOUT, Duration::from_millis);
         let deadline = Instant::now() + within;
         let timed_out = || -> XynologError {
             BusRequestError::new(

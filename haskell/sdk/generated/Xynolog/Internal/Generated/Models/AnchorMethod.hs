@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.AnchorMethod (AnchorMethod (..)) where
+module Xynolog.Internal.Generated.Models.AnchorMethod (AnchorMethod (..), anchorMethodText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data AnchorMethod = AnchorMethodUniqueU2d_match | AnchorMethodContextU2d_recovered | AnchorMethodFirstU2d_ofU2d_many | AnchorMethodFuzzyU2d_match deriving (Eq, Show)
@@ -16,3 +17,9 @@ instance ToJSON AnchorMethod where
   toJSON AnchorMethodContextU2d_recovered = String "context-recovered"
   toJSON AnchorMethodFirstU2d_ofU2d_many = String "first-of-many"
   toJSON AnchorMethodFuzzyU2d_match = String "fuzzy-match"
+
+anchorMethodText :: AnchorMethod -> Text
+anchorMethodText AnchorMethodUniqueU2d_match = "unique-match"
+anchorMethodText AnchorMethodContextU2d_recovered = "context-recovered"
+anchorMethodText AnchorMethodFirstU2d_ofU2d_many = "first-of-many"
+anchorMethodText AnchorMethodFuzzyU2d_match = "fuzzy-match"

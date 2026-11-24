@@ -3,6 +3,7 @@
 // Authority:   the component schemas of protocol/specs/src/openapi.json
 //              the records Protocol states in its tables (codegen/lib/table_records.ml)
 //              the client types it names, of protocol/specs/src/client/types
+//              the schemas of the tables it carries as values (codegen/lib/typescript_types/table_modules.ml)
 //              protocol/specs/src/client/discovery-absent.json
 //              protocol/specs/src/identifiers/kinds.json, for the brands
 // Regenerate:  make generate  (codegen/lib/typescript_types/typescript_types.ml)
@@ -8508,4 +8509,1220 @@ export interface records {
      * the request got no answer by its deadline.
      */
     | 'unreadable';
+}
+
+/** The tables the SDK carries as values, and what only they reach. */
+export interface tables {
+  /**
+   * archivist/default-entity-types.json: the entity types an Archivist seeds,
+   * in the order it seeds them.
+   */
+  ArchivistDefaultEntityTypes: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** The default entity types, in seed order. */
+    entityTypes: string[];
+  };
+  /** archivist/layout.json: where the Archivist keeps the record on disk. */
+  ArchivistLayout: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** A resource's event stream: a directory of event files. */
+    eventStream: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+    };
+    /**
+     * The knowledge base's own stream, of the events that name no resource. It
+     * is not sharded.
+     */
+    systemStream: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+    };
+    /** The files of a stream. */
+    eventFile: {
+      /** A file's name, `{number}` its number in `digits` decimal digits. */
+      name: string;
+      /**
+       * How many decimal digits a file's number is written in, with leading
+       * zeros.
+       */
+      digits: number;
+      /**
+       * The first file's number. It is created, empty, with the stream's
+       * directory.
+       */
+      first: number;
+      /** The most events a file holds. */
+      maxEvents: number;
+    };
+    /** The schema a stored event, one line of an event file, is. */
+    storedEvent: unknown;
+    /** A resource's view, in the state directory. */
+    view: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+      /** The schema a view is. */
+      schema: unknown;
+    };
+    /**
+     * The projections of what the `__system__` stream adds up to, in the state
+     * directory.
+     */
+    systemProjections: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** The directory that holds them, in its tree, `/`-separated. */
+      path: string;
+      /** Each projection's file. */
+      files: {
+        /** The file's name. */
+        name: string;
+        /** The schema the projection is. */
+        schema: unknown;
+      }[];
+    };
+    /**
+     * An entry of the storage-uri index, which names the resource whose content
+     * is at a storage URI.
+     */
+    storageUriIndex: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+      /** The schema an entry is. */
+      schema: unknown;
+    };
+    /**
+     * An entry of the anchored-text store, keyed by the checksum of the content
+     * it was extracted from.
+     */
+    anchoredTextEntry: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+      /** The schema an entry is. */
+      schema: unknown;
+    };
+    /**
+     * The file holding the stamp the anchored-text store's entries are taken
+     * under: the stamp, followed by a newline.
+     */
+    anchoredTextStamp: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+    };
+  };
+  /**
+   * archivist/messages.json: the words of the Archivist's own refusals, and of
+   * the messages it logs that a reader relies on.
+   */
+  ArchivistMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * Each refusal to start of the Archivist's own, written in
+     * service-environment/boot-refusals.json's `line`.
+     */
+    boot: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The refusal, in place of the line's `{refusal}`. A `{name}` in it is
+       * filled with what the row's `situation` names, and nothing else in it
+       * varies.
+       */
+      refusal: string;
+    }[];
+    /**
+     * The failure a reply that cannot be sent is answered with instead, on the
+     * operation's failure channel.
+     */
+    unsent: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The failure's `message`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /** Each refusal of an operation, on the operation's failure channel. */
+    refusals: {
+      /** The situation's name. */
+      name: string;
+      /**
+       * The operations it refuses: requests of bus/registry.json's operations
+       * that the Archivist answers. `{channel}` in the message is the one
+       * refused.
+       */
+      operations: string[];
+      /**
+       * Machine-readable failure class, for consumers that must BRANCH on why a
+       * command failed rather than log it. Optional and deliberately sparse:
+       * absent means 'no class declared', and every existing failure stays that
+       * way. An enum rather than a free string so the vocabulary has an owner —
+       * an unconstrained code is a mirror with no gate, and adding one should
+       * be a deliberate spec change. `message` remains the human-readable text
+       * and is unaffected. Members: `peer-unavailable` — the channel this
+       * command was sent on has no subscriber, i.e. the service that answers it
+       * has not connected yet. Transient by nature (a peer still starting),
+       * which is what distinguishes it from a refusal: retrying is the correct
+       * response. `not-found` — the resource this command addressed does not
+       * exist in this knowledge base. A verdict, not a symptom: it is emitted
+       * only where the answer comes from the event store, which is the system
+       * of record, and never from a projection that may merely be lagging.
+       * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+       * consumers may act destructively on it (the SDK deletes a restored tab).
+       * Absence is not denial: a future 'exists, but not for you' must travel
+       * as its own code, never as this one. `unauthorized` — that code: the
+       * caller is authenticated but not permitted to do what it asked. A
+       * verdict about the CALLER, not the resource, so retrying under the same
+       * credential cannot succeed and a consumer must never spin on it; emitted
+       * by `job:claim` for a caller whose token carries no worker role.
+       * `none-pending` — a declined claim, not an error: the queue holds no
+       * pending job of the requested types. Nothing went wrong; the one code a
+       * consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by
+       * `job:claim` only. A `job:claim` refusal carrying neither is
+       * unclassified — a malformed record or a missing injection — and a
+       * consumer treats it as 'log it, assume nothing'.
+       */
+      code?: 'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The failure's `message`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /**
+     * The refusal of every route of the HTTP surface but `/health`: a token
+     * that is missing, or not of the knowledge base's issuer and audience, or
+     * without the service role.
+     */
+    unauthorized: {
+      status: components['schemas']['HttpStatus'];
+      /** The body's `error`. */
+      error: string;
+      /** The `WWW-Authenticate` header when a token was presented. */
+      presented: string;
+      /** The `WWW-Authenticate` header when none was. */
+      absent: string;
+    };
+    /** Each other error a route of the HTTP surface answers with. */
+    http: {
+      /** The situation's name. */
+      name: string;
+      /** The route's method. */
+      method: 'GET' | 'PUT' | 'POST';
+      /** The route, as the Archivist's API names its path. */
+      route: string;
+      status: components['schemas']['HttpStatus'];
+      /** The body's `code`, where it carries one. */
+      code?: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The body's `error`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      error: string;
+    }[];
+    /**
+     * Each message the Archivist logs that a reader of its output relies on.
+     */
+    logged: {
+      /** The situation's name. */
+      name: string;
+      level: components['schemas']['LogLevel'];
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /** The line's message, word for word. */
+      message: string;
+      /**
+       * The fields the line is logged with whose form is stated, by name: each
+       * a text whose `{name}` is filled as the row's `situation` says. The line
+       * may carry others.
+       */
+      fields: { [key: string]: string };
+    }[];
+  };
+  /**
+   * bus/reply-bounds.json: each list or map an operation's reply carries that
+   * its own schema does not bound, and what bounds it.
+   */
+  BusReplyBounds: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each operation, by its request's channel. */
+    replies: {
+      [key: string]: {
+        [key: string]:
+          | {
+              /**
+               * The member of the request that bounds it: an array, or an integer with
+               * a maximum.
+               */
+              by: string;
+            }
+          | {
+              /** What it grows with. */
+              grows: string;
+            };
+      };
+    };
+  };
+  /**
+   * dispatcher/messages.json: the words of the dispatcher's own refusals, and
+   * of the errors it writes into a job.
+   */
+  DispatcherMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * Each refusal the dispatcher makes itself, on the operation's failure
+     * channel.
+     */
+    refusals: {
+      /** The situation's name. */
+      name: string;
+      /**
+       * The operation it refuses: a request of bus/registry.json's operations
+       * that the dispatcher answers.
+       */
+      operation: string;
+      /**
+       * Machine-readable failure class, for consumers that must BRANCH on why a
+       * command failed rather than log it. Optional and deliberately sparse:
+       * absent means 'no class declared', and every existing failure stays that
+       * way. An enum rather than a free string so the vocabulary has an owner —
+       * an unconstrained code is a mirror with no gate, and adding one should
+       * be a deliberate spec change. `message` remains the human-readable text
+       * and is unaffected. Members: `peer-unavailable` — the channel this
+       * command was sent on has no subscriber, i.e. the service that answers it
+       * has not connected yet. Transient by nature (a peer still starting),
+       * which is what distinguishes it from a refusal: retrying is the correct
+       * response. `not-found` — the resource this command addressed does not
+       * exist in this knowledge base. A verdict, not a symptom: it is emitted
+       * only where the answer comes from the event store, which is the system
+       * of record, and never from a projection that may merely be lagging.
+       * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+       * consumers may act destructively on it (the SDK deletes a restored tab).
+       * Absence is not denial: a future 'exists, but not for you' must travel
+       * as its own code, never as this one. `unauthorized` — that code: the
+       * caller is authenticated but not permitted to do what it asked. A
+       * verdict about the CALLER, not the resource, so retrying under the same
+       * credential cannot succeed and a consumer must never spin on it; emitted
+       * by `job:claim` for a caller whose token carries no worker role.
+       * `none-pending` — a declined claim, not an error: the queue holds no
+       * pending job of the requested types. Nothing went wrong; the one code a
+       * consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by
+       * `job:claim` only. A `job:claim` refusal carrying neither is
+       * unclassified — a malformed record or a missing injection — and a
+       * consumer treats it as 'log it, assume nothing'.
+       */
+      code?: 'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The failure's `message`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /**
+     * Each error the dispatcher writes into a job on its own, as a `job:fail`
+     * would.
+     */
+    errors: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The `error` it writes into the job. A `{name}` in it is filled with
+       * what the row's `situation` names, and nothing else in it varies.
+       */
+      error: string;
+      failureClass: components['schemas']['FailureClass'];
+    }[];
+  };
+  /**
+   * embedding/requests.json: how a service asks its embedding provider for the
+   * vectors of many texts.
+   */
+  EmbeddingRequests: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * How each kind of provider is asked, by its `type` (EmbeddingConfig):
+     * every kind, and no other.
+     */
+    providers: {
+      [key: string]: {
+        /**
+         * How many texts one request carries, at most: a batch is cut into slices
+         * of this many, each one request, in the order of the texts.
+         */
+        textsPerRequest: number;
+        /**
+         * How many requests are made of the provider at once, however many
+         * resources are being indexed.
+         */
+        atOnce: number;
+      };
+    };
+    /**
+     * How long each request has, counted from when it is sent and not from when
+     * its batch began. Asking a busy provider again is within it.
+     */
+    requestSeconds: number;
+    /**
+     * A request for the vectors of documents that the provider answers busy is
+     * asked again, after each wait in turn, while the request's own time allows
+     * the wait. A provider busy at every asking fails the request with that
+     * status. A query is asked once.
+     */
+    busy: {
+      /** The statuses by which a provider says it is busy. */
+      statuses: number[];
+      /** The wait before each asking again, in order. */
+      againAfterSeconds: number[];
+    };
+    /**
+     * How many times, at most, a starting service asks again a provider that
+     * answered 404, taken to be still fetching the model, or could not be
+     * reached, taken to be still starting: within the time the service has to
+     * start.
+     */
+    startAgain: number;
+  };
+  /** gateway/media-token.json: what a media token is. */
+  GatewayMediaToken: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Its JOSE header, exactly. */
+    header: {
+      alg: 'HS256';
+      typ: 'JWT';
+    };
+    /** Its claims beside `iat` and `exp`, each filled as the table says. */
+    claims: {
+      purpose: 'media';
+      iss: '{domain}';
+      sub: '{resourceId}';
+    };
+    /** `exp` less `iat`. */
+    lifetimeSeconds: number;
+  };
+  /** gateway/messages.json: the words of the gateway's own refusals. */
+  GatewayMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each refusal the gateway makes itself. */
+    messages: {
+      /** The situation's name. */
+      name: string;
+      status: components['schemas']['HttpStatus'];
+      /**
+       * Its `code`, where it carries one: a LimitRefusal's, or the transport
+       * code errors/codes.json names for its status.
+       */
+      code?: string;
+      /**
+       * When the gateway answers it, and what fills each `{name}` of its texts.
+       */
+      situation: string;
+      /**
+       * Its text. A `{name}` in it is filled with what the row's `situation`
+       * names, and nothing else in it varies.
+       */
+      error: string;
+      /** Its `hint`, where it carries one. */
+      hint?: string;
+    }[];
+    /**
+     * Each failure frame the gateway delivers itself, on the stream of the
+     * client whose request it answers.
+     */
+    failures: {
+      /** The situation's name. */
+      name: string;
+      /** Its `code`. */
+      code: string;
+      /**
+       * When the gateway answers it, and what fills each `{name}` of its texts.
+       */
+      situation: string;
+      /**
+       * Its text. A `{name}` in it is filled with what the row's `situation`
+       * names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /** The `WWW-Authenticate` of a 401. */
+    challenges: {
+      /**
+       * For a request that presents no credential. The challenge. `{origin}` is
+       * the origin the Unauthorized response names: `http://` and the request's
+       * `Host`, or, for a request that names none, the gateway's `publicUrl`.
+       */
+      noCredential: string;
+      /**
+       * For a request whose credential, a bearer token or a media token, is
+       * refused. The challenge. `{origin}` is the origin the Unauthorized
+       * response names: `http://` and the request's `Host`, or, for a request
+       * that names none, the gateway's `publicUrl`.
+       */
+      refused: string;
+    };
+  };
+  /**
+   * gateway/response-headers.json: the headers on every response the gateway
+   * sends.
+   */
+  GatewayResponseHeaders: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each header every response carries, and its value. */
+    every: {
+      /**
+       * A header's name, as HTTP spells it; a receiver reads it in any case.
+       */
+      name: string;
+      /** Its value, exactly. */
+      value: string;
+    }[];
+    /** The header that names the request. */
+    requestId: string;
+    /** Each header no response carries. */
+    absent: string[];
+    /** How the gateway answers an `OPTIONS` request. */
+    preflight: {
+      status: components['schemas']['HttpStatus'];
+      /** Each header it carries beside those of `every`, and its value. */
+      headers: {
+        /**
+         * A header's name, as HTTP spells it; a receiver reads it in any case.
+         */
+        name: string;
+        /** Its value, exactly. */
+        value: string;
+      }[];
+      /**
+       * Each header it carries when the request carries the header it echoes,
+       * with that header's value.
+       */
+      echoes: {
+        /**
+         * A header's name, as HTTP spells it; a receiver reads it in any case.
+         */
+        name: string;
+        /** The request's header whose value it carries. */
+        of: string;
+      }[];
+      /**
+       * The value of the `Vary` it carries when it echoes a header: the request
+       * headers it echoes.
+       */
+      vary: string;
+    };
+  };
+  /**
+   * graph/schema.json: the shape of the graph a store keeps, as a reader of the
+   * store finds it.
+   */
+  GraphSchema: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each kind of node the graph holds. */
+    nodes: {
+      /**
+       * A kind of node: its label, the codec row it holds, the property it is
+       * one of its kind by, and the properties a reader finds one by.
+       */
+      resource: {
+        /** Its label. */
+        label: string;
+        /**
+         * The part of graph/codec-cases.json whose `properties` and `json` are
+         * the node's properties. A node without one holds its key alone.
+         */
+        row?: string;
+        /** The property no two nodes of its kind share. */
+        key: string;
+        /**
+         * The properties other than its key that a reader finds a node of its
+         * kind by.
+         */
+        lookups: string[];
+      };
+      /**
+       * A kind of node: its label, the codec row it holds, the property it is
+       * one of its kind by, and the properties a reader finds one by.
+       */
+      annotation: {
+        /** Its label. */
+        label: string;
+        /**
+         * The part of graph/codec-cases.json whose `properties` and `json` are
+         * the node's properties. A node without one holds its key alone.
+         */
+        row?: string;
+        /** The property no two nodes of its kind share. */
+        key: string;
+        /**
+         * The properties other than its key that a reader finds a node of its
+         * kind by.
+         */
+        lookups: string[];
+      };
+      /**
+       * A kind of node: its label, the codec row it holds, the property it is
+       * one of its kind by, and the properties a reader finds one by.
+       */
+      entityType: {
+        /** Its label. */
+        label: string;
+        /**
+         * The part of graph/codec-cases.json whose `properties` and `json` are
+         * the node's properties. A node without one holds its key alone.
+         */
+        row?: string;
+        /** The property no two nodes of its kind share. */
+        key: string;
+        /**
+         * The properties other than its key that a reader finds a node of its
+         * kind by.
+         */
+        lookups: string[];
+      };
+    };
+    /** Each kind of relationship the graph holds. */
+    relationships: {
+      /**
+       * A kind of relationship: its type, the kind of node it goes from and the
+       * kind it goes to, and what it says.
+       */
+      belongsTo: {
+        /** Its type. */
+        type: string;
+        /** The kind of node it goes from, by its name under `nodes`. */
+        from: string;
+        /** The kind of node it goes to, by its name under `nodes`. */
+        to: string;
+        /** What one says. */
+        says: string;
+      };
+      /**
+       * A kind of relationship: its type, the kind of node it goes from and the
+       * kind it goes to, and what it says.
+       */
+      references: {
+        /** Its type. */
+        type: string;
+        /** The kind of node it goes from, by its name under `nodes`. */
+        from: string;
+        /** The kind of node it goes to, by its name under `nodes`. */
+        to: string;
+        /** What one says. */
+        says: string;
+      };
+      /**
+       * A kind of relationship: its type, the kind of node it goes from and the
+       * kind it goes to, and what it says.
+       */
+      taggedAs: {
+        /** Its type. */
+        type: string;
+        /** The kind of node it goes from, by its name under `nodes`. */
+        from: string;
+        /** The kind of node it goes to, by its name under `nodes`. */
+        to: string;
+        /** What one says. */
+        says: string;
+      };
+    };
+    /**
+     * A link's target the graph has not been given yet: a node of its kind that
+     * holds its key and the marker, `true`, and nothing else. A node without
+     * the marker is no stub.
+     */
+    stub: {
+      /** The kind of node a stub is, by its name under `nodes`. */
+      node: string;
+      /** The property that marks a stub. */
+      marker: string;
+    };
+  };
+  /** jobs/budgets.json: the retry budget of each job type. */
+  JobsBudgets: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** One row for each job type. */
+    budgets: {
+      jobType: components['schemas']['JobType'];
+      /**
+       * How many times a failed attempt of a job of this type may be retried:
+       * its record's `metadata.maxRetries`.
+       */
+      maxRetries: number;
+    }[];
+  };
+  /** jobs/storage.json: where the job queue keeps its state on the broker. */
+  JobsStorage: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** The work-queue stream every job is published into. */
+    stream: {
+      name: string;
+      /**
+       * The root of the subjects the stream captures: a job is published on
+       * `<subjectRoot>.<jobType>`.
+       */
+      subjectRoot: string;
+    };
+    /**
+     * The durable consumer that delivers each job to the dispatcher holding its
+     * lease.
+     */
+    consumer: {
+      durableName: string;
+    };
+    /** The KV bucket that keeps one record per job, keyed by the job's id. */
+    bucket: {
+      name: string;
+      /** The component schema each of the bucket's values is. */
+      record: string;
+    };
+  };
+  /**
+   * retry/rules.json: what each of the four retry rules retries, as sets.
+   * retry/cases.json's rows are examples of them.
+   */
+  RetryRules: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** A boot pass or a bus request, asked about a response's status. */
+    boot: {
+      /** The statuses the rule retries, in ascending order. */
+      statuses: components['schemas']['HttpStatus'][];
+    };
+    /** A job's retry budget, asked about a response's status. */
+    job: {
+      /** The statuses the rule retries, in ascending order. */
+      statuses: components['schemas']['HttpStatus'][];
+      /**
+       * Every status at or above this one is retried too. It is above every
+       * status of `statuses`.
+       */
+      statusFrom: components['schemas']['HttpStatus'];
+    };
+    /**
+     * An HTTP client's request, asked about a response's status, the request's
+     * method, and whether it carries an `Idempotency-Key`. It is retried at one
+     * of `statuses` when it carries a key or its method is one of
+     * `idempotentMethods`, and at no other status.
+     */
+    transport: {
+      /** The statuses the rule retries, in ascending order. */
+      statuses: components['schemas']['HttpStatus'][];
+      /**
+       * The methods a repeat of which cannot cause a second effect (RFC 9110 §
+       * 9.2.2), in capitals. A request's method is read in any case.
+       */
+      idempotentMethods: string[];
+    };
+    /**
+     * Exchanging a refresh token at its issuer, asked about the issuer's
+     * answer.
+     */
+    refresh: {
+      /** The statuses the rule retries, in ascending order. */
+      statuses: components['schemas']['HttpStatus'][];
+      /**
+       * Every status at or above this one is retried too. It is above every
+       * status of `statuses`.
+       */
+      statusFrom: components['schemas']['HttpStatus'];
+      /**
+       * Whether the exchange is retried when the issuer gave no answer at all.
+       */
+      noResponse: boolean;
+    };
+  };
+  /**
+   * service-environment/boot-refusals.json: what a service writes when it
+   * refuses to start on its configuration document or its environment.
+   */
+  ServiceEnvironmentBootRefusals: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** The services that refuse to start so. */
+    services: (
+      | 'archivist'
+      | 'dispatcher'
+      | 'gateway'
+      | 'librarian'
+      | 'smelter'
+      | 'weaver'
+      | 'worker'
+    )[];
+    /**
+     * The one line the service writes to stderr, its refusal in place of
+     * `{refusal}`, before it exits.
+     */
+    line: string;
+    /** The status it exits with. */
+    exitCode: number;
+    /** Each refusal. */
+    refusals: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * Its text. A `{name}` in it is filled with what the row's `situation`
+       * names, and nothing else in it varies.
+       */
+      refusal: string;
+    }[];
+    /**
+     * Each line of the refusal `invalid`: one for each way the document is not
+     * its schema's.
+     */
+    members: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /** The line, filled as the row's `situation` says. */
+      line: string;
+    }[];
+  };
+  /**
+   * service-environment/variables.json: every environment variable a Xynolog
+   * service reads, beside its configuration document.
+   */
+  ServiceEnvironmentVariables: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    variables: {
+      /** The variable's name. */
+      name: string;
+      /** The services that read it. */
+      services: (
+        | 'archivist'
+        | 'dispatcher'
+        | 'gateway'
+        | 'librarian'
+        | 'smelter'
+        | 'weaver'
+        | 'worker'
+      )[];
+      /** What reads it: the service's own code, or the OpenTelemetry SDK. */
+      readBy: 'service' | 'opentelemetry';
+      /** What sets it where the launcher runs the service. */
+      providedBy: 'launcher' | 'image' | 'operator';
+      /** Whether the service refuses to start without it. */
+      required: boolean;
+      /** What it does. */
+      effect: string;
+    }[];
+  };
+  /**
+   * service-telemetry/log-lines.json: the lines a service writes to its log,
+   * and the line of its supervisor it counts.
+   */
+  ServiceTelemetryLogLines: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** The lines of a service's logger. */
+    logger: {
+      /** The services whose document names a LogFormat. */
+      services: ('archivist' | 'dispatcher' | 'gateway')[];
+      /** A line of the `json` format. */
+      json: {
+        /** Its first members, in order. */
+        first: string[];
+        /**
+         * The member that names the request a line was logged while answering.
+         */
+        requestId: string;
+        /** The members that name the active trace and span, in that order. */
+        trace: string[];
+        /** Its last member: the moment. */
+        last: string;
+      };
+      /** A line of the `simple` format. */
+      simple: string;
+    };
+    /** A line of the bus log. */
+    bus: {
+      /** Its head. */
+      line: string;
+      /** What follows the head, in order, each where there is one. */
+      parts: {
+        /** What it shows. */
+        part: string;
+        /** Its text. */
+        text: string;
+        /** How many characters of it are shown, from its first. */
+        characters?: number;
+      }[];
+      /** Each operation a line names. */
+      ops: string[];
+    };
+    /** The line the supervisor writes when it starts a service. */
+    supervisor: {
+      /** The line. */
+      line: string;
+      /**
+       * What a service counts the lines that hold of, for each of its lives.
+       */
+      counted: string;
+    };
+  };
+  /**
+   * service-telemetry/telemetry.json: the telemetry each Xynolog service
+   * exports over OTLP: its spans and metrics, the services that export each,
+   * and the attributes each carries.
+   */
+  ServiceTelemetryTelemetry: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * The services that reach the bus through an SDK, and for each the SDK
+     * transports it uses, or of a transport it uses part of, the rows it
+     * exports.
+     */
+    sdk: { [key: string]: string[] };
+    resource: {
+      /** The attribute's key. */
+      key: string;
+      /** The services that export the row. */
+      services: (
+        | 'archivist'
+        | 'dispatcher'
+        | 'gateway'
+        | 'librarian'
+        | 'smelter'
+        | 'weaver'
+        | 'worker'
+      )[];
+      /** What the attribute says. */
+      meaning: string;
+      /**
+       * Its value when nothing says another, with `{service}` the service's
+       * name.
+       */
+      default?: string;
+    }[];
+    spans: {
+      /**
+       * The row's name; `{channel}` in it is the bus channel, and `{jobType}`
+       * the job's type.
+       */
+      name: string;
+      /** The services that export the row. */
+      services: (
+        | 'archivist'
+        | 'dispatcher'
+        | 'gateway'
+        | 'librarian'
+        | 'smelter'
+        | 'weaver'
+        | 'worker'
+      )[];
+      /** The span's kind, in OTLP's words. */
+      kind: 'client' | 'consumer' | 'internal' | 'producer' | 'server';
+      /** When the row arrives. */
+      when: 'export' | 'traffic' | 'supervised' | 'fatal';
+      /** What the row says. */
+      meaning: string;
+      /** The attributes the span carries. */
+      attributes: {
+        /** The attribute's key. */
+        key: string;
+        /**
+         * When alone the attribute is carried: a row's attribute without it is
+         * carried every time.
+         */
+        only?: string;
+        /**
+         * The only values it carries, each of the type it is carried as: a
+         * string or a boolean.
+         */
+        values?: (string | boolean)[];
+      }[];
+    }[];
+    metrics: {
+      /**
+       * The row's name; `{channel}` in it is the bus channel, and `{jobType}`
+       * the job's type.
+       */
+      name: string;
+      /** The services that export the row. */
+      services: (
+        | 'archivist'
+        | 'dispatcher'
+        | 'gateway'
+        | 'librarian'
+        | 'smelter'
+        | 'weaver'
+        | 'worker'
+      )[];
+      /** The metric's instrument. */
+      instrument: 'counter' | 'up-down counter' | 'gauge' | 'histogram';
+      /** When the row arrives. */
+      when: 'export' | 'traffic' | 'supervised' | 'fatal';
+      /** The only signal planes a gateway row arrives on. */
+      planes?: ('in-process' | 'nats')[];
+      /** What the row says. */
+      meaning: string;
+      /** The attributes the span carries. */
+      attributes: {
+        /** The attribute's key. */
+        key: string;
+        /**
+         * When alone the attribute is carried: a row's attribute without it is
+         * carried every time.
+         */
+        only?: string;
+        /**
+         * The only values it carries, each of the type it is carried as: a
+         * string or a boolean.
+         */
+        values?: (string | boolean)[];
+      }[];
+    }[];
+  };
+  /**
+   * smelter/messages.json: the words of the Smelter's refusals, and of the
+   * messages it logs that a reader relies on.
+   */
+  SmelterMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each refusal of an operation, on the operation's failure channel. */
+    refusals: {
+      /** The situation's name. */
+      name: string;
+      /**
+       * The operation it refuses: a request of bus/registry.json's operations
+       * that the Smelter answers.
+       */
+      operation: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The failure's `message`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /** Each message the Smelter logs that a reader of its output relies on. */
+    logged: {
+      /** The situation's name. */
+      name: string;
+      level: components['schemas']['LogLevel'];
+      /**
+       * When it is written, what fills each `{name}` of its fields, and what
+       * each fact it carries says.
+       */
+      situation: string;
+      /** The line's message, word for word. */
+      message: string;
+      /**
+       * The facts the line is logged with whose form is stated, by name: each a
+       * text whose `{name}` is filled as the row's `situation` says. A fact
+       * that is a number is its decimal digits.
+       */
+      fields: { [key: string]: string };
+      /**
+       * The facts the line is logged with beside `fields`, whose value the
+       * row's `situation` says and whose form is not stated. The line may carry
+       * others.
+       */
+      carries: string[];
+    }[];
+  };
+  /**
+   * worker/answer-formats.json: the element of the array each kind of detection
+   * asks a model for.
+   */
+  WorkerAnswerFormats: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    formats: {
+      /** A motivation a `mark` job takes, or `count`. */
+      name: string;
+      /** What an element is, in prose. */
+      about: string;
+      element: unknown;
+    }[];
+  };
+  /**
+   * worker/messages.json: the words of a Worker service's refusals to start, of
+   * the errors it fails a job with, and of the messages it logs that a reader
+   * relies on.
+   */
+  WorkerMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * Each refusal to start, written in
+     * service-environment/boot-refusals.json's `line`.
+     */
+    boot: (
+      | {
+          /** The situation's name. */
+          name: string;
+          /** When it is written, and what fills each `{name}` of its text. */
+          situation: string;
+          /**
+           * The refusal, in place of the line's `{refusal}`. A `{name}` in it is
+           * filled with what the row's `situation` names, and nothing else in it
+           * varies.
+           */
+          refusal: string;
+        }
+      | {
+          /** The situation's name. */
+          name: string;
+          /** When it is written. What fills its text is the shared row's. */
+          situation: string;
+          /**
+           * The `name` of the row of service-environment/boot-refusals.json's
+           * `refusals` that is this refusal, with `{service}` `worker` and
+           * `{schema}` `WorkerConfig`.
+           */
+          bootRefusal: string;
+        }
+    )[];
+    /** Each line of the `{reasons}` of `invalid`. */
+    reasons: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The line, indented by two spaces. A `{name}` in it is filled with what
+       * the row's `situation` names, and nothing else in it varies.
+       */
+      line: string;
+    }[];
+    /**
+     * How an error names the job, by its type, as `{job}`: `{motivation}` is a
+     * mark job's motivation.
+     */
+    job: {
+      mark: string;
+      yield: string;
+    };
+    /**
+     * Each error a job is failed with that is the worker's own: the `error` of
+     * its `job:fail`.
+     */
+    errors: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The error. `{job}` in it is the job, as `job` names it. A `{name}` in
+       * it is filled with what the row's `situation` names, and nothing else in
+       * it varies.
+       */
+      error: string;
+    }[];
+    /** Each `{detail}` of `unreadable`. */
+    details: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The detail. A `{name}` in it is filled with what the row's `situation`
+       * names, and nothing else in it varies.
+       */
+      detail: string;
+    }[];
+    /** Each `{said}` of `wait-stated`. */
+    waits: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The wait, as the header stated it. A `{name}` in it is filled with what
+       * the row's `situation` names, and nothing else in it varies.
+       */
+      said: string;
+    }[];
+    /**
+     * Each message a Worker service logs that a reader of its output relies on.
+     */
+    logged: {
+      /** The situation's name. */
+      name: string;
+      level: components['schemas']['LogLevel'];
+      /**
+       * When it is written, what fills each `{name}` of its fields, and what
+       * each fact it carries says.
+       */
+      situation: string;
+      /** The line's message, word for word. */
+      message: string;
+      /**
+       * The facts the line is logged with whose form is stated, by name: each a
+       * text whose `{name}` is filled as the row's `situation` says. A fact
+       * that is a number is its decimal digits.
+       */
+      fields: { [key: string]: string };
+      /**
+       * The facts the line is logged with beside `fields`, whose value the
+       * row's `situation` says and whose form is not stated. The line may carry
+       * others.
+       */
+      carries: string[];
+    }[];
+  };
 }

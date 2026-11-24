@@ -17,25 +17,6 @@ const (
 	listLimit       = 100
 )
 
-// ResourceFilters is what a list or a search of resources admits, and which
-// page of it. Limit is how many it gives, a hundred when it is zero; Offset is
-// how many of those it admits are passed over before the page begins; a nil
-// filter admits every resource.
-type ResourceFilters struct {
-	Limit      int
-	Offset     int
-	Archived   *bool
-	EntityType *string
-}
-
-// limit is the number of resources the filters give.
-func (f ResourceFilters) limit() int {
-	if f.Limit == 0 {
-		return listLimit
-	}
-	return f.Limit
-}
-
 // MatchNamespace is searching: for what a reference could refer to, and for
 // resources by text.
 type MatchNamespace struct {
@@ -69,6 +50,7 @@ func (n *MatchNamespace) RequestSearch(input api.MatchSearchRequest, correlation
 // Resources is a page of the resources a search for search finds, among
 // those filters admits. The text is matched lexically and, when nothing
 // matches, by meaning: the answer's MatchKind says which it is.
-func (n *MatchNamespace) Resources(search string, filters ResourceFilters) *Cached[api.MatchResourcesResponse] {
-	return keyed(n.links, n.live.matchedResources, searchKey{search: search, filters: keyOf(filters)}, itself[api.MatchResourcesResponse], api.ResourceId{})
+func (n *MatchNamespace) Resources(search string, filters api.ResourceSearchFilters) *Cached[api.MatchResourcesResponse] {
+	filters.Limit, filters.Offset = paged(filters.Limit, filters.Offset)
+	return keyed(n.links, n.live.matchedResources, searchKey{search: search, filters: sentKeyOf(filters)}, itself[api.MatchResourcesResponse], api.ResourceId{})
 }

@@ -13,10 +13,13 @@ val is_tag : t -> bool
 val is_stub_reference : t -> bool
 val is_resolved_reference : t -> bool
 val comment_text : t -> string option
-val text_quote_selector : Yojson.Safe.t -> Yojson.Safe.t option
-val text_position_selector : Yojson.Safe.t -> Yojson.Safe.t option
-val svg_selector : Yojson.Safe.t -> Yojson.Safe.t option
-val fragment_selector : Yojson.Safe.t -> Yojson.Safe.t option
+val text_quote_selector : Yojson.Safe.t -> Selector.text_quote_selector option
+
+val text_position_selector :
+  Yojson.Safe.t -> Selector.text_position_selector option
+
+val svg_selector : Yojson.Safe.t -> Selector.svg_selector option
+val fragment_selector : Yojson.Safe.t -> Selector.fragment_selector option
 val exact_text : Yojson.Safe.t option -> string
 val annotation_exact_text : t -> string
 val entity_types : t -> string list
@@ -60,17 +63,10 @@ val annotation_of_span :
 val reconcile :
   string -> Records.Quoted_text.t -> Records.Reconciled_span.t option
 
-type pdf_item = {
-  start : int;
-  end_ : int;
-  page : int;
-  x : float;
-  y : float;
-  width : float;
-  height : float;
-}
-
 val locate_pdf :
-  pdf_item list -> int -> int -> pdf_item list * Records.Pdf_coordinate.t list
+  Records.Pdf_text_item.t list ->
+  int ->
+  int ->
+  Records.Pdf_text_item.t list * Records.Pdf_coordinate.t list
 
 val fragment : Records.Pdf_coordinate.t -> string

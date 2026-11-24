@@ -16,6 +16,7 @@ import {
   BRIDGED_CHANNELS,
   REQUEST_RETRY_PAUSE_MS,
   baseUrl,
+  jobId,
   resourceId,
 } from '@xynolog/core';
 import type { KyInstance } from 'ky';
@@ -202,8 +203,8 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
         file: Buffer.from('generated'),
         format: 'text/markdown',
         storageUri: 'file://gen.md',
-        sourceResourceId: 'res-source',
-        jobId: 'job-42',
+        sourceResourceId: resourceId('res-source'),
+        jobId: jobId('job-42'),
       },
       { onProgress: vi.fn() },
     );

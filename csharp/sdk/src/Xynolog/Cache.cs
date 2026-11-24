@@ -22,7 +22,7 @@ public sealed class Cache<TKey, T> : IStateUnit, IRefreshedCache where TKey : no
     /// <param name="timeProvider">The clock that times the Protocol's invalidation window; the system's when null.</param>
     public Cache(Func<TKey, CancellationToken, Task<T>> fetch, TimeProvider? timeProvider = null)
         : this(fetch, null, timeProvider ?? TimeProvider.System,
-            TimeSpan.FromMilliseconds(ProtocolFacts.Timing("invalidationWindowMs").GetInt32()))
+            TimeSpan.FromMilliseconds(Timings.InvalidationWindowMs))
     { }
 
     internal Cache(Func<TKey, CancellationToken, Task<T>> fetch, Func<TKey, IDisposable?>? hold, TimeProvider clock, TimeSpan window, Action? changed = null)

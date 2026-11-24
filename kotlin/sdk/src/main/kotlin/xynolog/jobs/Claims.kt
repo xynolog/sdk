@@ -22,6 +22,7 @@ import xynolog.errors.BusRequestError
 import xynolog.errors.BusRequestErrorCode
 import xynolog.errors.TransportError
 import xynolog.errors.XynologError
+import xynolog.stamped
 import xynolog.telemetry.futureOf
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
@@ -32,9 +33,13 @@ import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
 import xynolog.transport.Transport
 import xynolog.transport.Variable
+import xynolog.types.ClaimOptions
+import xynolog.types.Engine
 import xynolog.types.JobClaimCommand
 import xynolog.types.JobFilter
 import xynolog.types.JobType
+import xynolog.types.WorkerEngineHealth
+import xynolog.types.WorkerEngineHealthActiveJob
 import xynolog.types.wireJson
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
@@ -90,20 +95,28 @@ internal class Holder(
  */
 public class Claims internal constructor(
     private val transport: Transport,
-    private val accepts: List<JobFilter>,
+    options: ClaimOptions,
     parent: CoroutineScope,
     private val clock: TimeSource,
-    private val jobClaimTimeoutMs: Long,
-    private val heldJobStallMs: Long,
-    private val heldJobStallCheckMs: Long,
-    markCommitTimeoutMs: Long,
 ) {
+    private val accepts: List<JobFilter> = options.accepts
+    private val jobClaimTimeoutMs: Long = options.jobClaimTimeoutMs ?: Timings.JOB_CLAIM_TIMEOUT_MS
+    private val heldJobStallMs: Long = options.heldJobStallMs ?: Timings.HELD_JOB_STALL_MS
+    private val heldJobStallCheckMs: Long = options.heldJobStallCheckMs ?: Timings.HELD_JOB_STALL_CHECK_MS
     private val scope = CoroutineScope(parent.coroutineContext + SupervisorJob(parent.coroutineContext[Job]))
 
     /** Each filter as the wire carries it: what an announcement is compared with. */
     private val filters: List<JsonObject> = accepts.map { wireJson.encodeToJsonElement(serializer<JobFilter>(), it).jsonObject }
     private val client = parent
-    private val holder = Holder(transport, Bus(transport, parent.coroutineContext, clock), clock, parent, markCommitTimeoutMs, ::active, ::releasedJob)
+    private val holder = Holder(
+        transport,
+        Bus(transport, parent.coroutineContext, clock),
+        clock,
+        parent,
+        options.markCommitTimeoutMs ?: Timings.MARK_COMMIT_TIMEOUT_MS,
+        ::active,
+        ::releasedJob,
+    )
     private val handed = Channel<HeldJob>(Channel.UNLIMITED)
     private val refusals = Broadcast<ClaimRefusal>(keptForFirst = Timings.ERRORS_KEPT_FOR_FIRST_READER_COUNT)
     private val stalls = Broadcast<HeldJobStall>(keptForFirst = Timings.ERRORS_KEPT_FOR_FIRST_READER_COUNT)
@@ -168,12 +181,27 @@ public class Claims internal constructor(
         val holding = held
         val since = heldSince
         WorkerVitals(
-            lastQueuedEventAt = lastQueuedEventAt,
-            lastClaimAt = lastClaimAt,
-            lastFinishedAt = lastFinishedAt,
-            lastActivityAt = lastActivityAt,
-            activeJob = if (holding == null || since == null) null else ActiveJob(holding.jobId, holding.jobType, since),
+            lastQueuedEventAt = lastQueuedEventAt?.let(::stamped),
+            lastClaimAt = lastClaimAt?.let(::stamped),
+            lastFinishedAt = lastFinishedAt?.let(::stamped),
+            lastActivityAt = lastActivityAt?.let(::stamped),
+            activeJob = if (holding == null || since == null) null else WorkerEngineHealthActiveJob(jobId = holding.jobId, type = holding.jobType, since = stamped(since)),
             jobsCompleted = jobsCompleted,
+        )
+    }
+
+    /** This worker's health as `engine`'s, which its host reports among its knowledge base's engines: its vitals, and the jobs these claims take. */
+    public fun health(engine: Engine): WorkerEngineHealth {
+        val now = vitals()
+        return WorkerEngineHealth(
+            engine = engine,
+            jobs = accepts,
+            lastQueuedEventAt = now.lastQueuedEventAt,
+            lastClaimAt = now.lastClaimAt,
+            lastFinishedAt = now.lastFinishedAt,
+            lastActivityAt = now.lastActivityAt,
+            activeJob = now.activeJob,
+            jobsCompleted = now.jobsCompleted,
         )
     }
 

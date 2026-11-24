@@ -110,7 +110,7 @@ fn asked(transport: &FaultyTransport, channel: &str) -> usize {
     transport
         .emitted()
         .iter()
-        .filter(|frame| frame.channel == channel)
+        .filter(|frame| frame.bus_frame.channel == channel)
         .count()
 }
 
@@ -345,8 +345,8 @@ async fn a_delegated_job_is_created_with_the_parameters_it_was_given_its_motivat
         let created: Vec<Value> = transport
             .emitted()
             .iter()
-            .filter(|frame| frame.channel == "job:create")
-            .map(|frame| Value::Object(frame.payload.clone()))
+            .filter(|frame| frame.bus_frame.channel == "job:create")
+            .map(|frame| Value::Object(frame.bus_frame.payload.clone()))
             .collect();
         created.last().cloned().expect("a job:create was sent")
     };
@@ -746,10 +746,13 @@ async fn a_generation_that_says_nothing_is_cancelled_and_given_up_on() {
     let cancel = transport
         .emitted()
         .into_iter()
-        .find(|frame| frame.channel == "job:cancel-requested")
+        .find(|frame| frame.bus_frame.channel == "job:cancel-requested")
         .expect("the cancellation was asked for");
     // The job that stalled, by its id: no other generation is touched.
-    assert_eq!(cancel.payload, object(json!({ "jobId": "job-1" })));
+    assert_eq!(
+        cancel.bus_frame.payload,
+        object(json!({ "jobId": "job-1" }))
+    );
 }
 
 #[tokio::test(start_paused = true)]

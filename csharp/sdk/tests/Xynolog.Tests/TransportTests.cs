@@ -283,7 +283,7 @@ public sealed partial class TransportTests
             Assert.True(JsonElement.DeepEquals(expectedPayload, sent.Body.GetProperty("payload")));
             Assert.False(call.IsCompleted);
             Assert.False(server.Emits.Reader.TryPeek(out _));
-            var result = ProtocolFacts.Operation(expectedChannel).Result;
+            var result = BusRegistry.Operation(expectedChannel).Result;
             var frame = JsonSerializer.Serialize(new
             {
                 channel = result,
@@ -646,7 +646,7 @@ public sealed partial class TransportTests
             return Task.FromResult(response);
         };
         using var client = new HttpClient(server);
-        using var transport = new HttpTransport("http://unit.test", "token", [], new Timing { HttpRequestMs = 1000 }, httpClient: client, timeProvider: clock);
+        using var transport = new HttpTransport("http://unit.test", "token", [], new Timing { HttpRequestTimeoutMs = 1000 }, httpClient: client, timeProvider: clock);
         var request = transport.GetCurrentUserAsync();
         await clock.WaitForAsync(TimeSpan.FromSeconds(2));
         clock.Advance(TimeSpan.FromSeconds(1));
@@ -675,7 +675,7 @@ public sealed partial class TransportTests
         await clock.WaitForAsync(TimeSpan.FromSeconds(2));
         transport.Dispose();
         var error = await Assert.ThrowsAsync<TransportError>(() => request.WaitAsync(TimeSpan.FromSeconds(10)));
-        Assert.Equal(ProtocolFacts.Error(0), error.Code);
+        Assert.Equal(TransportErrorCode.Error, error.Code);
         Assert.Equal(1, calls);
     }
 
@@ -815,7 +815,7 @@ public sealed partial class TransportTests
         Assert.Equal(1, calls);
     }
 
-    private static TimeSpan RequestRetryPause => TimeSpan.FromMilliseconds(ProtocolFacts.Timing("requestRetryPauseMs").GetInt32());
+    private static TimeSpan RequestRetryPause => TimeSpan.FromMilliseconds(Timings.RequestRetryPauseMs);
 
     private static ResourceUpload SampleUpload() =>
         new() { Name = "A name", Format = "image/png", StorageUri = "file:///upload", File = [0, 1, 127, 128, 255], EntityTypes = "[\"Person\"]" };
@@ -881,7 +881,7 @@ public sealed partial class TransportTests
         var clock = new TestClock();
         using var server = new Handler { HoldSubscribe = true };
         using var client = new HttpClient(server);
-        using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"], new Timing { StreamOpenMs = 100 }, httpClient: client, timeProvider: clock);
+        using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"], new Timing { StreamOpenTimeoutMs = 100 }, httpClient: client, timeProvider: clock);
         await clock.WaitForAsync(TimeSpan.FromMilliseconds(100));
         clock.Advance(TimeSpan.FromMilliseconds(100));
         await using var states = transport.States().GetAsyncEnumerator();
@@ -1030,13 +1030,36 @@ public sealed partial class TransportTests
         }
     }
 
+    [Fact]
+    public void ConnectionStatesAreTheSuitesStatesButItsInitialOne()
+    {
+        var suite = Enum.GetNames<ConformanceStepStateState>().Except([nameof(ConformanceStepStateState.Initial)]);
+        Assert.Equal(suite.Order(StringComparer.Ordinal), Enum.GetNames<ConnectionState>().Order(StringComparer.Ordinal));
+    }
+
     [Theory]
     [InlineData("emitRetry")]
     [InlineData("refreshRetry")]
     public void RetryBudgetShapeIsHeldToItsOwner(string entry)
     {
         var actual = typeof(RetryPolicy).GetProperties().Select(property => char.ToLowerInvariant(property.Name[0]) + property.Name[1..]).Order();
-        Assert.Equal(ProtocolFacts.Timing(entry).EnumerateObject().Select(property => property.Name).Order(), actual);
+        Assert.Equal(ProtocolTiming.Of(entry).EnumerateObject().Select(property => property.Name).Order(), actual);
+    }
+
+    // Timing is the timing a caller may set, by hand: each member is an entry of client/timing.json, under its name,
+    // and the entry's value unless a caller sets its own.
+    [Fact]
+    public void EachTimingACallerSetsIsAnEntryOfTheTable()
+    {
+        var protocol = new Timing();
+        foreach (var property in typeof(Timing).GetProperties())
+        {
+            var entry = ProtocolTiming.Of(char.ToLowerInvariant(property.Name[0]) + property.Name[1..]);
+            var expected = entry.ValueKind == JsonValueKind.Object
+                ? (object)new RetryPolicy(entry.GetProperty("attempts").GetInt32(), entry.GetProperty("initialDelayMs").GetInt32(), entry.GetProperty("maxDelayMs").GetInt32())
+                : entry.GetInt32();
+            Assert.Equal(expected, property.GetValue(protocol));
+        }
     }
 
     private static async Task OpenAsync(HttpTransport transport)

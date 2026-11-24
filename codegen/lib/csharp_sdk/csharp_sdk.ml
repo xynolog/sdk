@@ -2,7 +2,10 @@
    why no launcher was found (Types/DiscoveryAbsentReason.g.cs); each schema
    the models are made from as
    the SDK validates a value against it (WireSchemas.g.cs), the code each of
-   the wire's own failure codes becomes (FailureCodes.g.cs), and the tables
+   the wire's own failure codes becomes (FailureCodes.g.cs), every failure
+   vocabulary's codes (ErrorCodes.g.cs), the timing a client keeps
+   (Timings.g.cs), the services' tables and the archivist's routes
+   (ServiceTables.g.cs), and the tables
    the SDK reads as Protocol writes them, with what the sign-in store's
    contract states (ProtocolTables.g.cs). What is read as Protocol writes it
    is read from the pinned checkout, byte for byte. *)
@@ -74,6 +77,15 @@ let titled ids records =
               l.ref_;
         })
 
+(* [schema] without its comments, which say nothing a value is held to: a
+   service table's schema says one beside a reference
+   (WorkerAnswerFormats.json's [element]), where a writer reading it whole
+   takes only a description. *)
+let uncommented =
+  Schema.cata
+    ~boolean:(fun b -> Schema.Boolean_schema b)
+    ~schema:(fun l -> Schema.Schema { l with comment = None })
+
 let schema_of (spec : Spec.t) path =
   match List.assoc_opt path spec.schemas with
   | Some schema -> Ok schema
@@ -89,8 +101,8 @@ let schema_of (spec : Spec.t) path =
 
 (* The schemas the models are made from: every root ([Roots]), the gateway's
    components and the discovery document's among them, the sign-in store's
-   entry, the client types it generates ([Definitions.generated_client_types]), and the records Protocol states in its
-   tables ([Table_records]);
+   entry, the client types it generates ([Definitions.generated_client_types]), each service table's own schema
+   ([Services]), and the records Protocol states in its tables ([Table_records]);
    each with the file, or the place in a file, it is read from. *)
 let roots (spec : Spec.t) =
   let* records =
@@ -122,6 +134,13 @@ let roots (spec : Spec.t) =
     Spec.all
       (components
       @ [ whole "SignIn" Roots.sign_in_entry ]
+      @ List.map
+          (fun (name, path) ->
+            let* stated = schema_of spec path in
+            Result.map_error
+              (fun message -> [ { Decode.file = path; pointer = ""; message } ])
+              (Result.map (read name path) (written (uncommented stated))))
+          (Services.schemas spec)
       @ List.map
           (fun name -> whole name (Roots.client_types ^ name ^ ".json"))
           (Definitions.generated_client_types spec))
@@ -210,8 +229,7 @@ let tables =
   [
     ("Registry", "bus/registry.json");
     ("Timing", "client/timing.json");
-    ("Errors", Error_codes.Table.file);
-    ("Retry", "retry/cases.json");
+    ("RetryRules", "retry/rules.json");
     ("Telemetry", "sdk-telemetry/telemetry.json");
     ("Log", "bus/log-cases.json");
     ("OwnerOnly", "sign-in-store/owner-only.json");
@@ -252,15 +270,22 @@ let protocol_tables ~root =
              ]);
        ])
 
+(* A code's constant: its part after its last dot, as an enum member is
+   named. *)
+let code_constant code = Models.enum_constant (Error_codes.Table.segment code)
+
 (* The code a bus request fails under, by the code its failure states, in
    the order CommandError names them; one that states none is the
    unrecognized failure. *)
-let failure_codes (spec : Spec.t) (models : Models.t) =
-  let* t = Error_codes.Table.derive spec.tables.errors_codes in
+let failure_codes (t : Error_codes.Table.t) (models : Models.t) =
   let* code_type =
     match models.member_type "CommandError" "code" with
     | Some name -> Ok ("global::Xynolog.Types." ^ name)
     | None -> Error (refused "CommandError.code is made as no type of its own.")
+  in
+  let bus (c : Error_codes.Table.code) =
+    C.Name
+      ("global::Xynolog.Errors." ^ t.bus.go_name ^ "." ^ code_constant c.code)
   in
   (* Derive holds every code CommandError names to the one it becomes. *)
   let arms =
@@ -268,7 +293,7 @@ let failure_codes (spec : Spec.t) (models : Models.t) =
       (fun code ->
         let failure : Error_codes.Table.code = List.assoc code t.wire in
         ( C.Value (Name (code_type ^ "." ^ Models.enum_constant code)),
-          C.Str failure.code ))
+          bus failure ))
       Error_codes.Table.wire_codes
   in
   Ok
@@ -297,7 +322,7 @@ let failure_codes (spec : Spec.t) (models : Models.t) =
                         ( Name "code",
                           arms
                           @ [
-                              (Value Null, Str t.unrecognized.code);
+                              (Value Null, bus t.unrecognized);
                               ( Discard,
                                 Throw
                                   (New
@@ -320,6 +345,93 @@ let failure_codes (spec : Spec.t) (models : Models.t) =
                };
            ];
        ])
+
+(* Each failure vocabulary of errors/codes.json, a class of its codes as
+   constants, named as Go names its type; the transport's also says which
+   code an HTTP status becomes. *)
+let error_codes (t : Error_codes.Table.t) =
+  let codes (v : Error_codes.Table.vocabulary) =
+    List.map
+      (fun (c : Error_codes.Table.code) ->
+        C.Documented
+          ( c.docs,
+            C.Field
+              {
+                modifiers = [ Public; Const ];
+                type_ = T "string";
+                name = code_constant c.code;
+                value = Some (Str c.code);
+              } ))
+      v.codes
+  in
+  let returns (c : Error_codes.Table.code) =
+    C.Return (Name (code_constant c.code))
+  in
+  let status op n = C.Binary (C.Name "status", op, C.Int n) in
+  let transport_of =
+    C.Method
+      {
+        modifiers = [ Internal; Static ];
+        returns = T "string";
+        name = "Of";
+        params = [ { by = `Value; type_ = T "int"; name = "status" } ];
+        body =
+          Block
+            (List.map
+               (fun (n, c) -> C.If (status C.Eq n, [ returns c ]))
+               t.exact
+            @ (match t.from with
+              | Some (n, c) -> [ C.If (status C.Ge n, [ returns c ]) ]
+              | None -> [])
+            @ [ returns t.unclassified ]);
+      }
+  in
+  let vocabulary ?(more = []) (v : Error_codes.Table.vocabulary) =
+    static_class ~modifiers:[ C.Public; C.Static ] v.go_name (codes v @ more)
+  in
+  file ~namespace:"Xynolog.Errors"
+    ~from_:("protocol/specs/src/" ^ Error_codes.Table.file)
+    (generated ^ "ErrorCodes.g.cs")
+    ([ vocabulary t.bus; vocabulary ~more:[ transport_of ] t.transport ]
+    @ List.map (fun v -> vocabulary v) t.others
+    @ [ vocabulary t.control ])
+
+(* The timing a client keeps (client/timing.json), a constant an entry,
+   named as the entry is; a budget is a RetryPolicy. *)
+let timings (entries : Timing.Table.t) =
+  let member (e : Timing.Table.entry) =
+    let name = String.capitalize_ascii e.name in
+    match e.value with
+    | Timing.Table.Duration n | Timing.Table.Count n ->
+        constant "int" name (C.Int n)
+    | Timing.Table.Budget { attempts; initial_delay_ms; max_delay_ms } ->
+        C.Property
+          {
+            attributes = [];
+            modifiers = [ Internal; Static ];
+            type_ = T "global::Xynolog.Http.RetryPolicy";
+            name;
+            accessors = [ Get ];
+            value =
+              Some
+                (New
+                   {
+                     type_ = None;
+                     args =
+                       Some
+                         [
+                           Arg (Int attempts);
+                           Arg (Int initial_delay_ms);
+                           Arg (Int max_delay_ms);
+                         ];
+                     init = None;
+                   });
+          }
+  in
+  file ~namespace:"Xynolog.Protocol"
+    ~from_:("protocol/specs/src/" ^ Timing.Table.file)
+    (generated ^ "Timings.g.cs")
+    [ static_class "Timings" (List.map member entries) ]
 
 let files ~root (spec : Spec.t) =
   let* kinds = Identifiers.Table.derive spec in
@@ -344,10 +456,22 @@ let files ~root (spec : Spec.t) =
                 ))
               made))
   in
-  let* failures = failure_codes spec models in
+  let* codes = Error_codes.Table.derive spec.tables.errors_codes in
+  let* failures = failure_codes codes models in
+  let* timing = Timing.Table.derive spec.tables.client_timing in
   let* tables = protocol_tables ~root in
+  let* services = Services.file ~root spec in
   let written = List.map model_file models.models @ [ discovery_absent spec ] in
   match Output.stale ~root ~directory:types written with
   | [] ->
-      Ok (written @ [ wire_schemas spec.ids records models; failures; tables ])
+      Ok
+        (written
+        @ [
+            wire_schemas spec.ids records models;
+            failures;
+            error_codes codes;
+            timings timing;
+            tables;
+            services;
+          ])
   | stale -> Error stale

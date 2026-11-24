@@ -2,7 +2,7 @@
 //! by text. The second is a query (`Cached`): it answers from the client's
 //! cache, and the client's refresher (`super::refresher`) keeps it true.
 
-use super::browse::ResourceFilters;
+use super::browse::LIST_LIMIT;
 use crate::cache::Cache;
 use crate::cached::{Cached, Keyed};
 use crate::channels::{MatchResourcesRequested, MatchSearchRequested};
@@ -11,7 +11,8 @@ use crate::running::Running;
 use crate::state_unit::StateUnit;
 use crate::transport::Envelope;
 use crate::types::{
-    MatchResourcesRequest, MatchResourcesResponse, MatchSearchRequest, MatchSearchResult,
+    AnnotationId, GatheredContext, MatchResourcesRequest, MatchResourcesResponse,
+    MatchSearchOptions, MatchSearchRequest, MatchSearchResult, ResourceId, ResourceSearchFilters,
 };
 
 /// How many candidates a search gives when its caller states no limit.
@@ -19,8 +20,12 @@ use crate::types::{
 /// hold each to it.
 const LIMIT: u16 = 10;
 
+/// Whether a search is scored semantically when its caller does not say.
+/// Held by the same cases.
+const SEMANTIC_SCORING: bool = true;
+
 /// A search for resources: the text, and which resources it is among.
-pub(super) type ResourceSearch = (String, ResourceFilters);
+pub(super) type ResourceSearch = (String, ResourceSearchFilters);
 
 pub struct MatchNamespace {
     links: Links,
@@ -37,10 +42,8 @@ impl MatchNamespace {
                 async move {
                     let request = MatchResourcesRequest {
                         search,
-                        // A page's limit is 1 to 200 on the wire. One this type cannot state is sent as
-                        // the largest it can, which the gateway refuses, as it refuses any out of bounds.
-                        limit: Some(u16::try_from(filters.limit()).unwrap_or(u16::MAX)),
-                        offset: Some(filters.offset()),
+                        limit: Some(filters.limit.unwrap_or(LIST_LIMIT)),
+                        offset: Some(filters.offset.unwrap_or(0)),
                         archived: filters.archived,
                         entity_type: filters.entity_type,
                     };
@@ -61,7 +64,8 @@ impl MatchNamespace {
     }
 
     /// A page of the resources among those `filters` admits that a search
-    /// for `search` finds, kept per search and set of filters. The text is
+    /// for `search` finds, kept per search and set of filters: a hundred when
+    /// they state no limit, from the first when they state no offset. The text is
     /// matched lexically and, when nothing matches, by meaning: the
     /// answer's `match_kind` says which it is. A search is a query's
     /// answer: it is asked for again when a resource is created, updated,
@@ -70,7 +74,7 @@ impl MatchNamespace {
     pub fn resources(
         &self,
         search: &str,
-        filters: ResourceFilters,
+        filters: ResourceSearchFilters,
     ) -> Cached<MatchResourcesResponse> {
         Cached::of(Keyed {
             cache: self.matched_resources.clone(),
@@ -80,13 +84,24 @@ impl MatchNamespace {
         })
     }
 
-    /// Candidates for a reference, given its gathered context. A request
+    /// Candidates for a reference, given its gathered context. A search
     /// that states no limit asks for ten, and one that does not say
     /// otherwise is scored semantically.
-    pub fn search(&self, mut request: MatchSearchRequest) -> Running<MatchSearchResult> {
+    pub fn search(
+        &self,
+        resource_id: &ResourceId,
+        reference_id: &AnnotationId,
+        context: GatheredContext,
+        options: MatchSearchOptions,
+    ) -> Running<MatchSearchResult> {
         let links = self.links.clone();
-        request.limit.get_or_insert(LIMIT);
-        request.use_semantic_scoring.get_or_insert(true);
+        let request = MatchSearchRequest {
+            resource_id: resource_id.clone(),
+            reference_id: reference_id.clone(),
+            context,
+            limit: Some(options.limit.unwrap_or(LIMIT)),
+            use_semantic_scoring: Some(options.use_semantic_scoring.unwrap_or(SEMANTIC_SCORING)),
+        };
         Running::new(|_| async move { links.request::<MatchSearchRequested>(&request).await })
     }
 
