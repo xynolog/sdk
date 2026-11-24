@@ -1700,7 +1700,7 @@ func (e BindBodyOperationOp) Valid() bool {
 // BindBodyUpdated Void success reply emitted on the bind:body-updated channel
 // after bind:update-body has been applied, matched to the originating command
 // by correlationId.
-type BindBodyUpdated map[string]any
+type BindBodyUpdated struct{}
 
 // BindInitiateCommand Command payload sent on the bind:initiate bus channel
 // to start a bind flow.
@@ -1979,7 +1979,7 @@ func (v BrowseDirectoryResultResponse) MarshalJSON() ([]byte, error) {
 
 // BrowseEnginesRequest Request for the knowledge base's engines: those its
 // Inference document names
-type BrowseEnginesRequest map[string]any
+type BrowseEnginesRequest struct{}
 
 // BrowseEnginesResult The knowledge base's engines: those its Inference
 // document names, and the jobs it has each used for
@@ -2006,7 +2006,7 @@ type BrowseEntityTypeClickedEvent struct {
 }
 
 // BrowseEntityTypesRequest Request to browse available entity types
-type BrowseEntityTypesRequest map[string]any
+type BrowseEntityTypesRequest struct{}
 
 // BrowseEntityTypesResult Result of browsing entity types
 type BrowseEntityTypesResult struct {
@@ -2048,7 +2048,7 @@ func (v BrowseFilesResponse) MarshalJSON() ([]byte, error) {
 }
 
 // BrowseKbRequest Request for the knowledge base's description of itself
-type BrowseKbRequest map[string]any
+type BrowseKbRequest struct{}
 
 // BrowseKbResult Result of browse:kb-requested
 type BrowseKbResult struct {
@@ -2177,7 +2177,7 @@ type BrowseRouterPushEvent struct {
 }
 
 // BrowseTagSchemasRequest Request to browse registered tag schemas
-type BrowseTagSchemasRequest map[string]any
+type BrowseTagSchemasRequest struct{}
 
 // BrowseTagSchemasResult Result of browsing tag schemas
 type BrowseTagSchemasResult struct {
@@ -6342,7 +6342,7 @@ type InferenceLimits struct {
 // and on gather:limits-requested and match:limits-requested by the librarian:
 // each service that holds an inference credential reports for its own
 // engines, so no other service needs one.
-type InferenceLimitsRequest map[string]any
+type InferenceLimitsRequest struct{}
 
 // InferenceLimitsResult The inference limits one service discovered for the
 // engines it holds a client for. An engine whose discovery is currently
@@ -10923,7 +10923,7 @@ type ResourceSearchFilters struct {
 
 // ResourceUnarchivedPayload Payload for mark:unarchived domain event (empty
 // payload)
-type ResourceUnarchivedPayload map[string]any
+type ResourceUnarchivedPayload struct{}
 
 // ResourceUpdatedPayload Payload for yield:updated domain event
 type ResourceUpdatedPayload struct {
@@ -11258,7 +11258,7 @@ func (e RunService) Valid() bool {
 
 // Runner Who runs a daemon: the launcher, from `image` with `resources`, or
 // somebody else, reached at `external`. Exactly one of the two.
-type Runner map[string]any
+type Runner struct{}
 
 // Runtime A container runtime the launcher drives, as --runtime names it:
 // Apple container, Docker or Podman.

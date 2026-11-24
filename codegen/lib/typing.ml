@@ -28,9 +28,11 @@ type scalar =
    parent's ([Definitions.owners]), so the one schema has the one place. *)
 type place = { owner : string; part : string }
 
-(* What an object holds beside the members it names. JSON Schema reads an
-   object that says nothing of them ([Unstated]) as holding any; the writers
-   do not all read it so (see [Deviations]). *)
+(* What an object holds beside the members it names. One that says nothing
+   of them ([Unstated]) holds none: they are read past, not refused as
+   [Closed] refuses them, and never written back. JSON Schema reads it as
+   holding any, but Protocol states an object that holds any ([Open]) where
+   it means one. *)
 type rest = Closed | Unstated | Open | Of of ty
 
 (* What a value holds where it is stated. *)

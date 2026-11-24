@@ -45,6 +45,11 @@ the coming release's, and gathers its changes as they land.
 
 - A struct's fields are in the order its schema states its members, as in
   every SDK, where they were in the order of their names.
+- A schema of an object that names no member and says nothing of others
+  (`BrowseKbRequest`, `Runner`, `ResourceUnarchivedPayload`) is an empty
+  struct, as in
+  every SDK: the members a value carries beside are read past and not
+  written back, where they were kept as a map.
 - A stream's place, and each place `CoupledBookmarks` keeps, is an id
   `LastEventIds` holds in its scope, read as the generated `api.LastEventIds`,
   in place of an id held to `PersistedEventId` by that schema's name.

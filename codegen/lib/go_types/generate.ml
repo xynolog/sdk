@@ -133,12 +133,14 @@ and declaration st name (form : T.form) doc =
   | T.Alias ((T.Scalar _ | T.List _) as ty) ->
       [ G.Aliases { doc; specs = [ (name, type_of st name ty) ] } ]
   | T.Record { members; rest } -> structure st name members rest doc
-  | form when T.holds_none form ->
-      [ G.Type { doc; name; def = G.Struct { fields = []; spacing = Packed } } ]
-  | T.Empty _ ->
+  | T.Empty { rest = T.Open | T.Of _; none = false } ->
       (* A type of its own, not an alias: the required table holds a value
          of it to whatever rules its schema states. *)
       [ G.Type { doc; name; def = G.Is (G.Map (string_, any)) } ]
+  | T.Empty _ ->
+      (* One that holds no member, or says nothing of the members it does
+         not name, which are read past. *)
+      [ G.Type { doc; name; def = G.Struct { fields = []; spacing = Packed } } ]
   | T.Map { key; value } ->
       (* A type of its own too: an alias is read by its kind alone, and this
          one states its keys and values. *)

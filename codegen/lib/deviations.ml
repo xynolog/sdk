@@ -43,11 +43,10 @@ let closed_empty_named (form : T.form) =
   | T.Empty { rest = T.Closed; none = false } -> true
   | _ -> false
 
-(* An object that says nothing of the members it does not name ([Unstated])
-   holds any, as [Typing] has it. Every writer drops them where the object
-   names members; TypeScript holds one that names none as holding none
-   ([Record<string, never>]), and Rust and Python declare one so named as a
-   type that drops them, where Go keeps them. *)
+(* Every writer holds an object written in place that names no member and
+   says nothing of others ([Unstated]), as an event's [payload] or a JSON-LD
+   [@context] is, as a map of whatever members it is given, where [Typing]
+   has it hold none. *)
 
 (* Go and Python hold a member that may be left out and one that may be
    null alike (a pointer, [T | None]), where [Typing] has them apart
