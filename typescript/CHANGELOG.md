@@ -43,6 +43,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The element of an answer format (`WorkerAnswerFormatsFormatsItem`'s
+  `element`) carries Protocol's description of it.
 - A knowledge base's DID in a health reply is a `KbDid`, and a follower's
   progress a `FollowerFollowing`, where each was a plain string or an object
   stated in place.

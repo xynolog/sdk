@@ -55,6 +55,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The element of an answer format (`WorkerAnswerFormatsFormatsItem`'s
+  `element`) carries Protocol's description of it.
 - The smelter's and the weaver's health name how far they have followed the
   record as `FollowerFollowing`, the type Protocol states, in place of
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.

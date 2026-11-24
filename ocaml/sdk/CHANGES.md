@@ -32,6 +32,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A member that holds null where its schema does not allow null is refused
+  as malformed, where it was read as absent.
 - `Bus.frame_refusal_reason` is `Enums.Frame_refusal_reason.t`
   (`Lacks | Malformed`), as is every fault's reason, in place of
   `` [ `Lacks | `Malformed ] ``.
