@@ -339,12 +339,18 @@ and empty st =
       ];
   ty empty_object
 
+(* A keyword that constrains nothing, so a schema of these alone, as
+   JsonSchema.json written in place is, admits any value. *)
+and annotation key =
+  List.mem key [ "$schema"; "$id"; "$comment"; "title"; "description" ]
+
 (* The Rust type of a value [owner]'s property [property] holds. *)
 and type_of st owner property (s : D.t) =
   let what = owner ^ "." ^ property in
   match s with
   | D.Ref { name; _ } -> named st name
-  | D.Node { keys = []; _ } -> R.named "serde_json::Value"
+  | D.Node { keys; _ } when List.for_all annotation keys ->
+      R.named "serde_json::Value"
   | _ -> (
       match View.without_null s with
       | Some inner -> type_of st owner property inner

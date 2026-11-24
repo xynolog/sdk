@@ -1317,13 +1317,28 @@ let impl_item_text ~indent = function
         (doc_lines ~indent doc @ [ const_text ~indent ~vis ~name ~ty v ])
   | I_fn f -> fn_text ~indent f
 
+(* [ty] after [head] and before [tail] at [indent], as rustfmt lays it out:
+   on one line where it fits, else a generic type's arguments one to a line
+   below it, each laid out so in turn. *)
+let rec type_lines ~indent ~head ~tail ty =
+  let one = spaces indent ^ head ^ type_text ty ^ tail in
+  if String.length one <= max_width then [ one ]
+  else
+    match ty with
+    | Named (segments, (_ :: _ as args)) ->
+        (spaces indent ^ head ^ path segments ^ "<")
+        :: List.concat_map
+             (type_lines ~indent:(indent + tab_spaces) ~head:"" ~tail:",")
+             args
+        @ [ spaces indent ^ ">" ^ tail ]
+    | _ -> invalid_arg ("Rust_syntax: a type too long: " ^ one)
+
 let field_text ~indent (f : field) =
   doc_lines ~indent f.doc
   @ attrs_lines ~indent f.attrs
-  @ [
-      spaces indent ^ vis_text f.vis ^ ident f.name ^ ": " ^ type_text f.ty
-      ^ ",";
-    ]
+  @ type_lines ~indent
+      ~head:(vis_text f.vis ^ ident f.name ^ ": ")
+      ~tail:"," f.ty
 
 let variant_text ~indent v =
   doc_lines ~indent v.v_doc

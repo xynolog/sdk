@@ -936,6 +936,20 @@ pub struct ArchivistConfigStaging {
     pub max_wait_ms: u64,
 }
 
+/// archivist/default-entity-types.json: the entity types an Archivist seeds, in the order it seeds them.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistDefaultEntityTypes {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// The default entity types, in seed order.
+    #[serde(rename = "entityTypes")]
+    pub entity_types: Vec<String>,
+}
+
+schema!(ArchivistDefaultEntityTypes);
+
 /// The engine for each job and each Librarian actor, behind `browse:engines`: a provider and a model, and no credential. It is the knowledge base's Inference document's `engines` as they stand, with no fallback, so a job or an actor absent here has no engine.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -1054,6 +1068,511 @@ impl ArchivistHealthStatus {
             ArchivistHealthStatus::Ok => "ok",
         }
     }
+}
+
+/// archivist/layout.json: where the Archivist keeps the record on disk.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayout {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// A resource's event stream: a directory of event files.
+    #[serde(rename = "eventStream")]
+    pub event_stream: ArchivistLayoutEventStream,
+    /// The knowledge base's own stream, of the events that name no resource. It is not sharded.
+    #[serde(rename = "systemStream")]
+    pub system_stream: ArchivistLayoutSystemStream,
+    /// The files of a stream.
+    #[serde(rename = "eventFile")]
+    pub event_file: ArchivistLayoutEventFile,
+    /// The schema a stored event, one line of an event file, is.
+    #[serde(rename = "storedEvent")]
+    pub stored_event: serde_json::Value,
+    /// A resource's view, in the state directory.
+    pub view: ArchivistLayoutView,
+    /// The projections of what the `__system__` stream adds up to, in the state directory.
+    #[serde(rename = "systemProjections")]
+    pub system_projections: ArchivistLayoutSystemProjections,
+    /// An entry of the storage-uri index, which names the resource whose content is at a storage URI.
+    #[serde(rename = "storageUriIndex")]
+    pub storage_uri_index: ArchivistLayoutStorageUriIndex,
+    /// An entry of the anchored-text store, keyed by the checksum of the content it was extracted from.
+    #[serde(rename = "anchoredTextEntry")]
+    pub anchored_text_entry: ArchivistLayoutAnchoredTextEntry,
+    /// The file holding the stamp the anchored-text store's entries are taken under: the stamp, followed by a newline.
+    #[serde(rename = "anchoredTextStamp")]
+    pub anchored_text_stamp: ArchivistLayoutAnchoredTextStamp,
+}
+
+schema!(ArchivistLayout);
+
+/// An entry of the anchored-text store, keyed by the checksum of the content it was extracted from.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayoutAnchoredTextEntry {
+    /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+    pub tree: ArchivistLayoutAnchoredTextEntryTree,
+    /// Its path in its tree, `/`-separated.
+    pub path: String,
+    /// The schema an entry is.
+    pub schema: serde_json::Value,
+}
+
+/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ArchivistLayoutAnchoredTextEntryTree {
+    #[serde(rename = "root")]
+    Root,
+    #[serde(rename = "stateHome")]
+    StateHome,
+    #[serde(rename = "anchoredTextDir")]
+    AnchoredTextDir,
+}
+
+impl ArchivistLayoutAnchoredTextEntryTree {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ArchivistLayoutAnchoredTextEntryTree::Root => "root",
+            ArchivistLayoutAnchoredTextEntryTree::StateHome => "stateHome",
+            ArchivistLayoutAnchoredTextEntryTree::AnchoredTextDir => "anchoredTextDir",
+        }
+    }
+}
+
+/// The file holding the stamp the anchored-text store's entries are taken under: the stamp, followed by a newline.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayoutAnchoredTextStamp {
+    /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+    pub tree: ArchivistLayoutAnchoredTextStampTree,
+    /// Its path in its tree, `/`-separated.
+    pub path: String,
+}
+
+/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ArchivistLayoutAnchoredTextStampTree {
+    #[serde(rename = "root")]
+    Root,
+    #[serde(rename = "stateHome")]
+    StateHome,
+    #[serde(rename = "anchoredTextDir")]
+    AnchoredTextDir,
+}
+
+impl ArchivistLayoutAnchoredTextStampTree {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ArchivistLayoutAnchoredTextStampTree::Root => "root",
+            ArchivistLayoutAnchoredTextStampTree::StateHome => "stateHome",
+            ArchivistLayoutAnchoredTextStampTree::AnchoredTextDir => "anchoredTextDir",
+        }
+    }
+}
+
+/// The files of a stream.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayoutEventFile {
+    /// A file's name, `{number}` its number in `digits` decimal digits.
+    pub name: String,
+    /// How many decimal digits a file's number is written in, with leading zeros.
+    pub digits: u64,
+    /// The first file's number. It is created, empty, with the stream's directory.
+    pub first: u64,
+    /// The most events a file holds.
+    #[serde(rename = "maxEvents")]
+    pub max_events: u64,
+}
+
+/// A resource's event stream: a directory of event files.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayoutEventStream {
+    /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+    pub tree: ArchivistLayoutEventStreamTree,
+    /// Its path in its tree, `/`-separated.
+    pub path: String,
+}
+
+/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ArchivistLayoutEventStreamTree {
+    #[serde(rename = "root")]
+    Root,
+    #[serde(rename = "stateHome")]
+    StateHome,
+    #[serde(rename = "anchoredTextDir")]
+    AnchoredTextDir,
+}
+
+impl ArchivistLayoutEventStreamTree {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ArchivistLayoutEventStreamTree::Root => "root",
+            ArchivistLayoutEventStreamTree::StateHome => "stateHome",
+            ArchivistLayoutEventStreamTree::AnchoredTextDir => "anchoredTextDir",
+        }
+    }
+}
+
+/// An entry of the storage-uri index, which names the resource whose content is at a storage URI.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayoutStorageUriIndex {
+    /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+    pub tree: ArchivistLayoutStorageUriIndexTree,
+    /// Its path in its tree, `/`-separated.
+    pub path: String,
+    /// The schema an entry is.
+    pub schema: serde_json::Value,
+}
+
+/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ArchivistLayoutStorageUriIndexTree {
+    #[serde(rename = "root")]
+    Root,
+    #[serde(rename = "stateHome")]
+    StateHome,
+    #[serde(rename = "anchoredTextDir")]
+    AnchoredTextDir,
+}
+
+impl ArchivistLayoutStorageUriIndexTree {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ArchivistLayoutStorageUriIndexTree::Root => "root",
+            ArchivistLayoutStorageUriIndexTree::StateHome => "stateHome",
+            ArchivistLayoutStorageUriIndexTree::AnchoredTextDir => "anchoredTextDir",
+        }
+    }
+}
+
+/// The projections of what the `__system__` stream adds up to, in the state directory.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayoutSystemProjections {
+    /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+    pub tree: ArchivistLayoutSystemProjectionsTree,
+    /// The directory that holds them, in its tree, `/`-separated.
+    pub path: String,
+    /// Each projection's file.
+    pub files: Vec<ArchivistLayoutSystemProjectionsFilesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayoutSystemProjectionsFilesItem {
+    /// The file's name.
+    pub name: String,
+    /// The schema the projection is.
+    pub schema: serde_json::Value,
+}
+
+/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ArchivistLayoutSystemProjectionsTree {
+    #[serde(rename = "root")]
+    Root,
+    #[serde(rename = "stateHome")]
+    StateHome,
+    #[serde(rename = "anchoredTextDir")]
+    AnchoredTextDir,
+}
+
+impl ArchivistLayoutSystemProjectionsTree {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ArchivistLayoutSystemProjectionsTree::Root => "root",
+            ArchivistLayoutSystemProjectionsTree::StateHome => "stateHome",
+            ArchivistLayoutSystemProjectionsTree::AnchoredTextDir => "anchoredTextDir",
+        }
+    }
+}
+
+/// The knowledge base's own stream, of the events that name no resource. It is not sharded.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayoutSystemStream {
+    /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+    pub tree: ArchivistLayoutSystemStreamTree,
+    /// Its path in its tree, `/`-separated.
+    pub path: String,
+}
+
+/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ArchivistLayoutSystemStreamTree {
+    #[serde(rename = "root")]
+    Root,
+    #[serde(rename = "stateHome")]
+    StateHome,
+    #[serde(rename = "anchoredTextDir")]
+    AnchoredTextDir,
+}
+
+impl ArchivistLayoutSystemStreamTree {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ArchivistLayoutSystemStreamTree::Root => "root",
+            ArchivistLayoutSystemStreamTree::StateHome => "stateHome",
+            ArchivistLayoutSystemStreamTree::AnchoredTextDir => "anchoredTextDir",
+        }
+    }
+}
+
+/// A resource's view, in the state directory.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistLayoutView {
+    /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+    pub tree: ArchivistLayoutViewTree,
+    /// Its path in its tree, `/`-separated.
+    pub path: String,
+    /// The schema a view is.
+    pub schema: serde_json::Value,
+}
+
+/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ArchivistLayoutViewTree {
+    #[serde(rename = "root")]
+    Root,
+    #[serde(rename = "stateHome")]
+    StateHome,
+    #[serde(rename = "anchoredTextDir")]
+    AnchoredTextDir,
+}
+
+impl ArchivistLayoutViewTree {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ArchivistLayoutViewTree::Root => "root",
+            ArchivistLayoutViewTree::StateHome => "stateHome",
+            ArchivistLayoutViewTree::AnchoredTextDir => "anchoredTextDir",
+        }
+    }
+}
+
+/// archivist/messages.json: the words of the Archivist's own refusals, and of the messages it logs that a reader relies on.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistMessages {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each refusal to start of the Archivist's own, written in service-environment/boot-refusals.json's `line`.
+    pub boot: Vec<ArchivistMessagesBootItem>,
+    /// The failure a reply that cannot be sent is answered with instead, on the operation's failure channel.
+    pub unsent: Vec<ArchivistMessagesUnsentItem>,
+    /// Each refusal of an operation, on the operation's failure channel.
+    pub refusals: Vec<ArchivistMessagesRefusalsItem>,
+    /// The refusal of every route of the HTTP surface but `/health`: a token that is missing, or not of the knowledge base's issuer and audience, or without the service role.
+    pub unauthorized: ArchivistMessagesUnauthorized,
+    /// Each other error a route of the HTTP surface answers with.
+    pub http: Vec<ArchivistMessagesHttpItem>,
+    /// Each message the Archivist logs that a reader of its output relies on.
+    pub logged: Vec<ArchivistMessagesLoggedItem>,
+}
+
+schema!(ArchivistMessages);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistMessagesBootItem {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The refusal, in place of the line's `{refusal}`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub refusal: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistMessagesHttpItem {
+    /// The situation's name.
+    pub name: String,
+    /// The route's method.
+    pub method: ArchivistMessagesHttpItemMethod,
+    /// The route, as the Archivist's API names its path.
+    pub route: String,
+    pub status: HttpStatus,
+    /// The body's `code`, where it carries one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The body's `error`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub error: String,
+}
+
+impl ArchivistMessagesHttpItem {
+    /// The `ArchivistMessagesHttpItem` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        method: ArchivistMessagesHttpItemMethod,
+        route: impl Into<String>,
+        status: HttpStatus,
+        situation: impl Into<String>,
+        error: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            method,
+            route: route.into(),
+            status,
+            code: None,
+            situation: situation.into(),
+            error: error.into(),
+        }
+    }
+}
+
+/// The route's method.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ArchivistMessagesHttpItemMethod {
+    #[serde(rename = "GET")]
+    GET,
+    #[serde(rename = "PUT")]
+    PUT,
+    #[serde(rename = "POST")]
+    POST,
+}
+
+impl ArchivistMessagesHttpItemMethod {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ArchivistMessagesHttpItemMethod::GET => "GET",
+            ArchivistMessagesHttpItemMethod::PUT => "PUT",
+            ArchivistMessagesHttpItemMethod::POST => "POST",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistMessagesLoggedItem {
+    /// The situation's name.
+    pub name: String,
+    pub level: LogLevel,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The line's message, word for word.
+    pub message: String,
+    /// The fields the line is logged with whose form is stated, by name: each a text whose `{name}` is filled as the row's `situation` says. The line may carry others.
+    pub fields: std::collections::BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistMessagesRefusalsItem {
+    /// The situation's name.
+    pub name: String,
+    /// The operations it refuses: requests of bus/registry.json's operations that the Archivist answers. `{channel}` in the message is the one refused.
+    pub operations: Vec<String>,
+    /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code: Option<ArchivistMessagesRefusalsItemCode>,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub message: String,
+}
+
+impl ArchivistMessagesRefusalsItem {
+    /// The `ArchivistMessagesRefusalsItem` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        operations: Vec<String>,
+        situation: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            operations,
+            code: None,
+            situation: situation.into(),
+            message: message.into(),
+        }
+    }
+}
+
+/// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ArchivistMessagesRefusalsItemCode {
+    #[serde(rename = "peer-unavailable")]
+    PeerUnavailable,
+    #[serde(rename = "not-found")]
+    NotFound,
+    #[serde(rename = "unauthorized")]
+    Unauthorized,
+    #[serde(rename = "none-pending")]
+    NonePending,
+}
+
+impl ArchivistMessagesRefusalsItemCode {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ArchivistMessagesRefusalsItemCode::PeerUnavailable => "peer-unavailable",
+            ArchivistMessagesRefusalsItemCode::NotFound => "not-found",
+            ArchivistMessagesRefusalsItemCode::Unauthorized => "unauthorized",
+            ArchivistMessagesRefusalsItemCode::NonePending => "none-pending",
+        }
+    }
+}
+
+/// The refusal of every route of the HTTP surface but `/health`: a token that is missing, or not of the knowledge base's issuer and audience, or without the service role.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistMessagesUnauthorized {
+    pub status: HttpStatus,
+    /// The body's `error`.
+    pub error: String,
+    /// The `WWW-Authenticate` header when a token was presented.
+    pub presented: String,
+    /// The `WWW-Authenticate` header when none was.
+    pub absent: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArchivistMessagesUnsentItem {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub message: String,
 }
 
 /// One stream of the event log, and where it stands: the resource it is of, or `__system__` for the knowledge base's own, and the sequence number of its last event.
@@ -2372,6 +2891,45 @@ impl BusPingMessageEvent {
             BusPingMessageEvent::Ping => "ping",
         }
     }
+}
+
+/// bus/reply-bounds.json: each list or map an operation's reply carries that its own schema does not bound, and what bounds it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BusReplyBounds {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each operation, by its request's channel.
+    pub replies: std::collections::BTreeMap<
+        String,
+        std::collections::BTreeMap<String, BusReplyBoundsRepliesValueValue>,
+    >,
+}
+
+schema!(BusReplyBounds);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum BusReplyBoundsRepliesValueValue {
+    By(BusReplyBoundsRepliesValueValueBy),
+    Grows(BusReplyBoundsRepliesValueValueGrows),
+}
+
+/// A list or map bounded by a member of the request.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BusReplyBoundsRepliesValueValueBy {
+    /// The member of the request that bounds it: an array, or an integer with a maximum.
+    pub by: String,
+}
+
+/// A list or map not yet bounded, which grows.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BusReplyBoundsRepliesValueValueGrows {
+    /// What it grows with.
+    pub grows: String,
 }
 
 /// The payload of `bus:resume-gap`: a scope's `lastEventId` could not be honoured, so the client cannot trust that it has every persisted event of that scope and must refetch what it caches for it. Written by the gateway, never by a participant.
@@ -4346,6 +4904,95 @@ impl DispatcherHealthStatus {
     }
 }
 
+/// dispatcher/messages.json: the words of the dispatcher's own refusals, and of the errors it writes into a job.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DispatcherMessages {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each refusal the dispatcher makes itself, on the operation's failure channel.
+    pub refusals: Vec<DispatcherMessagesRefusalsItem>,
+    /// Each error the dispatcher writes into a job on its own, as a `job:fail` would.
+    pub errors: Vec<DispatcherMessagesErrorsItem>,
+}
+
+schema!(DispatcherMessages);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DispatcherMessagesErrorsItem {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The `error` it writes into the job. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub error: String,
+    #[serde(rename = "failureClass")]
+    pub failure_class: FailureClass,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DispatcherMessagesRefusalsItem {
+    /// The situation's name.
+    pub name: String,
+    /// The operation it refuses: a request of bus/registry.json's operations that the dispatcher answers.
+    pub operation: String,
+    /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code: Option<DispatcherMessagesRefusalsItemCode>,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub message: String,
+}
+
+impl DispatcherMessagesRefusalsItem {
+    /// The `DispatcherMessagesRefusalsItem` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        operation: impl Into<String>,
+        situation: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            operation: operation.into(),
+            code: None,
+            situation: situation.into(),
+            message: message.into(),
+        }
+    }
+}
+
+/// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DispatcherMessagesRefusalsItemCode {
+    #[serde(rename = "peer-unavailable")]
+    PeerUnavailable,
+    #[serde(rename = "not-found")]
+    NotFound,
+    #[serde(rename = "unauthorized")]
+    Unauthorized,
+    #[serde(rename = "none-pending")]
+    NonePending,
+}
+
+impl DispatcherMessagesRefusalsItemCode {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DispatcherMessagesRefusalsItemCode::PeerUnavailable => "peer-unavailable",
+            DispatcherMessagesRefusalsItemCode::NotFound => "not-found",
+            DispatcherMessagesRefusalsItemCode::Unauthorized => "unauthorized",
+            DispatcherMessagesRefusalsItemCode::NonePending => "none-pending",
+        }
+    }
+}
+
 /// How a job's annotations were established as durable — the OBSERVATION, never a conclusion drawn from it. 'acknowledged': the event log confirmed the batch (mark:commit-ok). 'probe-confirmed': the acknowledgement was lost and a later read found the batch's last annotation present — true, but a weaker claim than an ack, since it rests on the log appending a batch in order and stopping at the first failure. 'probe-refused': the read returned a failure reply; note this does NOT assert the annotations are absent, because a read that failed for its own reasons answers on the same channel. 'probe-unreachable': no answer came at all, so nothing was established either way. ABSENT means the question never arose — a job that committed no annotations. Never defaulted: a manufactured value here is a claim nobody made, in a log nobody can rewrite.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -4410,6 +5057,49 @@ member!(EmbeddingConfig::VoyageEmbeddingConfig(
     VoyageEmbeddingConfig,
 ));
 schema!(EmbeddingConfig);
+
+/// embedding/requests.json: how a service asks its embedding provider for the vectors of many texts.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EmbeddingRequests {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// How each kind of provider is asked, by its `type` (EmbeddingConfig): every kind, and no other.
+    pub providers: std::collections::BTreeMap<String, EmbeddingRequestsProvidersValue>,
+    /// How long each request has, counted from when it is sent and not from when its batch began. Asking a busy provider again is within it.
+    #[serde(rename = "requestSeconds")]
+    pub request_seconds: u64,
+    /// A request for the vectors of documents that the provider answers busy is asked again, after each wait in turn, while the request's own time allows the wait. A provider busy at every asking fails the request with that status. A query is asked once.
+    pub busy: EmbeddingRequestsBusy,
+    /// How many times, at most, a starting service asks again a provider that answered 404, taken to be still fetching the model, or could not be reached, taken to be still starting: within the time the service has to start.
+    #[serde(rename = "startAgain")]
+    pub start_again: u64,
+}
+
+schema!(EmbeddingRequests);
+
+/// A request for the vectors of documents that the provider answers busy is asked again, after each wait in turn, while the request's own time allows the wait. A provider busy at every asking fails the request with that status. A query is asked once.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EmbeddingRequestsBusy {
+    /// The statuses by which a provider says it is busy.
+    pub statuses: Vec<u16>,
+    /// The wait before each asking again, in order.
+    #[serde(rename = "againAfterSeconds")]
+    pub again_after_seconds: Vec<u64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EmbeddingRequestsProvidersValue {
+    /// How many texts one request carries, at most: a batch is cut into slices of this many, each one request, in the order of the texts.
+    #[serde(rename = "textsPerRequest")]
+    pub texts_per_request: u64,
+    /// How many requests are made of the provider at once, however many resources are being indexed.
+    #[serde(rename = "atOnce")]
+    pub at_once: u64,
+}
 
 /// An object with no properties.
 #[derive(
@@ -5232,6 +5922,297 @@ impl GatewayConfigSignalType {
             GatewayConfigSignalType::Nats => "nats",
         }
     }
+}
+
+/// gateway/media-token.json: what a media token is.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayMediaToken {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Its JOSE header, exactly.
+    pub header: GatewayMediaTokenHeader,
+    /// Its claims beside `iat` and `exp`, each filled as the table says.
+    pub claims: GatewayMediaTokenClaims,
+    /// `exp` less `iat`.
+    #[serde(rename = "lifetimeSeconds")]
+    pub lifetime_seconds: u64,
+}
+
+schema!(GatewayMediaToken);
+
+/// Its claims beside `iat` and `exp`, each filled as the table says.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayMediaTokenClaims {
+    pub purpose: GatewayMediaTokenClaimsPurpose,
+    pub iss: GatewayMediaTokenClaimsIss,
+    pub sub: GatewayMediaTokenClaimsSub,
+}
+
+impl Default for GatewayMediaTokenClaims {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl GatewayMediaTokenClaims {
+    /// The `GatewayMediaTokenClaims` that states what it must and nothing else.
+    pub fn new() -> Self {
+        Self {
+            purpose: GatewayMediaTokenClaimsPurpose::Media,
+            iss: GatewayMediaTokenClaimsIss::Domain,
+            sub: GatewayMediaTokenClaimsSub::ResourceId,
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum GatewayMediaTokenClaimsIss {
+    #[serde(rename = "{domain}")]
+    Domain,
+}
+
+impl GatewayMediaTokenClaimsIss {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            GatewayMediaTokenClaimsIss::Domain => "{domain}",
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum GatewayMediaTokenClaimsPurpose {
+    #[serde(rename = "media")]
+    Media,
+}
+
+impl GatewayMediaTokenClaimsPurpose {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            GatewayMediaTokenClaimsPurpose::Media => "media",
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum GatewayMediaTokenClaimsSub {
+    #[serde(rename = "{resourceId}")]
+    ResourceId,
+}
+
+impl GatewayMediaTokenClaimsSub {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            GatewayMediaTokenClaimsSub::ResourceId => "{resourceId}",
+        }
+    }
+}
+
+/// Its JOSE header, exactly.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayMediaTokenHeader {
+    pub alg: GatewayMediaTokenHeaderAlg,
+    pub typ: GatewayMediaTokenHeaderTyp,
+}
+
+impl Default for GatewayMediaTokenHeader {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl GatewayMediaTokenHeader {
+    /// The `GatewayMediaTokenHeader` that states what it must and nothing else.
+    pub fn new() -> Self {
+        Self {
+            alg: GatewayMediaTokenHeaderAlg::HS256,
+            typ: GatewayMediaTokenHeaderTyp::JWT,
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum GatewayMediaTokenHeaderAlg {
+    #[serde(rename = "HS256")]
+    HS256,
+}
+
+impl GatewayMediaTokenHeaderAlg {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            GatewayMediaTokenHeaderAlg::HS256 => "HS256",
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum GatewayMediaTokenHeaderTyp {
+    #[serde(rename = "JWT")]
+    JWT,
+}
+
+impl GatewayMediaTokenHeaderTyp {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            GatewayMediaTokenHeaderTyp::JWT => "JWT",
+        }
+    }
+}
+
+/// gateway/messages.json: the words of the gateway's own refusals.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayMessages {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each refusal the gateway makes itself.
+    pub messages: Vec<GatewayMessagesMessagesItem>,
+    /// Each failure frame the gateway delivers itself, on the stream of the client whose request it answers.
+    pub failures: Vec<GatewayMessagesFailuresItem>,
+    /// The `WWW-Authenticate` of a 401.
+    pub challenges: GatewayMessagesChallenges,
+}
+
+schema!(GatewayMessages);
+
+/// The `WWW-Authenticate` of a 401.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayMessagesChallenges {
+    /// For a request that presents no credential. The challenge. `{origin}` is the origin the Unauthorized response names: `http://` and the request's `Host`, or, for a request that names none, the gateway's `publicUrl`.
+    #[serde(rename = "noCredential")]
+    pub no_credential: String,
+    /// For a request whose credential, a bearer token or a media token, is refused. The challenge. `{origin}` is the origin the Unauthorized response names: `http://` and the request's `Host`, or, for a request that names none, the gateway's `publicUrl`.
+    pub refused: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayMessagesFailuresItem {
+    /// The situation's name.
+    pub name: String,
+    /// Its `code`.
+    pub code: String,
+    /// When the gateway answers it, and what fills each `{name}` of its texts.
+    pub situation: String,
+    /// Its text. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub message: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayMessagesMessagesItem {
+    /// The situation's name.
+    pub name: String,
+    pub status: HttpStatus,
+    /// Its `code`, where it carries one: a LimitRefusal's, or the transport code errors/codes.json names for its status.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    /// When the gateway answers it, and what fills each `{name}` of its texts.
+    pub situation: String,
+    /// Its text. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub error: String,
+    /// Its `hint`, where it carries one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hint: Option<String>,
+}
+
+impl GatewayMessagesMessagesItem {
+    /// The `GatewayMessagesMessagesItem` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        status: HttpStatus,
+        situation: impl Into<String>,
+        error: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            status,
+            code: None,
+            situation: situation.into(),
+            error: error.into(),
+            hint: None,
+        }
+    }
+}
+
+/// gateway/response-headers.json: the headers on every response the gateway sends.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayResponseHeaders {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each header every response carries, and its value.
+    pub every: Vec<GatewayResponseHeadersEveryItem>,
+    /// The header that names the request.
+    #[serde(rename = "requestId")]
+    pub request_id: String,
+    /// Each header no response carries.
+    pub absent: Vec<String>,
+    /// How the gateway answers an `OPTIONS` request.
+    pub preflight: GatewayResponseHeadersPreflight,
+}
+
+schema!(GatewayResponseHeaders);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayResponseHeadersEveryItem {
+    /// A header's name, as HTTP spells it; a receiver reads it in any case.
+    pub name: String,
+    /// Its value, exactly.
+    pub value: String,
+}
+
+/// How the gateway answers an `OPTIONS` request.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayResponseHeadersPreflight {
+    pub status: HttpStatus,
+    /// Each header it carries beside those of `every`, and its value.
+    pub headers: Vec<GatewayResponseHeadersPreflightHeadersItem>,
+    /// Each header it carries when the request carries the header it echoes, with that header's value.
+    pub echoes: Vec<GatewayResponseHeadersPreflightEchoesItem>,
+    /// The value of the `Vary` it carries when it echoes a header: the request headers it echoes.
+    pub vary: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayResponseHeadersPreflightEchoesItem {
+    /// A header's name, as HTTP spells it; a receiver reads it in any case.
+    pub name: String,
+    /// The request's header whose value it carries.
+    pub of: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GatewayResponseHeadersPreflightHeadersItem {
+    /// A header's name, as HTTP spells it; a receiver reads it in any case.
+    pub name: String,
+    /// Its value, exactly.
+    pub value: String,
 }
 
 /// Completion payload emitted on the gather:annotation-complete bus channel when annotation context gathering finishes.
@@ -6134,6 +7115,183 @@ impl GraphResourceNodeType {
             GraphResourceNodeType::Resource => "resource",
         }
     }
+}
+
+/// graph/schema.json: the shape of the graph a store keeps, as a reader of the store finds it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchema {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each kind of node the graph holds.
+    pub nodes: GraphSchemaNodes,
+    /// Each kind of relationship the graph holds.
+    pub relationships: GraphSchemaRelationships,
+    /// A link's target the graph has not been given yet: a node of its kind that holds its key and the marker, `true`, and nothing else. A node without the marker is no stub.
+    pub stub: GraphSchemaStub,
+}
+
+schema!(GraphSchema);
+
+/// Each kind of node the graph holds.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchemaNodes {
+    /// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
+    pub resource: GraphSchemaNodesResource,
+    /// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
+    pub annotation: GraphSchemaNodesAnnotation,
+    /// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
+    #[serde(rename = "entityType")]
+    pub entity_type: GraphSchemaNodesEntityType,
+}
+
+/// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchemaNodesAnnotation {
+    /// Its label.
+    pub label: String,
+    /// The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub row: Option<String>,
+    /// The property no two nodes of its kind share.
+    pub key: String,
+    /// The properties other than its key that a reader finds a node of its kind by.
+    pub lookups: Vec<String>,
+}
+
+impl GraphSchemaNodesAnnotation {
+    /// The `GraphSchemaNodesAnnotation` that states these and nothing else.
+    pub fn new(label: impl Into<String>, key: impl Into<String>, lookups: Vec<String>) -> Self {
+        Self {
+            label: label.into(),
+            row: None,
+            key: key.into(),
+            lookups,
+        }
+    }
+}
+
+/// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchemaNodesEntityType {
+    /// Its label.
+    pub label: String,
+    /// The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub row: Option<String>,
+    /// The property no two nodes of its kind share.
+    pub key: String,
+    /// The properties other than its key that a reader finds a node of its kind by.
+    pub lookups: Vec<String>,
+}
+
+impl GraphSchemaNodesEntityType {
+    /// The `GraphSchemaNodesEntityType` that states these and nothing else.
+    pub fn new(label: impl Into<String>, key: impl Into<String>, lookups: Vec<String>) -> Self {
+        Self {
+            label: label.into(),
+            row: None,
+            key: key.into(),
+            lookups,
+        }
+    }
+}
+
+/// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchemaNodesResource {
+    /// Its label.
+    pub label: String,
+    /// The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub row: Option<String>,
+    /// The property no two nodes of its kind share.
+    pub key: String,
+    /// The properties other than its key that a reader finds a node of its kind by.
+    pub lookups: Vec<String>,
+}
+
+impl GraphSchemaNodesResource {
+    /// The `GraphSchemaNodesResource` that states these and nothing else.
+    pub fn new(label: impl Into<String>, key: impl Into<String>, lookups: Vec<String>) -> Self {
+        Self {
+            label: label.into(),
+            row: None,
+            key: key.into(),
+            lookups,
+        }
+    }
+}
+
+/// Each kind of relationship the graph holds.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchemaRelationships {
+    /// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
+    #[serde(rename = "belongsTo")]
+    pub belongs_to: GraphSchemaRelationshipsBelongsTo,
+    /// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
+    pub references: GraphSchemaRelationshipsReferences,
+    /// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
+    #[serde(rename = "taggedAs")]
+    pub tagged_as: GraphSchemaRelationshipsTaggedAs,
+}
+
+/// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchemaRelationshipsBelongsTo {
+    /// Its type.
+    pub r#type: String,
+    /// The kind of node it goes from, by its name under `nodes`.
+    pub from: String,
+    /// The kind of node it goes to, by its name under `nodes`.
+    pub to: String,
+    /// What one says.
+    pub says: String,
+}
+
+/// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchemaRelationshipsReferences {
+    /// Its type.
+    pub r#type: String,
+    /// The kind of node it goes from, by its name under `nodes`.
+    pub from: String,
+    /// The kind of node it goes to, by its name under `nodes`.
+    pub to: String,
+    /// What one says.
+    pub says: String,
+}
+
+/// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchemaRelationshipsTaggedAs {
+    /// Its type.
+    pub r#type: String,
+    /// The kind of node it goes from, by its name under `nodes`.
+    pub from: String,
+    /// The kind of node it goes to, by its name under `nodes`.
+    pub to: String,
+    /// What one says.
+    pub says: String,
+}
+
+/// A link's target the graph has not been given yet: a node of its kind that holds its key and the marker, `true`, and nothing else. A node without the marker is no stub.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GraphSchemaStub {
+    /// The kind of node a stub is, by its name under `nodes`.
+    pub node: String,
+    /// The property that marks a stub.
+    pub marker: String,
 }
 
 /// Liveness: the process is up and serving. It asks nothing of the Archivist or the broker — a gateway that cannot reach them refuses to start, so one that answers here got past both at boot.
@@ -8589,6 +9747,73 @@ impl JobType {
 }
 
 schema!(JobType);
+
+/// jobs/budgets.json: the retry budget of each job type.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobsBudgets {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// One row for each job type.
+    pub budgets: Vec<JobsBudgetsBudgetsItem>,
+}
+
+schema!(JobsBudgets);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobsBudgetsBudgetsItem {
+    #[serde(rename = "jobType")]
+    pub job_type: JobType,
+    /// How many times a failed attempt of a job of this type may be retried: its record's `metadata.maxRetries`.
+    #[serde(rename = "maxRetries")]
+    pub max_retries: u64,
+}
+
+/// jobs/storage.json: where the job queue keeps its state on the broker.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobsStorage {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// The work-queue stream every job is published into.
+    pub stream: JobsStorageStream,
+    /// The durable consumer that delivers each job to the dispatcher holding its lease.
+    pub consumer: JobsStorageConsumer,
+    /// The KV bucket that keeps one record per job, keyed by the job's id.
+    pub bucket: JobsStorageBucket,
+}
+
+schema!(JobsStorage);
+
+/// The KV bucket that keeps one record per job, keyed by the job's id.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobsStorageBucket {
+    pub name: String,
+    /// The component schema each of the bucket's values is.
+    pub record: String,
+}
+
+/// The durable consumer that delivers each job to the dispatcher holding its lease.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobsStorageConsumer {
+    #[serde(rename = "durableName")]
+    pub durable_name: String,
+}
+
+/// The work-queue stream every job is published into.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobsStorageStream {
+    pub name: String,
+    /// The root of the subjects the stream captures: a job is published on `<subjectRoot>.<jobType>`.
+    #[serde(rename = "subjectRoot")]
+    pub subject_root: String,
+}
 
 /// What a knowledge base says about itself, answered by the Archivist from the committed .xynolog/config.yaml and the working tree it holds. The only source clients use for a knowledge base's name and domain.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -13337,6 +14562,198 @@ pub struct ServiceAddress {
 
 schema!(ServiceAddress);
 
+/// service-environment/boot-refusals.json: what a service writes when it refuses to start on its configuration document or its environment.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceEnvironmentBootRefusals {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// The services that refuse to start so.
+    pub services: Vec<ServiceEnvironmentBootRefusalsServicesItem>,
+    /// The one line the service writes to stderr, its refusal in place of `{refusal}`, before it exits.
+    pub line: String,
+    /// The status it exits with.
+    #[serde(rename = "exitCode")]
+    pub exit_code: u16,
+    /// Each refusal.
+    pub refusals: Vec<ServiceEnvironmentBootRefusalsRefusalsItem>,
+    /// Each line of the refusal `invalid`: one for each way the document is not its schema's.
+    pub members: Vec<ServiceEnvironmentBootRefusalsMembersItem>,
+}
+
+schema!(ServiceEnvironmentBootRefusals);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceEnvironmentBootRefusalsMembersItem {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The line, filled as the row's `situation` says.
+    pub line: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceEnvironmentBootRefusalsRefusalsItem {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// Its text. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub refusal: String,
+}
+
+/// A Xynolog service, by its name.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceEnvironmentBootRefusalsServicesItem {
+    #[serde(rename = "archivist")]
+    Archivist,
+    #[serde(rename = "dispatcher")]
+    Dispatcher,
+    #[serde(rename = "gateway")]
+    Gateway,
+    #[serde(rename = "librarian")]
+    Librarian,
+    #[serde(rename = "smelter")]
+    Smelter,
+    #[serde(rename = "weaver")]
+    Weaver,
+    #[serde(rename = "worker")]
+    Worker,
+}
+
+impl ServiceEnvironmentBootRefusalsServicesItem {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceEnvironmentBootRefusalsServicesItem::Archivist => "archivist",
+            ServiceEnvironmentBootRefusalsServicesItem::Dispatcher => "dispatcher",
+            ServiceEnvironmentBootRefusalsServicesItem::Gateway => "gateway",
+            ServiceEnvironmentBootRefusalsServicesItem::Librarian => "librarian",
+            ServiceEnvironmentBootRefusalsServicesItem::Smelter => "smelter",
+            ServiceEnvironmentBootRefusalsServicesItem::Weaver => "weaver",
+            ServiceEnvironmentBootRefusalsServicesItem::Worker => "worker",
+        }
+    }
+}
+
+/// service-environment/variables.json: every environment variable a Xynolog service reads, beside its configuration document.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceEnvironmentVariables {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    pub variables: Vec<ServiceEnvironmentVariablesVariablesItem>,
+}
+
+schema!(ServiceEnvironmentVariables);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceEnvironmentVariablesVariablesItem {
+    /// The variable's name.
+    pub name: String,
+    /// The services that read it.
+    pub services: Vec<ServiceEnvironmentVariablesVariablesItemServicesItem>,
+    /// What reads it: the service's own code, or the OpenTelemetry SDK.
+    #[serde(rename = "readBy")]
+    pub read_by: ServiceEnvironmentVariablesVariablesItemReadBy,
+    /// What sets it where the launcher runs the service.
+    #[serde(rename = "providedBy")]
+    pub provided_by: ServiceEnvironmentVariablesVariablesItemProvidedBy,
+    /// Whether the service refuses to start without it.
+    pub required: bool,
+    /// What it does.
+    pub effect: String,
+}
+
+/// What sets it where the launcher runs the service.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceEnvironmentVariablesVariablesItemProvidedBy {
+    #[serde(rename = "launcher")]
+    Launcher,
+    #[serde(rename = "image")]
+    Image,
+    #[serde(rename = "operator")]
+    Operator,
+}
+
+impl ServiceEnvironmentVariablesVariablesItemProvidedBy {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceEnvironmentVariablesVariablesItemProvidedBy::Launcher => "launcher",
+            ServiceEnvironmentVariablesVariablesItemProvidedBy::Image => "image",
+            ServiceEnvironmentVariablesVariablesItemProvidedBy::Operator => "operator",
+        }
+    }
+}
+
+/// What reads it: the service's own code, or the OpenTelemetry SDK.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceEnvironmentVariablesVariablesItemReadBy {
+    #[serde(rename = "service")]
+    Service,
+    #[serde(rename = "opentelemetry")]
+    Opentelemetry,
+}
+
+impl ServiceEnvironmentVariablesVariablesItemReadBy {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceEnvironmentVariablesVariablesItemReadBy::Service => "service",
+            ServiceEnvironmentVariablesVariablesItemReadBy::Opentelemetry => "opentelemetry",
+        }
+    }
+}
+
+/// A Xynolog service, by its name.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceEnvironmentVariablesVariablesItemServicesItem {
+    #[serde(rename = "archivist")]
+    Archivist,
+    #[serde(rename = "dispatcher")]
+    Dispatcher,
+    #[serde(rename = "gateway")]
+    Gateway,
+    #[serde(rename = "librarian")]
+    Librarian,
+    #[serde(rename = "smelter")]
+    Smelter,
+    #[serde(rename = "weaver")]
+    Weaver,
+    #[serde(rename = "worker")]
+    Worker,
+}
+
+impl ServiceEnvironmentVariablesVariablesItemServicesItem {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceEnvironmentVariablesVariablesItemServicesItem::Archivist => "archivist",
+            ServiceEnvironmentVariablesVariablesItemServicesItem::Dispatcher => "dispatcher",
+            ServiceEnvironmentVariablesVariablesItemServicesItem::Gateway => "gateway",
+            ServiceEnvironmentVariablesVariablesItemServicesItem::Librarian => "librarian",
+            ServiceEnvironmentVariablesVariablesItemServicesItem::Smelter => "smelter",
+            ServiceEnvironmentVariablesVariablesItemServicesItem::Weaver => "weaver",
+            ServiceEnvironmentVariablesVariablesItemServicesItem::Worker => "worker",
+        }
+    }
+}
+
 /// A group of services, as xynolog status reports them and --group names them: a knowledge base's record and its index, the issuer that signs its accounts in, the knowledge workers where people and agents work on it, the providers of its models, and the telemetry that watches them all.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -13710,6 +15127,527 @@ impl ServiceStatusState {
             ServiceStatusState::Unreachable => "unreachable",
             ServiceStatusState::Absent => "absent",
             ServiceStatusState::NotConfigured => "not-configured",
+        }
+    }
+}
+
+/// service-telemetry/log-lines.json: the lines a service writes to its log, and the line of its supervisor it counts.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryLogLines {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// The lines of a service's logger.
+    pub logger: ServiceTelemetryLogLinesLogger,
+    /// A line of the bus log.
+    pub bus: ServiceTelemetryLogLinesBus,
+    /// The line the supervisor writes when it starts a service.
+    pub supervisor: ServiceTelemetryLogLinesSupervisor,
+}
+
+schema!(ServiceTelemetryLogLines);
+
+/// A line of the bus log.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryLogLinesBus {
+    /// Its head.
+    pub line: String,
+    /// What follows the head, in order, each where there is one.
+    pub parts: Vec<ServiceTelemetryLogLinesBusPartsItem>,
+    /// Each operation a line names.
+    pub ops: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryLogLinesBusPartsItem {
+    /// What it shows.
+    pub part: String,
+    /// Its text.
+    pub text: String,
+    /// How many characters of it are shown, from its first.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub characters: Option<u64>,
+}
+
+impl ServiceTelemetryLogLinesBusPartsItem {
+    /// The `ServiceTelemetryLogLinesBusPartsItem` that states these and nothing else.
+    pub fn new(part: impl Into<String>, text: impl Into<String>) -> Self {
+        Self {
+            part: part.into(),
+            text: text.into(),
+            characters: None,
+        }
+    }
+}
+
+/// The lines of a service's logger.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryLogLinesLogger {
+    /// The services whose document names a LogFormat.
+    pub services: Vec<ServiceTelemetryLogLinesLoggerServicesItem>,
+    /// A line of the `json` format.
+    pub json: ServiceTelemetryLogLinesLoggerJson,
+    /// A line of the `simple` format.
+    pub simple: String,
+}
+
+/// A line of the `json` format.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryLogLinesLoggerJson {
+    /// Its first members, in order.
+    pub first: Vec<String>,
+    /// The member that names the request a line was logged while answering.
+    #[serde(rename = "requestId")]
+    pub request_id: String,
+    /// The members that name the active trace and span, in that order.
+    pub trace: Vec<String>,
+    /// Its last member: the moment.
+    pub last: String,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceTelemetryLogLinesLoggerServicesItem {
+    #[serde(rename = "archivist")]
+    Archivist,
+    #[serde(rename = "dispatcher")]
+    Dispatcher,
+    #[serde(rename = "gateway")]
+    Gateway,
+}
+
+impl ServiceTelemetryLogLinesLoggerServicesItem {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceTelemetryLogLinesLoggerServicesItem::Archivist => "archivist",
+            ServiceTelemetryLogLinesLoggerServicesItem::Dispatcher => "dispatcher",
+            ServiceTelemetryLogLinesLoggerServicesItem::Gateway => "gateway",
+        }
+    }
+}
+
+/// The line the supervisor writes when it starts a service.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryLogLinesSupervisor {
+    /// The line.
+    pub line: String,
+    /// What a service counts the lines that hold of, for each of its lives.
+    pub counted: String,
+}
+
+/// service-telemetry/telemetry.json: the telemetry each Xynolog service exports over OTLP: its spans and metrics, the services that export each, and the attributes each carries.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryTelemetry {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// The services that reach the bus through an SDK, and for each the SDK transports it uses, or of a transport it uses part of, the rows it exports.
+    pub sdk: std::collections::BTreeMap<String, Vec<String>>,
+    pub resource: Vec<ServiceTelemetryTelemetryResourceItem>,
+    pub spans: Vec<ServiceTelemetryTelemetrySpansItem>,
+    pub metrics: Vec<ServiceTelemetryTelemetryMetricsItem>,
+}
+
+schema!(ServiceTelemetryTelemetry);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryTelemetryMetricsItem {
+    /// The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.
+    pub name: String,
+    /// The services that export the row.
+    pub services: Vec<ServiceTelemetryTelemetryMetricsItemServicesItem>,
+    /// The metric's instrument.
+    pub instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
+    /// When the row arrives.
+    pub when: ServiceTelemetryTelemetryMetricsItemWhen,
+    /// The only signal planes a gateway row arrives on.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub planes: Option<Vec<ServiceTelemetryTelemetryMetricsItemPlanesItem>>,
+    /// What the row says.
+    pub meaning: String,
+    /// The attributes the span carries.
+    pub attributes: Vec<ServiceTelemetryTelemetryMetricsItemAttributesItem>,
+}
+
+impl ServiceTelemetryTelemetryMetricsItem {
+    /// The `ServiceTelemetryTelemetryMetricsItem` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        services: Vec<ServiceTelemetryTelemetryMetricsItemServicesItem>,
+        instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
+        when: ServiceTelemetryTelemetryMetricsItemWhen,
+        meaning: impl Into<String>,
+        attributes: Vec<ServiceTelemetryTelemetryMetricsItemAttributesItem>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            services,
+            instrument,
+            when,
+            planes: None,
+            meaning: meaning.into(),
+            attributes,
+        }
+    }
+}
+
+/// An attribute a row carries.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryTelemetryMetricsItemAttributesItem {
+    /// The attribute's key.
+    pub key: String,
+    /// When alone the attribute is carried: a row's attribute without it is carried every time.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub only: Option<String>,
+    /// The only values it carries, each of the type it is carried as: a string or a boolean.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub values: Option<Vec<ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem>>,
+}
+
+impl ServiceTelemetryTelemetryMetricsItemAttributesItem {
+    /// The `ServiceTelemetryTelemetryMetricsItemAttributesItem` that states these and nothing else.
+    pub fn new(key: impl Into<String>) -> Self {
+        Self {
+            key: key.into(),
+            only: None,
+            values: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem {
+    Text(String),
+    Boolean(bool),
+}
+
+/// The metric's instrument.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceTelemetryTelemetryMetricsItemInstrument {
+    #[serde(rename = "counter")]
+    Counter,
+    #[serde(rename = "up-down counter")]
+    UpDownCounter,
+    #[serde(rename = "gauge")]
+    Gauge,
+    #[serde(rename = "histogram")]
+    Histogram,
+}
+
+impl ServiceTelemetryTelemetryMetricsItemInstrument {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceTelemetryTelemetryMetricsItemInstrument::Counter => "counter",
+            ServiceTelemetryTelemetryMetricsItemInstrument::UpDownCounter => "up-down counter",
+            ServiceTelemetryTelemetryMetricsItemInstrument::Gauge => "gauge",
+            ServiceTelemetryTelemetryMetricsItemInstrument::Histogram => "histogram",
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceTelemetryTelemetryMetricsItemPlanesItem {
+    #[serde(rename = "in-process")]
+    InProcess,
+    #[serde(rename = "nats")]
+    Nats,
+}
+
+impl ServiceTelemetryTelemetryMetricsItemPlanesItem {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceTelemetryTelemetryMetricsItemPlanesItem::InProcess => "in-process",
+            ServiceTelemetryTelemetryMetricsItemPlanesItem::Nats => "nats",
+        }
+    }
+}
+
+/// A Xynolog service, by its name.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceTelemetryTelemetryMetricsItemServicesItem {
+    #[serde(rename = "archivist")]
+    Archivist,
+    #[serde(rename = "dispatcher")]
+    Dispatcher,
+    #[serde(rename = "gateway")]
+    Gateway,
+    #[serde(rename = "librarian")]
+    Librarian,
+    #[serde(rename = "smelter")]
+    Smelter,
+    #[serde(rename = "weaver")]
+    Weaver,
+    #[serde(rename = "worker")]
+    Worker,
+}
+
+impl ServiceTelemetryTelemetryMetricsItemServicesItem {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceTelemetryTelemetryMetricsItemServicesItem::Archivist => "archivist",
+            ServiceTelemetryTelemetryMetricsItemServicesItem::Dispatcher => "dispatcher",
+            ServiceTelemetryTelemetryMetricsItemServicesItem::Gateway => "gateway",
+            ServiceTelemetryTelemetryMetricsItemServicesItem::Librarian => "librarian",
+            ServiceTelemetryTelemetryMetricsItemServicesItem::Smelter => "smelter",
+            ServiceTelemetryTelemetryMetricsItemServicesItem::Weaver => "weaver",
+            ServiceTelemetryTelemetryMetricsItemServicesItem::Worker => "worker",
+        }
+    }
+}
+
+/// When the row arrives.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceTelemetryTelemetryMetricsItemWhen {
+    #[serde(rename = "export")]
+    Export,
+    #[serde(rename = "traffic")]
+    Traffic,
+    #[serde(rename = "supervised")]
+    Supervised,
+    #[serde(rename = "fatal")]
+    Fatal,
+}
+
+impl ServiceTelemetryTelemetryMetricsItemWhen {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceTelemetryTelemetryMetricsItemWhen::Export => "export",
+            ServiceTelemetryTelemetryMetricsItemWhen::Traffic => "traffic",
+            ServiceTelemetryTelemetryMetricsItemWhen::Supervised => "supervised",
+            ServiceTelemetryTelemetryMetricsItemWhen::Fatal => "fatal",
+        }
+    }
+}
+
+/// An attribute of the resource the services' spans and metrics are exported under.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryTelemetryResourceItem {
+    /// The attribute's key.
+    pub key: String,
+    /// The services that export the row.
+    pub services: Vec<ServiceTelemetryTelemetryResourceItemServicesItem>,
+    /// What the attribute says.
+    pub meaning: String,
+    /// Its value when nothing says another, with `{service}` the service's name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default: Option<String>,
+}
+
+impl ServiceTelemetryTelemetryResourceItem {
+    /// The `ServiceTelemetryTelemetryResourceItem` that states these and nothing else.
+    pub fn new(
+        key: impl Into<String>,
+        services: Vec<ServiceTelemetryTelemetryResourceItemServicesItem>,
+        meaning: impl Into<String>,
+    ) -> Self {
+        Self {
+            key: key.into(),
+            services,
+            meaning: meaning.into(),
+            default: None,
+        }
+    }
+}
+
+/// A Xynolog service, by its name.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceTelemetryTelemetryResourceItemServicesItem {
+    #[serde(rename = "archivist")]
+    Archivist,
+    #[serde(rename = "dispatcher")]
+    Dispatcher,
+    #[serde(rename = "gateway")]
+    Gateway,
+    #[serde(rename = "librarian")]
+    Librarian,
+    #[serde(rename = "smelter")]
+    Smelter,
+    #[serde(rename = "weaver")]
+    Weaver,
+    #[serde(rename = "worker")]
+    Worker,
+}
+
+impl ServiceTelemetryTelemetryResourceItemServicesItem {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceTelemetryTelemetryResourceItemServicesItem::Archivist => "archivist",
+            ServiceTelemetryTelemetryResourceItemServicesItem::Dispatcher => "dispatcher",
+            ServiceTelemetryTelemetryResourceItemServicesItem::Gateway => "gateway",
+            ServiceTelemetryTelemetryResourceItemServicesItem::Librarian => "librarian",
+            ServiceTelemetryTelemetryResourceItemServicesItem::Smelter => "smelter",
+            ServiceTelemetryTelemetryResourceItemServicesItem::Weaver => "weaver",
+            ServiceTelemetryTelemetryResourceItemServicesItem::Worker => "worker",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryTelemetrySpansItem {
+    /// The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.
+    pub name: String,
+    /// The services that export the row.
+    pub services: Vec<ServiceTelemetryTelemetrySpansItemServicesItem>,
+    /// The span's kind, in OTLP's words.
+    pub kind: ServiceTelemetryTelemetrySpansItemKind,
+    /// When the row arrives.
+    pub when: ServiceTelemetryTelemetrySpansItemWhen,
+    /// What the row says.
+    pub meaning: String,
+    /// The attributes the span carries.
+    pub attributes: Vec<ServiceTelemetryTelemetrySpansItemAttributesItem>,
+}
+
+/// An attribute a row carries.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceTelemetryTelemetrySpansItemAttributesItem {
+    /// The attribute's key.
+    pub key: String,
+    /// When alone the attribute is carried: a row's attribute without it is carried every time.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub only: Option<String>,
+    /// The only values it carries, each of the type it is carried as: a string or a boolean.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub values: Option<Vec<ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem>>,
+}
+
+impl ServiceTelemetryTelemetrySpansItemAttributesItem {
+    /// The `ServiceTelemetryTelemetrySpansItemAttributesItem` that states these and nothing else.
+    pub fn new(key: impl Into<String>) -> Self {
+        Self {
+            key: key.into(),
+            only: None,
+            values: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem {
+    Text(String),
+    Boolean(bool),
+}
+
+/// The span's kind, in OTLP's words.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceTelemetryTelemetrySpansItemKind {
+    #[serde(rename = "client")]
+    Client,
+    #[serde(rename = "consumer")]
+    Consumer,
+    #[serde(rename = "internal")]
+    Internal,
+    #[serde(rename = "producer")]
+    Producer,
+    #[serde(rename = "server")]
+    Server,
+}
+
+impl ServiceTelemetryTelemetrySpansItemKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceTelemetryTelemetrySpansItemKind::Client => "client",
+            ServiceTelemetryTelemetrySpansItemKind::Consumer => "consumer",
+            ServiceTelemetryTelemetrySpansItemKind::Internal => "internal",
+            ServiceTelemetryTelemetrySpansItemKind::Producer => "producer",
+            ServiceTelemetryTelemetrySpansItemKind::Server => "server",
+        }
+    }
+}
+
+/// A Xynolog service, by its name.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceTelemetryTelemetrySpansItemServicesItem {
+    #[serde(rename = "archivist")]
+    Archivist,
+    #[serde(rename = "dispatcher")]
+    Dispatcher,
+    #[serde(rename = "gateway")]
+    Gateway,
+    #[serde(rename = "librarian")]
+    Librarian,
+    #[serde(rename = "smelter")]
+    Smelter,
+    #[serde(rename = "weaver")]
+    Weaver,
+    #[serde(rename = "worker")]
+    Worker,
+}
+
+impl ServiceTelemetryTelemetrySpansItemServicesItem {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceTelemetryTelemetrySpansItemServicesItem::Archivist => "archivist",
+            ServiceTelemetryTelemetrySpansItemServicesItem::Dispatcher => "dispatcher",
+            ServiceTelemetryTelemetrySpansItemServicesItem::Gateway => "gateway",
+            ServiceTelemetryTelemetrySpansItemServicesItem::Librarian => "librarian",
+            ServiceTelemetryTelemetrySpansItemServicesItem::Smelter => "smelter",
+            ServiceTelemetryTelemetrySpansItemServicesItem::Weaver => "weaver",
+            ServiceTelemetryTelemetrySpansItemServicesItem::Worker => "worker",
+        }
+    }
+}
+
+/// When the row arrives.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceTelemetryTelemetrySpansItemWhen {
+    #[serde(rename = "export")]
+    Export,
+    #[serde(rename = "traffic")]
+    Traffic,
+    #[serde(rename = "supervised")]
+    Supervised,
+    #[serde(rename = "fatal")]
+    Fatal,
+}
+
+impl ServiceTelemetryTelemetrySpansItemWhen {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceTelemetryTelemetrySpansItemWhen::Export => "export",
+            ServiceTelemetryTelemetrySpansItemWhen::Traffic => "traffic",
+            ServiceTelemetryTelemetrySpansItemWhen::Supervised => "supervised",
+            ServiceTelemetryTelemetrySpansItemWhen::Fatal => "fatal",
         }
     }
 }
@@ -14516,6 +16454,50 @@ impl SmelterHealthStream {
             SmelterHealthStream::Closed => "closed",
         }
     }
+}
+
+/// smelter/messages.json: the words of the Smelter's refusals, and of the messages it logs that a reader relies on.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SmelterMessages {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each refusal of an operation, on the operation's failure channel.
+    pub refusals: Vec<SmelterMessagesRefusalsItem>,
+    /// Each message the Smelter logs that a reader of its output relies on.
+    pub logged: Vec<SmelterMessagesLoggedItem>,
+}
+
+schema!(SmelterMessages);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SmelterMessagesLoggedItem {
+    /// The situation's name.
+    pub name: String,
+    pub level: LogLevel,
+    /// When it is written, what fills each `{name}` of its fields, and what each fact it carries says.
+    pub situation: String,
+    /// The line's message, word for word.
+    pub message: String,
+    /// The facts the line is logged with whose form is stated, by name: each a text whose `{name}` is filled as the row's `situation` says. A fact that is a number is its decimal digits.
+    pub fields: std::collections::BTreeMap<String, String>,
+    /// The facts the line is logged with beside `fields`, whose value the row's `situation` says and whose form is not stated. The line may carry others.
+    pub carries: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SmelterMessagesRefusalsItem {
+    /// The situation's name.
+    pub name: String,
+    /// The operation it refuses: a request of bus/registry.json's operations that the Smelter answers.
+    pub operation: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub message: String,
 }
 
 /// What a Smelter's reconcile came to (SMELTER.md § Reconcile), as its health reports a pass that is done (SmelterHealth's `reconcile.summary`). The first four add up to how many resources it set out to index, less any whose indexing was no longer wanted when its turn came.
@@ -16567,6 +18549,28 @@ impl WeaverHealthStatus {
     }
 }
 
+/// worker/answer-formats.json: the element of the array each kind of detection asks a model for.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerAnswerFormats {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    pub formats: Vec<WorkerAnswerFormatsFormatsItem>,
+}
+
+schema!(WorkerAnswerFormats);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerAnswerFormatsFormatsItem {
+    /// A motivation a `mark` job takes, or `count`.
+    pub name: String,
+    /// What an element is, in prose.
+    pub about: String,
+    pub element: serde_json::Value,
+}
+
 /// Everything a worker reads at boot: nothing in it is defaulted by the worker. The launcher writes it for the machine's worker, from the knowledge bases on that worker's list: each local knowledge base as its start places it, from its stack documents, and each added by `xynolog worker kb add`, offered the engines of the local one it was added from. The worker reads it from the path its `--config` flag names (its image passes `/etc/xynolog/worker.json`). Whoever starts a worker another way writes the same document: this schema is the contract, and a worker needs no launcher. Started without `--config`, or with a path that names no file, the worker refuses to start and says which. No secret is a value here: a provider's key is named by the environment variable that holds it, and the key the worker signs in with at every knowledge base is `XYNOLOG_OIDC_CLIENT_KEY` in its environment, an RSA private key; each knowledge base names the client that holds its public half there. A document that does not validate is refused at boot, naming each failing field.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -16776,6 +18780,129 @@ impl WorkerKnowledgeBaseHealthState {
             WorkerKnowledgeBaseHealthState::Refused => "refused",
         }
     }
+}
+
+/// worker/messages.json: the words of a Worker service's refusals to start, of the errors it fails a job with, and of the messages it logs that a reader relies on.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerMessages {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each refusal to start, written in service-environment/boot-refusals.json's `line`.
+    pub boot: Vec<WorkerMessagesBootItem>,
+    /// Each line of the `{reasons}` of `invalid`.
+    pub reasons: Vec<WorkerMessagesReasonsItem>,
+    /// How an error names the job, by its type, as `{job}`: `{motivation}` is a mark job's motivation.
+    pub job: WorkerMessagesJob,
+    /// Each error a job is failed with that is the worker's own: the `error` of its `job:fail`.
+    pub errors: Vec<WorkerMessagesErrorsItem>,
+    /// Each `{detail}` of `unreadable`.
+    pub details: Vec<WorkerMessagesDetailsItem>,
+    /// Each `{said}` of `wait-stated`.
+    pub waits: Vec<WorkerMessagesWaitsItem>,
+    /// Each message a Worker service logs that a reader of its output relies on.
+    pub logged: Vec<WorkerMessagesLoggedItem>,
+}
+
+schema!(WorkerMessages);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum WorkerMessagesBootItem {
+    OwnBootRefusal(WorkerMessagesBootItemOwnBootRefusal),
+    SharedBootRefusal(WorkerMessagesBootItemSharedBootRefusal),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerMessagesBootItemOwnBootRefusal {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The refusal, in place of the line's `{refusal}`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub refusal: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerMessagesBootItemSharedBootRefusal {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written. What fills its text is the shared row's.
+    pub situation: String,
+    /// The `name` of the row of service-environment/boot-refusals.json's `refusals` that is this refusal, with `{service}` `worker` and `{schema}` `WorkerConfig`.
+    #[serde(rename = "bootRefusal")]
+    pub boot_refusal: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerMessagesDetailsItem {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The detail. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerMessagesErrorsItem {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The error. `{job}` in it is the job, as `job` names it. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub error: String,
+}
+
+/// How an error names the job, by its type, as `{job}`: `{motivation}` is a mark job's motivation.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerMessagesJob {
+    pub mark: String,
+    pub r#yield: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerMessagesLoggedItem {
+    /// The situation's name.
+    pub name: String,
+    pub level: LogLevel,
+    /// When it is written, what fills each `{name}` of its fields, and what each fact it carries says.
+    pub situation: String,
+    /// The line's message, word for word.
+    pub message: String,
+    /// The facts the line is logged with whose form is stated, by name: each a text whose `{name}` is filled as the row's `situation` says. A fact that is a number is its decimal digits.
+    pub fields: std::collections::BTreeMap<String, String>,
+    /// The facts the line is logged with beside `fields`, whose value the row's `situation` says and whose form is not stated. The line may carry others.
+    pub carries: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerMessagesReasonsItem {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The line, indented by two spaces. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub line: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerMessagesWaitsItem {
+    /// The situation's name.
+    pub name: String,
+    /// When it is written, and what fills each `{name}` of its text.
+    pub situation: String,
+    /// The wait, as the header stated it. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
+    pub said: String,
 }
 
 /// The shared worker that does knowledge bases' jobs: its image, its memory and its log level. They are shared, not any knowledge base's, so its document is kept in the launcher's state home, in `stack/workers.yaml`, not in a knowledge base's repository. A knowledge base's jobs are done when its Inference document gives a job an engine. A worker needs only the Gateway, and an issuer's token with the worker's role.

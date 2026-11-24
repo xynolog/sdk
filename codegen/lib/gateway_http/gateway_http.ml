@@ -19,6 +19,7 @@ let files ~root:_ (spec : Spec.t) =
       [
         Typescript.file m;
         Rust.file m;
+        Rust.archivist spec;
         Go.file m;
         Python.file m;
         Swift.file spec m;
