@@ -16,9 +16,9 @@ makes only if no kept cache was fetching and no refetch was owed, since
 closing drops both, and a place reached after is not kept. A place that is
 not written is only late, which costs a replay.
 
-The places are kept as `xynolog.types.LastEventIds`. A pair that is not a
-resource's id and a recorded event's id (`is_recorded_event_id`) is no place,
-and is skipped; what is kept under the key and is no JSON object is no places.
+The places are kept as `xynolog.types.LastEventIds`. A pair it does not hold
+(`is_place`) is no place, and is skipped; what is kept under the key and is
+no JSON object is no places.
 
     places = CoupledBookmarks(storage, last_event_id_key(kb_id, person))
     transport = HttpTransport(origin, token=token, channels=BRIDGED_CHANNELS, bookmarks=places)
@@ -28,7 +28,7 @@ and is skipped; what is kept under the key and is no JSON object is no places.
 """
 
 from collections.abc import Callable
-from typing import Final, Protocol, TypeGuard, final, override
+from typing import Final, Protocol, final, override
 from weakref import WeakKeyDictionary
 
 from pydantic import JsonValue, TypeAdapter, ValidationError
@@ -36,9 +36,9 @@ from pydantic import JsonValue, TypeAdapter, ValidationError
 from xynolog.identifiers import ResourceId
 from xynolog.required import fault_of
 from xynolog.storage import SessionStorage
-from xynolog.types import LastEventIds, PersistedEventId
+from xynolog.types import LastEventIds
 
-__all__ = ["CoupledBookmarks", "is_recorded_event_id"]
+__all__ = ["CoupledBookmarks", "is_place"]
 
 _JSON: Final = TypeAdapter[JsonValue](JsonValue)
 _PLACES: Final = TypeAdapter[LastEventIds](LastEventIds)
@@ -67,9 +67,9 @@ def seal_coupled_places(client: _Coupled, settled: bool) -> None:
         _SEALS.pop(client)(settled)
 
 
-def is_recorded_event_id(event_id: JsonValue) -> TypeGuard[str]:
-    """Whether `event_id` is a recorded event's id (`PersistedEventId`): a scope's place, which a stream resumes from."""
-    return fault_of(PersistedEventId, event_id) is None
+def is_place(scope: ResourceId, event_id: str) -> bool:
+    """Whether `LastEventIds` holds `event_id` as the place reached in `scope`: a recorded event's id, which a stream resumes from."""
+    return fault_of(LastEventIds, {str(scope): event_id}) is None
 
 
 @final
@@ -131,18 +131,18 @@ class CoupledBookmarks:
         kept: LastEventIds = {}
         if isinstance(places, dict):
             for scope, place in places.items():
-                resource = ResourceId.parse(scope)
-                if resource is not None and is_recorded_event_id(place):
-                    kept[resource] = place
+                pair: JsonValue = {scope: place}
+                if fault_of(LastEventIds, pair) is None:
+                    kept.update(_PLACES.validate_python(pair))
         return kept
 
     def save(self, scope: ResourceId, event_id: str) -> None:
         """A place was reached in `scope`. Remembered, and written with a later write of a cache.
 
-        An id that is not a recorded event's is no place, and is not kept;
-        nor is a place reached once the coupled client's close has begun.
+        An id `LastEventIds` does not hold in `scope` is no place, and is not
+        kept; nor is a place reached once the coupled client's close has begun.
         """
-        if is_recorded_event_id(event_id) and not self._sealed:
+        if is_place(scope, event_id) and not self._sealed:
             self._pending[scope] = event_id
 
     def couple_to(self, client: _Coupled) -> None:

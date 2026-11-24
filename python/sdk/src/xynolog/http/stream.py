@@ -53,7 +53,7 @@ from xynolog.http.gateway_http import (
 from xynolog.http.sse import SseParser
 from xynolog.identifiers import ResourceId
 from xynolog.required import Fault, read_as
-from xynolog.resume import is_recorded_event_id
+from xynolog.resume import is_place
 from xynolog.retry import RetryPolicy, equal_jitter, retry_after_ms
 from xynolog.timing import (
     DEGRADED_THRESHOLD_MS,
@@ -613,12 +613,12 @@ class Stream:
         )
         self._router.route(frame)
         # A scope's position is the last recorded event delivered on it: only
-        # a recorded event's id is one, and it always comes on its scope.
-        if frame.scope is not None and is_recorded_event_id(event_id):
+        # an id `LastEventIds` holds in its scope is one.
+        if frame.scope is not None and event_id is not None and is_place(frame.scope, event_id):
             self._watermarks[frame.scope] = event_id
         self._hub.deliver(frame)
         # Kept only once the event has been given to those it changes: a place is never ahead of what was taken in.
-        if self._bookmarks is not None and frame.scope is not None and is_recorded_event_id(event_id):
+        if self._bookmarks is not None and frame.scope is not None and event_id is not None and is_place(frame.scope, event_id):
             self._bookmarks.save(frame.scope, event_id)
 
     def _refused(self, tasks: asyncio.TaskGroup, conn: int, error: TransportError, now: float) -> None:

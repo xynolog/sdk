@@ -333,7 +333,7 @@ internal sealed class LiveCacheStorage(CachePersistence persistence, TimeProvide
             // A refused frame is no position on its scope, and the event's invalidations are under way before its
             // place is noted.
             if (person is not null && !abandoned && carried is ReceivedBusFrame { Frame.Scope: ResourceId resource } frame &&
-                frame.EventId is { } id && Required.IsPersistedEventId(JsonSerializer.SerializeToElement(id)))
+                frame.EventId is { } id && Required.IsPlace(resource, id))
                 pendingPlaces[resource.Value] = id;
         }
     }
@@ -395,7 +395,8 @@ internal sealed class LiveCacheStorage(CachePersistence persistence, TimeProvide
         var places = new Dictionary<string, string>(StringComparer.Ordinal);
         if (Parse(Get(RegistryStorage.LastEventIdKey(persistence.KbId, named))) is not { ValueKind: JsonValueKind.Object } read) return places;
         foreach (var place in read.EnumerateObject())
-            if (ResourceId.TryParse(place.Name, out _) && Required.IsPersistedEventId(place.Value) && place.Value.GetString() is { } id)
+            if (Required.HoldsPlaces(JsonSerializer.SerializeToElement(new Dictionary<string, JsonElement> { [place.Name] = place.Value })) &&
+                place.Value.GetString() is { } id)
                 places[place.Name] = id;
         return places;
     }

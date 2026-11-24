@@ -34,7 +34,7 @@ use xynolog::bus_log::{bus_log, bus_note};
 use xynolog::channels::{RESOURCE_SCOPED_CHANNELS, TRACE_FIELD};
 use xynolog::errors::{TransportError, TransportErrorCode};
 use xynolog::gateway_http::SUBSCRIBE_TO_BUS;
-use xynolog::resume::is_persisted_event_id;
+use xynolog::resume::is_place;
 use xynolog::retry::{equal_jitter, retry_after};
 use xynolog::timing::{DEGRADED_THRESHOLD, MAX_RECONNECT, RECONNECT_DEBOUNCE};
 use xynolog::transport::{ConnectionState, Frame, FrameRefusal, StreamId, TraceCarrier};
@@ -443,10 +443,9 @@ impl Actor {
             }
         }
         // A scope's position is the last recorded event delivered on it:
-        // only a recorded event's id is one, and it always comes on its
-        // scope.
+        // only an id `LastEventIds` holds in its scope is one.
         if let Some(at) = &frame.stream_id
-            && is_persisted_event_id(&at.event_id)
+            && is_place(&at.scope, &at.event_id)
         {
             self.watermarks
                 .insert(at.scope.clone(), at.event_id.clone());

@@ -401,6 +401,11 @@ export function faultOf(schema: SchemaName, value: unknown): Fault | undefined {
   return faultAt(REQUIRED_SCHEMAS[schema], value, '', new Map());
 }
 
+/** Whether `LastEventIds` holds `id` as the place reached in `scope`: the one decider of what a stream's place is. */
+export function isPlace(scope: string, id: unknown): id is string {
+  return faultOf('LastEventIds', { [scope]: id }) === undefined;
+}
+
 /**
  * `value` as a value of `shape`, read by the rules every SDK reads the table
  * by: its first fault, as `faultOf` finds it, or what is read of it, which

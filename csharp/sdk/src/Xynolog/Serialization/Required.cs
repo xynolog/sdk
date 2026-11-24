@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Xynolog.Identifiers;
 using Xynolog.Types;
 
 namespace Xynolog.Serialization;
@@ -60,9 +61,14 @@ internal static partial class Required
         return true;
     }
 
-    /// <summary>Whether <paramref name="id"/> is a persisted event's id: components/schemas/PersistedEventId.json, its
-    /// pattern and not its prefix alone. Only such an id is a place a scope resumes from.</summary>
-    internal static bool IsPersistedEventId(JsonElement id) => FaultOf("PersistedEventId", id, out _) is null;
+    /// <summary>Whether <c>LastEventIds</c> holds <paramref name="places"/>: the one decider of what a stream's place
+    /// is.</summary>
+    internal static bool HoldsPlaces(JsonElement places) => FaultOf("LastEventIds", places, out _) is null;
+
+    /// <summary>Whether <c>LastEventIds</c> holds <paramref name="id"/> as the place reached in
+    /// <paramref name="scope"/>.</summary>
+    internal static bool IsPlace(ResourceId scope, string id) =>
+        HoldsPlaces(JsonSerializer.SerializeToElement(new Dictionary<string, string> { [scope.Value] = id }));
 
     /// <summary>The first fault <paramref name="value"/> has as <paramref name="shape"/>, a shape as the table writes
     /// one; null when it has none.</summary>
