@@ -24,6 +24,7 @@ use serde_json::Value;
 use std::fmt;
 use std::sync::{Arc, Mutex, Weak};
 use tokio::sync::watch;
+use xynolog::gateway_http::GET_CURRENT_USER;
 use xynolog::retry::{self, RetryFacts, retry_with_backoff};
 use xynolog::session::renew_when_due;
 use xynolog::timing::{HTTP_REQUEST_TIMEOUT, REFRESH_RETRY};
@@ -168,7 +169,7 @@ async fn named(
     token: &str,
     http: &reqwest::Client,
 ) -> Result<UserId, AgentSignInError> {
-    let url = format!("{gateway}/api/users/me");
+    let url = format!("{gateway}{}", GET_CURRENT_USER.path);
     let response = http
         .get(&url)
         .header("authorization", format!("Bearer {token}"))

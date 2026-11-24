@@ -23,7 +23,6 @@ import xynolog.descriptorOf
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
 import xynolog.schemaOf
-import xynolog.signin.HeldSignIn
 import xynolog.signin.namingIsRecordedOnTheSignInAskedAbout
 import xynolog.storage.CachePersistence
 import xynolog.storage.CoupledBookmarks
@@ -262,7 +261,7 @@ class StoredTest {
         val kept = keptIn(storage, KB_A)
         val keptForJo = PERSISTED_QUERIES.map { cacheKey(KB_A, "the key of jo", it.query.wire) } + lastEventIdKey(KB_A, "the key of jo")
         val keptForOthers = listOf(cacheKey(KB_A, "the key of ann", "resource"), cacheKey(KB_B, "the key of jo", "resource"), lastEventIdKey(KB_B, "the key of jo"))
-        fun signIn(access: String, refresh: String, personKey: String?) = HeldSignIn(access, refresh, "xynolog-browser", "https://issuer.test/token", null, personKey)
+        fun signIn(access: String, refresh: String, personKey: String?) = StoredSession(access, refresh, "xynolog-browser", "https://issuer.test/token", null, personKey)
 
         // A new sign-in names nobody until its gateway names them: the person the replaced one named is forgotten.
         for (key in keptForJo + keptForOthers) storage.set(key, "{}")
@@ -286,7 +285,7 @@ class StoredTest {
     fun aRenewalIsKeptAgainstWhatIsStoredThen() = runBlocking {
         val storage = MemoryStorage()
         val kept = keptIn(storage, KB_A)
-        val read = HeldSignIn("a1", "r1", "xynolog-browser", "https://issuer.test/token", null, "the key of jo")
+        val read = StoredSession("a1", "r1", "xynolog-browser", "https://issuer.test/token", null, "the key of jo")
 
         // A renewal of nothing stored is not kept, and writes nothing.
         assertNull(kept.renewed(read, "a2", "r2"))

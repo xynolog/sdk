@@ -2,7 +2,6 @@ package xynolog.registry
 
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonArray
-import xynolog.signin.HeldSignIn
 import xynolog.signin.SignInKept
 import xynolog.storage.SessionStorage
 import xynolog.types.KnowledgeBase
@@ -87,17 +86,13 @@ public fun loadKnowledgeBases(storage: SessionStorage): List<KnowledgeBase> {
 public fun saveKnowledgeBases(storage: SessionStorage, kbs: List<KnowledgeBase>): Unit =
     storage.set(KNOWLEDGE_BASES_KEY, wireJson.encodeToString(ListSerializer(KnowledgeBase.serializer()), kbs))
 
-private fun heldOf(stored: StoredSession) = HeldSignIn(stored.access, stored.refresh, stored.clientId, stored.tokenEndpoint, stored.revocationEndpoint, stored.personKey)
-
-private fun storedOf(held: HeldSignIn) = StoredSession(held.access, held.refresh, held.clientId, held.tokenEndpoint, held.revocationEndpoint, held.personKey)
-
 /** A knowledge base's sign-in, kept where a registry keeps it. */
 private class KeptIn(private val storage: SessionStorage, private val kbId: String) : SignInKept {
-    override suspend fun held(): HeldSignIn? = storedSession(storage, kbId)?.let(::heldOf)
+    override suspend fun held(): StoredSession? = storedSession(storage, kbId)
 
-    override suspend fun keep(signIn: HeldSignIn): Unit = storeSession(storage, kbId, storedOf(signIn))
+    override suspend fun keep(signIn: StoredSession): Unit = storeSession(storage, kbId, signIn)
 
-    override suspend fun renewed(read: HeldSignIn, access: String, refresh: String): String? {
+    override suspend fun renewed(read: StoredSession, access: String, refresh: String): String? {
         var current: String? = null
         storage.update(sessionKey(kbId)) { stored ->
             val session = stored?.let(::sessionIn)

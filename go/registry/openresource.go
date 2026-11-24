@@ -11,30 +11,15 @@ import (
 	"github.com/xynolog/sdk/go/api"
 )
 
-// OpenResource is one resource open in a knowledge base.
-type OpenResource struct {
-	ID   api.ResourceId `json:"id"`
-	Name string         `json:"name"`
-	// OpenedAt is when it was opened, in milliseconds since the epoch.
-	OpenedAt int64 `json:"openedAt"`
-	// Order is its place among the others.
-	Order int `json:"order"`
-	// MediaType is "" when none is known.
-	MediaType string `json:"mediaType,omitempty"`
-	// StorageURI is where it is in the working tree, such as
-	// file://docs/overview.md; "" when that is not known.
-	StorageURI string `json:"storageUri,omitempty"`
-}
-
 // ApplyTabChecks applies each verdict to list: it drops what is gone, takes
 // the name and media type of what was found, and leaves everything else as it
 // was. One with no verdict is left: it was opened while the checks were in
 // flight. Only gone removes: closing everything because a service was briefly
 // down would be worse than the stale entries this removes.
-func ApplyTabChecks(list []OpenResource, checks map[api.ResourceId]api.TabCheck) []OpenResource {
-	kept := []OpenResource{}
+func ApplyTabChecks(list []api.OpenResource, checks map[api.ResourceId]api.TabCheck) []api.OpenResource {
+	kept := []api.OpenResource{}
 	for _, tab := range list {
-		if check, checked := checks[tab.ID]; checked {
+		if check, checked := checks[tab.Id]; checked {
 			// A check that states no verdict of its members leaves the tab.
 			member, _ := check.ValueByDiscriminator()
 			switch verdict := member.(type) {
@@ -43,7 +28,7 @@ func ApplyTabChecks(list []OpenResource, checks map[api.ResourceId]api.TabCheck)
 			case api.TabCheckReady:
 				tab.Name = verdict.Name
 				if verdict.MediaType != nil {
-					tab.MediaType = *verdict.MediaType
+					tab.MediaType = verdict.MediaType
 				}
 			}
 		}
@@ -54,9 +39,9 @@ func ApplyTabChecks(list []OpenResource, checks map[api.ResourceId]api.TabCheck)
 
 // SortOpenResources is resources by the place each has, and among those
 // given the same place, by when each was opened.
-func SortOpenResources(resources []OpenResource) []OpenResource {
+func SortOpenResources(resources []api.OpenResource) []api.OpenResource {
 	sorted := slices.Clone(resources)
-	slices.SortStableFunc(sorted, func(a, b OpenResource) int {
+	slices.SortStableFunc(sorted, func(a, b api.OpenResource) int {
 		return cmp.Or(cmp.Compare(a.Order, b.Order), cmp.Compare(a.OpenedAt, b.OpenedAt))
 	})
 	return sorted

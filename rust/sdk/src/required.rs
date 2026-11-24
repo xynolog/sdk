@@ -522,7 +522,7 @@ mod tests {
 
     /// `^(GET|POST) /`: a text that begins with either word, a space and a
     /// slash, the end it does not anchor a step of any code points.
-    static REQUEST_LINE: Shape = Shape {
+    const REQUEST_LINE: Shape = Shape {
         kinds: Some(&[Kind::String]),
         pattern: Some(&[
             Term::Group(Group {
@@ -545,7 +545,7 @@ mod tests {
     };
 
     /// `^(a|ab){2,3}$`: a repetition the next one needs given back.
-    static REPEATED: Shape = Shape {
+    const REPEATED: Shape = Shape {
         kinds: Some(&[Kind::String]),
         pattern: Some(&[Term::Group(Group {
             either: &[&[point!('a')], &[point!('a'), point!('b')]],
@@ -556,7 +556,7 @@ mod tests {
     };
 
     /// `^(a*)*$`: a group whose alternative may take no code points.
-    static REPEATED_EMPTY: Shape = Shape {
+    const REPEATED_EMPTY: Shape = Shape {
         kinds: Some(&[Kind::String]),
         pattern: Some(&[Term::Group(Group {
             either: &[&[Term::Step(Step {
@@ -572,7 +572,7 @@ mod tests {
 
     /// An object of at least one member, each named in lowercase, that does
     /// not carry both `a` and `b`, and whose `a` is a text.
-    static EXCLUSIVE: Shape = Shape {
+    const EXCLUSIVE: Shape = Shape {
         kinds: Some(&[Kind::Object]),
         members: &[("a", of(&[Kind::String]))],
         min_members: Some(1),

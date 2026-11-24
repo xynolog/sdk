@@ -18,6 +18,12 @@ the coming release's, and gathers its changes as they land.
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
 
+### Changed
+
+- `Retry.retry_with_backoff` takes its `budget` as a `Client_timing.retry`,
+  the type Protocol's client timing states, in place of `Retry.budget`.
+  `Client_timing`, the timing every SDK reads from Protocol, is public.
+
 ## 0.8.1
 
 - The package installs on OCaml 5.5 and later, not on 5.5.2 alone.

@@ -30,9 +30,10 @@ from tokens import jwt, token
 
 from xynolog.errors import SignInError
 from xynolog.http.oauth import renew_kept
-from xynolog.session import HeldSignIn, MemorySignIn, SignInKept
+from xynolog.session import MemorySignIn, SignInKept
 from xynolog.sign_in import SignIn
 from xynolog.sign_in_store import FILE_NAME, SignInStore
+from xynolog.types import StoredSession
 
 SCHEMA = read(SPEC / "sign-in-store/SignIn.json")
 RENEWALS = objects(read(SPEC / "sign-in-store/cases.json")["renewals"], "renewals")
@@ -43,8 +44,8 @@ def signed_in(n: int, *, email: str = "alice@example.org") -> str:
     return token(3600, n, email=email, iss=ISSUER)
 
 
-def held(access: str, refresh: str = "refresh-1", *, revocation: str | None = f"{ISSUER}/revoke") -> HeldSignIn:
-    return HeldSignIn(
+def held(access: str, refresh: str = "refresh-1", *, revocation: str | None = f"{ISSUER}/revoke") -> StoredSession:
+    return StoredSession(
         access=access, refresh=refresh, client_id="xynolog-cli", token_endpoint=f"{ISSUER}/token", revocation_endpoint=revocation
     )
 
@@ -177,7 +178,7 @@ def test_what_is_no_sign_in_is_not_kept(tmp_path: Path) -> None:
 
     # What another client was issued would be renewed here as the wrong client.
     with pytest.raises(ValueError, match="xynolog-browser"):
-        run(kept.keep(HeldSignIn(access=signed_in(1), refresh="r", client_id="xynolog-browser", token_endpoint=f"{ISSUER}/token")))
+        run(kept.keep(StoredSession(access=signed_in(1), refresh="r", client_id="xynolog-browser", token_endpoint=f"{ISSUER}/token")))
     # A gateway admits no token from an issuer it does not trust.
     with pytest.raises(SignInError, match="names no issuer") as lacking:
         run(kept.keep(held(jwt({"email": "alice@example.org"}))))
@@ -313,17 +314,17 @@ class Meanwhile(SignInKept):
         self._act = act
 
     @override
-    async def held(self) -> HeldSignIn | None:
+    async def held(self) -> StoredSession | None:
         found = await self._kept.held()
         await self._act()
         return found
 
     @override
-    async def keep(self, sign_in: HeldSignIn) -> None:
+    async def keep(self, sign_in: StoredSession) -> None:
         await self._kept.keep(sign_in)
 
     @override
-    async def renewed(self, read: HeldSignIn, access: str, refresh: str) -> str | None:
+    async def renewed(self, read: StoredSession, access: str, refresh: str) -> str | None:
         return await self._kept.renewed(read, access, refresh)
 
     @override
@@ -368,11 +369,12 @@ def test_every_renewal_is_the_tables(store: str, row: JsonObject, tmp_path: Path
     async def scenario() -> None:
         async with GatewayServer() as gateway:
 
-            def sign_in(stated: JsonValue, what: str) -> HeldSignIn:
+            def sign_in(stated: JsonValue, what: str) -> StoredSession:
                 assert isinstance(stated, dict), what
                 access, refresh = tokens_of(stated, what)
                 assert refresh is not None, what
-                return HeldSignIn(access=named(access), refresh=refresh, client_id="xynolog-cli", token_endpoint=f"{gateway.origin}{TOKEN}")
+                token_endpoint = f"{gateway.origin}{TOKEN}"
+                return StoredSession(access=named(access), refresh=refresh, client_id="xynolog-cli", token_endpoint=token_endpoint)
 
             await another.keep(sign_in(row["kept"], "kept"))
             meanwhile = row["meanwhile"]

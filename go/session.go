@@ -29,35 +29,19 @@ import (
 	"github.com/xynolog/sdk/go/internal/kept"
 )
 
-// HeldSignIn is what is kept of a sign-in: the tokens an issuer issued, the
-// client they were issued to, and the issuer's endpoints a renewal and a
-// sign-out need, learned once at sign-in so no session asks again.
-type HeldSignIn struct {
-	Access        string
-	Refresh       string
-	ClientID      string
-	TokenEndpoint string
-	// RevocationEndpoint is "" when the issuer has none.
-	RevocationEndpoint string
-	// PersonKey is who the gateway said the sign-in's person is, as the key
-	// what is kept of them is kept under (PersonKey): nil until it has said.
-	// A renewal keeps it; a new sign-in has none.
-	PersonKey *string
-}
-
 // SignInKept is where one knowledge base's sign-in is kept.
 type SignInKept interface {
 	// Held is the sign-in as it is kept now; false when there is none.
-	Held(ctx context.Context) (HeldSignIn, bool, error)
+	Held(ctx context.Context) (api.StoredSession, bool, error)
 	// Keep keeps signIn, in place of whatever was kept.
-	Keep(ctx context.Context, signIn HeldSignIn) error
+	Keep(ctx context.Context, signIn api.StoredSession) error
 	// Renewed keeps the tokens a renewal of read issued, against what is kept
 	// now, and is the access token kept then. When what is kept no longer
 	// holds read's tokens, it was renewed some other way meanwhile: that
 	// stands, and its access token is the one given. False when nothing is
 	// kept: a sign-in that was signed out, or ended, while it was being renewed
 	// is gone, and is not written back.
-	Renewed(ctx context.Context, read HeldSignIn, access, refresh string) (string, bool, error)
+	Renewed(ctx context.Context, read api.StoredSession, access, refresh string) (string, bool, error)
 	// RecordPersonKey records personKey, the key of the person the gateway
 	// said access is, on the sign-in kept now, as one step: only while it
 	// holds access and names no person. It reports whether the sign-in kept
@@ -74,26 +58,26 @@ type SignInKept interface {
 // longer. Its zero value keeps nothing.
 type MemorySignIn struct {
 	mu     sync.Mutex
-	signIn HeldSignIn
+	signIn api.StoredSession
 	has    bool
 }
 
 var _ SignInKept = (*MemorySignIn)(nil)
 
-func (m *MemorySignIn) Held(context.Context) (HeldSignIn, bool, error) {
+func (m *MemorySignIn) Held(context.Context) (api.StoredSession, bool, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return m.signIn, m.has, nil
 }
 
-func (m *MemorySignIn) Keep(_ context.Context, signIn HeldSignIn) error {
+func (m *MemorySignIn) Keep(_ context.Context, signIn api.StoredSession) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.signIn, m.has = signIn, true
 	return nil
 }
 
-func (m *MemorySignIn) Renewed(_ context.Context, read HeldSignIn, access, refresh string) (string, bool, error) {
+func (m *MemorySignIn) Renewed(_ context.Context, read api.StoredSession, access, refresh string) (string, bool, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if !m.has {
@@ -123,7 +107,7 @@ func (m *MemorySignIn) RecordPersonKey(_ context.Context, access, personKey stri
 func (m *MemorySignIn) Forget(context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.signIn, m.has = HeldSignIn{}, false
+	m.signIn, m.has = api.StoredSession{}, false
 	return nil
 }
 
@@ -579,7 +563,7 @@ func (s *Session) failed(err *SessionError) { s.failures.Report(err) }
 // by what it did. withheld is whether the kept token is the session's and not
 // yet the transport's: it is the transport's once the gateway has not refused
 // it.
-func (s *Session) start(kept HeldSignIn, has, withheld bool) {
+func (s *Session) start(kept api.StoredSession, has, withheld bool) {
 	if !has {
 		return
 	}

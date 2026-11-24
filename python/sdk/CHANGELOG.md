@@ -26,6 +26,8 @@ the coming release's, and gathers its changes as they land.
 - `OpenResource` is `xynolog.types.OpenResource`, in place of
   `xynolog.stored.OpenResource`. Its bounds are held by the required table as
   the registry reads what it stored.
+- What is kept of a sign-in is `xynolog.types.StoredSession`, in place of
+  `xynolog.session.HeldSignIn`; a changed one is made with `model_copy`.
 
 ## 0.8.1
 

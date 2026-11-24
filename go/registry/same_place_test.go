@@ -63,13 +63,13 @@ func TestTheOrderOpenResourcesAreShownInIsTheTables(t *testing.T) {
 		t.Fatal("the table states no order of open resources")
 	}
 	for _, row := range table.OpenResourceOrder {
-		open, ok := required.ReadAs[[]OpenResource](row.Open)
+		open, ok := required.ReadAs[[]api.OpenResource](row.Open)
 		if !ok {
 			t.Fatalf("%s: the open resources do not read as a registry keeps them", row.Why)
 		}
 		var shown []string
 		for _, resource := range SortOpenResources(open) {
-			shown = append(shown, resource.ID.String())
+			shown = append(shown, resource.Id.String())
 		}
 		if !slices.Equal(shown, row.Shown) {
 			t.Errorf("%s: shown %v, want %v", row.Why, shown, row.Shown)

@@ -218,10 +218,7 @@ def _series(terms: tuple[_Step | _Group, ...], text: str, at: int, rest: Callabl
         and any(low <= ord(text[at + taken]) <= high for low, high in first.of)
     ):
         taken += 1
-    for count in range(taken, first.least - 1, -1):
-        if then(at + count):
-            return True
-    return False
+    return any(then(at + count) for count in range(taken, first.least - 1, -1))
 
 
 def _repeated(group: _Group, text: str, at: int, count: int, then: Callable[[int], bool]) -> bool:

@@ -38,7 +38,7 @@ from xynolog.registry import (
     store_session,
     stored_session,
 )
-from xynolog.session import HeldSignIn, MemorySignIn, SignInKept, XynologSession
+from xynolog.session import MemorySignIn, SignInKept, XynologSession
 from xynolog.session_signals import SessionSignals
 from xynolog.storage import MemoryStorage, SessionStorage
 from xynolog.storage_keys import cache_key, kb_of_session_key, last_event_id_key, person_key, session_key
@@ -48,7 +48,6 @@ from xynolog.stored import (
     KNOWLEDGE_BASES_KEY,
     LAST_VIEWED_RESOURCE_BY_KB_KEY,
     OPEN_RESOURCES_BY_KB_KEY,
-    OpenResource,
 )
 from xynolog.testing import FaultyTransport, ScriptedSessions, SharedStorage
 from xynolog.transport import Transport
@@ -63,6 +62,7 @@ from xynolog.types import (
     KbReadVerdictRecorded,
     KnowledgeBase,
     NewKnowledgeBase,
+    OpenResource,
     PermissionDenied,
     SessionEnded,
     SignedIn,
@@ -407,7 +407,7 @@ def test_a_renewal_is_kept_against_what_is_stored_then() -> None:
     async def scenario() -> None:
         storage = MemoryStorage()
         kept = kept_in(storage, KB_A)
-        read = HeldSignIn(access="a1", refresh="r1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token")
+        read = StoredSession(access="a1", refresh="r1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token")
 
         # A renewal of nothing stored is not kept, and writes nothing.
         assert await kept.renewed(read, "a2", "r2") is None
@@ -452,12 +452,12 @@ def test_a_new_sign_in_kept_in_a_registrys_storage_forgets_what_was_kept_for_the
 
         # Over a sign-in that names nobody, no entry is known to be anyone's: none is deleted.
         store_session(storage, KB_A, tokens("r"))
-        await kept.keep(HeldSignIn(access="a1", refresh="r1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token"))
+        await kept.keep(StoredSession(access="a1", refresh="r1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token"))
         assert held_now() == {key: f"kept under {key}" for key in (*theirs, *others)}
 
         # Over one that names jo, every entry of jo's on the knowledge base goes, and no other person's, nor jo's on another.
         store_session(storage, KB_A, tokens("r", JO))
-        new = HeldSignIn(access="b1", refresh="s1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token")
+        new = StoredSession(access="b1", refresh="s1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token")
         await kept.keep(new)
         assert held_now() == {**dict.fromkeys(theirs), **{key: f"kept under {key}" for key in others}}
         # The new sign-in is the one kept, and names nobody until a gateway names its person.
@@ -476,7 +476,7 @@ def kept_where(where: str) -> tuple[SignInKept, MemoryStorage]:
 def test_the_person_the_gateway_named_is_recorded_on_the_sign_in_it_was_asked_about_and_on_no_other(where: str) -> None:
     async def scenario() -> None:
         kept, storage = kept_where(where)
-        signed_in = HeldSignIn(access="a1", refresh="r1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token")
+        signed_in = StoredSession(access="a1", refresh="r1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token")
 
         # Nothing kept: nobody is recorded.
         assert not await kept.record_person_key("a1", JO)
@@ -492,7 +492,7 @@ def test_the_person_the_gateway_named_is_recorded_on_the_sign_in_it_was_asked_ab
         assert await kept.record_person_key("a1", JO)
         held = await kept.held()
         assert held is not None
-        assert held == HeldSignIn(
+        assert held == StoredSession(
             access="a1", refresh="r1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token", person_key=JO
         )
         if where == "kept_in":
@@ -506,7 +506,7 @@ def test_the_person_the_gateway_named_is_recorded_on_the_sign_in_it_was_asked_ab
         assert held.person_key == JO
 
         # A sign-in kept in its place is a new one: it names nobody until a gateway names its person.
-        await kept.keep(HeldSignIn(access="b1", refresh="s1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token"))
+        await kept.keep(StoredSession(access="b1", refresh="s1", client_id="xynolog-browser", token_endpoint="https://issuer.test/token"))
         held = await kept.held()
         assert held is not None
         assert held.person_key is None

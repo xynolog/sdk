@@ -117,7 +117,7 @@ class OpenResourcesTest {
             browser.removeOpenResource(ResourceId("r2"))
             browser.addOpenResource(ResourceId("r4"), "r4")
             assertEquals(listOf("r1", "r3", "r4"), shown(browser))
-            assertEquals(listOf(0, 2, 3), browser.openResources.value.map { it.order })
+            assertEquals(listOf(0L, 2L, 3L), browser.openResources.value.map { it.order })
         }
     }
 

@@ -251,7 +251,7 @@ func (i Issuer) RenewKept(ctx context.Context, kept SignInKept, holding string) 
 	tokens, err := RetryWithBackoff(ctx, i.Timing.RefreshRetry, i.Random,
 		func(ctx context.Context) (api.IssuedTokens, error) {
 			attempts++
-			return i.Refresh(ctx, held.TokenEndpoint, held.ClientID, held.Refresh)
+			return i.Refresh(ctx, held.TokenEndpoint, held.ClientId, held.Refresh)
 		},
 		transientRenewal,
 		func(error) (time.Duration, bool) { return 0, false })

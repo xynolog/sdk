@@ -72,7 +72,7 @@ from xynolog.identity import kb_did
 from xynolog.model import written
 from xynolog.required import fault_of
 from xynolog.resources import primary_media_type
-from xynolog.session import HeldSignIn, SignInKept, XynologSession, is_token_expired
+from xynolog.session import SignInKept, XynologSession, is_token_expired
 from xynolog.session_signals import SessionSignals
 from xynolog.storage import SessionStorage
 from xynolog.storage_keys import cache_key, last_event_id_key, session_key
@@ -225,16 +225,15 @@ class _KeptIn(SignInKept):
         self._kb_id: Final = kb_id
 
     @override
-    async def held(self) -> HeldSignIn | None:
-        stored = stored_session(self._storage, self._kb_id)
-        return None if stored is None else _held(stored)
+    async def held(self) -> StoredSession | None:
+        return stored_session(self._storage, self._kb_id)
 
     @override
-    async def keep(self, sign_in: HeldSignIn) -> None:
-        store_session(self._storage, self._kb_id, _stored(sign_in))
+    async def keep(self, sign_in: StoredSession) -> None:
+        store_session(self._storage, self._kb_id, sign_in)
 
     @override
-    async def renewed(self, read: HeldSignIn, access: str, refresh: str) -> str | None:
+    async def renewed(self, read: StoredSession, access: str, refresh: str) -> str | None:
         current: list[str] = []
 
         def renew(stored: str | None) -> str | None:
@@ -275,28 +274,6 @@ def _session_in(stored: str) -> StoredSession | None:
         return StoredSession.model_validate_json(stored)
     except ValidationError:
         return None
-
-
-def _held(stored: StoredSession) -> HeldSignIn:
-    return HeldSignIn(
-        access=stored.access,
-        refresh=stored.refresh,
-        client_id=stored.client_id,
-        token_endpoint=stored.token_endpoint,
-        revocation_endpoint=stored.revocation_endpoint,
-        person_key=stored.person_key,
-    )
-
-
-def _stored(held: HeldSignIn) -> StoredSession:
-    return StoredSession(
-        access=held.access,
-        refresh=held.refresh,
-        client_id=held.client_id,
-        token_endpoint=held.token_endpoint,
-        revocation_endpoint=held.revocation_endpoint,
-        person_key=held.person_key,
-    )
 
 
 def kept_in(storage: SessionStorage, kb_id: str) -> SignInKept:

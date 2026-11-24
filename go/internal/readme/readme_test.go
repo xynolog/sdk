@@ -333,7 +333,7 @@ func TestAPerson(t *testing.T) {
 	}
 	// What `xynolog login` would have kept for the stack.
 	kept := xynolog.NewSignInStore(filepath.Join(directory, xynolog.SignInFile)).Entry("kb-test")
-	if err := kept.Keep(context.Background(), xynolog.HeldSignIn{Access: signedToken(1), Refresh: "refresh-1", ClientID: xynolog.ScriptClientID, TokenEndpoint: kb.URL + "/token"}); err != nil {
+	if err := kept.Keep(context.Background(), api.StoredSession{Access: signedToken(1), Refresh: "refresh-1", ClientId: xynolog.ScriptClientID, TokenEndpoint: kb.URL + "/token"}); err != nil {
 		t.Fatal(err)
 	}
 	if err := readme.AsMe(within(t), kb.target(t, "kb-test"), home); err != nil {

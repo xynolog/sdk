@@ -3,23 +3,8 @@ package xynolog.signin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import xynolog.telemetry.futureOf
+import xynolog.types.StoredSession
 import java.util.concurrent.CompletableFuture
-
-/**
- * What is kept of a sign-in: the tokens an issuer issued, the client they
- * were issued to, the issuer's endpoints a renewal and a sign-out need,
- * learned once at sign-in so no session asks again, and the key of the person
- * a gateway said the tokens are (`xynolog.registry.personKey`), null until one
- * has.
- */
-public data class HeldSignIn(
-    public val access: String,
-    public val refresh: String,
-    public val clientId: String,
-    public val tokenEndpoint: String,
-    public val revocationEndpoint: String?,
-    public val personKey: String?,
-)
 
 /**
  * Where one knowledge base's sign-in is kept. Each suspending member has its
@@ -28,10 +13,10 @@ public data class HeldSignIn(
  */
 public interface SignInKept {
     /** The sign-in as it is kept now, when there is one. */
-    public suspend fun held(): HeldSignIn?
+    public suspend fun held(): StoredSession?
 
     /** Keep a sign-in, in place of whatever was kept. */
-    public suspend fun keep(signIn: HeldSignIn)
+    public suspend fun keep(signIn: StoredSession)
 
     /**
      * Keep the tokens a renewal of `read` issued, against what is kept now:
@@ -41,7 +26,7 @@ public interface SignInKept {
      * was signed out, or ended, while it was being renewed is gone, and is not
      * written back.
      */
-    public suspend fun renewed(read: HeldSignIn, access: String, refresh: String): String?
+    public suspend fun renewed(read: StoredSession, access: String, refresh: String): String?
 
     /** Keep the sign-in no more. */
     public suspend fun forget()
@@ -57,13 +42,13 @@ public interface SignInKept {
     public suspend fun recordPersonKey(access: String, personKey: String): Boolean
 
     /** `held`, for Java. */
-    public fun heldFuture(): CompletableFuture<HeldSignIn?> = CoroutineScope(Dispatchers.Unconfined).futureOf { held() }
+    public fun heldFuture(): CompletableFuture<StoredSession?> = CoroutineScope(Dispatchers.Unconfined).futureOf { held() }
 
     /** `keep`, for Java. */
-    public fun keepFuture(signIn: HeldSignIn): CompletableFuture<Unit> = CoroutineScope(Dispatchers.Unconfined).futureOf { keep(signIn) }
+    public fun keepFuture(signIn: StoredSession): CompletableFuture<Unit> = CoroutineScope(Dispatchers.Unconfined).futureOf { keep(signIn) }
 
     /** `renewed`, for Java. */
-    public fun renewedFuture(read: HeldSignIn, access: String, refresh: String): CompletableFuture<String?> =
+    public fun renewedFuture(read: StoredSession, access: String, refresh: String): CompletableFuture<String?> =
         CoroutineScope(Dispatchers.Unconfined).futureOf { renewed(read, access, refresh) }
 
     /** `forget`, for Java. */
@@ -75,14 +60,14 @@ public interface SignInKept {
 }
 
 /** A sign-in kept for as long as the process lives, and no longer. */
-public class MemorySignIn(signIn: HeldSignIn? = null) : SignInKept {
-    private var signIn: HeldSignIn? = signIn
+public class MemorySignIn(signIn: StoredSession? = null) : SignInKept {
+    private var signIn: StoredSession? = signIn
 
-    override suspend fun held(): HeldSignIn? = synchronized(this) { signIn }
+    override suspend fun held(): StoredSession? = synchronized(this) { signIn }
 
-    override suspend fun keep(signIn: HeldSignIn): Unit = synchronized(this) { this.signIn = signIn }
+    override suspend fun keep(signIn: StoredSession): Unit = synchronized(this) { this.signIn = signIn }
 
-    override suspend fun renewed(read: HeldSignIn, access: String, refresh: String): String? = synchronized(this) {
+    override suspend fun renewed(read: StoredSession, access: String, refresh: String): String? = synchronized(this) {
         val kept = signIn ?: return null
         if (kept.access != read.access || kept.refresh != read.refresh) return kept.access
         signIn = kept.copy(access = access, refresh = refresh)

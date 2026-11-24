@@ -28,6 +28,8 @@ the coming release's, and gathers its changes as they land.
 - `OpenResource` is `xynolog.types.OpenResource`, the type Protocol states, in
   place of `xynolog.registry.OpenResource`: its `order` is a `Long`, and Java
   makes one with its `builder`.
+- What is kept of a sign-in is `xynolog.types.StoredSession`, in place of
+  `xynolog.signin.HeldSignIn`.
 
 ## 0.8.1
 

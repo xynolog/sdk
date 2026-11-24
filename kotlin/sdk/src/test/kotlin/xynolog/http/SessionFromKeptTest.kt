@@ -40,7 +40,6 @@ import xynolog.registry.keptIn
 import xynolog.registry.lastEventIdKey
 import xynolog.registry.personKey
 import xynolog.registry.storeSession
-import xynolog.signin.HeldSignIn
 import xynolog.signin.MemorySignIn
 import xynolog.signin.SCRIPT_CLIENT_ID
 import xynolog.signin.SignInKept
@@ -78,7 +77,7 @@ private class Unreadable(private val beneath: SignInKept) : SignInKept by beneat
     /** How often it was asked while it could not be read. */
     val refused = AtomicInteger()
 
-    override suspend fun held(): HeldSignIn? {
+    override suspend fun held(): StoredSession? {
         if (unreadable) {
             refused.incrementAndGet()
             throw IOException("the sign-in cannot be read")
@@ -91,7 +90,7 @@ private class Unreadable(private val beneath: SignInKept) : SignInKept by beneat
 private class ReadableFor(private val reads: Int, private val beneath: SignInKept) : SignInKept by beneath {
     private val read = AtomicInteger()
 
-    override suspend fun held(): HeldSignIn? {
+    override suspend fun held(): StoredSession? {
         if (read.incrementAndGet() > reads) throw IOException("the sign-in cannot be read")
         return beneath.held()
     }
@@ -110,7 +109,7 @@ private class Waiting(private val beneath: SignInKept) : SignInKept by beneath {
     /** How often it was read while its reading waited. */
     val waited = AtomicInteger()
 
-    override suspend fun held(): HeldSignIn? {
+    override suspend fun held(): StoredSession? {
         gate?.let {
             waited.incrementAndGet()
             it.await()
@@ -181,7 +180,7 @@ class SessionFromKeptTest {
             realm.script("/bus/subscribe", Said(401, refused))
             realm.script("/api/users/me", Said(401, refused), Said(200, alice))
             realm.script("/token", issued(renewed, "refresh-2"))
-            val kept = MemorySignIn(HeldSignIn(stored, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
+            val kept = MemorySignIn(StoredSession(stored, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
             sessionFromKept(kb(realm), kept).use { opened ->
                 assertEquals(renewed, opened.session.token.value)
                 assertEquals("alice@example.org", opened.session.user.value?.email)
@@ -199,7 +198,7 @@ class SessionFromKeptTest {
             val renewed = tokenFor("access-2")
             realm.script("/api/users/me", Said(401, refused), Said(200, alice))
             realm.script("/token", issued(renewed, "refresh-2"))
-            val kept = MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
+            val kept = MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
             val http = CallersHttp()
             sessionFromKept(kb(realm), kept, http = http).use { opened ->
                 assertEquals(renewed, opened.session.token.value)
@@ -222,7 +221,7 @@ class SessionFromKeptTest {
             realm.script("/bus/subscribe", Said(401, refused))
             realm.script("/api/users/me", Said(200, alice), Said(200, alice))
             realm.script("/token", issued(renewed, "refresh-2"))
-            val kept = MemorySignIn(HeldSignIn(stored, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
+            val kept = MemorySignIn(StoredSession(stored, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
             sessionFromKept(kb(realm), kept).use { opened ->
                 withTimeout(10_000) { opened.session.token.first { it == renewed } }
                 assertEquals(listOf("refresh-1"), realm.of("/token").map { it.form["refresh_token"] })
@@ -237,7 +236,7 @@ class SessionFromKeptTest {
             val storage = MemoryStorage()
             storage.set(KEPT_FOR_ALICE.first, KEPT_FOR_ALICE.second)
             // A sign-in whose person no gateway has named yet.
-            val kept = MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
+            val kept = MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
             sessionFromKept(kb(realm), kept, storage = storage).use { opened ->
                 assertEquals(ALICE_KEY, kept.held()?.personKey)
                 // What was kept for them is shown at once.
@@ -273,7 +272,7 @@ class SessionFromKeptTest {
             realm.script("/api/users/me", Said(200, alice))
             val places = lastEventIdKey("local", ALICE_KEY)
             val storage = RefusingTheFirstWriteOf(MemoryStorage(), KEPT_FOR_ALICE.first)
-            val kept = MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY))
+            val kept = MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY))
             sessionFromKept(kb(realm), kept, storage = storage).use { opened ->
                 val transport = opened.client.transport
                 val heard = transport.frames("mark:added")
@@ -306,7 +305,7 @@ class SessionFromKeptTest {
             val places = lastEventIdKey("local", ALICE_KEY)
             val annotations = cacheKey("local", ALICE_KEY, "annotations")
             val storage = RefusingTheFirstWriteOf(MemoryStorage(), KEPT_FOR_ALICE.first)
-            val kept = Waiting(MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
+            val kept = Waiting(MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
             sessionFromKept(kb(realm), kept, storage = storage).use { opened ->
                 val client = opened.client
                 val transport = client.transport
@@ -360,7 +359,7 @@ class SessionFromKeptTest {
             realm.answersFresh()
             realm.script("/api/users/me", Said(200, alice))
             val storage = RefusingTheFirstWriteOf(MemoryStorage(), KEPT_FOR_ALICE.first)
-            val kept = Waiting(MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
+            val kept = Waiting(MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
             val uncaught = CopyOnWriteArrayList<Throwable>()
             val context = Dispatchers.Default + CoroutineExceptionHandler { _, thrown -> uncaught += thrown }
             val opened = sessionFromKept(kb(realm), kept, storage = storage, context = context)
@@ -398,7 +397,7 @@ class SessionFromKeptTest {
             realm.answersFresh()
             realm.script("/api/users/me", Said(200, alice))
             val storage = RefusingTheFirstWriteOf(MemoryStorage(), KEPT_FOR_ALICE.first)
-            val kept = MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY))
+            val kept = MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY))
             val opened = sessionFromKept(kb(realm), kept, storage = storage)
             val said = CopyOnWriteArrayList<XynologError>()
             val errors = opened.session.errors()
@@ -429,7 +428,7 @@ class SessionFromKeptTest {
             realm.answersFresh()
             realm.script("/api/users/me", Said(200, alice))
             val storage = RefusingEveryWriteOf(MemoryStorage(), KEPT_FOR_ALICE.first)
-            val kept = MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY))
+            val kept = MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY))
             val opened = sessionFromKept(kb(realm), kept, storage = storage)
             val errors = opened.session.errors()
             opened.use {
@@ -455,7 +454,7 @@ class SessionFromKeptTest {
             // The issuer does not answer the renewal of the refused token, through its whole retry budget, and then renews it.
             repeat(xynolog.Timings.REFRESH_RETRY.attempts) { realm.script("/token", Said(503, buildJsonObject { put("error", "unavailable") })) }
             realm.script("/token", issued(renewed, "refresh-2"))
-            val kept = MemorySignIn(HeldSignIn(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
+            val kept = MemorySignIn(StoredSession(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
             sessionFromKept(kb(realm), kept, random = LowestDraw).use { opened ->
                 val session = opened.session
                 session.errors().use { errors ->
@@ -479,7 +478,7 @@ class SessionFromKeptTest {
             realm.script("/api/users/me", Said(200, alice))
             val access = tokenFor("access-1")
             val renewed = tokenFor("access-2")
-            val kept = MemorySignIn(HeldSignIn(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
+            val kept = MemorySignIn(StoredSession(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
             val ended = CopyOnWriteArrayList<SessionEndReason>()
             sessionFromKept(kb(realm), kept, onAuthFailed = { ended += it }).use { opened ->
                 val session = opened.session
@@ -516,7 +515,7 @@ class SessionFromKeptTest {
             realm.answersFresh()
             realm.script("/api/users/me", Said(200, alice))
             val storage = MemoryStorage()
-            val kept = Unreadable(MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
+            val kept = Unreadable(MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
             val opened = sessionFromKept(kb(realm), kept, storage = storage)
             val told = CopyOnWriteArrayList<SessionError>()
             val errors = opened.session.errors()
@@ -548,7 +547,7 @@ class SessionFromKeptTest {
             val storage = MemoryStorage()
             // A sign-in whose person no gateway has named yet, and which cannot record one.
             val access = tokenFor("access-1")
-            val kept = Unrecording(MemorySignIn(HeldSignIn(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null)))
+            val kept = Unrecording(MemorySignIn(StoredSession(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null)))
             sessionFromKept(kb(realm), kept, storage = storage).use { opened ->
                 // Said as the session started, before its opener could listen: the stream's first reader hears it.
                 val said = withTimeout(5_000) { opened.session.errors().use { errors -> errors.filterIsInstance<SessionError>().first() } }
@@ -571,7 +570,7 @@ class SessionFromKeptTest {
             realm.answersFresh()
             realm.script("/api/users/me", Said(200, alice))
             val storage = MemoryStorage()
-            val kept = Unreadable(MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
+            val kept = Unreadable(MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
             val opened = sessionFromKept(kb(realm), kept, storage = storage)
             val errors = opened.session.errors()
             opened.use {
@@ -594,7 +593,7 @@ class SessionFromKeptTest {
             realm.answersFresh()
             realm.script("/api/users/me", Said(200, alice))
             val storage = MemoryStorage()
-            val unreadable = Unreadable(MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
+            val unreadable = Unreadable(MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
             val kept = Waiting(unreadable)
             val opened = sessionFromKept(kb(realm), kept, storage = storage)
             val errors = opened.session.errors()
@@ -622,7 +621,7 @@ class SessionFromKeptTest {
     fun aSignInThatCannotBeReadAsTheSessionStartsFailsItsOpeningWithWhatTheReadingThrew() {
         Realm().use { realm ->
             for (storage in listOf(null, MemoryStorage())) {
-                val kept = Unreadable(MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
+                val kept = Unreadable(MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY)))
                 kept.unreadable = true
                 val failure = assertThrows(IOException::class.java) { runBlocking { sessionFromKept(kb(realm), kept, storage = storage) } }
                 assertEquals("the sign-in cannot be read", failure.message)
@@ -634,7 +633,7 @@ class SessionFromKeptTest {
     @Test
     fun aSignInThatCannotBeReadAsTheStartRenewsItIsARenewalWithNoAnswer() = runBlocking {
         Realm().use { realm ->
-            val beneath = MemorySignIn(HeldSignIn(tokenFor("access-1", -3600), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
+            val beneath = MemorySignIn(StoredSession(tokenFor("access-1", -3600), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
             // Read as the session starts, and not when its start renews the kept token, which has expired.
             val kept = ReadableFor(1, beneath)
             val ended = CopyOnWriteArrayList<SessionEndReason>()
@@ -656,7 +655,7 @@ class SessionFromKeptTest {
     fun aSignInThatCannotBeReadAsARefusedTokenIsRenewedIsARenewalWithNoAnswer() = runBlocking {
         Realm().use { realm ->
             realm.script("/api/users/me", Said(200, alice))
-            val kept = Unreadable(MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null)))
+            val kept = Unreadable(MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null)))
             val ended = CopyOnWriteArrayList<SessionEndReason>()
             sessionFromKept(kb(realm), kept, onAuthFailed = { ended += it }).use { opened ->
                 val session = opened.session
@@ -682,7 +681,7 @@ class SessionFromKeptTest {
         Realm().use { realm ->
             val storage = MemoryStorage()
             storage.set(KEPT_FOR_ALICE.first, KEPT_FOR_ALICE.second)
-            val kept = MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY))
+            val kept = MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, ALICE_KEY))
             sessionFromKept(kb(realm), kept, validate = false, storage = storage).use { opened ->
                 val shown = withTimeout(5_000) { opened.client.browse.resource(ResourceId("res-1")).first() }
                 assertEquals("kept", (shown as? CacheState.Ready)?.value?.name, "$shown")
@@ -696,7 +695,7 @@ class SessionFromKeptTest {
         Realm().use { realm ->
             val storage = MemoryStorage()
             storage.set(KEPT_FOR_ALICE.first, KEPT_FOR_ALICE.second)
-            val kept = MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
+            val kept = MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
             sessionFromKept(kb(realm), kept, validate = false, storage = storage).use { opened ->
                 assertEquals(CacheState.Pending, withTimeout(5_000) { opened.client.browse.resource(ResourceId("res-1")).first() })
             }

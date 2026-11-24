@@ -24,6 +24,9 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/optional"
 )
 
 // SignInStore is the store in the file at a path: SignInFile in StateDir,
@@ -212,33 +215,33 @@ func written(learned SignIn, access, refresh string) SignIn {
 
 // Held is the sign-in, when one is kept that can be renewed: one with no
 // refresh token does not outlive its first access token.
-func (e *signInEntry) Held(context.Context) (HeldSignIn, bool, error) {
+func (e *signInEntry) Held(context.Context) (api.StoredSession, bool, error) {
 	signIn, ok, err := e.store.SignIn(e.key)
 	if err != nil || !ok || signIn.RefreshToken == "" {
-		return HeldSignIn{}, false, err
+		return api.StoredSession{}, false, err
 	}
-	return HeldSignIn{
+	return api.StoredSession{
 		Access:             signIn.Token,
 		Refresh:            signIn.RefreshToken,
-		ClientID:           ScriptClientID,
+		ClientId:           ScriptClientID,
 		TokenEndpoint:      signIn.TokenEndpoint,
-		RevocationEndpoint: signIn.RevocationEndpoint,
+		RevocationEndpoint: optional.Text(signIn.RevocationEndpoint),
 	}, true, nil
 }
 
 // Keep keeps a sign-in the script client was issued. The store names each
 // sign-in by its issuer, and by its address when the token names one: a token
 // that names no issuer is not kept.
-func (e *signInEntry) Keep(_ context.Context, signIn HeldSignIn) error {
-	if signIn.ClientID != ScriptClientID {
-		return fmt.Errorf("the sign-in store keeps what the client %s was issued, and this was issued to %s", ScriptClientID, signIn.ClientID)
+func (e *signInEntry) Keep(_ context.Context, signIn api.StoredSession) error {
+	if signIn.ClientId != ScriptClientID {
+		return fmt.Errorf("the sign-in store keeps what the client %s was issued, and this was issued to %s", ScriptClientID, signIn.ClientId)
 	}
 	issuer, hasIssuer := TextClaim(signIn.Access, "iss")
 	if !hasIssuer {
 		return signInUnanswered(SignInErrorCodeExchange, fmt.Sprintf("The sign-in to %s was not kept: its access token names no issuer", e.key))
 	}
 	email, _ := TextClaim(signIn.Access, "email")
-	learned := SignIn{Email: email, Issuer: issuer, TokenEndpoint: signIn.TokenEndpoint, RevocationEndpoint: signIn.RevocationEndpoint}
+	learned := SignIn{Email: email, Issuer: issuer, TokenEndpoint: signIn.TokenEndpoint, RevocationEndpoint: optional.Said(signIn.RevocationEndpoint)}
 	return e.store.change(func(document map[string]json.RawMessage) (bool, error) {
 		return true, put(document, e.key, written(learned, signIn.Access, signIn.Refresh))
 	})
@@ -250,7 +253,7 @@ func (e *signInEntry) Keep(_ context.Context, signIn HeldSignIn) error {
 // given. The refresh token alone does not tell, since an issuer that rotates
 // none leaves it as it was. False when nothing is kept: a stack signed out
 // while it was being renewed stays signed out.
-func (e *signInEntry) Renewed(_ context.Context, read HeldSignIn, access, refresh string) (string, bool, error) {
+func (e *signInEntry) Renewed(_ context.Context, read api.StoredSession, access, refresh string) (string, bool, error) {
 	var current string
 	var kept bool
 	err := e.store.change(func(document map[string]json.RawMessage) (bool, error) {

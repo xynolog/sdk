@@ -40,10 +40,20 @@ from xynolog.http.oauth import sign_in_with_device_grant
 from xynolog.http.transport import HttpTransport
 from xynolog.identifiers import JobId
 from xynolog.operations import BROWSE_EVENTS_REQUESTED
-from xynolog.session import HeldSignIn, MemorySignIn, XynologSession
+from xynolog.session import MemorySignIn, XynologSession
 from xynolog.testing import FaultyTransport, InMemoryContent, StubGateway, create_test_client, refuse_unscripted_operation
 from xynolog.transport import Frame
-from xynolog.types import ClaimOptions, DiscoveredKB, HighlightingJobParams, HttpEndpoint, JobFilter, JobProgress, KbTarget, UserResponse
+from xynolog.types import (
+    ClaimOptions,
+    DiscoveredKB,
+    HighlightingJobParams,
+    HttpEndpoint,
+    JobFilter,
+    JobProgress,
+    KbTarget,
+    StoredSession,
+    UserResponse,
+)
 from xynolog.watched import Variable
 
 TABLE: Final = read(SPEC / "client/clock-cases.json")
@@ -488,7 +498,7 @@ async def renewal(given: JsonObject, held: AsyncExitStack) -> Subject:
         return ALICE
 
     kept = MemorySignIn(
-        HeldSignIn(access=token(lifetime, 0), refresh="a-refresh-token", client_id="xynolog-cli", token_endpoint=f"{ISSUER}/token")
+        StoredSession(access=token(lifetime, 0), refresh="a-refresh-token", client_id="xynolog-cli", token_endpoint=f"{ISSUER}/token")
     )
     session = XynologSession(
         kb=KB, client=create_test_client().client, token=Variable[str | None](None), kept=kept, refresh=renew, validate=accepted

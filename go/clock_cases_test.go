@@ -551,7 +551,7 @@ func renewalSubject(t *testing.T, given clockGiven) clockSubject {
 	lifetime := time.Duration(*given.LifetimeSeconds) * time.Second
 	var renewals atomic.Int64
 	kept := &xynolog.MemorySignIn{}
-	if err := kept.Keep(context.Background(), xynolog.HeldSignIn{Access: tokenFor(lifetime, 0), Refresh: "a-refresh-token", ClientID: "xynolog-cli", TokenEndpoint: issuerOrigin + "/token"}); err != nil {
+	if err := kept.Keep(context.Background(), api.StoredSession{Access: tokenFor(lifetime, 0), Refresh: "a-refresh-token", ClientId: "xynolog-cli", TokenEndpoint: issuerOrigin + "/token"}); err != nil {
 		t.Fatal(err)
 	}
 	client := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})

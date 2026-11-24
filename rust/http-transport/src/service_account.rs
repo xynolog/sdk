@@ -22,6 +22,7 @@ use xynolog::identity::encode_uri_component;
 use xynolog::retry::RetryFacts;
 use xynolog::session::{refresh_delay, renewal_delay};
 use xynolog::timing::HTTP_REQUEST_TIMEOUT;
+use xynolog::types::ClientSecretFormGrantType;
 
 /// A service account at an issuer, by how it proves itself.
 #[derive(Debug)]
@@ -123,7 +124,8 @@ impl Credential {
                     ))
                 })?;
                 Ok(format!(
-                    "grant_type=client_credentials&client_assertion_type={}&client_assertion={}",
+                    "grant_type={}&client_assertion_type={}&client_assertion={}",
+                    ClientSecretFormGrantType::ClientCredentials.as_str(),
                     encode_uri_component(JWT_BEARER),
                     encode_uri_component(&assertion)
                 ))

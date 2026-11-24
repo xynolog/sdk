@@ -65,7 +65,6 @@ import binascii
 import time
 import uuid
 from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import dataclass, replace
 from types import TracebackType
 from typing import Final, Protocol, Self, final, override
 
@@ -80,11 +79,10 @@ from xynolog.retry import REFRESH, RetryFacts, equal_jitter
 from xynolog.state_unit import StateUnit
 from xynolog.timing import MAX_RECONNECT_MS, MIN_REFRESH_DELAY_MS, RECONNECT_MS, REFRESH_BEFORE_EXP_MS
 from xynolog.transport import ConnectionState, Transport
-from xynolog.types import KbTarget, SessionEndReason, UserResponse
+from xynolog.types import KbTarget, SessionEndReason, StoredSession, UserResponse
 from xynolog.watched import Variable, Watched
 
 __all__ = [
-    "HeldSignIn",
     "MemorySignIn",
     "Refresh",
     "SignInKept",
@@ -209,31 +207,10 @@ async def renew_when_due(token: Watched[str | None], renew: Callable[[str], Awai
 # ── What a session keeps ────────────────────────────────────────────────
 
 
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class HeldSignIn:
-    """What is kept of a sign-in.
-
-    The tokens an issuer issued, the client they were issued to, and the
-    issuer's endpoints a renewal and a sign-out need, learned once at sign-in
-    so no session asks again.
-    """
-
-    access: str
-    refresh: str
-    client_id: str
-    token_endpoint: str
-    revocation_endpoint: str | None = None
-    person_key: str | None = None
-    """Who a gateway said the sign-in's person is, as the key their caches are kept under
-    (`xynolog.storage_keys.person_key`); none until a gateway has named them. A renewal keeps it,
-    and a new sign-in begins without it."""
-
-
 class SignInKept(Protocol):
     """Where one knowledge base's sign-in is kept."""
 
-    async def held(self) -> HeldSignIn | None:
+    async def held(self) -> StoredSession | None:
         """The sign-in as it is kept now, when there is one.
 
         A session whose client keeps what it holds asks before each write,
@@ -241,11 +218,11 @@ class SignInKept(Protocol):
         """
         ...
 
-    async def keep(self, sign_in: HeldSignIn) -> None:
+    async def keep(self, sign_in: StoredSession) -> None:
         """Keep a new sign-in, in place of whatever was kept: a renewal is kept with `renewed`."""
         ...
 
-    async def renewed(self, read: HeldSignIn, access: str, refresh: str) -> str | None:
+    async def renewed(self, read: StoredSession, access: str, refresh: str) -> str | None:
         """Keep the tokens a renewal of `read` issued, against what is kept now: the access token kept then.
 
         When what is kept no longer holds `read`'s tokens, it was renewed some
@@ -277,24 +254,24 @@ class SignInKept(Protocol):
 class MemorySignIn(SignInKept):
     """A sign-in kept for as long as the process lives, and no longer."""
 
-    def __init__(self, sign_in: HeldSignIn | None = None) -> None:
+    def __init__(self, sign_in: StoredSession | None = None) -> None:
         self._sign_in = sign_in
 
     @override
-    async def held(self) -> HeldSignIn | None:
+    async def held(self) -> StoredSession | None:
         return self._sign_in
 
     @override
-    async def keep(self, sign_in: HeldSignIn) -> None:
+    async def keep(self, sign_in: StoredSession) -> None:
         self._sign_in = sign_in
 
     @override
-    async def renewed(self, read: HeldSignIn, access: str, refresh: str) -> str | None:
+    async def renewed(self, read: StoredSession, access: str, refresh: str) -> str | None:
         if self._sign_in is None:
             return None
         if (self._sign_in.access, self._sign_in.refresh) != (read.access, read.refresh):
             return self._sign_in.access
-        self._sign_in = replace(self._sign_in, access=access, refresh=refresh)
+        self._sign_in = self._sign_in.model_copy(update={"access": access, "refresh": refresh})
         return access
 
     @override
@@ -302,7 +279,7 @@ class MemorySignIn(SignInKept):
         kept = self._sign_in
         if kept is None or kept.access != access or kept.person_key not in (None, person_key):
             return False
-        self._sign_in = replace(kept, person_key=person_key)
+        self._sign_in = kept.model_copy(update={"person_key": person_key})
         return True
 
     @override
@@ -475,7 +452,7 @@ class XynologSession[T: Transport](StateUnit):
             stop()
         self._errors.close()
 
-    async def _run(self, kept: HeldSignIn | None) -> None:
+    async def _run(self, kept: StoredSession | None) -> None:
         async with asyncio.TaskGroup() as tasks:
             tasks.create_task(renew_when_due(self._token, self._renew_due))
             tasks.create_task(self._renew_when_unanswered())
@@ -641,7 +618,7 @@ class XynologSession[T: Transport](StateUnit):
             return
         self._errors.deliver(error)
 
-    async def _start(self, kept: HeldSignIn | None) -> None:
+    async def _start(self, kept: StoredSession | None) -> None:
         """What a session does at its start, with the sign-in it found kept.
 
         Renew it if it has expired, then ask the gateway who it is. A token

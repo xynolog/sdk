@@ -25,6 +25,12 @@ the coming release's, and gathers its changes as they land.
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
 - A schema of an object that names no members is a type of its own
   (`type BrowseKbRequest map[string]any`), not an alias of `map[string]any`.
+- `OpenResource` is `api.OpenResource`, the type Protocol states, in place of
+  `registry.OpenResource`: its `Id` and `StorageUri` are spelled as Protocol
+  spells them, and a media type or storage URI it does not know is nil.
+- What is kept of a sign-in is `api.StoredSession`, in place of
+  `HeldSignIn`: its `ClientId` is spelled as Protocol spells it, and an issuer
+  with no revocation endpoint states none (nil).
 
 ## 0.8.1
 

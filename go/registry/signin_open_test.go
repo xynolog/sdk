@@ -19,6 +19,7 @@ import (
 
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/optional"
 	"github.com/xynolog/sdk/go/registry"
 	"github.com/xynolog/sdk/go/xynologtest"
 )
@@ -319,7 +320,7 @@ func TestResourcesAreOpenedRenamedClosedAndMovedInTheActiveKnowledgeBase(t *test
 		if got := open(browser); !equalStrings(got, []string{"r1", "r2", "r3"}) {
 			t.Errorf("open: %v", got)
 		}
-		if shown[0].Name != "One, renamed" || shown[0].MediaType != "text/plain" || shown[1].Name != "Two, renamed" || shown[1].StorageURI != "file://two.md" {
+		if shown[0].Name != "One, renamed" || optional.Said(shown[0].MediaType) != "text/plain" || shown[1].Name != "Two, renamed" || optional.Said(shown[1].StorageUri) != "file://two.md" {
 			t.Errorf("shown: %+v", shown)
 		}
 
@@ -502,7 +503,7 @@ func TestOnlyAResourceTheKnowledgeBaseSaysIsGoneIsClosed(t *testing.T) {
 		}
 		shown := browser.OpenResources().Value()
 		// What was found is shown under the name and type it has now.
-		if shown[0].Name != "name-kept" || shown[0].MediaType != "application/pdf" {
+		if shown[0].Name != "name-kept" || optional.Said(shown[0].MediaType) != "application/pdf" {
 			t.Errorf("what was found shows as %+v", shown[0])
 		}
 		// What could not be read is left exactly as it was.

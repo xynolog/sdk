@@ -127,7 +127,7 @@
     "lib/delegation.mli": "36f45f6d1caa39e7eda0024d666bb32e2cd21346343e1dc9946bf5789ec67e23",
     "lib/discovery.ml": "227189065a91113da86f0395e43bf1d96ad63d53113b227cb42dba4ec5404d9e",
     "lib/discovery.mli": "6c0dfb2d59167619ced226e06d53cc05f0e2d83e0c9bf0ef6ec1ed7715d2a28d",
-    "lib/dune": "b22a916f81c231d714ce088c3da1c88d0f621e6a765fc5b9537c088c27ee1489",
+    "lib/dune": "26fbb89581760a4457856a360804c2bf222eca246f68a3d34e8939b27c039361",
     "lib/encoding_facts.ml": "dc9602d08894d9a3bd5334cb3254218f7a74dad0528d552acb00cec4061bb9bb",
     "lib/enums.ml": "353821c220ee7d5f561b0c16819ac358a27de580637302fc7a395c94bda39c6f",
     "lib/error_codes.ml": "041a91c845d81e0186ab20c62e078491f9616340c38a235411b7e51d0aa64c8f",
@@ -183,8 +183,8 @@
     "lib/registry_facts.ml": "ad2d706c130785002585a0797b2ec8a070790257bd364a85b34f51f839dfcd63",
     "lib/resources.ml": "99f49caf9937bf6754e62b0011196873fdfbc1488ed90817a49fcd292d6a9fd4",
     "lib/resources.mli": "681c8d831db9af64fc28b7b91b6e913bf992f99529f2a3edb7f0d16121b10bf2",
-    "lib/retry.ml": "0dfc63df473a609eba0ee7c4a87939632b3199038905c514a637cc93c1e6621b",
-    "lib/retry.mli": "f1ce129d8c0f5585f03f3ee57b8eecb1da50774a9bccb93bd8d40511f6fcab72",
+    "lib/retry.ml": "c1d938db21bb4c1a99b5e103f0d552af5299b9f8c09ad6e299857bb4fa64ca11",
+    "lib/retry.mli": "dc9e910cc0c0ac2904e00416c4259b80deebf0fe296852bc3f0ff1adcbe3387b",
     "lib/running.ml": "d1e491aa088ca534f4668aa784ce843b98aea9c83b0dfe42c8f679dbb8c0cb03",
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "13016b0b60b2d81eeca6ae4e0998bba40195a1ae2b05f7709f98b998ad048423",
@@ -241,8 +241,8 @@
     "lib/wire_stream.mli": "d145d5064298080786a7d80eb55a4936a8dbe89cd0e0ccf4fa81b6e82fc799a5",
     "lib/worker.ml": "4da58d8cca59bf6bfbdd92cf732a0c990c4ef65b083a44161ae1a70d51aae5e2",
     "lib/worker.mli": "d5c6c60e407f915b03a1a65f578a2663b8e6d26aaae77f9db5455656e20db49e",
-    "lib/xynolog.ml": "5905c4650d1fd442f290b0364072740595dcdc781c75b114f9ad0f9f92110bf6",
-    "lib/xynolog.mli": "02e4d8b6ce04271eefd8c710eab15a7388cd4582f65623d16f0ea4bb29c1461c",
+    "lib/xynolog.ml": "87c828b9f4a571c279f7d99c6e26ceb876627ee325affa9502e8675527adad97",
+    "lib/xynolog.mli": "86c34f2b80eea15f732f65a6d85c37a8552374221d89e55225c4bb5418d0a17f",
     "lib/yield.ml": "eb895203554d9af88f6aa464d397757aba04eab611d69a2429c3ddd83b5b0ca1",
     "lib/yield.mli": "da4db7e1cc2177b532bf7e95c864e3e636e911d31fe86763235a25373930a744",
     "lib/yield_state.ml": "964626f32956299da2c452708bd8be0e9c69017c7c98b8cef2a96cbfae777cf0",
@@ -24631,17 +24631,6 @@
       ]
     },
     {
-      "kind": "type",
-      "path": "Xynolog.Retry.budget",
-      "declaration": "type budget = { attempts : int; initial_delay_ms : int; max_delay_ms : int; }",
-      "representation": "record",
-      "fields": [
-        "attempts",
-        "initial_delay_ms",
-        "max_delay_ms"
-      ]
-    },
-    {
       "kind": "value",
       "path": "Xynolog.Retry.retryable",
       "declaration": "val retryable :\n  rule -> ?status:int -> ?meth:string -> ?keyed:bool -> unit -> bool"
@@ -24659,7 +24648,229 @@
     {
       "kind": "value",
       "path": "Xynolog.Retry.retry_with_backoff",
-      "declaration": "val retry_with_backoff :\n  clock:Xynolog__.Clock.t ->\n  budget:budget ->\n  accepts:('error -> bool) ->\n  retry_after:('error -> int option) ->\n  (unit -> ('value, 'error) result) -> ('value, 'error) result"
+      "declaration": "val retry_with_backoff :\n  clock:Xynolog__.Clock.t ->\n  budget:Xynolog__.Client_timing.retry ->\n  accepts:('error -> bool) ->\n  retry_after:('error -> int option) ->\n  (unit -> ('value, 'error) result) -> ('value, 'error) result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Client_timing",
+      "declaration": "module Client_timing = Xynolog__.Client_timing",
+      "alias": "Xynolog__.Client_timing"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Client_timing.retry",
+      "declaration": "type retry = { attempts : int; initial_delay_ms : int; max_delay_ms : int; }",
+      "representation": "record",
+      "fields": [
+        "attempts",
+        "initial_delay_ms",
+        "max_delay_ms"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.bus_request_timeout_ms",
+      "declaration": "val bus_request_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.emit_timeout_ms",
+      "declaration": "val emit_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.emit_retry",
+      "declaration": "val emit_retry : retry"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.http_request_timeout_ms",
+      "declaration": "val http_request_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.request_retry_pause_ms",
+      "declaration": "val request_retry_pause_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.stream_open_timeout_ms",
+      "declaration": "val stream_open_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.reconnect_ms",
+      "declaration": "val reconnect_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.max_reconnect_ms",
+      "declaration": "val max_reconnect_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.degraded_threshold_ms",
+      "declaration": "val degraded_threshold_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.linger_ms",
+      "declaration": "val linger_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.seen_event_ids_count",
+      "declaration": "val seen_event_ids_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.reconnect_debounce_ms",
+      "declaration": "val reconnect_debounce_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.lazy_remove_ms",
+      "declaration": "val lazy_remove_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.refresh_retry",
+      "declaration": "val refresh_retry : retry"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.refresh_before_exp_ms",
+      "declaration": "val refresh_before_exp_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.min_refresh_delay_ms",
+      "declaration": "val min_refresh_delay_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.device_poll_ms",
+      "declaration": "val device_poll_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.device_slow_down_ms",
+      "declaration": "val device_slow_down_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.device_poll_floor_ms",
+      "declaration": "val device_poll_floor_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.invalidation_window_ms",
+      "declaration": "val invalidation_window_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.save_debounce_ms",
+      "declaration": "val save_debounce_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.max_stored_bytes_count",
+      "declaration": "val max_stored_bytes_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.errors_kept_for_first_reader_count",
+      "declaration": "val errors_kept_for_first_reader_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_silence_ms",
+      "declaration": "val job_silence_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_status_poll_ms",
+      "declaration": "val job_status_poll_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_poll_ms",
+      "declaration": "val job_poll_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_poll_timeout_ms",
+      "declaration": "val job_poll_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.generation_stall_floor_ms",
+      "declaration": "val generation_stall_floor_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.generation_stall_per_token_ms",
+      "declaration": "val generation_stall_per_token_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.generation_stall_assumed_tokens_count",
+      "declaration": "val generation_stall_assumed_tokens_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.delegate_silence_ms",
+      "declaration": "val delegate_silence_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_claim_timeout_ms",
+      "declaration": "val job_claim_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.held_job_stall_ms",
+      "declaration": "val held_job_stall_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.held_job_stall_check_ms",
+      "declaration": "val held_job_stall_check_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.mark_commit_timeout_ms",
+      "declaration": "val mark_commit_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.generated_text_asks_count",
+      "declaration": "val generated_text_asks_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.anchored_text_reask_ms",
+      "declaration": "val anchored_text_reask_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.hover_delay_ms",
+      "declaration": "val hover_delay_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.search_debounce_ms",
+      "declaration": "val search_debounce_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.discovery_interval_ms",
+      "declaration": "val discovery_interval_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.checks_at_once_count",
+      "declaration": "val checks_at_once_count : int"
     },
     {
       "kind": "module",

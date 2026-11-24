@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
 import xynolog.session.token
-import xynolog.signin.HeldSignIn
 import xynolog.signin.MemorySignIn
 import xynolog.types.HttpEndpoint
 import xynolog.types.HttpEndpointProtocol
 import xynolog.types.KbTarget
+import xynolog.types.StoredSession
 
 /** A real session over a test client: ready at once, holding a token only if one was kept, and the test's to sign in. */
 class TestSessionTest {
@@ -35,7 +35,7 @@ class TestSessionTest {
         val client = TestClient()
         val kb = KbTarget(id = "kb-2", label = "Another", endpoint = HttpEndpoint(host = "example.org", port = 443, protocol = HttpEndpointProtocol.Https))
         val access = token(3600, 1)
-        val kept = MemorySignIn(HeldSignIn(access, "a-refresh-token", "xynolog-cli", "https://issuer.test/token", null, null))
+        val kept = MemorySignIn(StoredSession(access, "a-refresh-token", "xynolog-cli", "https://issuer.test/token", null, null))
         val given = createTestSession(TestSessionOptions(client, kb, kept))
         withTimeout(5_000) { given.session.ready() }
         assertSame(client.client, given.client)

@@ -21,7 +21,7 @@ from xynolog.client import CachePersistence, ClientTiming, XynologClient
 from xynolog.errors import BusRequestError, TransportError, XynologError
 from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED, GATHER_REQUESTED, GATHER_RESOURCE_REQUESTED, MARK_DELETE, MATCH_SEARCH_REQUESTED
-from xynolog.session import HeldSignIn, MemorySignIn, XynologSession
+from xynolog.session import MemorySignIn, XynologSession
 from xynolog.storage import MemoryStorage
 from xynolog.storage_keys import cache_key, person_key
 from xynolog.testing import (
@@ -58,6 +58,7 @@ from xynolog.types import (
     KbTarget,
     MediaTokenResponse,
     StatusResponse,
+    StoredSession,
     UploadProgressFinished,
     UploadProgressProgress,
     UploadProgressStarted,
@@ -703,7 +704,7 @@ def test_a_test_session_is_a_real_session_over_a_test_client_ready_at_once_and_h
         kb = KbTarget(id="kb-2", label="Another", endpoint=HttpEndpoint(kind="http", host="example.org", port=443, protocol="https"))
         access = token(3600, 1)
         kept = MemorySignIn(
-            HeldSignIn(access=access, refresh="a-refresh-token", client_id="xynolog-cli", token_endpoint="https://issuer.test/token")
+            StoredSession(access=access, refresh="a-refresh-token", client_id="xynolog-cli", token_endpoint="https://issuer.test/token")
         )
         given = create_test_session(client=client, kb=kb, kept=kept)
         assert (given.client, given.transport, given.content, given.gateway, given.kept) == (

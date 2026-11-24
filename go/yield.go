@@ -5,7 +5,6 @@ package xynolog
 
 import (
 	"context"
-	"encoding/json"
 	"math"
 	"time"
 
@@ -65,23 +64,13 @@ func (n *YieldNamespace) Delegate(params api.GenerationJobParams, stallDeadline 
 // focusOf is the resource a gathered context is about: the resource it was
 // gathered for, or the one holding the annotation it was gathered for.
 func focusOf(gathered api.GatheredContext) (api.ResourceId, error) {
-	focus, err := gathered.Focus.MarshalJSON()
-	if err != nil {
-		return api.ResourceId{}, err
+	var resource api.GatheredContextFocusResource
+	if gathered.Focus.As(&resource) == nil && resource.Kind == api.GatheredContextFocusResourceKindResource && !resource.Resource.Id.IsZero() {
+		return resource.Resource.Id, nil
 	}
-	var named struct {
-		Kind           string                  `json:"kind"`
-		Resource       *api.ResourceDescriptor `json:"resource"`
-		SourceResource *api.ResourceDescriptor `json:"sourceResource"`
-	}
-	if err := json.Unmarshal(focus, &named); err != nil {
-		return api.ResourceId{}, err
-	}
-	switch {
-	case named.Kind == string(api.GatheredContextFocusResourceKindResource) && named.Resource != nil:
-		return named.Resource.Id, nil
-	case named.Kind == string(api.GatheredContextFocusAnnotationKindAnnotation) && named.SourceResource != nil:
-		return named.SourceResource.Id, nil
+	var annotation api.GatheredContextFocusAnnotation
+	if gathered.Focus.As(&annotation) == nil && annotation.Kind == api.GatheredContextFocusAnnotationKindAnnotation && !annotation.SourceResource.Id.IsZero() {
+		return annotation.SourceResource.Id, nil
 	}
 	return api.ResourceId{}, transportErrorWithoutResponse("a gathered context whose focus names no resource", TransportErrorCodeError)
 }

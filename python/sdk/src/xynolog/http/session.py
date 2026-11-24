@@ -54,7 +54,7 @@ from xynolog.oauth_clients import BROWSER_CLIENT_ID, SCRIPT_CLIENT_ID
 from xynolog.operations import BROWSE_KB_REQUESTED
 from xynolog.registry import SessionFactory, SessionFactoryOptions, XynologBrowser, kept_in
 from xynolog.resume import CoupledBookmarks
-from xynolog.session import HeldSignIn, SignInKept, Validate, XynologSession
+from xynolog.session import SignInKept, Validate, XynologSession
 from xynolog.storage import SessionStorage
 from xynolog.storage_keys import last_event_id_key, person_key
 from xynolog.types import (
@@ -577,7 +577,7 @@ async def sign_in_device(
         raise SignInError("discovery", str(invalid)) from None
     issuer, tokens = await sign_in_with_device_grant(base_url, on_code, http=http)
     await kept.keep(
-        HeldSignIn(
+        StoredSession(
             access=tokens.access,
             refresh=tokens.refresh,
             client_id=SCRIPT_CLIENT_ID,

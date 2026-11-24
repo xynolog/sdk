@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/api"
 )
 
 // held is a value the registry holds and anyone may watch, of a type Go
@@ -21,7 +22,7 @@ type held[T any] struct {
 	changed chan struct{}
 }
 
-var _ xynolog.Watched[[]OpenResource] = (*held[[]OpenResource])(nil)
+var _ xynolog.Watched[[]api.OpenResource] = (*held[[]api.OpenResource])(nil)
 
 func newHeld[T any](value T) *held[T] {
 	return &held[T]{value: value, changed: make(chan struct{})}

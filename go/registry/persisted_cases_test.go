@@ -23,6 +23,7 @@ import (
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/optional"
 	"github.com/xynolog/sdk/go/registry"
 	"github.com/xynolog/sdk/go/xynologtest"
 )
@@ -765,8 +766,8 @@ func runPersistedResumeFrom(t *testing.T, table persistedCases) {
 
 // heldSignIn is a sign-in of the stage's issuer as a script keeps it, naming
 // the person whose key is personKey, or nobody for nil.
-func (s *stage) heldSignIn(access, refresh string, personKey *string) xynolog.HeldSignIn {
-	return xynolog.HeldSignIn{Access: access, Refresh: refresh, ClientID: xynolog.ScriptClientID, TokenEndpoint: s.issuer.URL + "/token", RevocationEndpoint: s.issuer.URL + "/revoke", PersonKey: personKey}
+func (s *stage) heldSignIn(access, refresh string, personKey *string) api.StoredSession {
+	return api.StoredSession{Access: access, Refresh: refresh, ClientId: xynolog.ScriptClientID, TokenEndpoint: s.issuer.URL + "/token", RevocationEndpoint: optional.Text(s.issuer.URL + "/revoke"), PersonKey: personKey}
 }
 
 // stalledWrite is a storage whose first write of key, once it has begun,
@@ -890,9 +891,9 @@ type unreadableSignIn struct {
 	unreadable atomic.Bool
 }
 
-func (u *unreadableSignIn) Held(ctx context.Context) (xynolog.HeldSignIn, bool, error) {
+func (u *unreadableSignIn) Held(ctx context.Context) (api.StoredSession, bool, error) {
 	if u.unreadable.Load() {
-		return xynolog.HeldSignIn{}, false, errors.New("the sign-in cannot be read")
+		return api.StoredSession{}, false, errors.New("the sign-in cannot be read")
 	}
 	return u.MemorySignIn.Held(ctx)
 }

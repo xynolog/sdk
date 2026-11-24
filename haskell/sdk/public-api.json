@@ -554,7 +554,7 @@
     "internal/Xynolog/Internal/Required.hs": "75d20011a4c81c9dc0d3bb87a5d1d6e7d853fe74d62fde6953b5af24cd918706",
     "internal/Xynolog/Internal/RetryPolicy.hs": "f937cf38a6f6acbe55d9de06a8fff218f6abb7b72df04e66565574254350b7ff",
     "internal/Xynolog/Internal/Running.hs": "7b9941a32d9f8d3d744ad56d819ba8b2683e59b11bbab17ea9ec01d9787bbe4f",
-    "internal/Xynolog/Internal/Schema.hs": "ac369d479335a2cac106ed772baef0608dfd2831be9eace3e52e06054228df22",
+    "internal/Xynolog/Internal/Schema.hs": "9ef0095ba85714747e1759b3de99c500edaf7572083b0815ab7253e4b5c104d0",
     "internal/Xynolog/Internal/SignIn.hs": "17988bab6d1939be0ed22f7a924e0bc7827d9b6221d3c2d5f777ba021d9994cc",
     "internal/Xynolog/Internal/Sse.hs": "a488cc74d5cf8eef2e0f0aa353530b37a4f581ef5ccb0bfb235d0c4c20772dea",
     "internal/Xynolog/Internal/StateTasks.hs": "13b771268f3fd2f5ec34b19ac2c6a98d43cd153dcf5ea313182f02270adf7fd8",
@@ -637,7 +637,7 @@
     "src/Xynolog/Transport/Facts.hs": "b861a07eb1fc5319a56fec2889c08f9fe7d59c43682d5b488d14520377ff08ba",
     "src/Xynolog/Types.hs": "53788ebeacf556cc86d29fa6401141f566061446096b235398ce4e3f5a2447e3",
     "src/Xynolog/Types/Presence.hs": "0c700ed04e5fe1fe43786d384622dbf716ea8703a1af8b8d8b894876dbe13a8f",
-    "src/Xynolog/Worker.hs": "0500e29bec85742dd7824e3de6beef6d27f94fe5b40dd428f53b21977c90f572",
+    "src/Xynolog/Worker.hs": "9995eba073f1762a352d408abbce71e88bf30b0d2fd7c0155bf7f9b1a364956a",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
     "xynolog.cabal.in": "b402acab5226282f361b674dec40ef8deeb85d2c0139572ad97753be08caade2"
   },

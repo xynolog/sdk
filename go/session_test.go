@@ -144,7 +144,7 @@ type world struct {
 func newWorld(t *testing.T, kept string) *world {
 	w := &world{kept: &xynolog.MemorySignIn{}, token: xynolog.NewVariable("")}
 	if kept != "" {
-		if err := w.kept.Keep(context.Background(), xynolog.HeldSignIn{Access: kept, Refresh: "a-refresh-token", ClientID: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
+		if err := w.kept.Keep(context.Background(), api.StoredSession{Access: kept, Refresh: "a-refresh-token", ClientId: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -520,7 +520,7 @@ var refusedAtTheGateway = &xynolog.TransportError{Code: xynolog.TransportErrorCo
 func keptUnexpired(t *testing.T, kept xynolog.SignInKept) string {
 	t.Helper()
 	access := tokenFor(time.Hour, 0)
-	if err := kept.Keep(context.Background(), xynolog.HeldSignIn{Access: access, Refresh: "a-refresh-token", ClientID: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
+	if err := kept.Keep(context.Background(), api.StoredSession{Access: access, Refresh: "a-refresh-token", ClientId: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
 		t.Fatal(err)
 	}
 	return access
@@ -1063,7 +1063,7 @@ func (refusesToForget) Forget(context.Context) error { return errors.New("the st
 func TestAnExpiredSignInTheStorageWillNotForgetIsSaidAtTheStart(t *testing.T) {
 	invalidGrant := fromTheIssuer(t, http.StatusBadRequest)
 	kept := refusesToForget{&xynolog.MemorySignIn{}}
-	if err := kept.Keep(context.Background(), xynolog.HeldSignIn{Access: tokenFor(-time.Hour, 0), Refresh: "a-refresh-token", ClientID: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
+	if err := kept.Keep(context.Background(), api.StoredSession{Access: tokenFor(-time.Hour, 0), Refresh: "a-refresh-token", ClientId: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
 		t.Fatal(err)
 	}
 	session, heard, closed := started(t, testClient(), xynolog.SessionConfig{
@@ -1126,7 +1126,7 @@ func TestASignInKeptInMemoryRecordsThePersonOfTheTokenAskedAbout(t *testing.T) {
 	if recorded, err := kept.RecordPersonKey(ctx, "a1", jo); err != nil || recorded {
 		t.Fatalf("a person recorded on nothing kept: %v, %v", recorded, err)
 	}
-	read := xynolog.HeldSignIn{Access: "a1", Refresh: "r1", ClientID: xynolog.ScriptClientID, TokenEndpoint: "https://issuer.test/token"}
+	read := api.StoredSession{Access: "a1", Refresh: "r1", ClientId: xynolog.ScriptClientID, TokenEndpoint: "https://issuer.test/token"}
 	if err := kept.Keep(ctx, read); err != nil {
 		t.Fatal(err)
 	}
@@ -1151,7 +1151,7 @@ func TestASignInKeptInMemoryRecordsThePersonOfTheTokenAskedAbout(t *testing.T) {
 // and its transport's, each said once there.
 func TestASessionSaysItsOwnFailuresAndItsTransportsOnOneStream(t *testing.T) {
 	kept := &xynolog.MemorySignIn{}
-	if err := kept.Keep(context.Background(), xynolog.HeldSignIn{Access: tokenFor(-time.Minute, 0), Refresh: "a-refresh-token", ClientID: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
+	if err := kept.Keep(context.Background(), api.StoredSession{Access: tokenFor(-time.Minute, 0), Refresh: "a-refresh-token", ClientId: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
 		t.Fatal(err)
 	}
 	unanswered := fromTheIssuer(t, 0)
@@ -1423,9 +1423,9 @@ type failsAfter struct {
 	reads    atomic.Int32
 }
 
-func (f *failsAfter) Held(ctx context.Context) (xynolog.HeldSignIn, bool, error) {
+func (f *failsAfter) Held(ctx context.Context) (api.StoredSession, bool, error) {
 	if f.reads.Add(1) > f.readable {
-		return xynolog.HeldSignIn{}, false, errUnreadable
+		return api.StoredSession{}, false, errUnreadable
 	}
 	return f.MemorySignIn.Held(ctx)
 }
@@ -1491,7 +1491,7 @@ func TestASignInUnreadableAtARenewalIsARenewalWithNoAnswer(t *testing.T) {
 		t.Run(row.why, func(t *testing.T) {
 			synctest.Test(t, func(t *testing.T) {
 				kept := &failsAfter{MemorySignIn: &xynolog.MemorySignIn{}, readable: 1}
-				if err := kept.MemorySignIn.Keep(context.Background(), xynolog.HeldSignIn{Access: tokenFor(row.stored, 0), Refresh: "a-refresh-token", ClientID: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
+				if err := kept.MemorySignIn.Keep(context.Background(), api.StoredSession{Access: tokenFor(row.stored, 0), Refresh: "a-refresh-token", ClientId: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
 					t.Fatal(err)
 				}
 				var mu sync.Mutex

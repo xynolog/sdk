@@ -58,6 +58,7 @@ import (
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/optional"
 	"github.com/xynolog/sdk/go/internal/required"
 )
 
@@ -80,7 +81,7 @@ type XynologBrowser struct {
 	activeSession     *xynolog.Variable[*xynolog.Session]
 	activeSignals     *xynolog.Variable[*xynolog.SessionSignals]
 	sessionActivating *xynolog.Variable[bool]
-	openResources     *held[[]OpenResource]
+	openResources     *held[[]api.OpenResource]
 	lastViewed        *xynolog.Variable[api.ResourceId]
 	identityToken     *xynolog.Variable[string]
 	failures          *kept.Stream[*xynolog.SessionError]
@@ -89,7 +90,7 @@ type XynologBrowser struct {
 	// mu guards what the registry keeps in memory of what its storage holds,
 	// and the live session's end.
 	mu             sync.Mutex
-	openByKb       map[string][]OpenResource
+	openByKb       map[string][]api.OpenResource
 	lastViewedByKb map[string]api.ResourceId
 	// activations is how many are under way or waiting their turn.
 	activations int
@@ -135,7 +136,7 @@ func NewXynologBrowser(config XynologBrowserConfig) (*XynologBrowser, error) {
 		activeSession:     xynolog.NewVariable[*xynolog.Session](nil),
 		activeSignals:     xynolog.NewVariable[*xynolog.SessionSignals](nil),
 		sessionActivating: xynolog.NewVariable(false),
-		openResources:     newHeld([]OpenResource{}),
+		openResources:     newHeld([]api.OpenResource{}),
 		lastViewed:        xynolog.NewVariable(api.ResourceId{}),
 		identityToken:     xynolog.NewVariable(""),
 		failures:          kept.NewStream[*xynolog.SessionError](xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount),
@@ -193,7 +194,7 @@ func (b *XynologBrowser) SessionActivating() xynolog.Watched[bool] {
 
 // OpenResources is what is open in the active knowledge base, in order.
 // Empty while it has no live session.
-func (b *XynologBrowser) OpenResources() xynolog.Watched[[]OpenResource] { return b.openResources }
+func (b *XynologBrowser) OpenResources() xynolog.Watched[[]api.OpenResource] { return b.openResources }
 
 // LastViewedResource is the resource last viewed in the active knowledge
 // base; the zero id while it has no live session, and never another knowledge
@@ -427,17 +428,17 @@ func (b *XynologBrowser) SignOut(id string) error {
 // is open already, takes its name, and its media type and storage URI unless
 // each is "". Nothing is opened while it has no live session.
 func (b *XynologBrowser) AddOpenResource(id api.ResourceId, name, mediaType, storageURI string) error {
-	return b.mutateOpenResources(func(open []OpenResource) []OpenResource {
+	return b.mutateOpenResources(func(open []api.OpenResource) []api.OpenResource {
 		for i := range open {
-			if open[i].ID != id {
+			if open[i].Id != id {
 				continue
 			}
 			open[i].Name = name
 			if mediaType != "" {
-				open[i].MediaType = mediaType
+				open[i].MediaType = &mediaType
 			}
 			if storageURI != "" {
-				open[i].StorageURI = storageURI
+				open[i].StorageUri = &storageURI
 			}
 			return open
 		}
@@ -447,23 +448,23 @@ func (b *XynologBrowser) AddOpenResource(id api.ResourceId, name, mediaType, sto
 		for _, resource := range open {
 			order = max(order, resource.Order+1)
 		}
-		return append(open, OpenResource{ID: id, Name: name, OpenedAt: time.Now().UnixMilli(), Order: order, MediaType: mediaType, StorageURI: storageURI})
+		return append(open, api.OpenResource{Id: id, Name: name, OpenedAt: int(time.Now().UnixMilli()), Order: order, MediaType: optional.Text(mediaType), StorageUri: optional.Text(storageURI)})
 	})
 }
 
 // RemoveOpenResource closes a resource in the active knowledge base.
 func (b *XynologBrowser) RemoveOpenResource(id api.ResourceId) error {
-	return b.mutateOpenResources(func(open []OpenResource) []OpenResource {
-		return slices.DeleteFunc(open, func(resource OpenResource) bool { return resource.ID == id })
+	return b.mutateOpenResources(func(open []api.OpenResource) []api.OpenResource {
+		return slices.DeleteFunc(open, func(resource api.OpenResource) bool { return resource.Id == id })
 	})
 }
 
 // UpdateOpenResourceName gives an open resource of the active knowledge base
 // a name.
 func (b *XynologBrowser) UpdateOpenResourceName(id api.ResourceId, name string) error {
-	return b.mutateOpenResources(func(open []OpenResource) []OpenResource {
+	return b.mutateOpenResources(func(open []api.OpenResource) []api.OpenResource {
 		for i := range open {
-			if open[i].ID == id {
+			if open[i].Id == id {
 				open[i].Name = name
 			}
 		}
@@ -474,7 +475,7 @@ func (b *XynologBrowser) UpdateOpenResourceName(id api.ResourceId, name string) 
 // ReorderOpenResources moves the open resource at one place in the visible
 // list to another. A place that is not in the list moves nothing.
 func (b *XynologBrowser) ReorderOpenResources(from, to int) error {
-	return b.mutateOpenResources(func(open []OpenResource) []OpenResource {
+	return b.mutateOpenResources(func(open []api.OpenResource) []api.OpenResource {
 		if from < 0 || to < 0 || from >= len(open) || to >= len(open) {
 			return open
 		}
@@ -601,13 +602,13 @@ func kbReadOf(description api.KbDescription, at time.Time) api.KbRead {
 // openByKbOf is what is stored of each knowledge base's open resources; none
 // for what does not read as that. One entry that is no open resource, or that
 // lacks a member one requires, makes none of it read.
-func openByKbOf(stored string, has bool) map[string][]OpenResource {
+func openByKbOf(stored string, has bool) map[string][]api.OpenResource {
 	if !has {
-		return map[string][]OpenResource{}
+		return map[string][]api.OpenResource{}
 	}
-	open, ok := required.ReadAs[map[string][]OpenResource]([]byte(stored))
+	open, ok := required.ReadAs[map[string][]api.OpenResource]([]byte(stored))
 	if !ok {
-		return map[string][]OpenResource{}
+		return map[string][]api.OpenResource{}
 	}
 	return open
 }
@@ -872,7 +873,7 @@ func (b *XynologBrowser) liveKbID() string {
 // knowledge base: only while it has a live session.
 func (b *XynologBrowser) project() {
 	b.mu.Lock()
-	open := []OpenResource{}
+	open := []api.OpenResource{}
 	var viewed api.ResourceId
 	if kbID := b.liveKbID(); kbID != "" {
 		open = SortOpenResources(b.openByKb[kbID])
@@ -885,12 +886,12 @@ func (b *XynologBrowser) project() {
 
 // mutateOpenResources changes what is open in the active knowledge base,
 // against what the storage holds, as one step.
-func (b *XynologBrowser) mutateOpenResources(mutate func([]OpenResource) []OpenResource) error {
+func (b *XynologBrowser) mutateOpenResources(mutate func([]api.OpenResource) []api.OpenResource) error {
 	kbID := b.liveKbID()
 	if kbID == "" {
 		return nil
 	}
-	var committed map[string][]OpenResource
+	var committed map[string][]api.OpenResource
 	err := b.storage.Update(OpenResourcesByKbKey, func(stored string, has bool) (string, bool) {
 		open := openByKbOf(stored, has)
 		open[kbID] = mutate(slices.Clone(open[kbID]))
@@ -928,7 +929,7 @@ func (b *XynologBrowser) mutateLastViewed(mutate func(map[string]api.ResourceId)
 // forgetOpenIn forgets what was open in a knowledge base and where the person
 // was.
 func (b *XynologBrowser) forgetOpenIn(kbID string) error {
-	var committed map[string][]OpenResource
+	var committed map[string][]api.OpenResource
 	err := b.storage.Update(OpenResourcesByKbKey, func(stored string, has bool) (string, bool) {
 		open := openByKbOf(stored, has)
 		delete(open, kbID)
@@ -952,7 +953,7 @@ func (b *XynologBrowser) writtenElsewhere(key, value string, has bool) {
 	}
 	switch key {
 	case OpenResourcesByKbKey:
-		open, ok := required.ReadAs[map[string][]OpenResource]([]byte(value))
+		open, ok := required.ReadAs[map[string][]api.OpenResource]([]byte(value))
 		if !ok {
 			return
 		}
@@ -1008,7 +1009,7 @@ func (b *XynologBrowser) validateOpenResources(session *xynolog.Session) error {
 	// opened a resource before this session came up.
 	var waiting []api.ResourceId
 	for _, resource := range openByKbOf(b.storage.Get(OpenResourcesByKbKey))[kbID] {
-		waiting = append(waiting, resource.ID)
+		waiting = append(waiting, resource.Id)
 	}
 	if len(waiting) == 0 {
 		return nil
@@ -1035,7 +1036,7 @@ func (b *XynologBrowser) validateOpenResources(session *xynolog.Session) error {
 	if !isLive() {
 		return nil
 	}
-	return b.mutateOpenResources(func(open []OpenResource) []OpenResource { return ApplyTabChecks(open, checks) })
+	return b.mutateOpenResources(func(open []api.OpenResource) []api.OpenResource { return ApplyTabChecks(open, checks) })
 }
 
 // readKb asks the knowledge base to describe itself, against the entry it is
@@ -1095,7 +1096,7 @@ func (b *XynologBrowser) voidForConflict(kbID, observedDid string) error {
 	if i < 0 {
 		return nil
 	}
-	if err := b.mutateOpenResources(func([]OpenResource) []OpenResource { return []OpenResource{} }); err != nil {
+	if err := b.mutateOpenResources(func([]api.OpenResource) []api.OpenResource { return []api.OpenResource{} }); err != nil {
 		return err
 	}
 	if err := b.mutateLastViewed(func(viewed map[string]api.ResourceId) { delete(viewed, kbID) }); err != nil {
