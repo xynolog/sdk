@@ -1,16 +1,18 @@
 (* Every object component the gateway's document names, as a record of the
    OCaml SDK (ocaml/sdk/lib/records.ml), and every one that is a
-   discriminated union of them as a variant. An object composed by allOf is
-   what its parts merge to ([Normalize]). A member that is a string, a
-   boolean, an integer, a number, a string component, a string enum
-   component ([Enums]) or a list of one of those is read as its OCaml type,
-   and every other kept as its raw JSON, an allOf among them. One that may
+   discriminated union of them as a variant, each read from its declaration
+   in [Typing]: a record of the members it names, in its schema's order. A
+   member that is a string, a boolean, an integer, a number, a string
+   component, a string enum component ([Enums]) or a list of one of those is
+   read as its OCaml type, and every other kept as its raw JSON. One that may
    be absent or null is an option, and one that may be both a
-   [Types.presence], as is a raw one that may be absent. A union's every branch is one of the records. Each
-   is read from the value a [Models] descriptor accepted, through
-   ocaml/sdk/lib/record_reader.ml, and written back with the members no
-   read named, the descriptor holding what is written to the schema. The
-   module has no interface, so each record's type is stated once.
+   [Types.presence], as is a raw one that may be absent. A union's every
+   branch is one of the records, a constructor per value of its tag. Each is
+   read from the value a [Models] descriptor accepted, through
+   ocaml/sdk/lib/record_reader.ml, and written back with the members no read
+   named, the descriptor holding what is written to the schema. The module
+   has no interface, so each record's type is stated once. Where it reads a
+   member otherwise than [Typing] does, it is [Deviations.ocaml_member].
 
    And every record Protocol states in a table ([Table_records]) and every
    client type the SDK generates ([Definitions.generated_client_types]), but a
@@ -42,6 +44,8 @@ let field_name name =
   if List.mem label keywords || label = "extra" then label ^ "_"
   else match label.[0] with 'a' .. 'z' -> label | _ -> "field" ^ label
 
+module T = Typing
+
 type scalar =
   | Text
   | Bool
@@ -54,109 +58,26 @@ type scalar =
 
 type value = Scalar of scalar | List of scalar
 
-(* A member's schema as it is read: a value, null beside it or not, or
-   raw. *)
+(* A member as it is read: a value, null beside it or not, or raw. *)
 type member = Typed of { value : value; nullable : bool } | Raw_member
 
-type 'member composed = {
-  properties : (string * 'member) list;
-  required : string list;
+type record = {
+  name : string;
+  file : string;
+  members : (T.member * member) list;
 }
 
-(* A member's scalar, an enum stated in place named [module_]. *)
-let scalar_of_type ?module_ (l : Schema.t Schema.layer) =
-  let stated =
-    match (module_, l.enum) with
-    | Some module_, Some members ->
-        let values =
-          List.filter_map
-            (function
-              | Schema.String_literal value when Enums.is_member value ->
-                  Some (Enums.constructor value, value)
-              | _ -> None)
-            members
-        in
-        let constructors = List.map fst values in
-        if
-          values <> []
-          && List.length values = List.length members
-          && List.length (List.sort_uniq compare constructors)
-             = List.length constructors
-        then Some (Stated { Enums.module_; variants = values })
-        else None
-    | _ -> None
-  in
-  match l.type_ with
-  | Some [ String ] when Option.is_some stated -> stated
-  | Some [ String ] -> Some Text
-  | Some [ Boolean ] -> Some Bool
-  | Some [ Integer ] -> Some Int
-  | Some [ Number ] -> Some Float
-  | _ -> None
-
-(* [record_of file] is the module of the record component [file] is. *)
-let scalar_of ?module_ ~record_of (spec : Spec.t) (l : Schema.t Schema.layer) =
-  match l.ref_ with
-  | None -> scalar_of_type ?module_ l
-  | Some r -> (
-      match Decode.resolve spec.Spec.ids r with
-      | file, "" -> (
-          match (record_of file, List.assoc_opt file spec.schemas) with
-          | Some module_, _ -> Some (Nested module_)
-          | None, Some (Schema.Schema target) -> (
-              match Enums.rooted spec file with
-              | Some module_ -> Some (Enum module_)
-              | None when target.ref_ = None -> scalar_of_type target
-              | None -> None)
-          | _ -> None)
-      | _ -> None)
-
-let member_of ~record_of spec name = function
-  | Schema.Schema l -> (
-      let module_ = String.capitalize_ascii (field_name name) in
-      let typed l nullable =
-        let value =
-          match l with
-          | { Schema.type_ = Some [ Array ]; items = Some (Schema.Schema i); _ }
-            ->
-              Option.map
-                (fun s -> List s)
-                (scalar_of ~module_ ~record_of spec i)
-          | _ ->
-              Option.map
-                (fun s -> Scalar s)
-                (scalar_of ~module_ ~record_of spec l)
-        in
-        match value with
-        | Some value -> Typed { value; nullable }
-        | None -> Raw_member
-      in
-      match Null_form.without_null Fun.id l with
-      | Ok (Some beside) -> typed beside true
-      | Ok None -> typed l false
-      | Error _ -> Raw_member)
-  | Schema.Boolean_schema _ -> Raw_member
+type union = {
+  name : string;
+  property : string;
+  variants : (string * string * string) list;
+      (** Each tag, its constructor and its branch's module. *)
+}
 
 exception Refused of Decode.error
 
-(* The object a schema of [file] is, its [allOf] merged ([Normalize]), or
-   none. *)
-let object_shape (spec : Spec.t) ~file schema =
-  let find (r : Decode.reference) =
-    let target, _ = Decode.resolve spec.Spec.ids r in
-    match List.assoc_opt target spec.schemas with
-    | Some s -> Ok s
-    | None -> Error ("$ref " ^ r.target ^ " names no schema")
-  in
-  match Normalize.normalize spec.Spec.ids ~find schema with
-  | Error message -> raise (Refused { Decode.file; pointer = ""; message })
-  | Ok { type_ = Some [ Object ]; properties; required; _ } ->
-      Some
-        {
-          properties = Option.value ~default:[] properties;
-          required = Option.value ~default:[] required;
-        }
-  | Ok _ -> None
+let refuse file pointer message =
+  raise (Refused { Decode.file; pointer; message })
 
 (* The constructor a union's tag value names: its words in camel case,
    capitalized, or none when it has no word. *)
@@ -175,14 +96,86 @@ let variant_name tag =
         (String.capitalize_ascii
            (first ^ String.concat "" (List.map String.capitalize_ascii rest)))
 
-type record = { name : string; file : string; shape : member composed }
+let scalar_of (s : T.scalar) =
+  match s with
+  | Text _ -> Text
+  | Boolean -> Bool
+  | Integer _ -> Int
+  | Number -> Float
 
-type union = {
-  name : string;
-  property : string;
-  variants : (string * string * string) list;
-      (** Each tag, its constructor and its branch's module. *)
-}
+(* An enum stated in place, named [module_], when each of its values names a
+   constructor and no two name one. *)
+let stated_enum module_ values =
+  let variants =
+    List.filter_map
+      (function
+        | Schema.String_literal value when Enums.is_member value ->
+            Some (Enums.constructor value, value)
+        | _ -> None)
+      values
+  in
+  let constructors = List.map fst variants in
+  if
+    variants <> []
+    && List.length variants = List.length values
+    && List.length (List.sort_uniq compare constructors)
+       = List.length constructors
+  then Some { Enums.module_; variants }
+  else None
+
+(* What a component's member of [ty] is read as, [module_] the module of an
+   enum it states in place: a schema the SDK has a record or an enum of, a
+   scalar, a schema that is one, or an enum of text stated in place;
+   [record_of] the module of a component's record by its name, and [rooted]
+   whether a name is one Protocol roots. A member a table states its record
+   of ([table_record]) is kept raw. *)
+let component_scalar (typing : T.t) ~record_of ~rooted ~table_record ~module_
+    ~const (ty : T.ty) =
+  match ty with
+  | T.Scalar s -> Some (scalar_of s)
+  | T.Named name when table_record name -> None
+  | T.Named name -> (
+      match record_of name with
+      | Some m -> Some (Nested m)
+      | None -> (
+          match (typing.find name).form with
+          | T.Enum { base = Some (T.Text _); _ } when rooted name && not const
+            ->
+              Some (Enum (Enums.module_name name))
+          | T.Enum { base = Some s; _ } | T.Alias (T.Scalar s) ->
+              Some (scalar_of s)
+          | T.Identifier _ -> Some Text
+          | _ -> None))
+  | T.Inline { form = T.Enum { base = Some (T.Text _); values }; _ }
+    when not const -> (
+      match stated_enum module_ values with
+      | Some e -> Some (Stated e)
+      | None -> Some Text)
+  | T.Inline { form = T.Enum { base = Some s; _ }; _ } -> Some (scalar_of s)
+  | _ -> None
+
+let read_member spec typing ~file ~record_of ~rooted ~table_record
+    (m : T.member) =
+  let module_ = String.capitalize_ascii (field_name m.wire) in
+  let deviation = Deviations.ocaml_member spec ~file m.wire in
+  let typed ty nullable =
+    let scalar =
+      component_scalar typing ~record_of ~rooted ~table_record ~module_
+        ~const:(deviation = Deviations.Const)
+    in
+    let value =
+      match ty with
+      | T.List (Some item) -> Option.map (fun s -> List s) (scalar item)
+      | ty -> Option.map (fun s -> Scalar s) (scalar ty)
+    in
+    match value with
+    | Some value -> Typed { value; nullable }
+    | None -> Raw_member
+  in
+  match (deviation, m.ty) with
+  | Deviations.Raw, _ -> Raw_member
+  | _, T.Nullable ty -> typed ty true
+  | _, ty -> typed ty false
 
 type base =
   | Text_base
@@ -216,204 +209,128 @@ and form =
 
 and variant = { tag : string; constructor : string; fields : field list }
 
-(* The table records but the string enums, each after the ones it names. *)
-let tabled (spec : Spec.t) table =
-  let refuse key at message =
-    let file, pointer = Enums.place key in
-    raise (Refused { Decode.file; pointer = pointer ^ at; message })
-  in
-  let enums = Enums.tabled spec.ids table in
-  let whole = Definitions.typed spec in
-  let clients =
-    List.filter_map
-      (fun name ->
-        let key = Roots.client_types ^ name ^ ".json" in
-        match whole (List.assoc key spec.schemas) with
-        | Ok schema when Enums.is_enum schema -> None
-        | Ok schema -> Some (key, name, schema)
-        | Error message -> refuse key "" message)
-      (Definitions.generated_client_types spec)
-  in
-  let written =
-    List.filter (fun (_, _, schema) -> not (Enums.is_enum schema)) table
-    @ clients
-  in
-  let module_of key =
+(* The table records but the string enums, each after the ones it names:
+   [written] each one's key, title and name, [enum_of] the module of a
+   string enum by its name, and [rooted] whether a name is one Protocol
+   roots. *)
+let tabled (typing : T.t) ~written ~enum_of ~rooted =
+  let module_of name =
     List.find_map
-      (fun (k, title, _) ->
-        if k = key then Some (Enums.module_name title) else None)
+      (fun (_, title) ->
+        if title = name then Some (Enums.module_name title) else None)
       written
-  in
-  let enum_of key =
-    match
-      List.find_map (fun (k, m, _) -> if k = key then Some m else None) enums
-    with
-    | Some m -> Some m
-    | None ->
-        List.find_map
-          (fun name ->
-            if key = Roots.client_types ^ name ^ ".json" then
-              Some (Enums.module_name name)
-            else None)
-          (Enums.client_types spec)
-  in
-  let component key =
-    List.find_map
-      (fun (name, reference) ->
-        if fst (Decode.resolve spec.Spec.ids reference) = key then
-          Some (name, List.assoc key spec.schemas)
-        else None)
-      (Roots.all spec)
   in
   (* The records of objects stated in place as members, each its owner's
      module and its member's name. *)
   let stated = ref [] in
   (* A value's type, and the module of the table record it names; an object
      stated in place is a record of its own, [named]. *)
-  let rec base_of key at ~named schema =
-    match schema with
-    | Schema.Schema { ref_ = Some r; _ } -> (
-        let target = Table_records.key spec.Spec.ids r in
-        match (enum_of target, module_of target, component target) with
-        | Some m, _, _ -> (Enum_base m, None)
-        | None, Some m, _ -> (Record_base m, Some m)
-        | ( None,
-            None,
-            Some (_, Schema.Schema { type_ = Some [ String ]; enum = None; _ })
-          ) ->
-            (Text_base, None)
-        | None, None, Some (component, _) -> (Model_base component, None)
-        | None, None, None ->
+  let rec base_of key at ~named (ty : T.ty) =
+    match ty with
+    | T.Named name -> (
+        match (enum_of name, module_of name) with
+        | Some m, _ -> (Enum_base m, None)
+        | None, Some m -> (Record_base m, Some m)
+        | None, None when rooted name -> (
+            match (typing.find name).form with
+            | T.Alias (T.Scalar (T.Text _)) | T.Identifier _ -> (Text_base, None)
+            | _ -> (Model_base name, None))
+        | None, None ->
             refuse key at "names no schema the OCaml SDK has a type for")
-    | Schema.Schema { type_ = Some [ String ]; enum = None; _ } ->
-        (Text_base, None)
-    | Schema.Schema { type_ = Some [ Boolean ]; _ } -> (Bool_base, None)
-    | Schema.Schema { type_ = Some [ Integer ]; _ } -> (Int_base, None)
-    | Schema.Schema { type_ = Some [ Number ]; _ } -> (Float_base, None)
-    | Schema.Schema { type_ = Some [ Array ]; items = Some items; _ } ->
-        let item, need = base_of key at ~named items in
+    | T.Scalar (T.Text _) -> (Text_base, None)
+    | T.Scalar T.Boolean -> (Bool_base, None)
+    | T.Scalar (T.Integer _) -> (Int_base, None)
+    | T.Scalar T.Number -> (Float_base, None)
+    | T.List (Some item) ->
+        let item, need = base_of key at ~named item in
         (List_base item, need)
-    | Schema.Schema
-        {
-          ref_ = None;
-          type_ = Some [ Object ];
-          properties = Some properties;
-          required;
-          _;
-        } ->
-        let fields, needs =
-          members key at ~owner:named
-            ~required:(Option.value ~default:[] required)
-            properties
-        in
+    | T.Inline { form = T.Record { members = ms; _ }; _ } ->
+        let fields, needs = members key at ~owner:named ms in
         stated := { module_ = named; form = Fields fields; needs } :: !stated;
         (Record_base named, Some named)
     | _ -> refuse key at "is no member the OCaml SDK has a type for"
   (* A member, and the module of the table record it names. *)
-  and member key at ~owner ~required (name, schema) =
-    let at = at ^ "/properties/" ^ Decode.escape name in
-    let schema, nullable =
-      match schema with
-      | Schema.Schema l -> (
-          match Null_form.without_null Fun.id l with
-          | Ok (Some beside) -> (Schema.Schema beside, true)
-          | Ok None -> (schema, false)
-          | Error message -> refuse key at message)
-      | Schema.Boolean_schema _ -> (schema, false)
+  and member key at ~owner (m : T.member) =
+    let at = at ^ "/properties/" ^ Decode.escape m.wire in
+    let ty, nullable =
+      match m.ty with T.Nullable ty -> (ty, true) | ty -> (ty, false)
     in
     let base, need =
-      base_of key at ~named:(owner ^ "_" ^ field_name name) schema
+      base_of key at ~named:(owner ^ "_" ^ field_name m.wire) ty
     in
-    let required = List.mem name required in
-    if (not required) && nullable then
+    if (not m.required) && nullable then
       refuse key at "may be both absent and null";
-    ({ json = name; label = field_name name; base; required; nullable }, need)
-  and members key at ~owner ~required properties =
-    let typed = List.map (member key at ~owner ~required) properties in
+    ( {
+        json = m.wire;
+        label = field_name m.wire;
+        base;
+        required = m.required;
+        nullable;
+      },
+      need )
+  and members key at ~owner ms =
+    let typed = List.map (member key at ~owner) ms in
     let labels = List.map (fun (f, _) -> f.label) typed in
     if List.length (List.sort_uniq compare labels) <> List.length labels then
       refuse key at "has two members OCaml names alike";
     (List.map fst typed, List.filter_map snd typed)
   in
-  let derive (key, title, schema) =
-    match schema with
-    | Schema.Schema
-        {
-          type_ = Some [ Object ];
-          properties = Some properties;
-          required;
-          one_of = None;
-          _;
-        } ->
-        let module_ = Enums.module_name title in
-        let fields, needs =
-          members key "" ~owner:module_
-            ~required:(Option.value ~default:[] required)
-            properties
-        in
+  let derive (key, title) =
+    let file, pointer = Enums.place key in
+    let refuse at message = refuse file (pointer ^ at) message in
+    let module_ = Enums.module_name title in
+    match (typing.find title).form with
+    | T.Record { members = ms; _ } ->
+        let fields, needs = members key "" ~owner:module_ ms in
         { module_; form = Fields fields; needs }
-    | Schema.Schema
-        {
-          type_ = Some [ Object ];
-          properties = None;
-          additional_properties = Some value;
-          one_of = None;
-          _;
-        } ->
-        let module_ = Enums.module_name title in
+    | T.Map { value; _ } ->
         let base, need =
           base_of key "/additionalProperties" ~named:(module_ ^ "_value") value
         in
         { module_; form = Map base; needs = Option.to_list need }
-    | Schema.Schema
-        {
-          discriminator = Some { property_name; mapping = None };
-          one_of = Some branches;
-          _;
-        } ->
+    | T.Union { tag = Some { property; _ }; branches } ->
         let variants =
           List.mapi
-            (fun i branch ->
+            (fun i (b : T.branch) ->
               let at = Printf.sprintf "/oneOf/%d" i in
-              match branch with
-              | Schema.Schema
-                  { ref_ = None; properties = Some properties; required; _ }
-                -> (
+              match b.ty with
+              | T.Inline { form = T.Record { members = ms; _ }; _ } -> (
                   let tag =
-                    match List.assoc_opt property_name properties with
-                    | Some
-                        (Schema.Schema { enum = Some [ String_literal tag ]; _ })
-                      ->
-                        Option.map (fun c -> (tag, c)) (variant_name tag)
-                    | _ -> None
+                    List.find_map
+                      (fun (m : T.member) ->
+                        match m.fixed with
+                        | Some (Schema.String_literal tag)
+                          when m.wire = property ->
+                            Option.map (fun c -> (tag, c)) (variant_name tag)
+                        | _ -> None)
+                      ms
                   in
                   match tag with
                   | Some (tag, constructor) ->
                       let fields, needs =
-                        members key at ~owner:(Enums.module_name title)
-                          ~required:(Option.value ~default:[] required)
-                          (List.remove_assoc property_name properties)
+                        members key at ~owner:module_
+                          (List.filter
+                             (fun (m : T.member) -> m.wire <> property)
+                             ms)
                       in
                       ({ tag; constructor; fields }, needs)
                   | None ->
-                      refuse key at
+                      refuse at
                         "states no one value of its tag a constructor can name")
-              | _ -> refuse key at "is no object stated in place")
+              | _ -> refuse at "is no object stated in place")
             branches
         in
         let constructors = List.map (fun (v, _) -> v.constructor) variants in
         if
           List.length (List.sort_uniq compare constructors)
           <> List.length constructors
-        then refuse key "/oneOf" "names two variants alike";
+        then refuse "/oneOf" "names two variants alike";
         {
-          module_ = Enums.module_name title;
-          form =
-            Variants
-              { property = property_name; variants = List.map fst variants };
+          module_;
+          form = Variants { property; variants = List.map fst variants };
           needs = List.concat_map snd variants;
         }
-    | _ -> refuse key "" "is no object, no union and no string enum"
+    | _ -> refuse "" "is no object, no union and no string enum"
   in
   let derived = List.map derive written in
   let derived = List.rev !stated @ derived in
@@ -443,68 +360,11 @@ let named (r : record) =
     (function
       | _, Typed { value = Scalar (Nested m) | List (Nested m); _ } -> [ m ]
       | _ -> [])
-    r.shape.properties
+    r.members
 
-(* Each record with its members typed, each after the records it names. A
-   member that names a record naming it back, itself or through others, is
-   kept raw, so no two records name each other. *)
-let ordered spec ~record_of shapes =
-  let typed =
-    List.map
-      (fun (name, file, (shape : Schema.t composed)) ->
-        {
-          name;
-          file;
-          shape =
-            {
-              shape with
-              properties =
-                List.map
-                  (fun (n, m) -> (n, member_of ~record_of spec n m))
-                  shape.properties;
-            };
-        })
-      shapes
-  in
-  let by_module = Hashtbl.create 1024 in
-  List.iter
-    (fun (r : record) -> Hashtbl.replace by_module (Enums.module_name r.name) r)
-    typed;
-  let names m = named (Hashtbl.find by_module m) in
-  let reaches from target =
-    let seen = Hashtbl.create 64 in
-    let rec go m =
-      m = target
-      || (not (Hashtbl.mem seen m))
-         &&
-         (Hashtbl.replace seen m ();
-          List.exists go (names m))
-    in
-    List.exists go (names from)
-  in
-  let acyclic =
-    List.map
-      (fun (r : record) ->
-        let m = Enums.module_name r.name in
-        {
-          r with
-          shape =
-            {
-              r.shape with
-              properties =
-                List.map
-                  (function
-                    | ( n,
-                        Typed { value = Scalar (Nested t) | List (Nested t); _ }
-                      )
-                      when t = m || reaches t m ->
-                        (n, Raw_member)
-                    | member -> member)
-                  r.shape.properties;
-            };
-        })
-      typed
-  in
+(* Each record after the records it names; refused if two name each
+   other. *)
+let ordered records =
   let rec after placed = function
     | [] -> List.rev placed
     | pending ->
@@ -520,78 +380,82 @@ let ordered spec ~record_of shapes =
             pending
         in
         if ready = [] then
-          raise
-            (Refused
-               {
-                 Decode.file = "protocol/specs/src";
-                 pointer = "";
-                 message = "the component records name each other";
-               })
+          refuse "protocol/specs/src" "" "the component records name each other"
         else after (List.rev_append ready placed) waiting
   in
-  after [] acyclic
+  after [] records
 
-let derive (spec : Spec.t) table =
+let derive (spec : Spec.t) (typing : T.t) table =
   try
     let components =
       List.map
         (fun (name, reference) ->
-          let file, _ = Decode.resolve spec.Spec.ids reference in
-          (name, file, List.assoc file spec.schemas))
+          (name, fst (Decode.resolve spec.Spec.ids reference)))
         (Roots.all spec)
     in
+    let rooted name = List.mem_assoc name components in
     let shapes =
       List.filter_map
-        (fun (name, file, schema) ->
-          match object_shape spec ~file schema with
-          | Some shape when shape.properties <> [] -> Some (name, file, shape)
+        (fun (name, file) ->
+          match (typing.find name).form with
+          | T.Record { members = _ :: _ as members; _ } ->
+              Some (name, file, members)
           | _ -> None)
         components
     in
-    let module_of file =
+    let record_of name =
       List.find_map
-        (fun (name, f, _) ->
-          if f = file then Some (Enums.module_name name) else None)
+        (fun (n, _, _) -> if n = name then Some (Enums.module_name n) else None)
         shapes
     in
-    let records = ordered spec ~record_of:module_of shapes in
-    let refuse file pointer message =
-      raise (Refused { Decode.file; pointer; message })
+    let table_record name =
+      List.exists
+        (fun (key, title, _) -> title = name && String.contains key '#')
+        table
+    in
+    let records =
+      ordered
+        (List.map
+           (fun (name, file, members) ->
+             {
+               name;
+               file;
+               members =
+                 List.map
+                   (fun m ->
+                     ( m,
+                       read_member spec typing ~file ~record_of ~rooted
+                         ~table_record m ))
+                   members;
+             })
+           shapes)
     in
     let unions =
       List.filter_map
-        (fun (name, file, schema) ->
-          match schema with
-          | Schema.Schema
-              {
-                discriminator = Some { property_name; mapping };
-                one_of = Some branches;
-                _;
-              } ->
-              List.iter
-                (function
-                  | Schema.Schema { ref_ = Some r; _ }
-                    when Option.is_some
-                           (module_of (fst (Decode.resolve spec.Spec.ids r))) ->
-                      ()
-                  | _ ->
-                      refuse file "/oneOf"
-                        "has a branch that is no record of the SDK's")
-                branches;
+        (fun (name, file) ->
+          match (typing.find name).form with
+          | T.Union { tag = Some { property; values }; branches } ->
               let variants =
-                List.map
-                  (fun (tag, target) ->
-                    let branch, _ =
-                      Decode.resolve spec.Spec.ids
-                        { Decode.target; file; pointer = "/discriminator" }
-                    in
-                    match (module_of branch, variant_name tag) with
-                    | Some m, Some c -> (tag, c, m)
-                    | _ ->
-                        refuse file
-                          ("/discriminator/mapping/" ^ Decode.escape tag)
-                          "names no record of the SDK's")
-                  (Option.value ~default:[] mapping)
+                List.concat
+                  (List.map2
+                     (fun (b : T.branch) tags ->
+                       match b.ty with
+                       | T.Named branch when record_of branch <> None ->
+                           List.map
+                             (fun tag ->
+                               match variant_name tag with
+                               | Some c ->
+                                   (tag, c, Option.get (record_of branch))
+                               | None ->
+                                   refuse file
+                                     ("/discriminator/mapping/"
+                                    ^ Decode.escape tag)
+                                     "names no record of the SDK's")
+                             tags
+                       | _ ->
+                           refuse file "/oneOf"
+                             "has a branch that is no record of the SDK's")
+                     branches values)
               in
               let constructors = List.map (fun (_, c, _) -> c) variants in
               if
@@ -599,17 +463,49 @@ let derive (spec : Spec.t) table =
                 <> List.length constructors
               then
                 refuse file "/discriminator/mapping" "names two variants alike";
-              Some { name; property = property_name; variants }
+              Some { name; property; variants }
           | _ -> None)
         components
     in
     List.iter
       (fun (r : record) ->
-        let labels = List.map (fun (n, _) -> field_name n) r.shape.properties in
+        let labels =
+          List.map (fun ((m : T.member), _) -> field_name m.wire) r.members
+        in
         if List.length (List.sort_uniq compare labels) <> List.length labels
         then refuse r.file "/properties" "has two members OCaml names alike")
       records;
-    let tabled = tabled spec table in
+    let enums = Enums.tabled spec.ids table in
+    let client_enums = Enums.client_types spec in
+    let enum_of name =
+      match
+        List.find_map
+          (fun (key, m, _) ->
+            if List.exists (fun (k, title, _) -> k = key && title = name) table
+            then Some m
+            else None)
+          enums
+      with
+      | Some m -> Some m
+      | None ->
+          if List.mem name client_enums then Some (Enums.module_name name)
+          else None
+    in
+    let is_enum name =
+      match (typing.find name).form with T.Enum _ -> true | _ -> false
+    in
+    let written =
+      List.filter_map
+        (fun (key, title, _) ->
+          if is_enum title then None else Some (key, title))
+        table
+      @ List.filter_map
+          (fun name ->
+            if is_enum name then None
+            else Some (Roots.client_types ^ name ^ ".json", name))
+          (Definitions.generated_client_types spec)
+    in
+    let tabled = tabled typing ~written ~enum_of ~rooted in
     let modules =
       List.map (fun (r : record) -> Enums.module_name r.name) records
       @ List.map (fun (u : union) -> Enums.module_name u.name) unions
@@ -618,7 +514,10 @@ let derive (spec : Spec.t) table =
     if List.length (List.sort_uniq compare modules) <> List.length modules then
       refuse "protocol/specs/src" "" "names two records one module";
     Ok (records, unions, tabled)
-  with Refused e -> Error [ e ]
+  with
+  | Refused e -> Error [ e ]
+  | Definitions.Refused message ->
+      Error [ { Decode.file = "protocol/specs/src"; pointer = ""; message } ]
 
 (* [let of_model (model : [ `Kind ] Models.t) = body]. *)
 let of_model kind body =
@@ -809,11 +708,12 @@ let files (records, unions, tabled) =
   let record (r : record) =
     let fields =
       List.map
-        (fun (name, m) ->
-          let optional = not (List.mem name r.shape.required) in
-          let held, type_, read, write = component_member ~optional m in
-          ( name,
-            field_name name,
+        (fun ((member : T.member), m) ->
+          let held, type_, read, write =
+            component_member ~optional:(not member.required) m
+          in
+          ( member.wire,
+            field_name member.wire,
             read,
             write,
             held,
@@ -821,7 +721,7 @@ let files (records, unions, tabled) =
             | Always -> type_
             | Maybe -> O.type_ "option" ~args:[ type_ ]
             | Presence -> O.type_ "Types.presence" ~args:[ type_ ] ))
-        r.shape.properties
+        r.members
     in
     let m = Enums.module_name r.name in
     let t =
@@ -884,7 +784,7 @@ let files (records, unions, tabled) =
     in
     O.module_ m
       (List.map Enums.impl
-         (List.concat_map (fun (_, member) -> stated member) r.shape.properties)
+         (List.concat_map (fun (_, member) -> stated member) r.members)
       @ [
           O.type_item t;
           project;

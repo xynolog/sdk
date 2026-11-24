@@ -45,18 +45,6 @@ let members_of = function
       Some members
   | _ -> None
 
-(* The module of the rooted schema [file] is ([Roots.all]), when it is a
-   string enum. *)
-let rooted (spec : Spec.t) file =
-  Option.bind (List.assoc_opt file spec.schemas) (fun schema ->
-      Option.bind (members_of schema) (fun _ ->
-          List.find_map
-            (fun (name, reference) ->
-              if fst (Decode.resolve spec.ids reference) = file then
-                Some (module_name name)
-              else None)
-            (Roots.all spec)))
-
 (* The file and the pointer of a table record's [Table_records.key]. *)
 let place key =
   match String.index_opt key '#' with
