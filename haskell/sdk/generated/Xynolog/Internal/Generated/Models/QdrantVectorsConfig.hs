@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.QdrantVectorsConfig (QdrantVectorsConfig (..), QdrantVectorsConfigType (..)) where
+module Xynolog.Internal.Generated.Models.QdrantVectorsConfig (QdrantVectorsConfig (..), QdrantVectorsConfigType (..), qdrantVectorsConfigTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -26,3 +26,6 @@ data QdrantVectorsConfigType = QdrantVectorsConfigTypeQdrant deriving (Eq, Show)
 instance FromJSON QdrantVectorsConfigType where parseJSON = checked "QdrantVectorsConfigType" $ \value -> if value == String "qdrant" then pure QdrantVectorsConfigTypeQdrant else fail "unknown enumeration member"
 
 instance ToJSON QdrantVectorsConfigType where toJSON QdrantVectorsConfigTypeQdrant = String "qdrant"
+
+qdrantVectorsConfigTypeText :: QdrantVectorsConfigType -> Text
+qdrantVectorsConfigTypeText QdrantVectorsConfigTypeQdrant = "qdrant"

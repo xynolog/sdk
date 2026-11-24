@@ -19,13 +19,11 @@ import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Char8 qualified as Char8
 import Data.ByteString.Lazy qualified as Lazy
 import Data.HashMap.Strict qualified as HashMap
-import Data.List.NonEmpty (nonEmpty)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import Data.Time (defaultTimeLocale, formatTime, getCurrentTime)
 import Data.UUID.Types qualified as UUID
 import Data.UUID.V4 qualified as UUID
 import DriverProtocol
@@ -77,13 +75,8 @@ data Driver = Driver
     workerTimings :: TVar Timing.Settings
   }
 
-say :: Driver -> Value -> IO ()
-say driver value = withMVar (output driver) $ \() -> writeLine value
-
--- A line is written whole or not at all: a thread cancelled between a line's text and its newline would leave the
--- next line on the same one.
-writeLine :: Value -> IO ()
-writeLine value = uninterruptibleMask_ (Lazy.hPut stdout (encode value <> "\n") >> hFlush stdout)
+say :: Driver -> ConformanceDriverLine -> IO ()
+say driver line = withMVar (output driver) $ \() -> writeLine line
 
 opened :: Driver -> IO Http.HttpTransport
 opened driver = readTVarIO (connection driver) >>= maybe (throwIO (Misuse "No transport is open")) pure
@@ -94,7 +87,7 @@ reportState driver state = withMVar (output driver) $ \() -> do
     before <- readTVar (reported driver)
     writeTVar (reported driver) (Just state)
     pure (before /= Just state)
-  when changed (writeLine (object ["state" .= connectionStateName state]))
+  when changed (writeLine (ConformanceDriverLineState (ConformanceDriverLineStateValue (connectionStateName state))))
 
 -- Registration completes inside each public scoped subscription, before its
 -- operation is acknowledged and the harness can publish the first event.
@@ -154,7 +147,7 @@ open driver args = do
     ready
       >> Stream.mapM_
         ( \problem ->
-            case failure (toException problem) of Just value -> say driver (object ["error" .= value]); Nothing -> throwIO problem
+            case failure (toException problem) of Just value -> say driver (ConformanceDriverLineErrorStream (ConformanceDriverLineErrorStreamValue value)); Nothing -> throwIO problem
         )
         errors
   pure Null
@@ -191,14 +184,10 @@ upload driver identifier progress args = do
   let notice (UploadProgress sent total) =
         when progress
           $ say driver
-          $ object
-            [ "progress"
-                .= object
-                  ["upload" .= identifier, "bytesUploaded" .= sent, "totalBytes" .= total]
-            ]
+          $ ConformanceDriverLineProgress (ConformanceDriverLineProgressValue (ConformanceDriverLineProgressValueProgress sent total identifier))
       notice _ = pure ()
   created <- Content.putBinary (Http.content http) Nothing metadata (Content.bytesBody bytes) notice
-  pure (object ["resourceId" .= created])
+  pure (toJSON created)
 
 perform :: Driver -> Integer -> Text -> Object -> Maybe (IO Value)
 perform driver identifier operation args = case operation of
@@ -217,7 +206,7 @@ perform driver identifier operation args = case operation of
         >> Stream.mapM_
           ( \frame ->
               case frame of
-                Transport.Arrived value -> say driver (object ["frame" .= Transport.wireFrame value])
+                Transport.Arrived value -> say driver (frameLine (Transport.wireFrame value))
                 Transport.FrameRejected _ -> throwIO (Misuse "wire corpus carried a refused frame")
           )
           frames
@@ -312,26 +301,24 @@ reportJobs driver worker = do
               $ \_ -> do
                 context <- getContext
                 atomically (writeTVar (currentJob driver) (Just (ActiveJob some context)))
-                say
-                  driver
-                  ( object
-                      [ "claimed"
-                          .= object
-                            [ "jobId" .= Worker.jobId job,
-                              "jobType" .= Worker.jobType job,
-                              "resourceId" .= Worker.resourceId job,
-                              "params" .= Worker.params job,
-                              "completedUnits" .= Worker.completedUnits job,
-                              "unitCursors" .= Worker.unitCursors job,
-                              "retryCount" .= Worker.retryCount job,
-                              "maxRetries" .= Worker.maxRetries job
-                            ]
-                      ]
-                  )
+                say driver
+                  $ ConformanceDriverLineClaimed
+                  $ ConformanceDriverLineClaimedValue
+                  $ ConformanceDriverLineClaimedValueClaimed
+                  $ KM.fromList
+                    [ "jobId" .= Worker.jobId job,
+                      "jobType" .= Worker.jobType job,
+                      "resourceId" .= Worker.resourceId job,
+                      "params" .= Worker.params job,
+                      "completedUnits" .= Worker.completedUnits job,
+                      "unitCursors" .= Worker.unitCursors job,
+                      "retryCount" .= Worker.retryCount job,
+                      "maxRetries" .= Worker.maxRetries job
+                    ]
                 let waitSettled = atomically (Worker.settled job >>= check)
                     cancellation = do
                       signalled <- atomically ((Worker.cancelled job >>= check >> pure True) `orElse` (Worker.settled job >>= check >> pure False))
-                      when signalled (say driver (object ["signalled" .= Worker.jobId job]))
+                      when signalled (say driver (ConformanceDriverLineSignalled (ConformanceDriverLineSignalledValue (jobIdValue (Worker.jobId job)))))
                 withAsync cancellation (const waitSettled)
                 atomically (writeTVar (currentJob driver) Nothing)
     case some of { Worker.HeldMark job -> runJob job; Worker.HeldYield job -> runJob job }
@@ -346,28 +333,20 @@ workerPerform driver identifier operation args = case operation of
   "claim" -> Just $ do
     previous <- readTVarIO (claims driver)
     when (maybe False (const True) previous) (throwIO (Misuse "Worker is already claiming"))
-    filters <- need args "accepts" >>= maybe (throwIO (Misuse "No filters")) pure . nonEmpty
+    options <- decode (Object args)
     http <- opened driver
     timing <- readTVarIO (workerTimings driver)
     let clock = Bus.BusOptions now waitUntil (UUID.toText <$> UUID.nextRandom)
-        timestamp = Text.pack . formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ" <$> getCurrentTime
-    worker <- Worker.newClaims (Http.transport http) (Worker.WorkerOptions filters clock timing timestamp)
+    worker <- Worker.newClaims (Http.transport http) clock timing options
     atomically (writeTVar (claims driver) (Just worker))
     reporter driver $ \ready -> Worker.refused worker $ \events ->
       ready
         >> Stream.mapM_
           ( \refusal ->
-              say
-                driver
-                ( object
-                    [ "refused"
-                        .= object
-                          (["detail" .= claimRefusalMessage refusal] ++ maybe [] (\code -> ["code" .= Code.busRequestCode code]) (claimRefusalCode refusal))
-                    ]
-                )
+              say driver (ConformanceDriverLineRefused (ConformanceDriverLineRefusedValue (ConformanceFailure (Code.busRequestCode <$> claimRefusalCode refusal) (claimRefusalMessage refusal) Nothing Nothing)))
           )
           events
-    reporter driver $ \ready -> Worker.stalled worker $ \events -> ready >> Stream.mapM_ (\event -> say driver (object ["stalled" .= heldJobStallJobId event])) events
+    reporter driver $ \ready -> Worker.stalled worker $ \events -> ready >> Stream.mapM_ (\event -> say driver (ConformanceDriverLineStalled (ConformanceDriverLineStalledValue (jobIdValue (heldJobStallJobId event))))) events
     reporter driver $ \ready -> ready >> reportJobs driver worker
     pure Null
   "start" -> Just $ withJob driver (\job -> Worker.start job >> pure Null)
@@ -423,7 +402,7 @@ dispatch driver args = do
       maybe (throwIO (Misuse "No active operation to abandon")) cancel (Map.lookup target active)
       pure Null
     else case (if workerMode driver then workerPerform driver identifier operation args else perform driver identifier operation args) of
-      Nothing -> say driver (object ["id" .= identifier, "unsupported" .= True])
+      Nothing -> say driver (unsupportedLine identifier)
       Just action ->
         if operation `elem` ["open", "close", "set-token", "listen", "subscribe-resource", "release-resource", "sync"]
           then answer driver identifier action
@@ -441,9 +420,16 @@ dispatch driver args = do
               `onException` cancel worker
             putMVar go ()
 
+frameLine :: BusFrame -> ConformanceDriverLine
+frameLine frame =
+  ConformanceDriverLineFrame
+    ( ConformanceDriverLineFrameValue
+        (ConformanceDriverLineFrameValueFrame (busFrameChannel frame) (busFrameCorrelationId frame) (Just (toJSON (busFramePayload frame))) (busFrameScope frame))
+    )
+
 serve :: Driver -> IO ()
 serve driver = do
-  say driver (object ["ready" .= True])
+  say driver readyLine
   let loop = do
         ended <- hIsEOF stdin
         unless ended $ do

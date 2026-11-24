@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.OllamaEmbeddingConfig (OllamaEmbeddingConfig (..), OllamaEmbeddingConfigType (..)) where
+module Xynolog.Internal.Generated.Models.OllamaEmbeddingConfig (OllamaEmbeddingConfig (..), OllamaEmbeddingConfigType (..), ollamaEmbeddingConfigTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -25,3 +25,6 @@ data OllamaEmbeddingConfigType = OllamaEmbeddingConfigTypeOllama deriving (Eq, S
 instance FromJSON OllamaEmbeddingConfigType where parseJSON = checked "OllamaEmbeddingConfigType" $ \value -> if value == String "ollama" then pure OllamaEmbeddingConfigTypeOllama else fail "unknown enumeration member"
 
 instance ToJSON OllamaEmbeddingConfigType where toJSON OllamaEmbeddingConfigTypeOllama = String "ollama"
+
+ollamaEmbeddingConfigTypeText :: OllamaEmbeddingConfigType -> Text
+ollamaEmbeddingConfigTypeText OllamaEmbeddingConfigTypeOllama = "ollama"

@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.TabVerdict (TabVerdict (..)) where
+module Xynolog.Internal.Generated.Models.TabVerdict (TabVerdict (..), tabVerdictText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data TabVerdict = TabVerdictGone | TabVerdictReady | TabVerdictUnknown deriving (Eq, Show)
@@ -15,3 +16,8 @@ instance ToJSON TabVerdict where
   toJSON TabVerdictGone = String "gone"
   toJSON TabVerdictReady = String "ready"
   toJSON TabVerdictUnknown = String "unknown"
+
+tabVerdictText :: TabVerdict -> Text
+tabVerdictText TabVerdictGone = "gone"
+tabVerdictText TabVerdictReady = "ready"
+tabVerdictText TabVerdictUnknown = "unknown"

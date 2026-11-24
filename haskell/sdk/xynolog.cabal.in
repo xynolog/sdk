@@ -49,7 +49,7 @@ common crypto
 library
   default-language: GHC2021
   build-depends: base >=4.20 && <4.22, xynolog:internal
-  reexported-modules: Xynolog.Types, Xynolog.Types.Presence, Xynolog.Channels, Xynolog.Running, Xynolog.ErrorCodes, Xynolog.Timing, Xynolog.Timing.Settings, Xynolog.Retry, Xynolog.Discovery, Xynolog.Discovery.Reasons, Xynolog.Transport, Xynolog.Transport.Facts, Xynolog.StateValue, Xynolog.Errors, Xynolog.EventBus, Xynolog.Bus, Xynolog.Http, Xynolog.Http.Discovery, Xynolog.Content, Xynolog.Gateway, Xynolog.Frame, Xynolog.Auth, Xynolog.System, Xynolog.Client, Xynolog.JobFilter, Xynolog.Claims, Xynolog.HostName, Xynolog.Worker, Xynolog.Worker.Types, Xynolog.Bind, Xynolog.Beckon, Xynolog.Job, Xynolog.Cache, Xynolog.Resources, Xynolog.MediaTypes, Xynolog.Browse, Xynolog.Gather, Xynolog.Match, Xynolog.Delegation, Xynolog.Mark, Xynolog.Yield, Xynolog.Tokens, Xynolog.SessionStorage, Xynolog.Session, Xynolog.Issuer, Xynolog.Registry.Stored, Xynolog.ClientAssertion, Xynolog.ServiceToken, Xynolog.SignIn, Xynolog.SignInStore, Xynolog.Annotations, Xynolog.Identity, Xynolog.StoragePersister, Xynolog.State.SessionSignals, Xynolog.Registry.Identity, Xynolog.Registry.Factory, Xynolog.Registry.Resources, Xynolog.Registry, Xynolog.State.HoverDwell, Xynolog.State.Search, Xynolog.State.Beckon, Xynolog.State.Match, Xynolog.State.Gather, Xynolog.State.Mark, Xynolog.State.Yield, Xynolog.Testing, Xynolog.Testing.Client, Xynolog.Testing.Transport, Xynolog.Testing.Storage, Xynolog.Testing.Sessions, Xynolog.Testing.Liveness
+  reexported-modules: Xynolog.Types, Xynolog.Types.Presence, Xynolog.Channels, Xynolog.Running, Xynolog.ErrorCodes, Xynolog.Timing, Xynolog.Timing.Settings, Xynolog.Retry, Xynolog.Discovery, Xynolog.Discovery.Reasons, Xynolog.Transport, Xynolog.Transport.Facts, Xynolog.StateValue, Xynolog.Errors, Xynolog.EventBus, Xynolog.Bus, Xynolog.Http, Xynolog.Http.Discovery, Xynolog.Content, Xynolog.Gateway, Xynolog.Frame, Xynolog.Auth, Xynolog.System, Xynolog.Client, Xynolog.JobFilter, Xynolog.Claims, Xynolog.HostName, Xynolog.Worker, Xynolog.Worker.Types, Xynolog.Bind, Xynolog.Beckon, Xynolog.Job, Xynolog.Cache, Xynolog.Resources, Xynolog.MediaTypes, Xynolog.Browse, Xynolog.Gather, Xynolog.Match, Xynolog.Delegation, Xynolog.Mark, Xynolog.Yield, Xynolog.Tokens, Xynolog.SessionStorage, Xynolog.Session, Xynolog.Issuer, Xynolog.Registry.Stored, Xynolog.ClientAssertion, Xynolog.ServiceToken, Xynolog.SignIn, Xynolog.SignInStore, Xynolog.Annotations, Xynolog.Identity, Xynolog.StoragePersister, Xynolog.State.SessionSignals, Xynolog.Registry.Identity, Xynolog.Registry.Factory, Xynolog.Registry.Resources, Xynolog.Registry, Xynolog.State.HoverDwell, Xynolog.State.Search, Xynolog.State.Beckon, Xynolog.State.Match, Xynolog.State.Gather, Xynolog.State.Mark, Xynolog.State.Yield, Xynolog.Testing, Xynolog.Testing.Client, Xynolog.Testing.Transport, Xynolog.Testing.Storage, Xynolog.Testing.Sessions, Xynolog.Testing.Liveness, Xynolog.Archivist.Routes, Xynolog.ServiceTables
 
 library internal
   import: settings, context-propagation, crypto
@@ -182,6 +182,9 @@ library internal
     Xynolog.Internal.HttpContent
     Xynolog.Internal.Lifetime
     Xynolog.Http.Routes
+    Xynolog.Archivist.Routes
+    Xynolog.ServiceTables
+    Xynolog.Internal.ServiceTable
     Xynolog.Internal.Generated.Text
     Xynolog.Internal.Generated.CacheRefresh
     Xynolog.Internal.Generated.Required
@@ -223,7 +226,7 @@ executable xynolog-haskell-wire-driver
   other-modules: DriverProtocol
   hs-source-dirs: conformance
   ghc-options: -threaded
-  build-depends: xynolog, http-client >=0.7 && <0.8, uuid >=1.3 && <1.4, uuid-types >=1.0 && <1.1, random >=1.3 && <1.4, time >=1.12 && <1.15, hs-opentelemetry-sdk >=1.0 && <1.1
+  build-depends: xynolog, http-client >=0.7 && <0.8, uuid >=1.3 && <1.4, uuid-types >=1.0 && <1.1, random >=1.3 && <1.4, hs-opentelemetry-sdk >=1.0 && <1.1
 
 executable xynolog-haskell-live-driver
   import: settings, context-propagation

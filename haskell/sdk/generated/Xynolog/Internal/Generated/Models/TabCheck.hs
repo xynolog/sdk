@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.TabCheck (TabCheck (..), TabCheckBranch1Value (..), TabCheckBranch2Value (..), TabCheckBranch3Value (..)) where
+module Xynolog.Internal.Generated.Models.TabCheck (TabCheck (..), TabCheckGoneValue (..), TabCheckReadyValue (..), TabCheckUnknownValue (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -11,40 +11,40 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.TabVerdict
 
-data TabCheck = TabCheckBranch1 TabCheckBranch1Value | TabCheckBranch2 TabCheckBranch2Value | TabCheckBranch3 TabCheckBranch3Value deriving (Eq, Show)
+data TabCheck = TabCheckGone TabCheckGoneValue | TabCheckReady TabCheckReadyValue | TabCheckUnknown TabCheckUnknownValue deriving (Eq, Show)
 
-instance FromJSON TabCheck where parseJSON = checked "TabCheck" $ \value -> (TabCheckBranch1 <$> parseJSON value) <|> (TabCheckBranch2 <$> parseJSON value) <|> (TabCheckBranch3 <$> parseJSON value)
+instance FromJSON TabCheck where parseJSON = checked "TabCheck" $ \value -> (TabCheckGone <$> parseJSON value) <|> (TabCheckReady <$> parseJSON value) <|> (TabCheckUnknown <$> parseJSON value)
 
 instance ToJSON TabCheck where
-  toJSON (TabCheckBranch1 value) = toJSON value
-  toJSON (TabCheckBranch2 value) = toJSON value
-  toJSON (TabCheckBranch3 value) = toJSON value
+  toJSON (TabCheckGone value) = toJSON value
+  toJSON (TabCheckReady value) = toJSON value
+  toJSON (TabCheckUnknown value) = toJSON value
 
-data TabCheckBranch1Value = TabCheckBranch1Value
-  { tabCheckBranch1ValueVerdict :: TabVerdict
+data TabCheckGoneValue = TabCheckGoneValue
+  { tabCheckGoneValueVerdict :: TabVerdict
   }
   deriving (Eq, Show)
 
-instance FromJSON TabCheckBranch1Value where parseJSON = checked "TabCheckBranch1Value" $ withObject "TabCheckBranch1Value" (\fields -> TabCheckBranch1Value <$> (fields .: "verdict"))
+instance FromJSON TabCheckGoneValue where parseJSON = checked "TabCheckGoneValue" $ withObject "TabCheckGoneValue" (\fields -> TabCheckGoneValue <$> (fields .: "verdict"))
 
-instance ToJSON TabCheckBranch1Value where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckBranch1ValueVerdict value))]]))
+instance ToJSON TabCheckGoneValue where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckGoneValueVerdict value))]]))
 
-data TabCheckBranch2Value = TabCheckBranch2Value
-  { tabCheckBranch2ValueMediaType :: Maybe Text,
-    tabCheckBranch2ValueName :: Text,
-    tabCheckBranch2ValueVerdict :: TabVerdict
+data TabCheckReadyValue = TabCheckReadyValue
+  { tabCheckReadyValueMediaType :: Maybe Text,
+    tabCheckReadyValueName :: Text,
+    tabCheckReadyValueVerdict :: TabVerdict
   }
   deriving (Eq, Show)
 
-instance FromJSON TabCheckBranch2Value where parseJSON = checked "TabCheckBranch2Value" $ withObject "TabCheckBranch2Value" (\fields -> TabCheckBranch2Value <$> optional fields "mediaType" <*> (fields .: "name") <*> (fields .: "verdict"))
+instance FromJSON TabCheckReadyValue where parseJSON = checked "TabCheckReadyValue" $ withObject "TabCheckReadyValue" (\fields -> TabCheckReadyValue <$> optional fields "mediaType" <*> (fields .: "name") <*> (fields .: "verdict"))
 
-instance ToJSON TabCheckBranch2Value where toJSON value = Object (KM.fromList (concat [optionalPair "mediaType" (tabCheckBranch2ValueMediaType value), [("name", toJSON (tabCheckBranch2ValueName value))], [("verdict", toJSON (tabCheckBranch2ValueVerdict value))]]))
+instance ToJSON TabCheckReadyValue where toJSON value = Object (KM.fromList (concat [optionalPair "mediaType" (tabCheckReadyValueMediaType value), [("name", toJSON (tabCheckReadyValueName value))], [("verdict", toJSON (tabCheckReadyValueVerdict value))]]))
 
-data TabCheckBranch3Value = TabCheckBranch3Value
-  { tabCheckBranch3ValueVerdict :: TabVerdict
+data TabCheckUnknownValue = TabCheckUnknownValue
+  { tabCheckUnknownValueVerdict :: TabVerdict
   }
   deriving (Eq, Show)
 
-instance FromJSON TabCheckBranch3Value where parseJSON = checked "TabCheckBranch3Value" $ withObject "TabCheckBranch3Value" (\fields -> TabCheckBranch3Value <$> (fields .: "verdict"))
+instance FromJSON TabCheckUnknownValue where parseJSON = checked "TabCheckUnknownValue" $ withObject "TabCheckUnknownValue" (\fields -> TabCheckUnknownValue <$> (fields .: "verdict"))
 
-instance ToJSON TabCheckBranch3Value where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckBranch3ValueVerdict value))]]))
+instance ToJSON TabCheckUnknownValue where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckUnknownValueVerdict value))]]))

@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.RunService (RunService (..)) where
+module Xynolog.Internal.Generated.Models.RunService (RunService (..), runServiceText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data RunService = RunServiceArchivist | RunServiceDispatcher | RunServiceGateway | RunServiceLibrarian | RunServiceSmelter | RunServiceWeaver | RunServiceWorker deriving (Eq, Show)
@@ -19,3 +20,12 @@ instance ToJSON RunService where
   toJSON RunServiceSmelter = String "smelter"
   toJSON RunServiceWeaver = String "weaver"
   toJSON RunServiceWorker = String "worker"
+
+runServiceText :: RunService -> Text
+runServiceText RunServiceArchivist = "archivist"
+runServiceText RunServiceDispatcher = "dispatcher"
+runServiceText RunServiceGateway = "gateway"
+runServiceText RunServiceLibrarian = "librarian"
+runServiceText RunServiceSmelter = "smelter"
+runServiceText RunServiceWeaver = "weaver"
+runServiceText RunServiceWorker = "worker"

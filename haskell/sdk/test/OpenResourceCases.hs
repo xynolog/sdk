@@ -29,6 +29,7 @@ import Xynolog.Content qualified as Content
 import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (TransportError (..))
 import Xynolog.Http qualified as Http
+import Xynolog.Identity qualified as Identity
 import Xynolog.Registry qualified as Browser
 import Xynolog.Retry (RetryOptions (..))
 import Xynolog.SessionStorage qualified as Storage
@@ -144,7 +145,7 @@ runCase fixtures row = do
   store <- Storage.newMemoryStorage
   Browser.saveKnowledgeBases
     store
-    [KnowledgeBase ("did:web:" <> kbDomain) (KbEndpointBranch2 (LocalEndpoint kbId LocalEndpointKindLocal mempty)) kbId "Open" Nothing mempty]
+    [KnowledgeBase (either error userIdValue (Identity.kbDid kbDomain)) (KbEndpointLocalEndpoint (LocalEndpoint kbId LocalEndpointKindLocal mempty)) kbId "Open" Nothing mempty]
   Browser.storeSession store kbId grant {storedSessionAccess = jwt 3600 1}
   tabs <- forM (zip [0 ..] open) $ \(order, resource) -> do
     identity <- either (failure why) pure (mkResourceId resource)

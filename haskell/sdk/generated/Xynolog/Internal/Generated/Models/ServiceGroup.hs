@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ServiceGroup (ServiceGroup (..)) where
+module Xynolog.Internal.Generated.Models.ServiceGroup (ServiceGroup (..), serviceGroupText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ServiceGroup = ServiceGroupRecord | ServiceGroupIndex | ServiceGroupIssuer | ServiceGroupKnowledgeU2d_workers | ServiceGroupProviders | ServiceGroupTelemetry deriving (Eq, Show)
@@ -18,3 +19,11 @@ instance ToJSON ServiceGroup where
   toJSON ServiceGroupKnowledgeU2d_workers = String "knowledge-workers"
   toJSON ServiceGroupProviders = String "providers"
   toJSON ServiceGroupTelemetry = String "telemetry"
+
+serviceGroupText :: ServiceGroup -> Text
+serviceGroupText ServiceGroupRecord = "record"
+serviceGroupText ServiceGroupIndex = "index"
+serviceGroupText ServiceGroupIssuer = "issuer"
+serviceGroupText ServiceGroupKnowledgeU2d_workers = "knowledge-workers"
+serviceGroupText ServiceGroupProviders = "providers"
+serviceGroupText ServiceGroupTelemetry = "telemetry"

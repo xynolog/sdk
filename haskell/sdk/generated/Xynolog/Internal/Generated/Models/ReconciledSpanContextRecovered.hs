@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ReconciledSpanContextRecovered (ReconciledSpanContextRecovered (..), ReconciledSpanContextRecoveredAnchorMethod (..)) where
+module Xynolog.Internal.Generated.Models.ReconciledSpanContextRecovered (ReconciledSpanContextRecovered (..), ReconciledSpanContextRecoveredAnchorMethod (..), reconciledSpanContextRecoveredAnchorMethodText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -28,3 +28,6 @@ data ReconciledSpanContextRecoveredAnchorMethod = ReconciledSpanContextRecovered
 instance FromJSON ReconciledSpanContextRecoveredAnchorMethod where parseJSON = checked "ReconciledSpanContextRecoveredAnchorMethod" $ \value -> if value == String "context-recovered" then pure ReconciledSpanContextRecoveredAnchorMethodContextU2d_recovered else fail "unknown enumeration member"
 
 instance ToJSON ReconciledSpanContextRecoveredAnchorMethod where toJSON ReconciledSpanContextRecoveredAnchorMethodContextU2d_recovered = String "context-recovered"
+
+reconciledSpanContextRecoveredAnchorMethodText :: ReconciledSpanContextRecoveredAnchorMethod -> Text
+reconciledSpanContextRecoveredAnchorMethodText ReconciledSpanContextRecoveredAnchorMethodContextU2d_recovered = "context-recovered"

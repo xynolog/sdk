@@ -8,27 +8,29 @@ module GatewayStage (Stage (..), newStage, stageHttp, registered, signInOf, send
 import Control.Concurrent.STM
 import Control.Monad (forM_)
 import ControlledTime qualified as Time
-import Data.Aeson (Value (..), eitherDecodeStrict', encode, object, (.=))
-import Data.Aeson.Key qualified as Key
+import Data.Aeson (FromJSON, Result (..), Value (..), eitherDecodeStrict', encode, fromJSON, object, toJSON, (.=))
 import Data.Aeson.KeyMap qualified as KM
 import Data.ByteString qualified as Bytes
 import Data.ByteString.Char8 qualified as Char8
 import Data.ByteString.Lazy qualified as Lazy
 import Data.Char (toLower)
-import Data.Foldable (toList)
 import Data.Map.Strict qualified as Map
-import Data.Maybe (listToMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Data.UUID.Types qualified as UUID
 import Data.Word (Word32)
 import IssuerCases (bodyOf, jsonReply, route, streamingPeer)
+import Xynolog.Channels (Channel (..), channelName, decodePayload, encodePayload)
 import Xynolog.Channels qualified as Channels
 import Xynolog.Http qualified as Http
+import Xynolog.Http.Routes (HttpRoute (..), routePath)
+import Xynolog.Identity qualified as Identity
 import Xynolog.Retry (RetryOptions (..))
 import Xynolog.Timing.Settings qualified as Timing
-import Xynolog.Types
+import Xynolog.Types hiding (BrowseKbResult, BrowseResourceResult)
+import Xynolog.Types qualified as Types
 
 data Stage = Stage
   { -- | What the gateway says every token is; Nothing gives no answer, the connection closed.
@@ -42,7 +44,7 @@ data Stage = Stage
     -- | Every token the gateway was asked who it is.
     stageAskedWho :: TVar [Text],
     -- | Every stream asked for.
-    stageSubscriptions :: TVar [Value],
+    stageSubscriptions :: TVar [BusSubscribeRequest],
     stageStreams :: TVar [Bytes.ByteString -> STM ()],
     -- | Every reply sent, by its correlation id.
     stageReplies :: TVar (Map.Map Text Bytes.ByteString),
@@ -88,8 +90,8 @@ stageHttp stage time timing = do
 registered :: Text -> KnowledgeBase
 registered key =
   KnowledgeBase
-    ("did:web:" <> domainOf key)
-    (KbEndpointBranch1 (HttpEndpoint "gateway.test" HttpEndpointKindHttp 80 HttpEndpointProtocolHttp KM.empty))
+    (either error userIdValue (Identity.kbDid (domainOf key)))
+    (KbEndpointHttpEndpoint (HttpEndpoint "gateway.test" HttpEndpointKindHttp 80 HttpEndpointProtocolHttp KM.empty))
     key
     key
     Nothing
@@ -104,52 +106,56 @@ signInOf clientId access refresh person =
   StoredSession access clientId person refresh (Just "http://issuer.test/revoke") "http://issuer.test/token" KM.empty
 
 answer :: Stage -> Bytes.ByteString -> (Bytes.ByteString -> STM ()) -> STM () -> IO ()
-answer stage request write hangUp = case Char8.takeWhile (/= '?') (route request) of
-  "/api/users/me" -> do
-    refused <- atomically $ do
-      modifyTVar' (stageAskedWho stage) (<> [token])
-      Set.member token <$> readTVar (stageRefusesWho stage)
-    atomically $
-      if refused
-        then write (jsonReply 401 (object ["error" .= String "Invalid token"]))
-        else do
-          readTVar (stageWhoHeld stage) >>= check . not
-          readTVar (stageWho stage) >>= maybe hangUp (write . jsonReply 200)
-  "/token" ->
-    atomically $
-      readTVar (stageGrants stage) >>= \granting -> case granting of
-        [] -> write (jsonReply 400 (object ["error" .= String "invalid_grant"]))
-        (access, refresh) : rest -> do
-          writeTVar (stageGrants stage) rest
-          write
-            ( jsonReply
-                200
-                ( object
-                    [ "access_token" .= access,
-                      "refresh_token" .= refresh,
-                      "token_type" .= String "Bearer",
-                      "expires_in" .= (3600 :: Int)
-                    ]
-                )
-            )
-  "/revoke" -> atomically (write (jsonReply 200 (object [])))
-  "/bus/subscribe" | Right subscription <- decoded -> atomically $ do
-    modifyTVar' (stageSubscriptions stage) (<> [subscription])
-    modifyTVar' (stageStreams stage) (<> [write])
-    write "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nConnection: close\r\n\r\n"
-    retained <- readTVar (stageReplies stage)
-    forM_ (texts "pendingReplies" subscription) $ \correlation -> mapM_ write (Map.lookup correlation retained)
-  "/bus/emit" | Right emitted <- decoded -> atomically $ do
-    forM_ (replyTo emitted) $ \(correlation, frame) -> do
-      let event = sse Nothing frame
-      modifyTVar' (stageReplies stage) (Map.insert correlation event)
-      readTVar (stageStreams stage) >>= mapM_ ($ event)
-    write (jsonReply 202 (object ["subscribers" .= (1 :: Int)]))
-  _ -> atomically $ do
-    modifyTVar' (stageStrays stage) (<> [request])
-    write (jsonReply 404 (object ["error" .= String "the stage has no answer for this"]))
+answer stage request write hangUp = dispatch (decodeUtf8 (Char8.takeWhile (/= '?') (route request)))
   where
-    decoded = eitherDecodeStrict' (bodyOf request) :: Either String Value
+    dispatch path
+      | path == routePath GetCurrentUser = do
+          refused <- atomically $ do
+            modifyTVar' (stageAskedWho stage) (<> [token])
+            Set.member token <$> readTVar (stageRefusesWho stage)
+          atomically $
+            if refused
+              then write (jsonReply 401 (toJSON (ErrorResponse Nothing Nothing "Invalid token" Nothing mempty)))
+              else do
+                readTVar (stageWhoHeld stage) >>= check . not
+                readTVar (stageWho stage) >>= maybe hangUp (write . jsonReply 200)
+      | path == "/token" =
+          atomically $
+            readTVar (stageGrants stage) >>= \granting -> case granting of
+              [] -> write (jsonReply 400 (object ["error" .= String "invalid_grant"]))
+              (access, refresh) : rest -> do
+                writeTVar (stageGrants stage) rest
+                write
+                  ( jsonReply
+                      200
+                      ( object
+                          [ "access_token" .= access,
+                            "refresh_token" .= refresh,
+                            "token_type" .= String "Bearer",
+                            "expires_in" .= (3600 :: Int)
+                          ]
+                      )
+                  )
+      | path == "/revoke" = atomically (write (jsonReply 200 (object [])))
+      | path == routePath SubscribeToBus,
+        Right subscription <- decoded = atomically $ do
+          modifyTVar' (stageSubscriptions stage) (<> [subscription])
+          modifyTVar' (stageStreams stage) (<> [write])
+          write "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nConnection: close\r\n\r\n"
+          retained <- readTVar (stageReplies stage)
+          forM_ (fromMaybe [] (busSubscribeRequestPendingReplies subscription)) $ \correlation -> mapM_ write (Map.lookup correlation retained)
+      | path == routePath EmitOnBus,
+        Right emitted <- decoded = atomically $ do
+          forM_ (replyTo emitted) $ \(correlation, frame) -> do
+            let event = sse Nothing (toJSON frame)
+            modifyTVar' (stageReplies stage) (Map.insert correlation event)
+            readTVar (stageStreams stage) >>= mapM_ ($ event)
+          write (jsonReply 202 (toJSON (BusEmitAccepted (Just 1) mempty)))
+      | otherwise = atomically $ do
+          modifyTVar' (stageStrays stage) (<> [request])
+          write (jsonReply 404 (toJSON (ErrorResponse Nothing Nothing "the stage has no answer for this" Nothing mempty)))
+    decoded :: (FromJSON value) => Either String value
+    decoded = eitherDecodeStrict' (bodyOf request)
     token =
       maybe "" decodeUtf8 $
         listToMaybe
@@ -159,43 +165,29 @@ answer stage request write hangUp = case Char8.takeWhile (/= '?') (route request
             Char8.map toLower name == "authorization",
             Just bearer <- [Bytes.stripPrefix "Bearer " (Char8.strip (Bytes.drop 1 rest))]
           ]
-    replyTo (Object emitted) = case (KM.lookup "correlationId" emitted, KM.lookup "channel" emitted, KM.lookup "payload" emitted) of
-      (Just (String correlation), Just (String "browse:kb-requested"), _) ->
-        Just
-          ( correlation,
-            frameOf
-              "browse:kb-result"
-              correlation
-              (object ["name" .= String "KB A", "domain" .= domainOf "kb-a"])
-          )
-      (Just (String correlation), Just (String "browse:resource-requested"), Just (Object payload)) -> do
-        resource <- KM.lookup "resourceId" payload
-        Just
-          ( correlation,
-            frameOf
-              "browse:resource-result"
-              correlation
-              ( object
-                  [ "resource"
-                      .= object
-                        [ "@context" .= String "https://schema.org",
-                          "@id" .= resource,
-                          "name" .= String "fresh",
-                          "representations" .= ([] :: [Value])
-                        ],
-                    "lastSequence" .= (1 :: Int)
-                  ]
-              )
-          )
-      _ -> Nothing
-    replyTo _ = Nothing
-    frameOf channel correlation response =
-      object
-        ["channel" .= String channel, "correlationId" .= correlation, "payload" .= object ["response" .= response]]
+    replyTo emitted = do
+      correlation <- busEmitRequestCorrelationId emitted
+      let asked = busEmitRequestChannel emitted
+          payload = Object (busEmitRequestPayloadAdditionalProperties (busEmitRequestPayload emitted))
+      if asked == channelName BrowseKbRequested
+        then Just (correlation, frameOf BrowseKbResult correlation (Types.BrowseKbResult (KbDescription (domainOf "kb-a") Nothing "KB A" mempty) mempty))
+        else
+          if asked == channelName BrowseResourceRequested
+            then do
+              resource <- either (const Nothing) (Just . browseResourceRequestResourceId) (decodePayload BrowseResourceRequested payload)
+              Just (correlation, frameOf BrowseResourceResult correlation (Types.BrowseResourceResult (BrowseResourceResultResponse 1 (freshResource resource)) mempty))
+            else Nothing
 
-texts :: Key.Key -> Value -> [Text]
-texts name (Object fields) | Just (Array items) <- KM.lookup name fields = [text | String text <- toList items]
-texts _ _ = []
+-- | The resource the stage describes as it is now: named fresh, and of no representation.
+freshResource :: ResourceId -> ResourceDescriptor
+freshResource resource = case fromJSON (object ["@context" .= String "https://schema.org", "@id" .= resource, "name" .= String "fresh", "representations" .= ([] :: [Value])]) of
+  Success described -> described
+  Error problem -> error ("the stage's fresh resource is no ResourceDescriptor: " ++ problem)
+
+frameOf :: Channel scope payload -> Text -> payload -> BusFrame
+frameOf channel correlation payload = case encodePayload channel payload of
+  Object fields -> BusFrame (channelName channel) (Just correlation) (BusFramePayload fields) Nothing
+  _ -> error "a reply's payload is no object"
 
 sse :: Maybe Text -> Value -> Bytes.ByteString
 sse identity frame =
@@ -210,19 +202,8 @@ send :: Stage -> Maybe Text -> Value -> STM ()
 send stage identity frame = readTVar (stageStreams stage) >>= mapM_ ($ sse identity frame)
 
 -- | Each scope a stream named, and the place it resumed it from.
-scopedOf :: Value -> [(Text, Maybe Text)]
-scopedOf (Object subscription) | Just (Array items) <- KM.lookup "scoped" subscription = mapMaybe entry (toList items)
-  where
-    entry (Object item)
-      | Just (String scope) <- KM.lookup "scope" item =
-          Just
-            ( scope,
-              case KM.lookup "lastEventId" item of
-                Just (String place) -> Just place
-                _ -> Nothing
-            )
-    entry _ = Nothing
-scopedOf _ = []
+scopedOf :: BusSubscribeRequest -> [(Text, Maybe Text)]
+scopedOf subscription = [(resourceIdValue (busSubscribeRequestScopedItemScope item), busSubscribeRequestScopedItemLastEventId item) | item <- fromMaybe [] (busSubscribeRequestScoped subscription)]
 
 -- | The place the first stream that named scope resumed it from, Nothing for none; Nothing while no stream has named
 -- it.

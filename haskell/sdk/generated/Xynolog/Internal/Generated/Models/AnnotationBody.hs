@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.SpecificResource
 import Xynolog.Internal.Generated.Models.TextualBody
 
-data AnnotationBody = AnnotationBodyBranch1 TextualBody | AnnotationBodyBranch2 SpecificResource deriving (Eq, Show)
+data AnnotationBody = AnnotationBodyTextualBody TextualBody | AnnotationBodySpecificResource SpecificResource deriving (Eq, Show)
 
-instance FromJSON AnnotationBody where parseJSON = checked "AnnotationBody" $ \value -> (AnnotationBodyBranch1 <$> parseJSON value) <|> (AnnotationBodyBranch2 <$> parseJSON value)
+instance FromJSON AnnotationBody where parseJSON = checked "AnnotationBody" $ \value -> (AnnotationBodyTextualBody <$> parseJSON value) <|> (AnnotationBodySpecificResource <$> parseJSON value)
 
 instance ToJSON AnnotationBody where
-  toJSON (AnnotationBodyBranch1 value) = toJSON value
-  toJSON (AnnotationBodyBranch2 value) = toJSON value
+  toJSON (AnnotationBodyTextualBody value) = toJSON value
+  toJSON (AnnotationBodySpecificResource value) = toJSON value

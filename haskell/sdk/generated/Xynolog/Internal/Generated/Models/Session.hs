@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Session (Session (..), SessionState (..)) where
+module Xynolog.Internal.Generated.Models.Session (Session (..), SessionState (..), sessionStateText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -28,3 +28,9 @@ instance ToJSON SessionState where
   toJSON SessionStateExpired = String "expired"
   toJSON SessionStateUnverified = String "unverified"
   toJSON SessionStateNone = String "none"
+
+sessionStateText :: SessionState -> Text
+sessionStateText SessionStateValid = "valid"
+sessionStateText SessionStateExpired = "expired"
+sessionStateText SessionStateUnverified = "unverified"
+sessionStateText SessionStateNone = "none"

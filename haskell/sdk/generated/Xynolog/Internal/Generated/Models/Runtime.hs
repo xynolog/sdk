@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Runtime (Runtime (..)) where
+module Xynolog.Internal.Generated.Models.Runtime (Runtime (..), runtimeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data Runtime = RuntimeContainer | RuntimeDocker | RuntimePodman deriving (Eq, Show)
@@ -15,3 +16,8 @@ instance ToJSON Runtime where
   toJSON RuntimeContainer = String "container"
   toJSON RuntimeDocker = String "docker"
   toJSON RuntimePodman = String "podman"
+
+runtimeText :: Runtime -> Text
+runtimeText RuntimeContainer = "container"
+runtimeText RuntimeDocker = "docker"
+runtimeText RuntimePodman = "podman"

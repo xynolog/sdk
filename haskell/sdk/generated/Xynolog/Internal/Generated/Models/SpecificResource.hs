@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.SpecificResource (SpecificResource (..), SpecificResourceType (..)) where
+module Xynolog.Internal.Generated.Models.SpecificResource (SpecificResource (..), SpecificResourceType (..), specificResourceTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.BodyPurpose
 import Xynolog.Internal.Generated.Models.ResourceId
@@ -27,3 +28,6 @@ data SpecificResourceType = SpecificResourceTypeSpecificResource deriving (Eq, S
 instance FromJSON SpecificResourceType where parseJSON = checked "SpecificResourceType" $ \value -> if value == String "SpecificResource" then pure SpecificResourceTypeSpecificResource else fail "unknown enumeration member"
 
 instance ToJSON SpecificResourceType where toJSON SpecificResourceTypeSpecificResource = String "SpecificResource"
+
+specificResourceTypeText :: SpecificResourceType -> Text
+specificResourceTypeText SpecificResourceTypeSpecificResource = "SpecificResource"

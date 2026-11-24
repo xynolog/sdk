@@ -10,14 +10,14 @@ applyTabChecks :: [OpenResource] -> Map.Map ResourceId TabCheck -> [OpenResource
 applyTabChecks opened checks = concatMap apply opened
   where
     apply resource = case Map.lookup (openResourceId resource) checks of
-      Just (TabCheckBranch1 _) -> []
-      Just (TabCheckBranch2 checked) ->
+      Just (TabCheckGone _) -> []
+      Just (TabCheckReady checked) ->
         [ resource
-            { openResourceName = tabCheckBranch2ValueName checked,
-              openResourceMediaType = case tabCheckBranch2ValueMediaType checked of Nothing -> openResourceMediaType resource; Just media -> Just media
+            { openResourceName = tabCheckReadyValueName checked,
+              openResourceMediaType = case tabCheckReadyValueMediaType checked of Nothing -> openResourceMediaType resource; Just media -> Just media
             }
         ]
-      Just (TabCheckBranch3 _) -> [resource]
+      Just (TabCheckUnknown _) -> [resource]
       Nothing -> [resource]
 
 sortOpenResources :: [OpenResource] -> [OpenResource]

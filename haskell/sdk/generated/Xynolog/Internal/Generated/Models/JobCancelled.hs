@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobCancelled (JobCancelled (..), JobCancelledStatus (..)) where
+module Xynolog.Internal.Generated.Models.JobCancelled (JobCancelled (..), JobCancelledStatus (..), jobCancelledStatusText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -29,3 +29,6 @@ data JobCancelledStatus = JobCancelledStatusCancelled deriving (Eq, Show)
 instance FromJSON JobCancelledStatus where parseJSON = checked "JobCancelledStatus" $ \value -> if value == String "cancelled" then pure JobCancelledStatusCancelled else fail "unknown enumeration member"
 
 instance ToJSON JobCancelledStatus where toJSON JobCancelledStatusCancelled = String "cancelled"
+
+jobCancelledStatusText :: JobCancelledStatus -> Text
+jobCancelledStatusText JobCancelledStatusCancelled = "cancelled"

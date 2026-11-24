@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Root (Root (..), RootCurrent (..), RootPlacement (..)) where
+module Xynolog.Internal.Generated.Models.Root (Root (..), RootCurrent (..), rootCurrentText, RootPlacement (..), rootPlacementText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -43,6 +43,10 @@ instance ToJSON RootCurrent where
   toJSON RootCurrentCwd = String "cwd"
   toJSON RootCurrentXynologU2d_root = String "xynolog-root"
 
+rootCurrentText :: RootCurrent -> Text
+rootCurrentText RootCurrentCwd = "cwd"
+rootCurrentText RootCurrentXynologU2d_root = "xynolog-root"
+
 data RootPlacement = RootPlacementLocal | RootPlacementCodespace deriving (Eq, Show)
 
 instance FromJSON RootPlacement where parseJSON = checked "RootPlacement" $ \value -> if value == String "local" then pure RootPlacementLocal else if value == String "codespace" then pure RootPlacementCodespace else fail "unknown enumeration member"
@@ -50,3 +54,7 @@ instance FromJSON RootPlacement where parseJSON = checked "RootPlacement" $ \val
 instance ToJSON RootPlacement where
   toJSON RootPlacementLocal = String "local"
   toJSON RootPlacementCodespace = String "codespace"
+
+rootPlacementText :: RootPlacement -> Text
+rootPlacementText RootPlacementLocal = "local"
+rootPlacementText RootPlacementCodespace = "codespace"

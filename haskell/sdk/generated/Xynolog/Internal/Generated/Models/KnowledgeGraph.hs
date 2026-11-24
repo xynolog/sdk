@@ -47,10 +47,10 @@ instance FromJSON KnowledgeGraphEdgesItemMetadata where parseJSON = checked "Kno
 
 instance ToJSON KnowledgeGraphEdgesItemMetadata where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (knowledgeGraphEdgesItemMetadataAdditionalProperties value)))
 
-data KnowledgeGraphNodesItem = KnowledgeGraphNodesItemBranch1 GraphResourceNode | KnowledgeGraphNodesItemBranch2 GraphAnnotationNode deriving (Eq, Show)
+data KnowledgeGraphNodesItem = KnowledgeGraphNodesItemGraphResourceNode GraphResourceNode | KnowledgeGraphNodesItemGraphAnnotationNode GraphAnnotationNode deriving (Eq, Show)
 
-instance FromJSON KnowledgeGraphNodesItem where parseJSON = checked "KnowledgeGraphNodesItem" $ \value -> (KnowledgeGraphNodesItemBranch1 <$> parseJSON value) <|> (KnowledgeGraphNodesItemBranch2 <$> parseJSON value)
+instance FromJSON KnowledgeGraphNodesItem where parseJSON = checked "KnowledgeGraphNodesItem" $ \value -> (KnowledgeGraphNodesItemGraphResourceNode <$> parseJSON value) <|> (KnowledgeGraphNodesItemGraphAnnotationNode <$> parseJSON value)
 
 instance ToJSON KnowledgeGraphNodesItem where
-  toJSON (KnowledgeGraphNodesItemBranch1 value) = toJSON value
-  toJSON (KnowledgeGraphNodesItemBranch2 value) = toJSON value
+  toJSON (KnowledgeGraphNodesItemGraphResourceNode value) = toJSON value
+  toJSON (KnowledgeGraphNodesItemGraphAnnotationNode value) = toJSON value

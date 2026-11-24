@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ExtractedText
 import Xynolog.Internal.Generated.Models.ExtractionDeclined
 
-data ExtractionOutcome = ExtractionOutcomeBranch1 ExtractedText | ExtractionOutcomeBranch2 ExtractionDeclined deriving (Eq, Show)
+data ExtractionOutcome = ExtractionOutcomeExtractedText ExtractedText | ExtractionOutcomeExtractionDeclined ExtractionDeclined deriving (Eq, Show)
 
-instance FromJSON ExtractionOutcome where parseJSON = checked "ExtractionOutcome" $ \value -> (ExtractionOutcomeBranch1 <$> parseJSON value) <|> (ExtractionOutcomeBranch2 <$> parseJSON value)
+instance FromJSON ExtractionOutcome where parseJSON = checked "ExtractionOutcome" $ \value -> (ExtractionOutcomeExtractedText <$> parseJSON value) <|> (ExtractionOutcomeExtractionDeclined <$> parseJSON value)
 
 instance ToJSON ExtractionOutcome where
-  toJSON (ExtractionOutcomeBranch1 value) = toJSON value
-  toJSON (ExtractionOutcomeBranch2 value) = toJSON value
+  toJSON (ExtractionOutcomeExtractedText value) = toJSON value
+  toJSON (ExtractionOutcomeExtractionDeclined value) = toJSON value

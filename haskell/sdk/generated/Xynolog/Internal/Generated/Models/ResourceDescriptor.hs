@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ResourceDescriptor (ResourceDescriptor (..), ResourceDescriptorIdentifier (..), ResourceDescriptorIdentifierBranch3Value (..), ResourceDescriptorRepresentations (..), ResourceDescriptorU40_context (..), ResourceDescriptorU40_contextBranch2Value (..), ResourceDescriptorU40_contextBranch3ValueItem (..), ResourceDescriptorU40_contextBranch3ValueItemBranch2Value (..), ResourceDescriptorWasDerivedFrom (..)) where
+module Xynolog.Internal.Generated.Models.ResourceDescriptor (ResourceDescriptor (..), ResourceDescriptorIdentifier (..), ResourceDescriptorIdentifierObjectValue (..), ResourceDescriptorRepresentations (..), ResourceDescriptorU40_context (..), ResourceDescriptorU40_contextListValueItem (..), ResourceDescriptorU40_contextListValueItemObjectValue (..), ResourceDescriptorU40_contextObjectValue (..), ResourceDescriptorWasDerivedFrom (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -51,74 +51,74 @@ instance FromJSON ResourceDescriptor where parseJSON = checked "ResourceDescript
 
 instance ToJSON ResourceDescriptor where toJSON value = Object (KM.fromList (concat [[("@context", toJSON (resourceDescriptorU40_context value))], [("@id", toJSON (resourceDescriptorU40_id value))], optionalPair "@type" (resourceDescriptorU40_type value), optionalPair "about" (resourceDescriptorAbout value), optionalPair "archived" (resourceDescriptorArchived value), optionalPair "availableFormats" (resourceDescriptorAvailableFormats value), optionalPair "conformsTo" (resourceDescriptorConformsTo value), optionalPair "dateCreated" (resourceDescriptorDateCreated value), optionalPair "dateModified" (resourceDescriptorDateModified value), optionalPair "description" (resourceDescriptorDescription value), optionalPair "entityTypes" (resourceDescriptorEntityTypes value), optionalPair "generator" (resourceDescriptorGenerator value), optionalPair "hasPart" (resourceDescriptorHasPart value), optionalPair "identifier" (resourceDescriptorIdentifier value), optionalPair "isDraft" (resourceDescriptorIsDraft value), optionalPair "isPartOf" (resourceDescriptorIsPartOf value), optionalPair "license" (resourceDescriptorLicense value), [("name", toJSON (resourceDescriptorName value))], optionalPair "originatedFrom" (resourceDescriptorOriginatedFrom value), [("representations", toJSON (resourceDescriptorRepresentations value))], optionalPair "sameAs" (resourceDescriptorSameAs value), optionalPair "sourceAnnotationId" (resourceDescriptorSourceAnnotationId value), optionalPair "sourceResourceId" (resourceDescriptorSourceResourceId value), optionalPair "version" (resourceDescriptorVersion value), optionalPair "wasAttributedTo" (resourceDescriptorWasAttributedTo value), optionalPair "wasDerivedFrom" (resourceDescriptorWasDerivedFrom value)]) <> fmap toJSON (withoutFields ["@context", "@id", "@type", "about", "archived", "availableFormats", "conformsTo", "dateCreated", "dateModified", "description", "entityTypes", "generator", "hasPart", "identifier", "isDraft", "isPartOf", "license", "name", "originatedFrom", "representations", "sameAs", "sourceAnnotationId", "sourceResourceId", "version", "wasAttributedTo", "wasDerivedFrom"] (resourceDescriptorAdditionalProperties value)))
 
-data ResourceDescriptorIdentifier = ResourceDescriptorIdentifierBranch1 Text | ResourceDescriptorIdentifierBranch2 [Text] | ResourceDescriptorIdentifierBranch3 ResourceDescriptorIdentifierBranch3Value deriving (Eq, Show)
+data ResourceDescriptorIdentifier = ResourceDescriptorIdentifierText Text | ResourceDescriptorIdentifierList [Text] | ResourceDescriptorIdentifierObject ResourceDescriptorIdentifierObjectValue deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorIdentifier where parseJSON = checked "ResourceDescriptorIdentifier" $ \value -> (ResourceDescriptorIdentifierBranch1 <$> parseJSON value) <|> (ResourceDescriptorIdentifierBranch2 <$> parseJSON value) <|> (ResourceDescriptorIdentifierBranch3 <$> parseJSON value)
+instance FromJSON ResourceDescriptorIdentifier where parseJSON = checked "ResourceDescriptorIdentifier" $ \value -> (ResourceDescriptorIdentifierText <$> parseJSON value) <|> (ResourceDescriptorIdentifierList <$> parseJSON value) <|> (ResourceDescriptorIdentifierObject <$> parseJSON value)
 
 instance ToJSON ResourceDescriptorIdentifier where
-  toJSON (ResourceDescriptorIdentifierBranch1 value) = toJSON value
-  toJSON (ResourceDescriptorIdentifierBranch2 value) = toJSON value
-  toJSON (ResourceDescriptorIdentifierBranch3 value) = toJSON value
+  toJSON (ResourceDescriptorIdentifierText value) = toJSON value
+  toJSON (ResourceDescriptorIdentifierList value) = toJSON value
+  toJSON (ResourceDescriptorIdentifierObject value) = toJSON value
 
-data ResourceDescriptorIdentifierBranch3Value = ResourceDescriptorIdentifierBranch3Value
-  { resourceDescriptorIdentifierBranch3ValueU40_id :: Maybe Text,
-    resourceDescriptorIdentifierBranch3ValueScheme :: Maybe Text,
-    resourceDescriptorIdentifierBranch3ValueValue :: Maybe Text,
-    resourceDescriptorIdentifierBranch3ValueAdditionalProperties :: KM.KeyMap Value
+data ResourceDescriptorIdentifierObjectValue = ResourceDescriptorIdentifierObjectValue
+  { resourceDescriptorIdentifierObjectValueU40_id :: Maybe Text,
+    resourceDescriptorIdentifierObjectValueScheme :: Maybe Text,
+    resourceDescriptorIdentifierObjectValueValue :: Maybe Text,
+    resourceDescriptorIdentifierObjectValueAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorIdentifierBranch3Value where parseJSON = checked "ResourceDescriptorIdentifierBranch3Value" $ withObject "ResourceDescriptorIdentifierBranch3Value" (\fields -> ResourceDescriptorIdentifierBranch3Value <$> optional fields "@id" <*> optional fields "scheme" <*> optional fields "value" <*> traverse parseJSON (withoutFields ["@id", "scheme", "value"] fields))
+instance FromJSON ResourceDescriptorIdentifierObjectValue where parseJSON = checked "ResourceDescriptorIdentifierObjectValue" $ withObject "ResourceDescriptorIdentifierObjectValue" (\fields -> ResourceDescriptorIdentifierObjectValue <$> optional fields "@id" <*> optional fields "scheme" <*> optional fields "value" <*> traverse parseJSON (withoutFields ["@id", "scheme", "value"] fields))
 
-instance ToJSON ResourceDescriptorIdentifierBranch3Value where toJSON value = Object (KM.fromList (concat [optionalPair "@id" (resourceDescriptorIdentifierBranch3ValueU40_id value), optionalPair "scheme" (resourceDescriptorIdentifierBranch3ValueScheme value), optionalPair "value" (resourceDescriptorIdentifierBranch3ValueValue value)]) <> fmap toJSON (withoutFields ["@id", "scheme", "value"] (resourceDescriptorIdentifierBranch3ValueAdditionalProperties value)))
+instance ToJSON ResourceDescriptorIdentifierObjectValue where toJSON value = Object (KM.fromList (concat [optionalPair "@id" (resourceDescriptorIdentifierObjectValueU40_id value), optionalPair "scheme" (resourceDescriptorIdentifierObjectValueScheme value), optionalPair "value" (resourceDescriptorIdentifierObjectValueValue value)]) <> fmap toJSON (withoutFields ["@id", "scheme", "value"] (resourceDescriptorIdentifierObjectValueAdditionalProperties value)))
 
-data ResourceDescriptorRepresentations = ResourceDescriptorRepresentationsBranch1 Representation | ResourceDescriptorRepresentationsBranch2 [Representation] deriving (Eq, Show)
+data ResourceDescriptorRepresentations = ResourceDescriptorRepresentationsRepresentation Representation | ResourceDescriptorRepresentationsList [Representation] deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorRepresentations where parseJSON = checked "ResourceDescriptorRepresentations" $ \value -> (ResourceDescriptorRepresentationsBranch1 <$> parseJSON value) <|> (ResourceDescriptorRepresentationsBranch2 <$> parseJSON value)
+instance FromJSON ResourceDescriptorRepresentations where parseJSON = checked "ResourceDescriptorRepresentations" $ \value -> (ResourceDescriptorRepresentationsRepresentation <$> parseJSON value) <|> (ResourceDescriptorRepresentationsList <$> parseJSON value)
 
 instance ToJSON ResourceDescriptorRepresentations where
-  toJSON (ResourceDescriptorRepresentationsBranch1 value) = toJSON value
-  toJSON (ResourceDescriptorRepresentationsBranch2 value) = toJSON value
+  toJSON (ResourceDescriptorRepresentationsRepresentation value) = toJSON value
+  toJSON (ResourceDescriptorRepresentationsList value) = toJSON value
 
-data ResourceDescriptorU40_context = ResourceDescriptorU40_contextBranch1 Text | ResourceDescriptorU40_contextBranch2 ResourceDescriptorU40_contextBranch2Value | ResourceDescriptorU40_contextBranch3 [ResourceDescriptorU40_contextBranch3ValueItem] deriving (Eq, Show)
+data ResourceDescriptorU40_context = ResourceDescriptorU40_contextText Text | ResourceDescriptorU40_contextObject ResourceDescriptorU40_contextObjectValue | ResourceDescriptorU40_contextList [ResourceDescriptorU40_contextListValueItem] deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorU40_context where parseJSON = checked "ResourceDescriptorU40_context" $ \value -> (ResourceDescriptorU40_contextBranch1 <$> parseJSON value) <|> (ResourceDescriptorU40_contextBranch2 <$> parseJSON value) <|> (ResourceDescriptorU40_contextBranch3 <$> parseJSON value)
+instance FromJSON ResourceDescriptorU40_context where parseJSON = checked "ResourceDescriptorU40_context" $ \value -> (ResourceDescriptorU40_contextText <$> parseJSON value) <|> (ResourceDescriptorU40_contextObject <$> parseJSON value) <|> (ResourceDescriptorU40_contextList <$> parseJSON value)
 
 instance ToJSON ResourceDescriptorU40_context where
-  toJSON (ResourceDescriptorU40_contextBranch1 value) = toJSON value
-  toJSON (ResourceDescriptorU40_contextBranch2 value) = toJSON value
-  toJSON (ResourceDescriptorU40_contextBranch3 value) = toJSON value
+  toJSON (ResourceDescriptorU40_contextText value) = toJSON value
+  toJSON (ResourceDescriptorU40_contextObject value) = toJSON value
+  toJSON (ResourceDescriptorU40_contextList value) = toJSON value
 
-data ResourceDescriptorU40_contextBranch2Value = ResourceDescriptorU40_contextBranch2Value
-  { resourceDescriptorU40_contextBranch2ValueAdditionalProperties :: KM.KeyMap Value
+data ResourceDescriptorU40_contextListValueItem = ResourceDescriptorU40_contextListValueItemText Text | ResourceDescriptorU40_contextListValueItemObject ResourceDescriptorU40_contextListValueItemObjectValue deriving (Eq, Show)
+
+instance FromJSON ResourceDescriptorU40_contextListValueItem where parseJSON = checked "ResourceDescriptorU40_contextListValueItem" $ \value -> (ResourceDescriptorU40_contextListValueItemText <$> parseJSON value) <|> (ResourceDescriptorU40_contextListValueItemObject <$> parseJSON value)
+
+instance ToJSON ResourceDescriptorU40_contextListValueItem where
+  toJSON (ResourceDescriptorU40_contextListValueItemText value) = toJSON value
+  toJSON (ResourceDescriptorU40_contextListValueItemObject value) = toJSON value
+
+data ResourceDescriptorU40_contextListValueItemObjectValue = ResourceDescriptorU40_contextListValueItemObjectValue
+  { resourceDescriptorU40_contextListValueItemObjectValueAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorU40_contextBranch2Value where parseJSON = checked "ResourceDescriptorU40_contextBranch2Value" $ withObject "ResourceDescriptorU40_contextBranch2Value" (\fields -> ResourceDescriptorU40_contextBranch2Value <$> traverse parseJSON (withoutFields [] fields))
+instance FromJSON ResourceDescriptorU40_contextListValueItemObjectValue where parseJSON = checked "ResourceDescriptorU40_contextListValueItemObjectValue" $ withObject "ResourceDescriptorU40_contextListValueItemObjectValue" (\fields -> ResourceDescriptorU40_contextListValueItemObjectValue <$> traverse parseJSON (withoutFields [] fields))
 
-instance ToJSON ResourceDescriptorU40_contextBranch2Value where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (resourceDescriptorU40_contextBranch2ValueAdditionalProperties value)))
+instance ToJSON ResourceDescriptorU40_contextListValueItemObjectValue where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (resourceDescriptorU40_contextListValueItemObjectValueAdditionalProperties value)))
 
-data ResourceDescriptorU40_contextBranch3ValueItem = ResourceDescriptorU40_contextBranch3ValueItemBranch1 Text | ResourceDescriptorU40_contextBranch3ValueItemBranch2 ResourceDescriptorU40_contextBranch3ValueItemBranch2Value deriving (Eq, Show)
-
-instance FromJSON ResourceDescriptorU40_contextBranch3ValueItem where parseJSON = checked "ResourceDescriptorU40_contextBranch3ValueItem" $ \value -> (ResourceDescriptorU40_contextBranch3ValueItemBranch1 <$> parseJSON value) <|> (ResourceDescriptorU40_contextBranch3ValueItemBranch2 <$> parseJSON value)
-
-instance ToJSON ResourceDescriptorU40_contextBranch3ValueItem where
-  toJSON (ResourceDescriptorU40_contextBranch3ValueItemBranch1 value) = toJSON value
-  toJSON (ResourceDescriptorU40_contextBranch3ValueItemBranch2 value) = toJSON value
-
-data ResourceDescriptorU40_contextBranch3ValueItemBranch2Value = ResourceDescriptorU40_contextBranch3ValueItemBranch2Value
-  { resourceDescriptorU40_contextBranch3ValueItemBranch2ValueAdditionalProperties :: KM.KeyMap Value
+data ResourceDescriptorU40_contextObjectValue = ResourceDescriptorU40_contextObjectValue
+  { resourceDescriptorU40_contextObjectValueAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorU40_contextBranch3ValueItemBranch2Value where parseJSON = checked "ResourceDescriptorU40_contextBranch3ValueItemBranch2Value" $ withObject "ResourceDescriptorU40_contextBranch3ValueItemBranch2Value" (\fields -> ResourceDescriptorU40_contextBranch3ValueItemBranch2Value <$> traverse parseJSON (withoutFields [] fields))
+instance FromJSON ResourceDescriptorU40_contextObjectValue where parseJSON = checked "ResourceDescriptorU40_contextObjectValue" $ withObject "ResourceDescriptorU40_contextObjectValue" (\fields -> ResourceDescriptorU40_contextObjectValue <$> traverse parseJSON (withoutFields [] fields))
 
-instance ToJSON ResourceDescriptorU40_contextBranch3ValueItemBranch2Value where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (resourceDescriptorU40_contextBranch3ValueItemBranch2ValueAdditionalProperties value)))
+instance ToJSON ResourceDescriptorU40_contextObjectValue where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (resourceDescriptorU40_contextObjectValueAdditionalProperties value)))
 
-data ResourceDescriptorWasDerivedFrom = ResourceDescriptorWasDerivedFromBranch1 ResourceId | ResourceDescriptorWasDerivedFromBranch2 [ResourceId] deriving (Eq, Show)
+data ResourceDescriptorWasDerivedFrom = ResourceDescriptorWasDerivedFromResourceId ResourceId | ResourceDescriptorWasDerivedFromList [ResourceId] deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorWasDerivedFrom where parseJSON = checked "ResourceDescriptorWasDerivedFrom" $ \value -> (ResourceDescriptorWasDerivedFromBranch1 <$> parseJSON value) <|> (ResourceDescriptorWasDerivedFromBranch2 <$> parseJSON value)
+instance FromJSON ResourceDescriptorWasDerivedFrom where parseJSON = checked "ResourceDescriptorWasDerivedFrom" $ \value -> (ResourceDescriptorWasDerivedFromResourceId <$> parseJSON value) <|> (ResourceDescriptorWasDerivedFromList <$> parseJSON value)
 
 instance ToJSON ResourceDescriptorWasDerivedFrom where
-  toJSON (ResourceDescriptorWasDerivedFromBranch1 value) = toJSON value
-  toJSON (ResourceDescriptorWasDerivedFromBranch2 value) = toJSON value
+  toJSON (ResourceDescriptorWasDerivedFromResourceId value) = toJSON value
+  toJSON (ResourceDescriptorWasDerivedFromList value) = toJSON value

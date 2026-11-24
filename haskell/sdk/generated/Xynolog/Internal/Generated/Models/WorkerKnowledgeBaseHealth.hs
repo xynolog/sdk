@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.WorkerKnowledgeBaseHealth (WorkerKnowledgeBaseHealth (..), WorkerKnowledgeBaseHealthState (..)) where
+module Xynolog.Internal.Generated.Models.WorkerKnowledgeBaseHealth (WorkerKnowledgeBaseHealth (..), WorkerKnowledgeBaseHealthState (..), workerKnowledgeBaseHealthStateText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,3 +30,8 @@ instance ToJSON WorkerKnowledgeBaseHealthState where
   toJSON WorkerKnowledgeBaseHealthStateStarting = String "starting"
   toJSON WorkerKnowledgeBaseHealthStateWorking = String "working"
   toJSON WorkerKnowledgeBaseHealthStateRefused = String "refused"
+
+workerKnowledgeBaseHealthStateText :: WorkerKnowledgeBaseHealthState -> Text
+workerKnowledgeBaseHealthStateText WorkerKnowledgeBaseHealthStateStarting = "starting"
+workerKnowledgeBaseHealthStateText WorkerKnowledgeBaseHealthStateWorking = "working"
+workerKnowledgeBaseHealthStateText WorkerKnowledgeBaseHealthStateRefused = "refused"

@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ProtectedResourceMetadata (ProtectedResourceMetadata (..), ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem (..)) where
+module Xynolog.Internal.Generated.Models.ProtectedResourceMetadata (ProtectedResourceMetadata (..), ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem (..), protectedResourceMetadataBearerU5f_methodsU5f_supportedItemText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -26,3 +26,6 @@ data ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem = ProtectedReso
 instance FromJSON ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem where parseJSON = checked "ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem" $ \value -> if value == String "header" then pure ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItemHeader else fail "unknown enumeration member"
 
 instance ToJSON ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem where toJSON ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItemHeader = String "header"
+
+protectedResourceMetadataBearerU5f_methodsU5f_supportedItemText :: ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem -> Text
+protectedResourceMetadataBearerU5f_methodsU5f_supportedItemText ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItemHeader = "header"

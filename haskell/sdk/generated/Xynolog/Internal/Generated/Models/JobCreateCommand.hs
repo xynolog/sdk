@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.MarkJobCreateCommand
 import Xynolog.Internal.Generated.Models.YieldJobCreateCommand
 
-data JobCreateCommand = JobCreateCommandBranch1 MarkJobCreateCommand | JobCreateCommandBranch2 YieldJobCreateCommand deriving (Eq, Show)
+data JobCreateCommand = JobCreateCommandMarkJobCreateCommand MarkJobCreateCommand | JobCreateCommandYieldJobCreateCommand YieldJobCreateCommand deriving (Eq, Show)
 
-instance FromJSON JobCreateCommand where parseJSON = checked "JobCreateCommand" $ \value -> (JobCreateCommandBranch1 <$> parseJSON value) <|> (JobCreateCommandBranch2 <$> parseJSON value)
+instance FromJSON JobCreateCommand where parseJSON = checked "JobCreateCommand" $ \value -> (JobCreateCommandMarkJobCreateCommand <$> parseJSON value) <|> (JobCreateCommandYieldJobCreateCommand <$> parseJSON value)
 
 instance ToJSON JobCreateCommand where
-  toJSON (JobCreateCommandBranch1 value) = toJSON value
-  toJSON (JobCreateCommandBranch2 value) = toJSON value
+  toJSON (JobCreateCommandMarkJobCreateCommand value) = toJSON value
+  toJSON (JobCreateCommandYieldJobCreateCommand value) = toJSON value

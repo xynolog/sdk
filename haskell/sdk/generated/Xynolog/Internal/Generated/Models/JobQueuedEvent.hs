@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.MarkJobQueuedEvent
 import Xynolog.Internal.Generated.Models.YieldJobQueuedEvent
 
-data JobQueuedEvent = JobQueuedEventBranch1 MarkJobQueuedEvent | JobQueuedEventBranch2 YieldJobQueuedEvent deriving (Eq, Show)
+data JobQueuedEvent = JobQueuedEventMarkJobQueuedEvent MarkJobQueuedEvent | JobQueuedEventYieldJobQueuedEvent YieldJobQueuedEvent deriving (Eq, Show)
 
-instance FromJSON JobQueuedEvent where parseJSON = checked "JobQueuedEvent" $ \value -> (JobQueuedEventBranch1 <$> parseJSON value) <|> (JobQueuedEventBranch2 <$> parseJSON value)
+instance FromJSON JobQueuedEvent where parseJSON = checked "JobQueuedEvent" $ \value -> (JobQueuedEventMarkJobQueuedEvent <$> parseJSON value) <|> (JobQueuedEventYieldJobQueuedEvent <$> parseJSON value)
 
 instance ToJSON JobQueuedEvent where
-  toJSON (JobQueuedEventBranch1 value) = toJSON value
-  toJSON (JobQueuedEventBranch2 value) = toJSON value
+  toJSON (JobQueuedEventMarkJobQueuedEvent value) = toJSON value
+  toJSON (JobQueuedEventYieldJobQueuedEvent value) = toJSON value

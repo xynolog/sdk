@@ -35,11 +35,11 @@ data IdentityUnverifiableError = IdentityUnverifiableError
 instance Exception IdentityUnverifiableError
 
 samePlace :: KbEndpoint -> KbEndpoint -> Bool
-samePlace (KbEndpointBranch1 one) (KbEndpointBranch1 other) =
+samePlace (KbEndpointHttpEndpoint one) (KbEndpointHttpEndpoint other) =
   httpEndpointProtocol one == httpEndpointProtocol other
     && Text.toLower (httpEndpointHost one) == Text.toLower (httpEndpointHost other)
     && httpEndpointPort one == httpEndpointPort other
-samePlace (KbEndpointBranch2 one) (KbEndpointBranch2 other) = localEndpointKbId one == localEndpointKbId other
+samePlace (KbEndpointLocalEndpoint one) (KbEndpointLocalEndpoint other) = localEndpointKbId one == localEndpointKbId other
 samePlace _ _ = False
 
 describeConnection :: Http.HttpOptions -> HttpEndpoint -> Text -> IO ConnectionIdentity

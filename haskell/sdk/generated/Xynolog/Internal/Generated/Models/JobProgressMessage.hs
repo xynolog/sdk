@@ -18,18 +18,18 @@ import Xynolog.Internal.Generated.Models.JobProgressDetectingEntities
 import Xynolog.Internal.Generated.Models.JobProgressGeneratingResource
 import Xynolog.Internal.Generated.Models.JobProgressLoading
 
-data JobProgressMessage = JobProgressMessageBranch1 JobProgressLoading | JobProgressMessageBranch2 JobProgressAnalyzing | JobProgressMessageBranch3 JobProgressAnalyzingTags | JobProgressMessageBranch4 JobProgressGeneratingResource | JobProgressMessageBranch5 JobProgressCreatingResource | JobProgressMessageBranch6 JobProgressCompleteGenerated | JobProgressMessageBranch7 JobProgressDetectingEntities | JobProgressMessageBranch8 JobProgressCreatingAnnotations | JobProgressMessageBranch9 JobProgressCreatingTagAnnotations | JobProgressMessageBranch10 JobProgressCompleteCreated deriving (Eq, Show)
+data JobProgressMessage = JobProgressMessageJobProgressLoading JobProgressLoading | JobProgressMessageJobProgressAnalyzing JobProgressAnalyzing | JobProgressMessageJobProgressAnalyzingTags JobProgressAnalyzingTags | JobProgressMessageJobProgressGeneratingResource JobProgressGeneratingResource | JobProgressMessageJobProgressCreatingResource JobProgressCreatingResource | JobProgressMessageJobProgressCompleteGenerated JobProgressCompleteGenerated | JobProgressMessageJobProgressDetectingEntities JobProgressDetectingEntities | JobProgressMessageJobProgressCreatingAnnotations JobProgressCreatingAnnotations | JobProgressMessageJobProgressCreatingTagAnnotations JobProgressCreatingTagAnnotations | JobProgressMessageJobProgressCompleteCreated JobProgressCompleteCreated deriving (Eq, Show)
 
-instance FromJSON JobProgressMessage where parseJSON = checked "JobProgressMessage" $ \value -> (JobProgressMessageBranch1 <$> parseJSON value) <|> (JobProgressMessageBranch2 <$> parseJSON value) <|> (JobProgressMessageBranch3 <$> parseJSON value) <|> (JobProgressMessageBranch4 <$> parseJSON value) <|> (JobProgressMessageBranch5 <$> parseJSON value) <|> (JobProgressMessageBranch6 <$> parseJSON value) <|> (JobProgressMessageBranch7 <$> parseJSON value) <|> (JobProgressMessageBranch8 <$> parseJSON value) <|> (JobProgressMessageBranch9 <$> parseJSON value) <|> (JobProgressMessageBranch10 <$> parseJSON value)
+instance FromJSON JobProgressMessage where parseJSON = checked "JobProgressMessage" $ \value -> (JobProgressMessageJobProgressLoading <$> parseJSON value) <|> (JobProgressMessageJobProgressAnalyzing <$> parseJSON value) <|> (JobProgressMessageJobProgressAnalyzingTags <$> parseJSON value) <|> (JobProgressMessageJobProgressGeneratingResource <$> parseJSON value) <|> (JobProgressMessageJobProgressCreatingResource <$> parseJSON value) <|> (JobProgressMessageJobProgressCompleteGenerated <$> parseJSON value) <|> (JobProgressMessageJobProgressDetectingEntities <$> parseJSON value) <|> (JobProgressMessageJobProgressCreatingAnnotations <$> parseJSON value) <|> (JobProgressMessageJobProgressCreatingTagAnnotations <$> parseJSON value) <|> (JobProgressMessageJobProgressCompleteCreated <$> parseJSON value)
 
 instance ToJSON JobProgressMessage where
-  toJSON (JobProgressMessageBranch1 value) = toJSON value
-  toJSON (JobProgressMessageBranch2 value) = toJSON value
-  toJSON (JobProgressMessageBranch3 value) = toJSON value
-  toJSON (JobProgressMessageBranch4 value) = toJSON value
-  toJSON (JobProgressMessageBranch5 value) = toJSON value
-  toJSON (JobProgressMessageBranch6 value) = toJSON value
-  toJSON (JobProgressMessageBranch7 value) = toJSON value
-  toJSON (JobProgressMessageBranch8 value) = toJSON value
-  toJSON (JobProgressMessageBranch9 value) = toJSON value
-  toJSON (JobProgressMessageBranch10 value) = toJSON value
+  toJSON (JobProgressMessageJobProgressLoading value) = toJSON value
+  toJSON (JobProgressMessageJobProgressAnalyzing value) = toJSON value
+  toJSON (JobProgressMessageJobProgressAnalyzingTags value) = toJSON value
+  toJSON (JobProgressMessageJobProgressGeneratingResource value) = toJSON value
+  toJSON (JobProgressMessageJobProgressCreatingResource value) = toJSON value
+  toJSON (JobProgressMessageJobProgressCompleteGenerated value) = toJSON value
+  toJSON (JobProgressMessageJobProgressDetectingEntities value) = toJSON value
+  toJSON (JobProgressMessageJobProgressCreatingAnnotations value) = toJSON value
+  toJSON (JobProgressMessageJobProgressCreatingTagAnnotations value) = toJSON value
+  toJSON (JobProgressMessageJobProgressCompleteCreated value) = toJSON value

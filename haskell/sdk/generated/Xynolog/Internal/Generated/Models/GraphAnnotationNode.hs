@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.GraphAnnotationNode (GraphAnnotationNode (..), GraphAnnotationNodeMetadata (..), GraphAnnotationNodeType (..)) where
+module Xynolog.Internal.Generated.Models.GraphAnnotationNode (GraphAnnotationNode (..), GraphAnnotationNodeMetadata (..), GraphAnnotationNodeType (..), graphAnnotationNodeTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -40,3 +40,6 @@ data GraphAnnotationNodeType = GraphAnnotationNodeTypeAnnotation deriving (Eq, S
 instance FromJSON GraphAnnotationNodeType where parseJSON = checked "GraphAnnotationNodeType" $ \value -> if value == String "annotation" then pure GraphAnnotationNodeTypeAnnotation else fail "unknown enumeration member"
 
 instance ToJSON GraphAnnotationNodeType where toJSON GraphAnnotationNodeTypeAnnotation = String "annotation"
+
+graphAnnotationNodeTypeText :: GraphAnnotationNodeType -> Text
+graphAnnotationNodeTypeText GraphAnnotationNodeTypeAnnotation = "annotation"

@@ -12,12 +12,12 @@ import Xynolog.Internal.Generated.Models.SvgSelector
 import Xynolog.Internal.Generated.Models.TextPositionSelector
 import Xynolog.Internal.Generated.Models.TextQuoteSelector
 
-data Selector = SelectorBranch1 TextPositionSelector | SelectorBranch2 TextQuoteSelector | SelectorBranch3 SvgSelector | SelectorBranch4 FragmentSelector deriving (Eq, Show)
+data Selector = SelectorTextPositionSelector TextPositionSelector | SelectorTextQuoteSelector TextQuoteSelector | SelectorSvgSelector SvgSelector | SelectorFragmentSelector FragmentSelector deriving (Eq, Show)
 
-instance FromJSON Selector where parseJSON = checked "Selector" $ \value -> (SelectorBranch1 <$> parseJSON value) <|> (SelectorBranch2 <$> parseJSON value) <|> (SelectorBranch3 <$> parseJSON value) <|> (SelectorBranch4 <$> parseJSON value)
+instance FromJSON Selector where parseJSON = checked "Selector" $ \value -> (SelectorTextPositionSelector <$> parseJSON value) <|> (SelectorTextQuoteSelector <$> parseJSON value) <|> (SelectorSvgSelector <$> parseJSON value) <|> (SelectorFragmentSelector <$> parseJSON value)
 
 instance ToJSON Selector where
-  toJSON (SelectorBranch1 value) = toJSON value
-  toJSON (SelectorBranch2 value) = toJSON value
-  toJSON (SelectorBranch3 value) = toJSON value
-  toJSON (SelectorBranch4 value) = toJSON value
+  toJSON (SelectorTextPositionSelector value) = toJSON value
+  toJSON (SelectorTextQuoteSelector value) = toJSON value
+  toJSON (SelectorSvgSelector value) = toJSON value
+  toJSON (SelectorFragmentSelector value) = toJSON value

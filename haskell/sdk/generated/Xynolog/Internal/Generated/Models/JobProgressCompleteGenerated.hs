@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobProgressCompleteGenerated (JobProgressCompleteGenerated (..), JobProgressCompleteGeneratedCode (..)) where
+module Xynolog.Internal.Generated.Models.JobProgressCompleteGenerated (JobProgressCompleteGenerated (..), JobProgressCompleteGeneratedCode (..), jobProgressCompleteGeneratedCodeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data JobProgressCompleteGenerated = JobProgressCompleteGenerated
@@ -24,3 +25,6 @@ data JobProgressCompleteGeneratedCode = JobProgressCompleteGeneratedCodeComplete
 instance FromJSON JobProgressCompleteGeneratedCode where parseJSON = checked "JobProgressCompleteGeneratedCode" $ \value -> if value == String "complete-generated" then pure JobProgressCompleteGeneratedCodeCompleteU2d_generated else fail "unknown enumeration member"
 
 instance ToJSON JobProgressCompleteGeneratedCode where toJSON JobProgressCompleteGeneratedCodeCompleteU2d_generated = String "complete-generated"
+
+jobProgressCompleteGeneratedCodeText :: JobProgressCompleteGeneratedCode -> Text
+jobProgressCompleteGeneratedCodeText JobProgressCompleteGeneratedCodeCompleteU2d_generated = "complete-generated"

@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.MemoryGraphConfig (MemoryGraphConfig (..), MemoryGraphConfigType (..)) where
+module Xynolog.Internal.Generated.Models.MemoryGraphConfig (MemoryGraphConfig (..), MemoryGraphConfigType (..), memoryGraphConfigTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data MemoryGraphConfig = MemoryGraphConfig
@@ -22,3 +23,6 @@ data MemoryGraphConfigType = MemoryGraphConfigTypeMemory deriving (Eq, Show)
 instance FromJSON MemoryGraphConfigType where parseJSON = checked "MemoryGraphConfigType" $ \value -> if value == String "memory" then pure MemoryGraphConfigTypeMemory else fail "unknown enumeration member"
 
 instance ToJSON MemoryGraphConfigType where toJSON MemoryGraphConfigTypeMemory = String "memory"
+
+memoryGraphConfigTypeText :: MemoryGraphConfigType -> Text
+memoryGraphConfigTypeText MemoryGraphConfigTypeMemory = "memory"

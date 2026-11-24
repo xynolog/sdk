@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Browser (Browser (..), BrowserKind (..), BrowserSpec (..)) where
+module Xynolog.Internal.Generated.Models.Browser (Browser (..), BrowserKind (..), browserKindText, BrowserSpec (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.Image
 import Xynolog.Internal.Generated.Models.Metadata
@@ -29,6 +30,9 @@ data BrowserKind = BrowserKindBrowser deriving (Eq, Show)
 instance FromJSON BrowserKind where parseJSON = checked "BrowserKind" $ \value -> if value == String "Browser" then pure BrowserKindBrowser else fail "unknown enumeration member"
 
 instance ToJSON BrowserKind where toJSON BrowserKindBrowser = String "Browser"
+
+browserKindText :: BrowserKind -> Text
+browserKindText BrowserKindBrowser = "Browser"
 
 data BrowserSpec = BrowserSpec
   { browserSpecImage :: Image,

@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BusPingMessage (BusPingMessage (..), BusPingMessageEvent (..)) where
+module Xynolog.Internal.Generated.Models.BusPingMessage (BusPingMessage (..), BusPingMessageEvent (..), busPingMessageEventText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -24,3 +24,6 @@ data BusPingMessageEvent = BusPingMessageEventPing deriving (Eq, Show)
 instance FromJSON BusPingMessageEvent where parseJSON = checked "BusPingMessageEvent" $ \value -> if value == String "ping" then pure BusPingMessageEventPing else fail "unknown enumeration member"
 
 instance ToJSON BusPingMessageEvent where toJSON BusPingMessageEventPing = String "ping"
+
+busPingMessageEventText :: BusPingMessageEvent -> Text
+busPingMessageEventText BusPingMessageEventPing = "ping"

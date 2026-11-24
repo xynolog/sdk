@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.HttpEndpoint
 import Xynolog.Internal.Generated.Models.LocalEndpoint
 
-data KbEndpoint = KbEndpointBranch1 HttpEndpoint | KbEndpointBranch2 LocalEndpoint deriving (Eq, Show)
+data KbEndpoint = KbEndpointHttpEndpoint HttpEndpoint | KbEndpointLocalEndpoint LocalEndpoint deriving (Eq, Show)
 
-instance FromJSON KbEndpoint where parseJSON = checked "KbEndpoint" $ \value -> (KbEndpointBranch1 <$> parseJSON value) <|> (KbEndpointBranch2 <$> parseJSON value)
+instance FromJSON KbEndpoint where parseJSON = checked "KbEndpoint" $ \value -> (KbEndpointHttpEndpoint <$> parseJSON value) <|> (KbEndpointLocalEndpoint <$> parseJSON value)
 
 instance ToJSON KbEndpoint where
-  toJSON (KbEndpointBranch1 value) = toJSON value
-  toJSON (KbEndpointBranch2 value) = toJSON value
+  toJSON (KbEndpointHttpEndpoint value) = toJSON value
+  toJSON (KbEndpointLocalEndpoint value) = toJSON value

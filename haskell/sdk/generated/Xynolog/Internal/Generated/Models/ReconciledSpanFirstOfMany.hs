@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ReconciledSpanFirstOfMany (ReconciledSpanFirstOfMany (..), ReconciledSpanFirstOfManyAnchorMethod (..)) where
+module Xynolog.Internal.Generated.Models.ReconciledSpanFirstOfMany (ReconciledSpanFirstOfMany (..), ReconciledSpanFirstOfManyAnchorMethod (..), reconciledSpanFirstOfManyAnchorMethodText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -28,3 +28,6 @@ data ReconciledSpanFirstOfManyAnchorMethod = ReconciledSpanFirstOfManyAnchorMeth
 instance FromJSON ReconciledSpanFirstOfManyAnchorMethod where parseJSON = checked "ReconciledSpanFirstOfManyAnchorMethod" $ \value -> if value == String "first-of-many" then pure ReconciledSpanFirstOfManyAnchorMethodFirstU2d_ofU2d_many else fail "unknown enumeration member"
 
 instance ToJSON ReconciledSpanFirstOfManyAnchorMethod where toJSON ReconciledSpanFirstOfManyAnchorMethodFirstU2d_ofU2d_many = String "first-of-many"
+
+reconciledSpanFirstOfManyAnchorMethodText :: ReconciledSpanFirstOfManyAnchorMethod -> Text
+reconciledSpanFirstOfManyAnchorMethodText ReconciledSpanFirstOfManyAnchorMethodFirstU2d_ofU2d_many = "first-of-many"

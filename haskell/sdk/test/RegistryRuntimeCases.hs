@@ -23,6 +23,7 @@ import Xynolog.Channels qualified as Channels
 import Xynolog.Client qualified as Client
 import Xynolog.Content qualified as Content
 import Xynolog.Http qualified as Http
+import Xynolog.Identity qualified as Identity
 import Xynolog.Registry qualified as Browser
 import Xynolog.Registry.Factory qualified as Factory
 import Xynolog.Retry qualified as Retry
@@ -161,8 +162,8 @@ cases fixtures = do
           (pure Map.empty)
           (\_ _ -> pure ())
       config = Browser.XynologBrowserConfig storage factory http (pure 1800000000)
-      local name = KbEndpointBranch2 (LocalEndpoint name LocalEndpointKindLocal mempty)
-      proposed name domain = NewKnowledgeBase ("did:web:" <> domain) (local name) name Nothing mempty
+      local name = KbEndpointLocalEndpoint (LocalEndpoint name LocalEndpointKindLocal mempty)
+      proposed name domain = NewKnowledgeBase (either error userIdValue (Identity.kbDid domain)) (local name) name Nothing mempty
   grant <- fixture fixtures "StoredSession"
   resource <- either (ioError . userError) pure (mkResourceId "res-1")
   bracket (Browser.newXynologBrowser config) Browser.dispose $ \browser -> do
@@ -205,7 +206,7 @@ cases fixtures = do
     Browser.addOpenResource browser resource "kept until activation proves otherwise" Nothing Nothing
     atomically (writeTVar different (Just "other.example.test"))
     verdict <- Browser.readActiveKb browser
-    require "a fresh description did not report the conflicting DID" (case verdict of KbReadVerdictBranch2 _ -> True; _ -> False)
+    require "a fresh description did not report the conflicting DID" (case verdict of KbReadVerdictConflict _ -> True; _ -> False)
     require "a read-only identity check voided open resources" . not . null =<< atomically (State.current (Browser.openResources browser))
     Browser.setActiveKb browser (Just (knowledgeBaseId b))
     Browser.setActiveKb browser (Just aId)

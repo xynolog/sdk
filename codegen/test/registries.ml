@@ -343,10 +343,14 @@ let marks = Job_storage.branch_motivations ids
 
 let mark_motivations =
   [
-    case "each branch's motivation, in the branches' order" (fun () ->
-        Alcotest.(check (list string))
+    case "each branch's component and motivation, in the branches' order"
+      (fun () ->
+        Alcotest.(check (list (pair string string)))
           "motivations"
-          [ "highlighting"; "tagging" ]
+          [
+            ("HighlightingJobParams", "highlighting");
+            ("TaggingJobParams", "tagging");
+          ]
           (match marks (mark_schemas ()) with
           | Ok words -> words
           | Error errors ->

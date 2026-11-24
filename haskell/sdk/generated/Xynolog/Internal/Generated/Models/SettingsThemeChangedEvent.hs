@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.SettingsThemeChangedEvent (SettingsThemeChangedEvent (..), SettingsThemeChangedEventTheme (..)) where
+module Xynolog.Internal.Generated.Models.SettingsThemeChangedEvent (SettingsThemeChangedEvent (..), SettingsThemeChangedEventTheme (..), settingsThemeChangedEventThemeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data SettingsThemeChangedEvent = SettingsThemeChangedEvent
@@ -26,3 +27,8 @@ instance ToJSON SettingsThemeChangedEventTheme where
   toJSON SettingsThemeChangedEventThemeLight = String "light"
   toJSON SettingsThemeChangedEventThemeDark = String "dark"
   toJSON SettingsThemeChangedEventThemeSystem = String "system"
+
+settingsThemeChangedEventThemeText :: SettingsThemeChangedEventTheme -> Text
+settingsThemeChangedEventThemeText SettingsThemeChangedEventThemeLight = "light"
+settingsThemeChangedEventThemeText SettingsThemeChangedEventThemeDark = "dark"
+settingsThemeChangedEventThemeText SettingsThemeChangedEventThemeSystem = "system"

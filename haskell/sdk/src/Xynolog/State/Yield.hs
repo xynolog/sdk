@@ -74,7 +74,7 @@ generate unit@(YieldStateUnit tasks client locale _ _ _ _ _) params deadline = d
             Delegation.Created value -> writeTVar created (Just (jobCreatedResultResponseJobId value)) >> State.update (jobId unit) (Just (jobCreatedResultResponseJobId value))
             Delegation.Progress value -> State.update (progress unit) (Just value) >> State.update (isGenerating unit) True
             Delegation.Complete value -> case yieldJobCompleteCommandResult value of
-              Just (YieldJobResultBranch1 done) -> State.update (outcome unit) (Just done)
+              Just (YieldJobResultYieldJobDone done) -> State.update (outcome unit) (Just done)
               _ -> pure ()
             Delegation.Failed _ -> pure ()
             Delegation.Refused _ -> pure ()

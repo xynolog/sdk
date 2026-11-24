@@ -74,7 +74,9 @@ import Xynolog.Internal.Generated.TimingValues (timingValues)
 import Xynolog.Internal.Required qualified as Required
 import Xynolog.Internal.Schema (checkSchema, validate, validateNamed)
 import Xynolog.Retry qualified as Retry
+import Xynolog.ServiceTables (serviceTables)
 import Xynolog.Timing.Settings qualified as TimingSettings
+import Xynolog.Types qualified as Types
 
 require :: String -> Bool -> IO ()
 require label good = unless good (ioError (userError label))
@@ -283,6 +285,12 @@ identifierCases root = do
         require (T.unpack name ++ " accepted " ++ show (at "id" entry)) (isLeft (roundTrip name (at "id" entry)))
     _ -> ioError (userError "identifier table has no schema name")
 
+-- Each service table as the SDK carries it is the table as Protocol states it, but its prose.
+serviceTableCases :: FilePath -> IO ()
+serviceTableCases root = forM_ serviceTables $ \(file, carried) -> do
+  stated <- readJSON (root </> "protocol/specs/src" </> T.unpack file)
+  require (T.unpack file ++ " is not carried as Protocol states it") (carried == Object (KM.delete "$comment" (object stated)))
+
 filesUnder :: FilePath -> IO [FilePath]
 filesUnder directory = do
   names <- listDirectory directory
@@ -478,8 +486,8 @@ faultsAs written text expected = do
 -- as names says. A reader refuses a part it does not know.
 requiredWalkerCases :: IO ()
 requiredWalkerCases = do
-  let malformed way = Just (Required.Fault way Required.Malformed)
-      lacks way = Just (Required.Fault way Required.Lacks)
+  let malformed way = Just (Required.Fault way Types.FrameRefusalReasonMalformed)
+      lacks way = Just (Required.Fault way Types.FrameRefusalReasonLacks)
       letter = "{\"of\":[[97,122]],\"min\":1,\"max\":1}"
       anything = "{\"of\":[[0,1114111]],\"min\":0}"
       methodThen end = "{\"kinds\":[\"string\"],\"pattern\":[{\"either\":[[{\"of\":[[71,71]],\"min\":1,\"max\":1},{\"of\":[[69,69]],\"min\":1,\"max\":1},{\"of\":[[84,84]],\"min\":1,\"max\":1}],[{\"of\":[[80,80]],\"min\":1,\"max\":1},{\"of\":[[79,79]],\"min\":1,\"max\":1},{\"of\":[[83,83]],\"min\":1,\"max\":1},{\"of\":[[84,84]],\"min\":1,\"max\":1}]],\"min\":1,\"max\":1},{\"of\":[[32,32]],\"min\":1,\"max\":1},{\"of\":[[47,47]],\"min\":1,\"max\":1}" <> end <> "]}"
@@ -591,6 +599,8 @@ runCases root = do
   clientAssertionCases root
   identifierCases root
   putStrLn "PASS shared identifier acceptance/refusal cases"
+  serviceTableCases root
+  putStrLn "PASS every service table carried as Protocol states it"
   channelCases root
   factCases root
   retryCases root

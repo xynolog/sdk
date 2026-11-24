@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.MarkJobCreateCommand (MarkJobCreateCommand (..), MarkJobCreateCommandJobType (..)) where
+module Xynolog.Internal.Generated.Models.MarkJobCreateCommand (MarkJobCreateCommand (..), MarkJobCreateCommandJobType (..), markJobCreateCommandJobTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,3 +30,6 @@ data MarkJobCreateCommandJobType = MarkJobCreateCommandJobTypeMark deriving (Eq,
 instance FromJSON MarkJobCreateCommandJobType where parseJSON = checked "MarkJobCreateCommandJobType" $ \value -> if value == String "mark" then pure MarkJobCreateCommandJobTypeMark else fail "unknown enumeration member"
 
 instance ToJSON MarkJobCreateCommandJobType where toJSON MarkJobCreateCommandJobTypeMark = String "mark"
+
+markJobCreateCommandJobTypeText :: MarkJobCreateCommandJobType -> Text
+markJobCreateCommandJobTypeText MarkJobCreateCommandJobTypeMark = "mark"

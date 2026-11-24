@@ -37,6 +37,7 @@ import Xynolog.Cache qualified as Cache
 import Xynolog.Client qualified as Client
 import Xynolog.Content qualified as Content
 import Xynolog.Http qualified as Http
+import Xynolog.Identity qualified as Identity
 import Xynolog.Internal.Browse qualified as BrowseState
 import Xynolog.Internal.Generated.CachePersistence (KeptQuery (..), keptQueryName)
 import Xynolog.Internal.Generated.Stored qualified as StoredKeys
@@ -197,7 +198,7 @@ grantOf base serial person =
     }
 
 knowledgeBase :: Text -> KnowledgeBase
-knowledgeBase key = KnowledgeBase ("did:web:" <> key <> ".example.test") (KbEndpointBranch2 (LocalEndpoint key LocalEndpointKindLocal mempty)) key key Nothing mempty
+knowledgeBase key = KnowledgeBase (either error userIdValue (Identity.kbDid (key <> ".example.test"))) (KbEndpointLocalEndpoint (LocalEndpoint key LocalEndpointKindLocal mempty)) key key Nothing mempty
 
 -- | A row of `forget` the registry performs: signing out of kb-a, removing it, or signing in to it again with a new
 -- sign-in, with kb-a and kb-b registered and kb-b active unless kb-a is open. The sessions are scripted, and one of

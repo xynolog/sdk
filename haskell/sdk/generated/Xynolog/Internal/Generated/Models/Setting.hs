@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Setting (Setting (..), SettingAppliesTo (..)) where
+module Xynolog.Internal.Generated.Models.Setting (Setting (..), SettingAppliesTo (..), settingAppliesToText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -31,3 +31,7 @@ instance FromJSON SettingAppliesTo where parseJSON = checked "SettingAppliesTo" 
 instance ToJSON SettingAppliesTo where
   toJSON SettingAppliesToMachine = String "machine"
   toJSON SettingAppliesToKnowledgeU2d_base = String "knowledge-base"
+
+settingAppliesToText :: SettingAppliesTo -> Text
+settingAppliesToText SettingAppliesToMachine = "machine"
+settingAppliesToText SettingAppliesToKnowledgeU2d_base = "knowledge-base"

@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.NeptuneGraphConfig (NeptuneGraphConfig (..), NeptuneGraphConfigType (..)) where
+module Xynolog.Internal.Generated.Models.NeptuneGraphConfig (NeptuneGraphConfig (..), NeptuneGraphConfigType (..), neptuneGraphConfigTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -25,3 +25,6 @@ data NeptuneGraphConfigType = NeptuneGraphConfigTypeNeptune deriving (Eq, Show)
 instance FromJSON NeptuneGraphConfigType where parseJSON = checked "NeptuneGraphConfigType" $ \value -> if value == String "neptune" then pure NeptuneGraphConfigTypeNeptune else fail "unknown enumeration member"
 
 instance ToJSON NeptuneGraphConfigType where toJSON NeptuneGraphConfigTypeNeptune = String "neptune"
+
+neptuneGraphConfigTypeText :: NeptuneGraphConfigType -> Text
+neptuneGraphConfigTypeText NeptuneGraphConfigTypeNeptune = "neptune"

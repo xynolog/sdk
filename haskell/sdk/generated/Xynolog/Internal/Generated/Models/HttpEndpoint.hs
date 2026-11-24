@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.HttpEndpoint (HttpEndpoint (..), HttpEndpointKind (..), HttpEndpointProtocol (..)) where
+module Xynolog.Internal.Generated.Models.HttpEndpoint (HttpEndpoint (..), HttpEndpointKind (..), httpEndpointKindText, HttpEndpointProtocol (..), httpEndpointProtocolText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -28,6 +28,9 @@ instance FromJSON HttpEndpointKind where parseJSON = checked "HttpEndpointKind" 
 
 instance ToJSON HttpEndpointKind where toJSON HttpEndpointKindHttp = String "http"
 
+httpEndpointKindText :: HttpEndpointKind -> Text
+httpEndpointKindText HttpEndpointKindHttp = "http"
+
 data HttpEndpointProtocol = HttpEndpointProtocolHttp | HttpEndpointProtocolHttps deriving (Eq, Show)
 
 instance FromJSON HttpEndpointProtocol where parseJSON = checked "HttpEndpointProtocol" $ \value -> if value == String "http" then pure HttpEndpointProtocolHttp else if value == String "https" then pure HttpEndpointProtocolHttps else fail "unknown enumeration member"
@@ -35,3 +38,7 @@ instance FromJSON HttpEndpointProtocol where parseJSON = checked "HttpEndpointPr
 instance ToJSON HttpEndpointProtocol where
   toJSON HttpEndpointProtocolHttp = String "http"
   toJSON HttpEndpointProtocolHttps = String "https"
+
+httpEndpointProtocolText :: HttpEndpointProtocol -> Text
+httpEndpointProtocolText HttpEndpointProtocolHttp = "http"
+httpEndpointProtocolText HttpEndpointProtocolHttps = "https"

@@ -6,7 +6,7 @@
 module ShapeCases (shapeCases) where
 
 import Control.Monad (forM_, unless, when)
-import Data.Aeson (Value (..), eitherDecodeStrict')
+import Data.Aeson (Result (..), Value (..), eitherDecodeStrict', fromJSON)
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KM
 import Data.ByteString qualified as Bytes
@@ -15,6 +15,7 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import System.FilePath ((</>))
 import Xynolog.Internal.Required qualified as Required
+import Xynolog.Types (FrameRefusalReason)
 
 require :: String -> Bool -> IO ()
 require label good = unless good (ioError (userError label))
@@ -27,10 +28,10 @@ text :: Value -> Text
 text (String held) = held
 text other = error ("shape case member is not a text: " ++ show other)
 
-reasonNamed :: Text -> Required.FaultReason
-reasonNamed "lacks" = Required.Lacks
-reasonNamed "malformed" = Required.Malformed
-reasonNamed other = error ("unknown shape case reason " ++ Text.unpack other)
+reasonNamed :: Value -> FrameRefusalReason
+reasonNamed value = case fromJSON value of
+  Success reason -> reason
+  Error problem -> error ("unknown shape case reason: " ++ problem)
 
 -- | Each case's value held to its schema's shape from the top: a schema the
 -- table lacks fails loudly in the walker's lookup of it.
@@ -44,7 +45,7 @@ shapeCases root = do
         value = member "value" row
         refused = case row of Object fields -> KM.lookup "refused" fields == Just (Bool True); _ -> False
         expected
-          | refused = Just (Required.Fault (text (member "member" row)) (reasonNamed (text (member "reason" row))))
+          | refused = Just (Required.Fault (text (member "member" row)) (reasonNamed (member "reason" row)))
           | otherwise = Nothing
         actual = Required.faultOf name value
     require

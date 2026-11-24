@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.AgentPerson (AgentPerson (..), AgentPersonU40_type (..)) where
+module Xynolog.Internal.Generated.Models.AgentPerson (AgentPerson (..), AgentPersonU40_type (..), agentPersonU40_typeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,3 +30,6 @@ data AgentPersonU40_type = AgentPersonU40_typePerson deriving (Eq, Show)
 instance FromJSON AgentPersonU40_type where parseJSON = checked "AgentPersonU40_type" $ \value -> if value == String "Person" then pure AgentPersonU40_typePerson else fail "unknown enumeration member"
 
 instance ToJSON AgentPersonU40_type where toJSON AgentPersonU40_typePerson = String "Person"
+
+agentPersonU40_typeText :: AgentPersonU40_type -> Text
+agentPersonU40_typeText AgentPersonU40_typePerson = "Person"

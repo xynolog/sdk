@@ -157,7 +157,7 @@ clientCases fixtures = do
   resource <- either (ioError . userError) pure (mkResourceId "res-1")
   originalAnnotation <- fixture fixtures "Annotation"
   originalDescriptor <- fixture fixtures "ResourceDescriptor"
-  let annotationValue = originalAnnotation {annotationTarget = AnnotationTargetInlineBranch1 resource}
+  let annotationValue = originalAnnotation {annotationTarget = AnnotationTargetInlineResourceId resource}
       descriptor name = originalDescriptor {resourceDescriptorU40_id = resource, resourceDescriptorName = name}
       persistence = Just (Client.CachePersistence kept "client-case" "person" (pure 1800000000000))
       configuration = Bus.BusOptions (Time.now time) (Time.waitUntil time)

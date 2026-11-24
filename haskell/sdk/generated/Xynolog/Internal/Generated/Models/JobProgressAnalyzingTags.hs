@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobProgressAnalyzingTags (JobProgressAnalyzingTags (..), JobProgressAnalyzingTagsCode (..)) where
+module Xynolog.Internal.Generated.Models.JobProgressAnalyzingTags (JobProgressAnalyzingTags (..), JobProgressAnalyzingTagsCode (..), jobProgressAnalyzingTagsCodeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data JobProgressAnalyzingTags = JobProgressAnalyzingTags
@@ -23,3 +24,6 @@ data JobProgressAnalyzingTagsCode = JobProgressAnalyzingTagsCodeAnalyzingU2d_tag
 instance FromJSON JobProgressAnalyzingTagsCode where parseJSON = checked "JobProgressAnalyzingTagsCode" $ \value -> if value == String "analyzing-tags" then pure JobProgressAnalyzingTagsCodeAnalyzingU2d_tags else fail "unknown enumeration member"
 
 instance ToJSON JobProgressAnalyzingTagsCode where toJSON JobProgressAnalyzingTagsCodeAnalyzingU2d_tags = String "analyzing-tags"
+
+jobProgressAnalyzingTagsCodeText :: JobProgressAnalyzingTagsCode -> Text
+jobProgressAnalyzingTagsCodeText JobProgressAnalyzingTagsCodeAnalyzingU2d_tags = "analyzing-tags"

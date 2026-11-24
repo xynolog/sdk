@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Inference (Inference (..), InferenceKind (..), InferenceSpec (..), InferenceSpecProviders (..)) where
+module Xynolog.Internal.Generated.Models.Inference (Inference (..), InferenceKind (..), inferenceKindText, InferenceSpec (..), InferenceSpecProviders (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ArchivistEngines
 import Xynolog.Internal.Generated.Models.Metadata
@@ -29,6 +30,9 @@ data InferenceKind = InferenceKindInference deriving (Eq, Show)
 instance FromJSON InferenceKind where parseJSON = checked "InferenceKind" $ \value -> if value == String "Inference" then pure InferenceKindInference else fail "unknown enumeration member"
 
 instance ToJSON InferenceKind where toJSON InferenceKindInference = String "Inference"
+
+inferenceKindText :: InferenceKind -> Text
+inferenceKindText InferenceKindInference = "Inference"
 
 data InferenceSpec = InferenceSpec
   { inferenceSpecEngines :: ArchivistEngines,

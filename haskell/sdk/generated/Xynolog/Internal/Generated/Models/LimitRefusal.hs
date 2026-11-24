@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.LimitRefusal (LimitRefusal (..), LimitRefusalCode (..)) where
+module Xynolog.Internal.Generated.Models.LimitRefusal (LimitRefusal (..), LimitRefusalCode (..), limitRefusalCodeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -32,3 +32,10 @@ instance ToJSON LimitRefusalCode where
   toJSON LimitRefusalCodeUnansweredU2d_requests = String "unanswered-requests"
   toJSON LimitRefusalCodeCapacity = String "capacity"
   toJSON LimitRefusalCodeRefusalU2d_rate = String "refusal-rate"
+
+limitRefusalCodeText :: LimitRefusalCode -> Text
+limitRefusalCodeText LimitRefusalCodeStreams = "streams"
+limitRefusalCodeText LimitRefusalCodeEmitU2d_rate = "emit-rate"
+limitRefusalCodeText LimitRefusalCodeUnansweredU2d_requests = "unanswered-requests"
+limitRefusalCodeText LimitRefusalCodeCapacity = "capacity"
+limitRefusalCodeText LimitRefusalCodeRefusalU2d_rate = "refusal-rate"

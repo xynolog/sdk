@@ -9,10 +9,10 @@ import Data.Aeson (FromJSON (..), ToJSON (..))
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.Agent
 
-data OneOrMoreAgents = OneOrMoreAgentsBranch1 Agent | OneOrMoreAgentsBranch2 [Agent] deriving (Eq, Show)
+data OneOrMoreAgents = OneOrMoreAgentsAgent Agent | OneOrMoreAgentsList [Agent] deriving (Eq, Show)
 
-instance FromJSON OneOrMoreAgents where parseJSON = checked "OneOrMoreAgents" $ \value -> (OneOrMoreAgentsBranch1 <$> parseJSON value) <|> (OneOrMoreAgentsBranch2 <$> parseJSON value)
+instance FromJSON OneOrMoreAgents where parseJSON = checked "OneOrMoreAgents" $ \value -> (OneOrMoreAgentsAgent <$> parseJSON value) <|> (OneOrMoreAgentsList <$> parseJSON value)
 
 instance ToJSON OneOrMoreAgents where
-  toJSON (OneOrMoreAgentsBranch1 value) = toJSON value
-  toJSON (OneOrMoreAgentsBranch2 value) = toJSON value
+  toJSON (OneOrMoreAgentsAgent value) = toJSON value
+  toJSON (OneOrMoreAgentsList value) = toJSON value

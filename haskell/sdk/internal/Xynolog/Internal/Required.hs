@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Xynolog.Internal.Required (Fault (..), FaultReason (..), Shape, walk, faultOf, faultChannel, faultSaid, undecoded, channelValue, channelRead, faultHttp) where
+module Xynolog.Internal.Required (Fault (..), Shape, walk, faultOf, faultChannel, faultSaid, undecoded, channelValue, channelRead, faultHttp) where
 
 import Control.Applicative ((<|>))
 import Control.Monad (unless)
@@ -19,19 +19,18 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding (encodeUtf8)
 import Data.Vector qualified as Vector
+import Xynolog.Internal.Generated.Models.FrameRefusalReason (FrameRefusalReason (..))
 import Xynolog.Internal.Generated.Required (shapesJSON)
 
-data FaultReason = Lacks | Malformed deriving (Eq, Show)
-
-data Fault = Fault {member :: Text, reason :: FaultReason} deriving (Eq, Show)
+data Fault = Fault {member :: Text, reason :: FrameRefusalReason} deriving (Eq, Show)
 
 undecoded :: Fault
-undecoded = Fault "" Malformed
+undecoded = Fault "" FrameRefusalReasonMalformed
 
 faultSaid :: Fault -> Text
-faultSaid (Fault way Lacks) = "it has no `" <> way <> "`"
-faultSaid (Fault "" Malformed) = "it is malformed"
-faultSaid (Fault way Malformed) = "its `" <> way <> "` is malformed"
+faultSaid (Fault way FrameRefusalReasonLacks) = "it has no `" <> way <> "`"
+faultSaid (Fault "" FrameRefusalReasonMalformed) = "it is malformed"
+faultSaid (Fault way FrameRefusalReasonMalformed) = "its `" <> way <> "` is malformed"
 
 -- | One term of a pattern, repeated at least its least and at most its most
 -- times (Nothing: any number): a step, a text's next code point in one of its
@@ -196,14 +195,14 @@ first = foldr (<|>) Nothing
 -- (empty for a value that is no member).
 walk :: Shape -> Value -> Text -> Maybe Fault
 walk original value way
-  | not (allows own value && stated own value) = Just (Fault way Malformed)
+  | not (allows own value && stated own value) = Just (Fault way FrameRefusalReasonMalformed)
   | otherwise = objectFault <|> arrayFault <|> unionFault <|> first [walk part value way | part <- allOf own]
   where
     own = resolved original
     objectFault = case value of
       Object fields ->
         let absent =
-              [ Fault (within way name) Lacks
+              [ Fault (within way name) FrameRefusalReasonLacks
               | name <- required own,
                 case KM.lookup (Key.fromText name) fields of
                   Nothing -> True
@@ -219,11 +218,11 @@ walk original value way
             named = sortOn id (map Key.toText (KM.keys fields))
             unknown = case closed own of
               Nothing -> []
-              Just allowed -> [Fault (within way name) Malformed | name <- named, name `notElem` allowed]
+              Just allowed -> [Fault (within way name) FrameRefusalReasonMalformed | name <- named, name `notElem` allowed]
             misnamed = case shapeNames own of
               Nothing -> []
-              Just shape -> [Fault (within way name) Malformed | name <- named, isJust (walk shape (String name) "")]
-            carried = [Fault way Malformed | set <- notAll own, all (\name -> KM.member (Key.fromText name) fields) set]
+              Just shape -> [Fault (within way name) FrameRefusalReasonMalformed | name <- named, isJust (walk shape (String name) "")]
+            carried = [Fault way FrameRefusalReasonMalformed | set <- notAll own, all (\name -> KM.member (Key.fromText name) fields) set]
             valueFaults = case values own of
               Nothing -> []
               Just shape -> [walk shape actual way | (_, actual) <- sortOn (Key.toText . fst) (KM.toList fields)]
@@ -243,7 +242,7 @@ walk original value way
               _ -> filter (`allows` value) variants
             faults = map (\candidate -> walk candidate value way) candidates
          in case candidates of
-              [] -> Just (Fault way Malformed)
+              [] -> Just (Fault way FrameRefusalReasonMalformed)
               _
                 | any (== Nothing) faults -> Nothing
                 | otherwise -> case mapMaybe id faults of fault : _ -> Just fault; [] -> error "union fault disappeared"

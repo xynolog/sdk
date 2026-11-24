@@ -11,11 +11,11 @@ import Xynolog.Internal.Generated.Models.AgentOrganization
 import Xynolog.Internal.Generated.Models.AgentPerson
 import Xynolog.Internal.Generated.Models.AgentSoftware
 
-data Agent = AgentBranch1 AgentPerson | AgentBranch2 AgentOrganization | AgentBranch3 AgentSoftware deriving (Eq, Show)
+data Agent = AgentAgentPerson AgentPerson | AgentAgentOrganization AgentOrganization | AgentAgentSoftware AgentSoftware deriving (Eq, Show)
 
-instance FromJSON Agent where parseJSON = checked "Agent" $ \value -> (AgentBranch1 <$> parseJSON value) <|> (AgentBranch2 <$> parseJSON value) <|> (AgentBranch3 <$> parseJSON value)
+instance FromJSON Agent where parseJSON = checked "Agent" $ \value -> (AgentAgentPerson <$> parseJSON value) <|> (AgentAgentOrganization <$> parseJSON value) <|> (AgentAgentSoftware <$> parseJSON value)
 
 instance ToJSON Agent where
-  toJSON (AgentBranch1 value) = toJSON value
-  toJSON (AgentBranch2 value) = toJSON value
-  toJSON (AgentBranch3 value) = toJSON value
+  toJSON (AgentAgentPerson value) = toJSON value
+  toJSON (AgentAgentOrganization value) = toJSON value
+  toJSON (AgentAgentSoftware value) = toJSON value

@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BodyPurpose (BodyPurpose (..)) where
+module Xynolog.Internal.Generated.Models.BodyPurpose (BodyPurpose (..), bodyPurposeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data BodyPurpose = BodyPurposeAssessing | BodyPurposeBookmarking | BodyPurposeClassifying | BodyPurposeCommenting | BodyPurposeDescribing | BodyPurposeEditing | BodyPurposeHighlighting | BodyPurposeIdentifying | BodyPurposeLinking | BodyPurposeModerating | BodyPurposeQuestioning | BodyPurposeReplying | BodyPurposeTagging deriving (Eq, Show)
@@ -25,3 +26,18 @@ instance ToJSON BodyPurpose where
   toJSON BodyPurposeQuestioning = String "questioning"
   toJSON BodyPurposeReplying = String "replying"
   toJSON BodyPurposeTagging = String "tagging"
+
+bodyPurposeText :: BodyPurpose -> Text
+bodyPurposeText BodyPurposeAssessing = "assessing"
+bodyPurposeText BodyPurposeBookmarking = "bookmarking"
+bodyPurposeText BodyPurposeClassifying = "classifying"
+bodyPurposeText BodyPurposeCommenting = "commenting"
+bodyPurposeText BodyPurposeDescribing = "describing"
+bodyPurposeText BodyPurposeEditing = "editing"
+bodyPurposeText BodyPurposeHighlighting = "highlighting"
+bodyPurposeText BodyPurposeIdentifying = "identifying"
+bodyPurposeText BodyPurposeLinking = "linking"
+bodyPurposeText BodyPurposeModerating = "moderating"
+bodyPurposeText BodyPurposeQuestioning = "questioning"
+bodyPurposeText BodyPurposeReplying = "replying"
+bodyPurposeText BodyPurposeTagging = "tagging"

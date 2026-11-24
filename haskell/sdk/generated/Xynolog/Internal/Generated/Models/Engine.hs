@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Engine (Engine (..), EngineProvider (..)) where
+module Xynolog.Internal.Generated.Models.Engine (Engine (..), EngineProvider (..), engineProviderText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -31,3 +31,12 @@ instance ToJSON EngineProvider where
   toJSON EngineProviderOpenai = String "openai"
   toJSON EngineProviderTogether = String "together"
   toJSON EngineProviderVllm = String "vllm"
+
+engineProviderText :: EngineProvider -> Text
+engineProviderText EngineProviderAnthropic = "anthropic"
+engineProviderText EngineProviderGoogle = "google"
+engineProviderText EngineProviderLlamacpp = "llamacpp"
+engineProviderText EngineProviderOllama = "ollama"
+engineProviderText EngineProviderOpenai = "openai"
+engineProviderText EngineProviderTogether = "together"
+engineProviderText EngineProviderVllm = "vllm"

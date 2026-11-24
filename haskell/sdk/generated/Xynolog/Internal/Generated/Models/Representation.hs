@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Representation (Representation (..), RepresentationRel (..)) where
+module Xynolog.Internal.Generated.Models.Representation (Representation (..), RepresentationRel (..), representationRelText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -49,3 +49,11 @@ instance ToJSON RepresentationRel where
   toJSON RepresentationRelOptimized = String "optimized"
   toJSON RepresentationRelDerived = String "derived"
   toJSON RepresentationRelOther = String "other"
+
+representationRelText :: RepresentationRel -> Text
+representationRelText RepresentationRelOriginal = "original"
+representationRelText RepresentationRelThumbnail = "thumbnail"
+representationRelText RepresentationRelPreview = "preview"
+representationRelText RepresentationRelOptimized = "optimized"
+representationRelText RepresentationRelDerived = "derived"
+representationRelText RepresentationRelOther = "other"

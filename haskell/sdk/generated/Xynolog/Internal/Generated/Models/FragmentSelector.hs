@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.FragmentSelector (FragmentSelector (..), FragmentSelectorType (..)) where
+module Xynolog.Internal.Generated.Models.FragmentSelector (FragmentSelector (..), FragmentSelectorType (..), fragmentSelectorTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -26,3 +26,6 @@ data FragmentSelectorType = FragmentSelectorTypeFragmentSelector deriving (Eq, S
 instance FromJSON FragmentSelectorType where parseJSON = checked "FragmentSelectorType" $ \value -> if value == String "FragmentSelector" then pure FragmentSelectorTypeFragmentSelector else fail "unknown enumeration member"
 
 instance ToJSON FragmentSelectorType where toJSON FragmentSelectorTypeFragmentSelector = String "FragmentSelector"
+
+fragmentSelectorTypeText :: FragmentSelectorType -> Text
+fragmentSelectorTypeText FragmentSelectorTypeFragmentSelector = "FragmentSelector"

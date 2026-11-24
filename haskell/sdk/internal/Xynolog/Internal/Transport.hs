@@ -113,11 +113,11 @@ data TransportOptions = TransportOptions
     closeDriver :: IO ()
   }
 
-newtype Transport = Transport Runtime
+newtype Transport = Transport TransportRuntime
 
-newtype TransportInput = TransportInput Runtime
+newtype TransportInput = TransportInput TransportRuntime
 
-data Runtime = Runtime
+data TransportRuntime = TransportRuntime
   { options :: TransportOptions,
     received :: Delivery.Hub Carried,
     replies :: Delivery.Replies Carried,
@@ -138,7 +138,7 @@ data Runtime = Runtime
 newTransport :: TransportOptions -> IO (Transport, TransportInput)
 newTransport configuration = atomically $ do
   runtime <-
-    Runtime configuration
+    TransportRuntime configuration
       <$> Delivery.newHub carriedChannel
       <*> Delivery.newReplies carriedChannel carriedCorrelationId
       <*> State.newStateValue Initial
@@ -164,7 +164,7 @@ state (Transport runtime) = connection runtime
 isSubscribed :: Transport -> Text -> Bool
 isSubscribed (Transport runtime) channel = Set.member channel (receiveChannels (options runtime))
 
-ensureOpenLifetime :: Runtime -> STM ()
+ensureOpenLifetime :: TransportRuntime -> STM ()
 ensureOpenLifetime runtime = do
   over <- readTVar (closing runtime)
   when over (throwSTM (BusRequestError BusRequestClosed "transport is closed" Nothing))
@@ -212,7 +212,7 @@ errors (Transport runtime) consume = Broadcast.withSubscription (failures runtim
 relayErrors :: Transport -> (TransportError -> STM ()) -> STM (STM ())
 relayErrors (Transport runtime) = Broadcast.relay (failures runtime)
 
-freshKey :: Runtime -> STM Integer
+freshKey :: TransportRuntime -> STM Integer
 freshKey runtime = do
   key <- readTVar (nextKey runtime)
   writeTVar (nextKey runtime) (key + 1)
@@ -283,7 +283,7 @@ subscriptions (TransportInput runtime) =
     <*> (Map.keys <$> readTVar (tracked runtime))
     <*> readTVar (closing runtime)
 
-hold :: (Ord key) => Runtime -> TVar (Map.Map key Integer) -> key -> IO (IO ())
+hold :: (Ord key) => TransportRuntime -> TVar (Map.Map key Integer) -> key -> IO (IO ())
 hold runtime cell key = mask_ $ do
   active <- atomically $ do
     ensureOpenLifetime runtime

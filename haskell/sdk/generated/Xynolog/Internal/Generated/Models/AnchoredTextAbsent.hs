@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.AnchoredTextAbsent (AnchoredTextAbsent (..), AnchoredTextAbsentKind (..)) where
+module Xynolog.Internal.Generated.Models.AnchoredTextAbsent (AnchoredTextAbsent (..), AnchoredTextAbsentKind (..), anchoredTextAbsentKindText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data AnchoredTextAbsent = AnchoredTextAbsent
@@ -26,3 +27,8 @@ instance ToJSON AnchoredTextAbsentKind where
   toJSON AnchoredTextAbsentKindNotU2d_yet = String "not-yet"
   toJSON AnchoredTextAbsentKindNoU2d_map = String "no-map"
   toJSON AnchoredTextAbsentKindUnknown = String "unknown"
+
+anchoredTextAbsentKindText :: AnchoredTextAbsentKind -> Text
+anchoredTextAbsentKindText AnchoredTextAbsentKindNotU2d_yet = "not-yet"
+anchoredTextAbsentKindText AnchoredTextAbsentKindNoU2d_map = "no-map"
+anchoredTextAbsentKindText AnchoredTextAbsentKindUnknown = "unknown"

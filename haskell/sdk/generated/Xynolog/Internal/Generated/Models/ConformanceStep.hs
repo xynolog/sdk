@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceStep (ConformanceStep (..), ConformanceStepBranch10Value (..), ConformanceStepBranch10ValueStays (..), ConformanceStepBranch11Value (..), ConformanceStepBranch12Value (..), ConformanceStepBranch13Value (..), ConformanceStepBranch14Value (..), ConformanceStepBranch14ValueBackend (..), ConformanceStepBranch14ValueWith (..), ConformanceStepBranch15Value (..), ConformanceStepBranch16Value (..), ConformanceStepBranch16ValueObserve (..), ConformanceStepBranch17Value (..), ConformanceStepBranch18Value (..), ConformanceStepBranch19Value (..), ConformanceStepBranch1Value (..), ConformanceStepBranch1ValueLet (..), ConformanceStepBranch20Value (..), ConformanceStepBranch23Value (..), ConformanceStepBranch23ValueFetchesItem (..), ConformanceStepBranch24Value (..), ConformanceStepBranch25Value (..), ConformanceStepBranch26Value (..), ConformanceStepBranch27Value (..), ConformanceStepBranch28Value (..), ConformanceStepBranch2Value (..), ConformanceStepBranch2ValueWith (..), ConformanceStepBranch3Value (..), ConformanceStepBranch4Value (..), ConformanceStepBranch4ValueAbandoned (..), ConformanceStepBranch5Value (..), ConformanceStepBranch5ValueAt (..), ConformanceStepBranch5ValueHeaders (..), ConformanceStepBranch6Value (..), ConformanceStepBranch7Value (..), ConformanceStepBranch8Value (..), ConformanceStepBranch9Value (..), ConformanceStepBranch9ValueState (..)) where
+module Xynolog.Internal.Generated.Models.ConformanceStep (ConformanceStep (..), ConformanceStepAbandonValue (..), ConformanceStepBackendValue (..), ConformanceStepBackendValueBackend (..), conformanceStepBackendValueBackendText, ConformanceStepBackendValueWith (..), ConformanceStepCarriedValue (..), ConformanceStepClaimedValue (..), ConformanceStepClosedValue (..), ConformanceStepCompletesValue (..), ConformanceStepDriverValue (..), ConformanceStepDriverValueWith (..), ConformanceStepErrorValue (..), ConformanceStepFetchesValue (..), ConformanceStepFetchesValueFetchesItem (..), ConformanceStepFrameValue (..), ConformanceStepFramesValue (..), ConformanceStepHoldsValue (..), ConformanceStepLeaveValue (..), ConformanceStepLetValue (..), ConformanceStepLetValueLet (..), ConformanceStepObserveValue (..), ConformanceStepObserveValueObserve (..), ConformanceStepProgressValue (..), ConformanceStepQuietValue (..), ConformanceStepReachesValue (..), ConformanceStepRefusedValue (..), ConformanceStepScopesValue (..), ConformanceStepSettlesValue (..), ConformanceStepSettlesValueAbandoned (..), ConformanceStepSignalledValue (..), ConformanceStepStalledValue (..), ConformanceStepStateValue (..), ConformanceStepStateValueState (..), conformanceStepStateValueStateText, ConformanceStepStaysValue (..), ConformanceStepStaysValueStays (..), conformanceStepStaysValueStaysText, ConformanceStepWireValue (..), ConformanceStepWireValueAt (..), conformanceStepWireValueAtText, ConformanceStepWireValueHeaders (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -12,417 +12,461 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ConformanceBusFetch
 import Xynolog.Internal.Generated.Models.ConformanceHttpFetch
 
-data ConformanceStep = ConformanceStepBranch1 ConformanceStepBranch1Value | ConformanceStepBranch2 ConformanceStepBranch2Value | ConformanceStepBranch3 ConformanceStepBranch3Value | ConformanceStepBranch4 ConformanceStepBranch4Value | ConformanceStepBranch5 ConformanceStepBranch5Value | ConformanceStepBranch6 ConformanceStepBranch6Value | ConformanceStepBranch7 ConformanceStepBranch7Value | ConformanceStepBranch8 ConformanceStepBranch8Value | ConformanceStepBranch9 ConformanceStepBranch9Value | ConformanceStepBranch10 ConformanceStepBranch10Value | ConformanceStepBranch11 ConformanceStepBranch11Value | ConformanceStepBranch12 ConformanceStepBranch12Value | ConformanceStepBranch13 ConformanceStepBranch13Value | ConformanceStepBranch14 ConformanceStepBranch14Value | ConformanceStepBranch15 ConformanceStepBranch15Value | ConformanceStepBranch16 ConformanceStepBranch16Value | ConformanceStepBranch17 ConformanceStepBranch17Value | ConformanceStepBranch18 ConformanceStepBranch18Value | ConformanceStepBranch19 ConformanceStepBranch19Value | ConformanceStepBranch20 ConformanceStepBranch20Value | ConformanceStepBranch21 ConformanceBusFetch | ConformanceStepBranch22 ConformanceHttpFetch | ConformanceStepBranch23 ConformanceStepBranch23Value | ConformanceStepBranch24 ConformanceStepBranch24Value | ConformanceStepBranch25 ConformanceStepBranch25Value | ConformanceStepBranch26 ConformanceStepBranch26Value | ConformanceStepBranch27 ConformanceStepBranch27Value | ConformanceStepBranch28 ConformanceStepBranch28Value deriving (Eq, Show)
+data ConformanceStep = ConformanceStepLet ConformanceStepLetValue | ConformanceStepDriver ConformanceStepDriverValue | ConformanceStepAbandon ConformanceStepAbandonValue | ConformanceStepSettles ConformanceStepSettlesValue | ConformanceStepWire ConformanceStepWireValue | ConformanceStepCarried ConformanceStepCarriedValue | ConformanceStepClosed ConformanceStepClosedValue | ConformanceStepProgress ConformanceStepProgressValue | ConformanceStepState ConformanceStepStateValue | ConformanceStepStays ConformanceStepStaysValue | ConformanceStepFrame ConformanceStepFrameValue | ConformanceStepFrames ConformanceStepFramesValue | ConformanceStepError ConformanceStepErrorValue | ConformanceStepBackend ConformanceStepBackendValue | ConformanceStepQuiet ConformanceStepQuietValue | ConformanceStepObserve ConformanceStepObserveValue | ConformanceStepLeave ConformanceStepLeaveValue | ConformanceStepReaches ConformanceStepReachesValue | ConformanceStepHolds ConformanceStepHoldsValue | ConformanceStepCompletes ConformanceStepCompletesValue | ConformanceStepConformanceBusFetch ConformanceBusFetch | ConformanceStepConformanceHttpFetch ConformanceHttpFetch | ConformanceStepFetches ConformanceStepFetchesValue | ConformanceStepScopes ConformanceStepScopesValue | ConformanceStepClaimed ConformanceStepClaimedValue | ConformanceStepRefused ConformanceStepRefusedValue | ConformanceStepSignalled ConformanceStepSignalledValue | ConformanceStepStalled ConformanceStepStalledValue deriving (Eq, Show)
 
-instance FromJSON ConformanceStep where parseJSON = checked "ConformanceStep" $ \value -> (ConformanceStepBranch1 <$> parseJSON value) <|> (ConformanceStepBranch2 <$> parseJSON value) <|> (ConformanceStepBranch3 <$> parseJSON value) <|> (ConformanceStepBranch4 <$> parseJSON value) <|> (ConformanceStepBranch5 <$> parseJSON value) <|> (ConformanceStepBranch6 <$> parseJSON value) <|> (ConformanceStepBranch7 <$> parseJSON value) <|> (ConformanceStepBranch8 <$> parseJSON value) <|> (ConformanceStepBranch9 <$> parseJSON value) <|> (ConformanceStepBranch10 <$> parseJSON value) <|> (ConformanceStepBranch11 <$> parseJSON value) <|> (ConformanceStepBranch12 <$> parseJSON value) <|> (ConformanceStepBranch13 <$> parseJSON value) <|> (ConformanceStepBranch14 <$> parseJSON value) <|> (ConformanceStepBranch15 <$> parseJSON value) <|> (ConformanceStepBranch16 <$> parseJSON value) <|> (ConformanceStepBranch17 <$> parseJSON value) <|> (ConformanceStepBranch18 <$> parseJSON value) <|> (ConformanceStepBranch19 <$> parseJSON value) <|> (ConformanceStepBranch20 <$> parseJSON value) <|> (ConformanceStepBranch21 <$> parseJSON value) <|> (ConformanceStepBranch22 <$> parseJSON value) <|> (ConformanceStepBranch23 <$> parseJSON value) <|> (ConformanceStepBranch24 <$> parseJSON value) <|> (ConformanceStepBranch25 <$> parseJSON value) <|> (ConformanceStepBranch26 <$> parseJSON value) <|> (ConformanceStepBranch27 <$> parseJSON value) <|> (ConformanceStepBranch28 <$> parseJSON value)
+instance FromJSON ConformanceStep where parseJSON = checked "ConformanceStep" $ \value -> (ConformanceStepLet <$> parseJSON value) <|> (ConformanceStepDriver <$> parseJSON value) <|> (ConformanceStepAbandon <$> parseJSON value) <|> (ConformanceStepSettles <$> parseJSON value) <|> (ConformanceStepWire <$> parseJSON value) <|> (ConformanceStepCarried <$> parseJSON value) <|> (ConformanceStepClosed <$> parseJSON value) <|> (ConformanceStepProgress <$> parseJSON value) <|> (ConformanceStepState <$> parseJSON value) <|> (ConformanceStepStays <$> parseJSON value) <|> (ConformanceStepFrame <$> parseJSON value) <|> (ConformanceStepFrames <$> parseJSON value) <|> (ConformanceStepError <$> parseJSON value) <|> (ConformanceStepBackend <$> parseJSON value) <|> (ConformanceStepQuiet <$> parseJSON value) <|> (ConformanceStepObserve <$> parseJSON value) <|> (ConformanceStepLeave <$> parseJSON value) <|> (ConformanceStepReaches <$> parseJSON value) <|> (ConformanceStepHolds <$> parseJSON value) <|> (ConformanceStepCompletes <$> parseJSON value) <|> (ConformanceStepConformanceBusFetch <$> parseJSON value) <|> (ConformanceStepConformanceHttpFetch <$> parseJSON value) <|> (ConformanceStepFetches <$> parseJSON value) <|> (ConformanceStepScopes <$> parseJSON value) <|> (ConformanceStepClaimed <$> parseJSON value) <|> (ConformanceStepRefused <$> parseJSON value) <|> (ConformanceStepSignalled <$> parseJSON value) <|> (ConformanceStepStalled <$> parseJSON value)
 
 instance ToJSON ConformanceStep where
-  toJSON (ConformanceStepBranch1 value) = toJSON value
-  toJSON (ConformanceStepBranch2 value) = toJSON value
-  toJSON (ConformanceStepBranch3 value) = toJSON value
-  toJSON (ConformanceStepBranch4 value) = toJSON value
-  toJSON (ConformanceStepBranch5 value) = toJSON value
-  toJSON (ConformanceStepBranch6 value) = toJSON value
-  toJSON (ConformanceStepBranch7 value) = toJSON value
-  toJSON (ConformanceStepBranch8 value) = toJSON value
-  toJSON (ConformanceStepBranch9 value) = toJSON value
-  toJSON (ConformanceStepBranch10 value) = toJSON value
-  toJSON (ConformanceStepBranch11 value) = toJSON value
-  toJSON (ConformanceStepBranch12 value) = toJSON value
-  toJSON (ConformanceStepBranch13 value) = toJSON value
-  toJSON (ConformanceStepBranch14 value) = toJSON value
-  toJSON (ConformanceStepBranch15 value) = toJSON value
-  toJSON (ConformanceStepBranch16 value) = toJSON value
-  toJSON (ConformanceStepBranch17 value) = toJSON value
-  toJSON (ConformanceStepBranch18 value) = toJSON value
-  toJSON (ConformanceStepBranch19 value) = toJSON value
-  toJSON (ConformanceStepBranch20 value) = toJSON value
-  toJSON (ConformanceStepBranch21 value) = toJSON value
-  toJSON (ConformanceStepBranch22 value) = toJSON value
-  toJSON (ConformanceStepBranch23 value) = toJSON value
-  toJSON (ConformanceStepBranch24 value) = toJSON value
-  toJSON (ConformanceStepBranch25 value) = toJSON value
-  toJSON (ConformanceStepBranch26 value) = toJSON value
-  toJSON (ConformanceStepBranch27 value) = toJSON value
-  toJSON (ConformanceStepBranch28 value) = toJSON value
+  toJSON (ConformanceStepLet value) = toJSON value
+  toJSON (ConformanceStepDriver value) = toJSON value
+  toJSON (ConformanceStepAbandon value) = toJSON value
+  toJSON (ConformanceStepSettles value) = toJSON value
+  toJSON (ConformanceStepWire value) = toJSON value
+  toJSON (ConformanceStepCarried value) = toJSON value
+  toJSON (ConformanceStepClosed value) = toJSON value
+  toJSON (ConformanceStepProgress value) = toJSON value
+  toJSON (ConformanceStepState value) = toJSON value
+  toJSON (ConformanceStepStays value) = toJSON value
+  toJSON (ConformanceStepFrame value) = toJSON value
+  toJSON (ConformanceStepFrames value) = toJSON value
+  toJSON (ConformanceStepError value) = toJSON value
+  toJSON (ConformanceStepBackend value) = toJSON value
+  toJSON (ConformanceStepQuiet value) = toJSON value
+  toJSON (ConformanceStepObserve value) = toJSON value
+  toJSON (ConformanceStepLeave value) = toJSON value
+  toJSON (ConformanceStepReaches value) = toJSON value
+  toJSON (ConformanceStepHolds value) = toJSON value
+  toJSON (ConformanceStepCompletes value) = toJSON value
+  toJSON (ConformanceStepConformanceBusFetch value) = toJSON value
+  toJSON (ConformanceStepConformanceHttpFetch value) = toJSON value
+  toJSON (ConformanceStepFetches value) = toJSON value
+  toJSON (ConformanceStepScopes value) = toJSON value
+  toJSON (ConformanceStepClaimed value) = toJSON value
+  toJSON (ConformanceStepRefused value) = toJSON value
+  toJSON (ConformanceStepSignalled value) = toJSON value
+  toJSON (ConformanceStepStalled value) = toJSON value
 
-data ConformanceStepBranch10Value = ConformanceStepBranch10Value
-  { conformanceStepBranch10ValueStays :: ConformanceStepBranch10ValueStays
+data ConformanceStepAbandonValue = ConformanceStepAbandonValue
+  { conformanceStepAbandonValueAbandon :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch10Value where parseJSON = checked "ConformanceStepBranch10Value" $ withObject "ConformanceStepBranch10Value" (\fields -> ConformanceStepBranch10Value <$> (fields .: "stays"))
+instance FromJSON ConformanceStepAbandonValue where parseJSON = checked "ConformanceStepAbandonValue" $ withObject "ConformanceStepAbandonValue" (\fields -> ConformanceStepAbandonValue <$> (fields .: "abandon"))
 
-instance ToJSON ConformanceStepBranch10Value where toJSON value = Object (KM.fromList (concat [[("stays", toJSON (conformanceStepBranch10ValueStays value))]]))
+instance ToJSON ConformanceStepAbandonValue where toJSON value = Object (KM.fromList (concat [[("abandon", toJSON (conformanceStepAbandonValueAbandon value))]]))
 
-data ConformanceStepBranch10ValueStays = ConformanceStepBranch10ValueStaysInitial | ConformanceStepBranch10ValueStaysConnecting | ConformanceStepBranch10ValueStaysOpen | ConformanceStepBranch10ValueStaysReconnecting | ConformanceStepBranch10ValueStaysDegraded | ConformanceStepBranch10ValueStaysUnauthenticated | ConformanceStepBranch10ValueStaysClosed deriving (Eq, Show)
-
-instance FromJSON ConformanceStepBranch10ValueStays where parseJSON = checked "ConformanceStepBranch10ValueStays" $ \value -> if value == String "initial" then pure ConformanceStepBranch10ValueStaysInitial else if value == String "connecting" then pure ConformanceStepBranch10ValueStaysConnecting else if value == String "open" then pure ConformanceStepBranch10ValueStaysOpen else if value == String "reconnecting" then pure ConformanceStepBranch10ValueStaysReconnecting else if value == String "degraded" then pure ConformanceStepBranch10ValueStaysDegraded else if value == String "unauthenticated" then pure ConformanceStepBranch10ValueStaysUnauthenticated else if value == String "closed" then pure ConformanceStepBranch10ValueStaysClosed else fail "unknown enumeration member"
-
-instance ToJSON ConformanceStepBranch10ValueStays where
-  toJSON ConformanceStepBranch10ValueStaysInitial = String "initial"
-  toJSON ConformanceStepBranch10ValueStaysConnecting = String "connecting"
-  toJSON ConformanceStepBranch10ValueStaysOpen = String "open"
-  toJSON ConformanceStepBranch10ValueStaysReconnecting = String "reconnecting"
-  toJSON ConformanceStepBranch10ValueStaysDegraded = String "degraded"
-  toJSON ConformanceStepBranch10ValueStaysUnauthenticated = String "unauthenticated"
-  toJSON ConformanceStepBranch10ValueStaysClosed = String "closed"
-
-data ConformanceStepBranch11Value = ConformanceStepBranch11Value
-  { conformanceStepBranch11ValueFrame :: Text,
-    conformanceStepBranch11ValueIs :: Value
+data ConformanceStepBackendValue = ConformanceStepBackendValue
+  { conformanceStepBackendValueBackend :: ConformanceStepBackendValueBackend,
+    conformanceStepBackendValueWith :: Maybe ConformanceStepBackendValueWith
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch11Value where parseJSON = checked "ConformanceStepBranch11Value" $ withObject "ConformanceStepBranch11Value" (\fields -> ConformanceStepBranch11Value <$> (fields .: "frame") <*> (fields .: "is"))
+instance FromJSON ConformanceStepBackendValue where parseJSON = checked "ConformanceStepBackendValue" $ withObject "ConformanceStepBackendValue" (\fields -> ConformanceStepBackendValue <$> (fields .: "backend") <*> optional fields "with")
 
-instance ToJSON ConformanceStepBranch11Value where toJSON value = Object (KM.fromList (concat [[("frame", toJSON (conformanceStepBranch11ValueFrame value))], [("is", toJSON (conformanceStepBranch11ValueIs value))]]))
+instance ToJSON ConformanceStepBackendValue where toJSON value = Object (KM.fromList (concat [[("backend", toJSON (conformanceStepBackendValueBackend value))], optionalPair "with" (conformanceStepBackendValueWith value)]))
 
-data ConformanceStepBranch12Value = ConformanceStepBranch12Value
-  { conformanceStepBranch12ValueCount :: Integer,
-    conformanceStepBranch12ValueFrames :: Text
+data ConformanceStepBackendValueBackend = ConformanceStepBackendValueBackendListen | ConformanceStepBackendValueBackendEmit | ConformanceStepBackendValueBackendRecord | ConformanceStepBackendValueBackendContent | ConformanceStepBackendValueBackendDescription | ConformanceStepBackendValueBackendAnnotations | ConformanceStepBackendValueBackendAnchoredU2d_text | ConformanceStepBackendValueBackendUploaded | ConformanceStepBackendValueBackendRefuse | ConformanceStepBackendValueBackendUnanswered | ConformanceStepBackendValueBackendAnswerU2d_lost | ConformanceStepBackendValueBackendHold | ConformanceStepBackendValueBackendRelease | ConformanceStepBackendValueBackendRechunk | ConformanceStepBackendValueBackendCarry | ConformanceStepBackendValueBackendCut | ConformanceStepBackendValueBackendDown | ConformanceStepBackendValueBackendUp | ConformanceStepBackendValueBackendArchivist deriving (Eq, Show)
+
+instance FromJSON ConformanceStepBackendValueBackend where parseJSON = checked "ConformanceStepBackendValueBackend" $ \value -> if value == String "listen" then pure ConformanceStepBackendValueBackendListen else if value == String "emit" then pure ConformanceStepBackendValueBackendEmit else if value == String "record" then pure ConformanceStepBackendValueBackendRecord else if value == String "content" then pure ConformanceStepBackendValueBackendContent else if value == String "description" then pure ConformanceStepBackendValueBackendDescription else if value == String "annotations" then pure ConformanceStepBackendValueBackendAnnotations else if value == String "anchored-text" then pure ConformanceStepBackendValueBackendAnchoredU2d_text else if value == String "uploaded" then pure ConformanceStepBackendValueBackendUploaded else if value == String "refuse" then pure ConformanceStepBackendValueBackendRefuse else if value == String "unanswered" then pure ConformanceStepBackendValueBackendUnanswered else if value == String "answer-lost" then pure ConformanceStepBackendValueBackendAnswerU2d_lost else if value == String "hold" then pure ConformanceStepBackendValueBackendHold else if value == String "release" then pure ConformanceStepBackendValueBackendRelease else if value == String "rechunk" then pure ConformanceStepBackendValueBackendRechunk else if value == String "carry" then pure ConformanceStepBackendValueBackendCarry else if value == String "cut" then pure ConformanceStepBackendValueBackendCut else if value == String "down" then pure ConformanceStepBackendValueBackendDown else if value == String "up" then pure ConformanceStepBackendValueBackendUp else if value == String "archivist" then pure ConformanceStepBackendValueBackendArchivist else fail "unknown enumeration member"
+
+instance ToJSON ConformanceStepBackendValueBackend where
+  toJSON ConformanceStepBackendValueBackendListen = String "listen"
+  toJSON ConformanceStepBackendValueBackendEmit = String "emit"
+  toJSON ConformanceStepBackendValueBackendRecord = String "record"
+  toJSON ConformanceStepBackendValueBackendContent = String "content"
+  toJSON ConformanceStepBackendValueBackendDescription = String "description"
+  toJSON ConformanceStepBackendValueBackendAnnotations = String "annotations"
+  toJSON ConformanceStepBackendValueBackendAnchoredU2d_text = String "anchored-text"
+  toJSON ConformanceStepBackendValueBackendUploaded = String "uploaded"
+  toJSON ConformanceStepBackendValueBackendRefuse = String "refuse"
+  toJSON ConformanceStepBackendValueBackendUnanswered = String "unanswered"
+  toJSON ConformanceStepBackendValueBackendAnswerU2d_lost = String "answer-lost"
+  toJSON ConformanceStepBackendValueBackendHold = String "hold"
+  toJSON ConformanceStepBackendValueBackendRelease = String "release"
+  toJSON ConformanceStepBackendValueBackendRechunk = String "rechunk"
+  toJSON ConformanceStepBackendValueBackendCarry = String "carry"
+  toJSON ConformanceStepBackendValueBackendCut = String "cut"
+  toJSON ConformanceStepBackendValueBackendDown = String "down"
+  toJSON ConformanceStepBackendValueBackendUp = String "up"
+  toJSON ConformanceStepBackendValueBackendArchivist = String "archivist"
+
+conformanceStepBackendValueBackendText :: ConformanceStepBackendValueBackend -> Text
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendListen = "listen"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendEmit = "emit"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendRecord = "record"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendContent = "content"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendDescription = "description"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendAnnotations = "annotations"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendAnchoredU2d_text = "anchored-text"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendUploaded = "uploaded"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendRefuse = "refuse"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendUnanswered = "unanswered"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendAnswerU2d_lost = "answer-lost"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendHold = "hold"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendRelease = "release"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendRechunk = "rechunk"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendCarry = "carry"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendCut = "cut"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendDown = "down"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendUp = "up"
+conformanceStepBackendValueBackendText ConformanceStepBackendValueBackendArchivist = "archivist"
+
+data ConformanceStepBackendValueWith = ConformanceStepBackendValueWith
+  { conformanceStepBackendValueWithAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch12Value where parseJSON = checked "ConformanceStepBranch12Value" $ withObject "ConformanceStepBranch12Value" (\fields -> ConformanceStepBranch12Value <$> (fields .: "count") <*> (fields .: "frames"))
+instance FromJSON ConformanceStepBackendValueWith where parseJSON = checked "ConformanceStepBackendValueWith" $ withObject "ConformanceStepBackendValueWith" (\fields -> ConformanceStepBackendValueWith <$> traverse parseJSON (withoutFields [] fields))
 
-instance ToJSON ConformanceStepBranch12Value where toJSON value = Object (KM.fromList (concat [[("count", toJSON (conformanceStepBranch12ValueCount value))], [("frames", toJSON (conformanceStepBranch12ValueFrames value))]]))
+instance ToJSON ConformanceStepBackendValueWith where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepBackendValueWithAdditionalProperties value)))
 
-data ConformanceStepBranch13Value = ConformanceStepBranch13Value
-  { conformanceStepBranch13ValueError :: Value
+data ConformanceStepCarriedValue = ConformanceStepCarriedValue
+  { conformanceStepCarriedValueCarried :: Text,
+    conformanceStepCarriedValueIs :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch13Value where parseJSON = checked "ConformanceStepBranch13Value" $ withObject "ConformanceStepBranch13Value" (\fields -> ConformanceStepBranch13Value <$> (fields .: "error"))
+instance FromJSON ConformanceStepCarriedValue where parseJSON = checked "ConformanceStepCarriedValue" $ withObject "ConformanceStepCarriedValue" (\fields -> ConformanceStepCarriedValue <$> (fields .: "carried") <*> (fields .: "is"))
 
-instance ToJSON ConformanceStepBranch13Value where toJSON value = Object (KM.fromList (concat [[("error", toJSON (conformanceStepBranch13ValueError value))]]))
+instance ToJSON ConformanceStepCarriedValue where toJSON value = Object (KM.fromList (concat [[("carried", toJSON (conformanceStepCarriedValueCarried value))], [("is", toJSON (conformanceStepCarriedValueIs value))]]))
 
-data ConformanceStepBranch14Value = ConformanceStepBranch14Value
-  { conformanceStepBranch14ValueBackend :: ConformanceStepBranch14ValueBackend,
-    conformanceStepBranch14ValueWith :: Maybe ConformanceStepBranch14ValueWith
+data ConformanceStepClaimedValue = ConformanceStepClaimedValue
+  { conformanceStepClaimedValueClaimed :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch14Value where parseJSON = checked "ConformanceStepBranch14Value" $ withObject "ConformanceStepBranch14Value" (\fields -> ConformanceStepBranch14Value <$> (fields .: "backend") <*> optional fields "with")
+instance FromJSON ConformanceStepClaimedValue where parseJSON = checked "ConformanceStepClaimedValue" $ withObject "ConformanceStepClaimedValue" (\fields -> ConformanceStepClaimedValue <$> (fields .: "claimed"))
 
-instance ToJSON ConformanceStepBranch14Value where toJSON value = Object (KM.fromList (concat [[("backend", toJSON (conformanceStepBranch14ValueBackend value))], optionalPair "with" (conformanceStepBranch14ValueWith value)]))
+instance ToJSON ConformanceStepClaimedValue where toJSON value = Object (KM.fromList (concat [[("claimed", toJSON (conformanceStepClaimedValueClaimed value))]]))
 
-data ConformanceStepBranch14ValueBackend = ConformanceStepBranch14ValueBackendListen | ConformanceStepBranch14ValueBackendEmit | ConformanceStepBranch14ValueBackendRecord | ConformanceStepBranch14ValueBackendContent | ConformanceStepBranch14ValueBackendDescription | ConformanceStepBranch14ValueBackendAnnotations | ConformanceStepBranch14ValueBackendAnchoredU2d_text | ConformanceStepBranch14ValueBackendUploaded | ConformanceStepBranch14ValueBackendRefuse | ConformanceStepBranch14ValueBackendUnanswered | ConformanceStepBranch14ValueBackendAnswerU2d_lost | ConformanceStepBranch14ValueBackendHold | ConformanceStepBranch14ValueBackendRelease | ConformanceStepBranch14ValueBackendRechunk | ConformanceStepBranch14ValueBackendCarry | ConformanceStepBranch14ValueBackendCut | ConformanceStepBranch14ValueBackendDown | ConformanceStepBranch14ValueBackendUp | ConformanceStepBranch14ValueBackendArchivist deriving (Eq, Show)
-
-instance FromJSON ConformanceStepBranch14ValueBackend where parseJSON = checked "ConformanceStepBranch14ValueBackend" $ \value -> if value == String "listen" then pure ConformanceStepBranch14ValueBackendListen else if value == String "emit" then pure ConformanceStepBranch14ValueBackendEmit else if value == String "record" then pure ConformanceStepBranch14ValueBackendRecord else if value == String "content" then pure ConformanceStepBranch14ValueBackendContent else if value == String "description" then pure ConformanceStepBranch14ValueBackendDescription else if value == String "annotations" then pure ConformanceStepBranch14ValueBackendAnnotations else if value == String "anchored-text" then pure ConformanceStepBranch14ValueBackendAnchoredU2d_text else if value == String "uploaded" then pure ConformanceStepBranch14ValueBackendUploaded else if value == String "refuse" then pure ConformanceStepBranch14ValueBackendRefuse else if value == String "unanswered" then pure ConformanceStepBranch14ValueBackendUnanswered else if value == String "answer-lost" then pure ConformanceStepBranch14ValueBackendAnswerU2d_lost else if value == String "hold" then pure ConformanceStepBranch14ValueBackendHold else if value == String "release" then pure ConformanceStepBranch14ValueBackendRelease else if value == String "rechunk" then pure ConformanceStepBranch14ValueBackendRechunk else if value == String "carry" then pure ConformanceStepBranch14ValueBackendCarry else if value == String "cut" then pure ConformanceStepBranch14ValueBackendCut else if value == String "down" then pure ConformanceStepBranch14ValueBackendDown else if value == String "up" then pure ConformanceStepBranch14ValueBackendUp else if value == String "archivist" then pure ConformanceStepBranch14ValueBackendArchivist else fail "unknown enumeration member"
-
-instance ToJSON ConformanceStepBranch14ValueBackend where
-  toJSON ConformanceStepBranch14ValueBackendListen = String "listen"
-  toJSON ConformanceStepBranch14ValueBackendEmit = String "emit"
-  toJSON ConformanceStepBranch14ValueBackendRecord = String "record"
-  toJSON ConformanceStepBranch14ValueBackendContent = String "content"
-  toJSON ConformanceStepBranch14ValueBackendDescription = String "description"
-  toJSON ConformanceStepBranch14ValueBackendAnnotations = String "annotations"
-  toJSON ConformanceStepBranch14ValueBackendAnchoredU2d_text = String "anchored-text"
-  toJSON ConformanceStepBranch14ValueBackendUploaded = String "uploaded"
-  toJSON ConformanceStepBranch14ValueBackendRefuse = String "refuse"
-  toJSON ConformanceStepBranch14ValueBackendUnanswered = String "unanswered"
-  toJSON ConformanceStepBranch14ValueBackendAnswerU2d_lost = String "answer-lost"
-  toJSON ConformanceStepBranch14ValueBackendHold = String "hold"
-  toJSON ConformanceStepBranch14ValueBackendRelease = String "release"
-  toJSON ConformanceStepBranch14ValueBackendRechunk = String "rechunk"
-  toJSON ConformanceStepBranch14ValueBackendCarry = String "carry"
-  toJSON ConformanceStepBranch14ValueBackendCut = String "cut"
-  toJSON ConformanceStepBranch14ValueBackendDown = String "down"
-  toJSON ConformanceStepBranch14ValueBackendUp = String "up"
-  toJSON ConformanceStepBranch14ValueBackendArchivist = String "archivist"
-
-data ConformanceStepBranch14ValueWith = ConformanceStepBranch14ValueWith
-  { conformanceStepBranch14ValueWithAdditionalProperties :: KM.KeyMap Value
+data ConformanceStepClosedValue = ConformanceStepClosedValue
+  { conformanceStepClosedValueClosed :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch14ValueWith where parseJSON = checked "ConformanceStepBranch14ValueWith" $ withObject "ConformanceStepBranch14ValueWith" (\fields -> ConformanceStepBranch14ValueWith <$> traverse parseJSON (withoutFields [] fields))
+instance FromJSON ConformanceStepClosedValue where parseJSON = checked "ConformanceStepClosedValue" $ withObject "ConformanceStepClosedValue" (\fields -> ConformanceStepClosedValue <$> (fields .: "closed"))
 
-instance ToJSON ConformanceStepBranch14ValueWith where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepBranch14ValueWithAdditionalProperties value)))
+instance ToJSON ConformanceStepClosedValue where toJSON value = Object (KM.fromList (concat [[("closed", toJSON (conformanceStepClosedValueClosed value))]]))
 
-data ConformanceStepBranch15Value = ConformanceStepBranch15Value
-  { conformanceStepBranch15ValueQuiet :: Integer
+data ConformanceStepCompletesValue = ConformanceStepCompletesValue
+  { conformanceStepCompletesValueCompletes :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch15Value where parseJSON = checked "ConformanceStepBranch15Value" $ withObject "ConformanceStepBranch15Value" (\fields -> ConformanceStepBranch15Value <$> (fields .: "quiet"))
+instance FromJSON ConformanceStepCompletesValue where parseJSON = checked "ConformanceStepCompletesValue" $ withObject "ConformanceStepCompletesValue" (\fields -> ConformanceStepCompletesValue <$> (fields .: "completes"))
 
-instance ToJSON ConformanceStepBranch15Value where toJSON value = Object (KM.fromList (concat [[("quiet", toJSON (conformanceStepBranch15ValueQuiet value))]]))
+instance ToJSON ConformanceStepCompletesValue where toJSON value = Object (KM.fromList (concat [[("completes", toJSON (conformanceStepCompletesValueCompletes value))]]))
 
-data ConformanceStepBranch16Value = ConformanceStepBranch16Value
-  { conformanceStepBranch16ValueAs :: Text,
-    conformanceStepBranch16ValueObserve :: ConformanceStepBranch16ValueObserve
+data ConformanceStepDriverValue = ConformanceStepDriverValue
+  { conformanceStepDriverValueAs :: Maybe Text,
+    conformanceStepDriverValueDriver :: Text,
+    conformanceStepDriverValueFails :: Maybe Value,
+    conformanceStepDriverValueReturns :: Maybe Value,
+    conformanceStepDriverValueWith :: Maybe ConformanceStepDriverValueWith
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch16Value where parseJSON = checked "ConformanceStepBranch16Value" $ withObject "ConformanceStepBranch16Value" (\fields -> ConformanceStepBranch16Value <$> (fields .: "as") <*> (fields .: "observe"))
+instance FromJSON ConformanceStepDriverValue where parseJSON = checked "ConformanceStepDriverValue" $ withObject "ConformanceStepDriverValue" (\fields -> ConformanceStepDriverValue <$> optional fields "as" <*> (fields .: "driver") <*> optional fields "fails" <*> optional fields "returns" <*> optional fields "with")
 
-instance ToJSON ConformanceStepBranch16Value where toJSON value = Object (KM.fromList (concat [[("as", toJSON (conformanceStepBranch16ValueAs value))], [("observe", toJSON (conformanceStepBranch16ValueObserve value))]]))
+instance ToJSON ConformanceStepDriverValue where toJSON value = Object (KM.fromList (concat [optionalPair "as" (conformanceStepDriverValueAs value), [("driver", toJSON (conformanceStepDriverValueDriver value))], optionalPair "fails" (conformanceStepDriverValueFails value), optionalPair "returns" (conformanceStepDriverValueReturns value), optionalPair "with" (conformanceStepDriverValueWith value)]))
 
-data ConformanceStepBranch16ValueObserve = ConformanceStepBranch16ValueObserve
-  { conformanceStepBranch16ValueObserveAnnotation :: Maybe Value,
-    conformanceStepBranch16ValueObserveFilters :: Maybe Value,
-    conformanceStepBranch16ValueObserveQuery :: Text,
-    conformanceStepBranch16ValueObserveResource :: Maybe Value,
-    conformanceStepBranch16ValueObserveSearch :: Maybe Value
+data ConformanceStepDriverValueWith = ConformanceStepDriverValueWith
+  { conformanceStepDriverValueWithAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch16ValueObserve where parseJSON = checked "ConformanceStepBranch16ValueObserve" $ withObject "ConformanceStepBranch16ValueObserve" (\fields -> ConformanceStepBranch16ValueObserve <$> optional fields "annotation" <*> optional fields "filters" <*> (fields .: "query") <*> optional fields "resource" <*> optional fields "search")
+instance FromJSON ConformanceStepDriverValueWith where parseJSON = checked "ConformanceStepDriverValueWith" $ withObject "ConformanceStepDriverValueWith" (\fields -> ConformanceStepDriverValueWith <$> traverse parseJSON (withoutFields [] fields))
 
-instance ToJSON ConformanceStepBranch16ValueObserve where toJSON value = Object (KM.fromList (concat [optionalPair "annotation" (conformanceStepBranch16ValueObserveAnnotation value), optionalPair "filters" (conformanceStepBranch16ValueObserveFilters value), [("query", toJSON (conformanceStepBranch16ValueObserveQuery value))], optionalPair "resource" (conformanceStepBranch16ValueObserveResource value), optionalPair "search" (conformanceStepBranch16ValueObserveSearch value)]))
+instance ToJSON ConformanceStepDriverValueWith where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepDriverValueWithAdditionalProperties value)))
 
-data ConformanceStepBranch17Value = ConformanceStepBranch17Value
-  { conformanceStepBranch17ValueLeave :: Text
+data ConformanceStepErrorValue = ConformanceStepErrorValue
+  { conformanceStepErrorValueError :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch17Value where parseJSON = checked "ConformanceStepBranch17Value" $ withObject "ConformanceStepBranch17Value" (\fields -> ConformanceStepBranch17Value <$> (fields .: "leave"))
+instance FromJSON ConformanceStepErrorValue where parseJSON = checked "ConformanceStepErrorValue" $ withObject "ConformanceStepErrorValue" (\fields -> ConformanceStepErrorValue <$> (fields .: "error"))
 
-instance ToJSON ConformanceStepBranch17Value where toJSON value = Object (KM.fromList (concat [[("leave", toJSON (conformanceStepBranch17ValueLeave value))]]))
+instance ToJSON ConformanceStepErrorValue where toJSON value = Object (KM.fromList (concat [[("error", toJSON (conformanceStepErrorValueError value))]]))
 
-data ConformanceStepBranch18Value = ConformanceStepBranch18Value
-  { conformanceStepBranch18ValueReaches :: Text,
-    conformanceStepBranch18ValueState :: Value
+data ConformanceStepFetchesValue = ConformanceStepFetchesValue
+  { conformanceStepFetchesValueFetches :: [ConformanceStepFetchesValueFetchesItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch18Value where parseJSON = checked "ConformanceStepBranch18Value" $ withObject "ConformanceStepBranch18Value" (\fields -> ConformanceStepBranch18Value <$> (fields .: "reaches") <*> (fields .: "state"))
+instance FromJSON ConformanceStepFetchesValue where parseJSON = checked "ConformanceStepFetchesValue" $ withObject "ConformanceStepFetchesValue" (\fields -> ConformanceStepFetchesValue <$> (fields .: "fetches"))
 
-instance ToJSON ConformanceStepBranch18Value where toJSON value = Object (KM.fromList (concat [[("reaches", toJSON (conformanceStepBranch18ValueReaches value))], [("state", toJSON (conformanceStepBranch18ValueState value))]]))
+instance ToJSON ConformanceStepFetchesValue where toJSON value = Object (KM.fromList (concat [[("fetches", toJSON (conformanceStepFetchesValueFetches value))]]))
 
-data ConformanceStepBranch19Value = ConformanceStepBranch19Value
-  { conformanceStepBranch19ValueHolds :: Text,
-    conformanceStepBranch19ValueState :: Value
+data ConformanceStepFetchesValueFetchesItem = ConformanceStepFetchesValueFetchesItemConformanceBusFetch ConformanceBusFetch | ConformanceStepFetchesValueFetchesItemConformanceHttpFetch ConformanceHttpFetch deriving (Eq, Show)
+
+instance FromJSON ConformanceStepFetchesValueFetchesItem where parseJSON = checked "ConformanceStepFetchesValueFetchesItem" $ \value -> (ConformanceStepFetchesValueFetchesItemConformanceBusFetch <$> parseJSON value) <|> (ConformanceStepFetchesValueFetchesItemConformanceHttpFetch <$> parseJSON value)
+
+instance ToJSON ConformanceStepFetchesValueFetchesItem where
+  toJSON (ConformanceStepFetchesValueFetchesItemConformanceBusFetch value) = toJSON value
+  toJSON (ConformanceStepFetchesValueFetchesItemConformanceHttpFetch value) = toJSON value
+
+data ConformanceStepFrameValue = ConformanceStepFrameValue
+  { conformanceStepFrameValueFrame :: Text,
+    conformanceStepFrameValueIs :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch19Value where parseJSON = checked "ConformanceStepBranch19Value" $ withObject "ConformanceStepBranch19Value" (\fields -> ConformanceStepBranch19Value <$> (fields .: "holds") <*> (fields .: "state"))
+instance FromJSON ConformanceStepFrameValue where parseJSON = checked "ConformanceStepFrameValue" $ withObject "ConformanceStepFrameValue" (\fields -> ConformanceStepFrameValue <$> (fields .: "frame") <*> (fields .: "is"))
 
-instance ToJSON ConformanceStepBranch19Value where toJSON value = Object (KM.fromList (concat [[("holds", toJSON (conformanceStepBranch19ValueHolds value))], [("state", toJSON (conformanceStepBranch19ValueState value))]]))
+instance ToJSON ConformanceStepFrameValue where toJSON value = Object (KM.fromList (concat [[("frame", toJSON (conformanceStepFrameValueFrame value))], [("is", toJSON (conformanceStepFrameValueIs value))]]))
 
-data ConformanceStepBranch1Value = ConformanceStepBranch1Value
-  { conformanceStepBranch1ValueLet :: ConformanceStepBranch1ValueLet
+data ConformanceStepFramesValue = ConformanceStepFramesValue
+  { conformanceStepFramesValueCount :: Integer,
+    conformanceStepFramesValueFrames :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch1Value where parseJSON = checked "ConformanceStepBranch1Value" $ withObject "ConformanceStepBranch1Value" (\fields -> ConformanceStepBranch1Value <$> (fields .: "let"))
+instance FromJSON ConformanceStepFramesValue where parseJSON = checked "ConformanceStepFramesValue" $ withObject "ConformanceStepFramesValue" (\fields -> ConformanceStepFramesValue <$> (fields .: "count") <*> (fields .: "frames"))
 
-instance ToJSON ConformanceStepBranch1Value where toJSON value = Object (KM.fromList (concat [[("let", toJSON (conformanceStepBranch1ValueLet value))]]))
+instance ToJSON ConformanceStepFramesValue where toJSON value = Object (KM.fromList (concat [[("count", toJSON (conformanceStepFramesValueCount value))], [("frames", toJSON (conformanceStepFramesValueFrames value))]]))
 
-data ConformanceStepBranch1ValueLet = ConformanceStepBranch1ValueLet
-  { conformanceStepBranch1ValueLetAdditionalProperties :: KM.KeyMap Value
+data ConformanceStepHoldsValue = ConformanceStepHoldsValue
+  { conformanceStepHoldsValueHolds :: Text,
+    conformanceStepHoldsValueState :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch1ValueLet where parseJSON = checked "ConformanceStepBranch1ValueLet" $ withObject "ConformanceStepBranch1ValueLet" (\fields -> ConformanceStepBranch1ValueLet <$> traverse parseJSON (withoutFields [] fields))
+instance FromJSON ConformanceStepHoldsValue where parseJSON = checked "ConformanceStepHoldsValue" $ withObject "ConformanceStepHoldsValue" (\fields -> ConformanceStepHoldsValue <$> (fields .: "holds") <*> (fields .: "state"))
 
-instance ToJSON ConformanceStepBranch1ValueLet where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepBranch1ValueLetAdditionalProperties value)))
+instance ToJSON ConformanceStepHoldsValue where toJSON value = Object (KM.fromList (concat [[("holds", toJSON (conformanceStepHoldsValueHolds value))], [("state", toJSON (conformanceStepHoldsValueState value))]]))
 
-data ConformanceStepBranch20Value = ConformanceStepBranch20Value
-  { conformanceStepBranch20ValueCompletes :: Text
+data ConformanceStepLeaveValue = ConformanceStepLeaveValue
+  { conformanceStepLeaveValueLeave :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch20Value where parseJSON = checked "ConformanceStepBranch20Value" $ withObject "ConformanceStepBranch20Value" (\fields -> ConformanceStepBranch20Value <$> (fields .: "completes"))
+instance FromJSON ConformanceStepLeaveValue where parseJSON = checked "ConformanceStepLeaveValue" $ withObject "ConformanceStepLeaveValue" (\fields -> ConformanceStepLeaveValue <$> (fields .: "leave"))
 
-instance ToJSON ConformanceStepBranch20Value where toJSON value = Object (KM.fromList (concat [[("completes", toJSON (conformanceStepBranch20ValueCompletes value))]]))
+instance ToJSON ConformanceStepLeaveValue where toJSON value = Object (KM.fromList (concat [[("leave", toJSON (conformanceStepLeaveValueLeave value))]]))
 
-data ConformanceStepBranch23Value = ConformanceStepBranch23Value
-  { conformanceStepBranch23ValueFetches :: [ConformanceStepBranch23ValueFetchesItem]
+data ConformanceStepLetValue = ConformanceStepLetValue
+  { conformanceStepLetValueLet :: ConformanceStepLetValueLet
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch23Value where parseJSON = checked "ConformanceStepBranch23Value" $ withObject "ConformanceStepBranch23Value" (\fields -> ConformanceStepBranch23Value <$> (fields .: "fetches"))
+instance FromJSON ConformanceStepLetValue where parseJSON = checked "ConformanceStepLetValue" $ withObject "ConformanceStepLetValue" (\fields -> ConformanceStepLetValue <$> (fields .: "let"))
 
-instance ToJSON ConformanceStepBranch23Value where toJSON value = Object (KM.fromList (concat [[("fetches", toJSON (conformanceStepBranch23ValueFetches value))]]))
+instance ToJSON ConformanceStepLetValue where toJSON value = Object (KM.fromList (concat [[("let", toJSON (conformanceStepLetValueLet value))]]))
 
-data ConformanceStepBranch23ValueFetchesItem = ConformanceStepBranch23ValueFetchesItemBranch1 ConformanceBusFetch | ConformanceStepBranch23ValueFetchesItemBranch2 ConformanceHttpFetch deriving (Eq, Show)
-
-instance FromJSON ConformanceStepBranch23ValueFetchesItem where parseJSON = checked "ConformanceStepBranch23ValueFetchesItem" $ \value -> (ConformanceStepBranch23ValueFetchesItemBranch1 <$> parseJSON value) <|> (ConformanceStepBranch23ValueFetchesItemBranch2 <$> parseJSON value)
-
-instance ToJSON ConformanceStepBranch23ValueFetchesItem where
-  toJSON (ConformanceStepBranch23ValueFetchesItemBranch1 value) = toJSON value
-  toJSON (ConformanceStepBranch23ValueFetchesItemBranch2 value) = toJSON value
-
-data ConformanceStepBranch24Value = ConformanceStepBranch24Value
-  { conformanceStepBranch24ValueScopes :: [Value]
+data ConformanceStepLetValueLet = ConformanceStepLetValueLet
+  { conformanceStepLetValueLetAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch24Value where parseJSON = checked "ConformanceStepBranch24Value" $ withObject "ConformanceStepBranch24Value" (\fields -> ConformanceStepBranch24Value <$> (fields .: "scopes"))
+instance FromJSON ConformanceStepLetValueLet where parseJSON = checked "ConformanceStepLetValueLet" $ withObject "ConformanceStepLetValueLet" (\fields -> ConformanceStepLetValueLet <$> traverse parseJSON (withoutFields [] fields))
 
-instance ToJSON ConformanceStepBranch24Value where toJSON value = Object (KM.fromList (concat [[("scopes", toJSON (conformanceStepBranch24ValueScopes value))]]))
+instance ToJSON ConformanceStepLetValueLet where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepLetValueLetAdditionalProperties value)))
 
-data ConformanceStepBranch25Value = ConformanceStepBranch25Value
-  { conformanceStepBranch25ValueClaimed :: Value
+data ConformanceStepObserveValue = ConformanceStepObserveValue
+  { conformanceStepObserveValueAs :: Text,
+    conformanceStepObserveValueObserve :: ConformanceStepObserveValueObserve
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch25Value where parseJSON = checked "ConformanceStepBranch25Value" $ withObject "ConformanceStepBranch25Value" (\fields -> ConformanceStepBranch25Value <$> (fields .: "claimed"))
+instance FromJSON ConformanceStepObserveValue where parseJSON = checked "ConformanceStepObserveValue" $ withObject "ConformanceStepObserveValue" (\fields -> ConformanceStepObserveValue <$> (fields .: "as") <*> (fields .: "observe"))
 
-instance ToJSON ConformanceStepBranch25Value where toJSON value = Object (KM.fromList (concat [[("claimed", toJSON (conformanceStepBranch25ValueClaimed value))]]))
+instance ToJSON ConformanceStepObserveValue where toJSON value = Object (KM.fromList (concat [[("as", toJSON (conformanceStepObserveValueAs value))], [("observe", toJSON (conformanceStepObserveValueObserve value))]]))
 
-data ConformanceStepBranch26Value = ConformanceStepBranch26Value
-  { conformanceStepBranch26ValueRefused :: Value
+data ConformanceStepObserveValueObserve = ConformanceStepObserveValueObserve
+  { conformanceStepObserveValueObserveAnnotation :: Maybe Value,
+    conformanceStepObserveValueObserveFilters :: Maybe Value,
+    conformanceStepObserveValueObserveQuery :: Text,
+    conformanceStepObserveValueObserveResource :: Maybe Value,
+    conformanceStepObserveValueObserveSearch :: Maybe Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch26Value where parseJSON = checked "ConformanceStepBranch26Value" $ withObject "ConformanceStepBranch26Value" (\fields -> ConformanceStepBranch26Value <$> (fields .: "refused"))
+instance FromJSON ConformanceStepObserveValueObserve where parseJSON = checked "ConformanceStepObserveValueObserve" $ withObject "ConformanceStepObserveValueObserve" (\fields -> ConformanceStepObserveValueObserve <$> optional fields "annotation" <*> optional fields "filters" <*> (fields .: "query") <*> optional fields "resource" <*> optional fields "search")
 
-instance ToJSON ConformanceStepBranch26Value where toJSON value = Object (KM.fromList (concat [[("refused", toJSON (conformanceStepBranch26ValueRefused value))]]))
+instance ToJSON ConformanceStepObserveValueObserve where toJSON value = Object (KM.fromList (concat [optionalPair "annotation" (conformanceStepObserveValueObserveAnnotation value), optionalPair "filters" (conformanceStepObserveValueObserveFilters value), [("query", toJSON (conformanceStepObserveValueObserveQuery value))], optionalPair "resource" (conformanceStepObserveValueObserveResource value), optionalPair "search" (conformanceStepObserveValueObserveSearch value)]))
 
-data ConformanceStepBranch27Value = ConformanceStepBranch27Value
-  { conformanceStepBranch27ValueSignalled :: Value
+data ConformanceStepProgressValue = ConformanceStepProgressValue
+  { conformanceStepProgressValueProgress :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch27Value where parseJSON = checked "ConformanceStepBranch27Value" $ withObject "ConformanceStepBranch27Value" (\fields -> ConformanceStepBranch27Value <$> (fields .: "signalled"))
+instance FromJSON ConformanceStepProgressValue where parseJSON = checked "ConformanceStepProgressValue" $ withObject "ConformanceStepProgressValue" (\fields -> ConformanceStepProgressValue <$> (fields .: "progress"))
 
-instance ToJSON ConformanceStepBranch27Value where toJSON value = Object (KM.fromList (concat [[("signalled", toJSON (conformanceStepBranch27ValueSignalled value))]]))
+instance ToJSON ConformanceStepProgressValue where toJSON value = Object (KM.fromList (concat [[("progress", toJSON (conformanceStepProgressValueProgress value))]]))
 
-data ConformanceStepBranch28Value = ConformanceStepBranch28Value
-  { conformanceStepBranch28ValueStalled :: Value
+data ConformanceStepQuietValue = ConformanceStepQuietValue
+  { conformanceStepQuietValueQuiet :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch28Value where parseJSON = checked "ConformanceStepBranch28Value" $ withObject "ConformanceStepBranch28Value" (\fields -> ConformanceStepBranch28Value <$> (fields .: "stalled"))
+instance FromJSON ConformanceStepQuietValue where parseJSON = checked "ConformanceStepQuietValue" $ withObject "ConformanceStepQuietValue" (\fields -> ConformanceStepQuietValue <$> (fields .: "quiet"))
 
-instance ToJSON ConformanceStepBranch28Value where toJSON value = Object (KM.fromList (concat [[("stalled", toJSON (conformanceStepBranch28ValueStalled value))]]))
+instance ToJSON ConformanceStepQuietValue where toJSON value = Object (KM.fromList (concat [[("quiet", toJSON (conformanceStepQuietValueQuiet value))]]))
 
-data ConformanceStepBranch2Value = ConformanceStepBranch2Value
-  { conformanceStepBranch2ValueAs :: Maybe Text,
-    conformanceStepBranch2ValueDriver :: Text,
-    conformanceStepBranch2ValueFails :: Maybe Value,
-    conformanceStepBranch2ValueReturns :: Maybe Value,
-    conformanceStepBranch2ValueWith :: Maybe ConformanceStepBranch2ValueWith
+data ConformanceStepReachesValue = ConformanceStepReachesValue
+  { conformanceStepReachesValueReaches :: Text,
+    conformanceStepReachesValueState :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch2Value where parseJSON = checked "ConformanceStepBranch2Value" $ withObject "ConformanceStepBranch2Value" (\fields -> ConformanceStepBranch2Value <$> optional fields "as" <*> (fields .: "driver") <*> optional fields "fails" <*> optional fields "returns" <*> optional fields "with")
+instance FromJSON ConformanceStepReachesValue where parseJSON = checked "ConformanceStepReachesValue" $ withObject "ConformanceStepReachesValue" (\fields -> ConformanceStepReachesValue <$> (fields .: "reaches") <*> (fields .: "state"))
 
-instance ToJSON ConformanceStepBranch2Value where toJSON value = Object (KM.fromList (concat [optionalPair "as" (conformanceStepBranch2ValueAs value), [("driver", toJSON (conformanceStepBranch2ValueDriver value))], optionalPair "fails" (conformanceStepBranch2ValueFails value), optionalPair "returns" (conformanceStepBranch2ValueReturns value), optionalPair "with" (conformanceStepBranch2ValueWith value)]))
+instance ToJSON ConformanceStepReachesValue where toJSON value = Object (KM.fromList (concat [[("reaches", toJSON (conformanceStepReachesValueReaches value))], [("state", toJSON (conformanceStepReachesValueState value))]]))
 
-data ConformanceStepBranch2ValueWith = ConformanceStepBranch2ValueWith
-  { conformanceStepBranch2ValueWithAdditionalProperties :: KM.KeyMap Value
+data ConformanceStepRefusedValue = ConformanceStepRefusedValue
+  { conformanceStepRefusedValueRefused :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch2ValueWith where parseJSON = checked "ConformanceStepBranch2ValueWith" $ withObject "ConformanceStepBranch2ValueWith" (\fields -> ConformanceStepBranch2ValueWith <$> traverse parseJSON (withoutFields [] fields))
+instance FromJSON ConformanceStepRefusedValue where parseJSON = checked "ConformanceStepRefusedValue" $ withObject "ConformanceStepRefusedValue" (\fields -> ConformanceStepRefusedValue <$> (fields .: "refused"))
 
-instance ToJSON ConformanceStepBranch2ValueWith where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepBranch2ValueWithAdditionalProperties value)))
+instance ToJSON ConformanceStepRefusedValue where toJSON value = Object (KM.fromList (concat [[("refused", toJSON (conformanceStepRefusedValueRefused value))]]))
 
-data ConformanceStepBranch3Value = ConformanceStepBranch3Value
-  { conformanceStepBranch3ValueAbandon :: Text
+data ConformanceStepScopesValue = ConformanceStepScopesValue
+  { conformanceStepScopesValueScopes :: [Value]
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch3Value where parseJSON = checked "ConformanceStepBranch3Value" $ withObject "ConformanceStepBranch3Value" (\fields -> ConformanceStepBranch3Value <$> (fields .: "abandon"))
+instance FromJSON ConformanceStepScopesValue where parseJSON = checked "ConformanceStepScopesValue" $ withObject "ConformanceStepScopesValue" (\fields -> ConformanceStepScopesValue <$> (fields .: "scopes"))
 
-instance ToJSON ConformanceStepBranch3Value where toJSON value = Object (KM.fromList (concat [[("abandon", toJSON (conformanceStepBranch3ValueAbandon value))]]))
+instance ToJSON ConformanceStepScopesValue where toJSON value = Object (KM.fromList (concat [[("scopes", toJSON (conformanceStepScopesValueScopes value))]]))
 
-data ConformanceStepBranch4Value = ConformanceStepBranch4Value
-  { conformanceStepBranch4ValueAbandoned :: Maybe ConformanceStepBranch4ValueAbandoned,
-    conformanceStepBranch4ValueFails :: Maybe Value,
-    conformanceStepBranch4ValueReturns :: Maybe Value,
-    conformanceStepBranch4ValueSettles :: Text
+data ConformanceStepSettlesValue = ConformanceStepSettlesValue
+  { conformanceStepSettlesValueAbandoned :: Maybe ConformanceStepSettlesValueAbandoned,
+    conformanceStepSettlesValueFails :: Maybe Value,
+    conformanceStepSettlesValueReturns :: Maybe Value,
+    conformanceStepSettlesValueSettles :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch4Value where parseJSON = checked "ConformanceStepBranch4Value" $ withObject "ConformanceStepBranch4Value" (\fields -> ConformanceStepBranch4Value <$> optional fields "abandoned" <*> optional fields "fails" <*> optional fields "returns" <*> (fields .: "settles"))
+instance FromJSON ConformanceStepSettlesValue where parseJSON = checked "ConformanceStepSettlesValue" $ withObject "ConformanceStepSettlesValue" (\fields -> ConformanceStepSettlesValue <$> optional fields "abandoned" <*> optional fields "fails" <*> optional fields "returns" <*> (fields .: "settles"))
 
-instance ToJSON ConformanceStepBranch4Value where toJSON value = Object (KM.fromList (concat [optionalPair "abandoned" (conformanceStepBranch4ValueAbandoned value), optionalPair "fails" (conformanceStepBranch4ValueFails value), optionalPair "returns" (conformanceStepBranch4ValueReturns value), [("settles", toJSON (conformanceStepBranch4ValueSettles value))]]))
+instance ToJSON ConformanceStepSettlesValue where toJSON value = Object (KM.fromList (concat [optionalPair "abandoned" (conformanceStepSettlesValueAbandoned value), optionalPair "fails" (conformanceStepSettlesValueFails value), optionalPair "returns" (conformanceStepSettlesValueReturns value), [("settles", toJSON (conformanceStepSettlesValueSettles value))]]))
 
-data ConformanceStepBranch4ValueAbandoned = ConformanceStepBranch4ValueAbandonedTrue deriving (Eq, Show)
+data ConformanceStepSettlesValueAbandoned = ConformanceStepSettlesValueAbandonedTrue deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch4ValueAbandoned where parseJSON = checked "ConformanceStepBranch4ValueAbandoned" $ \value -> if value == Bool True then pure ConformanceStepBranch4ValueAbandonedTrue else fail "unknown enumeration member"
+instance FromJSON ConformanceStepSettlesValueAbandoned where parseJSON = checked "ConformanceStepSettlesValueAbandoned" $ \value -> if value == Bool True then pure ConformanceStepSettlesValueAbandonedTrue else fail "unknown enumeration member"
 
-instance ToJSON ConformanceStepBranch4ValueAbandoned where toJSON ConformanceStepBranch4ValueAbandonedTrue = Bool True
+instance ToJSON ConformanceStepSettlesValueAbandoned where toJSON ConformanceStepSettlesValueAbandonedTrue = Bool True
 
-data ConformanceStepBranch5Value = ConformanceStepBranch5Value
-  { conformanceStepBranch5ValueAnswer :: Maybe Value,
-    conformanceStepBranch5ValueAs :: Maybe Text,
-    conformanceStepBranch5ValueAt :: Maybe ConformanceStepBranch5ValueAt,
-    conformanceStepBranch5ValueBody :: Maybe Value,
-    conformanceStepBranch5ValueFollows :: Maybe Text,
-    conformanceStepBranch5ValueHeaders :: Maybe ConformanceStepBranch5ValueHeaders,
-    conformanceStepBranch5ValueParams :: Maybe Value,
-    conformanceStepBranch5ValueStatus :: Maybe Integer,
-    conformanceStepBranch5ValueToken :: Maybe Value,
-    conformanceStepBranch5ValueWaited :: Maybe Text,
-    conformanceStepBranch5ValueWire :: Text
+data ConformanceStepSignalledValue = ConformanceStepSignalledValue
+  { conformanceStepSignalledValueSignalled :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch5Value where parseJSON = checked "ConformanceStepBranch5Value" $ withObject "ConformanceStepBranch5Value" (\fields -> ConformanceStepBranch5Value <$> optional fields "answer" <*> optional fields "as" <*> optional fields "at" <*> optional fields "body" <*> optional fields "follows" <*> optional fields "headers" <*> optional fields "params" <*> optional fields "status" <*> optional fields "token" <*> optional fields "waited" <*> (fields .: "wire"))
+instance FromJSON ConformanceStepSignalledValue where parseJSON = checked "ConformanceStepSignalledValue" $ withObject "ConformanceStepSignalledValue" (\fields -> ConformanceStepSignalledValue <$> (fields .: "signalled"))
 
-instance ToJSON ConformanceStepBranch5Value where toJSON value = Object (KM.fromList (concat [optionalPair "answer" (conformanceStepBranch5ValueAnswer value), optionalPair "as" (conformanceStepBranch5ValueAs value), optionalPair "at" (conformanceStepBranch5ValueAt value), optionalPair "body" (conformanceStepBranch5ValueBody value), optionalPair "follows" (conformanceStepBranch5ValueFollows value), optionalPair "headers" (conformanceStepBranch5ValueHeaders value), optionalPair "params" (conformanceStepBranch5ValueParams value), optionalPair "status" (conformanceStepBranch5ValueStatus value), optionalPair "token" (conformanceStepBranch5ValueToken value), optionalPair "waited" (conformanceStepBranch5ValueWaited value), [("wire", toJSON (conformanceStepBranch5ValueWire value))]]))
+instance ToJSON ConformanceStepSignalledValue where toJSON value = Object (KM.fromList (concat [[("signalled", toJSON (conformanceStepSignalledValueSignalled value))]]))
 
-data ConformanceStepBranch5ValueAt = ConformanceStepBranch5ValueAtArrival | ConformanceStepBranch5ValueAtAnswer | ConformanceStepBranch5ValueAtLive deriving (Eq, Show)
-
-instance FromJSON ConformanceStepBranch5ValueAt where parseJSON = checked "ConformanceStepBranch5ValueAt" $ \value -> if value == String "arrival" then pure ConformanceStepBranch5ValueAtArrival else if value == String "answer" then pure ConformanceStepBranch5ValueAtAnswer else if value == String "live" then pure ConformanceStepBranch5ValueAtLive else fail "unknown enumeration member"
-
-instance ToJSON ConformanceStepBranch5ValueAt where
-  toJSON ConformanceStepBranch5ValueAtArrival = String "arrival"
-  toJSON ConformanceStepBranch5ValueAtAnswer = String "answer"
-  toJSON ConformanceStepBranch5ValueAtLive = String "live"
-
-data ConformanceStepBranch5ValueHeaders = ConformanceStepBranch5ValueHeaders
-  { conformanceStepBranch5ValueHeadersAdditionalProperties :: KM.KeyMap Value
+data ConformanceStepStalledValue = ConformanceStepStalledValue
+  { conformanceStepStalledValueStalled :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch5ValueHeaders where parseJSON = checked "ConformanceStepBranch5ValueHeaders" $ withObject "ConformanceStepBranch5ValueHeaders" (\fields -> ConformanceStepBranch5ValueHeaders <$> traverse parseJSON (withoutFields [] fields))
+instance FromJSON ConformanceStepStalledValue where parseJSON = checked "ConformanceStepStalledValue" $ withObject "ConformanceStepStalledValue" (\fields -> ConformanceStepStalledValue <$> (fields .: "stalled"))
 
-instance ToJSON ConformanceStepBranch5ValueHeaders where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepBranch5ValueHeadersAdditionalProperties value)))
+instance ToJSON ConformanceStepStalledValue where toJSON value = Object (KM.fromList (concat [[("stalled", toJSON (conformanceStepStalledValueStalled value))]]))
 
-data ConformanceStepBranch6Value = ConformanceStepBranch6Value
-  { conformanceStepBranch6ValueCarried :: Text,
-    conformanceStepBranch6ValueIs :: Value
+data ConformanceStepStateValue = ConformanceStepStateValue
+  { conformanceStepStateValueState :: ConformanceStepStateValueState
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch6Value where parseJSON = checked "ConformanceStepBranch6Value" $ withObject "ConformanceStepBranch6Value" (\fields -> ConformanceStepBranch6Value <$> (fields .: "carried") <*> (fields .: "is"))
+instance FromJSON ConformanceStepStateValue where parseJSON = checked "ConformanceStepStateValue" $ withObject "ConformanceStepStateValue" (\fields -> ConformanceStepStateValue <$> (fields .: "state"))
 
-instance ToJSON ConformanceStepBranch6Value where toJSON value = Object (KM.fromList (concat [[("carried", toJSON (conformanceStepBranch6ValueCarried value))], [("is", toJSON (conformanceStepBranch6ValueIs value))]]))
+instance ToJSON ConformanceStepStateValue where toJSON value = Object (KM.fromList (concat [[("state", toJSON (conformanceStepStateValueState value))]]))
 
-data ConformanceStepBranch7Value = ConformanceStepBranch7Value
-  { conformanceStepBranch7ValueClosed :: Text
+data ConformanceStepStateValueState = ConformanceStepStateValueStateInitial | ConformanceStepStateValueStateConnecting | ConformanceStepStateValueStateOpen | ConformanceStepStateValueStateReconnecting | ConformanceStepStateValueStateDegraded | ConformanceStepStateValueStateUnauthenticated | ConformanceStepStateValueStateClosed deriving (Eq, Show)
+
+instance FromJSON ConformanceStepStateValueState where parseJSON = checked "ConformanceStepStateValueState" $ \value -> if value == String "initial" then pure ConformanceStepStateValueStateInitial else if value == String "connecting" then pure ConformanceStepStateValueStateConnecting else if value == String "open" then pure ConformanceStepStateValueStateOpen else if value == String "reconnecting" then pure ConformanceStepStateValueStateReconnecting else if value == String "degraded" then pure ConformanceStepStateValueStateDegraded else if value == String "unauthenticated" then pure ConformanceStepStateValueStateUnauthenticated else if value == String "closed" then pure ConformanceStepStateValueStateClosed else fail "unknown enumeration member"
+
+instance ToJSON ConformanceStepStateValueState where
+  toJSON ConformanceStepStateValueStateInitial = String "initial"
+  toJSON ConformanceStepStateValueStateConnecting = String "connecting"
+  toJSON ConformanceStepStateValueStateOpen = String "open"
+  toJSON ConformanceStepStateValueStateReconnecting = String "reconnecting"
+  toJSON ConformanceStepStateValueStateDegraded = String "degraded"
+  toJSON ConformanceStepStateValueStateUnauthenticated = String "unauthenticated"
+  toJSON ConformanceStepStateValueStateClosed = String "closed"
+
+conformanceStepStateValueStateText :: ConformanceStepStateValueState -> Text
+conformanceStepStateValueStateText ConformanceStepStateValueStateInitial = "initial"
+conformanceStepStateValueStateText ConformanceStepStateValueStateConnecting = "connecting"
+conformanceStepStateValueStateText ConformanceStepStateValueStateOpen = "open"
+conformanceStepStateValueStateText ConformanceStepStateValueStateReconnecting = "reconnecting"
+conformanceStepStateValueStateText ConformanceStepStateValueStateDegraded = "degraded"
+conformanceStepStateValueStateText ConformanceStepStateValueStateUnauthenticated = "unauthenticated"
+conformanceStepStateValueStateText ConformanceStepStateValueStateClosed = "closed"
+
+data ConformanceStepStaysValue = ConformanceStepStaysValue
+  { conformanceStepStaysValueStays :: ConformanceStepStaysValueStays
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch7Value where parseJSON = checked "ConformanceStepBranch7Value" $ withObject "ConformanceStepBranch7Value" (\fields -> ConformanceStepBranch7Value <$> (fields .: "closed"))
+instance FromJSON ConformanceStepStaysValue where parseJSON = checked "ConformanceStepStaysValue" $ withObject "ConformanceStepStaysValue" (\fields -> ConformanceStepStaysValue <$> (fields .: "stays"))
 
-instance ToJSON ConformanceStepBranch7Value where toJSON value = Object (KM.fromList (concat [[("closed", toJSON (conformanceStepBranch7ValueClosed value))]]))
+instance ToJSON ConformanceStepStaysValue where toJSON value = Object (KM.fromList (concat [[("stays", toJSON (conformanceStepStaysValueStays value))]]))
 
-data ConformanceStepBranch8Value = ConformanceStepBranch8Value
-  { conformanceStepBranch8ValueProgress :: Text
+data ConformanceStepStaysValueStays = ConformanceStepStaysValueStaysInitial | ConformanceStepStaysValueStaysConnecting | ConformanceStepStaysValueStaysOpen | ConformanceStepStaysValueStaysReconnecting | ConformanceStepStaysValueStaysDegraded | ConformanceStepStaysValueStaysUnauthenticated | ConformanceStepStaysValueStaysClosed deriving (Eq, Show)
+
+instance FromJSON ConformanceStepStaysValueStays where parseJSON = checked "ConformanceStepStaysValueStays" $ \value -> if value == String "initial" then pure ConformanceStepStaysValueStaysInitial else if value == String "connecting" then pure ConformanceStepStaysValueStaysConnecting else if value == String "open" then pure ConformanceStepStaysValueStaysOpen else if value == String "reconnecting" then pure ConformanceStepStaysValueStaysReconnecting else if value == String "degraded" then pure ConformanceStepStaysValueStaysDegraded else if value == String "unauthenticated" then pure ConformanceStepStaysValueStaysUnauthenticated else if value == String "closed" then pure ConformanceStepStaysValueStaysClosed else fail "unknown enumeration member"
+
+instance ToJSON ConformanceStepStaysValueStays where
+  toJSON ConformanceStepStaysValueStaysInitial = String "initial"
+  toJSON ConformanceStepStaysValueStaysConnecting = String "connecting"
+  toJSON ConformanceStepStaysValueStaysOpen = String "open"
+  toJSON ConformanceStepStaysValueStaysReconnecting = String "reconnecting"
+  toJSON ConformanceStepStaysValueStaysDegraded = String "degraded"
+  toJSON ConformanceStepStaysValueStaysUnauthenticated = String "unauthenticated"
+  toJSON ConformanceStepStaysValueStaysClosed = String "closed"
+
+conformanceStepStaysValueStaysText :: ConformanceStepStaysValueStays -> Text
+conformanceStepStaysValueStaysText ConformanceStepStaysValueStaysInitial = "initial"
+conformanceStepStaysValueStaysText ConformanceStepStaysValueStaysConnecting = "connecting"
+conformanceStepStaysValueStaysText ConformanceStepStaysValueStaysOpen = "open"
+conformanceStepStaysValueStaysText ConformanceStepStaysValueStaysReconnecting = "reconnecting"
+conformanceStepStaysValueStaysText ConformanceStepStaysValueStaysDegraded = "degraded"
+conformanceStepStaysValueStaysText ConformanceStepStaysValueStaysUnauthenticated = "unauthenticated"
+conformanceStepStaysValueStaysText ConformanceStepStaysValueStaysClosed = "closed"
+
+data ConformanceStepWireValue = ConformanceStepWireValue
+  { conformanceStepWireValueAnswer :: Maybe Value,
+    conformanceStepWireValueAs :: Maybe Text,
+    conformanceStepWireValueAt :: Maybe ConformanceStepWireValueAt,
+    conformanceStepWireValueBody :: Maybe Value,
+    conformanceStepWireValueFollows :: Maybe Text,
+    conformanceStepWireValueHeaders :: Maybe ConformanceStepWireValueHeaders,
+    conformanceStepWireValueParams :: Maybe Value,
+    conformanceStepWireValueStatus :: Maybe Integer,
+    conformanceStepWireValueToken :: Maybe Value,
+    conformanceStepWireValueWaited :: Maybe Text,
+    conformanceStepWireValueWire :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch8Value where parseJSON = checked "ConformanceStepBranch8Value" $ withObject "ConformanceStepBranch8Value" (\fields -> ConformanceStepBranch8Value <$> (fields .: "progress"))
+instance FromJSON ConformanceStepWireValue where parseJSON = checked "ConformanceStepWireValue" $ withObject "ConformanceStepWireValue" (\fields -> ConformanceStepWireValue <$> optional fields "answer" <*> optional fields "as" <*> optional fields "at" <*> optional fields "body" <*> optional fields "follows" <*> optional fields "headers" <*> optional fields "params" <*> optional fields "status" <*> optional fields "token" <*> optional fields "waited" <*> (fields .: "wire"))
 
-instance ToJSON ConformanceStepBranch8Value where toJSON value = Object (KM.fromList (concat [[("progress", toJSON (conformanceStepBranch8ValueProgress value))]]))
+instance ToJSON ConformanceStepWireValue where toJSON value = Object (KM.fromList (concat [optionalPair "answer" (conformanceStepWireValueAnswer value), optionalPair "as" (conformanceStepWireValueAs value), optionalPair "at" (conformanceStepWireValueAt value), optionalPair "body" (conformanceStepWireValueBody value), optionalPair "follows" (conformanceStepWireValueFollows value), optionalPair "headers" (conformanceStepWireValueHeaders value), optionalPair "params" (conformanceStepWireValueParams value), optionalPair "status" (conformanceStepWireValueStatus value), optionalPair "token" (conformanceStepWireValueToken value), optionalPair "waited" (conformanceStepWireValueWaited value), [("wire", toJSON (conformanceStepWireValueWire value))]]))
 
-data ConformanceStepBranch9Value = ConformanceStepBranch9Value
-  { conformanceStepBranch9ValueState :: ConformanceStepBranch9ValueState
+data ConformanceStepWireValueAt = ConformanceStepWireValueAtArrival | ConformanceStepWireValueAtAnswer | ConformanceStepWireValueAtLive deriving (Eq, Show)
+
+instance FromJSON ConformanceStepWireValueAt where parseJSON = checked "ConformanceStepWireValueAt" $ \value -> if value == String "arrival" then pure ConformanceStepWireValueAtArrival else if value == String "answer" then pure ConformanceStepWireValueAtAnswer else if value == String "live" then pure ConformanceStepWireValueAtLive else fail "unknown enumeration member"
+
+instance ToJSON ConformanceStepWireValueAt where
+  toJSON ConformanceStepWireValueAtArrival = String "arrival"
+  toJSON ConformanceStepWireValueAtAnswer = String "answer"
+  toJSON ConformanceStepWireValueAtLive = String "live"
+
+conformanceStepWireValueAtText :: ConformanceStepWireValueAt -> Text
+conformanceStepWireValueAtText ConformanceStepWireValueAtArrival = "arrival"
+conformanceStepWireValueAtText ConformanceStepWireValueAtAnswer = "answer"
+conformanceStepWireValueAtText ConformanceStepWireValueAtLive = "live"
+
+data ConformanceStepWireValueHeaders = ConformanceStepWireValueHeaders
+  { conformanceStepWireValueHeadersAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepBranch9Value where parseJSON = checked "ConformanceStepBranch9Value" $ withObject "ConformanceStepBranch9Value" (\fields -> ConformanceStepBranch9Value <$> (fields .: "state"))
+instance FromJSON ConformanceStepWireValueHeaders where parseJSON = checked "ConformanceStepWireValueHeaders" $ withObject "ConformanceStepWireValueHeaders" (\fields -> ConformanceStepWireValueHeaders <$> traverse parseJSON (withoutFields [] fields))
 
-instance ToJSON ConformanceStepBranch9Value where toJSON value = Object (KM.fromList (concat [[("state", toJSON (conformanceStepBranch9ValueState value))]]))
-
-data ConformanceStepBranch9ValueState = ConformanceStepBranch9ValueStateInitial | ConformanceStepBranch9ValueStateConnecting | ConformanceStepBranch9ValueStateOpen | ConformanceStepBranch9ValueStateReconnecting | ConformanceStepBranch9ValueStateDegraded | ConformanceStepBranch9ValueStateUnauthenticated | ConformanceStepBranch9ValueStateClosed deriving (Eq, Show)
-
-instance FromJSON ConformanceStepBranch9ValueState where parseJSON = checked "ConformanceStepBranch9ValueState" $ \value -> if value == String "initial" then pure ConformanceStepBranch9ValueStateInitial else if value == String "connecting" then pure ConformanceStepBranch9ValueStateConnecting else if value == String "open" then pure ConformanceStepBranch9ValueStateOpen else if value == String "reconnecting" then pure ConformanceStepBranch9ValueStateReconnecting else if value == String "degraded" then pure ConformanceStepBranch9ValueStateDegraded else if value == String "unauthenticated" then pure ConformanceStepBranch9ValueStateUnauthenticated else if value == String "closed" then pure ConformanceStepBranch9ValueStateClosed else fail "unknown enumeration member"
-
-instance ToJSON ConformanceStepBranch9ValueState where
-  toJSON ConformanceStepBranch9ValueStateInitial = String "initial"
-  toJSON ConformanceStepBranch9ValueStateConnecting = String "connecting"
-  toJSON ConformanceStepBranch9ValueStateOpen = String "open"
-  toJSON ConformanceStepBranch9ValueStateReconnecting = String "reconnecting"
-  toJSON ConformanceStepBranch9ValueStateDegraded = String "degraded"
-  toJSON ConformanceStepBranch9ValueStateUnauthenticated = String "unauthenticated"
-  toJSON ConformanceStepBranch9ValueStateClosed = String "closed"
+instance ToJSON ConformanceStepWireValueHeaders where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepWireValueHeadersAdditionalProperties value)))

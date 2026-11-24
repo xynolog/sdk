@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobProgress (JobProgress (..), JobProgressCompletedItemsItem (..), JobProgressCompletedItemsItemUnderReported (..), JobProgressCurrent (..), JobProgressCurrentKind (..), JobProgressRequestParamsItem (..), JobProgressRequestParamsItemLabel (..)) where
+module Xynolog.Internal.Generated.Models.JobProgress (JobProgress (..), JobProgressCompletedItemsItem (..), JobProgressCompletedItemsItemUnderReported (..), JobProgressCurrent (..), JobProgressCurrentKind (..), jobProgressCurrentKindText, JobProgressRequestParamsItem (..), JobProgressRequestParamsItemLabel (..), jobProgressRequestParamsItemLabelText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -76,6 +76,10 @@ instance ToJSON JobProgressCurrentKind where
   toJSON JobProgressCurrentKindEntityU2d_type = String "entity-type"
   toJSON JobProgressCurrentKindCategory = String "category"
 
+jobProgressCurrentKindText :: JobProgressCurrentKind -> Text
+jobProgressCurrentKindText JobProgressCurrentKindEntityU2d_type = "entity-type"
+jobProgressCurrentKindText JobProgressCurrentKindCategory = "category"
+
 data JobProgressRequestParamsItem = JobProgressRequestParamsItem
   { jobProgressRequestParamsItemLabel :: JobProgressRequestParamsItemLabel,
     jobProgressRequestParamsItemValue :: Text,
@@ -96,3 +100,9 @@ instance ToJSON JobProgressRequestParamsItemLabel where
   toJSON JobProgressRequestParamsItemLabelInstructions = String "instructions"
   toJSON JobProgressRequestParamsItemLabelTone = String "tone"
   toJSON JobProgressRequestParamsItemLabelDensity = String "density"
+
+jobProgressRequestParamsItemLabelText :: JobProgressRequestParamsItemLabel -> Text
+jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelEntityU2d_types = "entity-types"
+jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelInstructions = "instructions"
+jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelTone = "tone"
+jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelDensity = "density"

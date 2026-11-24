@@ -10,7 +10,7 @@ module Xynolog.Bus
     Heard (..),
     Carried (..),
     Fault (..),
-    FaultReason (..),
+    FrameRefusalReason (..),
     replyChannelsFor,
     unsubscribed,
     persistedEventTypes,
@@ -18,3 +18,4 @@ module Xynolog.Bus
 where
 
 import Xynolog.Internal.Bus
+import Xynolog.Types (FrameRefusalReason (..))

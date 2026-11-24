@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.BusEventMessage
 import Xynolog.Internal.Generated.Models.BusPingMessage
 
-data BusStreamMessage = BusStreamMessageBranch1 BusEventMessage | BusStreamMessageBranch2 BusPingMessage deriving (Eq, Show)
+data BusStreamMessage = BusStreamMessageBusEventMessage BusEventMessage | BusStreamMessageBusPingMessage BusPingMessage deriving (Eq, Show)
 
-instance FromJSON BusStreamMessage where parseJSON = checked "BusStreamMessage" $ \value -> (BusStreamMessageBranch1 <$> parseJSON value) <|> (BusStreamMessageBranch2 <$> parseJSON value)
+instance FromJSON BusStreamMessage where parseJSON = checked "BusStreamMessage" $ \value -> (BusStreamMessageBusEventMessage <$> parseJSON value) <|> (BusStreamMessageBusPingMessage <$> parseJSON value)
 
 instance ToJSON BusStreamMessage where
-  toJSON (BusStreamMessageBranch1 value) = toJSON value
-  toJSON (BusStreamMessageBranch2 value) = toJSON value
+  toJSON (BusStreamMessageBusEventMessage value) = toJSON value
+  toJSON (BusStreamMessageBusPingMessage value) = toJSON value

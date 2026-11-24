@@ -49,7 +49,7 @@ common crypto
 library
   default-language: GHC2021
   build-depends: base >=4.20 && <4.22, xynolog:internal
-  reexported-modules: Xynolog.Types, Xynolog.Types.Presence, Xynolog.Channels, Xynolog.Running, Xynolog.ErrorCodes, Xynolog.Timing, Xynolog.Timing.Settings, Xynolog.Retry, Xynolog.Discovery, Xynolog.Discovery.Reasons, Xynolog.Transport, Xynolog.Transport.Facts, Xynolog.StateValue, Xynolog.Errors, Xynolog.EventBus, Xynolog.Bus, Xynolog.Http, Xynolog.Http.Discovery, Xynolog.Content, Xynolog.Gateway, Xynolog.Frame, Xynolog.Auth, Xynolog.System, Xynolog.Client, Xynolog.JobFilter, Xynolog.Claims, Xynolog.HostName, Xynolog.Worker, Xynolog.Worker.Types, Xynolog.Bind, Xynolog.Beckon, Xynolog.Job, Xynolog.Cache, Xynolog.Resources, Xynolog.MediaTypes, Xynolog.Browse, Xynolog.Gather, Xynolog.Match, Xynolog.Delegation, Xynolog.Mark, Xynolog.Yield, Xynolog.Tokens, Xynolog.SessionStorage, Xynolog.Session, Xynolog.Issuer, Xynolog.Registry.Stored, Xynolog.ClientAssertion, Xynolog.ServiceToken, Xynolog.SignIn, Xynolog.SignInStore, Xynolog.Annotations, Xynolog.Identity, Xynolog.StoragePersister, Xynolog.State.SessionSignals, Xynolog.Registry.Identity, Xynolog.Registry.Factory, Xynolog.Registry.Resources, Xynolog.Registry, Xynolog.State.HoverDwell, Xynolog.State.Search, Xynolog.State.Beckon, Xynolog.State.Match, Xynolog.State.Gather, Xynolog.State.Mark, Xynolog.State.Yield, Xynolog.Testing, Xynolog.Testing.Client, Xynolog.Testing.Transport, Xynolog.Testing.Storage, Xynolog.Testing.Sessions, Xynolog.Testing.Liveness
+  reexported-modules: Xynolog.Types, Xynolog.Types.Presence, Xynolog.Channels, Xynolog.Running, Xynolog.ErrorCodes, Xynolog.Timing, Xynolog.Timing.Settings, Xynolog.Retry, Xynolog.Discovery, Xynolog.Discovery.Reasons, Xynolog.Transport, Xynolog.Transport.Facts, Xynolog.StateValue, Xynolog.Errors, Xynolog.EventBus, Xynolog.Bus, Xynolog.Http, Xynolog.Http.Discovery, Xynolog.Content, Xynolog.Gateway, Xynolog.Frame, Xynolog.Auth, Xynolog.System, Xynolog.Client, Xynolog.JobFilter, Xynolog.Claims, Xynolog.HostName, Xynolog.Worker, Xynolog.Worker.Types, Xynolog.Bind, Xynolog.Beckon, Xynolog.Job, Xynolog.Cache, Xynolog.Resources, Xynolog.MediaTypes, Xynolog.Browse, Xynolog.Gather, Xynolog.Match, Xynolog.Delegation, Xynolog.Mark, Xynolog.Yield, Xynolog.Tokens, Xynolog.SessionStorage, Xynolog.Session, Xynolog.Issuer, Xynolog.Registry.Stored, Xynolog.ClientAssertion, Xynolog.ServiceToken, Xynolog.SignIn, Xynolog.SignInStore, Xynolog.Annotations, Xynolog.Identity, Xynolog.StoragePersister, Xynolog.State.SessionSignals, Xynolog.Registry.Identity, Xynolog.Registry.Factory, Xynolog.Registry.Resources, Xynolog.Registry, Xynolog.State.HoverDwell, Xynolog.State.Search, Xynolog.State.Beckon, Xynolog.State.Match, Xynolog.State.Gather, Xynolog.State.Mark, Xynolog.State.Yield, Xynolog.Testing, Xynolog.Testing.Client, Xynolog.Testing.Transport, Xynolog.Testing.Storage, Xynolog.Testing.Sessions, Xynolog.Testing.Liveness, Xynolog.Archivist.Routes, Xynolog.ServiceTables
 
 library internal
   import: settings, context-propagation, crypto
@@ -182,6 +182,9 @@ library internal
     Xynolog.Internal.HttpContent
     Xynolog.Internal.Lifetime
     Xynolog.Http.Routes
+    Xynolog.Archivist.Routes
+    Xynolog.ServiceTables
+    Xynolog.Internal.ServiceTable
     Xynolog.Internal.Generated.Text
     Xynolog.Internal.Generated.CacheRefresh
     Xynolog.Internal.Generated.Required
@@ -232,9 +235,14 @@ library internal
     Xynolog.Internal.Generated.Models.AnnotationTarget
     Xynolog.Internal.Generated.Models.ApiVersion
     Xynolog.Internal.Generated.Models.ArchivistConfig
+    Xynolog.Internal.Generated.Models.ArchivistDefaultEntityTypes
     Xynolog.Internal.Generated.Models.ArchivistEngines
     Xynolog.Internal.Generated.Models.ArchivistEventsResponse
     Xynolog.Internal.Generated.Models.ArchivistHealth
+    Xynolog.Internal.Generated.Models.ArchivistLayout
+    Xynolog.Internal.Generated.Models.ArchivistMessages
+    Xynolog.Internal.Generated.Models.ArchivistStoreResourceHeader0
+    Xynolog.Internal.Generated.Models.ArchivistStoreResourceHeader2
     Xynolog.Internal.Generated.Models.ArchivistStream
     Xynolog.Internal.Generated.Models.ArchivistStreamsResponse
     Xynolog.Internal.Generated.Models.AssessingJobParams
@@ -298,6 +306,7 @@ library internal
     Xynolog.Internal.Generated.Models.BusEventMessage
     Xynolog.Internal.Generated.Models.BusFrame
     Xynolog.Internal.Generated.Models.BusPingMessage
+    Xynolog.Internal.Generated.Models.BusReplyBounds
     Xynolog.Internal.Generated.Models.BusResumeGap
     Xynolog.Internal.Generated.Models.BusStreamMessage
     Xynolog.Internal.Generated.Models.BusSubscribeRequest
@@ -330,8 +339,10 @@ library internal
     Xynolog.Internal.Generated.Models.DiscoveryDocument
     Xynolog.Internal.Generated.Models.DispatcherConfig
     Xynolog.Internal.Generated.Models.DispatcherHealth
+    Xynolog.Internal.Generated.Models.DispatcherMessages
     Xynolog.Internal.Generated.Models.DurabilityEvidence
     Xynolog.Internal.Generated.Models.EmbeddingConfig
+    Xynolog.Internal.Generated.Models.EmbeddingRequests
     Xynolog.Internal.Generated.Models.EmitOnBusHeader0
     Xynolog.Internal.Generated.Models.EmptyBusPayload
     Xynolog.Internal.Generated.Models.Engine
@@ -359,7 +370,11 @@ library internal
     Xynolog.Internal.Generated.Models.FragmentSelector
     Xynolog.Internal.Generated.Models.FrameAddEntityTypeCommand
     Xynolog.Internal.Generated.Models.FrameAddTagSchemaCommand
+    Xynolog.Internal.Generated.Models.FrameRefusalReason
     Xynolog.Internal.Generated.Models.GatewayConfig
+    Xynolog.Internal.Generated.Models.GatewayMediaToken
+    Xynolog.Internal.Generated.Models.GatewayMessages
+    Xynolog.Internal.Generated.Models.GatewayResponseHeaders
     Xynolog.Internal.Generated.Models.GatherAnnotationComplete
     Xynolog.Internal.Generated.Models.GatherAnnotationOptions
     Xynolog.Internal.Generated.Models.GatherAnnotationRequest
@@ -390,6 +405,7 @@ library internal
     Xynolog.Internal.Generated.Models.GraphAnnotationNode
     Xynolog.Internal.Generated.Models.GraphConfig
     Xynolog.Internal.Generated.Models.GraphResourceNode
+    Xynolog.Internal.Generated.Models.GraphSchema
     Xynolog.Internal.Generated.Models.HealthResponse
     Xynolog.Internal.Generated.Models.HighlightingJobParams
     Xynolog.Internal.Generated.Models.HostPort
@@ -461,6 +477,8 @@ library internal
     Xynolog.Internal.Generated.Models.JobStoredProgress
     Xynolog.Internal.Generated.Models.JobStoredResult
     Xynolog.Internal.Generated.Models.JobType
+    Xynolog.Internal.Generated.Models.JobsBudgets
+    Xynolog.Internal.Generated.Models.JobsStorage
     Xynolog.Internal.Generated.Models.KbDescription
     Xynolog.Internal.Generated.Models.KbDid
     Xynolog.Internal.Generated.Models.KbEndpoint
@@ -593,6 +611,8 @@ library internal
     Xynolog.Internal.Generated.Models.Selector
     Xynolog.Internal.Generated.Models.SemanticMatch
     Xynolog.Internal.Generated.Models.ServiceAddress
+    Xynolog.Internal.Generated.Models.ServiceEnvironmentBootRefusals
+    Xynolog.Internal.Generated.Models.ServiceEnvironmentVariables
     Xynolog.Internal.Generated.Models.ServiceGroup
     Xynolog.Internal.Generated.Models.ServiceHostParams
     Xynolog.Internal.Generated.Models.ServiceHostResult
@@ -604,6 +624,8 @@ library internal
     Xynolog.Internal.Generated.Models.ServiceSignalResult
     Xynolog.Internal.Generated.Models.ServiceStarted
     Xynolog.Internal.Generated.Models.ServiceStatus
+    Xynolog.Internal.Generated.Models.ServiceTelemetryLogLines
+    Xynolog.Internal.Generated.Models.ServiceTelemetryTelemetry
     Xynolog.Internal.Generated.Models.Session
     Xynolog.Internal.Generated.Models.SessionEndReason
     Xynolog.Internal.Generated.Models.SessionEnded
@@ -629,6 +651,7 @@ library internal
     Xynolog.Internal.Generated.Models.SmelterChunking
     Xynolog.Internal.Generated.Models.SmelterConfig
     Xynolog.Internal.Generated.Models.SmelterHealth
+    Xynolog.Internal.Generated.Models.SmelterMessages
     Xynolog.Internal.Generated.Models.SmelterReconcileSummary
     Xynolog.Internal.Generated.Models.SpecificResource
     Xynolog.Internal.Generated.Models.StackApiVersion
@@ -671,12 +694,14 @@ library internal
     Xynolog.Internal.Generated.Models.WeaveRebuildCommand
     Xynolog.Internal.Generated.Models.WeaverConfig
     Xynolog.Internal.Generated.Models.WeaverHealth
+    Xynolog.Internal.Generated.Models.WorkerAnswerFormats
     Xynolog.Internal.Generated.Models.WorkerConfig
     Xynolog.Internal.Generated.Models.WorkerEngineConfig
     Xynolog.Internal.Generated.Models.WorkerEngineHealth
     Xynolog.Internal.Generated.Models.WorkerHealth
     Xynolog.Internal.Generated.Models.WorkerKnowledgeBaseConfig
     Xynolog.Internal.Generated.Models.WorkerKnowledgeBaseHealth
+    Xynolog.Internal.Generated.Models.WorkerMessages
     Xynolog.Internal.Generated.Models.WorkerPool
     Xynolog.Internal.Generated.Models.WorkloadStatus
     Xynolog.Internal.Generated.Models.YieldCloneCreateCommand
@@ -714,7 +739,7 @@ executable xynolog-haskell-wire-driver
   other-modules: DriverProtocol
   hs-source-dirs: conformance
   ghc-options: -threaded
-  build-depends: xynolog, http-client >=0.7 && <0.8, uuid >=1.3 && <1.4, uuid-types >=1.0 && <1.1, random >=1.3 && <1.4, time >=1.12 && <1.15, hs-opentelemetry-sdk >=1.0 && <1.1
+  build-depends: xynolog, http-client >=0.7 && <0.8, uuid >=1.3 && <1.4, uuid-types >=1.0 && <1.1, random >=1.3 && <1.4, hs-opentelemetry-sdk >=1.0 && <1.1
 
 executable xynolog-haskell-live-driver
   import: settings, context-propagation

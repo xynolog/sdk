@@ -6,9 +6,9 @@ import Xynolog.Types
 
 getPrimaryRepresentation :: ResourceDescriptor -> Maybe Representation
 getPrimaryRepresentation resource = case resourceDescriptorRepresentations resource of
-  ResourceDescriptorRepresentationsBranch1 representation -> Just representation
-  ResourceDescriptorRepresentationsBranch2 (representation : _) -> Just representation
-  ResourceDescriptorRepresentationsBranch2 [] -> Nothing
+  ResourceDescriptorRepresentationsRepresentation representation -> Just representation
+  ResourceDescriptorRepresentationsList (representation : _) -> Just representation
+  ResourceDescriptorRepresentationsList [] -> Nothing
 
 getPrimaryMediaType :: ResourceDescriptor -> Maybe Text
 getPrimaryMediaType = fmap representationMediaType . getPrimaryRepresentation

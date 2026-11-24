@@ -10,10 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.OllamaEmbeddingConfig
 import Xynolog.Internal.Generated.Models.VoyageEmbeddingConfig
 
-data EmbeddingConfig = EmbeddingConfigBranch1 OllamaEmbeddingConfig | EmbeddingConfigBranch2 VoyageEmbeddingConfig deriving (Eq, Show)
+data EmbeddingConfig = EmbeddingConfigOllamaEmbeddingConfig OllamaEmbeddingConfig | EmbeddingConfigVoyageEmbeddingConfig VoyageEmbeddingConfig deriving (Eq, Show)
 
-instance FromJSON EmbeddingConfig where parseJSON = checked "EmbeddingConfig" $ \value -> (EmbeddingConfigBranch1 <$> parseJSON value) <|> (EmbeddingConfigBranch2 <$> parseJSON value)
+instance FromJSON EmbeddingConfig where parseJSON = checked "EmbeddingConfig" $ \value -> (EmbeddingConfigOllamaEmbeddingConfig <$> parseJSON value) <|> (EmbeddingConfigVoyageEmbeddingConfig <$> parseJSON value)
 
 instance ToJSON EmbeddingConfig where
-  toJSON (EmbeddingConfigBranch1 value) = toJSON value
-  toJSON (EmbeddingConfigBranch2 value) = toJSON value
+  toJSON (EmbeddingConfigOllamaEmbeddingConfig value) = toJSON value
+  toJSON (EmbeddingConfigVoyageEmbeddingConfig value) = toJSON value

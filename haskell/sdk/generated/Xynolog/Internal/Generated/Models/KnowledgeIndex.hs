@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.KnowledgeIndex (KnowledgeIndex (..), KnowledgeIndexKind (..), KnowledgeIndexSpec (..), KnowledgeIndexSpecEmbedding (..), KnowledgeIndexSpecEmbeddingChunking (..), KnowledgeIndexSpecLibrarian (..), KnowledgeIndexSpecLibrarianGather (..), KnowledgeIndexSpecLibrarianSearch (..), KnowledgeIndexSpecSmelter (..), KnowledgeIndexSpecVectors (..), KnowledgeIndexSpecVectorsExternal (..), KnowledgeIndexSpecVectorsShared (..), KnowledgeIndexSpecWeaver (..)) where
+module Xynolog.Internal.Generated.Models.KnowledgeIndex (KnowledgeIndex (..), KnowledgeIndexKind (..), knowledgeIndexKindText, KnowledgeIndexSpec (..), KnowledgeIndexSpecEmbedding (..), KnowledgeIndexSpecEmbeddingChunking (..), KnowledgeIndexSpecLibrarian (..), KnowledgeIndexSpecLibrarianGather (..), KnowledgeIndexSpecLibrarianSearch (..), KnowledgeIndexSpecSmelter (..), KnowledgeIndexSpecVectors (..), KnowledgeIndexSpecVectorsExternal (..), KnowledgeIndexSpecVectorsShared (..), KnowledgeIndexSpecWeaver (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -34,6 +34,9 @@ data KnowledgeIndexKind = KnowledgeIndexKindKnowledgeIndex deriving (Eq, Show)
 instance FromJSON KnowledgeIndexKind where parseJSON = checked "KnowledgeIndexKind" $ \value -> if value == String "KnowledgeIndex" then pure KnowledgeIndexKindKnowledgeIndex else fail "unknown enumeration member"
 
 instance ToJSON KnowledgeIndexKind where toJSON KnowledgeIndexKindKnowledgeIndex = String "KnowledgeIndex"
+
+knowledgeIndexKindText :: KnowledgeIndexKind -> Text
+knowledgeIndexKindText KnowledgeIndexKindKnowledgeIndex = "KnowledgeIndex"
 
 data KnowledgeIndexSpec = KnowledgeIndexSpec
   { knowledgeIndexSpecEmbedding :: KnowledgeIndexSpecEmbedding,

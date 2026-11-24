@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.RootsInitParams (RootsInitParams (..), RootsInitParamsInference (..)) where
+module Xynolog.Internal.Generated.Models.RootsInitParams (RootsInitParams (..), RootsInitParamsInference (..), rootsInitParamsInferenceText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -38,3 +38,7 @@ instance FromJSON RootsInitParamsInference where parseJSON = checked "RootsInitP
 instance ToJSON RootsInitParamsInference where
   toJSON RootsInitParamsInferenceAnthropic = String "anthropic"
   toJSON RootsInitParamsInferenceOllama = String "ollama"
+
+rootsInitParamsInferenceText :: RootsInitParamsInference -> Text
+rootsInitParamsInferenceText RootsInitParamsInferenceAnthropic = "anthropic"
+rootsInitParamsInferenceText RootsInitParamsInferenceOllama = "ollama"

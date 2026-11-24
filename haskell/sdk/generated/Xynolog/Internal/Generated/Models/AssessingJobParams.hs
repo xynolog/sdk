@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.AssessingJobParams (AssessingJobParams (..), AssessingJobParamsMotivation (..), AssessingJobParamsTone (..)) where
+module Xynolog.Internal.Generated.Models.AssessingJobParams (AssessingJobParams (..), AssessingJobParamsMotivation (..), assessingJobParamsMotivationText, AssessingJobParamsTone (..), assessingJobParamsToneText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,6 +30,9 @@ instance FromJSON AssessingJobParamsMotivation where parseJSON = checked "Assess
 
 instance ToJSON AssessingJobParamsMotivation where toJSON AssessingJobParamsMotivationAssessing = String "assessing"
 
+assessingJobParamsMotivationText :: AssessingJobParamsMotivation -> Text
+assessingJobParamsMotivationText AssessingJobParamsMotivationAssessing = "assessing"
+
 data AssessingJobParamsTone = AssessingJobParamsToneAnalytical | AssessingJobParamsToneCritical | AssessingJobParamsToneBalanced | AssessingJobParamsToneConstructive deriving (Eq, Show)
 
 instance FromJSON AssessingJobParamsTone where parseJSON = checked "AssessingJobParamsTone" $ \value -> if value == String "analytical" then pure AssessingJobParamsToneAnalytical else if value == String "critical" then pure AssessingJobParamsToneCritical else if value == String "balanced" then pure AssessingJobParamsToneBalanced else if value == String "constructive" then pure AssessingJobParamsToneConstructive else fail "unknown enumeration member"
@@ -39,3 +42,9 @@ instance ToJSON AssessingJobParamsTone where
   toJSON AssessingJobParamsToneCritical = String "critical"
   toJSON AssessingJobParamsToneBalanced = String "balanced"
   toJSON AssessingJobParamsToneConstructive = String "constructive"
+
+assessingJobParamsToneText :: AssessingJobParamsTone -> Text
+assessingJobParamsToneText AssessingJobParamsToneAnalytical = "analytical"
+assessingJobParamsToneText AssessingJobParamsToneCritical = "critical"
+assessingJobParamsToneText AssessingJobParamsToneBalanced = "balanced"
+assessingJobParamsToneText AssessingJobParamsToneConstructive = "constructive"

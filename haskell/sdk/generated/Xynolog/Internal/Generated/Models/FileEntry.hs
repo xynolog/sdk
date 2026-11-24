@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.FileEntry (FileEntry (..), FileEntryType (..)) where
+module Xynolog.Internal.Generated.Models.FileEntry (FileEntry (..), FileEntryType (..), fileEntryTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -33,3 +33,6 @@ data FileEntryType = FileEntryTypeFile deriving (Eq, Show)
 instance FromJSON FileEntryType where parseJSON = checked "FileEntryType" $ \value -> if value == String "file" then pure FileEntryTypeFile else fail "unknown enumeration member"
 
 instance ToJSON FileEntryType where toJSON FileEntryTypeFile = String "file"
+
+fileEntryTypeText :: FileEntryType -> Text
+fileEntryTypeText FileEntryTypeFile = "file"

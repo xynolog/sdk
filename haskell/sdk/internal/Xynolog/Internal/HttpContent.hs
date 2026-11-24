@@ -141,9 +141,9 @@ newContent http = do
             _ -> throwIO (TransportError Code.TransportBadRequest "Upload route no longer accepts multipart" Nothing Nothing)
           exchange http uploadRoute Nothing (pure body) (Just key) override [("Content-Type", media <> "; boundary=" <> marker)] $ \response -> do
             bytes <- deadline http (Settings.httpRequestTimeoutMs (httpTiming (options http))) (Bytes.concat <$> brConsume (responseBody response))
-            identity <- createResourceResponseResourceId <$> readAnswer uploadRoute bytes
-            progress (UploadFinished identity)
-            pure identity
+            created <- readAnswer uploadRoute bytes
+            progress (UploadFinished (createResourceResponseResourceId created))
+            pure created
   let readNote :: ResourceId -> IO result -> IO result
       readNote resource action = BusLog.content (logger http) "GET" (object ["resourceId" .= resource]) >> action
   pure

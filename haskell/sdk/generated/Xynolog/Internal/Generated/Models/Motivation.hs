@@ -2,9 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Motivation (Motivation (..)) where
+module Xynolog.Internal.Generated.Models.Motivation (Motivation (..), motivationText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data Motivation = MotivationAssessing | MotivationCommenting | MotivationHighlighting | MotivationLinking | MotivationTagging deriving (Eq, Show)
@@ -17,3 +18,10 @@ instance ToJSON Motivation where
   toJSON MotivationHighlighting = String "highlighting"
   toJSON MotivationLinking = String "linking"
   toJSON MotivationTagging = String "tagging"
+
+motivationText :: Motivation -> Text
+motivationText MotivationAssessing = "assessing"
+motivationText MotivationCommenting = "commenting"
+motivationText MotivationHighlighting = "highlighting"
+motivationText MotivationLinking = "linking"
+motivationText MotivationTagging = "tagging"

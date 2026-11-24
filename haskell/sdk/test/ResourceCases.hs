@@ -33,8 +33,7 @@ resourceCases root = do
       Just issue -> do
         require ("valid resource refused: " ++ show row) refused
         require "resource refusal names the wrong member" (String (Required.member issue) == member "member" row)
-        let reason = case Required.reason issue of Required.Lacks -> "lacks"; Required.Malformed -> "malformed"
-        require "resource refusal names the wrong reason" (String reason == member "reason" row)
+        require "resource refusal names the wrong reason" (toJSON (Required.reason issue) == member "reason" row)
       Nothing -> do
         require ("malformed resource passed its shared shape: " ++ show row) (not refused)
         resource <- case fromJSON raw of Error message -> ioError (userError message); Success value -> pure (value :: ResourceDescriptor)

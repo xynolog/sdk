@@ -219,7 +219,7 @@ issuerCases fixtures = do
   require "issuer refusal lost its terminal status" (case refused of Left failure -> signInStatus failure == Just 400; Right _ -> False)
   Issuer.revokeAtIssuer options "http://issuer.test/revoke" "client" "original"
   atomically (writeTVar status 200 >> writeTVar tokenBody (object ["access_token" .= String "fresh"]))
-  let targetKb = KbTarget (KbEndpointBranch1 endpoint) "http-factory" "HTTP factory" KM.empty
+  let targetKb = KbTarget (KbEndpointHttpEndpoint endpoint) "http-factory" "HTTP factory" KM.empty
       sessionOptions =
         Session.SessionOptions
           "http-factory"

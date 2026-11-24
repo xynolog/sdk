@@ -2,10 +2,11 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ServiceSignalParams (ServiceSignalParams (..), ServiceSignalParamsSignal (..)) where
+module Xynolog.Internal.Generated.Models.ServiceSignalParams (ServiceSignalParams (..), ServiceSignalParamsSignal (..), serviceSignalParamsSignalText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ApiVersion
 import Xynolog.Internal.Generated.Models.LocalTarget
@@ -32,3 +33,7 @@ instance FromJSON ServiceSignalParamsSignal where parseJSON = checked "ServiceSi
 instance ToJSON ServiceSignalParamsSignal where
   toJSON ServiceSignalParamsSignalTerm = String "term"
   toJSON ServiceSignalParamsSignalKill = String "kill"
+
+serviceSignalParamsSignalText :: ServiceSignalParamsSignal -> Text
+serviceSignalParamsSignalText ServiceSignalParamsSignalTerm = "term"
+serviceSignalParamsSignalText ServiceSignalParamsSignalKill = "kill"

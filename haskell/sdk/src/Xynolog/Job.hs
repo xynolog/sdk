@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Job (JobNamespace, newJob, PollOptions (..), queued, progress, complete, fail, status, pollUntilComplete, cancel, claim) where
+module Xynolog.Job (JobNamespace, newJob, queued, progress, complete, fail, status, pollUntilComplete, cancel, claim) where
 
 import Control.Exception (throwIO)
 import Control.Monad (when)
@@ -24,10 +24,6 @@ data JobNamespace = JobNamespace Bus.Bus EventBus Transport.Transport Bus.BusOpt
 newJob :: Bus.Bus -> EventBus -> Transport.Transport -> Bus.BusOptions -> Timing.Settings -> JobNamespace
 newJob = JobNamespace
 
--- | An interval or a limit the caller does not name is the timing's
--- jobPollMs or jobPollTimeoutMs.
-data PollOptions = PollOptions {pollIntervalMs :: Maybe Integer, pollTimeoutMs :: Maybe Integer, pollProgress :: JobStatusResponse -> IO ()}
-
 queued :: JobNamespace -> (Stream (Of (Bus.Heard JobQueuedEvent)) IO () -> IO result) -> IO result
 queued (JobNamespace _ bus _ _ _) = Local.events bus JobQueued NoScope
 
@@ -49,11 +45,12 @@ statusWithin (JobNamespace wire _ _ _ _) identity timeoutMs =
     <$> Bus.request wire JobStatusRequestedOperation (JobStatusRequest identity mempty) timeoutMs
 
 -- | Asks at once, then every interval, and fails as timed out at the limit
--- from its first ask: an ask then in flight, or a wait, ends there.
-pollUntilComplete :: JobNamespace -> JobId -> PollOptions -> IO JobStatusResponse
-pollUntilComplete namespace@(JobNamespace _ _ _ clock timing) identity options = do
-  let interval = fromMaybe (Timing.jobPollMs timing) (pollIntervalMs options)
-      limit = fromMaybe (Timing.jobPollTimeoutMs timing) (pollTimeoutMs options)
+-- from its first ask: an ask then in flight, or a wait, ends there. Each
+-- status it is told is given to the callback.
+pollUntilComplete :: JobNamespace -> JobId -> JobPollOptions -> (JobStatusResponse -> IO ()) -> IO JobStatusResponse
+pollUntilComplete namespace@(JobNamespace _ _ _ clock timing) identity options onStatus = do
+  let interval = fromMaybe (Timing.jobPollMs timing) (jobPollOptionsEveryMs options)
+      limit = fromMaybe (Timing.jobPollTimeoutMs timing) (jobPollOptionsWithinMs options)
   when (interval < 0 || limit < 0) (ioError (userError "negative job polling interval or timeout"))
   began <- Bus.requestNow clock
   let deadline = began + limit * 1000000
@@ -61,7 +58,7 @@ pollUntilComplete namespace@(JobNamespace _ _ _ clock timing) identity options =
         now <- Bus.requestNow clock
         when (now >= deadline) (throwIO (BusRequestError BusRequestTimeout "job polling deadline expired" Nothing))
         value <- statusWithin namespace identity (min (Timing.busRequestTimeoutMs timing) ((deadline - now + 999999) `div` 1000000))
-        pollProgress options value
+        onStatus value
         if terminal (jobStatusResponseStatus value)
           then pure value
           else do
@@ -81,5 +78,5 @@ cancel (JobNamespace wire _ _ _ timing) identity =
   jobCancelResultCancelled . jobCancelResultBusEnvelopeResponse
     <$> Bus.request wire JobCancelRequestedOperation (JobCancelRequest identity mempty) (Timing.busRequestTimeoutMs timing)
 
-claim :: JobNamespace -> Worker.WorkerOptions -> IO Worker.Claims
-claim (JobNamespace _ _ carrier _ _) = Worker.newClaims carrier
+claim :: JobNamespace -> ClaimOptions -> IO Worker.Claims
+claim (JobNamespace _ _ carrier clock timing) = Worker.newClaims carrier clock timing

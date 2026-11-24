@@ -13,13 +13,13 @@ import Xynolog.Internal.Generated.Models.HighlightingJobParams
 import Xynolog.Internal.Generated.Models.LinkingJobParams
 import Xynolog.Internal.Generated.Models.TaggingJobParams
 
-data MarkJobParams = MarkJobParamsBranch1 HighlightingJobParams | MarkJobParamsBranch2 CommentingJobParams | MarkJobParamsBranch3 AssessingJobParams | MarkJobParamsBranch4 LinkingJobParams | MarkJobParamsBranch5 TaggingJobParams deriving (Eq, Show)
+data MarkJobParams = MarkJobParamsHighlightingJobParams HighlightingJobParams | MarkJobParamsCommentingJobParams CommentingJobParams | MarkJobParamsAssessingJobParams AssessingJobParams | MarkJobParamsLinkingJobParams LinkingJobParams | MarkJobParamsTaggingJobParams TaggingJobParams deriving (Eq, Show)
 
-instance FromJSON MarkJobParams where parseJSON = checked "MarkJobParams" $ \value -> (MarkJobParamsBranch1 <$> parseJSON value) <|> (MarkJobParamsBranch2 <$> parseJSON value) <|> (MarkJobParamsBranch3 <$> parseJSON value) <|> (MarkJobParamsBranch4 <$> parseJSON value) <|> (MarkJobParamsBranch5 <$> parseJSON value)
+instance FromJSON MarkJobParams where parseJSON = checked "MarkJobParams" $ \value -> (MarkJobParamsHighlightingJobParams <$> parseJSON value) <|> (MarkJobParamsCommentingJobParams <$> parseJSON value) <|> (MarkJobParamsAssessingJobParams <$> parseJSON value) <|> (MarkJobParamsLinkingJobParams <$> parseJSON value) <|> (MarkJobParamsTaggingJobParams <$> parseJSON value)
 
 instance ToJSON MarkJobParams where
-  toJSON (MarkJobParamsBranch1 value) = toJSON value
-  toJSON (MarkJobParamsBranch2 value) = toJSON value
-  toJSON (MarkJobParamsBranch3 value) = toJSON value
-  toJSON (MarkJobParamsBranch4 value) = toJSON value
-  toJSON (MarkJobParamsBranch5 value) = toJSON value
+  toJSON (MarkJobParamsHighlightingJobParams value) = toJSON value
+  toJSON (MarkJobParamsCommentingJobParams value) = toJSON value
+  toJSON (MarkJobParamsAssessingJobParams value) = toJSON value
+  toJSON (MarkJobParamsLinkingJobParams value) = toJSON value
+  toJSON (MarkJobParamsTaggingJobParams value) = toJSON value

@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.HighlightingJobParams (HighlightingJobParams (..), HighlightingJobParamsMotivation (..)) where
+module Xynolog.Internal.Generated.Models.HighlightingJobParams (HighlightingJobParams (..), HighlightingJobParamsMotivation (..), highlightingJobParamsMotivationText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -27,3 +27,6 @@ data HighlightingJobParamsMotivation = HighlightingJobParamsMotivationHighlighti
 instance FromJSON HighlightingJobParamsMotivation where parseJSON = checked "HighlightingJobParamsMotivation" $ \value -> if value == String "highlighting" then pure HighlightingJobParamsMotivationHighlighting else fail "unknown enumeration member"
 
 instance ToJSON HighlightingJobParamsMotivation where toJSON HighlightingJobParamsMotivationHighlighting = String "highlighting"
+
+highlightingJobParamsMotivationText :: HighlightingJobParamsMotivation -> Text
+highlightingJobParamsMotivationText HighlightingJobParamsMotivationHighlighting = "highlighting"

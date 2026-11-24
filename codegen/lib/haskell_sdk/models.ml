@@ -8,7 +8,8 @@
    states its member (through an allOf, the member's own schema) and the
    member's, made unique by "Inline". A string, integer, number and boolean
    are Text, Integer, Scientific and Bool. Words are a type of constructors,
-   branches a type of one constructor each, an object a record, and anything
+   with a function that gives each its word, branches a type of one
+   constructor each, an object a record, and anything
    else a newtype; an identifier's newtype is opaque, made only by its
    module's mk. A member the object needn't state is a Maybe, one it may
    state as null too a Presence, and an object open to other members keeps
@@ -263,30 +264,92 @@ and enumeration name values =
         members
         (H.Apply (Name "fail", [ Str "unknown enumeration member" ]))
     in
+    let words =
+      List.filter_map
+        (fun (v : Schema.literal) ->
+          match v with String_literal text -> Some text | _ -> None)
+        values
+    in
+    let text =
+      if List.length words <> List.length values then []
+      else
+        [
+          H.Value
+            {
+              about = [];
+              name = lower name ^ "Text";
+              type_ = T_fun (T_name name, T_name "Text");
+              clauses =
+                List.map2
+                  (fun constructor word ->
+                    {
+                      H.patterns = [ Constructor (constructor, []) ];
+                      body = Str word;
+                    })
+                  constructors words;
+            };
+        ]
+    in
     Ok
-      [
-        H.data name ~deriving:[ "Eq"; "Show" ]
-          (List.map (fun c -> H.constructor c) constructors);
-        instance_from name (Lambda ("value", chain));
-        to_json
-          (List.map
-             (fun (constructor, value) ->
-               { H.patterns = [ Constructor (constructor, []) ]; body = value })
-             members)
-          name;
-      ]
+      ([
+         H.data name ~deriving:[ "Eq"; "Show" ]
+           (List.map (fun c -> H.constructor c) constructors);
+         instance_from name (Lambda ("value", chain));
+         to_json
+           (List.map
+              (fun (constructor, value) ->
+                { H.patterns = [ Constructor (constructor, []) ]; body = value })
+              members)
+           name;
+       ]
+      @ text)
+
+(* What a union's member is named by: the schema it names, its kind when it
+   is a list or a scalar, and, stated in place as an object, the one string
+   its discriminating property admits, else its title. *)
+and branch name part =
+  let* raw = Normalize.layer part in
+  match (raw.ref_, raw.all_of) with
+  | Some r, _ -> Ok (Definitions.referenced r)
+  | None, Some [ only ] -> branch name only
+  | None, _ -> (
+      let* t = one_type name raw in
+      match t with
+      | Some Array -> Ok "List"
+      | Some Object | None -> (
+          let discriminant =
+            List.find_map
+              (fun (_, property) ->
+                match property with
+                | Schema.Schema { const = Some (String_literal v); _ }
+                | Schema.Schema { enum = Some [ String_literal v ]; _ } ->
+                    Some v
+                | _ -> None)
+              (Option.value raw.properties ~default:[])
+          in
+          match (discriminant, raw.title) with
+          | Some value, _ -> Ok (Text.pascal value)
+          | None, Some title -> Ok (Text.pascal title)
+          | None, None -> Ok "Object")
+      | Some scalar -> (
+          match scalar_type scalar with
+          | Some (T_name haskell) -> Ok haskell
+          | _ -> Error (name ^ ": a union member of no Haskell scalar")))
 
 and union state name parts =
   let* members =
     Result.map List.rev
       (List.fold_left
-         (fun found (i, part) ->
+         (fun found part ->
            let* found = found in
-           let constructor = name ^ "Branch" ^ string_of_int i in
-           let* t = type_of state (constructor ^ "Value") part in
-           Ok ((constructor, t) :: found))
-         (Ok [])
-         (List.mapi (fun i p -> (i + 1, p)) parts))
+           let* named = branch name part in
+           let constructor = name ^ named in
+           if List.mem_assoc constructor found then
+             Error (name ^ ": two union members would both be " ^ constructor)
+           else
+             let* t = type_of state (constructor ^ "Value") part in
+             Ok ((constructor, t) :: found))
+         (Ok []) parts)
   in
   let parse (constructor, _) =
     H.Infix

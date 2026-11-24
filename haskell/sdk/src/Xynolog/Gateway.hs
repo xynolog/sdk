@@ -26,12 +26,9 @@ gatewayUrl endpoint = do
     then Left "invalid gateway hostname"
     else
       Right
-        ( scheme (httpEndpointProtocol endpoint)
+        ( httpEndpointProtocolText (httpEndpointProtocol endpoint)
             <> "://"
             <> T.toLower (httpEndpointHost endpoint)
             <> ":"
             <> T.pack (show (httpEndpointPort endpoint))
         )
-  where
-    scheme HttpEndpointProtocolHttp = "http"
-    scheme HttpEndpointProtocolHttps = "https"

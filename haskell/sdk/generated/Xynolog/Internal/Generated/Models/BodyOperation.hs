@@ -11,11 +11,11 @@ import Xynolog.Internal.Generated.Models.BodyOperationAdd
 import Xynolog.Internal.Generated.Models.BodyOperationRemove
 import Xynolog.Internal.Generated.Models.BodyOperationReplace
 
-data BodyOperation = BodyOperationBranch1 BodyOperationAdd | BodyOperationBranch2 BodyOperationRemove | BodyOperationBranch3 BodyOperationReplace deriving (Eq, Show)
+data BodyOperation = BodyOperationBodyOperationAdd BodyOperationAdd | BodyOperationBodyOperationRemove BodyOperationRemove | BodyOperationBodyOperationReplace BodyOperationReplace deriving (Eq, Show)
 
-instance FromJSON BodyOperation where parseJSON = checked "BodyOperation" $ \value -> (BodyOperationBranch1 <$> parseJSON value) <|> (BodyOperationBranch2 <$> parseJSON value) <|> (BodyOperationBranch3 <$> parseJSON value)
+instance FromJSON BodyOperation where parseJSON = checked "BodyOperation" $ \value -> (BodyOperationBodyOperationAdd <$> parseJSON value) <|> (BodyOperationBodyOperationRemove <$> parseJSON value) <|> (BodyOperationBodyOperationReplace <$> parseJSON value)
 
 instance ToJSON BodyOperation where
-  toJSON (BodyOperationBranch1 value) = toJSON value
-  toJSON (BodyOperationBranch2 value) = toJSON value
-  toJSON (BodyOperationBranch3 value) = toJSON value
+  toJSON (BodyOperationBodyOperationAdd value) = toJSON value
+  toJSON (BodyOperationBodyOperationRemove value) = toJSON value
+  toJSON (BodyOperationBodyOperationReplace value) = toJSON value

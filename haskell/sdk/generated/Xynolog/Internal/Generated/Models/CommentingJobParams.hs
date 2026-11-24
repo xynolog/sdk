@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.CommentingJobParams (CommentingJobParams (..), CommentingJobParamsMotivation (..), CommentingJobParamsTone (..)) where
+module Xynolog.Internal.Generated.Models.CommentingJobParams (CommentingJobParams (..), CommentingJobParamsMotivation (..), commentingJobParamsMotivationText, CommentingJobParamsTone (..), commentingJobParamsToneText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -30,6 +30,9 @@ instance FromJSON CommentingJobParamsMotivation where parseJSON = checked "Comme
 
 instance ToJSON CommentingJobParamsMotivation where toJSON CommentingJobParamsMotivationCommenting = String "commenting"
 
+commentingJobParamsMotivationText :: CommentingJobParamsMotivation -> Text
+commentingJobParamsMotivationText CommentingJobParamsMotivationCommenting = "commenting"
+
 data CommentingJobParamsTone = CommentingJobParamsToneScholarly | CommentingJobParamsToneExplanatory | CommentingJobParamsToneConversational | CommentingJobParamsToneTechnical deriving (Eq, Show)
 
 instance FromJSON CommentingJobParamsTone where parseJSON = checked "CommentingJobParamsTone" $ \value -> if value == String "scholarly" then pure CommentingJobParamsToneScholarly else if value == String "explanatory" then pure CommentingJobParamsToneExplanatory else if value == String "conversational" then pure CommentingJobParamsToneConversational else if value == String "technical" then pure CommentingJobParamsToneTechnical else fail "unknown enumeration member"
@@ -39,3 +42,9 @@ instance ToJSON CommentingJobParamsTone where
   toJSON CommentingJobParamsToneExplanatory = String "explanatory"
   toJSON CommentingJobParamsToneConversational = String "conversational"
   toJSON CommentingJobParamsToneTechnical = String "technical"
+
+commentingJobParamsToneText :: CommentingJobParamsTone -> Text
+commentingJobParamsToneText CommentingJobParamsToneScholarly = "scholarly"
+commentingJobParamsToneText CommentingJobParamsToneExplanatory = "explanatory"
+commentingJobParamsToneText CommentingJobParamsToneConversational = "conversational"
+commentingJobParamsToneText CommentingJobParamsToneTechnical = "technical"

@@ -5,20 +5,23 @@
    which the models name after it; the bus's event name; and what the
    reference transport reads as a refused credential, read from
    typescript/http-transport's refusesCredential and held to LimitRefusal's
-   codes. *)
+   codes. The Archivist's operations are ArchivistRoute's constructors, each
+   named Archivist and its operation, of the same facts, and an operation
+   that answers with no content answers (). *)
 
 module H = Haskell_syntax
 
 let ( let* ) = Result.bind
 
 type route = {
+  name : string;
   constructor : string;
   method_ : string;
   path : string;
   input : string;
   output : string;
   input_media : string option;
-  output_media : string;
+  output_media : string option;  (** None when the success has no content. *)
   status : string;
   authenticated : bool;
   headers : (string * string) list;  (** Each header, and its schema's name. *)
@@ -47,7 +50,7 @@ let one what = function [ x ] -> Ok x | _ -> Error ("HTTP " ^ what)
 let base_name (r : Decode.reference) =
   Filename.remove_extension (Filename.basename r.target)
 
-let routes (spec : Spec.t) =
+let routes ~prefix ~no_content (spec : Spec.t) (document : Openapi.document) =
   let* rows =
     each
       (fun (path, (reference : Decode.reference)) ->
@@ -66,8 +69,8 @@ let routes (spec : Spec.t) =
         in
         each
           (fun (method_, (operation : Openapi.operation)) ->
-            let name = operation.operation_id in
-            let constructor = String.capitalize_ascii name in
+            let name = String.capitalize_ascii operation.operation_id in
+            let constructor = prefix ^ name in
             let* status, response =
               one "operation needs one success status"
                 (List.filter
@@ -79,19 +82,24 @@ let routes (spec : Spec.t) =
               | Openapi.Inline r -> Ok r
               | Ref _ -> refused "success has no content"
             in
-            let* media, answer =
+            let* media, output, extra =
               match response.content with
-              | Some content -> one "success needs one content type" content
+              | Some content -> (
+                  let* media, answer =
+                    one "success needs one content type" content
+                  in
+                  match answer.schema with
+                  | Schema { ref_ = Some r; _ } ->
+                      Ok (Some media, base_name r, [])
+                  | Schema { format = Some Binary; _ } ->
+                      Ok (Some media, "ByteString", [])
+                  | schema ->
+                      Ok
+                        ( Some media,
+                          constructor ^ "Response",
+                          [ (constructor ^ "Response", schema) ] ))
+              | None when no_content -> Ok (None, "()", [])
               | None -> refused "HTTP success has no content"
-            in
-            let* output, extra =
-              match answer.schema with
-              | Schema { ref_ = Some r; _ } -> Ok (base_name r, [])
-              | Schema { format = Some Binary; _ } -> Ok ("ByteString", [])
-              | schema ->
-                  Ok
-                    ( constructor ^ "Response",
-                      [ (constructor ^ "Response", schema) ] )
             in
             let authenticated =
               operation.security <> [] && not (List.mem [] operation.security)
@@ -140,6 +148,7 @@ let routes (spec : Spec.t) =
             in
             Ok
               ( {
+                  name;
                   constructor;
                   method_ = String.uppercase_ascii method_;
                   path;
@@ -154,7 +163,9 @@ let routes (spec : Spec.t) =
                 extra @ request_extra
                 @ List.map (fun (_, n, s) -> (n, s)) headers ))
           operations)
-      (List.sort (fun (a, _) (b, _) -> String.compare a b) spec.gateway.paths)
+      (List.sort
+         (fun (a, _) (b, _) -> String.compare a b)
+         document.Openapi.paths)
   in
   let rows = List.concat rows in
   let names = List.map (fun (r, _) -> r.constructor) rows in
@@ -263,14 +274,21 @@ let credential ~root =
   in
   Ok { unauthorized; limited; field; refusal }
 
-let route_type = H.T_apply ("HttpRoute", [ T_name "request"; T_name "answer" ])
+(* What a route table is declared as: its GADT, and the functions that give
+   each route's facts, named [lower] and the fact. *)
+type table = { gadt : string; lower : string }
 
-let dispatch name result routes value =
+let gateway = { gadt = "HttpRoute"; lower = "route" }
+let archivist = { gadt = "ArchivistRoute"; lower = "archivistRoute" }
+
+let dispatch table fact result routes value =
   H.Value
     {
       about = [];
-      name;
-      type_ = T_fun (route_type, result);
+      name = table.lower ^ fact;
+      type_ =
+        T_fun
+          (H.T_apply (table.gadt, [ T_name "request"; T_name "answer" ]), result);
       clauses =
         List.map
           (fun r ->
@@ -278,53 +296,53 @@ let dispatch name result routes value =
           routes;
     }
 
-(* A route's type: a model, ByteString, or () for a route that takes no body. *)
+(* A route's type: a model, ByteString, or () for a route that takes no body
+   or answers no content. *)
 let text = function "()" -> H.T_tuple [] | value -> H.T_name value
 
-let file ~banner t ~credential ~bus_event =
-  let routes = t.routes in
-  let body =
-    [
-      H.Gadt
-        {
-          about = [];
-          name = "HttpRoute";
-          params = [ ("request", None); ("answer", None) ];
-          constructors =
-            List.map
-              (fun r ->
-                ( r.constructor,
-                  H.T_apply ("HttpRoute", [ text r.input; text r.output ]) ))
-              routes;
-        };
-      dispatch "routeName" (text "Text") routes (fun r -> Str r.constructor);
-      dispatch "routeMethod" (text "ByteString") routes (fun r -> Str r.method_);
-      dispatch "routePath" (text "Text") routes (fun r -> Str r.path);
-      dispatch "routeStatus" (text "Int") routes (fun r ->
-          Int (int_of_string r.status));
-      dispatch "routeMediaType" (text "ByteString") routes (fun r ->
-          Str r.output_media);
-      dispatch "routeRequestMediaType"
-        (H.T_apply ("Maybe", [ text "ByteString" ]))
-        routes
-        (fun r ->
-          match r.input_media with
-          | None -> Name "Nothing"
-          | Some m -> Apply (Name "Just", [ Str m ]));
-      dispatch "routeAuthenticated" (text "Bool") routes (fun r ->
-          Name (if r.authenticated then "True" else "False"));
-      dispatch "routeRequiredHeaders"
-        (H.T_list (T_tuple [ text "ByteString"; text "Text" ]))
-        routes
-        (fun r ->
-          List (List.map (fun (h, n) -> H.Tuple [ Str h; Str n ]) r.headers));
-      H.value "unauthorizedStatus" (text "Int") (Int credential.unauthorized);
-      H.value "limitedStatus" (text "Int") (Int credential.limited);
-      H.value "refusalField" (text "Key") (Str credential.field);
-      H.value "refusalCode" (text "Text") (Str credential.refusal);
-      H.value "busEventName" (text "Text") (Str bus_event);
-    ]
-  in
+let maybe_bytes = function
+  | None -> H.Name "Nothing"
+  | Some m -> Apply (Name "Just", [ Str m ])
+
+(* Each route's declarations but its answer's media type, which a table
+   states as it holds it. *)
+let declarations table routes =
+  [
+    H.Gadt
+      {
+        about = [];
+        name = table.gadt;
+        params = [ ("request", None); ("answer", None) ];
+        constructors =
+          List.map
+            (fun r ->
+              ( r.constructor,
+                H.T_apply (table.gadt, [ text r.input; text r.output ]) ))
+            routes;
+      };
+    dispatch table "Name" (text "Text") routes (fun r -> Str r.name);
+    dispatch table "Method" (text "ByteString") routes (fun r -> Str r.method_);
+    dispatch table "Path" (text "Text") routes (fun r -> Str r.path);
+    dispatch table "Status" (text "Int") routes (fun r ->
+        Int (int_of_string r.status));
+  ]
+
+let headed table routes =
+  [
+    dispatch table "RequestMediaType"
+      (H.T_apply ("Maybe", [ text "ByteString" ]))
+      routes
+      (fun r -> maybe_bytes r.input_media);
+    dispatch table "Authenticated" (text "Bool") routes (fun r ->
+        Name (if r.authenticated then "True" else "False"));
+    dispatch table "RequiredHeaders"
+      (H.T_list (T_tuple [ text "ByteString"; text "Text" ]))
+      routes
+      (fun r ->
+        List (List.map (fun (h, n) -> H.Tuple [ Str h; Str n ]) r.headers));
+  ]
+
+let routes_module ~banner ~name body routes =
   let used = H.uses body in
   let types =
     List.sort_uniq String.compare
@@ -338,13 +356,50 @@ let file ~banner t ~credential ~bus_event =
   {
     H.banner;
     extensions = [ "GADTs"; "OverloadedStrings" ];
-    name = "Xynolog.Http.Routes";
+    name;
     imports =
-      ([
-         H.import "Data.Aeson.Key" ~items:[ Plain "Key" ];
-         H.import "Data.ByteString" ~items:[ Plain "ByteString" ];
-         H.import "Data.Text" ~items:[ Plain "Text" ];
-       ]
+      ((if List.mem "Key" used.types then
+          [ H.import "Data.Aeson.Key" ~items:[ Plain "Key" ] ]
+        else [])
+      @ [
+          H.import "Data.ByteString" ~items:[ Plain "ByteString" ];
+          H.import "Data.Text" ~items:[ Plain "Text" ];
+        ]
       @ if models then [ H.import "Xynolog.Types" ] else []);
     body;
   }
+
+(* The gateway's routes, each answering content: [routes ~no_content:false]
+   refuses one that does not. *)
+let file ~banner t ~credential ~bus_event =
+  let routes = t.routes in
+  let content r =
+    match r.output_media with
+    | Some media -> H.Str media
+    | None -> invalid_arg (r.constructor ^ " answers no content")
+  in
+  routes_module ~banner ~name:"Xynolog.Http.Routes"
+    (declarations gateway routes
+    @ [ dispatch gateway "MediaType" (text "ByteString") routes content ]
+    @ headed gateway routes
+    @ [
+        H.value "unauthorizedStatus" (text "Int") (Int credential.unauthorized);
+        H.value "limitedStatus" (text "Int") (Int credential.limited);
+        H.value "refusalField" (text "Key") (Str credential.field);
+        H.value "refusalCode" (text "Text") (Str credential.refusal);
+        H.value "busEventName" (text "Text") (Str bus_event);
+      ])
+    routes
+
+let archivist_file ~banner t =
+  let routes = t.routes in
+  routes_module ~banner ~name:"Xynolog.Archivist.Routes"
+    (declarations archivist routes
+    @ [
+        dispatch archivist "MediaType"
+          (H.T_apply ("Maybe", [ text "ByteString" ]))
+          routes
+          (fun r -> maybe_bytes r.output_media);
+      ]
+    @ headed archivist routes)
+    routes

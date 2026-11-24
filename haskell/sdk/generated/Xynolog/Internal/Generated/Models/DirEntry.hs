@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.DirEntry (DirEntry (..), DirEntryType (..)) where
+module Xynolog.Internal.Generated.Models.DirEntry (DirEntry (..), DirEntryType (..), dirEntryTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -26,3 +26,6 @@ data DirEntryType = DirEntryTypeDir deriving (Eq, Show)
 instance FromJSON DirEntryType where parseJSON = checked "DirEntryType" $ \value -> if value == String "dir" then pure DirEntryTypeDir else fail "unknown enumeration member"
 
 instance ToJSON DirEntryType where toJSON DirEntryTypeDir = String "dir"
+
+dirEntryTypeText :: DirEntryType -> Text
+dirEntryTypeText DirEntryTypeDir = "dir"
