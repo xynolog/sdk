@@ -28,6 +28,8 @@ the coming release's, and gathers its changes as they land.
 - A value is validated against its schema as Protocol states it: `const`,
   `not`, `propertyNames` and `minProperties` among its keywords, and those of
   a schema that states no `type`.
+- A pattern may use the class escapes Protocol's patterns use (`\s`, `\d`,
+  `\w`, and outside a class `\S`, `\D`, `\W`), and `\/` and `\:`.
 
 ## 0.8.1
 

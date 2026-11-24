@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
@@ -17,6 +18,7 @@ import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KM
 import Data.Aeson.Types (parseEither)
 import Data.ByteString qualified as Bytes
+import Data.Char (isDigit, isSpace)
 import Data.Either (isLeft)
 import Data.Foldable (toList)
 import Data.IORef (modifyIORef', newIORef, readIORef)
@@ -97,12 +99,89 @@ admitsNull field = case at "type" field of
   Array names -> String "null" `V.elem` names
   _ -> any (elem (Object (KM.fromList [("type", String "null")])) . array . flip at field) ["anyOf", "oneOf"]
 
+-- A part of a pattern of Protocol's subset of ECMA-262: a character of a
+-- class, or a group of alternatives, each with its fewest repetitions.
+data Atom = Character (Char -> Bool) | Alternatives [[(Atom, Int)]]
+
+-- The shortest text [pattern] matches: each part repeated as few times as it
+-- may, a class's first letter, digit or punctuation it allows, and a group's
+-- first alternative. An end the pattern does not anchor takes nothing more.
+patternSample :: Text -> Text
+patternSample pattern = T.pack (render (fst (alternatives (T.unpack (T.dropWhileEnd (== '$') (T.dropWhile (== '^') pattern))))))
+  where
+    render = \case
+      first : _ -> concatMap (\(atom, fewest) -> concat (replicate fewest (one atom))) first
+      [] -> ""
+    one = \case
+      Character allows -> take 1 (filter allows (['a' .. 'z'] ++ ['A' .. 'Z'] ++ ['0' .. '9'] ++ "-_.:/@~{} "))
+      Alternatives choices -> render choices
+    alternatives text = case series text of
+      (first, '|' : more) -> let (others, rest) = alternatives more in (first : others, rest)
+      (first, rest) -> ([first], rest)
+    series text = case text of
+      c : _ | c `elem` (")|" :: String) -> ([], text)
+      [] -> ([], [])
+      _ ->
+        let (atom, afterAtom) = part text
+            (fewest, afterCount) = count afterAtom
+            (others, rest) = series afterCount
+         in ((atom, fewest) : others, rest)
+    part = \case
+      '(' : text -> let (choices, rest) = alternatives text in (Alternatives choices, drop 1 rest)
+      '[' : '^' : text -> let (allows, rest) = members text in (Character (not . allows), rest)
+      '[' : text -> let (allows, rest) = members text in (Character allows, rest)
+      '\\' : c : text -> (Character (escaped c), text)
+      '.' : text -> (Character (/= '\n'), text)
+      c : text -> (Character (== c), text)
+      [] -> (Character (const False), [])
+    members = \case
+      ']' : text -> (const False, text)
+      '\\' : c : text -> let (others, rest) = members text in (\x -> escaped c x || others x, rest)
+      low : '-' : high : text | high /= ']' -> let (others, rest) = members text in (\x -> (x >= low && x <= high) || others x, rest)
+      c : text -> let (others, rest) = members text in (\x -> x == c || others x, rest)
+      [] -> (const False, [])
+    escaped = \case
+      'S' -> not . isSpace
+      's' -> isSpace
+      'd' -> isDigit
+      c -> (== c)
+    count = \case
+      '*' : text -> (0, text)
+      '+' : text -> (1, text)
+      '?' : text -> (0, text)
+      '{' : text -> let (digits, rest) = span isDigit text in (read digits, drop 1 (dropWhile (/= '}') rest))
+      text -> (1, text)
+
+-- [fields] without its alternatives, and with [alternative] beside it: each
+-- member as both state it, and the members both require.
+within :: KM.KeyMap Value -> Value -> KM.KeyMap Value
+within fields alternative = KM.unionWithKey beside (KM.delete "oneOf" (KM.delete "anyOf" fields)) (object alternative)
+  where
+    beside "properties" (Object own) (Object stated) = Object (KM.unionWith (\mine theirs -> Object (KM.union (object theirs) (object mine))) own stated)
+    beside "required" (Array own) (Array stated) = Array (own <> stated)
+    beside _ _ stated = stated
+
+-- Names an object's [propertyNames] allow, most likely first; any name when
+-- it states none.
+memberNames :: Value -> [Text]
+memberNames schema = case at "propertyNames" schema of
+  Null -> ["__haskell_probe"]
+  names -> case at "enum" names of
+    Array values -> [name | String name <- toList values]
+    _ -> case at "pattern" names of
+      String pattern -> [patternSample pattern]
+      _ -> []
+
 sample :: Int -> Value -> Either String Value
 sample depth schema
   | depth > 40 = Left "required schema recursion exceeds sample budget"
   | otherwise = do
       let fields = object schema
           nested = sample (depth + 1)
+          unstatedMember owner = case at "additionalProperties" owner of
+            Bool False -> Left "required member is neither stated nor allowed"
+            Null -> Right (Bool True)
+            definition -> nested definition
           choose candidates = case filter (either (const False) (const True) . validate schemas schema) candidates of
             value : _ -> Right value
             [] -> Left ("no valid generated sample for " ++ show schema)
@@ -110,14 +189,17 @@ sample depth schema
         Just (String reference) -> case Map.lookup (T.pack (takeBaseName (T.unpack reference))) schemas of
           Just target -> nested target
           Nothing -> Left "sample reference has no schema"
-        _ -> case KM.lookup "enum" fields of
+        _ -> case KM.lookup "enum" fields <|> fmap (Array . pure) (KM.lookup "const" fields) of
           Just (Array values) -> choose (toList values)
           _ -> case KM.lookup "oneOf" fields <|> KM.lookup "anyOf" fields of
-            Just (Array alternatives) -> choose [value | Right value <- map nested (toList alternatives)]
+            Just (Array alternatives)
+              | KM.member "type" fields -> choose [value | Right value <- map (nested . Object . within fields) (toList alternatives)]
+              | otherwise -> choose [value | Right value <- map nested (toList alternatives)]
             _ -> case KM.lookup "type" fields of
               Just (String "string") -> do
                 let width = case KM.lookup "minLength" fields of Just (Number n) -> ceiling n; _ -> 0
-                choose [String text | text <- [T.replicate width "a", "a", "did:example:probe", "did:web:probe", "e-a", "e-a:b:c", "p-a-1", T.replicate 64 "a"]]
+                let patterned = case KM.lookup "pattern" fields of Just (String pattern) -> [patternSample pattern]; _ -> []
+                choose [String text | text <- patterned ++ [T.replicate width "a", "a", "did:example:probe", "did:web:probe", "e-a", "e-a:b:c", "p-a-1", T.replicate 64 "a"]]
               Just (String "integer") -> choose [Number (case KM.lookup "minimum" fields of Just (Number n) -> fromInteger (ceiling n); _ -> 0)]
               Just (String "number") -> choose [Number (case KM.lookup "minimum" fields of Just (Number n) -> n; _ -> 0)]
               Just (String "boolean") -> Right (Bool False)
@@ -137,12 +219,17 @@ sample depth schema
                     ( \key -> case key of
                         String name -> do
                           let member = Key.fromText name
-                          definition <- maybe (Left "required field has no schema") Right (KM.lookup member properties)
-                          (,) member <$> nested definition
+                          (,) member <$> maybe (unstatedMember schema) nested (KM.lookup member properties)
                         _ -> Left "required name is not a string"
                     )
                     (array (at "required" schema))
-                choose [Object (KM.fromList required)]
+                let fewest = case KM.lookup "minProperties" fields of Just (Number n) -> ceiling n; _ -> 0
+                    optional = [(key, definition) | (key, definition) <- KM.toList properties, not (any ((== key) . fst) required)]
+                added <- mapM (\(key, definition) -> (,) key <$> nested definition) (take (fewest - length required) optional)
+                let stated = required ++ added
+                    unstated = [Key.fromText name | name <- memberNames schema, not (any ((== Key.fromText name) . fst) stated)]
+                extra <- mapM (\key -> (,) key <$> unstatedMember schema) (take (fewest - length stated) unstated)
+                choose [Object (KM.fromList (stated ++ extra))]
               Nothing -> Right Null
               _ -> Left "sample shape unsupported"
 
@@ -175,7 +262,9 @@ schemaCases root = do
         extra <- case at "additionalProperties" definition of
           typed@(Object _) -> either (ioError . userError) pure (sample 0 typed)
           _ -> pure (Number 18446744073709551617)
-        expectRoundTrip name (Object (KM.insert "__haskell_probe" extra fields))
+        case [Key.fromText probe | probe <- memberNames definition, not (KM.member (Key.fromText probe) fields)] of
+          probe : _ -> expectRoundTrip name (Object (KM.insert probe extra fields))
+          [] -> pure ()
       _ -> pure ()
     case at "enum" definition of
       Array values -> do

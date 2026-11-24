@@ -13,7 +13,7 @@ import Control.Monad (forM_, unless, when)
 import Data.Aeson (Object, Value (..))
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KM
-import Data.Char (GeneralCategory (LineSeparator, ParagraphSeparator, Space), generalCategory)
+import Data.Char (GeneralCategory (LineSeparator, ParagraphSeparator, Space), generalCategory, isUpper, toLower)
 import Data.Foldable (toList)
 import Data.List (nub)
 import Data.Map.Strict (Map)
@@ -46,15 +46,21 @@ patternText :: Text -> Either String String
 patternText = translate False . T.unpack
   where
     translate _ [] = Right []
-    translate False ('\\' : 'S' : rest) = (("[^" ++ ecmaWhitespace ++ "]") ++) <$> translate False rest
     translate inside ('\\' : character : rest)
+      | Just members <- lookup character classes = ((if inside then members else "[" ++ members ++ "]") ++) <$> translate inside rest
+      | not inside, Just members <- lookup (toLower character) classes, isUpper character = (("[^" ++ members ++ "]") ++) <$> translate False rest
       | character `elem` ("^$.[]-+?*{}()|\\" :: String) = (['\\', character] ++) <$> translate inside rest
+      | character `elem` ("/:" :: String) = ([character] ++) <$> translate inside rest
       | otherwise = Left ("unsupported regular-expression escape: \\" ++ [character])
     translate _ ('\\' : []) = Left "unterminated regular-expression escape"
     translate False ('[' : rest) = ('[' :) <$> translate True rest
     translate True (']' : rest) = (']' :) <$> translate False rest
     translate False ('.' : rest) = ("[^\n\r\x2028\x2029]" ++) <$> translate False rest
     translate inside (character : rest) = (character :) <$> translate inside rest
+
+-- The members of each class escape ECMAScript states; its capital is the complement.
+classes :: [(Char, String)]
+classes = [('s', ecmaWhitespace), ('d', "0-9"), ('w', "A-Za-z0-9_")]
 
 -- ECMAScript uses Unicode separator categories plus these control characters and BOM.
 -- POSIX [:space:] in regex-tdfa is ASCII-only.
