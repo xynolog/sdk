@@ -77,6 +77,10 @@ the coming release's, and gathers its changes as they land.
   and `stored_session_of` takes one.
 - Where each stream was is `xynolog.types.LastEventIds`, in place of
   `xynolog.stored.LastEventIds`.
+- `xynolog.resume.is_place(scope, event_id)`, whether `LastEventIds` holds
+  the id as the place reached in the scope, in place of
+  `is_recorded_event_id(event_id)`. The stream and the places kept both ask
+  it.
 - `claims.vitals()` is a `WorkerVitals` model named and written as
   `WorkerEngineHealth`'s members are: its times are the protocol's text, and
   the job it holds is a `WorkerEngineHealthActiveJob`. `ActiveJob` is gone. A

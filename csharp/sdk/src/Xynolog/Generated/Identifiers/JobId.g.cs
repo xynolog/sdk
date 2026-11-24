@@ -53,4 +53,25 @@ internal sealed class JobIdJsonConverter : global::System.Text.Json.Serializatio
             throw new global::System.Text.Json.JsonException(error.Message, error);
         }
     }
+
+    public override JobId ReadAsPropertyName(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type type, global::System.Text.Json.JsonSerializerOptions options)
+    {
+        if (JobId.TryParse(reader.GetString(), out var parsed))
+        {
+            return parsed;
+        }
+        throw new global::System.Text.Json.JsonException("The value is not a JobId.");
+    }
+
+    public override void WriteAsPropertyName(global::System.Text.Json.Utf8JsonWriter writer, JobId value, global::System.Text.Json.JsonSerializerOptions options)
+    {
+        try
+        {
+            writer.WritePropertyName(value.Value);
+        }
+        catch (global::System.InvalidOperationException error)
+        {
+            throw new global::System.Text.Json.JsonException(error.Message, error);
+        }
+    }
 }

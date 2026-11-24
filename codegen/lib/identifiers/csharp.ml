@@ -182,6 +182,52 @@ let json = Csharp_converter.json
 
 let converter (kind : Table.kind) =
   let name = kind.name in
+  let parsed : C.expr =
+    Call
+      ( Name (name ^ ".TryParse"),
+        [],
+        [
+          Arg (Call (Member (Name "reader", "GetString"), [], []));
+          Out_var "parsed";
+        ] )
+  in
+  let refusal : C.stmt =
+    Throw_stmt
+      (New
+         {
+           type_ = Some (T (json "JsonException"));
+           args = Some [ Arg (refused name) ];
+           init = None;
+         })
+  in
+  let writes method_ : C.stmt list =
+    [
+      Try
+        ( [
+            Do
+              (Call
+                 ( Member (Name "writer", method_),
+                   [],
+                   [ Arg (Member (Name "value", "Value")) ] ));
+          ],
+          ( T "global::System.InvalidOperationException",
+            "error",
+            [
+              Throw_stmt
+                (New
+                   {
+                     type_ = Some (T (json "JsonException"));
+                     args =
+                       Some
+                         [
+                           Arg (Member (Name "error", "Message"));
+                           Arg (Name "error");
+                         ];
+                     init = None;
+                   });
+            ] ) );
+    ]
+  in
   Csharp_converter.converter name
     ~read:
       [
@@ -192,49 +238,13 @@ let converter (kind : Table.kind) =
                     Eq,
                     Name (json "JsonTokenType.String") ),
                 And,
-                Call
-                  ( Name (name ^ ".TryParse"),
-                    [],
-                    [
-                      Arg (Call (Member (Name "reader", "GetString"), [], []));
-                      Out_var "parsed";
-                    ] ) ),
+                parsed ),
             [ Return (Name "parsed") ] );
-        Throw_stmt
-          (New
-             {
-               type_ = Some (T (json "JsonException"));
-               args = Some [ Arg (refused name) ];
-               init = None;
-             });
+        refusal;
       ]
-    ~write:
-      [
-        Try
-          ( [
-              Do
-                (Call
-                   ( Member (Name "writer", "WriteStringValue"),
-                     [],
-                     [ Arg (Member (Name "value", "Value")) ] ));
-            ],
-            ( T "global::System.InvalidOperationException",
-              "error",
-              [
-                Throw_stmt
-                  (New
-                     {
-                       type_ = Some (T (json "JsonException"));
-                       args =
-                         Some
-                           [
-                             Arg (Member (Name "error", "Message"));
-                             Arg (Name "error");
-                           ];
-                       init = None;
-                     });
-              ] ) );
-      ]
+    ~write:(writes "WriteStringValue")
+    ~read_key:[ If (parsed, [ Return (Name "parsed") ]); refusal ]
+    ~write_key:(writes "WritePropertyName")
 
 let files kinds =
   List.map

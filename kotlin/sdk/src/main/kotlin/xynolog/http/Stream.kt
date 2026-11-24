@@ -29,7 +29,7 @@ import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
 import xynolog.errors.XynologError
 import xynolog.identifiers.ResourceId
-import xynolog.registry.isPersistedEventId
+import xynolog.registry.isPlace
 import xynolog.retry.equalJitter
 import xynolog.retry.retryAfterMs
 import xynolog.telemetry.Telemetry
@@ -416,10 +416,10 @@ internal class Stream(
         }
         val frame = Frame(channel, payload, correlationId, scope, Telemetry.received(channel, scope, sentUnder))
         router.route(frame)
-        // A scope's position is the last recorded event delivered on it: only a recorded event's id, a PersistedEventId, is one.
+        // A scope's position is the last recorded event delivered on it: only an id `lastEventIds` holds in that scope is one.
         // It is kept across the client's lives only once the client's refresher has taken the event, which the place
         // delivered with the frame lets it note.
-        val place = if (id != null && scope != null && isPersistedEventId(id)) Place(scope, id) else null
+        val place = if (id != null && scope != null && isPlace(scope, id)) Place(scope, id) else null
         place?.let { watermarks[it.scope.value] = it.eventId }
         hub.deliver(frame, place)
     }

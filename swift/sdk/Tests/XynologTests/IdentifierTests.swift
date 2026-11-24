@@ -49,3 +49,13 @@ import Testing
   #expect(composed != decomposed)
   #expect(Set([composed, decomposed]).count == 2)
 }
+
+@Test func anIdentifierKeysAJSONObjectByItsText() throws {
+  let places: LastEventIds = [try ResourceId("res-1"): "p-res-1-1"]
+  let written = String(decoding: try JSONEncoder().encode(places), as: UTF8.self)
+  #expect(written == #"{"res-1":"p-res-1-1"}"#)
+  #expect(try JSONDecoder().decode(LastEventIds.self, from: Data(written.utf8)) == places)
+  #expect(throws: DecodingError.self) {
+    try JSONDecoder().decode(LastEventIds.self, from: Data(#"{"a/b":"p-a-1"}"#.utf8))
+  }
+}

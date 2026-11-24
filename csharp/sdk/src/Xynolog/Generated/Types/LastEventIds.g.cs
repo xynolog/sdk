@@ -7,5 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record LastEventIds
 {
-    [global::Xynolog.Serialization.WireRest] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement> AdditionalProperties { get; init; } = new global::System.Collections.Generic.Dictionary<string, global::System.Text.Json.JsonElement>();
+    [global::Xynolog.Serialization.WireRest] public global::System.Collections.Generic.IReadOnlyDictionary<global::Xynolog.Identifiers.ResourceId, string> AdditionalProperties { get; init; } = new global::System.Collections.Generic.Dictionary<global::Xynolog.Identifiers.ResourceId, string>();
 }

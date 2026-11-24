@@ -204,12 +204,12 @@ public sealed partial class HttpTransport : IDisposable
         }
     }
 
-    internal void RestoreWatermarks(IReadOnlyDictionary<string, string> saved)
+    internal void RestoreWatermarks(IReadOnlyDictionary<ResourceId, string> saved)
     {
         lock (gate)
         {
             if (closed) return;
-            foreach (var (scope, id) in saved) watermarks.TryAdd(scope, id);
+            foreach (var (scope, id) in saved) watermarks.TryAdd(scope.Value, id);
         }
     }
 
@@ -523,9 +523,9 @@ public sealed partial class HttpTransport : IDisposable
     /// the gate.</summary>
     private void Receive(BusFrame frame, string? id)
     {
-        // A scope's position is the last persisted event delivered on it: an id with the persisted prefix that is no
-        // PersistedEventId, and an ephemeral id, leave the position before them.
-        if (id is not null && frame.Scope is ResourceId scope && Required.IsPersistedEventId(JsonSerializer.SerializeToElement(id)))
+        // A scope's position is the last persisted event delivered on it: an id LastEventIds does not hold in the scope,
+        // an ephemeral one among them, leaves the position before it.
+        if (id is not null && frame.Scope is ResourceId scope && Required.IsPlace(scope, id))
             watermarks[scope.Value] = id;
         ActivityContext parent = default;
         if (frame.Payload.TryGetProperty(ProtocolFacts.TraceField, out var trace))

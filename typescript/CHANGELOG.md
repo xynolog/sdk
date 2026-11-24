@@ -81,6 +81,9 @@ the coming release's, and gathers its changes as they land.
   Protocol states, which `@xynolog/sdk` exports from `@xynolog/core`; a
   stored one its schema refuses is no sign-in pending. Where each stream was
   is written as `LastEventIds`.
+- A stream's place is what `isPlace(scope, id)`, which `@xynolog/core`
+  exports, says `LastEventIds` holds: the transport's place in each scope and
+  the places kept are decided by it.
 
 ### Removed
 

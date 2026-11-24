@@ -13,6 +13,7 @@ import {
   XynologError,
   FrameRefusal,
   faultOf,
+  isPlace,
   said,
   isObject,
   RESOURCE_SCOPED_CHANNELS,
@@ -884,15 +885,15 @@ export function createActorStateUnit(
               // crash mid-apply resumes from the previous id and redelivers,
               // and re-invalidation is idempotent.
               //
-              // Watermarks are PER SCOPE and persisted-ids-only: a
-              // PersistedEventId is stamped only on scoped deliveries (the
-              // frame always carries `scope`), and ephemeral ids never displace
-              // a scope's watermark, which would silently lose that scope's
-              // replay. The places check the same component.
+              // Watermarks are PER SCOPE and places-only: a place is stamped
+              // only on scoped deliveries (the frame always carries `scope`),
+              // and ephemeral ids never displace a scope's watermark, which
+              // would silently lose that scope's replay. The places kept are
+              // decided the same way (`isPlace`).
               if (
                 currentId !== undefined &&
-                faultOf('PersistedEventId', currentId) === undefined &&
-                parsed.scope
+                parsed.scope &&
+                isPlace(parsed.scope, currentId)
               ) {
                 scopeWatermarks.set(parsed.scope, currentId);
                 // B17: persist per scope — see ActorStateUnitOptions.

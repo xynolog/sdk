@@ -123,9 +123,8 @@ function placesLoaded(source: string): Record<string, string> {
   )
     return {};
   return Object.fromEntries(
-    Object.entries(places.value).filter(
-      ([scope, place]) =>
-        holds('ResourceId', scope) && holds('PersistedEventId', place),
+    Object.entries(places.value).filter(([scope, place]) =>
+      holds('LastEventIds', { [scope]: place }),
     ),
   );
 }

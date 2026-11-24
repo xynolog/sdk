@@ -54,20 +54,7 @@ type sessionTable struct {
 			Const json.RawMessage `json:"const"`
 		} `json:"properties"`
 	} `json:"cacheDocument"`
-	LastEventIds struct {
-		AdditionalProperties schemaRef `json:"additionalProperties"`
-	} `json:"lastEventIds"`
 	PendingAuthorization objectShape `json:"pendingAuthorization"`
-}
-
-// schemaRef is a schema that is a component schema of the spec's.
-type schemaRef struct {
-	Ref string `json:"$ref"`
-}
-
-// component is the name of the component schema ref names.
-func (ref schemaRef) component() string {
-	return strings.TrimSuffix(filepath.Base(ref.Ref), ".json")
 }
 
 // readSpec is what the spec's file at way, under protocol/specs/src, holds.
@@ -150,10 +137,6 @@ func TestAKeptDocumentAndThePlacesAreOfTheTablesForm(t *testing.T) {
 	written, _ := storage.Get(key)
 	if got, want := membersOf(t, []byte(written)), slices.Sorted(maps.Keys(table.CacheDocument.Properties)); !slices.Equal(got, want) {
 		t.Errorf("a kept document is written with %v; the table's members are %v", got, want)
-	}
-
-	if got, want := placeSchema, table.LastEventIds.AdditionalProperties.component(); got != want {
-		t.Errorf("a place is held to %s; the table's is a %s", got, want)
 	}
 }
 

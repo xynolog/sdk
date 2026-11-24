@@ -45,14 +45,7 @@ public static class RedirectSignIn
             Verifier = Base64Url(RandomNumberGenerator.GetBytes(48)),
             RedirectUri = options.RedirectUri,
             Target = options.Target,
-            Issuer = new PendingAuthorizationIssuer
-            {
-                Issuer = found.Issuer,
-                Authorization = found.Authorization,
-                Token = found.Token,
-                Device = found.Device,
-                Revocation = found.Revocation,
-            },
+            Issuer = found,
             KbId = options.KbId,
             ExpectedDid = options.ExpectedDid,
             ExpectedName = options.ExpectedName,

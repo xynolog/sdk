@@ -107,8 +107,8 @@ pub struct TraceCarrier {
 }
 
 /// Where on the stream a frame was delivered: the resource scope it came
-/// on, and the id the stream gave it. A recorded event's id
-/// (`crate::resume::is_persisted_event_id`) is the scope's place, which a
+/// on, and the id the stream gave it. An id `LastEventIds` holds in the
+/// scope (`crate::resume::is_place`) is the scope's place, which a
 /// client notes once it has taken the frame in (`crate::resume`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StreamId {
