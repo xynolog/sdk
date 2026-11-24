@@ -14,10 +14,9 @@
  * from.
  */
 import { describe, it, expect } from 'vitest';
-import type { components } from '../types';
+import type { components, KnowledgeGraphNodesItem } from '../types';
 import { annotationId, resourceId } from '../identifiers';
 
-type GraphNode = components['schemas']['KnowledgeGraph']['nodes'][number];
 type SemanticMatch = components['schemas']['SemanticMatch'];
 
 const W3C: components['schemas']['Annotation'] = {
@@ -29,7 +28,7 @@ const W3C: components['schemas']['Annotation'] = {
   created: '2020-01-01T00:00:00.000Z',
 };
 
-function describeNode(n: GraphNode): string {
+function describeNode(n: KnowledgeGraphNodesItem): string {
   switch (n.type) {
     case 'resource':
       return n.label;
@@ -60,7 +59,7 @@ describe('KnowledgeGraph node — the union discriminates', () => {
 
   it('an annotation node without its annotation is a skeleton the union forbids', () => {
     // @ts-expect-error — the node is the annotation's graph presence, whole
-    const skeleton: GraphNode = {
+    const skeleton: KnowledgeGraphNodesItem = {
       id: annotationId('ann-cite'),
       type: 'annotation',
       label: 'linking',

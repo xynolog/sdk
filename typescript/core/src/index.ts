@@ -6,8 +6,9 @@
  * use across the monorepo.
  */
 
-// The spec's component schemas as types (the source of truth for the API's)
-export type { components } from './types';
+// Protocol's types: the spec's component schemas, and each type of its own a
+// schema states in place, by its name
+export type * from './types';
 
 // Branded types (compile-time type safety)
 export type {

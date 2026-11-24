@@ -84,6 +84,14 @@ the coming release's, and gathers its changes as they land.
 - A stream's place is what `isPlace(scope, id)`, which `@xynolog/core`
   exports, says `LastEventIds` holds: the transport's place in each scope and
   the places kept are decided by it.
+- Every type of its own that a schema states in place (an object of members,
+  a union, an `allOf`, an enumeration of several values) is a type
+  `@xynolog/core` exports, by the name every SDK gives it
+  (`KnowledgeGraphNodesItem`), and the member that holds it is of that type.
+  It was written in place, reached only through its member
+  (`components['schemas']['KnowledgeGraph']['nodes'][number]`). A property of
+  one value is still that literal. `@xynolog/core` exports every type of
+  `types.ts` so, `records` and `tables` beside `components`.
 
 ### Removed
 

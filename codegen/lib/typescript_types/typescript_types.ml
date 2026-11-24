@@ -3,8 +3,10 @@
    [components['schemas']], and every record Protocol states in its tables
    ([Table_records]), with every other schema only they reach, as a member of
    [records]; every table the SDK carries as a value, with what only it
-   reaches, as a member of [tables]; each written as the schema states it, and
-   each kind of id branded, so that a property of one kind is of no other. *)
+   reaches, as a member of [tables]; each written as the schema states it,
+   each type of its own written in place an alias of the name [Typing] gives
+   it, and each kind of id branded, so that a property of one kind is of no
+   other. *)
 
 module T = Typescript_syntax
 
@@ -50,61 +52,93 @@ let literal (l : Schema.literal) : T.type_ =
   | Int_literal n -> T_int n
   | Bool_literal b -> T_bool b
 
-(* A type's TypeScript type, each schema it names the type [named] gives it,
-   written in place as the schema states it. *)
-let rec type_of ~(named : string -> T.type_) (ty : Typing.ty) : T.type_ =
+(* What a type refers to by name: each schema by the type [named] gives it,
+   and each type written in place that [Typing] names by an alias of that
+   name, [aliases] of each in the order they are met. *)
+type names = {
+  named : string -> T.type_;
+  aliases : (string, T.decl) Hashtbl.t;
+  mutable met : string list;
+}
+
+let names named = { named; aliases = Hashtbl.create 64; met = [] }
+
+(* The aliases [names] has met, in the order it met them. *)
+let aliases names =
+  List.rev_map (fun name -> Hashtbl.find names.aliases name) names.met
+
+(* Whether a type written in place is a type of its own: an object of
+   members, an [allOf], a union, or an enumeration of several values. One
+   value is its literal, and any other object its form. *)
+let aliased (i : Typing.inline) =
+  match (i.form, i.composition) with
+  | _, Some _ | (Record _ | Union _ | Enum { values = _ :: _ :: _; _ }), None ->
+      true
+  | _ -> false
+
+(* A type's TypeScript type, each schema it names and each type of its own in
+   place by its name in [names], any other written in place as the schema
+   states it. *)
+let rec type_of ~(names : names) (ty : Typing.ty) : T.type_ =
   match ty with
-  | Typing.Named name -> named name
+  | Typing.Named name -> names.named name
   | Null -> T_name "null"
   | Any -> unknown
   | Nothing -> T_name "never"
-  | Nullable ty -> union [ type_of ~named ty; T_name "null" ]
+  | Nullable ty -> union [ type_of ~names ty; T_name "null" ]
   | Scalar (Text _) -> T_name "string"
   | Scalar (Integer _ | Number) -> T_name "number"
   | Scalar Boolean -> T_name "boolean"
   | List items ->
-      T_array (operand (Option.fold ~none:unknown ~some:(type_of ~named) items))
-  | Inline i -> form_of ~named i.form i.composition
+      T_array (operand (Option.fold ~none:unknown ~some:(type_of ~names) items))
+  | Inline i when aliased i ->
+      if not (Hashtbl.mem names.aliases i.name) then (
+        names.met <- i.name :: names.met;
+        Hashtbl.replace names.aliases i.name
+          (T.type_alias i.name ~about:(about i.description)
+             (form_of ~names i.form i.composition)));
+      T_name i.name
+  | Inline i -> form_of ~names i.form i.composition
 
 (* A declaration's or an inline's type: an [allOf] as its parts and what it
    states beside them, each held to the values it states, as a union's tag
    is held to a value of its vocabulary; anything else as its form. *)
-and form_of ~named (form : Typing.form)
+and form_of ~names (form : Typing.form)
     (composition : Typing.composition option) : T.type_ =
   match composition with
   | Some { parts; beside } ->
       let own =
         (match beside.members with
           | [] -> []
-          | members -> [ object_of ~named members beside.rest ])
+          | members -> [ object_of ~names members beside.rest ])
         @
         match beside.values with
         | None -> []
         | Some values -> [ union (List.map literal values) ]
       in
-      intersection (List.map (type_of ~named) parts @ own)
+      intersection (List.map (type_of ~names) parts @ own)
   | None -> (
       match form with
-      | Record { members; rest } -> object_of ~named members rest
-      | Empty { rest; _ } -> object_of ~named [] rest
-      | Map { value; _ } -> object_of ~named [] (Of value)
+      | Record { members; rest } -> object_of ~names members rest
+      | Empty { rest; _ } -> object_of ~names [] rest
+      | Map { value; _ } -> object_of ~names [] (Of value)
       | Enum { values; _ } -> union (List.map literal values)
-      | Alias ty -> type_of ~named ty
+      | Alias ty -> type_of ~names ty
       | Union { branches; _ } ->
           union
-            (List.map (fun (b : Typing.branch) -> type_of ~named b.ty) branches)
+            (List.map (fun (b : Typing.branch) -> type_of ~names b.ty) branches)
       | Identifier _ | Json -> unknown)
 
 (* An object's members, and what it holds beside them: an open object holds
    any member, and one whose [additionalProperties] is a schema holds members
    of it. An object that states neither holds no member beside its own
    ([Deviations], TypeScript's unstated object). *)
-and object_of ~named (members : Typing.member list) (rest : Typing.rest) :
+and object_of ~names (members : Typing.member list) (rest : Typing.rest) :
     T.type_ =
   let members =
     List.map
       (fun (m : Typing.member) ->
-        T.member (key m.wire) (type_of ~named m.ty) ~about:(about m.description)
+        T.member (key m.wire) (type_of ~names m.ty) ~about:(about m.description)
           ~optional:(not m.required))
       members
   in
@@ -112,7 +146,7 @@ and object_of ~named (members : Typing.member list) (rest : Typing.rest) :
     match rest with
     | Unstated | Closed -> []
     | Open -> [ T.T_index_signature unknown ]
-    | Of ty -> [ T.T_index_signature (type_of ~named ty) ]
+    | Of ty -> [ T.T_index_signature (type_of ~names ty) ]
   in
   match (members, beside) with
   | [], [] -> T_generic ("Record", [ T_name "string"; T_name "never" ])
@@ -129,10 +163,10 @@ let branded name =
     ]
 
 (* A declaration's type: a kind of id branded, any other as its form. *)
-let declared ~named (d : Typing.declaration) =
+let declared ~names (d : Typing.declaration) =
   match d.form with
   | Identifier _ -> branded d.name
-  | form -> form_of ~named form d.composition
+  | form -> form_of ~names form d.composition
 
 (* Why a client that read a launcher's discovery document found no launcher
    (protocol/specs/src/client/discovery-absent.json): a reason a case. *)
@@ -180,9 +214,56 @@ let text (spec : Spec.t) =
     else if List.mem name table_names then table name
     else T.schema name
   in
+  let names = names named in
   let schema name =
     let d = typing.find name in
-    T.member (key name) (declared ~named d) ~about:(about d.description)
+    T.member (key name) (declared ~names d) ~about:(about d.description)
+  in
+  let interfaces =
+    [
+      T.Interface
+        {
+          about = [];
+          export = true;
+          name = "components";
+          members =
+            [
+              T.member (Ident "schemas")
+                (T_object (Rows, List.map schema components));
+            ];
+        };
+      T.Interface
+        {
+          about =
+            [
+              Doc_prose
+                [
+                  Text.Words
+                    "The records Protocol states in its tables and the client \
+                     types, which no wire message carries, and what only they \
+                     reach.";
+                ];
+            ];
+          export = true;
+          name = "records";
+          members = List.map schema records @ [ discovery_absent spec ];
+        };
+      T.Interface
+        {
+          about =
+            [
+              Doc_prose
+                [
+                  Text.Words
+                    "The tables the SDK carries as values, and what only they \
+                     reach.";
+                ];
+            ];
+          export = true;
+          name = "tables";
+          members = List.map schema table_names;
+        };
+    ]
   in
   T.text
     {
@@ -200,51 +281,7 @@ let text (spec : Spec.t) =
               "protocol/specs/src/identifiers/kinds.json, for the brands";
             ]
           __FILE__;
-      body =
-        [
-          T.Interface
-            {
-              about = [];
-              export = true;
-              name = "components";
-              members =
-                [
-                  T.member (Ident "schemas")
-                    (T_object (Rows, List.map schema components));
-                ];
-            };
-          T.Interface
-            {
-              about =
-                [
-                  Doc_prose
-                    [
-                      Text.Words
-                        "The records Protocol states in its tables and the \
-                         client types, which no wire message carries, and what \
-                         only they reach.";
-                    ];
-                ];
-              export = true;
-              name = "records";
-              members = List.map schema records @ [ discovery_absent spec ];
-            };
-          T.Interface
-            {
-              about =
-                [
-                  Doc_prose
-                    [
-                      Text.Words
-                        "The tables the SDK carries as values, and what only \
-                         they reach.";
-                    ];
-                ];
-              export = true;
-              name = "tables";
-              members = List.map schema table_names;
-            };
-        ];
+      body = interfaces @ aliases names;
     }
 
 (* The launcher's control API as the TypeScript SDK reads it

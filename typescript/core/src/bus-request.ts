@@ -1,7 +1,7 @@
 import { XynologError } from './errors';
 import type { EventMap, EventName } from './bus-protocol';
 import { BUS_OPERATIONS, type BusOperationKey } from './bus-operations';
-import type { CommandErrorCode } from './payload-types';
+import type { CommandErrorCode } from './types';
 import {
   busRequestCodeByWireCode,
   unrecognizedFailureCode,

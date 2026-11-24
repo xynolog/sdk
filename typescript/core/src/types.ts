@@ -176,7 +176,7 @@ export interface components {
        * view store, or its primary representation carries no checksum.
        * TERMINAL.
        */
-      kind: 'not-yet' | 'no-map' | 'unknown';
+      kind: AnchoredTextAbsentKind;
     };
     /**
      * What a reader gets when it asks for a resource's coordinate map: the map,
@@ -245,23 +245,7 @@ export interface components {
       /** The extracted text. */
       text: string;
       /** Where each word of `text` is, line by line, in reading order. */
-      lines: {
-        /** The page, counted from 1. */
-        p: number;
-        /**
-         * The line's vertical position in PDF points, from the bottom of the
-         * page.
-         */
-        y: number;
-        /** The line's height in PDF points. */
-        h: number;
-        /**
-         * Each word as `[x, width, start, end]`: its horizontal position and
-         * width in PDF points, and the offsets of its text in `text`, which are
-         * whole numbers of Unicode code points from the start of `text`.
-         */
-        words: number[][];
-      }[];
+      lines: AnchoredTextExtractedEntryLinesItem[];
       /** How the text was extracted. */
       method: components['schemas']['ExtractionMethod'];
       /** PDF classification, when the source was a PDF. */
@@ -314,9 +298,7 @@ export interface components {
        * whole of it is, or an object with source and optional selector
        * (fragment)
        */
-      target:
-        | components['schemas']['ResourceId']
-        | components['schemas']['AnnotationTarget'];
+      target: AnnotationTargetValue;
       /**
        * W3C Web Annotation body. Optional per the W3C spec — annotations whose
        * motivation alone is meaningful (highlighting) legitimately omit it.
@@ -485,18 +467,7 @@ export interface components {
        * tree, in milliseconds. A knowledge base that does not sync git stages
        * nothing, and reads neither.
        */
-      staging: {
-        /**
-         * The quiet period after the last change before pending changes are
-         * staged.
-         */
-        flushMs: number;
-        /**
-         * The longest a change waits to be staged while others keep arriving,
-         * measured from the oldest pending change.
-         */
-        maxWaitMs: number;
-      };
+      staging: ArchivistConfigStaging;
       logLevel: components['schemas']['LogLevel'];
       logFormat: components['schemas']['LogFormat'];
     };
@@ -511,22 +482,9 @@ export interface components {
        * The engine each job is done with when software does it, keyed as a job
        * description is: by `jobType`, and for `mark` by motivation.
        */
-      jobs: {
-        /** The engine for `mark` jobs of each motivation. */
-        mark?: {
-          highlighting?: components['schemas']['Engine'];
-          commenting?: components['schemas']['Engine'];
-          assessing?: components['schemas']['Engine'];
-          linking?: components['schemas']['Engine'];
-          tagging?: components['schemas']['Engine'];
-        };
-        yield?: components['schemas']['Engine'];
-      };
+      jobs: ArchivistEnginesJobs;
       /** The engine each Librarian actor that calls a model asks. */
-      actors: {
-        gatherer?: components['schemas']['Engine'];
-        matcher?: components['schemas']['Engine'];
-      };
+      actors: ArchivistEnginesActors;
     };
     /**
      * A page of one stream's events from one sequence number, inclusive, in log
@@ -549,7 +507,7 @@ export interface components {
        * The record actors this process hosts: each of the enum's, once, in the
        * order the enum lists them.
        */
-      actors: ('stower' | 'browser' | 'cloneTokenManager')[];
+      actors: ArchivistHealthActorsItem[];
     };
     /**
      * One stream of the event log, and where it stands: the resource it is of,
@@ -581,7 +539,7 @@ export interface components {
       /** What to look for, in the caller's words. Added to the prompt. */
       instructions?: string;
       /** The stance the assessments are written from. */
-      tone?: 'analytical' | 'critical' | 'balanced' | 'constructive';
+      tone?: AssessingJobParamsTone;
       /** How many annotations to aim for per 2000 words of the resource. */
       density?: number;
       /** The language the annotations' own text is written in. BCP 47. */
@@ -596,10 +554,8 @@ export interface components {
      * name filled in from the knowledge base's profiles — and is stored
      * nowhere. A Person the record does not name carries no `name`.
      */
-    AttributedEvent: components['schemas']['StoredEventResponse'] & {
-      /** Who `userId` is. */
-      agent: components['schemas']['Agent'];
-    };
+    AttributedEvent: components['schemas']['StoredEventResponse'] &
+      AttributedEventValue;
     /** auth.login's params. */
     AuthLoginParams: {
       /** The version of the control API the request is written to. */
@@ -685,7 +641,7 @@ export interface components {
      */
     BindBodyOperation: {
       /** The type of body operation */
-      op: 'add' | 'remove' | 'replace';
+      op: BindBodyOperationOp;
       /** Body item for add operations */
       item?: components['schemas']['AnnotationBody'];
       /** Previous body item for replace operations */
@@ -807,14 +763,12 @@ export interface components {
      * The payload of `browse:directory-failed`: a CommandError that names the
      * directory that could not be read.
      */
-    BrowseDirectoryFailed: components['schemas']['CommandError'] & {
-      /** The path the read was asked for. */
-      path: string;
-    };
+    BrowseDirectoryFailed: components['schemas']['CommandError'] &
+      BrowseDirectoryFailedValue;
     /** Request to browse a directory listing */
     BrowseDirectoryRequest: {
       path: string;
-      sort?: 'name' | 'mtime' | 'annotationCount';
+      sort?: BrowseDirectoryRequestSort;
     };
     /** Result of browsing a directory listing */
     BrowseDirectoryResult: {
@@ -834,9 +788,7 @@ export interface components {
      * jobs it has each used for
      */
     BrowseEnginesResult: {
-      response: {
-        engines: components['schemas']['EngineEntry'][];
-      };
+      response: BrowseEnginesResultResponse;
     };
     /** Emitted when an entity type is clicked in the browse panel */
     BrowseEntityTypeClickedEvent: {
@@ -903,10 +855,7 @@ export interface components {
      * DID. A DID with no profile is absent, and is named by no one.
      */
     BrowseProfilesResult: {
-      response: {
-        /** Each profile, keyed by DID. */
-        profiles: { [key: string]: components['schemas']['Profile'] };
-      };
+      response: BrowseProfilesResultResponse;
     };
     /** Emitted when a resource is closed in the browse panel */
     BrowseResourceCloseEvent: {
@@ -938,14 +887,7 @@ export interface components {
      * /resources/{id}/annotations`).
      */
     BrowseResourceResult: {
-      response: {
-        resource: components['schemas']['ResourceDescriptor'];
-        /**
-         * The sequence number of the resource's last event. A graph read that
-         * follows a write waits for the graph projection to reach it.
-         */
-        lastSequence: number;
-      };
+      response: BrowseResourceResultResponse;
     };
     /**
      * REPORT that a resource has loaded in a viewer — emitted on arrival by ANY
@@ -995,16 +937,7 @@ export interface components {
       kind: 'Browser';
       metadata: components['schemas']['Metadata'];
       /** How the Browser runs. */
-      spec: {
-        image: components['schemas']['Image'];
-        resources: components['schemas']['Resources'];
-        /**
-         * The port the Browser is published on, on this machine's loopback:
-         * where a person opens it, and the origin the issuer's realm allows its
-         * sign-in from.
-         */
-        port: number;
-      };
+      spec: BrowserSpec;
     };
     /**
      * Result of publishing one event. `subscribers` is the number of observers
@@ -1073,10 +1006,7 @@ export interface components {
      */
     BusEventMessage: {
       event: 'bus-event';
-      id:
-        | components['schemas']['PersistedEventId']
-        | components['schemas']['ReplyEventId']
-        | components['schemas']['EphemeralEventId'];
+      id: BusEventMessageId;
       data: components['schemas']['BusFrame'];
     };
     /**
@@ -1132,11 +1062,7 @@ export interface components {
        * record no longer holds the events after it (what it still holds is
        * replayed first). `query-error`: the record could not be read.
        */
-      reason:
-        | 'unparseable-last-event-id'
-        | 'scope-mismatch'
-        | 'retention-exceeded'
-        | 'query-error';
+      reason: BusResumeGapReason;
     };
     /**
      * Every message the bus stream carries. A client ignores an `event` it does
@@ -1169,19 +1095,7 @@ export interface components {
        * Per-resource-scope subscriptions, at most 512 on one connection. Scopes
        * must be unique across entries.
        */
-      scoped?: {
-        /** Resource scope (a resourceId). */
-        scope: components['schemas']['ResourceId'];
-        /** Channels to subscribe within this scope. */
-        channels: string[];
-        /**
-         * This scope's last-seen PersistedEventId. The gateway replays this
-         * scope's persisted events after it — those on the entry's channels —
-         * before the live tail, and writes a scoped `bus:resume-gap`
-         * (BusResumeGap) when it cannot cover the gap.
-         */
-        lastEventId?: string;
-      }[];
+      scoped?: BusSubscribeRequestScopedItem[];
       /**
        * Routing address for correlated replies: a UUID minted once per
        * bus-client lifetime — per actor, not per connection, so it survives a
@@ -1259,7 +1173,7 @@ export interface components {
        * unclassified — a malformed record or a missing injection — and a
        * consumer treats it as 'log it, assume nothing'.
        */
-      code?: 'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+      code?: CommandErrorCode;
       /** Human-readable error message */
       message: string;
       /** Optional additional context (stack trace, field name, etc.) */
@@ -1274,7 +1188,7 @@ export interface components {
       /** What to look for, in the caller's words. Added to the prompt. */
       instructions?: string;
       /** The voice the comments are written in. */
-      tone?: 'scholarly' | 'explanatory' | 'conversational' | 'technical';
+      tone?: CommentingJobParamsTone;
       /** How many annotations to aim for per 2000 words of the resource. */
       density?: number;
       /** The language the annotations' own text is written in. BCP 47. */
@@ -1307,12 +1221,12 @@ export interface components {
       /** Where the protocol or the spec states it. */
       source: string;
       /** The signal planes the case runs on. Absent, it runs on both. */
-      planes?: ('in-process' | 'nats')[];
+      planes?: ConformanceCasePlanesItem[];
       /**
        * A live case's tier: `fleet`, what every SDK with a live layer does, or
        * `parity`, what one that implements all of CACHE-SEMANTICS does.
        */
-      tier?: 'fleet' | 'parity';
+      tier?: ConformanceCaseTier;
       /**
        * Run the client exporting to an OTLP receiver, and once it has exited
        * hold what it exported to specs/src/sdk-telemetry/telemetry.json. A
@@ -1331,120 +1245,22 @@ export interface components {
      * suite refuses any other line.
      */
     ConformanceDriverLine:
-      | {
-          /** Written once. */
-          ready: true;
-        }
-      | {
-          /** The operation's id. */
-          id: number;
-          ok: unknown;
-        }
-      | {
-          /** The operation's id. */
-          id: number;
-          /** The failure. */
-          error: components['schemas']['ConformanceFailure'];
-        }
-      | {
-          /** The operation's id. */
-          id: number;
-          /** It was abandoned. */
-          abandoned: true;
-        }
-      | {
-          /** The operation's id. */
-          id: number;
-          /** It has none. */
-          unsupported: true;
-        }
-      | {
-          /** The operation's id. */
-          id: number;
-          /** What made no sense. */
-          misuse: string;
-        }
-      | {
-          /**
-           * The state it is in now: one a case's `state` step names
-           * (ConformanceStep.json), or another the case never waits for.
-           */
-          state: string;
-        }
-      | {
-          /** The frame. */
-          frame: {
-            /** The channel. */
-            channel: string;
-            payload?: unknown;
-            /** The frame's correlation id, when it has one. */
-            correlationId?: string;
-            /** The frame's scope, when it has one. */
-            scope?: components['schemas']['ResourceId'];
-          };
-        }
-      | {
-          /** The failure. */
-          error: components['schemas']['ConformanceFailure'];
-        }
-      | {
-          /** The report. */
-          progress: {
-            /** The `upload` operation's id. */
-            upload: number;
-            /** How many bytes it has sent. */
-            bytesUploaded: number;
-            /** How many it will send. */
-            totalBytes: number;
-          };
-        }
-      | {
-          /** The emission. */
-          emission: {
-            /** The observer. */
-            observer: string;
-            /** The state. */
-            state:
-              | {
-                  /** Nothing to show yet. */
-                  status: 'pending';
-                }
-              | {
-                  /** A value to show. */
-                  status: 'ready';
-                  value: unknown;
-                }
-              | {
-                  /** The query failed. */
-                  status: 'failed';
-                  /** The failure. */
-                  error: components['schemas']['ConformanceFailure'];
-                };
-          };
-        }
-      | {
-          /** The observer. */
-          completed: string;
-        }
-      | {
-          /** The job, as the worker read the record. */
-          claimed: { [key: string]: unknown };
-        }
-      | {
-          /**
-           * The refusal: with a code when the bus refused it, with none when the
-           * worker did.
-           */
-          refused: components['schemas']['ConformanceFailure'];
-        }
-      | {
-          /** The job's id. */
-          signalled: string;
-        }
-      | {
-          /** The job's id. */
-          stalled: string;
-        };
+      | ConformanceDriverLineReady
+      | ConformanceDriverLineOk
+      | ConformanceDriverLineFailed
+      | ConformanceDriverLineAbandoned
+      | ConformanceDriverLineUnsupported
+      | ConformanceDriverLineMisuse
+      | ConformanceDriverLineState
+      | ConformanceDriverLineFrame
+      | ConformanceDriverLineErrorStream
+      | ConformanceDriverLineProgress
+      | ConformanceDriverLineEmission
+      | ConformanceDriverLineCompleted
+      | ConformanceDriverLineClaimed
+      | ConformanceDriverLineRefused
+      | ConformanceDriverLineSignalled
+      | ConformanceDriverLineStalled;
     /**
      * A failure as an SDK reports it to the suite (conformance/sdk/README.md,
      * "The driver protocol"): its code, the status when a server stated one,
@@ -1502,50 +1318,7 @@ export interface components {
        * suites talk to in its place (conformance/sdk/README.md, "The driver
        * protocol").
        */
-      sdks: {
-        [key: string]: {
-          /**
-           * How its wire driver is started. A command and its arguments, as the
-           * harness starts it. An argument that starts with ./ or ../ is a path,
-           * resolved against the manifest's own directory; every other is passed
-           * as written.
-           */
-          wire?: string[];
-          /**
-           * How its live driver is started, and the tier of the live corpus the
-           * SDK is held to.
-           */
-          live?: {
-            /**
-             * How its live driver is started. A command and its arguments, as the
-             * harness starts it. An argument that starts with ./ or ../ is a
-             * path, resolved against the manifest's own directory; every other is
-             * passed as written.
-             */
-            command: string[];
-            /**
-             * A live case's tier: `fleet`, what every SDK with a live layer does,
-             * or `parity`, what one that implements all of CACHE-SEMANTICS does.
-             */
-            tier: 'fleet' | 'parity';
-          };
-          /**
-           * How its worker driver is started, when the SDK has a worker's surface
-           * (conformance/worker/README.md). A command and its arguments, as the
-           * harness starts it. An argument that starts with ./ or ../ is a path,
-           * resolved against the manifest's own directory; every other is passed
-           * as written.
-           */
-          worker?: string[];
-          /**
-           * The wire cases its driver cannot be put through, by the case's name,
-           * each with why. The suite holds an exemption as it holds a case: the
-           * driver must answer unsupported to what the case asks, or the
-           * exemption is stale.
-           */
-          exempt?: { [key: string]: string };
-        };
-      };
+      sdks: { [key: string]: ConformanceImplementationsSdksValue };
       /**
        * The model catalogue the implementation supplies, by its path; a
        * relative one is resolved against the manifest's own directory. The
@@ -1560,199 +1333,34 @@ export interface components {
      * "A case", says what each does.
      */
     ConformanceStep:
-      | {
-          /** Each name, and the value it takes. */
-          let: { [key: string]: unknown };
-        }
-      | {
-          /** The operation (conformance/sdk/README.md, "Operations"). */
-          driver: string;
-          /** The operation's arguments. */
-          with?: { [key: string]: unknown };
-          returns?: unknown;
-          fails?: unknown;
-          /**
-           * The operation's name, for the `settles` or `abandon` step that ends it.
-           */
-          as?: string;
-        }
-      | {
-          /** The operation. */
-          abandon: string;
-        }
-      | {
-          /** The operation. */
-          settles: string;
-          returns?: unknown;
-          fails?: unknown;
-          /** It ended because the case abandoned it. */
-          abandoned?: true;
-        }
-      | {
-          /** The operation of the gateway's API, by its method and path. */
-          wire: string;
-          /**
-           * When it is read: on arrival, once answered (the default), or once its
-           * stream has caught up.
-           */
-          at?: 'arrival' | 'answer' | 'live';
-          /** The status it was answered with. */
-          status?: number;
-          params?: unknown;
-          body?: unknown;
-          token?: unknown;
-          /**
-           * The request's headers named here, each as a pattern; headers not named
-           * are not compared.
-           */
-          headers?: { [key: string]: unknown };
-          answer?: unknown;
-          /** The request's name, for a later step. */
-          as?: string;
-          /**
-           * A request named earlier, which was answered before this one arrived.
-           */
-          follows?: string;
-          /**
-           * A request named earlier, answered with a Retry-After, which this one
-           * waited out.
-           */
-          waited?: string;
-        }
-      | {
-          /** The stream. */
-          carried: string;
-          is: unknown;
-        }
-      | {
-          /** The request. */
-          closed: string;
-        }
-      | {
-          /** The upload. */
-          progress: string;
-        }
-      | {
-          /** The state. */
-          state:
-            | 'initial'
-            | 'connecting'
-            | 'open'
-            | 'reconnecting'
-            | 'degraded'
-            | 'unauthenticated'
-            | 'closed';
-        }
-      | {
-          /** The state. */
-          stays:
-            | 'initial'
-            | 'connecting'
-            | 'open'
-            | 'reconnecting'
-            | 'degraded'
-            | 'unauthenticated'
-            | 'closed';
-        }
-      | {
-          /** The channel. */
-          frame: string;
-          is: unknown;
-        }
-      | {
-          /** The channel. */
-          frames: string;
-          /** How many more. */
-          count: number;
-        }
-      | {
-          error: unknown;
-        }
-      | {
-          /** The directive. */
-          backend:
-            | 'listen'
-            | 'emit'
-            | 'record'
-            | 'content'
-            | 'description'
-            | 'annotations'
-            | 'anchored-text'
-            | 'uploaded'
-            | 'refuse'
-            | 'unanswered'
-            | 'answer-lost'
-            | 'hold'
-            | 'release'
-            | 'rechunk'
-            | 'carry'
-            | 'cut'
-            | 'down'
-            | 'up'
-            | 'archivist';
-          /** The directive's arguments. */
-          with?: { [key: string]: unknown };
-        }
-      | {
-          /** How long, in milliseconds. */
-          quiet: number;
-        }
-      | {
-          /** The live query. */
-          observe: {
-            /** The live query, by its name in specs/src/client/refresh.json. */
-            query: string;
-            resource?: unknown;
-            annotation?: unknown;
-            search?: unknown;
-            filters?: unknown;
-          };
-          /** The observer. */
-          as: string;
-        }
-      | {
-          /** The observer. */
-          leave: string;
-        }
-      | {
-          /** The observer. */
-          reaches: string;
-          state: unknown;
-        }
-      | {
-          /** The observer. */
-          holds: string;
-          state: unknown;
-        }
-      | {
-          /** The observer. */
-          completes: string;
-        }
+      | ConformanceStepLet
+      | ConformanceStepDriver
+      | ConformanceStepAbandon
+      | ConformanceStepSettles
+      | ConformanceStepWire
+      | ConformanceStepCarried
+      | ConformanceStepClosed
+      | ConformanceStepProgress
+      | ConformanceStepState
+      | ConformanceStepStays
+      | ConformanceStepFrame
+      | ConformanceStepFrames
+      | ConformanceStepError
+      | ConformanceStepBackend
+      | ConformanceStepQuiet
+      | ConformanceStepObserve
+      | ConformanceStepLeave
+      | ConformanceStepReaches
+      | ConformanceStepHolds
+      | ConformanceStepCompletes
       | components['schemas']['ConformanceBusFetch']
       | components['schemas']['ConformanceHttpFetch']
-      | {
-          /** The requests. */
-          fetches: (
-            | components['schemas']['ConformanceBusFetch']
-            | components['schemas']['ConformanceHttpFetch']
-          )[];
-        }
-      | {
-          /** The scopes. */
-          scopes: unknown[];
-        }
-      | {
-          claimed: unknown;
-        }
-      | {
-          refused: unknown;
-        }
-      | {
-          signalled: unknown;
-        }
-      | {
-          stalled: unknown;
-        };
+      | ConformanceStepFetches
+      | ConformanceStepScopes
+      | ConformanceStepClaimed
+      | ConformanceStepRefused
+      | ConformanceStepSignalled
+      | ConformanceStepStalled;
     /**
      * Content format as a MIME type, optionally with parameters. The base type
      * (everything before the first ';') MUST be a SupportedMediaType;
@@ -1769,16 +1377,8 @@ export interface components {
        * What the summary is of: the resource the annotation is on, and the
        * annotation's entity types.
        */
-      relevantFields: {
-        resourceId: components['schemas']['ResourceId'];
-        resourceName: string;
-        entityTypes: string[];
-      };
-      context: {
-        before?: string;
-        selected: string;
-        after?: string;
-      };
+      relevantFields: ContextualSummaryResponseRelevantFields;
+      context: ContextualSummaryResponseContext;
     };
     CreateAnnotationRequest: {
       motivation: components['schemas']['Motivation'];
@@ -1848,7 +1448,7 @@ export interface components {
        * Where the stack actually runs. "local": containers on this machine.
        * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
        */
-      placement: 'local' | 'codespace';
+      placement: DiscoveredKBPlacement;
       /**
        * owner/name GitHub slug — present for codespace placements, where the
        * repo is the stack's identity
@@ -1925,58 +1525,14 @@ export interface components {
        * The JetStream broker holding the job queue, whose layout is
        * specs/src/jobs/storage.json.
        */
-      queue: {
-        /** The broker's address (`host:port`, or several, comma-separated). */
-        servers: string;
-        /**
-         * The environment variable holding the broker user, when the broker
-         * requires one.
-         */
-        userEnv?: string;
-        /**
-         * The environment variable holding the broker password, when the broker
-         * requires one.
-         */
-        passwordEnv?: string;
-      };
+      queue: DispatcherConfigQueue;
       /** The port the dispatcher answers `/health` on. */
       port: number;
       /**
        * The queue's clocks, in milliseconds. The launcher writes the values a
        * deployment runs with; a test harness shrinks them.
        */
-      timing: {
-        /**
-         * How often the queue re-announces pending jobs and sweeps for dead
-         * workers. The re-announcement is insurance against a lost wake-up, not
-         * dispatch.
-         */
-        tickMs: number;
-        /**
-         * How long a running job may go without progress, a checkpoint or a
-         * claim before its worker is presumed dead.
-         */
-        staleRunningMs: number;
-        /**
-         * How long the broker waits, after this dispatcher stops renewing a
-         * job's lease, before redelivering its message.
-         */
-        ackWaitMs: number;
-        /** How long a concluded job is kept before it is deleted. */
-        retentionMs: number;
-        /** How often concluded jobs past `retentionMs` are deleted. */
-        retentionSweepMs: number;
-        /**
-         * The least time between two progress writes for one job; reports
-         * closer together than this are not written.
-         */
-        progressWriteIntervalMs: number;
-        /**
-         * How long the dispatcher waits at boot for the broker before it exits,
-         * so that a restart policy can retry.
-         */
-        bootDeadlineMs: number;
-      };
+      timing: DispatcherConfigTiming;
       logLevel: components['schemas']['LogLevel'];
       logFormat: components['schemas']['LogFormat'];
     };
@@ -2033,14 +1589,7 @@ export interface components {
        * `ollama` and `vllm` are servers a deployment runs or reaches, each
        * named for the server's software.
        */
-      provider:
-        | 'anthropic'
-        | 'google'
-        | 'llamacpp'
-        | 'ollama'
-        | 'openai'
-        | 'together'
-        | 'vllm';
+      provider: EngineProvider;
       /** The model identifier, as the provider names it. */
       model: string;
     };
@@ -2074,16 +1623,8 @@ export interface components {
      * enrichment fields directly to update local caches without an additional
      * fetch.
      */
-    EnrichedResourceEvent: components['schemas']['StoredEventResponse'] & {
-      /**
-       * Populated for events that mutate an annotation (mark:added,
-       * mark:body-updated, mark:removed). Carries the post-materialization
-       * annotation as it exists in the view, so subscribers can update local
-       * caches in-place without refetching. Absent for events that don't touch
-       * annotations.
-       */
-      annotation?: components['schemas']['Annotation'];
-    };
+    EnrichedResourceEvent: components['schemas']['StoredEventResponse'] &
+      EnrichedResourceEventValue;
     /**
      * Payload for mark:entity-tag-added and mark:entity-tag-removed domain
      * events
@@ -2176,27 +1717,7 @@ export interface components {
      * 'extracted' member of ExtractionOutcome, the record the anchored-text
      * store holds.
      */
-    ExtractedText: components['schemas']['AnchoredText'] & {
-      /**
-       * Discriminant — both ExtractionOutcome members carry `kind`,
-       * single-valued: the category here, the detail in `method`.
-       */
-      kind: 'extracted';
-      /** How the text was extracted. */
-      method: components['schemas']['ExtractionMethod'];
-      /** PDF classification, when the source was a PDF. */
-      pdfClass?: components['schemas']['PdfClass'];
-      /**
-       * How well the engine read the pixels, when any of this text came from
-       * OCR.
-       */
-      ocrConfidence?: components['schemas']['OcrConfidence'];
-      /**
-       * 1-indexed pages this extraction could not read — present only for
-       * partially covered documents (class C).
-       */
-      unreadPages?: number[];
-    };
+    ExtractedText: components['schemas']['AnchoredText'] & ExtractedTextValue;
     /**
      * A named decline: extraction ran and yielded nothing, by class. A
      * first-class, cacheable outcome — 'we ran and there was nothing' costs a
@@ -2295,7 +1816,7 @@ export interface components {
        * `running`, `done`, or `due` where the record could not be listed and
        * the sweep is tried again.
        */
-      sweep: 'pending' | 'running' | 'done' | 'due';
+      sweep: FollowerFollowingSweep;
       /**
        * How many resources' logs a failed taking has stopped until the next
        * sweep.
@@ -2377,15 +1898,7 @@ export interface components {
        */
       publicUrl: string;
       /** The issuer this knowledge base trusts. */
-      identity: {
-        /** The issuer URL, exactly as tokens carry it in `iss`. */
-        issuer: string;
-        /**
-         * The claim a person's DID is built from: `did:web:<domain>:users:<its
-         * value>`.
-         */
-        subjectClaim: string;
-      };
+      identity: GatewayConfigIdentity;
       /** Where the Archivist listens. */
       archivist: components['schemas']['ServiceAddress'];
       /**
@@ -2393,24 +1906,7 @@ export interface components {
        * `nats`, the fabric every replica on one broker shares, which requires
        * `servers` and a broker with JetStream.
        */
-      signal: {
-        type: 'in-process' | 'nats';
-        /**
-         * The broker's address (`host:port`, or several, comma-separated).
-         * Required for `nats`.
-         */
-        servers?: string;
-        /**
-         * The environment variable holding the broker user, when the broker
-         * requires one.
-         */
-        userEnv?: string;
-        /**
-         * The environment variable holding the broker password, when the broker
-         * requires one.
-         */
-        passwordEnv?: string;
-      };
+      signal: GatewayConfigSignal;
       logLevel: components['schemas']['LogLevel'];
       logFormat: components['schemas']['LogFormat'];
       /**
@@ -2422,10 +1918,7 @@ export interface components {
        * holds open at once; one past it is closed unanswered. The launcher
        * derives both from the memory it gives the gateway's container.
        */
-      capacity: {
-        queuedBytes: number;
-        connections: number;
-      };
+      capacity: GatewayConfigCapacity;
     };
     /**
      * Completion payload emitted on the gather:annotation-complete bus channel
@@ -2472,10 +1965,7 @@ export interface components {
      * The payload of `gather:failed`: a CommandError that names the annotation
      * whose context could not be gathered.
      */
-    GatherFailed: components['schemas']['CommandError'] & {
-      /** The annotation the gather was asked for. */
-      annotationId: components['schemas']['AnnotationId'];
-    };
+    GatherFailed: components['schemas']['CommandError'] & GatherFailedValue;
     /**
      * Request for the annotations elsewhere that refer to a resource. The
      * Librarian answers from the graph.
@@ -2509,10 +1999,8 @@ export interface components {
      * The payload of `gather:resource-failed`: a CommandError that names the
      * resource whose context could not be gathered.
      */
-    GatherResourceFailed: components['schemas']['CommandError'] & {
-      /** The resource the gather was asked for. */
-      resourceId: components['schemas']['ResourceId'];
-    };
+    GatherResourceFailed: components['schemas']['CommandError'] &
+      GatherResourceFailedValue;
     /**
      * Request payload sent on the gather:resource-requested bus channel to
      * gather context for a resource.
@@ -2557,55 +2045,7 @@ export interface components {
      */
     GatheredContext: {
       /** The gather anchor. Discriminated on `kind`. */
-      focus:
-        | {
-            kind: 'annotation';
-            /** The annotation this context was gathered for */
-            annotation: components['schemas']['Annotation'];
-            /** The resource containing the annotation */
-            sourceResource: components['schemas']['ResourceDescriptor'];
-            /** Text context around the annotation target */
-            selected?: {
-              /** Text appearing before the selected passage */
-              before?: string;
-              /** The selected text passage (the annotation target) */
-              text: string;
-              /** Text appearing after the selected passage */
-              after?: string;
-            };
-            /**
-             * User-provided hint to supplement or replace the selected text for
-             * search and generation
-             */
-            userHint?: string;
-            /**
-             * The resource the annotation links to, if it is a resolved reference.
-             * Dormant capability — produced/exposed but not yet consumed.
-             */
-            targetResource?: components['schemas']['ResourceDescriptor'];
-            /**
-             * Context about the annotation's link target. Dormant —
-             * produced/exposed but not yet consumed.
-             */
-            targetContext?: {
-              content: string;
-              summary?: string;
-            };
-          }
-        | {
-            kind: 'resource';
-            /** The resource this context was gathered for */
-            resource: components['schemas']['ResourceDescriptor'];
-            summary?: string;
-            suggestedReferences?: string[];
-            /** Resource content (included when requested) */
-            content?: {
-              /** Content of the focal resource */
-              main?: string;
-              /** Map of related resource IDs to their content */
-              related?: { [key: string]: string };
-            };
-          };
+      focus: GatheredContextFocus;
       /**
        * Knowledge graph backbone — resources AND annotations as typed nodes.
        * The flattened views (connections, citedBy, siblings) are derived from
@@ -2616,31 +2056,9 @@ export interface components {
        * Semantically similar passages from across the knowledge base, found via
        * vector search
        */
-      semanticContext?: {
-        /** Passages ranked by cosine similarity to the focal text */
-        similar: components['schemas']['SemanticMatch'][];
-        /**
-         * Entity types excluded from this recall — a record of how `similar`
-         * was filtered (e.g. ['Question'] so answer-generation never surfaces
-         * prior questions). Absent when no exclusion was applied.
-         */
-        excludedEntityTypes?: string[];
-      };
+      semanticContext?: GatheredContextSemanticContext;
       /** Context metadata about the focal anchor and its source */
-      metadata: {
-        /** Type of source resource (e.g., 'document', 'image', 'video') */
-        resourceType?: string;
-        /** BCP 47 language tag of source content */
-        language?: string;
-        /** Entity types associated with the focal anchor */
-        entityTypes?: string[];
-        /**
-         * Global frequency counts for entity types (for IDF-like weighting). A
-         * KB-wide statistic, not a neighborhood property — kept here rather
-         * than on the graph.
-         */
-        entityTypeFrequencies?: { [key: string]: number };
-      };
+      metadata: GatheredContextMetadata;
       /**
        * LLM-generated summary of the focal anchor's relationships in the
        * knowledge graph
@@ -2655,17 +2073,8 @@ export interface components {
      * focus.sourceResource, with the worker binding to focus.annotation), and
      * the dispatcher refuses a parameter this schema does not name.
      */
-    GenerationJobParams: components['schemas']['GenerationJobRequest'] & {
-      /**
-       * The gathered context that grounds the generation. Its `focus` names the
-       * anchor: the DISPATCHER derives the job's resourceId from it (resource
-       * focus → focus.resource; annotation focus → focus.sourceResource, with
-       * the worker auto-binding to focus.annotation) and REJECTS a
-       * caller-supplied id — the context is authoritative. Under `cite`, the
-       * ids its embedding carries are the only valid citation targets.
-       */
-      context: components['schemas']['GatheredContext'];
-    };
+    GenerationJobParams: components['schemas']['GenerationJobRequest'] &
+      GenerationJobParamsValue;
     /**
      * What a `yield` job is asked to make: every parameter of
      * GenerationJobParams but its `context`, the input the resource is made
@@ -2785,14 +2194,7 @@ export interface components {
        * description of that resource is held, and where its name is empty.
        */
       resourceName?: string;
-      target: {
-        /** ID of resource containing the reference */
-        source: components['schemas']['ResourceId'];
-        selector: {
-          /** The selected text that references this resource */
-          exact: string;
-        };
-      };
+      target: GetReferencedByResponseReferencedByItemTarget;
     };
     GetResourceByTokenResponse: {
       sourceResource: components['schemas']['ResourceDescriptor'];
@@ -2899,7 +2301,7 @@ export interface components {
       /** The gateway's port. */
       port: number;
       /** What the gateway is reached over. */
-      protocol: 'http' | 'https';
+      protocol: HttpEndpointProtocol;
     };
     /**
      * An HTTP response's status code, as the tables state one. No API states
@@ -2991,15 +2393,7 @@ export interface components {
       /**
        * The providers, and the engine for each job and each Librarian actor.
        */
-      spec: {
-        /** Each provider an engine names, and how it is reached. */
-        providers: { [key: string]: components['schemas']['Provider'] };
-        /**
-         * The engine each job is done with when software does it, and the
-         * engine each Librarian actor asks.
-         */
-        engines: components['schemas']['ArchivistEngines'];
-      };
+      spec: InferenceSpec;
     };
     /**
      * A provider's actual ceilings for a model, discovered from the provider
@@ -3043,9 +2437,7 @@ export interface components {
      * client for. An engine whose discovery is currently unavailable is absent.
      */
     InferenceLimitsResult: {
-      response: {
-        limits: components['schemas']['EngineLimits'][];
-      };
+      response: InferenceLimitsResultResponse;
     };
     /**
      * The issuer the launcher runs for the knowledge bases on a machine, with a
@@ -3063,49 +2455,7 @@ export interface components {
        * The issuer, where it is published, and the database it keeps its realms
        * in.
        */
-      spec: {
-        /** The issuer's driver: `keycloak`. */
-        type: string;
-        image: components['schemas']['Image'];
-        resources: components['schemas']['Resources'];
-        /**
-         * The port the issuer is published on, on this machine: the origin of
-         * every realm's `iss`, so the one number wherever the issuer is
-         * reached.
-         */
-        port: number;
-        /** The database the issuer keeps its realms in. */
-        database: components['schemas']['Runner'] &
-          unknown & {
-            /** The database's driver: `postgres`. */
-            type: string;
-            /**
-             * The database the issuer keeps its realms in: a lowercase PostgreSQL
-             * identifier, as PostgreSQL itself names an unquoted one. On a
-             * PostgreSQL the launcher runs, the launcher creates it; on one
-             * somebody else runs (`external`), it must already exist there.
-             */
-            name: string;
-            /** The user the issuer signs in as. */
-            user: string;
-            image?: components['schemas']['Image'];
-            resources?: components['schemas']['Resources'];
-            /**
-             * The port a PostgreSQL the launcher runs is published on, on this
-             * machine, where the issuer reaches it. One somebody else runs is
-             * reached at `external`.
-             */
-            port?: number;
-            /** A database somebody else runs. */
-            external?: {
-              /** A host name or address the issuer can reach. */
-              host: string;
-              /** The port it listens on. */
-              port: number;
-              password: components['schemas']['SecretRef'];
-            };
-          };
-      };
+      spec: IssuerSpec;
     };
     /**
      * A graph kept in a JanusGraph server, asked in Gremlin. No service has
@@ -3419,7 +2769,7 @@ export interface components {
        * the CLI renders English terminal copy from the same value. A prose
        * `message` composed server-side would be English everywhere.
        */
-      reason: 'no-text-layer' | 'encrypted' | 'corrupt' | 'too-large' | 'empty';
+      reason: JobDeclinedReason;
     };
     /** Command to mark a job as failed */
     JobFailCommand: {
@@ -3629,15 +2979,7 @@ export interface components {
        * category) shown verbatim — the same split as `requestParams`. Absent on
        * flows that iterate nothing, such as generation.
        */
-      current?: {
-        /**
-         * What sort of thing `value` is. Adding a variant means adding client
-         * copy for it in every locale.
-         */
-        kind: 'entity-type' | 'category';
-        /** The item itself, shown verbatim and never translated. */
-        value: string;
-      };
+      current?: JobProgressCurrent;
       /**
        * Items completed so far, zero-based — the item in `current` is the one
        * after these. Paired with `total`.
@@ -3662,43 +3004,7 @@ export interface components {
        * Per-item results for the items already finished, for the UI's completed
        * log. Generic across flows for the same reason `current` is.
        */
-      completedItems?: {
-        /** The item, shown verbatim. */
-        value: string;
-        /** Annotations found for it. */
-        foundCount: number;
-        /**
-         * Annotations actually persisted for it — post-dedupe and
-         * post-durability-acknowledgement, so it counts what the event log
-         * holds, not what the model proposed. Beside foundCount this is the
-         * per-unit yield the sizing work is judged by. Present on flows whose
-         * units persist as they complete (a linking job); the tagging flow
-         * reports the same fact as byCategory on its result, because its
-         * annotations are built after the per-category loop.
-         */
-        persistedCount?: number;
-        /**
-         * Present only when pieces of this unit were accepted at the
-         * subdivision floor while a count call said more was present. The unit
-         * completed, but incompletely — this carries the EVIDENCE (found vs
-         * counted, over how many pieces), never a judgment against any expected
-         * yield. Absent means complete: genuinely absent, not defaulted.
-         */
-        underReported?: {
-          /** Floor-accepted pieces in this unit. */
-          pieces: number;
-          /**
-           * Annotations extraction did find on those pieces — every span
-           * write-time-verified.
-           */
-          found: number;
-          /**
-           * Mentions the count calls reported across those pieces (approximate
-           * by nature).
-           */
-          counted: number;
-        };
-      }[];
+      completedItems?: JobProgressCompletedItemsItem[];
       /**
        * Echoed job parameters for display in the progress UI. `label` is a
        * CODE, not a sentence — the client owns the wording, same rule as the
@@ -3706,14 +3012,7 @@ export interface components {
        * their instructions) and is deliberately NOT translated: it is their
        * words, not ours.
        */
-      requestParams?: {
-        /**
-         * Which parameter this is. The client renders a localized name for it.
-         */
-        label: 'entity-types' | 'instructions' | 'tone' | 'density';
-        /** The user's own input, shown verbatim. */
-        value: string;
-      }[];
+      requestParams?: JobProgressRequestParamsItem[];
     };
     /** Analyzing the content. */
     JobProgressAnalyzing: {
@@ -3918,7 +3217,7 @@ export interface components {
     JobStatusResponse: {
       jobId: components['schemas']['JobId'];
       type: components['schemas']['JobType'];
-      status: 'pending' | 'running' | 'complete' | 'failed' | 'cancelled';
+      status: JobStatusResponseStatus;
       userId: components['schemas']['UserId'];
       created: string;
       startedAt?: string;
@@ -4084,7 +3383,7 @@ export interface components {
        * Where the stack actually runs. "local": containers on this machine.
        * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
        */
-      placement: 'local' | 'codespace';
+      placement: KnowledgeBaseStatusPlacement;
       /** Its clone, for a local stack. */
       root?: string;
       /**
@@ -4164,26 +3463,8 @@ export interface components {
      * (connections, citedBy, siblings) are derived from these nodes/edges.
      */
     KnowledgeGraph: {
-      nodes: (
-        | components['schemas']['GraphResourceNode']
-        | components['schemas']['GraphAnnotationNode']
-      )[];
-      edges: {
-        source: string;
-        target: string;
-        /**
-         * Edge kind: `annotation-of` (an annotation → the resource it lives
-         * on), `cites` (a citing linking annotation → the focal resource), or
-         * `link` (a resource → a resource it links to)
-         */
-        type: string;
-        /**
-         * Whether the connection goes both ways. Absent on a `link` edge found
-         * through what cites a resource, which says nothing of the way back
-         */
-        bidirectional?: boolean;
-        metadata?: { [key: string]: unknown };
-      }[];
+      nodes: KnowledgeGraphNodesItem[];
+      edges: KnowledgeGraphEdgesItem[];
       /**
        * Whether the graph stopped taking resources at its ceiling of 200
        * resource nodes, so that a resource within the depth asked for is not in
@@ -4205,121 +3486,7 @@ export interface components {
        * The indexes, the services that keep and read them, and the knowledge
        * base they index.
        */
-      spec: {
-        /** The name of the KnowledgeBase document whose record this indexes. */
-        knowledgeBase: string;
-        logLevel: components['schemas']['LogLevel'];
-        /**
-         * The graph store the Weaver writes and the Librarian reads. The
-         * knowledge base's graph is in the database its DID names
-         * (specs/src/graph/database-cases.json): a Neo4j the launcher runs
-         * makes it when it first starts, and one somebody else runs must
-         * already hold it.
-         */
-        graph: components['schemas']['Runner'] & {
-          /** The graph store's driver: `neo4j`. */
-          type: string;
-          /** The user the services sign in to the store as. */
-          username: string;
-          image?: components['schemas']['Image'];
-          resources?: components['schemas']['Resources'];
-          /** A graph store somebody else runs. */
-          external?: {
-            /** Where it listens: `bolt://host:port`. */
-            uri: string;
-            password: components['schemas']['SecretRef'];
-          };
-        };
-        /**
-         * The vector store the Smelter writes and the Librarian reads: the one
-         * the launcher runs for the knowledge bases on a machine, at `shared`;
-         * one of the knowledge base's own the launcher runs, from `image` with
-         * `resources`; or somebody else's, at `external`. Exactly one of the
-         * three.
-         */
-        vectors: {
-          /** The vector store's driver: `qdrant`. */
-          type: string;
-          /**
-           * The vector store the launcher runs for the knowledge bases on a
-           * machine (the state home's VectorStore document). Each knowledge
-           * base keeps its index in collections of its own there, so nothing is
-           * said of it here.
-           */
-          shared?: Record<string, never>;
-          image?: components['schemas']['Image'];
-          resources?: components['schemas']['Resources'];
-          /**
-           * A vector store somebody else runs, with the token each service
-           * presents to it: the Smelter's may make, write and delete this
-           * knowledge base's collections, and the Librarian's may read them.
-           */
-          external?: {
-            /** A host name or address the stack's containers can reach. */
-            host: string;
-            /** The port its REST API listens on. */
-            port: number;
-            smelterToken: components['schemas']['SecretRef'];
-            librarianToken: components['schemas']['SecretRef'];
-          };
-        };
-        /**
-         * The model that turns text into vectors. Vectors made by one model are
-         * not comparable with another's, so the model is the index's.
-         */
-        embedding: {
-          /** Who serves the model: `ollama`, or `voyage`. */
-          type: string;
-          /** The model, as its provider names it. */
-          model: string;
-          /** How a text is cut before it is embedded. */
-          chunking: {
-            /** The size of a piece. */
-            chunkSize: number;
-            /** How much of one piece the next repeats. */
-            overlap: number;
-          };
-          /**
-           * Where the provider's API is reached. The shared Ollama is stated by
-           * no endpoint.
-           */
-          endpoint?: string;
-          apiKey?: components['schemas']['SecretRef'];
-        };
-        /** The Librarian: it answers gathers and searches from the indexes. */
-        librarian: {
-          image: components['schemas']['Image'];
-          resources: components['schemas']['Resources'];
-          /** How a gather waits. */
-          gather: {
-            /**
-             * How long a gather waits for the Smelter to settle a resource, in
-             * milliseconds.
-             */
-            settleTimeoutMs: number;
-          };
-          /** What a search by meaning keeps. */
-          search: {
-            /** The least similarity a hit by meaning must have. */
-            semanticFloor: number;
-          };
-        };
-        /** The Smelter: it writes the vectors and the anchored text. */
-        smelter: {
-          image: components['schemas']['Image'];
-          resources: components['schemas']['Resources'];
-          /**
-           * How many PDFs it works on at once. A page of a scan held for OCR is
-           * large; one for each 2G of its memory is a reading of what fits.
-           */
-          pdfsAtOnce: number;
-        };
-        /** The Weaver: it writes the graph. */
-        weaver: {
-          image: components['schemas']['Image'];
-          resources: components['schemas']['Resources'];
-        };
-      };
+      spec: KnowledgeIndexSpec;
     };
     /**
      * Everything a Librarian reads at boot: nothing in it is defaulted by the
@@ -4361,18 +3528,9 @@ export interface components {
        */
       modelCatalogue: string;
       /** The bound on a gather. */
-      gather: {
-        /**
-         * How long a gather around a resource waits for the Smelter's decision
-         * on it before answering without similar passages, in milliseconds.
-         */
-        settleTimeoutMs: number;
-      };
+      gather: LibrarianConfigGather;
       /** The bound on a search by meaning. */
-      search: {
-        /** The least similarity a hit by meaning must have. */
-        semanticFloor: number;
-      };
+      search: LibrarianConfigSearch;
       /** The port the Librarian answers `/health` on. */
       port: number;
       logLevel: components['schemas']['LogLevel'];
@@ -4406,36 +3564,14 @@ export interface components {
        */
       kb: components['schemas']['KbDid'];
       /** The two actors it runs, `matcher` and `gatherer`. */
-      actors: ('matcher' | 'gatherer')[];
+      actors: LibrarianHealthActorsItem[];
     };
     LibrarianPromptScore: {
       candidate: number;
       score: number;
     };
     /** An ErrorResponse that names, in `code`, the limit the request met. */
-    LimitRefusal: components['schemas']['ErrorResponse'] & {
-      /**
-       * `streams`: the principal already holds as many streams as its
-       * coefficient of `x-xynolog-limits.streamsPerPrincipal` allows.
-       * `emit-rate`: the principal's emits have used its bucket, whose rate and
-       * burst are its coefficient of `x-xynolog-limits.emitsPerPrincipal`, per
-       * gateway process. `unanswered-requests`: the client already awaits as
-       * many replies as `BusSubscribeRequest.pendingReplies` may name.
-       * `capacity`: the gateway holds as many queued bytes as it can.
-       * `refusal-rate`: the request's credential was refused, and the requests
-       * its holder has had refused have used their allowance; it answers only a
-       * request whose token has already failed verification, so it says what a
-       * 401 says, and a client that can renew its token renews it and sends the
-       * request again rather than waiting (contract/TRANSPORT-CONTRACT.md § A
-       * refused credential).
-       */
-      code:
-        | 'streams'
-        | 'emit-rate'
-        | 'unanswered-requests'
-        | 'capacity'
-        | 'refusal-rate';
-    };
+    LimitRefusal: components['schemas']['ErrorResponse'] & LimitRefusalValue;
     /**
      * What a linking job takes: mentions of the named entity types are marked
      * as references, each unresolved until it is bound to a resource.
@@ -4604,19 +3740,7 @@ export interface components {
      */
     MarkCommitOk: {
       /** What the commit persisted. */
-      response: {
-        /**
-         * Annotations the command named that are durable in the event log.
-         * Equals the batch size on success, on a first commit and on a retry
-         * alike — the commit appends only what the resource does not already
-         * hold, so a wholly-redundant retry has still succeeded and says so.
-         * Not an append tally: a caller must never have to read a 0 as 'all
-         * good'.
-         */
-        persisted: number;
-        /** Ids the batch covers, whether appended now or already present. */
-        annotationIds: components['schemas']['AnnotationId'][];
-      };
+      response: MarkCommitOkResponse;
     };
     /**
      * Success reply after creating an annotation, matched to the originating
@@ -4663,9 +3787,7 @@ export interface components {
      */
     MarkDeleteOk: {
       /** The deleted annotation's identity. */
-      response: {
-        annotationId: components['schemas']['AnnotationId'];
-      };
+      response: MarkDeleteOkResponse;
     };
     /**
      * A `mark` job's worker says the job is complete, with what a `mark` job
@@ -4752,9 +3874,7 @@ export interface components {
     /** `mark` jobs of one motivation. */
     MarkJobFilter: {
       jobType: 'mark';
-      params: {
-        motivation: components['schemas']['Motivation'];
-      };
+      params: MarkJobFilterParams;
     };
     /**
      * The parameters of a `mark` job, told apart by `motivation`. Each
@@ -4900,7 +4020,7 @@ export interface components {
        * labels its answer; a UI can render semantic results as a different kind
        * of page ('no title matches, but these documents discuss it').
        */
-      matchKind: 'lexical' | 'semantic';
+      matchKind: MatchResourcesResponseMatchKind;
     };
     /** Result of searching resources by text */
     MatchResourcesResult: {
@@ -4910,10 +4030,8 @@ export interface components {
      * The payload of `match:search-failed`: a CommandError that names the
      * reference whose candidates could not be searched for.
      */
-    MatchSearchFailed: components['schemas']['CommandError'] & {
-      /** The reference the search was asked for. */
-      referenceId: components['schemas']['AnnotationId'];
-    };
+    MatchSearchFailed: components['schemas']['CommandError'] &
+      MatchSearchFailedValue;
     /**
      * Request payload sent on the match:search-request bus channel to find
      * candidate matches.
@@ -5223,17 +4341,7 @@ export interface components {
        * heading (banner, section), a timestamp (stamp), a runtime command about
        * to run (command), or text the operation printed (output).
        */
-      kind:
-        | 'log'
-        | 'note'
-        | 'ok'
-        | 'warn'
-        | 'fail'
-        | 'banner'
-        | 'section'
-        | 'stamp'
-        | 'command'
-        | 'output';
+      kind: ProgressKind;
       /** The line. */
       text: string;
     };
@@ -5244,34 +4352,11 @@ export interface components {
      */
     ProjectConfig: {
       /** The knowledge base's name. */
-      project: {
-        /** The knowledge base's name, which decides where its state is kept. */
-        name: string;
-        /**
-         * A version the knowledge base's author gives it. Nothing changes it.
-         */
-        version?: string;
-      };
+      project: ProjectConfigProject;
       /** How the knowledge base's changes reach git. */
-      git: {
-        /**
-         * Whether changes to the working tree and the event log are staged in
-         * git as they are made.
-         */
-        sync: boolean;
-      };
+      git: ProjectConfigGit;
       /** The knowledge base's identity. */
-      site: {
-        /**
-         * The knowledge base's permanent identity, in did:web's colon-path form
-         * (`owner.github.io:repo`): stamped into every event it records, so
-         * never a machine's address and never changed. With no white space in
-         * it, which no DID holds (UserId.json).
-         */
-        domain: string;
-        /** The name people see for the knowledge base. */
-        siteName: string;
-      };
+      site: ProjectConfigSite;
     };
     /**
      * OAuth 2.0 Protected Resource Metadata (RFC 9728): which authorization
@@ -5388,13 +4473,7 @@ export interface components {
        * Semantics of this rendition relative to the resource (e.g., original,
        * thumbnail, preview, derived).
        */
-      rel?:
-        | 'original'
-        | 'thumbnail'
-        | 'preview'
-        | 'optimized'
-        | 'derived'
-        | 'other';
+      rel?: RepresentationRel;
     } & { [key: string]: unknown };
     /** Payload for yield:representation-added domain event */
     RepresentationAddedPayload: {
@@ -5406,9 +4485,8 @@ export interface components {
      * no such resource, `representation` when it holds the resource but not its
      * bytes. Each reader answers the two differently.
      */
-    RepresentationNotFound: components['schemas']['ErrorResponse'] & {
-      code: 'resource' | 'representation';
-    };
+    RepresentationNotFound: components['schemas']['ErrorResponse'] &
+      RepresentationNotFoundValue;
     /** Payload for yield:representation-removed domain event */
     RepresentationRemovedPayload: {
       /** Checksum of the representation to remove */
@@ -5495,10 +4573,7 @@ export interface components {
        * on it when the generation was for one. The resource's descriptor names
        * the resource as `wasDerivedFrom`.
        */
-      generatedFrom?: {
-        resourceId: components['schemas']['ResourceId'];
-        annotationId?: components['schemas']['AnnotationId'];
-      };
+      generatedFrom?: ResourceCreatedPayloadGeneratedFrom;
       generationPrompt?: string;
       generator?: components['schemas']['OneOrMoreAgents'];
       /**
@@ -5522,10 +4597,7 @@ export interface components {
      */
     ResourceDescriptor: {
       /** JSON-LD context; URI, object, or array of these. */
-      '@context':
-        | string
-        | { [key: string]: unknown }
-        | (string | { [key: string]: unknown })[];
+      '@context': ResourceDescriptorContext;
       /** The id of the resource being described. */
       '@id': components['schemas']['ResourceId'];
       /** Type(s) of the resource (IRIs/CURIEs via @context). */
@@ -5533,14 +4605,7 @@ export interface components {
       name: string;
       description?: string;
       /** Persistent identifiers (e.g., DOI, URN). */
-      identifier?:
-        | string
-        | string[]
-        | ({
-            '@id'?: string;
-            value?: string;
-            scheme?: string;
-          } & { [key: string]: unknown });
+      identifier?: ResourceDescriptorIdentifier;
       /** Topics (IRIs or strings). */
       about?: components['schemas']['OneOrMoreStrings'];
       /** Equivalent/authoritative references. */
@@ -5555,9 +4620,7 @@ export interface components {
        * W3C PROV: the resource, or resources, this one was derived from, each
        * by its id
        */
-      wasDerivedFrom?:
-        | components['schemas']['ResourceId']
-        | components['schemas']['ResourceId'][];
+      wasDerivedFrom?: ResourceDescriptorWasDerivedFrom;
       /**
        * W3C PROV — every party responsible for this resource, derived by the
        * knowledge base at creation from verified identities: `[requester,
@@ -5576,9 +4639,7 @@ export interface components {
       /** Convenience set summarizing media types across representations. */
       availableFormats?: string[];
       /** Managed or referenced byte-level renditions of this resource. */
-      representations:
-        | components['schemas']['Representation']
-        | components['schemas']['Representation'][];
+      representations: ResourceDescriptorRepresentations;
       /** Application-specific: Whether this resource is archived */
       archived?: boolean;
       /** Application-specific: Entity types for this resource */
@@ -5720,13 +4781,7 @@ export interface components {
     /** What a container is given, in Kubernetes' spelling. */
     Resources: {
       /** The most a container may use. */
-      limits: {
-        /**
-         * The memory ceiling: a whole number of gigabytes or megabytes, `8G` or
-         * `512M`.
-         */
-        memory: string;
-      };
+      limits: ResourcesLimits;
     };
     /**
      * One knowledge base this machine knows: a registered or running local
@@ -5738,7 +4793,7 @@ export interface components {
        * Where the stack actually runs. "local": containers on this machine.
        * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
        */
-      placement: 'local' | 'codespace';
+      placement: RootPlacement;
       /** For a local root: the clone's path. */
       path?: string;
       /**
@@ -5750,7 +4805,7 @@ export interface components {
        * For a local root: how the control server's own directory selects it,
        * when it does — standing in it (cwd), or XYNOLOG_ROOT.
        */
-      current?: 'cwd' | 'xynolog-root';
+      current?: RootCurrent;
       /** Whether the registry (roots.json) records it. */
       registered: boolean;
       /** Whether a stack of it is recorded on this machine. */
@@ -5859,7 +4914,7 @@ export interface components {
       /** Human-readable site name. Absent: the project name. */
       siteName?: string;
       /** Inference provider for the generated local stack documents. */
-      inference?: 'anthropic' | 'ollama';
+      inference?: RootsInitParamsInference;
       /** The primary model bound to roles and jobs. */
       model?: string;
       /** A light model example emitted in the generated config. */
@@ -5943,14 +4998,8 @@ export interface components {
      * A resource returned by a search, carrying its relevance score and the
      * reason it matched.
      */
-    ScoredResource: components['schemas']['ResourceDescriptor'] & {
-      /**
-       * Relevance score assigned by the matcher; higher is a better candidate.
-       */
-      score?: number;
-      /** Human-readable reason for the match. */
-      matchReason?: string;
-    };
+    ScoredResource: components['schemas']['ResourceDescriptor'] &
+      ScoredResourceValue;
     /**
      * A secret the document names and does not hold. The launcher hands it to
      * the service that needs it, from where the reference says it is.
@@ -6151,7 +5200,7 @@ export interface components {
        * term: SIGTERM, and SIGKILL 15 seconds later if it has not exited. kill:
        * SIGKILL, so nothing it would settle on the way out is settled.
        */
-      signal: 'term' | 'kill';
+      signal: ServiceSignalParamsSignal;
     };
     /**
      * A signal sent, or not needed. The instance's exit is its run's answer,
@@ -6212,13 +5261,7 @@ export interface components {
        * runs it, and its endpoint answers or does not. absent: there is no
        * container of it. not-configured: the stack's documents ask for none.
        */
-      state:
-        | 'running'
-        | 'stopped'
-        | 'reachable'
-        | 'unreachable'
-        | 'absent'
-        | 'not-configured';
+      state: ServiceStatusState;
       /**
        * The runtime's own word for a container that is not running (exited,
        * created).
@@ -6264,7 +5307,7 @@ export interface components {
        * refuses it (a refresh, or xynolog login, renews it). unverified: the
        * stack did not answer. none: nothing is stored.
        */
-      state: 'valid' | 'expired' | 'unverified' | 'none';
+      state: SessionState;
       /** The email the session was signed in as, when the store records one. */
       email?: string;
     };
@@ -6310,7 +5353,7 @@ export interface components {
        */
       default: boolean;
       /** What it applies to: every knowledge base on this machine, or one. */
-      appliesTo: 'machine' | 'knowledge-base';
+      appliesTo: SettingAppliesTo;
       /** The values in effect, one per line xynolog settings shows. */
       values: components['schemas']['SettingLine'][];
       /** Whether settings.set and settings.unset change it. */
@@ -6386,7 +5429,7 @@ export interface components {
        * Whose document: the Browser's, the worker's, the issuer's or the vector
        * store's.
        */
-      document: 'browser' | 'worker' | 'issuer' | 'vectors';
+      document: SettingsPathParamsDocument;
     };
     /**
      * Where a machine document is. When there is none, it is written from the
@@ -6416,7 +5459,7 @@ export interface components {
     };
     /** Emitted when the UI theme setting changes */
     SettingsThemeChangedEvent: {
-      theme: 'light' | 'dark' | 'system';
+      theme: SettingsThemeChangedEventTheme;
     };
     /** settings.unset's params. */
     SettingsUnsetParams: {
@@ -6466,15 +5509,9 @@ export interface components {
       resourceId: components['schemas']['ResourceId'];
       /** The checksum of the bytes inspected. */
       contentChecksum: string;
-      outcome: 'indexed' | 'skipped';
+      outcome: SmeltSettledOutcome;
       /** Why the content was skipped. */
-      reason?:
-        | 'no-extractor'
-        | 'empty'
-        | 'no-text-layer'
-        | 'encrypted'
-        | 'corrupt'
-        | 'too-large';
+      reason?: SmeltSettledReason;
     };
     /**
      * The two numbers a text is cut by before it is embedded, both in tokens, a
@@ -6545,14 +5582,7 @@ export interface components {
        * TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it
        * while it is `open`.
        */
-      stream:
-        | 'initial'
-        | 'connecting'
-        | 'open'
-        | 'reconnecting'
-        | 'degraded'
-        | 'unauthenticated'
-        | 'closed';
+      stream: SmelterHealthStream;
       /**
        * How far it has followed the record. Its sweep is also `due` where its
        * start's reconcile failed.
@@ -6568,32 +5598,11 @@ export interface components {
        * How far the latest reconcile has got: the pass's `summary` when it is
        * done, or its `error` when it failed.
        */
-      reconcile: {
-        phase: 'pending' | 'running' | 'done' | 'failed';
-        /** What the pass came to. */
-        summary?: components['schemas']['SmelterReconcileSummary'];
-        /** Why it failed. */
-        error?: string;
-      };
+      reconcile: SmelterHealthReconcile;
       /**
        * What the Smelter holds its index to, and what this start did for that.
        */
-      index: {
-        /** The model and the cut it makes an index by. */
-        stamp: {
-          /** The embedding provider's kind and model. */
-          embedding: {
-            type: string;
-            model: string;
-          };
-          chunking: components['schemas']['SmelterChunking'];
-        };
-        /**
-         * Whether this start made the index again, as it does where the index
-         * stated another stamp, or none.
-         */
-        madeAnew: boolean;
-      };
+      index: SmelterHealthIndex;
     };
     /**
      * What a Smelter's reconcile came to (SMELTER.md § Reconcile), as its
@@ -6653,109 +5662,7 @@ export interface components {
       kind: 'KnowledgeBase';
       metadata: components['schemas']['Metadata'];
       /** The knowledge base's services, and how each runs. */
-      spec: {
-        logLevel: components['schemas']['LogLevel'];
-        /**
-         * The Gateway: where every client and every service reaches the
-         * knowledge base.
-         */
-        gateway: {
-          image: components['schemas']['Image'];
-          resources: components['schemas']['Resources'];
-          /** The port the Gateway is published on. */
-          port: number;
-          /**
-           * Where clients reach the Gateway: the server its API document names.
-           * A service of the stack reaches it where the launcher places it, on
-           * `port`.
-           */
-          publicURL: string;
-        };
-        /** The Dispatcher: it hands queued jobs to workers. */
-        dispatcher: {
-          image: components['schemas']['Image'];
-          resources: components['schemas']['Resources'];
-        };
-        /**
-         * The Archivist: it keeps the knowledge base's record in its working
-         * tree.
-         */
-        archivist: {
-          image: components['schemas']['Image'];
-          resources: components['schemas']['Resources'];
-          /**
-           * Where the stack's services reach the Archivist, when that is
-           * somewhere the launcher cannot see. Absent, they reach it where the
-           * launcher places it.
-           */
-          address?: components['schemas']['HostPort'];
-        };
-        /**
-         * The broker the job queue and the signal plane share: the launcher's,
-         * run from `image`, or somebody else's, at `external`.
-         */
-        messaging: components['schemas']['Runner'] & {
-          /** The Dispatcher's queue. */
-          jobs: {
-            /** The queue's driver: `jetstream`. */
-            type: string;
-          };
-          /** The Gateway's signal plane. */
-          signal: {
-            /**
-             * `in-process`, one Gateway on its own fabric, or `nats`, on the
-             * broker.
-             */
-            type: string;
-          };
-          image?: components['schemas']['Image'];
-          resources?: components['schemas']['Resources'];
-          /**
-           * A broker somebody else runs, serving this knowledge base alone: a
-           * second knowledge base on it would share the job queue and, on a
-           * `nats` signal plane, the frames and the gateway's record of pending
-           * replies. The launcher refuses to start a knowledge base whose
-           * `servers` another knowledge base on its machine names.
-           */
-          external?: {
-            /** Where it listens: `host:port`. */
-            servers: string;
-            user: components['schemas']['SecretRef'];
-            password: components['schemas']['SecretRef'];
-          };
-        };
-        /**
-         * The issuer the knowledge base trusts: the one the launcher runs for
-         * the knowledge bases on a machine, at `shared`, with the knowledge
-         * base's own realm in it, or somebody else's, at `external`.
-         */
-        issuer: {
-          /**
-           * The issuer the launcher runs for the knowledge bases on a machine
-           * (the state home's Issuer document). The launcher creates the
-           * knowledge base's realm in it.
-           */
-          shared?: {
-            /**
-             * How long a token the realm mints stays valid, in seconds: the
-             * window in which a disabled account can still act.
-             */
-            accessTokenLifespan: number;
-          };
-          /** An issuer somebody else runs. */
-          external?: {
-            /** `oidc`, or `keycloak`. */
-            type: string;
-            /** The URL in its tokens' `iss` claim. */
-            url: string;
-          };
-          /**
-           * The claim a person's DID is built from: did:web:<site
-           * domain>:users:<its value>.
-           */
-          subjectClaim: string;
-        };
-      };
+      spec: StackKnowledgeBaseSpec;
     };
     /**
      * stack.start's params: what xynolog start takes, but its help and its
@@ -6813,7 +5720,7 @@ export interface components {
        * Absent: the host's ~/.ollama when there is one, else the named volume —
        * what the command line's prompt does when nobody answers it.
        */
-      ollamaCache?: 'host' | 'volume';
+      ollamaCache?: StackStartParamsOllamaCache;
       /**
        * Whether to run nothing, and report each runtime command a start would
        * run as a command progress line.
@@ -6896,10 +5803,7 @@ export interface components {
     StatusResponse: {
       status: string;
       version: string;
-      features: {
-        semanticContent: string;
-        collaboration: string;
-      };
+      features: StatusResponseFeatures;
       message: string;
       authenticatedAs?: string;
     };
@@ -7120,7 +6024,7 @@ export interface components {
        * Where the stack runs: on this machine (local), or on a GitHub codespace
        * whose knowledge base is forwarded here (codespace).
        */
-      kind: 'local' | 'codespace';
+      kind: TargetKind;
       /**
        * For a local target: the knowledge base's clone, by path or by the
        * basename of a registered root, as --root takes it. Absent: the local
@@ -7307,17 +6211,7 @@ export interface components {
       kind: 'VectorStore';
       metadata: components['schemas']['Metadata'];
       /** The vector store, and where it is published. */
-      spec: {
-        /** The vector store's driver: `qdrant`. */
-        type: string;
-        image: components['schemas']['Image'];
-        resources: components['schemas']['Resources'];
-        /**
-         * The port the vector store is published on, on this machine, where
-         * every knowledge base's Smelter and Librarian reach it.
-         */
-        port: number;
-      };
+      spec: VectorStoreSpec;
     };
     /**
      * The vector index a service writes or searches, and what that kind of
@@ -7426,33 +6320,7 @@ export interface components {
        * § Reconcile): the pass's `summary` when it is done, or its `error` when
        * it failed.
        */
-      reconcile: {
-        phase: 'pending' | 'running' | 'done' | 'failed';
-        /** What the pass found and did. */
-        summary?: {
-          /** How many resources it checked. */
-          resourcesChecked: number;
-          /**
-           * How many of them were divergent: the graph held them otherwise than
-           * the record.
-           */
-          divergent: number;
-          /** How many divergent resources it rebuilt. */
-          healed: number;
-          /**
-           * How many it did not heal, because the rebuild stopped at an event
-           * it could not apply.
-           */
-          healFailures: number;
-          /**
-           * How many orphaned views it found: resources the catalog lists and
-           * the record holds no events for. Each is counted, and not healed.
-           */
-          orphaned: number;
-        };
-        /** Why it failed. */
-        error?: string;
-      };
+      reconcile: WeaverHealthReconcile;
     };
     /**
      * Everything a worker reads at boot: nothing in it is defaulted by the
@@ -7534,12 +6402,7 @@ export interface components {
       /** When it was last active, or null. */
       lastActivityAt: string | null;
       /** The job it holds, or null. */
-      activeJob: {
-        jobId: components['schemas']['JobId'];
-        type: components['schemas']['JobType'];
-        /** When it was handed the job. */
-        since: string;
-      } | null;
+      activeJob: WorkerEngineHealthActiveJob | null;
       /** How many jobs it has completed since the service started. */
       jobsCompleted: number;
     };
@@ -7578,16 +6441,7 @@ export interface components {
       /**
        * Where the worker signs in for this knowledge base, and as which client.
        */
-      identity: {
-        /** The issuer URL, exactly as tokens carry it in `iss`. */
-        issuer: string;
-        /**
-         * The client the issuer holds the public half of the worker's key on:
-         * the worker's account at this knowledge base. It is also what the
-         * worker says it is called there (`principal:profile`).
-         */
-        clientId: string;
-      };
+      identity: WorkerKnowledgeBaseConfigIdentity;
       /**
        * The engines the worker offers this knowledge base, and the jobs it does
        * with each: its own choice, on its own providers' keys. It claims each
@@ -7608,7 +6462,7 @@ export interface components {
        * to start again. `working`: confirmed, its engines claiming. `refused`:
        * refused, until the service is started again.
        */
-      state: 'starting' | 'working' | 'refused';
+      state: WorkerKnowledgeBaseHealthState;
       /** The agent's DID at this knowledge base, as its gateway named it. */
       did?: string;
       /** One entry for each of the entry's engines, in its order. */
@@ -7627,14 +6481,7 @@ export interface components {
       kind: 'WorkerPool';
       metadata: components['schemas']['Metadata'];
       /** How the worker runs. */
-      spec: {
-        logLevel: components['schemas']['LogLevel'];
-        /** The Worker. */
-        worker: {
-          image: components['schemas']['Image'];
-          resources: components['schemas']['Resources'];
-        };
-      };
+      spec: WorkerPoolSpec;
     };
     /**
      * A knowledge base's operational readings from Collector metrics.
@@ -7648,34 +6495,13 @@ export interface components {
        * replies can be routed to the app client that sent each request, and the
        * tracking capacity.
        */
-      ledger?: {
-        /**
-         * Number of request IDs currently held to route replies to their
-         * requesting app clients. Includes requests still waiting for a reply
-         * and recently answered requests still within the tracking window.
-         */
-        claims: number;
-        /**
-         * The maximum number of IDs held in this Gateway's local tracking
-         * projection.
-         */
-        capacity: number;
-      };
+      ledger?: WorkloadStatusLedger;
       /**
        * Current Dispatcher depth and, when the worker has emitted counters,
        * completed and failed work since worker start. These are different
        * measurements and time windows.
        */
-      queue?: {
-        /** Jobs currently waiting for a worker. */
-        pending: number;
-        /** Jobs currently claimed by workers. */
-        running: number;
-        /** Jobs completed since worker start. */
-        completed?: number;
-        /** Jobs finally failed since worker start. */
-        failed?: number;
-      };
+      queue?: WorkloadStatusQueue;
     };
     /**
      * Bus command to create a cloned resource from a clone token. Bytes are
@@ -7808,10 +6634,7 @@ export interface components {
       language?: string;
       entityTypes?: string[];
       isDraft?: boolean;
-      generatedFrom?: {
-        resourceId?: components['schemas']['ResourceId'];
-        annotationId?: components['schemas']['AnnotationId'];
-      };
+      generatedFrom?: YieldCreateCommandGeneratedFrom;
       generationPrompt?: string;
       /**
        * The Software peer that produced the content, when software did. Its
@@ -8148,19 +6971,7 @@ export interface records {
    * against the entry it was asked as.
    */
   KbReadVerdict:
-    | {
-        kind: records['KbReadKind'] & 'recorded';
-      }
-    | {
-        kind: records['KbReadKind'] & 'conflict';
-        /** The did the knowledge base that answered reported. */
-        observedDid: string;
-        /** The name the knowledge base that answered gave itself. */
-        observedName: string;
-      }
-    | {
-        kind: records['KbReadKind'] & 'no-verdict';
-      };
+    KbReadVerdictRecorded | KbReadVerdictConflict | KbReadVerdictNoVerdict;
   /**
    * What the credential stored for a knowledge base says, read without asking
    * anyone: `authenticated`, a token is stored and has not expired; `expired`,
@@ -8242,24 +7053,7 @@ export interface records {
      * The issuer the knowledge base trusts, and the endpoints of it a client
      * uses.
      */
-    issuer: {
-      /** The issuer's identifier. */
-      issuer: string;
-      /** The issuer's authorization endpoint, where the person is sent. */
-      authorization: string;
-      /** The issuer's token endpoint, where the code is exchanged. */
-      token: string;
-      /**
-       * The issuer's device authorization endpoint (RFC 8628). Absent when the
-       * issuer has none.
-       */
-      device?: string;
-      /**
-       * The issuer's revocation endpoint (RFC 7009). Absent when the issuer has
-       * none.
-       */
-      revocation?: string;
-    };
+    issuer: PendingAuthorizationIssuer;
     /**
      * The registered knowledge base being signed in to again. Absent when it is
      * none.
@@ -8300,83 +7094,10 @@ export interface records {
    * names its search, `matchQuality`, and no other states one.
    */
   ReconciledSpan:
-    | {
-        /**
-         * The offset the span starts at, in Unicode code points from the text's
-         * start.
-         */
-        start: number;
-        /**
-         * The offset just past the span, in Unicode code points from the text's
-         * start.
-         */
-        end: number;
-        /** The words quoted. */
-        exact: string;
-        /** The text just before them. */
-        prefix?: string;
-        /** The text just after them. */
-        suffix?: string;
-        anchorMethod: 'unique-match';
-      }
-    | {
-        /**
-         * The offset the span starts at, in Unicode code points from the text's
-         * start.
-         */
-        start: number;
-        /**
-         * The offset just past the span, in Unicode code points from the text's
-         * start.
-         */
-        end: number;
-        /** The words quoted. */
-        exact: string;
-        /** The text just before them. */
-        prefix?: string;
-        /** The text just after them. */
-        suffix?: string;
-        anchorMethod: 'context-recovered';
-      }
-    | {
-        /**
-         * The offset the span starts at, in Unicode code points from the text's
-         * start.
-         */
-        start: number;
-        /**
-         * The offset just past the span, in Unicode code points from the text's
-         * start.
-         */
-        end: number;
-        /** The words quoted. */
-        exact: string;
-        /** The text just before them. */
-        prefix?: string;
-        /** The text just after them. */
-        suffix?: string;
-        anchorMethod: 'first-of-many';
-      }
-    | {
-        /**
-         * The offset the span starts at, in Unicode code points from the text's
-         * start.
-         */
-        start: number;
-        /**
-         * The offset just past the span, in Unicode code points from the text's
-         * start.
-         */
-        end: number;
-        /** The words quoted. */
-        exact: string;
-        /** The text just before them. */
-        prefix?: string;
-        /** The text just after them. */
-        suffix?: string;
-        anchorMethod: 'fuzzy-match';
-        matchQuality: records['MatchQuality'];
-      };
+    | ReconciledSpanUniqueMatch
+    | ReconciledSpanContextRecovered
+    | ReconciledSpanFirstOfMany
+    | ReconciledSpanFuzzyMatch;
   /**
    * What a text search for resources is told beside its text:
    * MatchResourcesRequest's other members. client/surface.json's
@@ -8489,22 +7210,7 @@ export interface records {
    * transport, a timeout and a peer that is down are each `unknown`, and an
    * unknown resource stays open.
    */
-  TabCheck:
-    | {
-        verdict: records['TabVerdict'] & 'gone';
-      }
-    | {
-        verdict: records['TabVerdict'] & 'ready';
-        /** The name the knowledge base gave the resource. */
-        name: string;
-        /**
-         * The media type of its primary representation. Absent when it said none.
-         */
-        mediaType?: string;
-      }
-    | {
-        verdict: records['TabVerdict'] & 'unknown';
-      };
+  TabCheck: TabCheckGone | TabCheckReady | TabCheckUnknown;
   /** What checking an open resource against its knowledge base concluded. */
   TabVerdict: 'gone' | 'ready' | 'unknown';
   /**
@@ -8535,22 +7241,7 @@ export interface records {
    * then the bytes sent so far, then the resource made.
    */
   UploadProgress:
-    | {
-        phase: 'started';
-        /** How many bytes the upload is. */
-        totalBytes: number;
-      }
-    | {
-        phase: 'progress';
-        /** How many bytes are sent so far. */
-        bytesUploaded: number;
-        /** How many bytes the upload is. */
-        totalBytes: number;
-      }
-    | {
-        phase: 'finished';
-        resourceId: components['schemas']['ResourceId'];
-      };
+    UploadProgressStarted | UploadProgressProgress | UploadProgressFinished;
   /** Why no launcher was found. */
   DiscoveryAbsentReason:
     /**
@@ -8595,122 +7286,38 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** A resource's event stream: a directory of event files. */
-    eventStream: {
-      /**
-       * The tree the file is in: `root`, the working tree, `stateHome`, the
-       * state directory, or `anchoredTextDir`, the anchored-text store.
-       */
-      tree: 'root' | 'stateHome' | 'anchoredTextDir';
-      /** Its path in its tree, `/`-separated. */
-      path: string;
-    };
+    eventStream: ArchivistLayoutEventStream;
     /**
      * The knowledge base's own stream, of the events that name no resource. It
      * is not sharded.
      */
-    systemStream: {
-      /**
-       * The tree the file is in: `root`, the working tree, `stateHome`, the
-       * state directory, or `anchoredTextDir`, the anchored-text store.
-       */
-      tree: 'root' | 'stateHome' | 'anchoredTextDir';
-      /** Its path in its tree, `/`-separated. */
-      path: string;
-    };
+    systemStream: ArchivistLayoutSystemStream;
     /** The files of a stream. */
-    eventFile: {
-      /** A file's name, `{number}` its number in `digits` decimal digits. */
-      name: string;
-      /**
-       * How many decimal digits a file's number is written in, with leading
-       * zeros.
-       */
-      digits: number;
-      /**
-       * The first file's number. It is created, empty, with the stream's
-       * directory.
-       */
-      first: number;
-      /** The most events a file holds. */
-      maxEvents: number;
-    };
+    eventFile: ArchivistLayoutEventFile;
     /** The schema a stored event, one line of an event file, is. */
     storedEvent: unknown;
     /** A resource's view, in the state directory. */
-    view: {
-      /**
-       * The tree the file is in: `root`, the working tree, `stateHome`, the
-       * state directory, or `anchoredTextDir`, the anchored-text store.
-       */
-      tree: 'root' | 'stateHome' | 'anchoredTextDir';
-      /** Its path in its tree, `/`-separated. */
-      path: string;
-      /** The schema a view is. */
-      schema: unknown;
-    };
+    view: ArchivistLayoutView;
     /**
      * The projections of what the `__system__` stream adds up to, in the state
      * directory.
      */
-    systemProjections: {
-      /**
-       * The tree the file is in: `root`, the working tree, `stateHome`, the
-       * state directory, or `anchoredTextDir`, the anchored-text store.
-       */
-      tree: 'root' | 'stateHome' | 'anchoredTextDir';
-      /** The directory that holds them, in its tree, `/`-separated. */
-      path: string;
-      /** Each projection's file. */
-      files: {
-        /** The file's name. */
-        name: string;
-        /** The schema the projection is. */
-        schema: unknown;
-      }[];
-    };
+    systemProjections: ArchivistLayoutSystemProjections;
     /**
      * An entry of the storage-uri index, which names the resource whose content
      * is at a storage URI.
      */
-    storageUriIndex: {
-      /**
-       * The tree the file is in: `root`, the working tree, `stateHome`, the
-       * state directory, or `anchoredTextDir`, the anchored-text store.
-       */
-      tree: 'root' | 'stateHome' | 'anchoredTextDir';
-      /** Its path in its tree, `/`-separated. */
-      path: string;
-      /** The schema an entry is. */
-      schema: unknown;
-    };
+    storageUriIndex: ArchivistLayoutStorageUriIndex;
     /**
      * An entry of the anchored-text store, keyed by the checksum of the content
      * it was extracted from.
      */
-    anchoredTextEntry: {
-      /**
-       * The tree the file is in: `root`, the working tree, `stateHome`, the
-       * state directory, or `anchoredTextDir`, the anchored-text store.
-       */
-      tree: 'root' | 'stateHome' | 'anchoredTextDir';
-      /** Its path in its tree, `/`-separated. */
-      path: string;
-      /** The schema an entry is. */
-      schema: unknown;
-    };
+    anchoredTextEntry: ArchivistLayoutAnchoredTextEntry;
     /**
      * The file holding the stamp the anchored-text store's entries are taken
      * under: the stamp, followed by a newline.
      */
-    anchoredTextStamp: {
-      /**
-       * The tree the file is in: `root`, the working tree, `stateHome`, the
-       * state directory, or `anchoredTextDir`, the anchored-text store.
-       */
-      tree: 'root' | 'stateHome' | 'anchoredTextDir';
-      /** Its path in its tree, `/`-separated. */
-      path: string;
-    };
+    anchoredTextStamp: ArchivistLayoutAnchoredTextStamp;
   };
   /**
    * archivist/messages.json: the words of the Archivist's own refusals, and of
@@ -8723,133 +7330,26 @@ export interface tables {
      * Each refusal to start of the Archivist's own, written in
      * service-environment/boot-refusals.json's `line`.
      */
-    boot: {
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The refusal, in place of the line's `{refusal}`. A `{name}` in it is
-       * filled with what the row's `situation` names, and nothing else in it
-       * varies.
-       */
-      refusal: string;
-    }[];
+    boot: ArchivistMessagesBootItem[];
     /**
      * The failure a reply that cannot be sent is answered with instead, on the
      * operation's failure channel.
      */
-    unsent: {
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The failure's `message`. A `{name}` in it is filled with what the row's
-       * `situation` names, and nothing else in it varies.
-       */
-      message: string;
-    }[];
+    unsent: ArchivistMessagesUnsentItem[];
     /** Each refusal of an operation, on the operation's failure channel. */
-    refusals: {
-      /** The situation's name. */
-      name: string;
-      /**
-       * The operations it refuses: requests of bus/registry.json's operations
-       * that the Archivist answers. `{channel}` in the message is the one
-       * refused.
-       */
-      operations: string[];
-      /**
-       * Machine-readable failure class, for consumers that must BRANCH on why a
-       * command failed rather than log it. Optional and deliberately sparse:
-       * absent means 'no class declared', and every existing failure stays that
-       * way. An enum rather than a free string so the vocabulary has an owner —
-       * an unconstrained code is a mirror with no gate, and adding one should
-       * be a deliberate spec change. `message` remains the human-readable text
-       * and is unaffected. Members: `peer-unavailable` — the channel this
-       * command was sent on has no subscriber, i.e. the service that answers it
-       * has not connected yet. Transient by nature (a peer still starting),
-       * which is what distinguishes it from a refusal: retrying is the correct
-       * response. `not-found` — the resource this command addressed does not
-       * exist in this knowledge base. A verdict, not a symptom: it is emitted
-       * only where the answer comes from the event store, which is the system
-       * of record, and never from a projection that may merely be lagging.
-       * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
-       * consumers may act destructively on it (the SDK deletes a restored tab).
-       * Absence is not denial: a future 'exists, but not for you' must travel
-       * as its own code, never as this one. `unauthorized` — that code: the
-       * caller is authenticated but not permitted to do what it asked. A
-       * verdict about the CALLER, not the resource, so retrying under the same
-       * credential cannot succeed and a consumer must never spin on it; emitted
-       * by `job:claim` for a caller whose token carries no worker role.
-       * `none-pending` — a declined claim, not an error: the queue holds no
-       * pending job of the requested types. Nothing went wrong; the one code a
-       * consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by
-       * `job:claim` only. A `job:claim` refusal carrying neither is
-       * unclassified — a malformed record or a missing injection — and a
-       * consumer treats it as 'log it, assume nothing'.
-       */
-      code?: 'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The failure's `message`. A `{name}` in it is filled with what the row's
-       * `situation` names, and nothing else in it varies.
-       */
-      message: string;
-    }[];
+    refusals: ArchivistMessagesRefusalsItem[];
     /**
      * The refusal of every route of the HTTP surface but `/health`: a token
      * that is missing, or not of the knowledge base's issuer and audience, or
      * without the service role.
      */
-    unauthorized: {
-      status: components['schemas']['HttpStatus'];
-      /** The body's `error`. */
-      error: string;
-      /** The `WWW-Authenticate` header when a token was presented. */
-      presented: string;
-      /** The `WWW-Authenticate` header when none was. */
-      absent: string;
-    };
+    unauthorized: ArchivistMessagesUnauthorized;
     /** Each other error a route of the HTTP surface answers with. */
-    http: {
-      /** The situation's name. */
-      name: string;
-      /** The route's method. */
-      method: 'GET' | 'PUT' | 'POST';
-      /** The route, as the Archivist's API names its path. */
-      route: string;
-      status: components['schemas']['HttpStatus'];
-      /** The body's `code`, where it carries one. */
-      code?: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The body's `error`. A `{name}` in it is filled with what the row's
-       * `situation` names, and nothing else in it varies.
-       */
-      error: string;
-    }[];
+    http: ArchivistMessagesHttpItem[];
     /**
      * Each message the Archivist logs that a reader of its output relies on.
      */
-    logged: {
-      /** The situation's name. */
-      name: string;
-      level: components['schemas']['LogLevel'];
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /** The line's message, word for word. */
-      message: string;
-      /**
-       * The fields the line is logged with whose form is stated, by name: each
-       * a text whose `{name}` is filled as the row's `situation` says. The line
-       * may carry others.
-       */
-      fields: { [key: string]: string };
-    }[];
+    logged: ArchivistMessagesLoggedItem[];
   };
   /**
    * bus/reply-bounds.json: each list or map an operation's reply carries that
@@ -8860,20 +7360,7 @@ export interface tables {
     $comment: string;
     /** Each operation, by its request's channel. */
     replies: {
-      [key: string]: {
-        [key: string]:
-          | {
-              /**
-               * The member of the request that bounds it: an array, or an integer with
-               * a maximum.
-               */
-              by: string;
-            }
-          | {
-              /** What it grows with. */
-              grows: string;
-            };
-      };
+      [key: string]: { [key: string]: BusReplyBoundsRepliesValueValue };
     };
   };
   /**
@@ -8887,69 +7374,12 @@ export interface tables {
      * Each refusal the dispatcher makes itself, on the operation's failure
      * channel.
      */
-    refusals: {
-      /** The situation's name. */
-      name: string;
-      /**
-       * The operation it refuses: a request of bus/registry.json's operations
-       * that the dispatcher answers.
-       */
-      operation: string;
-      /**
-       * Machine-readable failure class, for consumers that must BRANCH on why a
-       * command failed rather than log it. Optional and deliberately sparse:
-       * absent means 'no class declared', and every existing failure stays that
-       * way. An enum rather than a free string so the vocabulary has an owner —
-       * an unconstrained code is a mirror with no gate, and adding one should
-       * be a deliberate spec change. `message` remains the human-readable text
-       * and is unaffected. Members: `peer-unavailable` — the channel this
-       * command was sent on has no subscriber, i.e. the service that answers it
-       * has not connected yet. Transient by nature (a peer still starting),
-       * which is what distinguishes it from a refusal: retrying is the correct
-       * response. `not-found` — the resource this command addressed does not
-       * exist in this knowledge base. A verdict, not a symptom: it is emitted
-       * only where the answer comes from the event store, which is the system
-       * of record, and never from a projection that may merely be lagging.
-       * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
-       * consumers may act destructively on it (the SDK deletes a restored tab).
-       * Absence is not denial: a future 'exists, but not for you' must travel
-       * as its own code, never as this one. `unauthorized` — that code: the
-       * caller is authenticated but not permitted to do what it asked. A
-       * verdict about the CALLER, not the resource, so retrying under the same
-       * credential cannot succeed and a consumer must never spin on it; emitted
-       * by `job:claim` for a caller whose token carries no worker role.
-       * `none-pending` — a declined claim, not an error: the queue holds no
-       * pending job of the requested types. Nothing went wrong; the one code a
-       * consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by
-       * `job:claim` only. A `job:claim` refusal carrying neither is
-       * unclassified — a malformed record or a missing injection — and a
-       * consumer treats it as 'log it, assume nothing'.
-       */
-      code?: 'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The failure's `message`. A `{name}` in it is filled with what the row's
-       * `situation` names, and nothing else in it varies.
-       */
-      message: string;
-    }[];
+    refusals: DispatcherMessagesRefusalsItem[];
     /**
      * Each error the dispatcher writes into a job on its own, as a `job:fail`
      * would.
      */
-    errors: {
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The `error` it writes into the job. A `{name}` in it is filled with
-       * what the row's `situation` names, and nothing else in it varies.
-       */
-      error: string;
-      failureClass: components['schemas']['FailureClass'];
-    }[];
+    errors: DispatcherMessagesErrorsItem[];
   };
   /**
    * embedding/requests.json: how a service asks its embedding provider for the
@@ -8962,20 +7392,7 @@ export interface tables {
      * How each kind of provider is asked, by its `type` (EmbeddingConfig):
      * every kind, and no other.
      */
-    providers: {
-      [key: string]: {
-        /**
-         * How many texts one request carries, at most: a batch is cut into slices
-         * of this many, each one request, in the order of the texts.
-         */
-        textsPerRequest: number;
-        /**
-         * How many requests are made of the provider at once, however many
-         * resources are being indexed.
-         */
-        atOnce: number;
-      };
-    };
+    providers: { [key: string]: EmbeddingRequestsProvidersValue };
     /**
      * How long each request has, counted from when it is sent and not from when
      * its batch began. Asking a busy provider again is within it.
@@ -8987,12 +7404,7 @@ export interface tables {
      * the wait. A provider busy at every asking fails the request with that
      * status. A query is asked once.
      */
-    busy: {
-      /** The statuses by which a provider says it is busy. */
-      statuses: number[];
-      /** The wait before each asking again, in order. */
-      againAfterSeconds: number[];
-    };
+    busy: EmbeddingRequestsBusy;
     /**
      * How many times, at most, a starting service asks again a provider that
      * answered 404, taken to be still fetching the model, or could not be
@@ -9006,16 +7418,9 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** Its JOSE header, exactly. */
-    header: {
-      alg: 'HS256';
-      typ: 'JWT';
-    };
+    header: GatewayMediaTokenHeader;
     /** Its claims beside `iat` and `exp`, each filled as the table says. */
-    claims: {
-      purpose: 'media';
-      iss: '{domain}';
-      sub: '{resourceId}';
-    };
+    claims: GatewayMediaTokenClaims;
     /** `exp` less `iat`. */
     lifetimeSeconds: number;
   };
@@ -9024,62 +7429,14 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** Each refusal the gateway makes itself. */
-    messages: {
-      /** The situation's name. */
-      name: string;
-      status: components['schemas']['HttpStatus'];
-      /**
-       * Its `code`, where it carries one: a LimitRefusal's, or the transport
-       * code errors/codes.json names for its status.
-       */
-      code?: string;
-      /**
-       * When the gateway answers it, and what fills each `{name}` of its texts.
-       */
-      situation: string;
-      /**
-       * Its text. A `{name}` in it is filled with what the row's `situation`
-       * names, and nothing else in it varies.
-       */
-      error: string;
-      /** Its `hint`, where it carries one. */
-      hint?: string;
-    }[];
+    messages: GatewayMessagesMessagesItem[];
     /**
      * Each failure frame the gateway delivers itself, on the stream of the
      * client whose request it answers.
      */
-    failures: {
-      /** The situation's name. */
-      name: string;
-      /** Its `code`. */
-      code: string;
-      /**
-       * When the gateway answers it, and what fills each `{name}` of its texts.
-       */
-      situation: string;
-      /**
-       * Its text. A `{name}` in it is filled with what the row's `situation`
-       * names, and nothing else in it varies.
-       */
-      message: string;
-    }[];
+    failures: GatewayMessagesFailuresItem[];
     /** The `WWW-Authenticate` of a 401. */
-    challenges: {
-      /**
-       * For a request that presents no credential. The challenge. `{origin}` is
-       * the origin the Unauthorized response names: `http://` and the request's
-       * `Host`, or, for a request that names none, the gateway's `publicUrl`.
-       */
-      noCredential: string;
-      /**
-       * For a request whose credential, a bearer token or a media token, is
-       * refused. The challenge. `{origin}` is the origin the Unauthorized
-       * response names: `http://` and the request's `Host`, or, for a request
-       * that names none, the gateway's `publicUrl`.
-       */
-      refused: string;
-    };
+    challenges: GatewayMessagesChallenges;
   };
   /**
    * gateway/response-headers.json: the headers on every response the gateway
@@ -9089,48 +7446,13 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** Each header every response carries, and its value. */
-    every: {
-      /**
-       * A header's name, as HTTP spells it; a receiver reads it in any case.
-       */
-      name: string;
-      /** Its value, exactly. */
-      value: string;
-    }[];
+    every: GatewayResponseHeadersEveryItem[];
     /** The header that names the request. */
     requestId: string;
     /** Each header no response carries. */
     absent: string[];
     /** How the gateway answers an `OPTIONS` request. */
-    preflight: {
-      status: components['schemas']['HttpStatus'];
-      /** Each header it carries beside those of `every`, and its value. */
-      headers: {
-        /**
-         * A header's name, as HTTP spells it; a receiver reads it in any case.
-         */
-        name: string;
-        /** Its value, exactly. */
-        value: string;
-      }[];
-      /**
-       * Each header it carries when the request carries the header it echoes,
-       * with that header's value.
-       */
-      echoes: {
-        /**
-         * A header's name, as HTTP spells it; a receiver reads it in any case.
-         */
-        name: string;
-        /** The request's header whose value it carries. */
-        of: string;
-      }[];
-      /**
-       * The value of the `Vary` it carries when it echoes a header: the request
-       * headers it echoes.
-       */
-      vary: string;
-    };
+    preflight: GatewayResponseHeadersPreflight;
   };
   /**
    * graph/schema.json: the shape of the graph a store keeps, as a reader of the
@@ -9140,165 +7462,36 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** Each kind of node the graph holds. */
-    nodes: {
-      /**
-       * A kind of node: its label, the codec row it holds, the property it is
-       * one of its kind by, and the properties a reader finds one by.
-       */
-      resource: {
-        /** Its label. */
-        label: string;
-        /**
-         * The part of graph/codec-cases.json whose `properties` and `json` are
-         * the node's properties. A node without one holds its key alone.
-         */
-        row?: string;
-        /** The property no two nodes of its kind share. */
-        key: string;
-        /**
-         * The properties other than its key that a reader finds a node of its
-         * kind by.
-         */
-        lookups: string[];
-      };
-      /**
-       * A kind of node: its label, the codec row it holds, the property it is
-       * one of its kind by, and the properties a reader finds one by.
-       */
-      annotation: {
-        /** Its label. */
-        label: string;
-        /**
-         * The part of graph/codec-cases.json whose `properties` and `json` are
-         * the node's properties. A node without one holds its key alone.
-         */
-        row?: string;
-        /** The property no two nodes of its kind share. */
-        key: string;
-        /**
-         * The properties other than its key that a reader finds a node of its
-         * kind by.
-         */
-        lookups: string[];
-      };
-      /**
-       * A kind of node: its label, the codec row it holds, the property it is
-       * one of its kind by, and the properties a reader finds one by.
-       */
-      entityType: {
-        /** Its label. */
-        label: string;
-        /**
-         * The part of graph/codec-cases.json whose `properties` and `json` are
-         * the node's properties. A node without one holds its key alone.
-         */
-        row?: string;
-        /** The property no two nodes of its kind share. */
-        key: string;
-        /**
-         * The properties other than its key that a reader finds a node of its
-         * kind by.
-         */
-        lookups: string[];
-      };
-    };
+    nodes: GraphSchemaNodes;
     /** Each kind of relationship the graph holds. */
-    relationships: {
-      /**
-       * A kind of relationship: its type, the kind of node it goes from and the
-       * kind it goes to, and what it says.
-       */
-      belongsTo: {
-        /** Its type. */
-        type: string;
-        /** The kind of node it goes from, by its name under `nodes`. */
-        from: string;
-        /** The kind of node it goes to, by its name under `nodes`. */
-        to: string;
-        /** What one says. */
-        says: string;
-      };
-      /**
-       * A kind of relationship: its type, the kind of node it goes from and the
-       * kind it goes to, and what it says.
-       */
-      references: {
-        /** Its type. */
-        type: string;
-        /** The kind of node it goes from, by its name under `nodes`. */
-        from: string;
-        /** The kind of node it goes to, by its name under `nodes`. */
-        to: string;
-        /** What one says. */
-        says: string;
-      };
-      /**
-       * A kind of relationship: its type, the kind of node it goes from and the
-       * kind it goes to, and what it says.
-       */
-      taggedAs: {
-        /** Its type. */
-        type: string;
-        /** The kind of node it goes from, by its name under `nodes`. */
-        from: string;
-        /** The kind of node it goes to, by its name under `nodes`. */
-        to: string;
-        /** What one says. */
-        says: string;
-      };
-    };
+    relationships: GraphSchemaRelationships;
     /**
      * A link's target the graph has not been given yet: a node of its kind that
      * holds its key and the marker, `true`, and nothing else. A node without
      * the marker is no stub.
      */
-    stub: {
-      /** The kind of node a stub is, by its name under `nodes`. */
-      node: string;
-      /** The property that marks a stub. */
-      marker: string;
-    };
+    stub: GraphSchemaStub;
   };
   /** jobs/budgets.json: the retry budget of each job type. */
   JobsBudgets: {
     /** The rule the table states, in prose. */
     $comment: string;
     /** One row for each job type. */
-    budgets: {
-      jobType: components['schemas']['JobType'];
-      /**
-       * How many times a failed attempt of a job of this type may be retried:
-       * its record's `metadata.maxRetries`.
-       */
-      maxRetries: number;
-    }[];
+    budgets: JobsBudgetsBudgetsItem[];
   };
   /** jobs/storage.json: where the job queue keeps its state on the broker. */
   JobsStorage: {
     /** The rule the table states, in prose. */
     $comment: string;
     /** The work-queue stream every job is published into. */
-    stream: {
-      name: string;
-      /**
-       * The root of the subjects the stream captures: a job is published on
-       * `<subjectRoot>.<jobType>`.
-       */
-      subjectRoot: string;
-    };
+    stream: JobsStorageStream;
     /**
      * The durable consumer that delivers each job to the dispatcher holding its
      * lease.
      */
-    consumer: {
-      durableName: string;
-    };
+    consumer: JobsStorageConsumer;
     /** The KV bucket that keeps one record per job, keyed by the job's id. */
-    bucket: {
-      name: string;
-      /** The component schema each of the bucket's values is. */
-      record: string;
-    };
+    bucket: JobsStorageBucket;
   };
   /**
    * retry/rules.json: what each of the four retry rules retries, as sets.
@@ -9308,52 +7501,21 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** A boot pass or a bus request, asked about a response's status. */
-    boot: {
-      /** The statuses the rule retries, in ascending order. */
-      statuses: components['schemas']['HttpStatus'][];
-    };
+    boot: RetryRulesBoot;
     /** A job's retry budget, asked about a response's status. */
-    job: {
-      /** The statuses the rule retries, in ascending order. */
-      statuses: components['schemas']['HttpStatus'][];
-      /**
-       * Every status at or above this one is retried too. It is above every
-       * status of `statuses`.
-       */
-      statusFrom: components['schemas']['HttpStatus'];
-    };
+    job: RetryRulesJob;
     /**
      * An HTTP client's request, asked about a response's status, the request's
      * method, and whether it carries an `Idempotency-Key`. It is retried at one
      * of `statuses` when it carries a key or its method is one of
      * `idempotentMethods`, and at no other status.
      */
-    transport: {
-      /** The statuses the rule retries, in ascending order. */
-      statuses: components['schemas']['HttpStatus'][];
-      /**
-       * The methods a repeat of which cannot cause a second effect (RFC 9110 §
-       * 9.2.2), in capitals. A request's method is read in any case.
-       */
-      idempotentMethods: string[];
-    };
+    transport: RetryRulesTransport;
     /**
      * Exchanging a refresh token at its issuer, asked about the issuer's
      * answer.
      */
-    refresh: {
-      /** The statuses the rule retries, in ascending order. */
-      statuses: components['schemas']['HttpStatus'][];
-      /**
-       * Every status at or above this one is retried too. It is above every
-       * status of `statuses`.
-       */
-      statusFrom: components['schemas']['HttpStatus'];
-      /**
-       * Whether the exchange is retried when the issuer gave no answer at all.
-       */
-      noResponse: boolean;
-    };
+    refresh: RetryRulesRefresh;
   };
   /**
    * service-environment/boot-refusals.json: what a service writes when it
@@ -9363,15 +7525,7 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** The services that refuse to start so. */
-    services: (
-      | 'archivist'
-      | 'dispatcher'
-      | 'gateway'
-      | 'librarian'
-      | 'smelter'
-      | 'weaver'
-      | 'worker'
-    )[];
+    services: ServiceEnvironmentBootRefusalsServicesItem[];
     /**
      * The one line the service writes to stderr, its refusal in place of
      * `{refusal}`, before it exits.
@@ -9380,29 +7534,12 @@ export interface tables {
     /** The status it exits with. */
     exitCode: number;
     /** Each refusal. */
-    refusals: {
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * Its text. A `{name}` in it is filled with what the row's `situation`
-       * names, and nothing else in it varies.
-       */
-      refusal: string;
-    }[];
+    refusals: ServiceEnvironmentBootRefusalsRefusalsItem[];
     /**
      * Each line of the refusal `invalid`: one for each way the document is not
      * its schema's.
      */
-    members: {
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /** The line, filled as the row's `situation` says. */
-      line: string;
-    }[];
+    members: ServiceEnvironmentBootRefusalsMembersItem[];
   };
   /**
    * service-environment/variables.json: every environment variable a Xynolog
@@ -9411,28 +7548,7 @@ export interface tables {
   ServiceEnvironmentVariables: {
     /** The rule the table states, in prose. */
     $comment: string;
-    variables: {
-      /** The variable's name. */
-      name: string;
-      /** The services that read it. */
-      services: (
-        | 'archivist'
-        | 'dispatcher'
-        | 'gateway'
-        | 'librarian'
-        | 'smelter'
-        | 'weaver'
-        | 'worker'
-      )[];
-      /** What reads it: the service's own code, or the OpenTelemetry SDK. */
-      readBy: 'service' | 'opentelemetry';
-      /** What sets it where the launcher runs the service. */
-      providedBy: 'launcher' | 'image' | 'operator';
-      /** Whether the service refuses to start without it. */
-      required: boolean;
-      /** What it does. */
-      effect: string;
-    }[];
+    variables: ServiceEnvironmentVariablesVariablesItem[];
   };
   /**
    * service-telemetry/log-lines.json: the lines a service writes to its log,
@@ -9442,50 +7558,11 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** The lines of a service's logger. */
-    logger: {
-      /** The services whose document names a LogFormat. */
-      services: ('archivist' | 'dispatcher' | 'gateway')[];
-      /** A line of the `json` format. */
-      json: {
-        /** Its first members, in order. */
-        first: string[];
-        /**
-         * The member that names the request a line was logged while answering.
-         */
-        requestId: string;
-        /** The members that name the active trace and span, in that order. */
-        trace: string[];
-        /** Its last member: the moment. */
-        last: string;
-      };
-      /** A line of the `simple` format. */
-      simple: string;
-    };
+    logger: ServiceTelemetryLogLinesLogger;
     /** A line of the bus log. */
-    bus: {
-      /** Its head. */
-      line: string;
-      /** What follows the head, in order, each where there is one. */
-      parts: {
-        /** What it shows. */
-        part: string;
-        /** Its text. */
-        text: string;
-        /** How many characters of it are shown, from its first. */
-        characters?: number;
-      }[];
-      /** Each operation a line names. */
-      ops: string[];
-    };
+    bus: ServiceTelemetryLogLinesBus;
     /** The line the supervisor writes when it starts a service. */
-    supervisor: {
-      /** The line. */
-      line: string;
-      /**
-       * What a service counts the lines that hold of, for each of its lives.
-       */
-      counted: string;
-    };
+    supervisor: ServiceTelemetryLogLinesSupervisor;
   };
   /**
    * service-telemetry/telemetry.json: the telemetry each Xynolog service
@@ -9501,105 +7578,9 @@ export interface tables {
      * exports.
      */
     sdk: { [key: string]: string[] };
-    resource: {
-      /** The attribute's key. */
-      key: string;
-      /** The services that export the row. */
-      services: (
-        | 'archivist'
-        | 'dispatcher'
-        | 'gateway'
-        | 'librarian'
-        | 'smelter'
-        | 'weaver'
-        | 'worker'
-      )[];
-      /** What the attribute says. */
-      meaning: string;
-      /**
-       * Its value when nothing says another, with `{service}` the service's
-       * name.
-       */
-      default?: string;
-    }[];
-    spans: {
-      /**
-       * The row's name; `{channel}` in it is the bus channel, and `{jobType}`
-       * the job's type.
-       */
-      name: string;
-      /** The services that export the row. */
-      services: (
-        | 'archivist'
-        | 'dispatcher'
-        | 'gateway'
-        | 'librarian'
-        | 'smelter'
-        | 'weaver'
-        | 'worker'
-      )[];
-      /** The span's kind, in OTLP's words. */
-      kind: 'client' | 'consumer' | 'internal' | 'producer' | 'server';
-      /** When the row arrives. */
-      when: 'export' | 'traffic' | 'supervised' | 'fatal';
-      /** What the row says. */
-      meaning: string;
-      /** The attributes the span carries. */
-      attributes: {
-        /** The attribute's key. */
-        key: string;
-        /**
-         * When alone the attribute is carried: a row's attribute without it is
-         * carried every time.
-         */
-        only?: string;
-        /**
-         * The only values it carries, each of the type it is carried as: a
-         * string or a boolean.
-         */
-        values?: (string | boolean)[];
-      }[];
-    }[];
-    metrics: {
-      /**
-       * The row's name; `{channel}` in it is the bus channel, and `{jobType}`
-       * the job's type.
-       */
-      name: string;
-      /** The services that export the row. */
-      services: (
-        | 'archivist'
-        | 'dispatcher'
-        | 'gateway'
-        | 'librarian'
-        | 'smelter'
-        | 'weaver'
-        | 'worker'
-      )[];
-      /** The metric's instrument. */
-      instrument: 'counter' | 'up-down counter' | 'gauge' | 'histogram';
-      /** When the row arrives. */
-      when: 'export' | 'traffic' | 'supervised' | 'fatal';
-      /** The only signal planes a gateway row arrives on. */
-      planes?: ('in-process' | 'nats')[];
-      /** What the row says. */
-      meaning: string;
-      /** The attributes the span carries. */
-      attributes: {
-        /** The attribute's key. */
-        key: string;
-        /**
-         * When alone the attribute is carried: a row's attribute without it is
-         * carried every time.
-         */
-        only?: string;
-        /**
-         * The only values it carries, each of the type it is carried as: a
-         * string or a boolean.
-         */
-        values?: (string | boolean)[];
-      }[];
-    }[];
+    resource: ServiceTelemetryTelemetryResourceItem[];
+    spans: ServiceTelemetryTelemetrySpansItem[];
+    metrics: ServiceTelemetryTelemetryMetricsItem[];
   };
   /**
    * smelter/messages.json: the words of the Smelter's refusals, and of the
@@ -9609,47 +7590,9 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** Each refusal of an operation, on the operation's failure channel. */
-    refusals: {
-      /** The situation's name. */
-      name: string;
-      /**
-       * The operation it refuses: a request of bus/registry.json's operations
-       * that the Smelter answers.
-       */
-      operation: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The failure's `message`. A `{name}` in it is filled with what the row's
-       * `situation` names, and nothing else in it varies.
-       */
-      message: string;
-    }[];
+    refusals: SmelterMessagesRefusalsItem[];
     /** Each message the Smelter logs that a reader of its output relies on. */
-    logged: {
-      /** The situation's name. */
-      name: string;
-      level: components['schemas']['LogLevel'];
-      /**
-       * When it is written, what fills each `{name}` of its fields, and what
-       * each fact it carries says.
-       */
-      situation: string;
-      /** The line's message, word for word. */
-      message: string;
-      /**
-       * The facts the line is logged with whose form is stated, by name: each a
-       * text whose `{name}` is filled as the row's `situation` says. A fact
-       * that is a number is its decimal digits.
-       */
-      fields: { [key: string]: string };
-      /**
-       * The facts the line is logged with beside `fields`, whose value the
-       * row's `situation` says and whose form is not stated. The line may carry
-       * others.
-       */
-      carries: string[];
-    }[];
+    logged: SmelterMessagesLoggedItem[];
   };
   /**
    * worker/answer-formats.json: the element of the array each kind of detection
@@ -9658,14 +7601,7 @@ export interface tables {
   WorkerAnswerFormats: {
     /** The rule the table states, in prose. */
     $comment: string;
-    formats: {
-      /** A motivation a `mark` job takes, or `count`. */
-      name: string;
-      /** What an element is, in prose. */
-      about: string;
-      /** The JSON Schema of one element of the answer. */
-      element: unknown;
-    }[];
+    formats: WorkerAnswerFormatsFormatsItem[];
   };
   /**
    * worker/messages.json: the words of a Worker service's refusals to start, of
@@ -9679,118 +7615,3455 @@ export interface tables {
      * Each refusal to start, written in
      * service-environment/boot-refusals.json's `line`.
      */
-    boot: (
-      | {
-          /** The situation's name. */
-          name: string;
-          /** When it is written, and what fills each `{name}` of its text. */
-          situation: string;
-          /**
-           * The refusal, in place of the line's `{refusal}`. A `{name}` in it is
-           * filled with what the row's `situation` names, and nothing else in it
-           * varies.
-           */
-          refusal: string;
-        }
-      | {
-          /** The situation's name. */
-          name: string;
-          /** When it is written. What fills its text is the shared row's. */
-          situation: string;
-          /**
-           * The `name` of the row of service-environment/boot-refusals.json's
-           * `refusals` that is this refusal, with `{service}` `worker` and
-           * `{schema}` `WorkerConfig`.
-           */
-          bootRefusal: string;
-        }
-    )[];
+    boot: WorkerMessagesBootItem[];
     /** Each line of the `{reasons}` of `invalid`. */
-    reasons: {
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The line, indented by two spaces. A `{name}` in it is filled with what
-       * the row's `situation` names, and nothing else in it varies.
-       */
-      line: string;
-    }[];
+    reasons: WorkerMessagesReasonsItem[];
     /**
      * How an error names the job, by its type, as `{job}`: `{motivation}` is a
      * mark job's motivation.
      */
-    job: {
-      mark: string;
-      yield: string;
-    };
+    job: WorkerMessagesJob;
     /**
      * Each error a job is failed with that is the worker's own: the `error` of
      * its `job:fail`.
      */
-    errors: {
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The error. `{job}` in it is the job, as `job` names it. A `{name}` in
-       * it is filled with what the row's `situation` names, and nothing else in
-       * it varies.
-       */
-      error: string;
-    }[];
+    errors: WorkerMessagesErrorsItem[];
     /** Each `{detail}` of `unreadable`. */
-    details: {
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The detail. A `{name}` in it is filled with what the row's `situation`
-       * names, and nothing else in it varies.
-       */
-      detail: string;
-    }[];
+    details: WorkerMessagesDetailsItem[];
     /** Each `{said}` of `wait-stated`. */
-    waits: {
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The wait, as the header stated it. A `{name}` in it is filled with what
-       * the row's `situation` names, and nothing else in it varies.
-       */
-      said: string;
-    }[];
+    waits: WorkerMessagesWaitsItem[];
     /**
      * Each message a Worker service logs that a reader of its output relies on.
      */
-    logged: {
-      /** The situation's name. */
-      name: string;
-      level: components['schemas']['LogLevel'];
-      /**
-       * When it is written, what fills each `{name}` of its fields, and what
-       * each fact it carries says.
-       */
-      situation: string;
-      /** The line's message, word for word. */
-      message: string;
-      /**
-       * The facts the line is logged with whose form is stated, by name: each a
-       * text whose `{name}` is filled as the row's `situation` says. A fact
-       * that is a number is its decimal digits.
-       */
-      fields: { [key: string]: string };
-      /**
-       * The facts the line is logged with beside `fields`, whose value the
-       * row's `situation` says and whose form is not stated. The line may carry
-       * others.
-       */
-      carries: string[];
-    }[];
+    logged: WorkerMessagesLoggedItem[];
   };
 }
+
+/** A resource's event stream: a directory of event files. */
+export type ArchivistLayoutEventStream = {
+  /**
+   * The tree the file is in: `root`, the working tree, `stateHome`, the state
+   * directory, or `anchoredTextDir`, the anchored-text store.
+   */
+  tree: ArchivistLayoutEventStreamTree;
+  /** Its path in its tree, `/`-separated. */
+  path: string;
+};
+
+/**
+ * The tree the file is in: `root`, the working tree, `stateHome`, the state
+ * directory, or `anchoredTextDir`, the anchored-text store.
+ */
+export type ArchivistLayoutEventStreamTree =
+  'root' | 'stateHome' | 'anchoredTextDir';
+
+/**
+ * The knowledge base's own stream, of the events that name no resource. It is
+ * not sharded.
+ */
+export type ArchivistLayoutSystemStream = {
+  /**
+   * The tree the file is in: `root`, the working tree, `stateHome`, the state
+   * directory, or `anchoredTextDir`, the anchored-text store.
+   */
+  tree: ArchivistLayoutSystemStreamTree;
+  /** Its path in its tree, `/`-separated. */
+  path: string;
+};
+
+/**
+ * The tree the file is in: `root`, the working tree, `stateHome`, the state
+ * directory, or `anchoredTextDir`, the anchored-text store.
+ */
+export type ArchivistLayoutSystemStreamTree =
+  'root' | 'stateHome' | 'anchoredTextDir';
+
+/** The files of a stream. */
+export type ArchivistLayoutEventFile = {
+  /** A file's name, `{number}` its number in `digits` decimal digits. */
+  name: string;
+  /**
+   * How many decimal digits a file's number is written in, with leading zeros.
+   */
+  digits: number;
+  /**
+   * The first file's number. It is created, empty, with the stream's directory.
+   */
+  first: number;
+  /** The most events a file holds. */
+  maxEvents: number;
+};
+
+/** A resource's view, in the state directory. */
+export type ArchivistLayoutView = {
+  /**
+   * The tree the file is in: `root`, the working tree, `stateHome`, the state
+   * directory, or `anchoredTextDir`, the anchored-text store.
+   */
+  tree: ArchivistLayoutViewTree;
+  /** Its path in its tree, `/`-separated. */
+  path: string;
+  /** The schema a view is. */
+  schema: unknown;
+};
+
+/**
+ * The tree the file is in: `root`, the working tree, `stateHome`, the state
+ * directory, or `anchoredTextDir`, the anchored-text store.
+ */
+export type ArchivistLayoutViewTree = 'root' | 'stateHome' | 'anchoredTextDir';
+
+/**
+ * The projections of what the `__system__` stream adds up to, in the state
+ * directory.
+ */
+export type ArchivistLayoutSystemProjections = {
+  /**
+   * The tree the file is in: `root`, the working tree, `stateHome`, the state
+   * directory, or `anchoredTextDir`, the anchored-text store.
+   */
+  tree: ArchivistLayoutSystemProjectionsTree;
+  /** The directory that holds them, in its tree, `/`-separated. */
+  path: string;
+  /** Each projection's file. */
+  files: ArchivistLayoutSystemProjectionsFilesItem[];
+};
+
+/**
+ * The tree the file is in: `root`, the working tree, `stateHome`, the state
+ * directory, or `anchoredTextDir`, the anchored-text store.
+ */
+export type ArchivistLayoutSystemProjectionsTree =
+  'root' | 'stateHome' | 'anchoredTextDir';
+
+export type ArchivistLayoutSystemProjectionsFilesItem = {
+  /** The file's name. */
+  name: string;
+  /** The schema the projection is. */
+  schema: unknown;
+};
+
+/**
+ * An entry of the storage-uri index, which names the resource whose content is
+ * at a storage URI.
+ */
+export type ArchivistLayoutStorageUriIndex = {
+  /**
+   * The tree the file is in: `root`, the working tree, `stateHome`, the state
+   * directory, or `anchoredTextDir`, the anchored-text store.
+   */
+  tree: ArchivistLayoutStorageUriIndexTree;
+  /** Its path in its tree, `/`-separated. */
+  path: string;
+  /** The schema an entry is. */
+  schema: unknown;
+};
+
+/**
+ * The tree the file is in: `root`, the working tree, `stateHome`, the state
+ * directory, or `anchoredTextDir`, the anchored-text store.
+ */
+export type ArchivistLayoutStorageUriIndexTree =
+  'root' | 'stateHome' | 'anchoredTextDir';
+
+/**
+ * An entry of the anchored-text store, keyed by the checksum of the content it
+ * was extracted from.
+ */
+export type ArchivistLayoutAnchoredTextEntry = {
+  /**
+   * The tree the file is in: `root`, the working tree, `stateHome`, the state
+   * directory, or `anchoredTextDir`, the anchored-text store.
+   */
+  tree: ArchivistLayoutAnchoredTextEntryTree;
+  /** Its path in its tree, `/`-separated. */
+  path: string;
+  /** The schema an entry is. */
+  schema: unknown;
+};
+
+/**
+ * The tree the file is in: `root`, the working tree, `stateHome`, the state
+ * directory, or `anchoredTextDir`, the anchored-text store.
+ */
+export type ArchivistLayoutAnchoredTextEntryTree =
+  'root' | 'stateHome' | 'anchoredTextDir';
+
+/**
+ * The file holding the stamp the anchored-text store's entries are taken under:
+ * the stamp, followed by a newline.
+ */
+export type ArchivistLayoutAnchoredTextStamp = {
+  /**
+   * The tree the file is in: `root`, the working tree, `stateHome`, the state
+   * directory, or `anchoredTextDir`, the anchored-text store.
+   */
+  tree: ArchivistLayoutAnchoredTextStampTree;
+  /** Its path in its tree, `/`-separated. */
+  path: string;
+};
+
+/**
+ * The tree the file is in: `root`, the working tree, `stateHome`, the state
+ * directory, or `anchoredTextDir`, the anchored-text store.
+ */
+export type ArchivistLayoutAnchoredTextStampTree =
+  'root' | 'stateHome' | 'anchoredTextDir';
+
+export type ArchivistMessagesBootItem = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The refusal, in place of the line's `{refusal}`. A `{name}` in it is filled
+   * with what the row's `situation` names, and nothing else in it varies.
+   */
+  refusal: string;
+};
+
+export type ArchivistMessagesUnsentItem = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The failure's `message`. A `{name}` in it is filled with what the row's
+   * `situation` names, and nothing else in it varies.
+   */
+  message: string;
+};
+
+export type ArchivistMessagesRefusalsItem = {
+  /** The situation's name. */
+  name: string;
+  /**
+   * The operations it refuses: requests of bus/registry.json's operations that
+   * the Archivist answers. `{channel}` in the message is the one refused.
+   */
+  operations: string[];
+  /**
+   * Machine-readable failure class, for consumers that must BRANCH on why a
+   * command failed rather than log it. Optional and deliberately sparse: absent
+   * means 'no class declared', and every existing failure stays that way. An
+   * enum rather than a free string so the vocabulary has an owner — an
+   * unconstrained code is a mirror with no gate, and adding one should be a
+   * deliberate spec change. `message` remains the human-readable text and is
+   * unaffected. Members: `peer-unavailable` — the channel this command was sent
+   * on has no subscriber, i.e. the service that answers it has not connected
+   * yet. Transient by nature (a peer still starting), which is what
+   * distinguishes it from a refusal: retrying is the correct response.
+   * `not-found` — the resource this command addressed does not exist in this
+   * knowledge base. A verdict, not a symptom: it is emitted only where the
+   * answer comes from the event store, which is the system of record, and never
+   * from a projection that may merely be lagging. Deterministic, so unlike
+   * `peer-unavailable` retrying is pointless — and consumers may act
+   * destructively on it (the SDK deletes a restored tab). Absence is not
+   * denial: a future 'exists, but not for you' must travel as its own code,
+   * never as this one. `unauthorized` — that code: the caller is authenticated
+   * but not permitted to do what it asked. A verdict about the CALLER, not the
+   * resource, so retrying under the same credential cannot succeed and a
+   * consumer must never spin on it; emitted by `job:claim` for a caller whose
+   * token carries no worker role. `none-pending` — a declined claim, not an
+   * error: the queue holds no pending job of the requested types. Nothing went
+   * wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+   * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying
+   * neither is unclassified — a malformed record or a missing injection — and a
+   * consumer treats it as 'log it, assume nothing'.
+   */
+  code?: ArchivistMessagesRefusalsItemCode;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The failure's `message`. A `{name}` in it is filled with what the row's
+   * `situation` names, and nothing else in it varies.
+   */
+  message: string;
+};
+
+/**
+ * Machine-readable failure class, for consumers that must BRANCH on why a
+ * command failed rather than log it. Optional and deliberately sparse: absent
+ * means 'no class declared', and every existing failure stays that way. An enum
+ * rather than a free string so the vocabulary has an owner — an unconstrained
+ * code is a mirror with no gate, and adding one should be a deliberate spec
+ * change. `message` remains the human-readable text and is unaffected. Members:
+ * `peer-unavailable` — the channel this command was sent on has no subscriber,
+ * i.e. the service that answers it has not connected yet. Transient by nature
+ * (a peer still starting), which is what distinguishes it from a refusal:
+ * retrying is the correct response. `not-found` — the resource this command
+ * addressed does not exist in this knowledge base. A verdict, not a symptom: it
+ * is emitted only where the answer comes from the event store, which is the
+ * system of record, and never from a projection that may merely be lagging.
+ * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+ * consumers may act destructively on it (the SDK deletes a restored tab).
+ * Absence is not denial: a future 'exists, but not for you' must travel as its
+ * own code, never as this one. `unauthorized` — that code: the caller is
+ * authenticated but not permitted to do what it asked. A verdict about the
+ * CALLER, not the resource, so retrying under the same credential cannot
+ * succeed and a consumer must never spin on it; emitted by `job:claim` for a
+ * caller whose token carries no worker role. `none-pending` — a declined claim,
+ * not an error: the queue holds no pending job of the requested types. Nothing
+ * went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+ * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither
+ * is unclassified — a malformed record or a missing injection — and a consumer
+ * treats it as 'log it, assume nothing'.
+ */
+export type ArchivistMessagesRefusalsItemCode =
+  'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+
+/**
+ * The refusal of every route of the HTTP surface but `/health`: a token that is
+ * missing, or not of the knowledge base's issuer and audience, or without the
+ * service role.
+ */
+export type ArchivistMessagesUnauthorized = {
+  status: components['schemas']['HttpStatus'];
+  /** The body's `error`. */
+  error: string;
+  /** The `WWW-Authenticate` header when a token was presented. */
+  presented: string;
+  /** The `WWW-Authenticate` header when none was. */
+  absent: string;
+};
+
+export type ArchivistMessagesHttpItem = {
+  /** The situation's name. */
+  name: string;
+  /** The route's method. */
+  method: ArchivistMessagesHttpItemMethod;
+  /** The route, as the Archivist's API names its path. */
+  route: string;
+  status: components['schemas']['HttpStatus'];
+  /** The body's `code`, where it carries one. */
+  code?: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The body's `error`. A `{name}` in it is filled with what the row's
+   * `situation` names, and nothing else in it varies.
+   */
+  error: string;
+};
+
+/** The route's method. */
+export type ArchivistMessagesHttpItemMethod = 'GET' | 'PUT' | 'POST';
+
+export type ArchivistMessagesLoggedItem = {
+  /** The situation's name. */
+  name: string;
+  level: components['schemas']['LogLevel'];
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /** The line's message, word for word. */
+  message: string;
+  /**
+   * The fields the line is logged with whose form is stated, by name: each a
+   * text whose `{name}` is filled as the row's `situation` says. The line may
+   * carry others.
+   */
+  fields: { [key: string]: string };
+};
+
+export type BusReplyBoundsRepliesValueValue =
+  BusReplyBoundsRepliesValueValueBy | BusReplyBoundsRepliesValueValueGrows;
+
+/** A list or map bounded by a member of the request. */
+export type BusReplyBoundsRepliesValueValueBy = {
+  /**
+   * The member of the request that bounds it: an array, or an integer with a
+   * maximum.
+   */
+  by: string;
+};
+
+/** A list or map not yet bounded, which grows. */
+export type BusReplyBoundsRepliesValueValueGrows = {
+  /** What it grows with. */
+  grows: string;
+};
+
+export type DispatcherMessagesRefusalsItem = {
+  /** The situation's name. */
+  name: string;
+  /**
+   * The operation it refuses: a request of bus/registry.json's operations that
+   * the dispatcher answers.
+   */
+  operation: string;
+  /**
+   * Machine-readable failure class, for consumers that must BRANCH on why a
+   * command failed rather than log it. Optional and deliberately sparse: absent
+   * means 'no class declared', and every existing failure stays that way. An
+   * enum rather than a free string so the vocabulary has an owner — an
+   * unconstrained code is a mirror with no gate, and adding one should be a
+   * deliberate spec change. `message` remains the human-readable text and is
+   * unaffected. Members: `peer-unavailable` — the channel this command was sent
+   * on has no subscriber, i.e. the service that answers it has not connected
+   * yet. Transient by nature (a peer still starting), which is what
+   * distinguishes it from a refusal: retrying is the correct response.
+   * `not-found` — the resource this command addressed does not exist in this
+   * knowledge base. A verdict, not a symptom: it is emitted only where the
+   * answer comes from the event store, which is the system of record, and never
+   * from a projection that may merely be lagging. Deterministic, so unlike
+   * `peer-unavailable` retrying is pointless — and consumers may act
+   * destructively on it (the SDK deletes a restored tab). Absence is not
+   * denial: a future 'exists, but not for you' must travel as its own code,
+   * never as this one. `unauthorized` — that code: the caller is authenticated
+   * but not permitted to do what it asked. A verdict about the CALLER, not the
+   * resource, so retrying under the same credential cannot succeed and a
+   * consumer must never spin on it; emitted by `job:claim` for a caller whose
+   * token carries no worker role. `none-pending` — a declined claim, not an
+   * error: the queue holds no pending job of the requested types. Nothing went
+   * wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+   * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying
+   * neither is unclassified — a malformed record or a missing injection — and a
+   * consumer treats it as 'log it, assume nothing'.
+   */
+  code?: DispatcherMessagesRefusalsItemCode;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The failure's `message`. A `{name}` in it is filled with what the row's
+   * `situation` names, and nothing else in it varies.
+   */
+  message: string;
+};
+
+/**
+ * Machine-readable failure class, for consumers that must BRANCH on why a
+ * command failed rather than log it. Optional and deliberately sparse: absent
+ * means 'no class declared', and every existing failure stays that way. An enum
+ * rather than a free string so the vocabulary has an owner — an unconstrained
+ * code is a mirror with no gate, and adding one should be a deliberate spec
+ * change. `message` remains the human-readable text and is unaffected. Members:
+ * `peer-unavailable` — the channel this command was sent on has no subscriber,
+ * i.e. the service that answers it has not connected yet. Transient by nature
+ * (a peer still starting), which is what distinguishes it from a refusal:
+ * retrying is the correct response. `not-found` — the resource this command
+ * addressed does not exist in this knowledge base. A verdict, not a symptom: it
+ * is emitted only where the answer comes from the event store, which is the
+ * system of record, and never from a projection that may merely be lagging.
+ * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+ * consumers may act destructively on it (the SDK deletes a restored tab).
+ * Absence is not denial: a future 'exists, but not for you' must travel as its
+ * own code, never as this one. `unauthorized` — that code: the caller is
+ * authenticated but not permitted to do what it asked. A verdict about the
+ * CALLER, not the resource, so retrying under the same credential cannot
+ * succeed and a consumer must never spin on it; emitted by `job:claim` for a
+ * caller whose token carries no worker role. `none-pending` — a declined claim,
+ * not an error: the queue holds no pending job of the requested types. Nothing
+ * went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+ * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither
+ * is unclassified — a malformed record or a missing injection — and a consumer
+ * treats it as 'log it, assume nothing'.
+ */
+export type DispatcherMessagesRefusalsItemCode =
+  'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+
+export type DispatcherMessagesErrorsItem = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The `error` it writes into the job. A `{name}` in it is filled with what
+   * the row's `situation` names, and nothing else in it varies.
+   */
+  error: string;
+  failureClass: components['schemas']['FailureClass'];
+};
+
+export type EmbeddingRequestsProvidersValue = {
+  /**
+   * How many texts one request carries, at most: a batch is cut into slices of
+   * this many, each one request, in the order of the texts.
+   */
+  textsPerRequest: number;
+  /**
+   * How many requests are made of the provider at once, however many resources
+   * are being indexed.
+   */
+  atOnce: number;
+};
+
+/**
+ * A request for the vectors of documents that the provider answers busy is
+ * asked again, after each wait in turn, while the request's own time allows the
+ * wait. A provider busy at every asking fails the request with that status. A
+ * query is asked once.
+ */
+export type EmbeddingRequestsBusy = {
+  /** The statuses by which a provider says it is busy. */
+  statuses: number[];
+  /** The wait before each asking again, in order. */
+  againAfterSeconds: number[];
+};
+
+/** Its JOSE header, exactly. */
+export type GatewayMediaTokenHeader = {
+  alg: 'HS256';
+  typ: 'JWT';
+};
+
+/** Its claims beside `iat` and `exp`, each filled as the table says. */
+export type GatewayMediaTokenClaims = {
+  purpose: 'media';
+  iss: '{domain}';
+  sub: '{resourceId}';
+};
+
+export type GatewayMessagesMessagesItem = {
+  /** The situation's name. */
+  name: string;
+  status: components['schemas']['HttpStatus'];
+  /**
+   * Its `code`, where it carries one: a LimitRefusal's, or the transport code
+   * errors/codes.json names for its status.
+   */
+  code?: string;
+  /** When the gateway answers it, and what fills each `{name}` of its texts. */
+  situation: string;
+  /**
+   * Its text. A `{name}` in it is filled with what the row's `situation` names,
+   * and nothing else in it varies.
+   */
+  error: string;
+  /** Its `hint`, where it carries one. */
+  hint?: string;
+};
+
+export type GatewayMessagesFailuresItem = {
+  /** The situation's name. */
+  name: string;
+  /** Its `code`. */
+  code: string;
+  /** When the gateway answers it, and what fills each `{name}` of its texts. */
+  situation: string;
+  /**
+   * Its text. A `{name}` in it is filled with what the row's `situation` names,
+   * and nothing else in it varies.
+   */
+  message: string;
+};
+
+/** The `WWW-Authenticate` of a 401. */
+export type GatewayMessagesChallenges = {
+  /**
+   * For a request that presents no credential. The challenge. `{origin}` is the
+   * origin the Unauthorized response names: `http://` and the request's `Host`,
+   * or, for a request that names none, the gateway's `publicUrl`.
+   */
+  noCredential: string;
+  /**
+   * For a request whose credential, a bearer token or a media token, is
+   * refused. The challenge. `{origin}` is the origin the Unauthorized response
+   * names: `http://` and the request's `Host`, or, for a request that names
+   * none, the gateway's `publicUrl`.
+   */
+  refused: string;
+};
+
+export type GatewayResponseHeadersEveryItem = {
+  /** A header's name, as HTTP spells it; a receiver reads it in any case. */
+  name: string;
+  /** Its value, exactly. */
+  value: string;
+};
+
+/** How the gateway answers an `OPTIONS` request. */
+export type GatewayResponseHeadersPreflight = {
+  status: components['schemas']['HttpStatus'];
+  /** Each header it carries beside those of `every`, and its value. */
+  headers: GatewayResponseHeadersPreflightHeadersItem[];
+  /**
+   * Each header it carries when the request carries the header it echoes, with
+   * that header's value.
+   */
+  echoes: GatewayResponseHeadersPreflightEchoesItem[];
+  /**
+   * The value of the `Vary` it carries when it echoes a header: the request
+   * headers it echoes.
+   */
+  vary: string;
+};
+
+export type GatewayResponseHeadersPreflightHeadersItem = {
+  /** A header's name, as HTTP spells it; a receiver reads it in any case. */
+  name: string;
+  /** Its value, exactly. */
+  value: string;
+};
+
+export type GatewayResponseHeadersPreflightEchoesItem = {
+  /** A header's name, as HTTP spells it; a receiver reads it in any case. */
+  name: string;
+  /** The request's header whose value it carries. */
+  of: string;
+};
+
+/** Each kind of node the graph holds. */
+export type GraphSchemaNodes = {
+  /**
+   * A kind of node: its label, the codec row it holds, the property it is one
+   * of its kind by, and the properties a reader finds one by.
+   */
+  resource: GraphSchemaNodesResource;
+  /**
+   * A kind of node: its label, the codec row it holds, the property it is one
+   * of its kind by, and the properties a reader finds one by.
+   */
+  annotation: GraphSchemaNodesAnnotation;
+  /**
+   * A kind of node: its label, the codec row it holds, the property it is one
+   * of its kind by, and the properties a reader finds one by.
+   */
+  entityType: GraphSchemaNodesEntityType;
+};
+
+/**
+ * A kind of node: its label, the codec row it holds, the property it is one of
+ * its kind by, and the properties a reader finds one by.
+ */
+export type GraphSchemaNodesResource = {
+  /** Its label. */
+  label: string;
+  /**
+   * The part of graph/codec-cases.json whose `properties` and `json` are the
+   * node's properties. A node without one holds its key alone.
+   */
+  row?: string;
+  /** The property no two nodes of its kind share. */
+  key: string;
+  /**
+   * The properties other than its key that a reader finds a node of its kind
+   * by.
+   */
+  lookups: string[];
+};
+
+/**
+ * A kind of node: its label, the codec row it holds, the property it is one of
+ * its kind by, and the properties a reader finds one by.
+ */
+export type GraphSchemaNodesAnnotation = {
+  /** Its label. */
+  label: string;
+  /**
+   * The part of graph/codec-cases.json whose `properties` and `json` are the
+   * node's properties. A node without one holds its key alone.
+   */
+  row?: string;
+  /** The property no two nodes of its kind share. */
+  key: string;
+  /**
+   * The properties other than its key that a reader finds a node of its kind
+   * by.
+   */
+  lookups: string[];
+};
+
+/**
+ * A kind of node: its label, the codec row it holds, the property it is one of
+ * its kind by, and the properties a reader finds one by.
+ */
+export type GraphSchemaNodesEntityType = {
+  /** Its label. */
+  label: string;
+  /**
+   * The part of graph/codec-cases.json whose `properties` and `json` are the
+   * node's properties. A node without one holds its key alone.
+   */
+  row?: string;
+  /** The property no two nodes of its kind share. */
+  key: string;
+  /**
+   * The properties other than its key that a reader finds a node of its kind
+   * by.
+   */
+  lookups: string[];
+};
+
+/** Each kind of relationship the graph holds. */
+export type GraphSchemaRelationships = {
+  /**
+   * A kind of relationship: its type, the kind of node it goes from and the
+   * kind it goes to, and what it says.
+   */
+  belongsTo: GraphSchemaRelationshipsBelongsTo;
+  /**
+   * A kind of relationship: its type, the kind of node it goes from and the
+   * kind it goes to, and what it says.
+   */
+  references: GraphSchemaRelationshipsReferences;
+  /**
+   * A kind of relationship: its type, the kind of node it goes from and the
+   * kind it goes to, and what it says.
+   */
+  taggedAs: GraphSchemaRelationshipsTaggedAs;
+};
+
+/**
+ * A kind of relationship: its type, the kind of node it goes from and the kind
+ * it goes to, and what it says.
+ */
+export type GraphSchemaRelationshipsBelongsTo = {
+  /** Its type. */
+  type: string;
+  /** The kind of node it goes from, by its name under `nodes`. */
+  from: string;
+  /** The kind of node it goes to, by its name under `nodes`. */
+  to: string;
+  /** What one says. */
+  says: string;
+};
+
+/**
+ * A kind of relationship: its type, the kind of node it goes from and the kind
+ * it goes to, and what it says.
+ */
+export type GraphSchemaRelationshipsReferences = {
+  /** Its type. */
+  type: string;
+  /** The kind of node it goes from, by its name under `nodes`. */
+  from: string;
+  /** The kind of node it goes to, by its name under `nodes`. */
+  to: string;
+  /** What one says. */
+  says: string;
+};
+
+/**
+ * A kind of relationship: its type, the kind of node it goes from and the kind
+ * it goes to, and what it says.
+ */
+export type GraphSchemaRelationshipsTaggedAs = {
+  /** Its type. */
+  type: string;
+  /** The kind of node it goes from, by its name under `nodes`. */
+  from: string;
+  /** The kind of node it goes to, by its name under `nodes`. */
+  to: string;
+  /** What one says. */
+  says: string;
+};
+
+/**
+ * A link's target the graph has not been given yet: a node of its kind that
+ * holds its key and the marker, `true`, and nothing else. A node without the
+ * marker is no stub.
+ */
+export type GraphSchemaStub = {
+  /** The kind of node a stub is, by its name under `nodes`. */
+  node: string;
+  /** The property that marks a stub. */
+  marker: string;
+};
+
+export type JobsBudgetsBudgetsItem = {
+  jobType: components['schemas']['JobType'];
+  /**
+   * How many times a failed attempt of a job of this type may be retried: its
+   * record's `metadata.maxRetries`.
+   */
+  maxRetries: number;
+};
+
+/** The work-queue stream every job is published into. */
+export type JobsStorageStream = {
+  name: string;
+  /**
+   * The root of the subjects the stream captures: a job is published on
+   * `<subjectRoot>.<jobType>`.
+   */
+  subjectRoot: string;
+};
+
+/**
+ * The durable consumer that delivers each job to the dispatcher holding its
+ * lease.
+ */
+export type JobsStorageConsumer = {
+  durableName: string;
+};
+
+/** The KV bucket that keeps one record per job, keyed by the job's id. */
+export type JobsStorageBucket = {
+  name: string;
+  /** The component schema each of the bucket's values is. */
+  record: string;
+};
+
+/** A boot pass or a bus request, asked about a response's status. */
+export type RetryRulesBoot = {
+  /** The statuses the rule retries, in ascending order. */
+  statuses: components['schemas']['HttpStatus'][];
+};
+
+/** A job's retry budget, asked about a response's status. */
+export type RetryRulesJob = {
+  /** The statuses the rule retries, in ascending order. */
+  statuses: components['schemas']['HttpStatus'][];
+  /**
+   * Every status at or above this one is retried too. It is above every status
+   * of `statuses`.
+   */
+  statusFrom: components['schemas']['HttpStatus'];
+};
+
+/**
+ * An HTTP client's request, asked about a response's status, the request's
+ * method, and whether it carries an `Idempotency-Key`. It is retried at one of
+ * `statuses` when it carries a key or its method is one of `idempotentMethods`,
+ * and at no other status.
+ */
+export type RetryRulesTransport = {
+  /** The statuses the rule retries, in ascending order. */
+  statuses: components['schemas']['HttpStatus'][];
+  /**
+   * The methods a repeat of which cannot cause a second effect (RFC 9110 §
+   * 9.2.2), in capitals. A request's method is read in any case.
+   */
+  idempotentMethods: string[];
+};
+
+/**
+ * Exchanging a refresh token at its issuer, asked about the issuer's answer.
+ */
+export type RetryRulesRefresh = {
+  /** The statuses the rule retries, in ascending order. */
+  statuses: components['schemas']['HttpStatus'][];
+  /**
+   * Every status at or above this one is retried too. It is above every status
+   * of `statuses`.
+   */
+  statusFrom: components['schemas']['HttpStatus'];
+  /** Whether the exchange is retried when the issuer gave no answer at all. */
+  noResponse: boolean;
+};
+
+/** A Xynolog service, by its name. */
+export type ServiceEnvironmentBootRefusalsServicesItem =
+  | 'archivist'
+  | 'dispatcher'
+  | 'gateway'
+  | 'librarian'
+  | 'smelter'
+  | 'weaver'
+  | 'worker';
+
+export type ServiceEnvironmentBootRefusalsRefusalsItem = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * Its text. A `{name}` in it is filled with what the row's `situation` names,
+   * and nothing else in it varies.
+   */
+  refusal: string;
+};
+
+export type ServiceEnvironmentBootRefusalsMembersItem = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /** The line, filled as the row's `situation` says. */
+  line: string;
+};
+
+export type ServiceEnvironmentVariablesVariablesItem = {
+  /** The variable's name. */
+  name: string;
+  /** The services that read it. */
+  services: ServiceEnvironmentVariablesVariablesItemServicesItem[];
+  /** What reads it: the service's own code, or the OpenTelemetry SDK. */
+  readBy: ServiceEnvironmentVariablesVariablesItemReadBy;
+  /** What sets it where the launcher runs the service. */
+  providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy;
+  /** Whether the service refuses to start without it. */
+  required: boolean;
+  /** What it does. */
+  effect: string;
+};
+
+/** A Xynolog service, by its name. */
+export type ServiceEnvironmentVariablesVariablesItemServicesItem =
+  | 'archivist'
+  | 'dispatcher'
+  | 'gateway'
+  | 'librarian'
+  | 'smelter'
+  | 'weaver'
+  | 'worker';
+
+/** What reads it: the service's own code, or the OpenTelemetry SDK. */
+export type ServiceEnvironmentVariablesVariablesItemReadBy =
+  'service' | 'opentelemetry';
+
+/** What sets it where the launcher runs the service. */
+export type ServiceEnvironmentVariablesVariablesItemProvidedBy =
+  'launcher' | 'image' | 'operator';
+
+/** The lines of a service's logger. */
+export type ServiceTelemetryLogLinesLogger = {
+  /** The services whose document names a LogFormat. */
+  services: ServiceTelemetryLogLinesLoggerServicesItem[];
+  /** A line of the `json` format. */
+  json: ServiceTelemetryLogLinesLoggerJson;
+  /** A line of the `simple` format. */
+  simple: string;
+};
+
+export type ServiceTelemetryLogLinesLoggerServicesItem =
+  'archivist' | 'dispatcher' | 'gateway';
+
+/** A line of the `json` format. */
+export type ServiceTelemetryLogLinesLoggerJson = {
+  /** Its first members, in order. */
+  first: string[];
+  /** The member that names the request a line was logged while answering. */
+  requestId: string;
+  /** The members that name the active trace and span, in that order. */
+  trace: string[];
+  /** Its last member: the moment. */
+  last: string;
+};
+
+/** A line of the bus log. */
+export type ServiceTelemetryLogLinesBus = {
+  /** Its head. */
+  line: string;
+  /** What follows the head, in order, each where there is one. */
+  parts: ServiceTelemetryLogLinesBusPartsItem[];
+  /** Each operation a line names. */
+  ops: string[];
+};
+
+export type ServiceTelemetryLogLinesBusPartsItem = {
+  /** What it shows. */
+  part: string;
+  /** Its text. */
+  text: string;
+  /** How many characters of it are shown, from its first. */
+  characters?: number;
+};
+
+/** The line the supervisor writes when it starts a service. */
+export type ServiceTelemetryLogLinesSupervisor = {
+  /** The line. */
+  line: string;
+  /** What a service counts the lines that hold of, for each of its lives. */
+  counted: string;
+};
+
+/**
+ * An attribute of the resource the services' spans and metrics are exported
+ * under.
+ */
+export type ServiceTelemetryTelemetryResourceItem = {
+  /** The attribute's key. */
+  key: string;
+  /** The services that export the row. */
+  services: ServiceTelemetryTelemetryResourceItemServicesItem[];
+  /** What the attribute says. */
+  meaning: string;
+  /**
+   * Its value when nothing says another, with `{service}` the service's name.
+   */
+  default?: string;
+};
+
+/** A Xynolog service, by its name. */
+export type ServiceTelemetryTelemetryResourceItemServicesItem =
+  | 'archivist'
+  | 'dispatcher'
+  | 'gateway'
+  | 'librarian'
+  | 'smelter'
+  | 'weaver'
+  | 'worker';
+
+export type ServiceTelemetryTelemetrySpansItem = {
+  /**
+   * The row's name; `{channel}` in it is the bus channel, and `{jobType}` the
+   * job's type.
+   */
+  name: string;
+  /** The services that export the row. */
+  services: ServiceTelemetryTelemetrySpansItemServicesItem[];
+  /** The span's kind, in OTLP's words. */
+  kind: ServiceTelemetryTelemetrySpansItemKind;
+  /** When the row arrives. */
+  when: ServiceTelemetryTelemetrySpansItemWhen;
+  /** What the row says. */
+  meaning: string;
+  /** The attributes the span carries. */
+  attributes: ServiceTelemetryTelemetrySpansItemAttributesItem[];
+};
+
+/** A Xynolog service, by its name. */
+export type ServiceTelemetryTelemetrySpansItemServicesItem =
+  | 'archivist'
+  | 'dispatcher'
+  | 'gateway'
+  | 'librarian'
+  | 'smelter'
+  | 'weaver'
+  | 'worker';
+
+/** The span's kind, in OTLP's words. */
+export type ServiceTelemetryTelemetrySpansItemKind =
+  'client' | 'consumer' | 'internal' | 'producer' | 'server';
+
+/** When the row arrives. */
+export type ServiceTelemetryTelemetrySpansItemWhen =
+  'export' | 'traffic' | 'supervised' | 'fatal';
+
+/** An attribute a row carries. */
+export type ServiceTelemetryTelemetrySpansItemAttributesItem = {
+  /** The attribute's key. */
+  key: string;
+  /**
+   * When alone the attribute is carried: a row's attribute without it is
+   * carried every time.
+   */
+  only?: string;
+  /**
+   * The only values it carries, each of the type it is carried as: a string or
+   * a boolean.
+   */
+  values?: ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem[];
+};
+
+export type ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem =
+  string | boolean;
+
+export type ServiceTelemetryTelemetryMetricsItem = {
+  /**
+   * The row's name; `{channel}` in it is the bus channel, and `{jobType}` the
+   * job's type.
+   */
+  name: string;
+  /** The services that export the row. */
+  services: ServiceTelemetryTelemetryMetricsItemServicesItem[];
+  /** The metric's instrument. */
+  instrument: ServiceTelemetryTelemetryMetricsItemInstrument;
+  /** When the row arrives. */
+  when: ServiceTelemetryTelemetryMetricsItemWhen;
+  /** The only signal planes a gateway row arrives on. */
+  planes?: ServiceTelemetryTelemetryMetricsItemPlanesItem[];
+  /** What the row says. */
+  meaning: string;
+  /** The attributes the span carries. */
+  attributes: ServiceTelemetryTelemetryMetricsItemAttributesItem[];
+};
+
+/** A Xynolog service, by its name. */
+export type ServiceTelemetryTelemetryMetricsItemServicesItem =
+  | 'archivist'
+  | 'dispatcher'
+  | 'gateway'
+  | 'librarian'
+  | 'smelter'
+  | 'weaver'
+  | 'worker';
+
+/** The metric's instrument. */
+export type ServiceTelemetryTelemetryMetricsItemInstrument =
+  'counter' | 'up-down counter' | 'gauge' | 'histogram';
+
+/** When the row arrives. */
+export type ServiceTelemetryTelemetryMetricsItemWhen =
+  'export' | 'traffic' | 'supervised' | 'fatal';
+
+export type ServiceTelemetryTelemetryMetricsItemPlanesItem =
+  'in-process' | 'nats';
+
+/** An attribute a row carries. */
+export type ServiceTelemetryTelemetryMetricsItemAttributesItem = {
+  /** The attribute's key. */
+  key: string;
+  /**
+   * When alone the attribute is carried: a row's attribute without it is
+   * carried every time.
+   */
+  only?: string;
+  /**
+   * The only values it carries, each of the type it is carried as: a string or
+   * a boolean.
+   */
+  values?: ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem[];
+};
+
+export type ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem =
+  string | boolean;
+
+export type SmelterMessagesRefusalsItem = {
+  /** The situation's name. */
+  name: string;
+  /**
+   * The operation it refuses: a request of bus/registry.json's operations that
+   * the Smelter answers.
+   */
+  operation: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The failure's `message`. A `{name}` in it is filled with what the row's
+   * `situation` names, and nothing else in it varies.
+   */
+  message: string;
+};
+
+export type SmelterMessagesLoggedItem = {
+  /** The situation's name. */
+  name: string;
+  level: components['schemas']['LogLevel'];
+  /**
+   * When it is written, what fills each `{name}` of its fields, and what each
+   * fact it carries says.
+   */
+  situation: string;
+  /** The line's message, word for word. */
+  message: string;
+  /**
+   * The facts the line is logged with whose form is stated, by name: each a
+   * text whose `{name}` is filled as the row's `situation` says. A fact that is
+   * a number is its decimal digits.
+   */
+  fields: { [key: string]: string };
+  /**
+   * The facts the line is logged with beside `fields`, whose value the row's
+   * `situation` says and whose form is not stated. The line may carry others.
+   */
+  carries: string[];
+};
+
+export type WorkerAnswerFormatsFormatsItem = {
+  /** A motivation a `mark` job takes, or `count`. */
+  name: string;
+  /** What an element is, in prose. */
+  about: string;
+  /** The JSON Schema of one element of the answer. */
+  element: unknown;
+};
+
+export type WorkerMessagesBootItem =
+  | WorkerMessagesBootItemOwnBootRefusal
+  | WorkerMessagesBootItemSharedBootRefusal;
+
+export type WorkerMessagesBootItemOwnBootRefusal = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The refusal, in place of the line's `{refusal}`. A `{name}` in it is filled
+   * with what the row's `situation` names, and nothing else in it varies.
+   */
+  refusal: string;
+};
+
+export type WorkerMessagesBootItemSharedBootRefusal = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written. What fills its text is the shared row's. */
+  situation: string;
+  /**
+   * The `name` of the row of service-environment/boot-refusals.json's
+   * `refusals` that is this refusal, with `{service}` `worker` and `{schema}`
+   * `WorkerConfig`.
+   */
+  bootRefusal: string;
+};
+
+export type WorkerMessagesReasonsItem = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The line, indented by two spaces. A `{name}` in it is filled with what the
+   * row's `situation` names, and nothing else in it varies.
+   */
+  line: string;
+};
+
+/**
+ * How an error names the job, by its type, as `{job}`: `{motivation}` is a mark
+ * job's motivation.
+ */
+export type WorkerMessagesJob = {
+  mark: string;
+  yield: string;
+};
+
+export type WorkerMessagesErrorsItem = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The error. `{job}` in it is the job, as `job` names it. A `{name}` in it is
+   * filled with what the row's `situation` names, and nothing else in it
+   * varies.
+   */
+  error: string;
+};
+
+export type WorkerMessagesDetailsItem = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The detail. A `{name}` in it is filled with what the row's `situation`
+   * names, and nothing else in it varies.
+   */
+  detail: string;
+};
+
+export type WorkerMessagesWaitsItem = {
+  /** The situation's name. */
+  name: string;
+  /** When it is written, and what fills each `{name}` of its text. */
+  situation: string;
+  /**
+   * The wait, as the header stated it. A `{name}` in it is filled with what the
+   * row's `situation` names, and nothing else in it varies.
+   */
+  said: string;
+};
+
+export type WorkerMessagesLoggedItem = {
+  /** The situation's name. */
+  name: string;
+  level: components['schemas']['LogLevel'];
+  /**
+   * When it is written, what fills each `{name}` of its fields, and what each
+   * fact it carries says.
+   */
+  situation: string;
+  /** The line's message, word for word. */
+  message: string;
+  /**
+   * The facts the line is logged with whose form is stated, by name: each a
+   * text whose `{name}` is filled as the row's `situation` says. A fact that is
+   * a number is its decimal digits.
+   */
+  fields: { [key: string]: string };
+  /**
+   * The facts the line is logged with beside `fields`, whose value the row's
+   * `situation` says and whose form is not stated. The line may carry others.
+   */
+  carries: string[];
+};
+
+/** It answered as that entry, and its name and branch are on the entry now. */
+export type KbReadVerdictRecorded = {
+  kind: KbReadVerdictRecordedKind;
+};
+
+export type KbReadVerdictRecordedKind = records['KbReadKind'] & 'recorded';
+
+/**
+ * A different knowledge base answered. Its did and the name it gave itself are
+ * here and nowhere else: the entry is as it was.
+ */
+export type KbReadVerdictConflict = {
+  kind: KbReadVerdictConflictKind;
+  /** The did the knowledge base that answered reported. */
+  observedDid: string;
+  /** The name the knowledge base that answered gave itself. */
+  observedName: string;
+};
+
+export type KbReadVerdictConflictKind = records['KbReadKind'] & 'conflict';
+
+/** It did not answer, or could not say who it is. Evidence of nothing. */
+export type KbReadVerdictNoVerdict = {
+  kind: KbReadVerdictNoVerdictKind;
+};
+
+export type KbReadVerdictNoVerdictKind = records['KbReadKind'] & 'no-verdict';
+
+/**
+ * The issuer the knowledge base trusts, and the endpoints of it a client uses.
+ */
+export type PendingAuthorizationIssuer = {
+  /** The issuer's identifier. */
+  issuer: string;
+  /** The issuer's authorization endpoint, where the person is sent. */
+  authorization: string;
+  /** The issuer's token endpoint, where the code is exchanged. */
+  token: string;
+  /**
+   * The issuer's device authorization endpoint (RFC 8628). Absent when the
+   * issuer has none.
+   */
+  device?: string;
+  /**
+   * The issuer's revocation endpoint (RFC 7009). Absent when the issuer has
+   * none.
+   */
+  revocation?: string;
+};
+
+/** The text has the words in exactly one place. */
+export type ReconciledSpanUniqueMatch = {
+  /**
+   * The offset the span starts at, in Unicode code points from the text's
+   * start.
+   */
+  start: number;
+  /**
+   * The offset just past the span, in Unicode code points from the text's
+   * start.
+   */
+  end: number;
+  /** The words quoted. */
+  exact: string;
+  /** The text just before them. */
+  prefix?: string;
+  /** The text just after them. */
+  suffix?: string;
+  anchorMethod: 'unique-match';
+};
+
+/**
+ * The text has the words in more than one place, and the span is the first that
+ * fits every hint the quote gave.
+ */
+export type ReconciledSpanContextRecovered = {
+  /**
+   * The offset the span starts at, in Unicode code points from the text's
+   * start.
+   */
+  start: number;
+  /**
+   * The offset just past the span, in Unicode code points from the text's
+   * start.
+   */
+  end: number;
+  /** The words quoted. */
+  exact: string;
+  /** The text just before them. */
+  prefix?: string;
+  /** The text just after them. */
+  suffix?: string;
+  anchorMethod: 'context-recovered';
+};
+
+/**
+ * The text has the words in more than one place, and the span is the first,
+ * since the quote gave no hint or none fits.
+ */
+export type ReconciledSpanFirstOfMany = {
+  /**
+   * The offset the span starts at, in Unicode code points from the text's
+   * start.
+   */
+  start: number;
+  /**
+   * The offset just past the span, in Unicode code points from the text's
+   * start.
+   */
+  end: number;
+  /** The words quoted. */
+  exact: string;
+  /** The text just before them. */
+  prefix?: string;
+  /** The text just after them. */
+  suffix?: string;
+  anchorMethod: 'first-of-many';
+};
+
+/**
+ * The text has the words nowhere, and a looser search found the span:
+ * `matchQuality` names which.
+ */
+export type ReconciledSpanFuzzyMatch = {
+  /**
+   * The offset the span starts at, in Unicode code points from the text's
+   * start.
+   */
+  start: number;
+  /**
+   * The offset just past the span, in Unicode code points from the text's
+   * start.
+   */
+  end: number;
+  /** The words quoted. */
+  exact: string;
+  /** The text just before them. */
+  prefix?: string;
+  /** The text just after them. */
+  suffix?: string;
+  anchorMethod: 'fuzzy-match';
+  matchQuality: records['MatchQuality'];
+};
+
+/** The knowledge base said the resource does not exist. */
+export type TabCheckGone = {
+  verdict: TabCheckGoneVerdict;
+};
+
+export type TabCheckGoneVerdict = records['TabVerdict'] & 'gone';
+
+/** The knowledge base has the resource, and said what it is called now. */
+export type TabCheckReady = {
+  verdict: TabCheckReadyVerdict;
+  /** The name the knowledge base gave the resource. */
+  name: string;
+  /** The media type of its primary representation. Absent when it said none. */
+  mediaType?: string;
+};
+
+export type TabCheckReadyVerdict = records['TabVerdict'] & 'ready';
+
+/** The check found out nothing. */
+export type TabCheckUnknown = {
+  verdict: TabCheckUnknownVerdict;
+};
+
+export type TabCheckUnknownVerdict = records['TabVerdict'] & 'unknown';
+
+/** The upload began. */
+export type UploadProgressStarted = {
+  phase: 'started';
+  /** How many bytes the upload is. */
+  totalBytes: number;
+};
+
+/** Bytes were sent. */
+export type UploadProgressProgress = {
+  phase: 'progress';
+  /** How many bytes are sent so far. */
+  bytesUploaded: number;
+  /** How many bytes the upload is. */
+  totalBytes: number;
+};
+
+/** The upload ended, and the resource is made. */
+export type UploadProgressFinished = {
+  phase: 'finished';
+  resourceId: components['schemas']['ResourceId'];
+};
+
+/**
+ * Discriminant, sharing the `kind` field with the
+ * ExtractedText/ExtractionDeclined members so the whole answer is one flat
+ * union.
+ *
+ * `not-yet` — the resource's media type has text that is derived by reading its
+ * content, and the store holds no entry for this content: the Smelter has not
+ * read it yet, or the entry was lost (a loss the Smelter's reconcile pass
+ * re-derives). RETRY.
+ *
+ * `no-map` — the resource's media type has no derived text, so no entry exists
+ * and none will until the type is given a reader. Decided by the media type
+ * alone, and answered at once. TERMINAL.
+ *
+ * `unknown` — no content identity to look up: the resource is not in the view
+ * store, or its primary representation carries no checksum. TERMINAL.
+ */
+export type AnchoredTextAbsentKind = 'not-yet' | 'no-map' | 'unknown';
+
+/** One line of text: the words that share a page, a baseline and a height. */
+export type AnchoredTextExtractedEntryLinesItem = {
+  /** The page, counted from 1. */
+  p: number;
+  /**
+   * The line's vertical position in PDF points, from the bottom of the page.
+   */
+  y: number;
+  /** The line's height in PDF points. */
+  h: number;
+  /**
+   * Each word as `[x, width, start, end]`: its horizontal position and width in
+   * PDF points, and the offsets of its text in `text`, which are whole numbers
+   * of Unicode code points from the start of `text`.
+   */
+  words: number[][];
+};
+
+/**
+ * W3C Web Annotation target: the id of the resource annotated, when the whole
+ * of it is, or an object with source and optional selector (fragment)
+ */
+export type AnnotationTargetValue =
+  | components['schemas']['ResourceId']
+  | components['schemas']['AnnotationTarget'];
+
+/**
+ * The bounds on how far the staging driver may run behind the working tree, in
+ * milliseconds. A knowledge base that does not sync git stages nothing, and
+ * reads neither.
+ */
+export type ArchivistConfigStaging = {
+  /**
+   * The quiet period after the last change before pending changes are staged.
+   */
+  flushMs: number;
+  /**
+   * The longest a change waits to be staged while others keep arriving,
+   * measured from the oldest pending change.
+   */
+  maxWaitMs: number;
+};
+
+/**
+ * The engine each job is done with when software does it, keyed as a job
+ * description is: by `jobType`, and for `mark` by motivation.
+ */
+export type ArchivistEnginesJobs = {
+  /** The engine for `mark` jobs of each motivation. */
+  mark?: ArchivistEnginesJobsMark;
+  yield?: components['schemas']['Engine'];
+};
+
+/** The engine for `mark` jobs of each motivation. */
+export type ArchivistEnginesJobsMark = {
+  highlighting?: components['schemas']['Engine'];
+  commenting?: components['schemas']['Engine'];
+  assessing?: components['schemas']['Engine'];
+  linking?: components['schemas']['Engine'];
+  tagging?: components['schemas']['Engine'];
+};
+
+/** The engine each Librarian actor that calls a model asks. */
+export type ArchivistEnginesActors = {
+  gatherer?: components['schemas']['Engine'];
+  matcher?: components['schemas']['Engine'];
+};
+
+export type ArchivistHealthActorsItem =
+  'stower' | 'browser' | 'cloneTokenManager';
+
+/** The stance the assessments are written from. */
+export type AssessingJobParamsTone =
+  'analytical' | 'critical' | 'balanced' | 'constructive';
+
+export type AttributedEventValue = {
+  /** Who `userId` is. */
+  agent: components['schemas']['Agent'];
+};
+
+/** The type of body operation */
+export type BindBodyOperationOp = 'add' | 'remove' | 'replace';
+
+export type BrowseDirectoryFailedValue = {
+  /** The path the read was asked for. */
+  path: string;
+};
+
+export type BrowseDirectoryRequestSort = 'name' | 'mtime' | 'annotationCount';
+
+export type BrowseEnginesResultResponse = {
+  engines: components['schemas']['EngineEntry'][];
+};
+
+export type BrowseProfilesResultResponse = {
+  /** Each profile, keyed by DID. */
+  profiles: { [key: string]: components['schemas']['Profile'] };
+};
+
+export type BrowseResourceResultResponse = {
+  resource: components['schemas']['ResourceDescriptor'];
+  /**
+   * The sequence number of the resource's last event. A graph read that follows
+   * a write waits for the graph projection to reach it.
+   */
+  lastSequence: number;
+};
+
+/** How the Browser runs. */
+export type BrowserSpec = {
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+  /**
+   * The port the Browser is published on, on this machine's loopback: where a
+   * person opens it, and the origin the issuer's realm allows its sign-in from.
+   */
+  port: number;
+};
+
+export type BusEventMessageId =
+  | components['schemas']['PersistedEventId']
+  | components['schemas']['ReplyEventId']
+  | components['schemas']['EphemeralEventId'];
+
+/**
+ * `unparseable-last-event-id`: the watermark is not a PersistedEventId.
+ * `scope-mismatch`: it names another scope. `retention-exceeded`: the record no
+ * longer holds the events after it (what it still holds is replayed first).
+ * `query-error`: the record could not be read.
+ */
+export type BusResumeGapReason =
+  | 'unparseable-last-event-id'
+  | 'scope-mismatch'
+  | 'retention-exceeded'
+  | 'query-error';
+
+export type BusSubscribeRequestScopedItem = {
+  /** Resource scope (a resourceId). */
+  scope: components['schemas']['ResourceId'];
+  /** Channels to subscribe within this scope. */
+  channels: string[];
+  /**
+   * This scope's last-seen PersistedEventId. The gateway replays this scope's
+   * persisted events after it — those on the entry's channels — before the live
+   * tail, and writes a scoped `bus:resume-gap` (BusResumeGap) when it cannot
+   * cover the gap.
+   */
+  lastEventId?: string;
+};
+
+/**
+ * Machine-readable failure class, for consumers that must BRANCH on why a
+ * command failed rather than log it. Optional and deliberately sparse: absent
+ * means 'no class declared', and every existing failure stays that way. An enum
+ * rather than a free string so the vocabulary has an owner — an unconstrained
+ * code is a mirror with no gate, and adding one should be a deliberate spec
+ * change. `message` remains the human-readable text and is unaffected. Members:
+ * `peer-unavailable` — the channel this command was sent on has no subscriber,
+ * i.e. the service that answers it has not connected yet. Transient by nature
+ * (a peer still starting), which is what distinguishes it from a refusal:
+ * retrying is the correct response. `not-found` — the resource this command
+ * addressed does not exist in this knowledge base. A verdict, not a symptom: it
+ * is emitted only where the answer comes from the event store, which is the
+ * system of record, and never from a projection that may merely be lagging.
+ * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+ * consumers may act destructively on it (the SDK deletes a restored tab).
+ * Absence is not denial: a future 'exists, but not for you' must travel as its
+ * own code, never as this one. `unauthorized` — that code: the caller is
+ * authenticated but not permitted to do what it asked. A verdict about the
+ * CALLER, not the resource, so retrying under the same credential cannot
+ * succeed and a consumer must never spin on it; emitted by `job:claim` for a
+ * caller whose token carries no worker role. `none-pending` — a declined claim,
+ * not an error: the queue holds no pending job of the requested types. Nothing
+ * went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+ * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither
+ * is unclassified — a malformed record or a missing injection — and a consumer
+ * treats it as 'log it, assume nothing'.
+ */
+export type CommandErrorCode =
+  'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+
+/** The voice the comments are written in. */
+export type CommentingJobParamsTone =
+  'scholarly' | 'explanatory' | 'conversational' | 'technical';
+
+export type ConformanceCasePlanesItem = 'in-process' | 'nats';
+
+/**
+ * A live case's tier: `fleet`, what every SDK with a live layer does, or
+ * `parity`, what one that implements all of CACHE-SEMANTICS does.
+ */
+export type ConformanceCaseTier = 'fleet' | 'parity';
+
+/** The driver can take operations. */
+export type ConformanceDriverLineReady = {
+  /** Written once. */
+  ready: true;
+};
+
+/** The operation succeeded. */
+export type ConformanceDriverLineOk = {
+  /** The operation's id. */
+  id: number;
+  ok: unknown;
+};
+
+/** The SDK failed the operation. */
+export type ConformanceDriverLineFailed = {
+  /** The operation's id. */
+  id: number;
+  /** The failure. */
+  error: components['schemas']['ConformanceFailure'];
+};
+
+/** The suite abandoned the operation, and the SDK reported nothing else. */
+export type ConformanceDriverLineAbandoned = {
+  /** The operation's id. */
+  id: number;
+  /** It was abandoned. */
+  abandoned: true;
+};
+
+/**
+ * The driver has no such operation. It says so at once, before it reads its
+ * next operation.
+ */
+export type ConformanceDriverLineUnsupported = {
+  /** The operation's id. */
+  id: number;
+  /** It has none. */
+  unsupported: true;
+};
+
+/**
+ * The suite's arguments made no sense: the suite's mistake, never the SDK's.
+ */
+export type ConformanceDriverLineMisuse = {
+  /** The operation's id. */
+  id: number;
+  /** What made no sense. */
+  misuse: string;
+};
+
+/** The transport's connection state changed. */
+export type ConformanceDriverLineState = {
+  /**
+   * The state it is in now: one a case's `state` step names
+   * (ConformanceStep.json), or another the case never waits for.
+   */
+  state: string;
+};
+
+/** A frame was delivered on a channel the driver listens to. */
+export type ConformanceDriverLineFrame = {
+  /** The frame. */
+  frame: ConformanceDriverLineFrameFrame;
+};
+
+/** The frame. */
+export type ConformanceDriverLineFrameFrame = {
+  /** The channel. */
+  channel: string;
+  payload?: unknown;
+  /** The frame's correlation id, when it has one. */
+  correlationId?: string;
+  /** The frame's scope, when it has one. */
+  scope?: components['schemas']['ResourceId'];
+};
+
+/** The error stream carried a failure. */
+export type ConformanceDriverLineErrorStream = {
+  /** The failure. */
+  error: components['schemas']['ConformanceFailure'];
+};
+
+/** An upload reported how much of it has been sent. */
+export type ConformanceDriverLineProgress = {
+  /** The report. */
+  progress: ConformanceDriverLineProgressProgress;
+};
+
+/** The report. */
+export type ConformanceDriverLineProgressProgress = {
+  /** The `upload` operation's id. */
+  upload: number;
+  /** How many bytes it has sent. */
+  bytesUploaded: number;
+  /** How many it will send. */
+  totalBytes: number;
+};
+
+/** The live driver: an observer was given a state. */
+export type ConformanceDriverLineEmission = {
+  /** The emission. */
+  emission: ConformanceDriverLineEmissionEmission;
+};
+
+/** The emission. */
+export type ConformanceDriverLineEmissionEmission = {
+  /** The observer. */
+  observer: string;
+  /** The state. */
+  state: ConformanceDriverLineEmissionEmissionState;
+};
+
+/** The state. */
+export type ConformanceDriverLineEmissionEmissionState =
+  | ConformanceDriverLineEmissionEmissionStatePending
+  | ConformanceDriverLineEmissionEmissionStateReady
+  | ConformanceDriverLineEmissionEmissionStateFailed;
+
+export type ConformanceDriverLineEmissionEmissionStatePending = {
+  /** Nothing to show yet. */
+  status: 'pending';
+};
+
+export type ConformanceDriverLineEmissionEmissionStateReady = {
+  /** A value to show. */
+  status: 'ready';
+  value: unknown;
+};
+
+export type ConformanceDriverLineEmissionEmissionStateFailed = {
+  /** The query failed. */
+  status: 'failed';
+  /** The failure. */
+  error: components['schemas']['ConformanceFailure'];
+};
+
+/** The live driver: the observer's live query completed. */
+export type ConformanceDriverLineCompleted = {
+  /** The observer. */
+  completed: string;
+};
+
+/** A worker driver: its worker claimed a job. */
+export type ConformanceDriverLineClaimed = {
+  /** The job, as the worker read the record. */
+  claimed: { [key: string]: unknown };
+};
+
+/** A worker driver: a claim was refused. */
+export type ConformanceDriverLineRefused = {
+  /**
+   * The refusal: with a code when the bus refused it, with none when the worker
+   * did.
+   */
+  refused: components['schemas']['ConformanceFailure'];
+};
+
+/** A worker driver: a held job's cancellation was signalled. */
+export type ConformanceDriverLineSignalled = {
+  /** The job's id. */
+  signalled: string;
+};
+
+/** A worker driver: a held job stalled. */
+export type ConformanceDriverLineStalled = {
+  /** The job's id. */
+  stalled: string;
+};
+
+/** One SDK's drivers. */
+export type ConformanceImplementationsSdksValue = {
+  /**
+   * How its wire driver is started. A command and its arguments, as the harness
+   * starts it. An argument that starts with ./ or ../ is a path, resolved
+   * against the manifest's own directory; every other is passed as written.
+   */
+  wire?: string[];
+  /**
+   * How its live driver is started, and the tier of the live corpus the SDK is
+   * held to.
+   */
+  live?: ConformanceImplementationsSdksValueLive;
+  /**
+   * How its worker driver is started, when the SDK has a worker's surface
+   * (conformance/worker/README.md). A command and its arguments, as the harness
+   * starts it. An argument that starts with ./ or ../ is a path, resolved
+   * against the manifest's own directory; every other is passed as written.
+   */
+  worker?: string[];
+  /**
+   * The wire cases its driver cannot be put through, by the case's name, each
+   * with why. The suite holds an exemption as it holds a case: the driver must
+   * answer unsupported to what the case asks, or the exemption is stale.
+   */
+  exempt?: { [key: string]: string };
+};
+
+/**
+ * How its live driver is started, and the tier of the live corpus the SDK is
+ * held to.
+ */
+export type ConformanceImplementationsSdksValueLive = {
+  /**
+   * How its live driver is started. A command and its arguments, as the harness
+   * starts it. An argument that starts with ./ or ../ is a path, resolved
+   * against the manifest's own directory; every other is passed as written.
+   */
+  command: string[];
+  /**
+   * A live case's tier: `fleet`, what every SDK with a live layer does, or
+   * `parity`, what one that implements all of CACHE-SEMANTICS does.
+   */
+  tier: ConformanceImplementationsSdksValueLiveTier;
+};
+
+/**
+ * A live case's tier: `fleet`, what every SDK with a live layer does, or
+ * `parity`, what one that implements all of CACHE-SEMANTICS does.
+ */
+export type ConformanceImplementationsSdksValueLiveTier = 'fleet' | 'parity';
+
+/** Name values for later steps. */
+export type ConformanceStepLet = {
+  /** Each name, and the value it takes. */
+  let: { [key: string]: unknown };
+};
+
+/**
+ * Ask the driver for an operation. It must succeed, with `returns` when given,
+ * or fail with `fails`. With `as`, the step does not wait: a later `settles`
+ * step does.
+ */
+export type ConformanceStepDriver = {
+  /** The operation (conformance/sdk/README.md, "Operations"). */
+  driver: string;
+  /** The operation's arguments. */
+  with?: { [key: string]: unknown };
+  returns?: unknown;
+  fails?: unknown;
+  /** The operation's name, for the `settles` or `abandon` step that ends it. */
+  as?: string;
+};
+
+/** Abandon an operation started with `as`, as its caller would. */
+export type ConformanceStepAbandon = {
+  /** The operation. */
+  abandon: string;
+};
+
+/**
+ * An operation started with `as` settles: it succeeded, with `returns` when
+ * given; or failed with `fails`; or, `abandoned`, it ended because the case
+ * abandoned it and reported nothing.
+ */
+export type ConformanceStepSettles = {
+  /** The operation. */
+  settles: string;
+  returns?: unknown;
+  fails?: unknown;
+  /** It ended because the case abandoned it. */
+  abandoned?: true;
+};
+
+/**
+ * The next request the client put on the wire is this operation, with each
+ * field given.
+ */
+export type ConformanceStepWire = {
+  /** The operation of the gateway's API, by its method and path. */
+  wire: string;
+  /**
+   * When it is read: on arrival, once answered (the default), or once its
+   * stream has caught up.
+   */
+  at?: ConformanceStepWireAt;
+  /** The status it was answered with. */
+  status?: number;
+  params?: unknown;
+  body?: unknown;
+  token?: unknown;
+  /**
+   * The request's headers named here, each as a pattern; headers not named are
+   * not compared.
+   */
+  headers?: { [key: string]: unknown };
+  answer?: unknown;
+  /** The request's name, for a later step. */
+  as?: string;
+  /** A request named earlier, which was answered before this one arrived. */
+  follows?: string;
+  /**
+   * A request named earlier, answered with a Retry-After, which this one waited
+   * out.
+   */
+  waited?: string;
+};
+
+/**
+ * When it is read: on arrival, once answered (the default), or once its stream
+ * has caught up.
+ */
+export type ConformanceStepWireAt = 'arrival' | 'answer' | 'live';
+
+/** The stream a wire step named has carried this frame to the client. */
+export type ConformanceStepCarried = {
+  /** The stream. */
+  carried: string;
+  is: unknown;
+};
+
+/**
+ * The request a `wire` step named has ended with no answer reaching the client:
+ * the client closed it, or the proxy kept the gateway's answer from it
+ * (`answer-lost`).
+ */
+export type ConformanceStepClosed = {
+  /** The request. */
+  closed: string;
+};
+
+/**
+ * An upload started with `as`, and not yet settled, has reported all of it
+ * sent: every report states the same total, none states less than the one
+ * before, and the last states the total.
+ */
+export type ConformanceStepProgress = {
+  /** The upload. */
+  progress: string;
+};
+
+/** The transport comes to report this state. */
+export type ConformanceStepState = {
+  /** The state. */
+  state: ConformanceStepStateState;
+};
+
+/** The state. */
+export type ConformanceStepStateState =
+  | 'initial'
+  | 'connecting'
+  | 'open'
+  | 'reconnecting'
+  | 'degraded'
+  | 'unauthenticated'
+  | 'closed';
+
+/**
+ * The transport is in this state and has reported no other since the case last
+ * read its state.
+ */
+export type ConformanceStepStays = {
+  /** The state. */
+  stays: ConformanceStepStaysStays;
+};
+
+/** The state. */
+export type ConformanceStepStaysStays =
+  | 'initial'
+  | 'connecting'
+  | 'open'
+  | 'reconnecting'
+  | 'degraded'
+  | 'unauthenticated'
+  | 'closed';
+
+/** The next frame the client delivers on this channel is this one. */
+export type ConformanceStepFrame = {
+  /** The channel. */
+  frame: string;
+  is: unknown;
+};
+
+/**
+ * The client delivers this many more frames on this channel. What they are is
+ * held, as every frame is, to what the gateway sent.
+ */
+export type ConformanceStepFrames = {
+  /** The channel. */
+  frames: string;
+  /** How many more. */
+  count: number;
+};
+
+/** The next failure on the client's error stream is this one. */
+export type ConformanceStepError = {
+  error: unknown;
+};
+
+/**
+ * The backend does something (conformance/sdk/README.md, "Backend directives").
+ */
+export type ConformanceStepBackend = {
+  /** The directive. */
+  backend: ConformanceStepBackendBackend;
+  /** The directive's arguments. */
+  with?: { [key: string]: unknown };
+};
+
+/** The directive. */
+export type ConformanceStepBackendBackend =
+  | 'listen'
+  | 'emit'
+  | 'record'
+  | 'content'
+  | 'description'
+  | 'annotations'
+  | 'anchored-text'
+  | 'uploaded'
+  | 'refuse'
+  | 'unanswered'
+  | 'answer-lost'
+  | 'hold'
+  | 'release'
+  | 'rechunk'
+  | 'carry'
+  | 'cut'
+  | 'down'
+  | 'up'
+  | 'archivist';
+
+/** The client puts nothing more on the wire for this many milliseconds. */
+export type ConformanceStepQuiet = {
+  /** How long, in milliseconds. */
+  quiet: number;
+};
+
+/** Live: an observer, named by `as`, begins observing a live query. */
+export type ConformanceStepObserve = {
+  /** The live query. */
+  observe: ConformanceStepObserveObserve;
+  /** The observer. */
+  as: string;
+};
+
+/** The live query. */
+export type ConformanceStepObserveObserve = {
+  /** The live query, by its name in specs/src/client/refresh.json. */
+  query: string;
+  resource?: unknown;
+  annotation?: unknown;
+  search?: unknown;
+  filters?: unknown;
+};
+
+/** Live: the observer stops observing. */
+export type ConformanceStepLeave = {
+  /** The observer. */
+  leave: string;
+};
+
+/** Live: the observer comes to hold this state. */
+export type ConformanceStepReaches = {
+  /** The observer. */
+  reaches: string;
+  state: unknown;
+};
+
+/** Live: the state the observer holds now is this one. */
+export type ConformanceStepHolds = {
+  /** The observer. */
+  holds: string;
+  state: unknown;
+};
+
+/** Live: the observer's live query completes. */
+export type ConformanceStepCompletes = {
+  /** The observer. */
+  completes: string;
+};
+
+/**
+ * Live: the next requests the client makes of a service are these, in whatever
+ * order it makes them.
+ */
+export type ConformanceStepFetches = {
+  /** The requests. */
+  fetches: ConformanceStepFetchesFetchesItem[];
+};
+
+export type ConformanceStepFetchesFetchesItem =
+  | components['schemas']['ConformanceBusFetch']
+  | components['schemas']['ConformanceHttpFetch'];
+
+/** Live: the client's stream comes to name exactly these scopes. */
+export type ConformanceStepScopes = {
+  /** The scopes. */
+  scopes: unknown[];
+};
+
+/**
+ * A worker case: the next job the worker reports as claimed, as it read the
+ * record.
+ */
+export type ConformanceStepClaimed = {
+  claimed: unknown;
+};
+
+/** A worker case: the next refusal of a claim the worker reports. */
+export type ConformanceStepRefused = {
+  refused: unknown;
+};
+
+/**
+ * A worker case: the next held job whose cancellation the worker says was
+ * signalled.
+ */
+export type ConformanceStepSignalled = {
+  signalled: unknown;
+};
+
+/** A worker case: the next held job the worker says has stalled. */
+export type ConformanceStepStalled = {
+  stalled: unknown;
+};
+
+/**
+ * What the summary is of: the resource the annotation is on, and the
+ * annotation's entity types.
+ */
+export type ContextualSummaryResponseRelevantFields = {
+  resourceId: components['schemas']['ResourceId'];
+  resourceName: string;
+  entityTypes: string[];
+};
+
+export type ContextualSummaryResponseContext = {
+  before?: string;
+  selected: string;
+  after?: string;
+};
+
+/**
+ * Where the stack actually runs. "local": containers on this machine.
+ * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+ */
+export type DiscoveredKBPlacement = 'local' | 'codespace';
+
+/**
+ * The JetStream broker holding the job queue, whose layout is
+ * specs/src/jobs/storage.json.
+ */
+export type DispatcherConfigQueue = {
+  /** The broker's address (`host:port`, or several, comma-separated). */
+  servers: string;
+  /**
+   * The environment variable holding the broker user, when the broker requires
+   * one.
+   */
+  userEnv?: string;
+  /**
+   * The environment variable holding the broker password, when the broker
+   * requires one.
+   */
+  passwordEnv?: string;
+};
+
+/**
+ * The queue's clocks, in milliseconds. The launcher writes the values a
+ * deployment runs with; a test harness shrinks them.
+ */
+export type DispatcherConfigTiming = {
+  /**
+   * How often the queue re-announces pending jobs and sweeps for dead workers.
+   * The re-announcement is insurance against a lost wake-up, not dispatch.
+   */
+  tickMs: number;
+  /**
+   * How long a running job may go without progress, a checkpoint or a claim
+   * before its worker is presumed dead.
+   */
+  staleRunningMs: number;
+  /**
+   * How long the broker waits, after this dispatcher stops renewing a job's
+   * lease, before redelivering its message.
+   */
+  ackWaitMs: number;
+  /** How long a concluded job is kept before it is deleted. */
+  retentionMs: number;
+  /** How often concluded jobs past `retentionMs` are deleted. */
+  retentionSweepMs: number;
+  /**
+   * The least time between two progress writes for one job; reports closer
+   * together than this are not written.
+   */
+  progressWriteIntervalMs: number;
+  /**
+   * How long the dispatcher waits at boot for the broker before it exits, so
+   * that a restart policy can retry.
+   */
+  bootDeadlineMs: number;
+};
+
+/**
+ * The inference provider: who serves the model. `anthropic`, `google`, `openai`
+ * and `together` are those companies' own APIs. `llamacpp`, `ollama` and `vllm`
+ * are servers a deployment runs or reaches, each named for the server's
+ * software.
+ */
+export type EngineProvider =
+  | 'anthropic'
+  | 'google'
+  | 'llamacpp'
+  | 'ollama'
+  | 'openai'
+  | 'together'
+  | 'vllm';
+
+export type EnrichedResourceEventValue = {
+  /**
+   * Populated for events that mutate an annotation (mark:added,
+   * mark:body-updated, mark:removed). Carries the post-materialization
+   * annotation as it exists in the view, so subscribers can update local caches
+   * in-place without refetching. Absent for events that don't touch
+   * annotations.
+   */
+  annotation?: components['schemas']['Annotation'];
+};
+
+export type ExtractedTextValue = {
+  /**
+   * Discriminant — both ExtractionOutcome members carry `kind`, single-valued:
+   * the category here, the detail in `method`.
+   */
+  kind: 'extracted';
+  /** How the text was extracted. */
+  method: components['schemas']['ExtractionMethod'];
+  /** PDF classification, when the source was a PDF. */
+  pdfClass?: components['schemas']['PdfClass'];
+  /**
+   * How well the engine read the pixels, when any of this text came from OCR.
+   */
+  ocrConfidence?: components['schemas']['OcrConfidence'];
+  /**
+   * 1-indexed pages this extraction could not read — present only for partially
+   * covered documents (class C).
+   */
+  unreadPages?: number[];
+};
+
+/**
+ * The latest sweep's phase: `pending` before its stream first opens, `running`,
+ * `done`, or `due` where the record could not be listed and the sweep is tried
+ * again.
+ */
+export type FollowerFollowingSweep = 'pending' | 'running' | 'done' | 'due';
+
+/** The issuer this knowledge base trusts. */
+export type GatewayConfigIdentity = {
+  /** The issuer URL, exactly as tokens carry it in `iss`. */
+  issuer: string;
+  /**
+   * The claim a person's DID is built from: `did:web:<domain>:users:<its
+   * value>`.
+   */
+  subjectClaim: string;
+};
+
+/**
+ * The signal plane: `in-process`, one gateway on its own fabric; or `nats`, the
+ * fabric every replica on one broker shares, which requires `servers` and a
+ * broker with JetStream.
+ */
+export type GatewayConfigSignal = {
+  type: GatewayConfigSignalType;
+  /**
+   * The broker's address (`host:port`, or several, comma-separated). Required
+   * for `nats`.
+   */
+  servers?: string;
+  /**
+   * The environment variable holding the broker user, when the broker requires
+   * one.
+   */
+  userEnv?: string;
+  /**
+   * The environment variable holding the broker password, when the broker
+   * requires one.
+   */
+  passwordEnv?: string;
+};
+
+export type GatewayConfigSignalType = 'in-process' | 'nats';
+
+/**
+ * What this gateway process can hold, from the memory its deployment gives it.
+ * `queuedBytes`: the bytes queued for all its streams together; at it, a new
+ * stream is refused with 503 (`AtCapacity`, code `capacity`) until the queues
+ * drain — each stream's own bound is `x-xynolog-limits.pendingWriteBytes`.
+ * `connections`: the connections it holds open at once; one past it is closed
+ * unanswered. The launcher derives both from the memory it gives the gateway's
+ * container.
+ */
+export type GatewayConfigCapacity = {
+  queuedBytes: number;
+  connections: number;
+};
+
+export type GatherFailedValue = {
+  /** The annotation the gather was asked for. */
+  annotationId: components['schemas']['AnnotationId'];
+};
+
+export type GatherResourceFailedValue = {
+  /** The resource the gather was asked for. */
+  resourceId: components['schemas']['ResourceId'];
+};
+
+/** The gather anchor. Discriminated on `kind`. */
+export type GatheredContextFocus =
+  GatheredContextFocusAnnotation | GatheredContextFocusResource;
+
+/** Annotation-anchored focus. */
+export type GatheredContextFocusAnnotation = {
+  kind: 'annotation';
+  /** The annotation this context was gathered for */
+  annotation: components['schemas']['Annotation'];
+  /** The resource containing the annotation */
+  sourceResource: components['schemas']['ResourceDescriptor'];
+  /** Text context around the annotation target */
+  selected?: GatheredContextFocusAnnotationSelected;
+  /**
+   * User-provided hint to supplement or replace the selected text for search
+   * and generation
+   */
+  userHint?: string;
+  /**
+   * The resource the annotation links to, if it is a resolved reference.
+   * Dormant capability — produced/exposed but not yet consumed.
+   */
+  targetResource?: components['schemas']['ResourceDescriptor'];
+  /**
+   * Context about the annotation's link target. Dormant — produced/exposed but
+   * not yet consumed.
+   */
+  targetContext?: GatheredContextFocusAnnotationTargetContext;
+};
+
+/** Text context around the annotation target */
+export type GatheredContextFocusAnnotationSelected = {
+  /** Text appearing before the selected passage */
+  before?: string;
+  /** The selected text passage (the annotation target) */
+  text: string;
+  /** Text appearing after the selected passage */
+  after?: string;
+};
+
+/**
+ * Context about the annotation's link target. Dormant — produced/exposed but
+ * not yet consumed.
+ */
+export type GatheredContextFocusAnnotationTargetContext = {
+  content: string;
+  summary?: string;
+};
+
+/** Whole-resource focus. */
+export type GatheredContextFocusResource = {
+  kind: 'resource';
+  /** The resource this context was gathered for */
+  resource: components['schemas']['ResourceDescriptor'];
+  summary?: string;
+  suggestedReferences?: string[];
+  /** Resource content (included when requested) */
+  content?: GatheredContextFocusResourceContent;
+};
+
+/** Resource content (included when requested) */
+export type GatheredContextFocusResourceContent = {
+  /** Content of the focal resource */
+  main?: string;
+  /** Map of related resource IDs to their content */
+  related?: { [key: string]: string };
+};
+
+/**
+ * Semantically similar passages from across the knowledge base, found via
+ * vector search
+ */
+export type GatheredContextSemanticContext = {
+  /** Passages ranked by cosine similarity to the focal text */
+  similar: components['schemas']['SemanticMatch'][];
+  /**
+   * Entity types excluded from this recall — a record of how `similar` was
+   * filtered (e.g. ['Question'] so answer-generation never surfaces prior
+   * questions). Absent when no exclusion was applied.
+   */
+  excludedEntityTypes?: string[];
+};
+
+/** Context metadata about the focal anchor and its source */
+export type GatheredContextMetadata = {
+  /** Type of source resource (e.g., 'document', 'image', 'video') */
+  resourceType?: string;
+  /** BCP 47 language tag of source content */
+  language?: string;
+  /** Entity types associated with the focal anchor */
+  entityTypes?: string[];
+  /**
+   * Global frequency counts for entity types (for IDF-like weighting). A
+   * KB-wide statistic, not a neighborhood property — kept here rather than on
+   * the graph.
+   */
+  entityTypeFrequencies?: { [key: string]: number };
+};
+
+export type GenerationJobParamsValue = {
+  /**
+   * The gathered context that grounds the generation. Its `focus` names the
+   * anchor: the DISPATCHER derives the job's resourceId from it (resource focus
+   * → focus.resource; annotation focus → focus.sourceResource, with the worker
+   * auto-binding to focus.annotation) and REJECTS a caller-supplied id — the
+   * context is authoritative. Under `cite`, the ids its embedding carries are
+   * the only valid citation targets.
+   */
+  context: components['schemas']['GatheredContext'];
+};
+
+export type GetReferencedByResponseReferencedByItemTarget = {
+  /** ID of resource containing the reference */
+  source: components['schemas']['ResourceId'];
+  selector: GetReferencedByResponseReferencedByItemTargetSelector;
+};
+
+export type GetReferencedByResponseReferencedByItemTargetSelector = {
+  /** The selected text that references this resource */
+  exact: string;
+};
+
+/** What the gateway is reached over. */
+export type HttpEndpointProtocol = 'http' | 'https';
+
+/** The providers, and the engine for each job and each Librarian actor. */
+export type InferenceSpec = {
+  /** Each provider an engine names, and how it is reached. */
+  providers: { [key: string]: components['schemas']['Provider'] };
+  /**
+   * The engine each job is done with when software does it, and the engine each
+   * Librarian actor asks.
+   */
+  engines: components['schemas']['ArchivistEngines'];
+};
+
+export type InferenceLimitsResultResponse = {
+  limits: components['schemas']['EngineLimits'][];
+};
+
+/**
+ * The issuer, where it is published, and the database it keeps its realms in.
+ */
+export type IssuerSpec = {
+  /** The issuer's driver: `keycloak`. */
+  type: string;
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+  /**
+   * The port the issuer is published on, on this machine: the origin of every
+   * realm's `iss`, so the one number wherever the issuer is reached.
+   */
+  port: number;
+  /** The database the issuer keeps its realms in. */
+  database: IssuerSpecDatabase;
+};
+
+/** The database the issuer keeps its realms in. */
+export type IssuerSpecDatabase = components['schemas']['Runner'] &
+  unknown & {
+    /** The database's driver: `postgres`. */
+    type: string;
+    /**
+     * The database the issuer keeps its realms in: a lowercase PostgreSQL
+     * identifier, as PostgreSQL itself names an unquoted one. On a PostgreSQL the
+     * launcher runs, the launcher creates it; on one somebody else runs
+     * (`external`), it must already exist there.
+     */
+    name: string;
+    /** The user the issuer signs in as. */
+    user: string;
+    image?: components['schemas']['Image'];
+    resources?: components['schemas']['Resources'];
+    /**
+     * The port a PostgreSQL the launcher runs is published on, on this machine,
+     * where the issuer reaches it. One somebody else runs is reached at
+     * `external`.
+     */
+    port?: number;
+    /** A database somebody else runs. */
+    external?: IssuerSpecDatabaseExternal;
+  };
+
+/** A database somebody else runs. */
+export type IssuerSpecDatabaseExternal = {
+  /** A host name or address the issuer can reach. */
+  host: string;
+  /** The port it listens on. */
+  port: number;
+  password: components['schemas']['SecretRef'];
+};
+
+/**
+ * Why the resource could not be read. A CODE, not a sentence: the client owns
+ * the wording, so a browser renders it in the user's language and the CLI
+ * renders English terminal copy from the same value. A prose `message` composed
+ * server-side would be English everywhere.
+ */
+export type JobDeclinedReason =
+  'no-text-layer' | 'encrypted' | 'corrupt' | 'too-large' | 'empty';
+
+/**
+ * What the run is working on right now. `kind` is a CODE the client renders a
+ * localized name for; `value` is KB data (an entity type, a tag category) shown
+ * verbatim — the same split as `requestParams`. Absent on flows that iterate
+ * nothing, such as generation.
+ */
+export type JobProgressCurrent = {
+  /**
+   * What sort of thing `value` is. Adding a variant means adding client copy
+   * for it in every locale.
+   */
+  kind: JobProgressCurrentKind;
+  /** The item itself, shown verbatim and never translated. */
+  value: string;
+};
+
+/**
+ * What sort of thing `value` is. Adding a variant means adding client copy for
+ * it in every locale.
+ */
+export type JobProgressCurrentKind = 'entity-type' | 'category';
+
+export type JobProgressCompletedItemsItem = {
+  /** The item, shown verbatim. */
+  value: string;
+  /** Annotations found for it. */
+  foundCount: number;
+  /**
+   * Annotations actually persisted for it — post-dedupe and
+   * post-durability-acknowledgement, so it counts what the event log holds, not
+   * what the model proposed. Beside foundCount this is the per-unit yield the
+   * sizing work is judged by. Present on flows whose units persist as they
+   * complete (a linking job); the tagging flow reports the same fact as
+   * byCategory on its result, because its annotations are built after the
+   * per-category loop.
+   */
+  persistedCount?: number;
+  /**
+   * Present only when pieces of this unit were accepted at the subdivision
+   * floor while a count call said more was present. The unit completed, but
+   * incompletely — this carries the EVIDENCE (found vs counted, over how many
+   * pieces), never a judgment against any expected yield. Absent means
+   * complete: genuinely absent, not defaulted.
+   */
+  underReported?: JobProgressCompletedItemsItemUnderReported;
+};
+
+/**
+ * Present only when pieces of this unit were accepted at the subdivision floor
+ * while a count call said more was present. The unit completed, but
+ * incompletely — this carries the EVIDENCE (found vs counted, over how many
+ * pieces), never a judgment against any expected yield. Absent means complete:
+ * genuinely absent, not defaulted.
+ */
+export type JobProgressCompletedItemsItemUnderReported = {
+  /** Floor-accepted pieces in this unit. */
+  pieces: number;
+  /**
+   * Annotations extraction did find on those pieces — every span
+   * write-time-verified.
+   */
+  found: number;
+  /**
+   * Mentions the count calls reported across those pieces (approximate by
+   * nature).
+   */
+  counted: number;
+};
+
+export type JobProgressRequestParamsItem = {
+  /** Which parameter this is. The client renders a localized name for it. */
+  label: JobProgressRequestParamsItemLabel;
+  /** The user's own input, shown verbatim. */
+  value: string;
+};
+
+/** Which parameter this is. The client renders a localized name for it. */
+export type JobProgressRequestParamsItemLabel =
+  'entity-types' | 'instructions' | 'tone' | 'density';
+
+export type JobStatusResponseStatus =
+  'pending' | 'running' | 'complete' | 'failed' | 'cancelled';
+
+/**
+ * Where the stack actually runs. "local": containers on this machine.
+ * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+ */
+export type KnowledgeBaseStatusPlacement = 'local' | 'codespace';
+
+export type KnowledgeGraphNodesItem =
+  | components['schemas']['GraphResourceNode']
+  | components['schemas']['GraphAnnotationNode'];
+
+export type KnowledgeGraphEdgesItem = {
+  source: string;
+  target: string;
+  /**
+   * Edge kind: `annotation-of` (an annotation → the resource it lives on),
+   * `cites` (a citing linking annotation → the focal resource), or `link` (a
+   * resource → a resource it links to)
+   */
+  type: string;
+  /**
+   * Whether the connection goes both ways. Absent on a `link` edge found
+   * through what cites a resource, which says nothing of the way back
+   */
+  bidirectional?: boolean;
+  metadata?: { [key: string]: unknown };
+};
+
+/**
+ * The indexes, the services that keep and read them, and the knowledge base
+ * they index.
+ */
+export type KnowledgeIndexSpec = {
+  /** The name of the KnowledgeBase document whose record this indexes. */
+  knowledgeBase: string;
+  logLevel: components['schemas']['LogLevel'];
+  /**
+   * The graph store the Weaver writes and the Librarian reads. The knowledge
+   * base's graph is in the database its DID names
+   * (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it
+   * when it first starts, and one somebody else runs must already hold it.
+   */
+  graph: KnowledgeIndexSpecGraph;
+  /**
+   * The vector store the Smelter writes and the Librarian reads: the one the
+   * launcher runs for the knowledge bases on a machine, at `shared`; one of the
+   * knowledge base's own the launcher runs, from `image` with `resources`; or
+   * somebody else's, at `external`. Exactly one of the three.
+   */
+  vectors: KnowledgeIndexSpecVectors;
+  /**
+   * The model that turns text into vectors. Vectors made by one model are not
+   * comparable with another's, so the model is the index's.
+   */
+  embedding: KnowledgeIndexSpecEmbedding;
+  /** The Librarian: it answers gathers and searches from the indexes. */
+  librarian: KnowledgeIndexSpecLibrarian;
+  /** The Smelter: it writes the vectors and the anchored text. */
+  smelter: KnowledgeIndexSpecSmelter;
+  /** The Weaver: it writes the graph. */
+  weaver: KnowledgeIndexSpecWeaver;
+};
+
+/**
+ * The graph store the Weaver writes and the Librarian reads. The knowledge
+ * base's graph is in the database its DID names
+ * (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it
+ * when it first starts, and one somebody else runs must already hold it.
+ */
+export type KnowledgeIndexSpecGraph = components['schemas']['Runner'] & {
+  /** The graph store's driver: `neo4j`. */
+  type: string;
+  /** The user the services sign in to the store as. */
+  username: string;
+  image?: components['schemas']['Image'];
+  resources?: components['schemas']['Resources'];
+  /** A graph store somebody else runs. */
+  external?: KnowledgeIndexSpecGraphExternal;
+};
+
+/** A graph store somebody else runs. */
+export type KnowledgeIndexSpecGraphExternal = {
+  /** Where it listens: `bolt://host:port`. */
+  uri: string;
+  password: components['schemas']['SecretRef'];
+};
+
+/**
+ * The vector store the Smelter writes and the Librarian reads: the one the
+ * launcher runs for the knowledge bases on a machine, at `shared`; one of the
+ * knowledge base's own the launcher runs, from `image` with `resources`; or
+ * somebody else's, at `external`. Exactly one of the three.
+ */
+export type KnowledgeIndexSpecVectors = {
+  /** The vector store's driver: `qdrant`. */
+  type: string;
+  /**
+   * The vector store the launcher runs for the knowledge bases on a machine
+   * (the state home's VectorStore document). Each knowledge base keeps its
+   * index in collections of its own there, so nothing is said of it here.
+   */
+  shared?: Record<string, never>;
+  image?: components['schemas']['Image'];
+  resources?: components['schemas']['Resources'];
+  /**
+   * A vector store somebody else runs, with the token each service presents to
+   * it: the Smelter's may make, write and delete this knowledge base's
+   * collections, and the Librarian's may read them.
+   */
+  external?: KnowledgeIndexSpecVectorsExternal;
+};
+
+/**
+ * A vector store somebody else runs, with the token each service presents to
+ * it: the Smelter's may make, write and delete this knowledge base's
+ * collections, and the Librarian's may read them.
+ */
+export type KnowledgeIndexSpecVectorsExternal = {
+  /** A host name or address the stack's containers can reach. */
+  host: string;
+  /** The port its REST API listens on. */
+  port: number;
+  smelterToken: components['schemas']['SecretRef'];
+  librarianToken: components['schemas']['SecretRef'];
+};
+
+/**
+ * The model that turns text into vectors. Vectors made by one model are not
+ * comparable with another's, so the model is the index's.
+ */
+export type KnowledgeIndexSpecEmbedding = {
+  /** Who serves the model: `ollama`, or `voyage`. */
+  type: string;
+  /** The model, as its provider names it. */
+  model: string;
+  /** How a text is cut before it is embedded. */
+  chunking: KnowledgeIndexSpecEmbeddingChunking;
+  /**
+   * Where the provider's API is reached. The shared Ollama is stated by no
+   * endpoint.
+   */
+  endpoint?: string;
+  apiKey?: components['schemas']['SecretRef'];
+};
+
+/** How a text is cut before it is embedded. */
+export type KnowledgeIndexSpecEmbeddingChunking = {
+  /** The size of a piece. */
+  chunkSize: number;
+  /** How much of one piece the next repeats. */
+  overlap: number;
+};
+
+/** The Librarian: it answers gathers and searches from the indexes. */
+export type KnowledgeIndexSpecLibrarian = {
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+  /** How a gather waits. */
+  gather: KnowledgeIndexSpecLibrarianGather;
+  /** What a search by meaning keeps. */
+  search: KnowledgeIndexSpecLibrarianSearch;
+};
+
+/** How a gather waits. */
+export type KnowledgeIndexSpecLibrarianGather = {
+  /**
+   * How long a gather waits for the Smelter to settle a resource, in
+   * milliseconds.
+   */
+  settleTimeoutMs: number;
+};
+
+/** What a search by meaning keeps. */
+export type KnowledgeIndexSpecLibrarianSearch = {
+  /** The least similarity a hit by meaning must have. */
+  semanticFloor: number;
+};
+
+/** The Smelter: it writes the vectors and the anchored text. */
+export type KnowledgeIndexSpecSmelter = {
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+  /**
+   * How many PDFs it works on at once. A page of a scan held for OCR is large;
+   * one for each 2G of its memory is a reading of what fits.
+   */
+  pdfsAtOnce: number;
+};
+
+/** The Weaver: it writes the graph. */
+export type KnowledgeIndexSpecWeaver = {
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+};
+
+/** The bound on a gather. */
+export type LibrarianConfigGather = {
+  /**
+   * How long a gather around a resource waits for the Smelter's decision on it
+   * before answering without similar passages, in milliseconds.
+   */
+  settleTimeoutMs: number;
+};
+
+/** The bound on a search by meaning. */
+export type LibrarianConfigSearch = {
+  /** The least similarity a hit by meaning must have. */
+  semanticFloor: number;
+};
+
+export type LibrarianHealthActorsItem = 'matcher' | 'gatherer';
+
+export type LimitRefusalValue = {
+  /**
+   * `streams`: the principal already holds as many streams as its coefficient
+   * of `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the
+   * principal's emits have used its bucket, whose rate and burst are its
+   * coefficient of `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
+   * `unanswered-requests`: the client already awaits as many replies as
+   * `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway
+   * holds as many queued bytes as it can. `refusal-rate`: the request's
+   * credential was refused, and the requests its holder has had refused have
+   * used their allowance; it answers only a request whose token has already
+   * failed verification, so it says what a 401 says, and a client that can
+   * renew its token renews it and sends the request again rather than waiting
+   * (contract/TRANSPORT-CONTRACT.md § A refused credential).
+   */
+  code: LimitRefusalValueCode;
+};
+
+/**
+ * `streams`: the principal already holds as many streams as its coefficient of
+ * `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the principal's
+ * emits have used its bucket, whose rate and burst are its coefficient of
+ * `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
+ * `unanswered-requests`: the client already awaits as many replies as
+ * `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway holds
+ * as many queued bytes as it can. `refusal-rate`: the request's credential was
+ * refused, and the requests its holder has had refused have used their
+ * allowance; it answers only a request whose token has already failed
+ * verification, so it says what a 401 says, and a client that can renew its
+ * token renews it and sends the request again rather than waiting
+ * (contract/TRANSPORT-CONTRACT.md § A refused credential).
+ */
+export type LimitRefusalValueCode =
+  'streams' | 'emit-rate' | 'unanswered-requests' | 'capacity' | 'refusal-rate';
+
+/** What the commit persisted. */
+export type MarkCommitOkResponse = {
+  /**
+   * Annotations the command named that are durable in the event log. Equals the
+   * batch size on success, on a first commit and on a retry alike — the commit
+   * appends only what the resource does not already hold, so a wholly-redundant
+   * retry has still succeeded and says so. Not an append tally: a caller must
+   * never have to read a 0 as 'all good'.
+   */
+  persisted: number;
+  /** Ids the batch covers, whether appended now or already present. */
+  annotationIds: components['schemas']['AnnotationId'][];
+};
+
+/** The deleted annotation's identity. */
+export type MarkDeleteOkResponse = {
+  annotationId: components['schemas']['AnnotationId'];
+};
+
+export type MarkJobFilterParams = {
+  motivation: components['schemas']['Motivation'];
+};
+
+/**
+ * What kind of answer this is: 'lexical' — the resources matched the query
+ * text; 'semantic' — no lexical match existed, and these resources discuss the
+ * query per the vector index. Required so every producer labels its answer; a
+ * UI can render semantic results as a different kind of page ('no title
+ * matches, but these documents discuss it').
+ */
+export type MatchResourcesResponseMatchKind = 'lexical' | 'semantic';
+
+export type MatchSearchFailedValue = {
+  /** The reference the search was asked for. */
+  referenceId: components['schemas']['AnnotationId'];
+};
+
+/**
+ * What the line is: narration (log, note), an outcome (ok, warn, fail), a
+ * heading (banner, section), a timestamp (stamp), a runtime command about to
+ * run (command), or text the operation printed (output).
+ */
+export type ProgressKind =
+  | 'log'
+  | 'note'
+  | 'ok'
+  | 'warn'
+  | 'fail'
+  | 'banner'
+  | 'section'
+  | 'stamp'
+  | 'command'
+  | 'output';
+
+/** The knowledge base's name. */
+export type ProjectConfigProject = {
+  /** The knowledge base's name, which decides where its state is kept. */
+  name: string;
+  /** A version the knowledge base's author gives it. Nothing changes it. */
+  version?: string;
+};
+
+/** How the knowledge base's changes reach git. */
+export type ProjectConfigGit = {
+  /**
+   * Whether changes to the working tree and the event log are staged in git as
+   * they are made.
+   */
+  sync: boolean;
+};
+
+/** The knowledge base's identity. */
+export type ProjectConfigSite = {
+  /**
+   * The knowledge base's permanent identity, in did:web's colon-path form
+   * (`owner.github.io:repo`): stamped into every event it records, so never a
+   * machine's address and never changed. With no white space in it, which no
+   * DID holds (UserId.json).
+   */
+  domain: string;
+  /** The name people see for the knowledge base. */
+  siteName: string;
+};
+
+/**
+ * Semantics of this rendition relative to the resource (e.g., original,
+ * thumbnail, preview, derived).
+ */
+export type RepresentationRel =
+  'original' | 'thumbnail' | 'preview' | 'optimized' | 'derived' | 'other';
+
+export type RepresentationNotFoundValue = {
+  code: RepresentationNotFoundValueCode;
+};
+
+export type RepresentationNotFoundValueCode = 'resource' | 'representation';
+
+/**
+ * What this resource was generated from: the resource, and the annotation on it
+ * when the generation was for one. The resource's descriptor names the resource
+ * as `wasDerivedFrom`.
+ */
+export type ResourceCreatedPayloadGeneratedFrom = {
+  resourceId: components['schemas']['ResourceId'];
+  annotationId?: components['schemas']['AnnotationId'];
+};
+
+/** JSON-LD context; URI, object, or array of these. */
+export type ResourceDescriptorContext =
+  string | { [key: string]: unknown } | ResourceDescriptorContextItem[];
+
+export type ResourceDescriptorContextItem = string | { [key: string]: unknown };
+
+/** Persistent identifiers (e.g., DOI, URN). */
+export type ResourceDescriptorIdentifier =
+  string | string[] | ResourceDescriptorIdentifierObject;
+
+export type ResourceDescriptorIdentifierObject = {
+  '@id'?: string;
+  value?: string;
+  scheme?: string;
+} & { [key: string]: unknown };
+
+/**
+ * W3C PROV: the resource, or resources, this one was derived from, each by its
+ * id
+ */
+export type ResourceDescriptorWasDerivedFrom =
+  components['schemas']['ResourceId'] | components['schemas']['ResourceId'][];
+
+/** Managed or referenced byte-level renditions of this resource. */
+export type ResourceDescriptorRepresentations =
+  | components['schemas']['Representation']
+  | components['schemas']['Representation'][];
+
+/** The most a container may use. */
+export type ResourcesLimits = {
+  /**
+   * The memory ceiling: a whole number of gigabytes or megabytes, `8G` or
+   * `512M`.
+   */
+  memory: string;
+};
+
+/**
+ * Where the stack actually runs. "local": containers on this machine.
+ * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+ */
+export type RootPlacement = 'local' | 'codespace';
+
+/**
+ * For a local root: how the control server's own directory selects it, when it
+ * does — standing in it (cwd), or XYNOLOG_ROOT.
+ */
+export type RootCurrent = 'cwd' | 'xynolog-root';
+
+/** Inference provider for the generated local stack documents. */
+export type RootsInitParamsInference = 'anthropic' | 'ollama';
+
+export type ScoredResourceValue = {
+  /** Relevance score assigned by the matcher; higher is a better candidate. */
+  score?: number;
+  /** Human-readable reason for the match. */
+  matchReason?: string;
+};
+
+/**
+ * term: SIGTERM, and SIGKILL 15 seconds later if it has not exited. kill:
+ * SIGKILL, so nothing it would settle on the way out is settled.
+ */
+export type ServiceSignalParamsSignal = 'term' | 'kill';
+
+/**
+ * running: its container runs. stopped: its container exists and does not run
+ * (containerState says how). reachable, unreachable: somebody else runs it, and
+ * its endpoint answers or does not. absent: there is no container of it.
+ * not-configured: the stack's documents ask for none.
+ */
+export type ServiceStatusState =
+  | 'running'
+  | 'stopped'
+  | 'reachable'
+  | 'unreachable'
+  | 'absent'
+  | 'not-configured';
+
+/**
+ * valid: the stack's gateway accepts the stored token. expired: it refuses it
+ * (a refresh, or xynolog login, renews it). unverified: the stack did not
+ * answer. none: nothing is stored.
+ */
+export type SessionState = 'valid' | 'expired' | 'unverified' | 'none';
+
+/** What it applies to: every knowledge base on this machine, or one. */
+export type SettingAppliesTo = 'machine' | 'knowledge-base';
+
+/**
+ * Whose document: the Browser's, the worker's, the issuer's or the vector
+ * store's.
+ */
+export type SettingsPathParamsDocument =
+  'browser' | 'worker' | 'issuer' | 'vectors';
+
+export type SettingsThemeChangedEventTheme = 'light' | 'dark' | 'system';
+
+export type SmeltSettledOutcome = 'indexed' | 'skipped';
+
+/** Why the content was skipped. */
+export type SmeltSettledReason =
+  | 'no-extractor'
+  | 'empty'
+  | 'no-text-layer'
+  | 'encrypted'
+  | 'corrupt'
+  | 'too-large';
+
+/**
+ * The state of its own stream of the record, one of the seven of
+ * TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while it
+ * is `open`.
+ */
+export type SmelterHealthStream =
+  | 'initial'
+  | 'connecting'
+  | 'open'
+  | 'reconnecting'
+  | 'degraded'
+  | 'unauthenticated'
+  | 'closed';
+
+/**
+ * How far the latest reconcile has got: the pass's `summary` when it is done,
+ * or its `error` when it failed.
+ */
+export type SmelterHealthReconcile = {
+  phase: SmelterHealthReconcilePhase;
+  /** What the pass came to. */
+  summary?: components['schemas']['SmelterReconcileSummary'];
+  /** Why it failed. */
+  error?: string;
+};
+
+export type SmelterHealthReconcilePhase =
+  'pending' | 'running' | 'done' | 'failed';
+
+/** What the Smelter holds its index to, and what this start did for that. */
+export type SmelterHealthIndex = {
+  /** The model and the cut it makes an index by. */
+  stamp: SmelterHealthIndexStamp;
+  /**
+   * Whether this start made the index again, as it does where the index stated
+   * another stamp, or none.
+   */
+  madeAnew: boolean;
+};
+
+/** The model and the cut it makes an index by. */
+export type SmelterHealthIndexStamp = {
+  /** The embedding provider's kind and model. */
+  embedding: SmelterHealthIndexStampEmbedding;
+  chunking: components['schemas']['SmelterChunking'];
+};
+
+/** The embedding provider's kind and model. */
+export type SmelterHealthIndexStampEmbedding = {
+  type: string;
+  model: string;
+};
+
+/** The knowledge base's services, and how each runs. */
+export type StackKnowledgeBaseSpec = {
+  logLevel: components['schemas']['LogLevel'];
+  /**
+   * The Gateway: where every client and every service reaches the knowledge
+   * base.
+   */
+  gateway: StackKnowledgeBaseSpecGateway;
+  /** The Dispatcher: it hands queued jobs to workers. */
+  dispatcher: StackKnowledgeBaseSpecDispatcher;
+  /**
+   * The Archivist: it keeps the knowledge base's record in its working tree.
+   */
+  archivist: StackKnowledgeBaseSpecArchivist;
+  /**
+   * The broker the job queue and the signal plane share: the launcher's, run
+   * from `image`, or somebody else's, at `external`.
+   */
+  messaging: StackKnowledgeBaseSpecMessaging;
+  /**
+   * The issuer the knowledge base trusts: the one the launcher runs for the
+   * knowledge bases on a machine, at `shared`, with the knowledge base's own
+   * realm in it, or somebody else's, at `external`.
+   */
+  issuer: StackKnowledgeBaseSpecIssuer;
+};
+
+/**
+ * The Gateway: where every client and every service reaches the knowledge base.
+ */
+export type StackKnowledgeBaseSpecGateway = {
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+  /** The port the Gateway is published on. */
+  port: number;
+  /**
+   * Where clients reach the Gateway: the server its API document names. A
+   * service of the stack reaches it where the launcher places it, on `port`.
+   */
+  publicURL: string;
+};
+
+/** The Dispatcher: it hands queued jobs to workers. */
+export type StackKnowledgeBaseSpecDispatcher = {
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+};
+
+/** The Archivist: it keeps the knowledge base's record in its working tree. */
+export type StackKnowledgeBaseSpecArchivist = {
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+  /**
+   * Where the stack's services reach the Archivist, when that is somewhere the
+   * launcher cannot see. Absent, they reach it where the launcher places it.
+   */
+  address?: components['schemas']['HostPort'];
+};
+
+/**
+ * The broker the job queue and the signal plane share: the launcher's, run from
+ * `image`, or somebody else's, at `external`.
+ */
+export type StackKnowledgeBaseSpecMessaging =
+  components['schemas']['Runner'] & {
+    /** The Dispatcher's queue. */
+    jobs: StackKnowledgeBaseSpecMessagingJobs;
+    /** The Gateway's signal plane. */
+    signal: StackKnowledgeBaseSpecMessagingSignal;
+    image?: components['schemas']['Image'];
+    resources?: components['schemas']['Resources'];
+    /**
+     * A broker somebody else runs, serving this knowledge base alone: a second
+     * knowledge base on it would share the job queue and, on a `nats` signal
+     * plane, the frames and the gateway's record of pending replies. The launcher
+     * refuses to start a knowledge base whose `servers` another knowledge base on
+     * its machine names.
+     */
+    external?: StackKnowledgeBaseSpecMessagingExternal;
+  };
+
+/** The Dispatcher's queue. */
+export type StackKnowledgeBaseSpecMessagingJobs = {
+  /** The queue's driver: `jetstream`. */
+  type: string;
+};
+
+/** The Gateway's signal plane. */
+export type StackKnowledgeBaseSpecMessagingSignal = {
+  /** `in-process`, one Gateway on its own fabric, or `nats`, on the broker. */
+  type: string;
+};
+
+/**
+ * A broker somebody else runs, serving this knowledge base alone: a second
+ * knowledge base on it would share the job queue and, on a `nats` signal plane,
+ * the frames and the gateway's record of pending replies. The launcher refuses
+ * to start a knowledge base whose `servers` another knowledge base on its
+ * machine names.
+ */
+export type StackKnowledgeBaseSpecMessagingExternal = {
+  /** Where it listens: `host:port`. */
+  servers: string;
+  user: components['schemas']['SecretRef'];
+  password: components['schemas']['SecretRef'];
+};
+
+/**
+ * The issuer the knowledge base trusts: the one the launcher runs for the
+ * knowledge bases on a machine, at `shared`, with the knowledge base's own
+ * realm in it, or somebody else's, at `external`.
+ */
+export type StackKnowledgeBaseSpecIssuer = {
+  /**
+   * The issuer the launcher runs for the knowledge bases on a machine (the
+   * state home's Issuer document). The launcher creates the knowledge base's
+   * realm in it.
+   */
+  shared?: StackKnowledgeBaseSpecIssuerShared;
+  /** An issuer somebody else runs. */
+  external?: StackKnowledgeBaseSpecIssuerExternal;
+  /**
+   * The claim a person's DID is built from: did:web:<site domain>:users:<its
+   * value>.
+   */
+  subjectClaim: string;
+};
+
+/**
+ * The issuer the launcher runs for the knowledge bases on a machine (the state
+ * home's Issuer document). The launcher creates the knowledge base's realm in
+ * it.
+ */
+export type StackKnowledgeBaseSpecIssuerShared = {
+  /**
+   * How long a token the realm mints stays valid, in seconds: the window in
+   * which a disabled account can still act.
+   */
+  accessTokenLifespan: number;
+};
+
+/** An issuer somebody else runs. */
+export type StackKnowledgeBaseSpecIssuerExternal = {
+  /** `oidc`, or `keycloak`. */
+  type: string;
+  /** The URL in its tokens' `iss` claim. */
+  url: string;
+};
+
+/**
+ * Where a started Ollama keeps its models, as --ollama-cache names it. Absent:
+ * the host's ~/.ollama when there is one, else the named volume — what the
+ * command line's prompt does when nobody answers it.
+ */
+export type StackStartParamsOllamaCache = 'host' | 'volume';
+
+export type StatusResponseFeatures = {
+  semanticContent: string;
+  collaboration: string;
+};
+
+/**
+ * Where the stack runs: on this machine (local), or on a GitHub codespace whose
+ * knowledge base is forwarded here (codespace).
+ */
+export type TargetKind = 'local' | 'codespace';
+
+/** The vector store, and where it is published. */
+export type VectorStoreSpec = {
+  /** The vector store's driver: `qdrant`. */
+  type: string;
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+  /**
+   * The port the vector store is published on, on this machine, where every
+   * knowledge base's Smelter and Librarian reach it.
+   */
+  port: number;
+};
+
+/**
+ * How far the reconcile its first sweep is followed by has got (WEAVER.md §
+ * Reconcile): the pass's `summary` when it is done, or its `error` when it
+ * failed.
+ */
+export type WeaverHealthReconcile = {
+  phase: WeaverHealthReconcilePhase;
+  /** What the pass found and did. */
+  summary?: WeaverHealthReconcileSummary;
+  /** Why it failed. */
+  error?: string;
+};
+
+export type WeaverHealthReconcilePhase =
+  'pending' | 'running' | 'done' | 'failed';
+
+/** What the pass found and did. */
+export type WeaverHealthReconcileSummary = {
+  /** How many resources it checked. */
+  resourcesChecked: number;
+  /**
+   * How many of them were divergent: the graph held them otherwise than the
+   * record.
+   */
+  divergent: number;
+  /** How many divergent resources it rebuilt. */
+  healed: number;
+  /**
+   * How many it did not heal, because the rebuild stopped at an event it could
+   * not apply.
+   */
+  healFailures: number;
+  /**
+   * How many orphaned views it found: resources the catalog lists and the
+   * record holds no events for. Each is counted, and not healed.
+   */
+  orphaned: number;
+};
+
+/** The job it holds, or null. */
+export type WorkerEngineHealthActiveJob = {
+  jobId: components['schemas']['JobId'];
+  type: components['schemas']['JobType'];
+  /** When it was handed the job. */
+  since: string;
+};
+
+/** Where the worker signs in for this knowledge base, and as which client. */
+export type WorkerKnowledgeBaseConfigIdentity = {
+  /** The issuer URL, exactly as tokens carry it in `iss`. */
+  issuer: string;
+  /**
+   * The client the issuer holds the public half of the worker's key on: the
+   * worker's account at this knowledge base. It is also what the worker says it
+   * is called there (`principal:profile`).
+   */
+  clientId: string;
+};
+
+/**
+ * `starting`: signing in, opening its stream, confirming it, or waiting to
+ * start again. `working`: confirmed, its engines claiming. `refused`: refused,
+ * until the service is started again.
+ */
+export type WorkerKnowledgeBaseHealthState = 'starting' | 'working' | 'refused';
+
+/** How the worker runs. */
+export type WorkerPoolSpec = {
+  logLevel: components['schemas']['LogLevel'];
+  /** The Worker. */
+  worker: WorkerPoolSpecWorker;
+};
+
+/** The Worker. */
+export type WorkerPoolSpecWorker = {
+  image: components['schemas']['Image'];
+  resources: components['schemas']['Resources'];
+};
+
+/**
+ * The Gateway's request tracking: correlation IDs it currently holds so replies
+ * can be routed to the app client that sent each request, and the tracking
+ * capacity.
+ */
+export type WorkloadStatusLedger = {
+  /**
+   * Number of request IDs currently held to route replies to their requesting
+   * app clients. Includes requests still waiting for a reply and recently
+   * answered requests still within the tracking window.
+   */
+  claims: number;
+  /**
+   * The maximum number of IDs held in this Gateway's local tracking projection.
+   */
+  capacity: number;
+};
+
+/**
+ * Current Dispatcher depth and, when the worker has emitted counters, completed
+ * and failed work since worker start. These are different measurements and time
+ * windows.
+ */
+export type WorkloadStatusQueue = {
+  /** Jobs currently waiting for a worker. */
+  pending: number;
+  /** Jobs currently claimed by workers. */
+  running: number;
+  /** Jobs completed since worker start. */
+  completed?: number;
+  /** Jobs finally failed since worker start. */
+  failed?: number;
+};
+
+export type YieldCreateCommandGeneratedFrom = {
+  resourceId?: components['schemas']['ResourceId'];
+  annotationId?: components['schemas']['AnnotationId'];
+};
