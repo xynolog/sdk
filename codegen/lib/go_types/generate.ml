@@ -1,9 +1,10 @@
-(* Go types from component schemas, for the Go SDK's package api: a struct per
-   object, a named string, integer or boolean per enumeration, with a
-   constant per value, an alias per named string, list or map, and a union
-   per [oneOf] or [anyOf]. A field is a pointer where its schema leaves it
-   out or admits null, but one of any type, which holds nil itself. It knows
-   the shapes the spec's schemas use and refuses any other.
+(* Go types from Protocol's schemas as [Typing] reads them, for the Go SDK's
+   package api: a struct per object, a named string, integer or boolean per
+   enumeration, with a constant per value, an alias per named string, list or
+   map, and a union per [oneOf] or [anyOf]. A field is a pointer where its
+   schema leaves it out or admits null, but one of any type, which holds nil
+   itself. It spells what [Typing] decides, and refuses a form Go has no
+   spelling for.
 
    A union holds its value as the wire carries it, in the hand-written
    generic [union] (go/api/union.go), whose [From] and [As] take only one of
@@ -23,17 +24,12 @@
    them through go/api/written.go's [readOpen] and [writeOpen]. *)
 
 module G = Go_syntax
-module D = Definitions
+module T = Typing
 
-let refuse = D.refuse
+let refuse = Definitions.refuse
 
 type state = {
-  definitions : D.definitions;
-  identifiers : string list;
-  keys : (string * string) list;
-      (** The type a named map's keys are, by its name, where its schema's
-          [propertyNames] names one: [Normalize.shape_only] drops the keyword,
-          so the writer of the types is told. *)
+  typing : T.t;
   written : (string, G.decl list) Hashtbl.t;
       (** Every type written, by name, so a schema reached twice is written
           once. *)
@@ -46,21 +42,17 @@ type state = {
   mutable json : bool;  (** Whether a method calls encoding/json. *)
 }
 
-let defined st name = List.mem name st.definitions.names
 let named name = G.Named name
 let any = named "any"
+let string_ = named "string"
 let empty_object = "EmptyObject"
+let shape what = refuse "%s: a schema shape the generator does not know" what
 
-let lower name =
-  String.make 1 (Char.lowercase_ascii name.[0])
-  ^ String.sub name 1 (String.length name - 1)
-
-(* A schema's description, after the name Go's doc comments open with. *)
-let doc_of name (s : D.t) =
-  match s with
-  | D.Node { description = Some d; _ } | D.Ref { description = Some d; _ } ->
-      G.prose (name ^ " " ^ String.trim d)
-  | _ -> []
+(* A description, after the name Go's doc comments open with. *)
+let doc_of name description =
+  match description with
+  | Some d -> G.prose (name ^ " " ^ String.trim d)
+  | None -> []
 
 let marker union = "memberOf" ^ union
 let member_interface union = union ^ "Member"
@@ -70,24 +62,31 @@ let mark st member union =
   if not (List.mem union unions) then
     Hashtbl.replace st.markers member (unions @ [ union ])
 
+let identifier st name =
+  match (st.typing.find name).form with T.Identifier _ -> true | _ -> false
+
+(* What an object in place holds beside no member it names: none, or any. *)
+let holds_none (form : T.form) =
+  match form with
+  | T.Empty { none = true; _ } | T.Empty { rest = T.Closed; _ } -> true
+  | _ -> false
+
 let rec named_type st name =
-  if (not (List.mem name st.identifiers)) && not (Hashtbl.mem st.written name)
-  then (
+  if (not (identifier st name)) && not (Hashtbl.mem st.written name) then (
+    let d = st.typing.find name in
     Hashtbl.replace st.written name [];
     Hashtbl.replace st.written name
-      (declaration st name (st.definitions.schema name)));
+      (declaration st name d.form (doc_of name d.node_description)));
   named name
 
-(* A schema written in place, as the type [name]. A property an [allOf]
-   child inherits is named after the schema that states it
-   ([Definitions.owners]), so the one type is reached again through it. *)
-and inline st name s =
-  if not (Hashtbl.mem st.written name) then (
-    Hashtbl.replace st.written name [];
-    Hashtbl.replace st.written name (declaration st name s));
-  named name
-
-and inline_name st owner part = Naming.inline ~defined:(defined st) owner part
+(* A type of its own written in place, declared by the name [Typing] gives
+   it. *)
+and declared st (i : T.inline) =
+  if not (Hashtbl.mem st.written i.name) then (
+    Hashtbl.replace st.written i.name [];
+    Hashtbl.replace st.written i.name
+      (declaration st i.name i.form (doc_of i.name i.node_description)));
+  named i.name
 
 and empty st =
   if not (Hashtbl.mem st.written empty_object) then
@@ -102,166 +101,81 @@ and empty st =
       ];
   named empty_object
 
-(* A keyword that constrains nothing, so a schema of these alone, as
-   JsonSchema.json written in place is, admits any value. *)
-and annotation key =
-  List.mem key [ "$schema"; "$id"; "$comment"; "title"; "description" ]
+(* The Go type of a value of [ty], without the pointer its field may be,
+   [what] holding it. *)
+and type_of st what (ty : T.ty) =
+  match ty with
+  | T.Named name -> named_type st name
+  | T.Any -> any
+  | T.Nullable inner -> type_of st what inner
+  | T.Inline i -> in_place st what i
+  | T.Scalar (T.Text { binary = true; _ }) -> G.Slice (named "byte")
+  | T.Scalar (T.Text _) -> string_
+  | T.Scalar T.Boolean -> named "bool"
+  | T.Scalar T.Number -> named "float64"
+  | T.Scalar (T.Integer _) -> named "int"
+  | T.Null -> refuse "%s: null alone" what
+  | T.List (Some items) -> G.Slice (type_of st what items)
+  | T.List None -> refuse "%s: an array that states no items" what
+  | T.Nothing -> shape what
 
-(* The Go type of a value [owner]'s property [property] holds, without the
-   pointer its field may be. *)
-and type_of st owner property (s : D.t) =
-  let what = owner ^ "." ^ property in
-  match s with
-  | D.Ref { name; _ } -> named_type st name
-  | D.Node { keys; _ } when List.for_all annotation keys -> any
-  | _ -> (
-      match View.without_null s with
-      | Some inner -> type_of st owner property inner
-      | None -> (
-          let here () = inline st (inline_name st owner property) s in
-          match s with
-          | D.Node { all_of = Some _; _ } -> here ()
-          | _ -> (
-              match View.union s with
-              | Some members ->
-                  if List.for_all (View.is_string st.definitions) members then
-                    named "string"
-                  else here ()
-              | None -> (
-                  match s with
-                  | D.Node ({ type_ = Some (D.One t); _ } as n) -> (
-                      match t with
-                      | _ when n.enum <> None -> here ()
-                      | String when n.format = Some Schema.Binary ->
-                          G.Slice (named "byte")
-                      | String -> named "string"
-                      | Boolean -> named "bool"
-                      | Number -> named "float64"
-                      | Integer -> named "int"
-                      | Null -> refuse "%s: null alone" what
-                      | Array -> (
-                          match n.items with
-                          | Some items ->
-                              G.Slice
-                                (type_of st owner (property ^ "Item") items)
-                          | None ->
-                              refuse "%s: an array that states no items" what)
-                      | Object -> object_type st owner property n here)
-                  | _ ->
-                      refuse "%s: a schema shape the generator does not know"
-                        what))))
+(* A schema in place: a type of its own where it names members, states
+   values or is a union of more than text; the empty object where it may
+   hold no member; and otherwise a map of the values it may hold. *)
+and in_place st what (i : T.inline) =
+  match (i.form, i.composition) with
+  | _, Some _ | (T.Record _ | T.Enum _), None -> declared st i
+  | T.Union u, None ->
+      if Deviations.text_union u then string_ else declared st i
+  | form, None when holds_none form -> empty st
+  | T.Empty _, None -> G.Map (string_, any)
+  | T.Map { value; _ }, None -> G.Map (string_, type_of st what value)
+  | (T.Alias _ | T.Identifier _ | T.Json), None -> shape what
 
-(* An object property's type: a struct of its own where it states
-   properties, the empty object where it may hold none, and otherwise a map
-   of the values it may hold. *)
-and object_type st owner property (n : D.node) here =
-  let has_properties =
-    match n.properties with Some (_ :: _) -> true | _ -> false
-  in
-  match (has_properties, n.additional_properties) with
-  | true, _ -> here ()
-  | false, Some (D.Bool false) -> empty st
-  | false, _ when n.max_properties = Some 0 -> empty st
-  | false, (None | Some (D.Bool true)) -> G.Map (named "string", any)
-  | false, Some values ->
-      G.Map (named "string", type_of st owner (property ^ "Value") values)
-
-and declaration st name (s : D.t) =
-  let doc = doc_of name s in
-  match View.union s with
-  | Some members -> union_declaration st name members s doc
-  | None -> (
-      let owner = D.owners st.definitions name s in
-      let s = D.meant s in
-      let n =
-        match s with
-        | D.Node n -> n
-        | _ -> refuse "%s: a schema shape the generator does not know" name
+and declaration st name (form : T.form) doc =
+  match form with
+  | T.Union u -> union_declaration st name u doc
+  | T.Enum { base; values } -> enumeration name base values doc
+  | T.Alias ((T.Scalar _ | T.List _) as ty) ->
+      [ G.Aliases { doc; specs = [ (name, type_of st name ty) ] } ]
+  | T.Record { members; rest } -> structure st name members rest doc
+  | form when holds_none form ->
+      [ G.Type { doc; name; def = G.Struct { fields = []; spacing = Packed } } ]
+  | T.Empty _ ->
+      (* A type of its own, not an alias: the required table holds a value
+         of it to whatever rules its schema states. *)
+      [ G.Type { doc; name; def = G.Is (G.Map (string_, any)) } ]
+  | T.Map { key; value } ->
+      (* A type of its own too: an alias is read by its kind alone, and this
+         one states its keys and values. *)
+      let key =
+        match key with Some key -> named_type st key | None -> string_
       in
-      let alias t = [ G.Aliases { doc; specs = [ (name, t) ] } ] in
-      match n.type_ with
-      | _ when n.enum <> None -> enumeration name n doc
-      | Some (D.One String) when n.format = Some Schema.Binary ->
-          alias (G.Slice (named "byte"))
-      | Some (D.One String) -> alias (named "string")
-      | Some (D.One Boolean) -> alias (named "bool")
-      | Some (D.One Number) -> alias (named "float64")
-      | Some (D.One Integer) -> alias (named "int")
-      | Some (D.One Array) -> (
-          match n.items with
-          | Some items -> alias (G.Slice (type_of st name "Item" items))
-          | None -> refuse "%s: an array that states no items" name)
-      | Some (D.One Object) -> (
-          match n.properties with
-          | Some (_ :: _) -> structure st name ~owner n doc
-          | _ -> (
-              match n.additional_properties with
-              | Some (D.Bool false) ->
-                  [
-                    G.Type
-                      {
-                        doc;
-                        name;
-                        def = G.Struct { fields = []; spacing = Packed };
-                      };
-                  ]
-              | _ when n.max_properties = Some 0 ->
-                  [
-                    G.Type
-                      {
-                        doc;
-                        name;
-                        def = G.Struct { fields = []; spacing = Packed };
-                      };
-                  ]
-              | None | Some (D.Bool true) ->
-                  (* A type of its own, not an alias: the required table holds
-                     a value of it to whatever rules its schema states. *)
-                  [
-                    G.Type
-                      { doc; name; def = G.Is (G.Map (named "string", any)) };
-                  ]
-              | Some values ->
-                  (* A type of its own too: an alias is read by its kind
-                     alone, and this one states its keys and values. *)
-                  let key =
-                    match List.assoc_opt name st.keys with
-                    | Some key -> named_type st key
-                    | None -> named "string"
-                  in
-                  [
-                    G.Type
-                      {
-                        doc;
-                        name;
-                        def = G.Is (G.Map (key, type_of st name "Value" values));
-                      };
-                  ]))
-      | _ -> refuse "%s: a schema shape the generator does not know" name)
+      [ G.Type { doc; name; def = G.Is (G.Map (key, type_of st name value)) } ]
+  | T.Alias _ | T.Identifier _ | T.Json -> shape name
 
 (* A named enumeration: its type, a constant per value named after it, and
    [Valid], whether a value is one of them. *)
-and enumeration name (n : D.node) doc =
-  let values = Option.get n.enum in
+and enumeration name (base : T.scalar option) values doc =
   let base, literal =
-    match n.type_ with
-    | Some (D.One String) ->
+    match base with
+    | Some (T.Text _) ->
         ( "string",
           function
           | Schema.String_literal v -> (Naming.variant v, G.Quoted v)
           | _ -> refuse "%s: a value of no string enumeration" name )
-    | Some (D.One Integer) ->
+    | Some (T.Integer _) ->
         ( "int",
           function
           | Schema.Int_literal v -> (Naming.variant (string_of_int v), G.Int v)
           | _ -> refuse "%s: a value of no integer enumeration" name )
-    | Some (D.One Boolean) ->
+    | Some T.Boolean ->
         ( "bool",
           function
           | Schema.Bool_literal v ->
               (Naming.variant (string_of_bool v), G.Name (string_of_bool v))
           | _ -> refuse "%s: a value of no boolean enumeration" name )
-    | _ ->
+    | Some T.Number | None ->
         refuse "%s: an enumeration of a type the generator does not know" name
   in
   let constants =
@@ -309,18 +223,12 @@ and enumeration name (n : D.node) doc =
          ]);
   ]
 
-and structure st name ~owner (n : D.node) doc =
-  let properties =
-    List.sort
-      (fun (a, _) (b, _) -> String.compare a b)
-      (Option.value n.properties ~default:[])
-  in
-  let required = Option.value n.required ~default:[] in
+and structure st name (members : T.member list) (rest : T.rest) doc =
   let open_ =
-    match n.additional_properties with
-    | Some (D.Bool true) -> true
-    | Some (D.Bool false) | None -> false
-    | Some _ ->
+    match rest with
+    | T.Open -> true
+    | T.Closed | T.Unstated -> false
+    | T.Of _ ->
         refuse
           "%s: properties beside additionalProperties of a schema, which the \
            generator does not know"
@@ -328,28 +236,27 @@ and structure st name ~owner (n : D.node) doc =
   in
   let fields =
     List.map
-      (fun (property, ps) ->
-        let field = Text.pascal property in
-        let t = type_of st (owner property) property ps in
-        let nullable = Option.is_some (View.without_null ps) in
-        let is_required = List.mem property required in
+      (fun (m : T.member) ->
+        let field = Text.pascal m.wire in
+        let t = type_of st (m.owner ^ "." ^ m.wire) m.ty in
+        let nullable = match m.ty with T.Nullable _ -> true | _ -> false in
         let held =
-          if (is_required && not nullable) || t = any then t else G.Pointer t
+          if (m.required && not nullable) || t = any then t else G.Pointer t
         in
         let tag =
-          if is_required then Printf.sprintf "json:%S" property
-          else Printf.sprintf "json:%S" (property ^ ",omitempty")
+          if m.required then Printf.sprintf "json:%S" m.wire
+          else Printf.sprintf "json:%S" (m.wire ^ ",omitempty")
         in
-        ( (property, field, is_required && not nullable, t),
+        ( (field, m.required && not nullable, t),
           {
-            G.doc = doc_of field ps;
+            G.doc = doc_of field m.node_description;
             names = [ field ];
             type_ = held;
             tag = Some tag;
           } ))
-      properties
+      (Deviations.by_name members)
   in
-  let names = List.map (fun ((_, f, _, _), _) -> f) fields in
+  let names = List.map (fun ((f, _, _), _) -> f) fields in
   List.iteri
     (fun i f ->
       if List.mem f (List.filteri (fun j _ -> j < i) names) then
@@ -364,7 +271,7 @@ and structure st name ~owner (n : D.node) doc =
               "AdditionalProperties is every member the schema does not name, \
                as it came.";
           names = [ "AdditionalProperties" ];
-          type_ = G.Map (named "string", any);
+          type_ = G.Map (string_, any);
           tag = Some "json:\"-\"";
         };
       ]
@@ -372,7 +279,7 @@ and structure st name ~owner (n : D.node) doc =
   in
   let lists =
     List.filter_map
-      (fun ((_, field, held_as_value, t), _) ->
+      (fun ((field, held_as_value, t), _) ->
         match t with G.Slice _ when held_as_value -> Some field | _ -> None)
       fields
   in
@@ -460,122 +367,67 @@ and marshalers st name ~lists ~open_ =
   in
   if write @ read <> [] then Hashtbl.replace st.marshal name (write @ read)
 
-and union_declaration st name members (s : D.t) doc =
+and union_declaration st name (u : T.union) doc =
   let told_apart =
-    match s with
-    | D.Node { discriminator = Some property; _ } ->
-        Some (property, List.map (values_of st name property) members)
+    Option.map (fun (t : T.tag) -> (t.property, t.values)) u.tag
+  in
+  (* A member's own type of a scalar: its kind, and the Go type it is. *)
+  let scalar (ty : T.ty) =
+    match ty with
+    | T.Scalar s | T.Inline { form = T.Enum { base = Some s; _ }; _ } -> (
+        match s with
+        | T.Integer _ -> Some ("Integer", "int")
+        | T.Number -> Some ("Number", "float64")
+        | T.Boolean -> Some ("Boolean", "bool")
+        | T.Text _ -> None)
     | _ -> None
   in
-  (match told_apart with
-  | Some (property, values) ->
-      let all = List.concat values in
-      List.iteri
-        (fun i v ->
-          if List.mem v (List.filteri (fun j _ -> j < i) all) then
-            refuse "%s: two members state the `%s` %s" name property v)
-        all
-  | None -> ());
   let member_types =
     List.fold_left
-      (fun acc member ->
+      (fun acc (b : T.branch) ->
+        let declare t what held =
+          Hashtbl.replace st.written t
+            [
+              G.Type
+                {
+                  doc = G.prose (t ^ " is a " ^ name ^ " that is " ^ what ^ ".");
+                  name = t;
+                  def = G.Is held;
+                };
+            ];
+          t
+        in
         let t =
-          match member with
-          | D.Ref { name = target; _ } ->
-              if
-                View.is_string st.definitions member
-                && not (List.mem target st.identifiers)
-              then
+          match (b.ty, scalar b.ty) with
+          | T.Named target, _ ->
+              if T.admits_only_text b && not (identifier st target) then
                 refuse
                   "%s: its member %s is text, which Go holds as a string that \
                    can be a member of no union"
                   name target;
               ignore (named_type st target);
               target
-          | D.Node { type_ = Some (D.One Object); max_properties = Some 0; _ }
-            ->
+          | T.Inline { form; composition = None; _ }, _ when holds_none form ->
               ignore (empty st);
               empty_object
-          | _ when View.is_string st.definitions member ->
-              let t = name ^ "Text" in
-              Hashtbl.replace st.written t
-                [
-                  G.Type
-                    {
-                      doc = G.prose (t ^ " is a " ^ name ^ " that is text.");
-                      name = t;
-                      def = G.Is (named "string");
-                    };
-                ];
-              t
-          | D.Node { type_ = Some (D.One Array); items; _ } -> (
-              match items with
-              | Some items ->
-                  let t = name ^ "List" in
-                  let item = type_of st name "Item" items in
-                  Hashtbl.replace st.written t
-                    [
-                      G.Type
-                        {
-                          doc =
-                            G.prose (t ^ " is a " ^ name ^ " that is a list.");
-                          name = t;
-                          def = G.Is (G.Slice item);
-                        };
-                    ];
-                  t
-              | None -> refuse "%s: an array that states no items" name)
-          | D.Node { type_ = Some (D.One Object); _ } -> (
-              let variant =
-                match View.member_name member with
-                | Some named -> named
-                | None -> "Object"
-              in
-              match type_of st name variant member with
+          | _ when T.admits_only_text b ->
+              declare (name ^ "Text") "text" string_
+          | T.List (Some _), _ ->
+              declare (name ^ "List") "a list" (type_of st name b.ty)
+          | T.List None, _ -> refuse "%s: an array that states no items" name
+          | ( T.Inline { form = T.Record _ | T.Empty _ | T.Map _ | T.Union _; _ },
+              _ ) -> (
+              match type_of st name b.ty with
               | G.Named t -> t
-              | held ->
-                  let t = name ^ variant in
-                  Hashtbl.replace st.written t
-                    [
-                      G.Type
-                        {
-                          doc =
-                            G.prose (t ^ " is a " ^ name ^ " that is an object.");
-                          name = t;
-                          def = G.Is held;
-                        };
-                    ];
-                  t)
-          | D.Node
-              { type_ = Some (D.One ((Integer | Number | Boolean) as kind)); _ }
-            ->
-              let word, held =
-                match kind with
-                | Integer -> ("Integer", "int")
-                | Number -> ("Number", "float64")
-                | _ -> ("Boolean", "bool")
-              in
-              let t = name ^ word in
-              Hashtbl.replace st.written t
-                [
-                  G.Type
-                    {
-                      doc =
-                        G.prose
-                          (t ^ " is a " ^ name ^ " that is "
-                          ^ String.lowercase_ascii word
-                          ^ ".");
-                      name = t;
-                      def = G.Is (named held);
-                    };
-                ];
-              t
+              | held -> declare (name ^ b.variant) "an object" held)
+          | _, Some (word, held) ->
+              declare (name ^ word) (String.lowercase_ascii word) (named held)
           | _ -> refuse "%s: a union member the generator does not know" name
         in
         if List.mem t acc then
           refuse "%s: two members are both the type %s" name t;
         acc @ [ t ])
-      [] members
+      [] u.branches
   in
   List.iter (fun t -> mark st t name) member_types;
   (match told_apart with
@@ -681,22 +533,6 @@ and union_declaration st name members (s : D.t) doc =
   ]
   @ discriminated
 
-(* The values of [property] a member of the union [name] states: the ones
-   its schema's enumeration of it admits. *)
-and values_of st name property member =
-  match D.meant (View.resolved st.definitions member) with
-  | D.Node { required = Some required; properties = Some ps; _ }
-    when List.mem property required -> (
-      match List.assoc_opt property ps with
-      | Some (D.Node { enum = Some values; _ }) ->
-          List.map
-            (function
-              | Schema.String_literal v -> v
-              | _ -> refuse "%s: a member's `%s` is no text" name property)
-            values
-      | _ -> refuse "%s: a member states no values of `%s`" name property)
-  | _ -> refuse "%s: a member does not require `%s`" name property
-
 (* The methods that make each member type a member of its unions, and say the
    value it is told apart by. *)
 let membership st t =
@@ -727,14 +563,12 @@ type generated = {
           one. *)
 }
 
-(* Every type of [roots], with every type they reach, in the order of their
-   names. *)
-let generate definitions ~identifiers ~keys roots =
+(* Every type of [typing]'s generation, with every type written in place
+   within them, in the order of their names. *)
+let generate (typing : T.t) =
   let st =
     {
-      definitions;
-      identifiers;
-      keys;
+      typing;
       written = Hashtbl.create 1024;
       markers = Hashtbl.create 256;
       told = Hashtbl.create 64;
@@ -742,7 +576,7 @@ let generate definitions ~identifiers ~keys roots =
       json = false;
     }
   in
-  List.iter (fun root -> ignore (named_type st root)) roots;
+  List.iter (fun name -> ignore (named_type st name)) typing.names;
   let names =
     List.sort_uniq String.compare
       (Hashtbl.fold (fun n _ acc -> n :: acc) st.written []

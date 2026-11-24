@@ -40,3 +40,8 @@ let closed_empty_named (form : T.form) =
    others, as one that holds none ([Record<string, never>]), and gives an
    object that names members and says nothing of others no index signature,
    where [Typing] has its [rest] [Unstated]. *)
+
+(* Go writes a struct's fields in the order of their names, where [Typing]
+   has the schema's order. *)
+let by_name (members : T.member list) =
+  List.sort (fun (a : T.member) b -> String.compare a.wire b.wire) members
