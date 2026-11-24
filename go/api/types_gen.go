@@ -8543,6 +8543,10 @@ type KnowledgeIndexSpecWeaver struct {
 	Resources Resources `json:"resources"`
 }
 
+// LastEventIds Where a knowledge base's stream was: for each scope, a
+// resource's id, the id of the last recorded event delivered on it.
+type LastEventIds map[ResourceId]PersistedEventId
+
 // LibrarianConfig Everything a Librarian reads at boot: nothing in it is
 // defaulted by the Librarian. Whoever starts a Librarian writes it, from the
 // knowledge base's stack documents, and the Librarian reads it from the path
@@ -9919,6 +9923,55 @@ type PdfTextItem struct {
 type PendingAnnotation struct {
 	Motivation Motivation         `json:"motivation"`
 	Selector   AnnotationSelector `json:"selector"`
+}
+
+// PendingAuthorization What a sign-in by a page redirect remembers across the
+// trip to the issuer and back: the verifier and the state the issuer's
+// response must match, where the person was connecting, what they believed
+// they were connecting to, and the issuer's endpoints, so its completion asks
+// nothing twice.
+type PendingAuthorization struct {
+	// ExpectedDid The did of what the person believed they clicked, checked
+	// against the answer and never assumed. Absent when they named nothing.
+	ExpectedDid *string `json:"expectedDid,omitempty"`
+	// ExpectedName The name of what the person believed they clicked. Absent
+	// when they named nothing.
+	ExpectedName *string `json:"expectedName,omitempty"`
+	// Issuer The issuer the knowledge base trusts, and the endpoints of it a
+	// client uses.
+	Issuer PendingAuthorizationIssuer `json:"issuer"`
+	// KbId The registered knowledge base being signed in to again. Absent when
+	// it is none.
+	KbId *string `json:"kbId,omitempty"`
+	// RedirectUri Where the issuer sends the person back to, named again when
+	// the code is exchanged.
+	RedirectUri string `json:"redirectUri"`
+	// State What the issuer's response must carry back to belong to this
+	// sign-in: random, as base64url.
+	State string `json:"state"`
+	// Target Where the person was connecting.
+	Target HttpEndpoint `json:"target"`
+	// Verifier The PKCE code verifier (RFC 7636) the authorization code is
+	// exchanged with: random, as base64url.
+	Verifier string `json:"verifier"`
+}
+
+// PendingAuthorizationIssuer The issuer the knowledge base trusts, and the
+// endpoints of it a client uses.
+type PendingAuthorizationIssuer struct {
+	// Authorization The issuer's authorization endpoint, where the person is
+	// sent.
+	Authorization string `json:"authorization"`
+	// Device The issuer's device authorization endpoint (RFC 8628). Absent when
+	// the issuer has none.
+	Device *string `json:"device,omitempty"`
+	// Issuer The issuer's identifier.
+	Issuer string `json:"issuer"`
+	// Revocation The issuer's revocation endpoint (RFC 7009). Absent when the
+	// issuer has none.
+	Revocation *string `json:"revocation,omitempty"`
+	// Token The issuer's token endpoint, where the code is exchanged.
+	Token string `json:"token"`
 }
 
 // PermissionDenied A request was refused for lack of permission.

@@ -30,6 +30,7 @@ let generation (spec : Spec.t) (bundle : Definitions.bundle) :
         @ List.map (fun (_, name, _) -> name) (Definitions.records spec));
     identifiers;
     accessors;
+    keys = Definitions.map_keys spec;
   }
 
 let types (spec : Spec.t) =
@@ -55,7 +56,7 @@ let sign_in (spec : Spec.t) =
         ~header:(regenerate ("protocol/specs/src/" ^ Roots.sign_in_entry))
         (Generate.items
            (Definitions.alone ~ids:spec.ids ~name:"SignIn" schema)
-           { roots = [ "SignIn" ]; identifiers = []; accessors = [] });
+           { roots = [ "SignIn" ]; identifiers = []; accessors = []; keys = [] });
   }
 
 (* Why a client that read a launcher's discovery document found no launcher

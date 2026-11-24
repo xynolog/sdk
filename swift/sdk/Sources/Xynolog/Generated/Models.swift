@@ -11327,6 +11327,8 @@ public struct KnowledgeIndexSpecWeaver: Codable, Sendable, Hashable {
   }
 }
 
+public typealias LastEventIds = [String: PersistedEventId]
+
 public struct LibrarianConfig: Codable, Sendable, Hashable {
   public var archivist: ServiceAddress
   public var embedding: EmbeddingConfig
@@ -13032,6 +13034,86 @@ public struct PendingAnnotation: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.motivation, as: "motivation")
     try c.encode(self.selector, as: "selector")
+  }
+}
+
+public struct PendingAuthorization: Codable, Sendable, Hashable {
+  public var expectedDid: String?
+  public var expectedName: String?
+  public var issuer: PendingAuthorizationIssuer
+  public var kbId: String?
+  public var redirectUri: String
+  public var state: String
+  public var target: HttpEndpoint
+  public var verifier: String
+  public init(
+    expectedDid: String? = nil, expectedName: String? = nil, issuer: PendingAuthorizationIssuer,
+    kbId: String? = nil, redirectUri: String, state: String, target: HttpEndpoint, verifier: String
+  ) {
+    self.expectedDid = expectedDid
+    self.expectedName = expectedName
+    self.issuer = issuer
+    self.kbId = kbId
+    self.redirectUri = redirectUri
+    self.state = state
+    self.target = target
+    self.verifier = verifier
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    self.expectedDid = try c.ifPresent("expectedDid")
+    self.expectedName = try c.ifPresent("expectedName")
+    self.issuer = try c.value("issuer")
+    self.kbId = try c.ifPresent("kbId")
+    self.redirectUri = try c.value("redirectUri")
+    self.state = try c.value("state")
+    self.target = try c.value("target")
+    self.verifier = try c.value("verifier")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.expectedDid, as: "expectedDid")
+    try c.encodeIfPresent(self.expectedName, as: "expectedName")
+    try c.encode(self.issuer, as: "issuer")
+    try c.encodeIfPresent(self.kbId, as: "kbId")
+    try c.encode(self.redirectUri, as: "redirectUri")
+    try c.encode(self.state, as: "state")
+    try c.encode(self.target, as: "target")
+    try c.encode(self.verifier, as: "verifier")
+  }
+}
+
+public struct PendingAuthorizationIssuer: Codable, Sendable, Hashable {
+  public var authorization: String
+  public var device: String?
+  public var issuer: String
+  public var revocation: String?
+  public var token: String
+  public init(
+    authorization: String, device: String? = nil, issuer: String, revocation: String? = nil,
+    token: String
+  ) {
+    self.authorization = authorization
+    self.device = device
+    self.issuer = issuer
+    self.revocation = revocation
+    self.token = token
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    self.authorization = try c.value("authorization")
+    self.device = try c.ifPresent("device")
+    self.issuer = try c.value("issuer")
+    self.revocation = try c.ifPresent("revocation")
+    self.token = try c.value("token")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.authorization, as: "authorization")
+    try c.encodeIfPresent(self.device, as: "device")
+    try c.encode(self.issuer, as: "issuer")
+    try c.encodeIfPresent(self.revocation, as: "revocation")
+    try c.encode(self.token, as: "token")
   }
 }
 
@@ -24664,6 +24746,8 @@ internal let requiredSchemas: [String: Shape] = {
           "weaver",
         ]),
     ], closed: ["apiVersion", "kind", "metadata", "spec"])
+  shapes["LastEventIds"] = Shape(
+    kinds: [.object], values: Shape(ref: "PersistedEventId"), names: Shape(ref: "ResourceId"))
   shapes["LibrarianConfig"] = Shape(
     kinds: [.object],
     required: [
@@ -25097,6 +25181,20 @@ internal let requiredSchemas: [String: Shape] = {
     members: [
       "motivation": Shape(ref: "Motivation"), "selector": Shape(ref: "AnnotationSelector"),
     ], closed: ["motivation", "selector"])
+  shapes["PendingAuthorization"] = Shape(
+    kinds: [.object], required: ["state", "verifier", "redirectUri", "target", "issuer"],
+    members: [
+      "expectedDid": Shape(kinds: [.string]), "expectedName": Shape(kinds: [.string]),
+      "issuer": Shape(
+        kinds: [.object], required: ["issuer", "authorization", "token"],
+        members: [
+          "authorization": Shape(kinds: [.string]), "device": Shape(kinds: [.string]),
+          "issuer": Shape(kinds: [.string]), "revocation": Shape(kinds: [.string]),
+          "token": Shape(kinds: [.string]),
+        ]), "kbId": Shape(kinds: [.string]), "redirectUri": Shape(kinds: [.string]),
+      "state": Shape(kinds: [.string]), "target": Shape(ref: "HttpEndpoint"),
+      "verifier": Shape(kinds: [.string]),
+    ])
   shapes["PermissionDenied"] = Shape(
     kinds: [.object], required: ["detail"], members: ["detail": Shape(kinds: [.string, .null])],
     closed: ["detail"])
