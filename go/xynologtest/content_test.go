@@ -19,7 +19,7 @@ func TestAnUploadInMemoryReportsItsSizeThatAllOfItWasSentAndTheResourceMade(t *t
 	})
 	var reports []any
 	for progress := range upload.Progress() {
-		member, err := progress.ValueByDiscriminator()
+		member, err := progress.Member()
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -23,16 +23,6 @@ export type BodyOperation = components['schemas']['BodyOperation'];
 
 export type GatheredContext = components['schemas']['GatheredContext'];
 
-/**
- * The wire's failure vocabulary, under the spec's own name. `CommandError.code`
- * is optional — absence means "no class declared" — so the alias drops the
- * `undefined` and names the members themselves, which is what a mapping keyed by
- * this union has to be total over.
- */
-export type CommandErrorCode = NonNullable<
-  components['schemas']['CommandError']['code']
->;
-
 // What a job is asked with and what it reports, under the spec's own names —
 // the wire owns these shapes, and a differently-named local alias is a rename
 // layer, not a derivation.

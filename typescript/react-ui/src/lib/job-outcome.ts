@@ -1,11 +1,9 @@
 import { isObject, isString } from '@xynolog/core';
-import type { components } from '@xynolog/core';
+import type { JobDeclinedReason } from '@xynolog/core';
 import type en from '../../translations/en.json';
 
-type DeclineReason = components['schemas']['JobDeclined']['reason'];
-
 /** The reasons this client has copy for: every reason the spec states, or this does not compile. */
-const REASONS: Record<DeclineReason, true> = {
+const REASONS: Record<JobDeclinedReason, true> = {
   'no-text-layer': true,
   encrypted: true,
   corrupt: true,
@@ -13,7 +11,7 @@ const REASONS: Record<DeclineReason, true> = {
   empty: true,
 };
 
-const isDeclineReason = (reason: string): reason is DeclineReason =>
+const isDeclineReason = (reason: string): reason is JobDeclinedReason =>
   Object.hasOwn(REASONS, reason);
 
 /**
@@ -30,7 +28,7 @@ const isDeclineReason = (reason: string): reason is DeclineReason =>
  * info — not a "complete" success toast (misleading — nothing was detected) and
  * not a "failed" error toast (alarming — nothing broke).
  */
-export function declineReason(result: unknown): DeclineReason | null {
+export function declineReason(result: unknown): JobDeclinedReason | null {
   if (!isObject(result) || result.declined !== true || !isString(result.reason))
     return null;
   // A reason outside the vocabulary has no copy: returning it anyway would put
@@ -40,5 +38,5 @@ export function declineReason(result: unknown): DeclineReason | null {
 
 /** The key of a decline's copy in `OutcomeToasts`: a reason with no copy in `en.json` does not compile. */
 export const declineCopyKey = (
-  reason: DeclineReason,
+  reason: JobDeclinedReason,
 ): keyof (typeof en)['OutcomeToasts'] => `decline_${reason}`;

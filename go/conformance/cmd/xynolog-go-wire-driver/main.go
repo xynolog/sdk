@@ -474,7 +474,7 @@ func (w *wire) put(ctx context.Context, args protocol.Arguments, reporting bool,
 	upload := c.content.PutBinary(ctx, request)
 	if reporting {
 		for progress := range upload.Progress() {
-			member, err := progress.ValueByDiscriminator()
+			member, err := progress.Member()
 			if err != nil {
 				return nil, err
 			}

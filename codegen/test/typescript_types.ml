@@ -1,30 +1,70 @@
 (* What the TypeScript types writer writes for the shapes of component
-   schemas, and the kinds of id it refuses to brand. *)
+   schemas, the aliases it names the types of their own in place by, and the
+   kinds of id it refuses to brand. *)
 
 open Xynolog_codegen
 open Fixture
 
-let written ?(identifiers = []) schemas root =
+(* [root]'s type, and each alias it meets, by its name, as its type. *)
+let writing ?(identifiers = []) ?(keys = []) schemas root =
   let typing =
-    Typing.make (definitions schemas) ~roots:[ root ] ~identifiers ~keys:[]
+    Typing.make (definitions schemas) ~roots:[ root ] ~identifiers ~keys
   in
-  Typescript_syntax.type_ ~depth:0
-    (Typescript_types.declared ~named:Typescript_syntax.schema
-       (typing.find root))
+  let names = Typescript_types.names Typescript_syntax.schema in
+  let text =
+    Typescript_syntax.type_ ~depth:0
+      (Typescript_types.declared ~names (typing.find root))
+  in
+  ( text,
+    List.map
+      (function
+        | Typescript_syntax.Type { name; type_; _ } ->
+            (name, Typescript_syntax.type_ ~depth:0 type_)
+        | _ -> Alcotest.fail "an alias that is no type")
+      (Typescript_types.aliases names) )
+
+let written ?identifiers ?keys schemas root =
+  fst (writing ?identifiers ?keys schemas root)
 
 let one json = written [ ("S", json); ("A", {|{"type": "string"}|}) ] "S"
 let equal expected actual = Alcotest.(check string) "written" expected actual
 
 let cases =
   [
-    case "a union a list holds is parenthesized" (fun () ->
-        equal "(string | number)[]"
+    case "a type that may be null a list holds is parenthesized" (fun () ->
+        equal "(components['schemas']['A'] | null)[]"
           (one
-             {|{"type": "array", "items": {"oneOf": [{"type": "string"}, {"type": "number"}]}}|}));
-    case "a union beside an allOf's other member is parenthesized" (fun () ->
-        equal "components['schemas']['A'] & (string | boolean)"
-          (one
-             {|{"allOf": [{"$ref": "A.json"}, {"anyOf": [{"type": "string"}, {"type": "boolean"}]}]}|}));
+             {|{"type": "array", "items": {"anyOf": [{"$ref": "A.json"}, {"type": "null"}]}}|}));
+    case "a union in place is an alias of the name Typing gives it" (fun () ->
+        match
+          writing
+            [
+              ( "S",
+                {|{"allOf": [{"$ref": "A.json"}, {"anyOf": [{"type": "string"}, {"type": "boolean"}]}]}|}
+              );
+              ("A", {|{"type": "string"}|});
+            ]
+            "S"
+        with
+        | text, [ (name, "string | boolean") ] ->
+            equal ("components['schemas']['A'] & " ^ name) text
+        | text, _ -> Alcotest.failf "%s: not one alias of the union" text);
+    case "an object in place is an alias, and one value in place its literal"
+      (fun () ->
+        match
+          writing
+            [
+              ( "S",
+                {|{"type": "object", "required": ["o", "k"], "properties": {"o": {"type": "object", "properties": {"a": {"type": "string"}}}, "k": {"const": "x"}}}|}
+              );
+            ]
+            "S"
+        with
+        | text, [ (name, alias) ] ->
+            has text ("o: " ^ name ^ ";");
+            has text "k: 'x';";
+            has alias "a?: string;"
+        | text, _ -> Alcotest.failf "%s: not one alias of the object" text);
     case "an allOf held to values of its part is the part and those values"
       (fun () ->
         equal "components['schemas']['A'] & 'x'"
@@ -39,6 +79,18 @@ let cases =
           (one
              {|{"type": "object", "properties": {"a": {"type": "string"}}, "additionalProperties": true}|})
           "} & { [key: string]: unknown }");
+    case "a map whose members' names are a kind is a record of that kind"
+      (fun () ->
+        equal "Record<components['schemas']['K'], number>"
+          (written
+             ~keys:[ ("S", "K") ]
+             [
+               ( "S",
+                 {|{"type": "object", "propertyNames": {"$ref": "K.json"}, "additionalProperties": {"type": "integer"}}|}
+               );
+               ("K", {|{"type": "string"}|});
+             ]
+             "S"));
     case "an object of a schema's members is an index signature" (fun () ->
         equal "{ [key: string]: number }"
           (one

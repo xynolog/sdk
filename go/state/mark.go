@@ -120,7 +120,7 @@ func (u *MarkStateUnit) RequestDelegate(params api.MarkJobParams) {
 	stated, err := params.Discriminator()
 	if err == nil {
 		// The union refuses a motivation that is none of its members', and an absent one.
-		_, err = params.ValueByDiscriminator()
+		_, err = params.Member()
 	}
 	if err == nil {
 		motivation = api.Motivation(stated)

@@ -28,9 +28,11 @@ type scalar =
    parent's ([Definitions.owners]), so the one schema has the one place. *)
 type place = { owner : string; part : string }
 
-(* What an object holds beside the members it names. JSON Schema reads an
-   object that says nothing of them ([Unstated]) as holding any; the writers
-   do not all read it so (see [Deviations]). *)
+(* What an object holds beside the members it names. One that says nothing
+   of them ([Unstated]) holds none: they are read past, not refused as
+   [Closed] refuses them, and never written back. JSON Schema reads it as
+   holding any, but Protocol states an object that holds any ([Open]) where
+   it means one. *)
 type rest = Closed | Unstated | Open | Of of ty
 
 (* What a value holds where it is stated. *)
@@ -683,6 +685,28 @@ and disjoint (a : signature) (b : signature) =
     | _ -> false)
   || a.kind = Object_kind && b.kind = Object_kind
      && (excludes a b || excludes b a || fixed_apart a b)
+
+(* Two members of [u] that only a pattern tells apart, by their variants:
+   what a reader of the values a union's members admit, that reads no
+   pattern, cannot tell apart. *)
+let apart_by_pattern_only (u : union) =
+  let unpatterned (s : signature) = { s with pattern = None } in
+  let rec pairs = function
+    | [] -> []
+    | b :: rest -> List.map (fun other -> (b, other)) rest @ pairs rest
+  in
+  List.find_map
+    (fun ((a : branch), (b : branch)) ->
+      if
+        List.exists
+          (fun sa ->
+            List.exists
+              (fun sb -> not (disjoint (unpatterned sa) (unpatterned sb)))
+              b.signature)
+          a.signature
+      then Some (a.variant, b.variant)
+      else None)
+    (pairs u.branches)
 
 (* Every reference a type holds, through what it holds in place. *)
 let rec references_of_ty (ty : ty) =

@@ -127,7 +127,12 @@ let channel_items (bus : Registry.t) component (c : Reg.channels_item) =
   in
   [
     R.Unit_struct
-      { doc = [ "`" ^ Registry.name c ^ "`" ]; vis = Pub; name = marker };
+      {
+        attrs = [];
+        doc = [ "`" ^ Registry.name c ^ "`" ];
+        vis = Pub;
+        name = marker;
+      };
     R.Impl
       {
         generics = [];

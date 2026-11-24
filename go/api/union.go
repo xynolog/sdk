@@ -73,19 +73,6 @@ func (u union[M]) stated(property string) (string, error) {
 	return text, nil
 }
 
-// as is u read as the member T.
-func as[T any, M any](u union[M]) (any, error) {
-	var member T
-	err := json.Unmarshal(u.raw, &member)
-	return member, err
-}
-
-// unnamedMember is the error of a union's value whose property names none of
-// its members.
-func unnamedMember(union, property, value string) error {
-	return fmt.Errorf("api: a %s's %s %q names none of its members", union, property, value)
-}
-
 // withProperty is the object raw with its property set to value.
 func withProperty(raw []byte, property, value string) ([]byte, error) {
 	var object map[string]json.RawMessage

@@ -21,7 +21,7 @@ func ApplyTabChecks(list []api.OpenResource, checks map[api.ResourceId]api.TabCh
 	for _, tab := range list {
 		if check, checked := checks[tab.Id]; checked {
 			// A check that states no verdict of its members leaves the tab.
-			member, _ := check.ValueByDiscriminator()
+			member, _ := check.Member()
 			switch verdict := member.(type) {
 			case api.TabCheckGone:
 				continue

@@ -184,7 +184,7 @@ func IsResolvedReference(annotation api.Annotation) bool {
 // first, wherever in a list it is. False for a selector that quotes nothing.
 func TextQuoteSelector(selector api.AnnotationSelector) (api.TextQuoteSelector, bool) {
 	for _, item := range selectors(selector) {
-		if value, err := item.ValueByDiscriminator(); err == nil {
+		if value, err := item.Member(); err == nil {
 			if quote, ok := value.(api.TextQuoteSelector); ok {
 				return quote, true
 			}
@@ -262,7 +262,7 @@ func firstFor(annotation api.Annotation, purpose api.BodyPurpose) (string, bool)
 // valueOf is a body item as its `type` says it is: an api.TextualBody or an
 // api.SpecificResource, or nil for an item of no type the protocol names.
 func valueOf(item api.AnnotationBody) any {
-	value, err := item.ValueByDiscriminator()
+	value, err := item.Member()
 	if err != nil {
 		return nil
 	}
