@@ -6,7 +6,6 @@
    reaches, as a member of [tables]; each written as the schema states it, and
    each kind of id branded, so that a property of one kind is of no other. *)
 
-module D = Definitions
 module T = Typescript_syntax
 
 let path = "typescript/core/src/types.ts"
@@ -51,80 +50,77 @@ let literal (l : Schema.literal) : T.type_ =
   | Int_literal n -> T_int n
   | Bool_literal b -> T_bool b
 
-(* [s]'s type, each schema it names the type [named] gives it. *)
-let type_of ~(named : string -> T.type_) =
-  let rec type_of (s : D.t) : T.type_ =
-    match s with
-    | D.Ref { name; _ } -> named name
-    | D.Null -> T_name "null"
-    | D.Bool true -> unknown
-    | D.Bool false -> T_name "never"
-    | D.Node n -> (
-        match (n.all_of, View.union s, n.enum, n.type_) with
-        | Some members, _, _, _ ->
-            (* What it states beside its parts: its members, and the values it
-             holds them to, as a union's tag is held to a value of its
-             vocabulary. *)
-            let own =
-              (match n.properties with
-                | None | Some [] -> []
-                | Some _ -> [ object_of n ])
-              @
-              match n.enum with
-              | None -> []
-              | Some values -> [ union (List.map literal values) ]
-            in
-            intersection (List.map type_of members @ own)
-        | None, Some members, _, _ -> union (List.map type_of members)
-        | None, None, Some values, types ->
-            let values = List.map literal values in
-            union
-              (match types with
-              | Some (D.Or_null _) -> values @ [ T_name "null" ]
-              | _ -> values)
-        | None, None, None, Some (D.One t) -> base n t
-        | None, None, None, Some (D.Or_null t) ->
-            union [ base n t; T_name "null" ]
-        | None, None, None, None ->
-            if Option.is_some n.properties then object_of n else unknown)
-  and base (n : D.node) (t : Schema.type_name) : T.type_ =
-    match t with
-    | String -> T_name "string"
-    | Integer | Number -> T_name "number"
-    | Boolean -> T_name "boolean"
-    | Null -> T_name "null"
-    | Array ->
-        T_array (operand (Option.fold ~none:unknown ~some:type_of n.items))
-    | Object -> object_of n
-  (* An object's properties, and what it holds beside them: an open object
-   holds any member, and one whose [additionalProperties] is a schema holds
-   members of it. An object that states neither holds no member. *)
-  and object_of (n : D.node) : T.type_ =
-    let required = Option.value n.required ~default:[] in
-    let members =
-      List.map
-        (fun (name, s) ->
-          T.member (key name) (type_of s)
-            ~about:(about (View.description s))
-            ~optional:(not (List.mem name required)))
-        (Option.value n.properties ~default:[])
-    in
-    let beside =
-      match n.additional_properties with
-      | None | Some (D.Bool false) -> []
-      | Some s -> [ T.T_index_signature (type_of s) ]
-    in
-    match (members, beside) with
-    | [], [] -> T_generic ("Record", [ T_name "string"; T_name "never" ])
-    | [], [ signature ] -> signature
-    | members, beside -> intersection (T_object (Rows, members) :: beside)
+(* A type's TypeScript type, each schema it names the type [named] gives it,
+   written in place as the schema states it. *)
+let rec type_of ~(named : string -> T.type_) (ty : Typing.ty) : T.type_ =
+  match ty with
+  | Typing.Named name -> named name
+  | Null -> T_name "null"
+  | Any -> unknown
+  | Nothing -> T_name "never"
+  | Nullable ty -> union [ type_of ~named ty; T_name "null" ]
+  | Scalar (Text _) -> T_name "string"
+  | Scalar (Integer _ | Number) -> T_name "number"
+  | Scalar Boolean -> T_name "boolean"
+  | List items ->
+      T_array (operand (Option.fold ~none:unknown ~some:(type_of ~named) items))
+  | Inline i -> form_of ~named i.form i.composition
+
+(* A declaration's or an inline's type: an [allOf] as its parts and what it
+   states beside them, each held to the values it states, as a union's tag
+   is held to a value of its vocabulary; anything else as its form. *)
+and form_of ~named (form : Typing.form)
+    (composition : Typing.composition option) : T.type_ =
+  match composition with
+  | Some { parts; beside } ->
+      let own =
+        (match beside.members with
+          | [] -> []
+          | members -> [ object_of ~named members beside.rest ])
+        @
+        match beside.values with
+        | None -> []
+        | Some values -> [ union (List.map literal values) ]
+      in
+      intersection (List.map (type_of ~named) parts @ own)
+  | None -> (
+      match form with
+      | Record { members; rest } -> object_of ~named members rest
+      | Empty { rest; _ } -> object_of ~named [] rest
+      | Map { value; _ } -> object_of ~named [] (Of value)
+      | Enum { values; _ } -> union (List.map literal values)
+      | Alias ty -> type_of ~named ty
+      | Union { branches; _ } ->
+          union
+            (List.map (fun (b : Typing.branch) -> type_of ~named b.ty) branches)
+      | Identifier _ | Json -> unknown)
+
+(* An object's members, and what it holds beside them: an open object holds
+   any member, and one whose [additionalProperties] is a schema holds members
+   of it. An object that states neither holds no member beside its own
+   ([Deviations], TypeScript's unstated object). *)
+and object_of ~named (members : Typing.member list) (rest : Typing.rest) :
+    T.type_ =
+  let members =
+    List.map
+      (fun (m : Typing.member) ->
+        T.member (key m.wire) (type_of ~named m.ty) ~about:(about m.description)
+          ~optional:(not m.required))
+      members
   in
-  type_of
+  let beside =
+    match rest with
+    | Unstated | Closed -> []
+    | Open -> [ T.T_index_signature unknown ]
+    | Of ty -> [ T.T_index_signature (type_of ~named ty) ]
+  in
+  match (members, beside) with
+  | [], [] -> T_generic ("Record", [ T_name "string"; T_name "never" ])
+  | [], [ signature ] -> signature
+  | members, beside -> intersection (T_object (Rows, members) :: beside)
 
 (* A kind of id: text, and a type of its own. *)
-let branded definitions name =
-  if not (View.is_string definitions (definitions.D.schema name)) then
-    D.refuse "%s: a kind of id whose schema is not a string" name;
+let branded name =
   T.T_intersection
     [
       T_name "string";
@@ -132,25 +128,18 @@ let branded definitions name =
         (Inline, [ T.member ~readonly:true (Ident "__brand") (T_str name) ]);
     ]
 
-(* Every schema [s] names. *)
-let rec names_in (s : D.t) =
-  match s with
-  | D.Ref { name; _ } -> [ name ]
-  | D.Null | D.Bool _ -> []
-  | D.Node n ->
-      List.concat_map names_in
-        (Option.to_list n.items
-        @ Option.to_list n.additional_properties
-        @ List.map snd (Option.value n.properties ~default:[])
-        @ List.concat_map (Option.value ~default:[])
-            [ n.all_of; n.any_of; n.one_of ])
+(* A declaration's type: a kind of id branded, any other as its form. *)
+let declared ~named (d : Typing.declaration) =
+  match d.form with
+  | Identifier _ -> branded d.name
+  | form -> form_of ~named form d.composition
 
 (* [names], and every schema they reach. *)
-let reached (definitions : D.definitions) names =
+let reached (typing : Typing.t) names =
   let rec reach seen name =
     if List.mem name seen then seen
     else
-      List.fold_left reach (name :: seen) (names_in (definitions.schema name))
+      List.fold_left reach (name :: seen) (Typing.references (typing.find name))
   in
   List.sort String.compare (List.fold_left reach [] names)
 
@@ -176,66 +165,33 @@ let table name = T.T_index (T_name "tables", T_str name)
 (* The tables the SDK carries as values (Table_modules.tables): the services'
    (Roots.service_tables) and the retry rules. Each table's schema is a
    record, named as its file is ([Places.schema_of]). *)
-let table_schemas (bundle : Definitions.bundle) (spec : Spec.t) =
-  let declared name =
-    match bundle.definitions.schema name with
-    | _ -> true
-    | exception D.Refused _ -> false
-  in
-  List.map
-    (fun table ->
-      let file = Places.schema_of table in
-      let name = D.stem file in
-      if declared name then
-        D.refuse "%s, the schema of %s, is named as a schema already is" file
-          table;
-      match List.assoc_opt file spec.schemas with
-      | Some s -> (name, bundle.view (Normalize.shape_only s))
-      | None -> D.refuse "%s has no schema %s" table file)
-    (Table_modules.tables spec)
-
 let text (spec : Spec.t) =
-  let bundle = Definitions.bundle spec in
-  let tables = table_schemas bundle spec in
-  let definitions =
-    {
-      bundle.definitions with
-      schema =
-        (fun name ->
-          match List.assoc_opt name tables with
-          | Some s -> s
-          | None -> bundle.definitions.schema name);
-    }
-  in
+  let tables = Table_modules.tables spec in
+  let typing = Typing.of_spec spec ~tables in
+  let components = typing.gateway in
   let records =
     List.filter
-      (fun name -> not (List.mem name definitions.names))
-      (reached definitions
+      (fun name -> not (List.mem name components))
+      (reached typing
          (List.map (fun (_, name, _) -> name) (Definitions.records spec)
          @ Definitions.generated_client_types spec))
   in
   let table_names =
     List.filter
-      (fun name ->
-        not (List.mem name definitions.names || List.mem name records))
-      (reached definitions (List.map fst tables))
+      (fun name -> not (List.mem name components || List.mem name records))
+      (reached typing
+         (List.map
+            (fun table -> Definitions.stem (Places.schema_of table))
+            tables))
   in
   let named name =
     if List.mem name records then record name
     else if List.mem name table_names then table name
     else T.schema name
   in
-  let kinds =
-    List.map
-      (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)
-      spec.tables.identifiers_kinds.kinds
-  in
   let schema name =
-    let s = definitions.schema name in
-    T.member (key name)
-      (if List.mem name kinds then branded definitions name
-       else type_of ~named s)
-      ~about:(about (View.description s))
+    let d = typing.find name in
+    T.member (key name) (declared ~named d) ~about:(about d.description)
   in
   T.text
     {
@@ -263,7 +219,7 @@ let text (spec : Spec.t) =
               members =
                 [
                   T.member (Ident "schemas")
-                    (T_object (Rows, List.map schema definitions.names));
+                    (T_object (Rows, List.map schema components));
                 ];
             };
           T.Interface
@@ -311,19 +267,22 @@ module C = Tables.Control_methods
 let control_path = "typescript/core/src/control-methods.ts"
 
 let control_text (spec : Spec.t) =
-  let definitions = (Definitions.bundle spec).definitions in
+  let typing = Typing.of_spec spec ~tables:[] in
   let t = spec.tables.control_methods in
   let component id =
     let name = Filename.remove_extension (Filename.basename id) in
-    if not (List.mem name definitions.names) then
-      D.refuse "control/methods.json names %s, which is no component schema" id;
+    if not (List.mem name typing.gateway) then
+      Definitions.refuse
+        "control/methods.json names %s, which is no component schema" id;
     name
   in
   let named id = T.Str (component id) in
   let api_version =
-    match definitions.schema (component t.api_version) with
-    | D.Node { enum = Some [ Schema.String_literal v ]; _ } -> v
-    | _ -> D.refuse "control/methods.json: its apiVersion states no const"
+    match (typing.find (component t.api_version)).form with
+    | Enum { values = [ Schema.String_literal v ]; _ } -> v
+    | _ ->
+        Definitions.refuse
+          "control/methods.json: its apiVersion states no const"
   in
   let inline entries = T.Object { layout = Inline; entries } in
   let from = function C.Launcher -> "launcher" | C.Client -> "client" in

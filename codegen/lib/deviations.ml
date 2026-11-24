@@ -35,3 +35,8 @@ let closed_empty_named (form : T.form) =
   match form with
   | T.Empty { rest = T.Closed; none = false } -> true
   | _ -> false
+
+(* TypeScript holds an object that names no member, and says nothing of
+   others, as one that holds none ([Record<string, never>]), and gives an
+   object that names members and says nothing of others no index signature,
+   where [Typing] has its [rest] [Unstated]. *)

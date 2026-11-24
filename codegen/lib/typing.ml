@@ -153,6 +153,9 @@ type t = {
   defined : string -> bool;
       (** Whether a schema of the bundle has the name, which no invented name
           takes ([Naming.inline]). *)
+  gateway : string list;
+      (** The schemas the gateway's document reaches ([Definitions.bundle]), by
+          name: the others are the client's own, and the tables'. *)
   place : place -> D.t -> ty;
       (** The type of a value a schema of none of its declarations holds at a
           place: a member a writer reads outside them. *)
@@ -749,6 +752,15 @@ and references_of_form (form : form) =
   | Union { branches; _ } ->
       List.concat_map (fun (b : branch) -> references_of_ty b.ty) branches
 
+(* Every schema a declaration names, through what it holds in place and what
+   its [allOf] composes. *)
+let references (d : declaration) =
+  references_of_form d.form
+  @
+  match d.composition with
+  | Some c -> List.concat_map references_of_ty c.parts
+  | None -> []
+
 let make (definitions : D.definitions) ~roots ~identifiers ~keys =
   let st =
     {
@@ -763,15 +775,7 @@ let make (definitions : D.definitions) ~roots ~identifiers ~keys =
     | [] -> seen
     | name :: rest when List.mem name seen -> reach seen rest
     | name :: rest ->
-        let d = declaration st name in
-        let held =
-          references_of_form d.form
-          @
-          match d.composition with
-          | Some c -> List.concat_map references_of_ty c.parts
-          | None -> []
-        in
-        reach (name :: seen) (held @ rest)
+        reach (name :: seen) (references (declaration st name) @ rest)
   in
   let names = List.sort String.compare (reach [] roots) in
   let invented =
@@ -784,6 +788,7 @@ let make (definitions : D.definitions) ~roots ~identifiers ~keys =
     find = declaration st;
     invented;
     defined = defined st;
+    gateway = definitions.names;
     place = classify st ~register:false;
   }
 
@@ -823,19 +828,22 @@ let of_spec (spec : Spec.t) ~tables =
       (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)
       spec.tables.identifiers_kinds.kinds
   in
-  make
-    {
-      D.names = bundle.definitions.names @ List.map fst schemas;
-      schema =
-        (fun name ->
-          match List.assoc_opt name schemas with
-          | Some s -> s
-          | None -> bundle.definitions.schema name);
-    }
-    ~roots:
-      (List.map fst (Roots.all spec)
-      @ identifiers
-      @ D.generated_client_types spec
-      @ List.map (fun (_, name, _) -> name) (D.records spec)
-      @ List.map fst schemas)
-    ~identifiers ~keys:(D.map_keys spec)
+  let t =
+    make
+      {
+        D.names = bundle.definitions.names @ List.map fst schemas;
+        schema =
+          (fun name ->
+            match List.assoc_opt name schemas with
+            | Some s -> s
+            | None -> bundle.definitions.schema name);
+      }
+      ~roots:
+        (List.map fst (Roots.all spec)
+        @ identifiers
+        @ D.generated_client_types spec
+        @ List.map (fun (_, name, _) -> name) (D.records spec)
+        @ List.map fst schemas)
+      ~identifiers ~keys:(D.map_keys spec)
+  in
+  { t with gateway = bundle.definitions.names }
