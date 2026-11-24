@@ -17,6 +17,7 @@ import Data.Text qualified as Text
 import Streaming.Prelude qualified as Stream
 import System.FilePath ((</>))
 import System.Timeout (timeout)
+import Xynolog.Channels (Channel (BeckonHover), channelName)
 import Xynolog.Retry (RetryOptions (..))
 import Xynolog.State.HoverDwell qualified as Hover
 import Xynolog.State.Search qualified as Search
@@ -84,7 +85,7 @@ flowCases root = do
                     heard = atomically $ do
                       items <- readTVar notes
                       writeTVar notes []
-                      pure (toJSON [KM.fromList [("channel", String "beckon:hover"), ("payload", Object (KM.singleton "annotationId" item))] | item <- items]),
+                      pure (toJSON [KM.fromList [("channel", String (channelName BeckonHover)), ("payload", Object (KM.singleton "annotationId" item))] | item <- items]),
                     searched = pure (toJSON ([] :: [Text])),
                     answer = \_ _ -> ioError (userError "hover has no search"),
                     close = Hover.dispose unit

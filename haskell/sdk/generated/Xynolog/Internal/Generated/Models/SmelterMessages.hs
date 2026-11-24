@@ -11,14 +11,15 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.LogLevel
 
 data SmelterMessages = SmelterMessages
-  { smelterMessagesLogged :: [SmelterMessagesLoggedItem],
+  { smelterMessagesU24_comment :: Text,
+    smelterMessagesLogged :: [SmelterMessagesLoggedItem],
     smelterMessagesRefusals :: [SmelterMessagesRefusalsItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterMessages where parseJSON = checked "SmelterMessages" $ withObject "SmelterMessages" (\fields -> SmelterMessages <$> (fields .: "logged") <*> (fields .: "refusals"))
+instance FromJSON SmelterMessages where parseJSON = checked "SmelterMessages" $ withObject "SmelterMessages" (\fields -> SmelterMessages <$> (fields .: "$comment") <*> (fields .: "logged") <*> (fields .: "refusals"))
 
-instance ToJSON SmelterMessages where toJSON value = Object (KM.fromList (concat [[("logged", toJSON (smelterMessagesLogged value))], [("refusals", toJSON (smelterMessagesRefusals value))]]))
+instance ToJSON SmelterMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (smelterMessagesU24_comment value))], [("logged", toJSON (smelterMessagesLogged value))], [("refusals", toJSON (smelterMessagesRefusals value))]]))
 
 data SmelterMessagesLoggedItem = SmelterMessagesLoggedItem
   { smelterMessagesLoggedItemCarries :: [Text],

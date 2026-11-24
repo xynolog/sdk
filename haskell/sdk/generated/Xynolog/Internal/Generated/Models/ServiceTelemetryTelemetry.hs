@@ -11,16 +11,17 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ServiceTelemetryTelemetry = ServiceTelemetryTelemetry
-  { serviceTelemetryTelemetryMetrics :: [ServiceTelemetryTelemetryMetricsItem],
+  { serviceTelemetryTelemetryU24_comment :: Text,
+    serviceTelemetryTelemetryMetrics :: [ServiceTelemetryTelemetryMetricsItem],
     serviceTelemetryTelemetryResource :: [ServiceTelemetryTelemetryResourceItem],
     serviceTelemetryTelemetrySdk :: ServiceTelemetryTelemetrySdk,
     serviceTelemetryTelemetrySpans :: [ServiceTelemetryTelemetrySpansItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetry where parseJSON = checked "ServiceTelemetryTelemetry" $ withObject "ServiceTelemetryTelemetry" (\fields -> ServiceTelemetryTelemetry <$> (fields .: "metrics") <*> (fields .: "resource") <*> (fields .: "sdk") <*> (fields .: "spans"))
+instance FromJSON ServiceTelemetryTelemetry where parseJSON = checked "ServiceTelemetryTelemetry" $ withObject "ServiceTelemetryTelemetry" (\fields -> ServiceTelemetryTelemetry <$> (fields .: "$comment") <*> (fields .: "metrics") <*> (fields .: "resource") <*> (fields .: "sdk") <*> (fields .: "spans"))
 
-instance ToJSON ServiceTelemetryTelemetry where toJSON value = Object (KM.fromList (concat [[("metrics", toJSON (serviceTelemetryTelemetryMetrics value))], [("resource", toJSON (serviceTelemetryTelemetryResource value))], [("sdk", toJSON (serviceTelemetryTelemetrySdk value))], [("spans", toJSON (serviceTelemetryTelemetrySpans value))]]))
+instance ToJSON ServiceTelemetryTelemetry where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceTelemetryTelemetryU24_comment value))], [("metrics", toJSON (serviceTelemetryTelemetryMetrics value))], [("resource", toJSON (serviceTelemetryTelemetryResource value))], [("sdk", toJSON (serviceTelemetryTelemetrySdk value))], [("spans", toJSON (serviceTelemetryTelemetrySpans value))]]))
 
 data ServiceTelemetryTelemetryMetricsItem = ServiceTelemetryTelemetryMetricsItem
   { serviceTelemetryTelemetryMetricsItemAttributes :: [ServiceTelemetryTelemetryMetricsItemAttributesItem],

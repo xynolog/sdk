@@ -10,7 +10,8 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ArchivistLayout = ArchivistLayout
-  { archivistLayoutAnchoredTextEntry :: ArchivistLayoutAnchoredTextEntry,
+  { archivistLayoutU24_comment :: Text,
+    archivistLayoutAnchoredTextEntry :: ArchivistLayoutAnchoredTextEntry,
     archivistLayoutAnchoredTextStamp :: ArchivistLayoutAnchoredTextStamp,
     archivistLayoutEventFile :: ArchivistLayoutEventFile,
     archivistLayoutEventStream :: ArchivistLayoutEventStream,
@@ -22,9 +23,9 @@ data ArchivistLayout = ArchivistLayout
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayout where parseJSON = checked "ArchivistLayout" $ withObject "ArchivistLayout" (\fields -> ArchivistLayout <$> (fields .: "anchoredTextEntry") <*> (fields .: "anchoredTextStamp") <*> (fields .: "eventFile") <*> (fields .: "eventStream") <*> (fields .: "storageUriIndex") <*> (fields .: "storedEvent") <*> (fields .: "systemProjections") <*> (fields .: "systemStream") <*> (fields .: "view"))
+instance FromJSON ArchivistLayout where parseJSON = checked "ArchivistLayout" $ withObject "ArchivistLayout" (\fields -> ArchivistLayout <$> (fields .: "$comment") <*> (fields .: "anchoredTextEntry") <*> (fields .: "anchoredTextStamp") <*> (fields .: "eventFile") <*> (fields .: "eventStream") <*> (fields .: "storageUriIndex") <*> (fields .: "storedEvent") <*> (fields .: "systemProjections") <*> (fields .: "systemStream") <*> (fields .: "view"))
 
-instance ToJSON ArchivistLayout where toJSON value = Object (KM.fromList (concat [[("anchoredTextEntry", toJSON (archivistLayoutAnchoredTextEntry value))], [("anchoredTextStamp", toJSON (archivistLayoutAnchoredTextStamp value))], [("eventFile", toJSON (archivistLayoutEventFile value))], [("eventStream", toJSON (archivistLayoutEventStream value))], [("storageUriIndex", toJSON (archivistLayoutStorageUriIndex value))], [("storedEvent", toJSON (archivistLayoutStoredEvent value))], [("systemProjections", toJSON (archivistLayoutSystemProjections value))], [("systemStream", toJSON (archivistLayoutSystemStream value))], [("view", toJSON (archivistLayoutView value))]]))
+instance ToJSON ArchivistLayout where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (archivistLayoutU24_comment value))], [("anchoredTextEntry", toJSON (archivistLayoutAnchoredTextEntry value))], [("anchoredTextStamp", toJSON (archivistLayoutAnchoredTextStamp value))], [("eventFile", toJSON (archivistLayoutEventFile value))], [("eventStream", toJSON (archivistLayoutEventStream value))], [("storageUriIndex", toJSON (archivistLayoutStorageUriIndex value))], [("storedEvent", toJSON (archivistLayoutStoredEvent value))], [("systemProjections", toJSON (archivistLayoutSystemProjections value))], [("systemStream", toJSON (archivistLayoutSystemStream value))], [("view", toJSON (archivistLayoutView value))]]))
 
 data ArchivistLayoutAnchoredTextEntry = ArchivistLayoutAnchoredTextEntry
   { archivistLayoutAnchoredTextEntryPath :: Text,

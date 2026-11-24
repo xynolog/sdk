@@ -10,10 +10,11 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ArchivistDefaultEntityTypes = ArchivistDefaultEntityTypes
-  { archivistDefaultEntityTypesEntityTypes :: [Text]
+  { archivistDefaultEntityTypesU24_comment :: Text,
+    archivistDefaultEntityTypesEntityTypes :: [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistDefaultEntityTypes where parseJSON = checked "ArchivistDefaultEntityTypes" $ withObject "ArchivistDefaultEntityTypes" (\fields -> ArchivistDefaultEntityTypes <$> (fields .: "entityTypes"))
+instance FromJSON ArchivistDefaultEntityTypes where parseJSON = checked "ArchivistDefaultEntityTypes" $ withObject "ArchivistDefaultEntityTypes" (\fields -> ArchivistDefaultEntityTypes <$> (fields .: "$comment") <*> (fields .: "entityTypes"))
 
-instance ToJSON ArchivistDefaultEntityTypes where toJSON value = Object (KM.fromList (concat [[("entityTypes", toJSON (archivistDefaultEntityTypesEntityTypes value))]]))
+instance ToJSON ArchivistDefaultEntityTypes where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (archivistDefaultEntityTypesU24_comment value))], [("entityTypes", toJSON (archivistDefaultEntityTypesEntityTypes value))]]))

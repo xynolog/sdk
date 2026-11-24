@@ -6,19 +6,21 @@ module Xynolog.Internal.Generated.Models.EmbeddingRequests (EmbeddingRequests (.
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data EmbeddingRequests = EmbeddingRequests
-  { embeddingRequestsBusy :: EmbeddingRequestsBusy,
+  { embeddingRequestsU24_comment :: Text,
+    embeddingRequestsBusy :: EmbeddingRequestsBusy,
     embeddingRequestsProviders :: EmbeddingRequestsProviders,
     embeddingRequestsRequestSeconds :: Integer,
     embeddingRequestsStartAgain :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON EmbeddingRequests where parseJSON = checked "EmbeddingRequests" $ withObject "EmbeddingRequests" (\fields -> EmbeddingRequests <$> (fields .: "busy") <*> (fields .: "providers") <*> (fields .: "requestSeconds") <*> (fields .: "startAgain"))
+instance FromJSON EmbeddingRequests where parseJSON = checked "EmbeddingRequests" $ withObject "EmbeddingRequests" (\fields -> EmbeddingRequests <$> (fields .: "$comment") <*> (fields .: "busy") <*> (fields .: "providers") <*> (fields .: "requestSeconds") <*> (fields .: "startAgain"))
 
-instance ToJSON EmbeddingRequests where toJSON value = Object (KM.fromList (concat [[("busy", toJSON (embeddingRequestsBusy value))], [("providers", toJSON (embeddingRequestsProviders value))], [("requestSeconds", toJSON (embeddingRequestsRequestSeconds value))], [("startAgain", toJSON (embeddingRequestsStartAgain value))]]))
+instance ToJSON EmbeddingRequests where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (embeddingRequestsU24_comment value))], [("busy", toJSON (embeddingRequestsBusy value))], [("providers", toJSON (embeddingRequestsProviders value))], [("requestSeconds", toJSON (embeddingRequestsRequestSeconds value))], [("startAgain", toJSON (embeddingRequestsStartAgain value))]]))
 
 data EmbeddingRequestsBusy = EmbeddingRequestsBusy
   { embeddingRequestsBusyAgainAfterSeconds :: [Integer],

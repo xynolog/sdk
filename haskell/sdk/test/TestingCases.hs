@@ -94,7 +94,7 @@ sharedCases = do
 livenessCases :: Map.Map Text Value -> IO ()
 livenessCases fixtures = do
   description <- fixture fixtures "KbDescription"
-  let answer name _ = if name == "browse:kb-requested" then pure (Just (toJSON (description :: KbDescription))) else Faulty.refuseUnscriptedOperation name mempty
+  let answer name _ = if name == Channel.channelName Channel.BrowseKbRequested then pure (Just (toJSON (description :: KbDescription))) else Faulty.refuseUnscriptedOperation name mempty
       subjects = [Faulty.Deliver, Faulty.DropReply, Faulty.Delay 2, Faulty.DuplicateReply, Faulty.RejectEmit]
       runLiveness schedule setup = do
         time <- Time.newTime
@@ -124,7 +124,7 @@ livenessCases fixtures = do
     (Faulty.newFaultyTransport clock [Faulty.DropReply, Faulty.Deliver] Faulty.refuseUnscriptedOperation (Set.fromList Channel.globalChannels))
     (Transport.dispose . Faulty.carrier)
     $ \over -> do
-      Faulty.queueReply over "browse:kb-requested" [Just (toJSON (description :: KbDescription)), Just (toJSON description {kbDescriptionName = "next answer"})]
+      Faulty.queueReply over (Channel.channelName Channel.BrowseKbRequested) [Just (toJSON (description :: KbDescription)), Just (toJSON description {kbDescriptionName = "next answer"})]
       let ask = Bus.request (Bus.newBus busOptions (Faulty.carrier over)) Channel.BrowseKbRequestedOperation (BrowseKbRequest mempty) 10
       bracket (async (void ask)) cancel $ \request -> do
         Time.advance time 10000000

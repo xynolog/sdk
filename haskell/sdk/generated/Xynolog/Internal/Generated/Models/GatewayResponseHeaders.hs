@@ -11,16 +11,17 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.HttpStatus
 
 data GatewayResponseHeaders = GatewayResponseHeaders
-  { gatewayResponseHeadersAbsent :: [Text],
+  { gatewayResponseHeadersU24_comment :: Text,
+    gatewayResponseHeadersAbsent :: [Text],
     gatewayResponseHeadersEvery :: [GatewayResponseHeadersEveryItem],
     gatewayResponseHeadersPreflight :: GatewayResponseHeadersPreflight,
     gatewayResponseHeadersRequestId :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayResponseHeaders where parseJSON = checked "GatewayResponseHeaders" $ withObject "GatewayResponseHeaders" (\fields -> GatewayResponseHeaders <$> (fields .: "absent") <*> (fields .: "every") <*> (fields .: "preflight") <*> (fields .: "requestId"))
+instance FromJSON GatewayResponseHeaders where parseJSON = checked "GatewayResponseHeaders" $ withObject "GatewayResponseHeaders" (\fields -> GatewayResponseHeaders <$> (fields .: "$comment") <*> (fields .: "absent") <*> (fields .: "every") <*> (fields .: "preflight") <*> (fields .: "requestId"))
 
-instance ToJSON GatewayResponseHeaders where toJSON value = Object (KM.fromList (concat [[("absent", toJSON (gatewayResponseHeadersAbsent value))], [("every", toJSON (gatewayResponseHeadersEvery value))], [("preflight", toJSON (gatewayResponseHeadersPreflight value))], [("requestId", toJSON (gatewayResponseHeadersRequestId value))]]))
+instance ToJSON GatewayResponseHeaders where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (gatewayResponseHeadersU24_comment value))], [("absent", toJSON (gatewayResponseHeadersAbsent value))], [("every", toJSON (gatewayResponseHeadersEvery value))], [("preflight", toJSON (gatewayResponseHeadersPreflight value))], [("requestId", toJSON (gatewayResponseHeadersRequestId value))]]))
 
 data GatewayResponseHeadersEveryItem = GatewayResponseHeadersEveryItem
   { gatewayResponseHeadersEveryItemName :: Text,

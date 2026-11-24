@@ -10,15 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data GatewayMediaToken = GatewayMediaToken
-  { gatewayMediaTokenClaims :: GatewayMediaTokenClaims,
+  { gatewayMediaTokenU24_comment :: Text,
+    gatewayMediaTokenClaims :: GatewayMediaTokenClaims,
     gatewayMediaTokenHeader :: GatewayMediaTokenHeader,
     gatewayMediaTokenLifetimeSeconds :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayMediaToken where parseJSON = checked "GatewayMediaToken" $ withObject "GatewayMediaToken" (\fields -> GatewayMediaToken <$> (fields .: "claims") <*> (fields .: "header") <*> (fields .: "lifetimeSeconds"))
+instance FromJSON GatewayMediaToken where parseJSON = checked "GatewayMediaToken" $ withObject "GatewayMediaToken" (\fields -> GatewayMediaToken <$> (fields .: "$comment") <*> (fields .: "claims") <*> (fields .: "header") <*> (fields .: "lifetimeSeconds"))
 
-instance ToJSON GatewayMediaToken where toJSON value = Object (KM.fromList (concat [[("claims", toJSON (gatewayMediaTokenClaims value))], [("header", toJSON (gatewayMediaTokenHeader value))], [("lifetimeSeconds", toJSON (gatewayMediaTokenLifetimeSeconds value))]]))
+instance ToJSON GatewayMediaToken where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (gatewayMediaTokenU24_comment value))], [("claims", toJSON (gatewayMediaTokenClaims value))], [("header", toJSON (gatewayMediaTokenHeader value))], [("lifetimeSeconds", toJSON (gatewayMediaTokenLifetimeSeconds value))]]))
 
 data GatewayMediaTokenClaims = GatewayMediaTokenClaims
   { gatewayMediaTokenClaimsIss :: GatewayMediaTokenClaimsIss,

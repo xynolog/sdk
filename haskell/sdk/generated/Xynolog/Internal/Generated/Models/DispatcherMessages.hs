@@ -11,14 +11,15 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.FailureClass
 
 data DispatcherMessages = DispatcherMessages
-  { dispatcherMessagesErrors :: [DispatcherMessagesErrorsItem],
+  { dispatcherMessagesU24_comment :: Text,
+    dispatcherMessagesErrors :: [DispatcherMessagesErrorsItem],
     dispatcherMessagesRefusals :: [DispatcherMessagesRefusalsItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON DispatcherMessages where parseJSON = checked "DispatcherMessages" $ withObject "DispatcherMessages" (\fields -> DispatcherMessages <$> (fields .: "errors") <*> (fields .: "refusals"))
+instance FromJSON DispatcherMessages where parseJSON = checked "DispatcherMessages" $ withObject "DispatcherMessages" (\fields -> DispatcherMessages <$> (fields .: "$comment") <*> (fields .: "errors") <*> (fields .: "refusals"))
 
-instance ToJSON DispatcherMessages where toJSON value = Object (KM.fromList (concat [[("errors", toJSON (dispatcherMessagesErrors value))], [("refusals", toJSON (dispatcherMessagesRefusals value))]]))
+instance ToJSON DispatcherMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (dispatcherMessagesU24_comment value))], [("errors", toJSON (dispatcherMessagesErrors value))], [("refusals", toJSON (dispatcherMessagesRefusals value))]]))
 
 data DispatcherMessagesErrorsItem = DispatcherMessagesErrorsItem
   { dispatcherMessagesErrorsItemError :: Text,

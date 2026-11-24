@@ -25,6 +25,9 @@ the coming release's, and gathers its changes as they land.
   each service's messages, …): every table of a service's area and of
   `service-environment/`, `service-telemetry/` and `jobs/` but the case
   tables, and `bus/reply-bounds.json`.
+- `Xynolog.Tables`: the clients' tables no other module carries, each a value
+  of the type its own schema states: `controlMethods`, `localesRegistry` and
+  `retryRules`.
 - `Xynolog.Archivist.Routes`: the Archivist's HTTP operations as
   `ArchivistRoute`, typed by what each is asked and answers, with its method,
   path, status, media types and required headers, as `Xynolog.Http.Routes`
@@ -51,7 +54,8 @@ the coming release's, and gathers its changes as they land.
   `FrameRefusalReasonMalformed`).
 - `Job.claim` and `Worker.newClaims` take `ClaimOptions`, the type Protocol
   states, in place of `WorkerOptions`; the claims' clock and timing are the
-  client's. A filter list that is empty, or a timing that is not positive, is
+  client's. A filter list that is empty, a stall check that is not positive,
+  or a claim, stall or commit timeout that is negative, is
   `InvalidClaimOptions`, in place of `InvalidWorkerTiming`.
 - `Job.pollUntilComplete` takes `JobPollOptions`, the type Protocol states, in
   place of `PollOptions`, and the callback that is told each status.
@@ -59,6 +63,8 @@ the coming release's, and gathers its changes as they land.
   `CreateResourceResponse`, the type Protocol states, in place of the new
   resource's id; `Yield.createFromToken` takes `CreateFromTokenOptions`.
 - A gateway's URL takes its scheme from the endpoint's `protocol`.
+- What each retry rule retries is read from `retryRules`, the value of
+  `retry/rules.json`, in place of the SDK's own statuses and methods.
 
 ## 0.8.1
 

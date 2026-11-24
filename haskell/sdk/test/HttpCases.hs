@@ -37,7 +37,7 @@ import TestProcess (python)
 import Text.Read (readMaybe)
 import Xynolog.Auth qualified as Auth
 import Xynolog.Bus qualified as Bus
-import Xynolog.Channels (Channel (FrameEntityTypeAddOk), channelName, globalChannels)
+import Xynolog.Channels (Channel (BrowseKbRequested, FrameEntityTypeAddOk), channelName, globalChannels)
 import Xynolog.Client qualified as Client
 import Xynolog.Content qualified as Content
 import Xynolog.Delegation (UploadEvent (..))
@@ -167,13 +167,13 @@ httpCases root fixtures = do
             ( any
                 ( \value -> case field "body" value of
                     Just (Object body) ->
-                      KM.lookup "channel" body == Just (String "browse:kb-requested")
+                      KM.lookup "channel" body == Just (String (channelName BrowseKbRequested))
                         && field "token" value == Just (String "Bearer proof-credential-not-for-log")
                     _ -> False
                 )
                 (values "requests" proofRequests)
             )
-          postControl peer "/test/config" (object ["refusedOperations" .= [String "browse:kb-requested"]])
+          postControl peer "/test/config" (object ["refusedOperations" .= [String (channelName BrowseKbRequested)]])
           notReported <- try (Identity.describeConnection (options pool) target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
           require "a KB which refused to describe itself was reported as unreachable" (case notReported of Left failure -> Identity.identityUnverifiableReason failure == Code.KbIdentityNotReported; _ -> False)
           postControl peer "/test/config" (object ["refusedOperations" .= ([] :: [Text]), "emitStatuses" .= ([403] :: [Int])])

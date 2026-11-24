@@ -10,13 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ServiceEnvironmentVariables = ServiceEnvironmentVariables
-  { serviceEnvironmentVariablesVariables :: [ServiceEnvironmentVariablesVariablesItem]
+  { serviceEnvironmentVariablesU24_comment :: Text,
+    serviceEnvironmentVariablesVariables :: [ServiceEnvironmentVariablesVariablesItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceEnvironmentVariables where parseJSON = checked "ServiceEnvironmentVariables" $ withObject "ServiceEnvironmentVariables" (\fields -> ServiceEnvironmentVariables <$> (fields .: "variables"))
+instance FromJSON ServiceEnvironmentVariables where parseJSON = checked "ServiceEnvironmentVariables" $ withObject "ServiceEnvironmentVariables" (\fields -> ServiceEnvironmentVariables <$> (fields .: "$comment") <*> (fields .: "variables"))
 
-instance ToJSON ServiceEnvironmentVariables where toJSON value = Object (KM.fromList (concat [[("variables", toJSON (serviceEnvironmentVariablesVariables value))]]))
+instance ToJSON ServiceEnvironmentVariables where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceEnvironmentVariablesU24_comment value))], [("variables", toJSON (serviceEnvironmentVariablesVariables value))]]))
 
 data ServiceEnvironmentVariablesVariablesItem = ServiceEnvironmentVariablesVariablesItem
   { serviceEnvironmentVariablesVariablesItemEffect :: Text,
