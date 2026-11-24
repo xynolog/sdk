@@ -100,10 +100,7 @@ let signature (s : T.signature) =
         @ (if s.required = [] then []
            else [ field "required" (words s.required) ])
         @ (match s.allowed with
-          | Some allowed ->
-              [
-                field "allowed" (words allowed); field "closed" (G.Name "true");
-              ]
+          | Some allowed -> [ field "allowed" (words allowed) ]
           | None -> [])
         @ (if s.fixed = [] then []
            else

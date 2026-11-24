@@ -28,7 +28,6 @@ type signature struct {
 	kind     kind
 	required []string
 	allowed  []string
-	closed   bool
 	fixed    []fixedValues
 	values   []any
 }
@@ -123,7 +122,7 @@ func (s signature) lacks(value any) string {
 			return fmt.Sprintf("lacks the member %q", property)
 		}
 	}
-	if s.closed {
+	if s.allowed != nil {
 		for property := range object {
 			if !slices.Contains(s.allowed, property) {
 				return fmt.Sprintf("carries the member %q", property)

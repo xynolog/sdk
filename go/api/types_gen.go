@@ -451,8 +451,8 @@ func (u AnchoredTextEntry) Member() (any, error) {
 // anchoredTextEntryMembers is what each member of AnchoredTextEntry admits,
 // and how a value of it is read.
 var anchoredTextEntryMembers = []unionMember{
-	{"AnchoredTextExtractedEntry", readAs[AnchoredTextExtractedEntry], []signature{{kind: objectKind, required: []string{"v", "stamp", "text", "lines", "method"}, allowed: []string{"v", "stamp", "text", "lines", "method", "pdfClass", "ocrConfidence", "unreadPages"}, closed: true, fixed: []fixedValues{{"v", []any{3}}, {"method", []any{"text-passthrough", "pdf-text-layer", "table", "form", "ocr"}}, {"pdfClass", []any{"A", "B", "C", "D", "E", "F", "G"}}}}}},
-	{"AnchoredTextDeclinedEntry", readAs[AnchoredTextDeclinedEntry], []signature{{kind: objectKind, required: []string{"v", "stamp", "declined"}, allowed: []string{"v", "stamp", "declined"}, closed: true, fixed: []fixedValues{{"v", []any{3}}, {"declined", []any{"no-text-layer", "encrypted", "corrupt", "too-large"}}}}}},
+	{"AnchoredTextExtractedEntry", readAs[AnchoredTextExtractedEntry], []signature{{kind: objectKind, required: []string{"v", "stamp", "text", "lines", "method"}, allowed: []string{"v", "stamp", "text", "lines", "method", "pdfClass", "ocrConfidence", "unreadPages"}, fixed: []fixedValues{{"v", []any{3}}, {"method", []any{"text-passthrough", "pdf-text-layer", "table", "form", "ocr"}}, {"pdfClass", []any{"A", "B", "C", "D", "E", "F", "G"}}}}}},
+	{"AnchoredTextDeclinedEntry", readAs[AnchoredTextDeclinedEntry], []signature{{kind: objectKind, required: []string{"v", "stamp", "declined"}, allowed: []string{"v", "stamp", "declined"}, fixed: []fixedValues{{"v", []any{3}}, {"declined", []any{"no-text-layer", "encrypted", "corrupt", "too-large"}}}}}},
 }
 
 // AnchoredTextExtractedEntry The text extracted from the bytes, where each
@@ -2417,8 +2417,8 @@ func (u BusReplyBoundsRepliesValueValue) Member() (any, error) {
 // busReplyBoundsRepliesValueValueMembers is what each member of
 // BusReplyBoundsRepliesValueValue admits, and how a value of it is read.
 var busReplyBoundsRepliesValueValueMembers = []unionMember{
-	{"BusReplyBoundsRepliesValueValueBy", readAs[BusReplyBoundsRepliesValueValueBy], []signature{{kind: objectKind, required: []string{"by"}, allowed: []string{"by"}, closed: true}}},
-	{"BusReplyBoundsRepliesValueValueGrows", readAs[BusReplyBoundsRepliesValueValueGrows], []signature{{kind: objectKind, required: []string{"grows"}, allowed: []string{"grows"}, closed: true}}},
+	{"BusReplyBoundsRepliesValueValueBy", readAs[BusReplyBoundsRepliesValueValueBy], []signature{{kind: objectKind, required: []string{"by"}, allowed: []string{"by"}}}},
+	{"BusReplyBoundsRepliesValueValueGrows", readAs[BusReplyBoundsRepliesValueValueGrows], []signature{{kind: objectKind, required: []string{"grows"}, allowed: []string{"grows"}}}},
 }
 
 // BusReplyBoundsRepliesValueValueBy A list or map bounded by a member of the
@@ -2501,8 +2501,8 @@ func (u BusStreamMessage) Member() (any, error) {
 // busStreamMessageMembers is what each member of BusStreamMessage admits, and
 // how a value of it is read.
 var busStreamMessageMembers = []unionMember{
-	{"BusEventMessage", readAs[BusEventMessage], []signature{{kind: objectKind, required: []string{"event", "id", "data"}, allowed: []string{"event", "id", "data"}, closed: true, fixed: []fixedValues{{"event", []any{"bus-event"}}}}}},
-	{"BusPingMessage", readAs[BusPingMessage], []signature{{kind: objectKind, required: []string{"event", "data"}, allowed: []string{"event", "data"}, closed: true, fixed: []fixedValues{{"event", []any{"ping"}}}}}},
+	{"BusEventMessage", readAs[BusEventMessage], []signature{{kind: objectKind, required: []string{"event", "id", "data"}, allowed: []string{"event", "id", "data"}, fixed: []fixedValues{{"event", []any{"bus-event"}}}}}},
+	{"BusPingMessage", readAs[BusPingMessage], []signature{{kind: objectKind, required: []string{"event", "data"}, allowed: []string{"event", "data"}, fixed: []fixedValues{{"event", []any{"ping"}}}}}},
 }
 
 // BusSubscribeRequest Subscription matrix for the bus stream. `global`
@@ -2903,22 +2903,22 @@ func (u ConformanceDriverLine) Member() (any, error) {
 // conformanceDriverLineMembers is what each member of ConformanceDriverLine
 // admits, and how a value of it is read.
 var conformanceDriverLineMembers = []unionMember{
-	{"ConformanceDriverLineReady", readAs[ConformanceDriverLineReady], []signature{{kind: objectKind, required: []string{"ready"}, allowed: []string{"ready"}, closed: true, fixed: []fixedValues{{"ready", []any{true}}}}}},
-	{"ConformanceDriverLineOk", readAs[ConformanceDriverLineOk], []signature{{kind: objectKind, required: []string{"id", "ok"}, allowed: []string{"id", "ok"}, closed: true}}},
-	{"ConformanceDriverLineFailed", readAs[ConformanceDriverLineFailed], []signature{{kind: objectKind, required: []string{"id", "error"}, allowed: []string{"id", "error"}, closed: true}}},
-	{"ConformanceDriverLineAbandoned", readAs[ConformanceDriverLineAbandoned], []signature{{kind: objectKind, required: []string{"id", "abandoned"}, allowed: []string{"id", "abandoned"}, closed: true, fixed: []fixedValues{{"abandoned", []any{true}}}}}},
-	{"ConformanceDriverLineUnsupported", readAs[ConformanceDriverLineUnsupported], []signature{{kind: objectKind, required: []string{"id", "unsupported"}, allowed: []string{"id", "unsupported"}, closed: true, fixed: []fixedValues{{"unsupported", []any{true}}}}}},
-	{"ConformanceDriverLineMisuse", readAs[ConformanceDriverLineMisuse], []signature{{kind: objectKind, required: []string{"id", "misuse"}, allowed: []string{"id", "misuse"}, closed: true}}},
-	{"ConformanceDriverLineState", readAs[ConformanceDriverLineState], []signature{{kind: objectKind, required: []string{"state"}, allowed: []string{"state"}, closed: true}}},
-	{"ConformanceDriverLineFrame", readAs[ConformanceDriverLineFrame], []signature{{kind: objectKind, required: []string{"frame"}, allowed: []string{"frame"}, closed: true}}},
-	{"ConformanceDriverLineErrorStream", readAs[ConformanceDriverLineErrorStream], []signature{{kind: objectKind, required: []string{"error"}, allowed: []string{"error"}, closed: true}}},
-	{"ConformanceDriverLineProgress", readAs[ConformanceDriverLineProgress], []signature{{kind: objectKind, required: []string{"progress"}, allowed: []string{"progress"}, closed: true}}},
-	{"ConformanceDriverLineEmission", readAs[ConformanceDriverLineEmission], []signature{{kind: objectKind, required: []string{"emission"}, allowed: []string{"emission"}, closed: true}}},
-	{"ConformanceDriverLineCompleted", readAs[ConformanceDriverLineCompleted], []signature{{kind: objectKind, required: []string{"completed"}, allowed: []string{"completed"}, closed: true}}},
-	{"ConformanceDriverLineClaimed", readAs[ConformanceDriverLineClaimed], []signature{{kind: objectKind, required: []string{"claimed"}, allowed: []string{"claimed"}, closed: true}}},
-	{"ConformanceDriverLineRefused", readAs[ConformanceDriverLineRefused], []signature{{kind: objectKind, required: []string{"refused"}, allowed: []string{"refused"}, closed: true}}},
-	{"ConformanceDriverLineSignalled", readAs[ConformanceDriverLineSignalled], []signature{{kind: objectKind, required: []string{"signalled"}, allowed: []string{"signalled"}, closed: true}}},
-	{"ConformanceDriverLineStalled", readAs[ConformanceDriverLineStalled], []signature{{kind: objectKind, required: []string{"stalled"}, allowed: []string{"stalled"}, closed: true}}},
+	{"ConformanceDriverLineReady", readAs[ConformanceDriverLineReady], []signature{{kind: objectKind, required: []string{"ready"}, allowed: []string{"ready"}, fixed: []fixedValues{{"ready", []any{true}}}}}},
+	{"ConformanceDriverLineOk", readAs[ConformanceDriverLineOk], []signature{{kind: objectKind, required: []string{"id", "ok"}, allowed: []string{"id", "ok"}}}},
+	{"ConformanceDriverLineFailed", readAs[ConformanceDriverLineFailed], []signature{{kind: objectKind, required: []string{"id", "error"}, allowed: []string{"id", "error"}}}},
+	{"ConformanceDriverLineAbandoned", readAs[ConformanceDriverLineAbandoned], []signature{{kind: objectKind, required: []string{"id", "abandoned"}, allowed: []string{"id", "abandoned"}, fixed: []fixedValues{{"abandoned", []any{true}}}}}},
+	{"ConformanceDriverLineUnsupported", readAs[ConformanceDriverLineUnsupported], []signature{{kind: objectKind, required: []string{"id", "unsupported"}, allowed: []string{"id", "unsupported"}, fixed: []fixedValues{{"unsupported", []any{true}}}}}},
+	{"ConformanceDriverLineMisuse", readAs[ConformanceDriverLineMisuse], []signature{{kind: objectKind, required: []string{"id", "misuse"}, allowed: []string{"id", "misuse"}}}},
+	{"ConformanceDriverLineState", readAs[ConformanceDriverLineState], []signature{{kind: objectKind, required: []string{"state"}, allowed: []string{"state"}}}},
+	{"ConformanceDriverLineFrame", readAs[ConformanceDriverLineFrame], []signature{{kind: objectKind, required: []string{"frame"}, allowed: []string{"frame"}}}},
+	{"ConformanceDriverLineErrorStream", readAs[ConformanceDriverLineErrorStream], []signature{{kind: objectKind, required: []string{"error"}, allowed: []string{"error"}}}},
+	{"ConformanceDriverLineProgress", readAs[ConformanceDriverLineProgress], []signature{{kind: objectKind, required: []string{"progress"}, allowed: []string{"progress"}}}},
+	{"ConformanceDriverLineEmission", readAs[ConformanceDriverLineEmission], []signature{{kind: objectKind, required: []string{"emission"}, allowed: []string{"emission"}}}},
+	{"ConformanceDriverLineCompleted", readAs[ConformanceDriverLineCompleted], []signature{{kind: objectKind, required: []string{"completed"}, allowed: []string{"completed"}}}},
+	{"ConformanceDriverLineClaimed", readAs[ConformanceDriverLineClaimed], []signature{{kind: objectKind, required: []string{"claimed"}, allowed: []string{"claimed"}}}},
+	{"ConformanceDriverLineRefused", readAs[ConformanceDriverLineRefused], []signature{{kind: objectKind, required: []string{"refused"}, allowed: []string{"refused"}}}},
+	{"ConformanceDriverLineSignalled", readAs[ConformanceDriverLineSignalled], []signature{{kind: objectKind, required: []string{"signalled"}, allowed: []string{"signalled"}}}},
+	{"ConformanceDriverLineStalled", readAs[ConformanceDriverLineStalled], []signature{{kind: objectKind, required: []string{"stalled"}, allowed: []string{"stalled"}}}},
 }
 
 // ConformanceDriverLineAbandoned The suite abandoned the operation, and the
@@ -3007,9 +3007,9 @@ func (u ConformanceDriverLineEmissionEmissionState) Member() (any, error) {
 // ConformanceDriverLineEmissionEmissionState admits, and how a value of it is
 // read.
 var conformanceDriverLineEmissionEmissionStateMembers = []unionMember{
-	{"ConformanceDriverLineEmissionEmissionStatePending", readAs[ConformanceDriverLineEmissionEmissionStatePending], []signature{{kind: objectKind, required: []string{"status"}, allowed: []string{"status"}, closed: true, fixed: []fixedValues{{"status", []any{"pending"}}}}}},
-	{"ConformanceDriverLineEmissionEmissionStateReady", readAs[ConformanceDriverLineEmissionEmissionStateReady], []signature{{kind: objectKind, required: []string{"status", "value"}, allowed: []string{"status", "value"}, closed: true, fixed: []fixedValues{{"status", []any{"ready"}}}}}},
-	{"ConformanceDriverLineEmissionEmissionStateFailed", readAs[ConformanceDriverLineEmissionEmissionStateFailed], []signature{{kind: objectKind, required: []string{"status", "error"}, allowed: []string{"status", "error"}, closed: true, fixed: []fixedValues{{"status", []any{"failed"}}}}}},
+	{"ConformanceDriverLineEmissionEmissionStatePending", readAs[ConformanceDriverLineEmissionEmissionStatePending], []signature{{kind: objectKind, required: []string{"status"}, allowed: []string{"status"}, fixed: []fixedValues{{"status", []any{"pending"}}}}}},
+	{"ConformanceDriverLineEmissionEmissionStateReady", readAs[ConformanceDriverLineEmissionEmissionStateReady], []signature{{kind: objectKind, required: []string{"status", "value"}, allowed: []string{"status", "value"}, fixed: []fixedValues{{"status", []any{"ready"}}}}}},
+	{"ConformanceDriverLineEmissionEmissionStateFailed", readAs[ConformanceDriverLineEmissionEmissionStateFailed], []signature{{kind: objectKind, required: []string{"status", "error"}, allowed: []string{"status", "error"}, fixed: []fixedValues{{"status", []any{"failed"}}}}}},
 }
 
 type ConformanceDriverLineEmissionEmissionStateFailed struct {
@@ -3422,34 +3422,34 @@ func (u ConformanceStep) Member() (any, error) {
 // conformanceStepMembers is what each member of ConformanceStep admits, and
 // how a value of it is read.
 var conformanceStepMembers = []unionMember{
-	{"ConformanceStepLet", readAs[ConformanceStepLet], []signature{{kind: objectKind, required: []string{"let"}, allowed: []string{"let"}, closed: true}}},
-	{"ConformanceStepDriver", readAs[ConformanceStepDriver], []signature{{kind: objectKind, required: []string{"driver"}, allowed: []string{"driver", "with", "returns", "fails", "as"}, closed: true}}},
-	{"ConformanceStepAbandon", readAs[ConformanceStepAbandon], []signature{{kind: objectKind, required: []string{"abandon"}, allowed: []string{"abandon"}, closed: true}}},
-	{"ConformanceStepSettles", readAs[ConformanceStepSettles], []signature{{kind: objectKind, required: []string{"settles"}, allowed: []string{"settles", "returns", "fails", "abandoned"}, closed: true, fixed: []fixedValues{{"abandoned", []any{true}}}}}},
-	{"ConformanceStepWire", readAs[ConformanceStepWire], []signature{{kind: objectKind, required: []string{"wire"}, allowed: []string{"wire", "at", "status", "params", "body", "token", "headers", "answer", "as", "follows", "waited"}, closed: true, fixed: []fixedValues{{"at", []any{"arrival", "answer", "live"}}}}}},
-	{"ConformanceStepCarried", readAs[ConformanceStepCarried], []signature{{kind: objectKind, required: []string{"carried", "is"}, allowed: []string{"carried", "is"}, closed: true}}},
-	{"ConformanceStepClosed", readAs[ConformanceStepClosed], []signature{{kind: objectKind, required: []string{"closed"}, allowed: []string{"closed"}, closed: true}}},
-	{"ConformanceStepProgress", readAs[ConformanceStepProgress], []signature{{kind: objectKind, required: []string{"progress"}, allowed: []string{"progress"}, closed: true}}},
-	{"ConformanceStepState", readAs[ConformanceStepState], []signature{{kind: objectKind, required: []string{"state"}, allowed: []string{"state"}, closed: true, fixed: []fixedValues{{"state", []any{"initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"}}}}}},
-	{"ConformanceStepStays", readAs[ConformanceStepStays], []signature{{kind: objectKind, required: []string{"stays"}, allowed: []string{"stays"}, closed: true, fixed: []fixedValues{{"stays", []any{"initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"}}}}}},
-	{"ConformanceStepFrame", readAs[ConformanceStepFrame], []signature{{kind: objectKind, required: []string{"frame", "is"}, allowed: []string{"frame", "is"}, closed: true}}},
-	{"ConformanceStepFrames", readAs[ConformanceStepFrames], []signature{{kind: objectKind, required: []string{"frames", "count"}, allowed: []string{"frames", "count"}, closed: true}}},
-	{"ConformanceStepError", readAs[ConformanceStepError], []signature{{kind: objectKind, required: []string{"error"}, allowed: []string{"error"}, closed: true}}},
-	{"ConformanceStepBackend", readAs[ConformanceStepBackend], []signature{{kind: objectKind, required: []string{"backend"}, allowed: []string{"backend", "with"}, closed: true, fixed: []fixedValues{{"backend", []any{"listen", "emit", "record", "content", "description", "annotations", "anchored-text", "uploaded", "refuse", "unanswered", "answer-lost", "hold", "release", "rechunk", "carry", "cut", "down", "up", "archivist"}}}}}},
-	{"ConformanceStepQuiet", readAs[ConformanceStepQuiet], []signature{{kind: objectKind, required: []string{"quiet"}, allowed: []string{"quiet"}, closed: true}}},
-	{"ConformanceStepObserve", readAs[ConformanceStepObserve], []signature{{kind: objectKind, required: []string{"observe", "as"}, allowed: []string{"observe", "as"}, closed: true}}},
-	{"ConformanceStepLeave", readAs[ConformanceStepLeave], []signature{{kind: objectKind, required: []string{"leave"}, allowed: []string{"leave"}, closed: true}}},
-	{"ConformanceStepReaches", readAs[ConformanceStepReaches], []signature{{kind: objectKind, required: []string{"reaches", "state"}, allowed: []string{"reaches", "state"}, closed: true}}},
-	{"ConformanceStepHolds", readAs[ConformanceStepHolds], []signature{{kind: objectKind, required: []string{"holds", "state"}, allowed: []string{"holds", "state"}, closed: true}}},
-	{"ConformanceStepCompletes", readAs[ConformanceStepCompletes], []signature{{kind: objectKind, required: []string{"completes"}, allowed: []string{"completes"}, closed: true}}},
-	{"ConformanceBusFetch", readAs[ConformanceBusFetch], []signature{{kind: objectKind, required: []string{"fetch", "as"}, allowed: []string{"fetch", "payload", "as"}, closed: true}}},
-	{"ConformanceHttpFetch", readAs[ConformanceHttpFetch], []signature{{kind: objectKind, required: []string{"fetch"}, allowed: []string{"fetch", "params"}, closed: true}}},
-	{"ConformanceStepFetches", readAs[ConformanceStepFetches], []signature{{kind: objectKind, required: []string{"fetches"}, allowed: []string{"fetches"}, closed: true}}},
-	{"ConformanceStepScopes", readAs[ConformanceStepScopes], []signature{{kind: objectKind, required: []string{"scopes"}, allowed: []string{"scopes"}, closed: true}}},
-	{"ConformanceStepClaimed", readAs[ConformanceStepClaimed], []signature{{kind: objectKind, required: []string{"claimed"}, allowed: []string{"claimed"}, closed: true}}},
-	{"ConformanceStepRefused", readAs[ConformanceStepRefused], []signature{{kind: objectKind, required: []string{"refused"}, allowed: []string{"refused"}, closed: true}}},
-	{"ConformanceStepSignalled", readAs[ConformanceStepSignalled], []signature{{kind: objectKind, required: []string{"signalled"}, allowed: []string{"signalled"}, closed: true}}},
-	{"ConformanceStepStalled", readAs[ConformanceStepStalled], []signature{{kind: objectKind, required: []string{"stalled"}, allowed: []string{"stalled"}, closed: true}}},
+	{"ConformanceStepLet", readAs[ConformanceStepLet], []signature{{kind: objectKind, required: []string{"let"}, allowed: []string{"let"}}}},
+	{"ConformanceStepDriver", readAs[ConformanceStepDriver], []signature{{kind: objectKind, required: []string{"driver"}, allowed: []string{"driver", "with", "returns", "fails", "as"}}}},
+	{"ConformanceStepAbandon", readAs[ConformanceStepAbandon], []signature{{kind: objectKind, required: []string{"abandon"}, allowed: []string{"abandon"}}}},
+	{"ConformanceStepSettles", readAs[ConformanceStepSettles], []signature{{kind: objectKind, required: []string{"settles"}, allowed: []string{"settles", "returns", "fails", "abandoned"}, fixed: []fixedValues{{"abandoned", []any{true}}}}}},
+	{"ConformanceStepWire", readAs[ConformanceStepWire], []signature{{kind: objectKind, required: []string{"wire"}, allowed: []string{"wire", "at", "status", "params", "body", "token", "headers", "answer", "as", "follows", "waited"}, fixed: []fixedValues{{"at", []any{"arrival", "answer", "live"}}}}}},
+	{"ConformanceStepCarried", readAs[ConformanceStepCarried], []signature{{kind: objectKind, required: []string{"carried", "is"}, allowed: []string{"carried", "is"}}}},
+	{"ConformanceStepClosed", readAs[ConformanceStepClosed], []signature{{kind: objectKind, required: []string{"closed"}, allowed: []string{"closed"}}}},
+	{"ConformanceStepProgress", readAs[ConformanceStepProgress], []signature{{kind: objectKind, required: []string{"progress"}, allowed: []string{"progress"}}}},
+	{"ConformanceStepState", readAs[ConformanceStepState], []signature{{kind: objectKind, required: []string{"state"}, allowed: []string{"state"}, fixed: []fixedValues{{"state", []any{"initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"}}}}}},
+	{"ConformanceStepStays", readAs[ConformanceStepStays], []signature{{kind: objectKind, required: []string{"stays"}, allowed: []string{"stays"}, fixed: []fixedValues{{"stays", []any{"initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"}}}}}},
+	{"ConformanceStepFrame", readAs[ConformanceStepFrame], []signature{{kind: objectKind, required: []string{"frame", "is"}, allowed: []string{"frame", "is"}}}},
+	{"ConformanceStepFrames", readAs[ConformanceStepFrames], []signature{{kind: objectKind, required: []string{"frames", "count"}, allowed: []string{"frames", "count"}}}},
+	{"ConformanceStepError", readAs[ConformanceStepError], []signature{{kind: objectKind, required: []string{"error"}, allowed: []string{"error"}}}},
+	{"ConformanceStepBackend", readAs[ConformanceStepBackend], []signature{{kind: objectKind, required: []string{"backend"}, allowed: []string{"backend", "with"}, fixed: []fixedValues{{"backend", []any{"listen", "emit", "record", "content", "description", "annotations", "anchored-text", "uploaded", "refuse", "unanswered", "answer-lost", "hold", "release", "rechunk", "carry", "cut", "down", "up", "archivist"}}}}}},
+	{"ConformanceStepQuiet", readAs[ConformanceStepQuiet], []signature{{kind: objectKind, required: []string{"quiet"}, allowed: []string{"quiet"}}}},
+	{"ConformanceStepObserve", readAs[ConformanceStepObserve], []signature{{kind: objectKind, required: []string{"observe", "as"}, allowed: []string{"observe", "as"}}}},
+	{"ConformanceStepLeave", readAs[ConformanceStepLeave], []signature{{kind: objectKind, required: []string{"leave"}, allowed: []string{"leave"}}}},
+	{"ConformanceStepReaches", readAs[ConformanceStepReaches], []signature{{kind: objectKind, required: []string{"reaches", "state"}, allowed: []string{"reaches", "state"}}}},
+	{"ConformanceStepHolds", readAs[ConformanceStepHolds], []signature{{kind: objectKind, required: []string{"holds", "state"}, allowed: []string{"holds", "state"}}}},
+	{"ConformanceStepCompletes", readAs[ConformanceStepCompletes], []signature{{kind: objectKind, required: []string{"completes"}, allowed: []string{"completes"}}}},
+	{"ConformanceBusFetch", readAs[ConformanceBusFetch], []signature{{kind: objectKind, required: []string{"fetch", "as"}, allowed: []string{"fetch", "payload", "as"}}}},
+	{"ConformanceHttpFetch", readAs[ConformanceHttpFetch], []signature{{kind: objectKind, required: []string{"fetch"}, allowed: []string{"fetch", "params"}}}},
+	{"ConformanceStepFetches", readAs[ConformanceStepFetches], []signature{{kind: objectKind, required: []string{"fetches"}, allowed: []string{"fetches"}}}},
+	{"ConformanceStepScopes", readAs[ConformanceStepScopes], []signature{{kind: objectKind, required: []string{"scopes"}, allowed: []string{"scopes"}}}},
+	{"ConformanceStepClaimed", readAs[ConformanceStepClaimed], []signature{{kind: objectKind, required: []string{"claimed"}, allowed: []string{"claimed"}}}},
+	{"ConformanceStepRefused", readAs[ConformanceStepRefused], []signature{{kind: objectKind, required: []string{"refused"}, allowed: []string{"refused"}}}},
+	{"ConformanceStepSignalled", readAs[ConformanceStepSignalled], []signature{{kind: objectKind, required: []string{"signalled"}, allowed: []string{"signalled"}}}},
+	{"ConformanceStepStalled", readAs[ConformanceStepStalled], []signature{{kind: objectKind, required: []string{"stalled"}, allowed: []string{"stalled"}}}},
 }
 
 // ConformanceStepAbandon Abandon an operation started with `as`, as its
@@ -3603,8 +3603,8 @@ func (u ConformanceStepFetchesFetchesItem) Member() (any, error) {
 // conformanceStepFetchesFetchesItemMembers is what each member of
 // ConformanceStepFetchesFetchesItem admits, and how a value of it is read.
 var conformanceStepFetchesFetchesItemMembers = []unionMember{
-	{"ConformanceBusFetch", readAs[ConformanceBusFetch], []signature{{kind: objectKind, required: []string{"fetch", "as"}, allowed: []string{"fetch", "payload", "as"}, closed: true}}},
-	{"ConformanceHttpFetch", readAs[ConformanceHttpFetch], []signature{{kind: objectKind, required: []string{"fetch"}, allowed: []string{"fetch", "params"}, closed: true}}},
+	{"ConformanceBusFetch", readAs[ConformanceBusFetch], []signature{{kind: objectKind, required: []string{"fetch", "as"}, allowed: []string{"fetch", "payload", "as"}}}},
+	{"ConformanceHttpFetch", readAs[ConformanceHttpFetch], []signature{{kind: objectKind, required: []string{"fetch"}, allowed: []string{"fetch", "params"}}}},
 }
 
 // ConformanceStepFrame The next frame the client delivers on this channel is
@@ -4044,8 +4044,8 @@ func (u DirectoryEntry) Member() (any, error) {
 // directoryEntryMembers is what each member of DirectoryEntry admits, and how
 // a value of it is read.
 var directoryEntryMembers = []unionMember{
-	{"FileEntry", readAs[FileEntry], []signature{{kind: objectKind, required: []string{"type", "name", "path", "size", "mtime", "tracked"}, allowed: []string{"type", "name", "path", "size", "mtime", "tracked", "resourceId", "entityTypes", "annotationCount", "creator"}, closed: true, fixed: []fixedValues{{"type", []any{"file"}}}}}},
-	{"DirEntry", readAs[DirEntry], []signature{{kind: objectKind, required: []string{"type", "name", "path", "mtime"}, allowed: []string{"type", "name", "path", "mtime"}, closed: true, fixed: []fixedValues{{"type", []any{"dir"}}}}}},
+	{"FileEntry", readAs[FileEntry], []signature{{kind: objectKind, required: []string{"type", "name", "path", "size", "mtime", "tracked"}, allowed: []string{"type", "name", "path", "size", "mtime", "tracked", "resourceId", "entityTypes", "annotationCount", "creator"}, fixed: []fixedValues{{"type", []any{"file"}}}}}},
+	{"DirEntry", readAs[DirEntry], []signature{{kind: objectKind, required: []string{"type", "name", "path", "mtime"}, allowed: []string{"type", "name", "path", "mtime"}, fixed: []fixedValues{{"type", []any{"dir"}}}}}},
 }
 
 // DiscoveredKB One knowledge base the Xynolog launcher manages on this
@@ -4437,8 +4437,8 @@ func (u EmbeddingConfig) Member() (any, error) {
 // embeddingConfigMembers is what each member of EmbeddingConfig admits, and
 // how a value of it is read.
 var embeddingConfigMembers = []unionMember{
-	{"OllamaEmbeddingConfig", readAs[OllamaEmbeddingConfig], []signature{{kind: objectKind, required: []string{"type", "model", "baseUrl"}, allowed: []string{"type", "model", "baseUrl"}, closed: true, fixed: []fixedValues{{"type", []any{"ollama"}}}}}},
-	{"VoyageEmbeddingConfig", readAs[VoyageEmbeddingConfig], []signature{{kind: objectKind, required: []string{"type", "model", "endpoint", "apiKeyEnv"}, allowed: []string{"type", "model", "endpoint", "apiKeyEnv"}, closed: true, fixed: []fixedValues{{"type", []any{"voyage"}}}}}},
+	{"OllamaEmbeddingConfig", readAs[OllamaEmbeddingConfig], []signature{{kind: objectKind, required: []string{"type", "model", "baseUrl"}, allowed: []string{"type", "model", "baseUrl"}, fixed: []fixedValues{{"type", []any{"ollama"}}}}}},
+	{"VoyageEmbeddingConfig", readAs[VoyageEmbeddingConfig], []signature{{kind: objectKind, required: []string{"type", "model", "endpoint", "apiKeyEnv"}, allowed: []string{"type", "model", "endpoint", "apiKeyEnv"}, fixed: []fixedValues{{"type", []any{"voyage"}}}}}},
 }
 
 // EmbeddingRequests embedding/requests.json: how a service asks its embedding
@@ -6062,10 +6062,10 @@ func (u GraphConfig) Member() (any, error) { return u.member("GraphConfig", grap
 // graphConfigMembers is what each member of GraphConfig admits, and how a
 // value of it is read.
 var graphConfigMembers = []unionMember{
-	{"Neo4jGraphConfig", readAs[Neo4jGraphConfig], []signature{{kind: objectKind, required: []string{"type", "uri", "username", "passwordEnv", "database"}, allowed: []string{"type", "uri", "username", "passwordEnv", "database"}, closed: true, fixed: []fixedValues{{"type", []any{"neo4j"}}}}}},
-	{"JanusGraphConfig", readAs[JanusGraphConfig], []signature{{kind: objectKind, required: []string{"type", "host", "port"}, allowed: []string{"type", "host", "port"}, closed: true, fixed: []fixedValues{{"type", []any{"janusgraph"}}}}}},
-	{"NeptuneGraphConfig", readAs[NeptuneGraphConfig], []signature{{kind: objectKind, required: []string{"type", "endpoint", "port"}, allowed: []string{"type", "endpoint", "port"}, closed: true, fixed: []fixedValues{{"type", []any{"neptune"}}}}}},
-	{"MemoryGraphConfig", readAs[MemoryGraphConfig], []signature{{kind: objectKind, required: []string{"type"}, allowed: []string{"type"}, closed: true, fixed: []fixedValues{{"type", []any{"memory"}}}}}},
+	{"Neo4jGraphConfig", readAs[Neo4jGraphConfig], []signature{{kind: objectKind, required: []string{"type", "uri", "username", "passwordEnv", "database"}, allowed: []string{"type", "uri", "username", "passwordEnv", "database"}, fixed: []fixedValues{{"type", []any{"neo4j"}}}}}},
+	{"JanusGraphConfig", readAs[JanusGraphConfig], []signature{{kind: objectKind, required: []string{"type", "host", "port"}, allowed: []string{"type", "host", "port"}, fixed: []fixedValues{{"type", []any{"janusgraph"}}}}}},
+	{"NeptuneGraphConfig", readAs[NeptuneGraphConfig], []signature{{kind: objectKind, required: []string{"type", "endpoint", "port"}, allowed: []string{"type", "endpoint", "port"}, fixed: []fixedValues{{"type", []any{"neptune"}}}}}},
+	{"MemoryGraphConfig", readAs[MemoryGraphConfig], []signature{{kind: objectKind, required: []string{"type"}, allowed: []string{"type"}, fixed: []fixedValues{{"type", []any{"memory"}}}}}},
 }
 
 // GraphResourceNode A resource's presence in the gathered knowledge graph.
@@ -6664,11 +6664,11 @@ func (u Job) Member() (any, error) { return u.member("Job", jobMembers) }
 // jobMembers is what each member of Job admits, and how a value of it is
 // read.
 var jobMembers = []unionMember{
-	{"JobPending", readAs[JobPending], []signature{{kind: objectKind, required: []string{"status", "metadata", "params"}, allowed: []string{"status", "metadata", "params"}, closed: true, fixed: []fixedValues{{"status", []any{"pending"}}}}}},
-	{"JobRunning", readAs[JobRunning], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "startedAt", "progress"}, allowed: []string{"status", "metadata", "params", "startedAt", "progress"}, closed: true, fixed: []fixedValues{{"status", []any{"running"}}}}}},
-	{"JobComplete", readAs[JobComplete], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "startedAt", "completedAt", "result"}, allowed: []string{"status", "metadata", "params", "startedAt", "completedAt", "result"}, closed: true, fixed: []fixedValues{{"status", []any{"complete"}}}}}},
-	{"JobFailed", readAs[JobFailed], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "completedAt", "error"}, allowed: []string{"status", "metadata", "params", "startedAt", "completedAt", "error", "failureClass"}, closed: true, fixed: []fixedValues{{"status", []any{"failed"}}, {"failureClass", []any{"transient", "deterministic", "withheld"}}}}}},
-	{"JobCancelled", readAs[JobCancelled], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "completedAt"}, allowed: []string{"status", "metadata", "params", "startedAt", "completedAt"}, closed: true, fixed: []fixedValues{{"status", []any{"cancelled"}}}}}},
+	{"JobPending", readAs[JobPending], []signature{{kind: objectKind, required: []string{"status", "metadata", "params"}, allowed: []string{"status", "metadata", "params"}, fixed: []fixedValues{{"status", []any{"pending"}}}}}},
+	{"JobRunning", readAs[JobRunning], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "startedAt", "progress"}, allowed: []string{"status", "metadata", "params", "startedAt", "progress"}, fixed: []fixedValues{{"status", []any{"running"}}}}}},
+	{"JobComplete", readAs[JobComplete], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "startedAt", "completedAt", "result"}, allowed: []string{"status", "metadata", "params", "startedAt", "completedAt", "result"}, fixed: []fixedValues{{"status", []any{"complete"}}}}}},
+	{"JobFailed", readAs[JobFailed], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "completedAt", "error"}, allowed: []string{"status", "metadata", "params", "startedAt", "completedAt", "error", "failureClass"}, fixed: []fixedValues{{"status", []any{"failed"}}, {"failureClass", []any{"transient", "deterministic", "withheld"}}}}}},
+	{"JobCancelled", readAs[JobCancelled], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "completedAt"}, allowed: []string{"status", "metadata", "params", "startedAt", "completedAt"}, fixed: []fixedValues{{"status", []any{"cancelled"}}}}}},
 }
 
 // JobAssignCommand Bus command the dispatcher emits, under its own service
@@ -6976,8 +6976,8 @@ func (u JobCreateCommand) Member() (any, error) {
 // jobCreateCommandMembers is what each member of JobCreateCommand admits, and
 // how a value of it is read.
 var jobCreateCommandMembers = []unionMember{
-	{"MarkJobCreateCommand", readAs[MarkJobCreateCommand], []signature{{kind: objectKind, required: []string{"jobType", "resourceId", "params"}, allowed: []string{"_userId", "_roles", "jobType", "resourceId", "params"}, closed: true, fixed: []fixedValues{{"jobType", []any{"mark"}}}}}},
-	{"YieldJobCreateCommand", readAs[YieldJobCreateCommand], []signature{{kind: objectKind, required: []string{"jobType", "params"}, allowed: []string{"_userId", "_roles", "jobType", "params"}, closed: true, fixed: []fixedValues{{"jobType", []any{"yield"}}}}}},
+	{"MarkJobCreateCommand", readAs[MarkJobCreateCommand], []signature{{kind: objectKind, required: []string{"jobType", "resourceId", "params"}, allowed: []string{"_userId", "_roles", "jobType", "resourceId", "params"}, fixed: []fixedValues{{"jobType", []any{"mark"}}}}}},
+	{"YieldJobCreateCommand", readAs[YieldJobCreateCommand], []signature{{kind: objectKind, required: []string{"jobType", "params"}, allowed: []string{"_userId", "_roles", "jobType", "params"}, fixed: []fixedValues{{"jobType", []any{"yield"}}}}}},
 }
 
 // JobCreatedResult Result of a job:create command
@@ -7184,8 +7184,8 @@ func (u JobFilter) Member() (any, error) { return u.member("JobFilter", jobFilte
 // jobFilterMembers is what each member of JobFilter admits, and how a value
 // of it is read.
 var jobFilterMembers = []unionMember{
-	{"MarkJobFilter", readAs[MarkJobFilter], []signature{{kind: objectKind, required: []string{"jobType", "params"}, allowed: []string{"jobType", "params"}, closed: true, fixed: []fixedValues{{"jobType", []any{"mark"}}}}}},
-	{"YieldJobFilter", readAs[YieldJobFilter], []signature{{kind: objectKind, required: []string{"jobType"}, allowed: []string{"jobType"}, closed: true, fixed: []fixedValues{{"jobType", []any{"yield"}}}}}},
+	{"MarkJobFilter", readAs[MarkJobFilter], []signature{{kind: objectKind, required: []string{"jobType", "params"}, allowed: []string{"jobType", "params"}, fixed: []fixedValues{{"jobType", []any{"mark"}}}}}},
+	{"YieldJobFilter", readAs[YieldJobFilter], []signature{{kind: objectKind, required: []string{"jobType"}, allowed: []string{"jobType"}, fixed: []fixedValues{{"jobType", []any{"yield"}}}}}},
 }
 
 // JobMetadata What the dispatcher records about a job beside its parameters.
@@ -7830,9 +7830,9 @@ func (u JobResult) Member() (any, error) { return u.member("JobResult", jobResul
 // jobResultMembers is what each member of JobResult admits, and how a value
 // of it is read.
 var jobResultMembers = []unionMember{
-	{"MarkJobDone", readAs[MarkJobDone], []signature{{kind: objectKind, required: []string{"found", "persisted"}, allowed: []string{"found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"}, closed: true}}},
-	{"YieldJobDone", readAs[YieldJobDone], []signature{{kind: objectKind, required: []string{"resourceId", "resourceName", "truncated"}, allowed: []string{"resourceId", "resourceName", "truncated"}, closed: true}}},
-	{"JobDeclined", readAs[JobDeclined], []signature{{kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, closed: true, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
+	{"MarkJobDone", readAs[MarkJobDone], []signature{{kind: objectKind, required: []string{"found", "persisted"}, allowed: []string{"found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"}}}},
+	{"YieldJobDone", readAs[YieldJobDone], []signature{{kind: objectKind, required: []string{"resourceId", "resourceName", "truncated"}, allowed: []string{"resourceId", "resourceName", "truncated"}}}},
+	{"JobDeclined", readAs[JobDeclined], []signature{{kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
 }
 
 func (JobResult) memberOfJobStoredResult() {}
@@ -7963,7 +7963,7 @@ func (u JobStoredProgress) Member() (any, error) {
 // and how a value of it is read.
 var jobStoredProgressMembers = []unionMember{
 	{"JobProgress", readAs[JobProgress], []signature{{kind: objectKind, required: []string{"percentage"}}}},
-	{"EmptyObject", readAs[EmptyObject], []signature{{kind: objectKind, allowed: []string{}, closed: true}}},
+	{"EmptyObject", readAs[EmptyObject], []signature{{kind: objectKind, allowed: []string{}}}},
 }
 
 // JobStoredResult A completed job's result as the dispatcher stores it: the
@@ -7987,8 +7987,8 @@ func (u JobStoredResult) Member() (any, error) {
 // jobStoredResultMembers is what each member of JobStoredResult admits, and
 // how a value of it is read.
 var jobStoredResultMembers = []unionMember{
-	{"JobResult", readAs[JobResult], []signature{{kind: objectKind, required: []string{"found", "persisted"}, allowed: []string{"found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"}, closed: true}, {kind: objectKind, required: []string{"resourceId", "resourceName", "truncated"}, allowed: []string{"resourceId", "resourceName", "truncated"}, closed: true}, {kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, closed: true, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
-	{"EmptyObject", readAs[EmptyObject], []signature{{kind: objectKind, allowed: []string{}, closed: true}}},
+	{"JobResult", readAs[JobResult], []signature{{kind: objectKind, required: []string{"found", "persisted"}, allowed: []string{"found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"}}, {kind: objectKind, required: []string{"resourceId", "resourceName", "truncated"}, allowed: []string{"resourceId", "resourceName", "truncated"}}, {kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
+	{"EmptyObject", readAs[EmptyObject], []signature{{kind: objectKind, allowed: []string{}}}},
 }
 
 // JobType What a job does, as the verb that asks for it: `mark` annotates a
@@ -8198,9 +8198,9 @@ func (u KbReadVerdict) Member() (any, error) { return u.member("KbReadVerdict", 
 // kbReadVerdictMembers is what each member of KbReadVerdict admits, and how a
 // value of it is read.
 var kbReadVerdictMembers = []unionMember{
-	{"KbReadVerdictRecorded", readAs[KbReadVerdictRecorded], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, closed: true, fixed: []fixedValues{{"kind", []any{"recorded"}}}}}},
-	{"KbReadVerdictConflict", readAs[KbReadVerdictConflict], []signature{{kind: objectKind, required: []string{"kind", "observedDid", "observedName"}, allowed: []string{"kind", "observedDid", "observedName"}, closed: true, fixed: []fixedValues{{"kind", []any{"conflict"}}}}}},
-	{"KbReadVerdictNoVerdict", readAs[KbReadVerdictNoVerdict], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, closed: true, fixed: []fixedValues{{"kind", []any{"no-verdict"}}}}}},
+	{"KbReadVerdictRecorded", readAs[KbReadVerdictRecorded], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, fixed: []fixedValues{{"kind", []any{"recorded"}}}}}},
+	{"KbReadVerdictConflict", readAs[KbReadVerdictConflict], []signature{{kind: objectKind, required: []string{"kind", "observedDid", "observedName"}, allowed: []string{"kind", "observedDid", "observedName"}, fixed: []fixedValues{{"kind", []any{"conflict"}}}}}},
+	{"KbReadVerdictNoVerdict", readAs[KbReadVerdictNoVerdict], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, fixed: []fixedValues{{"kind", []any{"no-verdict"}}}}}},
 }
 
 // KbReadVerdictConflict A different knowledge base answered. Its did and the
@@ -9363,11 +9363,11 @@ func (u MarkJobParams) Member() (any, error) { return u.member("MarkJobParams", 
 // markJobParamsMembers is what each member of MarkJobParams admits, and how a
 // value of it is read.
 var markJobParamsMembers = []unionMember{
-	{"HighlightingJobParams", readAs[HighlightingJobParams], []signature{{kind: objectKind, required: []string{"motivation"}, allowed: []string{"motivation", "instructions", "density", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"highlighting"}}}}}},
-	{"CommentingJobParams", readAs[CommentingJobParams], []signature{{kind: objectKind, required: []string{"motivation"}, allowed: []string{"motivation", "instructions", "tone", "density", "language", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"commenting"}}, {"tone", []any{"scholarly", "explanatory", "conversational", "technical"}}}}}},
-	{"AssessingJobParams", readAs[AssessingJobParams], []signature{{kind: objectKind, required: []string{"motivation"}, allowed: []string{"motivation", "instructions", "tone", "density", "language", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"assessing"}}, {"tone", []any{"analytical", "critical", "balanced", "constructive"}}}}}},
-	{"LinkingJobParams", readAs[LinkingJobParams], []signature{{kind: objectKind, required: []string{"motivation", "entityTypes"}, allowed: []string{"motivation", "entityTypes", "includeDescriptiveReferences", "language", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"linking"}}}}}},
-	{"TaggingJobParams", readAs[TaggingJobParams], []signature{{kind: objectKind, required: []string{"motivation", "schemaId", "categories"}, allowed: []string{"motivation", "schemaId", "categories", "language", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"tagging"}}}}}},
+	{"HighlightingJobParams", readAs[HighlightingJobParams], []signature{{kind: objectKind, required: []string{"motivation"}, allowed: []string{"motivation", "instructions", "density", "sourceLanguage"}, fixed: []fixedValues{{"motivation", []any{"highlighting"}}}}}},
+	{"CommentingJobParams", readAs[CommentingJobParams], []signature{{kind: objectKind, required: []string{"motivation"}, allowed: []string{"motivation", "instructions", "tone", "density", "language", "sourceLanguage"}, fixed: []fixedValues{{"motivation", []any{"commenting"}}, {"tone", []any{"scholarly", "explanatory", "conversational", "technical"}}}}}},
+	{"AssessingJobParams", readAs[AssessingJobParams], []signature{{kind: objectKind, required: []string{"motivation"}, allowed: []string{"motivation", "instructions", "tone", "density", "language", "sourceLanguage"}, fixed: []fixedValues{{"motivation", []any{"assessing"}}, {"tone", []any{"analytical", "critical", "balanced", "constructive"}}}}}},
+	{"LinkingJobParams", readAs[LinkingJobParams], []signature{{kind: objectKind, required: []string{"motivation", "entityTypes"}, allowed: []string{"motivation", "entityTypes", "includeDescriptiveReferences", "language", "sourceLanguage"}, fixed: []fixedValues{{"motivation", []any{"linking"}}}}}},
+	{"TaggingJobParams", readAs[TaggingJobParams], []signature{{kind: objectKind, required: []string{"motivation", "schemaId", "categories"}, allowed: []string{"motivation", "schemaId", "categories", "language", "sourceLanguage"}, fixed: []fixedValues{{"motivation", []any{"tagging"}}}}}},
 }
 
 // MarkJobQueuedEvent A pending `mark` job, announced with its parameters as
@@ -9419,8 +9419,8 @@ func (u MarkJobResult) Member() (any, error) { return u.member("MarkJobResult", 
 // markJobResultMembers is what each member of MarkJobResult admits, and how a
 // value of it is read.
 var markJobResultMembers = []unionMember{
-	{"MarkJobDone", readAs[MarkJobDone], []signature{{kind: objectKind, required: []string{"found", "persisted"}, allowed: []string{"found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"}, closed: true}}},
-	{"JobDeclined", readAs[JobDeclined], []signature{{kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, closed: true, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
+	{"MarkJobDone", readAs[MarkJobDone], []signature{{kind: objectKind, required: []string{"found", "persisted"}, allowed: []string{"found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"}}}},
+	{"JobDeclined", readAs[JobDeclined], []signature{{kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
 }
 
 // MarkRequestedEvent Emitted when the user requests a new mark (annotation)
@@ -10431,10 +10431,10 @@ func (u ReconciledSpan) Member() (any, error) {
 // reconciledSpanMembers is what each member of ReconciledSpan admits, and how
 // a value of it is read.
 var reconciledSpanMembers = []unionMember{
-	{"ReconciledSpanUniqueMatch", readAs[ReconciledSpanUniqueMatch], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod"}, closed: true, fixed: []fixedValues{{"anchorMethod", []any{"unique-match"}}}}}},
-	{"ReconciledSpanContextRecovered", readAs[ReconciledSpanContextRecovered], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod"}, closed: true, fixed: []fixedValues{{"anchorMethod", []any{"context-recovered"}}}}}},
-	{"ReconciledSpanFirstOfMany", readAs[ReconciledSpanFirstOfMany], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod"}, closed: true, fixed: []fixedValues{{"anchorMethod", []any{"first-of-many"}}}}}},
-	{"ReconciledSpanFuzzyMatch", readAs[ReconciledSpanFuzzyMatch], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod", "matchQuality"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod", "matchQuality"}, closed: true, fixed: []fixedValues{{"anchorMethod", []any{"fuzzy-match"}}, {"matchQuality", []any{"normalized", "case-insensitive", "fuzzy"}}}}}},
+	{"ReconciledSpanUniqueMatch", readAs[ReconciledSpanUniqueMatch], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod"}, fixed: []fixedValues{{"anchorMethod", []any{"unique-match"}}}}}},
+	{"ReconciledSpanContextRecovered", readAs[ReconciledSpanContextRecovered], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod"}, fixed: []fixedValues{{"anchorMethod", []any{"context-recovered"}}}}}},
+	{"ReconciledSpanFirstOfMany", readAs[ReconciledSpanFirstOfMany], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod"}, fixed: []fixedValues{{"anchorMethod", []any{"first-of-many"}}}}}},
+	{"ReconciledSpanFuzzyMatch", readAs[ReconciledSpanFuzzyMatch], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod", "matchQuality"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod", "matchQuality"}, fixed: []fixedValues{{"anchorMethod", []any{"fuzzy-match"}}, {"matchQuality", []any{"normalized", "case-insensitive", "fuzzy"}}}}}},
 }
 
 // ReconciledSpanContextRecovered The text has the words in more than one
@@ -13824,9 +13824,9 @@ func (u TabCheck) Member() (any, error) { return u.member("TabCheck", tabCheckMe
 // tabCheckMembers is what each member of TabCheck admits, and how a value of
 // it is read.
 var tabCheckMembers = []unionMember{
-	{"TabCheckGone", readAs[TabCheckGone], []signature{{kind: objectKind, required: []string{"verdict"}, allowed: []string{"verdict"}, closed: true, fixed: []fixedValues{{"verdict", []any{"gone"}}}}}},
-	{"TabCheckReady", readAs[TabCheckReady], []signature{{kind: objectKind, required: []string{"verdict", "name"}, allowed: []string{"verdict", "name", "mediaType"}, closed: true, fixed: []fixedValues{{"verdict", []any{"ready"}}}}}},
-	{"TabCheckUnknown", readAs[TabCheckUnknown], []signature{{kind: objectKind, required: []string{"verdict"}, allowed: []string{"verdict"}, closed: true, fixed: []fixedValues{{"verdict", []any{"unknown"}}}}}},
+	{"TabCheckGone", readAs[TabCheckGone], []signature{{kind: objectKind, required: []string{"verdict"}, allowed: []string{"verdict"}, fixed: []fixedValues{{"verdict", []any{"gone"}}}}}},
+	{"TabCheckReady", readAs[TabCheckReady], []signature{{kind: objectKind, required: []string{"verdict", "name"}, allowed: []string{"verdict", "name", "mediaType"}, fixed: []fixedValues{{"verdict", []any{"ready"}}}}}},
+	{"TabCheckUnknown", readAs[TabCheckUnknown], []signature{{kind: objectKind, required: []string{"verdict"}, allowed: []string{"verdict"}, fixed: []fixedValues{{"verdict", []any{"unknown"}}}}}},
 }
 
 // TabCheckGone The knowledge base said the resource does not exist.
@@ -14273,9 +14273,9 @@ func (u UploadProgress) Member() (any, error) {
 // uploadProgressMembers is what each member of UploadProgress admits, and how
 // a value of it is read.
 var uploadProgressMembers = []unionMember{
-	{"UploadProgressStarted", readAs[UploadProgressStarted], []signature{{kind: objectKind, required: []string{"phase", "totalBytes"}, allowed: []string{"phase", "totalBytes"}, closed: true, fixed: []fixedValues{{"phase", []any{"started"}}}}}},
-	{"UploadProgressProgress", readAs[UploadProgressProgress], []signature{{kind: objectKind, required: []string{"phase", "bytesUploaded", "totalBytes"}, allowed: []string{"phase", "bytesUploaded", "totalBytes"}, closed: true, fixed: []fixedValues{{"phase", []any{"progress"}}}}}},
-	{"UploadProgressFinished", readAs[UploadProgressFinished], []signature{{kind: objectKind, required: []string{"phase", "resourceId"}, allowed: []string{"phase", "resourceId"}, closed: true, fixed: []fixedValues{{"phase", []any{"finished"}}}}}},
+	{"UploadProgressStarted", readAs[UploadProgressStarted], []signature{{kind: objectKind, required: []string{"phase", "totalBytes"}, allowed: []string{"phase", "totalBytes"}, fixed: []fixedValues{{"phase", []any{"started"}}}}}},
+	{"UploadProgressProgress", readAs[UploadProgressProgress], []signature{{kind: objectKind, required: []string{"phase", "bytesUploaded", "totalBytes"}, allowed: []string{"phase", "bytesUploaded", "totalBytes"}, fixed: []fixedValues{{"phase", []any{"progress"}}}}}},
+	{"UploadProgressFinished", readAs[UploadProgressFinished], []signature{{kind: objectKind, required: []string{"phase", "resourceId"}, allowed: []string{"phase", "resourceId"}, fixed: []fixedValues{{"phase", []any{"finished"}}}}}},
 }
 
 // UploadProgressFinished The upload ended, and the resource is made.
@@ -14459,8 +14459,8 @@ func (u VectorsConfig) Member() (any, error) { return u.member("VectorsConfig", 
 // vectorsConfigMembers is what each member of VectorsConfig admits, and how a
 // value of it is read.
 var vectorsConfigMembers = []unionMember{
-	{"QdrantVectorsConfig", readAs[QdrantVectorsConfig], []signature{{kind: objectKind, required: []string{"type", "host", "port", "tokenEnv"}, allowed: []string{"type", "host", "port", "tokenEnv"}, closed: true, fixed: []fixedValues{{"type", []any{"qdrant"}}}}}},
-	{"MemoryVectorsConfig", readAs[MemoryVectorsConfig], []signature{{kind: objectKind, required: []string{"type"}, allowed: []string{"type"}, closed: true, fixed: []fixedValues{{"type", []any{"memory"}}}}}},
+	{"QdrantVectorsConfig", readAs[QdrantVectorsConfig], []signature{{kind: objectKind, required: []string{"type", "host", "port", "tokenEnv"}, allowed: []string{"type", "host", "port", "tokenEnv"}, fixed: []fixedValues{{"type", []any{"qdrant"}}}}}},
+	{"MemoryVectorsConfig", readAs[MemoryVectorsConfig], []signature{{kind: objectKind, required: []string{"type"}, allowed: []string{"type"}, fixed: []fixedValues{{"type", []any{"memory"}}}}}},
 }
 
 // VoyageEmbeddingConfig An embedding model served by Voyage AI. No service
@@ -14927,8 +14927,8 @@ func (u WorkerMessagesBootItem) Member() (any, error) {
 // workerMessagesBootItemMembers is what each member of WorkerMessagesBootItem
 // admits, and how a value of it is read.
 var workerMessagesBootItemMembers = []unionMember{
-	{"WorkerMessagesBootItemOwnBootRefusal", readAs[WorkerMessagesBootItemOwnBootRefusal], []signature{{kind: objectKind, required: []string{"name", "situation", "refusal"}, allowed: []string{"name", "situation", "refusal"}, closed: true}}},
-	{"WorkerMessagesBootItemSharedBootRefusal", readAs[WorkerMessagesBootItemSharedBootRefusal], []signature{{kind: objectKind, required: []string{"name", "situation", "bootRefusal"}, allowed: []string{"name", "situation", "bootRefusal"}, closed: true}}},
+	{"WorkerMessagesBootItemOwnBootRefusal", readAs[WorkerMessagesBootItemOwnBootRefusal], []signature{{kind: objectKind, required: []string{"name", "situation", "refusal"}, allowed: []string{"name", "situation", "refusal"}}}},
+	{"WorkerMessagesBootItemSharedBootRefusal", readAs[WorkerMessagesBootItemSharedBootRefusal], []signature{{kind: objectKind, required: []string{"name", "situation", "bootRefusal"}, allowed: []string{"name", "situation", "bootRefusal"}}}},
 }
 
 type WorkerMessagesBootItemOwnBootRefusal struct {
@@ -15418,8 +15418,8 @@ func (u YieldJobResult) Member() (any, error) {
 // yieldJobResultMembers is what each member of YieldJobResult admits, and how
 // a value of it is read.
 var yieldJobResultMembers = []unionMember{
-	{"YieldJobDone", readAs[YieldJobDone], []signature{{kind: objectKind, required: []string{"resourceId", "resourceName", "truncated"}, allowed: []string{"resourceId", "resourceName", "truncated"}, closed: true}}},
-	{"JobDeclined", readAs[JobDeclined], []signature{{kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, closed: true, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
+	{"YieldJobDone", readAs[YieldJobDone], []signature{{kind: objectKind, required: []string{"resourceId", "resourceName", "truncated"}, allowed: []string{"resourceId", "resourceName", "truncated"}}}},
+	{"JobDeclined", readAs[JobDeclined], []signature{{kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
 }
 
 // YieldUpdateCommand Bus command to update a yielded resource's storage
