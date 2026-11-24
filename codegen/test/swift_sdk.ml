@@ -17,7 +17,9 @@ let refusal ?(identifiers = []) ?(name = "Fixture") json =
   | Error e -> Decode.error_to_string e
   | Ok (schema, _) -> (
       match
-        let models = M.create (D.alone ~ids ~name schema) ~identifiers in
+        let models =
+          M.create (D.alone ~ids ~name schema) ~identifiers ~keys:[]
+        in
         M.generate models;
         M.declarations models
       with

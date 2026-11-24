@@ -33,6 +33,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A stream's place, and each place the bookmarks keep, is an id
+  `LastEventIds` holds in its scope, in place of an id held to
+  `PersistedEventId` by that schema's name.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - The element of an answer format (`WorkerAnswerFormatsFormatsItem`'s

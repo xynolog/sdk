@@ -53,4 +53,25 @@ internal sealed class AnnotationIdJsonConverter : global::System.Text.Json.Seria
             throw new global::System.Text.Json.JsonException(error.Message, error);
         }
     }
+
+    public override AnnotationId ReadAsPropertyName(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type type, global::System.Text.Json.JsonSerializerOptions options)
+    {
+        if (AnnotationId.TryParse(reader.GetString(), out var parsed))
+        {
+            return parsed;
+        }
+        throw new global::System.Text.Json.JsonException("The value is not a AnnotationId.");
+    }
+
+    public override void WriteAsPropertyName(global::System.Text.Json.Utf8JsonWriter writer, AnnotationId value, global::System.Text.Json.JsonSerializerOptions options)
+    {
+        try
+        {
+            writer.WritePropertyName(value.Value);
+        }
+        catch (global::System.InvalidOperationException error)
+        {
+            throw new global::System.Text.Json.JsonException(error.Message, error);
+        }
+    }
 }

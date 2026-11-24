@@ -59,9 +59,6 @@ public sealed partial class TransportTests
         var document = table.RootElement.GetProperty("cacheDocument");
         Assert.Equal(document.GetProperty("properties").GetProperty("version").GetProperty("const").GetInt64(), KeptTable.Version);
         Assert.Equal(new[] { "version", "entries" }, document.GetProperty("required").EnumerateArray().Select(member => Assert.IsType<string>(member.GetString())));
-        var places = table.RootElement.GetProperty("lastEventIds");
-        Assert.EndsWith("/ResourceId.json", Text(places.GetProperty("propertyNames"), "$ref"), StringComparison.Ordinal);
-        Assert.EndsWith("/PersistedEventId.json", Text(places.GetProperty("additionalProperties"), "$ref"), StringComparison.Ordinal);
         var store = new MemoryStorage();
         var session = RegistryTokens() with { RevocationEndpoint = "https://issuer.test/revoke", PersonKey = PersonKeyOf(cacheExample) };
         RegistryStorage.StoreSession(store, "kb-1", session);

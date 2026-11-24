@@ -25,6 +25,7 @@ import {
   faultOf,
   isAnnotationId,
   isObject,
+  isPlace,
   isResourceId,
   isString,
 } from '@xynolog/core';
@@ -137,9 +138,6 @@ export interface EntryDecoder<K extends string, V> {
   key(json: unknown): json is K;
   value(json: unknown): json is V;
 }
-
-const isPlace = (json: unknown): json is string =>
-  faultOf('PersistedEventId', json) === undefined;
 
 /** The key of each kind of query's entries: what refresh.json says it is asked for per. */
 interface KeyPer {
@@ -272,7 +270,7 @@ export function coupledLastEventId(
     }
     if (!isObject(parsed)) return stored;
     for (const [scope, id] of Object.entries(parsed)) {
-      if (isResourceId(scope) && isPlace(id)) stored.set(scope, id);
+      if (isResourceId(scope) && isPlace(scope, id)) stored.set(scope, id);
     }
     return stored;
   };
@@ -298,11 +296,11 @@ export function coupledLastEventId(
   };
   return {
     storage: coupled,
-    // An id that is no PersistedEventId is no place, and one reached after
+    // An id LastEventIds does not hold in its scope is no place, and one reached after
     // the client's disposal read the gate is of an event whose refetch
     // disposal drops: neither is kept.
     saveLastEventId: (scope, id) => {
-      if (!sealed && isPlace(id)) pending.set(scope, id);
+      if (!sealed && isPlace(scope, id)) pending.set(scope, id);
     },
     loadLastEventIds: () => {
       const stored = readStored();

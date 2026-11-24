@@ -22,7 +22,6 @@ import xynolog.cache.PERSISTED_QUERIES
 import xynolog.descriptorOf
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
-import xynolog.schemaOf
 import xynolog.signin.namingIsRecordedOnTheSignInAskedAbout
 import xynolog.storage.CachePersistence
 import xynolog.storage.CoupledBookmarks
@@ -51,7 +50,6 @@ private val openMembers = openResource.getValue("properties").jsonObject.keys
 private val openRequired = openResource.getValue("required").jsonArray.map { it.jsonPrimitive.content }.toSet()
 private val wholeKey = table.getValue("wholeKey").jsonObject.getValue("key").jsonPrimitive.content
 private val cacheDocument = table.getValue("cacheDocument").jsonObject
-private val lastEventIds = table.getValue("lastEventIds").jsonObject
 
 /** The rows client/refresh.json marks `persisted`, in its order: the queries a session keeps. */
 private val persistedRows = Spec.read("client/refresh.json").jsonObject.getValue("queries").jsonArray.map { it.jsonObject }
@@ -175,7 +173,6 @@ class StoredTest {
 
     @Test
     fun whereAStreamWasIsKeptAsTheTableSaysFromEachScopeToItsPlace() {
-        assertEquals(PLACE_SCHEMA, schemaOf(lastEventIds.getValue("additionalProperties").jsonObject))
         val storage = MemoryStorage()
         val places = CoupledBookmarks(storage, lastEventIdKey(KB_A, "the key of jo"))
         places.save(ResourceId("r1"), "p-r1-7")

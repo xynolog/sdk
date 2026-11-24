@@ -175,7 +175,7 @@ final class KeptQueries: Sendable {
     var documents: [KeptQuery: KeptDocument]
     /// The documents that owe a save: changed since they were last written.
     var owed: Set<KeptQuery> = []
-    var places: [ResourceId: String] = [:]
+    var places: LastEventIds = [:]
   }
 
   private struct State: Sendable {
@@ -191,7 +191,7 @@ final class KeptQueries: Sendable {
   fileprivate struct Writing: Sendable {
     let person: String
     let documents: [(KeptQuery, String)]
-    var places: [ResourceId: String]
+    var places: LastEventIds
   }
 
   /// A kept cache's fetch under way, and a refetch a window of B19 owes, of any of its client's
@@ -212,7 +212,7 @@ final class KeptQueries: Sendable {
 
   /// Starts keeping for the person `person`, and gives the stream places kept for them; nil when
   /// it keeps already, or has stopped.
-  func attach(_ person: String) -> [ResourceId: String]? {
+  func attach(_ person: String) -> LastEventIds? {
     state.withLock { state in
       guard !state.ended, !state.closed, state.attached == nil else { return nil }
       // A document that cannot be read is nothing kept.
@@ -373,9 +373,7 @@ final class KeptQueries: Sendable {
       guard !writing.places.isEmpty else { return nil }
       try storage.update(lastEventIdKey(kbId, writing.person)) { text in
         let merged = storedPlaces(text).merging(writing.places) { _, heard in heard }
-        let kept: LastEventIds = Dictionary(
-          uniqueKeysWithValues: merged.map { scope, id in (scope.value, id) })
-        return try storedText(kept)
+        return try storedText(merged)
       }
       return nil
     } catch {
@@ -410,7 +408,7 @@ final class KeptQueries: Sendable {
       documents.append((query, text))
     }
     attached.owed.subtract(due)
-    var places: [ResourceId: String] = [:]
+    var places: LastEventIds = [:]
     if attached.owed.isEmpty, underway.settled { swap(&places, &attached.places) }
     state.attached = attached
     return Writing(person: attached.person, documents: documents, places: places)
@@ -558,9 +556,9 @@ final class SerialSteps: Sendable {
 
 /// The stream places `text` keeps (protocol/specs/src/session/stored.json `lastEventIds`): each
 /// pair that is a resource's id and a persisted event's id, and none of a value that is no object.
-func storedPlaces(_ text: String?) -> [ResourceId: String] {
+func storedPlaces(_ text: String?) -> LastEventIds {
   guard case .object(let pairs)? = decodedStorage(JSONValue.self, text) else { return [:] }
-  var places: [ResourceId: String] = [:]
+  var places: LastEventIds = [:]
   for (scope, place) in pairs {
     guard let resource = ResourceId.parse(scope), case .string(let id) = place,
       isPersistedEventId(id)
