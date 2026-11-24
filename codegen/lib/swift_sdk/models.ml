@@ -1,12 +1,14 @@
-(* The Swift types of the gateway's component schemas, as
+(* The Swift types of Protocol's schemas as [Typing] reads them, as
    swift/sdk/Sources/Xynolog/Generated/Models.swift declares them: a struct
    with its Codable conformance for an object, an enum for a string
    enumeration or a union, a typealias for a schema that names another, and a
    checked struct for an identifier the identifier kinds name. A schema
-   within another is declared by its owner's name and its place in it. *)
+   within another is declared by the name [Typing] gives it. Where Swift
+   reads otherwise than [Typing], [Deviations] names it. *)
 
 module S = Swift_syntax
 module D = Definitions
+module T = Typing
 
 let refuse = D.refuse
 
@@ -116,245 +118,179 @@ let schema_value = codable @ [ S.Named "Hashable" ]
 (* The generator *)
 
 type t = {
-  definitions : D.definitions;
-  identifiers : string list;
-  keys : (string * string) list;
-      (** The type a named map's keys are, by its name ([Definitions.map_keys]).
-      *)
+  names : string list;
+      (** Every schema of the generation, by its name, in their order. *)
+  find : string -> T.declaration;
+  place : T.place -> D.t -> T.ty;
+      (** The type of a schema a writer of tables states at a place. *)
+  defined : string -> bool;
+  schema : string -> D.t;
+      (** A schema as the writer of tables reads it, by its name. *)
   written : (string, S.decl option) Hashtbl.t;
       (** Each declaration by its name; [None] while it is being written. *)
 }
 
-let create definitions ~identifiers ~keys =
-  { definitions; identifiers; keys; written = Hashtbl.create 1024 }
+(* The declarations of [typings], the first of which types what a writer of
+   tables states, and [schema], which it reads. *)
+let create (typings : T.t list) ~schema =
+  match typings with
+  | [] -> refuse "no schemas to declare"
+  | first :: _ ->
+      {
+        names =
+          List.sort String.compare
+            (List.concat_map (fun (t : T.t) -> t.names) typings);
+        find =
+          (fun n ->
+            match
+              List.find_opt (fun (t : T.t) -> List.mem n t.names) typings
+            with
+            | Some t -> t.find n
+            | None -> refuse "the spec declares no schema %s" n);
+        place = first.place;
+        defined = first.defined;
+        schema;
+        written = Hashtbl.create 1024;
+      }
 
-let defined t name = List.mem name t.definitions.names
-
-let known_keywords =
-  [
-    "$ref";
-    "type";
-    "properties";
-    "required";
-    "items";
-    "additionalProperties";
-    "oneOf";
-    "anyOf";
-    "allOf";
-    "enum";
-    "discriminator";
-    "$comment";
-    "description";
-    "title";
-    "format";
-    "default";
-    "examples";
-    "minimum";
-    "maximum";
-    "minLength";
-    "maxLength";
-    "minItems";
-    "maxItems";
-    "maxProperties";
-    "pattern";
-    "uniqueItems";
-  ]
-
-let node_of = function
-  | D.Node n -> n
-  | D.Ref { name = r; _ } ->
-      refuse "expected a schema, found a reference to %s" r
-  | D.Null -> refuse "expected a schema, found null"
-  | D.Bool b -> refuse "expected a schema, found %b" b
-
-let validate = function
-  | D.Node n -> (
-      match List.filter (fun k -> not (List.mem k known_keywords)) n.keys with
-      | [] -> ()
-      | unsupported ->
-          refuse "unsupported schema keywords: [%s]"
-            (String.concat ", "
-               (List.map (Printf.sprintf "%S")
-                  (List.sort String.compare unsupported))))
-  | D.Ref _ | D.Null | D.Bool _ -> ()
-
-(* A schema without its null, and whether it allows null. *)
-let nonnull = function
-  | D.Node ({ type_ = Some (D.Or_null t); _ } as n) ->
-      (D.Node { n with type_ = Some (D.One t) }, true)
-  | D.Node { keys = [ "anyOf" ]; any_of = Some [ D.Null; inner ]; _ } ->
-      (inner, true)
-  | s -> (s, false)
-
-let is_type kind = function
-  | D.Node { type_ = Some (D.One k); _ } -> k = kind
-  | _ -> false
-
+(* The one schema an [allOf] names, which Swift holds as that schema, what
+   is stated beside it read past ([Deviations]). *)
 let single_ref = function
-  | D.Node { all_of = Some [ D.Ref { name = r; _ } ]; _ } -> Some r
+  | Some { T.parts = [ T.Named r ]; _ } -> Some r
   | _ -> None
 
-(* A schema that says nothing of a value, only what it is or a note to its
-   reader, as JsonSchema.json written in place does, admits any value. *)
-let is_empty = function
-  | D.Node { keys; _ } ->
-      List.for_all
-        (fun k -> List.mem k [ "$comment"; "description"; "title" ])
-        keys
-  | _ -> false
-
-let schema t name = t.definitions.schema name
+let schema t n = t.schema n
 
 let rec named t n =
   if not (Hashtbl.mem t.written n) then (
     Hashtbl.replace t.written n None;
-    Hashtbl.replace t.written n (Some (declaration t n (schema t n))));
+    let d = t.find n in
+    Hashtbl.replace t.written n
+      (Some (declaration t ~modifiers:[ "public" ] n d.form d.composition)));
   S.Named n
 
-and inline t ~modifiers owner part s =
-  let n = Naming.inline ~defined:(defined t) owner part in
-  let declared = declaration_with t ~modifiers n s in
-  (match Hashtbl.find_opt t.written n with
+(* A type of its own written in place, declared by the name [Typing] gives
+   it. *)
+and declare t ~modifiers (i : T.inline) =
+  let declared = declaration t ~modifiers i.name i.form i.composition in
+  (match Hashtbl.find_opt t.written i.name with
   | Some (Some old) when old <> declared ->
-      refuse "two different inline schemas named %s" n
+      refuse "two different inline schemas named %s" i.name
   | _ -> ());
-  Hashtbl.replace t.written n (Some declared);
-  S.Named n
+  Hashtbl.replace t.written i.name (Some declared);
+  S.Named i.name
 
+(* [i] declared as [n], the name Swift gives it ([Deviations]). *)
+and declare_as t ~modifiers n (i : T.inline) =
+  declare t ~modifiers { i with name = n }
+
+(* The Swift type of a value of [ty], not null. *)
+and type_of t what (ty : T.ty) =
+  match ty with
+  | T.Named n -> named t n
+  | T.Any -> json_value
+  | T.Nullable inner -> type_of t what inner
+  | T.Inline i -> in_place t what i
+  | T.Scalar (T.Text _) -> string_type
+  | T.Scalar (T.Integer _) -> S.Named "Int"
+  | T.Scalar T.Number -> S.Named "Double"
+  | T.Scalar T.Boolean -> S.Named "Bool"
+  | T.List (Some item) -> S.Array_of (type_of t what item)
+  | T.List None -> refuse "%s: array without items" what
+  | T.Null -> refuse "%s: null alone" what
+  | T.Nothing -> refuse "%s: no schema" what
+
+and in_place t what (i : T.inline) =
+  match (i.form, single_ref i.composition) with
+  | _, Some r -> named t r
+  | T.Enum { base = Some T.Number; _ }, None -> S.Named "Double"
+  | T.Empty { rest = T.Open; _ }, None -> dictionary_of json_value
+  | T.Map { key; value }, None -> map_of t what key value
+  | _, None -> declare t ~modifiers:[ "public" ] i
+
+and map_of t what key value =
+  S.Dictionary_of
+    ( (match key with Some key -> S.Named key | None -> string_type),
+      type_of t what value )
+
+(* A schema the writer of tables states at [owner]'s [part], as its Swift
+   type. *)
 and type_ t owner part raw =
-  validate raw;
-  let s, _ = nonnull raw in
-  match s with
-  | D.Ref { name = r; _ } -> named t r
-  | _ when is_empty s -> json_value
-  | _ when single_ref s <> None -> named t (Option.get (single_ref s))
-  | D.Node { one_of = Some _; _ }
-  | D.Node { any_of = Some _; _ }
-  | D.Node { all_of = Some _; _ } ->
-      inline t ~modifiers:[ "public" ] owner part s
-  | D.Node n -> (
-      match n.type_ with
-      | None -> refuse "%s.%s: schema without a type" owner part
-      | Some (D.Or_null _) -> refuse "%s.%s: a type and null" owner part
-      | Some (D.One kind) -> (
-          let enumerated scalar =
-            if n.enum = None then S.Named scalar
-            else inline t ~modifiers:[ "public" ] owner part s
-          in
-          match kind with
-          | Schema.String -> enumerated "String"
-          | Schema.Integer -> enumerated "Int"
-          | Schema.Number -> S.Named "Double"
-          | Schema.Boolean -> enumerated "Bool"
-          | Schema.Null -> refuse "%s.%s: null alone" owner part
-          | Schema.Array -> (
-              match n.items with
-              | None -> refuse "%s.%s: array without items" owner part
-              | Some item -> S.Array_of (type_ t owner (part ^ "Item") item))
-          | Schema.Object -> (
-              match (n.properties, n.additional_properties) with
-              | None, Some (D.Bool true) -> dictionary_of json_value
-              | None, Some ((D.Ref _ | D.Node _) as value) ->
-                  dictionary_of (type_ t owner (part ^ "Value") value)
-              | _ -> inline t ~modifiers:[ "public" ] owner part s)))
-  | D.Null | D.Bool _ -> refuse "%s.%s: no schema" owner part
+  type_of t (owner ^ "." ^ part) (t.place { owner; part } raw)
 
-and declaration t n raw = declaration_with t ~modifiers:[ "public" ] n raw
+(* A schema the writer of tables states, declared as [owner]'s [part]
+   ([Naming.inline] among every schema of the generation). *)
+and inline t ~modifiers owner part raw =
+  let n =
+    Naming.inline
+      ~defined:(fun n -> List.mem n t.names || t.defined n)
+      owner part
+  in
+  match t.place { owner = ""; part = n } raw with
+  | T.Inline i when i.name = n -> declare t ~modifiers i
+  | _ -> refuse "%s%s is no type of its own" owner part
 
-and declaration_with t ~modifiers n raw =
-  validate raw;
-  let s, _ = nonnull raw in
+and declaration t ~modifiers n (form : T.form) composition =
   let alias type_ = decl modifiers (S.Typealias { name = n; type_ }) in
-  if List.mem n t.identifiers then identifier n s
-  else
-    match s with
-    | _ when single_ref s <> None -> alias (named t (Option.get (single_ref s)))
-    | D.Node { merged = Some m; _ } ->
-        plain_declaration t ~modifiers ~owner:(D.owners t.definitions n s) n m
-    | s -> plain_declaration t ~modifiers ~owner:(fun _ -> n) n s
+  match (form, single_ref composition) with
+  | T.Identifier { pattern }, _ -> identifier n pattern
+  | _, Some r -> alias (named t r)
+  | T.Union u, None -> union t ~modifiers n u
+  | T.Enum { base; values }, None ->
+      enumeration ~modifiers n values
+        ~text:(match base with Some (T.Text _) -> true | _ -> false)
+  | T.Empty { rest = T.Open; _ }, None -> alias (dictionary_of json_value)
+  | T.Map { key; value }, None -> alias (map_of t n key value)
+  | T.Alias ty, None -> alias (type_of t n ty)
+  | T.Empty { rest; _ }, None ->
+      object_ t ~modifiers n [] ~rest ~closed:(T.holds_none form)
+  | T.Record { members; rest }, None ->
+      object_ t ~modifiers n members ~rest ~closed:(rest = T.Closed)
+  | T.Json, None -> refuse "%s: schema without a type" n
 
-(* The declaration of [n], whose schema [s] states no [allOf], each of its
-   properties named for the schema [owner] says states it. *)
-and plain_declaration t ~modifiers ~owner n s =
-  let alias type_ = decl modifiers (S.Typealias { name = n; type_ }) in
-  match s with
-  | D.Ref { name = r; _ } -> alias (named t r)
-  | D.Node { one_of = Some members; _ } | D.Node { any_of = Some members; _ } ->
-      union t ~modifiers n members s
-  | D.Node { enum = Some values; _ } -> enumeration ~modifiers n values s
-  | D.Node node -> (
-      match node.type_ with
-      | None -> refuse "%s: schema without a type" n
-      | Some (D.Or_null _) -> refuse "%s: a type and null" n
-      | Some (D.One kind) -> (
-          match kind with
-          | Schema.Object -> (
-              match (node.properties, node.additional_properties) with
-              | None, Some (D.Bool true) -> alias (dictionary_of json_value)
-              | None, Some ((D.Ref _ | D.Node _) as value) ->
-                  let key =
-                    match List.assoc_opt n t.keys with
-                    | Some key -> S.Named key
-                    | None -> string_type
-                  in
-                  alias (S.Dictionary_of (key, type_ t n "Value" value))
-              | _ -> object_ t ~modifiers ~owner n s)
-          | Schema.String -> alias string_type
-          | Schema.Integer -> alias (S.Named "Int")
-          | Schema.Number -> alias (S.Named "Double")
-          | Schema.Boolean -> alias (S.Named "Bool")
-          | Schema.Null -> refuse "%s: null alone" n
-          | Schema.Array -> (
-              match node.items with
-              | None -> refuse "%s: array without items" n
-              | Some item -> alias (S.Array_of (type_ t n "Item" item)))))
-  | D.Null | D.Bool _ -> refuse "%s: no schema" n
-
-and object_ t ~modifiers ~owner n s =
-  let node = node_of s in
-  let properties =
+and object_ t ~modifiers n (members : T.member list) ~rest ~closed =
+  let members =
     List.sort
-      (fun (a, _) (b, _) -> String.compare a b)
-      (Option.value node.properties ~default:[])
+      (fun (a : T.member) (b : T.member) -> String.compare a.wire b.wire)
+      members
   in
-  let required = Option.value node.required ~default:[] in
-  let open_ = node.additional_properties = Some (D.Bool true) in
-  let closed =
-    node.additional_properties = Some (D.Bool false)
-    || node.max_properties = Some 0
+  let open_ =
+    match rest with
+    | T.Open -> true
+    | T.Closed | T.Unstated -> false
+    | T.Of _ ->
+        refuse "%s: named and typed additional properties are unsupported" n
   in
-  (match node.additional_properties with
-  | Some (D.Ref _ | D.Node _) ->
-      refuse "%s: named and typed additional properties are unsupported" n
-  | _ -> ());
   let seen = Hashtbl.create 16 in
   let fields =
     List.map
-      (fun (wire, raw) ->
+      (fun (member : T.member) ->
+        let wire = member.wire in
         let m = member_name wire in
         if Hashtbl.mem seen m || (open_ && m = "rest") then
           refuse "%s: duplicate or reserved property %s" n m;
         Hashtbl.replace seen m ();
-        let is_required = List.mem wire required in
-        let nullable = snd (nonnull raw) in
+        let is_required = member.required in
+        let nullable =
+          match member.ty with T.Nullable _ -> true | _ -> false
+        in
         let constant =
-          match raw with
-          | D.Node { enum = Some [ value ]; _ } when is_required && not nullable
-            -> (
+          match member.fixed with
+          | Some value when is_required && not nullable -> (
               match value with
               | Schema.String_literal text ->
                   Some (S.Implicit_member (enum_case text))
               | _ -> Some (S.Implicit_member "value"))
           | _ -> None
         in
-        let type_ = type_ t (owner wire) wire raw in
+        let type_ = type_of t (n ^ "." ^ wire) member.ty in
         let declared =
           if (not is_required) && nullable then S.Generic ("Stated", [ type_ ])
           else if (not is_required) || nullable then S.Optional type_
           else type_
         in
         (wire, m, type_, is_required, nullable, constant, declared))
-      properties
+      members
   in
   let rest_type = dictionary_of json_value in
   let stored =
@@ -498,9 +434,11 @@ and object_ t ~modifiers ~owner n s =
            @ [ init; decoding_init decoding; encoding_func S.Lines encoding ];
        })
 
-and enumeration ~modifiers n values s =
+(* An enumeration of [values]: of text when [text], else of one integer or
+   boolean. *)
+and enumeration ~modifiers n values ~text =
   if values = [] then refuse "%s: empty enumeration" n;
-  if is_type Schema.String s then
+  if text then
     let seen = Hashtbl.create 16 in
     let cases =
       List.map
@@ -607,85 +545,36 @@ and enumeration ~modifiers n values s =
              ];
          })
 
-and union t ~modifiers n members s =
-  if members = [] then refuse "%s: empty union" n;
-  let discriminator = (node_of s).discriminator in
+and union t ~modifiers n (u : T.union) =
+  if u.branches = [] then refuse "%s: empty union" n;
   let labels = Hashtbl.create 8 in
-  let property_enum key resolved =
-    match resolved with
-    | D.Node { properties = Some ps; _ } -> (
-        match List.assoc_opt key ps with
-        | Some (D.Node { enum = Some values; _ }) -> Some values
-        | _ -> None)
-    | _ -> None
-  in
   let variants =
-    List.mapi
-      (fun index raw ->
-        let resolved =
-          D.meant
-            (match raw with D.Ref { name = r; _ } -> schema t r | m -> m)
-        in
-        let tag =
-          match discriminator with
-          | None -> None
-          | Some d -> (
-              match property_enum d resolved with
-              | Some [ Schema.String_literal text ] -> Some text
-              | Some [ _ ] -> refuse "%s: a discriminator no string is" n
-              | _ -> None)
-        in
-        let part =
-          match (raw, tag) with
-          | D.Ref { name = r; _ }, _ -> r
-          | _, Some tag -> Text.pascal tag
-          | _ when is_type Schema.String resolved -> "Text"
-          | _ when is_type Schema.Array resolved -> "List"
-          | _ when is_type Schema.Integer resolved -> "Integer"
-          | _ when is_type Schema.Number resolved -> "Number"
-          | _ when is_type Schema.Boolean resolved -> "Boolean"
-          | _
-            when is_type Schema.Object resolved
-                 && (node_of resolved).properties = None ->
-              "Empty"
-          | _ -> (
-              let properties =
-                List.sort
-                  (fun (a, _) (b, _) -> String.compare a b)
-                  (match resolved with
-                  | D.Node { properties = Some ps; _ } -> ps
-                  | _ -> [])
-              in
-              let constants =
-                List.filter_map
-                  (fun (_, p) ->
-                    match p with
-                    | D.Node { enum = Some [ Schema.String_literal text ]; _ }
-                      ->
-                        Some text
-                    | _ -> None)
-                  properties
-              in
-              match (constants, resolved) with
-              | tag :: _, _ -> Text.pascal tag
-              | [], D.Node { title = Some title; _ } -> Text.pascal title
-              | [], _ when is_type Schema.Object resolved -> "Object"
-              | [], _ -> refuse "%s: union member %d has no stable name" n index
-              )
+    List.map
+      (fun (b : T.branch) ->
+        let part, type_ =
+          match b.ty with
+          | T.Inline { form = T.Empty _ | T.Map _; composition = None; _ } ->
+              ("Empty", type_of t (n ^ ".Empty") b.ty)
+          | T.List (Some (T.Inline i)) ->
+              ( b.variant,
+                S.Array_of
+                  (declare_as t ~modifiers:[ "public" ]
+                     (Naming.inline ~defined:t.defined n "ListItem")
+                     i) )
+          | ty -> (b.variant, type_of t (n ^ "." ^ b.variant) ty)
         in
         let label = String.uncapitalize_ascii part in
         if Hashtbl.mem labels label then
           refuse "%s: two union members named %s" n label;
         Hashtbl.replace labels label ();
-        (label, type_ t n part raw, resolved))
-      members
+        (label, type_))
+      u.branches
   in
   let decoder = name "decoder" in
   let decoding =
-    match discriminator with
-    | Some d ->
+    match u.tag with
+    | Some { property = d; values } ->
         let c = name "c" in
-        let tags = Hashtbl.create 8 in
         [
           S.Let
             {
@@ -716,24 +605,10 @@ and union t ~modifiers n members s =
               subject = name "tag";
               layout = S.Lines;
               cases =
-                List.map
-                  (fun (label, type_, resolved) ->
-                    let values =
-                      match property_enum d resolved with
-                      | Some (_ :: _ as values) -> values
-                      | _ -> refuse "%s: discriminator missing in %s" n label
-                    in
+                List.map2
+                  (fun (label, type_) tags ->
                     {
-                      S.patterns =
-                        List.map
-                          (function
-                            | Schema.String_literal text ->
-                                if Hashtbl.mem tags text then
-                                  refuse "%s: duplicate discriminator %s" n text;
-                                Hashtbl.replace tags text ();
-                                S.String text
-                            | _ -> refuse "%s: a discriminator no string is" n)
-                          values;
+                      S.patterns = List.map (fun tag -> S.String tag) tags;
                       body =
                         [
                           assign (name "self")
@@ -745,7 +620,7 @@ and union t ~modifiers n members s =
                                ]);
                         ];
                     })
-                  variants
+                  variants values
                 @ [
                     {
                       S.patterns = [];
@@ -768,7 +643,7 @@ and union t ~modifiers n members s =
         ]
     | None ->
         List.map
-          (fun (label, type_, _) ->
+          (fun (label, type_) ->
             S.If
               {
                 conditions =
@@ -812,7 +687,7 @@ and union t ~modifiers n members s =
          layout = S.Lines;
          members =
            List.map
-             (fun (label, type_, _) ->
+             (fun (label, type_) ->
                decl [] (S.Case { name = label; value = S.Associated [ type_ ] }))
              variants
            @ [
@@ -825,7 +700,7 @@ and union t ~modifiers n members s =
                        layout = S.Lines;
                        cases =
                          List.map
-                           (fun (label, _, _) ->
+                           (fun (label, _) ->
                              {
                                S.patterns =
                                  [
@@ -849,11 +724,11 @@ and union t ~modifiers n members s =
 
 (* An identifier kind's checked struct: its pattern is a prefix, then one
    character set repeated. *)
-and identifier n s =
+and identifier n pattern =
   let pattern =
-    match s with
-    | D.Node { type_ = Some (D.One Schema.String); pattern = Some p; _ } -> p
-    | _ -> refuse "%s: identifier without a string pattern" n
+    match pattern with
+    | Some p -> p
+    | None -> refuse "%s: identifier without a string pattern" n
   in
   let length = String.length pattern in
   if
@@ -1226,4 +1101,4 @@ let declarations t =
   |> List.sort (fun (a, _) (b, _) -> String.compare a b)
   |> List.map snd
 
-let generate t = List.iter (fun n -> ignore (named t n)) t.definitions.names
+let generate t = List.iter (fun n -> ignore (named t n)) t.names

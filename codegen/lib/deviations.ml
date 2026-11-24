@@ -71,3 +71,17 @@ let closed_empty_named (form : T.form) =
    object of no member that says nothing of others ([Unstated]) as a type
    that drops them, and holds one in place as a JSON object, which keeps
    them. *)
+
+(* Swift holds an object's members in the order of their names, where
+   [Typing] has the schema's order, and so takes them in that order to make
+   one. It holds an [allOf] of one schema as that schema, reading past what
+   is stated beside it (a const of the schema's values), where [Typing] has
+   what they merge to. It names a union's member that is an object of no
+   named member [empty], and the items of its member that is a list for the
+   union's place and [ListItem], where [Typing] has [Object] and the union's
+   place and [Item]. It decodes a union not told apart by its
+   [discriminator] as the first member that decodes. It holds an
+   enumeration in place of numbers as a [Double], dropping its values. It
+   declares an object of no member that says nothing of others
+   ([Unstated]) as a type that drops them, and holds one in place that
+   holds any ([Open]) as a dictionary. *)

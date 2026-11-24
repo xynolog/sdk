@@ -31,7 +31,28 @@ let constant ?(doc = []) modifiers n type_ value =
 let string_enumeration modifiers n values =
   M.enumeration ~modifiers n
     (List.map (fun v -> Schema.String_literal v) values)
-    string_schema
+    ~text:true
+
+(* A schema without its null, and whether it allows null. *)
+let nonnull = function
+  | D.Node ({ type_ = Some (D.Or_null t); _ } as n) ->
+      (D.Node { n with type_ = Some (D.One t) }, true)
+  | D.Node { keys = [ "anyOf" ]; any_of = Some [ D.Null; inner ]; _ } ->
+      (inner, true)
+  | s -> (s, false)
+
+let is_type kind = function
+  | D.Node { type_ = Some (D.One k); _ } -> k = kind
+  | _ -> false
+
+(* A schema that says nothing of a value, only what it is or a note to its
+   reader, as JsonSchema.json written in place does, admits any value. *)
+let is_empty = function
+  | D.Node { keys; _ } ->
+      List.for_all
+        (fun k -> List.mem k [ "$comment"; "description"; "title" ])
+        keys
+  | _ -> false
 
 let properties_of = function
   | D.Node { properties = Some ps; _ } -> ps
@@ -127,8 +148,8 @@ let rec json_expression (value : Yojson.Safe.t) =
   | _ -> refuse "a table value of no kind"
 
 let rec expression models (value : Yojson.Safe.t) type_ ~owner ~part =
-  let resolved, _ = M.nonnull type_ in
-  if M.is_empty resolved then json_expression value
+  let resolved, _ = nonnull type_ in
+  if is_empty resolved then json_expression value
   else
     match value with
     | `Null -> S.Nil
@@ -169,7 +190,7 @@ let rec expression models (value : Yojson.Safe.t) type_ ~owner ~part =
                      expression models entry field ~owner:type_name ~part:key
                    in
                    let v =
-                     if (not (List.mem key required)) && snd (M.nonnull field)
+                     if (not (List.mem key required)) && snd (nonnull field)
                      then
                        if entry = `Null then S.Implicit_member "null"
                        else call (S.Implicit_member "value") [ v ]
@@ -596,7 +617,7 @@ let shape_table n entries =
 (* The stamps a schema's members declare: its members whose names begin
    with an underscore. *)
 let rec stamps models ?(seen = []) raw =
-  let s, _ = M.nonnull raw in
+  let s, _ = nonnull raw in
   match s with
   | D.Ref { name = r; _ } ->
       if List.mem r seen then []
@@ -839,7 +860,7 @@ let channels models ~shapes (registry : Tables.Bus_registry.t) =
         (match List.assoc_opt "message" (properties_of failure_schema) with
         | Some message
           when List.mem "message" (required_of failure_schema)
-               && M.is_type Schema.String (fst (M.nonnull message)) ->
+               && is_type Schema.String (fst (nonnull message)) ->
             ()
         | _ -> refuse "failure message must be a required string");
         let stamps_of n = member (channel_of n) "stamps" in

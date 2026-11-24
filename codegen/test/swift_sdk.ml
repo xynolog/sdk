@@ -17,8 +17,11 @@ let refusal ?(identifiers = []) ?(name = "Fixture") json =
   | Error e -> Decode.error_to_string e
   | Ok (schema, _) -> (
       match
+        let definitions = D.alone ~ids ~name schema in
         let models =
-          M.create (D.alone ~ids ~name schema) ~identifiers ~keys:[]
+          M.create
+            [ Typing.make definitions ~roots:[ name ] ~identifiers ~keys:[] ]
+            ~schema:definitions.schema
         in
         M.generate models;
         M.declarations models
@@ -37,10 +40,6 @@ let () =
         [
           refused "a type array" {|{"type":["string","integer"]}|}
             "a schema of several types the generator does not know";
-          refused "not" {|{"type":"object","not":{}}|}
-            {|unsupported schema keywords: ["not"]|};
-          refused "const" {|{"type":"string","const":"x"}|}
-            {|unsupported schema keywords: ["const"]|};
           refused "an array without items" {|{"type":"array"}|}
             "Fixture: array without items";
           refused "an empty oneOf" {|{"oneOf":[]}|}
