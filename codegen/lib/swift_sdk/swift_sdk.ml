@@ -128,7 +128,8 @@ let service_tables ~root (spec : Spec.t) =
                   (S.Dictionary
                      ( S.Lines,
                        List.map
-                         (fun table -> (S.String table, S.Name (constant table)))
+                         (fun table ->
+                           (S.String table, S.Name (constant table)))
                          (Roots.service_tables spec) ));
             };
       };
@@ -167,8 +168,7 @@ let swift_files ~root (spec : Spec.t) =
           List.sort String.compare
             (("SignIn" :: records)
             @ Definitions.generated_client_types spec
-            @ List.map fst table_models
-            @ bundle.definitions.names);
+            @ List.map fst table_models @ bundle.definitions.names);
         schema =
           (fun n ->
             if n = "SignIn" then sign_in
@@ -221,8 +221,7 @@ let swift_files ~root (spec : Spec.t) =
           Banner.lines ~from_:"the services' tables of protocol/specs/src"
             __FILE__;
         imports = [ import "Foundation" ];
-        decls =
-          List.map (fun d -> (S.Blank, d)) (service_tables ~root spec);
+        decls = List.map (fun d -> (S.Blank, d)) (service_tables ~root spec);
       }
     in
     [

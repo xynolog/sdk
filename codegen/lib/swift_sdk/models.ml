@@ -195,8 +195,11 @@ let single_ref = function
    reader, as JsonSchema.json written in place does, admits any value. *)
 let is_empty = function
   | D.Node { keys; _ } ->
-      List.for_all (fun k -> List.mem k [ "$comment"; "description"; "title" ]) keys
+      List.for_all
+        (fun k -> List.mem k [ "$comment"; "description"; "title" ])
+        keys
   | _ -> false
+
 let schema t name = t.definitions.schema name
 
 let rec named t n =

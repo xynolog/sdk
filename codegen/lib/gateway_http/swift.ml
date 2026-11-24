@@ -94,7 +94,8 @@ let archivist_routes (spec : Spec.t) =
              List.filter_map
                (fun (method_, operation) ->
                  Option.map
-                   (fun (o : Openapi.operation) -> (o.operation_id, method_, path))
+                   (fun (o : Openapi.operation) ->
+                     (o.operation_id, method_, path))
                    operation)
                [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
        spec.archivist.paths)

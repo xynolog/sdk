@@ -238,5 +238,8 @@ let all (tables : Tables.t) =
       "names",
       "credentialNames",
       credential_names tables.bus_log_cases );
-    ("locales/registry.json", "locales", "locales", locales tables.locales_registry);
+    ( "locales/registry.json",
+      "locales",
+      "locales",
+      locales tables.locales_registry );
   ]

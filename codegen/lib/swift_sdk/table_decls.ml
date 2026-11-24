@@ -254,8 +254,7 @@ let timings (entries : Timing.Table.t) =
                  match entry.value with
                  | Duration n | Count n ->
                      constant [ "public"; "static" ] entry.name
-                       (Some (S.Named "Int"))
-                       (S.Int n)
+                       (Some (S.Named "Int")) (S.Int n)
                  | Budget { attempts; initial_delay_ms; max_delay_ms } ->
                      constant [ "public"; "static" ] entry.name None
                        (labelled (name "RetryBudget")
@@ -1319,10 +1318,7 @@ let control models (spec : Spec.t) =
       (fun (n : T.notifications_item) ->
         entry n.docs n.name
           (S.Generic ("ControlNotification", [ type_of n.params ]))
-          [
-            arg "name" (S.String n.name);
-            arg "from" (case (party n.from));
-          ])
+          [ arg "name" (S.String n.name); arg "from" (case (party n.from)) ])
       t.notifications
   in
   [
@@ -1334,7 +1330,8 @@ let control models (spec : Spec.t) =
       ];
     string_enumeration [ "public" ] "ControlParty"
       (List.sort_uniq String.compare
-         (List.map (fun (n : T.notifications_item) -> party n.from)
+         (List.map
+            (fun (n : T.notifications_item) -> party n.from)
             t.notifications));
     structure "ControlNotification" [ "Params" ]
       [ field "name" string_type; field "from" (S.Named "ControlParty") ];
