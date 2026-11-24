@@ -53,7 +53,7 @@ func TestWhatATypeOfNoSchemaRequiresIsReadFromTheType(t *testing.T) {
 		`{"name":null,"nickname":"n"}`:                        lacks("name"),
 		`{"name":"a"}`:                                        lacks("nickname"),
 		`{"name":"a","nickname":null}`:                        none,
-		`{"name":"a","nickname":"n","tags":null}`:             none,
+		`{"name":"a","nickname":"n","tags":null}`:             malformed("tags"),
 		`{"name":"a","nickname":null,"within":{}}`:            lacks("within.depth"),
 		`{"name":7,"nickname":null}`:                          malformed("name"),
 		`{"name":"a","nickname":7}`:                           malformed("nickname"),

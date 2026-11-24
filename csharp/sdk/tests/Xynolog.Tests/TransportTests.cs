@@ -974,7 +974,7 @@ public sealed partial class TransportTests
     [Fact]
     public async Task AnAnswerIsHeldToTheTableBeforeItIsRead()
     {
-        var status = "{\"status\":\"ready\",\"message\":\"ready\",\"version\":\"1\",\"features\":{\"semanticContent\":\"ready\",\"collaboration\":\"ready\"},\"authenticatedAs\":null}";
+        var status = "{\"status\":\"ready\",\"message\":\"ready\",\"version\":\"1\",\"features\":{\"semanticContent\":\"ready\",\"collaboration\":\"ready\"}}";
         using var server = new Handler();
         server.Other = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(status) });
         using var client = new HttpClient(server);
