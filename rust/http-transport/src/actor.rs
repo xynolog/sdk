@@ -38,10 +38,10 @@ use xynolog::resume::is_persisted_event_id;
 use xynolog::retry::{equal_jitter, retry_after};
 use xynolog::timing::{DEGRADED_THRESHOLD, MAX_RECONNECT, RECONNECT_DEBOUNCE};
 use xynolog::transport::{ConnectionState, Frame, FrameRefusal, StreamId, TraceCarrier};
-use xynolog::types::ResourceId;
 use xynolog::types::{
     BusEventMessageEvent, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem,
 };
+use xynolog::types::{LastEventIds, ResourceId};
 
 pub(crate) enum Command {
     /// A resource's scope got its first hold.
@@ -49,7 +49,7 @@ pub(crate) enum Command {
     /// A resource's scope lost its last hold.
     RemoveScope(ResourceId),
     /// Places kept elsewhere, for the scopes the stream holds none for.
-    Restore(HashMap<ResourceId, String>),
+    Restore(LastEventIds),
     Close(oneshot::Sender<()>),
 }
 

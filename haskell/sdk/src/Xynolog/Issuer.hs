@@ -1,7 +1,7 @@
 -- | OAuth against the issuer named by a knowledge base.
 module Xynolog.Issuer
   ( IssuerOptions (..),
-    IssuerEndpoints (..),
+    PendingAuthorizationIssuer (..),
     IssuedTokens (..),
     DeviceCode (..),
     BeginAuthorizationOptions (..),

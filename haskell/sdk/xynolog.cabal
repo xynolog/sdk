@@ -426,7 +426,6 @@ library internal
     Xynolog.Internal.Generated.Models.InferenceLimitsResult
     Xynolog.Internal.Generated.Models.IssuedTokens
     Xynolog.Internal.Generated.Models.Issuer
-    Xynolog.Internal.Generated.Models.IssuerEndpoints
     Xynolog.Internal.Generated.Models.JanusGraphConfig
     Xynolog.Internal.Generated.Models.Job
     Xynolog.Internal.Generated.Models.JobAssignCommand
@@ -496,6 +495,7 @@ library internal
     Xynolog.Internal.Generated.Models.KnowledgeBaseStatus
     Xynolog.Internal.Generated.Models.KnowledgeGraph
     Xynolog.Internal.Generated.Models.KnowledgeIndex
+    Xynolog.Internal.Generated.Models.LastEventIds
     Xynolog.Internal.Generated.Models.LibrarianConfig
     Xynolog.Internal.Generated.Models.LibrarianEngineConfig
     Xynolog.Internal.Generated.Models.LibrarianHealth

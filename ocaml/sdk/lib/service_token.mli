@@ -24,7 +24,7 @@ val dispose : service_token -> unit
 val grant :
   clock:Clock.t ->
   http:Oauth.http ->
-  issuer:Oauth.issuer ->
+  issuer:Records.Pending_authorization_issuer.t ->
   client_id:string ->
   proof:proof ->
   jti:(unit -> string) ->

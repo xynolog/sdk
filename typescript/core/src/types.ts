@@ -8168,6 +8168,11 @@ export interface records {
    */
   KbSessionStatus: 'authenticated' | 'expired' | 'signed-out';
   /**
+   * Where a knowledge base's stream was: for each scope, a resource's id, the
+   * id of the last recorded event delivered on it.
+   */
+  LastEventIds: { [key: string]: components['schemas']['PersistedEventId'] };
+  /**
    * Which looser search found a quoted selection, stated of a span whose
    * `anchorMethod` is `fuzzy-match` and only then. Which search finds it is
    * reconcile's rule (specs/src/annotations/reconcile-cases.json).
@@ -8208,6 +8213,68 @@ export interface records {
   PendingAnnotation: {
     selector: components['schemas']['AnnotationSelector'];
     motivation: components['schemas']['Motivation'];
+  };
+  /**
+   * What a sign-in by a page redirect remembers across the trip to the issuer
+   * and back: the verifier and the state the issuer's response must match,
+   * where the person was connecting, what they believed they were connecting
+   * to, and the issuer's endpoints, so its completion asks nothing twice.
+   */
+  PendingAuthorization: {
+    /**
+     * What the issuer's response must carry back to belong to this sign-in:
+     * random, as base64url.
+     */
+    state: string;
+    /**
+     * The PKCE code verifier (RFC 7636) the authorization code is exchanged
+     * with: random, as base64url.
+     */
+    verifier: string;
+    /**
+     * Where the issuer sends the person back to, named again when the code is
+     * exchanged.
+     */
+    redirectUri: string;
+    /** Where the person was connecting. */
+    target: components['schemas']['HttpEndpoint'];
+    /**
+     * The issuer the knowledge base trusts, and the endpoints of it a client
+     * uses.
+     */
+    issuer: {
+      /** The issuer's identifier. */
+      issuer: string;
+      /** The issuer's authorization endpoint, where the person is sent. */
+      authorization: string;
+      /** The issuer's token endpoint, where the code is exchanged. */
+      token: string;
+      /**
+       * The issuer's device authorization endpoint (RFC 8628). Absent when the
+       * issuer has none.
+       */
+      device?: string;
+      /**
+       * The issuer's revocation endpoint (RFC 7009). Absent when the issuer has
+       * none.
+       */
+      revocation?: string;
+    };
+    /**
+     * The registered knowledge base being signed in to again. Absent when it is
+     * none.
+     */
+    kbId?: string;
+    /**
+     * The did of what the person believed they clicked, checked against the
+     * answer and never assumed. Absent when they named nothing.
+     */
+    expectedDid?: string;
+    /**
+     * The name of what the person believed they clicked. Absent when they named
+     * nothing.
+     */
+    expectedName?: string;
   };
   /** A request was refused for lack of permission. */
   PermissionDenied: {

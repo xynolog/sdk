@@ -57,6 +57,9 @@ the coming release's, and gathers its changes as they land.
   the union: the type a member names (`KbEndpointLocalEndpoint`), the value
   its discriminant states, or its title (`ConformanceDriverLineReady`), in
   place of `KbEndpointBranch1` and the like.
+- A pending sign-in's issuer is `PendingAuthorizationIssuer`, the type
+  Protocol states, in place of `IssuerEndpoints`; `discoverIssuer` and
+  `signInWithDeviceGrant` give one. Where each stream was is `LastEventIds`.
 - A frame's refusal reason is `FrameRefusalReason`, the type Protocol states,
   in place of `FaultReason` (`FrameRefusalReasonLacks`,
   `FrameRefusalReasonMalformed`).

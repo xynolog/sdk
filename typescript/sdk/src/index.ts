@@ -250,7 +250,6 @@ export {
   BROWSER_CLIENT_ID,
   SCRIPT_CLIENT_ID,
   type SignInErrorCode,
-  type IssuerEndpoints,
   discoverIssuer,
   beginAuthorization,
   completeAuthorization,
@@ -301,6 +300,7 @@ export type {
   SessionEnded,
   PermissionDenied,
   StoredSession,
+  PendingAuthorization,
 } from '@xynolog/core';
 export { httpKb } from './session/knowledge-base';
 export {

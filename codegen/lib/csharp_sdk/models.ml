@@ -335,7 +335,14 @@ and object_ state name ~attribute ~original d =
     | None -> []
   in
   let required = Option.value s.required ~default:[] in
-  let open_ = s.additional_properties = Some (Boolean_schema true) in
+  (* An object whose other members are of a schema keeps them, as one whose
+     other members are anything does: the schema each is of holds them as the
+     model is read. *)
+  let open_ =
+    match s.additional_properties with
+    | Some (Boolean_schema true | Schema _) -> true
+    | Some (Boolean_schema false) | None -> false
+  in
   let owner =
     Inherited.of_schemas
       ~find:(fun n -> (definition state n).schema)

@@ -2,7 +2,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Xynolog.Errors;
 using Xynolog.Http;
 using Xynolog.Identifiers;
@@ -13,33 +12,6 @@ using Xynolog.Storage;
 using Xynolog.Types;
 
 namespace Xynolog.Authorization;
-
-/// <summary>The endpoints of the issuer a sign-in goes through, as its discovery stated them.</summary>
-/// <param name="Issuer">The issuer's identifier.</param>
-/// <param name="Authorization">Where the person is sent to approve the sign-in.</param>
-/// <param name="Token">Where codes and refresh tokens are exchanged for tokens.</param>
-/// <param name="Device">Where a device sign-in begins, if the issuer offers one.</param>
-/// <param name="Revocation">Where tokens are revoked on sign-out, if the issuer offers it.</param>
-public sealed record AuthorizationIssuer(
-    [property: JsonRequired] string Issuer, [property: JsonRequired] string Authorization,
-    [property: JsonRequired] string Token, string? Device = null, string? Revocation = null);
-
-/// <summary>A browser sign-in begun and not yet completed, kept in session storage until the issuer sends the person
-/// back.</summary>
-/// <param name="State">The value the issuer must send back, which ties its response to this sign-in.</param>
-/// <param name="Verifier">The PKCE code verifier the code is exchanged with.</param>
-/// <param name="RedirectUri">Where the issuer sends the person back to.</param>
-/// <param name="Target">The knowledge base being signed in to.</param>
-/// <param name="Issuer">The issuer the sign-in goes through.</param>
-/// <param name="KbId">The registered knowledge base being re-authenticated, rather than a new address connected
-/// to.</param>
-/// <param name="ExpectedDid">The knowledge base's DID the person believed they chose, to verify once signed in.</param>
-/// <param name="ExpectedName">The knowledge base's name the person believed they chose, to verify once signed
-/// in.</param>
-public sealed record PendingAuthorization(
-    [property: JsonRequired] string State, [property: JsonRequired] string Verifier, [property: JsonRequired] string RedirectUri,
-    [property: JsonRequired] HttpEndpoint Target, [property: JsonRequired] AuthorizationIssuer Issuer,
-    string? KbId = null, string? ExpectedDid = null, string? ExpectedName = null);
 
 /// <summary>Thrown when a knowledge base cannot be asked who it is, or does not say, so its identity cannot be
 /// verified.</summary>
@@ -67,9 +39,24 @@ public static class RedirectSignIn
         RequireHttpAddress(options.RedirectUri);
         using var issuer = new SignIn.Issuer(httpClient, timeProvider, random);
         var found = await issuer.DiscoverAsync(options.Target, cancellation).ConfigureAwait(Spawning.Captures);
-        var record = new PendingAuthorization(Base64Url(RandomNumberGenerator.GetBytes(24)), Base64Url(RandomNumberGenerator.GetBytes(48)),
-            options.RedirectUri, options.Target, new AuthorizationIssuer(found.Issuer, found.Authorization, found.Token, found.Device, found.Revocation),
-            options.KbId, options.ExpectedDid, options.ExpectedName);
+        var record = new PendingAuthorization
+        {
+            State = Base64Url(RandomNumberGenerator.GetBytes(24)),
+            Verifier = Base64Url(RandomNumberGenerator.GetBytes(48)),
+            RedirectUri = options.RedirectUri,
+            Target = options.Target,
+            Issuer = new PendingAuthorizationIssuer
+            {
+                Issuer = found.Issuer,
+                Authorization = found.Authorization,
+                Token = found.Token,
+                Device = found.Device,
+                Revocation = found.Revocation,
+            },
+            KbId = options.KbId,
+            ExpectedDid = options.ExpectedDid,
+            ExpectedName = options.ExpectedName,
+        };
         var destination = new UriBuilder(RequireHttpAddress(found.Authorization));
         var query = new Dictionary<string, string>
         {
@@ -101,8 +88,7 @@ public static class RedirectSignIn
         string? stored = null;
         storage.Update(PendingAuthorizationKey, value => { stored = value; return null; });
         var record = RegistryStorage.Read<PendingAuthorization>(stored);
-        if (record is null || string.IsNullOrEmpty(record.State) || string.IsNullOrEmpty(record.Verifier) ||
-            record.Target is null || record.Issuer is null)
+        if (record is null || record.State.Length == 0 || record.Verifier.Length == 0)
             throw Refused(SignInErrorCode.NoPending, "No sign-in is pending here.");
         var callback = RequireHttpAddress(callbackUrl);
         var redirect = RequireHttpAddress(record.RedirectUri);

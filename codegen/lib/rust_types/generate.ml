@@ -43,6 +43,9 @@ type generation = {
           given a [pub(crate)] method, named as the property is, saying which
           value of the string enumeration the property names its member states.
       *)
+  keys : (string * string) list;
+      (** The type a named map's keys are, by its name ([Definitions.map_keys]).
+      *)
 }
 
 let empty_object = "EmptyObject"
@@ -425,7 +428,7 @@ and declaration st name (s : D.t) =
         | _ -> None
       in
       union_declaration st name members told_apart doc
-  | None ->
+  | None -> (
       let owner = D.owners st.definitions name s in
       let s = D.meant s in
       let n =
@@ -445,7 +448,27 @@ and declaration st name (s : D.t) =
         [ R.Type_alias { doc; vis = Pub; name; ty = ty "bool" } ]
       else if n.type_ <> Some (D.One Object) then
         refuse "%s: a schema shape the generator does not know" name
-      else structure st name ~owner n doc
+      else
+        match (n.properties, n.additional_properties) with
+        | (None | Some []), Some ((D.Ref _ | D.Node _) as values) ->
+            let key =
+              match List.assoc_opt name st.generation.keys with
+              | Some key -> named st key
+              | None -> string_ty
+            in
+            [
+              R.Type_alias
+                {
+                  doc;
+                  vis = Pub;
+                  name;
+                  ty =
+                    R.named
+                      ~args:[ key; type_of st name "Value" values ]
+                      "std::collections::BTreeMap";
+                };
+            ]
+        | _ -> structure st name ~owner n doc)
 
 and enumeration name (n : D.node) doc =
   if n.type_ <> Some (D.One String) then

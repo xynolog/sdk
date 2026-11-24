@@ -110,13 +110,6 @@ public func renewKept(
     }
   }
 }
-struct IssuerEndpoints: Codable, Sendable {
-  let issuer: String
-  let authorization: String
-  let token: String
-  let device: String?
-  let revocation: String?
-}
 func oidcConfiguration(_ issuer: String, http: HTTPClient, clock: any Clock<Duration>)
   async throws -> IssuerAnswer
 {
@@ -130,7 +123,7 @@ func oidcConfiguration(_ issuer: String, http: HTTPClient, clock: any Clock<Dura
   }
 }
 func discoverIssuer(_ gateway: String, http: HTTPClient, clock: any Clock<Duration>)
-  async throws -> IssuerEndpoints
+  async throws -> PendingAuthorizationIssuer
 {
   let metadata: ProtectedResourceMetadata
   do {
@@ -159,10 +152,9 @@ func discoverIssuer(_ gateway: String, http: HTTPClient, clock: any Clock<Durati
     throw SignInError(
       .discovery, "The issuer did not answer its OpenID configuration", status: document.status)
   }
-  return IssuerEndpoints(
-    issuer: issuer, authorization: authorization, token: token,
-    device: document.text("device_authorization_endpoint"),
-    revocation: document.text("revocation_endpoint"))
+  return PendingAuthorizationIssuer(
+    authorization: authorization, device: document.text("device_authorization_endpoint"),
+    issuer: issuer, revocation: document.text("revocation_endpoint"), token: token)
 }
 public func signInDevice(
   kb: KbTarget, kept: any SignInKept, httpClient: HTTPClient,

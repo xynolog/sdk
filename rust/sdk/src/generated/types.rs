@@ -10623,6 +10623,9 @@ pub struct KnowledgeIndexSpecWeaver {
     pub resources: Resources,
 }
 
+/// Where a knowledge base's stream was: for each scope, a resource's id, the id of the last recorded event delivered on it.
+pub type LastEventIds = std::collections::BTreeMap<ResourceId, PersistedEventId>;
+
 /// Everything a Librarian reads at boot: nothing in it is defaulted by the Librarian. Whoever starts a Librarian writes it, from the knowledge base's stack documents, and the Librarian reads it from the path its `--config` flag names. This schema is the contract, and a Librarian needs no launcher. Started without `--config`, or with a path that names no file, the Librarian refuses to start and says which. No secret is a value here: the graph database's password, an embedding provider's key and a model provider's key are each named by the environment variable that holds it, and the Librarian's own service account is `XYNOLOG_OIDC_CLIENT_ID` and `XYNOLOG_OIDC_CLIENT_SECRET` in its environment. A document that does not validate is refused at boot, naming each failing field.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -12416,6 +12419,92 @@ pub struct PendingAnnotation {
 }
 
 schema!(PendingAnnotation);
+
+/// What a sign-in by a page redirect remembers across the trip to the issuer and back: the verifier and the state the issuer's response must match, where the person was connecting, what they believed they were connecting to, and the issuer's endpoints, so its completion asks nothing twice.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+pub struct PendingAuthorization {
+    /// What the issuer's response must carry back to belong to this sign-in: random, as base64url.
+    pub state: String,
+    /// The PKCE code verifier (RFC 7636) the authorization code is exchanged with: random, as base64url.
+    pub verifier: String,
+    /// Where the issuer sends the person back to, named again when the code is exchanged.
+    #[serde(rename = "redirectUri")]
+    pub redirect_uri: String,
+    /// Where the person was connecting.
+    pub target: HttpEndpoint,
+    /// The issuer the knowledge base trusts, and the endpoints of it a client uses.
+    pub issuer: PendingAuthorizationIssuer,
+    /// The registered knowledge base being signed in to again. Absent when it is none.
+    #[serde(rename = "kbId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kb_id: Option<String>,
+    /// The did of what the person believed they clicked, checked against the answer and never assumed. Absent when they named nothing.
+    #[serde(rename = "expectedDid")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_did: Option<String>,
+    /// The name of what the person believed they clicked. Absent when they named nothing.
+    #[serde(rename = "expectedName")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_name: Option<String>,
+}
+
+impl PendingAuthorization {
+    /// The `PendingAuthorization` that states these and nothing else.
+    pub fn new(
+        state: impl Into<String>,
+        verifier: impl Into<String>,
+        redirect_uri: impl Into<String>,
+        target: HttpEndpoint,
+        issuer: PendingAuthorizationIssuer,
+    ) -> Self {
+        Self {
+            state: state.into(),
+            verifier: verifier.into(),
+            redirect_uri: redirect_uri.into(),
+            target,
+            issuer,
+            kb_id: None,
+            expected_did: None,
+            expected_name: None,
+        }
+    }
+}
+
+schema!(PendingAuthorization);
+
+/// The issuer the knowledge base trusts, and the endpoints of it a client uses.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+pub struct PendingAuthorizationIssuer {
+    /// The issuer's identifier.
+    pub issuer: String,
+    /// The issuer's authorization endpoint, where the person is sent.
+    pub authorization: String,
+    /// The issuer's token endpoint, where the code is exchanged.
+    pub token: String,
+    /// The issuer's device authorization endpoint (RFC 8628). Absent when the issuer has none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub device: Option<String>,
+    /// The issuer's revocation endpoint (RFC 7009). Absent when the issuer has none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub revocation: Option<String>,
+}
+
+impl PendingAuthorizationIssuer {
+    /// The `PendingAuthorizationIssuer` that states these and nothing else.
+    pub fn new(
+        issuer: impl Into<String>,
+        authorization: impl Into<String>,
+        token: impl Into<String>,
+    ) -> Self {
+        Self {
+            issuer: issuer.into(),
+            authorization: authorization.into(),
+            token: token.into(),
+            device: None,
+            revocation: None,
+        }
+    }
+}
 
 /// A request was refused for lack of permission.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]

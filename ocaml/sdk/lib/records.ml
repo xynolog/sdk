@@ -15801,6 +15801,40 @@ module Vectors_config = struct
     Models.decode Models.vectors_config (Yojson.Raw.to_string (to_json value))
 end
 
+module Pending_authorization_issuer = struct
+  type t = {
+    issuer : string;
+    authorization : string;
+    token : string;
+    device : string option;
+    revocation : string option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* issuer = required string "issuer" members in
+        let* authorization = required string "authorization" members in
+        let* token = required string "token" members in
+        let* device = optional string "device" members in
+        let* revocation = optional string "revocation" members in
+        Ok { issuer; authorization; token; device; revocation }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("issuer", Some (json_string value.issuer));
+          ("authorization", Some (json_string value.authorization));
+          ("token", Some (json_string value.token));
+          ("device", Option.map json_string value.device);
+          ("revocation", Option.map json_string value.revocation);
+        ]
+end
+
 module Connection_identity = struct
   type t = { did : string; description : [ `KbDescription ] Models.t }
 
@@ -16026,6 +16060,18 @@ module Stored_session = struct
             Option.map json_string value.revocation_endpoint );
           ("personKey", Option.map json_string value.person_key);
         ]
+end
+
+module Last_event_ids = struct
+  type t = (string * string) list
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function `Assoc members -> map string members | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    json_map json_string
 end
 
 module Begin_authorization_options = struct
@@ -16671,5 +16717,62 @@ module Sign_in_outcome = struct
         [
           ("kb", Some (json_model value.kb));
           ("expected", Option.map Expected.to_json value.expected);
+        ]
+end
+
+module Pending_authorization = struct
+  type t = {
+    state : string;
+    verifier : string;
+    redirect_uri : string;
+    target : [ `HttpEndpoint ] Models.t;
+    issuer : Pending_authorization_issuer.t;
+    kb_id : string option;
+    expected_did : string option;
+    expected_name : string option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* state = required string "state" members in
+        let* verifier = required string "verifier" members in
+        let* redirect_uri = required string "redirectUri" members in
+        let* target = required (model Models.http_endpoint) "target" members in
+        let* issuer =
+          required
+            (record Pending_authorization_issuer.of_json)
+            "issuer" members
+        in
+        let* kb_id = optional string "kbId" members in
+        let* expected_did = optional string "expectedDid" members in
+        let* expected_name = optional string "expectedName" members in
+        Ok
+          {
+            state;
+            verifier;
+            redirect_uri;
+            target;
+            issuer;
+            kb_id;
+            expected_did;
+            expected_name;
+          }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("state", Some (json_string value.state));
+          ("verifier", Some (json_string value.verifier));
+          ("redirectUri", Some (json_string value.redirect_uri));
+          ("target", Some (json_model value.target));
+          ("issuer", Some (Pending_authorization_issuer.to_json value.issuer));
+          ("kbId", Option.map json_string value.kb_id);
+          ("expectedDid", Option.map json_string value.expected_did);
+          ("expectedName", Option.map json_string value.expected_name);
         ]
 end

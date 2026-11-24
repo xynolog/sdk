@@ -68,7 +68,7 @@ use xynolog::types::{
     AgentSoftware, Annotation, BeginAuthorizationOptions, DeviceCode, FailureClass, HttpEndpoint,
     HttpEndpointProtocol, JobCompleteCommand, JobProgress, KbEndpoint, KbTarget, KnowledgeBase,
     LocalEndpoint, MarkJobDone, MarkJobFilter, MarkJobFilterParams, Motivation,
-    PrincipalProfileCommand, QuotedText, TextSpan,
+    PendingAuthorization, PrincipalProfileCommand, QuotedText, TextSpan,
 };
 use xynolog::types::{ClaimOptions, SessionEndReason, StoredSession};
 use xynolog_http_transport::agent::{AgentSignInError, AgentToken};
@@ -77,9 +77,8 @@ use xynolog_http_transport::client_assertion::{JWT_BEARER, LIFETIME_SECONDS, thu
 use xynolog_http_transport::discovery::http_discovery;
 use xynolog_http_transport::loopback::LoopbackRedirect;
 use xynolog_http_transport::oauth::{
-    PENDING_AUTHORIZATION_KEY, PendingAuthorization, begin_authorization, code_challenge,
-    complete_authorization, discover_issuer, refresh_at_issuer, renew_kept, revoke_at_issuer,
-    sign_in_with_device_grant,
+    PENDING_AUTHORIZATION_KEY, begin_authorization, code_challenge, complete_authorization,
+    discover_issuer, refresh_at_issuer, renew_kept, revoke_at_issuer, sign_in_with_device_grant,
 };
 use xynolog_http_transport::service_account::{
     Credential, KeyCredential, KeyError, SecretCredential, ServiceToken, private_key_from_pem,
@@ -752,6 +751,10 @@ async fn beginning_a_sign_in_remembers_it_and_builds_the_url_around_what_it_reme
     assert_eq!(record.target, world.target());
     assert_eq!(record.issuer.token, format!("{}/token", world.issuer()));
     assert_eq!(record.kb_id.as_deref(), Some("kb-a"));
+    assert_eq!(
+        record.expected_did.as_deref(),
+        Some("did:web:example.org:kb-a")
+    );
     assert_eq!(record.expected_name.as_deref(), Some("KB A"));
     // Neither is guessable, and neither is the other.
     assert!(record.verifier.len() >= 43 && record.state.len() >= 32);
@@ -952,85 +955,6 @@ fn a_pending_sign_in_is_kept_under_the_tables_key() {
         .and_then(|entry| entry["key"].as_str())
         .expect("the table names the pending sign-in's key");
     assert_eq!(PENDING_AUTHORIZATION_KEY, key);
-}
-
-/// The members an object schema of the table names.
-fn members_of(shape: &Value) -> HashSet<String> {
-    shape["properties"]
-        .as_object()
-        .expect("the shape names its members")
-        .keys()
-        .cloned()
-        .collect()
-}
-
-/// The members an object schema of the table requires.
-fn required_of(shape: &Value) -> HashSet<String> {
-    shape["required"]
-        .as_array()
-        .expect("the shape requires members")
-        .iter()
-        .map(|member| member.as_str().expect("a member is named").to_owned())
-        .collect()
-}
-
-/// What is kept of a sign-in begun is protocol/specs/src/session/stored.json's
-/// `pendingAuthorization`: every member it names when the person believed
-/// something, and only what it requires when they named nothing.
-#[tokio::test]
-async fn a_sign_in_begun_is_kept_as_the_table_states_it() {
-    let table: Value = serde_json::from_str(include_str!(
-        "../../../protocol/specs/src/session/stored.json"
-    ))
-    .expect("the table");
-    let shape = &table["pendingAuthorization"];
-    let issuer = &shape["properties"]["issuer"];
-    let written = |storage: &InMemorySessionStorage| -> HashSet<String> {
-        let record: Value = serde_json::from_str(
-            &storage
-                .get(PENDING_AUTHORIZATION_KEY)
-                .expect("a pending sign-in"),
-        )
-        .expect("a pending sign-in is JSON");
-        let kept: HashSet<String> = record["issuer"]
-            .as_object()
-            .expect("an issuer")
-            .keys()
-            .cloned()
-            .collect();
-        assert!(
-            required_of(issuer).is_subset(&kept) && kept.is_subset(&members_of(issuer)),
-            "its issuer is kept with {kept:?}"
-        );
-        record
-            .as_object()
-            .expect("a pending sign-in is an object")
-            .keys()
-            .cloned()
-            .collect()
-    };
-    let world = World::start().await;
-
-    let believed = InMemorySessionStorage::new();
-    begin_authorization(
-        BeginAuthorizationOptions {
-            kb_id: Some("kb-a".to_owned()),
-            expected_did: Some("did:web:example.org:kb-a".to_owned()),
-            expected_name: Some("KB A".to_owned()),
-            ..world.begin()
-        },
-        &believed,
-        &world.http,
-    )
-    .await
-    .expect("a URL");
-    assert_eq!(written(&believed), members_of(shape));
-
-    let bare = InMemorySessionStorage::new();
-    begin_authorization(world.begin(), &bare, &world.http)
-        .await
-        .expect("a URL");
-    assert_eq!(written(&bare), required_of(shape));
 }
 
 #[tokio::test]

@@ -90,6 +90,16 @@ let refusals =
            );
          ]
          "X has colliding C# property names.");
+    case
+      "an object whose other members are of a schema keeps them, so a member \
+       named as what it keeps is refused"
+      (refuses
+         [
+           ( "X",
+             {|{"type":"object","properties":{"additionalProperties":{"type":"string"}},"additionalProperties":{"type":"string"}}|}
+           );
+         ]
+         "X has colliding C# property names.");
     case "a union of two members of one case is refused"
       (refuses
          [

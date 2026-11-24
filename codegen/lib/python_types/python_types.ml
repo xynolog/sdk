@@ -27,6 +27,8 @@ type state = {
       (** A class and the property a discriminated union it is a member of tells
           its members apart by, which pydantic reads as a [Literal] written in
           place. *)
+  keys : (string * string) list;
+      (** A named map and the schema its members' names are of. *)
   mutable declared : (string * P.stmt) list;
       (** In-place declarations, the latest first. *)
 }
@@ -201,7 +203,12 @@ and scalar st owner held_as (n : D.node) (t : Schema.type_name) : P.expr =
       match n.additional_properties with
       | Some (D.Bool true) | None -> sub "dict" [ name "str"; json ]
       | Some values ->
-          sub "dict" [ name "str"; placed st owner (held_as ^ "Value") values ])
+          let key =
+            match (held_as, List.assoc_opt owner st.keys) with
+            | "", Some key -> key
+            | _ -> "str"
+          in
+          sub "dict" [ name key; placed st owner (held_as ^ "Value") values ])
 
 (* What an array holds; a union it holds is named. *)
 and item st owner held_as items =
@@ -387,7 +394,7 @@ and inherited st name (n : D.node) parts ~doc =
    value stated alone, what it is. One stated alone that types.py would have
    to declare is refused, since none does. *)
 let held ~(definitions : D.definitions) ?at (s : D.t) =
-  let st = { definitions; kinds = []; tagged = []; declared = [] } in
+  let st = { definitions; kinds = []; tagged = []; keys = []; declared = [] } in
   match at with
   | Some (owner, member) -> placed st owner member s
   | None ->
@@ -441,7 +448,7 @@ let ordered decls =
   List.rev (snd (List.fold_left visit ([], []) decls))
 
 (* The module for [definitions], whose [kinds] of id are xynolog.identifiers'. *)
-let module_ ~kinds ~also (definitions : D.definitions) =
+let module_ ~kinds ~keys ~also (definitions : D.definitions) =
   let rec tagged (s : D.t) =
     match s with
     | D.Node n ->
@@ -469,6 +476,7 @@ let module_ ~kinds ~also (definitions : D.definitions) =
         List.concat_map
           (fun c -> tagged (definitions.schema c))
           definitions.names;
+      keys;
       declared = [];
     }
   in
@@ -593,6 +601,7 @@ let text (spec : Spec.t) =
   in
   module_
     ~also:[ discovery_absent spec ]
+    ~keys:(Definitions.map_keys spec)
     ~kinds:
       (List.sort compare
          (List.map

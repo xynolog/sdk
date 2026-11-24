@@ -16,7 +16,7 @@ makes only if no kept cache was fetching and no refetch was owed, since
 closing drops both, and a place reached after is not kept. A place that is
 not written is only late, which costs a replay.
 
-The places are kept as `xynolog.stored.LastEventIds`. A pair that is not a
+The places are kept as `xynolog.types.LastEventIds`. A pair that is not a
 resource's id and a recorded event's id (`is_recorded_event_id`) is no place,
 and is skipped; what is kept under the key and is no JSON object is no places.
 
@@ -36,8 +36,7 @@ from pydantic import JsonValue, TypeAdapter, ValidationError
 from xynolog.identifiers import ResourceId
 from xynolog.required import fault_of
 from xynolog.storage import SessionStorage
-from xynolog.stored import LastEventIds
-from xynolog.types import PersistedEventId
+from xynolog.types import LastEventIds, PersistedEventId
 
 __all__ = ["CoupledBookmarks", "is_recorded_event_id"]
 

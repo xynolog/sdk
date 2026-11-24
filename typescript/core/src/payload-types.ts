@@ -129,6 +129,8 @@ export type PermissionDenied = records['PermissionDenied'];
 export type KbIdentityConflict = records['KbIdentityConflict'];
 export type SessionEndReason = records['SessionEndReason'];
 export type StoredSession = records['StoredSession'];
+export type PendingAuthorization = records['PendingAuthorization'];
+export type LastEventIds = records['LastEventIds'];
 
 /**
  * The client types (protocol/specs/src/client/types) a client holds beside the

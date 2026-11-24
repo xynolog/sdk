@@ -6,9 +6,10 @@ module D = Definitions
 module G = Rust_types.Generate
 open Fixture
 
-let generated ?(identifiers = []) ?(accessors = []) schemas root =
+let generated ?(identifiers = []) ?(accessors = []) ?(keys = []) schemas root =
   Rust_syntax.text ~header:[]
-    (G.items (definitions schemas) { roots = [ root ]; identifiers; accessors })
+    (G.items (definitions schemas)
+       { roots = [ root ]; identifiers; accessors; keys })
 
 let thing pattern =
   [
@@ -118,6 +119,19 @@ let cases =
         has code "    pub thing: ThingId,";
         has code "    pub others: Option<Vec<ThingId>>,";
         has code "    pub maybe: Option<Option<ThingId>>,");
+    case "a map named by its keys' schema is keyed by that type" (fun () ->
+        let code =
+          generated ~identifiers:[ "ThingId" ]
+            ~keys:[ ("Where", "ThingId") ]
+            [
+              ("ThingId", {|{"type": "string", "pattern": "^[a-z]+$"}|});
+              ( "Where",
+                {|{"type": "object", "additionalProperties": {"type": "integer"}}|}
+              );
+            ]
+            "Where"
+        in
+        has code "pub type Where = std::collections::BTreeMap<ThingId, i64>;");
     case "a union names each member by what it is" (fun () ->
         has
           (generated

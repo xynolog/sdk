@@ -173,7 +173,7 @@ issuerCases fixtures = do
       path | gatewayPath SubscribeToBus `Bytes.isPrefixOf` path -> pure (503, object [])
       _ -> ioError (userError "unhandled issuer route")
   issuer <- Issuer.discoverIssuer options endpoint
-  require "issuer discovery lost an endpoint" (issuerEndpointsRevocation issuer == Just "http://issuer.test/revoke")
+  require "issuer discovery lost an endpoint" (pendingAuthorizationIssuerRevocation issuer == Just "http://issuer.test/revoke")
   storage <- Storage.newMemoryStorage
   let begin = BeginAuthorizationOptions (Just "did:web:knowledge.test") (Just "Knowledge") (Just "kb") "app://callback" endpoint
   url <- Issuer.beginAuthorization options begin storage
