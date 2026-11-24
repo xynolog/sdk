@@ -404,7 +404,7 @@ fn fault_of_members(
     }
     let mut unread = Vec::new();
     for (name, member) in shape.members {
-        let Some(held) = object.get_mut(*name).filter(|held| !held.is_null()) else {
+        let Some(held) = object.get_mut(*name) else {
             continue;
         };
         if unrecognized(member, held) {
@@ -788,8 +788,10 @@ mod tests {
             (json!({"b": 1}), None),
             (json!({}), malformed("")),
             (json!({"a": "x", "b": 1}), malformed("")),
-            // A member that holds null is carried.
-            (json!({"a": null, "b": 1}), malformed("")),
+            // A member that holds null is carried, and a text that is null is
+            // malformed.
+            (json!({"a": "x", "b": null}), malformed("")),
+            (json!({"a": null}), malformed("a")),
             (json!({"a": "x", "B": 1}), malformed("B")),
             (json!({"a": "x", "\u{e9}": 1, "C": 1}), malformed("C")),
             // What a member is comes before the sets it is in, and a name

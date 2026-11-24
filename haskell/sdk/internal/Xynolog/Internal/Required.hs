@@ -212,8 +212,7 @@ walk original value way
             memberFaults =
               [ walk shape actual (within way name)
               | (name, shape) <- members own,
-                Just actual <- [KM.lookup (Key.fromText name) fields],
-                actual /= Null
+                Just actual <- [KM.lookup (Key.fromText name) fields]
               ]
             named = sortOn id (map Key.toText (KM.keys fields))
             unknown = case closed own of

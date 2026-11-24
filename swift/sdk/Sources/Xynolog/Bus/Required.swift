@@ -311,7 +311,7 @@ private func faultOfMembers(_ shape: Shape, _ object: inout [String: JSONValue],
   }
   if let members = shape.members {
     for (name, member) in members.sorted(by: { byCodePoint($0.key, $1.key) }) {
-      guard let held = object[name], held != .null else { continue }
+      guard let held = object[name] else { continue }
       if isUnrecognized(member, held) {
         object.removeValue(forKey: name)
         continue

@@ -43,6 +43,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A member that holds null where its schema does not allow null is refused
+  as malformed, where it was read as absent.
 - The element of an answer format (`WorkerAnswerFormatsFormatsItem`'s
   `element`) carries Protocol's description of it.
 - A knowledge base's DID in a health reply is a `KbDid`, and a follower's

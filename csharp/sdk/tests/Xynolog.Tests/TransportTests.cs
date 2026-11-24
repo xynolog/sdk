@@ -376,12 +376,12 @@ public sealed partial class TransportTests
     }
 
     // A failure is held to its channel's schema as a result is: one with no words, or with a code that is no text, is
-    // not its channel's, and is refused naming its first fault. One whose code the wire does not list keeps its words,
-    // and so does one that holds null for a code or details it may lack.
+    // not its channel's, and is refused naming its first fault, as is one that holds null for a code it may lack. One
+    // whose code the wire does not list keeps its words.
     [Theory]
     [InlineData("{\"message\":\"still starting\",\"code\":\"peer-unavailable\"}", "bus.peer-unavailable", "still starting")]
     [InlineData("{\"message\":\"a code from a later peer\",\"code\":\"not-a-code-yet\"}", "bus.rejected", "a code from a later peer")]
-    [InlineData("{\"message\":\"no class\",\"code\":null,\"details\":null}", "bus.rejected", "no class")]
+    [InlineData("{\"message\":\"no class\",\"code\":null,\"details\":null}", "error", "a payload on browse:resource-failed is not that channel's: its `code` is malformed")]
     [InlineData("{\"code\":\"not-found\"}", "error", "a payload on browse:resource-failed is not that channel's: it has no `message`")]
     [InlineData("{\"message\":\"refused\",\"code\":7}", "error", "a payload on browse:resource-failed is not that channel's: its `code` is malformed")]
     public async Task AFailureIsReadByItsChannelsSchema(string failure, string code, string message)
@@ -395,14 +395,6 @@ public sealed partial class TransportTests
         Assert.IsType(code == "error" ? typeof(TransportError) : typeof(BusRequestError), error);
         Assert.Equal(code, error.Code);
         Assert.Equal(message, error.Message);
-    }
-
-    // A typed reader reads a member a payload may lack and holds as null as absent, as the table's walk reads it.
-    [Fact]
-    public void AFailuresTypedReaderReadsANullItMayLackAsAbsent()
-    {
-        var payload = JsonSerializer.SerializeToElement(new Dictionary<string, string?> { ["message"] = "no class", ["code"] = null, ["details"] = null });
-        Assert.Equal(new CommandError { Message = "no class" }, Bus.Decoded<CommandError>("browse:resource-failed", payload));
     }
 
     [Fact]

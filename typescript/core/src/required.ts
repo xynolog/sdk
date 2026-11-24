@@ -295,7 +295,7 @@ function faultOfMembers(
   }
   for (const [name, member] of Object.entries(shape.members ?? {})) {
     const held = object[name];
-    if (held === undefined || held === null) continue;
+    if (held === undefined) continue;
     const { recognized } = resolved(member);
     if (
       recognized !== undefined &&
