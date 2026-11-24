@@ -17,11 +17,11 @@ module Kotlin = Kotlin
 let files ~root:_ (spec : Spec.t) =
   let ( let* ) = Result.bind in
   let* t = Table.derive spec.tables.errors_codes in
-  let* ocaml = Ocaml.file t in
+  let* ocaml = Ocaml.files t in
   let* types = Kotlin_sdk.types_of spec in
   let* kotlin =
     Kotlin_sdk.written ~from_:Table.file (fun () -> Kotlin.file ~types t)
   in
   Ok
-    ([ Go.file t; Python.file t; Typescript.file t; ocaml; Rust.file t; kotlin ]
-    @ Haskell.files t)
+    ([ Go.file t; Python.file t; Typescript.file t; Rust.file t; kotlin ]
+    @ ocaml @ Haskell.files t)

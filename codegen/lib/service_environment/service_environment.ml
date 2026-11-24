@@ -201,6 +201,36 @@ let haskell (t : T.t) =
           t.variables;
     }
 
+(* Each variable's name, by the Haskell constant of it, for the tests
+   (test/.../ServiceEnvironmentValues.hs) to hold to the table. *)
+let haskell_values (t : T.t) =
+  let module H = Haskell_syntax in
+  Haskell_sdk.file ~under:"test"
+    {
+      H.banner = Banner.lines ~from_ __FILE__;
+      extensions = [];
+      name = "Xynolog.Internal.Generated.ServiceEnvironmentValues";
+      imports =
+        [
+          H.import "Data.Map.Strict" ~qualified:"Map";
+          H.import "Xynolog.ServiceEnvironment";
+        ];
+      body =
+        [
+          H.value "serviceEnvironmentValues"
+            (T_apply ("Map.Map", [ T_name "String"; T_name "String" ]))
+            (Apply
+               ( Name "Map.fromList",
+                 [
+                   List
+                     (List.map
+                        (fun (v : T.variables_item) ->
+                          H.Tuple [ Str v.name; Name (camel v.name) ])
+                        t.variables);
+                 ] ));
+        ];
+    }
+
 let ocaml (t : T.t) =
   let module O = Ocaml_syntax in
   O.implementation ~path:"ocaml/sdk/lib/service_environment.ml"
@@ -241,5 +271,12 @@ let files ~root:_ (spec : Spec.t) =
   | None ->
       Ok
         [
-          typescript t; python t; rust t; swift t; csharp t; haskell t; ocaml t;
+          typescript t;
+          python t;
+          rust t;
+          swift t;
+          csharp t;
+          haskell t;
+          haskell_values t;
+          ocaml t;
         ]
