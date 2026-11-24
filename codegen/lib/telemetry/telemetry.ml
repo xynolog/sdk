@@ -1,9 +1,9 @@
 (* The telemetry group: every span and metric an SDK's transports export
    (protocol/specs/src/sdk-telemetry/telemetry.json), its kind or instrument,
    what it means, and its attributes, for the Go, Python, OCaml and Kotlin
-   SDKs; the name of each, for the TypeScript and C# SDKs; and every
-   attribute key a row lists, for those and the Swift and Haskell SDKs. The
-   Rust SDK's telemetry is held to the table by its own tests.
+   SDKs; the name of each, for the TypeScript, C# and Haskell SDKs; and every
+   attribute key a row lists, for those and the Swift SDK. The Rust SDK's
+   telemetry is held to the table by its own tests.
 
    A metric's instrument is a counter, and a span's name holds no placeholder
    but {channel}. A row says what it means and lists each attribute once;
@@ -562,6 +562,28 @@ let haskell (t : t) =
           t.keys;
     }
 
+let haskell_names (t : t) =
+  let module H = Haskell_syntax in
+  let row prefix (r : row) =
+    H.value
+      ~about:(Text.wrapped ~lead:"-- | " ~width:80 r.meaning)
+      (prefix ^ row_pascal r)
+      (T_name "Text") (Str r.name)
+  in
+  Haskell_sdk.file ~under:"generated"
+    {
+      H.banner = Banner.lines ~from_:file __FILE__;
+      extensions = [ "OverloadedStrings" ];
+      name = "Xynolog.Internal.Generated.TelemetryNames";
+      imports = [ H.import "Data.Text" ~items:[ Plain "Text" ] ];
+      body =
+        H.value
+          ~about:[ "What stands for the bus channel in a span's name." ]
+          "telemetryChannel" (T_name "Text") (Str channel)
+        :: List.map (row "span") t.spans
+        @ List.map (row "metric") t.metrics;
+    }
+
 let files ~root:_ (spec : Spec.t) =
   let table = spec.tables.sdk_telemetry_telemetry in
   Result.bind (derive table) (fun t ->
@@ -578,6 +600,7 @@ let files ~root:_ (spec : Spec.t) =
             csharp_names t;
             swift t;
             haskell t;
+            haskell_names t;
           ])
         (Kotlin_sdk.written ~from_:file (fun () ->
              Kotlin.file ~from_:file
