@@ -62,6 +62,7 @@ pub mod retry;
 mod rfc3339;
 pub mod roles;
 pub mod running;
+pub mod service_environment;
 pub mod service_tables;
 pub mod session;
 pub mod sign_in_store;

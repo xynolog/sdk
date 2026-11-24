@@ -5,7 +5,8 @@
    the wire's own failure codes becomes (FailureCodes.g.cs), every failure
    vocabulary's codes (ErrorCodes.g.cs), the timing a client keeps
    (Timings.g.cs), the services' tables and the archivist's routes
-   (ServiceTables.g.cs), and the tables
+   (ServiceTables.g.cs), the launcher's control API (ControlMethods.g.cs),
+   and the tables
    the SDK reads as Protocol writes them, with what the sign-in store's
    contract states (ProtocolTables.g.cs). What is read as Protocol writes it
    is read from the pinned checkout, byte for byte. *)
@@ -462,6 +463,7 @@ let files ~root (spec : Spec.t) =
   let* timing = Timing.Table.derive spec.tables.client_timing in
   let* tables = protocol_tables ~root in
   let* services = Services.file ~root spec in
+  let* control = Control.file models spec in
   let written = List.map model_file models.models @ [ discovery_absent spec ] in
   match Output.stale ~root ~directory:types written with
   | [] ->
@@ -474,5 +476,6 @@ let files ~root (spec : Spec.t) =
             timings timing;
             tables;
             services;
+            control;
           ])
   | stale -> Error stale

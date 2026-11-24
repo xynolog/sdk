@@ -1,4 +1,4 @@
-(* Generated from string enums in protocol/specs/src/components/schemas and protocol/specs/src/client, and in Protocol's tables. Do not edit.
+(* Generated from the string enums among the schemas protocol/specs/src roots, its client types and its tables. Do not edit.
    Regenerate: make generate (codegen/lib/ocaml_sdk/enums.ml) *)
 
 module Body_purpose = struct
@@ -177,6 +177,17 @@ module Motivation = struct
     | _ -> None
 end
 
+module Output_stream = struct
+  type t = Stdout | Stderr
+
+  let to_string = function Stdout -> "stdout" | Stderr -> "stderr"
+
+  let of_string = function
+    | "stdout" -> Some Stdout
+    | "stderr" -> Some Stderr
+    | _ -> None
+end
+
 module Pdf_class = struct
   type t = A | B | C | D | E | F | G
 
@@ -197,6 +208,72 @@ module Pdf_class = struct
     | "E" -> Some E
     | "F" -> Some F
     | "G" -> Some G
+    | _ -> None
+end
+
+module Run_service = struct
+  type t =
+    | Archivist
+    | Dispatcher
+    | Gateway
+    | Librarian
+    | Smelter
+    | Weaver
+    | Worker
+
+  let to_string = function
+    | Archivist -> "archivist"
+    | Dispatcher -> "dispatcher"
+    | Gateway -> "gateway"
+    | Librarian -> "librarian"
+    | Smelter -> "smelter"
+    | Weaver -> "weaver"
+    | Worker -> "worker"
+
+  let of_string = function
+    | "archivist" -> Some Archivist
+    | "dispatcher" -> Some Dispatcher
+    | "gateway" -> Some Gateway
+    | "librarian" -> Some Librarian
+    | "smelter" -> Some Smelter
+    | "weaver" -> Some Weaver
+    | "worker" -> Some Worker
+    | _ -> None
+end
+
+module Runtime = struct
+  type t = Container | Docker | Podman
+
+  let to_string = function
+    | Container -> "container"
+    | Docker -> "docker"
+    | Podman -> "podman"
+
+  let of_string = function
+    | "container" -> Some Container
+    | "docker" -> Some Docker
+    | "podman" -> Some Podman
+    | _ -> None
+end
+
+module Service_group = struct
+  type t = Record | Index | Issuer | Knowledge_workers | Providers | Telemetry
+
+  let to_string = function
+    | Record -> "record"
+    | Index -> "index"
+    | Issuer -> "issuer"
+    | Knowledge_workers -> "knowledge-workers"
+    | Providers -> "providers"
+    | Telemetry -> "telemetry"
+
+  let of_string = function
+    | "record" -> Some Record
+    | "index" -> Some Index
+    | "issuer" -> Some Issuer
+    | "knowledge-workers" -> Some Knowledge_workers
+    | "providers" -> Some Providers
+    | "telemetry" -> Some Telemetry
     | _ -> None
 end
 

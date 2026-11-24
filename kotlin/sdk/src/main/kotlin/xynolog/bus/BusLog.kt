@@ -5,6 +5,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import xynolog.identifiers.ResourceId
+import xynolog.services.ServiceEnvironmentVariable
 import xynolog.telemetry.Telemetry
 
 /** What a line says in place of a credential. */
@@ -31,7 +32,7 @@ internal enum class Logged { EMIT, RECV, PUT, GET }
  * SDK reads.
  */
 internal object BusLog {
-    private val enabled: Boolean by lazy { !System.getenv("XYNOLOG_BUS_LOG").isNullOrEmpty() }
+    private val enabled: Boolean by lazy { !System.getenv(ServiceEnvironmentVariable.XYNOLOG_BUS_LOG).isNullOrEmpty() }
 
     /** Write the line of one frame sent or received, or of one read or upload of content. */
     fun line(op: Logged, channel: String, payload: JsonObject, scope: ResourceId?, correlationId: String?) {

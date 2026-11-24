@@ -5,7 +5,7 @@ find . -path './.build' -prune -o -name '*.swift' -type f -print > .build/census
 while IFS= read -r file; do
   if grep -nE '@unchecked[[:space:]]+Sendable|nonisolated[[:space:]]*\(unsafe\)|@preconcurrency|swift-format-ignore' "$file"; then exit 1; fi
   case "$file" in ./Sources/*)
-    if sed -E 's/ProcessInfo\.processInfo\.environment\["XYNOLOG_BUS_LOG"\]//g; s/getenv\("XYNOLOG_BUS_LOG"\)//g; s/self\.environment//g' "$file" | grep -nE '\.environment|getenv[[:space:]]*\('; then exit 1; fi
+    if sed -E 's/ProcessInfo\.processInfo\.environment\[ServiceEnvironmentVariable\.xynologBusLog\]//g; s/self\.environment//g' "$file" | grep -nE '\.environment|getenv[[:space:]]*\('; then exit 1; fi
     if grep -nE '\b(setenv|unsetenv|putenv|environ)\b' "$file"; then exit 1; fi
     # Every wait and interval keeps the clock its caller gives, and every jitter draws from the
     # caller's random source; the system's are their default arguments alone. A secret (the PKCE

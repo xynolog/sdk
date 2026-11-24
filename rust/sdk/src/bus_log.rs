@@ -52,8 +52,10 @@ fn enabled() -> bool {
     if CAPTURED.lock().unwrap_or_else(|p| p.into_inner()).is_some() {
         return true;
     }
-    *ENABLED
-        .get_or_init(|| std::env::var_os("XYNOLOG_BUS_LOG").is_some_and(|value| !value.is_empty()))
+    *ENABLED.get_or_init(|| {
+        std::env::var_os(crate::service_environment::XYNOLOG_BUS_LOG)
+            .is_some_and(|value| !value.is_empty())
+    })
 }
 
 fn write(line: String) {

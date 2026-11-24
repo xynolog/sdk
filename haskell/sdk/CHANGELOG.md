@@ -8,6 +8,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Xynolog.Control`: the launcher's control API, a value per method (a
+  `ControlMethod params result`) and per notification (a
+  `ControlNotification params`), typed by the types of `Xynolog.Types` it
+  carries, and `ControlSender`, which side sends a notification.
+- `Xynolog.ServiceEnvironment`: every environment variable a Xynolog service
+  reads, beside its configuration document, a value of its name
+  (`xynologBusLog`). The bus log reads its variable by it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
@@ -26,8 +33,7 @@ the coming release's, and gathers its changes as they land.
   `service-environment/`, `service-telemetry/` and `jobs/` but the case
   tables, and `bus/reply-bounds.json`.
 - `Xynolog.Tables`: the clients' tables no other module carries, each a value
-  of the type its own schema states: `controlMethods`, `localesRegistry` and
-  `retryRules`.
+  of the type its own schema states: `localesRegistry` and `retryRules`.
 - `Xynolog.Archivist.Routes`: the Archivist's HTTP operations as
   `ArchivistRoute`, typed by what each is asked and answers, with its method,
   path, status, media types and required headers, as `Xynolog.Http.Routes`

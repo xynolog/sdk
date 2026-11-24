@@ -110,16 +110,7 @@ let tag_schema_id annotation =
   else None
 
 type spanned = Text of string | Pdf of [ `AnchoredText ] Models.t
-
-type span_refusal =
-  | Span_out_of_range
-  | Item_out_of_range
-  | Exact_mismatch
-  | Nothing_located
-  | Exact_not_covered
-  | Prefix_mismatch
-  | Suffix_mismatch
-
+type span_refusal = Error_codes.Span_refusal.t
 type span_refused_error = { code : span_refusal }
 
 exception Span_refused of span_refused_error
@@ -273,21 +264,24 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
   let valid start end_ = start >= 0 && end_ >= start && end_ <= length in
   Option.iter
     (List.iter (fun (item : Records.Pdf_text_item.t) ->
-         if not (valid item.start item.end_) then refuse Item_out_of_range))
+         if not (valid item.start item.end_) then
+           refuse Error_codes.Span_refusal.Item_out_of_range))
     items;
   let { Records.Text_span.start; end_; exact; prefix; suffix } = span in
-  if not (valid start end_) then refuse Span_out_of_range;
+  if not (valid start end_) then
+    refuse Error_codes.Span_refusal.Span_out_of_range;
   let places =
     match items with
     | None ->
-        if between source start end_ <> exact then refuse Exact_mismatch;
+        if between source start end_ <> exact then
+          refuse Error_codes.Span_refusal.Exact_mismatch;
         [
           Selector.TextPositionSelector
             { start = Z.of_int start; end_ = Z.of_int end_; extra = [] };
         ]
     | Some items ->
         let overlap, rectangles = locate_pdf items start end_ in
-        if rectangles = [] then refuse Nothing_located;
+        if rectangles = [] then refuse Error_codes.Span_refusal.Nothing_located;
         let left, right =
           List.fold_left
             (fun (left, right) (item : Records.Pdf_text_item.t) ->
@@ -296,7 +290,7 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
         in
         if
           not (contains (collapse (between source left right)) (collapse exact))
-        then refuse Exact_not_covered;
+        then refuse Error_codes.Span_refusal.Exact_not_covered;
         List.map
           (fun rectangle ->
             Selector.FragmentSelector
@@ -310,12 +304,12 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
   Option.iter
     (fun prefix ->
       if not (String.ends_with ~suffix:prefix (between source 0 start)) then
-        refuse Prefix_mismatch)
+        refuse Error_codes.Span_refusal.Prefix_mismatch)
     prefix;
   Option.iter
     (fun suffix ->
       if not (String.starts_with ~prefix:suffix (between source end_ length))
-      then refuse Suffix_mismatch)
+      then refuse Error_codes.Span_refusal.Suffix_mismatch)
     suffix;
   let quote_selector =
     Selector.TextQuoteSelector

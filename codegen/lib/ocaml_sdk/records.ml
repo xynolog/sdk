@@ -103,9 +103,9 @@ let scalar_of ?module_ ~record_of (spec : Spec.t) (l : Schema.t Schema.layer) =
       | file, "" -> (
           match (record_of file, List.assoc_opt file spec.schemas) with
           | Some module_, _ -> Some (Nested module_)
-          | None, Some (Schema.Schema target as schema) -> (
-              match Enums.component file schema with
-              | Some (module_, _) -> Some (Enum module_)
+          | None, Some (Schema.Schema target) -> (
+              match Enums.rooted spec file with
+              | Some module_ -> Some (Enum module_)
               | None when target.ref_ = None -> scalar_of_type target
               | None -> None)
           | _ -> None)
