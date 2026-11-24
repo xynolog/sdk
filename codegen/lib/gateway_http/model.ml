@@ -222,3 +222,22 @@ let derive (spec : Spec.t) =
       spec.gateway.components.security_schemes
   in
   Ok { routes; headers; upload_fields; client_secret_form; bus_frame; api_keys }
+
+(* Each operation of the Archivist (archivist/openapi.json and its paths):
+   its operationId, its method and its path, a [{name}] for each parameter,
+   which the caller fills. *)
+let archivist_operations (spec : Spec.t) =
+  List.concat_map
+    (fun (path, reference) ->
+      let file, _ = Decode.resolve spec.ids reference in
+      match List.assoc_opt file spec.path_items with
+      | None ->
+          Definitions.refuse "archivist/openapi.json names no path item %s" file
+      | Some (item : Openapi.path_item) ->
+          List.filter_map
+            (fun (method_, operation) ->
+              Option.map
+                (fun (o : Openapi.operation) -> (o.operation_id, method_, path))
+                operation)
+            [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
+    spec.archivist.paths

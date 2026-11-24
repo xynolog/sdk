@@ -11,7 +11,9 @@
 //! keeps, each as a sign-in kept (`sign_in_store`); the media types a knowledge base
 //! admits (`media_types`); the readers of a resource's description, and of
 //! its bytes as text (`resources`); the knowledge bases a launcher
-//! manages (`discovery`), and its control API (`control`); when a failure is worth another attempt; whether a
+//! manages (`discovery`), and its control API (`control`); the tables the
+//! services keep to (`service_tables`) and the Archivist's routes
+//! (`archivist_http`); when a failure is worth another attempt; whether a
 //! job is one a claim takes (`job_filter`); where the job queue keeps its
 //! jobs (`job_storage`); a worker's side of the job queue:
 //! its claims, the jobs it holds and whether a failed one is retried
@@ -33,6 +35,7 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
 pub mod annotations;
+pub mod archivist_http;
 pub mod bus;
 pub mod bus_log;
 pub mod cache;
@@ -59,6 +62,7 @@ pub mod retry;
 mod rfc3339;
 pub mod roles;
 pub mod running;
+pub mod service_tables;
 pub mod session;
 pub mod sign_in_store;
 pub mod state;
