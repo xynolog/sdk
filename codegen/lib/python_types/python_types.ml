@@ -6,29 +6,26 @@
    what a type says: what a value must be is the required table's
    ([_required_table.py]), which the SDK holds what it reads to.
 
-   A schema written in place is declared on its own, named for where it is
-   ([Naming.inline]): an object of properties, a closed set of more than one
-   word, an [allOf], and a union an array holds. A union's member that is no
-   schema is named by the one value its discriminating property takes, or
-   [Object] or [Empty]. An [allOf] of schemas and of properties beside them
-   is a class of those schemas, unless it restates one of their properties,
-   when it is written whole. *)
+   It spells Protocol's schemas as [Typing] reads them. A schema written in
+   place is declared on its own by the name [Typing] gives it: an object of
+   properties or one that holds no member, a closed set of more than one
+   word, an [allOf] that merges to an object, and a union an array holds. An
+   [allOf] of schemas and of properties beside them is a class of those
+   schemas, unless it restates one of their properties, when it is written
+   whole. *)
 
-module D = Definitions
 module P = Python_syntax
+module T = Typing
 
 let path = "python/sdk/src/xynolog/types.py"
-let refuse = D.refuse
+let refuse = Definitions.refuse
 
 type state = {
-  definitions : D.definitions;
-  kinds : string list;
+  typing : T.t;
   tagged : (string * string) list;
       (** A class and the property a discriminated union it is a member of tells
           its members apart by, which pydantic reads as a [Literal] written in
           place. *)
-  keys : (string * string) list;
-      (** A named map and the schema its members' names are of. *)
   mutable declared : (string * P.stmt) list;
       (** In-place declarations, the latest first. *)
 }
@@ -126,155 +123,144 @@ let docstring = function
   | None -> None
   | Some d -> Some (P.As_is ("\n" ^ d ^ "\n"))
 
-let properties (n : D.node) = Option.value n.properties ~default:[]
+(* An object a class declares: one that names members, or holds none. *)
+let is_class (form : T.form) =
+  match form with T.Record _ -> true | form -> T.holds_none form
 
-(* An object no member of which is allowed. *)
-let is_empty (n : D.node) = properties n = [] && n.max_properties = Some 0
-
-(* An object a class declares: one of properties, or one closed to any. *)
-let is_class (n : D.node) =
-  (n.type_ = Some (D.One Object) || (n.type_ = None && properties n <> []))
-  && (properties n <> []
-     || n.additional_properties = Some (D.Bool false)
-     || is_empty n)
-
-let named st owner part =
-  let name =
-    Naming.inline ~defined:(fun n -> List.mem n st.definitions.names) owner part
+(* What pydantic does with the members a class does not name. *)
+let extra (form : T.form) =
+  let of_rest = function
+    | T.Closed -> Some "forbid"
+    | T.Open -> Some "allow"
+    | T.Unstated -> None
+    | T.Of _ ->
+        refuse "an object of properties whose other members are of a schema"
   in
+  match form with
+  | form when T.holds_none form -> Some "forbid"
+  | T.Record { rest; _ } | T.Empty { rest; _ } -> of_rest rest
+  | T.Map _ -> of_rest (T.Of T.Any)
+  | T.Enum _ | T.Alias _ | T.Identifier _ | T.Union _ | T.Json -> None
+
+let wires (form : T.form) =
+  match form with
+  | T.Record { members; _ } -> List.map (fun (m : T.member) -> m.wire) members
+  | _ -> []
+
+(* The name of a type declared in place, which no other declared in place
+   has. *)
+let named st name =
   if List.mem_assoc name st.declared then
     refuse "two schemas written in place would both be named %s" name;
   name
 
 let declare st name decl = st.declared <- (name, decl) :: st.declared
 
-(* The one value an object's discriminating property takes: the first of
-   its properties that admits exactly one text. *)
-let discriminant (n : D.node) =
-  List.find_map (fun (_, p) -> View.only_value p) (properties n)
+(* The Python type of a value of [ty], [what] holding it: [tag] when it is
+   the property its class's union tells its members apart by. *)
+let rec placed st ~what ?(tag = false) (ty : T.ty) : P.expr =
+  match ty with
+  | T.Nullable inner -> union [ placed st ~what ~tag inner; none ]
+  | T.Named n -> name n
+  | T.Null -> none
+  | T.Any -> json
+  | T.Nothing -> refuse "%s: a schema that admits nothing" what
+  | T.Scalar (T.Text { binary; _ }) -> name (if binary then "bytes" else "str")
+  | T.Scalar (T.Integer _) -> name "int"
+  | T.Scalar T.Number -> name "float"
+  | T.Scalar T.Boolean -> name "bool"
+  | T.List items -> sub "list" [ item st ~what items ]
+  | T.Inline i -> in_place st ~what ~tag i
 
-let rec placed st owner held_as (s : D.t) : P.expr =
-  match View.without_null s with
-  | Some inner -> union [ placed st owner held_as inner; none ]
-  | None -> (
-      match s with
-      | D.Ref { name = n; _ } -> name n
-      | D.Null -> none
-      | D.Bool true -> json
-      | D.Bool false ->
-          refuse "%s.%s: a schema that admits nothing" owner held_as
-      | D.Node n -> (
-          match (n.all_of, View.union s, n.enum) with
-          | Some _, _, _ -> (
-              match D.meant s with
-              | D.Node m when is_class m ->
-                  let name = named st owner held_as in
-                  declare st name (declaration st name s);
-                  P.Name name
-              | merged -> placed st owner held_as merged)
-          | None, Some members, _ ->
-              union (List.map (member st (owner ^ Text.pascal held_as)) members)
-          | None, None, Some ([ _ ] as one) -> literals one
-          | None, None, Some values
-            when n.type_ = Some (D.One String)
-                 && not (List.mem (owner, held_as) st.tagged) ->
-              let name = named st owner held_as in
-              declare st name (declaration st name s);
-              P.Name name
-          | None, None, Some values -> literals values
-          | None, None, None when is_class n ->
-              let name = named st owner held_as in
-              declare st name (declaration st name s);
-              P.Name name
-          | None, None, None -> (
-              match n.type_ with
-              | Some (D.One t) -> scalar st owner held_as n t
-              | Some (D.Or_null _) | None -> json)))
+(* A schema in place: declared on its own where it is a class, or a closed
+   set of other than one word that is not its class's tag; otherwise what it
+   holds. An [allOf] is a class of its parts where it merges to a class, and
+   otherwise what it merges to, described as its merge is. *)
+and in_place st ~what ~tag (i : T.inline) =
+  let declared composition description =
+    let name = named st i.name in
+    declare st name (declaration st name i.form composition description);
+    P.Name name
+  in
+  match i.form with
+  | form when is_class form -> declared i.composition i.description
+  | T.Enum { base = Some (T.Text _); values }
+    when List.length values <> 1 && not tag ->
+      declared None
+        (if i.composition = None then i.description else i.node_description)
+  | form -> spelled st ~what ~owner:i.name form
 
-and scalar st owner held_as (n : D.node) (t : Schema.type_name) : P.expr =
-  match t with
-  | String -> name (if n.format = Some Binary then "bytes" else "str")
-  | Integer -> name "int"
-  | Number -> name "float"
-  | Boolean -> name "bool"
-  | Null -> none
-  | Array -> sub "list" [ item st owner (held_as ^ "Item") n.items ]
-  | Object -> (
-      match n.additional_properties with
-      | Some (D.Bool true) | None -> sub "dict" [ name "str"; json ]
-      | Some values ->
-          let key =
-            match (held_as, List.assoc_opt owner st.keys) with
-            | "", Some key -> key
-            | _ -> "str"
-          in
-          sub "dict" [ name key; placed st owner (held_as ^ "Value") values ])
+(* What a schema of [form] holds, spelled where it is: [owner] the name its
+   union's members are named after. *)
+and spelled st ~what ~owner (form : T.form) =
+  match form with
+  | T.Union u -> union (List.map (member st ~what:owner) u.branches)
+  | T.Enum { values; _ } -> literals values
+  | T.Empty _ -> sub "dict" [ name "str"; json ]
+  | T.Map { value; _ } -> sub "dict" [ name "str"; placed st ~what value ]
+  | T.Alias ty -> placed st ~what ty
+  | T.Record _ | T.Identifier _ | T.Json -> json
 
 (* What an array holds; a union it holds is named. *)
-and item st owner held_as items =
+and item st ~what items =
   match items with
   | None -> json
-  | Some items -> (
-      let t = placed st owner held_as items in
-      match (View.without_null items, View.union items) with
-      | None, Some _ ->
-          let name = named st owner held_as in
-          declare st name (typed_alias name items t);
-          P.Name name
-      | _ -> t)
+  | Some (T.Inline ({ form = T.Union u; _ } as i) as items) ->
+      let t = placed st ~what items in
+      let name = named st i.name in
+      declare st name (typed_alias name ~description:i.description ~union:u t);
+      P.Name name
+  | Some items -> placed st ~what items
 
-(* [name] for [t], with what [s] says of it: its description, and the
-   property a union is told apart by. *)
-and typed_alias name (s : D.t) t =
+(* [name] for [t], with its description, and the property the union [t] is
+   told apart by. *)
+and typed_alias name ~description ?union t =
   let keywords =
-    (match View.description s with
+    (match description with
       | Some d -> [ P.keyword "description" (Str d) ]
       | None -> [])
     @
-    match s with
-    | D.Node { discriminator = Some tag; _ } ->
-        [ P.keyword "discriminator" (Str (python_name tag)) ]
+    match union with
+    | Some { T.tag = Some { property; _ }; _ } ->
+        [ P.keyword "discriminator" (Str (python_name property)) ]
     | _ -> []
   in
   P.alias name
     (if keywords = [] then t else sub "Annotated" [ t; P.call "Field" keywords ])
 
-(* One member of the union [union] names. *)
-and member st union (s : D.t) =
-  match s with
-  | D.Node n when View.without_null s = None && is_class n ->
-      let variant =
-        match (discriminant n, n.title) with
-        | Some v, _ -> v
-        | None, Some title -> title
-        | None, None -> if properties n = [] then "Empty" else "Object"
-      in
-      let name = named st union variant in
-      declare st name (declaration st name s);
+(* One member of the union [what]: a class declared by its name in the
+   union, a list, or what it holds. *)
+and member st ~what (b : T.branch) =
+  match b.ty with
+  | T.Inline ({ form; _ } as i) when is_class form ->
+      let name = named st i.name in
+      declare st name (declaration st name form i.composition i.description);
       P.Name name
-  | D.Node ({ type_ = Some (D.One Array); _ } as n)
-    when View.without_null s = None ->
-      sub "list" [ item st union "Item" n.items ]
-  | _ -> placed st union "Value" s
+  | T.List items -> sub "list" [ item st ~what items ]
+  | ty -> placed st ~what ty
 
-and field st owner ~required (wire, (s : D.t)) =
+and field st owner (m : T.member) =
   let before = List.map fst st.declared in
-  let t = placed st owner wire s in
+  let t =
+    placed st
+      ~what:(owner ^ "." ^ m.wire)
+      ~tag:(List.mem (owner, m.wire) st.tagged)
+      m.ty
+  in
   (* A type declared for this property alone says what the property is. *)
   let declared_here = function
     | P.Name n | P.Binary (P.Name n, P.Or, P.Name "None") ->
         List.mem_assoc n st.declared && not (List.mem n before)
     | _ -> false
   in
-  let optional = not (List.mem wire required) in
-  let t =
-    if optional && View.without_null s = None then union [ t; none ] else t
-  in
-  let python = python_name wire in
+  let nullable = match m.ty with T.Nullable _ -> true | _ -> false in
+  let optional = not m.required in
+  let t = if optional && not nullable then union [ t; none ] else t in
+  let python = python_name m.wire in
   let keywords =
-    (if python <> wire then [ P.keyword "alias" (Str wire) ] else [])
+    (if python <> m.wire then [ P.keyword "alias" (Str m.wire) ] else [])
     @
-    match View.description s with
+    match m.description with
     | Some d when not (declared_here t) -> [ P.keyword "description" (Str d) ]
     | _ -> []
   in
@@ -282,20 +268,19 @@ and field st owner ~required (wire, (s : D.t)) =
     (if keywords = [] then t else sub "Annotated" [ t; P.call "Field" keywords ])
     ?default:(if optional then Some none else None)
 
-and fields st owner (n : D.node) =
-  let required = Option.value n.required ~default:[] in
+and fields st owner (members : T.member list) =
   let seen = Hashtbl.create 8 in
   List.iter
-    (fun (wire, _) ->
-      let python = python_name wire in
+    (fun (m : T.member) ->
+      let python = python_name m.wire in
       match Hashtbl.find_opt seen python with
       | Some other ->
           refuse
             "%s: the properties %S and %S would both be the Python field %s"
-            owner other wire python
-      | None -> Hashtbl.replace seen python wire)
-    (properties n);
-  List.map (field st owner ~required) (properties n)
+            owner other m.wire python
+      | None -> Hashtbl.replace seen python m.wire)
+    members;
+  List.map (field st owner) members
 
 and class_ name ~bases ~extra ~doc body =
   P.Class
@@ -314,91 +299,81 @@ and class_ name ~bases ~extra ~doc body =
       body = (if body = [] && doc = None then [ P.Pass ] else body);
     }
 
-and extra (n : D.node) =
-  match n.additional_properties with
-  | _ when is_empty n -> Some "forbid"
-  | Some (D.Bool false) -> Some "forbid"
-  | Some (D.Bool true) -> Some "allow"
-  | Some _ ->
-      refuse "an object of properties whose other members are of a schema"
-  | None -> None
-
-and object_class st name (n : D.node) ~doc =
-  class_ name ~bases:[ "WireModel" ] ~extra:(extra n) ~doc (fields st name n)
+and object_class st name (form : T.form) ~doc =
+  let members =
+    match form with T.Record { members; _ } -> members | _ -> []
+  in
+  class_ name ~bases:[ "WireModel" ] ~extra:(extra form) ~doc
+    (fields st name members)
 
 (* A schema declared by [name]. *)
-and declaration st name (s : D.t) : P.stmt =
-  let doc = docstring (View.description s) in
-  let alias t = typed_alias name s t in
-  match s with
-  | D.Node ({ all_of = Some parts; _ } as n) -> inherited st name n parts ~doc
-  | D.Node _
-    when Option.fold ~none:false
-           ~some:(fun ms -> not (List.mem D.Null ms))
-           (View.union s) ->
-      alias (union (List.map (member st name) (Option.get (View.union s))))
-  | D.Node n
-    when is_class n
-         || (n.type_ = Some (D.One Object) && n.additional_properties = None) ->
-      object_class st name n ~doc
-  | D.Node ({ type_ = Some (D.One Array); _ } as n) ->
-      alias (sub "list" [ item st name "Item" n.items ])
-  | _ -> (
-      match (s : D.t) with
-      | D.Node { enum = Some values; _ } -> alias (literals values)
-      | _ -> alias (placed st name "" s))
+and declaration st name (form : T.form) (composition : T.composition option)
+    description : P.stmt =
+  let doc = docstring description in
+  let alias ?union t = typed_alias name ~description ?union t in
+  match (form, composition) with
+  | form, Some c -> inherited st name form c ~doc
+  | T.Union u, None ->
+      alias ~union:u (union (List.map (member st ~what:name) u.branches))
+  | (T.Record _ | T.Empty { rest = T.Unstated; _ }), None ->
+      object_class st name form ~doc
+  | T.Empty _, None when T.holds_none form -> object_class st name form ~doc
+  | T.Alias (T.List items), None ->
+      alias (sub "list" [ item st ~what:name items ])
+  | T.Enum { values; _ }, None -> alias (literals values)
+  | T.Map { key; value }, None ->
+      alias
+        (sub "dict"
+           [
+             P.Name (Option.value key ~default:"str");
+             placed st ~what:name value;
+           ])
+  | (T.Empty _ | T.Alias _ | T.Identifier _ | T.Json), None ->
+      alias (spelled st ~what:name ~owner:name form)
 
-(* An [allOf]: a class of the schemas it names, with the properties stated
-   beside them, or, when those restate one of theirs, the whole of what
-   they say. *)
-and inherited st name (n : D.node) parts ~doc =
-  let bases = List.filter_map View.reference parts in
-  let own = List.filter_map (function D.Node o -> Some o | _ -> None) parts in
-  let rec stated (s : D.t) =
-    match View.resolved st.definitions s with
-    | D.Node m ->
-        List.map fst (properties m)
-        @ List.concat_map stated (Option.value m.all_of ~default:[])
-    | _ -> []
+(* An [allOf]: a class of the schemas it names, with the members stated
+   beside them, or, when its parts restate one of theirs, the whole of what
+   they merge to. *)
+and inherited st name (form : T.form) (c : T.composition) ~doc =
+  let bases =
+    List.filter_map (function T.Named b -> Some b | _ -> None) c.parts
+  in
+  let own =
+    List.filter_map (function T.Inline i -> Some i.form | _ -> None) c.parts
   in
   let inherited_properties =
-    List.concat_map
-      (fun b -> stated (D.Ref { name = b; description = None }))
-      bases
+    List.concat_map (fun b -> wires (st.typing.find b).form) bases
   in
   let restated =
     List.exists
-      (fun (o : D.node) ->
-        List.exists
-          (fun (k, _) -> List.mem k inherited_properties)
-          (properties o))
+      (fun o ->
+        List.exists (fun w -> List.mem w inherited_properties) (wires o))
       own
   in
-  if restated || bases = [] then
-    match D.meant (D.Node n) with
-    | D.Node merged -> object_class st name merged ~doc
-    | _ -> refuse "%s: an allOf whose parts merge to no object" name
+  if restated || bases = [] then object_class st name form ~doc
   else
-    let body =
-      List.concat_map
-        (fun o -> fields st name o)
-        (own @ if properties n = [] then [] else [ n ])
+    let members =
+      match form with
+      | T.Record { members; _ } ->
+          List.filter (fun (m : T.member) -> m.owner = name) members
+      | _ -> []
     in
     let extras = List.filter_map extra own in
     class_ name ~bases
       ~extra:(match extras with [] -> None | e :: _ -> Some e)
-      ~doc body
+      ~doc (fields st name members)
 
 (* The type a value of [s] is held as where it is stated, [at] being the
    schema and its member that state it: what types.py names it there, or, a
    value stated alone, what it is. One stated alone that types.py would have
    to declare is refused, since none does. *)
-let held ~(definitions : D.definitions) ?at (s : D.t) =
-  let st = { definitions; kinds = []; tagged = []; keys = []; declared = [] } in
+let held (typing : T.t) ?at (s : Definitions.t) =
+  let st = { typing; tagged = []; declared = [] } in
   match at with
-  | Some (owner, member) -> placed st owner member s
+  | Some (owner, part) ->
+      placed st ~what:(owner ^ "." ^ part) (typing.place { T.owner; part } s)
   | None ->
-      let t = placed st "" "" s in
+      let t = placed st ~what:"" (typing.place { T.owner = ""; part = "" } s) in
       if st.declared <> [] then
         refuse "a value stated alone is a type types.py declares nowhere";
       t
@@ -447,52 +422,68 @@ let ordered decls =
   in
   List.rev (snd (List.fold_left visit ([], []) decls))
 
-(* The module for [definitions], whose [kinds] of id are xynolog.identifiers'. *)
-let module_ ~kinds ~keys ~also (definitions : D.definitions) =
-  let rec tagged (s : D.t) =
-    match s with
-    | D.Node n ->
-        let here =
-          match (n.discriminator, View.union s) with
-          | Some tag, Some members ->
+(* Each class a union told apart names, and the property it tells them apart
+   by. *)
+let tagged (typing : T.t) =
+  let rec of_ty (ty : T.ty) =
+    match ty with
+    | T.Inline i -> of_form i.form @ of_composition i.composition
+    | T.Nullable ty | T.List (Some ty) -> of_ty ty
+    | T.Named _ | T.Scalar _ | T.Null | T.List None | T.Any | T.Nothing -> []
+  and of_form (form : T.form) =
+    match form with
+    | T.Union { branches; tag } ->
+        (match tag with
+          | Some { property; _ } ->
               List.filter_map
-                (fun m -> Option.map (fun r -> (r, tag)) (View.reference m))
-                members
-          | _ -> []
-        in
-        here
-        @ List.concat_map (fun (_, p) -> tagged p) (properties n)
-        @ List.concat_map tagged
-            (Option.to_list n.items
-            @ Option.value n.all_of ~default:[]
-            @ Option.value (View.union s) ~default:[])
-    | _ -> []
+                (fun (b : T.branch) ->
+                  match b.ty with T.Named r -> Some (r, property) | _ -> None)
+                branches
+          | None -> [])
+        @ List.concat_map (fun (b : T.branch) -> of_ty b.ty) branches
+    | T.Record { members; rest } ->
+        List.concat_map (fun (m : T.member) -> of_ty m.ty) members
+        @ of_rest rest
+    | T.Map { value; _ } -> of_ty value
+    | T.Alias ty -> of_ty ty
+    | T.Empty _ | T.Enum _ | T.Identifier _ | T.Json -> []
+  and of_rest = function T.Of ty -> of_ty ty | _ -> []
+  and of_composition = function
+    | Some (c : T.composition) ->
+        List.concat_map of_ty c.parts
+        @ List.concat_map (fun (m : T.member) -> of_ty m.ty) c.beside.members
+    | None -> []
   in
-  let st =
-    {
-      definitions;
-      kinds;
-      tagged =
-        List.concat_map
-          (fun c -> tagged (definitions.schema c))
-          definitions.names;
-      keys;
-      declared = [];
-    }
-  in
+  List.concat_map
+    (fun name ->
+      let d = typing.find name in
+      of_form d.form @ of_composition d.composition)
+    typing.names
+
+let identifier (typing : T.t) name =
+  match (typing.find name).form with T.Identifier _ -> true | _ -> false
+
+(* The module for [typing]'s generation, whose kinds of id are
+   xynolog.identifiers'. *)
+let module_ ~also (typing : T.t) =
+  let kinds = List.filter (identifier typing) typing.names in
+  let st = { typing; tagged = tagged typing; declared = [] } in
   let decls =
     List.concat_map
       (fun component ->
         if List.mem component kinds then []
         else
           let before = st.declared in
-          let decl = declaration st component (definitions.schema component) in
+          let d = typing.find component in
+          let decl =
+            declaration st component d.form d.composition d.description
+          in
           let placed =
             List.rev
               (List.filter (fun d -> not (List.memq d before)) st.declared)
           in
           (component, decl) :: placed)
-      definitions.names
+      typing.names
     @ also
   in
   let names = List.sort compare (List.map fst decls) in
@@ -529,19 +520,6 @@ let module_ ~kinds ~keys ~also (definitions : D.definitions) =
         :: List.map snd (ordered decls);
     }
 
-(* The schemas [s] names. *)
-let rec named_in (s : D.t) =
-  match s with
-  | D.Ref { name; _ } -> [ name ]
-  | D.Null | D.Bool _ -> []
-  | D.Node n ->
-      List.concat_map named_in
-        (List.map snd (properties n)
-        @ Option.to_list n.additional_properties
-        @ Option.to_list n.items
-        @ List.concat (List.filter_map Fun.id [ n.all_of; n.any_of; n.one_of ])
-        )
-
 (* Why a client that read a launcher's discovery document found no launcher
    (protocol/specs/src/client/discovery-absent.json): a word a reason, each
    reason's meaning in the docstring. *)
@@ -567,55 +545,12 @@ let discovery_absent (spec : Spec.t) =
 (* Each service table ([Roots.service_tables]) is read as its schema's model
    of types.py, named as its file is, and is that model's value in
    service_tables.py. *)
-let table_model table = D.stem (Places.schema_of table)
+let table_model table = Definitions.stem (Places.schema_of table)
 
 let text (spec : Spec.t) =
-  let bundle = Definitions.bundle spec in
-  let definitions = bundle.definitions in
-  let declared name =
-    match definitions.schema name with
-    | _ -> true
-    | exception D.Refused _ -> false
-  in
-  let tables =
-    List.map
-      (fun table ->
-        let file = Places.schema_of table and name = table_model table in
-        if declared name then
-          refuse "%s, the schema of %s, is named as a schema already is" file
-            table;
-        match List.assoc_opt file spec.schemas with
-        | Some s -> (name, bundle.view (Normalize.shape_only s))
-        | None -> refuse "%s has no schema %s" table file)
-      (Roots.service_tables spec)
-  in
-  let schema name =
-    match List.assoc_opt name tables with
-    | Some s -> s
-    | None -> definitions.schema name
-  in
-  let rec reach written = function
-    | [] -> written
-    | name :: rest when List.mem name written -> reach written rest
-    | name :: rest -> reach (name :: written) (named_in (schema name) @ rest)
-  in
   module_
     ~also:[ discovery_absent spec ]
-    ~keys:(Definitions.map_keys spec)
-    ~kinds:
-      (List.sort compare
-         (List.map
-            (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)
-            spec.tables.identifiers_kinds.kinds))
-    {
-      schema;
-      names =
-        List.sort compare
-          (reach definitions.names
-             (List.map (fun (_, name, _) -> name) (Definitions.records spec)
-             @ Definitions.generated_client_types spec
-             @ List.map fst tables));
-    }
+    (Typing.of_spec spec ~tables:(Roots.service_tables spec))
 
 (* The launcher's control API as the Python SDK reads it
    (python/sdk/src/xynolog/control_methods.py, from
@@ -629,17 +564,17 @@ module C = Tables.Control_methods
 let control_path = "python/sdk/src/xynolog/control_methods.py"
 
 let control_text (spec : Spec.t) =
-  let definitions = (Definitions.bundle spec).definitions in
+  let typing = Typing.of_spec spec ~tables:[] in
   let t = spec.tables.control_methods in
   let component id =
     let name = Filename.remove_extension (Filename.basename id) in
-    if not (List.mem name definitions.names) then
+    if not (List.mem name typing.gateway) then
       refuse "control/methods.json names %s, which is no component schema" id;
     name
   in
   let api_version =
-    match definitions.schema (component t.api_version) with
-    | D.Node { enum = Some [ Schema.String_literal v ]; _ } -> v
+    match (typing.find (component t.api_version)).form with
+    | Enum { values = [ Schema.String_literal v ]; _ } -> v
     | _ -> refuse "control/methods.json: its apiVersion states no const"
   in
   let constant = Bus.Python.constant in

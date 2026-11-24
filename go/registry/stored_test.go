@@ -212,7 +212,7 @@ func TestAStoredValueThatLacksAMemberOfASessionIsNone(t *testing.T) {
 	// Written without them, as read.
 	stored, _ := registry.StoredSessionOf(storage, "kb-a")
 	must(t, registry.StoreSession(storage, "kb-a", stored))
-	if written, _ := storage.Get(registry.SessionKey("kb-a")); written != `{"access":"a","clientId":"xynolog-browser","refresh":"r","tokenEndpoint":"https://issuer.test/token"}` {
+	if written, _ := storage.Get(registry.SessionKey("kb-a")); written != `{"access":"a","refresh":"r","clientId":"xynolog-browser","tokenEndpoint":"https://issuer.test/token"}` {
 		t.Errorf("a session with no revocation endpoint and no person is written as %s", written)
 	}
 }

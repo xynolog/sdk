@@ -35,7 +35,7 @@ fn a_claimed_job_is_running_with_no_progress_yet_and_keeps_its_params() {
         "startedAt": "2026-09-30T12:00:01.000Z",
         "progress": {}
     });
-    let Job::Running(job) = serde_json::from_value(wire.clone()).expect("a running job decodes")
+    let Job::JobRunning(job) = serde_json::from_value(wire.clone()).expect("a running job decodes")
     else {
         panic!("a running job decoded as another state");
     };
@@ -43,7 +43,7 @@ fn a_claimed_job_is_running_with_no_progress_yet_and_keeps_its_params() {
     assert_eq!(job.params.resource_id, "res-1");
     assert_eq!(job.params.rest["density"], json!(3));
     assert_eq!(
-        serde_json::to_value(Job::Running(job)).expect("it encodes"),
+        serde_json::to_value(Job::JobRunning(job)).expect("it encodes"),
         wire
     );
 }
@@ -68,7 +68,7 @@ fn a_completed_job_carries_its_result_or_the_empty_object() {
             "result": result
         })
     };
-    let Job::Complete(reported) =
+    let Job::JobComplete(reported) =
         serde_json::from_value(complete(json!({ "found": 2, "persisted": 2 })))
             .expect("a completed job decodes")
     else {
@@ -78,7 +78,7 @@ fn a_completed_job_carries_its_result_or_the_empty_object() {
         reported.result,
         JobStoredResult::JobResult(JobResult::MarkJobDone(_))
     ));
-    let Job::Complete(bare) = serde_json::from_value(complete(json!({}))).expect("it decodes")
+    let Job::JobComplete(bare) = serde_json::from_value(complete(json!({}))).expect("it decodes")
     else {
         panic!("a completed job decoded as another state");
     };
@@ -221,20 +221,20 @@ fn each_state_decodes_as_itself() {
             .extend(extra.as_object().expect("an object").clone());
         serde_json::from_value::<Job>(job).expect("the job decodes")
     };
-    assert!(matches!(base("pending", json!({})), Job::Pending(_)));
+    assert!(matches!(base("pending", json!({})), Job::JobPending(_)));
     assert!(matches!(
         base(
             "failed",
             json!({ "completedAt": "2026-09-30T12:00:02.000Z", "error": "broken" })
         ),
-        Job::Failed(_)
+        Job::JobFailed(_)
     ));
     assert!(matches!(
         base(
             "cancelled",
             json!({ "completedAt": "2026-09-30T12:00:02.000Z" })
         ),
-        Job::Cancelled(_)
+        Job::JobCancelled(_)
     ));
 }
 
