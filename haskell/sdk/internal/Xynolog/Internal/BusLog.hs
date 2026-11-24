@@ -17,6 +17,7 @@ import OpenTelemetry.Trace.Id qualified as TraceId
 import System.Environment (lookupEnv)
 import System.IO (hFlush, stderr)
 import Xynolog.Internal.Generated.BusLog qualified as Policy
+import Xynolog.ServiceEnvironment (xynologBusLog)
 import Xynolog.Types
 
 -- The existing cross-SDK switch is read at the HTTP owner's creation. It is
@@ -25,7 +26,7 @@ data Logger = Logger Bool (Text -> IO ())
 
 environmentLogger :: IO Logger
 environmentLogger = do
-  setting <- lookupEnv "XYNOLOG_BUS_LOG"
+  setting <- lookupEnv xynologBusLog
   pure (Logger (maybe False (not . null) setting) (\written -> Bytes.hPut stderr (encodeUtf8 (written <> "\n")) >> hFlush stderr))
 
 shown :: Value -> Value

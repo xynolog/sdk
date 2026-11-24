@@ -1,5 +1,5 @@
-(* Every component that is a string enum (protocol/specs/src/components/
-   schemas), the client types below, why no launcher was found
+(* Every schema Protocol roots ([Roots.all]) that is a string enum, the
+   client types below, why no launcher was found
    (protocol/specs/src/client/discovery-absent.json), and every record
    Protocol states in a table ([Table_records]) that is one but a union's
    tag, which is the union's constructors ([Records]), as a module of the
@@ -8,7 +8,7 @@
    letters, digits and . / + -, so it names a constructor; no two name the
    same one, and no two enums name one module. *)
 
-let source = "protocol/specs/src/components/schemas"
+let source = "protocol/specs/src"
 
 (* The client types the SDK generates that are words. *)
 let client_types (spec : Spec.t) =
@@ -18,8 +18,6 @@ let client_types (spec : Spec.t) =
       | Some (Schema.Schema { type_ = Some [ String ]; _ }) -> true
       | _ -> false)
     (Definitions.generated_client_types spec)
-
-let prefix = "components/schemas/"
 
 type enum = { module_ : string; variants : (string * string) list }
 (** Each variant: its constructor, and its member. *)
@@ -41,24 +39,23 @@ let constructor value =
 
 let module_name name = String.capitalize_ascii (Text.snake name)
 
-(* The module of the component [file] when [schema], its schema, is a string
-   enum, and the enum's members. *)
-let component file schema =
-  match schema with
-  | Schema.Schema { type_ = Some [ String ]; enum = Some members; _ }
-    when String.starts_with ~prefix file
-         && not
-              (String.contains
-                 (String.sub file (String.length prefix)
-                    (String.length file - String.length prefix))
-                 '/') ->
-      Some
-        ( module_name
-            (Filename.remove_extension
-               (String.sub file (String.length prefix)
-                  (String.length file - String.length prefix))),
-          members )
+(* The members of [schema] when it is a string enum. *)
+let members_of = function
+  | Schema.Schema { type_ = Some [ String ]; enum = Some members; _ } ->
+      Some members
   | _ -> None
+
+(* The module of the rooted schema [file] is ([Roots.all]), when it is a
+   string enum. *)
+let rooted (spec : Spec.t) file =
+  Option.bind (List.assoc_opt file spec.schemas) (fun schema ->
+      Option.bind (members_of schema) (fun _ ->
+          List.find_map
+            (fun (name, reference) ->
+              if fst (Decode.resolve spec.ids reference) = file then
+                Some (module_name name)
+              else None)
+            (Roots.all spec)))
 
 (* The file and the pointer of a table record's [Table_records.key]. *)
 let place key =
@@ -142,11 +139,13 @@ let derive (spec : Spec.t) table =
   in
   let components =
     List.filter_map
-      (fun (file, schema) ->
-        Option.map
-          (fun (module_, members) -> enum ~file ~pointer:"" module_ members)
-          (component file schema))
-      (List.sort (fun (a, _) (b, _) -> compare a b) spec.schemas)
+      (fun (name, reference) ->
+        let file, _ = Decode.resolve spec.ids reference in
+        Option.bind (List.assoc_opt file spec.schemas) (fun schema ->
+            Option.map
+              (fun members -> enum ~file ~pointer:"" (module_name name) members)
+              (members_of schema)))
+      (List.sort (fun (a, _) (b, _) -> compare a b) (Roots.all spec))
   in
   let clients =
     List.map
@@ -196,8 +195,8 @@ module O = Ocaml_syntax
 let banner =
   Banner.ocaml
     ~from_:
-      ("string enums in " ^ source
-     ^ " and protocol/specs/src/client, and in Protocol's tables")
+      "the string enums among the schemas protocol/specs/src roots, its client \
+       types and its tables"
     __FILE__
 
 let t e =

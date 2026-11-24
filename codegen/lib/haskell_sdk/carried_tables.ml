@@ -18,8 +18,7 @@ let modules (spec : Spec.t) =
     {
       module_name = "Xynolog.Tables";
       listing = "tables";
-      tables =
-        [ "control/methods.json"; "locales/registry.json"; "retry/rules.json" ];
+      tables = [ "locales/registry.json"; "retry/rules.json" ];
     };
   ]
 

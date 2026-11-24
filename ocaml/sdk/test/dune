@@ -19,6 +19,11 @@
  (libraries xynolog alcotest))
 
 (test
+ (name error_codes_cases)
+ (modules error_codes_cases)
+ (libraries xynolog alcotest))
+
+(test
  (name generated_protocol)
  (modules generated_protocol)
  (libraries xynolog yojson alcotest))

@@ -26,5 +26,6 @@ let files ~root:_ (spec : Spec.t) =
         Kotlin.file m;
         Csharp.file m;
         Ocaml.file m;
+        Ocaml.archivist spec;
       ])
     (Model.derive spec)
