@@ -9,14 +9,18 @@ let path = "rust/sdk/src/generated/timing.rs"
 let duration = R.named "std::time::Duration"
 let millis n = R.call "std::time::Duration::from_millis" [ R.Int n ]
 
+let name (e : Table.entry) =
+  R.screaming
+    (match e.value with
+    | Duration _ -> String.sub e.name 0 (String.length e.name - 2)
+    | Budget _ | Count _ -> e.name)
+
 let constant (e : Table.entry) =
-  let name, ty, value =
+  let ty, value =
     match e.value with
-    | Duration n ->
-        (String.sub e.name 0 (String.length e.name - 2), duration, millis n)
+    | Duration n -> (duration, millis n)
     | Budget { attempts; initial_delay_ms; max_delay_ms } ->
-        ( e.name,
-          R.named "crate::retry::RetryPolicy",
+        ( R.named "crate::retry::RetryPolicy",
           R.Struct
             ( [ "crate"; "retry"; "RetryPolicy" ],
               [
@@ -25,17 +29,9 @@ let constant (e : Table.entry) =
                 ("max_delay", millis max_delay_ms);
               ],
               None ) )
-    | Count n -> (e.name, R.named "usize", R.Int n)
+    | Count n -> (R.named "usize", R.Int n)
   in
-  R.Const
-    {
-      doc = [ e.docs ];
-      attrs = [];
-      vis = Pub;
-      name = R.screaming name;
-      ty;
-      value;
-    }
+  R.Const { doc = [ e.docs ]; attrs = []; vis = Pub; name = name e; ty; value }
 
 let file (t : Table.t) =
   {

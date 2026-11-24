@@ -11,6 +11,7 @@
    two attribute keys, are the same Go or Python name. *)
 
 module T = Tables.Sdk_telemetry_telemetry
+module Kotlin = Kotlin
 
 let file = "sdk-telemetry/telemetry.json"
 let channel = "{channel}"
@@ -361,18 +362,21 @@ let python (t : t) =
         };
   }
 
+(* A row's or an attribute key's name in the OCaml SDK: the name without
+   what stands for the channel, its dots underscores. *)
+let ocaml_name name = Text.replace_all ~sub:"." ~by:"_" (without_channel name)
+
 (* The rows as the OCaml SDK names them (ocaml/sdk/lib/telemetry_facts.ml): a
    span's name, its channel left for the caller, and its kind; a metric's
    name; and every attribute key, each by its name with the channel and the
    dots dropped. *)
 let ocaml (t : t) =
   let module O = Ocaml_syntax in
-  let name row = Text.replace_all ~sub:"." ~by:"_" (without_channel row) in
   O.implementation ~path:"ocaml/sdk/lib/telemetry_facts.ml"
     ~banner:(Banner.ocaml ~from_:file __FILE__)
     (List.map
        (fun (r : row) ->
-         O.let_ (name r.name)
+         O.let_ (ocaml_name r.name)
            (O.tuple
               [
                 O.string (Text.replace_all ~sub:channel ~by:"" r.name);
@@ -380,9 +384,11 @@ let ocaml (t : t) =
               ]))
        t.spans
     @ List.map
-        (fun (r : row) -> O.let_ (name r.name) (O.string r.name))
+        (fun (r : row) -> O.let_ (ocaml_name r.name) (O.string r.name))
         t.metrics
-    @ List.map (fun key -> O.let_ ("attr_" ^ name key) (O.string key)) t.keys)
+    @ List.map
+        (fun key -> O.let_ ("attr_" ^ ocaml_name key) (O.string key))
+        t.keys)
 
 let about = "An attribute key a row of the telemetry table lists."
 
@@ -391,8 +397,10 @@ let about = "An attribute key a row of the telemetry table lists."
    in place of. *)
 let row_pascal (r : row) = key_pascal (without_channel r.name)
 let row_upper (r : row) = key_upper (without_channel r.name)
-let typescript_span r = "SPAN_" ^ row_upper r
-let typescript_metric r = "METRIC_" ^ row_upper r
+let span_constant r = "SPAN_" ^ row_upper r
+let metric_constant r = "METRIC_" ^ row_upper r
+let haskell_span r = "span" ^ row_pascal r
+let haskell_metric r = "metric" ^ row_pascal r
 
 let typescript_names (t : t) =
   let module T = Typescript_syntax in
@@ -412,8 +420,8 @@ let typescript_names (t : t) =
             T.const "TELEMETRY_CHANNEL"
               ~about:[ Doc "What stands for the bus channel in a span's name." ]
               (T.Str channel)
-            :: List.map (fun r -> row (typescript_span r) r) t.spans
-            @ List.map (fun r -> row (typescript_metric r) r) t.metrics;
+            :: List.map (fun r -> row (span_constant r) r) t.spans
+            @ List.map (fun r -> row (metric_constant r) r) t.metrics;
         };
   }
 
@@ -564,11 +572,10 @@ let haskell (t : t) =
 
 let haskell_names (t : t) =
   let module H = Haskell_syntax in
-  let row prefix (r : row) =
+  let row name (r : row) =
     H.value
       ~about:(Text.wrapped ~lead:"-- | " ~width:80 r.meaning)
-      (prefix ^ row_pascal r)
-      (T_name "Text") (Str r.name)
+      (name r) (T_name "Text") (Str r.name)
   in
   Haskell_sdk.file ~under:"generated"
     {
@@ -580,8 +587,8 @@ let haskell_names (t : t) =
         H.value
           ~about:[ "What stands for the bus channel in a span's name." ]
           "telemetryChannel" (T_name "Text") (Str channel)
-        :: List.map (row "span") t.spans
-        @ List.map (row "metric") t.metrics;
+        :: List.map (row haskell_span) t.spans
+        @ List.map (row haskell_metric) t.metrics;
     }
 
 (* The table as the Rust telemetry crate reports it
@@ -591,18 +598,9 @@ let rust (t : t) =
   let module R = Rust_syntax in
   let constant ?(doc = []) name value =
     R.Const
-      {
-        doc;
-        attrs = [];
-        vis = Pub;
-        name;
-        ty = R.str_ty;
-        value = R.Str value;
-      }
+      { doc; attrs = []; vis = Pub; name; ty = R.str_ty; value = R.Str value }
   in
-  let row prefix (r : row) =
-    constant ~doc:[ r.meaning ] (prefix ^ row_upper r) r.name
-  in
+  let row name (r : row) = constant ~doc:[ r.meaning ] (name r) r.name in
   {
     Output.path = "rust/telemetry/src/generated/table.rs";
     text =
@@ -611,8 +609,8 @@ let rust (t : t) =
         (constant
            ~doc:[ "What stands for the bus channel in a span's name." ]
            "CHANNEL" channel
-         :: List.map (row "SPAN_") t.spans
-        @ List.map (row "METRIC_") t.metrics
+         :: List.map (row span_constant) t.spans
+        @ List.map (row metric_constant) t.metrics
         @ List.map
             (fun k -> constant ~doc:[ about ] ("ATTR_" ^ key_upper k) k)
             t.keys);

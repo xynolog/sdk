@@ -7,13 +7,14 @@
 module K = Kotlin_syntax
 module T = Tables.Sdk_telemetry_telemetry
 
+(* A row's constant: its name with [{channel}] dropped. *)
+let constant name =
+  Kotlin_sdk.Names.constant_name (Text.replace_all ~sub:"{channel}" ~by:"" name)
+
 let file ~from_ ~keys (table : T.t) =
   let taken = Hashtbl.create 32 in
   let row ~meaning ~type_ name args =
-    let constant =
-      Kotlin_sdk.Names.constant_name
-        (Text.replace_all ~sub:"{channel}" ~by:"" name)
-    in
+    let constant = constant name in
     if Hashtbl.mem taken constant then
       Kotlin_sdk.Names.refuse "the telemetry table: two rows would both be %s"
         constant;

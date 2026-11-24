@@ -304,14 +304,15 @@ let families
     ("control", codes control);
   ]
 
+(* A failure vocabulary's enum, by its member in errors/codes.json. *)
+let error_code_enum member = Text.pascal member ^ "ErrorCode"
+
 let error_codes models ~shapes ~table (codes : Error_codes.Table.t) =
   let wire_codes = Error_codes.Table.wire_codes in
   let enums =
     List.map
       (fun (family, listed) ->
-        string_enumeration [ "public" ]
-          (Text.pascal family ^ "ErrorCode")
-          listed)
+        string_enumeration [ "public" ] (error_code_enum family) listed)
       (List.sort (fun (a, _) (b, _) -> String.compare a b) (families table))
   in
   let returns (code : Error_codes.Table.code) =

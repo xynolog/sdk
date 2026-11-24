@@ -6,10 +6,10 @@
 module O = Ocaml_syntax
 module T = Tables.Client_testing
 
+let fault_constructor (fault : T.fault_actions_item) =
+  String.capitalize_ascii (Text.snake fault.name)
+
 let file (s : T.t) =
-  let name (fault : T.fault_actions_item) =
-    String.capitalize_ascii (Text.snake fault.name)
-  in
   let span (b : T.delay_ms) = b.maximum - b.minimum + 1 in
   let random_int bound =
     O.apply (O.ident "Random.State.int") [ O.ident "random"; O.int bound ]
@@ -22,7 +22,7 @@ let file (s : T.t) =
            (Variant
               (List.map
                  (fun (fault : T.fault_actions_item) ->
-                   O.constructor (name fault)
+                   O.constructor (fault_constructor fault)
                      ~args:(if fault.holds = [] then [] else [ O.type_ "int" ]))
                  s.fault_actions)));
       O.type_item
@@ -39,9 +39,10 @@ let file (s : T.t) =
               (List.mapi
                  (fun i (fault : T.fault_actions_item) ->
                    O.case (O.Pattern.int i)
-                     (if fault.holds = [] then O.construct (name fault)
+                     (if fault.holds = [] then
+                        O.construct (fault_constructor fault)
                       else
-                        O.construct (name fault)
+                        O.construct (fault_constructor fault)
                           ~arg:
                             (O.infix "+" (O.int s.delay_ms.minimum)
                                (random_int (span s.delay_ms)))))
