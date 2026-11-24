@@ -15,24 +15,24 @@ type AboutParams struct {
 // AboutResult What the launcher is. A client asks this first, to learn
 // whether it speaks to the launcher it found.
 type AboutResult struct {
-	// ApiVersions Each version of the control API it speaks. A client that
-	// speaks none of them stops here.
-	ApiVersions []string `json:"apiVersions"`
-	// Built When it was built, when stamped.
-	Built *string `json:"built,omitempty"`
-	// Commit The commit it was built from, when stamped.
-	Commit *string `json:"commit,omitempty"`
+	// Version The version stamped into the launcher at build. Absent from a
+	// development build, which states none.
+	Version *string `json:"version,omitempty"`
 	// Development Whether this is a development build: one with no version
 	// stamped.
 	Development bool `json:"development"`
+	// Commit The commit it was built from, when stamped.
+	Commit *string `json:"commit,omitempty"`
+	// Built When it was built, when stamped.
+	Built *string `json:"built,omitempty"`
+	// ApiVersions Each version of the control API it speaks. A client that
+	// speaks none of them stops here.
+	ApiVersions []string `json:"apiVersions"`
 	// ImageRegistry The registry its catalog's images come from.
 	ImageRegistry string `json:"imageRegistry"`
 	// Runtimes Each container runtime it drives, in the order it prefers them,
 	// and whether this machine has it.
 	Runtimes []RuntimeState `json:"runtimes"`
-	// Version The version stamped into the launcher at build. Absent from a
-	// development build, which states none.
-	Version *string `json:"version,omitempty"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -82,10 +82,10 @@ func (Agent) memberOfOneOrMoreAgents() {}
 
 // AgentOrganization An organization — the Organization branch of Agent.
 type AgentOrganization struct {
-	Id       *string               `json:"@id,omitempty"`
 	Type     AgentOrganizationType `json:"@type"`
-	Homepage *string               `json:"homepage,omitempty"`
+	Id       *string               `json:"@id,omitempty"`
 	Name     string                `json:"name"`
+	Homepage *string               `json:"homepage,omitempty"`
 	// AdditionalProperties is every member the schema does not name, as it came.
 	AdditionalProperties map[string]any `json:"-"`
 }
@@ -125,20 +125,20 @@ func (e AgentOrganizationType) Valid() bool {
 
 // AgentPerson A human participant — the Person branch of Agent.
 type AgentPerson struct {
+	Type AgentPersonType `json:"@type"`
 	// Id DID-shaped identifier (e.g. did:web:host:users:email%40host)
-	Id        *string         `json:"@id,omitempty"`
-	Type      AgentPersonType `json:"@type"`
-	Email     *string         `json:"email,omitempty"`
-	EmailSha1 *string         `json:"email_sha1,omitempty"`
-	Homepage  *string         `json:"homepage,omitempty"`
+	Id *string `json:"@id,omitempty"`
 	// Name Display name. ABSENT until resolved: a Person is identified by `@id`
 	// and nothing else, and what they are called is recorded once per change on
 	// the knowledge base's own log and filled in when a record is read. An
 	// artifact therefore never freezes a name, which is what lets a correction
 	// reach every artifact its subject ever wrote. Absent also means genuinely
 	// unknown — a DID this knowledge base has no profile for.
-	Name     *string `json:"name,omitempty"`
-	Nickname *string `json:"nickname,omitempty"`
+	Name      *string `json:"name,omitempty"`
+	Nickname  *string `json:"nickname,omitempty"`
+	Email     *string `json:"email,omitempty"`
+	EmailSha1 *string `json:"email_sha1,omitempty"`
+	Homepage  *string `json:"homepage,omitempty"`
 	// AdditionalProperties is every member the schema does not name, as it came.
 	AdditionalProperties map[string]any `json:"-"`
 }
@@ -184,21 +184,21 @@ func (e AgentPersonType) Valid() bool {
 // person's. A generator the knowledge base supplies, for an agent that
 // supplied none, carries `@type` and `@id` alone.
 type AgentSoftware struct {
+	Type AgentSoftwareType `json:"@type"`
 	// Id The agent's DID: did:web:<domain>:agents:<subject>, its account at the
 	// knowledge base's issuer
-	Id   *string           `json:"@id,omitempty"`
-	Type AgentSoftwareType `json:"@type"`
-	// Model Model identifier (e.g. gemma2:27b, claude-3-5-sonnet)
-	Model *string `json:"model,omitempty"`
+	Id *string `json:"@id,omitempty"`
 	// Name What the agent last said it is called. ABSENT until resolved: filled
 	// in from its profile when a record is read, as a Person's name is. Absent
 	// also where it has said nothing. Not parsed.
 	Name *string `json:"name,omitempty"`
+	// Provider Inference provider (e.g. ollama, anthropic)
+	Provider *string `json:"provider,omitempty"`
+	// Model Model identifier (e.g. gemma2:27b, claude-3-5-sonnet)
+	Model *string `json:"model,omitempty"`
 	// Parameters Inference parameters (temperature, maxTokens, systemPrompt,
 	// etc.). Runtime metadata, not part of identity.
 	Parameters *map[string]any `json:"parameters,omitempty"`
-	// Provider Inference provider (e.g. ollama, anthropic)
-	Provider *string `json:"provider,omitempty"`
 	// AdditionalProperties is every member the schema does not name, as it came.
 	AdditionalProperties map[string]any `json:"-"`
 }
@@ -263,22 +263,22 @@ func (e AnchorMethod) Valid() bool {
 // own geometry: it rides a viewer's local frames, and a frame another
 // participant's screen receives carries none.
 type AnchorRect struct {
-	// Bottom The rectangle's bottom edge.
-	Bottom float64 `json:"bottom"`
-	// Height The rectangle's height.
-	Height float64 `json:"height"`
-	// Left The rectangle's left edge.
-	Left float64 `json:"left"`
-	// Right The rectangle's right edge.
-	Right float64 `json:"right"`
-	// Top The rectangle's top edge.
-	Top float64 `json:"top"`
-	// Width The rectangle's width.
-	Width float64 `json:"width"`
 	// X The rectangle's horizontal origin.
 	X float64 `json:"x"`
 	// Y The rectangle's vertical origin.
 	Y float64 `json:"y"`
+	// Width The rectangle's width.
+	Width float64 `json:"width"`
+	// Height The rectangle's height.
+	Height float64 `json:"height"`
+	// Top The rectangle's top edge.
+	Top float64 `json:"top"`
+	// Right The rectangle's right edge.
+	Right float64 `json:"right"`
+	// Bottom The rectangle's bottom edge.
+	Bottom float64 `json:"bottom"`
+	// Left The rectangle's left edge.
+	Left float64 `json:"left"`
 }
 
 // AnchoredText Text paired with the geometry that indexes it — the minimum
@@ -286,10 +286,10 @@ type AnchorRect struct {
 // points, into a selection, or a rectangle into a quote. Whole-resource: a
 // producer iterates page by page, but every consumer wants one map.
 type AnchoredText struct {
-	// Items Positioned runs indexing `text`, roughly one per word.
-	Items []PdfTextItem `json:"items"`
 	// Text Reading-order text of the whole resource.
 	Text string `json:"text"`
+	// Items Positioned runs indexing `text`, roughly one per word.
+	Items []PdfTextItem `json:"items"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -391,14 +391,14 @@ func (u AnchoredTextAnswer) ValueByDiscriminator() (any, error) {
 // AnchoredTextDeclinedEntry The bytes were declined: no text is extracted
 // from them.
 type AnchoredTextDeclinedEntry struct {
-	// Declined Why extraction yielded nothing, by class.
-	Declined ExtractionDeclinedReason `json:"declined"`
+	// V The entry format.
+	V AnchoredTextDeclinedEntryV `json:"v"`
 	// Stamp The stamp the entry was derived under: the PDF reader's and the OCR
 	// engine's. A reader takes the entry only when it equals the stamp the
 	// Smelter last stated.
 	Stamp string `json:"stamp"`
-	// V The entry format.
-	V AnchoredTextDeclinedEntryV `json:"v"`
+	// Declined Why extraction yielded nothing, by class.
+	Declined ExtractionDeclinedReason `json:"declined"`
 }
 
 func (AnchoredTextDeclinedEntry) memberOfAnchoredTextEntry() {}
@@ -456,26 +456,26 @@ type AnchoredTextEntryMember interface {
 // AnchoredTextExtractedEntry The text extracted from the bytes, where each
 // word is on the page, and how it was extracted.
 type AnchoredTextExtractedEntry struct {
-	// Lines Where each word of `text` is, line by line, in reading order.
-	Lines []AnchoredTextExtractedEntryLinesItem `json:"lines"`
-	// Method How the text was extracted.
-	Method ExtractionMethod `json:"method"`
-	// OcrConfidence How well the engine read the pixels, when any of this text
-	// came from OCR.
-	OcrConfidence *OcrConfidence `json:"ocrConfidence,omitempty"`
-	// PdfClass PDF classification, when the source was a PDF.
-	PdfClass *PdfClass `json:"pdfClass,omitempty"`
+	// V The entry format.
+	V AnchoredTextExtractedEntryV `json:"v"`
 	// Stamp The stamp the entry was derived under: the PDF reader's and the OCR
 	// engine's. A reader takes the entry only when it equals the stamp the
 	// Smelter last stated.
 	Stamp string `json:"stamp"`
 	// Text The extracted text.
 	Text string `json:"text"`
+	// Lines Where each word of `text` is, line by line, in reading order.
+	Lines []AnchoredTextExtractedEntryLinesItem `json:"lines"`
+	// Method How the text was extracted.
+	Method ExtractionMethod `json:"method"`
+	// PdfClass PDF classification, when the source was a PDF.
+	PdfClass *PdfClass `json:"pdfClass,omitempty"`
+	// OcrConfidence How well the engine read the pixels, when any of this text
+	// came from OCR.
+	OcrConfidence *OcrConfidence `json:"ocrConfidence,omitempty"`
 	// UnreadPages 1-indexed pages this extraction could not read — present only
 	// for partially covered documents (class C).
 	UnreadPages *[]int `json:"unreadPages,omitempty"`
-	// V The entry format.
-	V AnchoredTextExtractedEntryV `json:"v"`
 }
 
 func (AnchoredTextExtractedEntry) memberOfAnchoredTextEntry() {}
@@ -491,16 +491,16 @@ func (v AnchoredTextExtractedEntry) MarshalJSON() ([]byte, error) {
 // AnchoredTextExtractedEntryLinesItem One line of text: the words that share
 // a page, a baseline and a height.
 type AnchoredTextExtractedEntryLinesItem struct {
-	// H The line's height in PDF points.
-	H float64 `json:"h"`
 	// P The page, counted from 1.
 	P int `json:"p"`
+	// Y The line's vertical position in PDF points, from the bottom of the page.
+	Y float64 `json:"y"`
+	// H The line's height in PDF points.
+	H float64 `json:"h"`
 	// Words Each word as `[x, width, start, end]`: its horizontal position and
 	// width in PDF points, and the offsets of its text in `text`, which are
 	// whole numbers of Unicode code points from the start of `text`.
 	Words [][]float64 `json:"words"`
-	// Y The line's vertical position in PDF points, from the bottom of the page.
-	Y float64 `json:"y"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -552,16 +552,19 @@ type AnchoredTextWrite struct {
 type Annotation struct {
 	// Context W3C Web Annotation JSON-LD context
 	Context AnnotationContext `json:"@context"`
+	// Type W3C Annotation type
+	Type       AnnotationType `json:"type"`
+	Id         AnnotationId   `json:"id"`
+	Motivation Motivation     `json:"motivation"`
+	// Target W3C Web Annotation target: the id of the resource annotated, when
+	// the whole of it is, or an object with source and optional selector
+	// (fragment)
+	Target AnnotationTargetValue `json:"target"`
 	// Body W3C Web Annotation body. Optional per the W3C spec — annotations
 	// whose motivation alone is meaningful (highlighting) legitimately omit it.
 	// Present values are either a single body or a non-empty array of bodies;
 	// there is no empty array.
 	Body *AnnotationBodies `json:"body,omitempty"`
-	// Created When the annotation was MADE — the authoring moment, carried from
-	// the event that created it. Not when a projection happened to write it: a
-	// store that rebuilds from the log must preserve this value, never restamp
-	// it.
-	Created string `json:"created"`
 	// Creator Web Annotation creator — who requested the annotation. DERIVED by
 	// the knowledge base at write time, never accepted from an emitter (a
 	// payload carrying it is refused): the verified emitter of the write, or,
@@ -569,22 +572,19 @@ type Annotation struct {
 	// produced it. A Person for human-requested work; a Software peer for
 	// autonomous-agent work.
 	Creator *Agent `json:"creator,omitempty"`
+	// Created When the annotation was MADE — the authoring moment, carried from
+	// the event that created it. Not when a projection happened to write it: a
+	// store that rebuilds from the log must preserve this value, never restamp
+	// it.
+	Created  string  `json:"created"`
+	Modified *string `json:"modified,omitempty"`
 	// Generator Web Annotation generator — the Software peer that produced the
 	// annotation, when software did. Absent for a person's own annotation. An
 	// emitter may supply it to carry the model's parameters, but its identity
 	// must be the emitter's own: the knowledge base refuses a generator naming
 	// anyone else, and supplies it from the verified emitter when omitted. One
 	// producer per write — a write carrying the array form is refused.
-	Generator  *OneOrMoreAgents `json:"generator,omitempty"`
-	Id         AnnotationId     `json:"id"`
-	Modified   *string          `json:"modified,omitempty"`
-	Motivation Motivation       `json:"motivation"`
-	// Target W3C Web Annotation target: the id of the resource annotated, when
-	// the whole of it is, or an object with source and optional selector
-	// (fragment)
-	Target AnnotationTargetValue `json:"target"`
-	// Type W3C Annotation type
-	Type AnnotationType `json:"type"`
+	Generator *OneOrMoreAgents `json:"generator,omitempty"`
 	// WasAttributedTo PROV-O wasAttributedTo — every party responsible for this
 	// annotation, DERIVED by the knowledge base from `creator` and the verified
 	// executor of the write: `[creator, generator]` when one agent requested the
@@ -709,15 +709,15 @@ func (AnnotationSelectorList) memberOfAnnotationSelector() {}
 // AnnotationTarget W3C Web Annotation target object - source is required,
 // selector is optional
 type AnnotationTarget struct {
-	// Selector Optional selector to identify a specific segment of the source
-	// resource
-	Selector *AnnotationSelector `json:"selector,omitempty"`
-	// Source The id of the resource being annotated
-	Source ResourceId `json:"source"`
 	// Type Stated by the annotation of a span: the target is a part of its
 	// source, which the selector picks out. An annotation of a resource as a
 	// whole states none.
 	Type *AnnotationTargetType `json:"type,omitempty"`
+	// Source The id of the resource being annotated
+	Source ResourceId `json:"source"`
+	// Selector Optional selector to identify a specific segment of the source
+	// resource
+	Selector *AnnotationSelector `json:"selector,omitempty"`
 }
 
 func (AnnotationTarget) memberOfAnnotationTargetValue() {}
@@ -803,34 +803,34 @@ func (e ApiVersion) Valid() bool {
 // specs/src/service-environment/variables.json lists for it. A document that
 // does not validate is refused at boot, naming each failing field.
 type ArchivistConfig struct {
-	// AnchoredTextDir The anchored-text store, which only the Archivist mounts:
-	// the Smelter stores each entry in it over HTTP, and the Archivist serves
-	// it.
-	AnchoredTextDir string           `json:"anchoredTextDir"`
-	Engines         ArchivistEngines `json:"engines"`
 	// GatewayUrl The URL the Archivist reaches the gateway at: its only route to
 	// the bus.
 	GatewayUrl string `json:"gatewayUrl"`
 	// Identity The issuer the Archivist's service account signs in at, and whose
 	// tokens it admits callers of its HTTP surface by.
-	Identity  ServiceIdentity `json:"identity"`
-	LogFormat LogFormat       `json:"logFormat"`
-	LogLevel  LogLevel        `json:"logLevel"`
-	// Port The port the Archivist's HTTP surface answers on, `/health` included.
-	Port int `json:"port"`
+	Identity ServiceIdentity `json:"identity"`
 	// Root The knowledge base's working tree: the directory holding `.xynolog/`.
 	// The event log, the content and the committed config are under it.
 	Root string `json:"root"`
+	// StateHome The state volume, this knowledge base's alone: the Archivist
+	// keeps the knowledge base's views and projections in it, at its top.
+	StateHome string `json:"stateHome"`
+	// AnchoredTextDir The anchored-text store, which only the Archivist mounts:
+	// the Smelter stores each entry in it over HTTP, and the Archivist serves
+	// it.
+	AnchoredTextDir string           `json:"anchoredTextDir"`
+	Engines         ArchivistEngines `json:"engines"`
+	// Port The port the Archivist's HTTP surface answers on, `/health` included.
+	Port int `json:"port"`
 	// SkipRebuild Whether the Archivist serves the views it finds at boot
 	// instead of rebuilding them from the event log first.
 	SkipRebuild bool `json:"skipRebuild"`
 	// Staging The bounds on how far the staging driver may run behind the
 	// working tree, in milliseconds. A knowledge base that does not sync git
 	// stages nothing, and reads neither.
-	Staging ArchivistConfigStaging `json:"staging"`
-	// StateHome The state volume, this knowledge base's alone: the Archivist
-	// keeps the knowledge base's views and projections in it, at its top.
-	StateHome string `json:"stateHome"`
+	Staging   ArchivistConfigStaging `json:"staging"`
+	LogLevel  LogLevel               `json:"logLevel"`
+	LogFormat LogFormat              `json:"logFormat"`
 }
 
 // ArchivistConfigStaging The bounds on how far the staging driver may run
@@ -867,11 +867,11 @@ func (v ArchivistDefaultEntityTypes) MarshalJSON() ([]byte, error) {
 // knowledge base's Inference document's `engines` as they stand, with no
 // fallback, so a job or an actor absent here has no engine.
 type ArchivistEngines struct {
-	// Actors The engine each Librarian actor that calls a model asks.
-	Actors ArchivistEnginesActors `json:"actors"`
 	// Jobs The engine each job is done with when software does it, keyed as a
 	// job description is: by `jobType`, and for `mark` by motivation.
 	Jobs ArchivistEnginesJobs `json:"jobs"`
+	// Actors The engine each Librarian actor that calls a model asks.
+	Actors ArchivistEnginesActors `json:"actors"`
 }
 
 // ArchivistEnginesActors The engine each Librarian actor that calls a model
@@ -892,9 +892,9 @@ type ArchivistEnginesJobs struct {
 
 // ArchivistEnginesJobsMark The engine for `mark` jobs of each motivation.
 type ArchivistEnginesJobsMark struct {
-	Assessing    *Engine `json:"assessing,omitempty"`
-	Commenting   *Engine `json:"commenting,omitempty"`
 	Highlighting *Engine `json:"highlighting,omitempty"`
+	Commenting   *Engine `json:"commenting,omitempty"`
+	Assessing    *Engine `json:"assessing,omitempty"`
 	Linking      *Engine `json:"linking,omitempty"`
 	Tagging      *Engine `json:"tagging,omitempty"`
 }
@@ -921,10 +921,10 @@ func (v ArchivistEventsResponse) MarshalJSON() ([]byte, error) {
 // ArchivistHealth The Archivist's liveness answer: it serves, and the actors
 // it hosts.
 type ArchivistHealth struct {
+	Status ArchivistHealthStatus `json:"status"`
 	// Actors The record actors this process hosts: each of the enum's, once, in
 	// the order the enum lists them.
 	Actors []ArchivistHealthActorsItem `json:"actors"`
-	Status ArchivistHealthStatus       `json:"status"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -974,41 +974,41 @@ func (e ArchivistHealthStatus) Valid() bool {
 type ArchivistLayout struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
+	// EventStream A resource's event stream: a directory of event files.
+	EventStream ArchivistLayoutEventStream `json:"eventStream"`
+	// SystemStream The knowledge base's own stream, of the events that name no
+	// resource. It is not sharded.
+	SystemStream ArchivistLayoutSystemStream `json:"systemStream"`
+	// EventFile The files of a stream.
+	EventFile ArchivistLayoutEventFile `json:"eventFile"`
+	// StoredEvent The schema a stored event, one line of an event file, is.
+	StoredEvent any `json:"storedEvent"`
+	// View A resource's view, in the state directory.
+	View ArchivistLayoutView `json:"view"`
+	// SystemProjections The projections of what the `__system__` stream adds up
+	// to, in the state directory.
+	SystemProjections ArchivistLayoutSystemProjections `json:"systemProjections"`
+	// StorageUriIndex An entry of the storage-uri index, which names the
+	// resource whose content is at a storage URI.
+	StorageUriIndex ArchivistLayoutStorageUriIndex `json:"storageUriIndex"`
 	// AnchoredTextEntry An entry of the anchored-text store, keyed by the
 	// checksum of the content it was extracted from.
 	AnchoredTextEntry ArchivistLayoutAnchoredTextEntry `json:"anchoredTextEntry"`
 	// AnchoredTextStamp The file holding the stamp the anchored-text store's
 	// entries are taken under: the stamp, followed by a newline.
 	AnchoredTextStamp ArchivistLayoutAnchoredTextStamp `json:"anchoredTextStamp"`
-	// EventFile The files of a stream.
-	EventFile ArchivistLayoutEventFile `json:"eventFile"`
-	// EventStream A resource's event stream: a directory of event files.
-	EventStream ArchivistLayoutEventStream `json:"eventStream"`
-	// StorageUriIndex An entry of the storage-uri index, which names the
-	// resource whose content is at a storage URI.
-	StorageUriIndex ArchivistLayoutStorageUriIndex `json:"storageUriIndex"`
-	// StoredEvent The schema a stored event, one line of an event file, is.
-	StoredEvent any `json:"storedEvent"`
-	// SystemProjections The projections of what the `__system__` stream adds up
-	// to, in the state directory.
-	SystemProjections ArchivistLayoutSystemProjections `json:"systemProjections"`
-	// SystemStream The knowledge base's own stream, of the events that name no
-	// resource. It is not sharded.
-	SystemStream ArchivistLayoutSystemStream `json:"systemStream"`
-	// View A resource's view, in the state directory.
-	View ArchivistLayoutView `json:"view"`
 }
 
 // ArchivistLayoutAnchoredTextEntry An entry of the anchored-text store, keyed
 // by the checksum of the content it was extracted from.
 type ArchivistLayoutAnchoredTextEntry struct {
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutAnchoredTextEntryTree `json:"tree"`
 	// Path Its path in its tree, `/`-separated.
 	Path string `json:"path"`
 	// Schema The schema an entry is.
 	Schema any `json:"schema"`
-	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
-	// state directory, or `anchoredTextDir`, the anchored-text store.
-	Tree ArchivistLayoutAnchoredTextEntryTree `json:"tree"`
 }
 
 // ArchivistLayoutAnchoredTextEntryTree The tree the file is in: `root`, the
@@ -1036,11 +1036,11 @@ func (e ArchivistLayoutAnchoredTextEntryTree) Valid() bool {
 // anchored-text store's entries are taken under: the stamp, followed by a
 // newline.
 type ArchivistLayoutAnchoredTextStamp struct {
-	// Path Its path in its tree, `/`-separated.
-	Path string `json:"path"`
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
 	Tree ArchivistLayoutAnchoredTextStampTree `json:"tree"`
+	// Path Its path in its tree, `/`-separated.
+	Path string `json:"path"`
 }
 
 // ArchivistLayoutAnchoredTextStampTree The tree the file is in: `root`, the
@@ -1066,6 +1066,8 @@ func (e ArchivistLayoutAnchoredTextStampTree) Valid() bool {
 
 // ArchivistLayoutEventFile The files of a stream.
 type ArchivistLayoutEventFile struct {
+	// Name A file's name, `{number}` its number in `digits` decimal digits.
+	Name string `json:"name"`
 	// Digits How many decimal digits a file's number is written in, with leading
 	// zeros.
 	Digits int `json:"digits"`
@@ -1074,18 +1076,16 @@ type ArchivistLayoutEventFile struct {
 	First int `json:"first"`
 	// MaxEvents The most events a file holds.
 	MaxEvents int `json:"maxEvents"`
-	// Name A file's name, `{number}` its number in `digits` decimal digits.
-	Name string `json:"name"`
 }
 
 // ArchivistLayoutEventStream A resource's event stream: a directory of event
 // files.
 type ArchivistLayoutEventStream struct {
-	// Path Its path in its tree, `/`-separated.
-	Path string `json:"path"`
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
 	Tree ArchivistLayoutEventStreamTree `json:"tree"`
+	// Path Its path in its tree, `/`-separated.
+	Path string `json:"path"`
 }
 
 // ArchivistLayoutEventStreamTree The tree the file is in: `root`, the working
@@ -1112,13 +1112,13 @@ func (e ArchivistLayoutEventStreamTree) Valid() bool {
 // ArchivistLayoutStorageUriIndex An entry of the storage-uri index, which
 // names the resource whose content is at a storage URI.
 type ArchivistLayoutStorageUriIndex struct {
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutStorageUriIndexTree `json:"tree"`
 	// Path Its path in its tree, `/`-separated.
 	Path string `json:"path"`
 	// Schema The schema an entry is.
 	Schema any `json:"schema"`
-	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
-	// state directory, or `anchoredTextDir`, the anchored-text store.
-	Tree ArchivistLayoutStorageUriIndexTree `json:"tree"`
 }
 
 // ArchivistLayoutStorageUriIndexTree The tree the file is in: `root`, the
@@ -1145,13 +1145,13 @@ func (e ArchivistLayoutStorageUriIndexTree) Valid() bool {
 // ArchivistLayoutSystemProjections The projections of what the `__system__`
 // stream adds up to, in the state directory.
 type ArchivistLayoutSystemProjections struct {
-	// Files Each projection's file.
-	Files []ArchivistLayoutSystemProjectionsFilesItem `json:"files"`
-	// Path The directory that holds them, in its tree, `/`-separated.
-	Path string `json:"path"`
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
 	Tree ArchivistLayoutSystemProjectionsTree `json:"tree"`
+	// Path The directory that holds them, in its tree, `/`-separated.
+	Path string `json:"path"`
+	// Files Each projection's file.
+	Files []ArchivistLayoutSystemProjectionsFilesItem `json:"files"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -1193,11 +1193,11 @@ func (e ArchivistLayoutSystemProjectionsTree) Valid() bool {
 // ArchivistLayoutSystemStream The knowledge base's own stream, of the events
 // that name no resource. It is not sharded.
 type ArchivistLayoutSystemStream struct {
-	// Path Its path in its tree, `/`-separated.
-	Path string `json:"path"`
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
 	Tree ArchivistLayoutSystemStreamTree `json:"tree"`
+	// Path Its path in its tree, `/`-separated.
+	Path string `json:"path"`
 }
 
 // ArchivistLayoutSystemStreamTree The tree the file is in: `root`, the
@@ -1223,13 +1223,13 @@ func (e ArchivistLayoutSystemStreamTree) Valid() bool {
 
 // ArchivistLayoutView A resource's view, in the state directory.
 type ArchivistLayoutView struct {
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutViewTree `json:"tree"`
 	// Path Its path in its tree, `/`-separated.
 	Path string `json:"path"`
 	// Schema The schema a view is.
 	Schema any `json:"schema"`
-	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
-	// state directory, or `anchoredTextDir`, the anchored-text store.
-	Tree ArchivistLayoutViewTree `json:"tree"`
 }
 
 // ArchivistLayoutViewTree The tree the file is in: `root`, the working tree,
@@ -1261,20 +1261,20 @@ type ArchivistMessages struct {
 	// Boot Each refusal to start of the Archivist's own, written in
 	// service-environment/boot-refusals.json's `line`.
 	Boot []ArchivistMessagesBootItem `json:"boot"`
-	// Http Each other error a route of the HTTP surface answers with.
-	Http []ArchivistMessagesHttpItem `json:"http"`
-	// Logged Each message the Archivist logs that a reader of its output relies
-	// on.
-	Logged []ArchivistMessagesLoggedItem `json:"logged"`
+	// Unsent The failure a reply that cannot be sent is answered with instead,
+	// on the operation's failure channel.
+	Unsent []ArchivistMessagesUnsentItem `json:"unsent"`
 	// Refusals Each refusal of an operation, on the operation's failure channel.
 	Refusals []ArchivistMessagesRefusalsItem `json:"refusals"`
 	// Unauthorized The refusal of every route of the HTTP surface but `/health`:
 	// a token that is missing, or not of the knowledge base's issuer and
 	// audience, or without the service role.
 	Unauthorized ArchivistMessagesUnauthorized `json:"unauthorized"`
-	// Unsent The failure a reply that cannot be sent is answered with instead,
-	// on the operation's failure channel.
-	Unsent []ArchivistMessagesUnsentItem `json:"unsent"`
+	// Http Each other error a route of the HTTP surface answers with.
+	Http []ArchivistMessagesHttpItem `json:"http"`
+	// Logged Each message the Archivist logs that a reader of its output relies
+	// on.
+	Logged []ArchivistMessagesLoggedItem `json:"logged"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -1282,39 +1282,39 @@ type ArchivistMessages struct {
 func (v ArchivistMessages) MarshalJSON() ([]byte, error) {
 	type written ArchivistMessages
 	v.Boot = listOf(v.Boot)
+	v.Unsent = listOf(v.Unsent)
+	v.Refusals = listOf(v.Refusals)
 	v.Http = listOf(v.Http)
 	v.Logged = listOf(v.Logged)
-	v.Refusals = listOf(v.Refusals)
-	v.Unsent = listOf(v.Unsent)
 	return json.Marshal(written(v))
 }
 
 type ArchivistMessagesBootItem struct {
 	// Name The situation's name.
 	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 	// Refusal The refusal, in place of the line's `{refusal}`. A `{name}` in it
 	// is filled with what the row's `situation` names, and nothing else in it
 	// varies.
 	Refusal string `json:"refusal"`
-	// Situation When it is written, and what fills each `{name}` of its text.
-	Situation string `json:"situation"`
 }
 
 type ArchivistMessagesHttpItem struct {
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Method The route's method.
+	Method ArchivistMessagesHttpItemMethod `json:"method"`
+	// Route The route, as the Archivist's API names its path.
+	Route  string     `json:"route"`
+	Status HttpStatus `json:"status"`
 	// Code The body's `code`, where it carries one.
 	Code *string `json:"code,omitempty"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 	// Error The body's `error`. A `{name}` in it is filled with what the row's
 	// `situation` names, and nothing else in it varies.
 	Error string `json:"error"`
-	// Method The route's method.
-	Method ArchivistMessagesHttpItemMethod `json:"method"`
-	// Name The situation's name.
-	Name string `json:"name"`
-	// Route The route, as the Archivist's API names its path.
-	Route string `json:"route"`
-	// Situation When it is written, and what fills each `{name}` of its text.
-	Situation string     `json:"situation"`
-	Status    HttpStatus `json:"status"`
 }
 
 // ArchivistMessagesHttpItemMethod The route's method.
@@ -1337,20 +1337,26 @@ func (e ArchivistMessagesHttpItemMethod) Valid() bool {
 }
 
 type ArchivistMessagesLoggedItem struct {
+	// Name The situation's name.
+	Name  string   `json:"name"`
+	Level LogLevel `json:"level"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+	// Message The line's message, word for word.
+	Message string `json:"message"`
 	// Fields The fields the line is logged with whose form is stated, by name:
 	// each a text whose `{name}` is filled as the row's `situation` says. The
 	// line may carry others.
 	Fields map[string]string `json:"fields"`
-	Level  LogLevel          `json:"level"`
-	// Message The line's message, word for word.
-	Message string `json:"message"`
-	// Name The situation's name.
-	Name string `json:"name"`
-	// Situation When it is written, and what fills each `{name}` of its text.
-	Situation string `json:"situation"`
 }
 
 type ArchivistMessagesRefusalsItem struct {
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Operations The operations it refuses: requests of bus/registry.json's
+	// operations that the Archivist answers. `{channel}` in the message is the
+	// one refused.
+	Operations []string `json:"operations"`
 	// Code Machine-readable failure class, for consumers that must BRANCH on why
 	// a command failed rather than log it. Optional and deliberately sparse:
 	// absent means 'no class declared', and every existing failure stays that
@@ -1379,17 +1385,11 @@ type ArchivistMessagesRefusalsItem struct {
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
 	Code *ArchivistMessagesRefusalsItemCode `json:"code,omitempty"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 	// Message The failure's `message`. A `{name}` in it is filled with what the
 	// row's `situation` names, and nothing else in it varies.
 	Message string `json:"message"`
-	// Name The situation's name.
-	Name string `json:"name"`
-	// Operations The operations it refuses: requests of bus/registry.json's
-	// operations that the Archivist answers. `{channel}` in the message is the
-	// one refused.
-	Operations []string `json:"operations"`
-	// Situation When it is written, and what fills each `{name}` of its text.
-	Situation string `json:"situation"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -1450,33 +1450,33 @@ func (e ArchivistMessagesRefusalsItemCode) Valid() bool {
 // surface but `/health`: a token that is missing, or not of the knowledge
 // base's issuer and audience, or without the service role.
 type ArchivistMessagesUnauthorized struct {
-	// Absent The `WWW-Authenticate` header when none was.
-	Absent string `json:"absent"`
+	Status HttpStatus `json:"status"`
 	// Error The body's `error`.
 	Error string `json:"error"`
 	// Presented The `WWW-Authenticate` header when a token was presented.
-	Presented string     `json:"presented"`
-	Status    HttpStatus `json:"status"`
+	Presented string `json:"presented"`
+	// Absent The `WWW-Authenticate` header when none was.
+	Absent string `json:"absent"`
 }
 
 type ArchivistMessagesUnsentItem struct {
-	// Message The failure's `message`. A `{name}` in it is filled with what the
-	// row's `situation` names, and nothing else in it varies.
-	Message string `json:"message"`
 	// Name The situation's name.
 	Name string `json:"name"`
 	// Situation When it is written, and what fills each `{name}` of its text.
 	Situation string `json:"situation"`
+	// Message The failure's `message`. A `{name}` in it is filled with what the
+	// row's `situation` names, and nothing else in it varies.
+	Message string `json:"message"`
 }
 
 // ArchivistStream One stream of the event log, and where it stands: the
 // resource it is of, or `__system__` for the knowledge base's own, and the
 // sequence number of its last event.
 type ArchivistStream struct {
+	ResourceId ResourceId `json:"resourceId"`
 	// LastSequence The sequence number of the stream's last event when it was
 	// read: 0 for a stream with none.
-	LastSequence int        `json:"lastSequence"`
-	ResourceId   ResourceId `json:"resourceId"`
+	LastSequence int `json:"lastSequence"`
 }
 
 // ArchivistStreamsResponse Every stream of the event log, `__system__` among
@@ -1497,17 +1497,17 @@ func (v ArchivistStreamsResponse) MarshalJSON() ([]byte, error) {
 // AssessingJobParams What an assessing job takes: passages of the resource
 // are marked, each with an assessment the model writes.
 type AssessingJobParams struct {
-	// Density How many annotations to aim for per 2000 words of the resource.
-	Density *float64 `json:"density,omitempty"`
+	Motivation AssessingJobParamsMotivation `json:"motivation"`
 	// Instructions What to look for, in the caller's words. Added to the prompt.
 	Instructions *string `json:"instructions,omitempty"`
-	// Language The language the annotations' own text is written in. BCP 47.
-	Language   *string                      `json:"language,omitempty"`
-	Motivation AssessingJobParamsMotivation `json:"motivation"`
-	// SourceLanguage The language of the resource being read. BCP 47.
-	SourceLanguage *string `json:"sourceLanguage,omitempty"`
 	// Tone The stance the assessments are written from.
 	Tone *AssessingJobParamsTone `json:"tone,omitempty"`
+	// Density How many annotations to aim for per 2000 words of the resource.
+	Density *float64 `json:"density,omitempty"`
+	// Language The language the annotations' own text is written in. BCP 47.
+	Language *string `json:"language,omitempty"`
+	// SourceLanguage The language of the resource being read. BCP 47.
+	SourceLanguage *string `json:"sourceLanguage,omitempty"`
 }
 
 func (AssessingJobParams) memberOfMarkJobParams() {}
@@ -1555,56 +1555,56 @@ func (e AssessingJobParamsTone) Valid() bool {
 // Person's name filled in from the knowledge base's profiles — and is stored
 // nowhere. A Person the record does not name carries no `name`.
 type AttributedEvent struct {
-	// Agent Who `userId` is.
-	Agent Agent `json:"agent"`
 	// Id Unique event ID (UUID)
-	Id       string        `json:"id"`
-	Metadata EventMetadata `json:"metadata"`
-	// Payload Event-type-specific payload
-	Payload map[string]any `json:"payload"`
-	// ResourceId Resource this event affects (absent for system events)
-	ResourceId *ResourceId `json:"resourceId,omitempty"`
-	// Timestamp When the event occurred
-	Timestamp string `json:"timestamp"`
+	Id string `json:"id"`
 	// Type Event type (flow verb name, e.g. mark:added)
 	Type string `json:"type"`
+	// Timestamp When the event occurred
+	Timestamp string `json:"timestamp"`
 	// UserId DID of the user who triggered the event
 	UserId UserId `json:"userId"`
+	// ResourceId Resource this event affects (absent for system events)
+	ResourceId *ResourceId `json:"resourceId,omitempty"`
 	// Version Event schema version
 	Version int `json:"version"`
+	// Payload Event-type-specific payload
+	Payload  map[string]any `json:"payload"`
+	Metadata EventMetadata  `json:"metadata"`
+	// Agent Who `userId` is.
+	Agent Agent `json:"agent"`
 }
 
 // AuthLoginParams auth.login's params.
 type AuthLoginParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
-	// Runtime Keep to the local stacks, as --runtime does.
-	Runtime *Runtime `json:"runtime,omitempty"`
 	// Target Which knowledge base's stack. Absent: the one the command line
 	// chooses, standing where the control server was started.
 	Target *Target `json:"target,omitempty"`
+	// Runtime Keep to the local stacks, as --runtime does.
+	Runtime *Runtime `json:"runtime,omitempty"`
 }
 
 // AuthLoginResult A completed sign-in, kept in the launcher's sign-in store.
 // No token is in it.
 type AuthLoginResult struct {
-	// Issuer The issuer the knowledge base named, where the person signed in.
-	Issuer string `json:"issuer"`
 	// Key The stack's key in the sign-in store.
 	Key string `json:"key"`
 	// Who Who the gateway says is signed in: their email, else their DID.
 	Who string `json:"who"`
+	// Issuer The issuer the knowledge base named, where the person signed in.
+	Issuer string `json:"issuer"`
 }
 
 // AuthLogoutParams auth.logout's params.
 type AuthLogoutParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
-	// Runtime Keep to the local stacks, as --runtime does.
-	Runtime *Runtime `json:"runtime,omitempty"`
 	// Target Which knowledge base's stack. Absent: the one the command line
 	// chooses, standing where the control server was started.
 	Target *Target `json:"target,omitempty"`
+	// Runtime Keep to the local stacks, as --runtime does.
+	Runtime *Runtime `json:"runtime,omitempty"`
 }
 
 // AuthLogoutResult The launcher's session for a stack, ended. Desktop's own
@@ -1613,12 +1613,12 @@ type AuthLogoutResult struct {
 	// Key The stack's key in the sign-in store. Absent when no stack is
 	// recorded.
 	Key *string `json:"key,omitempty"`
+	// WasSignedIn Whether a session was stored. false: nothing was done.
+	WasSignedIn bool `json:"wasSignedIn"`
 	// Revoked Whether the issuer revoked the session's refresh token. false with
 	// wasSignedIn: the local token is forgotten, and the refresh token stays
 	// valid at the issuer until it expires.
 	Revoked bool `json:"revoked"`
-	// WasSignedIn Whether a session was stored. false: nothing was done.
-	WasSignedIn bool `json:"wasSignedIn"`
 }
 
 // BeckonFocusEvent Emitted to draw attention to a resource: to one of its
@@ -1651,31 +1651,31 @@ type BeckonSparkleEvent struct {
 // back, and, re-authenticating, which registered knowledge base it is and
 // what the person believed they chose.
 type BeginAuthorizationOptions struct {
+	Target HttpEndpoint `json:"target"`
+	// RedirectUri Where the issuer sends the person back to.
+	RedirectUri string `json:"redirectUri"`
+	// KbId The registered knowledge base being re-authenticated, rather than a
+	// new address connected to.
+	KbId *string `json:"kbId,omitempty"`
 	// ExpectedDid The knowledge base's DID the person believed they chose:
 	// verified after, never assumed.
 	ExpectedDid *string `json:"expectedDid,omitempty"`
 	// ExpectedName The knowledge base's name the person believed they chose:
 	// verified after, never assumed.
 	ExpectedName *string `json:"expectedName,omitempty"`
-	// KbId The registered knowledge base being re-authenticated, rather than a
-	// new address connected to.
-	KbId *string `json:"kbId,omitempty"`
-	// RedirectUri Where the issuer sends the person back to.
-	RedirectUri string       `json:"redirectUri"`
-	Target      HttpEndpoint `json:"target"`
 }
 
 // BindBodyOperation One edit to a linking annotation's body list: add or
 // remove a body item, or replace an existing one.
 type BindBodyOperation struct {
-	// Item Body item for add operations
-	Item *AnnotationBody `json:"item,omitempty"`
-	// NewItem Replacement body item for replace operations
-	NewItem *AnnotationBody `json:"newItem,omitempty"`
-	// OldItem Previous body item for replace operations
-	OldItem *AnnotationBody `json:"oldItem,omitempty"`
 	// Op The type of body operation
 	Op BindBodyOperationOp `json:"op"`
+	// Item Body item for add operations
+	Item *AnnotationBody `json:"item,omitempty"`
+	// OldItem Previous body item for replace operations
+	OldItem *AnnotationBody `json:"oldItem,omitempty"`
+	// NewItem Replacement body item for replace operations
+	NewItem *AnnotationBody `json:"newItem,omitempty"`
 }
 
 // BindBodyOperationOp The type of body operation
@@ -1707,12 +1707,12 @@ type BindBodyUpdated map[string]any
 type BindInitiateCommand struct {
 	// AnnotationId Branded AnnotationId of the annotation being bound
 	AnnotationId AnnotationId `json:"annotationId"`
+	// ResourceId Branded ResourceId of the resource being bound to
+	ResourceId ResourceId `json:"resourceId"`
 	// DefaultTitle Default title for the bound annotation
 	DefaultTitle string `json:"defaultTitle"`
 	// EntityTypes Entity types to associate with the annotation
 	EntityTypes []string `json:"entityTypes"`
-	// ResourceId Branded ResourceId of the resource being bound to
-	ResourceId ResourceId `json:"resourceId"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -1732,10 +1732,10 @@ type BindUpdateBodyCommand struct {
 	// AnnotationId Branded AnnotationId of the annotation whose body is being
 	// updated
 	AnnotationId AnnotationId `json:"annotationId"`
-	// Operations Ordered body-list edits to apply.
-	Operations []BindBodyOperation `json:"operations"`
 	// ResourceId Branded ResourceId of the resource the annotation belongs to
 	ResourceId ResourceId `json:"resourceId"`
+	// Operations Ordered body-list edits to apply.
+	Operations []BindBodyOperation `json:"operations"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -1759,8 +1759,8 @@ type BodyOperationMember interface {
 }
 
 type BodyOperationAdd struct {
-	Item AnnotationBody     `json:"item"`
 	Op   BodyOperationAddOp `json:"op"`
+	Item AnnotationBody     `json:"item"`
 }
 
 func (BodyOperationAdd) memberOfBodyOperation() {}
@@ -1782,8 +1782,8 @@ func (e BodyOperationAddOp) Valid() bool {
 }
 
 type BodyOperationRemove struct {
-	Item AnnotationBody        `json:"item"`
 	Op   BodyOperationRemoveOp `json:"op"`
+	Item AnnotationBody        `json:"item"`
 }
 
 func (BodyOperationRemove) memberOfBodyOperation() {}
@@ -1805,9 +1805,9 @@ func (e BodyOperationRemoveOp) Valid() bool {
 }
 
 type BodyOperationReplace struct {
-	NewItem AnnotationBody         `json:"newItem"`
-	OldItem AnnotationBody         `json:"oldItem"`
 	Op      BodyOperationReplaceOp `json:"op"`
+	OldItem AnnotationBody         `json:"oldItem"`
+	NewItem AnnotationBody         `json:"newItem"`
 }
 
 func (BodyOperationReplace) memberOfBodyOperation() {}
@@ -1861,8 +1861,8 @@ func (e BodyPurpose) Valid() bool {
 // BrowseAnnotationHistoryRequest Request to browse the history of an
 // annotation
 type BrowseAnnotationHistoryRequest struct {
-	AnnotationId AnnotationId `json:"annotationId"`
 	ResourceId   ResourceId   `json:"resourceId"`
+	AnnotationId AnnotationId `json:"annotationId"`
 }
 
 // BrowseAnnotationHistoryResult Result of browsing annotation history
@@ -1872,8 +1872,8 @@ type BrowseAnnotationHistoryResult struct {
 
 // BrowseAnnotationRequest Request to browse a single annotation
 type BrowseAnnotationRequest struct {
-	AnnotationId AnnotationId `json:"annotationId"`
 	ResourceId   ResourceId   `json:"resourceId"`
+	AnnotationId AnnotationId `json:"annotationId"`
 }
 
 // BrowseAnnotationResult Result of browsing a single annotation
@@ -1892,8 +1892,8 @@ type BrowseAnnotationResult struct {
 // and over the wire by a driver opening an annotation on another
 // participant's screen.
 type BrowseClickEvent struct {
-	AnchorRect   *AnchorRect  `json:"anchorRect,omitempty"`
 	AnnotationId AnnotationId `json:"annotationId"`
+	AnchorRect   *AnchorRect  `json:"anchorRect,omitempty"`
 }
 
 // BrowseDirectoryFailed The payload of `browse:directory-failed`: a
@@ -1927,10 +1927,10 @@ type BrowseDirectoryFailed struct {
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
 	Code *CommandErrorCode `json:"code,omitempty"`
-	// Details Optional additional context (stack trace, field name, etc.)
-	Details *string `json:"details,omitempty"`
 	// Message Human-readable error message
 	Message string `json:"message"`
+	// Details Optional additional context (stack trace, field name, etc.)
+	Details *string `json:"details,omitempty"`
 	// Path The path the read was asked for.
 	Path string `json:"path"`
 }
@@ -1965,8 +1965,8 @@ type BrowseDirectoryResult struct {
 }
 
 type BrowseDirectoryResultResponse struct {
-	Entries []DirectoryEntry `json:"entries"`
 	Path    string           `json:"path"`
+	Entries []DirectoryEntry `json:"entries"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -2015,10 +2015,10 @@ type BrowseEntityTypesResult struct {
 
 // BrowseEventsRequest Request to browse events for a resource
 type BrowseEventsRequest struct {
-	Limit      *int       `json:"limit,omitempty"`
 	ResourceId ResourceId `json:"resourceId"`
 	Type       *string    `json:"type,omitempty"`
 	UserId     *UserId    `json:"userId,omitempty"`
+	Limit      *int       `json:"limit,omitempty"`
 }
 
 // BrowseEventsResult Result of browsing events for a resource
@@ -2029,14 +2029,14 @@ type BrowseEventsResult struct {
 // BrowseExternalNavigateEvent Emitted when navigation to an external URL is
 // requested
 type BrowseExternalNavigateEvent struct {
-	ResourceId *ResourceId `json:"resourceId,omitempty"`
 	Url        string      `json:"url"`
+	ResourceId *ResourceId `json:"resourceId,omitempty"`
 }
 
 type BrowseFilesResponse struct {
-	Entries []DirectoryEntry `json:"entries"`
 	// Path The directory path that was listed, relative to project root
-	Path string `json:"path"`
+	Path    string           `json:"path"`
+	Entries []DirectoryEntry `json:"entries"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -2063,9 +2063,9 @@ type BrowseLinkClickedEvent struct {
 
 // BrowsePanelOpenEvent Emitted when a browse panel is opened
 type BrowsePanelOpenEvent struct {
-	Motivation           *Motivation   `json:"motivation,omitempty"`
 	Panel                string        `json:"panel"`
 	ScrollToAnnotationId *AnnotationId `json:"scrollToAnnotationId,omitempty"`
+	Motivation           *Motivation   `json:"motivation,omitempty"`
 }
 
 // BrowsePanelToggleEvent Emitted when a browse panel is toggled
@@ -2119,8 +2119,8 @@ type BrowseResourceOpenEvent struct {
 // BrowseResourceReorderEvent Emitted when resources are reordered in the
 // browse panel
 type BrowseResourceReorderEvent struct {
-	NewIndex int `json:"newIndex"`
 	OldIndex int `json:"oldIndex"`
+	NewIndex int `json:"newIndex"`
 }
 
 // BrowseResourceRequest Request to browse a single resource
@@ -2137,10 +2137,10 @@ type BrowseResourceResult struct {
 }
 
 type BrowseResourceResultResponse struct {
+	Resource ResourceDescriptor `json:"resource"`
 	// LastSequence The sequence number of the resource's last event. A graph
 	// read that follows a write waits for the graph projection to reach it.
-	LastSequence int                `json:"lastSequence"`
-	Resource     ResourceDescriptor `json:"resource"`
+	LastSequence int `json:"lastSequence"`
 }
 
 // BrowseResourceViewedEvent REPORT that a resource has loaded in a viewer —
@@ -2157,11 +2157,11 @@ type BrowseResourceViewedEvent struct {
 type BrowseResourcesRequest struct {
 	Archived   *bool   `json:"archived,omitempty"`
 	EntityType *string `json:"entityType,omitempty"`
-	// Limit The most resources a page has.
-	Limit *int `json:"limit,omitempty"`
 	// Offset How many of the resources the filters admit are passed over before
 	// the page begins.
 	Offset *int `json:"offset,omitempty"`
+	// Limit The most resources a page has.
+	Limit *int `json:"limit,omitempty"`
 }
 
 // BrowseResourcesResult Result of browsing resources
@@ -2214,12 +2214,12 @@ func (e BrowserKind) Valid() bool {
 
 // BrowserSpec How the Browser runs.
 type BrowserSpec struct {
-	Image Image `json:"image"`
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
 	// Port The port the Browser is published on, on this machine's loopback:
 	// where a person opens it, and the origin the issuer's realm allows its
 	// sign-in from.
-	Port      int       `json:"port"`
-	Resources Resources `json:"resources"`
+	Port int `json:"port"`
 }
 
 // BusEmitAccepted Result of publishing one event. `subscribers` is the number
@@ -2252,6 +2252,13 @@ type BusEmitAccepted struct {
 type BusEmitRequest struct {
 	// Channel A channel of the bus registry.
 	Channel string `json:"channel"`
+	// Payload The channel's payload, validated against the schema its registry
+	// entry names. `_userId` and `_roles` are the gateway's to write: whatever a
+	// caller puts there is replaced.
+	Payload map[string]any `json:"payload"`
+	// Scope The resource scope of a resource-bound broadcast. Publishers of
+	// those broadcasts only; a command or request never carries one.
+	Scope *ResourceId `json:"scope,omitempty"`
 	// ClientId The address this request's reply is delivered to: the emit claims
 	// `correlationId` for this clientId and the verified principal. Required
 	// when `channel` is a registry operation's request and a correlationId is
@@ -2261,22 +2268,15 @@ type BusEmitRequest struct {
 	// request it claims the id: a second claim of a live id is refused with 409.
 	// Replies carry it back on the frame, never in the payload.
 	CorrelationId *string `json:"correlationId,omitempty"`
-	// Payload The channel's payload, validated against the schema its registry
-	// entry names. `_userId` and `_roles` are the gateway's to write: whatever a
-	// caller puts there is replaced.
-	Payload map[string]any `json:"payload"`
-	// Scope The resource scope of a resource-bound broadcast. Publishers of
-	// those broadcasts only; a command or request never carries one.
-	Scope *ResourceId `json:"scope,omitempty"`
 }
 
 // BusEventMessage A bus frame on the stream: `event: bus-event`, an `id:`
 // line, and one `data:` line holding the JSON-serialised BusFrame. This
 // schema describes the message with `data` already parsed.
 type BusEventMessage struct {
-	Data  BusFrame             `json:"data"`
 	Event BusEventMessageEvent `json:"event"`
 	Id    string               `json:"id"`
+	Data  BusFrame             `json:"data"`
 }
 
 func (BusEventMessage) memberOfBusStreamMessage() {}
@@ -2321,8 +2321,8 @@ type BusFrame struct {
 // every `x-xynolog-limits.heartbeatSeconds`. It carries no id, so it never
 // disturbs a client's last-seen ids.
 type BusPingMessage struct {
-	Data  string              `json:"data"`
 	Event BusPingMessageEvent `json:"event"`
+	Data  string              `json:"data"`
 }
 
 func (BusPingMessage) memberOfBusStreamMessage() {}
@@ -2387,6 +2387,8 @@ func (BusReplyBoundsRepliesValueValueGrows) memberOfBusReplyBoundsRepliesValueVa
 // event of that scope and must refetch what it caches for it. Written by the
 // gateway, never by a participant.
 type BusResumeGap struct {
+	// Scope The scope of the subscription entry whose watermark failed.
+	Scope ResourceId `json:"scope"`
 	// LastSeenId The watermark the entry carried.
 	LastSeenId string `json:"lastSeenId"`
 	// Reason `unparseable-last-event-id`: the watermark is not a
@@ -2395,8 +2397,6 @@ type BusResumeGap struct {
 	// it still holds is replayed first). `query-error`: the record could not be
 	// read.
 	Reason BusResumeGapReason `json:"reason"`
-	// Scope The scope of the subscription entry whose watermark failed.
-	Scope ResourceId `json:"scope"`
 }
 
 // BusResumeGapReason `unparseable-last-event-id`: the watermark is not a
@@ -2441,13 +2441,6 @@ type BusStreamMessageMember interface {
 // scope's last-seen persisted event id. At least one global channel or one
 // scoped entry is required, and no scope may appear in two entries.
 type BusSubscribeRequest struct {
-	// ClientId Routing address for correlated replies: a UUID minted once per
-	// bus-client lifetime — per actor, not per connection, so it survives a
-	// reconnect and two overlapping connections share it. A correlated reply is
-	// delivered to a connection only when its request was emitted under the same
-	// clientId by the same principal. Not authentication — the bearer token
-	// stays that — and never echoed into any payload or broadcast frame.
-	ClientId string `json:"clientId"`
 	// Global Unscoped channels to subscribe to.
 	Global *[]string `json:"global,omitempty"`
 	// PendingReplies Correlation ids of requests this client still awaits a
@@ -2461,9 +2454,18 @@ type BusSubscribeRequest struct {
 	// Scoped Per-resource-scope subscriptions, at most 512 on one connection.
 	// Scopes must be unique across entries.
 	Scoped *[]BusSubscribeRequestScopedItem `json:"scoped,omitempty"`
+	// ClientId Routing address for correlated replies: a UUID minted once per
+	// bus-client lifetime — per actor, not per connection, so it survives a
+	// reconnect and two overlapping connections share it. A correlated reply is
+	// delivered to a connection only when its request was emitted under the same
+	// clientId by the same principal. Not authentication — the bearer token
+	// stays that — and never echoed into any payload or broadcast frame.
+	ClientId string `json:"clientId"`
 }
 
 type BusSubscribeRequestScopedItem struct {
+	// Scope Resource scope (a resourceId).
+	Scope ResourceId `json:"scope"`
 	// Channels Channels to subscribe within this scope.
 	Channels []string `json:"channels"`
 	// LastEventId This scope's last-seen PersistedEventId. The gateway replays
@@ -2471,8 +2473,6 @@ type BusSubscribeRequestScopedItem struct {
 	// before the live tail, and writes a scoped `bus:resume-gap` (BusResumeGap)
 	// when it cannot cover the gap.
 	LastEventId *string `json:"lastEventId,omitempty"`
-	// Scope Resource scope (a resourceId).
-	Scope ResourceId `json:"scope"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -2487,9 +2487,9 @@ func (v BusSubscribeRequestScopedItem) MarshalJSON() ([]byte, error) {
 // that request with control.cancelled, unless it has answered it already; a
 // cancellation of a request it does not know is ignored.
 type Cancelled struct {
-	// Reason Why, for the launcher's diagnostics.
-	Reason    *string   `json:"reason,omitempty"`
 	RequestId RequestId `json:"requestId"`
+	// Reason Why, for the launcher's diagnostics.
+	Reason *string `json:"reason,omitempty"`
 }
 
 // ClaimOptions What a worker's claiming of jobs is told: the jobs it takes,
@@ -2499,15 +2499,15 @@ type ClaimOptions struct {
 	// Accepts The jobs this claim takes. A job is handed over when it matches
 	// any one of them.
 	Accepts []JobFilter `json:"accepts"`
-	// HeldJobStallCheckMs How often it looks at how long a held job has shown no
-	// activity, in milliseconds.
-	HeldJobStallCheckMs *int `json:"heldJobStallCheckMs,omitempty"`
-	// HeldJobStallMs How long a held job may show no activity before it is
-	// called stalled, in milliseconds.
-	HeldJobStallMs *int `json:"heldJobStallMs,omitempty"`
 	// JobClaimTimeoutMs How long it waits for the answer to one claim, in
 	// milliseconds.
 	JobClaimTimeoutMs *int `json:"jobClaimTimeoutMs,omitempty"`
+	// HeldJobStallMs How long a held job may show no activity before it is
+	// called stalled, in milliseconds.
+	HeldJobStallMs *int `json:"heldJobStallMs,omitempty"`
+	// HeldJobStallCheckMs How often it looks at how long a held job has shown no
+	// activity, in milliseconds.
+	HeldJobStallCheckMs *int `json:"heldJobStallCheckMs,omitempty"`
 	// MarkCommitTimeoutMs How long it waits for the record to acknowledge a
 	// commit of annotations, in milliseconds.
 	MarkCommitTimeoutMs *int `json:"markCommitTimeoutMs,omitempty"`
@@ -2527,12 +2527,12 @@ func (v ClaimOptions) MarshalJSON() ([]byte, error) {
 // key proves itself by the client assertion of client-assertion-cases.json
 // instead.
 type ClientSecretForm struct {
+	// GrantType The grant, client-assertion-cases.json's grantType.
+	GrantType ClientSecretFormGrantType `json:"grant_type"`
 	// ClientId The account's client id.
 	ClientId string `json:"client_id"`
 	// ClientSecret The account's client secret.
 	ClientSecret string `json:"client_secret"`
-	// GrantType The grant, client-assertion-cases.json's grantType.
-	GrantType ClientSecretFormGrantType `json:"grant_type"`
 }
 
 // ClientSecretFormGrantType The grant, client-assertion-cases.json's
@@ -2554,11 +2554,11 @@ func (e ClientSecretFormGrantType) Valid() bool {
 }
 
 type CloneResourceWithTokenResponse struct {
+	// Token Generated clone token
+	Token string `json:"token"`
 	// ExpiresAt ISO 8601 timestamp when token expires
 	ExpiresAt string             `json:"expiresAt"`
 	Resource  ResourceDescriptor `json:"resource"`
-	// Token Generated clone token
-	Token string `json:"token"`
 }
 
 // CommandError Error response for failed bus commands. Replaces native Error
@@ -2592,10 +2592,10 @@ type CommandError struct {
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
 	Code *CommandErrorCode `json:"code,omitempty"`
-	// Details Optional additional context (stack trace, field name, etc.)
-	Details *string `json:"details,omitempty"`
 	// Message Human-readable error message
 	Message string `json:"message"`
+	// Details Optional additional context (stack trace, field name, etc.)
+	Details *string `json:"details,omitempty"`
 }
 
 // CommandErrorCode Machine-readable failure class, for consumers that must
@@ -2647,17 +2647,17 @@ func (e CommandErrorCode) Valid() bool {
 // CommentingJobParams What a commenting job takes: passages of the resource
 // are marked, each with a comment the model writes.
 type CommentingJobParams struct {
-	// Density How many annotations to aim for per 2000 words of the resource.
-	Density *float64 `json:"density,omitempty"`
+	Motivation CommentingJobParamsMotivation `json:"motivation"`
 	// Instructions What to look for, in the caller's words. Added to the prompt.
 	Instructions *string `json:"instructions,omitempty"`
-	// Language The language the annotations' own text is written in. BCP 47.
-	Language   *string                       `json:"language,omitempty"`
-	Motivation CommentingJobParamsMotivation `json:"motivation"`
-	// SourceLanguage The language of the resource being read. BCP 47.
-	SourceLanguage *string `json:"sourceLanguage,omitempty"`
 	// Tone The voice the comments are written in.
 	Tone *CommentingJobParamsTone `json:"tone,omitempty"`
+	// Density How many annotations to aim for per 2000 words of the resource.
+	Density *float64 `json:"density,omitempty"`
+	// Language The language the annotations' own text is written in. BCP 47.
+	Language *string `json:"language,omitempty"`
+	// SourceLanguage The language of the resource being read. BCP 47.
+	SourceLanguage *string `json:"sourceLanguage,omitempty"`
 }
 
 func (CommentingJobParams) memberOfMarkJobParams() {}
@@ -2703,11 +2703,11 @@ func (e CommentingJobParamsTone) Valid() bool {
 // make, on this channel; `as` names its correlation id, for the backend to
 // answer.
 type ConformanceBusFetch struct {
-	// As The request's correlation id, for the backend's answer.
-	As string `json:"as"`
 	// Fetch The request's channel, a request of specs/src/bus/registry.json.
 	Fetch   string `json:"fetch"`
 	Payload any    `json:"payload,omitempty"`
+	// As The request's correlation id, for the backend's answer.
+	As string `json:"as"`
 }
 
 func (ConformanceBusFetch) memberOfConformanceStepFetchesFetchesItem() {}
@@ -2722,20 +2722,20 @@ func (ConformanceBusFetch) memberOfConformanceStep()                   {}
 type ConformanceCase struct {
 	// About What the case holds a client to, in a sentence.
 	About string `json:"about"`
-	// Planes The signal planes the case runs on. Absent, it runs on both.
-	Planes *[]ConformanceCasePlanesItem `json:"planes,omitempty"`
 	// Source Where the protocol or the spec states it.
 	Source string `json:"source"`
-	// Steps The steps, run in order.
-	Steps []ConformanceStep `json:"steps"`
+	// Planes The signal planes the case runs on. Absent, it runs on both.
+	Planes *[]ConformanceCasePlanesItem `json:"planes,omitempty"`
+	// Tier A live case's tier: `fleet`, what every SDK with a live layer does,
+	// or `parity`, what one that implements all of CACHE-SEMANTICS does.
+	Tier *ConformanceCaseTier `json:"tier,omitempty"`
 	// Telemetry Run the client exporting to an OTLP receiver, and once it has
 	// exited hold what it exported to specs/src/sdk-telemetry/telemetry.json. A
 	// worker case also holds the worker to a trace of its own for each job it
 	// ran (conformance/worker/README.md).
 	Telemetry *ConformanceCaseTelemetry `json:"telemetry,omitempty"`
-	// Tier A live case's tier: `fleet`, what every SDK with a live layer does,
-	// or `parity`, what one that implements all of CACHE-SEMANTICS does.
-	Tier *ConformanceCaseTier `json:"tier,omitempty"`
+	// Steps The steps, run in order.
+	Steps []ConformanceStep `json:"steps"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -2828,10 +2828,10 @@ type ConformanceDriverLineMember interface {
 // ConformanceDriverLineAbandoned The suite abandoned the operation, and the
 // SDK reported nothing else.
 type ConformanceDriverLineAbandoned struct {
-	// Abandoned It was abandoned.
-	Abandoned ConformanceDriverLineAbandonedAbandoned `json:"abandoned"`
 	// Id The operation's id.
 	Id int `json:"id"`
+	// Abandoned It was abandoned.
+	Abandoned ConformanceDriverLineAbandonedAbandoned `json:"abandoned"`
 }
 
 func (ConformanceDriverLineAbandoned) memberOfConformanceDriverLine() {}
@@ -2903,10 +2903,10 @@ type ConformanceDriverLineEmissionEmissionStateMember interface {
 }
 
 type ConformanceDriverLineEmissionEmissionStateFailed struct {
-	// Error The failure.
-	Error ConformanceFailure `json:"error"`
 	// Status The query failed.
 	Status ConformanceDriverLineEmissionEmissionStateFailedStatus `json:"status"`
+	// Error The failure.
+	Error ConformanceFailure `json:"error"`
 }
 
 func (ConformanceDriverLineEmissionEmissionStateFailed) memberOfConformanceDriverLineEmissionEmissionState() {
@@ -2994,10 +2994,10 @@ func (ConformanceDriverLineErrorStream) memberOfConformanceDriverLine() {}
 
 // ConformanceDriverLineFailed The SDK failed the operation.
 type ConformanceDriverLineFailed struct {
-	// Error The failure.
-	Error ConformanceFailure `json:"error"`
 	// Id The operation's id.
 	Id int `json:"id"`
+	// Error The failure.
+	Error ConformanceFailure `json:"error"`
 }
 
 func (ConformanceDriverLineFailed) memberOfConformanceDriverLine() {}
@@ -3015,9 +3015,9 @@ func (ConformanceDriverLineFrame) memberOfConformanceDriverLine() {}
 type ConformanceDriverLineFrameFrame struct {
 	// Channel The channel.
 	Channel string `json:"channel"`
+	Payload any    `json:"payload,omitempty"`
 	// CorrelationId The frame's correlation id, when it has one.
 	CorrelationId *string `json:"correlationId,omitempty"`
-	Payload       any     `json:"payload,omitempty"`
 	// Scope The frame's scope, when it has one.
 	Scope *ResourceId `json:"scope,omitempty"`
 }
@@ -3053,12 +3053,12 @@ func (ConformanceDriverLineProgress) memberOfConformanceDriverLine() {}
 
 // ConformanceDriverLineProgressProgress The report.
 type ConformanceDriverLineProgressProgress struct {
+	// Upload The `upload` operation's id.
+	Upload int `json:"upload"`
 	// BytesUploaded How many bytes it has sent.
 	BytesUploaded int `json:"bytesUploaded"`
 	// TotalBytes How many it will send.
 	TotalBytes int `json:"totalBytes"`
-	// Upload The `upload` operation's id.
-	Upload int `json:"upload"`
 }
 
 // ConformanceDriverLineReady The driver can take operations.
@@ -3157,12 +3157,12 @@ func (e ConformanceDriverLineUnsupportedUnsupported) Valid() bool {
 type ConformanceFailure struct {
 	// Code The SDK's code for it, from specs/src/errors/codes.json.
 	Code *string `json:"code,omitempty"`
-	// Detail The SDK's words, for a person; nothing compares it.
-	Detail string `json:"detail"`
-	// FailureClass A job failure's class, when it has one.
-	FailureClass *FailureClass `json:"failureClass,omitempty"`
 	// Status The HTTP status, when a server stated one.
 	Status *int `json:"status,omitempty"`
+	// FailureClass A job failure's class, when it has one.
+	FailureClass *FailureClass `json:"failureClass,omitempty"`
+	// Detail The SDK's words, for a person; nothing compares it.
+	Detail string `json:"detail"`
 }
 
 // ConformanceHttpFetch A read over HTTP a live case expects the client to
@@ -3195,19 +3195,19 @@ type ConformanceImplementations struct {
 	// An argument that starts with ./ or ../ is a path, resolved against the
 	// manifest's own directory; every other is passed as written.
 	Launcher []string `json:"launcher"`
+	// Target The knowledge base whose stack documents name each service's image,
+	// and whose stack runs the record and index the suites need. A relative root
+	// is resolved against the manifest's own directory.
+	Target LocalTarget `json:"target"`
+	// Sdks Each SDK's drivers, by the SDK's name: the programs the SDK and
+	// worker suites talk to in its place (conformance/sdk/README.md, "The driver
+	// protocol").
+	Sdks map[string]ConformanceImplementationsSdksValue `json:"sdks"`
 	// ModelCatalogue The model catalogue the implementation supplies, by its
 	// path; a relative one is resolved against the manifest's own directory. The
 	// Librarian's and the worker service's documents name one, so a run of
 	// either suite without it refuses to start.
 	ModelCatalogue *string `json:"modelCatalogue,omitempty"`
-	// Sdks Each SDK's drivers, by the SDK's name: the programs the SDK and
-	// worker suites talk to in its place (conformance/sdk/README.md, "The driver
-	// protocol").
-	Sdks map[string]ConformanceImplementationsSdksValue `json:"sdks"`
-	// Target The knowledge base whose stack documents name each service's image,
-	// and whose stack runs the record and index the suites need. A relative root
-	// is resolved against the manifest's own directory.
-	Target LocalTarget `json:"target"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -3220,25 +3220,25 @@ func (v ConformanceImplementations) MarshalJSON() ([]byte, error) {
 
 // ConformanceImplementationsSdksValue One SDK's drivers.
 type ConformanceImplementationsSdksValue struct {
-	// Exempt The wire cases its driver cannot be put through, by the case's
-	// name, each with why. The suite holds an exemption as it holds a case: the
-	// driver must answer unsupported to what the case asks, or the exemption is
-	// stale.
-	Exempt *map[string]string `json:"exempt,omitempty"`
-	// Live How its live driver is started, and the tier of the live corpus the
-	// SDK is held to.
-	Live *ConformanceImplementationsSdksValueLive `json:"live,omitempty"`
 	// Wire How its wire driver is started. A command and its arguments, as the
 	// harness starts it. An argument that starts with ./ or ../ is a path,
 	// resolved against the manifest's own directory; every other is passed as
 	// written.
 	Wire *[]string `json:"wire,omitempty"`
+	// Live How its live driver is started, and the tier of the live corpus the
+	// SDK is held to.
+	Live *ConformanceImplementationsSdksValueLive `json:"live,omitempty"`
 	// Worker How its worker driver is started, when the SDK has a worker's
 	// surface (conformance/worker/README.md). A command and its arguments, as
 	// the harness starts it. An argument that starts with ./ or ../ is a path,
 	// resolved against the manifest's own directory; every other is passed as
 	// written.
 	Worker *[]string `json:"worker,omitempty"`
+	// Exempt The wire cases its driver cannot be put through, by the case's
+	// name, each with why. The suite holds an exemption as it holds a case: the
+	// driver must answer unsupported to what the case asks, or the exemption is
+	// stale.
+	Exempt *map[string]string `json:"exempt,omitempty"`
 }
 
 // ConformanceImplementationsSdksValueLive How its live driver is started, and
@@ -3399,14 +3399,14 @@ func (ConformanceStepCompletes) memberOfConformanceStep() {}
 // with `returns` when given, or fail with `fails`. With `as`, the step does
 // not wait: a later `settles` step does.
 type ConformanceStepDriver struct {
+	// Driver The operation (conformance/sdk/README.md, "Operations").
+	Driver string `json:"driver"`
+	// With The operation's arguments.
+	With    *map[string]any `json:"with,omitempty"`
+	Returns any             `json:"returns,omitempty"`
+	Fails   any             `json:"fails,omitempty"`
 	// As The operation's name, for the `settles` or `abandon` step that ends it.
 	As *string `json:"as,omitempty"`
-	// Driver The operation (conformance/sdk/README.md, "Operations").
-	Driver  string `json:"driver"`
-	Fails   any    `json:"fails,omitempty"`
-	Returns any    `json:"returns,omitempty"`
-	// With The operation's arguments.
-	With *map[string]any `json:"with,omitempty"`
 }
 
 func (ConformanceStepDriver) memberOfConformanceStep() {}
@@ -3461,10 +3461,10 @@ func (ConformanceStepFrame) memberOfConformanceStep() {}
 // channel. What they are is held, as every frame is, to what the gateway
 // sent.
 type ConformanceStepFrames struct {
-	// Count How many more.
-	Count int `json:"count"`
 	// Frames The channel.
 	Frames string `json:"frames"`
+	// Count How many more.
+	Count int `json:"count"`
 }
 
 func (ConformanceStepFrames) memberOfConformanceStep() {}
@@ -3497,22 +3497,22 @@ func (ConformanceStepLet) memberOfConformanceStep() {}
 // ConformanceStepObserve Live: an observer, named by `as`, begins observing a
 // live query.
 type ConformanceStepObserve struct {
-	// As The observer.
-	As string `json:"as"`
 	// Observe The live query.
 	Observe ConformanceStepObserveObserve `json:"observe"`
+	// As The observer.
+	As string `json:"as"`
 }
 
 func (ConformanceStepObserve) memberOfConformanceStep() {}
 
 // ConformanceStepObserveObserve The live query.
 type ConformanceStepObserveObserve struct {
-	Annotation any `json:"annotation,omitempty"`
-	Filters    any `json:"filters,omitempty"`
 	// Query The live query, by its name in specs/src/client/refresh.json.
-	Query    string `json:"query"`
-	Resource any    `json:"resource,omitempty"`
-	Search   any    `json:"search,omitempty"`
+	Query      string `json:"query"`
+	Resource   any    `json:"resource,omitempty"`
+	Annotation any    `json:"annotation,omitempty"`
+	Search     any    `json:"search,omitempty"`
+	Filters    any    `json:"filters,omitempty"`
 }
 
 // ConformanceStepProgress An upload started with `as`, and not yet settled,
@@ -3572,12 +3572,12 @@ func (v ConformanceStepScopes) MarshalJSON() ([]byte, error) {
 // succeeded, with `returns` when given; or failed with `fails`; or,
 // `abandoned`, it ended because the case abandoned it and reported nothing.
 type ConformanceStepSettles struct {
-	// Abandoned It ended because the case abandoned it.
-	Abandoned *ConformanceStepSettlesAbandoned `json:"abandoned,omitempty"`
-	Fails     any                              `json:"fails,omitempty"`
-	Returns   any                              `json:"returns,omitempty"`
 	// Settles The operation.
 	Settles string `json:"settles"`
+	Returns any    `json:"returns,omitempty"`
+	Fails   any    `json:"fails,omitempty"`
+	// Abandoned It ended because the case abandoned it.
+	Abandoned *ConformanceStepSettlesAbandoned `json:"abandoned,omitempty"`
 }
 
 func (ConformanceStepSettles) memberOfConformanceStep() {}
@@ -3681,28 +3681,28 @@ func (e ConformanceStepStaysStays) Valid() bool {
 // ConformanceStepWire The next request the client put on the wire is this
 // operation, with each field given.
 type ConformanceStepWire struct {
-	Answer any `json:"answer,omitempty"`
-	// As The request's name, for a later step.
-	As *string `json:"as,omitempty"`
+	// Wire The operation of the gateway's API, by its method and path.
+	Wire string `json:"wire"`
 	// At When it is read: on arrival, once answered (the default), or once its
 	// stream has caught up.
-	At   *ConformanceStepWireAt `json:"at,omitempty"`
-	Body any                    `json:"body,omitempty"`
-	// Follows A request named earlier, which was answered before this one
-	// arrived.
-	Follows *string `json:"follows,omitempty"`
+	At *ConformanceStepWireAt `json:"at,omitempty"`
+	// Status The status it was answered with.
+	Status *int `json:"status,omitempty"`
+	Params any  `json:"params,omitempty"`
+	Body   any  `json:"body,omitempty"`
+	Token  any  `json:"token,omitempty"`
 	// Headers The request's headers named here, each as a pattern; headers not
 	// named are not compared.
 	Headers *map[string]any `json:"headers,omitempty"`
-	Params  any             `json:"params,omitempty"`
-	// Status The status it was answered with.
-	Status *int `json:"status,omitempty"`
-	Token  any  `json:"token,omitempty"`
+	Answer  any             `json:"answer,omitempty"`
+	// As The request's name, for a later step.
+	As *string `json:"as,omitempty"`
+	// Follows A request named earlier, which was answered before this one
+	// arrived.
+	Follows *string `json:"follows,omitempty"`
 	// Waited A request named earlier, answered with a Retry-After, which this
 	// one waited out.
 	Waited *string `json:"waited,omitempty"`
-	// Wire The operation of the gateway's API, by its method and path.
-	Wire string `json:"wire"`
 }
 
 func (ConformanceStepWire) memberOfConformanceStep() {}
@@ -3730,10 +3730,10 @@ func (e ConformanceStepWireAt) Valid() bool {
 // ConnectionIdentity Who the knowledge base at an address says it is, asked
 // with a token just issued, before any entry is made for it.
 type ConnectionIdentity struct {
-	// Description What it says of itself.
-	Description KbDescription `json:"description"`
 	// Did The did it reports for itself.
 	Did UserId `json:"did"`
+	// Description What it says of itself.
+	Description KbDescription `json:"description"`
 }
 
 // ContentFormat Content format as a MIME type, optionally with parameters.
@@ -3748,25 +3748,25 @@ type (
 )
 
 type ContextualSummaryResponse struct {
-	Context ContextualSummaryResponseContext `json:"context"`
+	Summary string `json:"summary"`
 	// RelevantFields What the summary is of: the resource the annotation is on,
 	// and the annotation's entity types.
 	RelevantFields ContextualSummaryResponseRelevantFields `json:"relevantFields"`
-	Summary        string                                  `json:"summary"`
+	Context        ContextualSummaryResponseContext        `json:"context"`
 }
 
 type ContextualSummaryResponseContext struct {
-	After    *string `json:"after,omitempty"`
 	Before   *string `json:"before,omitempty"`
 	Selected string  `json:"selected"`
+	After    *string `json:"after,omitempty"`
 }
 
 // ContextualSummaryResponseRelevantFields What the summary is of: the
 // resource the annotation is on, and the annotation's entity types.
 type ContextualSummaryResponseRelevantFields struct {
-	EntityTypes  []string   `json:"entityTypes"`
 	ResourceId   ResourceId `json:"resourceId"`
 	ResourceName string     `json:"resourceName"`
+	EntityTypes  []string   `json:"entityTypes"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -3778,23 +3778,23 @@ func (v ContextualSummaryResponseRelevantFields) MarshalJSON() ([]byte, error) {
 }
 
 type CreateAnnotationRequest struct {
+	Motivation Motivation       `json:"motivation"`
+	Target     AnnotationTarget `json:"target"`
 	// Body Optional body. Omit for annotations whose motivation alone is
 	// meaningful (highlighting) or whose user-supplied content is empty. Shape
 	// matches Annotation.body.
-	Body       *AnnotationBodies `json:"body,omitempty"`
-	Motivation Motivation        `json:"motivation"`
-	Target     AnnotationTarget  `json:"target"`
+	Body *AnnotationBodies `json:"body,omitempty"`
 }
 
 // CreateFromTokenOptions What creating a resource from a clone token is told:
 // the token, the clone's name and text, and whether the source is archived
 // once the clone exists.
 type CreateFromTokenOptions struct {
-	ArchiveOriginal *bool `json:"archiveOriginal,omitempty"`
+	Token string `json:"token"`
+	Name  string `json:"name"`
 	// Content The clone's text, uploaded as its content.
-	Content string `json:"content"`
-	Name    string `json:"name"`
-	Token   string `json:"token"`
+	Content         string `json:"content"`
+	ArchiveOriginal *bool  `json:"archiveOriginal,omitempty"`
 }
 
 // CreateResourceResponse The id of the resource an upload created. The
@@ -3821,8 +3821,6 @@ type (
 // DeviceCode What a device-authorization grant (RFC 8628) shows the person
 // signing in: the code they enter, and where.
 type DeviceCode struct {
-	// ExpiresIn How many seconds the code stays good for.
-	ExpiresIn int `json:"expiresIn"`
 	// UserCode The code the person enters at the issuer.
 	UserCode string `json:"userCode"`
 	// VerificationUri Where the person enters it.
@@ -3830,16 +3828,18 @@ type DeviceCode struct {
 	// VerificationUriComplete Where the person goes to sign in with the code
 	// already entered, when the issuer gives one.
 	VerificationUriComplete *string `json:"verificationUriComplete,omitempty"`
+	// ExpiresIn How many seconds the code stays good for.
+	ExpiresIn int `json:"expiresIn"`
 }
 
 type DirEntry struct {
-	// Mtime Last modified time (ISO 8601)
-	Mtime string `json:"mtime"`
+	Type DirEntryType `json:"type"`
 	// Name Entry name (basename)
 	Name string `json:"name"`
 	// Path Path relative to project root
-	Path string       `json:"path"`
-	Type DirEntryType `json:"type"`
+	Path string `json:"path"`
+	// Mtime Last modified time (ISO 8601)
+	Mtime string `json:"mtime"`
 }
 
 func (DirEntry) memberOfDirectoryEntry() {}
@@ -3896,6 +3896,19 @@ func (u DirectoryEntry) ValueByDiscriminator() (any, error) {
 // Endpoints and identity only — never credentials; login remains the
 // consumer's per-KB business.
 type DiscoveredKB struct {
+	// Host Hostname the KB is reachable on from this machine (always "localhost"
+	// — local stacks bind locally and codespace KBs arrive through a local port
+	// forward)
+	Host string `json:"host"`
+	// Port Local TCP port of the KB's API (the gateway port for a local stack;
+	// the allocated forward port for a codespace stack)
+	Port int `json:"port"`
+	// Placement Where the stack actually runs. "local": containers on this
+	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+	Placement DiscoveredKBPlacement `json:"placement"`
+	// Repo owner/name GitHub slug — present for codespace placements, where the
+	// repo is the stack's identity
+	Repo *string `json:"repo,omitempty"`
 	// Did The KB's did:web identifier, from its committed .xynolog/config.yaml —
 	// "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no
 	// domain has no identity to publish, and the launcher refuses to start it
@@ -3907,27 +3920,14 @@ type DiscoveredKB struct {
 	// they reached is the KB they meant — an address alone cannot say which KB
 	// is which, and an identity alone cannot say which copy.
 	Did string `json:"did"`
-	// Host Hostname the KB is reachable on from this machine (always "localhost"
-	// — local stacks bind locally and codespace KBs arrive through a local port
-	// forward)
-	Host string `json:"host"`
+	// SiteName Human-readable site name from the KB's .xynolog/config.yaml
+	// (site.siteName), for display
+	SiteName *string `json:"siteName,omitempty"`
 	// ManagedBy The agent that owns this entry's lifecycle (the launcher writes
 	// "xynolog-launcher"). Consumers treat managed entries as authoritative for
 	// themselves — upsert on appearance, remove on disappearance — and never
 	// touch entries they did not write.
 	ManagedBy string `json:"managedBy"`
-	// Placement Where the stack actually runs. "local": containers on this
-	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-	Placement DiscoveredKBPlacement `json:"placement"`
-	// Port Local TCP port of the KB's API (the gateway port for a local stack;
-	// the allocated forward port for a codespace stack)
-	Port int `json:"port"`
-	// Repo owner/name GitHub slug — present for codespace placements, where the
-	// repo is the stack's identity
-	Repo *string `json:"repo,omitempty"`
-	// SiteName Human-readable site name from the KB's .xynolog/config.yaml
-	// (site.siteName), for display
-	SiteName *string `json:"siteName,omitempty"`
 }
 
 // DiscoveredKBPlacement Where the stack actually runs. "local": containers on
@@ -3958,11 +3958,11 @@ func (e DiscoveredKBPlacement) Valid() bool {
 // kbs list is meaningful ("the launcher manages nothing right now") and
 // distinct from an absent file.
 type DiscoveryDocument struct {
-	// Kbs Every KB the launcher currently manages, local and forwarded
-	Kbs []DiscoveredKB `json:"kbs"`
 	// Version Document schema version. Consumers MUST check it and ignore
 	// documents they do not understand.
 	Version DiscoveryDocumentVersion `json:"version"`
+	// Kbs Every KB the launcher currently manages, local and forwarded
+	Kbs []DiscoveredKB `json:"kbs"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -4003,69 +4003,69 @@ func (e DiscoveryDocumentVersion) Valid() bool {
 // the ones this document names. A document that does not validate is refused
 // at boot, naming each failing field.
 type DispatcherConfig struct {
+	Kb KbIdentity `json:"kb"`
 	// GatewayUrl The URL the dispatcher reaches the gateway at: its only route
 	// to the bus.
 	GatewayUrl string `json:"gatewayUrl"`
 	// Identity The issuer the dispatcher's service account signs in at.
-	Identity  ServiceIdentity `json:"identity"`
-	Kb        KbIdentity      `json:"kb"`
-	LogFormat LogFormat       `json:"logFormat"`
-	LogLevel  LogLevel        `json:"logLevel"`
-	// Port The port the dispatcher answers `/health` on.
-	Port int `json:"port"`
+	Identity ServiceIdentity `json:"identity"`
 	// Queue The JetStream broker holding the job queue, whose layout is
 	// specs/src/jobs/storage.json.
 	Queue DispatcherConfigQueue `json:"queue"`
+	// Port The port the dispatcher answers `/health` on.
+	Port int `json:"port"`
 	// Timing The queue's clocks, in milliseconds. The launcher writes the values
 	// a deployment runs with; a test harness shrinks them.
-	Timing DispatcherConfigTiming `json:"timing"`
+	Timing    DispatcherConfigTiming `json:"timing"`
+	LogLevel  LogLevel               `json:"logLevel"`
+	LogFormat LogFormat              `json:"logFormat"`
 }
 
 // DispatcherConfigQueue The JetStream broker holding the job queue, whose
 // layout is specs/src/jobs/storage.json.
 type DispatcherConfigQueue struct {
-	// PasswordEnv The environment variable holding the broker password, when the
-	// broker requires one.
-	PasswordEnv *string `json:"passwordEnv,omitempty"`
 	// Servers The broker's address (`host:port`, or several, comma-separated).
 	Servers string `json:"servers"`
 	// UserEnv The environment variable holding the broker user, when the broker
 	// requires one.
 	UserEnv *string `json:"userEnv,omitempty"`
+	// PasswordEnv The environment variable holding the broker password, when the
+	// broker requires one.
+	PasswordEnv *string `json:"passwordEnv,omitempty"`
 }
 
 // DispatcherConfigTiming The queue's clocks, in milliseconds. The launcher
 // writes the values a deployment runs with; a test harness shrinks them.
 type DispatcherConfigTiming struct {
-	// AckWaitMs How long the broker waits, after this dispatcher stops renewing
-	// a job's lease, before redelivering its message.
-	AckWaitMs int `json:"ackWaitMs"`
-	// BootDeadlineMs How long the dispatcher waits at boot for the broker before
-	// it exits, so that a restart policy can retry.
-	BootDeadlineMs int `json:"bootDeadlineMs"`
-	// ProgressWriteIntervalMs The least time between two progress writes for one
-	// job; reports closer together than this are not written.
-	ProgressWriteIntervalMs int `json:"progressWriteIntervalMs"`
-	// RetentionMs How long a concluded job is kept before it is deleted.
-	RetentionMs int `json:"retentionMs"`
-	// RetentionSweepMs How often concluded jobs past `retentionMs` are deleted.
-	RetentionSweepMs int `json:"retentionSweepMs"`
-	// StaleRunningMs How long a running job may go without progress, a
-	// checkpoint or a claim before its worker is presumed dead.
-	StaleRunningMs int `json:"staleRunningMs"`
 	// TickMs How often the queue re-announces pending jobs and sweeps for dead
 	// workers. The re-announcement is insurance against a lost wake-up, not
 	// dispatch.
 	TickMs int `json:"tickMs"`
+	// StaleRunningMs How long a running job may go without progress, a
+	// checkpoint or a claim before its worker is presumed dead.
+	StaleRunningMs int `json:"staleRunningMs"`
+	// AckWaitMs How long the broker waits, after this dispatcher stops renewing
+	// a job's lease, before redelivering its message.
+	AckWaitMs int `json:"ackWaitMs"`
+	// RetentionMs How long a concluded job is kept before it is deleted.
+	RetentionMs int `json:"retentionMs"`
+	// RetentionSweepMs How often concluded jobs past `retentionMs` are deleted.
+	RetentionSweepMs int `json:"retentionSweepMs"`
+	// ProgressWriteIntervalMs The least time between two progress writes for one
+	// job; reports closer together than this are not written.
+	ProgressWriteIntervalMs int `json:"progressWriteIntervalMs"`
+	// BootDeadlineMs How long the dispatcher waits at boot for the broker before
+	// it exits, so that a restart policy can retry.
+	BootDeadlineMs int `json:"bootDeadlineMs"`
 }
 
 // DispatcherHealth The dispatcher's liveness answer. It answers only once its
 // queue has connected and its bus pumps are attached, so a 200 means it can
 // take work.
 type DispatcherHealth struct {
-	// Queue The queue it holds.
-	Queue  DispatcherHealthQueue  `json:"queue"`
 	Status DispatcherHealthStatus `json:"status"`
+	// Queue The queue it holds.
+	Queue DispatcherHealthQueue `json:"queue"`
 }
 
 // DispatcherHealthQueue The queue it holds.
@@ -4106,35 +4106,40 @@ func (e DispatcherHealthStatus) Valid() bool {
 type DispatcherMessages struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
-	// Errors Each error the dispatcher writes into a job on its own, as a
-	// `job:fail` would.
-	Errors []DispatcherMessagesErrorsItem `json:"errors"`
 	// Refusals Each refusal the dispatcher makes itself, on the operation's
 	// failure channel.
 	Refusals []DispatcherMessagesRefusalsItem `json:"refusals"`
+	// Errors Each error the dispatcher writes into a job on its own, as a
+	// `job:fail` would.
+	Errors []DispatcherMessagesErrorsItem `json:"errors"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v DispatcherMessages) MarshalJSON() ([]byte, error) {
 	type written DispatcherMessages
-	v.Errors = listOf(v.Errors)
 	v.Refusals = listOf(v.Refusals)
+	v.Errors = listOf(v.Errors)
 	return json.Marshal(written(v))
 }
 
 type DispatcherMessagesErrorsItem struct {
-	// Error The `error` it writes into the job. A `{name}` in it is filled with
-	// what the row's `situation` names, and nothing else in it varies.
-	Error        string       `json:"error"`
-	FailureClass FailureClass `json:"failureClass"`
 	// Name The situation's name.
 	Name string `json:"name"`
 	// Situation When it is written, and what fills each `{name}` of its text.
 	Situation string `json:"situation"`
+	// Error The `error` it writes into the job. A `{name}` in it is filled with
+	// what the row's `situation` names, and nothing else in it varies.
+	Error        string       `json:"error"`
+	FailureClass FailureClass `json:"failureClass"`
 }
 
 type DispatcherMessagesRefusalsItem struct {
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Operation The operation it refuses: a request of bus/registry.json's
+	// operations that the dispatcher answers.
+	Operation string `json:"operation"`
 	// Code Machine-readable failure class, for consumers that must BRANCH on why
 	// a command failed rather than log it. Optional and deliberately sparse:
 	// absent means 'no class declared', and every existing failure stays that
@@ -4163,16 +4168,11 @@ type DispatcherMessagesRefusalsItem struct {
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
 	Code *DispatcherMessagesRefusalsItemCode `json:"code,omitempty"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 	// Message The failure's `message`. A `{name}` in it is filled with what the
 	// row's `situation` names, and nothing else in it varies.
 	Message string `json:"message"`
-	// Name The situation's name.
-	Name string `json:"name"`
-	// Operation The operation it refuses: a request of bus/registry.json's
-	// operations that the dispatcher answers.
-	Operation string `json:"operation"`
-	// Situation When it is written, and what fills each `{name}` of its text.
-	Situation string `json:"situation"`
 }
 
 // DispatcherMessagesRefusalsItemCode Machine-readable failure class, for
@@ -4292,17 +4292,17 @@ func (u EmbeddingConfig) ValueByDiscriminator() (any, error) {
 type EmbeddingRequests struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
-	// Busy A request for the vectors of documents that the provider answers busy
-	// is asked again, after each wait in turn, while the request's own time
-	// allows the wait. A provider busy at every asking fails the request with
-	// that status. A query is asked once.
-	Busy EmbeddingRequestsBusy `json:"busy"`
 	// Providers How each kind of provider is asked, by its `type`
 	// (EmbeddingConfig): every kind, and no other.
 	Providers map[string]EmbeddingRequestsProvidersValue `json:"providers"`
 	// RequestSeconds How long each request has, counted from when it is sent and
 	// not from when its batch began. Asking a busy provider again is within it.
 	RequestSeconds int `json:"requestSeconds"`
+	// Busy A request for the vectors of documents that the provider answers busy
+	// is asked again, after each wait in turn, while the request's own time
+	// allows the wait. A provider busy at every asking fails the request with
+	// that status. A query is asked once.
+	Busy EmbeddingRequestsBusy `json:"busy"`
 	// StartAgain How many times, at most, a starting service asks again a
 	// provider that answered 404, taken to be still fetching the model, or could
 	// not be reached, taken to be still starting: within the time the service
@@ -4315,28 +4315,28 @@ type EmbeddingRequests struct {
 // request's own time allows the wait. A provider busy at every asking fails
 // the request with that status. A query is asked once.
 type EmbeddingRequestsBusy struct {
-	// AgainAfterSeconds The wait before each asking again, in order.
-	AgainAfterSeconds []int `json:"againAfterSeconds"`
 	// Statuses The statuses by which a provider says it is busy.
 	Statuses []int `json:"statuses"`
+	// AgainAfterSeconds The wait before each asking again, in order.
+	AgainAfterSeconds []int `json:"againAfterSeconds"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v EmbeddingRequestsBusy) MarshalJSON() ([]byte, error) {
 	type written EmbeddingRequestsBusy
-	v.AgainAfterSeconds = listOf(v.AgainAfterSeconds)
 	v.Statuses = listOf(v.Statuses)
+	v.AgainAfterSeconds = listOf(v.AgainAfterSeconds)
 	return json.Marshal(written(v))
 }
 
 type EmbeddingRequestsProvidersValue struct {
-	// AtOnce How many requests are made of the provider at once, however many
-	// resources are being indexed.
-	AtOnce int `json:"atOnce"`
 	// TextsPerRequest How many texts one request carries, at most: a batch is
 	// cut into slices of this many, each one request, in the order of the texts.
 	TextsPerRequest int `json:"textsPerRequest"`
+	// AtOnce How many requests are made of the provider at once, however many
+	// resources are being indexed.
+	AtOnce int `json:"atOnce"`
 }
 
 // EmptyObject is an object with no properties.
@@ -4350,13 +4350,13 @@ func (EmptyObject) memberOfJobStoredResult()   {}
 // that used one names it on each write it produced with it (`generator`). A
 // person who does a job uses none.
 type Engine struct {
-	// Model The model identifier, as the provider names it.
-	Model string `json:"model"`
 	// Provider The inference provider: who serves the model. `anthropic`,
 	// `google`, `openai` and `together` are those companies' own APIs.
 	// `llamacpp`, `ollama` and `vllm` are servers a deployment runs or reaches,
 	// each named for the server's software.
 	Provider EngineProvider `json:"provider"`
+	// Model The model identifier, as the provider names it.
+	Model string `json:"model"`
 }
 
 // EngineEntry One of the knowledge base's engines: a provider and a model its
@@ -4412,27 +4412,27 @@ func (e EngineProvider) Valid() bool {
 // Subscribers read the enrichment fields directly to update local caches
 // without an additional fetch.
 type EnrichedResourceEvent struct {
+	// Id Unique event ID (UUID)
+	Id string `json:"id"`
+	// Type Event type (flow verb name, e.g. mark:added)
+	Type string `json:"type"`
+	// Timestamp When the event occurred
+	Timestamp string `json:"timestamp"`
+	// UserId DID of the user who triggered the event
+	UserId UserId `json:"userId"`
+	// ResourceId Resource this event affects (absent for system events)
+	ResourceId *ResourceId `json:"resourceId,omitempty"`
+	// Version Event schema version
+	Version int `json:"version"`
+	// Payload Event-type-specific payload
+	Payload  map[string]any `json:"payload"`
+	Metadata EventMetadata  `json:"metadata"`
 	// Annotation Populated for events that mutate an annotation (mark:added,
 	// mark:body-updated, mark:removed). Carries the post-materialization
 	// annotation as it exists in the view, so subscribers can update local
 	// caches in-place without refetching. Absent for events that don't touch
 	// annotations.
 	Annotation *Annotation `json:"annotation,omitempty"`
-	// Id Unique event ID (UUID)
-	Id       string        `json:"id"`
-	Metadata EventMetadata `json:"metadata"`
-	// Payload Event-type-specific payload
-	Payload map[string]any `json:"payload"`
-	// ResourceId Resource this event affects (absent for system events)
-	ResourceId *ResourceId `json:"resourceId,omitempty"`
-	// Timestamp When the event occurred
-	Timestamp string `json:"timestamp"`
-	// Type Event type (flow verb name, e.g. mark:added)
-	Type string `json:"type"`
-	// UserId DID of the user who triggered the event
-	UserId UserId `json:"userId"`
-	// Version Event schema version
-	Version int `json:"version"`
 }
 
 // EntityTagChangedPayload Payload for mark:entity-tag-added and
@@ -4476,37 +4476,37 @@ type (
 // one of specs/src/errors/codes.json's control group, and what a client can
 // act on. A request's failure is never only a message.
 type ErrorData struct {
-	// Choices For control.target-required and control.target-ambiguous: each
-	// target the request could have meant, to send again with one.
-	Choices *[]Target `json:"choices,omitempty"`
 	// Code Why the request failed: a code of the control group of
 	// specs/src/errors/codes.json.
 	Code string `json:"code"`
-	// Fields For params the contract refuses: each fault, where it is.
-	Fields *[]FieldFault `json:"fields,omitempty"`
-	// MayStillRun For a cancelled stack.start: whether services the start
-	// launched may still be running. The launcher stops waiting, and stops
-	// nothing.
-	MayStillRun *bool `json:"mayStillRun,omitempty"`
 	// Retryable Whether the same request can succeed sent again unchanged, once
 	// something outside it changes: a start finishes, a runtime is installed, a
 	// stack comes up.
 	Retryable bool `json:"retryable"`
+	// Fields For params the contract refuses: each fault, where it is.
+	Fields *[]FieldFault `json:"fields,omitempty"`
+	// Choices For control.target-required and control.target-ambiguous: each
+	// target the request could have meant, to send again with one.
+	Choices *[]Target `json:"choices,omitempty"`
 	// Supported For control.unsupported-api-version: each version this launcher
 	// speaks.
 	Supported *[]string `json:"supported,omitempty"`
+	// MayStillRun For a cancelled stack.start: whether services the start
+	// launched may still be running. The launcher stops waiting, and stops
+	// nothing.
+	MayStillRun *bool `json:"mayStillRun,omitempty"`
 }
 
 // ErrorResponse The body of every error the gateway answers, whatever the
 // status and whatever the route — including a path it does not serve.
 type ErrorResponse struct {
-	// Code A machine-readable class, when the route defines one.
-	Code    *string `json:"code,omitempty"`
-	Details any     `json:"details,omitempty"`
 	// Error What went wrong, in a sentence.
 	Error string `json:"error"`
+	// Code A machine-readable class, when the route defines one.
+	Code *string `json:"code,omitempty"`
 	// Hint What the caller can do about it, when there is something to say.
-	Hint *string `json:"hint,omitempty"`
+	Hint    *string `json:"hint,omitempty"`
+	Details any     `json:"details,omitempty"`
 }
 
 // EventMetadata Metadata added at persistence time. Part of every
@@ -4530,6 +4530,8 @@ type Expected struct {
 // provenance. The 'extracted' member of ExtractionOutcome, the record the
 // anchored-text store holds.
 type ExtractedText struct {
+	// Text Reading-order text of the whole resource.
+	Text string `json:"text"`
 	// Items Positioned runs indexing `text`, roughly one per word.
 	Items []PdfTextItem `json:"items"`
 	// Kind Discriminant — both ExtractionOutcome members carry `kind`,
@@ -4537,13 +4539,11 @@ type ExtractedText struct {
 	Kind ExtractedTextKind `json:"kind"`
 	// Method How the text was extracted.
 	Method ExtractionMethod `json:"method"`
+	// PdfClass PDF classification, when the source was a PDF.
+	PdfClass *PdfClass `json:"pdfClass,omitempty"`
 	// OcrConfidence How well the engine read the pixels, when any of this text
 	// came from OCR.
 	OcrConfidence *OcrConfidence `json:"ocrConfidence,omitempty"`
-	// PdfClass PDF classification, when the source was a PDF.
-	PdfClass *PdfClass `json:"pdfClass,omitempty"`
-	// Text Reading-order text of the whole resource.
-	Text string `json:"text"`
 	// UnreadPages 1-indexed pages this extraction could not read — present only
 	// for partially covered documents (class C).
 	UnreadPages *[]int `json:"unreadPages,omitempty"`
@@ -4583,11 +4583,11 @@ func (e ExtractedTextKind) Valid() bool {
 // class. A first-class, cacheable outcome — 'we ran and there was nothing'
 // costs a full recognition pass to discover.
 type ExtractionDeclined struct {
-	// Declined Why extraction yielded nothing, by class.
-	Declined ExtractionDeclinedReason `json:"declined"`
 	// Kind Discriminant — both ExtractionOutcome members carry `kind`,
 	// single-valued: the category here, the detail in `declined`.
 	Kind ExtractionDeclinedKind `json:"kind"`
+	// Declined Why extraction yielded nothing, by class.
+	Declined ExtractionDeclinedReason `json:"declined"`
 }
 
 func (ExtractionDeclined) memberOfAnchoredTextAnswer() {}
@@ -4732,6 +4732,22 @@ type FieldFault struct {
 }
 
 type FileEntry struct {
+	Type FileEntryType `json:"type"`
+	// Name Entry name (basename)
+	Name string `json:"name"`
+	// Path Path relative to project root
+	Path string `json:"path"`
+	// Size File size in bytes
+	Size int `json:"size"`
+	// Mtime Last modified time (ISO 8601)
+	Mtime string `json:"mtime"`
+	// Tracked True if this file is a tracked resource in the Knowledge Base
+	Tracked bool `json:"tracked"`
+	// ResourceId Resource ID (only when tracked is true)
+	ResourceId *ResourceId `json:"resourceId,omitempty"`
+	// EntityTypes Entity types assigned to this resource (only when tracked is
+	// true)
+	EntityTypes *[]string `json:"entityTypes,omitempty"`
 	// AnnotationCount Number of annotations on this resource (only when tracked
 	// is true)
 	AnnotationCount *int `json:"annotationCount,omitempty"`
@@ -4739,22 +4755,6 @@ type FileEntry struct {
 	// `wasAttributedTo`, the requester as the knowledge base recorded it (only
 	// when tracked is true)
 	Creator *string `json:"creator,omitempty"`
-	// EntityTypes Entity types assigned to this resource (only when tracked is
-	// true)
-	EntityTypes *[]string `json:"entityTypes,omitempty"`
-	// Mtime Last modified time (ISO 8601)
-	Mtime string `json:"mtime"`
-	// Name Entry name (basename)
-	Name string `json:"name"`
-	// Path Path relative to project root
-	Path string `json:"path"`
-	// ResourceId Resource ID (only when tracked is true)
-	ResourceId *ResourceId `json:"resourceId,omitempty"`
-	// Size File size in bytes
-	Size int `json:"size"`
-	// Tracked True if this file is a tracked resource in the Knowledge Base
-	Tracked bool          `json:"tracked"`
-	Type    FileEntryType `json:"type"`
 }
 
 func (FileEntry) memberOfDirectoryEntry() {}
@@ -4780,17 +4780,17 @@ func (e FileEntryType) Valid() bool {
 // every follower says it at its health port (WEAVER.md § Health, SMELTER.md §
 // Health).
 type FollowerFollowing struct {
-	// Refused How many events it refused as recorded since it started.
-	Refused int `json:"refused"`
-	// Stopped How many resources' logs a failed taking has stopped until the
-	// next sweep.
-	Stopped int `json:"stopped"`
-	// StreamDrops How many times its stream has dropped since it started.
-	StreamDrops int `json:"streamDrops"`
 	// Sweep The latest sweep's phase: `pending` before its stream first opens,
 	// `running`, `done`, or `due` where the record could not be listed and the
 	// sweep is tried again.
 	Sweep FollowerFollowingSweep `json:"sweep"`
+	// Stopped How many resources' logs a failed taking has stopped until the
+	// next sweep.
+	Stopped int `json:"stopped"`
+	// Refused How many events it refused as recorded since it started.
+	Refused int `json:"refused"`
+	// StreamDrops How many times its stream has dropped since it started.
+	StreamDrops int `json:"streamDrops"`
 }
 
 // FollowerFollowingSweep The latest sweep's phase: `pending` before its
@@ -4818,12 +4818,12 @@ func (e FollowerFollowingSweep) Valid() bool {
 // FragmentSelector W3C Web Annotation FragmentSelector for media fragment
 // identifiers (RFC 3778 for PDFs)
 type FragmentSelector struct {
-	// ConformsTo URI identifying the fragment syntax specification
-	ConformsTo *string              `json:"conformsTo,omitempty"`
-	Type       FragmentSelectorType `json:"type"`
+	Type FragmentSelectorType `json:"type"`
 	// Value Media fragment identifier (e.g., 'page=1&viewrect=100,200,50,30' for
 	// PDF)
 	Value string `json:"value"`
+	// ConformsTo URI identifying the fragment syntax specification
+	ConformsTo *string `json:"conformsTo,omitempty"`
 }
 
 func (FragmentSelector) memberOfSelector()      {}
@@ -4849,10 +4849,10 @@ func (e FragmentSelectorType) Valid() bool {
 // vocabulary. Carried on the `frame:add-entity-type` channel — Frame is the
 // schema-layer flow that owns vocabulary writes.
 type FrameAddEntityTypeCommand struct {
+	Tag string `json:"tag"`
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
 	UserId *UserId `json:"_userId,omitempty"`
-	Tag    string  `json:"tag"`
 }
 
 // FrameAddTagSchemaCommand Bus command to register a tag schema with the KB's
@@ -4862,10 +4862,10 @@ type FrameAddEntityTypeCommand struct {
 // Identical re-registrations are silent; differing content overwrites and
 // logs a warning.
 type FrameAddTagSchemaCommand struct {
+	Schema TagSchema `json:"schema"`
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId *UserId   `json:"_userId,omitempty"`
-	Schema TagSchema `json:"schema"`
+	UserId *UserId `json:"_userId,omitempty"`
 }
 
 // FrameRefusalReason Why a reader refused a frame, for its first fault:
@@ -4902,8 +4902,23 @@ func (e FrameRefusalReason) Valid() bool {
 // the gateway exits without serving — and the refusal names each failing
 // field by its JSON pointer.
 type GatewayConfig struct {
+	Kb KbIdentity `json:"kb"`
+	// Port The port the gateway listens on, on every address the host has: IPv4
+	// and IPv6.
+	Port int `json:"port"`
+	// PublicUrl The URL clients reach this gateway at: the `servers` entry of
+	// the OpenAPI document it serves.
+	PublicUrl string `json:"publicUrl"`
+	// Identity The issuer this knowledge base trusts.
+	Identity GatewayConfigIdentity `json:"identity"`
 	// Archivist Where the Archivist listens.
 	Archivist ServiceAddress `json:"archivist"`
+	// Signal The signal plane: `in-process`, one gateway on its own fabric; or
+	// `nats`, the fabric every replica on one broker shares, which requires
+	// `servers` and a broker with JetStream.
+	Signal    GatewayConfigSignal `json:"signal"`
+	LogLevel  LogLevel            `json:"logLevel"`
+	LogFormat LogFormat           `json:"logFormat"`
 	// Capacity What this gateway process can hold, from the memory its
 	// deployment gives it. `queuedBytes`: the bytes queued for all its streams
 	// together; at it, a new stream is refused with 503 (`AtCapacity`, code
@@ -4912,21 +4927,6 @@ type GatewayConfig struct {
 	// holds open at once; one past it is closed unanswered. The launcher derives
 	// both from the memory it gives the gateway's container.
 	Capacity GatewayConfigCapacity `json:"capacity"`
-	// Identity The issuer this knowledge base trusts.
-	Identity  GatewayConfigIdentity `json:"identity"`
-	Kb        KbIdentity            `json:"kb"`
-	LogFormat LogFormat             `json:"logFormat"`
-	LogLevel  LogLevel              `json:"logLevel"`
-	// Port The port the gateway listens on, on every address the host has: IPv4
-	// and IPv6.
-	Port int `json:"port"`
-	// PublicUrl The URL clients reach this gateway at: the `servers` entry of
-	// the OpenAPI document it serves.
-	PublicUrl string `json:"publicUrl"`
-	// Signal The signal plane: `in-process`, one gateway on its own fabric; or
-	// `nats`, the fabric every replica on one broker shares, which requires
-	// `servers` and a broker with JetStream.
-	Signal GatewayConfigSignal `json:"signal"`
 }
 
 // GatewayConfigCapacity What this gateway process can hold, from the memory
@@ -4937,8 +4937,8 @@ type GatewayConfig struct {
 // holds open at once; one past it is closed unanswered. The launcher derives
 // both from the memory it gives the gateway's container.
 type GatewayConfigCapacity struct {
-	Connections int `json:"connections"`
 	QueuedBytes int `json:"queuedBytes"`
+	Connections int `json:"connections"`
 }
 
 // GatewayConfigIdentity The issuer this knowledge base trusts.
@@ -4954,16 +4954,16 @@ type GatewayConfigIdentity struct {
 // fabric; or `nats`, the fabric every replica on one broker shares, which
 // requires `servers` and a broker with JetStream.
 type GatewayConfigSignal struct {
-	// PasswordEnv The environment variable holding the broker password, when the
-	// broker requires one.
-	PasswordEnv *string `json:"passwordEnv,omitempty"`
+	Type GatewayConfigSignalType `json:"type"`
 	// Servers The broker's address (`host:port`, or several, comma-separated).
 	// Required for `nats`.
-	Servers *string                 `json:"servers,omitempty"`
-	Type    GatewayConfigSignalType `json:"type"`
+	Servers *string `json:"servers,omitempty"`
 	// UserEnv The environment variable holding the broker user, when the broker
 	// requires one.
 	UserEnv *string `json:"userEnv,omitempty"`
+	// PasswordEnv The environment variable holding the broker password, when the
+	// broker requires one.
+	PasswordEnv *string `json:"passwordEnv,omitempty"`
 }
 
 type GatewayConfigSignalType string
@@ -4987,10 +4987,10 @@ func (e GatewayConfigSignalType) Valid() bool {
 type GatewayMediaToken struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
-	// Claims Its claims beside `iat` and `exp`, each filled as the table says.
-	Claims GatewayMediaTokenClaims `json:"claims"`
 	// Header Its JOSE header, exactly.
 	Header GatewayMediaTokenHeader `json:"header"`
+	// Claims Its claims beside `iat` and `exp`, each filled as the table says.
+	Claims GatewayMediaTokenClaims `json:"claims"`
 	// LifetimeSeconds `exp` less `iat`.
 	LifetimeSeconds int `json:"lifetimeSeconds"`
 }
@@ -4998,8 +4998,8 @@ type GatewayMediaToken struct {
 // GatewayMediaTokenClaims Its claims beside `iat` and `exp`, each filled as
 // the table says.
 type GatewayMediaTokenClaims struct {
-	Iss     GatewayMediaTokenClaimsIss     `json:"iss"`
 	Purpose GatewayMediaTokenClaimsPurpose `json:"purpose"`
+	Iss     GatewayMediaTokenClaimsIss     `json:"iss"`
 	Sub     GatewayMediaTokenClaimsSub     `json:"sub"`
 }
 
@@ -5094,21 +5094,21 @@ func (e GatewayMediaTokenHeaderTyp) Valid() bool {
 type GatewayMessages struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
-	// Challenges The `WWW-Authenticate` of a 401.
-	Challenges GatewayMessagesChallenges `json:"challenges"`
+	// Messages Each refusal the gateway makes itself.
+	Messages []GatewayMessagesMessagesItem `json:"messages"`
 	// Failures Each failure frame the gateway delivers itself, on the stream of
 	// the client whose request it answers.
 	Failures []GatewayMessagesFailuresItem `json:"failures"`
-	// Messages Each refusal the gateway makes itself.
-	Messages []GatewayMessagesMessagesItem `json:"messages"`
+	// Challenges The `WWW-Authenticate` of a 401.
+	Challenges GatewayMessagesChallenges `json:"challenges"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v GatewayMessages) MarshalJSON() ([]byte, error) {
 	type written GatewayMessages
-	v.Failures = listOf(v.Failures)
 	v.Messages = listOf(v.Messages)
+	v.Failures = listOf(v.Failures)
 	return json.Marshal(written(v))
 }
 
@@ -5127,33 +5127,33 @@ type GatewayMessagesChallenges struct {
 }
 
 type GatewayMessagesFailuresItem struct {
-	// Code Its `code`.
-	Code string `json:"code"`
-	// Message Its text. A `{name}` in it is filled with what the row's
-	// `situation` names, and nothing else in it varies.
-	Message string `json:"message"`
 	// Name The situation's name.
 	Name string `json:"name"`
+	// Code Its `code`.
+	Code string `json:"code"`
 	// Situation When the gateway answers it, and what fills each `{name}` of its
 	// texts.
 	Situation string `json:"situation"`
+	// Message Its text. A `{name}` in it is filled with what the row's
+	// `situation` names, and nothing else in it varies.
+	Message string `json:"message"`
 }
 
 type GatewayMessagesMessagesItem struct {
+	// Name The situation's name.
+	Name   string     `json:"name"`
+	Status HttpStatus `json:"status"`
 	// Code Its `code`, where it carries one: a LimitRefusal's, or the transport
 	// code errors/codes.json names for its status.
 	Code *string `json:"code,omitempty"`
+	// Situation When the gateway answers it, and what fills each `{name}` of its
+	// texts.
+	Situation string `json:"situation"`
 	// Error Its text. A `{name}` in it is filled with what the row's `situation`
 	// names, and nothing else in it varies.
 	Error string `json:"error"`
 	// Hint Its `hint`, where it carries one.
 	Hint *string `json:"hint,omitempty"`
-	// Name The situation's name.
-	Name string `json:"name"`
-	// Situation When the gateway answers it, and what fills each `{name}` of its
-	// texts.
-	Situation string     `json:"situation"`
-	Status    HttpStatus `json:"status"`
 }
 
 // GatewayResponseHeaders gateway/response-headers.json: the headers on every
@@ -5161,22 +5161,22 @@ type GatewayMessagesMessagesItem struct {
 type GatewayResponseHeaders struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
-	// Absent Each header no response carries.
-	Absent []string `json:"absent"`
 	// Every Each header every response carries, and its value.
 	Every []GatewayResponseHeadersEveryItem `json:"every"`
-	// Preflight How the gateway answers an `OPTIONS` request.
-	Preflight GatewayResponseHeadersPreflight `json:"preflight"`
 	// RequestId The header that names the request.
 	RequestId string `json:"requestId"`
+	// Absent Each header no response carries.
+	Absent []string `json:"absent"`
+	// Preflight How the gateway answers an `OPTIONS` request.
+	Preflight GatewayResponseHeadersPreflight `json:"preflight"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v GatewayResponseHeaders) MarshalJSON() ([]byte, error) {
 	type written GatewayResponseHeaders
-	v.Absent = listOf(v.Absent)
 	v.Every = listOf(v.Every)
+	v.Absent = listOf(v.Absent)
 	return json.Marshal(written(v))
 }
 
@@ -5190,12 +5190,12 @@ type GatewayResponseHeadersEveryItem struct {
 // GatewayResponseHeadersPreflight How the gateway answers an `OPTIONS`
 // request.
 type GatewayResponseHeadersPreflight struct {
+	Status HttpStatus `json:"status"`
+	// Headers Each header it carries beside those of `every`, and its value.
+	Headers []GatewayResponseHeadersPreflightHeadersItem `json:"headers"`
 	// Echoes Each header it carries when the request carries the header it
 	// echoes, with that header's value.
 	Echoes []GatewayResponseHeadersPreflightEchoesItem `json:"echoes"`
-	// Headers Each header it carries beside those of `every`, and its value.
-	Headers []GatewayResponseHeadersPreflightHeadersItem `json:"headers"`
-	Status  HttpStatus                                   `json:"status"`
 	// Vary The value of the `Vary` it carries when it echoes a header: the
 	// request headers it echoes.
 	Vary string `json:"vary"`
@@ -5205,8 +5205,8 @@ type GatewayResponseHeadersPreflight struct {
 // written as the empty list.
 func (v GatewayResponseHeadersPreflight) MarshalJSON() ([]byte, error) {
 	type written GatewayResponseHeadersPreflight
-	v.Echoes = listOf(v.Echoes)
 	v.Headers = listOf(v.Headers)
+	v.Echoes = listOf(v.Echoes)
 	return json.Marshal(written(v))
 }
 
@@ -5241,32 +5241,30 @@ type GatherAnnotationComplete struct {
 // options (depth / maxResources / includeContent / includeSummary), which
 // traverse the resource graph.
 type GatherAnnotationOptions struct {
-	// ContextWindow How much of the text on each side of the annotation to
-	// include, counted in Unicode code points
-	ContextWindow *int `json:"contextWindow,omitempty"`
 	// IncludeSourceContext Whether to include source context in the gathered
 	// result
 	IncludeSourceContext *bool `json:"includeSourceContext,omitempty"`
 	// IncludeTargetContext Whether to include target context in the gathered
 	// result
 	IncludeTargetContext *bool `json:"includeTargetContext,omitempty"`
+	// ContextWindow How much of the text on each side of the annotation to
+	// include, counted in Unicode code points
+	ContextWindow *int `json:"contextWindow,omitempty"`
 }
 
 // GatherAnnotationRequest Request payload sent on the gather:requested bus
 // channel to gather context for an annotation.
 type GatherAnnotationRequest struct {
 	// AnnotationId Branded AnnotationId of the annotation to gather context for
-	AnnotationId AnnotationId             `json:"annotationId"`
-	Options      *GatherAnnotationOptions `json:"options,omitempty"`
+	AnnotationId AnnotationId `json:"annotationId"`
 	// ResourceId Branded ResourceId of the resource the annotation belongs to
-	ResourceId ResourceId `json:"resourceId"`
+	ResourceId ResourceId               `json:"resourceId"`
+	Options    *GatherAnnotationOptions `json:"options,omitempty"`
 }
 
 // GatherFailed The payload of `gather:failed`: a CommandError that names the
 // annotation whose context could not be gathered.
 type GatherFailed struct {
-	// AnnotationId The annotation the gather was asked for.
-	AnnotationId AnnotationId `json:"annotationId"`
 	// Code Machine-readable failure class, for consumers that must BRANCH on why
 	// a command failed rather than log it. Optional and deliberately sparse:
 	// absent means 'no class declared', and every existing failure stays that
@@ -5295,19 +5293,21 @@ type GatherFailed struct {
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
 	Code *CommandErrorCode `json:"code,omitempty"`
-	// Details Optional additional context (stack trace, field name, etc.)
-	Details *string `json:"details,omitempty"`
 	// Message Human-readable error message
 	Message string `json:"message"`
+	// Details Optional additional context (stack trace, field name, etc.)
+	Details *string `json:"details,omitempty"`
+	// AnnotationId The annotation the gather was asked for.
+	AnnotationId AnnotationId `json:"annotationId"`
 }
 
 // GatherReferencedByRequest Request for the annotations elsewhere that refer
 // to a resource. The Librarian answers from the graph.
 type GatherReferencedByRequest struct {
+	ResourceId ResourceId `json:"resourceId"`
 	// Motivation The one motivation the annotations answered have. Every
 	// annotation that refers to the resource is answered where none is stated.
 	Motivation *Motivation `json:"motivation,omitempty"`
-	ResourceId ResourceId  `json:"resourceId"`
 }
 
 // GatherReferencedByResult The annotations elsewhere that refer to a resource
@@ -5357,10 +5357,10 @@ type GatherResourceFailed struct {
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
 	Code *CommandErrorCode `json:"code,omitempty"`
-	// Details Optional additional context (stack trace, field name, etc.)
-	Details *string `json:"details,omitempty"`
 	// Message Human-readable error message
 	Message string `json:"message"`
+	// Details Optional additional context (stack trace, field name, etc.)
+	Details *string `json:"details,omitempty"`
 	// ResourceId The resource the gather was asked for.
 	ResourceId ResourceId `json:"resourceId"`
 }
@@ -5374,26 +5374,26 @@ type GatherResourceOptions struct {
 	// nearest first: 1 is what the resource links to and what cites it, and each
 	// further link out adds what those link to and what cites them
 	Depth *int `json:"depth,omitempty"`
-	// ExcludeEntityTypes Entity types to exclude from the semantic recall built
-	// into this context (caller-supplied; e.g. a chat consumer passes
-	// ['Question'] so prior questions never ground answer generation). Optional;
-	// default none.
-	ExcludeEntityTypes *[]string `json:"excludeEntityTypes,omitempty"`
+	// MaxResources Maximum number of related resources to include
+	MaxResources *int `json:"maxResources,omitempty"`
 	// IncludeContent Whether to include resource content in the gathered result
 	IncludeContent *bool `json:"includeContent,omitempty"`
 	// IncludeSummary Whether to include resource summaries in the gathered
 	// result
 	IncludeSummary *bool `json:"includeSummary,omitempty"`
-	// MaxResources Maximum number of related resources to include
-	MaxResources *int `json:"maxResources,omitempty"`
+	// ExcludeEntityTypes Entity types to exclude from the semantic recall built
+	// into this context (caller-supplied; e.g. a chat consumer passes
+	// ['Question'] so prior questions never ground answer generation). Optional;
+	// default none.
+	ExcludeEntityTypes *[]string `json:"excludeEntityTypes,omitempty"`
 }
 
 // GatherResourceRequest Request payload sent on the gather:resource-requested
 // bus channel to gather context for a resource.
 type GatherResourceRequest struct {
-	Options GatherResourceRequestOptions `json:"options"`
 	// ResourceId Branded ResourceId of the resource to gather context for
-	ResourceId ResourceId `json:"resourceId"`
+	ResourceId ResourceId                   `json:"resourceId"`
+	Options    GatherResourceRequestOptions `json:"options"`
 }
 
 // GatherResourceRequestOptions Gathering configuration
@@ -5402,18 +5402,18 @@ type GatherResourceRequestOptions struct {
 	// nearest first: 1 is what the resource links to and what cites it, and each
 	// further link out adds what those link to and what cites them
 	Depth int `json:"depth"`
-	// ExcludeEntityTypes Entity types to exclude from the semantic recall built
-	// into this context (caller-supplied; e.g. a chat consumer passes
-	// ['Question'] so prior questions never ground answer generation). Optional;
-	// default none.
-	ExcludeEntityTypes *[]string `json:"excludeEntityTypes,omitempty"`
+	// MaxResources Maximum number of related resources to include
+	MaxResources int `json:"maxResources"`
 	// IncludeContent Whether to include resource content in the gathered result
 	IncludeContent bool `json:"includeContent"`
 	// IncludeSummary Whether to include resource summaries in the gathered
 	// result
 	IncludeSummary bool `json:"includeSummary"`
-	// MaxResources Maximum number of related resources to include
-	MaxResources int `json:"maxResources"`
+	// ExcludeEntityTypes Entity types to exclude from the semantic recall built
+	// into this context (caller-supplied; e.g. a chat consumer passes
+	// ['Question'] so prior questions never ground answer generation). Optional;
+	// default none.
+	ExcludeEntityTypes *[]string `json:"excludeEntityTypes,omitempty"`
 }
 
 // GatherSummaryRequest Request to generate an AI summary of an annotation
@@ -5433,14 +5433,14 @@ type GatheredContext struct {
 	// The flattened views (connections, citedBy, siblings) are derived from
 	// this.
 	Graph KnowledgeGraph `json:"graph"`
-	// InferredRelationshipSummary LLM-generated summary of the focal anchor's
-	// relationships in the knowledge graph
-	InferredRelationshipSummary *string `json:"inferredRelationshipSummary,omitempty"`
-	// Metadata Context metadata about the focal anchor and its source
-	Metadata GatheredContextMetadata `json:"metadata"`
 	// SemanticContext Semantically similar passages from across the knowledge
 	// base, found via vector search
 	SemanticContext *GatheredContextSemanticContext `json:"semanticContext,omitempty"`
+	// Metadata Context metadata about the focal anchor and its source
+	Metadata GatheredContextMetadata `json:"metadata"`
+	// InferredRelationshipSummary LLM-generated summary of the focal anchor's
+	// relationships in the knowledge graph
+	InferredRelationshipSummary *string `json:"inferredRelationshipSummary,omitempty"`
 }
 
 // GatheredContextFocus The gather anchor. Discriminated on `kind`.
@@ -5456,22 +5456,22 @@ type GatheredContextFocusMember interface {
 
 // GatheredContextFocusAnnotation Annotation-anchored focus.
 type GatheredContextFocusAnnotation struct {
+	Kind GatheredContextFocusAnnotationKind `json:"kind"`
 	// Annotation The annotation this context was gathered for
-	Annotation Annotation                         `json:"annotation"`
-	Kind       GatheredContextFocusAnnotationKind `json:"kind"`
-	// Selected Text context around the annotation target
-	Selected *GatheredContextFocusAnnotationSelected `json:"selected,omitempty"`
+	Annotation Annotation `json:"annotation"`
 	// SourceResource The resource containing the annotation
 	SourceResource ResourceDescriptor `json:"sourceResource"`
-	// TargetContext Context about the annotation's link target. Dormant —
-	// produced/exposed but not yet consumed.
-	TargetContext *GatheredContextFocusAnnotationTargetContext `json:"targetContext,omitempty"`
-	// TargetResource The resource the annotation links to, if it is a resolved
-	// reference. Dormant capability — produced/exposed but not yet consumed.
-	TargetResource *ResourceDescriptor `json:"targetResource,omitempty"`
+	// Selected Text context around the annotation target
+	Selected *GatheredContextFocusAnnotationSelected `json:"selected,omitempty"`
 	// UserHint User-provided hint to supplement or replace the selected text for
 	// search and generation
 	UserHint *string `json:"userHint,omitempty"`
+	// TargetResource The resource the annotation links to, if it is a resolved
+	// reference. Dormant capability — produced/exposed but not yet consumed.
+	TargetResource *ResourceDescriptor `json:"targetResource,omitempty"`
+	// TargetContext Context about the annotation's link target. Dormant —
+	// produced/exposed but not yet consumed.
+	TargetContext *GatheredContextFocusAnnotationTargetContext `json:"targetContext,omitempty"`
 }
 
 func (GatheredContextFocusAnnotation) memberOfGatheredContextFocus() {}
@@ -5495,12 +5495,12 @@ func (e GatheredContextFocusAnnotationKind) Valid() bool {
 // GatheredContextFocusAnnotationSelected Text context around the annotation
 // target
 type GatheredContextFocusAnnotationSelected struct {
-	// After Text appearing after the selected passage
-	After *string `json:"after,omitempty"`
 	// Before Text appearing before the selected passage
 	Before *string `json:"before,omitempty"`
 	// Text The selected text passage (the annotation target)
 	Text string `json:"text"`
+	// After Text appearing after the selected passage
+	After *string `json:"after,omitempty"`
 }
 
 // GatheredContextFocusAnnotationTargetContext Context about the annotation's
@@ -5512,13 +5512,13 @@ type GatheredContextFocusAnnotationTargetContext struct {
 
 // GatheredContextFocusResource Whole-resource focus.
 type GatheredContextFocusResource struct {
-	// Content Resource content (included when requested)
-	Content *GatheredContextFocusResourceContent `json:"content,omitempty"`
-	Kind    GatheredContextFocusResourceKind     `json:"kind"`
+	Kind GatheredContextFocusResourceKind `json:"kind"`
 	// Resource The resource this context was gathered for
 	Resource            ResourceDescriptor `json:"resource"`
-	SuggestedReferences *[]string          `json:"suggestedReferences,omitempty"`
 	Summary             *string            `json:"summary,omitempty"`
+	SuggestedReferences *[]string          `json:"suggestedReferences,omitempty"`
+	// Content Resource content (included when requested)
+	Content *GatheredContextFocusResourceContent `json:"content,omitempty"`
 }
 
 func (GatheredContextFocusResource) memberOfGatheredContextFocus() {}
@@ -5551,27 +5551,27 @@ func (e GatheredContextFocusResourceKind) Valid() bool {
 // GatheredContextMetadata Context metadata about the focal anchor and its
 // source
 type GatheredContextMetadata struct {
+	// ResourceType Type of source resource (e.g., 'document', 'image', 'video')
+	ResourceType *string `json:"resourceType,omitempty"`
+	// Language BCP 47 language tag of source content
+	Language *string `json:"language,omitempty"`
+	// EntityTypes Entity types associated with the focal anchor
+	EntityTypes *[]string `json:"entityTypes,omitempty"`
 	// EntityTypeFrequencies Global frequency counts for entity types (for
 	// IDF-like weighting). A KB-wide statistic, not a neighborhood property —
 	// kept here rather than on the graph.
 	EntityTypeFrequencies *map[string]int `json:"entityTypeFrequencies,omitempty"`
-	// EntityTypes Entity types associated with the focal anchor
-	EntityTypes *[]string `json:"entityTypes,omitempty"`
-	// Language BCP 47 language tag of source content
-	Language *string `json:"language,omitempty"`
-	// ResourceType Type of source resource (e.g., 'document', 'image', 'video')
-	ResourceType *string `json:"resourceType,omitempty"`
 }
 
 // GatheredContextSemanticContext Semantically similar passages from across
 // the knowledge base, found via vector search
 type GatheredContextSemanticContext struct {
+	// Similar Passages ranked by cosine similarity to the focal text
+	Similar []SemanticMatch `json:"similar"`
 	// ExcludedEntityTypes Entity types excluded from this recall — a record of
 	// how `similar` was filtered (e.g. ['Question'] so answer-generation never
 	// surfaces prior questions). Absent when no exclusion was applied.
 	ExcludedEntityTypes *[]string `json:"excludedEntityTypes,omitempty"`
-	// Similar Passages ranked by cosine similarity to the focal text
-	Similar []SemanticMatch `json:"similar"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -5589,6 +5589,51 @@ func (v GatheredContextSemanticContext) MarshalJSON() ([]byte, error) {
 // worker binding to focus.annotation), and the dispatcher refuses a parameter
 // this schema does not name.
 type GenerationJobParams struct {
+	// Title Title of the generated resource. Not empty: the gateway refuses a
+	// `job:create` whose title is.
+	Title string `json:"title"`
+	// StorageUri Storage URI for the generated resource's content —
+	// AUTHORITATIVE: the worker writes exactly here and never derives a location
+	// from the title. Not empty, and there is no fallback: the gateway refuses a
+	// `job:create` whose storageUri is.
+	StorageUri string `json:"storageUri"`
+	// Prompt Refining instruction, composed with `task` (task = what, prompt =
+	// how).
+	Prompt *string `json:"prompt,omitempty"`
+	// EntityTypes Entity-type tags to stamp on the synthesized resource. Used
+	// both as a prompt bias for the generation worker and as the `entityTypes`
+	// set on the resulting resource.
+	EntityTypes *[]string `json:"entityTypes,omitempty"`
+	// Language Annotation/resource body locale — language the generated resource
+	// is written in (typically the user's UI locale). BCP-47.
+	Language *string `json:"language,omitempty"`
+	// SourceLanguage Source-resource locale — language of the resource being
+	// referenced, used in the prompt so the LLM understands embedded
+	// source-context snippets when source ≠ target language. BCP-47.
+	SourceLanguage *string `json:"sourceLanguage,omitempty"`
+	// Temperature Sampling temperature forwarded to the model.
+	Temperature *float64 `json:"temperature,omitempty"`
+	// MaxTokens Output token budget forwarded to the model. Length never
+	// determines structure.
+	MaxTokens *float64 `json:"maxTokens,omitempty"`
+	// OutputMediaType Requested media type of the generated resource's content.
+	// Default `text/markdown` at the worker, which validates it against its
+	// supported output set and FAILS the job for anything it can't write — not a
+	// silent fallback.
+	OutputMediaType *SupportedMediaType `json:"outputMediaType,omitempty"`
+	// Task What the model is asked to produce — the prompt's framing verb.
+	// Canonical values ('resource', 'answer', 'summary') map to the worker's
+	// tested framings; any other string is used VERBATIM as the framing
+	// instruction (loud degrade: the worker warns, never silently falls back).
+	// Unset ⇒ 'resource' (article framing).
+	Task *string `json:"task,omitempty"`
+	// Structure How the output is internally segmented — shape for text-bearing
+	// media, subordinate to `outputMediaType` (never its peer). Canonical
+	// values: 'prose' (flowing paragraphs), 'sections' (titled sections +
+	// title), 'chat' (speaker-labeled turns); any other string becomes a
+	// freeform "organize as: …" directive (loud degrade). Unset ⇒ NO structure
+	// directive at all — the task framing and the model determine shape.
+	Structure *string `json:"structure,omitempty"`
 	// Cite Ask the model to cite its sources, by the ids the gathered context
 	// labels its passages with. The model wraps the words a source supports as
 	// `[[<id>: <claim>]]`, the ids of several sources separated by commas; a
@@ -5605,6 +5650,23 @@ type GenerationJobParams struct {
 	// caller-supplied id — the context is authoritative. Under `cite`, the ids
 	// its embedding carries are the only valid citation targets.
 	Context GatheredContext `json:"context"`
+}
+
+// GenerationJobRequest What a `yield` job is asked to make: every parameter
+// of GenerationJobParams but its `context`, the input the resource is made
+// from. It is what an announcement of the job carries.
+type GenerationJobRequest struct {
+	// Title Title of the generated resource. Not empty: the gateway refuses a
+	// `job:create` whose title is.
+	Title string `json:"title"`
+	// StorageUri Storage URI for the generated resource's content —
+	// AUTHORITATIVE: the worker writes exactly here and never derives a location
+	// from the title. Not empty, and there is no fallback: the gateway refuses a
+	// `job:create` whose storageUri is.
+	StorageUri string `json:"storageUri"`
+	// Prompt Refining instruction, composed with `task` (task = what, prompt =
+	// how).
+	Prompt *string `json:"prompt,omitempty"`
 	// EntityTypes Entity-type tags to stamp on the synthesized resource. Used
 	// both as a prompt bias for the generation worker and as the `entityTypes`
 	// set on the resulting resource.
@@ -5612,6 +5674,12 @@ type GenerationJobParams struct {
 	// Language Annotation/resource body locale — language the generated resource
 	// is written in (typically the user's UI locale). BCP-47.
 	Language *string `json:"language,omitempty"`
+	// SourceLanguage Source-resource locale — language of the resource being
+	// referenced, used in the prompt so the LLM understands embedded
+	// source-context snippets when source ≠ target language. BCP-47.
+	SourceLanguage *string `json:"sourceLanguage,omitempty"`
+	// Temperature Sampling temperature forwarded to the model.
+	Temperature *float64 `json:"temperature,omitempty"`
 	// MaxTokens Output token budget forwarded to the model. Length never
 	// determines structure.
 	MaxTokens *float64 `json:"maxTokens,omitempty"`
@@ -5620,18 +5688,12 @@ type GenerationJobParams struct {
 	// supported output set and FAILS the job for anything it can't write — not a
 	// silent fallback.
 	OutputMediaType *SupportedMediaType `json:"outputMediaType,omitempty"`
-	// Prompt Refining instruction, composed with `task` (task = what, prompt =
-	// how).
-	Prompt *string `json:"prompt,omitempty"`
-	// SourceLanguage Source-resource locale — language of the resource being
-	// referenced, used in the prompt so the LLM understands embedded
-	// source-context snippets when source ≠ target language. BCP-47.
-	SourceLanguage *string `json:"sourceLanguage,omitempty"`
-	// StorageUri Storage URI for the generated resource's content —
-	// AUTHORITATIVE: the worker writes exactly here and never derives a location
-	// from the title. Not empty, and there is no fallback: the gateway refuses a
-	// `job:create` whose storageUri is.
-	StorageUri string `json:"storageUri"`
+	// Task What the model is asked to produce — the prompt's framing verb.
+	// Canonical values ('resource', 'answer', 'summary') map to the worker's
+	// tested framings; any other string is used VERBATIM as the framing
+	// instruction (loud degrade: the worker warns, never silently falls back).
+	// Unset ⇒ 'resource' (article framing).
+	Task *string `json:"task,omitempty"`
 	// Structure How the output is internally segmented — shape for text-bearing
 	// media, subordinate to `outputMediaType` (never its peer). Canonical
 	// values: 'prose' (flowing paragraphs), 'sections' (titled sections +
@@ -5639,23 +5701,6 @@ type GenerationJobParams struct {
 	// freeform "organize as: …" directive (loud degrade). Unset ⇒ NO structure
 	// directive at all — the task framing and the model determine shape.
 	Structure *string `json:"structure,omitempty"`
-	// Task What the model is asked to produce — the prompt's framing verb.
-	// Canonical values ('resource', 'answer', 'summary') map to the worker's
-	// tested framings; any other string is used VERBATIM as the framing
-	// instruction (loud degrade: the worker warns, never silently falls back).
-	// Unset ⇒ 'resource' (article framing).
-	Task *string `json:"task,omitempty"`
-	// Temperature Sampling temperature forwarded to the model.
-	Temperature *float64 `json:"temperature,omitempty"`
-	// Title Title of the generated resource. Not empty: the gateway refuses a
-	// `job:create` whose title is.
-	Title string `json:"title"`
-}
-
-// GenerationJobRequest What a `yield` job is asked to make: every parameter
-// of GenerationJobParams but its `context`, the input the resource is made
-// from. It is what an announcement of the job carries.
-type GenerationJobRequest struct {
 	// Cite Ask the model to cite its sources, by the ids the gathered context
 	// labels its passages with. The model wraps the words a source supports as
 	// `[[<id>: <claim>]]`, the ids of several sources separated by commas; a
@@ -5665,58 +5710,13 @@ type GenerationJobRequest struct {
 	// linking annotation on the new resource over exactly the words each token
 	// cites.
 	Cite *bool `json:"cite,omitempty"`
-	// EntityTypes Entity-type tags to stamp on the synthesized resource. Used
-	// both as a prompt bias for the generation worker and as the `entityTypes`
-	// set on the resulting resource.
-	EntityTypes *[]string `json:"entityTypes,omitempty"`
-	// Language Annotation/resource body locale — language the generated resource
-	// is written in (typically the user's UI locale). BCP-47.
-	Language *string `json:"language,omitempty"`
-	// MaxTokens Output token budget forwarded to the model. Length never
-	// determines structure.
-	MaxTokens *float64 `json:"maxTokens,omitempty"`
-	// OutputMediaType Requested media type of the generated resource's content.
-	// Default `text/markdown` at the worker, which validates it against its
-	// supported output set and FAILS the job for anything it can't write — not a
-	// silent fallback.
-	OutputMediaType *SupportedMediaType `json:"outputMediaType,omitempty"`
-	// Prompt Refining instruction, composed with `task` (task = what, prompt =
-	// how).
-	Prompt *string `json:"prompt,omitempty"`
-	// SourceLanguage Source-resource locale — language of the resource being
-	// referenced, used in the prompt so the LLM understands embedded
-	// source-context snippets when source ≠ target language. BCP-47.
-	SourceLanguage *string `json:"sourceLanguage,omitempty"`
-	// StorageUri Storage URI for the generated resource's content —
-	// AUTHORITATIVE: the worker writes exactly here and never derives a location
-	// from the title. Not empty, and there is no fallback: the gateway refuses a
-	// `job:create` whose storageUri is.
-	StorageUri string `json:"storageUri"`
-	// Structure How the output is internally segmented — shape for text-bearing
-	// media, subordinate to `outputMediaType` (never its peer). Canonical
-	// values: 'prose' (flowing paragraphs), 'sections' (titled sections +
-	// title), 'chat' (speaker-labeled turns); any other string becomes a
-	// freeform "organize as: …" directive (loud degrade). Unset ⇒ NO structure
-	// directive at all — the task framing and the model determine shape.
-	Structure *string `json:"structure,omitempty"`
-	// Task What the model is asked to produce — the prompt's framing verb.
-	// Canonical values ('resource', 'answer', 'summary') map to the worker's
-	// tested framings; any other string is used VERBATIM as the framing
-	// instruction (loud degrade: the worker warns, never silently falls back).
-	// Unset ⇒ 'resource' (article framing).
-	Task *string `json:"task,omitempty"`
-	// Temperature Sampling temperature forwarded to the model.
-	Temperature *float64 `json:"temperature,omitempty"`
-	// Title Title of the generated resource. Not empty: the gateway refuses a
-	// `job:create` whose title is.
-	Title string `json:"title"`
 }
 
 type GetAnnotationHistoryResponse struct {
-	AnnotationId AnnotationId      `json:"annotationId"`
 	Events       []AttributedEvent `json:"events"`
-	ResourceId   ResourceId        `json:"resourceId"`
 	Total        float64           `json:"total"`
+	AnnotationId AnnotationId      `json:"annotationId"`
+	ResourceId   ResourceId        `json:"resourceId"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -5729,15 +5729,15 @@ func (v GetAnnotationHistoryResponse) MarshalJSON() ([]byte, error) {
 
 type GetAnnotationResponse struct {
 	Annotation       Annotation          `json:"annotation"`
-	ResolvedResource *ResourceDescriptor `json:"resolvedResource"`
 	Resource         *ResourceDescriptor `json:"resource"`
+	ResolvedResource *ResourceDescriptor `json:"resolvedResource"`
 }
 
 type GetAnnotationsResponse struct {
 	Annotations []Annotation `json:"annotations"`
-	Motivation  *Motivation  `json:"motivation,omitempty"`
 	// Total Total number of annotations
-	Total float64 `json:"total"`
+	Total      float64     `json:"total"`
+	Motivation *Motivation `json:"motivation,omitempty"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -5762,8 +5762,8 @@ func (v GetEntityTypesResponse) MarshalJSON() ([]byte, error) {
 
 type GetEventsResponse struct {
 	Events     []AttributedEvent `json:"events"`
-	ResourceId ResourceId        `json:"resourceId"`
 	Total      float64           `json:"total"`
+	ResourceId ResourceId        `json:"resourceId"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -5796,9 +5796,9 @@ type GetReferencedByResponseReferencedByItem struct {
 }
 
 type GetReferencedByResponseReferencedByItemTarget struct {
-	Selector GetReferencedByResponseReferencedByItemTargetSelector `json:"selector"`
 	// Source ID of resource containing the reference
-	Source ResourceId `json:"source"`
+	Source   ResourceId                                            `json:"source"`
+	Selector GetReferencedByResponseReferencedByItemTargetSelector `json:"selector"`
 }
 
 type GetReferencedByResponseReferencedByItemTargetSelector struct {
@@ -5807,16 +5807,16 @@ type GetReferencedByResponseReferencedByItemTargetSelector struct {
 }
 
 type GetResourceByTokenResponse struct {
-	// ExpiresAt ISO 8601 timestamp when token expires
-	ExpiresAt      string             `json:"expiresAt"`
 	SourceResource ResourceDescriptor `json:"sourceResource"`
+	// ExpiresAt ISO 8601 timestamp when token expires
+	ExpiresAt string `json:"expiresAt"`
 }
 
 type GetResourceResponse struct {
+	Resource ResourceDescriptor `json:"resource"`
 	// Annotations All annotations for the resource (highlights, references,
 	// assessments, etc.)
-	Annotations []Annotation       `json:"annotations"`
-	Resource    ResourceDescriptor `json:"resource"`
+	Annotations []Annotation `json:"annotations"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -5846,15 +5846,15 @@ func (v GetTagSchemasResponse) MarshalJSON() ([]byte, error) {
 // annotation, anchored by an `annotation-of` edge to the resource it lives on
 // and a `cites` edge to the focal resource.
 type GraphAnnotationNode struct {
-	Annotation Annotation `json:"annotation"`
-	// EntityTypes Entity types carried by the annotation
-	EntityTypes *[]string `json:"entityTypes,omitempty"`
 	// Id The AnnotationId — the same value as annotation.id
-	Id AnnotationId `json:"id"`
+	Id   AnnotationId            `json:"id"`
+	Type GraphAnnotationNodeType `json:"type"`
 	// Label The annotation's motivation, as a display label
-	Label    string                  `json:"label"`
-	Metadata *map[string]any         `json:"metadata,omitempty"`
-	Type     GraphAnnotationNodeType `json:"type"`
+	Label string `json:"label"`
+	// EntityTypes Entity types carried by the annotation
+	EntityTypes *[]string       `json:"entityTypes,omitempty"`
+	Annotation  Annotation      `json:"annotation"`
+	Metadata    *map[string]any `json:"metadata,omitempty"`
 }
 
 func (GraphAnnotationNode) memberOfKnowledgeGraphNodesItem() {}
@@ -5914,15 +5914,15 @@ func (u GraphConfig) ValueByDiscriminator() (any, error) {
 
 // GraphResourceNode A resource's presence in the gathered knowledge graph.
 type GraphResourceNode struct {
-	// EntityTypes Entity types on the resource
-	EntityTypes *[]string `json:"entityTypes,omitempty"`
 	// Id The resource's ResourceId
-	Id ResourceId `json:"id"`
+	Id   ResourceId            `json:"id"`
+	Type GraphResourceNodeType `json:"type"`
 	// Label The resource's display name — its raw id when the resource's view
 	// was missing at build time
-	Label    string                `json:"label"`
-	Metadata *map[string]any       `json:"metadata,omitempty"`
-	Type     GraphResourceNodeType `json:"type"`
+	Label string `json:"label"`
+	// EntityTypes Entity types on the resource
+	EntityTypes *[]string       `json:"entityTypes,omitempty"`
+	Metadata    *map[string]any `json:"metadata,omitempty"`
 }
 
 func (GraphResourceNode) memberOfKnowledgeGraphNodesItem() {}
@@ -5961,31 +5961,31 @@ type GraphSchema struct {
 
 // GraphSchemaNodes Each kind of node the graph holds.
 type GraphSchemaNodes struct {
+	// Resource A kind of node: its label, the codec row it holds, the property
+	// it is one of its kind by, and the properties a reader finds one by.
+	Resource GraphSchemaNodesResource `json:"resource"`
 	// Annotation A kind of node: its label, the codec row it holds, the property
 	// it is one of its kind by, and the properties a reader finds one by.
 	Annotation GraphSchemaNodesAnnotation `json:"annotation"`
 	// EntityType A kind of node: its label, the codec row it holds, the property
 	// it is one of its kind by, and the properties a reader finds one by.
 	EntityType GraphSchemaNodesEntityType `json:"entityType"`
-	// Resource A kind of node: its label, the codec row it holds, the property
-	// it is one of its kind by, and the properties a reader finds one by.
-	Resource GraphSchemaNodesResource `json:"resource"`
 }
 
 // GraphSchemaNodesAnnotation A kind of node: its label, the codec row it
 // holds, the property it is one of its kind by, and the properties a reader
 // finds one by.
 type GraphSchemaNodesAnnotation struct {
-	// Key The property no two nodes of its kind share.
-	Key string `json:"key"`
 	// Label Its label.
 	Label string `json:"label"`
-	// Lookups The properties other than its key that a reader finds a node of
-	// its kind by.
-	Lookups []string `json:"lookups"`
 	// Row The part of graph/codec-cases.json whose `properties` and `json` are
 	// the node's properties. A node without one holds its key alone.
 	Row *string `json:"row,omitempty"`
+	// Key The property no two nodes of its kind share.
+	Key string `json:"key"`
+	// Lookups The properties other than its key that a reader finds a node of
+	// its kind by.
+	Lookups []string `json:"lookups"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -6000,16 +6000,16 @@ func (v GraphSchemaNodesAnnotation) MarshalJSON() ([]byte, error) {
 // holds, the property it is one of its kind by, and the properties a reader
 // finds one by.
 type GraphSchemaNodesEntityType struct {
-	// Key The property no two nodes of its kind share.
-	Key string `json:"key"`
 	// Label Its label.
 	Label string `json:"label"`
-	// Lookups The properties other than its key that a reader finds a node of
-	// its kind by.
-	Lookups []string `json:"lookups"`
 	// Row The part of graph/codec-cases.json whose `properties` and `json` are
 	// the node's properties. A node without one holds its key alone.
 	Row *string `json:"row,omitempty"`
+	// Key The property no two nodes of its kind share.
+	Key string `json:"key"`
+	// Lookups The properties other than its key that a reader finds a node of
+	// its kind by.
+	Lookups []string `json:"lookups"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -6024,16 +6024,16 @@ func (v GraphSchemaNodesEntityType) MarshalJSON() ([]byte, error) {
 // the property it is one of its kind by, and the properties a reader finds
 // one by.
 type GraphSchemaNodesResource struct {
-	// Key The property no two nodes of its kind share.
-	Key string `json:"key"`
 	// Label Its label.
 	Label string `json:"label"`
-	// Lookups The properties other than its key that a reader finds a node of
-	// its kind by.
-	Lookups []string `json:"lookups"`
 	// Row The part of graph/codec-cases.json whose `properties` and `json` are
 	// the node's properties. A node without one holds its key alone.
 	Row *string `json:"row,omitempty"`
+	// Key The property no two nodes of its kind share.
+	Key string `json:"key"`
+	// Lookups The properties other than its key that a reader finds a node of
+	// its kind by.
+	Lookups []string `json:"lookups"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -6060,71 +6060,71 @@ type GraphSchemaRelationships struct {
 // GraphSchemaRelationshipsBelongsTo A kind of relationship: its type, the
 // kind of node it goes from and the kind it goes to, and what it says.
 type GraphSchemaRelationshipsBelongsTo struct {
-	// From The kind of node it goes from, by its name under `nodes`.
-	From string `json:"from"`
-	// Says What one says.
-	Says string `json:"says"`
-	// To The kind of node it goes to, by its name under `nodes`.
-	To string `json:"to"`
 	// Type Its type.
 	Type string `json:"type"`
+	// From The kind of node it goes from, by its name under `nodes`.
+	From string `json:"from"`
+	// To The kind of node it goes to, by its name under `nodes`.
+	To string `json:"to"`
+	// Says What one says.
+	Says string `json:"says"`
 }
 
 // GraphSchemaRelationshipsReferences A kind of relationship: its type, the
 // kind of node it goes from and the kind it goes to, and what it says.
 type GraphSchemaRelationshipsReferences struct {
-	// From The kind of node it goes from, by its name under `nodes`.
-	From string `json:"from"`
-	// Says What one says.
-	Says string `json:"says"`
-	// To The kind of node it goes to, by its name under `nodes`.
-	To string `json:"to"`
 	// Type Its type.
 	Type string `json:"type"`
+	// From The kind of node it goes from, by its name under `nodes`.
+	From string `json:"from"`
+	// To The kind of node it goes to, by its name under `nodes`.
+	To string `json:"to"`
+	// Says What one says.
+	Says string `json:"says"`
 }
 
 // GraphSchemaRelationshipsTaggedAs A kind of relationship: its type, the kind
 // of node it goes from and the kind it goes to, and what it says.
 type GraphSchemaRelationshipsTaggedAs struct {
-	// From The kind of node it goes from, by its name under `nodes`.
-	From string `json:"from"`
-	// Says What one says.
-	Says string `json:"says"`
-	// To The kind of node it goes to, by its name under `nodes`.
-	To string `json:"to"`
 	// Type Its type.
 	Type string `json:"type"`
+	// From The kind of node it goes from, by its name under `nodes`.
+	From string `json:"from"`
+	// To The kind of node it goes to, by its name under `nodes`.
+	To string `json:"to"`
+	// Says What one says.
+	Says string `json:"says"`
 }
 
 // GraphSchemaStub A link's target the graph has not been given yet: a node of
 // its kind that holds its key and the marker, `true`, and nothing else. A
 // node without the marker is no stub.
 type GraphSchemaStub struct {
-	// Marker The property that marks a stub.
-	Marker string `json:"marker"`
 	// Node The kind of node a stub is, by its name under `nodes`.
 	Node string `json:"node"`
+	// Marker The property that marks a stub.
+	Marker string `json:"marker"`
 }
 
 // HealthResponse Liveness: the process is up and serving. It asks nothing of
 // the Archivist or the broker — a gateway that cannot reach them refuses to
 // start, so one that answers here got past both at boot.
 type HealthResponse struct {
-	Message   string `json:"message"`
 	Status    string `json:"status"`
-	Timestamp string `json:"timestamp"`
+	Message   string `json:"message"`
 	Version   string `json:"version"`
+	Timestamp string `json:"timestamp"`
 }
 
 // HighlightingJobParams What a highlighting job takes: passages of the
 // resource worth a reader's attention are marked, with no text of the job's
 // own.
 type HighlightingJobParams struct {
+	Motivation HighlightingJobParamsMotivation `json:"motivation"`
+	// Instructions What to look for, in the caller's words. Added to the prompt.
+	Instructions *string `json:"instructions,omitempty"`
 	// Density How many annotations to aim for per 2000 words of the resource.
 	Density *float64 `json:"density,omitempty"`
-	// Instructions What to look for, in the caller's words. Added to the prompt.
-	Instructions *string                         `json:"instructions,omitempty"`
-	Motivation   HighlightingJobParamsMotivation `json:"motivation"`
 	// SourceLanguage The language of the resource being read. BCP 47.
 	SourceLanguage *string `json:"sourceLanguage,omitempty"`
 }
@@ -6161,10 +6161,10 @@ type HostPort struct {
 // host that is not a host's name is refused before it is put into a URL
 // (specs/src/session/gateway-url-cases.json).
 type HttpEndpoint struct {
-	// Host The gateway's host, as a person or a discovery document gave it.
-	Host string `json:"host"`
 	// Kind Discriminant: the endpoint is a gateway reached over HTTP.
 	Kind HttpEndpointKind `json:"kind"`
+	// Host The gateway's host, as a person or a discovery document gave it.
+	Host string `json:"host"`
 	// Port The gateway's port.
 	Port int `json:"port"`
 	// Protocol What the gateway is reached over.
@@ -6220,42 +6220,42 @@ type (
 type IdentityUser struct {
 	// Email The account's sign-in name, normally its email address.
 	Email string `json:"email"`
+	// Identity The identity the account acts under in Xynolog.
+	Identity string `json:"identity"`
 	// Enabled Whether the identity provider currently allows this account to
 	// sign in.
 	Enabled bool `json:"enabled"`
-	// Identity The identity the account acts under in Xynolog.
-	Identity string `json:"identity"`
 }
 
 // IdentityUseraddParams Create one account in the launcher-managed Keycloak
 // realm for a specific local knowledge base.
 type IdentityUseraddParams struct {
-	ApiVersion ApiVersion `json:"apiVersion"`
+	ApiVersion ApiVersion  `json:"apiVersion"`
+	Target     LocalTarget `json:"target"`
 	// Email The email address that will sign in to this knowledge base.
 	Email string `json:"email"`
+	// Password The user's password. Secret: carried only in this local control
+	// request, never in progress, diagnostics, or persistent state.
+	Password *string `json:"password,omitempty"`
 	// GeneratePassword Generate a random password in the launcher and return it
 	// once in the result.
 	GeneratePassword bool `json:"generatePassword"`
-	// Password The user's password. Secret: carried only in this local control
-	// request, never in progress, diagnostics, or persistent state.
-	Password *string     `json:"password,omitempty"`
-	Target   LocalTarget `json:"target"`
 }
 
 // IdentityUseraddResult The created account's sign-in identity. A generated
 // password is present only in this one answer and is not stored by the
 // launcher.
 type IdentityUseraddResult struct {
-	// Created Whether a new account was created.
-	Created bool `json:"created"`
 	// Email The account's email address.
 	Email string `json:"email"`
+	// Identity The identity the account acts under in Xynolog.
+	Identity string `json:"identity"`
+	// Created Whether a new account was created.
+	Created bool `json:"created"`
 	// GeneratedPassword The generated password, returned once so the operator
 	// can share it with the user. Absent when the operator supplied the
 	// password.
 	GeneratedPassword *string `json:"generatedPassword,omitempty"`
-	// Identity The identity the account acts under in Xynolog.
-	Identity string `json:"identity"`
 }
 
 // IdentityUsersListParams List accounts in one local knowledge base's
@@ -6322,12 +6322,6 @@ func (e InferenceKind) Valid() bool {
 // and mirrors it into both fields (there is no separate output ceiling), so
 // maxOutputTokens === contextTokens signals a shared window.
 type InferenceLimits struct {
-	// AcceptsTemperature Whether this engine accepts a caller-supplied sampling
-	// temperature, measured against the provider (Anthropic: an active probe at
-	// discovery, because some models reject the parameter outright and the
-	// Models API does not say; Ollama: always true). Consumers treat only an
-	// explicit false as 'hide temperature controls' — absence means no claim.
-	AcceptsTemperature *bool `json:"acceptsTemperature,omitempty"`
 	// ContextTokens The context window in tokens. Anthropic: maximum input
 	// tokens (output has its own ceiling). Ollama: the shared input+output
 	// window.
@@ -6335,6 +6329,12 @@ type InferenceLimits struct {
 	// MaxOutputTokens Maximum output tokens per generation. Equal to
 	// contextTokens when the provider has a single shared window.
 	MaxOutputTokens float64 `json:"maxOutputTokens"`
+	// AcceptsTemperature Whether this engine accepts a caller-supplied sampling
+	// temperature, measured against the provider (Anthropic: an active probe at
+	// discovery, because some models reject the parameter outright and the
+	// Models API does not say; Ollama: always true). Consumers treat only an
+	// explicit false as 'hide temperature controls' — absence means no claim.
+	AcceptsTemperature *bool `json:"acceptsTemperature,omitempty"`
 }
 
 // InferenceLimitsRequest Request for the inference limits of the engines one
@@ -6366,11 +6366,11 @@ func (v InferenceLimitsResultResponse) MarshalJSON() ([]byte, error) {
 // InferenceSpec The providers, and the engine for each job and each Librarian
 // actor.
 type InferenceSpec struct {
+	// Providers Each provider an engine names, and how it is reached.
+	Providers map[string]Provider `json:"providers"`
 	// Engines The engine each job is done with when software does it, and the
 	// engine each Librarian actor asks.
 	Engines ArchivistEngines `json:"engines"`
-	// Providers Each provider an engine names, and how it is reached.
-	Providers map[string]Provider `json:"providers"`
 }
 
 // IssuedTokens The tokens an issuer issued at the end of a sign-in.
@@ -6416,55 +6416,55 @@ func (e IssuerKind) Valid() bool {
 // IssuerSpec The issuer, where it is published, and the database it keeps its
 // realms in.
 type IssuerSpec struct {
-	// Database The database the issuer keeps its realms in.
-	Database IssuerSpecDatabase `json:"database"`
-	Image    Image              `json:"image"`
+	// Type The issuer's driver: `keycloak`.
+	Type      string    `json:"type"`
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
 	// Port The port the issuer is published on, on this machine: the origin of
 	// every realm's `iss`, so the one number wherever the issuer is reached.
-	Port      int       `json:"port"`
-	Resources Resources `json:"resources"`
-	// Type The issuer's driver: `keycloak`.
-	Type string `json:"type"`
+	Port int `json:"port"`
+	// Database The database the issuer keeps its realms in.
+	Database IssuerSpecDatabase `json:"database"`
 }
 
 // IssuerSpecDatabase The database the issuer keeps its realms in.
 type IssuerSpecDatabase struct {
-	// External A database somebody else runs.
-	External *IssuerSpecDatabaseExternal `json:"external,omitempty"`
-	Image    *Image                      `json:"image,omitempty"`
+	// Type The database's driver: `postgres`.
+	Type string `json:"type"`
 	// Name The database the issuer keeps its realms in: a lowercase PostgreSQL
 	// identifier, as PostgreSQL itself names an unquoted one. On a PostgreSQL
 	// the launcher runs, the launcher creates it; on one somebody else runs
 	// (`external`), it must already exist there.
 	Name string `json:"name"`
+	// User The user the issuer signs in as.
+	User      string     `json:"user"`
+	Image     *Image     `json:"image,omitempty"`
+	Resources *Resources `json:"resources,omitempty"`
 	// Port The port a PostgreSQL the launcher runs is published on, on this
 	// machine, where the issuer reaches it. One somebody else runs is reached at
 	// `external`.
-	Port      *int       `json:"port,omitempty"`
-	Resources *Resources `json:"resources,omitempty"`
-	// Type The database's driver: `postgres`.
-	Type string `json:"type"`
-	// User The user the issuer signs in as.
-	User string `json:"user"`
+	Port *int `json:"port,omitempty"`
+	// External A database somebody else runs.
+	External *IssuerSpecDatabaseExternal `json:"external,omitempty"`
 }
 
 // IssuerSpecDatabaseExternal A database somebody else runs.
 type IssuerSpecDatabaseExternal struct {
 	// Host A host name or address the issuer can reach.
-	Host     string    `json:"host"`
-	Password SecretRef `json:"password"`
+	Host string `json:"host"`
 	// Port The port it listens on.
-	Port int `json:"port"`
+	Port     int       `json:"port"`
+	Password SecretRef `json:"password"`
 }
 
 // JanusGraphConfig A graph kept in a JanusGraph server, asked in Gremlin. No
 // service has been run against one.
 type JanusGraphConfig struct {
+	Type JanusGraphConfigType `json:"type"`
 	// Host The server's host.
 	Host string `json:"host"`
 	// Port The port its Gremlin endpoint listens on.
-	Port int                  `json:"port"`
-	Type JanusGraphConfigType `json:"type"`
+	Port int `json:"port"`
 }
 
 func (JanusGraphConfig) memberOfGraphConfig()   {}
@@ -6533,19 +6533,19 @@ func (u Job) ValueByDiscriminator() (any, error) {
 type JobAssignCommand struct {
 	// UserId The dispatcher's service DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
-	// Holder DID of the claimant whose claim was accepted — the `_userId` the
-	// gateway stamped on the job:claim, restated by the dispatcher.
-	Holder  UserId  `json:"holder"`
+	UserId  *UserId `json:"_userId,omitempty"`
 	JobId   JobId   `json:"jobId"`
 	JobType JobType `json:"jobType"`
+	// ResourceId The job's resource — for a generation, the source it generates
+	// from. The assignment is persisted on this resource's log.
+	ResourceId ResourceId `json:"resourceId"`
+	// Holder DID of the claimant whose claim was accepted — the `_userId` the
+	// gateway stamped on the job:claim, restated by the dispatcher.
+	Holder UserId `json:"holder"`
 	// Requester DID of the emitter of the job:create that produced this job —
 	// the `_userId` the gateway stamped on that create, restated by the
 	// dispatcher.
 	Requester UserId `json:"requester"`
-	// ResourceId The job's resource — for a generation, the source it generates
-	// from. The assignment is persisted on this resource's log.
-	ResourceId ResourceId `json:"resourceId"`
 }
 
 // JobAssignedPayload Payload for job:assigned — the dispatcher's own record
@@ -6557,18 +6557,18 @@ type JobAssignCommand struct {
 // holder and its `creator` derived from the requester with no read outside
 // the event log.
 type JobAssignedPayload struct {
-	// Holder DID of the emitter whose claim the dispatcher accepted. The bus
-	// stamped it on the job:claim as `_userId`; the dispatcher restates it here
-	// under its own identity.
-	Holder  UserId  `json:"holder"`
 	JobId   JobId   `json:"jobId"`
 	JobType JobType `json:"jobType"`
-	// Requester DID of the emitter of the job:create that produced this job. The
-	// dispatcher restates the `_userId` the gateway stamped on that create.
-	Requester UserId `json:"requester"`
 	// ResourceId The job's resource — for a generation, the source it generates
 	// from. Job events are scoped here.
 	ResourceId ResourceId `json:"resourceId"`
+	// Holder DID of the emitter whose claim the dispatcher accepted. The bus
+	// stamped it on the job:claim as `_userId`; the dispatcher restates it here
+	// under its own identity.
+	Holder UserId `json:"holder"`
+	// Requester DID of the emitter of the job:create that produced this job. The
+	// dispatcher restates the `_userId` the gateway stamped on that create.
+	Requester UserId `json:"requester"`
 }
 
 // JobCancelCommand A worker's settling of a running job it holds whose work
@@ -6579,16 +6579,16 @@ type JobAssignedPayload struct {
 type JobCancelCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
+	UserId     *UserId    `json:"_userId,omitempty"`
+	ResourceId ResourceId `json:"resourceId"`
+	JobId      JobId      `json:"jobId"`
+	JobType    JobType    `json:"jobType"`
 	// AnnotationId Annotation this job is attached to, when applicable. Lets the
 	// UI route cancellation feedback to a specific annotation.
 	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
 	// CompletedUnits The units the worker had finished when it stopped. Recorded
 	// on the cancelled job's metadata so the work already done stays visible.
-	CompletedUnits *[]string  `json:"completedUnits,omitempty"`
-	JobId          JobId      `json:"jobId"`
-	JobType        JobType    `json:"jobType"`
-	ResourceId     ResourceId `json:"resourceId"`
+	CompletedUnits *[]string `json:"completedUnits,omitempty"`
 	// UnitCursors The furthest each unit begun got, keyed by unit, with what it
 	// had counted there — the grain `completedUnits` cannot express. A unit
 	// named in `completedUnits` is stated here too, by the cursor it ended at: a
@@ -6620,14 +6620,14 @@ type JobCancelResult struct {
 
 // JobCancelled A job cancelled before it concluded.
 type JobCancelled struct {
-	// CompletedAt When it was cancelled.
-	CompletedAt string      `json:"completedAt"`
-	Metadata    JobMetadata `json:"metadata"`
-	Params      JobParams   `json:"params"`
+	Status   JobCancelledStatus `json:"status"`
+	Metadata JobMetadata        `json:"metadata"`
+	Params   JobParams          `json:"params"`
 	// StartedAt When its claim was made; absent when it was cancelled while
 	// pending.
-	StartedAt *string            `json:"startedAt,omitempty"`
-	Status    JobCancelledStatus `json:"status"`
+	StartedAt *string `json:"startedAt,omitempty"`
+	// CompletedAt When it was cancelled.
+	CompletedAt string `json:"completedAt"`
 }
 
 func (JobCancelled) memberOfJob()           {}
@@ -6659,11 +6659,11 @@ type JobCheckpointCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
 	UserId *UserId `json:"_userId,omitempty"`
+	JobId  JobId   `json:"jobId"`
 	// CompletedUnits Entity-type units whose annotations have been fully emitted
 	// so far. Unioned into the running job's metadata checkpoint; a retry after
 	// recovery skips them.
 	CompletedUnits []string `json:"completedUnits"`
-	JobId          JobId    `json:"jobId"`
 	// UnitCursors The furthest each unit begun got, keyed by unit, with what it
 	// had counted there — the grain `completedUnits` cannot express. A unit
 	// named in `completedUnits` is stated here too, by the cursor it ended at: a
@@ -6689,19 +6689,19 @@ func (v JobCheckpointCommand) MarshalJSON() ([]byte, error) {
 // racing for one. job:claimed carries the claimed job; job:claim-failed
 // reports that nothing matching is pending.
 type JobClaimCommand struct {
+	// Accepts The jobs this claim takes. A job is handed over when it matches
+	// any one of them.
+	Accepts []JobFilter `json:"accepts"`
+	// UserId Authenticated claimant's DID, injected by the /bus/emit gateway.
+	// Clients do not set this. The dispatcher records it as the holder on
+	// job:assigned.
+	UserId *UserId `json:"_userId,omitempty"`
 	// Roles The claimant's capabilities (the token's `roles`), injected by the
 	// /bus/emit gateway. Clients do not set this. The dispatcher authorizes the
 	// claim by capability — it admits the claim only when this carries the
 	// worker role — so a claimant that is not a worker for this knowledge base
 	// is refused before the queue is consulted.
 	Roles *[]string `json:"_roles,omitempty"`
-	// UserId Authenticated claimant's DID, injected by the /bus/emit gateway.
-	// Clients do not set this. The dispatcher records it as the holder on
-	// job:assigned.
-	UserId *UserId `json:"_userId,omitempty"`
-	// Accepts The jobs this claim takes. A job is handed over when it matches
-	// any one of them.
-	Accepts []JobFilter `json:"accepts"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -6720,14 +6720,14 @@ type JobClaimedResult struct {
 
 // JobComplete A job its worker completed.
 type JobComplete struct {
+	Status   JobCompleteStatus `json:"status"`
+	Metadata JobMetadata       `json:"metadata"`
+	Params   JobParams         `json:"params"`
+	// StartedAt When the claim that completed it was made.
+	StartedAt string `json:"startedAt"`
 	// CompletedAt When it completed.
 	CompletedAt string          `json:"completedAt"`
-	Metadata    JobMetadata     `json:"metadata"`
-	Params      JobParams       `json:"params"`
 	Result      JobStoredResult `json:"result"`
-	// StartedAt When the claim that completed it was made.
-	StartedAt string            `json:"startedAt"`
-	Status    JobCompleteStatus `json:"status"`
 }
 
 func (JobComplete) memberOfJob()           {}
@@ -6783,10 +6783,8 @@ func (e JobCompleteStatus) Valid() bool {
 
 // JobCompletedPayload Payload for job:completed domain event
 type JobCompletedPayload struct {
-	// AnnotationId Annotation this job was attached to, when applicable
-	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
-	// AnnotationUri For generation: URI of annotation that triggered generation
-	AnnotationUri *string `json:"annotationUri,omitempty"`
+	JobId   JobId   `json:"jobId"`
+	JobType JobType `json:"jobType"`
 	// Attempt Which attempt produced this event, 1-based (a first run is 1).
 	// ALWAYS present: the queue re-runs a failed job silently, so an operator
 	// reading progress or a terminal record has no other way to tell a re-run
@@ -6794,17 +6792,19 @@ type JobCompletedPayload struct {
 	// xynolog_inference_tokens_total, cannot be attributed to a repeated
 	// document without it. Stated rather than inferred from absence, because
 	// 'attempt 1' is a fact the emitter always knows.
-	Attempt    *int                `json:"attempt,omitempty"`
-	Durability *DurabilityEvidence `json:"durability,omitempty"`
+	Attempt *int `json:"attempt,omitempty"`
+	// AnnotationId Annotation this job was attached to, when applicable
+	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
+	TotalSteps   *int          `json:"totalSteps,omitempty"`
 	// FoundCount For detection: total entities found
-	FoundCount *int    `json:"foundCount,omitempty"`
-	JobId      JobId   `json:"jobId"`
-	JobType    JobType `json:"jobType"`
-	// Result Full result object for extensibility
-	Result *map[string]any `json:"result,omitempty"`
+	FoundCount *int `json:"foundCount,omitempty"`
 	// ResultResourceId For generation: ID of generated resource
 	ResultResourceId *ResourceId `json:"resultResourceId,omitempty"`
-	TotalSteps       *int        `json:"totalSteps,omitempty"`
+	// AnnotationUri For generation: URI of annotation that triggered generation
+	AnnotationUri *string `json:"annotationUri,omitempty"`
+	// Result Full result object for extensibility
+	Result     *map[string]any     `json:"result,omitempty"`
+	Durability *DurabilityEvidence `json:"durability,omitempty"`
 }
 
 // JobCreateCommand Create a job. A job description is its `jobType` and
@@ -6918,11 +6918,10 @@ func (e JobDeclinedReason) Valid() bool {
 type JobFailCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
-	// AnnotationId Annotation this job is attached to, when applicable. Lets the
-	// UI route failure feedback (error toast, revert state) to a specific
-	// annotation.
-	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
+	UserId     *UserId    `json:"_userId,omitempty"`
+	ResourceId ResourceId `json:"resourceId"`
+	JobId      JobId      `json:"jobId"`
+	JobType    JobType    `json:"jobType"`
 	// Attempt Which attempt produced this event, 1-based (a first run is 1).
 	// ALWAYS present: the queue re-runs a failed job silently, so an operator
 	// reading progress or a terminal record has no other way to tell a re-run
@@ -6931,17 +6930,16 @@ type JobFailCommand struct {
 	// document without it. Stated rather than inferred from absence, because
 	// 'attempt 1' is a fact the emitter always knows.
 	Attempt *int `json:"attempt,omitempty"`
+	// AnnotationId Annotation this job is attached to, when applicable. Lets the
+	// UI route failure feedback (error toast, revert state) to a specific
+	// annotation.
+	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
+	Error        string        `json:"error"`
 	// CompletedUnits Entity-type units whose annotations were fully emitted
 	// before this failure (checkpointed resume). The queue records them on the
 	// retried job's metadata; a retried claim skips them so completed work is
 	// neither redone nor duplicated.
-	CompletedUnits *[]string           `json:"completedUnits,omitempty"`
-	Durability     *DurabilityEvidence `json:"durability,omitempty"`
-	Error          string              `json:"error"`
-	FailureClass   *FailureClass       `json:"failureClass,omitempty"`
-	JobId          JobId               `json:"jobId"`
-	JobType        JobType             `json:"jobType"`
-	ResourceId     ResourceId          `json:"resourceId"`
+	CompletedUnits *[]string `json:"completedUnits,omitempty"`
 	// UnitCursors The furthest each unit begun got, keyed by unit, with what it
 	// had counted there — the grain `completedUnits` cannot express. A unit
 	// named in `completedUnits` is stated here too, by the cursor it ended at: a
@@ -6949,7 +6947,8 @@ type JobFailCommand struct {
 	// says a unit is finished; only `completedUnits` does. Merged monotonically
 	// per unit, finished or not: a stale snapshot must never move a cursor
 	// backward.
-	UnitCursors *map[string]UnitCursor `json:"unitCursors,omitempty"`
+	UnitCursors  *map[string]UnitCursor `json:"unitCursors,omitempty"`
+	FailureClass *FailureClass          `json:"failureClass,omitempty"`
 	// WillRetry Whether the queue will re-queue this job for another attempt.
 	// Computed by the worker from the SAME rule the queue applies when it takes
 	// the failure (specs/src/jobs/retry-cases.json, which every SDK and the
@@ -6958,21 +6957,22 @@ type JobFailCommand struct {
 	// stream ends here. TRUE means the work continues on a fresh attempt — the
 	// failure is an event, not the end, and a stream that terminated on it would
 	// report a recovering run as a failed one.
-	WillRetry *bool `json:"willRetry,omitempty"`
+	WillRetry  *bool               `json:"willRetry,omitempty"`
+	Durability *DurabilityEvidence `json:"durability,omitempty"`
 }
 
 // JobFailed A job that failed and will not be retried.
 type JobFailed struct {
+	Status   JobFailedStatus `json:"status"`
+	Metadata JobMetadata     `json:"metadata"`
+	Params   JobParams       `json:"params"`
+	// StartedAt When the last claim was made; absent when it failed without one.
+	StartedAt *string `json:"startedAt,omitempty"`
 	// CompletedAt When it failed.
 	CompletedAt string `json:"completedAt"`
 	// Error The failure's message.
 	Error        string        `json:"error"`
 	FailureClass *FailureClass `json:"failureClass,omitempty"`
-	Metadata     JobMetadata   `json:"metadata"`
-	Params       JobParams     `json:"params"`
-	// StartedAt When the last claim was made; absent when it failed without one.
-	StartedAt *string         `json:"startedAt,omitempty"`
-	Status    JobFailedStatus `json:"status"`
 }
 
 func (JobFailed) memberOfJob()           {}
@@ -6983,8 +6983,8 @@ func (JobFailed) told() (string, string) { return "status", "failed" }
 // COMPUTED, not just its message: at the log they are otherwise
 // unrecoverable, the only remaining witness being a flattened English string.
 type JobFailedPayload struct {
-	// AnnotationId Annotation this job was attached to, when applicable
-	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
+	JobId   JobId   `json:"jobId"`
+	JobType JobType `json:"jobType"`
 	// Attempt Which attempt produced this event, 1-based (a first run is 1).
 	// ALWAYS present: the queue re-runs a failed job silently, so an operator
 	// reading progress or a terminal record has no other way to tell a re-run
@@ -6992,17 +6992,17 @@ type JobFailedPayload struct {
 	// xynolog_inference_tokens_total, cannot be attributed to a repeated
 	// document without it. Stated rather than inferred from absence, because
 	// 'attempt 1' is a fact the emitter always knows.
-	Attempt      *int                `json:"attempt,omitempty"`
-	Durability   *DurabilityEvidence `json:"durability,omitempty"`
-	Error        string              `json:"error"`
-	FailureClass *FailureClass       `json:"failureClass,omitempty"`
-	JobId        JobId               `json:"jobId"`
-	JobType      JobType             `json:"jobType"`
+	Attempt *int `json:"attempt,omitempty"`
+	// AnnotationId Annotation this job was attached to, when applicable
+	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
+	Error        string        `json:"error"`
+	FailureClass *FailureClass `json:"failureClass,omitempty"`
 	// WillRetry Whether the worker computed that the queue would re-queue this
 	// job (same predicate the queue applies, `willRetryAfter`). Absent means the
 	// worker stated nothing. Without it a reader of the log cannot tell a run
 	// recovering across several job:failed events from that many dead jobs.
-	WillRetry *bool `json:"willRetry,omitempty"`
+	WillRetry  *bool               `json:"willRetry,omitempty"`
+	Durability *DurabilityEvidence `json:"durability,omitempty"`
 }
 
 type JobFailedStatus string
@@ -7056,26 +7056,26 @@ func (u JobFilter) ValueByDiscriminator() (any, error) {
 // `retryCount` counts the times the queue has put the job back to pending
 // after a failure it classes as transient.
 type JobMetadata struct {
-	// CompletedUnits The units a worker has finished, merged across checkpoints
-	// and failures as a set.
-	CompletedUnits *[]string `json:"completedUnits,omitempty"`
-	// Created When the job was created, as an ISO 8601 timestamp.
-	Created string `json:"created"`
 	// Id The job's id: `job-` followed by a version 4 UUID written as 32
 	// lowercase hex digits, without dashes.
-	Id JobId `json:"id"`
+	Id   JobId   `json:"id"`
+	Type JobType `json:"type"`
+	// UserId The DID of the principal whose `job:create` created the job.
+	UserId UserId `json:"userId"`
+	// Created When the job was created, as an ISO 8601 timestamp.
+	Created    string `json:"created"`
+	RetryCount int    `json:"retryCount"`
 	// MaxRetries How many transient failures the queue retries: 0 for
 	// generation, whose re-run produces different content; 1 for every other
 	// type.
-	MaxRetries int     `json:"maxRetries"`
-	RetryCount int     `json:"retryCount"`
-	Type       JobType `json:"type"`
+	MaxRetries int `json:"maxRetries"`
+	// CompletedUnits The units a worker has finished, merged across checkpoints
+	// and failures as a set.
+	CompletedUnits *[]string `json:"completedUnits,omitempty"`
 	// UnitCursors The furthest each unit begun got, keyed by unit, with what it
 	// had counted there. A finished unit keeps its cursor: where it ended, and
 	// its final counts.
 	UnitCursors *map[string]UnitCursor `json:"unitCursors,omitempty"`
-	// UserId The DID of the principal whose `job:create` created the job.
-	UserId UserId `json:"userId"`
 }
 
 // JobParams A job's parameters as the Dispatcher holds them: the `params` of
@@ -7110,9 +7110,9 @@ func (v *JobParams) UnmarshalJSON(raw []byte) error {
 
 // JobPending A job waiting for a worker to claim it.
 type JobPending struct {
+	Status   JobPendingStatus `json:"status"`
 	Metadata JobMetadata      `json:"metadata"`
 	Params   JobParams        `json:"params"`
-	Status   JobPendingStatus `json:"status"`
 }
 
 func (JobPending) memberOfJob()           {}
@@ -7155,22 +7155,30 @@ type JobPollOptions struct {
 // position as one `current`/`processed`/`total` triple, the same shape for
 // both, so a client never needs to know which flow it is drawing.
 type JobProgress struct {
+	// Percentage Completion percentage (0-100)
+	Percentage float64 `json:"percentage"`
+	// Message What the job is doing right now, as a code plus typed params; the
+	// client renders the sentence. Optional: pure percentage heartbeats carry
+	// none, and consumers render nothing message-shaped when it is absent.
+	Message *JobProgressMessage `json:"message,omitempty"`
 	// AnnotationId Annotation this job is attached to, when applicable. Echoed
 	// inside JobProgress (in addition to the outer command envelope) so
 	// consumers that only see the inner progress object (e.g. what
 	// `yield.delegate` returns) can still route visual feedback to a specific
 	// annotation.
 	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
-	// CompletedItems Per-item results for the items already finished, for the
-	// UI's completed log. Generic across flows for the same reason `current` is.
-	CompletedItems *[]JobProgressCompletedItemsItem `json:"completedItems,omitempty"`
 	// Current What the run is working on right now. `kind` is a CODE the client
 	// renders a localized name for; `value` is KB data (an entity type, a tag
 	// category) shown verbatim — the same split as `requestParams`. Absent on
 	// flows that iterate nothing, such as generation.
 	Current *JobProgressCurrent `json:"current,omitempty"`
-	// EntitiesEmitted Annotations emitted so far (a linking job)
-	EntitiesEmitted *int `json:"entitiesEmitted,omitempty"`
+	// Processed Items completed so far, zero-based — the item in `current` is
+	// the one after these. Paired with `total`.
+	Processed *int `json:"processed,omitempty"`
+	// Total Items this run will process in all.
+	Total *int `json:"total,omitempty"`
+	// EntitiesFound Entities found so far (a linking job)
+	EntitiesFound *int `json:"entitiesFound,omitempty"`
 	// EntitiesExpected Cumulative mentions the count-verifier priced across the
 	// pieces accepted so far — the denominator for a real progress bar (found of
 	// ~expected). Approximate by nature (the count saturates on very large
@@ -7178,25 +7186,17 @@ type JobProgress struct {
 	// does not verify detection yield, or before any piece has been priced: no
 	// claim, never zero.
 	EntitiesExpected *int `json:"entitiesExpected,omitempty"`
-	// EntitiesFound Entities found so far (a linking job)
-	EntitiesFound *int `json:"entitiesFound,omitempty"`
-	// Message What the job is doing right now, as a code plus typed params; the
-	// client renders the sentence. Optional: pure percentage heartbeats carry
-	// none, and consumers render nothing message-shaped when it is absent.
-	Message *JobProgressMessage `json:"message,omitempty"`
-	// Percentage Completion percentage (0-100)
-	Percentage float64 `json:"percentage"`
-	// Processed Items completed so far, zero-based — the item in `current` is
-	// the one after these. Paired with `total`.
-	Processed *int `json:"processed,omitempty"`
+	// EntitiesEmitted Annotations emitted so far (a linking job)
+	EntitiesEmitted *int `json:"entitiesEmitted,omitempty"`
+	// CompletedItems Per-item results for the items already finished, for the
+	// UI's completed log. Generic across flows for the same reason `current` is.
+	CompletedItems *[]JobProgressCompletedItemsItem `json:"completedItems,omitempty"`
 	// RequestParams Echoed job parameters for display in the progress UI.
 	// `label` is a CODE, not a sentence — the client owns the wording, same rule
 	// as the progress message. `value` is the user's own input (an entity-type
 	// list, their instructions) and is deliberately NOT translated: it is their
 	// words, not ours.
 	RequestParams *[]JobProgressRequestParamsItem `json:"requestParams,omitempty"`
-	// Total Items this run will process in all.
-	Total *int `json:"total,omitempty"`
 }
 
 func (JobProgress) memberOfJobStoredProgress() {}
@@ -7310,6 +7310,8 @@ func (e JobProgressCompleteGeneratedCode) Valid() bool {
 }
 
 type JobProgressCompletedItemsItem struct {
+	// Value The item, shown verbatim.
+	Value string `json:"value"`
 	// FoundCount Annotations found for it.
 	FoundCount int `json:"foundCount"`
 	// PersistedCount Annotations actually persisted for it — post-dedupe and
@@ -7326,8 +7328,6 @@ type JobProgressCompletedItemsItem struct {
 	// over how many pieces), never a judgment against any expected yield. Absent
 	// means complete: genuinely absent, not defaulted.
 	UnderReported *JobProgressCompletedItemsItemUnderReported `json:"underReported,omitempty"`
-	// Value The item, shown verbatim.
-	Value string `json:"value"`
 }
 
 // JobProgressCompletedItemsItemUnderReported Present only when pieces of this
@@ -7336,14 +7336,14 @@ type JobProgressCompletedItemsItem struct {
 // EVIDENCE (found vs counted, over how many pieces), never a judgment against
 // any expected yield. Absent means complete: genuinely absent, not defaulted.
 type JobProgressCompletedItemsItemUnderReported struct {
-	// Counted Mentions the count calls reported across those pieces (approximate
-	// by nature).
-	Counted int `json:"counted"`
+	// Pieces Floor-accepted pieces in this unit.
+	Pieces int `json:"pieces"`
 	// Found Annotations extraction did find on those pieces — every span
 	// write-time-verified.
 	Found int `json:"found"`
-	// Pieces Floor-accepted pieces in this unit.
-	Pieces int `json:"pieces"`
+	// Counted Mentions the count calls reported across those pieces (approximate
+	// by nature).
+	Counted int `json:"counted"`
 }
 
 // JobProgressCreatingAnnotations Writing detected annotations back to the
@@ -7666,11 +7666,10 @@ type JobRecord struct {
 type JobReportProgressCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
-	// AnnotationId Annotation this job is attached to, when applicable. Lets the
-	// UI attach progress visuals to a specific annotation (e.g. a reference
-	// whose generation is running).
-	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
+	UserId     *UserId    `json:"_userId,omitempty"`
+	ResourceId ResourceId `json:"resourceId"`
+	JobId      JobId      `json:"jobId"`
+	JobType    JobType    `json:"jobType"`
 	// Attempt Which attempt produced this event, 1-based (a first run is 1).
 	// ALWAYS present: the queue re-runs a failed job silently, so an operator
 	// reading progress or a terminal record has no other way to tell a re-run
@@ -7678,12 +7677,13 @@ type JobReportProgressCommand struct {
 	// xynolog_inference_tokens_total, cannot be attributed to a repeated
 	// document without it. Stated rather than inferred from absence, because
 	// 'attempt 1' is a fact the emitter always knows.
-	Attempt    *int         `json:"attempt,omitempty"`
-	JobId      JobId        `json:"jobId"`
-	JobType    JobType      `json:"jobType"`
-	Percentage float64      `json:"percentage"`
-	Progress   *JobProgress `json:"progress,omitempty"`
-	ResourceId ResourceId   `json:"resourceId"`
+	Attempt *int `json:"attempt,omitempty"`
+	// AnnotationId Annotation this job is attached to, when applicable. Lets the
+	// UI attach progress visuals to a specific annotation (e.g. a reference
+	// whose generation is running).
+	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
+	Percentage   float64       `json:"percentage"`
+	Progress     *JobProgress  `json:"progress,omitempty"`
 }
 
 // JobResult What a job reports when it concludes without failing: a `mark`
@@ -7705,12 +7705,12 @@ func (JobResult) memberOfJobStoredResult() {}
 
 // JobRunning A job a worker has claimed and not yet concluded.
 type JobRunning struct {
-	Metadata JobMetadata       `json:"metadata"`
-	Params   JobParams         `json:"params"`
-	Progress JobStoredProgress `json:"progress"`
+	Status   JobRunningStatus `json:"status"`
+	Metadata JobMetadata      `json:"metadata"`
+	Params   JobParams        `json:"params"`
 	// StartedAt When the claim that holds it was made, as an ISO 8601 timestamp.
-	StartedAt string           `json:"startedAt"`
-	Status    JobRunningStatus `json:"status"`
+	StartedAt string            `json:"startedAt"`
+	Progress  JobStoredProgress `json:"progress"`
 }
 
 func (JobRunning) memberOfJob()           {}
@@ -7736,7 +7736,10 @@ func (e JobRunningStatus) Valid() bool {
 type JobStartCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
+	UserId     *UserId    `json:"_userId,omitempty"`
+	ResourceId ResourceId `json:"resourceId"`
+	JobId      JobId      `json:"jobId"`
+	JobType    JobType    `json:"jobType"`
 	// AnnotationId Annotation this job is attached to, when applicable. Set for
 	// annotation-scoped jobs like generation (from a specific reference). Unset
 	// for resource-scoped jobs like bulk reference/tag/highlight detection.
@@ -7748,18 +7751,15 @@ type JobStartCommand struct {
 	// xynolog_inference_tokens_total, cannot be attributed to a repeated
 	// document without it. Stated rather than inferred from absence, because
 	// 'attempt 1' is a fact the emitter always knows.
-	Attempt    *int       `json:"attempt,omitempty"`
-	JobId      JobId      `json:"jobId"`
-	JobType    JobType    `json:"jobType"`
-	ResourceId ResourceId `json:"resourceId"`
+	Attempt *int `json:"attempt,omitempty"`
 }
 
 // JobStartedPayload Payload for job:started domain event
 type JobStartedPayload struct {
+	JobId   JobId   `json:"jobId"`
+	JobType JobType `json:"jobType"`
 	// AnnotationId Annotation this job is attached to, when applicable
 	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
-	JobId        JobId         `json:"jobId"`
-	JobType      JobType       `json:"jobType"`
 	TotalSteps   *int          `json:"totalSteps,omitempty"`
 }
 
@@ -7769,17 +7769,17 @@ type JobStatusRequest struct {
 }
 
 type JobStatusResponse struct {
-	CompletedAt  *string                 `json:"completedAt,omitempty"`
+	JobId        JobId                   `json:"jobId"`
+	Type         JobType                 `json:"type"`
+	Status       JobStatusResponseStatus `json:"status"`
+	UserId       UserId                  `json:"userId"`
 	Created      string                  `json:"created"`
+	StartedAt    *string                 `json:"startedAt,omitempty"`
+	CompletedAt  *string                 `json:"completedAt,omitempty"`
 	Error        *string                 `json:"error,omitempty"`
 	FailureClass *FailureClass           `json:"failureClass,omitempty"`
-	JobId        JobId                   `json:"jobId"`
 	Progress     *JobStoredProgress      `json:"progress,omitempty"`
 	Result       *JobStoredResult        `json:"result,omitempty"`
-	StartedAt    *string                 `json:"startedAt,omitempty"`
-	Status       JobStatusResponseStatus `json:"status"`
-	Type         JobType                 `json:"type"`
-	UserId       UserId                  `json:"userId"`
 }
 
 type JobStatusResponseStatus string
@@ -7881,13 +7881,13 @@ type JobsBudgetsBudgetsItem struct {
 type JobsStorage struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
-	// Bucket The KV bucket that keeps one record per job, keyed by the job's id.
-	Bucket JobsStorageBucket `json:"bucket"`
+	// Stream The work-queue stream every job is published into.
+	Stream JobsStorageStream `json:"stream"`
 	// Consumer The durable consumer that delivers each job to the dispatcher
 	// holding its lease.
 	Consumer JobsStorageConsumer `json:"consumer"`
-	// Stream The work-queue stream every job is published into.
-	Stream JobsStorageStream `json:"stream"`
+	// Bucket The KV bucket that keeps one record per job, keyed by the job's id.
+	Bucket JobsStorageBucket `json:"bucket"`
 }
 
 // JobsStorageBucket The KV bucket that keeps one record per job, keyed by the
@@ -7916,6 +7916,9 @@ type JobsStorageStream struct {
 // Archivist from the committed .xynolog/config.yaml and the working tree it
 // holds. The only source clients use for a knowledge base's name and domain.
 type KbDescription struct {
+	// Name The committed project.name, or the knowledge base directory's name
+	// when it commits no .xynolog/config.yaml.
+	Name string `json:"name"`
 	// Domain The committed site.domain: the knowledge base's permanent identity.
 	// Its did is 'did:web:' + this domain (kbDid in @xynolog/core). It names
 	// WHICH knowledge base this is, not which running copy: a local clone and a
@@ -7928,9 +7931,6 @@ type KbDescription struct {
 	// base does not sync git (`git.sync` in its committed .xynolog/config.yaml),
 	// and when its tree is not a git checkout.
 	GitBranch *string `json:"gitBranch,omitempty"`
-	// Name The committed project.name, or the knowledge base directory's name
-	// when it commits no .xynolog/config.yaml.
-	Name string `json:"name"`
 }
 
 // KbDid A knowledge base's DID: `did:web:` and its domain. No API states one
@@ -7974,13 +7974,13 @@ func (u KbEndpoint) ValueByDiscriminator() (any, error) {
 // the knowledge base it serves. Its telemetry names it by its DID
 // (`xynolog.kb`, specs/src/service-telemetry/telemetry.json).
 type KbIdentity struct {
+	// Name Its name. The gateway publishes it as its resource metadata's
+	// `resource_name`.
+	Name string `json:"name"`
 	// Domain Its did:web domain: its permanent identity, the source of the
 	// audience its tokens must carry, and the authority its people and agents
 	// are named under.
 	Domain string `json:"domain"`
-	// Name Its name. The gateway publishes it as its resource metadata's
-	// `resource_name`.
-	Name string `json:"name"`
 }
 
 // KbIdentityConflict A different knowledge base answers at a registered
@@ -8172,14 +8172,14 @@ func (e KbSessionStatus) Valid() bool {
 // asked, so a target is what every caller can build before then, and a
 // session's whole input. A client keeps it locally; it is never sent.
 type KbTarget struct {
-	Endpoint KbEndpoint `json:"endpoint"`
 	// Id The key the client stores a session's credentials under. Two sessions
 	// that share one storage have two ids, or each overwrites the other's
 	// tokens. Whoever builds the target chooses it; none is made up.
 	Id string `json:"id"`
 	// Label What a person reads the knowledge base as. Once the knowledge base
 	// has described itself, its own name.
-	Label string `json:"label"`
+	Label    string     `json:"label"`
+	Endpoint KbEndpoint `json:"endpoint"`
 }
 
 // KnowledgeBase A registered knowledge base: a target, and what registering
@@ -8191,16 +8191,16 @@ type KbTarget struct {
 // what an answer is verified against; nothing selects by did. Its `label` and
 // `lastRead` are written only from an answer that carried its did.
 type KnowledgeBase struct {
-	// Did The did the knowledge base reported of itself.
-	Did      string     `json:"did"`
-	Endpoint KbEndpoint `json:"endpoint"`
 	// Id The key the client stores a session's credentials under. Two sessions
 	// that share one storage have two ids, or each overwrites the other's
 	// tokens. Whoever builds the target chooses it; none is made up.
 	Id string `json:"id"`
 	// Label What a person reads the knowledge base as. Once the knowledge base
 	// has described itself, its own name.
-	Label string `json:"label"`
+	Label    string     `json:"label"`
+	Endpoint KbEndpoint `json:"endpoint"`
+	// Did The did the knowledge base reported of itself.
+	Did string `json:"did"`
 	// LastRead The last time the knowledge base described itself. Absent until
 	// it has, in an answer that carried this entry's did.
 	LastRead *KbRead `json:"lastRead,omitempty"`
@@ -8210,6 +8210,23 @@ type KnowledgeBase struct {
 // what it is, where it runs, and each of its own services. The services every
 // knowledge base shares are reported once, in the snapshot's shared list.
 type KnowledgeBaseStatus struct {
+	// Name What the snapshot calls the knowledge base: the last segment of its
+	// DID, or the whole DID where two would share one, or its key.
+	Name string `json:"name"`
+	// Key The knowledge base's key on this machine, which names its containers
+	// and its state.
+	Key string `json:"key"`
+	// Recorded Whether a stack of it is recorded. When none is, its services are
+	// found by name.
+	Recorded bool `json:"recorded"`
+	// Placement Where the stack actually runs. "local": containers on this
+	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+	Placement KnowledgeBaseStatusPlacement `json:"placement"`
+	// Root Its clone, for a local stack.
+	Root *string `json:"root,omitempty"`
+	// Repo owner/name GitHub slug — present for codespace placements, where the
+	// repo is the stack's identity
+	Repo *string `json:"repo,omitempty"`
 	// Did The KB's did:web identifier, from its committed .xynolog/config.yaml —
 	// "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no
 	// domain has no identity to publish, and the launcher refuses to start it
@@ -8221,52 +8238,35 @@ type KnowledgeBaseStatus struct {
 	// they reached is the KB they meant — an address alone cannot say which KB
 	// is which, and an identity alone cannot say which copy.
 	Did *string `json:"did,omitempty"`
-	// Gateway The base URL of its gateway, from its record.
-	Gateway *string `json:"gateway,omitempty"`
-	// Healthy Whether each of its counted services, and the issuer it signs in
-	// at, answers.
-	Healthy bool `json:"healthy"`
+	// SiteName Human-readable site name from the KB's .xynolog/config.yaml
+	// (site.siteName), for display
+	SiteName *string `json:"siteName,omitempty"`
 	// IdentityError Why its identity could not be read from its clone, when it
 	// could not.
 	IdentityError *string `json:"identityError,omitempty"`
 	// Kb The knowledge base as the discovery document publishes it, when it
 	// does.
 	Kb *DiscoveredKB `json:"kb,omitempty"`
-	// Key The knowledge base's key on this machine, which names its containers
-	// and its state.
-	Key string `json:"key"`
-	// Lan This machine's address on the network, when the stack is started with
-	// network lan.
-	Lan *string `json:"lan,omitempty"`
-	// Name What the snapshot calls the knowledge base: the last segment of its
-	// DID, or the whole DID where two would share one, or its key.
-	Name string `json:"name"`
-	// Placement Where the stack actually runs. "local": containers on this
-	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-	Placement KnowledgeBaseStatusPlacement `json:"placement"`
-	// Recorded Whether a stack of it is recorded. When none is, its services are
-	// found by name.
-	Recorded bool `json:"recorded"`
-	// Repo owner/name GitHub slug — present for codespace placements, where the
-	// repo is the stack's identity
-	Repo *string `json:"repo,omitempty"`
-	// Root Its clone, for a local stack.
-	Root *string `json:"root,omitempty"`
 	// Runtime The runtime its record names.
 	Runtime *Runtime `json:"runtime,omitempty"`
+	// Gateway The base URL of its gateway, from its record.
+	Gateway *string `json:"gateway,omitempty"`
 	// SecretStore Where the values the launcher generates for it are kept, as
 	// xynolog settings secret-store describes it.
 	SecretStore *string `json:"secretStore,omitempty"`
+	// Lan This machine's address on the network, when the stack is started with
+	// network lan.
+	Lan *string `json:"lan,omitempty"`
+	// Starting Whether a xynolog start of it holds its start lock: its services
+	// are not ready, whatever they report.
+	Starting bool     `json:"starting"`
+	Session  *Session `json:"session,omitempty"`
+	// Healthy Whether each of its counted services, and the issuer it signs in
+	// at, answers.
+	Healthy bool `json:"healthy"`
 	// Services Its own services, group by group, then the issuer it signs in at.
 	// Empty for a codespace's, whose services its own launcher reports.
 	Services []ServiceStatus `json:"services"`
-	Session  *Session        `json:"session,omitempty"`
-	// SiteName Human-readable site name from the KB's .xynolog/config.yaml
-	// (site.siteName), for display
-	SiteName *string `json:"siteName,omitempty"`
-	// Starting Whether a xynolog start of it holds its start lock: its services
-	// are not ready, whatever they report.
-	Starting bool `json:"starting"`
 	// Workload The ledger and job queue readings the launcher can attribute to
 	// this knowledge base. A missing reading means the Collector has not
 	// reported that metric, not that its value is zero.
@@ -8307,8 +8307,8 @@ func (e KnowledgeBaseStatusPlacement) Valid() bool {
 // matcher/generation read (connections, citedBy, siblings) are derived from
 // these nodes/edges.
 type KnowledgeGraph struct {
-	Edges []KnowledgeGraphEdgesItem `json:"edges"`
 	Nodes []KnowledgeGraphNodesItem `json:"nodes"`
+	Edges []KnowledgeGraphEdgesItem `json:"edges"`
 	// Truncated Whether the graph stopped taking resources at its ceiling of 200
 	// resource nodes, so that a resource within the depth asked for is not in
 	// it. Present, and true, only then
@@ -8319,23 +8319,23 @@ type KnowledgeGraph struct {
 // written as the empty list.
 func (v KnowledgeGraph) MarshalJSON() ([]byte, error) {
 	type written KnowledgeGraph
-	v.Edges = listOf(v.Edges)
 	v.Nodes = listOf(v.Nodes)
+	v.Edges = listOf(v.Edges)
 	return json.Marshal(written(v))
 }
 
 type KnowledgeGraphEdgesItem struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+	// Type Edge kind: `annotation-of` (an annotation → the resource it lives
+	// on), `cites` (a citing linking annotation → the focal resource), or `link`
+	// (a resource → a resource it links to)
+	Type string `json:"type"`
 	// Bidirectional Whether the connection goes both ways. Absent on a `link`
 	// edge found through what cites a resource, which says nothing of the way
 	// back
 	Bidirectional *bool           `json:"bidirectional,omitempty"`
 	Metadata      *map[string]any `json:"metadata,omitempty"`
-	Source        string          `json:"source"`
-	Target        string          `json:"target"`
-	// Type Edge kind: `annotation-of` (an annotation → the resource it lives
-	// on), `cites` (a citing linking annotation → the focal resource), or `link`
-	// (a resource → a resource it links to)
-	Type string `json:"type"`
 }
 
 type KnowledgeGraphNodesItem struct {
@@ -8398,27 +8398,27 @@ func (e KnowledgeIndexKind) Valid() bool {
 // KnowledgeIndexSpec The indexes, the services that keep and read them, and
 // the knowledge base they index.
 type KnowledgeIndexSpec struct {
-	// Embedding The model that turns text into vectors. Vectors made by one
-	// model are not comparable with another's, so the model is the index's.
-	Embedding KnowledgeIndexSpecEmbedding `json:"embedding"`
+	// KnowledgeBase The name of the KnowledgeBase document whose record this
+	// indexes.
+	KnowledgeBase string   `json:"knowledgeBase"`
+	LogLevel      LogLevel `json:"logLevel"`
 	// Graph The graph store the Weaver writes and the Librarian reads. The
 	// knowledge base's graph is in the database its DID names
 	// (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it
 	// when it first starts, and one somebody else runs must already hold it.
 	Graph KnowledgeIndexSpecGraph `json:"graph"`
-	// KnowledgeBase The name of the KnowledgeBase document whose record this
-	// indexes.
-	KnowledgeBase string `json:"knowledgeBase"`
-	// Librarian The Librarian: it answers gathers and searches from the indexes.
-	Librarian KnowledgeIndexSpecLibrarian `json:"librarian"`
-	LogLevel  LogLevel                    `json:"logLevel"`
-	// Smelter The Smelter: it writes the vectors and the anchored text.
-	Smelter KnowledgeIndexSpecSmelter `json:"smelter"`
 	// Vectors The vector store the Smelter writes and the Librarian reads: the
 	// one the launcher runs for the knowledge bases on a machine, at `shared`;
 	// one of the knowledge base's own the launcher runs, from `image` with
 	// `resources`; or somebody else's, at `external`. Exactly one of the three.
 	Vectors KnowledgeIndexSpecVectors `json:"vectors"`
+	// Embedding The model that turns text into vectors. Vectors made by one
+	// model are not comparable with another's, so the model is the index's.
+	Embedding KnowledgeIndexSpecEmbedding `json:"embedding"`
+	// Librarian The Librarian: it answers gathers and searches from the indexes.
+	Librarian KnowledgeIndexSpecLibrarian `json:"librarian"`
+	// Smelter The Smelter: it writes the vectors and the anchored text.
+	Smelter KnowledgeIndexSpecSmelter `json:"smelter"`
 	// Weaver The Weaver: it writes the graph.
 	Weaver KnowledgeIndexSpecWeaver `json:"weaver"`
 }
@@ -8427,16 +8427,16 @@ type KnowledgeIndexSpec struct {
 // made by one model are not comparable with another's, so the model is the
 // index's.
 type KnowledgeIndexSpecEmbedding struct {
-	ApiKey *SecretRef `json:"apiKey,omitempty"`
+	// Type Who serves the model: `ollama`, or `voyage`.
+	Type string `json:"type"`
+	// Model The model, as its provider names it.
+	Model string `json:"model"`
 	// Chunking How a text is cut before it is embedded.
 	Chunking KnowledgeIndexSpecEmbeddingChunking `json:"chunking"`
 	// Endpoint Where the provider's API is reached. The shared Ollama is stated
 	// by no endpoint.
-	Endpoint *string `json:"endpoint,omitempty"`
-	// Model The model, as its provider names it.
-	Model string `json:"model"`
-	// Type Who serves the model: `ollama`, or `voyage`.
-	Type string `json:"type"`
+	Endpoint *string    `json:"endpoint,omitempty"`
+	ApiKey   *SecretRef `json:"apiKey,omitempty"`
 }
 
 // KnowledgeIndexSpecEmbeddingChunking How a text is cut before it is
@@ -8453,30 +8453,30 @@ type KnowledgeIndexSpecEmbeddingChunking struct {
 // (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it
 // when it first starts, and one somebody else runs must already hold it.
 type KnowledgeIndexSpecGraph struct {
-	// External A graph store somebody else runs.
-	External  *KnowledgeIndexSpecGraphExternal `json:"external,omitempty"`
-	Image     *Image                           `json:"image,omitempty"`
-	Resources *Resources                       `json:"resources,omitempty"`
 	// Type The graph store's driver: `neo4j`.
 	Type string `json:"type"`
 	// Username The user the services sign in to the store as.
-	Username string `json:"username"`
+	Username  string     `json:"username"`
+	Image     *Image     `json:"image,omitempty"`
+	Resources *Resources `json:"resources,omitempty"`
+	// External A graph store somebody else runs.
+	External *KnowledgeIndexSpecGraphExternal `json:"external,omitempty"`
 }
 
 // KnowledgeIndexSpecGraphExternal A graph store somebody else runs.
 type KnowledgeIndexSpecGraphExternal struct {
-	Password SecretRef `json:"password"`
 	// Uri Where it listens: `bolt://host:port`.
-	Uri string `json:"uri"`
+	Uri      string    `json:"uri"`
+	Password SecretRef `json:"password"`
 }
 
 // KnowledgeIndexSpecLibrarian The Librarian: it answers gathers and searches
 // from the indexes.
 type KnowledgeIndexSpecLibrarian struct {
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
 	// Gather How a gather waits.
-	Gather    KnowledgeIndexSpecLibrarianGather `json:"gather"`
-	Image     Image                             `json:"image"`
-	Resources Resources                         `json:"resources"`
+	Gather KnowledgeIndexSpecLibrarianGather `json:"gather"`
 	// Search What a search by meaning keeps.
 	Search KnowledgeIndexSpecLibrarianSearch `json:"search"`
 }
@@ -8497,11 +8497,11 @@ type KnowledgeIndexSpecLibrarianSearch struct {
 // KnowledgeIndexSpecSmelter The Smelter: it writes the vectors and the
 // anchored text.
 type KnowledgeIndexSpecSmelter struct {
-	Image Image `json:"image"`
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
 	// PdfsAtOnce How many PDFs it works on at once. A page of a scan held for
 	// OCR is large; one for each 2G of its memory is a reading of what fits.
-	PdfsAtOnce int       `json:"pdfsAtOnce"`
-	Resources  Resources `json:"resources"`
+	PdfsAtOnce int `json:"pdfsAtOnce"`
 }
 
 // KnowledgeIndexSpecVectors The vector store the Smelter writes and the
@@ -8510,18 +8510,18 @@ type KnowledgeIndexSpecSmelter struct {
 // from `image` with `resources`; or somebody else's, at `external`. Exactly
 // one of the three.
 type KnowledgeIndexSpecVectors struct {
-	// External A vector store somebody else runs, with the token each service
-	// presents to it: the Smelter's may make, write and delete this knowledge
-	// base's collections, and the Librarian's may read them.
-	External  *KnowledgeIndexSpecVectorsExternal `json:"external,omitempty"`
-	Image     *Image                             `json:"image,omitempty"`
-	Resources *Resources                         `json:"resources,omitempty"`
+	// Type The vector store's driver: `qdrant`.
+	Type string `json:"type"`
 	// Shared The vector store the launcher runs for the knowledge bases on a
 	// machine (the state home's VectorStore document). Each knowledge base keeps
 	// its index in collections of its own there, so nothing is said of it here.
-	Shared *EmptyObject `json:"shared,omitempty"`
-	// Type The vector store's driver: `qdrant`.
-	Type string `json:"type"`
+	Shared    *EmptyObject `json:"shared,omitempty"`
+	Image     *Image       `json:"image,omitempty"`
+	Resources *Resources   `json:"resources,omitempty"`
+	// External A vector store somebody else runs, with the token each service
+	// presents to it: the Smelter's may make, write and delete this knowledge
+	// base's collections, and the Librarian's may read them.
+	External *KnowledgeIndexSpecVectorsExternal `json:"external,omitempty"`
 }
 
 // KnowledgeIndexSpecVectorsExternal A vector store somebody else runs, with
@@ -8530,11 +8530,11 @@ type KnowledgeIndexSpecVectors struct {
 // them.
 type KnowledgeIndexSpecVectorsExternal struct {
 	// Host A host name or address the stack's containers can reach.
-	Host           string    `json:"host"`
-	LibrarianToken SecretRef `json:"librarianToken"`
+	Host string `json:"host"`
 	// Port The port its REST API listens on.
-	Port         int       `json:"port"`
-	SmelterToken SecretRef `json:"smelterToken"`
+	Port           int       `json:"port"`
+	SmelterToken   SecretRef `json:"smelterToken"`
+	LibrarianToken SecretRef `json:"librarianToken"`
 }
 
 // KnowledgeIndexSpecWeaver The Weaver: it writes the graph.
@@ -8559,23 +8559,20 @@ type LastEventIds map[ResourceId]PersistedEventId
 // `XYNOLOG_OIDC_CLIENT_SECRET` in its environment. A document that does not
 // validate is refused at boot, naming each failing field.
 type LibrarianConfig struct {
-	// Archivist Where the Archivist listens. The Librarian reads a resource's
-	// bytes from it, as its service account.
-	Archivist ServiceAddress  `json:"archivist"`
-	Embedding EmbeddingConfig `json:"embedding"`
+	Kb KbIdentity `json:"kb"`
 	// GatewayUrl The URL the Librarian reaches the gateway at: its route to the
 	// bus.
 	GatewayUrl string `json:"gatewayUrl"`
-	// Gather The bound on a gather.
-	Gather   LibrarianConfigGather `json:"gather"`
-	Gatherer LibrarianEngineConfig `json:"gatherer"`
-	Graph    GraphConfig           `json:"graph"`
 	// Identity The issuer the Librarian's service account signs in at.
-	Identity  ServiceIdentity       `json:"identity"`
-	Kb        KbIdentity            `json:"kb"`
-	LogFormat LogFormat             `json:"logFormat"`
-	LogLevel  LogLevel              `json:"logLevel"`
+	Identity ServiceIdentity `json:"identity"`
+	// Archivist Where the Archivist listens. The Librarian reads a resource's
+	// bytes from it, as its service account.
+	Archivist ServiceAddress        `json:"archivist"`
+	Graph     GraphConfig           `json:"graph"`
+	Vectors   VectorsConfig         `json:"vectors"`
+	Embedding EmbeddingConfig       `json:"embedding"`
 	Matcher   LibrarianEngineConfig `json:"matcher"`
+	Gatherer  LibrarianEngineConfig `json:"gatherer"`
 	// ModelCatalogue The path of a model catalogue file: what each model of a
 	// provider can take, for the providers whose own APIs do not say (`google`,
 	// `openai`, `together`). A Librarian whose matcher or gatherer is of one of
@@ -8583,11 +8580,14 @@ type LibrarianConfig struct {
 	// it states nothing of that model. A Librarian with no such model does not
 	// read it.
 	ModelCatalogue string `json:"modelCatalogue"`
-	// Port The port the Librarian answers `/health` on.
-	Port int `json:"port"`
+	// Gather The bound on a gather.
+	Gather LibrarianConfigGather `json:"gather"`
 	// Search The bound on a search by meaning.
-	Search  LibrarianConfigSearch `json:"search"`
-	Vectors VectorsConfig         `json:"vectors"`
+	Search LibrarianConfigSearch `json:"search"`
+	// Port The port the Librarian answers `/health` on.
+	Port      int       `json:"port"`
+	LogLevel  LogLevel  `json:"logLevel"`
+	LogFormat LogFormat `json:"logFormat"`
 }
 
 // LibrarianConfigGather The bound on a gather.
@@ -8607,25 +8607,25 @@ type LibrarianConfigSearch struct {
 // LibrarianEngineConfig The engine a Librarian actor asks: which it is, and
 // where its provider is reached.
 type LibrarianEngineConfig struct {
+	Engine Engine `json:"engine"`
+	// BaseUrl The address the provider's API is reached at.
+	BaseUrl string `json:"baseUrl"`
 	// ApiKeyEnv The environment variable holding the provider's API key, when
 	// the provider requires one.
 	ApiKeyEnv *string `json:"apiKeyEnv,omitempty"`
-	// BaseUrl The address the provider's API is reached at.
-	BaseUrl string `json:"baseUrl"`
-	Engine  Engine `json:"engine"`
 }
 
 // LibrarianHealth The Librarian's health answer (LIBRARIAN.md § Health). Its
 // port opens last, after it has begun to take requests from the bus, so a
 // Librarian whose health answers is answering.
 type LibrarianHealth struct {
-	// Actors The two actors it runs, `matcher` and `gatherer`.
-	Actors []LibrarianHealthActorsItem `json:"actors"`
+	Status LibrarianHealthStatus `json:"status"`
 	// Kb The DID of the knowledge base it serves: the one its document names,
 	// which that knowledge base said it is before the Librarian reached its
 	// stores.
-	Kb     KbDid                 `json:"kb"`
-	Status LibrarianHealthStatus `json:"status"`
+	Kb KbDid `json:"kb"`
+	// Actors The two actors it runs, `matcher` and `gatherer`.
+	Actors []LibrarianHealthActorsItem `json:"actors"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -8677,6 +8677,8 @@ type LibrarianPromptScore struct {
 // LimitRefusal An ErrorResponse that names, in `code`, the limit the request
 // met.
 type LimitRefusal struct {
+	// Error What went wrong, in a sentence.
+	Error string `json:"error"`
 	// Code `streams`: the principal already holds as many streams as its
 	// coefficient of `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`:
 	// the principal's emits have used its bucket, whose rate and burst are its
@@ -8689,12 +8691,10 @@ type LimitRefusal struct {
 	// failed verification, so it says what a 401 says, and a client that can
 	// renew its token renews it and sends the request again rather than waiting
 	// (contract/TRANSPORT-CONTRACT.md § A refused credential).
-	Code    LimitRefusalCode `json:"code"`
-	Details any              `json:"details,omitempty"`
-	// Error What went wrong, in a sentence.
-	Error string `json:"error"`
+	Code LimitRefusalCode `json:"code"`
 	// Hint What the caller can do about it, when there is something to say.
-	Hint *string `json:"hint,omitempty"`
+	Hint    *string `json:"hint,omitempty"`
+	Details any     `json:"details,omitempty"`
 }
 
 // LimitRefusalCode `streams`: the principal already holds as many streams as
@@ -8733,6 +8733,7 @@ func (e LimitRefusalCode) Valid() bool {
 // types are marked as references, each unresolved until it is bound to a
 // resource.
 type LinkingJobParams struct {
+	Motivation LinkingJobParamsMotivation `json:"motivation"`
 	// EntityTypes The entity types to find mentions of. Each is one the
 	// knowledge base registers.
 	EntityTypes []string `json:"entityTypes"`
@@ -8740,8 +8741,7 @@ type LinkingJobParams struct {
 	// entity ("the wily hero") counts as a mention of it, beside its name.
 	IncludeDescriptiveReferences *bool `json:"includeDescriptiveReferences,omitempty"`
 	// Language The language the annotations' own text is written in. BCP 47.
-	Language   *string                    `json:"language,omitempty"`
-	Motivation LinkingJobParamsMotivation `json:"motivation"`
+	Language *string `json:"language,omitempty"`
 	// SourceLanguage The language of the resource being read. BCP 47.
 	SourceLanguage *string `json:"sourceLanguage,omitempty"`
 }
@@ -8774,10 +8774,10 @@ func (e LinkingJobParamsMotivation) Valid() bool {
 }
 
 type ListResourcesResponse struct {
-	Limit     float64              `json:"limit"`
-	Offset    float64              `json:"offset"`
 	Resources []ResourceDescriptor `json:"resources"`
 	Total     float64              `json:"total"`
+	Offset    float64              `json:"offset"`
+	Limit     float64              `json:"limit"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -8791,11 +8791,11 @@ func (v ListResourcesResponse) MarshalJSON() ([]byte, error) {
 // LocalEndpoint A knowledge base the host process has loaded and reaches
 // through a transport with no wire.
 type LocalEndpoint struct {
+	// Kind Discriminant: the endpoint is in the host process.
+	Kind LocalEndpointKind `json:"kind"`
 	// KbId Which loaded knowledge base, named by an id that means something to
 	// the host process alone.
 	KbId string `json:"kbId"`
-	// Kind Discriminant: the endpoint is in the host process.
-	Kind LocalEndpointKind `json:"kind"`
 }
 
 func (LocalEndpoint) memberOfKbEndpoint()    {}
@@ -8891,31 +8891,31 @@ func (e LogLevel) Valid() bool {
 // from it each secret value the launcher generated or read; anything else the
 // service wrote is the client's to handle. The launcher keeps no copy.
 type LogRecord struct {
-	// Line The line, without its newline.
-	Line string `json:"line"`
-	// ReceivedAt When the launcher read the line, in RFC 3339 with its fraction:
-	// a container's own lines carry the time it wrote them, if any.
-	ReceivedAt string    `json:"receivedAt"`
-	RequestId  RequestId `json:"requestId"`
+	RequestId RequestId `json:"requestId"`
 	// Service The role whose container wrote the line, as xynolog status names
 	// it.
 	Service string `json:"service"`
 	// Stream Which of the container's streams the line was on.
 	Stream OutputStream `json:"stream"`
+	// Line The line, without its newline.
+	Line string `json:"line"`
+	// ReceivedAt When the launcher read the line, in RFC 3339 with its fraction:
+	// a container's own lines carry the time it wrote them, if any.
+	ReceivedAt string `json:"receivedAt"`
 }
 
 // LogsFollowParams logs.follow's params.
 type LogsFollowParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
+	// Target Which knowledge base's stack. Absent: the one the command line
+	// chooses, standing where the control server was started.
+	Target *Target `json:"target,omitempty"`
 	// Runtime Keep to the local stacks, as --runtime does.
 	Runtime *Runtime `json:"runtime,omitempty"`
 	// Service Just this service's container, as --service names it. Absent: each
 	// Xynolog service the stack runs.
 	Service *string `json:"service,omitempty"`
-	// Target Which knowledge base's stack. Absent: the one the command line
-	// chooses, standing where the control server was started.
-	Target *Target `json:"target,omitempty"`
 }
 
 // LogsFollowResult A follow whose every source ended on its own. A follow the
@@ -8939,13 +8939,13 @@ type MarkArchiveCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
 	UserId     *UserId    `json:"_userId,omitempty"`
-	KeepFile   *bool      `json:"keepFile,omitempty"`
 	ResourceId ResourceId `json:"resourceId"`
 	// StorageUri Optional: where the resource's bytes live, so the archive can
 	// act on the file. An instruction to this handler, not a copy of the stored
 	// fact (that lives on the primary Representation). Working-tree URI, only
 	// file:// is supported.
 	StorageUri *string `json:"storageUri,omitempty"`
+	KeepFile   *bool   `json:"keepFile,omitempty"`
 }
 
 // MarkCommitCommand Bus command to persist a detection unit's annotations as
@@ -8956,17 +8956,14 @@ type MarkArchiveCommand struct {
 // annotation ids are deterministic: content-addressed, so re-emitting one is
 // a no-op.
 type MarkCommitCommand struct {
+	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
+	// Clients do not set this.
+	UserId *UserId `json:"_userId,omitempty"`
 	// Roles The emitter's capabilities (the token's `roles`), injected by the
 	// /bus/emit gateway. Clients do not set this. An emitter carrying the worker
 	// role must cite the job this batch fulfils in `jobId`; the Stower refuses
 	// the batch otherwise.
 	Roles *[]string `json:"_roles,omitempty"`
-	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
-	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
-	// Annotations The unit's annotations, already built with deterministic ids.
-	// Re-committing an identical batch is a no-op rather than a duplicate.
-	Annotations []Annotation `json:"annotations"`
 	// JobId The job this batch fulfils. Required when the emitter carries the
 	// worker role; absent for self-initiated work (a person, or an agent acting
 	// on its own). The knowledge base derives who requested these annotations
@@ -8975,6 +8972,9 @@ type MarkCommitCommand struct {
 	JobId *JobId `json:"jobId,omitempty"`
 	// ResourceId Resource every annotation in this batch targets.
 	ResourceId ResourceId `json:"resourceId"`
+	// Annotations The unit's annotations, already built with deterministic ids.
+	// Re-committing an identical batch is a no-op rather than a duplicate.
+	Annotations []Annotation `json:"annotations"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -8995,15 +8995,15 @@ type MarkCommitOk struct {
 
 // MarkCommitOkResponse What the commit persisted.
 type MarkCommitOkResponse struct {
-	// AnnotationIds Ids the batch covers, whether appended now or already
-	// present.
-	AnnotationIds []AnnotationId `json:"annotationIds"`
 	// Persisted Annotations the command named that are durable in the event log.
 	// Equals the batch size on success, on a first commit and on a retry alike —
 	// the commit appends only what the resource does not already hold, so a
 	// wholly-redundant retry has still succeeded and says so. Not an append
 	// tally: a caller must never have to read a 0 as 'all good'.
 	Persisted int `json:"persisted"`
+	// AnnotationIds Ids the batch covers, whether appended now or already
+	// present.
+	AnnotationIds []AnnotationId `json:"annotationIds"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -9028,8 +9028,8 @@ type MarkCreateOkResponse struct {
 // MarkCreateRequest Raw annotation creation intent — bus handler assembles
 // the W3C annotation
 type MarkCreateRequest struct {
-	Request    CreateAnnotationRequest `json:"request"`
 	ResourceId ResourceId              `json:"resourceId"`
+	Request    CreateAnnotationRequest `json:"request"`
 }
 
 // MarkDelegateTimeoutEvent The payload of `mark:delegate-timeout`, a
@@ -9037,9 +9037,9 @@ type MarkCreateRequest struct {
 // progress, no completion and no `job:fail`. A real job failure arrives as
 // `job:fail` and never produces this.
 type MarkDelegateTimeoutEvent struct {
-	Motivation Motivation `json:"motivation"`
 	// ResourceId The resource the job was delegated for.
 	ResourceId ResourceId `json:"resourceId"`
+	Motivation Motivation `json:"motivation"`
 }
 
 // MarkDeleteCommand Bus command to delete an annotation.
@@ -9068,7 +9068,10 @@ type MarkDeleteOkResponse struct {
 type MarkJobCompleteCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
+	UserId     *UserId                       `json:"_userId,omitempty"`
+	ResourceId ResourceId                    `json:"resourceId"`
+	JobId      JobId                         `json:"jobId"`
+	JobType    MarkJobCompleteCommandJobType `json:"jobType"`
 	// Attempt Which attempt produced this event, 1-based (a first run is 1).
 	// ALWAYS present: the queue re-runs a failed job silently, so an operator
 	// reading progress or a terminal record has no other way to tell a re-run
@@ -9076,12 +9079,9 @@ type MarkJobCompleteCommand struct {
 	// xynolog_inference_tokens_total, cannot be attributed to a repeated
 	// document without it. Stated rather than inferred from absence, because
 	// 'attempt 1' is a fact the emitter always knows.
-	Attempt    *int                          `json:"attempt,omitempty"`
-	Durability *DurabilityEvidence           `json:"durability,omitempty"`
-	JobId      JobId                         `json:"jobId"`
-	JobType    MarkJobCompleteCommandJobType `json:"jobType"`
-	ResourceId ResourceId                    `json:"resourceId"`
-	Result     *MarkJobResult                `json:"result,omitempty"`
+	Attempt    *int                `json:"attempt,omitempty"`
+	Result     *MarkJobResult      `json:"result,omitempty"`
+	Durability *DurabilityEvidence `json:"durability,omitempty"`
 }
 
 func (MarkJobCompleteCommand) memberOfJobCompleteCommand() {}
@@ -9106,16 +9106,16 @@ func (e MarkJobCompleteCommandJobType) Valid() bool {
 // MarkJobCreateCommand Create a `mark` job: annotate one resource for one
 // motivation.
 type MarkJobCreateCommand struct {
-	// Roles The emitter's roles, injected by the gateway when it has any.
-	// Clients do not set this.
-	Roles *[]string `json:"_roles,omitempty"`
 	// UserId The emitter's verified DID, injected by the gateway. Clients do not
 	// set this.
-	UserId  *UserId                     `json:"_userId,omitempty"`
+	UserId *UserId `json:"_userId,omitempty"`
+	// Roles The emitter's roles, injected by the gateway when it has any.
+	// Clients do not set this.
+	Roles   *[]string                   `json:"_roles,omitempty"`
 	JobType MarkJobCreateCommandJobType `json:"jobType"`
-	Params  MarkJobParams               `json:"params"`
 	// ResourceId The resource to annotate.
-	ResourceId ResourceId `json:"resourceId"`
+	ResourceId ResourceId    `json:"resourceId"`
+	Params     MarkJobParams `json:"params"`
 }
 
 func (MarkJobCreateCommand) memberOfJobCreateCommand() {}
@@ -9140,28 +9140,28 @@ func (e MarkJobCreateCommandJobType) Valid() bool {
 // MarkJobDone What a `mark` job reports when it has done its work, whatever
 // its motivation.
 type MarkJobDone struct {
-	// ByCategory The annotations persisted per category. A tagging job's; absent
-	// from every other.
-	ByCategory *map[string]int `json:"byCategory,omitempty"`
-	// Errors How many of the proposed could not be anchored in the text. Absent
-	// means none.
-	Errors *int `json:"errors,omitempty"`
 	// Found What the model proposed, before anything was checked against the
 	// text.
 	Found int `json:"found"`
 	// Persisted What the log holds: the annotations committed, after the ones
 	// that could not be anchored were dropped and repeats were collapsed.
 	Persisted int `json:"persisted"`
-	// UncheckedPieces Pieces whose yield was to be checked against a count and
-	// was not: the count failed, was cut off, or answered no count. What they
-	// found was kept unchecked. Absent means none: every piece that was to be
-	// checked was. A job whose provider checks no yield has none.
-	UncheckedPieces *int `json:"uncheckedPieces,omitempty"`
+	// Errors How many of the proposed could not be anchored in the text. Absent
+	// means none.
+	Errors *int `json:"errors,omitempty"`
+	// ByCategory The annotations persisted per category. A tagging job's; absent
+	// from every other.
+	ByCategory *map[string]int `json:"byCategory,omitempty"`
 	// UnderReportedPieces Total floor-accepted under-reported pieces across the
 	// job's units. Absent means none — the per-unit evidence rides the terminal
 	// progress frame's completedItems; this keeps the result self-describing
 	// without the progress stream.
 	UnderReportedPieces *int `json:"underReportedPieces,omitempty"`
+	// UncheckedPieces Pieces whose yield was to be checked against a count and
+	// was not: the count failed, was cut off, or answered no count. What they
+	// found was kept unchecked. Absent means none: every piece that was to be
+	// checked was. A job whose provider checks no yield has none.
+	UncheckedPieces *int `json:"uncheckedPieces,omitempty"`
 }
 
 func (MarkJobDone) memberOfJobResult()     {}
@@ -9239,11 +9239,11 @@ func (u MarkJobParams) ValueByDiscriminator() (any, error) {
 type MarkJobQueuedEvent struct {
 	JobId   JobId                     `json:"jobId"`
 	JobType MarkJobQueuedEventJobType `json:"jobType"`
-	Params  MarkJobParams             `json:"params"`
 	// ResourceId The resource the job is about.
 	ResourceId ResourceId `json:"resourceId"`
 	// UserId The DID of the principal whose `job:create` created the job.
-	UserId UserId `json:"userId"`
+	UserId UserId        `json:"userId"`
+	Params MarkJobParams `json:"params"`
 }
 
 func (MarkJobQueuedEvent) memberOfJobQueuedEvent() {}
@@ -9280,29 +9280,29 @@ type MarkJobResultMember interface {
 // MarkRequestedEvent Emitted when the user requests a new mark (annotation)
 // on a resource
 type MarkRequestedEvent struct {
-	Motivation Motivation `json:"motivation"`
-	// Selector One or more W3C selectors
-	Selector AnnotationSelector `json:"selector"`
 	// Source The '@id' of the resource the mark belongs to (W3C target.source).
 	// Routes the event to the right viewer/state unit when a host mounts many
 	// viewers on one session.
 	Source ResourceId `json:"source"`
+	// Selector One or more W3C selectors
+	Selector   AnnotationSelector `json:"selector"`
+	Motivation Motivation         `json:"motivation"`
 }
 
 // MarkSubmitEvent Emitted when a mark is submitted with its annotation body
 type MarkSubmitEvent struct {
+	// Source The '@id' of the resource the mark belongs to (W3C target.source).
+	// Routes the submit to the state unit bound to that resource — without it, N
+	// mounted units each create the annotation (N copies on N resources).
+	Source     ResourceId `json:"source"`
+	Motivation Motivation `json:"motivation"`
+	// Selector One or more W3C selectors
+	Selector AnnotationSelector `json:"selector"`
 	// Body Optional body. Omit for annotations whose motivation alone is
 	// meaningful (e.g. highlighting) or whose user-supplied content is empty
 	// (e.g. an assessing annotation saved without comment text). Shape matches
 	// Annotation.body.
-	Body       *AnnotationBodies `json:"body,omitempty"`
-	Motivation Motivation        `json:"motivation"`
-	// Selector One or more W3C selectors
-	Selector AnnotationSelector `json:"selector"`
-	// Source The '@id' of the resource the mark belongs to (W3C target.source).
-	// Routes the submit to the state unit bound to that resource — without it, N
-	// mounted units each create the annotation (N copies on N resources).
-	Source ResourceId `json:"source"`
+	Body *AnnotationBodies `json:"body,omitempty"`
 }
 
 // MarkUnarchiveCommand Bus command to unarchive a previously archived
@@ -9327,8 +9327,8 @@ type MarkUpdateBodyCommand struct {
 	// Clients do not set this.
 	UserId       *UserId         `json:"_userId,omitempty"`
 	AnnotationId AnnotationId    `json:"annotationId"`
-	Operations   []BodyOperation `json:"operations"`
 	ResourceId   ResourceId      `json:"resourceId"`
+	Operations   []BodyOperation `json:"operations"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -9342,12 +9342,12 @@ func (v MarkUpdateBodyCommand) MarshalJSON() ([]byte, error) {
 // MarkUpdateEntityTypesCommand Bus command to replace the entity types on a
 // resource.
 type MarkUpdateEntityTypesCommand struct {
+	ResourceId ResourceId `json:"resourceId"`
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId             *UserId    `json:"_userId,omitempty"`
-	CurrentEntityTypes []string   `json:"currentEntityTypes"`
-	ResourceId         ResourceId `json:"resourceId"`
-	UpdatedEntityTypes []string   `json:"updatedEntityTypes"`
+	UserId             *UserId  `json:"_userId,omitempty"`
+	CurrentEntityTypes []string `json:"currentEntityTypes"`
+	UpdatedEntityTypes []string `json:"updatedEntityTypes"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -9384,20 +9384,27 @@ func (e MatchQuality) Valid() bool {
 // text. The Librarian answers: it matches the text lexically, and when
 // nothing matches, by meaning.
 type MatchResourcesRequest struct {
+	// Search The text to search for.
+	Search     string  `json:"search"`
 	Archived   *bool   `json:"archived,omitempty"`
 	EntityType *string `json:"entityType,omitempty"`
-	// Limit The most resources a page has.
-	Limit *int `json:"limit,omitempty"`
 	// Offset How many of the resources the search finds are passed over before
 	// the page begins.
 	Offset *int `json:"offset,omitempty"`
-	// Search The text to search for.
-	Search string `json:"search"`
+	// Limit The most resources a page has.
+	Limit *int `json:"limit,omitempty"`
 }
 
 // MatchResourcesResponse One page of the resources a text search found, and
 // which kind of answer it is.
 type MatchResourcesResponse struct {
+	Resources []ResourceDescriptor `json:"resources"`
+	// Total How many resources the search found in all, and not only on this
+	// page.
+	Total int `json:"total"`
+	// Offset How many of the resources the search found were passed over before
+	// this page, as the request stated.
+	Offset int `json:"offset"`
 	// Limit The limit the search was made with.
 	Limit int `json:"limit"`
 	// MatchKind What kind of answer this is: 'lexical' — the resources matched
@@ -9406,13 +9413,6 @@ type MatchResourcesResponse struct {
 	// its answer; a UI can render semantic results as a different kind of page
 	// ('no title matches, but these documents discuss it').
 	MatchKind MatchResourcesResponseMatchKind `json:"matchKind"`
-	// Offset How many of the resources the search found were passed over before
-	// this page, as the request stated.
-	Offset    int                  `json:"offset"`
-	Resources []ResourceDescriptor `json:"resources"`
-	// Total How many resources the search found in all, and not only on this
-	// page.
-	Total int `json:"total"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -9482,10 +9482,10 @@ type MatchSearchFailed struct {
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
 	Code *CommandErrorCode `json:"code,omitempty"`
-	// Details Optional additional context (stack trace, field name, etc.)
-	Details *string `json:"details,omitempty"`
 	// Message Human-readable error message
 	Message string `json:"message"`
+	// Details Optional additional context (stack trace, field name, etc.)
+	Details *string `json:"details,omitempty"`
 	// ReferenceId The reference the search was asked for.
 	ReferenceId AnnotationId `json:"referenceId"`
 }
@@ -9505,16 +9505,16 @@ type MatchSearchOptions struct {
 // MatchSearchRequest Request payload sent on the match:search-request bus
 // channel to find candidate matches.
 type MatchSearchRequest struct {
-	// Context Gathered context for the reference annotation
-	Context GatheredContext `json:"context"`
-	// Limit Maximum number of candidate results to return
-	Limit *int `json:"limit,omitempty"`
-	// ReferenceId Annotation ID of the reference to search candidates for
-	ReferenceId AnnotationId `json:"referenceId"`
 	// ResourceId Resource ID the reference annotation belongs to. Used to scope
 	// result events on the EventBus so the events-stream delivers them to
 	// participants viewing this resource.
 	ResourceId ResourceId `json:"resourceId"`
+	// ReferenceId Annotation ID of the reference to search candidates for
+	ReferenceId AnnotationId `json:"referenceId"`
+	// Context Gathered context for the reference annotation
+	Context GatheredContext `json:"context"`
+	// Limit Maximum number of candidate results to return
+	Limit *int `json:"limit,omitempty"`
 	// UseSemanticScoring Enable semantic similarity scoring in addition to
 	// keyword matching
 	UseSemanticScoring *bool `json:"useSemanticScoring,omitempty"`
@@ -9604,10 +9604,6 @@ func (e MemoryVectorsConfigType) Valid() bool {
 // Metadata What names a document, as Kubernetes names an object. Documents
 // refer to one another by `name`.
 type Metadata struct {
-	// Annotations Kubernetes annotations. The launcher reads none.
-	Annotations *map[string]string `json:"annotations,omitempty"`
-	// Labels Kubernetes labels. The launcher reads none.
-	Labels *map[string]string `json:"labels,omitempty"`
 	// Name The document's name: lower-case letters, digits and `-`, beginning
 	// and ending with a letter or digit. It names the document, never the
 	// knowledge base.
@@ -9615,6 +9611,10 @@ type Metadata struct {
 	// Namespace The Kubernetes namespace the document belongs in. The launcher
 	// reads none.
 	Namespace *string `json:"namespace,omitempty"`
+	// Labels Kubernetes labels. The launcher reads none.
+	Labels *map[string]string `json:"labels,omitempty"`
+	// Annotations Kubernetes annotations. The launcher reads none.
+	Annotations *map[string]string `json:"annotations,omitempty"`
 }
 
 // Motivation Xynolog-supported W3C Web Annotation motivations -
@@ -9641,16 +9641,16 @@ func (e Motivation) Valid() bool {
 
 // Neo4jGraphConfig A graph kept in a Neo4j database.
 type Neo4jGraphConfig struct {
-	// Database Which of the server's databases holds the graph.
-	Database string `json:"database"`
-	// PasswordEnv The environment variable holding that user's password. The
-	// password is never a value here.
-	PasswordEnv string               `json:"passwordEnv"`
-	Type        Neo4jGraphConfigType `json:"type"`
+	Type Neo4jGraphConfigType `json:"type"`
 	// Uri Where the database is reached (`bolt://host:7687`).
 	Uri string `json:"uri"`
 	// Username The user the service connects as.
 	Username string `json:"username"`
+	// PasswordEnv The environment variable holding that user's password. The
+	// password is never a value here.
+	PasswordEnv string `json:"passwordEnv"`
+	// Database Which of the server's databases holds the graph.
+	Database string `json:"database"`
 }
 
 func (Neo4jGraphConfig) memberOfGraphConfig()   {}
@@ -9675,11 +9675,11 @@ func (e Neo4jGraphConfigType) Valid() bool {
 // NeptuneGraphConfig A graph kept in Amazon Neptune, asked in Gremlin. No
 // service has been run against one.
 type NeptuneGraphConfig struct {
+	Type NeptuneGraphConfigType `json:"type"`
 	// Endpoint The cluster's endpoint: its host name.
 	Endpoint string `json:"endpoint"`
 	// Port The port its Gremlin endpoint listens on.
-	Port int                    `json:"port"`
-	Type NeptuneGraphConfigType `json:"type"`
+	Port int `json:"port"`
 }
 
 func (NeptuneGraphConfig) memberOfGraphConfig()   {}
@@ -9706,12 +9706,12 @@ func (e NeptuneGraphConfigType) Valid() bool {
 // did, because registering follows a sign-in: the knowledge base has already
 // said what it is.
 type NewKnowledgeBase struct {
-	// Did The did the knowledge base reported of itself.
-	Did      string     `json:"did"`
-	Endpoint KbEndpoint `json:"endpoint"`
 	// Label What a person reads the knowledge base as. Once the knowledge base
 	// has described itself, its own name.
-	Label string `json:"label"`
+	Label    string     `json:"label"`
+	Endpoint KbEndpoint `json:"endpoint"`
+	// Did The did the knowledge base reported of itself.
+	Did string `json:"did"`
 	// LastRead The last time the knowledge base described itself. Absent until
 	// it has, in an answer that carried this entry's did.
 	LastRead *KbRead `json:"lastRead,omitempty"`
@@ -9719,20 +9719,20 @@ type NewKnowledgeBase struct {
 
 // OcrConfidence How well an OCR engine read the pixels.
 type OcrConfidence struct {
+	// Mean Mean per-word confidence, 0-100.
+	Mean float64 `json:"mean"`
 	// LowConfidenceWords Words the engine was unsure of.
 	LowConfidenceWords int `json:"lowConfidenceWords"`
-	// Mean Mean per-word confidence, 0-100.
-	Mean       float64 `json:"mean"`
-	TotalWords int     `json:"totalWords"`
+	TotalWords         int `json:"totalWords"`
 }
 
 // OllamaEmbeddingConfig An embedding model served by an Ollama.
 type OllamaEmbeddingConfig struct {
+	Type OllamaEmbeddingConfigType `json:"type"`
+	// Model The model asked for, by the name the Ollama serves it under.
+	Model string `json:"model"`
 	// BaseUrl The address the Ollama's API is reached at (`http://host:11434`).
 	BaseUrl string `json:"baseUrl"`
-	// Model The model asked for, by the name the Ollama serves it under.
-	Model string                    `json:"model"`
-	Type  OllamaEmbeddingConfigType `json:"type"`
 }
 
 func (OllamaEmbeddingConfig) memberOfEmbeddingConfig() {}
@@ -9823,9 +9823,6 @@ func (OneOrMoreUrisText) memberOfOneOrMoreUris() {}
 type OpenResource struct {
 	// Id The resource.
 	Id ResourceId `json:"id"`
-	// MediaType The resource's media type, which its icon is chosen by. Absent
-	// when it is not known.
-	MediaType *string `json:"mediaType,omitempty"`
 	// Name The name the resource is shown by.
 	Name string `json:"name"`
 	// OpenedAt When the resource was opened, in milliseconds since the Unix
@@ -9837,6 +9834,9 @@ type OpenResource struct {
 	// closing one is not given twice; a move gives each its place in the new
 	// order, counted from 0.
 	Order int `json:"order"`
+	// MediaType The resource's media type, which its icon is chosen by. Absent
+	// when it is not known.
+	MediaType *string `json:"mediaType,omitempty"`
 	// StorageUri Where the resource is in the knowledge base's working tree, as
 	// a URI (file://docs/overview.md). Absent when it is not known.
 	StorageUri *string `json:"storageUri,omitempty"`
@@ -9888,41 +9888,41 @@ func (e PdfClass) Valid() bool {
 // page's bottom-left corner with y increasing upward: what an RFC 3778
 // fragment selector names.
 type PdfCoordinate struct {
-	// Height The rectangle's height.
-	Height float64 `json:"height"`
 	// Page The page the rectangle is on.
 	Page int `json:"page"`
-	// Width The rectangle's width.
-	Width float64 `json:"width"`
 	// X The rectangle's x.
 	X float64 `json:"x"`
 	// Y The rectangle's y.
 	Y float64 `json:"y"`
+	// Width The rectangle's width.
+	Width float64 `json:"width"`
+	// Height The rectangle's height.
+	Height float64 `json:"height"`
 }
 
 // PdfTextItem One positioned text run. Coordinates are PDF points with the
 // origin at the bottom-left of the page, Y increasing upward; the flip to
 // canvas pixels happens in the browser.
 type PdfTextItem struct {
-	// End Offset into AnchoredText.text, in Unicode code points from its start,
-	// exclusive.
-	End    int     `json:"end"`
-	Height float64 `json:"height"`
-	// Page 1-indexed page number.
-	Page int `json:"page"`
 	// Start Offset into AnchoredText.text, in Unicode code points from its
 	// start, inclusive.
-	Start int     `json:"start"`
-	Width float64 `json:"width"`
-	X     float64 `json:"x"`
-	Y     float64 `json:"y"`
+	Start int `json:"start"`
+	// End Offset into AnchoredText.text, in Unicode code points from its start,
+	// exclusive.
+	End int `json:"end"`
+	// Page 1-indexed page number.
+	Page   int     `json:"page"`
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+	Width  float64 `json:"width"`
+	Height float64 `json:"height"`
 }
 
 // PendingAnnotation The annotation a mark state unit is composing, from the
 // selection a request asked for, until it is submitted or cancelled.
 type PendingAnnotation struct {
-	Motivation Motivation         `json:"motivation"`
 	Selector   AnnotationSelector `json:"selector"`
+	Motivation Motivation         `json:"motivation"`
 }
 
 // PendingAuthorization What a sign-in by a page redirect remembers across the
@@ -9931,47 +9931,47 @@ type PendingAnnotation struct {
 // they were connecting to, and the issuer's endpoints, so its completion asks
 // nothing twice.
 type PendingAuthorization struct {
-	// ExpectedDid The did of what the person believed they clicked, checked
-	// against the answer and never assumed. Absent when they named nothing.
-	ExpectedDid *string `json:"expectedDid,omitempty"`
-	// ExpectedName The name of what the person believed they clicked. Absent
-	// when they named nothing.
-	ExpectedName *string `json:"expectedName,omitempty"`
+	// State What the issuer's response must carry back to belong to this
+	// sign-in: random, as base64url.
+	State string `json:"state"`
+	// Verifier The PKCE code verifier (RFC 7636) the authorization code is
+	// exchanged with: random, as base64url.
+	Verifier string `json:"verifier"`
+	// RedirectUri Where the issuer sends the person back to, named again when
+	// the code is exchanged.
+	RedirectUri string `json:"redirectUri"`
+	// Target Where the person was connecting.
+	Target HttpEndpoint `json:"target"`
 	// Issuer The issuer the knowledge base trusts, and the endpoints of it a
 	// client uses.
 	Issuer PendingAuthorizationIssuer `json:"issuer"`
 	// KbId The registered knowledge base being signed in to again. Absent when
 	// it is none.
 	KbId *string `json:"kbId,omitempty"`
-	// RedirectUri Where the issuer sends the person back to, named again when
-	// the code is exchanged.
-	RedirectUri string `json:"redirectUri"`
-	// State What the issuer's response must carry back to belong to this
-	// sign-in: random, as base64url.
-	State string `json:"state"`
-	// Target Where the person was connecting.
-	Target HttpEndpoint `json:"target"`
-	// Verifier The PKCE code verifier (RFC 7636) the authorization code is
-	// exchanged with: random, as base64url.
-	Verifier string `json:"verifier"`
+	// ExpectedDid The did of what the person believed they clicked, checked
+	// against the answer and never assumed. Absent when they named nothing.
+	ExpectedDid *string `json:"expectedDid,omitempty"`
+	// ExpectedName The name of what the person believed they clicked. Absent
+	// when they named nothing.
+	ExpectedName *string `json:"expectedName,omitempty"`
 }
 
 // PendingAuthorizationIssuer The issuer the knowledge base trusts, and the
 // endpoints of it a client uses.
 type PendingAuthorizationIssuer struct {
+	// Issuer The issuer's identifier.
+	Issuer string `json:"issuer"`
 	// Authorization The issuer's authorization endpoint, where the person is
 	// sent.
 	Authorization string `json:"authorization"`
+	// Token The issuer's token endpoint, where the code is exchanged.
+	Token string `json:"token"`
 	// Device The issuer's device authorization endpoint (RFC 8628). Absent when
 	// the issuer has none.
 	Device *string `json:"device,omitempty"`
-	// Issuer The issuer's identifier.
-	Issuer string `json:"issuer"`
 	// Revocation The issuer's revocation endpoint (RFC 7009). Absent when the
 	// issuer has none.
 	Revocation *string `json:"revocation,omitempty"`
-	// Token The issuer's token endpoint, where the code is exchanged.
-	Token string `json:"token"`
 }
 
 // PermissionDenied A request was refused for lack of permission.
@@ -10047,11 +10047,11 @@ type ProfilesProjection struct {
 // tell a person, without colour. A secret value the launcher generated or
 // read never appears in one.
 type Progress struct {
+	RequestId RequestId `json:"requestId"`
 	// Kind What the line is: narration (log, note), an outcome (ok, warn, fail),
 	// a heading (banner, section), a timestamp (stamp), a runtime command about
 	// to run (command), or text the operation printed (output).
-	Kind      ProgressKind `json:"kind"`
-	RequestId RequestId    `json:"requestId"`
+	Kind ProgressKind `json:"kind"`
 	// Text The line.
 	Text string `json:"text"`
 }
@@ -10088,10 +10088,10 @@ func (e ProgressKind) Valid() bool {
 // name, whether its changes are staged in git, and its permanent identity. A
 // deployment's documents never restate any of it.
 type ProjectConfig struct {
-	// Git How the knowledge base's changes reach git.
-	Git ProjectConfigGit `json:"git"`
 	// Project The knowledge base's name.
 	Project ProjectConfigProject `json:"project"`
+	// Git How the knowledge base's changes reach git.
+	Git ProjectConfigGit `json:"git"`
 	// Site The knowledge base's identity.
 	Site ProjectConfigSite `json:"site"`
 }
@@ -10129,12 +10129,6 @@ type ProjectConfigSite struct {
 // client — learns where to send a user to sign in without configuration. A
 // 401 from any protected route points here in its WWW-Authenticate challenge.
 type ProtectedResourceMetadata struct {
-	// AuthorizationServers Issuer identifiers whose tokens this resource accepts
-	// — the configured identity issuer.
-	AuthorizationServers []string `json:"authorization_servers"`
-	// BearerMethodsSupported How a bearer token reaches this resource: the
-	// Authorization header only.
-	BearerMethodsSupported []ProtectedResourceMetadataBearerMethodsSupportedItem `json:"bearer_methods_supported"`
 	// Resource This knowledge base's resource identifier: its did:web identity
 	// resolved to an https URL (did:web:example.github.io:my-kb identifies
 	// https://example.github.io/my-kb). This is the exact value a token's aud
@@ -10143,6 +10137,12 @@ type ProtectedResourceMetadata struct {
 	// development still names itself by the https form, which is what makes the
 	// value stable across every host, port and proxy it is reached through.
 	Resource string `json:"resource"`
+	// AuthorizationServers Issuer identifiers whose tokens this resource accepts
+	// — the configured identity issuer.
+	AuthorizationServers []string `json:"authorization_servers"`
+	// BearerMethodsSupported How a bearer token reaches this resource: the
+	// Authorization header only.
+	BearerMethodsSupported []ProtectedResourceMetadataBearerMethodsSupportedItem `json:"bearer_methods_supported"`
 	// ResourceName The knowledge base's name, for a client's sign-in prompt.
 	ResourceName *string `json:"resource_name,omitempty"`
 }
@@ -10175,15 +10175,16 @@ func (e ProtectedResourceMetadataBearerMethodsSupportedItem) Valid() bool {
 
 // Provider How an inference provider is reached.
 type Provider struct {
-	ApiKey *SecretRef `json:"apiKey,omitempty"`
 	// BaseURL Where the provider's API is reached. Anthropic's own API, and the
 	// shared Ollama, are stated by no baseURL.
-	BaseURL *string `json:"baseURL,omitempty"`
+	BaseURL *string    `json:"baseURL,omitempty"`
+	ApiKey  *SecretRef `json:"apiKey,omitempty"`
 }
 
 // QdrantVectorsConfig A vector index kept in a Qdrant server, asked over its
 // REST API with a token.
 type QdrantVectorsConfig struct {
+	Type QdrantVectorsConfigType `json:"type"`
 	// Host The server's host.
 	Host string `json:"host"`
 	// Port The port its REST API listens on.
@@ -10191,8 +10192,7 @@ type QdrantVectorsConfig struct {
 	// TokenEnv The environment variable holding the token the service presents
 	// to the server on every request, which says what of the index it may read
 	// and write. The token is never a value here.
-	TokenEnv string                  `json:"tokenEnv"`
-	Type     QdrantVectorsConfigType `json:"type"`
+	TokenEnv string `json:"tokenEnv"`
 }
 
 func (QdrantVectorsConfig) memberOfVectorsConfig() {}
@@ -10265,7 +10265,9 @@ func (u ReconciledSpan) ValueByDiscriminator() (any, error) {
 // ReconciledSpanContextRecovered The text has the words in more than one
 // place, and the span is the first that fits every hint the quote gave.
 type ReconciledSpanContextRecovered struct {
-	AnchorMethod ReconciledSpanContextRecoveredAnchorMethod `json:"anchorMethod"`
+	// Start The offset the span starts at, in Unicode code points from the
+	// text's start.
+	Start int `json:"start"`
 	// End The offset just past the span, in Unicode code points from the text's
 	// start.
 	End int `json:"end"`
@@ -10273,11 +10275,9 @@ type ReconciledSpanContextRecovered struct {
 	Exact string `json:"exact"`
 	// Prefix The text just before them.
 	Prefix *string `json:"prefix,omitempty"`
-	// Start The offset the span starts at, in Unicode code points from the
-	// text's start.
-	Start int `json:"start"`
 	// Suffix The text just after them.
-	Suffix *string `json:"suffix,omitempty"`
+	Suffix       *string                                    `json:"suffix,omitempty"`
+	AnchorMethod ReconciledSpanContextRecoveredAnchorMethod `json:"anchorMethod"`
 }
 
 func (ReconciledSpanContextRecovered) memberOfReconciledSpan() {}
@@ -10305,7 +10305,9 @@ func (e ReconciledSpanContextRecoveredAnchorMethod) Valid() bool {
 // ReconciledSpanFirstOfMany The text has the words in more than one place,
 // and the span is the first, since the quote gave no hint or none fits.
 type ReconciledSpanFirstOfMany struct {
-	AnchorMethod ReconciledSpanFirstOfManyAnchorMethod `json:"anchorMethod"`
+	// Start The offset the span starts at, in Unicode code points from the
+	// text's start.
+	Start int `json:"start"`
 	// End The offset just past the span, in Unicode code points from the text's
 	// start.
 	End int `json:"end"`
@@ -10313,11 +10315,9 @@ type ReconciledSpanFirstOfMany struct {
 	Exact string `json:"exact"`
 	// Prefix The text just before them.
 	Prefix *string `json:"prefix,omitempty"`
-	// Start The offset the span starts at, in Unicode code points from the
-	// text's start.
-	Start int `json:"start"`
 	// Suffix The text just after them.
-	Suffix *string `json:"suffix,omitempty"`
+	Suffix       *string                               `json:"suffix,omitempty"`
+	AnchorMethod ReconciledSpanFirstOfManyAnchorMethod `json:"anchorMethod"`
 }
 
 func (ReconciledSpanFirstOfMany) memberOfReconciledSpan() {}
@@ -10343,20 +10343,20 @@ func (e ReconciledSpanFirstOfManyAnchorMethod) Valid() bool {
 // ReconciledSpanFuzzyMatch The text has the words nowhere, and a looser
 // search found the span: `matchQuality` names which.
 type ReconciledSpanFuzzyMatch struct {
-	AnchorMethod ReconciledSpanFuzzyMatchAnchorMethod `json:"anchorMethod"`
+	// Start The offset the span starts at, in Unicode code points from the
+	// text's start.
+	Start int `json:"start"`
 	// End The offset just past the span, in Unicode code points from the text's
 	// start.
 	End int `json:"end"`
 	// Exact The words quoted.
-	Exact        string       `json:"exact"`
-	MatchQuality MatchQuality `json:"matchQuality"`
+	Exact string `json:"exact"`
 	// Prefix The text just before them.
 	Prefix *string `json:"prefix,omitempty"`
-	// Start The offset the span starts at, in Unicode code points from the
-	// text's start.
-	Start int `json:"start"`
 	// Suffix The text just after them.
-	Suffix *string `json:"suffix,omitempty"`
+	Suffix       *string                              `json:"suffix,omitempty"`
+	AnchorMethod ReconciledSpanFuzzyMatchAnchorMethod `json:"anchorMethod"`
+	MatchQuality MatchQuality                         `json:"matchQuality"`
 }
 
 func (ReconciledSpanFuzzyMatch) memberOfReconciledSpan() {}
@@ -10380,7 +10380,9 @@ func (e ReconciledSpanFuzzyMatchAnchorMethod) Valid() bool {
 
 // ReconciledSpanUniqueMatch The text has the words in exactly one place.
 type ReconciledSpanUniqueMatch struct {
-	AnchorMethod ReconciledSpanUniqueMatchAnchorMethod `json:"anchorMethod"`
+	// Start The offset the span starts at, in Unicode code points from the
+	// text's start.
+	Start int `json:"start"`
 	// End The offset just past the span, in Unicode code points from the text's
 	// start.
 	End int `json:"end"`
@@ -10388,11 +10390,9 @@ type ReconciledSpanUniqueMatch struct {
 	Exact string `json:"exact"`
 	// Prefix The text just before them.
 	Prefix *string `json:"prefix,omitempty"`
-	// Start The offset the span starts at, in Unicode code points from the
-	// text's start.
-	Start int `json:"start"`
 	// Suffix The text just after them.
-	Suffix *string `json:"suffix,omitempty"`
+	Suffix       *string                               `json:"suffix,omitempty"`
+	AnchorMethod ReconciledSpanUniqueMatchAnchorMethod `json:"anchorMethod"`
 }
 
 func (ReconciledSpanUniqueMatch) memberOfReconciledSpan() {}
@@ -10430,39 +10430,39 @@ type Representation struct {
 	Id *string `json:"@id,omitempty"`
 	// Type Type(s), e.g., schema:MediaObject.
 	Type *OneOrMoreStrings `json:"@type,omitempty"`
+	// MediaType MIME/media type (e.g., text/markdown, image/png).
+	MediaType string `json:"mediaType"`
+	// StorageUri Working-tree URI identifying where this rendition's bytes live.
+	// Only file:// is supported (e.g. file://docs/overview.md). The single home
+	// of the storage location: maintained across moves (yield:moved relocates
+	// it), absent when the resource has no stored bytes.
+	StorageUri *string `json:"storageUri,omitempty"`
+	Filename   *string `json:"filename,omitempty"`
 	// ByteSize Size of the payload in bytes.
 	ByteSize *int `json:"byteSize,omitempty"`
 	// Checksum The SHA-256 of the bytes, as 64 lower-case hexadecimal digits
 	// with nothing before them. Whatever compares the checksums of two
 	// representations compares this text.
 	Checksum *string `json:"checksum,omitempty"`
+	// Encoding Compression/transfer encoding if applicable.
+	Encoding *string `json:"encoding,omitempty"`
+	// Language IETF BCP 47 language tag (e.g., en, es-ES).
+	Language *string `json:"language,omitempty"`
+	// Width Pixels (images/video).
+	Width *int `json:"width,omitempty"`
+	// Height Pixels (images/video).
+	Height *int `json:"height,omitempty"`
+	// Duration Seconds (audio/video).
+	Duration *float64 `json:"duration,omitempty"`
+	Created  *string  `json:"created,omitempty"`
+	Modified *string  `json:"modified,omitempty"`
 	// ConformsTo Profile/shape the bytes conform to (e.g., a JSON profile or SVG
 	// profile).
 	ConformsTo *OneOrMoreUris `json:"conformsTo,omitempty"`
-	Created    *string        `json:"created,omitempty"`
-	// Duration Seconds (audio/video).
-	Duration *float64 `json:"duration,omitempty"`
-	// Encoding Compression/transfer encoding if applicable.
-	Encoding *string `json:"encoding,omitempty"`
-	Filename *string `json:"filename,omitempty"`
-	// Height Pixels (images/video).
-	Height *int `json:"height,omitempty"`
-	// Language IETF BCP 47 language tag (e.g., en, es-ES).
-	Language *string `json:"language,omitempty"`
-	// MediaType MIME/media type (e.g., text/markdown, image/png).
-	MediaType string  `json:"mediaType"`
-	Modified  *string `json:"modified,omitempty"`
+	Tags       *[]string      `json:"tags,omitempty"`
 	// Rel Semantics of this rendition relative to the resource (e.g., original,
 	// thumbnail, preview, derived).
 	Rel *RepresentationRel `json:"rel,omitempty"`
-	// StorageUri Working-tree URI identifying where this rendition's bytes live.
-	// Only file:// is supported (e.g. file://docs/overview.md). The single home
-	// of the storage location: maintained across moves (yield:moved relocates
-	// it), absent when the resource has no stored bytes.
-	StorageUri *string   `json:"storageUri,omitempty"`
-	Tags       *[]string `json:"tags,omitempty"`
-	// Width Pixels (images/video).
-	Width *int `json:"width,omitempty"`
 	// AdditionalProperties is every member the schema does not name, as it came.
 	AdditionalProperties map[string]any `json:"-"`
 }
@@ -10495,13 +10495,13 @@ type RepresentationAddedPayload struct {
 // holds the resource but not its bytes. Each reader answers the two
 // differently.
 type RepresentationNotFound struct {
-	// Code A machine-readable class, when the route defines one.
-	Code    RepresentationNotFoundCode `json:"code"`
-	Details any                        `json:"details,omitempty"`
 	// Error What went wrong, in a sentence.
 	Error string `json:"error"`
+	// Code A machine-readable class, when the route defines one.
+	Code RepresentationNotFoundCode `json:"code"`
 	// Hint What the caller can do about it, when there is something to say.
-	Hint *string `json:"hint,omitempty"`
+	Hint    *string `json:"hint,omitempty"`
+	Details any     `json:"details,omitempty"`
 }
 
 // RepresentationNotFoundCode A machine-readable class, when the route defines
@@ -10577,16 +10577,16 @@ func (RequestIdText) memberOfRequestId() {}
 // ResourceAnnotations The annotations on one resource, as its materialized
 // view holds them.
 type ResourceAnnotations struct {
+	ResourceId ResourceId `json:"resourceId"`
 	// Annotations Each annotation as the `mark:added` event that recorded it
 	// carried it, with the body changes recorded since applied. In the order
 	// they were first recorded.
 	Annotations []Annotation `json:"annotations"`
-	ResourceId  ResourceId   `json:"resourceId"`
+	// Version How many of the resource's events the view has applied.
+	Version int `json:"version"`
 	// UpdatedAt The timestamp of the last event applied; the empty string before
 	// any.
 	UpdatedAt string `json:"updatedAt"`
-	// Version How many of the resource's events the view has applied.
-	Version int `json:"version"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -10604,20 +10604,20 @@ type ResourceArchivedPayload struct {
 
 // ResourceClonedPayload Payload for yield:cloned domain event
 type ResourceClonedPayload struct {
-	ContentByteSize *int   `json:"contentByteSize,omitempty"`
-	ContentChecksum string `json:"contentChecksum"`
+	Name            string        `json:"name"`
+	Format          ContentFormat `json:"format"`
+	ContentChecksum string        `json:"contentChecksum"`
+	ContentByteSize *int          `json:"contentByteSize,omitempty"`
+	// StorageUri Where the clone's bytes are, on the resource's primary
+	// Representation — the same single home `yield:created` writes to.
+	StorageUri       *string    `json:"storageUri,omitempty"`
+	ParentResourceId ResourceId `json:"parentResourceId"`
+	EntityTypes      *[]string  `json:"entityTypes,omitempty"`
+	Language         *string    `json:"language,omitempty"`
 	// Creator Who made the clone — the emitter, derived at write time. A clone
 	// is never job-fulfilling. Absent on events written before derivation
 	// existed, whose emitter was their only party.
-	Creator          *Agent        `json:"creator,omitempty"`
-	EntityTypes      *[]string     `json:"entityTypes,omitempty"`
-	Format           ContentFormat `json:"format"`
-	Language         *string       `json:"language,omitempty"`
-	Name             string        `json:"name"`
-	ParentResourceId ResourceId    `json:"parentResourceId"`
-	// StorageUri Where the clone's bytes are, on the resource's primary
-	// Representation — the same single home `yield:created` writes to.
-	StorageUri *string `json:"storageUri,omitempty"`
+	Creator *Agent `json:"creator,omitempty"`
 	// WasAttributedTo PROV-O wasAttributedTo, derived at write time: the cloner
 	// alone. The value the resource view carries.
 	WasAttributedTo *OneOrMoreAgents `json:"wasAttributedTo,omitempty"`
@@ -10625,30 +10625,12 @@ type ResourceClonedPayload struct {
 
 // ResourceCreatedPayload Payload for yield:created domain event
 type ResourceCreatedPayload struct {
-	ContentByteSize *int `json:"contentByteSize,omitempty"`
+	Name   string        `json:"name"`
+	Format ContentFormat `json:"format"`
 	// ContentChecksum SHA-256 of content
-	ContentChecksum string `json:"contentChecksum"`
-	// Creator Who requested this resource — derived by the knowledge base at
-	// write time, never sent by the emitter. For a resource created in
-	// fulfilment of a job, the requester recorded on that job's job:assigned;
-	// otherwise the emitter itself. Absent on events written before derivation
-	// existed, whose emitter was their only party.
-	Creator     *Agent        `json:"creator,omitempty"`
-	EntityTypes *[]string     `json:"entityTypes,omitempty"`
-	Format      ContentFormat `json:"format"`
-	// GeneratedFrom What this resource was generated from: the resource, and the
-	// annotation on it when the generation was for one. The resource's
-	// descriptor names the resource as `wasDerivedFrom`.
-	GeneratedFrom    *ResourceCreatedPayloadGeneratedFrom `json:"generatedFrom,omitempty"`
-	GenerationPrompt *string                              `json:"generationPrompt,omitempty"`
-	Generator        *OneOrMoreAgents                     `json:"generator,omitempty"`
-	IsDraft          *bool                                `json:"isDraft,omitempty"`
-	// JobId The job this resource was made in fulfilment of, when its create
-	// cited one. A write that cites the same job on this resource, by the one
-	// who made it, is attributed to that job's requester: the `creator` here.
-	JobId    *JobId  `json:"jobId,omitempty"`
-	Language *string `json:"language,omitempty"`
-	Name     string  `json:"name"`
+	ContentChecksum string    `json:"contentChecksum"`
+	ContentByteSize *int      `json:"contentByteSize,omitempty"`
+	EntityTypes     *[]string `json:"entityTypes,omitempty"`
 	// StorageUri The creating instruction's URI, recorded on the event.
 	// Append-only, so this value never changes — the LOCATION the projection
 	// serves is maintained across moves and lives on the resource's primary
@@ -10656,6 +10638,24 @@ type ResourceCreatedPayload struct {
 	// bytes. Working-tree URI, only file:// is supported (e.g.
 	// file://docs/overview.md).
 	StorageUri *string `json:"storageUri,omitempty"`
+	Language   *string `json:"language,omitempty"`
+	IsDraft    *bool   `json:"isDraft,omitempty"`
+	// JobId The job this resource was made in fulfilment of, when its create
+	// cited one. A write that cites the same job on this resource, by the one
+	// who made it, is attributed to that job's requester: the `creator` here.
+	JobId *JobId `json:"jobId,omitempty"`
+	// GeneratedFrom What this resource was generated from: the resource, and the
+	// annotation on it when the generation was for one. The resource's
+	// descriptor names the resource as `wasDerivedFrom`.
+	GeneratedFrom    *ResourceCreatedPayloadGeneratedFrom `json:"generatedFrom,omitempty"`
+	GenerationPrompt *string                              `json:"generationPrompt,omitempty"`
+	Generator        *OneOrMoreAgents                     `json:"generator,omitempty"`
+	// Creator Who requested this resource — derived by the knowledge base at
+	// write time, never sent by the emitter. For a resource created in
+	// fulfilment of a job, the requester recorded on that job's job:assigned;
+	// otherwise the emitter itself. Absent on events written before derivation
+	// existed, whose emitter was their only party.
+	Creator *Agent `json:"creator,omitempty"`
 	// WasAttributedTo PROV-O wasAttributedTo, derived at write time from
 	// `creator` and the executor: both parties when they differ, one when they
 	// are the same. The value the resource view carries; readers do not
@@ -10667,8 +10667,8 @@ type ResourceCreatedPayload struct {
 // the resource, and the annotation on it when the generation was for one. The
 // resource's descriptor names the resource as `wasDerivedFrom`.
 type ResourceCreatedPayloadGeneratedFrom struct {
-	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
 	ResourceId   ResourceId    `json:"resourceId"`
+	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
 }
 
 // ResourceDescriptor Metadata about a resource (1:1 with its URI). JSON-LD
@@ -10679,56 +10679,56 @@ type ResourceDescriptor struct {
 	// Id The id of the resource being described.
 	Id ResourceId `json:"@id"`
 	// Type Type(s) of the resource (IRIs/CURIEs via @context).
-	Type *OneOrMoreStrings `json:"@type,omitempty"`
+	Type        *OneOrMoreStrings `json:"@type,omitempty"`
+	Name        string            `json:"name"`
+	Description *string           `json:"description,omitempty"`
+	// Identifier Persistent identifiers (e.g., DOI, URN).
+	Identifier *ResourceDescriptorIdentifier `json:"identifier,omitempty"`
 	// About Topics (IRIs or strings).
 	About *OneOrMoreStrings `json:"about,omitempty"`
-	// Archived Application-specific: Whether this resource is archived
-	Archived *bool `json:"archived,omitempty"`
-	// AvailableFormats Convenience set summarizing media types across
-	// representations.
-	AvailableFormats *[]string `json:"availableFormats,omitempty"`
-	// ConformsTo Profile/shape URI this resource description conforms to.
-	ConformsTo   *OneOrMoreUris `json:"conformsTo,omitempty"`
-	DateCreated  *string        `json:"dateCreated,omitempty"`
-	DateModified *string        `json:"dateModified,omitempty"`
-	Description  *string        `json:"description,omitempty"`
-	// EntityTypes Application-specific: Entity types for this resource
-	EntityTypes *[]string `json:"entityTypes,omitempty"`
+	// SameAs Equivalent/authoritative references.
+	SameAs       *[]string `json:"sameAs,omitempty"`
+	IsPartOf     *[]string `json:"isPartOf,omitempty"`
+	HasPart      *[]string `json:"hasPart,omitempty"`
+	License      *string   `json:"license,omitempty"`
+	Version      *string   `json:"version,omitempty"`
+	DateCreated  *string   `json:"dateCreated,omitempty"`
+	DateModified *string   `json:"dateModified,omitempty"`
+	// WasDerivedFrom W3C PROV: the resource, or resources, this one was derived
+	// from, each by its id
+	WasDerivedFrom *ResourceDescriptorWasDerivedFrom `json:"wasDerivedFrom,omitempty"`
+	// WasAttributedTo W3C PROV — every party responsible for this resource,
+	// derived by the knowledge base at creation from verified identities:
+	// `[requester, generator]` for a resource a job produced, collapsed to the
+	// one agent when the requester produced it. Never accepted from an emitter.
+	WasAttributedTo *OneOrMoreAgents `json:"wasAttributedTo,omitempty"`
 	// Generator Software peer that produced this resource (W3C Web Annotation
 	// model). Its identity is the verified emitter of the create; the parameters
 	// are the producer's to state.
 	Generator *OneOrMoreAgents `json:"generator,omitempty"`
-	HasPart   *[]string        `json:"hasPart,omitempty"`
-	// Identifier Persistent identifiers (e.g., DOI, URN).
-	Identifier *ResourceDescriptorIdentifier `json:"identifier,omitempty"`
-	// IsDraft Application-specific: Whether this resource is a draft
-	IsDraft  *bool     `json:"isDraft,omitempty"`
-	IsPartOf *[]string `json:"isPartOf,omitempty"`
-	License  *string   `json:"license,omitempty"`
-	Name     string    `json:"name"`
-	// OriginatedFrom Original URI from a source knowledge base when this
-	// resource was imported
-	OriginatedFrom *string `json:"originatedFrom,omitempty"`
+	// ConformsTo Profile/shape URI this resource description conforms to.
+	ConformsTo *OneOrMoreUris `json:"conformsTo,omitempty"`
+	// AvailableFormats Convenience set summarizing media types across
+	// representations.
+	AvailableFormats *[]string `json:"availableFormats,omitempty"`
 	// Representations Managed or referenced byte-level renditions of this
 	// resource.
 	Representations ResourceDescriptorRepresentations `json:"representations"`
-	// SameAs Equivalent/authoritative references.
-	SameAs *[]string `json:"sameAs,omitempty"`
+	// Archived Application-specific: Whether this resource is archived
+	Archived *bool `json:"archived,omitempty"`
+	// EntityTypes Application-specific: Entity types for this resource
+	EntityTypes *[]string `json:"entityTypes,omitempty"`
+	// IsDraft Application-specific: Whether this resource is a draft
+	IsDraft *bool `json:"isDraft,omitempty"`
 	// SourceAnnotationId Application-specific: ID of annotation that triggered
 	// generation
 	SourceAnnotationId *AnnotationId `json:"sourceAnnotationId,omitempty"`
 	// SourceResourceId Application-specific: ID of source resource for
 	// clones/derivatives
 	SourceResourceId *ResourceId `json:"sourceResourceId,omitempty"`
-	Version          *string     `json:"version,omitempty"`
-	// WasAttributedTo W3C PROV — every party responsible for this resource,
-	// derived by the knowledge base at creation from verified identities:
-	// `[requester, generator]` for a resource a job produced, collapsed to the
-	// one agent when the requester produced it. Never accepted from an emitter.
-	WasAttributedTo *OneOrMoreAgents `json:"wasAttributedTo,omitempty"`
-	// WasDerivedFrom W3C PROV: the resource, or resources, this one was derived
-	// from, each by its id
-	WasDerivedFrom *ResourceDescriptorWasDerivedFrom `json:"wasDerivedFrom,omitempty"`
+	// OriginatedFrom Original URI from a source knowledge base when this
+	// resource was imported
+	OriginatedFrom *string `json:"originatedFrom,omitempty"`
 	// AdditionalProperties is every member the schema does not name, as it came.
 	AdditionalProperties map[string]any `json:"-"`
 }
@@ -10819,8 +10819,8 @@ func (ResourceDescriptorIdentifierList) memberOfResourceDescriptorIdentifier() {
 
 type ResourceDescriptorIdentifierObject struct {
 	Id     *string `json:"@id,omitempty"`
-	Scheme *string `json:"scheme,omitempty"`
 	Value  *string `json:"value,omitempty"`
+	Scheme *string `json:"scheme,omitempty"`
 	// AdditionalProperties is every member the schema does not name, as it came.
 	AdditionalProperties map[string]any `json:"-"`
 }
@@ -10891,10 +10891,10 @@ func (ResourceDescriptorWasDerivedFromList) memberOfResourceDescriptorWasDerived
 // awaited the command, which knows whose command failed on which resource.
 // The `*-failed` wire replies are correlation plumbing and are not for this.
 type ResourceErrorEvent struct {
-	// Message Human-readable error message.
-	Message string `json:"message"`
 	// ResourceId The resource the command addressed.
 	ResourceId ResourceId `json:"resourceId"`
+	// Message Human-readable error message.
+	Message string `json:"message"`
 }
 
 func (ResourceId) memberOfAnnotationTargetValue()            {}
@@ -10914,11 +10914,11 @@ type ResourceMovedPayload struct {
 type ResourceSearchFilters struct {
 	Archived   *bool   `json:"archived,omitempty"`
 	EntityType *string `json:"entityType,omitempty"`
-	// Limit The most resources a page has.
-	Limit *int `json:"limit,omitempty"`
 	// Offset How many of the resources the search finds are passed over before
 	// the page begins.
 	Offset *int `json:"offset,omitempty"`
+	// Limit The most resources a page has.
+	Limit *int `json:"limit,omitempty"`
 }
 
 // ResourceUnarchivedPayload Payload for mark:unarchived domain event (empty
@@ -10927,9 +10927,9 @@ type ResourceUnarchivedPayload map[string]any
 
 // ResourceUpdatedPayload Payload for yield:updated domain event
 type ResourceUpdatedPayload struct {
-	ContentByteSize *int `json:"contentByteSize,omitempty"`
 	// ContentChecksum SHA-256 of new content
 	ContentChecksum string `json:"contentChecksum"`
+	ContentByteSize *int   `json:"contentByteSize,omitempty"`
 }
 
 // ResourceUpload The multipart upload that creates a resource. A client sends
@@ -10937,21 +10937,28 @@ type ResourceUpdatedPayload struct {
 // the Archivist's `POST /resources`, which stores the bytes and records the
 // resource. One body, two hops.
 type ResourceUpload struct {
-	// ArchiveOriginal With `cloneToken`: 'true' archives the source once the
-	// clone exists.
-	ArchiveOriginal *string `json:"archiveOriginal,omitempty"`
-	// CloneToken A clone token from `yield:clone-token-requested`. With it, the
-	// resource is created as a clone of the token's source, inheriting its
-	// entity types; `language`, `entityTypes` and the generation fields are then
-	// not read.
-	CloneToken *string `json:"cloneToken,omitempty"`
-	// EntityTypes JSON-stringified array of entity type names
-	EntityTypes *string `json:"entityTypes,omitempty"`
+	// Name Human-readable resource name
+	Name string `json:"name"`
 	// File Binary content
 	File []byte `json:"file"`
 	// Format Media type of the content (e.g. text/plain, text/markdown,
 	// image/png)
 	Format string `json:"format"`
+	// StorageUri Where the content lives (file://... for local). Required — the
+	// client names the location; the server does not derive one.
+	StorageUri string `json:"storageUri"`
+	// Language ISO 639-1 language code
+	Language *string `json:"language,omitempty"`
+	// EntityTypes JSON-stringified array of entity type names
+	EntityTypes *string `json:"entityTypes,omitempty"`
+	// SourceAnnotationId For AI-generated resources: the annotation that
+	// triggered generation. Nested into generatedFrom.annotationId on the
+	// persisted event.
+	SourceAnnotationId *AnnotationId `json:"sourceAnnotationId,omitempty"`
+	// SourceResourceId For AI-generated resources: the source resource the
+	// generating annotation lives on. Nested into generatedFrom.resourceId on
+	// the persisted event.
+	SourceResourceId *ResourceId `json:"sourceResourceId,omitempty"`
 	// GenerationPrompt For AI-generated resources: the prompt that drove
 	// generation
 	GenerationPrompt *string `json:"generationPrompt,omitempty"`
@@ -10961,28 +10968,21 @@ type ResourceUpload struct {
 	// `creator` and `wasAttributedTo` are never sent; the knowledge base derives
 	// them from the cited job.
 	Generator *string `json:"generator,omitempty"`
-	// IsDraft 'true' or 'false' — whether the resource is a draft
-	IsDraft *string `json:"isDraft,omitempty"`
 	// JobId The job this resource fulfils, when a worker is creating it.
 	// Forwarded onto yield:create; the knowledge base derives who requested the
 	// resource from the cited job's own events, and refuses a worker-role create
 	// that cites none. Absent for a person's own upload.
 	JobId *JobId `json:"jobId,omitempty"`
-	// Language ISO 639-1 language code
-	Language *string `json:"language,omitempty"`
-	// Name Human-readable resource name
-	Name string `json:"name"`
-	// SourceAnnotationId For AI-generated resources: the annotation that
-	// triggered generation. Nested into generatedFrom.annotationId on the
-	// persisted event.
-	SourceAnnotationId *AnnotationId `json:"sourceAnnotationId,omitempty"`
-	// SourceResourceId For AI-generated resources: the source resource the
-	// generating annotation lives on. Nested into generatedFrom.resourceId on
-	// the persisted event.
-	SourceResourceId *ResourceId `json:"sourceResourceId,omitempty"`
-	// StorageUri Where the content lives (file://... for local). Required — the
-	// client names the location; the server does not derive one.
-	StorageUri string `json:"storageUri"`
+	// IsDraft 'true' or 'false' — whether the resource is a draft
+	IsDraft *string `json:"isDraft,omitempty"`
+	// CloneToken A clone token from `yield:clone-token-requested`. With it, the
+	// resource is created as a clone of the token's source, inheriting its
+	// entity types; `language`, `entityTypes` and the generation fields are then
+	// not read.
+	CloneToken *string `json:"cloneToken,omitempty"`
+	// ArchiveOriginal With `cloneToken`: 'true' archives the source once the
+	// clone exists.
+	ArchiveOriginal *string `json:"archiveOriginal,omitempty"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -11000,11 +11000,11 @@ func (v ResourceUpload) MarshalJSON() ([]byte, error) {
 // Written as JSON indented by two spaces, by writing a sibling temporary file
 // and renaming it onto the path, so a reader sees a whole document or none.
 type ResourceView struct {
+	Resource    ResourceDescriptor  `json:"resource"`
 	Annotations ResourceAnnotations `json:"annotations"`
 	// LastSequence The sequence number of the last event applied. A graph read
 	// that follows a write waits for the graph projection to reach it.
-	LastSequence int                `json:"lastSequence"`
-	Resource     ResourceDescriptor `json:"resource"`
+	LastSequence int `json:"lastSequence"`
 }
 
 // Resources What a container is given, in Kubernetes' spelling.
@@ -11024,20 +11024,24 @@ type ResourcesLimits struct {
 // clone, or a codespace stack recorded here. Registration, the directory, the
 // stack and the forward are separate facts, each stated as it is.
 type Root struct {
-	// Codespace For a codespace root: the codespace's name.
-	Codespace *string `json:"codespace,omitempty"`
-	// CodespaceState For a codespace root: GitHub's word for the codespace's
-	// state (Available, Shutdown), when gh answered.
-	CodespaceState *string `json:"codespaceState,omitempty"`
-	// Config The Inference document a start of it runs, as the registry records
-	// it.
-	Config *string `json:"config,omitempty"`
-	// Configs For a present local root: the Inference documents its clone has,
-	// as start --config names them.
-	Configs *[]string `json:"configs,omitempty"`
+	// Placement Where the stack actually runs. "local": containers on this
+	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+	Placement RootPlacement `json:"placement"`
+	// Path For a local root: the clone's path.
+	Path *string `json:"path,omitempty"`
+	// Present For a local root: whether the directory exists. A registered root
+	// whose directory is gone is kept, and says so.
+	Present *bool `json:"present,omitempty"`
 	// Current For a local root: how the control server's own directory selects
 	// it, when it does — standing in it (cwd), or XYNOLOG_ROOT.
 	Current *RootCurrent `json:"current,omitempty"`
+	// Registered Whether the registry (roots.json) records it.
+	Registered bool `json:"registered"`
+	// Running Whether a stack of it is recorded on this machine.
+	Running bool `json:"running"`
+	// LastUsed When a command last used it, in RFC 3339, as the registry records
+	// it.
+	LastUsed *string `json:"lastUsed,omitempty"`
 	// Did The KB's did:web identifier, from its committed .xynolog/config.yaml —
 	// "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no
 	// domain has no identity to publish, and the launcher refuses to start it
@@ -11049,38 +11053,34 @@ type Root struct {
 	// they reached is the KB they meant — an address alone cannot say which KB
 	// is which, and an identity alone cannot say which copy.
 	Did *string `json:"did,omitempty"`
+	// SiteName Human-readable site name from the KB's .xynolog/config.yaml
+	// (site.siteName), for display
+	SiteName *string `json:"siteName,omitempty"`
+	// IdentityError Why its identity could not be read from its clone, when it
+	// could not.
+	IdentityError *string `json:"identityError,omitempty"`
+	// Config The Inference document a start of it runs, as the registry records
+	// it.
+	Config *string `json:"config,omitempty"`
+	// Configs For a present local root: the Inference documents its clone has,
+	// as start --config names them.
+	Configs *[]string `json:"configs,omitempty"`
+	// Repo owner/name GitHub slug — present for codespace placements, where the
+	// repo is the stack's identity
+	Repo *string `json:"repo,omitempty"`
+	// Codespace For a codespace root: the codespace's name.
+	Codespace *string `json:"codespace,omitempty"`
+	// CodespaceState For a codespace root: GitHub's word for the codespace's
+	// state (Available, Shutdown), when gh answered.
+	CodespaceState *string `json:"codespaceState,omitempty"`
 	// ForwardPort For a codespace root: the port on this machine its knowledge
 	// base is forwarded to, when one is recorded.
 	ForwardPort *int `json:"forwardPort,omitempty"`
 	// Forwarded For a codespace root: whether the recorded forward is alive.
 	Forwarded *bool `json:"forwarded,omitempty"`
-	// IdentityError Why its identity could not be read from its clone, when it
-	// could not.
-	IdentityError *string `json:"identityError,omitempty"`
-	// LastUsed When a command last used it, in RFC 3339, as the registry records
-	// it.
-	LastUsed *string `json:"lastUsed,omitempty"`
-	// Path For a local root: the clone's path.
-	Path *string `json:"path,omitempty"`
-	// Placement Where the stack actually runs. "local": containers on this
-	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-	Placement RootPlacement `json:"placement"`
-	// Present For a local root: whether the directory exists. A registered root
-	// whose directory is gone is kept, and says so.
-	Present *bool `json:"present,omitempty"`
 	// Reachable For a codespace root: whether its knowledge base answers through
 	// the forward.
 	Reachable *bool `json:"reachable,omitempty"`
-	// Registered Whether the registry (roots.json) records it.
-	Registered bool `json:"registered"`
-	// Repo owner/name GitHub slug — present for codespace placements, where the
-	// repo is the stack's identity
-	Repo *string `json:"repo,omitempty"`
-	// Running Whether a stack of it is recorded on this machine.
-	Running bool `json:"running"`
-	// SiteName Human-readable site name from the KB's .xynolog/config.yaml
-	// (site.siteName), for display
-	SiteName *string `json:"siteName,omitempty"`
 }
 
 // RootCurrent For a local root: how the control server's own directory
@@ -11133,10 +11133,10 @@ type RootsForgetParams struct {
 // RootsForgetResult A forgotten registry row. Only the row is removed: no
 // file of the clone, and none of its persistent stack state.
 type RootsForgetResult struct {
-	// DirectoryMissing Whether its directory was already gone.
-	DirectoryMissing bool `json:"directoryMissing"`
 	// Path The forgotten root's path.
 	Path string `json:"path"`
+	// DirectoryMissing Whether its directory was already gone.
+	DirectoryMissing bool `json:"directoryMissing"`
 	// PersistentState The key whose persistent stack state remains, when some
 	// does and no surviving root shares its DID: xynolog clean --root <key>
 	// removes it.
@@ -11146,32 +11146,32 @@ type RootsForgetResult struct {
 // RootsInitParams roots.init's params: the local directory, permanent
 // identity, and optional configuration inputs xynolog init takes.
 type RootsInitParams struct {
-	// AnthropicEndpoint Anthropic API base URL.
-	AnthropicEndpoint *string    `json:"anthropicEndpoint,omitempty"`
-	ApiVersion        ApiVersion `json:"apiVersion"`
-	// ConfigName Inference document name. Absent: the provider name.
-	ConfigName *string `json:"configName,omitempty"`
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Path Existing local directory in which to create the knowledge base.
+	Path string `json:"path"`
 	// Domain The permanent did:web domain, in colon-path form, such as
 	// owner.github.io:repo.
 	Domain string `json:"domain"`
-	// Embedding Ollama embedding model name, without the ollama: prefix.
-	Embedding *string `json:"embedding,omitempty"`
+	// Name Project name. Absent: the directory basename.
+	Name *string `json:"name,omitempty"`
+	// SiteName Human-readable site name. Absent: the project name.
+	SiteName *string `json:"siteName,omitempty"`
 	// Inference Inference provider for the generated local stack documents.
 	Inference *RootsInitParamsInference `json:"inference,omitempty"`
 	// Model The primary model bound to roles and jobs.
 	Model *string `json:"model,omitempty"`
 	// ModelLight A light model example emitted in the generated config.
 	ModelLight *string `json:"modelLight,omitempty"`
-	// Name Project name. Absent: the directory basename.
-	Name *string `json:"name,omitempty"`
+	// Embedding Ollama embedding model name, without the ollama: prefix.
+	Embedding *string `json:"embedding,omitempty"`
+	// ConfigName Inference document name. Absent: the provider name.
+	ConfigName *string `json:"configName,omitempty"`
+	// AnthropicEndpoint Anthropic API base URL.
+	AnthropicEndpoint *string `json:"anthropicEndpoint,omitempty"`
 	// OllamaBase Local Ollama API base URL.
 	OllamaBase *string `json:"ollamaBase,omitempty"`
 	// OllamaRegistry Ollama registry base URL.
 	OllamaRegistry *string `json:"ollamaRegistry,omitempty"`
-	// Path Existing local directory in which to create the knowledge base.
-	Path string `json:"path"`
-	// SiteName Human-readable site name. Absent: the project name.
-	SiteName *string `json:"siteName,omitempty"`
 }
 
 // RootsInitParamsInference Inference provider for the generated local stack
@@ -11283,9 +11283,9 @@ func (e Runtime) Valid() bool {
 // RuntimeState One container runtime the launcher drives, and whether this
 // machine has it.
 type RuntimeState struct {
+	Name Runtime `json:"name"`
 	// Found Whether it is on the launcher's PATH.
-	Found bool    `json:"found"`
-	Name  Runtime `json:"name"`
+	Found bool `json:"found"`
 }
 
 // ScoredResource A resource returned by a search, carrying its relevance
@@ -11296,61 +11296,61 @@ type ScoredResource struct {
 	// Id The id of the resource being described.
 	Id ResourceId `json:"@id"`
 	// Type Type(s) of the resource (IRIs/CURIEs via @context).
-	Type *OneOrMoreStrings `json:"@type,omitempty"`
+	Type        *OneOrMoreStrings `json:"@type,omitempty"`
+	Name        string            `json:"name"`
+	Description *string           `json:"description,omitempty"`
+	// Identifier Persistent identifiers (e.g., DOI, URN).
+	Identifier *ResourceDescriptorIdentifier `json:"identifier,omitempty"`
 	// About Topics (IRIs or strings).
 	About *OneOrMoreStrings `json:"about,omitempty"`
-	// Archived Application-specific: Whether this resource is archived
-	Archived *bool `json:"archived,omitempty"`
-	// AvailableFormats Convenience set summarizing media types across
-	// representations.
-	AvailableFormats *[]string `json:"availableFormats,omitempty"`
-	// ConformsTo Profile/shape URI this resource description conforms to.
-	ConformsTo   *OneOrMoreUris `json:"conformsTo,omitempty"`
-	DateCreated  *string        `json:"dateCreated,omitempty"`
-	DateModified *string        `json:"dateModified,omitempty"`
-	Description  *string        `json:"description,omitempty"`
-	// EntityTypes Application-specific: Entity types for this resource
-	EntityTypes *[]string `json:"entityTypes,omitempty"`
+	// SameAs Equivalent/authoritative references.
+	SameAs       *[]string `json:"sameAs,omitempty"`
+	IsPartOf     *[]string `json:"isPartOf,omitempty"`
+	HasPart      *[]string `json:"hasPart,omitempty"`
+	License      *string   `json:"license,omitempty"`
+	Version      *string   `json:"version,omitempty"`
+	DateCreated  *string   `json:"dateCreated,omitempty"`
+	DateModified *string   `json:"dateModified,omitempty"`
+	// WasDerivedFrom W3C PROV: the resource, or resources, this one was derived
+	// from, each by its id
+	WasDerivedFrom *ResourceDescriptorWasDerivedFrom `json:"wasDerivedFrom,omitempty"`
+	// WasAttributedTo W3C PROV — every party responsible for this resource,
+	// derived by the knowledge base at creation from verified identities:
+	// `[requester, generator]` for a resource a job produced, collapsed to the
+	// one agent when the requester produced it. Never accepted from an emitter.
+	WasAttributedTo *OneOrMoreAgents `json:"wasAttributedTo,omitempty"`
 	// Generator Software peer that produced this resource (W3C Web Annotation
 	// model). Its identity is the verified emitter of the create; the parameters
 	// are the producer's to state.
 	Generator *OneOrMoreAgents `json:"generator,omitempty"`
-	HasPart   *[]string        `json:"hasPart,omitempty"`
-	// Identifier Persistent identifiers (e.g., DOI, URN).
-	Identifier *ResourceDescriptorIdentifier `json:"identifier,omitempty"`
-	// IsDraft Application-specific: Whether this resource is a draft
-	IsDraft  *bool     `json:"isDraft,omitempty"`
-	IsPartOf *[]string `json:"isPartOf,omitempty"`
-	License  *string   `json:"license,omitempty"`
-	// MatchReason Human-readable reason for the match.
-	MatchReason *string `json:"matchReason,omitempty"`
-	Name        string  `json:"name"`
-	// OriginatedFrom Original URI from a source knowledge base when this
-	// resource was imported
-	OriginatedFrom *string `json:"originatedFrom,omitempty"`
+	// ConformsTo Profile/shape URI this resource description conforms to.
+	ConformsTo *OneOrMoreUris `json:"conformsTo,omitempty"`
+	// AvailableFormats Convenience set summarizing media types across
+	// representations.
+	AvailableFormats *[]string `json:"availableFormats,omitempty"`
 	// Representations Managed or referenced byte-level renditions of this
 	// resource.
 	Representations ResourceDescriptorRepresentations `json:"representations"`
-	// SameAs Equivalent/authoritative references.
-	SameAs *[]string `json:"sameAs,omitempty"`
-	// Score Relevance score assigned by the matcher; higher is a better
-	// candidate.
-	Score *float64 `json:"score,omitempty"`
+	// Archived Application-specific: Whether this resource is archived
+	Archived *bool `json:"archived,omitempty"`
+	// EntityTypes Application-specific: Entity types for this resource
+	EntityTypes *[]string `json:"entityTypes,omitempty"`
+	// IsDraft Application-specific: Whether this resource is a draft
+	IsDraft *bool `json:"isDraft,omitempty"`
 	// SourceAnnotationId Application-specific: ID of annotation that triggered
 	// generation
 	SourceAnnotationId *AnnotationId `json:"sourceAnnotationId,omitempty"`
 	// SourceResourceId Application-specific: ID of source resource for
 	// clones/derivatives
 	SourceResourceId *ResourceId `json:"sourceResourceId,omitempty"`
-	Version          *string     `json:"version,omitempty"`
-	// WasAttributedTo W3C PROV — every party responsible for this resource,
-	// derived by the knowledge base at creation from verified identities:
-	// `[requester, generator]` for a resource a job produced, collapsed to the
-	// one agent when the requester produced it. Never accepted from an emitter.
-	WasAttributedTo *OneOrMoreAgents `json:"wasAttributedTo,omitempty"`
-	// WasDerivedFrom W3C PROV: the resource, or resources, this one was derived
-	// from, each by its id
-	WasDerivedFrom *ResourceDescriptorWasDerivedFrom `json:"wasDerivedFrom,omitempty"`
+	// OriginatedFrom Original URI from a source knowledge base when this
+	// resource was imported
+	OriginatedFrom *string `json:"originatedFrom,omitempty"`
+	// Score Relevance score assigned by the matcher; higher is a better
+	// candidate.
+	Score *float64 `json:"score,omitempty"`
+	// MatchReason Human-readable reason for the match.
+	MatchReason *string `json:"matchReason,omitempty"`
 	// AdditionalProperties is every member the schema does not name, as it came.
 	AdditionalProperties map[string]any `json:"-"`
 }
@@ -11414,8 +11414,20 @@ func (u Selector) ValueByDiscriminator() (any, error) {
 func (Selector) memberOfAnnotationSelector() {}
 
 type SemanticMatch struct {
+	// Text The chunk text that matched
+	Text string `json:"text"`
+	// ResourceId Source resource ID
+	ResourceId ResourceId `json:"resourceId"`
+	// ResourceName The source resource's display name, resolved from its view at
+	// gather time. Required: a match card must name its source, and corpus
+	// matches routinely come from outside the graph neighborhood, so there is no
+	// node to borrow a name from. A match whose source no longer resolves to a
+	// view is dropped by the producer rather than served nameless.
+	ResourceName string `json:"resourceName"`
 	// AnnotationId Source annotation ID, if the match is from an annotation
 	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
+	// Score Cosine similarity score (0-1)
+	Score float64 `json:"score"`
 	// EntityTypes Entity types on the matched passage
 	EntityTypes *[]string `json:"entityTypes,omitempty"`
 	// MachineRead True when this passage's text was recognized from pixels (OCR
@@ -11425,18 +11437,6 @@ type SemanticMatch struct {
 	// consumer receives the chunk with no document attached and cannot recompute
 	// how the text was obtained.
 	MachineRead *bool `json:"machineRead,omitempty"`
-	// ResourceId Source resource ID
-	ResourceId ResourceId `json:"resourceId"`
-	// ResourceName The source resource's display name, resolved from its view at
-	// gather time. Required: a match card must name its source, and corpus
-	// matches routinely come from outside the graph neighborhood, so there is no
-	// node to borrow a name from. A match whose source no longer resolves to a
-	// view is dropped by the producer rather than served nameless.
-	ResourceName string `json:"resourceName"`
-	// Score Cosine similarity score (0-1)
-	Score float64 `json:"score"`
-	// Text The chunk text that matched
-	Text string `json:"text"`
 }
 
 // ServiceAddress The host and port a service listens at.
@@ -11451,47 +11451,47 @@ type ServiceAddress struct {
 type ServiceEnvironmentBootRefusals struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
-	// ExitCode The status it exits with.
-	ExitCode int `json:"exitCode"`
+	// Services The services that refuse to start so.
+	Services []ServiceEnvironmentBootRefusalsServicesItem `json:"services"`
 	// Line The one line the service writes to stderr, its refusal in place of
 	// `{refusal}`, before it exits.
 	Line string `json:"line"`
+	// ExitCode The status it exits with.
+	ExitCode int `json:"exitCode"`
+	// Refusals Each refusal.
+	Refusals []ServiceEnvironmentBootRefusalsRefusalsItem `json:"refusals"`
 	// Members Each line of the refusal `invalid`: one for each way the document
 	// is not its schema's.
 	Members []ServiceEnvironmentBootRefusalsMembersItem `json:"members"`
-	// Refusals Each refusal.
-	Refusals []ServiceEnvironmentBootRefusalsRefusalsItem `json:"refusals"`
-	// Services The services that refuse to start so.
-	Services []ServiceEnvironmentBootRefusalsServicesItem `json:"services"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v ServiceEnvironmentBootRefusals) MarshalJSON() ([]byte, error) {
 	type written ServiceEnvironmentBootRefusals
-	v.Members = listOf(v.Members)
-	v.Refusals = listOf(v.Refusals)
 	v.Services = listOf(v.Services)
+	v.Refusals = listOf(v.Refusals)
+	v.Members = listOf(v.Members)
 	return json.Marshal(written(v))
 }
 
 type ServiceEnvironmentBootRefusalsMembersItem struct {
-	// Line The line, filled as the row's `situation` says.
-	Line string `json:"line"`
 	// Name The situation's name.
 	Name string `json:"name"`
 	// Situation When it is written, and what fills each `{name}` of its text.
 	Situation string `json:"situation"`
+	// Line The line, filled as the row's `situation` says.
+	Line string `json:"line"`
 }
 
 type ServiceEnvironmentBootRefusalsRefusalsItem struct {
 	// Name The situation's name.
 	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 	// Refusal Its text. A `{name}` in it is filled with what the row's
 	// `situation` names, and nothing else in it varies.
 	Refusal string `json:"refusal"`
-	// Situation When it is written, and what fills each `{name}` of its text.
-	Situation string `json:"situation"`
 }
 
 // ServiceEnvironmentBootRefusalsServicesItem A Xynolog service, by its name.
@@ -11536,18 +11536,18 @@ func (v ServiceEnvironmentVariables) MarshalJSON() ([]byte, error) {
 }
 
 type ServiceEnvironmentVariablesVariablesItem struct {
-	// Effect What it does.
-	Effect string `json:"effect"`
 	// Name The variable's name.
 	Name string `json:"name"`
-	// ProvidedBy What sets it where the launcher runs the service.
-	ProvidedBy ServiceEnvironmentVariablesVariablesItemProvidedBy `json:"providedBy"`
-	// ReadBy What reads it: the service's own code, or the OpenTelemetry SDK.
-	ReadBy ServiceEnvironmentVariablesVariablesItemReadBy `json:"readBy"`
-	// Required Whether the service refuses to start without it.
-	Required bool `json:"required"`
 	// Services The services that read it.
 	Services []ServiceEnvironmentVariablesVariablesItemServicesItem `json:"services"`
+	// ReadBy What reads it: the service's own code, or the OpenTelemetry SDK.
+	ReadBy ServiceEnvironmentVariablesVariablesItemReadBy `json:"readBy"`
+	// ProvidedBy What sets it where the launcher runs the service.
+	ProvidedBy ServiceEnvironmentVariablesVariablesItemProvidedBy `json:"providedBy"`
+	// Required Whether the service refuses to start without it.
+	Required bool `json:"required"`
+	// Effect What it does.
+	Effect string `json:"effect"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -11664,10 +11664,10 @@ type ServiceHostParams struct {
 // address the instance reaches this machine's listeners at. A caller writes
 // it into a document before the run.
 type ServiceHostResult struct {
+	Runtime Runtime `json:"runtime"`
 	// Address The host address: an IP address or a host name, as the launcher's
 	// own stack dials it under this runtime.
-	Address string  `json:"address"`
-	Runtime Runtime `json:"runtime"`
+	Address string `json:"address"`
 }
 
 // ServiceIdentity The identity provider a service's account signs in at, by
@@ -11682,11 +11682,11 @@ type ServiceIdentity struct {
 // wrote it. The launcher gives an instance none of its own secrets (R2), and
 // keeps no copy.
 type ServiceOutput struct {
-	Instance RunInstance `json:"instance"`
-	// Line The line, without its newline.
-	Line      string       `json:"line"`
 	RequestId RequestId    `json:"requestId"`
+	Instance  RunInstance  `json:"instance"`
 	Stream    OutputStream `json:"stream"`
+	// Line The line, without its newline.
+	Line string `json:"line"`
 }
 
 // ServiceRunParams service.run's params: one instance of one of a knowledge
@@ -11696,17 +11696,26 @@ type ServiceOutput struct {
 type ServiceRunParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
-	// Args The arguments the image's program is given in place of the image's
-	// own (--config and the document's path). Absent: the image's own.
-	Args *[]string `json:"args,omitempty"`
+	// Target The knowledge base whose stack documents name the service's image,
+	// and whose stack the instance belongs to: stack.stop of it removes the
+	// instance too.
+	Target LocalTarget `json:"target"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else the first installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Service The service whose image runs.
+	Service  RunService  `json:"service"`
+	Instance RunInstance `json:"instance"`
 	// Document The configuration document's text, written as it is, at the path
 	// the image's own arguments name: it need not be JSON. Absent: no file is at
 	// that path.
 	Document *string `json:"document,omitempty"`
+	// Args The arguments the image's program is given in place of the image's
+	// own (--config and the document's path). Absent: the image's own.
+	Args *[]string `json:"args,omitempty"`
 	// Environment Every variable the instance is given beside the image's own,
 	// by name: nothing of the launcher's is added (R2). Empty: none.
 	Environment map[string]string `json:"environment"`
-	Instance    RunInstance       `json:"instance"`
 	// Mounts Directories of this machine, each mounted read-write at its own
 	// path, so that a path the document names is the same inside the instance
 	// and out (R4). Empty: none.
@@ -11717,15 +11726,6 @@ type ServiceRunParams struct {
 	// Ports The ports the instance listens on, each published at the same number
 	// on the host address (R3). Empty: none.
 	Ports []int `json:"ports"`
-	// Runtime The container runtime to ask, as --runtime names it. Absent: the
-	// one the stack's record names, else the first installed one.
-	Runtime *Runtime `json:"runtime,omitempty"`
-	// Service The service whose image runs.
-	Service RunService `json:"service"`
-	// Target The knowledge base whose stack documents name the service's image,
-	// and whose stack the instance belongs to: stack.stop of it removes the
-	// instance too.
-	Target LocalTarget `json:"target"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -11741,11 +11741,11 @@ func (v ServiceRunParams) MarshalJSON() ([]byte, error) {
 // ServiceRunResult A run that ended: its instance exited. Sent once the
 // instance's container has exited, after all of its output.
 type ServiceRunResult struct {
+	Instance RunInstance `json:"instance"`
 	// ExitCode The instance's exit status: the service's own, since nothing
 	// supervises it (R1). An instance a signal ended exits with 128 and the
 	// signal's number: 143 for SIGTERM, 137 for SIGKILL.
-	ExitCode int         `json:"exitCode"`
-	Instance RunInstance `json:"instance"`
+	ExitCode int `json:"exitCode"`
 	// RanMs Milliseconds from its container's start to its exit.
 	RanMs int `json:"ranMs"`
 }
@@ -11753,18 +11753,18 @@ type ServiceRunResult struct {
 // ServiceSignalParams service.signal's params: a signal for a run's instance.
 type ServiceSignalParams struct {
 	// ApiVersion The version of the control API the request is written to.
-	ApiVersion ApiVersion  `json:"apiVersion"`
-	Instance   RunInstance `json:"instance"`
-	// Runtime The container runtime to ask, as --runtime names it. Absent: the
-	// one the stack's record names, else the first installed one.
-	Runtime *Runtime `json:"runtime,omitempty"`
-	// Signal term: SIGTERM, and SIGKILL 15 seconds later if it has not exited.
-	// kill: SIGKILL, so nothing it would settle on the way out is settled.
-	Signal ServiceSignalParamsSignal `json:"signal"`
+	ApiVersion ApiVersion `json:"apiVersion"`
 	// Target The knowledge base whose stack documents name the service's image,
 	// and whose stack the instance belongs to: stack.stop of it removes the
 	// instance too.
 	Target LocalTarget `json:"target"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else the first installed one.
+	Runtime  *Runtime    `json:"runtime,omitempty"`
+	Instance RunInstance `json:"instance"`
+	// Signal term: SIGTERM, and SIGKILL 15 seconds later if it has not exited.
+	// kill: SIGKILL, so nothing it would settle on the way out is settled.
+	Signal ServiceSignalParamsSignal `json:"signal"`
 }
 
 // ServiceSignalParamsSignal term: SIGTERM, and SIGKILL 15 seconds later if it
@@ -11798,16 +11798,16 @@ type ServiceSignalResult struct {
 // ServiceStarted notifications/serviceStarted: a run's instance is running.
 // Sent once, before any of its output.
 type ServiceStarted struct {
-	// Address The host address the instance's ports are published on, as
-	// service.host names it for the run's runtime.
-	Address string `json:"address"`
+	RequestId RequestId   `json:"requestId"`
+	Instance  RunInstance `json:"instance"`
 	// Container The runtime's name for the instance's container.
 	Container string `json:"container"`
 	// DocumentPath Where the instance reads its document: the path the image's
 	// own arguments name. Present when the run gave a document.
-	DocumentPath *string     `json:"documentPath,omitempty"`
-	Instance     RunInstance `json:"instance"`
-	RequestId    RequestId   `json:"requestId"`
+	DocumentPath *string `json:"documentPath,omitempty"`
+	// Address The host address the instance's ports are published on, as
+	// service.host names it for the run's runtime.
+	Address string `json:"address"`
 }
 
 // ServiceStatus One service, as xynolog status reads it: where it runs, its
@@ -11815,44 +11815,44 @@ type ServiceStarted struct {
 // not observe: an endpoint is named only when the stack's record or the
 // descriptor names one, and a page to open only when the service answers.
 type ServiceStatus struct {
-	// ContainerState The runtime's own word for a container that is not running
-	// (exited, created).
-	ContainerState *string `json:"containerState,omitempty"`
-	// Counted Whether its health counts toward its knowledge base's: a service
-	// the documents ask for none of, and a telemetry backend --no-observe leaves
-	// out, do not.
-	Counted bool `json:"counted"`
+	// Role The service, as xynolog status names it.
+	Role string `json:"role"`
 	// Group The group it belongs to.
 	Group ServiceGroup `json:"group"`
-	// Healthy Whether its health endpoint answers.
-	Healthy bool `json:"healthy"`
-	// Page The page a person opens: the Browser, Jaeger's and Prometheus's
-	// interfaces, the collector's metrics readout. Present only when the service
-	// answers. The collector's OTLP receiver is never one.
-	Page *string `json:"page,omitempty"`
-	// Probe The endpoint the launcher asks its health of: an http URL, or
-	// tcp://host:port.
-	Probe *string `json:"probe,omitempty"`
 	// Product The product its driver names (Neo4j, Keycloak), when its record
 	// names a driver.
 	Product *string `json:"product,omitempty"`
-	// Realm For the issuer the knowledge base signs in at, when it is the
-	// machine's: its realm there.
-	Realm *string `json:"realm,omitempty"`
-	// Role The service, as xynolog status names it.
-	Role string `json:"role"`
 	// RunsOn Where it runs: the runtime its container runs under, external
 	// (somebody else runs it), or host (a process on this machine). Absent when
 	// nothing runs it.
 	RunsOn *string `json:"runsOn,omitempty"`
-	// Serves For a service several knowledge bases share: the name of each it
-	// serves, as knowledgeBases names them.
-	Serves *[]string `json:"serves,omitempty"`
 	// State running: its container runs. stopped: its container exists and does
 	// not run (containerState says how). reachable, unreachable: somebody else
 	// runs it, and its endpoint answers or does not. absent: there is no
 	// container of it. not-configured: the stack's documents ask for none.
 	State ServiceStatusState `json:"state"`
+	// ContainerState The runtime's own word for a container that is not running
+	// (exited, created).
+	ContainerState *string `json:"containerState,omitempty"`
+	// Healthy Whether its health endpoint answers.
+	Healthy bool `json:"healthy"`
+	// Counted Whether its health counts toward its knowledge base's: a service
+	// the documents ask for none of, and a telemetry backend --no-observe leaves
+	// out, do not.
+	Counted bool `json:"counted"`
+	// Probe The endpoint the launcher asks its health of: an http URL, or
+	// tcp://host:port.
+	Probe *string `json:"probe,omitempty"`
+	// Page The page a person opens: the Browser, Jaeger's and Prometheus's
+	// interfaces, the collector's metrics readout. Present only when the service
+	// answers. The collector's OTLP receiver is never one.
+	Page *string `json:"page,omitempty"`
+	// Realm For the issuer the knowledge base signs in at, when it is the
+	// machine's: its realm there.
+	Realm *string `json:"realm,omitempty"`
+	// Serves For a service several knowledge bases share: the name of each it
+	// serves, as knowledgeBases names them.
+	Serves *[]string `json:"serves,omitempty"`
 }
 
 // ServiceStatusState running: its container runs. stopped: its container
@@ -11885,10 +11885,10 @@ func (e ServiceStatusState) Valid() bool {
 type ServiceTelemetryLogLines struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
-	// Bus A line of the bus log.
-	Bus ServiceTelemetryLogLinesBus `json:"bus"`
 	// Logger The lines of a service's logger.
 	Logger ServiceTelemetryLogLinesLogger `json:"logger"`
+	// Bus A line of the bus log.
+	Bus ServiceTelemetryLogLinesBus `json:"bus"`
 	// Supervisor The line the supervisor writes when it starts a service.
 	Supervisor ServiceTelemetryLogLinesSupervisor `json:"supervisor"`
 }
@@ -11897,36 +11897,36 @@ type ServiceTelemetryLogLines struct {
 type ServiceTelemetryLogLinesBus struct {
 	// Line Its head.
 	Line string `json:"line"`
-	// Ops Each operation a line names.
-	Ops []string `json:"ops"`
 	// Parts What follows the head, in order, each where there is one.
 	Parts []ServiceTelemetryLogLinesBusPartsItem `json:"parts"`
+	// Ops Each operation a line names.
+	Ops []string `json:"ops"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v ServiceTelemetryLogLinesBus) MarshalJSON() ([]byte, error) {
 	type written ServiceTelemetryLogLinesBus
-	v.Ops = listOf(v.Ops)
 	v.Parts = listOf(v.Parts)
+	v.Ops = listOf(v.Ops)
 	return json.Marshal(written(v))
 }
 
 type ServiceTelemetryLogLinesBusPartsItem struct {
-	// Characters How many characters of it are shown, from its first.
-	Characters *int `json:"characters,omitempty"`
 	// Part What it shows.
 	Part string `json:"part"`
 	// Text Its text.
 	Text string `json:"text"`
+	// Characters How many characters of it are shown, from its first.
+	Characters *int `json:"characters,omitempty"`
 }
 
 // ServiceTelemetryLogLinesLogger The lines of a service's logger.
 type ServiceTelemetryLogLinesLogger struct {
-	// Json A line of the `json` format.
-	Json ServiceTelemetryLogLinesLoggerJson `json:"json"`
 	// Services The services whose document names a LogFormat.
 	Services []ServiceTelemetryLogLinesLoggerServicesItem `json:"services"`
+	// Json A line of the `json` format.
+	Json ServiceTelemetryLogLinesLoggerJson `json:"json"`
 	// Simple A line of the `simple` format.
 	Simple string `json:"simple"`
 }
@@ -11943,13 +11943,13 @@ func (v ServiceTelemetryLogLinesLogger) MarshalJSON() ([]byte, error) {
 type ServiceTelemetryLogLinesLoggerJson struct {
 	// First Its first members, in order.
 	First []string `json:"first"`
-	// Last Its last member: the moment.
-	Last string `json:"last"`
 	// RequestId The member that names the request a line was logged while
 	// answering.
 	RequestId string `json:"requestId"`
 	// Trace The members that name the active trace and span, in that order.
 	Trace []string `json:"trace"`
+	// Last Its last member: the moment.
+	Last string `json:"last"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -11983,11 +11983,11 @@ func (e ServiceTelemetryLogLinesLoggerServicesItem) Valid() bool {
 // ServiceTelemetryLogLinesSupervisor The line the supervisor writes when it
 // starts a service.
 type ServiceTelemetryLogLinesSupervisor struct {
+	// Line The line.
+	Line string `json:"line"`
 	// Counted What a service counts the lines that hold of, for each of its
 	// lives.
 	Counted string `json:"counted"`
-	// Line The line.
-	Line string `json:"line"`
 }
 
 // ServiceTelemetryTelemetry service-telemetry/telemetry.json: the telemetry
@@ -11995,50 +11995,50 @@ type ServiceTelemetryLogLinesSupervisor struct {
 // that export each, and the attributes each carries.
 type ServiceTelemetryTelemetry struct {
 	// Comment The rule the table states, in prose.
-	Comment  string                                  `json:"$comment"`
-	Metrics  []ServiceTelemetryTelemetryMetricsItem  `json:"metrics"`
-	Resource []ServiceTelemetryTelemetryResourceItem `json:"resource"`
+	Comment string `json:"$comment"`
 	// Sdk The services that reach the bus through an SDK, and for each the SDK
 	// transports it uses, or of a transport it uses part of, the rows it
 	// exports.
-	Sdk   map[string][]string                  `json:"sdk"`
-	Spans []ServiceTelemetryTelemetrySpansItem `json:"spans"`
+	Sdk      map[string][]string                     `json:"sdk"`
+	Resource []ServiceTelemetryTelemetryResourceItem `json:"resource"`
+	Spans    []ServiceTelemetryTelemetrySpansItem    `json:"spans"`
+	Metrics  []ServiceTelemetryTelemetryMetricsItem  `json:"metrics"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v ServiceTelemetryTelemetry) MarshalJSON() ([]byte, error) {
 	type written ServiceTelemetryTelemetry
-	v.Metrics = listOf(v.Metrics)
 	v.Resource = listOf(v.Resource)
 	v.Spans = listOf(v.Spans)
+	v.Metrics = listOf(v.Metrics)
 	return json.Marshal(written(v))
 }
 
 type ServiceTelemetryTelemetryMetricsItem struct {
-	// Attributes The attributes the span carries.
-	Attributes []ServiceTelemetryTelemetryMetricsItemAttributesItem `json:"attributes"`
-	// Instrument The metric's instrument.
-	Instrument ServiceTelemetryTelemetryMetricsItemInstrument `json:"instrument"`
-	// Meaning What the row says.
-	Meaning string `json:"meaning"`
 	// Name The row's name; `{channel}` in it is the bus channel, and `{jobType}`
 	// the job's type.
 	Name string `json:"name"`
-	// Planes The only signal planes a gateway row arrives on.
-	Planes *[]ServiceTelemetryTelemetryMetricsItemPlanesItem `json:"planes,omitempty"`
 	// Services The services that export the row.
 	Services []ServiceTelemetryTelemetryMetricsItemServicesItem `json:"services"`
+	// Instrument The metric's instrument.
+	Instrument ServiceTelemetryTelemetryMetricsItemInstrument `json:"instrument"`
 	// When When the row arrives.
 	When ServiceTelemetryTelemetryMetricsItemWhen `json:"when"`
+	// Planes The only signal planes a gateway row arrives on.
+	Planes *[]ServiceTelemetryTelemetryMetricsItemPlanesItem `json:"planes,omitempty"`
+	// Meaning What the row says.
+	Meaning string `json:"meaning"`
+	// Attributes The attributes the span carries.
+	Attributes []ServiceTelemetryTelemetryMetricsItemAttributesItem `json:"attributes"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v ServiceTelemetryTelemetryMetricsItem) MarshalJSON() ([]byte, error) {
 	type written ServiceTelemetryTelemetryMetricsItem
-	v.Attributes = listOf(v.Attributes)
 	v.Services = listOf(v.Services)
+	v.Attributes = listOf(v.Attributes)
 	return json.Marshal(written(v))
 }
 
@@ -12170,15 +12170,15 @@ func (e ServiceTelemetryTelemetryMetricsItemWhen) Valid() bool {
 // ServiceTelemetryTelemetryResourceItem An attribute of the resource the
 // services' spans and metrics are exported under.
 type ServiceTelemetryTelemetryResourceItem struct {
+	// Key The attribute's key.
+	Key string `json:"key"`
+	// Services The services that export the row.
+	Services []ServiceTelemetryTelemetryResourceItemServicesItem `json:"services"`
+	// Meaning What the attribute says.
+	Meaning string `json:"meaning"`
 	// Default Its value when nothing says another, with `{service}` the
 	// service's name.
 	Default *string `json:"default,omitempty"`
-	// Key The attribute's key.
-	Key string `json:"key"`
-	// Meaning What the attribute says.
-	Meaning string `json:"meaning"`
-	// Services The services that export the row.
-	Services []ServiceTelemetryTelemetryResourceItemServicesItem `json:"services"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -12215,27 +12215,27 @@ func (e ServiceTelemetryTelemetryResourceItemServicesItem) Valid() bool {
 }
 
 type ServiceTelemetryTelemetrySpansItem struct {
-	// Attributes The attributes the span carries.
-	Attributes []ServiceTelemetryTelemetrySpansItemAttributesItem `json:"attributes"`
-	// Kind The span's kind, in OTLP's words.
-	Kind ServiceTelemetryTelemetrySpansItemKind `json:"kind"`
-	// Meaning What the row says.
-	Meaning string `json:"meaning"`
 	// Name The row's name; `{channel}` in it is the bus channel, and `{jobType}`
 	// the job's type.
 	Name string `json:"name"`
 	// Services The services that export the row.
 	Services []ServiceTelemetryTelemetrySpansItemServicesItem `json:"services"`
+	// Kind The span's kind, in OTLP's words.
+	Kind ServiceTelemetryTelemetrySpansItemKind `json:"kind"`
 	// When When the row arrives.
 	When ServiceTelemetryTelemetrySpansItemWhen `json:"when"`
+	// Meaning What the row says.
+	Meaning string `json:"meaning"`
+	// Attributes The attributes the span carries.
+	Attributes []ServiceTelemetryTelemetrySpansItemAttributesItem `json:"attributes"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v ServiceTelemetryTelemetrySpansItem) MarshalJSON() ([]byte, error) {
 	type written ServiceTelemetryTelemetrySpansItem
-	v.Attributes = listOf(v.Attributes)
 	v.Services = listOf(v.Services)
+	v.Attributes = listOf(v.Attributes)
 	return json.Marshal(written(v))
 }
 
@@ -12349,12 +12349,12 @@ func (e ServiceTelemetryTelemetrySpansItemWhen) Valid() bool {
 // Session The launcher's own stored sign-in for a stack (xynolog login),
 // never Desktop's. No token is in it.
 type Session struct {
-	// Email The email the session was signed in as, when the store records one.
-	Email *string `json:"email,omitempty"`
 	// State valid: the stack's gateway accepts the stored token. expired: it
 	// refuses it (a refresh, or xynolog login, renews it). unverified: the stack
 	// did not answer. none: nothing is stored.
 	State SessionState `json:"state"`
+	// Email The email the session was signed in as, when the store records one.
+	Email *string `json:"email,omitempty"`
 }
 
 // SessionEndReason Why a session ended: `expired`, the issuer refused to
@@ -12390,12 +12390,12 @@ type SessionEnded struct {
 // connectionId is required — the DID alone cannot tell two connections apart,
 // and a consumer that counts DIDs will undercount viewers.
 type SessionJoinedEvent struct {
-	// ConnectionId Identifies this connection for its lifetime. The matching
-	// session:left carries the same value.
-	ConnectionId string `json:"connectionId"`
 	// Participant DID of the authenticated principal on that connection. A
 	// person or a software agent — the bus does not distinguish.
 	Participant UserId `json:"participant"`
+	// ConnectionId Identifies this connection for its lifetime. The matching
+	// session:left carries the same value.
+	ConnectionId string `json:"connectionId"`
 }
 
 // SessionLeftEvent A participant's live connection to this KB ended — the SSE
@@ -12403,10 +12403,10 @@ type SessionJoinedEvent struct {
 // opened it, so a consumer tracking who is present can retire the right
 // connection rather than assuming one per participant.
 type SessionLeftEvent struct {
-	// ConnectionId The connectionId announced by the matching session:joined.
-	ConnectionId string `json:"connectionId"`
 	// Participant DID of the authenticated principal on that connection.
 	Participant UserId `json:"participant"`
+	// ConnectionId The connectionId announced by the matching session:joined.
+	ConnectionId string `json:"connectionId"`
 }
 
 // SessionState valid: the stack's gateway accepts the stored token. expired:
@@ -12433,20 +12433,20 @@ func (e SessionState) Valid() bool {
 
 // Setting One setting the launcher keeps, as xynolog settings shows it.
 type Setting struct {
-	// AppliesTo What it applies to: every knowledge base on this machine, or
-	// one.
-	AppliesTo SettingAppliesTo `json:"appliesTo"`
-	// ChangedBy For one they do not: how it is changed instead.
-	ChangedBy *string `json:"changedBy,omitempty"`
+	// Name Its name, as xynolog settings takes it.
+	Name string `json:"name"`
 	// Default Whether this is the machine-wide form of a knowledge-base setting
 	// (secret-store --default).
 	Default bool `json:"default"`
-	// Name Its name, as xynolog settings takes it.
-	Name string `json:"name"`
-	// Settable Whether settings.set and settings.unset change it.
-	Settable bool `json:"settable"`
+	// AppliesTo What it applies to: every knowledge base on this machine, or
+	// one.
+	AppliesTo SettingAppliesTo `json:"appliesTo"`
 	// Values The values in effect, one per line xynolog settings shows.
 	Values []SettingLine `json:"values"`
+	// Settable Whether settings.set and settings.unset change it.
+	Settable bool `json:"settable"`
+	// ChangedBy For one they do not: how it is changed instead.
+	ChangedBy *string `json:"changedBy,omitempty"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -12480,20 +12480,20 @@ func (e SettingAppliesTo) Valid() bool {
 // settings shows it. A secret's value is never one: a secret setting shows
 // where the value is kept.
 type SettingLine struct {
-	// Source Where it came from: a record, a document, the default.
-	Source string `json:"source"`
 	// Value The value in effect.
 	Value string `json:"value"`
+	// Source Where it came from: a record, a document, the default.
+	Source string `json:"source"`
 }
 
 // SettingsGetParams settings.get's params.
 type SettingsGetParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
-	// Default The machine-wide form of a knowledge-base setting: --default.
-	Default *bool `json:"default,omitempty"`
 	// Name The setting, as xynolog settings names it.
 	Name string `json:"name"`
+	// Default The machine-wide form of a knowledge-base setting: --default.
+	Default *bool `json:"default,omitempty"`
 	// Root A knowledge base's clone, by path or by the basename of a registered
 	// root, as --root takes it. Absent: the clone the control server was started
 	// in.
@@ -12520,11 +12520,11 @@ type SettingsListParams struct {
 type SettingsListResult struct {
 	// Root The knowledge base whose settings are listed, when one resolved.
 	Root *string `json:"root,omitempty"`
-	// Settings Each setting.
-	Settings []Setting `json:"settings"`
 	// Unresolved Why no knowledge base resolved, when none did: its settings are
 	// not listed.
 	Unresolved *string `json:"unresolved,omitempty"`
+	// Settings Each setting.
+	Settings []Setting `json:"settings"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -12582,10 +12582,10 @@ type SettingsPathResult struct {
 type SettingsSetParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
-	// Default The machine-wide form of a knowledge-base setting: --default.
-	Default *bool `json:"default,omitempty"`
 	// Name The setting, as xynolog settings names it.
 	Name string `json:"name"`
+	// Default The machine-wide form of a knowledge-base setting: --default.
+	Default *bool `json:"default,omitempty"`
 	// Root A knowledge base's clone, by path or by the basename of a registered
 	// root, as --root takes it. Absent: the clone the control server was started
 	// in.
@@ -12621,10 +12621,10 @@ func (e SettingsThemeChangedEventTheme) Valid() bool {
 type SettingsUnsetParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
-	// Default The machine-wide form of a knowledge-base setting: --default.
-	Default *bool `json:"default,omitempty"`
 	// Name The setting, as xynolog settings names it.
 	Name string `json:"name"`
+	// Default The machine-wide form of a knowledge-base setting: --default.
+	Default *bool `json:"default,omitempty"`
 	// Root A knowledge base's clone, by path or by the basename of a registered
 	// root, as --root takes it. Absent: the clone the control server was started
 	// in.
@@ -12636,33 +12636,33 @@ type SettingsUnsetParams struct {
 // sign-in stands either way: the knowledge base that answered is the one
 // reached.
 type SignInOutcome struct {
+	// Kb The entry the sign-in made or signed in to again.
+	Kb KnowledgeBase `json:"kb"`
 	// Expected What the person believed they were signing in to. Absent when
 	// they named nothing.
 	Expected *Expected `json:"expected,omitempty"`
-	// Kb The entry the sign-in made or signed in to again.
-	Kb KnowledgeBase `json:"kb"`
 }
 
 // SignedIn What a completed sign-in learned, as a registry is handed it to
 // record: where it was, who the knowledge base there says it is, the tokens,
 // and what the person believed they were signing in to.
 type SignedIn struct {
+	// Endpoint Where the sign-in was.
+	Endpoint KbEndpoint `json:"endpoint"`
 	// Description What the knowledge base said of itself, asked with the new
 	// token.
 	Description KbDescription `json:"description"`
-	// Endpoint Where the sign-in was.
-	Endpoint KbEndpoint `json:"endpoint"`
+	// Session The tokens, as a registry keeps them.
+	Session StoredSession `json:"session"`
+	// KbId The registered knowledge base the person signed in to again. Absent
+	// when it is none.
+	KbId *string `json:"kbId,omitempty"`
 	// ExpectedDid The did of what the person believed they clicked. Absent when
 	// they named nothing.
 	ExpectedDid *string `json:"expectedDid,omitempty"`
 	// ExpectedName The name of what the person believed they clicked. Absent
 	// when they named nothing.
 	ExpectedName *string `json:"expectedName,omitempty"`
-	// KbId The registered knowledge base the person signed in to again. Absent
-	// when it is none.
-	KbId *string `json:"kbId,omitempty"`
-	// Session The tokens, as a registry keeps them.
-	Session StoredSession `json:"session"`
 }
 
 // SmeltRebuildAnchorsCommand Bus command to rebuild anchored-text artifacts
@@ -12675,12 +12675,12 @@ type SignedIn struct {
 // that quietly skipped resources would present exactly like a document with
 // no text.
 type SmeltRebuildAnchorsCommand struct {
-	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
-	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
 	// ResourceId When present, re-anchor only this resource; otherwise every
 	// geometry-capable resource in the catalog.
 	ResourceId *ResourceId `json:"resourceId,omitempty"`
+	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
+	// Clients do not set this.
+	UserId *UserId `json:"_userId,omitempty"`
 }
 
 // SmeltSettled The payload of `smelt:settled`: the Smelter's decision for one
@@ -12688,13 +12688,13 @@ type SmeltRebuildAnchorsCommand struct {
 // `indexed`: the content is in the vector index. `skipped`: it declined, and
 // `reason` says why.
 type SmeltSettled struct {
+	// ResourceId The resource whose content was inspected.
+	ResourceId ResourceId `json:"resourceId"`
 	// ContentChecksum The checksum of the bytes inspected.
 	ContentChecksum string              `json:"contentChecksum"`
 	Outcome         SmeltSettledOutcome `json:"outcome"`
 	// Reason Why the content was skipped.
 	Reason *SmeltSettledReason `json:"reason,omitempty"`
-	// ResourceId The resource whose content was inspected.
-	ResourceId ResourceId `json:"resourceId"`
 }
 
 type SmeltSettledOutcome string
@@ -12756,29 +12756,29 @@ type SmelterChunking struct {
 // `XYNOLOG_OIDC_CLIENT_SECRET` in its environment. A document that does not
 // validate is refused at boot, naming each failing field.
 type SmelterConfig struct {
-	// Archivist Where the Archivist listens. The Smelter reads a resource's
-	// bytes from it, and keeps the anchored-text store there, as its service
-	// account.
-	Archivist   ServiceAddress  `json:"archivist"`
-	Chunking    SmelterChunking `json:"chunking"`
-	CursorsPath CursorsPath     `json:"cursorsPath"`
-	Embedding   EmbeddingConfig `json:"embedding"`
+	Kb KbIdentity `json:"kb"`
 	// GatewayUrl The URL the Smelter reaches the gateway at: its route to the
 	// bus.
 	GatewayUrl string `json:"gatewayUrl"`
 	// Identity The issuer the Smelter's service account signs in at.
-	Identity  ServiceIdentity `json:"identity"`
-	Kb        KbIdentity      `json:"kb"`
-	LogFormat LogFormat       `json:"logFormat"`
-	LogLevel  LogLevel        `json:"logLevel"`
+	Identity ServiceIdentity `json:"identity"`
+	// Archivist Where the Archivist listens. The Smelter reads a resource's
+	// bytes from it, and keeps the anchored-text store there, as its service
+	// account.
+	Archivist ServiceAddress  `json:"archivist"`
+	Embedding EmbeddingConfig `json:"embedding"`
+	Vectors   VectorsConfig   `json:"vectors"`
+	Chunking  SmelterChunking `json:"chunking"`
 	// PdfsAtOnce How many PDFs the Smelter works on at once. Each one under way
 	// holds its bytes, a page of a scan in pixels beside the OCR process reading
 	// it, and its text and vectors, so whoever starts a Smelter sizes this with
 	// the memory it gives it. Every other resource is indexed beside them.
-	PdfsAtOnce int `json:"pdfsAtOnce"`
+	PdfsAtOnce  int         `json:"pdfsAtOnce"`
+	CursorsPath CursorsPath `json:"cursorsPath"`
 	// Port The port the Smelter answers `/health` on.
-	Port    int           `json:"port"`
-	Vectors VectorsConfig `json:"vectors"`
+	Port      int       `json:"port"`
+	LogLevel  LogLevel  `json:"logLevel"`
+	LogFormat LogFormat `json:"logFormat"`
 }
 
 // SmelterHealth The Smelter's health answer (SMELTER.md § Health): seven
@@ -12787,60 +12787,60 @@ type SmelterConfig struct {
 // is `ok` whenever it answers, and says what else is so in the members beside
 // it.
 type SmelterHealth struct {
-	// EventsProcessed How many events it has applied since it started: events of
-	// the kinds that do something, and not refused. Neither an event taken as
-	// nothing nor the work of a reconcile or a rebuild is counted.
-	EventsProcessed int `json:"eventsProcessed"`
-	// Following How far it has followed the record. Its sweep is also `due`
-	// where its start's reconcile failed.
-	Following FollowerFollowing `json:"following"`
-	// Index What the Smelter holds its index to, and what this start did for
-	// that.
-	Index SmelterHealthIndex `json:"index"`
+	Status SmelterHealthStatus `json:"status"`
 	// Kb The DID of the knowledge base it serves: the one its settings name,
 	// which that knowledge base said it is before the Smelter reached its index.
 	Kb KbDid `json:"kb"`
-	// Reconcile How far the latest reconcile has got: the pass's `summary` when
-	// it is done, or its `error` when it failed.
-	Reconcile SmelterHealthReconcile `json:"reconcile"`
-	Status    SmelterHealthStatus    `json:"status"`
 	// Stream The state of its own stream of the record, one of the seven of
 	// TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while
 	// it is `open`.
 	Stream SmelterHealthStream `json:"stream"`
+	// Following How far it has followed the record. Its sweep is also `due`
+	// where its start's reconcile failed.
+	Following FollowerFollowing `json:"following"`
+	// EventsProcessed How many events it has applied since it started: events of
+	// the kinds that do something, and not refused. Neither an event taken as
+	// nothing nor the work of a reconcile or a rebuild is counted.
+	EventsProcessed int `json:"eventsProcessed"`
+	// Reconcile How far the latest reconcile has got: the pass's `summary` when
+	// it is done, or its `error` when it failed.
+	Reconcile SmelterHealthReconcile `json:"reconcile"`
+	// Index What the Smelter holds its index to, and what this start did for
+	// that.
+	Index SmelterHealthIndex `json:"index"`
 }
 
 // SmelterHealthIndex What the Smelter holds its index to, and what this start
 // did for that.
 type SmelterHealthIndex struct {
+	// Stamp The model and the cut it makes an index by.
+	Stamp SmelterHealthIndexStamp `json:"stamp"`
 	// MadeAnew Whether this start made the index again, as it does where the
 	// index stated another stamp, or none.
 	MadeAnew bool `json:"madeAnew"`
-	// Stamp The model and the cut it makes an index by.
-	Stamp SmelterHealthIndexStamp `json:"stamp"`
 }
 
 // SmelterHealthIndexStamp The model and the cut it makes an index by.
 type SmelterHealthIndexStamp struct {
-	Chunking SmelterChunking `json:"chunking"`
 	// Embedding The embedding provider's kind and model.
 	Embedding SmelterHealthIndexStampEmbedding `json:"embedding"`
+	Chunking  SmelterChunking                  `json:"chunking"`
 }
 
 // SmelterHealthIndexStampEmbedding The embedding provider's kind and model.
 type SmelterHealthIndexStampEmbedding struct {
-	Model string `json:"model"`
 	Type  string `json:"type"`
+	Model string `json:"model"`
 }
 
 // SmelterHealthReconcile How far the latest reconcile has got: the pass's
 // `summary` when it is done, or its `error` when it failed.
 type SmelterHealthReconcile struct {
-	// Error Why it failed.
-	Error *string                     `json:"error,omitempty"`
 	Phase SmelterHealthReconcilePhase `json:"phase"`
 	// Summary What the pass came to.
 	Summary *SmelterReconcileSummary `json:"summary,omitempty"`
+	// Error Why it failed.
+	Error *string `json:"error,omitempty"`
 }
 
 type SmelterHealthReconcilePhase string
@@ -12908,39 +12908,39 @@ func (e SmelterHealthStream) Valid() bool {
 type SmelterMessages struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
+	// Refusals Each refusal of an operation, on the operation's failure channel.
+	Refusals []SmelterMessagesRefusalsItem `json:"refusals"`
 	// Logged Each message the Smelter logs that a reader of its output relies
 	// on.
 	Logged []SmelterMessagesLoggedItem `json:"logged"`
-	// Refusals Each refusal of an operation, on the operation's failure channel.
-	Refusals []SmelterMessagesRefusalsItem `json:"refusals"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
 // written as the empty list.
 func (v SmelterMessages) MarshalJSON() ([]byte, error) {
 	type written SmelterMessages
-	v.Logged = listOf(v.Logged)
 	v.Refusals = listOf(v.Refusals)
+	v.Logged = listOf(v.Logged)
 	return json.Marshal(written(v))
 }
 
 type SmelterMessagesLoggedItem struct {
-	// Carries The facts the line is logged with beside `fields`, whose value the
-	// row's `situation` says and whose form is not stated. The line may carry
-	// others.
-	Carries []string `json:"carries"`
+	// Name The situation's name.
+	Name  string   `json:"name"`
+	Level LogLevel `json:"level"`
+	// Situation When it is written, what fills each `{name}` of its fields, and
+	// what each fact it carries says.
+	Situation string `json:"situation"`
+	// Message The line's message, word for word.
+	Message string `json:"message"`
 	// Fields The facts the line is logged with whose form is stated, by name:
 	// each a text whose `{name}` is filled as the row's `situation` says. A fact
 	// that is a number is its decimal digits.
 	Fields map[string]string `json:"fields"`
-	Level  LogLevel          `json:"level"`
-	// Message The line's message, word for word.
-	Message string `json:"message"`
-	// Name The situation's name.
-	Name string `json:"name"`
-	// Situation When it is written, what fills each `{name}` of its fields, and
-	// what each fact it carries says.
-	Situation string `json:"situation"`
+	// Carries The facts the line is logged with beside `fields`, whose value the
+	// row's `situation` says and whose form is not stated. The line may carry
+	// others.
+	Carries []string `json:"carries"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -12952,9 +12952,6 @@ func (v SmelterMessagesLoggedItem) MarshalJSON() ([]byte, error) {
 }
 
 type SmelterMessagesRefusalsItem struct {
-	// Message The failure's `message`. A `{name}` in it is filled with what the
-	// row's `situation` names, and nothing else in it varies.
-	Message string `json:"message"`
 	// Name The situation's name.
 	Name string `json:"name"`
 	// Operation The operation it refuses: a request of bus/registry.json's
@@ -12962,6 +12959,9 @@ type SmelterMessagesRefusalsItem struct {
 	Operation string `json:"operation"`
 	// Situation When it is written, and what fills each `{name}` of its text.
 	Situation string `json:"situation"`
+	// Message The failure's `message`. A `{name}` in it is filled with what the
+	// row's `situation` names, and nothing else in it varies.
+	Message string `json:"message"`
 }
 
 // SmelterReconcileSummary What a Smelter's reconcile came to (SMELTER.md §
@@ -12970,44 +12970,44 @@ type SmelterMessagesRefusalsItem struct {
 // out to index, less any whose indexing was no longer wanted when its turn
 // came.
 type SmelterReconcileSummary struct {
-	// AnnotationVectorsDeleted How many annotations it planned to take out of
-	// the index.
-	AnnotationVectorsDeleted int `json:"annotationVectorsDeleted"`
-	// AnnotationsEmbedded How many annotations it planned to index.
-	AnnotationsEmbedded int `json:"annotationsEmbedded"`
-	// AnnotationsRestamped How many annotations it planned to rewrite the entity
-	// types of.
-	AnnotationsRestamped int `json:"annotationsRestamped"`
-	// ResourceVectorsDeleted How many resources it planned to take out of the
-	// index.
-	ResourceVectorsDeleted int `json:"resourceVectorsDeleted"`
-	// ResourcesEligible How many resources of the catalog have text.
-	ResourcesEligible int `json:"resourcesEligible"`
 	// ResourcesEmbedded How many resources it set out to index were indexed.
 	ResourcesEmbedded int `json:"resourcesEmbedded"`
-	// ResourcesFailed How many failed.
-	ResourcesFailed int `json:"resourcesFailed"`
-	// ResourcesIndexed How many resources have points when it ends.
-	ResourcesIndexed int `json:"resourcesIndexed"`
-	// ResourcesReanchored How many resources it planned to derive the anchored
-	// text of again.
-	ResourcesReanchored int `json:"resourcesReanchored"`
-	// ResourcesRestamped How many resources it planned to rewrite the entity
-	// types of.
-	ResourcesRestamped int `json:"resourcesRestamped"`
 	// ResourcesSkipped How many were skipped, by the reason each was skipped
 	// for: a reason `smelt:settled` carries (SmeltSettled).
 	ResourcesSkipped map[string]int `json:"resourcesSkipped"`
 	// ResourcesUnavailable How many could not be read.
 	ResourcesUnavailable int `json:"resourcesUnavailable"`
+	// ResourcesFailed How many failed.
+	ResourcesFailed int `json:"resourcesFailed"`
+	// ResourcesRestamped How many resources it planned to rewrite the entity
+	// types of.
+	ResourcesRestamped int `json:"resourcesRestamped"`
+	// ResourcesReanchored How many resources it planned to derive the anchored
+	// text of again.
+	ResourcesReanchored int `json:"resourcesReanchored"`
+	// ResourceVectorsDeleted How many resources it planned to take out of the
+	// index.
+	ResourceVectorsDeleted int `json:"resourceVectorsDeleted"`
+	// AnnotationsEmbedded How many annotations it planned to index.
+	AnnotationsEmbedded int `json:"annotationsEmbedded"`
+	// AnnotationsRestamped How many annotations it planned to rewrite the entity
+	// types of.
+	AnnotationsRestamped int `json:"annotationsRestamped"`
+	// AnnotationVectorsDeleted How many annotations it planned to take out of
+	// the index.
+	AnnotationVectorsDeleted int `json:"annotationVectorsDeleted"`
+	// ResourcesEligible How many resources of the catalog have text.
+	ResourcesEligible int `json:"resourcesEligible"`
+	// ResourcesIndexed How many resources have points when it ends.
+	ResourcesIndexed int `json:"resourcesIndexed"`
 }
 
 type SpecificResource struct {
+	Type SpecificResourceType `json:"type"`
+	// Source The id of the resource this body leads to
+	Source ResourceId `json:"source"`
 	// Purpose Why this body is included
 	Purpose *BodyPurpose `json:"purpose,omitempty"`
-	// Source The id of the resource this body leads to
-	Source ResourceId           `json:"source"`
-	Type   SpecificResourceType `json:"type"`
 }
 
 func (SpecificResource) memberOfAnnotationBody() {}
@@ -13077,33 +13077,33 @@ func (e StackKnowledgeBaseKind) Valid() bool {
 
 // StackKnowledgeBaseSpec The knowledge base's services, and how each runs.
 type StackKnowledgeBaseSpec struct {
-	// Archivist The Archivist: it keeps the knowledge base's record in its
-	// working tree.
-	Archivist StackKnowledgeBaseSpecArchivist `json:"archivist"`
-	// Dispatcher The Dispatcher: it hands queued jobs to workers.
-	Dispatcher StackKnowledgeBaseSpecDispatcher `json:"dispatcher"`
+	LogLevel LogLevel `json:"logLevel"`
 	// Gateway The Gateway: where every client and every service reaches the
 	// knowledge base.
 	Gateway StackKnowledgeBaseSpecGateway `json:"gateway"`
-	// Issuer The issuer the knowledge base trusts: the one the launcher runs for
-	// the knowledge bases on a machine, at `shared`, with the knowledge base's
-	// own realm in it, or somebody else's, at `external`.
-	Issuer   StackKnowledgeBaseSpecIssuer `json:"issuer"`
-	LogLevel LogLevel                     `json:"logLevel"`
+	// Dispatcher The Dispatcher: it hands queued jobs to workers.
+	Dispatcher StackKnowledgeBaseSpecDispatcher `json:"dispatcher"`
+	// Archivist The Archivist: it keeps the knowledge base's record in its
+	// working tree.
+	Archivist StackKnowledgeBaseSpecArchivist `json:"archivist"`
 	// Messaging The broker the job queue and the signal plane share: the
 	// launcher's, run from `image`, or somebody else's, at `external`.
 	Messaging StackKnowledgeBaseSpecMessaging `json:"messaging"`
+	// Issuer The issuer the knowledge base trusts: the one the launcher runs for
+	// the knowledge bases on a machine, at `shared`, with the knowledge base's
+	// own realm in it, or somebody else's, at `external`.
+	Issuer StackKnowledgeBaseSpecIssuer `json:"issuer"`
 }
 
 // StackKnowledgeBaseSpecArchivist The Archivist: it keeps the knowledge
 // base's record in its working tree.
 type StackKnowledgeBaseSpecArchivist struct {
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
 	// Address Where the stack's services reach the Archivist, when that is
 	// somewhere the launcher cannot see. Absent, they reach it where the
 	// launcher places it.
-	Address   *HostPort `json:"address,omitempty"`
-	Image     Image     `json:"image"`
-	Resources Resources `json:"resources"`
+	Address *HostPort `json:"address,omitempty"`
 }
 
 // StackKnowledgeBaseSpecDispatcher The Dispatcher: it hands queued jobs to
@@ -13116,26 +13116,26 @@ type StackKnowledgeBaseSpecDispatcher struct {
 // StackKnowledgeBaseSpecGateway The Gateway: where every client and every
 // service reaches the knowledge base.
 type StackKnowledgeBaseSpecGateway struct {
-	Image Image `json:"image"`
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
 	// Port The port the Gateway is published on.
 	Port int `json:"port"`
 	// PublicURL Where clients reach the Gateway: the server its API document
 	// names. A service of the stack reaches it where the launcher places it, on
 	// `port`.
-	PublicURL string    `json:"publicURL"`
-	Resources Resources `json:"resources"`
+	PublicURL string `json:"publicURL"`
 }
 
 // StackKnowledgeBaseSpecIssuer The issuer the knowledge base trusts: the one
 // the launcher runs for the knowledge bases on a machine, at `shared`, with
 // the knowledge base's own realm in it, or somebody else's, at `external`.
 type StackKnowledgeBaseSpecIssuer struct {
-	// External An issuer somebody else runs.
-	External *StackKnowledgeBaseSpecIssuerExternal `json:"external,omitempty"`
 	// Shared The issuer the launcher runs for the knowledge bases on a machine
 	// (the state home's Issuer document). The launcher creates the knowledge
 	// base's realm in it.
 	Shared *StackKnowledgeBaseSpecIssuerShared `json:"shared,omitempty"`
+	// External An issuer somebody else runs.
+	External *StackKnowledgeBaseSpecIssuerExternal `json:"external,omitempty"`
 	// SubjectClaim The claim a person's DID is built from: did:web:<site
 	// domain>:users:<its value>.
 	SubjectClaim string `json:"subjectClaim"`
@@ -13162,18 +13162,18 @@ type StackKnowledgeBaseSpecIssuerShared struct {
 // plane share: the launcher's, run from `image`, or somebody else's, at
 // `external`.
 type StackKnowledgeBaseSpecMessaging struct {
+	// Jobs The Dispatcher's queue.
+	Jobs StackKnowledgeBaseSpecMessagingJobs `json:"jobs"`
+	// Signal The Gateway's signal plane.
+	Signal    StackKnowledgeBaseSpecMessagingSignal `json:"signal"`
+	Image     *Image                                `json:"image,omitempty"`
+	Resources *Resources                            `json:"resources,omitempty"`
 	// External A broker somebody else runs, serving this knowledge base alone: a
 	// second knowledge base on it would share the job queue and, on a `nats`
 	// signal plane, the frames and the gateway's record of pending replies. The
 	// launcher refuses to start a knowledge base whose `servers` another
 	// knowledge base on its machine names.
 	External *StackKnowledgeBaseSpecMessagingExternal `json:"external,omitempty"`
-	Image    *Image                                   `json:"image,omitempty"`
-	// Jobs The Dispatcher's queue.
-	Jobs      StackKnowledgeBaseSpecMessagingJobs `json:"jobs"`
-	Resources *Resources                          `json:"resources,omitempty"`
-	// Signal The Gateway's signal plane.
-	Signal StackKnowledgeBaseSpecMessagingSignal `json:"signal"`
 }
 
 // StackKnowledgeBaseSpecMessagingExternal A broker somebody else runs,
@@ -13182,10 +13182,10 @@ type StackKnowledgeBaseSpecMessaging struct {
 // gateway's record of pending replies. The launcher refuses to start a
 // knowledge base whose `servers` another knowledge base on its machine names.
 type StackKnowledgeBaseSpecMessagingExternal struct {
-	Password SecretRef `json:"password"`
 	// Servers Where it listens: `host:port`.
-	Servers string    `json:"servers"`
-	User    SecretRef `json:"user"`
+	Servers  string    `json:"servers"`
+	User     SecretRef `json:"user"`
+	Password SecretRef `json:"password"`
 }
 
 // StackKnowledgeBaseSpecMessagingJobs The Dispatcher's queue.
@@ -13206,23 +13206,31 @@ type StackKnowledgeBaseSpecMessagingSignal struct {
 type StackStartParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
-	// CodespaceName For a codespace target: which of the repository's
-	// codespaces, as --codespace names it.
-	CodespaceName *string `json:"codespaceName,omitempty"`
+	// Target Which knowledge base's stack. Absent: the one the command line
+	// chooses, standing where the control server was started.
+	Target *Target `json:"target,omitempty"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else every installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
 	// Config The Inference document to run, as --config names it. Absent: the
 	// knowledge base's recorded preference, else the default.
 	Config *string `json:"config,omitempty"`
-	// DryRun Whether to run nothing, and report each runtime command a start
-	// would run as a command progress line.
-	DryRun *bool `json:"dryRun,omitempty"`
+	// Service Just this one service, as --service names it.
+	Service *string `json:"service,omitempty"`
 	// Group Just this one group of services, as --group names it.
 	Group *ServiceGroup `json:"group,omitempty"`
-	// IdleTimeout For a codespace target being created: inactivity before it
-	// stops, as --idle-timeout takes it.
-	IdleTimeout *string `json:"idleTimeout,omitempty"`
+	// CodespaceName For a codespace target: which of the repository's
+	// codespaces, as --codespace names it.
+	CodespaceName *string `json:"codespaceName,omitempty"`
 	// Machine For a codespace target being created: its VM class, as --machine
 	// names it.
 	Machine *string `json:"machine,omitempty"`
+	// IdleTimeout For a codespace target being created: inactivity before it
+	// stops, as --idle-timeout takes it.
+	IdleTimeout *string `json:"idleTimeout,omitempty"`
+	// RetentionPeriod For a codespace target being created: how long a stopped
+	// codespace is kept, as --retention-period takes it.
+	RetentionPeriod *string `json:"retentionPeriod,omitempty"`
 	// Observe Whether to start the telemetry backends, Jaeger and Prometheus.
 	// false is --no-observe. Absent: true.
 	Observe *bool `json:"observe,omitempty"`
@@ -13230,17 +13238,9 @@ type StackStartParams struct {
 	// names it. Absent: the host's ~/.ollama when there is one, else the named
 	// volume — what the command line's prompt does when nobody answers it.
 	OllamaCache *StackStartParamsOllamaCache `json:"ollamaCache,omitempty"`
-	// RetentionPeriod For a codespace target being created: how long a stopped
-	// codespace is kept, as --retention-period takes it.
-	RetentionPeriod *string `json:"retentionPeriod,omitempty"`
-	// Runtime The container runtime to ask, as --runtime names it. Absent: the
-	// one the stack's record names, else every installed one.
-	Runtime *Runtime `json:"runtime,omitempty"`
-	// Service Just this one service, as --service names it.
-	Service *string `json:"service,omitempty"`
-	// Target Which knowledge base's stack. Absent: the one the command line
-	// chooses, standing where the control server was started.
-	Target *Target `json:"target,omitempty"`
+	// DryRun Whether to run nothing, and report each runtime command a start
+	// would run as a command progress line.
+	DryRun *bool `json:"dryRun,omitempty"`
 }
 
 // StackStartParamsOllamaCache Where a started Ollama keeps its models, as
@@ -13283,6 +13283,16 @@ type StackStartResult struct {
 type StackStopParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
+	// Target Which knowledge base's stack. Absent: the one the command line
+	// chooses, standing where the control server was started.
+	Target *Target `json:"target,omitempty"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else every installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Service Just this one service, as --service names it.
+	Service *string `json:"service,omitempty"`
+	// Group Just this one group of services, as --group names it.
+	Group *ServiceGroup `json:"group,omitempty"`
 	// Delete For a codespace target: destroy the codespace, state and all, and
 	// forget its record. The command line's --delete. Refused without
 	// deleteConfirmed.
@@ -13293,16 +13303,6 @@ type StackStopParams struct {
 	// DryRun Whether to stop nothing, and report each runtime command a stop
 	// would run as a command progress line.
 	DryRun *bool `json:"dryRun,omitempty"`
-	// Group Just this one group of services, as --group names it.
-	Group *ServiceGroup `json:"group,omitempty"`
-	// Runtime The container runtime to ask, as --runtime names it. Absent: the
-	// one the stack's record names, else every installed one.
-	Runtime *Runtime `json:"runtime,omitempty"`
-	// Service Just this one service, as --service names it.
-	Service *string `json:"service,omitempty"`
-	// Target Which knowledge base's stack. Absent: the one the command line
-	// chooses, standing where the control server was started.
-	Target *Target `json:"target,omitempty"`
 }
 
 // StackStopResult A stop that ran to its end: what status reads afterwards. A
@@ -13319,28 +13319,28 @@ type StackStopResult struct {
 }
 
 type StatusResponse struct {
-	AuthenticatedAs *string                `json:"authenticatedAs,omitempty"`
-	Features        StatusResponseFeatures `json:"features"`
-	Message         string                 `json:"message"`
 	Status          string                 `json:"status"`
 	Version         string                 `json:"version"`
+	Features        StatusResponseFeatures `json:"features"`
+	Message         string                 `json:"message"`
+	AuthenticatedAs *string                `json:"authenticatedAs,omitempty"`
 }
 
 type StatusResponseFeatures struct {
-	Collaboration   string `json:"collaboration"`
 	SemanticContent string `json:"semanticContent"`
+	Collaboration   string `json:"collaboration"`
 }
 
 // StatusSnapshotParams status.snapshot's params.
 type StatusSnapshotParams struct {
 	// ApiVersion The version of the control API the request is written to.
 	ApiVersion ApiVersion `json:"apiVersion"`
-	// Runtime The container runtime to ask, as --runtime names it. Absent: the
-	// one the stack's record names, else every installed one.
-	Runtime *Runtime `json:"runtime,omitempty"`
 	// Target Which knowledge base's stack. Absent: the one the command line
 	// chooses, standing where the control server was started.
 	Target *Target `json:"target,omitempty"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else every installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
 }
 
 // StatusSnapshotResult What xynolog status reports: each knowledge base with
@@ -13369,30 +13369,30 @@ func (v StatusSnapshotResult) MarshalJSON() ([]byte, error) {
 // state directory. It answers which resource's content is at a place in the
 // working tree. Written as JSON indented by two spaces, `uri` first.
 type StorageUriEntry struct {
-	ResourceId ResourceId `json:"resourceId"`
 	// Uri The `file://` URI of a place in the working tree, relative to the
 	// knowledge base's root.
-	Uri string `json:"uri"`
+	Uri        string     `json:"uri"`
+	ResourceId ResourceId `json:"resourceId"`
 }
 
 // StoredEventResponse A persisted domain event with metadata. Flat shape —
 // event fields and metadata are peers.
 type StoredEventResponse struct {
 	// Id Unique event ID (UUID)
-	Id       string        `json:"id"`
-	Metadata EventMetadata `json:"metadata"`
-	// Payload Event-type-specific payload
-	Payload map[string]any `json:"payload"`
-	// ResourceId Resource this event affects (absent for system events)
-	ResourceId *ResourceId `json:"resourceId,omitempty"`
-	// Timestamp When the event occurred
-	Timestamp string `json:"timestamp"`
+	Id string `json:"id"`
 	// Type Event type (flow verb name, e.g. mark:added)
 	Type string `json:"type"`
+	// Timestamp When the event occurred
+	Timestamp string `json:"timestamp"`
 	// UserId DID of the user who triggered the event
 	UserId UserId `json:"userId"`
+	// ResourceId Resource this event affects (absent for system events)
+	ResourceId *ResourceId `json:"resourceId,omitempty"`
 	// Version Event schema version
 	Version int `json:"version"`
+	// Payload Event-type-specific payload
+	Payload  map[string]any `json:"payload"`
+	Metadata EventMetadata  `json:"metadata"`
 }
 
 // StoredSession What is kept of a sign-in: the tokens an issuer issued, the
@@ -13403,9 +13403,19 @@ type StoredEventResponse struct {
 type StoredSession struct {
 	// Access The access token: short-lived, sent as a Bearer token.
 	Access string `json:"access"`
+	// Refresh The refresh token: what renews the access token at the issuer
+	// without another sign-in.
+	Refresh string `json:"refresh"`
 	// ClientId The client the tokens were issued to, which a renewal and a
 	// revocation name.
 	ClientId string `json:"clientId"`
+	// TokenEndpoint The issuer's token endpoint, where the refresh grant is
+	// made.
+	TokenEndpoint string `json:"tokenEndpoint"`
+	// RevocationEndpoint The issuer's revocation endpoint (RFC 7009), where a
+	// sign-out tells it to forget the refresh token. Absent when the issuer has
+	// none.
+	RevocationEndpoint *string `json:"revocationEndpoint,omitempty"`
 	// PersonKey Who the gateway said the sign-in's person is, as the key their
 	// caches and stream position are kept under (`lastEventIdKeyPrefix`), never
 	// the did itself. Written once the gateway names the person, on the sign-in
@@ -13414,16 +13424,6 @@ type StoredSession struct {
 	// first to delete what is kept under it. Absent for a sign-in whose gateway
 	// has not yet named its person.
 	PersonKey *string `json:"personKey,omitempty"`
-	// Refresh The refresh token: what renews the access token at the issuer
-	// without another sign-in.
-	Refresh string `json:"refresh"`
-	// RevocationEndpoint The issuer's revocation endpoint (RFC 7009), where a
-	// sign-out tells it to forget the refresh token. Absent when the issuer has
-	// none.
-	RevocationEndpoint *string `json:"revocationEndpoint,omitempty"`
-	// TokenEndpoint The issuer's token endpoint, where the refresh grant is
-	// made.
-	TokenEndpoint string `json:"tokenEndpoint"`
 }
 
 // SupportedMediaType Base MIME types (no parameters) admitted by Xynolog.
@@ -13600,14 +13600,14 @@ func (e TabCheckGoneVerdict) Valid() bool {
 // TabCheckReady The knowledge base has the resource, and said what it is
 // called now.
 type TabCheckReady struct {
-	// MediaType The media type of its primary representation. Absent when it
-	// said none.
-	MediaType *string `json:"mediaType,omitempty"`
-	// Name The name the knowledge base gave the resource.
-	Name string `json:"name"`
 	// Verdict What checking an open resource against its knowledge base
 	// concluded.
 	Verdict TabCheckReadyVerdict `json:"verdict"`
+	// Name The name the knowledge base gave the resource.
+	Name string `json:"name"`
+	// MediaType The media type of its primary representation. Absent when it
+	// said none.
+	MediaType *string `json:"mediaType,omitempty"`
 }
 
 func (TabCheckReady) memberOfTabCheck()      {}
@@ -13684,9 +13684,9 @@ func (e TabVerdict) Valid() bool {
 // methodology-bound semantics: a name, a description, and examples used in
 // the LLM prompt.
 type TagCategory struct {
+	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Examples    []string `json:"examples"`
-	Name        string   `json:"name"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -13703,12 +13703,12 @@ func (v TagCategory) MarshalJSON() ([]byte, error) {
 // skills register schemas with the runtime registry via
 // `frame.addTagSchema(...)` at session start.
 type TagSchema struct {
+	Id          string `json:"id"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
 	// Domain Free-form domain hint (e.g. 'legal', 'scientific', 'general'). Used
 	// in the LLM prompt to tune the model's analysis voice. KB authors choose.
 	Domain string        `json:"domain"`
-	Id     string        `json:"id"`
-	Name   string        `json:"name"`
 	Tags   []TagCategory `json:"tags"`
 }
 
@@ -13747,13 +13747,13 @@ func (v TagSchemasProjection) MarshalJSON() ([]byte, error) {
 // TaggingJobParams What a tagging job takes: passages of the resource are
 // marked with categories of one tag schema.
 type TaggingJobParams struct {
-	// Categories The categories of that schema to tag with.
-	Categories []string `json:"categories"`
-	// Language The language the annotations' own text is written in. BCP 47.
-	Language   *string                    `json:"language,omitempty"`
 	Motivation TaggingJobParamsMotivation `json:"motivation"`
 	// SchemaId The tag schema to tag by. It is one the knowledge base registers.
 	SchemaId string `json:"schemaId"`
+	// Categories The categories of that schema to tag with.
+	Categories []string `json:"categories"`
+	// Language The language the annotations' own text is written in. BCP 47.
+	Language *string `json:"language,omitempty"`
 	// SourceLanguage The language of the resource being read. BCP 47.
 	SourceLanguage *string `json:"sourceLanguage,omitempty"`
 }
@@ -13792,13 +13792,13 @@ type Target struct {
 	// Kind Where the stack runs: on this machine (local), or on a GitHub
 	// codespace whose knowledge base is forwarded here (codespace).
 	Kind TargetKind `json:"kind"`
-	// Repo For a codespace target: the GitHub repository, as --repo takes it.
-	Repo *string `json:"repo,omitempty"`
 	// Root For a local target: the knowledge base's clone, by path or by the
 	// basename of a registered root, as --root takes it. Absent: the local stack
 	// the command line chooses with --runtime, standing where the control server
 	// was started.
 	Root *string `json:"root,omitempty"`
+	// Repo For a codespace target: the GitHub repository, as --repo takes it.
+	Repo *string `json:"repo,omitempty"`
 }
 
 // TargetKind Where the stack runs: on this machine (local), or on a GitHub
@@ -13821,14 +13821,14 @@ func (e TargetKind) Valid() bool {
 }
 
 type TextPositionSelector struct {
+	Type TextPositionSelectorType `json:"type"`
+	// Start Offset into the resource's decoded text, exactly as decoded, in
+	// Unicode code points from its start: where the selected text starts.
+	Start int `json:"start"`
 	// End Offset into the resource's decoded text, exactly as decoded, in
 	// Unicode code points from its start: just past where the selected text
 	// ends.
 	End int `json:"end"`
-	// Start Offset into the resource's decoded text, exactly as decoded, in
-	// Unicode code points from its start: where the selected text starts.
-	Start int                      `json:"start"`
-	Type  TextPositionSelectorType `json:"type"`
 }
 
 func (TextPositionSelector) memberOfSelector()      {}
@@ -13851,10 +13851,10 @@ func (e TextPositionSelectorType) Valid() bool {
 }
 
 type TextQuoteSelector struct {
+	Type   TextQuoteSelectorType `json:"type"`
 	Exact  string                `json:"exact"`
 	Prefix *string               `json:"prefix,omitempty"`
 	Suffix *string               `json:"suffix,omitempty"`
-	Type   TextQuoteSelectorType `json:"type"`
 }
 
 func (TextQuoteSelector) memberOfSelector()      {}
@@ -13880,6 +13880,9 @@ func (e TextQuoteSelectorType) Valid() bool {
 // including `end`, the words they are, and maybe the text just before and
 // just after them.
 type TextSpan struct {
+	// Start The offset the span starts at, in Unicode code points from the
+	// text's start.
+	Start int `json:"start"`
 	// End The offset just past the span, in Unicode code points from the text's
 	// start.
 	End int `json:"end"`
@@ -13887,23 +13890,20 @@ type TextSpan struct {
 	Exact string `json:"exact"`
 	// Prefix The text just before them.
 	Prefix *string `json:"prefix,omitempty"`
-	// Start The offset the span starts at, in Unicode code points from the
-	// text's start.
-	Start int `json:"start"`
 	// Suffix The text just after them.
 	Suffix *string `json:"suffix,omitempty"`
 }
 
 type TextualBody struct {
+	Type TextualBodyType `json:"type"`
+	// Value The text content (e.g., entity type name)
+	Value string `json:"value"`
+	// Purpose Why this body is included
+	Purpose *BodyPurpose `json:"purpose,omitempty"`
 	// Format MIME type (defaults to text/plain)
 	Format *string `json:"format,omitempty"`
 	// Language BCP 47 language tag
 	Language *string `json:"language,omitempty"`
-	// Purpose Why this body is included
-	Purpose *BodyPurpose    `json:"purpose,omitempty"`
-	Type    TextualBodyType `json:"type"`
-	// Value The text content (e.g., entity type name)
-	Value string `json:"value"`
 }
 
 func (TextualBody) memberOfAnnotationBody() {}
@@ -13945,20 +13945,6 @@ func (e TextualBodyType) Valid() bool {
 // are ONE observation of the same committed chunk; splitting them would let a
 // resume take the saving and still report a number nobody can trust.
 type UnitCursor struct {
-	// Emitted Annotations actually committed for this unit through the last
-	// committed chunk, after dedupe. With `found` and `errors` it is what the
-	// job's terminal result reports, so a resumed unit seeds all three and its
-	// record describes the whole document rather than one attempt's share.
-	Emitted int `json:"emitted"`
-	// Errors Items detection returned for this unit through the last committed
-	// chunk that could not be anchored in the text. Carried with the other two
-	// tallies so that a resumed job reports the whole document's, and not only
-	// its last attempt's.
-	Errors int `json:"errors"`
-	// Found Items detection has returned for this unit through the last
-	// committed chunk — the numerator a resumed attempt continues from rather
-	// than restarting at zero. Counts what the model reported, before dedupe.
-	Found int `json:"found"`
 	// Next Unicode code points of the text consumed once the last COMMITTED
 	// chunk completed — the resume position, and the length of the text for a
 	// unit whose last chunk it was. Deliberately the chunk's `next`, never its
@@ -13972,14 +13958,28 @@ type UnitCursor struct {
 	// which it was: the job died. Seeding alone would re-cut the failing piece
 	// identically; opening at the default would discard the calibration.
 	Size int `json:"size"`
+	// Found Items detection has returned for this unit through the last
+	// committed chunk — the numerator a resumed attempt continues from rather
+	// than restarting at zero. Counts what the model reported, before dedupe.
+	Found int `json:"found"`
+	// Emitted Annotations actually committed for this unit through the last
+	// committed chunk, after dedupe. With `found` and `errors` it is what the
+	// job's terminal result reports, so a resumed unit seeds all three and its
+	// record describes the whole document rather than one attempt's share.
+	Emitted int `json:"emitted"`
+	// Errors Items detection returned for this unit through the last committed
+	// chunk that could not be anchored in the text. Carried with the other two
+	// tallies so that a resumed job reports the whole document's, and not only
+	// its last attempt's.
+	Errors int `json:"errors"`
 }
 
 type UpdateAnnotationBodyRequest struct {
-	// Operations Array of body modification operations to apply
-	Operations []BodyOperation `json:"operations"`
 	// ResourceId Resource ID containing the annotation (required for O(1) Layer
 	// 3 lookup)
 	ResourceId ResourceId `json:"resourceId"`
+	// Operations Array of body modification operations to apply
+	Operations []BodyOperation `json:"operations"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -14049,9 +14049,9 @@ func (e UploadProgressFinishedPhase) Valid() bool {
 
 // UploadProgressProgress Bytes were sent.
 type UploadProgressProgress struct {
+	Phase UploadProgressProgressPhase `json:"phase"`
 	// BytesUploaded How many bytes are sent so far.
-	BytesUploaded int                         `json:"bytesUploaded"`
-	Phase         UploadProgressProgressPhase `json:"phase"`
+	BytesUploaded int `json:"bytesUploaded"`
 	// TotalBytes How many bytes the upload is.
 	TotalBytes int `json:"totalBytes"`
 }
@@ -14105,16 +14105,16 @@ func (e UploadProgressStartedPhase) Valid() bool {
 // enter the code. The code is sent here and nowhere else — in no progress
 // line, no log record and no diagnostic.
 type UserAction struct {
-	// ExpiresInSeconds How long the code is good for, from when it was issued.
-	ExpiresInSeconds int       `json:"expiresInSeconds"`
-	RequestId        RequestId `json:"requestId"`
-	// UserCode The code the person enters.
-	UserCode string `json:"userCode"`
+	RequestId RequestId `json:"requestId"`
 	// VerificationUri The page where the person enters the code.
 	VerificationUri string `json:"verificationUri"`
 	// VerificationUriComplete The page with the code already in it, when the
 	// issuer offers one.
 	VerificationUriComplete *string `json:"verificationUriComplete,omitempty"`
+	// UserCode The code the person enters.
+	UserCode string `json:"userCode"`
+	// ExpiresInSeconds How long the code is good for, from when it was issued.
+	ExpiresInSeconds int `json:"expiresInSeconds"`
 }
 
 // UserResponse The authenticated principal, as this knowledge base names it.
@@ -14131,14 +14131,14 @@ type UserResponse struct {
 	// issuer claim the knowledge base names its principals by
 	// (`identity.subjectClaim`).
 	Did UserId `json:"did"`
-	// Domain The knowledge base's domain: the authority the principal is named
-	// under.
-	Domain string `json:"domain"`
 	// Email The address the token carries, when it carries one: an agent's
 	// account need not have one.
 	Email *string `json:"email"`
-	Image *string `json:"image"`
 	Name  *string `json:"name"`
+	Image *string `json:"image"`
+	// Domain The knowledge base's domain: the authority the principal is named
+	// under.
+	Domain string `json:"domain"`
 }
 
 // VectorStore The vector store the launcher runs for the knowledge bases on a
@@ -14172,13 +14172,13 @@ func (e VectorStoreKind) Valid() bool {
 
 // VectorStoreSpec The vector store, and where it is published.
 type VectorStoreSpec struct {
-	Image Image `json:"image"`
+	// Type The vector store's driver: `qdrant`.
+	Type      string    `json:"type"`
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
 	// Port The port the vector store is published on, on this machine, where
 	// every knowledge base's Smelter and Librarian reach it.
-	Port      int       `json:"port"`
-	Resources Resources `json:"resources"`
-	// Type The vector store's driver: `qdrant`.
-	Type string `json:"type"`
+	Port int `json:"port"`
 }
 
 // VectorsConfig The vector index a service writes or searches, and what that
@@ -14215,15 +14215,15 @@ func (u VectorsConfig) ValueByDiscriminator() (any, error) {
 // VoyageEmbeddingConfig An embedding model served by Voyage AI. No service
 // has been run against Voyage itself.
 type VoyageEmbeddingConfig struct {
-	// ApiKeyEnv The environment variable holding the Voyage API key. The key is
-	// never a value here.
-	ApiKeyEnv string `json:"apiKeyEnv"`
+	Type VoyageEmbeddingConfigType `json:"type"`
+	// Model The model asked for, by Voyage's name for it.
+	Model string `json:"model"`
 	// Endpoint The whole address of Voyage's embeddings call
 	// (`https://api.voyageai.com/v1/embeddings`).
 	Endpoint string `json:"endpoint"`
-	// Model The model asked for, by Voyage's name for it.
-	Model string                    `json:"model"`
-	Type  VoyageEmbeddingConfigType `json:"type"`
+	// ApiKeyEnv The environment variable holding the Voyage API key. The key is
+	// never a value here.
+	ApiKeyEnv string `json:"apiKeyEnv"`
 }
 
 func (VoyageEmbeddingConfig) memberOfEmbeddingConfig() {}
@@ -14260,12 +14260,12 @@ type WeaveApplied struct {
 // present. Served by the Weaver; replaces direct rebuild access, which does
 // not survive the Weaver's container split.
 type WeaveRebuildCommand struct {
-	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
-	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
 	// ResourceId When present, rebuild only this resource; otherwise clear and
 	// rebuild the entire graph.
 	ResourceId *ResourceId `json:"resourceId,omitempty"`
+	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
+	// Clients do not set this.
+	UserId *UserId `json:"_userId,omitempty"`
 }
 
 // WeaverConfig Everything a Weaver reads at boot: nothing in it is defaulted
@@ -14281,48 +14281,48 @@ type WeaveRebuildCommand struct {
 // `XYNOLOG_OIDC_CLIENT_SECRET` in its environment. A document that does not
 // validate is refused at boot, naming each failing field.
 type WeaverConfig struct {
+	Kb KbIdentity `json:"kb"`
+	// GatewayUrl The URL the Weaver reaches the gateway at: its route to the
+	// bus.
+	GatewayUrl string `json:"gatewayUrl"`
+	// Identity The issuer the Weaver's service account signs in at.
+	Identity ServiceIdentity `json:"identity"`
 	// Archivist Where the Archivist listens. The Weaver reads the record by
 	// position from it, and a resource's annotations, as its service account.
 	Archivist   ServiceAddress `json:"archivist"`
+	Graph       GraphConfig    `json:"graph"`
 	CursorsPath CursorsPath    `json:"cursorsPath"`
-	// GatewayUrl The URL the Weaver reaches the gateway at: its route to the
-	// bus.
-	GatewayUrl string      `json:"gatewayUrl"`
-	Graph      GraphConfig `json:"graph"`
-	// Identity The issuer the Weaver's service account signs in at.
-	Identity  ServiceIdentity `json:"identity"`
-	Kb        KbIdentity      `json:"kb"`
-	LogFormat LogFormat       `json:"logFormat"`
-	LogLevel  LogLevel        `json:"logLevel"`
 	// Port The port the Weaver answers `/health` on.
-	Port int `json:"port"`
+	Port      int       `json:"port"`
+	LogLevel  LogLevel  `json:"logLevel"`
+	LogFormat LogFormat `json:"logFormat"`
 }
 
 // WeaverHealth The Weaver's health answer (WEAVER.md § Health). `status` is
 // `ok` whenever the Weaver answers: it says nothing of whether the Weaver can
 // reach the gateway or the graph.
 type WeaverHealth struct {
-	Following FollowerFollowing `json:"following"`
+	Status WeaverHealthStatus `json:"status"`
 	// Kb The DID of the knowledge base it serves: the one its settings name,
 	// which that knowledge base said it is before the Weaver connected to the
 	// graph database.
-	Kb KbDid `json:"kb"`
+	Kb        KbDid             `json:"kb"`
+	Following FollowerFollowing `json:"following"`
 	// Reconcile How far the reconcile its first sweep is followed by has got
 	// (WEAVER.md § Reconcile): the pass's `summary` when it is done, or its
 	// `error` when it failed.
 	Reconcile WeaverHealthReconcile `json:"reconcile"`
-	Status    WeaverHealthStatus    `json:"status"`
 }
 
 // WeaverHealthReconcile How far the reconcile its first sweep is followed by
 // has got (WEAVER.md § Reconcile): the pass's `summary` when it is done, or
 // its `error` when it failed.
 type WeaverHealthReconcile struct {
-	// Error Why it failed.
-	Error *string                    `json:"error,omitempty"`
 	Phase WeaverHealthReconcilePhase `json:"phase"`
 	// Summary What the pass found and did.
 	Summary *WeaverHealthReconcileSummary `json:"summary,omitempty"`
+	// Error Why it failed.
+	Error *string `json:"error,omitempty"`
 }
 
 type WeaverHealthReconcilePhase string
@@ -14346,19 +14346,19 @@ func (e WeaverHealthReconcilePhase) Valid() bool {
 
 // WeaverHealthReconcileSummary What the pass found and did.
 type WeaverHealthReconcileSummary struct {
+	// ResourcesChecked How many resources it checked.
+	ResourcesChecked int `json:"resourcesChecked"`
 	// Divergent How many of them were divergent: the graph held them otherwise
 	// than the record.
 	Divergent int `json:"divergent"`
+	// Healed How many divergent resources it rebuilt.
+	Healed int `json:"healed"`
 	// HealFailures How many it did not heal, because the rebuild stopped at an
 	// event it could not apply.
 	HealFailures int `json:"healFailures"`
-	// Healed How many divergent resources it rebuilt.
-	Healed int `json:"healed"`
 	// Orphaned How many orphaned views it found: resources the catalog lists and
 	// the record holds no events for. Each is counted, and not healed.
 	Orphaned int `json:"orphaned"`
-	// ResourcesChecked How many resources it checked.
-	ResourcesChecked int `json:"resourcesChecked"`
 }
 
 type WeaverHealthStatus string
@@ -14394,12 +14394,12 @@ func (v WorkerAnswerFormats) MarshalJSON() ([]byte, error) {
 }
 
 type WorkerAnswerFormatsFormatsItem struct {
+	// Name A motivation a `mark` job takes, or `count`.
+	Name string `json:"name"`
 	// About What an element is, in prose.
 	About string `json:"about"`
 	// Element The JSON Schema of one element of the answer.
 	Element any `json:"element"`
-	// Name A motivation a `mark` job takes, or `count`.
-	Name string `json:"name"`
 }
 
 // WorkerConfig Everything a worker reads at boot: nothing in it is defaulted
@@ -14424,8 +14424,6 @@ type WorkerConfig struct {
 	// knowledge base's work alone (`contract/WORKER-SERVICE.md` § Knowledge
 	// bases). No two name one `domain`, which the worker refuses at boot.
 	KnowledgeBases []WorkerKnowledgeBaseConfig `json:"knowledgeBases"`
-	LogFormat      LogFormat                   `json:"logFormat"`
-	LogLevel       LogLevel                    `json:"logLevel"`
 	// ModelCatalogue The path of a model catalogue file: what each model of a
 	// provider can take, for the providers whose own APIs do not say (`google`,
 	// `openai`, `together`). A worker with an engine of one of those providers
@@ -14434,7 +14432,9 @@ type WorkerConfig struct {
 	// it.
 	ModelCatalogue string `json:"modelCatalogue"`
 	// Port The port the worker answers `/health` on.
-	Port int `json:"port"`
+	Port      int       `json:"port"`
+	LogLevel  LogLevel  `json:"logLevel"`
+	LogFormat LogFormat `json:"logFormat"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -14448,15 +14448,15 @@ func (v WorkerConfig) MarshalJSON() ([]byte, error) {
 // WorkerEngineConfig One engine a worker runs: which it is, the jobs the
 // worker claims to do with it, and where its provider is reached.
 type WorkerEngineConfig struct {
-	// ApiKeyEnv The environment variable holding the provider's API key, when
-	// the provider requires one.
-	ApiKeyEnv *string `json:"apiKeyEnv,omitempty"`
-	// BaseUrl The address the provider's API is reached at.
-	BaseUrl string `json:"baseUrl"`
-	Engine  Engine `json:"engine"`
+	Engine Engine `json:"engine"`
 	// Jobs The jobs the worker claims to do with this engine, as a claim names
 	// them (`job:claim`'s `accepts`): it claims with these filters and no other.
 	Jobs []JobFilter `json:"jobs"`
+	// BaseUrl The address the provider's API is reached at.
+	BaseUrl string `json:"baseUrl"`
+	// ApiKeyEnv The environment variable holding the provider's API key, when
+	// the provider requires one.
+	ApiKeyEnv *string `json:"apiKeyEnv,omitempty"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -14470,22 +14470,22 @@ func (v WorkerEngineConfig) MarshalJSON() ([]byte, error) {
 // WorkerEngineHealth One engine at one knowledge base: which it is, the jobs
 // it claims, and what its claims can say of themselves (WORKER-CONTRACT V1).
 type WorkerEngineHealth struct {
-	// ActiveJob The job it holds, or null.
-	ActiveJob *WorkerEngineHealthActiveJob `json:"activeJob"`
-	Engine    Engine                       `json:"engine"`
+	Engine Engine `json:"engine"`
 	// Jobs The jobs it claims, as its claims state them.
 	Jobs []JobFilter `json:"jobs"`
-	// JobsCompleted How many jobs it has completed since the service started.
-	JobsCompleted int `json:"jobsCompleted"`
-	// LastActivityAt When it was last active, or null.
-	LastActivityAt *string `json:"lastActivityAt"`
+	// LastQueuedEventAt When a `job:queued` last reached it, or null.
+	LastQueuedEventAt *string `json:"lastQueuedEventAt"`
 	// LastClaimAt When it was last handed a job, or null. A claim answered with
 	// none pending is not one.
 	LastClaimAt *string `json:"lastClaimAt"`
 	// LastFinishedAt When a job it held last settled, or null.
 	LastFinishedAt *string `json:"lastFinishedAt"`
-	// LastQueuedEventAt When a `job:queued` last reached it, or null.
-	LastQueuedEventAt *string `json:"lastQueuedEventAt"`
+	// LastActivityAt When it was last active, or null.
+	LastActivityAt *string `json:"lastActivityAt"`
+	// ActiveJob The job it holds, or null.
+	ActiveJob *WorkerEngineHealthActiveJob `json:"activeJob"`
+	// JobsCompleted How many jobs it has completed since the service started.
+	JobsCompleted int `json:"jobsCompleted"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -14498,20 +14498,20 @@ func (v WorkerEngineHealth) MarshalJSON() ([]byte, error) {
 
 // WorkerEngineHealthActiveJob The job it holds, or null.
 type WorkerEngineHealthActiveJob struct {
-	JobId JobId `json:"jobId"`
-	// Since When it was handed the job.
-	Since string  `json:"since"`
+	JobId JobId   `json:"jobId"`
 	Type  JobType `json:"type"`
+	// Since When it was handed the job.
+	Since string `json:"since"`
 }
 
 // WorkerHealth The Worker service's health answer (WORKER-SERVICE H1). It
 // answers only once a knowledge base of its document is confirmed, so a 200
 // means it is working somewhere.
 type WorkerHealth struct {
+	Status WorkerHealthStatus `json:"status"`
 	// KnowledgeBases One entry for each of the document's `knowledgeBases`, in
 	// its order.
 	KnowledgeBases []WorkerKnowledgeBaseHealth `json:"knowledgeBases"`
-	Status         WorkerHealthStatus          `json:"status"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -14548,11 +14548,6 @@ type WorkerKnowledgeBaseConfig struct {
 	// it there before it claims, and refuses a knowledge base that answers
 	// another domain, or none.
 	Domain string `json:"domain"`
-	// Engines The engines the worker offers this knowledge base, and the jobs it
-	// does with each: its own choice, on its own providers' keys. It claims each
-	// engine's jobs there for it, so a job no engine here is used for is not
-	// claimed at this knowledge base.
-	Engines []WorkerEngineConfig `json:"engines"`
 	// GatewayUrl The URL the worker reaches the knowledge base's gateway at: its
 	// route to the bus and to a resource's bytes, and the only address of the
 	// knowledge base it holds.
@@ -14560,6 +14555,11 @@ type WorkerKnowledgeBaseConfig struct {
 	// Identity Where the worker signs in for this knowledge base, and as which
 	// client.
 	Identity WorkerKnowledgeBaseConfigIdentity `json:"identity"`
+	// Engines The engines the worker offers this knowledge base, and the jobs it
+	// does with each: its own choice, on its own providers' keys. It claims each
+	// engine's jobs there for it, so a job no engine here is used for is not
+	// claimed at this knowledge base.
+	Engines []WorkerEngineConfig `json:"engines"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -14573,28 +14573,28 @@ func (v WorkerKnowledgeBaseConfig) MarshalJSON() ([]byte, error) {
 // WorkerKnowledgeBaseConfigIdentity Where the worker signs in for this
 // knowledge base, and as which client.
 type WorkerKnowledgeBaseConfigIdentity struct {
+	// Issuer The issuer URL, exactly as tokens carry it in `iss`.
+	Issuer string `json:"issuer"`
 	// ClientId The client the issuer holds the public half of the worker's key
 	// on: the worker's account at this knowledge base. It is also what the
 	// worker says it is called there (`principal:profile`).
 	ClientId string `json:"clientId"`
-	// Issuer The issuer URL, exactly as tokens carry it in `iss`.
-	Issuer string `json:"issuer"`
 }
 
 // WorkerKnowledgeBaseHealth One knowledge base the worker serves, as its
 // health says it. `did` and `engines` are there while it is `working`, and
 // only then.
 type WorkerKnowledgeBaseHealth struct {
-	// Did The agent's DID at this knowledge base, as its gateway named it.
-	Did *string `json:"did,omitempty"`
 	// Domain The entry's `domain`.
 	Domain string `json:"domain"`
-	// Engines One entry for each of the entry's engines, in its order.
-	Engines *[]WorkerEngineHealth `json:"engines,omitempty"`
 	// State `starting`: signing in, opening its stream, confirming it, or
 	// waiting to start again. `working`: confirmed, its engines claiming.
 	// `refused`: refused, until the service is started again.
 	State WorkerKnowledgeBaseHealthState `json:"state"`
+	// Did The agent's DID at this knowledge base, as its gateway named it.
+	Did *string `json:"did,omitempty"`
+	// Engines One entry for each of the entry's engines, in its order.
+	Engines *[]WorkerEngineHealth `json:"engines,omitempty"`
 }
 
 // WorkerKnowledgeBaseHealthState `starting`: signing in, opening its stream,
@@ -14627,21 +14627,21 @@ type WorkerMessages struct {
 	// Boot Each refusal to start, written in
 	// service-environment/boot-refusals.json's `line`.
 	Boot []WorkerMessagesBootItem `json:"boot"`
-	// Details Each `{detail}` of `unreadable`.
-	Details []WorkerMessagesDetailsItem `json:"details"`
-	// Errors Each error a job is failed with that is the worker's own: the
-	// `error` of its `job:fail`.
-	Errors []WorkerMessagesErrorsItem `json:"errors"`
+	// Reasons Each line of the `{reasons}` of `invalid`.
+	Reasons []WorkerMessagesReasonsItem `json:"reasons"`
 	// Job How an error names the job, by its type, as `{job}`: `{motivation}` is
 	// a mark job's motivation.
 	Job WorkerMessagesJob `json:"job"`
+	// Errors Each error a job is failed with that is the worker's own: the
+	// `error` of its `job:fail`.
+	Errors []WorkerMessagesErrorsItem `json:"errors"`
+	// Details Each `{detail}` of `unreadable`.
+	Details []WorkerMessagesDetailsItem `json:"details"`
+	// Waits Each `{said}` of `wait-stated`.
+	Waits []WorkerMessagesWaitsItem `json:"waits"`
 	// Logged Each message a Worker service logs that a reader of its output
 	// relies on.
 	Logged []WorkerMessagesLoggedItem `json:"logged"`
-	// Reasons Each line of the `{reasons}` of `invalid`.
-	Reasons []WorkerMessagesReasonsItem `json:"reasons"`
-	// Waits Each `{said}` of `wait-stated`.
-	Waits []WorkerMessagesWaitsItem `json:"waits"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -14649,11 +14649,11 @@ type WorkerMessages struct {
 func (v WorkerMessages) MarshalJSON() ([]byte, error) {
 	type written WorkerMessages
 	v.Boot = listOf(v.Boot)
-	v.Details = listOf(v.Details)
-	v.Errors = listOf(v.Errors)
-	v.Logged = listOf(v.Logged)
 	v.Reasons = listOf(v.Reasons)
+	v.Errors = listOf(v.Errors)
+	v.Details = listOf(v.Details)
 	v.Waits = listOf(v.Waits)
+	v.Logged = listOf(v.Logged)
 	return json.Marshal(written(v))
 }
 
@@ -14671,48 +14671,48 @@ type WorkerMessagesBootItemMember interface {
 type WorkerMessagesBootItemOwnBootRefusal struct {
 	// Name The situation's name.
 	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 	// Refusal The refusal, in place of the line's `{refusal}`. A `{name}` in it
 	// is filled with what the row's `situation` names, and nothing else in it
 	// varies.
 	Refusal string `json:"refusal"`
-	// Situation When it is written, and what fills each `{name}` of its text.
-	Situation string `json:"situation"`
 }
 
 func (WorkerMessagesBootItemOwnBootRefusal) memberOfWorkerMessagesBootItem() {}
 
 type WorkerMessagesBootItemSharedBootRefusal struct {
-	// BootRefusal The `name` of the row of
-	// service-environment/boot-refusals.json's `refusals` that is this refusal,
-	// with `{service}` `worker` and `{schema}` `WorkerConfig`.
-	BootRefusal string `json:"bootRefusal"`
 	// Name The situation's name.
 	Name string `json:"name"`
 	// Situation When it is written. What fills its text is the shared row's.
 	Situation string `json:"situation"`
+	// BootRefusal The `name` of the row of
+	// service-environment/boot-refusals.json's `refusals` that is this refusal,
+	// with `{service}` `worker` and `{schema}` `WorkerConfig`.
+	BootRefusal string `json:"bootRefusal"`
 }
 
 func (WorkerMessagesBootItemSharedBootRefusal) memberOfWorkerMessagesBootItem() {}
 
 type WorkerMessagesDetailsItem struct {
-	// Detail The detail. A `{name}` in it is filled with what the row's
-	// `situation` names, and nothing else in it varies.
-	Detail string `json:"detail"`
 	// Name The situation's name.
 	Name string `json:"name"`
 	// Situation When it is written, and what fills each `{name}` of its text.
 	Situation string `json:"situation"`
+	// Detail The detail. A `{name}` in it is filled with what the row's
+	// `situation` names, and nothing else in it varies.
+	Detail string `json:"detail"`
 }
 
 type WorkerMessagesErrorsItem struct {
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 	// Error The error. `{job}` in it is the job, as `job` names it. A `{name}`
 	// in it is filled with what the row's `situation` names, and nothing else in
 	// it varies.
 	Error string `json:"error"`
-	// Name The situation's name.
-	Name string `json:"name"`
-	// Situation When it is written, and what fills each `{name}` of its text.
-	Situation string `json:"situation"`
 }
 
 // WorkerMessagesJob How an error names the job, by its type, as `{job}`:
@@ -14723,22 +14723,22 @@ type WorkerMessagesJob struct {
 }
 
 type WorkerMessagesLoggedItem struct {
-	// Carries The facts the line is logged with beside `fields`, whose value the
-	// row's `situation` says and whose form is not stated. The line may carry
-	// others.
-	Carries []string `json:"carries"`
+	// Name The situation's name.
+	Name  string   `json:"name"`
+	Level LogLevel `json:"level"`
+	// Situation When it is written, what fills each `{name}` of its fields, and
+	// what each fact it carries says.
+	Situation string `json:"situation"`
+	// Message The line's message, word for word.
+	Message string `json:"message"`
 	// Fields The facts the line is logged with whose form is stated, by name:
 	// each a text whose `{name}` is filled as the row's `situation` says. A fact
 	// that is a number is its decimal digits.
 	Fields map[string]string `json:"fields"`
-	Level  LogLevel          `json:"level"`
-	// Message The line's message, word for word.
-	Message string `json:"message"`
-	// Name The situation's name.
-	Name string `json:"name"`
-	// Situation When it is written, what fills each `{name}` of its fields, and
-	// what each fact it carries says.
-	Situation string `json:"situation"`
+	// Carries The facts the line is logged with beside `fields`, whose value the
+	// row's `situation` says and whose form is not stated. The line may carry
+	// others.
+	Carries []string `json:"carries"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -14750,23 +14750,23 @@ func (v WorkerMessagesLoggedItem) MarshalJSON() ([]byte, error) {
 }
 
 type WorkerMessagesReasonsItem struct {
-	// Line The line, indented by two spaces. A `{name}` in it is filled with
-	// what the row's `situation` names, and nothing else in it varies.
-	Line string `json:"line"`
 	// Name The situation's name.
 	Name string `json:"name"`
 	// Situation When it is written, and what fills each `{name}` of its text.
 	Situation string `json:"situation"`
+	// Line The line, indented by two spaces. A `{name}` in it is filled with
+	// what the row's `situation` names, and nothing else in it varies.
+	Line string `json:"line"`
 }
 
 type WorkerMessagesWaitsItem struct {
 	// Name The situation's name.
 	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 	// Said The wait, as the header stated it. A `{name}` in it is filled with
 	// what the row's `situation` names, and nothing else in it varies.
 	Said string `json:"said"`
-	// Situation When it is written, and what fills each `{name}` of its text.
-	Situation string `json:"situation"`
 }
 
 // WorkerPool The shared worker that does knowledge bases' jobs: its image,
@@ -14831,27 +14831,27 @@ type WorkloadStatus struct {
 // currently holds so replies can be routed to the app client that sent each
 // request, and the tracking capacity.
 type WorkloadStatusLedger struct {
-	// Capacity The maximum number of IDs held in this Gateway's local tracking
-	// projection.
-	Capacity int `json:"capacity"`
 	// Claims Number of request IDs currently held to route replies to their
 	// requesting app clients. Includes requests still waiting for a reply and
 	// recently answered requests still within the tracking window.
 	Claims int `json:"claims"`
+	// Capacity The maximum number of IDs held in this Gateway's local tracking
+	// projection.
+	Capacity int `json:"capacity"`
 }
 
 // WorkloadStatusQueue Current Dispatcher depth and, when the worker has
 // emitted counters, completed and failed work since worker start. These are
 // different measurements and time windows.
 type WorkloadStatusQueue struct {
-	// Completed Jobs completed since worker start.
-	Completed *int `json:"completed,omitempty"`
-	// Failed Jobs finally failed since worker start.
-	Failed *int `json:"failed,omitempty"`
 	// Pending Jobs currently waiting for a worker.
 	Pending int `json:"pending"`
 	// Running Jobs currently claimed by workers.
 	Running int `json:"running"`
+	// Completed Jobs completed since worker start.
+	Completed *int `json:"completed,omitempty"`
+	// Failed Jobs finally failed since worker start.
+	Failed *int `json:"failed,omitempty"`
 }
 
 // YieldCloneCreateCommand Bus command to create a cloned resource from a
@@ -14861,19 +14861,19 @@ type WorkloadStatusQueue struct {
 type YieldCloneCreateCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId          *UserId       `json:"_userId,omitempty"`
-	ArchiveOriginal *bool         `json:"archiveOriginal,omitempty"`
-	ByteSize        int           `json:"byteSize"`
-	ContentChecksum string        `json:"contentChecksum"`
-	Format          ContentFormat `json:"format"`
-	Name            string        `json:"name"`
+	UserId *UserId `json:"_userId,omitempty"`
+	Token  string  `json:"token"`
+	Name   string  `json:"name"`
 	// StorageUri Where the caller already wrote the clone's bytes — an
 	// instruction, not a copy of the stored fact (that lives on the primary
 	// Representation). Bytes are stored through the byte door BEFORE this
 	// command is sent, so this names an existing file. Working-tree URI, only
 	// file:// is supported.
-	StorageUri string `json:"storageUri"`
-	Token      string `json:"token"`
+	StorageUri      string        `json:"storageUri"`
+	ContentChecksum string        `json:"contentChecksum"`
+	ByteSize        int           `json:"byteSize"`
+	Format          ContentFormat `json:"format"`
+	ArchiveOriginal *bool         `json:"archiveOriginal,omitempty"`
 }
 
 // YieldCloneCreated Success response after creating a cloned resource.
@@ -14896,22 +14896,22 @@ type YieldCloneCreated struct {
 type YieldClonePersistCommand struct {
 	// UserId Injected by the gateway from the authenticated principal; never
 	// supplied by a wire caller.
-	UserId          *UserId `json:"_userId,omitempty"`
-	ByteSize        int     `json:"byteSize"`
-	ContentChecksum string  `json:"contentChecksum"`
-	// EntityTypes Inherited from the source resource by the CloneTokenManager,
-	// which is the only party that knows the token is valid.
-	EntityTypes *[]string     `json:"entityTypes,omitempty"`
-	Format      ContentFormat `json:"format"`
-	Language    *string       `json:"language,omitempty"`
-	Name        string        `json:"name"`
-	// ParentResourceId The resource this one is cloned FROM. Required: it is
-	// what makes this a clone rather than a creation.
-	ParentResourceId ResourceId `json:"parentResourceId"`
+	UserId *UserId `json:"_userId,omitempty"`
+	Name   string  `json:"name"`
 	// StorageUri The caller's instruction for WHERE the bytes are — the uploader
 	// wrote them before emitting this. The stored location lives on the clone's
 	// primary Representation, the one home of a storage URI.
-	StorageUri string `json:"storageUri"`
+	StorageUri      string        `json:"storageUri"`
+	ContentChecksum string        `json:"contentChecksum"`
+	ByteSize        int           `json:"byteSize"`
+	Format          ContentFormat `json:"format"`
+	Language        *string       `json:"language,omitempty"`
+	// EntityTypes Inherited from the source resource by the CloneTokenManager,
+	// which is the only party that knows the token is valid.
+	EntityTypes *[]string `json:"entityTypes,omitempty"`
+	// ParentResourceId The resource this one is cloned FROM. Required: it is
+	// what makes this a clone rather than a creation.
+	ParentResourceId ResourceId `json:"parentResourceId"`
 }
 
 // YieldClonePersistOk Success reply after cloning a resource, matched to the
@@ -14935,18 +14935,32 @@ type YieldCloneTokenRequest struct {
 // YieldCreateCommand Bus command to create a yielded resource in the
 // knowledge base.
 type YieldCreateCommand struct {
+	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
+	// Clients do not set this.
+	UserId *UserId `json:"_userId,omitempty"`
 	// Roles The emitter's capabilities (the token's `roles`), injected by the
 	// /bus/emit gateway. Clients do not set this. An emitter carrying the worker
 	// role must cite the job this resource fulfils in `jobId`; the Stower
 	// refuses the create otherwise.
 	Roles *[]string `json:"_roles,omitempty"`
-	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
-	// Clients do not set this.
-	UserId           *UserId                          `json:"_userId,omitempty"`
-	ByteSize         int                              `json:"byteSize"`
+	// JobId The job this resource fulfils. Required when the emitter carries the
+	// worker role; absent for self-initiated work (a person, or an agent acting
+	// on its own). The knowledge base derives who requested this resource from
+	// the cited job's own events — the emitter never says who the work was for.
+	JobId *JobId `json:"jobId,omitempty"`
+	Name  string `json:"name"`
+	// StorageUri The caller's instruction for WHERE the bytes are — not a copy
+	// of the stored fact. The stored location lives on the resource's primary
+	// Representation (`Representation.storageUri`), which is its single home;
+	// this field is the message that puts it there. Working-tree URI, only
+	// file:// is supported (e.g. file://docs/overview.md).
+	StorageUri       string                           `json:"storageUri"`
 	ContentChecksum  string                           `json:"contentChecksum"`
-	EntityTypes      *[]string                        `json:"entityTypes,omitempty"`
+	ByteSize         int                              `json:"byteSize"`
 	Format           ContentFormat                    `json:"format"`
+	Language         *string                          `json:"language,omitempty"`
+	EntityTypes      *[]string                        `json:"entityTypes,omitempty"`
+	IsDraft          *bool                            `json:"isDraft,omitempty"`
 	GeneratedFrom    *YieldCreateCommandGeneratedFrom `json:"generatedFrom,omitempty"`
 	GenerationPrompt *string                          `json:"generationPrompt,omitempty"`
 	// Generator The Software peer that produced the content, when software did.
@@ -14955,25 +14969,11 @@ type YieldCreateCommand struct {
 	// when omitted. `creator` and `wasAttributedTo` are never sent; the
 	// knowledge base derives them from the emitter and the cited job.
 	Generator *OneOrMoreAgents `json:"generator,omitempty"`
-	IsDraft   *bool            `json:"isDraft,omitempty"`
-	// JobId The job this resource fulfils. Required when the emitter carries the
-	// worker role; absent for self-initiated work (a person, or an agent acting
-	// on its own). The knowledge base derives who requested this resource from
-	// the cited job's own events — the emitter never says who the work was for.
-	JobId    *JobId  `json:"jobId,omitempty"`
-	Language *string `json:"language,omitempty"`
-	Name     string  `json:"name"`
-	// StorageUri The caller's instruction for WHERE the bytes are — not a copy
-	// of the stored fact. The stored location lives on the resource's primary
-	// Representation (`Representation.storageUri`), which is its single home;
-	// this field is the message that puts it there. Working-tree URI, only
-	// file:// is supported (e.g. file://docs/overview.md).
-	StorageUri string `json:"storageUri"`
 }
 
 type YieldCreateCommandGeneratedFrom struct {
-	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
 	ResourceId   *ResourceId   `json:"resourceId,omitempty"`
+	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
 }
 
 // YieldCreateOk Success reply after creating a yielded resource, matched to
@@ -14988,10 +14988,10 @@ type YieldCreateOk struct {
 type YieldJobCompleteCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId *UserId `json:"_userId,omitempty"`
-	// AnnotationId The annotation the job's context was focused on, when it was
-	// focused on one. Lets a client route the completion to that annotation.
-	AnnotationId *AnnotationId `json:"annotationId,omitempty"`
+	UserId     *UserId                        `json:"_userId,omitempty"`
+	ResourceId ResourceId                     `json:"resourceId"`
+	JobId      JobId                          `json:"jobId"`
+	JobType    YieldJobCompleteCommandJobType `json:"jobType"`
 	// Attempt Which attempt produced this event, 1-based (a first run is 1).
 	// ALWAYS present: the queue re-runs a failed job silently, so an operator
 	// reading progress or a terminal record has no other way to tell a re-run
@@ -14999,12 +14999,12 @@ type YieldJobCompleteCommand struct {
 	// xynolog_inference_tokens_total, cannot be attributed to a repeated
 	// document without it. Stated rather than inferred from absence, because
 	// 'attempt 1' is a fact the emitter always knows.
-	Attempt    *int                           `json:"attempt,omitempty"`
-	Durability *DurabilityEvidence            `json:"durability,omitempty"`
-	JobId      JobId                          `json:"jobId"`
-	JobType    YieldJobCompleteCommandJobType `json:"jobType"`
-	ResourceId ResourceId                     `json:"resourceId"`
-	Result     *YieldJobResult                `json:"result,omitempty"`
+	Attempt *int `json:"attempt,omitempty"`
+	// AnnotationId The annotation the job's context was focused on, when it was
+	// focused on one. Lets a client route the completion to that annotation.
+	AnnotationId *AnnotationId       `json:"annotationId,omitempty"`
+	Result       *YieldJobResult     `json:"result,omitempty"`
+	Durability   *DurabilityEvidence `json:"durability,omitempty"`
 }
 
 func (YieldJobCompleteCommand) memberOfJobCompleteCommand() {}
@@ -15030,12 +15030,12 @@ func (e YieldJobCompleteCommandJobType) Valid() bool {
 // context. It names no resource of its own: the job is about the resource its
 // context focuses on, which the Dispatcher reads from `params.context.focus`.
 type YieldJobCreateCommand struct {
-	// Roles The emitter's roles, injected by the gateway when it has any.
-	// Clients do not set this.
-	Roles *[]string `json:"_roles,omitempty"`
 	// UserId The emitter's verified DID, injected by the gateway. Clients do not
 	// set this.
-	UserId  *UserId                      `json:"_userId,omitempty"`
+	UserId *UserId `json:"_userId,omitempty"`
+	// Roles The emitter's roles, injected by the gateway when it has any.
+	// Clients do not set this.
+	Roles   *[]string                    `json:"_roles,omitempty"`
 	JobType YieldJobCreateCommandJobType `json:"jobType"`
 	Params  GenerationJobParams          `json:"params"`
 }
@@ -15108,11 +15108,11 @@ func (e YieldJobFilterJobType) Valid() bool {
 type YieldJobQueuedEvent struct {
 	JobId   JobId                      `json:"jobId"`
 	JobType YieldJobQueuedEventJobType `json:"jobType"`
-	Params  GenerationJobRequest       `json:"params"`
 	// ResourceId The resource the job is about.
 	ResourceId ResourceId `json:"resourceId"`
 	// UserId The DID of the principal whose `job:create` created the job.
-	UserId UserId `json:"userId"`
+	UserId UserId               `json:"userId"`
+	Params GenerationJobRequest `json:"params"`
 }
 
 func (YieldJobQueuedEvent) memberOfJobQueuedEvent() {}
@@ -15152,16 +15152,16 @@ type YieldJobResultMember interface {
 type YieldUpdateCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
-	UserId          *UserId    `json:"_userId,omitempty"`
-	ByteSize        int        `json:"byteSize"`
-	ContentChecksum string     `json:"contentChecksum"`
-	ResourceId      ResourceId `json:"resourceId"`
+	UserId     *UserId    `json:"_userId,omitempty"`
+	ResourceId ResourceId `json:"resourceId"`
 	// StorageUri The caller's instruction for WHERE the bytes are — not a copy
 	// of the stored fact. The stored location lives on the resource's primary
 	// Representation (`Representation.storageUri`), which is its single home;
 	// this field is the message that puts it there. Working-tree URI, only
 	// file:// is supported (e.g. file://docs/overview.md).
-	StorageUri string `json:"storageUri"`
+	StorageUri      string `json:"storageUri"`
+	ContentChecksum string `json:"contentChecksum"`
+	ByteSize        int    `json:"byteSize"`
 }
 
 // YieldUpdateOk Success reply after updating a yielded resource, matched to

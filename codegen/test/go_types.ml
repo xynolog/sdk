@@ -47,10 +47,10 @@ let cases =
         has
           (generated ~identifiers:[ "ThingId" ] holder "Holder")
           "type Holder struct {\n\
-           \tId   ThingId  `json:\"id\"`\n\
            \tName string   `json:\"name\"`\n\
            \tNote *string  `json:\"note,omitempty\"`\n\
            \tTags []string `json:\"tags\"`\n\
+           \tId   ThingId  `json:\"id\"`\n\
            \tWhen *string  `json:\"when\"`\n\
            }");
     case "a kind of id is named, and not written" (fun () ->

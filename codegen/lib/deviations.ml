@@ -49,11 +49,6 @@ let closed_empty_named (form : T.form) =
    ([Record<string, never>]), and Rust and Python declare one so named as a
    type that drops them, where Go keeps them. *)
 
-(* Go writes a struct's fields in the order of their names, where [Typing]
-   has the schema's order. *)
-let by_name (members : T.member list) =
-  List.sort (fun (a : T.member) b -> String.compare a.wire b.wire) members
-
 (* Go and Python hold a member that may be left out and one that may be
    null alike (a pointer, [T | None]), where [Typing] has them apart
    ([member.required], [Nullable]). *)

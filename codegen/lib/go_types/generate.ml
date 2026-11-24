@@ -248,7 +248,7 @@ and structure st name (members : T.member list) (rest : T.rest) doc =
             type_ = held;
             tag = Some tag;
           } ))
-      (Deviations.by_name members)
+      members
   in
   let names = List.map (fun ((f, _, _), _) -> f) fields in
   List.iteri
