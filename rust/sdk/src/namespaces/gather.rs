@@ -12,8 +12,8 @@ use crate::state_unit::StateUnit;
 use crate::types::{AnnotationId, ResourceId};
 use crate::types::{
     GatherAnnotationComplete, GatherAnnotationOptions, GatherAnnotationRequest,
-    GatherReferencedByRequest, GatherResourceRequest, GatherResourceRequestOptions,
-    GatheredContext, GetReferencedByResponseReferencedByItem,
+    GatherReferencedByRequest, GatherResourceOptions, GatherResourceRequest,
+    GatherResourceRequestOptions, GatheredContext, GetReferencedByResponseReferencedByItem,
 };
 
 /// An annotation elsewhere that refers to a resource.
@@ -26,33 +26,11 @@ const CONTEXT_WINDOW: u16 = 2000;
 
 /// What a resource's context takes when its caller states nothing: two hops
 /// of the graph, ten resources, their content, and no summary. Held by the
-/// same cases. `depth` is how many links out from the resource the graph
-/// reaches, 1 to 3, nearest first: what a resource links to and what cites
-/// it are both followed.
-impl Default for GatherResourceRequestOptions {
-    fn default() -> GatherResourceRequestOptions {
-        GatherResourceRequestOptions {
-            depth: 2,
-            max_resources: 10,
-            include_content: true,
-            include_summary: false,
-            exclude_entity_types: None,
-        }
-    }
-}
-
-/// What an annotation's context takes when its caller states nothing: the
-/// window `annotation` gives a context that states none, and neither the
-/// source's context nor the target's asked about.
-impl Default for GatherAnnotationOptions {
-    fn default() -> GatherAnnotationOptions {
-        GatherAnnotationOptions {
-            include_source_context: None,
-            include_target_context: None,
-            context_window: None,
-        }
-    }
-}
+/// same cases.
+const DEPTH: u16 = 2;
+const MAX_RESOURCES: u16 = 10;
+const INCLUDE_CONTENT: bool = true;
+const INCLUDE_SUMMARY: bool = false;
 
 pub struct GatherNamespace {
     links: Links,
@@ -130,20 +108,26 @@ impl GatherNamespace {
     pub async fn resource(
         &self,
         resource_id: &ResourceId,
-        mut options: GatherResourceRequestOptions,
+        options: GatherResourceOptions,
     ) -> Result<GatheredContext, XynologError> {
-        if options
-            .exclude_entity_types
-            .as_ref()
-            .is_some_and(Vec::is_empty)
-        {
-            options.exclude_entity_types = None;
-        }
+        let GatherResourceOptions {
+            depth,
+            max_resources,
+            include_content,
+            include_summary,
+            exclude_entity_types,
+        } = options;
         let gathered = self
             .links
             .request::<GatherResourceRequested>(&GatherResourceRequest {
                 resource_id: resource_id.clone(),
-                options,
+                options: GatherResourceRequestOptions {
+                    depth: depth.unwrap_or(DEPTH),
+                    max_resources: max_resources.unwrap_or(MAX_RESOURCES),
+                    include_content: include_content.unwrap_or(INCLUDE_CONTENT),
+                    include_summary: include_summary.unwrap_or(INCLUDE_SUMMARY),
+                    exclude_entity_types: exclude_entity_types.filter(|types| !types.is_empty()),
+                },
             })
             .await?;
         Ok(gathered.response)

@@ -116,18 +116,15 @@ pub struct StreamId {
     pub event_id: String,
 }
 
-/// A frame as a transport delivers it: its envelope, its payload, the trace
-/// it was sent under, when it carried one, and where on the stream it was
-/// delivered, when the stream gave it an id on a resource's scope. The
+/// A frame as a transport delivers it: the frame as BusFrame states it, the
+/// trace it was sent under, when it carried one, and where on the stream it
+/// was delivered, when the stream gave it an id on a resource's scope. The
 /// payload carries no routing and no trace. A frame a transport publishes
 /// into a client's own bus keeps its `stream_id`, though it is published
 /// there globally.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Frame {
-    pub channel: String,
-    pub payload: Map<String, Value>,
-    pub correlation_id: Option<String>,
-    pub scope: Option<ResourceId>,
+    pub bus_frame: BusFrame,
     pub trace: Option<TraceCarrier>,
     pub stream_id: Option<StreamId>,
 }
@@ -354,7 +351,7 @@ impl FrameHub {
     /// many there were.
     pub fn deliver(&self, carried: Result<Frame, FrameRefusal>) -> usize {
         let channel = match &carried {
-            Ok(frame) => &frame.channel,
+            Ok(frame) => &frame.bus_frame.channel,
             Err(refusal) => &refusal.channel,
         };
         let mut channels = locked(&self.channels);
@@ -426,7 +423,7 @@ impl ReplyRouter {
     /// reply's.
     pub fn route(&self, carried: Result<&Frame, &FrameRefusal>) {
         let (correlation_id, channel) = match carried {
-            Ok(frame) => (&frame.correlation_id, &frame.channel),
+            Ok(frame) => (&frame.bus_frame.correlation_id, &frame.bus_frame.channel),
             Err(refusal) => (&refusal.correlation_id, &refusal.channel),
         };
         let Some(correlation_id) = correlation_id else {
@@ -848,10 +845,12 @@ mod tests {
 
     fn frame(channel: &str, correlation_id: Option<&str>) -> Frame {
         Frame {
-            channel: channel.to_owned(),
-            payload: Map::new(),
-            correlation_id: correlation_id.map(str::to_owned),
-            scope: None,
+            bus_frame: BusFrame {
+                channel: channel.to_owned(),
+                payload: Map::new(),
+                correlation_id: correlation_id.map(str::to_owned),
+                scope: None,
+            },
             trace: None,
             stream_id: None,
         }

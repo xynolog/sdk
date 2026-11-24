@@ -14,6 +14,7 @@ use std::time::Duration;
 use tokio::sync::watch;
 use xynolog::channels::BRIDGED_CHANNELS;
 use xynolog::errors::{TransportError, TransportErrorCode};
+use xynolog::gateway_http::{GET_CURRENT_USER, SUBSCRIBE_TO_BUS};
 use xynolog::transport::{GatewayOperations, Transport};
 use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
 
@@ -22,12 +23,12 @@ type Answering = Arc<Mutex<(&'static str, &'static str)>>;
 
 async fn gateway(State(answering): State<Answering>, uri: Uri) -> Response {
     match uri.path() {
-        "/bus/subscribe" => (
+        path if path == SUBSCRIBE_TO_BUS.path => (
             [(header::CONTENT_TYPE, "text/event-stream")],
             Body::from_stream(futures::stream::pending::<Result<Bytes, Infallible>>()),
         )
             .into_response(),
-        "/api/users/me" => {
+        path if path == GET_CURRENT_USER.path => {
             let (media_type, body) = *answering.lock().unwrap();
             ([(header::CONTENT_TYPE, media_type)], body).into_response()
         }

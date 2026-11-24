@@ -27,6 +27,26 @@ fn the_table_asks_both_ways() {
     assert_eq!(answers, [false, true], "the table has cases of one answer");
 }
 
+/// A held job is compared as its `jobType` and its `params` (`HeldJob::accepted`),
+/// and the table's descriptions state those and nothing else.
+#[test]
+fn a_job_description_is_its_type_and_its_parameters() {
+    let mut members: Vec<String> = cases()
+        .iter()
+        .flat_map(|case| {
+            case["job"]
+                .as_object()
+                .expect("a case's job is an object")
+                .keys()
+                .cloned()
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    members.sort();
+    members.dedup();
+    assert_eq!(members, ["jobType", "params"]);
+}
+
 #[test]
 fn filter_cases() {
     for case in cases() {

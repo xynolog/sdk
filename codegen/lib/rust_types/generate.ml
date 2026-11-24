@@ -121,6 +121,13 @@ let integer_ty (n : D.node) =
     | Some min, _ when min >= 0 -> "u64"
     | _ -> "i64")
 
+let only_integer (s : D.t) =
+  match s with
+  | D.Node { type_ = Some (D.One Integer); enum = Some [ Schema.Int_literal n ]; _ }
+    ->
+      Some n
+  | _ -> None
+
 let derive paths =
   R.List
     ( [ "derive" ],
@@ -720,10 +727,12 @@ and structure st name ~owner (n : D.node) doc =
   in
   let parameters = ref []
   and set = ref []
+  and consts = ref []
   and optional = ref 0
   and single_valued = ref 0 in
   let add_param p = parameters := !parameters @ [ p ] in
   let add_set s = set := !set @ [ s ] in
+  let add_const c = consts := !consts @ [ c ] in
   let option t = generic "Option" [ t ] in
   let skip = R.Name_value ("skip_serializing_if", R.Str "Option::is_none") in
   let rust_fields =
@@ -757,6 +766,25 @@ and structure st name ~owner (n : D.node) doc =
           in
           add_set
             (field, path [ type_name; Naming.variant (Option.get only_value) ]);
+          make [] rust_type)
+        else if is_required && Option.is_some (only_integer (D.meant ps)) then (
+          (* A property that admits one number states that number, which the
+             type names as a constant for a reader to compare with. *)
+          incr single_valued;
+          let constant = R.screaming property in
+          add_const
+            (R.I_const
+               {
+                 doc =
+                   [
+                     Printf.sprintf "The one `%s` a `%s` states." property name;
+                   ];
+                 vis = Pub;
+                 name = constant;
+                 ty = rust_type;
+                 value = Some (R.Int (Option.get (only_integer (D.meant ps))));
+               });
+          add_set (field, path [ "Self"; constant ]);
           make [] rust_type)
         else if is_required && rust_type = string_ty then (
           add_param (R.Param (field, R.Impl_of (generic "Into" [ string_ty ])));
@@ -806,13 +834,10 @@ and structure st name ~owner (n : D.node) doc =
         doc;
         attrs =
           derive
-            [
-              "Debug";
-              "Clone";
-              "PartialEq";
-              "serde::Deserialize";
-              "serde::Serialize";
-            ]
+            ([ "Debug"; "Clone"; "PartialEq" ]
+            @ (if !parameters = [] && !single_valued = 0 then [ "Default" ]
+               else [])
+            @ [ "serde::Deserialize"; "serde::Serialize" ])
           ::
           (if n.additional_properties = Some (D.Bool false) then
              [ serde [ R.Word [ "deny_unknown_fields" ] ] ]
@@ -828,7 +853,8 @@ and structure st name ~owner (n : D.node) doc =
      admits a single value, which [new] states for it. One whose every
      property is the caller's to give says everything by name when it is
      written out, and one that is all optional has nothing to be made from:
-     neither has a constructor. *)
+     neither has a constructor, and one that is all optional is its
+     [Default]. *)
   if (!parameters <> [] && !optional > 0) || !single_valued > 0 then (
     if open_ then add_set ("rest", R.call "serde_json::Map::new" []);
     let default =
@@ -847,7 +873,8 @@ and structure st name ~owner (n : D.node) doc =
       ([ declared ] @ default
       @ [
           impl (ty name)
-            [
+            ((match !consts with [] -> [] | cs -> cs @ [ R.I_blank ])
+            @ [
               R.I_fn
                 (R.fn_
                    ~doc:
@@ -866,7 +893,7 @@ and structure st name ~owner (n : D.node) doc =
                       else [])
                    ~vis:Pub "new" ~params:!parameters ~ret:(ty "Self")
                    [ R.Tail (R.Struct ([ "Self" ], !set, None)) ]);
-            ];
+            ]);
         ]))
   else [ declared; R.Blank ]
 
@@ -1111,8 +1138,92 @@ let run definitions generation =
   in
   (st, names)
 
+(* The types written whose every member is [Eq] and [Hash], so that a value
+   of one can key a map: none reaches an [f64]. Found as the greatest set
+   that holds of itself, since types reach one another in cycles. *)
+let hashable st names =
+  let declared name =
+    List.find_map
+      (function
+        | R.Struct_def { name = n; body = Fields fields; _ } when n = name ->
+            Some (List.map (fun (f : R.field) -> f.ty) fields)
+        | R.Struct_def { name = n; body = Tuple_fields tys; _ } when n = name ->
+            Some tys
+        | R.Enum { name = n; variants; _ } when n = name ->
+            Some (List.filter_map (fun (v : R.variant) -> v.payload) variants)
+        | R.Type_alias { name = n; ty; _ } when n = name -> Some [ ty ]
+        | _ -> None)
+      (Hashtbl.find st.written name)
+  in
+  let held =
+    List.filter_map
+      (fun name -> Option.map (fun tys -> (name, tys)) (declared name))
+      names
+  in
+  let excluded = Hashtbl.create 64 in
+  let rec admits = function
+    | R.Named ([ "f64" ], []) -> false
+    | R.Named ([ name ], args) when Hashtbl.mem st.written name ->
+        (not (Hashtbl.mem excluded name)) && List.for_all admits args
+    | R.Named
+        ( ( [ ("String" | "bool" | "u16" | "u64" | "i64" | "Vec" | "Option" | "Box") ]
+          | [ "std"; "collections"; "BTreeMap" ]
+          | [ "serde_json"; ("Map" | "Value") ] ),
+          args ) ->
+        List.for_all admits args
+    | R.Named (segments, _) ->
+        refuse "%s: a type whose Eq and Hash the generator does not know"
+          (String.concat "::" segments)
+    | _ -> refuse "a member type whose Eq and Hash the generator does not know"
+  in
+  let rec settle () =
+    let dropped =
+      List.filter
+        (fun (name, tys) ->
+          (not (Hashtbl.mem excluded name)) && not (List.for_all admits tys))
+        held
+    in
+    List.iter (fun (name, _) -> Hashtbl.replace excluded name ()) dropped;
+    if dropped <> [] then settle ()
+  in
+  settle ();
+  fun name -> List.mem_assoc name held && not (Hashtbl.mem excluded name)
+
+(* A derive list with [Eq] and [Hash] beside [PartialEq], each unless it has
+   it. *)
+let with_eq_hash attrs =
+  List.map
+    (function
+      | R.List ([ "derive" ], words) when List.mem (R.Word [ "PartialEq" ]) words
+        ->
+          let lacking =
+            List.filter
+              (fun w -> not (List.mem w words))
+              [ R.Word [ "Eq" ]; R.Word [ "Hash" ] ]
+          in
+          R.List
+            ( [ "derive" ],
+              List.concat_map
+                (fun w -> if w = R.Word [ "PartialEq" ] then w :: lacking else [ w ])
+                words )
+      | meta -> meta)
+    attrs
+
 let items definitions generation =
   let st, names = run definitions generation in
+  let hashable = hashable st names in
+  List.iter
+    (fun name ->
+      Hashtbl.replace st.written name
+        (List.map
+           (function
+             | R.Struct_def d when hashable d.name ->
+                 R.Struct_def { d with attrs = with_eq_hash d.attrs }
+             | R.Enum d when hashable d.name ->
+                 R.Enum { d with attrs = with_eq_hash d.attrs }
+             | item -> item)
+           (Hashtbl.find st.written name)))
+    names;
   let rec dedupe = function
     | R.Blank :: (R.Blank :: _ as rest) -> dedupe rest
     | x :: rest -> x :: dedupe rest

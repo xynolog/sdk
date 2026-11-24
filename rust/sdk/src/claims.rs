@@ -62,17 +62,18 @@ use crate::errors::{BusRequestErrorCode, TransportError, TransportErrorCode, Xyn
 use crate::job_filter::job_matches_filter;
 use crate::kept_for_first_reader::KeptForFirstReader;
 use crate::locked;
+use crate::rfc3339::to_the_millisecond;
 use crate::timing::{HELD_JOB_STALL, HELD_JOB_STALL_CHECK, JOB_CLAIM_TIMEOUT, MARK_COMMIT_TIMEOUT};
 use crate::transport::{ConnectionState, Envelope, Events, TraceCarrier, Transport};
 use crate::types::{
-    Annotation, AnnotationId, BrowseAnnotationRequest, ClaimOptions, DurabilityEvidence,
-    FailureClass, GatheredContext, GatheredContextFocus, JobCancelCommand, JobCancelRequest,
+    Annotation, AnnotationId, BrowseAnnotationRequest, ClaimOptions, DurabilityEvidence, Engine,
+    FailureClass, GatheredContextFocus, GenerationJobParams, JobCancelCommand, JobCancelRequest,
     JobCheckpointCommand, JobClaimCommand, JobCompleteCommand, JobFailCommand, JobFilter, JobId,
     JobMetadata, JobParams, JobProgress, JobReportProgressCommand, JobRunning, JobStartCommand,
     JobType, MarkCommitCommand, MarkJobCompleteCommand, MarkJobResult, ResourceId, UnitCursor,
-    YieldJobCompleteCommand, YieldJobResult,
+    WorkerEngineHealth, WorkerEngineHealthActiveJob, YieldJobCompleteCommand, YieldJobResult,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
 use std::future::Future;
@@ -607,9 +608,33 @@ pub type HeldMarkJob = Held<Mark>;
 /// A `yield` job this worker holds.
 pub type HeldYieldJob = Held<Yield>;
 
+/// A job as a filter is compared with it: its type and its parameters
+/// (jobs/filter-cases.json's `job`).
+#[derive(Serialize)]
+struct Described<'a> {
+    #[serde(rename = "jobType")]
+    job_type: JobType,
+    params: &'a JobParams,
+}
+
 impl<V> Held<V> {
     pub fn job_id(&self) -> &JobId {
         &self.core.holding.job_id
+    }
+
+    /// Whether a filter the job was claimed with accepts it. The dispatcher
+    /// hands out only what one does, so a job none accepts is one the two
+    /// disagree about.
+    pub fn accepted(&self) -> bool {
+        let job = Described {
+            job_type: self.job_type(),
+            params: self.params(),
+        };
+        self.core
+            .inner
+            .accepts
+            .iter()
+            .any(|filter| job_matches_filter(filter, &job))
     }
 
     pub fn job_type(&self) -> JobType {
@@ -916,6 +941,11 @@ impl HeldJob {
         either!(self, job => job.job_type())
     }
 
+    /// Whether a filter the job was claimed with accepts it.
+    pub fn accepted(&self) -> bool {
+        either!(self, job => job.accepted())
+    }
+
     pub fn resource_id(&self) -> &ResourceId {
         either!(self, job => job.resource_id())
     }
@@ -999,13 +1029,13 @@ impl HeldJob {
 
 /// The annotation a job is anchored to: the one a `yield` job's context is
 /// focused on. A `yield` job focused on a resource has none, and neither has
-/// a `mark` job.
+/// a `mark` job, nor a `yield` job whose params are not a generation's.
 fn anchor_of(job_type: JobType, params: &JobParams) -> Option<AnnotationId> {
     if job_type != JobType::Yield {
         return None;
     }
-    let context = GatheredContext::deserialize(params.rest.get("context")?).ok()?;
-    match context.focus {
+    let generation = GenerationJobParams::deserialize(Value::Object(params.rest.clone())).ok()?;
+    match generation.context.focus {
         GatheredContextFocus::Annotation(focus) => Some(focus.annotation.id),
         GatheredContextFocus::Resource(_) => None,
     }
@@ -1200,7 +1230,7 @@ async fn run(inner: Arc<Inner>, out: mpsc::Sender<Handed>, mut stop: watch::Rece
                 Some(Ok(Ok(announced))) => {
                     // Every announcement received is stamped, before any filtering.
                     locked(&inner.state).last_queued_event_at = Some(SystemTime::now());
-                    let announced = Value::Object(announced.payload);
+                    let announced = Value::Object(announced.bus_frame.payload);
                     want = inner
                         .accepts
                         .iter()
@@ -1220,7 +1250,7 @@ async fn run(inner: Arc<Inner>, out: mpsc::Sender<Handed>, mut stop: watch::Rece
             },
             request = cancels.next() => match request {
                 Some(Ok(Ok(request))) => {
-                    if let Ok(named) = JobCancelRequest::deserialize(&Value::Object(request.payload)) {
+                    if let Ok(named) = JobCancelRequest::deserialize(&Value::Object(request.bus_frame.payload)) {
                         inner.signal_cancellation(&named.job_id);
                     }
                 }
@@ -1314,6 +1344,44 @@ impl Claims {
     /// What this worker can say of itself now.
     pub fn vitals(&self) -> WorkerVitals {
         self.inner.vitals()
+    }
+
+    /// What a host's health answer says of the engine that claims through
+    /// this: which engine it is, the jobs it claims, and its vitals, each time
+    /// as RFC 3339 in UTC to the millisecond. `WorkerVitals` is
+    /// `WorkerEngineHealth` but for those two, so a member either gains or
+    /// loses fails to compile here.
+    pub fn health(&self, engine: Engine) -> WorkerEngineHealth {
+        let WorkerVitals {
+            last_queued_event_at,
+            last_claim_at,
+            last_finished_at,
+            last_activity_at,
+            active_job,
+            jobs_completed,
+        } = self.vitals();
+        WorkerEngineHealth {
+            engine,
+            jobs: self.inner.accepts.clone(),
+            last_queued_event_at: last_queued_event_at.map(to_the_millisecond),
+            last_claim_at: last_claim_at.map(to_the_millisecond),
+            last_finished_at: last_finished_at.map(to_the_millisecond),
+            last_activity_at: last_activity_at.map(to_the_millisecond),
+            active_job: active_job.map(
+                |ActiveJob {
+                     job_id,
+                     job_type,
+                     since,
+                 }| {
+                    WorkerEngineHealthActiveJob {
+                        job_id,
+                        r#type: job_type,
+                        since: to_the_millisecond(since),
+                    }
+                },
+            ),
+            jobs_completed,
+        }
     }
 
     /// Each held job that has shown no activity for `held_job_stall`,

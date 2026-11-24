@@ -22,6 +22,18 @@ pub enum BusRequestErrorCode {
 }
 
 impl BusRequestErrorCode {
+    /// Every code of the vocabulary, in the table's order.
+    pub const ALL: [BusRequestErrorCode; 8] = [
+        BusRequestErrorCode::Timeout,
+        BusRequestErrorCode::Rejected,
+        BusRequestErrorCode::Closed,
+        BusRequestErrorCode::NotFound,
+        BusRequestErrorCode::Unsubscribed,
+        BusRequestErrorCode::PeerUnavailable,
+        BusRequestErrorCode::Unauthorized,
+        BusRequestErrorCode::NonePending,
+    ];
+
     /// The code as every SDK reports it.
     pub const fn as_str(self) -> &'static str {
         match self {
@@ -89,6 +101,19 @@ pub enum TransportErrorCode {
 }
 
 impl TransportErrorCode {
+    /// Every code of the vocabulary, in the table's order.
+    pub const ALL: [TransportErrorCode; 9] = [
+        TransportErrorCode::Unauthorized,
+        TransportErrorCode::Forbidden,
+        TransportErrorCode::NotFound,
+        TransportErrorCode::Conflict,
+        TransportErrorCode::BadRequest,
+        TransportErrorCode::Unprocessable,
+        TransportErrorCode::RateLimited,
+        TransportErrorCode::Unavailable,
+        TransportErrorCode::Error,
+    ];
+
     /// The code as every SDK reports it.
     pub const fn as_str(self) -> &'static str {
         match self {
@@ -134,6 +159,13 @@ pub enum JobErrorCode {
 }
 
 impl JobErrorCode {
+    /// Every code of the vocabulary, in the table's order.
+    pub const ALL: [JobErrorCode; 3] = [
+        JobErrorCode::Failed,
+        JobErrorCode::Cancelled,
+        JobErrorCode::Stalled,
+    ];
+
     /// The code as every SDK reports it.
     pub const fn as_str(self) -> &'static str {
         match self {
@@ -162,6 +194,16 @@ pub enum SessionErrorCode {
 }
 
 impl SessionErrorCode {
+    /// Every code of the vocabulary, in the table's order.
+    pub const ALL: [SessionErrorCode; 6] = [
+        SessionErrorCode::ConstructFailed,
+        SessionErrorCode::AuthFailed,
+        SessionErrorCode::RefreshExhausted,
+        SessionErrorCode::CredentialRefused,
+        SessionErrorCode::KeepFailed,
+        SessionErrorCode::SaveRefused,
+    ];
+
     /// The code as every SDK reports it.
     pub const fn as_str(self) -> &'static str {
         match self {
@@ -197,6 +239,18 @@ pub enum SignInErrorCode {
 }
 
 impl SignInErrorCode {
+    /// Every code of the vocabulary, in the table's order.
+    pub const ALL: [SignInErrorCode; 8] = [
+        SignInErrorCode::NoIssuer,
+        SignInErrorCode::Discovery,
+        SignInErrorCode::NoPending,
+        SignInErrorCode::State,
+        SignInErrorCode::Denied,
+        SignInErrorCode::Expired,
+        SignInErrorCode::Aborted,
+        SignInErrorCode::Exchange,
+    ];
+
     /// The code as every SDK reports it.
     pub const fn as_str(self) -> &'static str {
         match self {
@@ -222,6 +276,12 @@ pub enum IdentityUnverifiableReason {
 }
 
 impl IdentityUnverifiableReason {
+    /// Every code of the vocabulary, in the table's order.
+    pub const ALL: [IdentityUnverifiableReason; 2] = [
+        IdentityUnverifiableReason::Unreachable,
+        IdentityUnverifiableReason::NotReported,
+    ];
+
     /// The code as every SDK reports it.
     pub const fn as_str(self) -> &'static str {
         match self {
@@ -251,6 +311,17 @@ pub enum SpanRefusal {
 }
 
 impl SpanRefusal {
+    /// Every code of the vocabulary, in the table's order.
+    pub const ALL: [SpanRefusal; 7] = [
+        SpanRefusal::SpanOutOfRange,
+        SpanRefusal::ExactMismatch,
+        SpanRefusal::PrefixMismatch,
+        SpanRefusal::SuffixMismatch,
+        SpanRefusal::NothingLocated,
+        SpanRefusal::ExactNotCovered,
+        SpanRefusal::ItemOutOfRange,
+    ];
+
     /// The code as every SDK reports it.
     pub const fn as_str(self) -> &'static str {
         match self {
@@ -261,6 +332,119 @@ impl SpanRefusal {
             SpanRefusal::NothingLocated => "nothing-located",
             SpanRefusal::ExactNotCovered => "exact-not-covered",
             SpanRefusal::ItemOutOfRange => "item-out-of-range",
+        }
+    }
+}
+
+/// Why a request of the launcher's control API (`xynolog control`, contract/LAUNCHER-CONTROL.md) failed. The launcher sends one in each error's data, and Desktop reads it. A knowledge base never sends one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ControlErrorCode {
+    /// The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it.
+    InvalidParams,
+    /// The request is written to a version of the control API this launcher does not speak. The error's supported field names the ones it does.
+    UnsupportedApiVersion,
+    /// The launcher refuses the request as the command line refuses the same options: they contradict each other, or do not apply to what they name.
+    InvalidRequest,
+    /// The request names a service or a group the launcher has none of.
+    InvalidService,
+    /// The launcher refuses a setting's value, as a start would refuse it. The previous value is kept.
+    InvalidValue,
+    /// The request names a setting the launcher does not keep.
+    UnknownSetting,
+    /// Several stacks could be meant and the request names none of them. The error's choices name each; nothing was done.
+    TargetRequired,
+    /// The root the request names is the basename of several registered roots. The error's choices name each by its path; nothing was done.
+    TargetAmbiguous,
+    /// The root the request names is not a knowledge base's clone: no such directory, no .xynolog/ in it, or a project file the launcher refuses.
+    RootNotFound,
+    /// The root the request names is not in the registry.
+    RootNotRegistered,
+    /// The request needs a stack of its target recorded on this machine, and none is.
+    StackNotRunning,
+    /// The request would change what a recorded stack depends on: stop the stack first.
+    StackRunning,
+    /// Another xynolog start of the same knowledge base holds its start lock.
+    StartInProgress,
+    /// No container runtime the request can use is on the launcher's PATH.
+    RuntimeUnavailable,
+    /// A program the request needs besides a container runtime (gh, for a codespace) is not on the launcher's PATH.
+    DependencyUnavailable,
+    /// What the request needs to reach did not answer: the knowledge base, its issuer, or a codespace's forward.
+    Unreachable,
+    /// An instance of the name the run gives already runs on this machine for its target, whichever control server or command started it. Nothing was started.
+    InstanceInUse,
+    /// No run of an instance of the name the request gives is in flight on this machine for its target: none was started, or its run has been answered.
+    InstanceNotFound,
+    /// The request would destroy something, and does not state that a person confirmed it.
+    ConfirmationRequired,
+    /// The launcher's own record of this machine (the stack record, the registry, the sign-in store) cannot be read. Nothing was assumed in its place.
+    UnreadableState,
+    /// The launcher's stored session for the target is valid: there is nothing to sign in to.
+    AlreadySignedIn,
+    /// The person was not signed in: the issuer refused or the code expired, the gateway refused the token, or the session could not be kept. Nothing was stored.
+    SignInFailed,
+    /// The client cancelled the request before it ended.
+    Cancelled,
+    /// The request failed for a reason no other code names. Its message says why, as the command line would.
+    Failed,
+}
+
+impl ControlErrorCode {
+    /// Every code of the vocabulary, in the table's order.
+    pub const ALL: [ControlErrorCode; 24] = [
+        ControlErrorCode::InvalidParams,
+        ControlErrorCode::UnsupportedApiVersion,
+        ControlErrorCode::InvalidRequest,
+        ControlErrorCode::InvalidService,
+        ControlErrorCode::InvalidValue,
+        ControlErrorCode::UnknownSetting,
+        ControlErrorCode::TargetRequired,
+        ControlErrorCode::TargetAmbiguous,
+        ControlErrorCode::RootNotFound,
+        ControlErrorCode::RootNotRegistered,
+        ControlErrorCode::StackNotRunning,
+        ControlErrorCode::StackRunning,
+        ControlErrorCode::StartInProgress,
+        ControlErrorCode::RuntimeUnavailable,
+        ControlErrorCode::DependencyUnavailable,
+        ControlErrorCode::Unreachable,
+        ControlErrorCode::InstanceInUse,
+        ControlErrorCode::InstanceNotFound,
+        ControlErrorCode::ConfirmationRequired,
+        ControlErrorCode::UnreadableState,
+        ControlErrorCode::AlreadySignedIn,
+        ControlErrorCode::SignInFailed,
+        ControlErrorCode::Cancelled,
+        ControlErrorCode::Failed,
+    ];
+
+    /// The code as every SDK reports it.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            ControlErrorCode::InvalidParams => "control.invalid-params",
+            ControlErrorCode::UnsupportedApiVersion => "control.unsupported-api-version",
+            ControlErrorCode::InvalidRequest => "control.invalid-request",
+            ControlErrorCode::InvalidService => "control.invalid-service",
+            ControlErrorCode::InvalidValue => "control.invalid-value",
+            ControlErrorCode::UnknownSetting => "control.unknown-setting",
+            ControlErrorCode::TargetRequired => "control.target-required",
+            ControlErrorCode::TargetAmbiguous => "control.target-ambiguous",
+            ControlErrorCode::RootNotFound => "control.root-not-found",
+            ControlErrorCode::RootNotRegistered => "control.root-not-registered",
+            ControlErrorCode::StackNotRunning => "control.stack-not-running",
+            ControlErrorCode::StackRunning => "control.stack-running",
+            ControlErrorCode::StartInProgress => "control.start-in-progress",
+            ControlErrorCode::RuntimeUnavailable => "control.runtime-unavailable",
+            ControlErrorCode::DependencyUnavailable => "control.dependency-unavailable",
+            ControlErrorCode::Unreachable => "control.unreachable",
+            ControlErrorCode::InstanceInUse => "control.instance-in-use",
+            ControlErrorCode::InstanceNotFound => "control.instance-not-found",
+            ControlErrorCode::ConfirmationRequired => "control.confirmation-required",
+            ControlErrorCode::UnreadableState => "control.unreadable-state",
+            ControlErrorCode::AlreadySignedIn => "control.already-signed-in",
+            ControlErrorCode::SignInFailed => "control.sign-in-failed",
+            ControlErrorCode::Cancelled => "control.cancelled",
+            ControlErrorCode::Failed => "control.failed",
         }
     }
 }

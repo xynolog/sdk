@@ -1,7 +1,7 @@
 // Generated from the component schemas in protocol/specs/src; do not edit.
 // Regenerate: make generate (codegen/lib/rust_types/rust_types.ml)
 /// launcher.about's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AboutParams {
     /// The version of the control API the request is written to.
@@ -12,7 +12,7 @@ pub struct AboutParams {
 schema!(AboutParams);
 
 /// What the launcher is. A client asks this first, to learn whether it speaks to the launcher it found.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AboutResult {
     /// The version stamped into the launcher at build. Absent from a development build, which states none.
@@ -59,7 +59,7 @@ impl AboutResult {
 schema!(AboutResult);
 
 /// Web Annotation / W3C PROV Agent. Discriminated by @type — Person, Organization, or Software (named member schemas: AgentPerson, AgentOrganization, AgentSoftware). Software peers are first-class participants, not a sub-class of Person.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum Agent {
     Person(AgentPerson),
@@ -90,7 +90,7 @@ member!(Agent::Software(AgentSoftware));
 schema!(Agent);
 
 /// An organization — the Organization branch of Agent.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct AgentOrganization {
     #[serde(rename = "@type")]
     pub r#type: AgentOrganizationType,
@@ -138,7 +138,7 @@ impl AgentOrganizationType {
 }
 
 /// A human participant — the Person branch of Agent.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct AgentPerson {
     #[serde(rename = "@type")]
     pub r#type: AgentPersonType,
@@ -204,7 +204,7 @@ impl AgentPersonType {
 }
 
 /// A software peer, the Software branch of Agent: an agent, which is an account as a person is. Its `provider` and `model` are what it says of itself, attributed to it and not checked; the knowledge base reads neither from its DID. Its `name` is no part of what it writes: what it last said it is called is its profile, and readers fill it in, as they do a person's. A generator the knowledge base supplies, for an agent that supplied none, carries `@type` and `@id` alone.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct AgentSoftware {
     #[serde(rename = "@type")]
     pub r#type: AgentSoftwareType,
@@ -335,7 +335,7 @@ schema!(AnchoredText);
 /// There is no coordinate map to serve, and WHY — the distinction a bare null could not carry.
 ///
 /// One member covers all three absences because none carries a payload; `kind` alone is the fact. Retryability is legible from the name, deliberately: a caller must not need a lookup table to decide whether to come back.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct AnchoredTextAbsent {
     /// Discriminant, sharing the `kind` field with the ExtractedText/ExtractionDeclined members so the whole answer is one flat union.
     ///
@@ -398,7 +398,7 @@ member!(AnchoredTextAnswer::AnchoredTextAbsent(AnchoredTextAbsent));
 schema!(AnchoredTextAnswer);
 
 /// The bytes were declined: no text is extracted from them.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AnchoredTextDeclinedEntry {
     /// The entry format.
@@ -409,10 +409,24 @@ pub struct AnchoredTextDeclinedEntry {
     pub declined: ExtractionDeclinedReason,
 }
 
+impl AnchoredTextDeclinedEntry {
+    /// The one `v` a `AnchoredTextDeclinedEntry` states.
+    pub const V: i64 = 3;
+
+    /// The `AnchoredTextDeclinedEntry` that states these and nothing else.
+    pub fn new(stamp: impl Into<String>, declined: ExtractionDeclinedReason) -> Self {
+        Self {
+            v: Self::V,
+            stamp: stamp.into(),
+            declined,
+        }
+    }
+}
+
 schema!(AnchoredTextDeclinedEntry);
 
 /// The keys of the entries the anchored-text store holds under the stamp last stated: one checksum for each set of bytes whose text is stored, in no order.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AnchoredTextEntries {
     pub checksums: Vec<String>,
@@ -463,16 +477,18 @@ pub struct AnchoredTextExtractedEntry {
 }
 
 impl AnchoredTextExtractedEntry {
+    /// The one `v` a `AnchoredTextExtractedEntry` states.
+    pub const V: i64 = 3;
+
     /// The `AnchoredTextExtractedEntry` that states these and nothing else.
     pub fn new(
-        v: i64,
         stamp: impl Into<String>,
         text: impl Into<String>,
         lines: Vec<AnchoredTextExtractedEntryLinesItem>,
         method: ExtractionMethod,
     ) -> Self {
         Self {
-            v,
+            v: Self::V,
             stamp: stamp.into(),
             text: text.into(),
             lines,
@@ -501,7 +517,7 @@ pub struct AnchoredTextExtractedEntryLinesItem {
 }
 
 /// The stamp an anchored-text store's entries are taken under: which PDF reader and which OCR engine derived them. Its writer states it before it writes or lists an entry; an entry stored under another stamp is answered to no reader.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AnchoredTextStamp {
     /// The stamp: no white space, since it is held in a file of one line.
@@ -522,7 +538,7 @@ pub struct AnchoredTextWrite {
 
 schema!(AnchoredTextWrite);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct Annotation {
     /// W3C Web Annotation JSON-LD context
     #[serde(rename = "@context")]
@@ -579,7 +595,7 @@ impl Annotation {
 schema!(Annotation);
 
 /// Payload for mark:added domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct AnnotationAddedPayload {
     pub annotation: Annotation,
     /// SHA-256 of resource content at annotation time
@@ -601,7 +617,7 @@ impl AnnotationAddedPayload {
 schema!(AnnotationAddedPayload);
 
 /// What an annotation's `body` holds: one body, or a non-empty list of them. There is no empty list: an annotation with nothing to say has no `body`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnnotationBodies {
     AnnotationBody(AnnotationBody),
@@ -612,7 +628,7 @@ member!(AnnotationBodies::AnnotationBody(AnnotationBody));
 schema!(AnnotationBodies);
 
 /// An annotation's body: a TextualBody carries text the annotation states (entity tags, descriptions, comments), a SpecificResource points at what it links to. Tell them apart by `type`, which is required on both and single-valued — a consumer never has to probe for which fields happen to be present.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnnotationBody {
     TextualBody(TextualBody),
@@ -642,7 +658,7 @@ member!(AnnotationBody::SpecificResource(SpecificResource));
 schema!(AnnotationBody);
 
 /// Payload for mark:body-updated domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct AnnotationBodyUpdatedPayload {
     #[serde(rename = "annotationId")]
     pub annotation_id: AnnotationId,
@@ -764,7 +780,7 @@ impl PartialEq<&str> for AnnotationId {
 schema!(AnnotationId);
 
 /// Payload for mark:removed domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct AnnotationRemovedPayload {
     #[serde(rename = "annotationId")]
     pub annotation_id: AnnotationId,
@@ -773,7 +789,7 @@ pub struct AnnotationRemovedPayload {
 schema!(AnnotationRemovedPayload);
 
 /// What a target's `selector` holds: one W3C selector, or several of the same segment.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnnotationSelector {
     Selector(Selector),
@@ -784,7 +800,7 @@ member!(AnnotationSelector::Selector(Selector));
 schema!(AnnotationSelector);
 
 /// W3C Web Annotation target object - source is required, selector is optional
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct AnnotationTarget {
     /// Stated by the annotation of a span: the target is a part of its source, which the selector picks out. An annotation of a resource as a whole states none.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -828,7 +844,7 @@ impl AnnotationTargetType {
 }
 
 /// W3C Web Annotation target: the id of the resource annotated, when the whole of it is, or an object with source and optional selector (fragment)
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnnotationTargetValue {
     ResourceId(ResourceId),
@@ -876,7 +892,7 @@ impl ApiVersion {
 schema!(ApiVersion);
 
 /// Everything the Archivist reads at boot: nothing in it is defaulted by the Archivist. The launcher writes it for the Archivist it starts, from the knowledge base's stack documents, and the Archivist reads it from the path its `--config` flag names (its image passes `/etc/xynolog/archivist.json`). Started without `--config`, or with a path that names no file, the Archivist refuses to start and says which. No secret is a value here. What the knowledge base says of itself is not here either: its name, its `site.domain` and its `git.sync` are read from the committed `.xynolog/config.yaml` of the tree at `root`. The Archivist's other inputs are the environment variables specs/src/service-environment/variables.json lists for it. A document that does not validate is refused at boot, naming each failing field.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArchivistConfig {
     /// The URL the Archivist reaches the gateway at: its only route to the bus.
@@ -909,7 +925,7 @@ pub struct ArchivistConfig {
 schema!(ArchivistConfig);
 
 /// The bounds on how far the staging driver may run behind the working tree, in milliseconds. A knowledge base that does not sync git stages nothing, and reads neither.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArchivistConfigStaging {
     /// The quiet period after the last change before pending changes are staged.
@@ -921,7 +937,7 @@ pub struct ArchivistConfigStaging {
 }
 
 /// The engine for each job and each Librarian actor, behind `browse:engines`: a provider and a model, and no credential. It is the knowledge base's Inference document's `engines` as they stand, with no fallback, so a job or an actor absent here has no engine.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArchivistEngines {
     /// The engine each job is done with when software does it, keyed as a job description is: by `jobType`, and for `mark` by motivation.
@@ -933,7 +949,7 @@ pub struct ArchivistEngines {
 schema!(ArchivistEngines);
 
 /// The engine each Librarian actor that calls a model asks.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArchivistEnginesActors {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -943,7 +959,7 @@ pub struct ArchivistEnginesActors {
 }
 
 /// The engine each job is done with when software does it, keyed as a job description is: by `jobType`, and for `mark` by motivation.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArchivistEnginesJobs {
     /// The engine for `mark` jobs of each motivation.
@@ -954,7 +970,7 @@ pub struct ArchivistEnginesJobs {
 }
 
 /// The engine for `mark` jobs of each motivation.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArchivistEnginesJobsMark {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -970,7 +986,7 @@ pub struct ArchivistEnginesJobsMark {
 }
 
 /// A page of one stream's events from one sequence number, inclusive, in log order, and the sequence number of the stream's last event: the Archivist's answer to `GET /events/{resourceId}`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ArchivistEventsResponse {
     pub events: Vec<StoredEventResponse>,
     /// The sequence number of the stream's last event when it was read: 0 for a stream with none. More events follow the page while its last event's number is below it.
@@ -981,7 +997,7 @@ pub struct ArchivistEventsResponse {
 schema!(ArchivistEventsResponse);
 
 /// The Archivist's liveness answer: it serves, and the actors it hosts.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ArchivistHealth {
     pub status: ArchivistHealthStatus,
     /// The record actors this process hosts: each of the enum's, once, in the order the enum lists them.
@@ -1041,7 +1057,7 @@ impl ArchivistHealthStatus {
 }
 
 /// One stream of the event log, and where it stands: the resource it is of, or `__system__` for the knowledge base's own, and the sequence number of its last event.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArchivistStream {
     #[serde(rename = "resourceId")]
@@ -1054,7 +1070,7 @@ pub struct ArchivistStream {
 schema!(ArchivistStream);
 
 /// Every stream of the event log, `__system__` among them, each with the sequence number of its last event, in no order: the Archivist's answer to `GET /events`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArchivistStreamsResponse {
     pub streams: Vec<ArchivistStream>,
@@ -1152,7 +1168,7 @@ impl AssessingJobParamsTone {
 }
 
 /// A persisted event as a history reply carries it: the stored event, and the agent its `userId` identifies. The agent is derived when the reply is made — the DID read into a Person or a Software agent, and a Person's name filled in from the knowledge base's profiles — and is stored nowhere. A Person the record does not name carries no `name`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct AttributedEvent {
     /// Unique event ID (UUID)
     pub id: String,
@@ -1206,7 +1222,7 @@ impl AttributedEvent {
 schema!(AttributedEvent);
 
 /// auth.login's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthLoginParams {
     /// The version of the control API the request is written to.
@@ -1234,7 +1250,7 @@ impl AuthLoginParams {
 schema!(AuthLoginParams);
 
 /// A completed sign-in, kept in the launcher's sign-in store. No token is in it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthLoginResult {
     /// The stack's key in the sign-in store.
@@ -1248,7 +1264,7 @@ pub struct AuthLoginResult {
 schema!(AuthLoginResult);
 
 /// auth.logout's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthLogoutParams {
     /// The version of the control API the request is written to.
@@ -1276,7 +1292,7 @@ impl AuthLogoutParams {
 schema!(AuthLogoutParams);
 
 /// The launcher's session for a stack, ended. Desktop's own session is not touched.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthLogoutResult {
     /// The stack's key in the sign-in store. Absent when no stack is recorded.
@@ -1303,7 +1319,7 @@ impl AuthLogoutResult {
 schema!(AuthLogoutResult);
 
 /// Emitted to draw attention to a resource: to one of its annotations, or, with no annotation, to the resource as a whole. The resource is always named. A focus on an annotation scrolls a viewer showing that resource to it, and a viewer showing a different resource ignores it — a deliberate ignore rather than a silent no-op. A focus on the resource as a whole brings that resource forward, opened if it is not open, at its top.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BeckonFocusEvent {
     #[serde(rename = "annotationId")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1326,7 +1342,7 @@ impl BeckonFocusEvent {
 schema!(BeckonFocusEvent);
 
 /// Emitted when an annotation is hovered over for beckoning
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BeckonHoverEvent {
     #[serde(rename = "annotationId")]
     pub annotation_id: Option<AnnotationId>,
@@ -1335,7 +1351,7 @@ pub struct BeckonHoverEvent {
 schema!(BeckonHoverEvent);
 
 /// Emitted when a sparkle effect is triggered on an annotation
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BeckonSparkleEvent {
     #[serde(rename = "annotationId")]
     pub annotation_id: AnnotationId,
@@ -1344,7 +1360,7 @@ pub struct BeckonSparkleEvent {
 schema!(BeckonSparkleEvent);
 
 /// What starting an authorization-code grant is told: the knowledge base to sign in to, where the issuer sends the person back, and, re-authenticating, which registered knowledge base it is and what the person believed they chose.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BeginAuthorizationOptions {
     pub target: HttpEndpoint,
@@ -1381,7 +1397,7 @@ impl BeginAuthorizationOptions {
 schema!(BeginAuthorizationOptions);
 
 /// One edit to a linking annotation's body list: add or remove a body item, or replace an existing one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BindBodyOperation {
     /// The type of body operation
     pub op: BindBodyOperationOp,
@@ -1437,13 +1453,13 @@ impl BindBodyOperationOp {
 }
 
 /// Void success reply emitted on the bind:body-updated channel after bind:update-body has been applied, matched to the originating command by correlationId.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct BindBodyUpdated {}
 
 schema!(BindBodyUpdated);
 
 /// Command payload sent on the bind:initiate bus channel to start a bind flow.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BindInitiateCommand {
     /// Branded AnnotationId of the annotation being bound
     #[serde(rename = "annotationId")]
@@ -1462,7 +1478,7 @@ pub struct BindInitiateCommand {
 schema!(BindInitiateCommand);
 
 /// Command payload sent on the bind:update-body bus channel to modify annotation bodies.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BindUpdateBodyCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -1497,7 +1513,7 @@ impl BindUpdateBodyCommand {
 schema!(BindUpdateBodyCommand);
 
 /// One change to an annotation's bodies: a body added, a body removed, or one body replaced by another.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum BodyOperation {
     Add(BodyOperationAdd),
@@ -1510,7 +1526,7 @@ member!(BodyOperation::Remove(BodyOperationRemove));
 member!(BodyOperation::Replace(BodyOperationReplace));
 schema!(BodyOperation);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BodyOperationAdd {
     pub op: BodyOperationAddOp,
     pub item: AnnotationBody,
@@ -1545,7 +1561,7 @@ impl BodyOperationAddOp {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BodyOperationRemove {
     pub op: BodyOperationRemoveOp,
     pub item: AnnotationBody,
@@ -1580,7 +1596,7 @@ impl BodyOperationRemoveOp {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BodyOperationReplace {
     pub op: BodyOperationReplaceOp,
     #[serde(rename = "oldItem")]
@@ -1676,7 +1692,7 @@ impl BodyPurpose {
 schema!(BodyPurpose);
 
 /// Request to browse the history of an annotation
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseAnnotationHistoryRequest {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -1695,7 +1711,7 @@ pub struct BrowseAnnotationHistoryResult {
 schema!(BrowseAnnotationHistoryResult);
 
 /// Request to browse a single annotation
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseAnnotationRequest {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -1736,7 +1752,7 @@ impl BrowseClickEvent {
 schema!(BrowseClickEvent);
 
 /// The payload of `browse:directory-failed`: a CommandError that names the directory that could not be read.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseDirectoryFailed {
     /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1765,7 +1781,7 @@ impl BrowseDirectoryFailed {
 schema!(BrowseDirectoryFailed);
 
 /// Request to browse a directory listing
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseDirectoryRequest {
     pub path: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1808,14 +1824,14 @@ impl BrowseDirectoryRequestSort {
 }
 
 /// Result of browsing a directory listing
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseDirectoryResult {
     pub response: BrowseDirectoryResultResponse,
 }
 
 schema!(BrowseDirectoryResult);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseDirectoryResultResponse {
     pub path: String,
     pub entries: Vec<DirectoryEntry>,
@@ -1824,26 +1840,26 @@ pub struct BrowseDirectoryResultResponse {
 schema!(BrowseDirectoryResultResponse);
 
 /// Request for the knowledge base's engines: those its Inference document names
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct BrowseEnginesRequest {}
 
 schema!(BrowseEnginesRequest);
 
 /// The knowledge base's engines: those its Inference document names, and the jobs it has each used for
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseEnginesResult {
     pub response: BrowseEnginesResultResponse,
 }
 
 schema!(BrowseEnginesResult);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseEnginesResultResponse {
     pub engines: Vec<EngineEntry>,
 }
 
 /// Emitted when an entity type is clicked in the browse panel
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseEntityTypeClickedEvent {
     #[serde(rename = "entityType")]
     pub entity_type: String,
@@ -1852,13 +1868,13 @@ pub struct BrowseEntityTypeClickedEvent {
 schema!(BrowseEntityTypeClickedEvent);
 
 /// Request to browse available entity types
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct BrowseEntityTypesRequest {}
 
 schema!(BrowseEntityTypesRequest);
 
 /// Result of browsing entity types
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseEntityTypesResult {
     pub response: GetEntityTypesResponse,
 }
@@ -1866,7 +1882,7 @@ pub struct BrowseEntityTypesResult {
 schema!(BrowseEntityTypesResult);
 
 /// Request to browse events for a resource
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseEventsRequest {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -1902,7 +1918,7 @@ pub struct BrowseEventsResult {
 schema!(BrowseEventsResult);
 
 /// Emitted when navigation to an external URL is requested
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseExternalNavigateEvent {
     pub url: String,
     #[serde(rename = "resourceId")]
@@ -1922,7 +1938,7 @@ impl BrowseExternalNavigateEvent {
 
 schema!(BrowseExternalNavigateEvent);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BrowseFilesResponse {
     /// The directory path that was listed, relative to project root
@@ -1933,13 +1949,13 @@ pub struct BrowseFilesResponse {
 schema!(BrowseFilesResponse);
 
 /// Request for the knowledge base's description of itself
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct BrowseKbRequest {}
 
 schema!(BrowseKbRequest);
 
 /// Result of browse:kb-requested
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseKbResult {
     pub response: KbDescription,
 }
@@ -1947,7 +1963,7 @@ pub struct BrowseKbResult {
 schema!(BrowseKbResult);
 
 /// Emitted when a link is clicked in the browse panel
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseLinkClickedEvent {
     pub href: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1967,7 +1983,7 @@ impl BrowseLinkClickedEvent {
 schema!(BrowseLinkClickedEvent);
 
 /// Emitted when a browse panel is opened
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowsePanelOpenEvent {
     pub panel: String,
     #[serde(rename = "scrollToAnnotationId")]
@@ -1991,7 +2007,7 @@ impl BrowsePanelOpenEvent {
 schema!(BrowsePanelOpenEvent);
 
 /// Emitted when a browse panel is toggled
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowsePanelToggleEvent {
     pub panel: String,
 }
@@ -1999,7 +2015,7 @@ pub struct BrowsePanelToggleEvent {
 schema!(BrowsePanelToggleEvent);
 
 /// Request for the profiles of some principals: the DIDs a reply mentions. Bounded by the question: a reader that has more asks in parts.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BrowseProfilesRequest {
     /// The principals asked after.
@@ -2009,14 +2025,14 @@ pub struct BrowseProfilesRequest {
 schema!(BrowseProfilesRequest);
 
 /// The profiles of the principals asked after: each that has one, keyed by DID. A DID with no profile is absent, and is named by no one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseProfilesResult {
     pub response: BrowseProfilesResultResponse,
 }
 
 schema!(BrowseProfilesResult);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BrowseProfilesResultResponse {
     /// Each profile, keyed by DID.
@@ -2024,7 +2040,7 @@ pub struct BrowseProfilesResultResponse {
 }
 
 /// Emitted when a resource is closed in the browse panel
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseResourceCloseEvent {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -2033,7 +2049,7 @@ pub struct BrowseResourceCloseEvent {
 schema!(BrowseResourceCloseEvent);
 
 /// Domain intent to open a resource in the viewer: emitted locally by in-app link handlers and remotely by the launcher's tour verbs; the viewer translates it to host routing (nav:push), which never crosses the wire. Deliberately not named 'navigate' — that word and the nav:* prefix belong to the host-local framework layer.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseResourceOpenEvent {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -2042,7 +2058,7 @@ pub struct BrowseResourceOpenEvent {
 schema!(BrowseResourceOpenEvent);
 
 /// Emitted when resources are reordered in the browse panel
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseResourceReorderEvent {
     #[serde(rename = "oldIndex")]
     pub old_index: i64,
@@ -2053,7 +2069,7 @@ pub struct BrowseResourceReorderEvent {
 schema!(BrowseResourceReorderEvent);
 
 /// Request to browse a single resource
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseResourceRequest {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -2079,7 +2095,7 @@ pub struct BrowseResourceResultResponse {
 }
 
 /// REPORT that a resource has loaded in a viewer — emitted on arrival by ANY means: a followed cue, an in-app link, the back button, a typed URL. Deliberately distinct from the imperative browse:resource-open: drive and report never share a channel, or the driver hears its own commands and one viewer's arrival steers another's page.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseResourceViewedEvent {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -2088,7 +2104,7 @@ pub struct BrowseResourceViewedEvent {
 schema!(BrowseResourceViewedEvent);
 
 /// Request to browse resources with optional filtering and pagination
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct BrowseResourcesRequest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub archived: Option<bool>,
@@ -2114,7 +2130,7 @@ pub struct BrowseResourcesResult {
 schema!(BrowseResourcesResult);
 
 /// Emitted when the browse panel requests a router navigation
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseRouterPushEvent {
     pub path: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -2134,13 +2150,13 @@ impl BrowseRouterPushEvent {
 schema!(BrowseRouterPushEvent);
 
 /// Request to browse registered tag schemas
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct BrowseTagSchemasRequest {}
 
 schema!(BrowseTagSchemasRequest);
 
 /// Result of browsing tag schemas
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BrowseTagSchemasResult {
     pub response: GetTagSchemasResponse,
 }
@@ -2148,7 +2164,7 @@ pub struct BrowseTagSchemasResult {
 schema!(BrowseTagSchemasResult);
 
 /// The shared Browser: one viewer for every knowledge base the machine reaches. It belongs to no knowledge base, so its document is kept in the launcher's state home, in `stack/browser.yaml`, not in a knowledge base's repository.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Browser {
     #[serde(rename = "apiVersion")]
@@ -2191,7 +2207,7 @@ impl BrowserKind {
 }
 
 /// How the Browser runs.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BrowserSpec {
     pub image: Image,
@@ -2201,7 +2217,7 @@ pub struct BrowserSpec {
 }
 
 /// Result of publishing one event. `subscribers` is the number of observers attached to the target subject at dispatch — the GLOBAL subject for an unscoped emit, the scoped one when `scope` is set. Zero means the signal reached nobody: /bus/subscribe enforces no channel allowlist and the emit handler publishes unconditionally, so a client can emit a channel no participant subscribes to and otherwise receive a clean 202 with no way to tell. Deliberately NOT named `delivered`: this is the count at dispatch, and a subscriber may still drop the frame downstream, so the field is named after what the server can actually observe.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct BusEmitAccepted {
     /// Observers on the target subject when the event was dispatched. ABSENT means the gateway could not count: under a broker signal plane (the KnowledgeBase document's `spec.messaging.signal.type: nats`) the event is published to a fabric whose observers the gateway cannot see. The one zero a broker plane states is a registry operation's request with a `correlationId` that reached nobody, which the broker itself reports (no responders). Never defaulted: a zero here is the claim that nobody was listening, and a gateway that did not observe that never makes it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -2211,7 +2227,7 @@ pub struct BusEmitAccepted {
 schema!(BusEmitAccepted);
 
 /// One event for the bus. `channel` names a channel of the bus registry (specs/src/bus/registry.json) and `payload` must match the schema the registry's `validate` names for it. `scope` publishes a resource-bound broadcast to that resource's subscribers only; everything else is unscoped. `clientId` and `correlationId` are routing facts beside the payload, never inside it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BusEmitRequest {
     /// A channel of the bus registry.
     pub channel: String,
@@ -2249,7 +2265,7 @@ impl BusEmitRequest {
 schema!(BusEmitRequest);
 
 /// A bus frame on the stream: `event: bus-event`, an `id:` line, and one `data:` line holding the JSON-serialised BusFrame. This schema describes the message with `data` already parsed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BusEventMessage {
     pub event: BusEventMessageEvent,
@@ -2288,7 +2304,7 @@ impl BusEventMessageEvent {
 }
 
 /// One frame of the bus stream, as the `data` line of a `bus-event` message carries it (JSON-serialised on one line). `payload` is the channel's payload as its registry entry declares it. A frame on a scoped subscription carries the scope it was published on; a correlated reply carries the `correlationId` of the request it answers.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BusFrame {
     /// A channel of the bus registry (specs/src/bus/registry.json).
@@ -2322,7 +2338,7 @@ impl BusFrame {
 schema!(BusFrame);
 
 /// The heartbeat: `event: ping` with an empty `data:` line. The first is written once the stream has caught up (after any replay), then one every `x-xynolog-limits.heartbeatSeconds`. It carries no id, so it never disturbs a client's last-seen ids.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BusPingMessage {
     pub event: BusPingMessageEvent,
@@ -2359,7 +2375,7 @@ impl BusPingMessageEvent {
 }
 
 /// The payload of `bus:resume-gap`: a scope's `lastEventId` could not be honoured, so the client cannot trust that it has every persisted event of that scope and must refetch what it caches for it. Written by the gateway, never by a participant.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BusResumeGap {
     /// The scope of the subscription entry whose watermark failed.
@@ -2401,7 +2417,7 @@ impl BusResumeGapReason {
 }
 
 /// Every message the bus stream carries. A client ignores an `event` it does not know; the gateway writes no other.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum BusStreamMessage {
     EventMessage(BusEventMessage),
@@ -2413,7 +2429,7 @@ member!(BusStreamMessage::PingMessage(BusPingMessage));
 schema!(BusStreamMessage);
 
 /// Subscription matrix for the bus stream. `global` channels are delivered unscoped; each `scoped` entry subscribes the connection to one resource scope's channels, optionally resuming from that scope's last-seen persisted event id. At least one global channel or one scoped entry is required, and no scope may appear in two entries.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BusSubscribeRequest {
     /// Unscoped channels to subscribe to.
@@ -2445,7 +2461,7 @@ impl BusSubscribeRequest {
 
 schema!(BusSubscribeRequest);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BusSubscribeRequestScopedItem {
     /// Resource scope (a resourceId).
@@ -2470,7 +2486,7 @@ impl BusSubscribeRequestScopedItem {
 }
 
 /// The client gives up on one of its requests. The launcher answers that request with control.cancelled, unless it has answered it already; a cancellation of a request it does not know is ignored.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Cancelled {
     #[serde(rename = "requestId")]
@@ -2493,7 +2509,7 @@ impl Cancelled {
 schema!(Cancelled);
 
 /// What a worker's claiming of jobs is told: the jobs it takes, and how long it waits for what it waits on. A wait left out is client/timing.json's of the same name.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ClaimOptions {
     /// The jobs this claim takes. A job is handed over when it matches any one of them.
@@ -2532,7 +2548,7 @@ impl ClaimOptions {
 schema!(ClaimOptions);
 
 /// The form a service account that holds a client secret posts to its issuer's token endpoint for a client-credentials grant: its client id and secret in the body (RFC 6749 §2.3.1). An account that holds a key proves itself by the client assertion of client-assertion-cases.json instead.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ClientSecretForm {
     /// The grant, client-assertion-cases.json's grantType.
     pub grant_type: ClientSecretFormGrantType,
@@ -2586,7 +2602,7 @@ pub struct CloneResourceWithTokenResponse {
 schema!(CloneResourceWithTokenResponse);
 
 /// Error response for failed bus commands. Replaces native Error objects on the EventBus so payloads are serializable and OpenAPI-typed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct CommandError {
     /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -2728,7 +2744,7 @@ impl CommentingJobParamsTone {
 }
 
 /// A request on the bus a live case expects the client to make, on this channel; `as` names its correlation id, for the backend to answer.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceBusFetch {
     /// The request's channel, a request of specs/src/bus/registry.json.
@@ -2753,7 +2769,7 @@ impl ConformanceBusFetch {
 schema!(ConformanceBusFetch);
 
 /// One case of the conformance corpus: a scenario every SDK's driver is put through, a JSON file of conformance/sdk/wire, conformance/sdk/live or conformance/worker/cases named by the case. What the client is asked to do, what the backend does around it, and the transcript a conforming client produces. conformance/sdk/README.md explains each step; the reader reads every file of the corpus through this schema.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceCase {
     /// What the case holds a client to, in a sentence.
@@ -2835,7 +2851,7 @@ impl ConformanceCaseTier {
 }
 
 /// A line a conformance driver writes on its standard output, one JSON object each (conformance/sdk/README.md, "The driver protocol"; conformance/worker/README.md, "The worker driver"): that it is ready, an operation's outcome, or what its client observed as it happened. The suite refuses any other line.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum ConformanceDriverLine {
     Ready(ConformanceDriverLineReady),
@@ -2859,7 +2875,7 @@ pub enum ConformanceDriverLine {
 schema!(ConformanceDriverLine);
 
 /// The suite abandoned the operation, and the SDK reported nothing else.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineAbandoned {
     /// The operation's id.
@@ -2869,7 +2885,7 @@ pub struct ConformanceDriverLineAbandoned {
 }
 
 /// A worker driver: its worker claimed a job.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineClaimed {
     /// The job, as the worker read the record.
@@ -2877,7 +2893,7 @@ pub struct ConformanceDriverLineClaimed {
 }
 
 /// The live driver: the observer's live query completed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineCompleted {
     /// The observer.
@@ -2885,7 +2901,7 @@ pub struct ConformanceDriverLineCompleted {
 }
 
 /// The live driver: an observer was given a state.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineEmission {
     /// The emission.
@@ -2893,7 +2909,7 @@ pub struct ConformanceDriverLineEmission {
 }
 
 /// The emission.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineEmissionEmission {
     /// The observer.
@@ -2903,7 +2919,7 @@ pub struct ConformanceDriverLineEmissionEmission {
 }
 
 /// The state.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum ConformanceDriverLineEmissionEmissionState {
     Pending(ConformanceDriverLineEmissionEmissionStatePending),
@@ -2911,7 +2927,7 @@ pub enum ConformanceDriverLineEmissionEmissionState {
     Failed(ConformanceDriverLineEmissionEmissionStateFailed),
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineEmissionEmissionStateFailed {
     /// The query failed.
@@ -2948,7 +2964,7 @@ impl ConformanceDriverLineEmissionEmissionStateFailedStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineEmissionEmissionStatePending {
     /// Nothing to show yet.
@@ -2988,7 +3004,7 @@ impl ConformanceDriverLineEmissionEmissionStatePendingStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineEmissionEmissionStateReady {
     /// A value to show.
@@ -3025,7 +3041,7 @@ impl ConformanceDriverLineEmissionEmissionStateReadyStatus {
 }
 
 /// The error stream carried a failure.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineErrorStream {
     /// The failure.
@@ -3033,7 +3049,7 @@ pub struct ConformanceDriverLineErrorStream {
 }
 
 /// The SDK failed the operation.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineFailed {
     /// The operation's id.
@@ -3043,7 +3059,7 @@ pub struct ConformanceDriverLineFailed {
 }
 
 /// A frame was delivered on a channel the driver listens to.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineFrame {
     /// The frame.
@@ -3051,7 +3067,7 @@ pub struct ConformanceDriverLineFrame {
 }
 
 /// The frame.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineFrameFrame {
     /// The channel.
@@ -3080,7 +3096,7 @@ impl ConformanceDriverLineFrameFrame {
 }
 
 /// The suite's arguments made no sense: the suite's mistake, never the SDK's.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineMisuse {
     /// The operation's id.
@@ -3090,7 +3106,7 @@ pub struct ConformanceDriverLineMisuse {
 }
 
 /// The operation succeeded.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineOk {
     /// The operation's id.
@@ -3099,7 +3115,7 @@ pub struct ConformanceDriverLineOk {
 }
 
 /// An upload reported how much of it has been sent.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineProgress {
     /// The report.
@@ -3107,7 +3123,7 @@ pub struct ConformanceDriverLineProgress {
 }
 
 /// The report.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineProgressProgress {
     /// The `upload` operation's id.
@@ -3121,7 +3137,7 @@ pub struct ConformanceDriverLineProgressProgress {
 }
 
 /// The driver can take operations.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineReady {
     /// Written once.
@@ -3129,7 +3145,7 @@ pub struct ConformanceDriverLineReady {
 }
 
 /// A worker driver: a claim was refused.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineRefused {
     /// The refusal: with a code when the bus refused it, with none when the worker did.
@@ -3137,7 +3153,7 @@ pub struct ConformanceDriverLineRefused {
 }
 
 /// A worker driver: a held job's cancellation was signalled.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineSignalled {
     /// The job's id.
@@ -3145,7 +3161,7 @@ pub struct ConformanceDriverLineSignalled {
 }
 
 /// A worker driver: a held job stalled.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineStalled {
     /// The job's id.
@@ -3153,7 +3169,7 @@ pub struct ConformanceDriverLineStalled {
 }
 
 /// The transport's connection state changed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineState {
     /// The state it is in now: one a case's `state` step names (ConformanceStep.json), or another the case never waits for.
@@ -3161,7 +3177,7 @@ pub struct ConformanceDriverLineState {
 }
 
 /// The driver has no such operation. It says so at once, before it reads its next operation.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineUnsupported {
     /// The operation's id.
@@ -3171,7 +3187,7 @@ pub struct ConformanceDriverLineUnsupported {
 }
 
 /// A failure as an SDK reports it to the suite (conformance/sdk/README.md, "The driver protocol"): its code, the status when a server stated one, and a job failure's class when it has one; and the SDK's own words for it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceFailure {
     /// The SDK's code for it, from specs/src/errors/codes.json.
@@ -3203,7 +3219,7 @@ impl ConformanceFailure {
 schema!(ConformanceFailure);
 
 /// A read over HTTP a live case expects the client to make: an operation of the gateway's API by its method and path, with the values its path carries. The stand-in Archivist answers it from what the case seeded.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceHttpFetch {
     /// The operation, by its method and path.
@@ -3225,7 +3241,7 @@ impl ConformanceHttpFetch {
 schema!(ConformanceHttpFetch);
 
 /// The implementations manifest: the file a run of the conformance harness is given with --implementations, naming what the run holds to Protocol. Every service is run by the xynolog launcher, from the image the knowledge base's stack documents name (contract/LAUNCHER-CONTROL.md, service.run): an implementation is a knowledge base whose documents name its images, and another implementation is another manifest. Each SDK's drivers are programs the harness starts itself, since none is a service. There is no default manifest. The reader reads this schema in the table dialect and derives its model (Tables.Conformance_implementations), for the harness to decode a manifest by.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceImplementations {
     /// How the launcher's control API is served: the xynolog command, run with control. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written.
@@ -3259,7 +3275,7 @@ impl ConformanceImplementations {
 schema!(ConformanceImplementations);
 
 /// One SDK's drivers.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceImplementationsSdksValue {
     /// How its wire driver is started. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written.
@@ -3277,7 +3293,7 @@ pub struct ConformanceImplementationsSdksValue {
 }
 
 /// How its live driver is started, and the tier of the live corpus the SDK is held to.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceImplementationsSdksValueLive {
     /// How its live driver is started. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written.
@@ -3308,7 +3324,7 @@ impl ConformanceImplementationsSdksValueLiveTier {
 }
 
 /// One step of a case of the conformance corpus (ConformanceCase.json): each is told apart by the member only it requires. conformance/sdk/README.md, "A case", says what each does.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum ConformanceStep {
     Let(ConformanceStepLet),
@@ -3346,7 +3362,7 @@ member!(ConformanceStep::HttpFetch(ConformanceHttpFetch));
 schema!(ConformanceStep);
 
 /// Abandon an operation started with `as`, as its caller would.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepAbandon {
     /// The operation.
@@ -3354,7 +3370,7 @@ pub struct ConformanceStepAbandon {
 }
 
 /// The backend does something (conformance/sdk/README.md, "Backend directives").
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepBackend {
     /// The directive.
@@ -3447,7 +3463,7 @@ impl ConformanceStepBackendBackend {
 }
 
 /// The stream a wire step named has carried this frame to the client.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepCarried {
     /// The stream.
@@ -3456,14 +3472,14 @@ pub struct ConformanceStepCarried {
 }
 
 /// A worker case: the next job the worker reports as claimed, as it read the record.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepClaimed {
     pub claimed: serde_json::Value,
 }
 
 /// The request a `wire` step named has ended with no answer reaching the client: the client closed it, or the proxy kept the gateway's answer from it (`answer-lost`).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepClosed {
     /// The request.
@@ -3471,7 +3487,7 @@ pub struct ConformanceStepClosed {
 }
 
 /// Live: the observer's live query completes.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepCompletes {
     /// The observer.
@@ -3479,7 +3495,7 @@ pub struct ConformanceStepCompletes {
 }
 
 /// Ask the driver for an operation. It must succeed, with `returns` when given, or fail with `fails`. With `as`, the step does not wait: a later `settles` step does.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepDriver {
     /// The operation (conformance/sdk/README.md, "Operations").
@@ -3510,21 +3526,21 @@ impl ConformanceStepDriver {
 }
 
 /// The next failure on the client's error stream is this one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepError {
     pub error: serde_json::Value,
 }
 
 /// Live: the next requests the client makes of a service are these, in whatever order it makes them.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepFetches {
     /// The requests.
     pub fetches: Vec<ConformanceStepFetchesFetchesItem>,
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum ConformanceStepFetchesFetchesItem {
     BusFetch(ConformanceBusFetch),
@@ -3539,7 +3555,7 @@ member!(ConformanceStepFetchesFetchesItem::HttpFetch(
 ));
 
 /// The next frame the client delivers on this channel is this one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepFrame {
     /// The channel.
@@ -3548,7 +3564,7 @@ pub struct ConformanceStepFrame {
 }
 
 /// The client delivers this many more frames on this channel. What they are is held, as every frame is, to what the gateway sent.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepFrames {
     /// The channel.
@@ -3558,7 +3574,7 @@ pub struct ConformanceStepFrames {
 }
 
 /// Live: the state the observer holds now is this one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepHolds {
     /// The observer.
@@ -3567,7 +3583,7 @@ pub struct ConformanceStepHolds {
 }
 
 /// Live: the observer stops observing.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepLeave {
     /// The observer.
@@ -3575,7 +3591,7 @@ pub struct ConformanceStepLeave {
 }
 
 /// Name values for later steps.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepLet {
     /// Each name, and the value it takes.
@@ -3583,7 +3599,7 @@ pub struct ConformanceStepLet {
 }
 
 /// Live: an observer, named by `as`, begins observing a live query.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepObserve {
     /// The live query.
@@ -3593,7 +3609,7 @@ pub struct ConformanceStepObserve {
 }
 
 /// The live query.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepObserveObserve {
     /// The live query, by its name in specs/src/client/refresh.json.
@@ -3622,7 +3638,7 @@ impl ConformanceStepObserveObserve {
 }
 
 /// An upload started with `as`, and not yet settled, has reported all of it sent: every report states the same total, none states less than the one before, and the last states the total.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepProgress {
     /// The upload.
@@ -3630,7 +3646,7 @@ pub struct ConformanceStepProgress {
 }
 
 /// The client puts nothing more on the wire for this many milliseconds.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepQuiet {
     /// How long, in milliseconds.
@@ -3638,7 +3654,7 @@ pub struct ConformanceStepQuiet {
 }
 
 /// Live: the observer comes to hold this state.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepReaches {
     /// The observer.
@@ -3647,14 +3663,14 @@ pub struct ConformanceStepReaches {
 }
 
 /// A worker case: the next refusal of a claim the worker reports.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepRefused {
     pub refused: serde_json::Value,
 }
 
 /// Live: the client's stream comes to name exactly these scopes.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepScopes {
     /// The scopes.
@@ -3662,7 +3678,7 @@ pub struct ConformanceStepScopes {
 }
 
 /// An operation started with `as` settles: it succeeded, with `returns` when given; or failed with `fails`; or, `abandoned`, it ended because the case abandoned it and reported nothing.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepSettles {
     /// The operation.
@@ -3689,21 +3705,21 @@ impl ConformanceStepSettles {
 }
 
 /// A worker case: the next held job whose cancellation the worker says was signalled.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepSignalled {
     pub signalled: serde_json::Value,
 }
 
 /// A worker case: the next held job the worker says has stalled.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepStalled {
     pub stalled: serde_json::Value,
 }
 
 /// The transport comes to report this state.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepState {
     /// The state.
@@ -3747,7 +3763,7 @@ impl ConformanceStepStateState {
 }
 
 /// The transport is in this state and has reported no other since the case last read its state.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepStays {
     /// The state.
@@ -3791,7 +3807,7 @@ impl ConformanceStepStaysStays {
 }
 
 /// The next request the client put on the wire is this operation, with each field given.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepWire {
     /// The operation of the gateway's API, by its method and path.
@@ -3868,7 +3884,7 @@ impl ConformanceStepWireAt {
 }
 
 /// Who the knowledge base at an address says it is, asked with a token just issued, before any entry is made for it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConnectionIdentity {
     /// The did it reports for itself.
@@ -3882,7 +3898,7 @@ schema!(ConnectionIdentity);
 /// Content format as a MIME type, optionally with parameters. The base type (everything before the first ';') MUST be a SupportedMediaType; parameters such as charset are preserved as metadata. Semantic validation happens in code at the create/yield boundary — there is deliberately no pattern here, the vocabulary lives in SupportedMediaType. Examples: text/plain, text/plain; charset=iso-8859-1, text/markdown; charset=windows-1252, image/png, application/pdf
 pub type ContentFormat = String;
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ContextualSummaryResponse {
     pub summary: String,
     /// What the summary is of: the resource the annotation is on, and the annotation's entity types.
@@ -3893,7 +3909,7 @@ pub struct ContextualSummaryResponse {
 
 schema!(ContextualSummaryResponse);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ContextualSummaryResponseContext {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub before: Option<String>,
@@ -3914,7 +3930,7 @@ impl ContextualSummaryResponseContext {
 }
 
 /// What the summary is of: the resource the annotation is on, and the annotation's entity types.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ContextualSummaryResponseRelevantFields {
     #[serde(rename = "resourceId")]
@@ -3925,7 +3941,7 @@ pub struct ContextualSummaryResponseRelevantFields {
     pub entity_types: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct CreateAnnotationRequest {
     pub motivation: Motivation,
     pub target: AnnotationTarget,
@@ -3948,7 +3964,7 @@ impl CreateAnnotationRequest {
 schema!(CreateAnnotationRequest);
 
 /// What creating a resource from a clone token is told: the token, the clone's name and text, and whether the source is archived once the clone exists.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct CreateFromTokenOptions {
     pub token: String,
@@ -3979,7 +3995,7 @@ impl CreateFromTokenOptions {
 schema!(CreateFromTokenOptions);
 
 /// The id of the resource an upload created. The Archivist answers it (200) once it has stored the bytes and recorded the resource, and the gateway forwards it (202), so the id is the one the record minted and its creation event is persisted. What remains asynchronous is downstream projection: graph, views and vectors settle afterwards.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct CreateResourceResponse {
     /// The id of the newly created resource, as the record minted it.
     #[serde(rename = "resourceId")]
@@ -3992,7 +4008,7 @@ schema!(CreateResourceResponse);
 pub type CursorsPath = String;
 
 /// What a device-authorization grant (RFC 8628) shows the person signing in: the code they enter, and where.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DeviceCode {
     /// The code the person enters at the issuer.
@@ -4028,7 +4044,7 @@ impl DeviceCode {
 
 schema!(DeviceCode);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DirEntry {
     pub r#type: DirEntryType,
@@ -4072,7 +4088,7 @@ impl DirEntryType {
 }
 
 /// One entry in a directory listing: a file, which may carry the resource it was ingested as, or a subdirectory. Tell them apart by `type`, which is required on both and single-valued.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum DirectoryEntry {
     FileEntry(FileEntry),
@@ -4100,7 +4116,7 @@ member!(DirectoryEntry::DirEntry(DirEntry));
 schema!(DirectoryEntry);
 
 /// One knowledge base the Xynolog launcher manages on this machine, as published in the discovery document (see DiscoveryDocument). Endpoints and identity only — never credentials; login remains the consumer's per-KB business.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct DiscoveredKB {
     /// Hostname the KB is reachable on from this machine (always "localhost" — local stacks bind locally and codespace KBs arrive through a local port forward)
     pub host: String,
@@ -4167,7 +4183,7 @@ impl DiscoveredKBPlacement {
 }
 
 /// The launcher's KB discovery document — the schema authority for <stateDir>/discovery/kbs.json, which the Xynolog CLI (xynolog/cli) regenerates on every stack mutation and the Browser container mounts read-only at /discovery. NOT an API endpoint: a static document fetched same-origin by browsers (via the Browser's static server). An empty kbs list is meaningful ("the launcher manages nothing right now") and distinct from an absent file.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct DiscoveryDocument {
     /// Document schema version. Consumers MUST check it and ignore documents they do not understand.
     pub version: i64,
@@ -4175,10 +4191,23 @@ pub struct DiscoveryDocument {
     pub kbs: Vec<DiscoveredKB>,
 }
 
+impl DiscoveryDocument {
+    /// The one `version` a `DiscoveryDocument` states.
+    pub const VERSION: i64 = 1;
+
+    /// The `DiscoveryDocument` that states these and nothing else.
+    pub fn new(kbs: Vec<DiscoveredKB>) -> Self {
+        Self {
+            version: Self::VERSION,
+            kbs,
+        }
+    }
+}
+
 schema!(DiscoveryDocument);
 
 /// Everything the dispatcher reads at boot: nothing in it is defaulted by the dispatcher. The launcher writes it for the dispatcher it starts, from the knowledge base's stack documents, and the dispatcher reads it from the path its `--config` flag names (its image passes `/etc/xynolog/dispatcher.json`). Started without `--config`, or with a path that names no file, the dispatcher refuses to start and says which. Secrets are never values here: a field that needs one names the environment variable holding it. The dispatcher's other inputs are the environment variables specs/src/service-environment/variables.json lists for it, and the ones this document names. A document that does not validate is refused at boot, naming each failing field.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DispatcherConfig {
     pub kb: KbIdentity,
@@ -4202,7 +4231,7 @@ pub struct DispatcherConfig {
 schema!(DispatcherConfig);
 
 /// The JetStream broker holding the job queue, whose layout is specs/src/jobs/storage.json.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DispatcherConfigQueue {
     /// The broker's address (`host:port`, or several, comma-separated).
@@ -4229,7 +4258,7 @@ impl DispatcherConfigQueue {
 }
 
 /// The queue's clocks, in milliseconds. The launcher writes the values a deployment runs with; a test harness shrinks them.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DispatcherConfigTiming {
     /// How often the queue re-announces pending jobs and sweeps for dead workers. The re-announcement is insurance against a lost wake-up, not dispatch.
@@ -4256,7 +4285,7 @@ pub struct DispatcherConfigTiming {
 }
 
 /// The dispatcher's liveness answer. It answers only once its queue has connected and its bus pumps are attached, so a 200 means it can take work.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DispatcherHealth {
     pub status: DispatcherHealthStatus,
@@ -4347,7 +4376,7 @@ impl DurabilityEvidence {
 schema!(DurabilityEvidence);
 
 /// The embedding provider a service asks for vectors, and what that kind of provider needs to be asked: one of the providers `xynolog-vectors` has, told apart by `type`. Two services that share an index name the same provider and the same model: a vector is compared only with vectors of the model that made it. A secret is never a value here: a provider's key is named by the environment variable that holds it.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum EmbeddingConfig {
     OllamaEmbeddingConfig(OllamaEmbeddingConfig),
@@ -4383,12 +4412,14 @@ member!(EmbeddingConfig::VoyageEmbeddingConfig(
 schema!(EmbeddingConfig);
 
 /// An object with no properties.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Hash, Eq, Default, serde::Deserialize, serde::Serialize,
+)]
 #[serde(deny_unknown_fields)]
 pub struct EmptyObject {}
 
 /// An engine: an inference provider and a model, which software does a job or an actor's step with. An engine is not a principal: the principal that used one names it on each write it produced with it (`generator`). A person who does a job uses none.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Engine {
     /// The inference provider: who serves the model. `anthropic`, `google`, `openai` and `together` are those companies' own APIs. `llamacpp`, `ollama` and `vllm` are servers a deployment runs or reaches, each named for the server's software.
@@ -4400,7 +4431,7 @@ pub struct Engine {
 schema!(Engine);
 
 /// One of the knowledge base's engines: a provider and a model its Inference document names, and the jobs the document has it used for. An engine is not a principal: whichever worker claims a job does it, under its own account, and names on each write the engine it used, if any. Carries no inference limits: the services that hold the inference credentials report those (InferenceLimitsResult).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct EngineEntry {
     pub engine: Engine,
@@ -4465,7 +4496,7 @@ impl EngineProvider {
 }
 
 /// Wire format for persisted events delivered over the bus SSE stream (GET /bus/subscribe). Extends StoredEventResponse with optional enrichment fields the EventStore populates from the materialized view at publish time (persistence → view → enrich → notification). Subscribers read the enrichment fields directly to update local caches without an additional fetch.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct EnrichedResourceEvent {
     /// Unique event ID (UUID)
     pub id: String,
@@ -4518,7 +4549,7 @@ impl EnrichedResourceEvent {
 schema!(EnrichedResourceEvent);
 
 /// Payload for mark:entity-tag-added and mark:entity-tag-removed domain events
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct EntityTagChangedPayload {
     #[serde(rename = "entityType")]
     pub entity_type: String,
@@ -4527,7 +4558,7 @@ pub struct EntityTagChangedPayload {
 schema!(EntityTagChangedPayload);
 
 /// Payload for frame:entity-type-added domain event (system-level, no resourceId — fan-out is global)
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct EntityTypeAddedPayload {
     #[serde(rename = "entityType")]
     pub entity_type: String,
@@ -4536,7 +4567,7 @@ pub struct EntityTypeAddedPayload {
 schema!(EntityTypeAddedPayload);
 
 /// The knowledge base's entity-type vocabulary: the file `projections/__system__/entitytypes.json` under the state directory, the sum of the `frame:entity-type-added` events. Written as JSON indented by two spaces.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct EntityTypesProjection {
     /// Every entity type added, each once, sorted.
@@ -4550,7 +4581,7 @@ schema!(EntityTypesProjection);
 pub type EphemeralEventId = String;
 
 /// The data of a control error: the launcher's code for the failure, one of specs/src/errors/codes.json's control group, and what a client can act on. A request's failure is never only a message.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ErrorData {
     /// Why the request failed: a code of the control group of specs/src/errors/codes.json.
@@ -4589,7 +4620,7 @@ impl ErrorData {
 schema!(ErrorData);
 
 /// The body of every error the gateway answers, whatever the status and whatever the route — including a path it does not serve.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ErrorResponse {
     /// What went wrong, in a sentence.
     pub error: String,
@@ -4618,7 +4649,7 @@ impl ErrorResponse {
 schema!(ErrorResponse);
 
 /// Metadata added at persistence time. Part of every StoredEvent. Integrity is provided by git at the commit level (when gitSync is enabled), not by in-event metadata fields.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct EventMetadata {
     /// Monotonic position in the event log (ordering authority)
     #[serde(rename = "sequenceNumber")]
@@ -4628,7 +4659,7 @@ pub struct EventMetadata {
 schema!(EventMetadata);
 
 /// What a person believed they were signing in to: the did and the name of the row they clicked, or of the entry they signed in to again.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Expected {
     /// The did they believed it has.
@@ -4711,7 +4742,7 @@ impl ExtractedTextKind {
 }
 
 /// A named decline: extraction ran and yielded nothing, by class. A first-class, cacheable outcome — 'we ran and there was nothing' costs a full recognition pass to discover.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ExtractionDeclined {
     /// Discriminant — both ExtractionOutcome members carry `kind`, single-valued: the category here, the detail in `declined`.
     pub kind: ExtractionDeclinedKind,
@@ -4869,7 +4900,7 @@ impl FailureClass {
 schema!(FailureClass);
 
 /// One fault in a request's params, named where it is.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct FieldFault {
     /// Where in the params the fault is, as a JSON pointer (RFC 6901); empty for the params as a whole.
@@ -4880,7 +4911,7 @@ pub struct FieldFault {
 
 schema!(FieldFault);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct FileEntry {
     pub r#type: FileEntryType,
@@ -4955,7 +4986,7 @@ impl FileEntryType {
 }
 
 /// How far a follower of the record has followed it, as every follower says it at its health port (WEAVER.md § Health, SMELTER.md § Health).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct FollowerFollowing {
     /// The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again.
@@ -4999,7 +5030,7 @@ impl FollowerFollowingSweep {
 }
 
 /// W3C Web Annotation FragmentSelector for media fragment identifiers (RFC 3778 for PDFs)
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct FragmentSelector {
     pub r#type: FragmentSelectorType,
     /// Media fragment identifier (e.g., 'page=1&viewrect=100,200,50,30' for PDF)
@@ -5041,7 +5072,7 @@ impl FragmentSelectorType {
 }
 
 /// Bus command to add a new entity type to the KB's vocabulary. Carried on the `frame:add-entity-type` channel — Frame is the schema-layer flow that owns vocabulary writes.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct FrameAddEntityTypeCommand {
     pub tag: String,
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
@@ -5063,7 +5094,7 @@ impl FrameAddEntityTypeCommand {
 schema!(FrameAddEntityTypeCommand);
 
 /// Bus command to register a tag schema with the KB's runtime registry. Carried on the `frame:add-tag-schema` channel — Frame is the schema-layer flow that owns vocabulary writes. Most-recent registration of a given `schema.id` wins; the projection reflects the latest content. Identical re-registrations are silent; differing content overwrites and logs a warning.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct FrameAddTagSchemaCommand {
     pub schema: TagSchema,
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
@@ -5108,7 +5139,7 @@ impl FrameRefusalReason {
 schema!(FrameRefusalReason);
 
 /// Everything the gateway reads at boot: nothing in it is defaulted by the gateway. The launcher writes it for the gateway it starts — from the knowledge base's committed identity and its stack documents — and a gateway started any other way is given the same document at the path its `--config` flag names (the image passes `/etc/xynolog/gateway.json`). Started without `--config`, or with a path that names no file, the gateway refuses to start and says which. Secrets are never values here: a field that needs one names the environment variable holding it. The gateway's other inputs are the environment variables specs/src/service-environment/variables.json lists for it, and the ones this document names. A document that does not validate is refused at boot — the gateway exits without serving — and the refusal names each failing field by its JSON pointer.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct GatewayConfig {
     pub kb: KbIdentity,
@@ -5134,7 +5165,7 @@ pub struct GatewayConfig {
 schema!(GatewayConfig);
 
 /// What this gateway process can hold, from the memory its deployment gives it. `queuedBytes`: the bytes queued for all its streams together; at it, a new stream is refused with 503 (`AtCapacity`, code `capacity`) until the queues drain — each stream's own bound is `x-xynolog-limits.pendingWriteBytes`. `connections`: the connections it holds open at once; one past it is closed unanswered. The launcher derives both from the memory it gives the gateway's container.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct GatewayConfigCapacity {
     #[serde(rename = "queuedBytes")]
@@ -5143,7 +5174,7 @@ pub struct GatewayConfigCapacity {
 }
 
 /// The issuer this knowledge base trusts.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct GatewayConfigIdentity {
     /// The issuer URL, exactly as tokens carry it in `iss`.
@@ -5154,7 +5185,7 @@ pub struct GatewayConfigIdentity {
 }
 
 /// The signal plane: `in-process`, one gateway on its own fabric; or `nats`, the fabric every replica on one broker shares, which requires `servers` and a broker with JetStream.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct GatewayConfigSignal {
     pub r#type: GatewayConfigSignalType,
@@ -5216,7 +5247,7 @@ pub struct GatherAnnotationComplete {
 schema!(GatherAnnotationComplete);
 
 /// Optional configuration for an annotation-focus gather, which windows text around a mark. Distinct from the resource-focus options (depth / maxResources / includeContent / includeSummary), which traverse the resource graph.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct GatherAnnotationOptions {
     /// Whether to include source context in the gathered result
     #[serde(rename = "includeSourceContext")]
@@ -5235,7 +5266,7 @@ pub struct GatherAnnotationOptions {
 schema!(GatherAnnotationOptions);
 
 /// Request payload sent on the gather:requested bus channel to gather context for an annotation.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatherAnnotationRequest {
     /// Branded AnnotationId of the annotation to gather context for
     #[serde(rename = "annotationId")]
@@ -5261,7 +5292,7 @@ impl GatherAnnotationRequest {
 schema!(GatherAnnotationRequest);
 
 /// The payload of `gather:failed`: a CommandError that names the annotation whose context could not be gathered.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatherFailed {
     /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -5291,7 +5322,7 @@ impl GatherFailed {
 schema!(GatherFailed);
 
 /// Request for the annotations elsewhere that refer to a resource. The Librarian answers from the graph.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatherReferencedByRequest {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -5313,7 +5344,7 @@ impl GatherReferencedByRequest {
 schema!(GatherReferencedByRequest);
 
 /// The annotations elsewhere that refer to a resource
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatherReferencedByResult {
     pub response: GetReferencedByResponse,
 }
@@ -5333,7 +5364,7 @@ pub struct GatherResourceComplete {
 schema!(GatherResourceComplete);
 
 /// The payload of `gather:resource-failed`: a CommandError that names the resource whose context could not be gathered.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatherResourceFailed {
     /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -5363,7 +5394,7 @@ impl GatherResourceFailed {
 schema!(GatherResourceFailed);
 
 /// What gathering the context of a resource is told beside the resource: GatherResourceRequestOptions, each member of which a caller may leave out. client/surface.json's `gather.resource` cases state what is sent for one left out.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct GatherResourceOptions {
     /// How many links out from the resource the knowledge graph reaches, nearest first: 1 is what the resource links to and what cites it, and each further link out adds what those link to and what cites them
@@ -5390,7 +5421,7 @@ pub struct GatherResourceOptions {
 schema!(GatherResourceOptions);
 
 /// Request payload sent on the gather:resource-requested bus channel to gather context for a resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatherResourceRequest {
     /// Branded ResourceId of the resource to gather context for
     #[serde(rename = "resourceId")]
@@ -5401,7 +5432,7 @@ pub struct GatherResourceRequest {
 schema!(GatherResourceRequest);
 
 /// Gathering configuration
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatherResourceRequestOptions {
     /// How many links out from the resource the knowledge graph reaches, nearest first: 1 is what the resource links to and what cites it, and each further link out adds what those link to and what cites them
     pub depth: u16,
@@ -5441,7 +5472,7 @@ impl GatherResourceRequestOptions {
 schema!(GatherResourceRequestOptions);
 
 /// Request to generate an AI summary of an annotation
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatherSummaryRequest {
     #[serde(rename = "annotationId")]
     pub annotation_id: AnnotationId,
@@ -5556,7 +5587,7 @@ impl GatheredContextFocusAnnotationKind {
 }
 
 /// Text context around the annotation target
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatheredContextFocusAnnotationSelected {
     /// Text appearing before the selected passage
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -5580,7 +5611,7 @@ impl GatheredContextFocusAnnotationSelected {
 }
 
 /// Context about the annotation's link target. Dormant — produced/exposed but not yet consumed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GatheredContextFocusAnnotationTargetContext {
     pub content: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -5627,7 +5658,7 @@ impl GatheredContextFocusResource {
 }
 
 /// Resource content (included when requested)
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct GatheredContextFocusResourceContent {
     /// Content of the focal resource
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -5655,7 +5686,7 @@ impl GatheredContextFocusResourceKind {
 }
 
 /// Context metadata about the focal anchor and its source
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct GatheredContextMetadata {
     /// Type of source resource (e.g., 'document', 'image', 'video')
     #[serde(rename = "resourceType")]
@@ -5882,7 +5913,7 @@ impl GetAnnotationsResponse {
 
 schema!(GetAnnotationsResponse);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GetEntityTypesResponse {
     #[serde(rename = "entityTypes")]
     pub entity_types: Vec<String>,
@@ -5900,7 +5931,7 @@ pub struct GetEventsResponse {
 
 schema!(GetEventsResponse);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GetReferencedByResponse {
     #[serde(rename = "referencedBy")]
     pub referenced_by: Vec<GetReferencedByResponseReferencedByItem>,
@@ -5908,7 +5939,7 @@ pub struct GetReferencedByResponse {
 
 schema!(GetReferencedByResponse);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GetReferencedByResponseReferencedByItem {
     /// Reference annotation ID
     pub id: AnnotationId,
@@ -5932,14 +5963,14 @@ impl GetReferencedByResponseReferencedByItem {
 
 schema!(GetReferencedByResponseReferencedByItem);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GetReferencedByResponseReferencedByItemTarget {
     /// ID of resource containing the reference
     pub source: ResourceId,
     pub selector: GetReferencedByResponseReferencedByItemTargetSelector,
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GetReferencedByResponseReferencedByItemTargetSelector {
     /// The selected text that references this resource
     pub exact: String,
@@ -5965,7 +5996,7 @@ pub struct GetResourceResponse {
 
 schema!(GetResourceResponse);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GetTagSchemasResponse {
     #[serde(rename = "tagSchemas")]
     pub tag_schemas: Vec<TagSchema>,
@@ -5974,7 +6005,7 @@ pub struct GetTagSchemasResponse {
 schema!(GetTagSchemasResponse);
 
 /// An annotation's graph presence. The node IS the annotation, so the full W3C object is required — selectors and body included, which is what lets a client place context annotations without a second fetch. Citations ride here too: an inbound reference is its linking annotation, anchored by an `annotation-of` edge to the resource it lives on and a `cites` edge to the focal resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GraphAnnotationNode {
     /// The AnnotationId — the same value as annotation.id
     pub id: AnnotationId,
@@ -6024,7 +6055,7 @@ impl GraphAnnotationNodeType {
 }
 
 /// The graph database a service writes or reads, and what that kind of database needs to be reached: one of the kinds `xynolog-graph` has a store for, told apart by `type`. A secret is never a value here: a database's password is named by the environment variable that holds it.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum GraphConfig {
     Neo4jGraphConfig(Neo4jGraphConfig),
@@ -6058,7 +6089,7 @@ member!(GraphConfig::MemoryGraphConfig(MemoryGraphConfig));
 schema!(GraphConfig);
 
 /// A resource's presence in the gathered knowledge graph.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct GraphResourceNode {
     /// The resource's ResourceId
     pub id: ResourceId,
@@ -6106,7 +6137,7 @@ impl GraphResourceNodeType {
 }
 
 /// Liveness: the process is up and serving. It asks nothing of the Archivist or the broker — a gateway that cannot reach them refuses to start, so one that answers here got past both at boot.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct HealthResponse {
     pub status: String,
     pub message: String,
@@ -6171,7 +6202,7 @@ impl HighlightingJobParamsMotivation {
 }
 
 /// Where somebody else's daemon listens.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct HostPort {
     /// A host name or address the stack's containers can reach.
@@ -6183,7 +6214,7 @@ pub struct HostPort {
 schema!(HostPort);
 
 /// A knowledge base reached through its gateway, over HTTP. The gateway's origin is the protocol, the host in lowercase and the port; a host that is not a host's name is refused before it is put into a URL (specs/src/session/gateway-url-cases.json).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct HttpEndpoint {
     /// Discriminant: the endpoint is a gateway reached over HTTP.
     pub kind: HttpEndpointKind,
@@ -6252,7 +6283,7 @@ impl HttpEndpointProtocol {
 pub type HttpStatus = u16;
 
 /// An account in a knowledge base's launcher-managed identity realm. Passwords and tokens are never included.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IdentityUser {
     /// The account's sign-in name, normally its email address.
@@ -6266,7 +6297,7 @@ pub struct IdentityUser {
 schema!(IdentityUser);
 
 /// Create one account in the launcher-managed Keycloak realm for a specific local knowledge base.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IdentityUseraddParams {
     #[serde(rename = "apiVersion")]
@@ -6303,7 +6334,7 @@ impl IdentityUseraddParams {
 schema!(IdentityUseraddParams);
 
 /// The created account's sign-in identity. A generated password is present only in this one answer and is not stored by the launcher.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IdentityUseraddResult {
     /// The account's email address.
@@ -6333,7 +6364,7 @@ impl IdentityUseraddResult {
 schema!(IdentityUseraddResult);
 
 /// List accounts in one local knowledge base's launcher-managed Keycloak realm.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IdentityUsersListParams {
     #[serde(rename = "apiVersion")]
@@ -6344,7 +6375,7 @@ pub struct IdentityUsersListParams {
 schema!(IdentityUsersListParams);
 
 /// Accounts in the selected knowledge base's launcher-managed identity realm.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IdentityUsersListResult {
     /// Accounts, sorted by sign-in name.
@@ -6357,7 +6388,7 @@ schema!(IdentityUsersListResult);
 pub type Image = String;
 
 /// The engines a machine uses for a knowledge base: the providers it reaches, and the provider and model each job and each Librarian actor is done with. A knowledge base's repository may carry several, one for each provider, and a machine chooses one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Inference {
     #[serde(rename = "apiVersion")]
@@ -6428,7 +6459,7 @@ impl InferenceLimits {
 schema!(InferenceLimits);
 
 /// Request for the inference limits of the engines one service holds a client for. Answered on job:limits-requested by the worker, and on gather:limits-requested and match:limits-requested by the librarian: each service that holds an inference credential reports for its own engines, so no other service needs one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct InferenceLimitsRequest {}
 
 schema!(InferenceLimitsRequest);
@@ -6447,7 +6478,7 @@ pub struct InferenceLimitsResultResponse {
 }
 
 /// The providers, and the engine for each job and each Librarian actor.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct InferenceSpec {
     /// Each provider an engine names, and how it is reached.
@@ -6457,7 +6488,7 @@ pub struct InferenceSpec {
 }
 
 /// The tokens an issuer issued at the end of a sign-in.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IssuedTokens {
     /// The access token: short-lived, sent as a Bearer token.
@@ -6469,7 +6500,7 @@ pub struct IssuedTokens {
 schema!(IssuedTokens);
 
 /// The issuer the launcher runs for the knowledge bases on a machine, with a realm for each, and the database it keeps their realms in. It belongs to no knowledge base, so its document is kept in the launcher's state home, in `stack/issuer.yaml`, not in a knowledge base's repository. A knowledge base trusts it by naming `shared`; one trusting somebody else's issuer names it at `external`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Issuer {
     #[serde(rename = "apiVersion")]
@@ -6512,7 +6543,7 @@ impl IssuerKind {
 }
 
 /// The issuer, where it is published, and the database it keeps its realms in.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IssuerSpec {
     /// The issuer's driver: `keycloak`.
@@ -6526,7 +6557,7 @@ pub struct IssuerSpec {
 }
 
 /// The database the issuer keeps its realms in.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IssuerSpecDatabase {
     /// The database's driver: `postgres`.
@@ -6567,7 +6598,7 @@ impl IssuerSpecDatabase {
 }
 
 /// A database somebody else runs.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IssuerSpecDatabaseExternal {
     /// A host name or address the issuer can reach.
@@ -6578,7 +6609,7 @@ pub struct IssuerSpecDatabaseExternal {
 }
 
 /// A graph kept in a JanusGraph server, asked in Gremlin. No service has been run against one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct JanusGraphConfig {
     pub r#type: JanusGraphConfigType,
@@ -6656,7 +6687,7 @@ member!(Job::Cancelled(JobCancelled));
 schema!(Job);
 
 /// Bus command the dispatcher emits, under its own service identity, immediately after it accepts a job:claim — the correlated job:claimed reply is unchanged. The Stower persists it as job:assigned. It is the one fact only the dispatcher can vouch for: which holder took which job, and who requested it. A later write citing `jobId` is checked against the holder and its `creator` derived from the requester by reading the resource's own log, with nothing outside the record.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobAssignCommand {
     /// The dispatcher's service DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -6698,7 +6729,7 @@ impl JobAssignCommand {
 schema!(JobAssignCommand);
 
 /// Payload for job:assigned — the dispatcher's own record that it accepted a claim. Emitted by the dispatcher under its service identity after a successful job:claim (the correlated job:claimed reply is unchanged). This is the one fact only the dispatcher can vouch for: which holder took which job, and who requested it. The Stower persists it beside job:started so that a write citing `jobId` can be checked against the holder and its `creator` derived from the requester with no read outside the event log.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobAssignedPayload {
     #[serde(rename = "jobId")]
     pub job_id: JobId,
@@ -6716,7 +6747,7 @@ pub struct JobAssignedPayload {
 schema!(JobAssignedPayload);
 
 /// A worker's settling of a running job it holds whose work it has stopped for a cancellation — the queue moves the job to cancelled/. Distinct from JobCancelRequest (the client→worker REQUEST to stop): this is the worker announcing it did, so the running job is never yanked to cancelled/ out from under a live worker (the roach-motel race).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobCancelCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -6760,7 +6791,7 @@ impl JobCancelCommand {
 schema!(JobCancelCommand);
 
 /// Request to cancel one job, named by its id. A pending job is cancelled immediately by the dispatcher. A running job is cancelled only by the worker that holds it: the worker stops its work and settles the job with `job:cancel` (JobCancelCommand). The queue is never made to yank a running job out from under a live worker.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobCancelRequest {
     #[serde(rename = "jobId")]
     pub job_id: JobId,
@@ -6769,7 +6800,7 @@ pub struct JobCancelRequest {
 schema!(JobCancelRequest);
 
 /// What a cancel did, in the `response` of `job:cancel-ok`: whether the queue acted on the job it named. A pending job is cancelled outright; a running one is left to its worker, so for it true means accepted, not stopped.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobCancelResult {
     /// True when the queue acted on the job; false when the job is unknown or already over.
     pub cancelled: bool,
@@ -6778,7 +6809,7 @@ pub struct JobCancelResult {
 schema!(JobCancelResult);
 
 /// A job cancelled before it concluded.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct JobCancelled {
     pub status: JobCancelledStatus,
@@ -6826,7 +6857,7 @@ impl JobCancelledStatus {
 }
 
 /// Command to persist a running job's completed-unit checkpoint AT unit completion. Distinct from JobFailCommand's checkpoint, which lands only on a clean failure: a worker that dies (crash/OOM/kill) never emits job:fail, so this durable, unthrottled write is what lets the janitor's stale-running recovery resume a dead worker's job rather than redo its finished units.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobCheckpointCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -6858,7 +6889,7 @@ impl JobCheckpointCommand {
 schema!(JobCheckpointCommand);
 
 /// Claim the NEXT pending job that matches one of `accepts` (atomic: pending → running). A job:queued announcement is a WAKE-UP, not a reservation: the claimed job may differ from the announced one, and two claims after one announcement both succeed on different jobs instead of racing for one. job:claimed carries the claimed job; job:claim-failed reports that nothing matching is pending.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobClaimCommand {
     /// The jobs this claim takes. A job is handed over when it matches any one of them.
     pub accepts: Vec<JobFilter>,
@@ -6894,7 +6925,7 @@ pub struct JobClaimedResult {
 schema!(JobClaimedResult);
 
 /// A job its worker completed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct JobComplete {
     pub status: JobCompleteStatus,
@@ -6932,7 +6963,7 @@ impl JobComplete {
 schema!(JobComplete);
 
 /// A job's worker says the job is complete. The result it carries is its verb's: a `mark` job's counts or the resource a `yield` job made, or a decline from either. A completion whose result is the other verb's is refused where the command is admitted.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum JobCompleteCommand {
     MarkJobCompleteCommand(MarkJobCompleteCommand),
@@ -6985,7 +7016,7 @@ impl JobCompleteStatus {
 }
 
 /// Payload for job:completed domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobCompletedPayload {
     #[serde(rename = "jobId")]
     pub job_id: JobId,
@@ -7075,14 +7106,14 @@ member!(JobCreateCommand::YieldJobCreateCommand(
 schema!(JobCreateCommand);
 
 /// Result of a job:create command
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobCreatedResult {
     pub response: JobCreatedResultResponse,
 }
 
 schema!(JobCreatedResult);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobCreatedResultResponse {
     #[serde(rename = "jobId")]
     pub job_id: JobId,
@@ -7091,7 +7122,7 @@ pub struct JobCreatedResultResponse {
 schema!(JobCreatedResultResponse);
 
 /// Result of a job that completed without doing its work because the resource could not be read. Distinct from a failure: nothing went wrong, there was simply no text to work with — an encrypted or damaged PDF, a scan whose text could not be recognized, or a document that yielded nothing. The reasons are the extraction vocabulary the Smelter reports on `smelt:settled`, MINUS `no-extractor`: a media type that can never yield text (a zip, an image) is a bad request rather than a decline, so a worker asked to detect over one throws and the job reports `job:fail`. Everything here is a resource-specific outcome — the same media type would have succeeded on a different document.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct JobDeclined {
     /// Always true. It is what tells a decline from the result of a job that did its work, which never carries it.
@@ -7133,7 +7164,7 @@ impl JobDeclinedReason {
 }
 
 /// Command to mark a job as failed
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobFailCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -7200,7 +7231,7 @@ impl JobFailCommand {
 schema!(JobFailCommand);
 
 /// A job that failed and will not be retried.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct JobFailed {
     pub status: JobFailedStatus,
@@ -7243,7 +7274,7 @@ impl JobFailed {
 schema!(JobFailed);
 
 /// Payload for the job:failed domain event — a permanent fact of the resource, not operational state. It carries the judgments the worker COMPUTED, not just its message: at the log they are otherwise unrecoverable, the only remaining witness being a flattened English string.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobFailedPayload {
     #[serde(rename = "jobId")]
     pub job_id: JobId,
@@ -7304,7 +7335,7 @@ impl JobFailedStatus {
 }
 
 /// Some jobs, named by fields of the job description: a partial description, at the description's own paths. A job matches when every field stated here equals the job's. A `mark` filter always states its motivation.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum JobFilter {
     MarkJobFilter(MarkJobFilter),
@@ -7426,7 +7457,7 @@ impl PartialEq<&str> for JobId {
 schema!(JobId);
 
 /// What the dispatcher records about a job beside its parameters. `completedUnits` and `unitCursors` appear once a worker has checkpointed. `retryCount` counts the times the queue has put the job back to pending after a failure it classes as transient.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct JobMetadata {
     /// The job's id: `job-` followed by a version 4 UUID written as 32 lowercase hex digits, without dashes.
@@ -7478,7 +7509,7 @@ impl JobMetadata {
 schema!(JobMetadata);
 
 /// A job's parameters as the Dispatcher holds them: the `params` of its `job:create`, and what the Dispatcher adds. It adds `resourceId`, the resource the job is about: a `mark` job's own, and for a `yield` job the one its context focuses on. For a tagging job it adds `schema`, the tag schema its `schemaId` names, so that whoever holds the job needs no registry. Nothing the caller sent is changed or removed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobParams {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -7504,7 +7535,7 @@ impl JobParams {
 schema!(JobParams);
 
 /// A job waiting for a worker to claim it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct JobPending {
     pub status: JobPendingStatus,
@@ -7543,7 +7574,7 @@ impl JobPendingStatus {
 }
 
 /// How a job's `pollUntilComplete` asks for the job's status: how long it waits between its asks, and how long it goes on asking. A member left out is client/timing.json's: `jobPollMs` and `jobPollTimeoutMs`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct JobPollOptions {
     /// How long it waits between one ask and the next, in milliseconds.
@@ -7623,7 +7654,7 @@ impl JobProgress {
 schema!(JobProgress);
 
 /// Analyzing the content.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressAnalyzing {
     pub code: JobProgressAnalyzingCode,
 }
@@ -7663,7 +7694,7 @@ impl JobProgressAnalyzingCode {
 }
 
 /// Analyzing the content against the tag schema.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressAnalyzingTags {
     pub code: JobProgressAnalyzingTagsCode,
 }
@@ -7703,7 +7734,7 @@ impl JobProgressAnalyzingTagsCode {
 }
 
 /// Terminal success summary.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressCompleteCreated {
     pub code: JobProgressCompleteCreatedCode,
     /// How many annotations were created
@@ -7743,7 +7774,7 @@ impl JobProgressCompleteCreatedCode {
 }
 
 /// Generation's terminal success. Deliberately generic — the client already holds the title it typed, and the outcome (name + resource link) travels on job:complete, not on progress. `truncated` qualifies the completion: the same bit `YieldJobDone.truncated` carries, so the two surfaces cannot drift.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressCompleteGenerated {
     pub code: JobProgressCompleteGeneratedCode,
     /// True when the model stopped at the maxTokens ceiling — the artifact is cut off, not complete.
@@ -7779,7 +7810,7 @@ impl JobProgressCompleteGeneratedCode {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressCompletedItemsItem {
     /// The item, shown verbatim.
     pub value: String,
@@ -7809,7 +7840,7 @@ impl JobProgressCompletedItemsItem {
 }
 
 /// Present only when pieces of this unit were accepted at the subdivision floor while a count call said more was present. The unit completed, but incompletely — this carries the EVIDENCE (found vs counted, over how many pieces), never a judgment against any expected yield. Absent means complete: genuinely absent, not defaulted.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressCompletedItemsItemUnderReported {
     /// Floor-accepted pieces in this unit.
     pub pieces: i64,
@@ -7820,7 +7851,7 @@ pub struct JobProgressCompletedItemsItemUnderReported {
 }
 
 /// Writing detected annotations back to the resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressCreatingAnnotations {
     pub code: JobProgressCreatingAnnotationsCode,
     /// How many annotations are being created
@@ -7857,7 +7888,7 @@ impl JobProgressCreatingAnnotationsCode {
 }
 
 /// Writing the generated resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressCreatingResource {
     pub code: JobProgressCreatingResourceCode,
 }
@@ -7897,7 +7928,7 @@ impl JobProgressCreatingResourceCode {
 }
 
 /// Writing detected tag annotations back to the resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressCreatingTagAnnotations {
     pub code: JobProgressCreatingTagAnnotationsCode,
     /// How many annotations are being created
@@ -7936,7 +7967,7 @@ impl JobProgressCreatingTagAnnotationsCode {
 }
 
 /// What the run is working on right now. `kind` is a CODE the client renders a localized name for; `value` is KB data (an entity type, a tag category) shown verbatim — the same split as `requestParams`. Absent on flows that iterate nothing, such as generation.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressCurrent {
     /// What sort of thing `value` is. Adding a variant means adding client copy for it in every locale.
     pub kind: JobProgressCurrentKind,
@@ -7966,7 +7997,7 @@ impl JobProgressCurrentKind {
 }
 
 /// Entity detection, one entity type at a time.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressDetectingEntities {
     pub code: JobProgressDetectingEntitiesCode,
     /// Entity type currently being detected
@@ -8004,7 +8035,7 @@ impl JobProgressDetectingEntitiesCode {
 }
 
 /// The model is generating the resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressGeneratingResource {
     pub code: JobProgressGeneratingResourceCode,
 }
@@ -8044,7 +8075,7 @@ impl JobProgressGeneratingResourceCode {
 }
 
 /// Loading the resource content.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressLoading {
     pub code: JobProgressLoadingCode,
 }
@@ -8084,7 +8115,7 @@ impl JobProgressLoadingCode {
 }
 
 /// What a running job is doing right now, as a code plus typed params — never a prose sentence. The producer reports what happened; each client renders it in the user's language (react-ui from its translations, the Go launcher from its English map). One named schema per code, discriminated on `code`, so generated clients get typed variants and copy-map completeness is statically checkable. The vocabulary is every report Xynolog's worker makes (contract/WORKER-SERVICE.md, D16 to D19 and Y8); extending it means adding a named variant here and copy in every client, gated by the locale-completeness check.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum JobProgressMessage {
     Loading(JobProgressLoading),
@@ -8165,7 +8196,7 @@ member!(JobProgressMessage::CompleteCreated(
 ));
 schema!(JobProgressMessage);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobProgressRequestParamsItem {
     /// Which parameter this is. The client renders a localized name for it.
     pub label: JobProgressRequestParamsItemLabel,
@@ -8284,7 +8315,7 @@ impl JobReportProgressCommand {
 schema!(JobReportProgressCommand);
 
 /// What a job reports when it concludes without failing: a `mark` job's counts, the resource a `yield` job made, or a decline from either. A result has no discriminant of its own: the job description beside it says which job it answers, and the three share no member, so each is told from the others by what it alone carries.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum JobResult {
     MarkJobDone(MarkJobDone),
@@ -8348,7 +8379,7 @@ impl JobRunningStatus {
 }
 
 /// Command to start a job
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobStartCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -8386,7 +8417,7 @@ impl JobStartCommand {
 schema!(JobStartCommand);
 
 /// Payload for job:started domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobStartedPayload {
     #[serde(rename = "jobId")]
     pub job_id: JobId,
@@ -8416,7 +8447,7 @@ impl JobStartedPayload {
 schema!(JobStartedPayload);
 
 /// Request to check the status of a job
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct JobStatusRequest {
     #[serde(rename = "jobId")]
     pub job_id: JobId,
@@ -8526,7 +8557,7 @@ member!(JobStoredProgress::JobProgress(JobProgress));
 schema!(JobStoredProgress);
 
 /// A completed job's result as the dispatcher stores it: the result its worker reported with `job:complete`, or an empty object when it reported none.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum JobStoredResult {
     JobResult(JobResult),
@@ -8560,7 +8591,7 @@ impl JobType {
 schema!(JobType);
 
 /// What a knowledge base says about itself, answered by the Archivist from the committed .xynolog/config.yaml and the working tree it holds. The only source clients use for a knowledge base's name and domain.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct KbDescription {
     /// The committed project.name, or the knowledge base directory's name when it commits no .xynolog/config.yaml.
     pub name: String,
@@ -8589,7 +8620,7 @@ schema!(KbDescription);
 pub type KbDid = String;
 
 /// How a knowledge base is reached: a gateway over HTTP, or a knowledge base the host process has loaded. Told apart by `kind`. Only what builds a transport, or signs in at an issuer, reads it.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum KbEndpoint {
     HttpEndpoint(HttpEndpoint),
@@ -8617,7 +8648,7 @@ member!(KbEndpoint::LocalEndpoint(LocalEndpoint));
 schema!(KbEndpoint);
 
 /// A knowledge base's committed identity (`project.name` and `site.domain` in its .xynolog/config.yaml), as a service's document names the knowledge base it serves. Its telemetry names it by its DID (`xynolog.kb`, specs/src/service-telemetry/telemetry.json).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KbIdentity {
     /// Its name. The gateway publishes it as its resource metadata's `resource_name`.
@@ -8629,7 +8660,7 @@ pub struct KbIdentity {
 schema!(KbIdentity);
 
 /// A different knowledge base answers at a registered address. Both dids, because neither alone says what to do: a person has to recognise which knowledge base they registered and which one answers.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KbIdentityConflict {
     /// The did the entry records.
@@ -8643,7 +8674,7 @@ pub struct KbIdentityConflict {
 schema!(KbIdentityConflict);
 
 /// When a knowledge base last described itself, and what it said beyond its name. A client shows it as current only while a session to the knowledge base is live, and as of `at` otherwise.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct KbRead {
     /// When the description arrived.
     pub at: String,
@@ -8692,7 +8723,7 @@ impl KbReadKind {
 schema!(KbReadKind);
 
 /// What a knowledge base said when it was asked to describe itself, read against the entry it was asked as.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum KbReadVerdict {
     Recorded(KbReadVerdictRecorded),
@@ -8720,7 +8751,7 @@ impl<'de> serde::Deserialize<'de> for KbReadVerdict {
 schema!(KbReadVerdict);
 
 /// A different knowledge base answered. Its did and the name it gave itself are here and nowhere else: the entry is as it was.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KbReadVerdictConflict {
     /// What reading the active knowledge base against its entry concluded.
@@ -8763,7 +8794,7 @@ impl KbReadVerdictConflictKind {
 }
 
 /// It did not answer, or could not say who it is. Evidence of nothing.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KbReadVerdictNoVerdict {
     /// What reading the active knowledge base against its entry concluded.
@@ -8804,7 +8835,7 @@ impl KbReadVerdictNoVerdictKind {
 }
 
 /// It answered as that entry, and its name and branch are on the entry now.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KbReadVerdictRecorded {
     /// What reading the active knowledge base against its entry concluded.
@@ -8871,7 +8902,7 @@ impl KbSessionStatus {
 schema!(KbSessionStatus);
 
 /// Where to connect to a knowledge base: an endpoint, and the labels a client keeps of it. It carries no identity: which knowledge base answers at an address is known only once it has been reached with a token and asked, so a target is what every caller can build before then, and a session's whole input. A client keeps it locally; it is never sent.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct KbTarget {
     /// The key the client stores a session's credentials under. Two sessions that share one storage have two ids, or each overwrites the other's tokens. Whoever builds the target chooses it; none is made up.
     pub id: String,
@@ -8883,7 +8914,7 @@ pub struct KbTarget {
 schema!(KbTarget);
 
 /// A registered knowledge base: a target, and what registering it took, the identity the knowledge base reported of itself when it was reached (`did`) among it. What a client's list of knowledge bases holds. A did says which knowledge base, not which running copy: a clone and a codespace of one repository are one knowledge base at two addresses and report one did. So an entry is looked up by its endpoint, and its did is what an answer is verified against; nothing selects by did. Its `label` and `lastRead` are written only from an answer that carried its did.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct KnowledgeBase {
     /// The key the client stores a session's credentials under. Two sessions that share one storage have two ids, or each overwrites the other's tokens. Whoever builds the target chooses it; none is made up.
     pub id: String,
@@ -8919,7 +8950,7 @@ impl KnowledgeBase {
 schema!(KnowledgeBase);
 
 /// One knowledge base's stack as xynolog status reads it: what it is, where it runs, and each of its own services. The services every knowledge base shares are reported once, in the snapshot's shared list.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeBaseStatus {
     /// What the snapshot calls the knowledge base: the last segment of its DID, or the whole DID where two would share one, or its key.
@@ -9035,7 +9066,7 @@ impl KnowledgeBaseStatusPlacement {
 }
 
 /// Knowledge graph gathered for an LLM context — a shared backbone in which resources AND annotations are typed nodes, connected by typed (optionally bidirectional) edges. Flattened views the matcher/generation read (connections, citedBy, siblings) are derived from these nodes/edges.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct KnowledgeGraph {
     pub nodes: Vec<KnowledgeGraphNodesItem>,
     pub edges: Vec<KnowledgeGraphEdgesItem>,
@@ -9057,7 +9088,7 @@ impl KnowledgeGraph {
 
 schema!(KnowledgeGraph);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct KnowledgeGraphEdgesItem {
     pub source: String,
     pub target: String,
@@ -9087,7 +9118,7 @@ impl KnowledgeGraphEdgesItem {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum KnowledgeGraphNodesItem {
     ResourceNode(GraphResourceNode),
@@ -9184,7 +9215,7 @@ pub struct KnowledgeIndexSpec {
 }
 
 /// The model that turns text into vectors. Vectors made by one model are not comparable with another's, so the model is the index's.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecEmbedding {
     /// Who serves the model: `ollama`, or `voyage`.
@@ -9219,7 +9250,7 @@ impl KnowledgeIndexSpecEmbedding {
 }
 
 /// How a text is cut before it is embedded.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecEmbeddingChunking {
     /// The size of a piece.
@@ -9230,7 +9261,7 @@ pub struct KnowledgeIndexSpecEmbeddingChunking {
 }
 
 /// The graph store the Weaver writes and the Librarian reads. The knowledge base's graph is in the database its DID names (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it when it first starts, and one somebody else runs must already hold it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecGraph {
     /// The graph store's driver: `neo4j`.
@@ -9260,7 +9291,7 @@ impl KnowledgeIndexSpecGraph {
 }
 
 /// A graph store somebody else runs.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecGraphExternal {
     /// Where it listens: `bolt://host:port`.
@@ -9281,7 +9312,7 @@ pub struct KnowledgeIndexSpecLibrarian {
 }
 
 /// How a gather waits.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecLibrarianGather {
     /// How long a gather waits for the Smelter to settle a resource, in milliseconds.
@@ -9299,7 +9330,7 @@ pub struct KnowledgeIndexSpecLibrarianSearch {
 }
 
 /// The Smelter: it writes the vectors and the anchored text.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecSmelter {
     pub image: Image,
@@ -9310,7 +9341,7 @@ pub struct KnowledgeIndexSpecSmelter {
 }
 
 /// The vector store the Smelter writes and the Librarian reads: the one the launcher runs for the knowledge bases on a machine, at `shared`; one of the knowledge base's own the launcher runs, from `image` with `resources`; or somebody else's, at `external`. Exactly one of the three.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecVectors {
     /// The vector store's driver: `qdrant`.
@@ -9341,7 +9372,7 @@ impl KnowledgeIndexSpecVectors {
 }
 
 /// A vector store somebody else runs, with the token each service presents to it: the Smelter's may make, write and delete this knowledge base's collections, and the Librarian's may read them.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecVectorsExternal {
     /// A host name or address the stack's containers can reach.
@@ -9355,12 +9386,12 @@ pub struct KnowledgeIndexSpecVectorsExternal {
 }
 
 /// The vector store the launcher runs for the knowledge bases on a machine (the state home's VectorStore document). Each knowledge base keeps its index in collections of its own there, so nothing is said of it here.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecVectorsShared {}
 
 /// The Weaver: it writes the graph.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KnowledgeIndexSpecWeaver {
     pub image: Image,
@@ -9402,7 +9433,7 @@ pub struct LibrarianConfig {
 schema!(LibrarianConfig);
 
 /// The bound on a gather.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LibrarianConfigGather {
     /// How long a gather around a resource waits for the Smelter's decision on it before answering without similar passages, in milliseconds.
@@ -9420,7 +9451,7 @@ pub struct LibrarianConfigSearch {
 }
 
 /// The engine a Librarian actor asks: which it is, and where its provider is reached.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LibrarianEngineConfig {
     pub engine: Engine,
@@ -9447,7 +9478,7 @@ impl LibrarianEngineConfig {
 schema!(LibrarianEngineConfig);
 
 /// The Librarian's health answer (LIBRARIAN.md § Health). Its port opens last, after it has begun to take requests from the bus, so a Librarian whose health answers is answering.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LibrarianHealth {
     pub status: LibrarianHealthStatus,
@@ -9517,7 +9548,7 @@ pub struct LibrarianPromptScore {
 schema!(LibrarianPromptScore);
 
 /// An ErrorResponse that names, in `code`, the limit the request met.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct LimitRefusal {
     /// What went wrong, in a sentence.
     pub error: String,
@@ -9575,7 +9606,7 @@ impl LimitRefusalCode {
 }
 
 /// What a linking job takes: mentions of the named entity types are marked as references, each unresolved until it is bound to a resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LinkingJobParams {
     pub motivation: LinkingJobParamsMotivation,
@@ -9638,7 +9669,7 @@ pub struct ListResourcesResponse {
 schema!(ListResourcesResponse);
 
 /// A knowledge base the host process has loaded and reaches through a transport with no wire.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct LocalEndpoint {
     /// Discriminant: the endpoint is in the host process.
     pub kind: LocalEndpointKind,
@@ -9678,7 +9709,7 @@ impl LocalEndpointKind {
 }
 
 /// A local knowledge base, named explicitly: the operations that act on one local stack and never resolve one for the caller (identity administration, a service's run).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LocalTarget {
     /// Only a local stack.
@@ -9773,7 +9804,7 @@ impl LogLevel {
 schema!(LogLevel);
 
 /// One line one of a stack's services wrote. The launcher removes from it each secret value the launcher generated or read; anything else the service wrote is the client's to handle. The launcher keeps no copy.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LogRecord {
     #[serde(rename = "requestId")]
@@ -9792,7 +9823,7 @@ pub struct LogRecord {
 schema!(LogRecord);
 
 /// logs.follow's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LogsFollowParams {
     /// The version of the control API the request is written to.
@@ -9824,7 +9855,7 @@ impl LogsFollowParams {
 schema!(LogsFollowParams);
 
 /// A follow whose every source ended on its own. A follow the client cancels is answered with control.cancelled.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LogsFollowResult {
     /// The services that were followed.
@@ -9834,7 +9865,7 @@ pub struct LogsFollowResult {
 schema!(LogsFollowResult);
 
 /// Bus command to archive a resource and optionally remove its file.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkArchiveCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -9866,7 +9897,7 @@ impl MarkArchiveCommand {
 schema!(MarkArchiveCommand);
 
 /// Bus command to persist a detection unit's annotations as one acknowledged batch. It is answered only after every annotation is in the event log, so a worker can gate unit completion on durability rather than on emission. The batch is the unit: a partial commit is reported as a failure, and the worker retries the whole unit, which is safe because annotation ids are deterministic: content-addressed, so re-emitting one is a no-op.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkCommitCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -9902,7 +9933,7 @@ impl MarkCommitCommand {
 schema!(MarkCommitCommand);
 
 /// Durability acknowledgement for a mark:commit batch: every annotation named by the command is in the event log at the moment this is emitted.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkCommitOk {
     /// What the commit persisted.
     pub response: MarkCommitOkResponse,
@@ -9911,7 +9942,7 @@ pub struct MarkCommitOk {
 schema!(MarkCommitOk);
 
 /// What the commit persisted.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkCommitOkResponse {
     /// Annotations the command named that are durable in the event log. Equals the batch size on success, on a first commit and on a retry alike — the commit appends only what the resource does not already hold, so a wholly-redundant retry has still succeeded and says so. Not an append tally: a caller must never have to read a 0 as 'all good'.
     pub persisted: i64,
@@ -9921,7 +9952,7 @@ pub struct MarkCommitOkResponse {
 }
 
 /// Success reply after creating an annotation, matched to the originating command by correlationId.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkCreateOk {
     pub response: MarkCreateOkResponse,
 }
@@ -9929,7 +9960,7 @@ pub struct MarkCreateOk {
 schema!(MarkCreateOk);
 
 /// The created annotation's identity.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkCreateOkResponse {
     #[serde(rename = "annotationId")]
     pub annotation_id: AnnotationId,
@@ -9938,7 +9969,7 @@ pub struct MarkCreateOkResponse {
 schema!(MarkCreateOkResponse);
 
 /// Raw annotation creation intent — bus handler assembles the W3C annotation
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkCreateRequest {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -9948,7 +9979,7 @@ pub struct MarkCreateRequest {
 schema!(MarkCreateRequest);
 
 /// The payload of `mark:delegate-timeout`, a client-local signal: a delegated job went silent past its deadline, with no progress, no completion and no `job:fail`. A real job failure arrives as `job:fail` and never produces this.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkDelegateTimeoutEvent {
     /// The resource the job was delegated for.
     #[serde(rename = "resourceId")]
@@ -9959,7 +9990,7 @@ pub struct MarkDelegateTimeoutEvent {
 schema!(MarkDelegateTimeoutEvent);
 
 /// Bus command to delete an annotation.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkDeleteCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -9986,7 +10017,7 @@ impl MarkDeleteCommand {
 schema!(MarkDeleteCommand);
 
 /// Success reply after deleting an annotation, matched to the originating command by correlationId.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkDeleteOk {
     /// The deleted annotation's identity.
     pub response: MarkDeleteOkResponse,
@@ -9995,14 +10026,14 @@ pub struct MarkDeleteOk {
 schema!(MarkDeleteOk);
 
 /// The deleted annotation's identity.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkDeleteOkResponse {
     #[serde(rename = "annotationId")]
     pub annotation_id: AnnotationId,
 }
 
 /// A `mark` job's worker says the job is complete, with what a `mark` job reports.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkJobCompleteCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -10109,7 +10140,7 @@ impl MarkJobCreateCommandJobType {
 }
 
 /// What a `mark` job reports when it has done its work, whatever its motivation.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MarkJobDone {
     /// What the model proposed, before anything was checked against the text.
@@ -10150,7 +10181,7 @@ impl MarkJobDone {
 schema!(MarkJobDone);
 
 /// `mark` jobs of one motivation.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MarkJobFilter {
     #[serde(rename = "jobType")]
@@ -10187,7 +10218,7 @@ impl MarkJobFilterJobType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MarkJobFilterParams {
     pub motivation: Motivation,
@@ -10303,7 +10334,7 @@ impl MarkJobQueuedEventJobType {
 }
 
 /// What a `mark` job reports when it concludes without failing: its counts, or a decline. Neither names its kind: a decline is the one with `declined`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum MarkJobResult {
     MarkJobDone(MarkJobDone),
@@ -10315,7 +10346,7 @@ member!(MarkJobResult::JobDeclined(JobDeclined));
 schema!(MarkJobResult);
 
 /// Emitted when the user requests a new mark (annotation) on a resource
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkRequestedEvent {
     /// The '@id' of the resource the mark belongs to (W3C target.source). Routes the event to the right viewer/state unit when a host mounts many viewers on one session.
     pub source: ResourceId,
@@ -10327,7 +10358,7 @@ pub struct MarkRequestedEvent {
 schema!(MarkRequestedEvent);
 
 /// Emitted when a mark is submitted with its annotation body
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkSubmitEvent {
     /// The '@id' of the resource the mark belongs to (W3C target.source). Routes the submit to the state unit bound to that resource — without it, N mounted units each create the annotation (N copies on N resources).
     pub source: ResourceId,
@@ -10354,7 +10385,7 @@ impl MarkSubmitEvent {
 schema!(MarkSubmitEvent);
 
 /// Bus command to unarchive a previously archived resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkUnarchiveCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -10382,7 +10413,7 @@ impl MarkUnarchiveCommand {
 schema!(MarkUnarchiveCommand);
 
 /// Bus command to update an annotation's body with patch operations.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkUpdateBodyCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -10414,7 +10445,7 @@ impl MarkUpdateBodyCommand {
 schema!(MarkUpdateBodyCommand);
 
 /// Bus command to replace the entity types on a resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MarkUpdateEntityTypesCommand {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -10473,7 +10504,7 @@ impl MatchQuality {
 schema!(MatchQuality);
 
 /// Request to search the knowledge base's resources by text. The Librarian answers: it matches the text lexically, and when nothing matches, by meaning.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MatchResourcesRequest {
     /// The text to search for.
     pub search: String,
@@ -10552,7 +10583,7 @@ pub struct MatchResourcesResult {
 schema!(MatchResourcesResult);
 
 /// The payload of `match:search-failed`: a CommandError that names the reference whose candidates could not be searched for.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MatchSearchFailed {
     /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -10582,7 +10613,7 @@ impl MatchSearchFailed {
 schema!(MatchSearchFailed);
 
 /// What a search for what a reference could refer to is told beside the reference and its context: MatchSearchRequest's other members. client/surface.json's `match.search` cases state what is sent for one left out.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MatchSearchOptions {
     /// Maximum number of candidate results to return
@@ -10646,7 +10677,7 @@ pub struct MatchSearchResult {
 
 schema!(MatchSearchResult);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MediaTokenRequest {
     /// The resource ID to generate a media token for
     #[serde(rename = "resourceId")]
@@ -10655,7 +10686,7 @@ pub struct MediaTokenRequest {
 
 schema!(MediaTokenRequest);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct MediaTokenResponse {
     /// Short-lived media token for use as ?token= query parameter on resource URLs
     pub token: String,
@@ -10664,7 +10695,7 @@ pub struct MediaTokenResponse {
 schema!(MediaTokenResponse);
 
 /// A graph held in the memory of the one process that is given it: for a test. It cannot be shared between processes, so a service that writes the graph for another to read, or reads what another wrote, refuses it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MemoryGraphConfig {
     pub r#type: MemoryGraphConfigType,
@@ -10705,7 +10736,7 @@ impl MemoryGraphConfigType {
 }
 
 /// A vector index held in the memory of the one process that is given it: for a test. It cannot be shared between processes, so a service that writes the index for another to search, or searches what another wrote, refuses it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MemoryVectorsConfig {
     pub r#type: MemoryVectorsConfigType,
@@ -10746,7 +10777,7 @@ impl MemoryVectorsConfigType {
 }
 
 /// What names a document, as Kubernetes names an object. Documents refer to one another by `name`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Metadata {
     /// The document's name: lower-case letters, digits and `-`, beginning and ending with a letter or digit. It names the document, never the knowledge base.
@@ -10809,7 +10840,7 @@ impl Motivation {
 schema!(Motivation);
 
 /// A graph kept in a Neo4j database.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Neo4jGraphConfig {
     pub r#type: Neo4jGraphConfigType,
@@ -10862,7 +10893,7 @@ impl Neo4jGraphConfigType {
 }
 
 /// A graph kept in Amazon Neptune, asked in Gremlin. No service has been run against one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct NeptuneGraphConfig {
     pub r#type: NeptuneGraphConfigType,
@@ -10903,7 +10934,7 @@ impl NeptuneGraphConfigType {
 }
 
 /// What registering a knowledge base takes: everything a registered one holds but its id, which the client's list makes. It has a did, because registering follows a sign-in: the knowledge base has already said what it is.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct NewKnowledgeBase {
     /// What a person reads the knowledge base as. Once the knowledge base has described itself, its own name.
     pub label: String,
@@ -10945,7 +10976,7 @@ pub struct OcrConfidence {
 schema!(OcrConfidence);
 
 /// An embedding model served by an Ollama.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct OllamaEmbeddingConfig {
     pub r#type: OllamaEmbeddingConfigType,
@@ -10987,7 +11018,7 @@ impl OllamaEmbeddingConfigType {
 }
 
 /// One Agent, or a non-empty list of them: the parties PROV-O and the Web Annotation model let a resource or an annotation name in one place, as one agent or several.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum OneOrMoreAgents {
     Agent(Agent),
@@ -10998,7 +11029,7 @@ member!(OneOrMoreAgents::Agent(Agent));
 schema!(OneOrMoreAgents);
 
 /// One string, or a non-empty list of them: a JSON-LD term that may take one value or several.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum OneOrMoreStrings {
     Text(String),
@@ -11008,7 +11039,7 @@ pub enum OneOrMoreStrings {
 schema!(OneOrMoreStrings);
 
 /// One URI, or a non-empty list of them: a JSON-LD term that may name one resource or several.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum OneOrMoreUris {
     Text(String),
@@ -11018,7 +11049,7 @@ pub enum OneOrMoreUris {
 schema!(OneOrMoreUris);
 
 /// A resource open in a knowledge base: which resource, the name it is shown by, when it was opened and its place among the others open there. A registry shows them by their places, and two in one place by when each was opened, first first.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct OpenResource {
     /// The resource.
     pub id: ResourceId,
@@ -11152,7 +11183,7 @@ pub struct PdfTextItem {
 schema!(PdfTextItem);
 
 /// The annotation a mark state unit is composing, from the selection a request asked for, until it is submitted or cancelled.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PendingAnnotation {
     pub selector: AnnotationSelector,
@@ -11162,7 +11193,7 @@ pub struct PendingAnnotation {
 schema!(PendingAnnotation);
 
 /// A request was refused for lack of permission.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PermissionDenied {
     /// The refusal's own message, untranslated; null when it gave none.
@@ -11175,7 +11206,7 @@ schema!(PermissionDenied);
 pub type PersistedEventId = String;
 
 /// Bus command saying what a principal is called. The gateway emits it when a principal ACTS, carrying the display name it just verified on its token; a principal may also emit it itself, for itself, which is how an agent, whose token carries no name, says what it is called. Either way the gateway stamps `_userId` with the sender's verified DID, so a principal names only itself. The Stower persists it as principal:profiled, and only when the name differs from the latest one recorded for that DID — so the log holds one line per name a principal has had, not one per act. A name is a fact ABOUT an identity, never part of the record of an act: no artifact carries it, and readers resolve it from the profiles projection. Emitted for a person and for an agent alike; never for a request that merely reads.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct PrincipalProfileCommand {
     /// The principal's DID, injected by the /bus/emit gateway from the verified token. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -11198,7 +11229,7 @@ impl PrincipalProfileCommand {
 schema!(PrincipalProfileCommand);
 
 /// Payload for principal:profiled — what this principal is called, as the issuer's verified `name` claim said or as the principal said of itself, recorded once per change (system-level, no resourceId). The event's `userId` is the principal's DID; this payload is the fact about it. Provenance never reads it: every artifact joins on the DID alone, and this is projected into profiles.json for readers to resolve against. Two lines for one DID mean the name changed, and the timestamps say when — which is why no artifact ever had to freeze a copy.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct PrincipalProfiledPayload {
     /// The display name as of this event: from the issuer's verified `name` claim, or what the principal said of itself.
     pub name: String,
@@ -11207,7 +11238,7 @@ pub struct PrincipalProfiledPayload {
 schema!(PrincipalProfiledPayload);
 
 /// What a principal last said it is called, and when: the profile a `principal:profiled` event gives.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Profile {
     /// The name the principal last gave.
@@ -11219,7 +11250,7 @@ pub struct Profile {
 schema!(Profile);
 
 /// What the principals of a knowledge base are called: the file `projections/__system__/profiles.json` under the state directory, the sum of the `principal:profiled` events. The Archivist writes it; the Archivist and the Librarian read it to name the principals a reply mentions. Written as JSON indented by two spaces.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProfilesProjection {
     /// Each principal's current profile, keyed by its DID.
@@ -11229,7 +11260,7 @@ pub struct ProfilesProjection {
 schema!(ProfilesProjection);
 
 /// One line of what an operation is doing, as the command line would tell a person, without colour. A secret value the launcher generated or read never appears in one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Progress {
     #[serde(rename = "requestId")]
@@ -11288,7 +11319,7 @@ impl ProgressKind {
 }
 
 /// A knowledge base's committed `.xynolog/config.yaml`: its name, whether its changes are staged in git, and its permanent identity. A deployment's documents never restate any of it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectConfig {
     /// The knowledge base's name.
@@ -11302,7 +11333,7 @@ pub struct ProjectConfig {
 schema!(ProjectConfig);
 
 /// How the knowledge base's changes reach git.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectConfigGit {
     /// Whether changes to the working tree and the event log are staged in git as they are made.
@@ -11310,7 +11341,7 @@ pub struct ProjectConfigGit {
 }
 
 /// The knowledge base's name.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectConfigProject {
     /// The knowledge base's name, which decides where its state is kept.
@@ -11331,7 +11362,7 @@ impl ProjectConfigProject {
 }
 
 /// The knowledge base's identity.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectConfigSite {
     /// The knowledge base's permanent identity, in did:web's colon-path form (`owner.github.io:repo`): stamped into every event it records, so never a machine's address and never changed. With no white space in it, which no DID holds (UserId.json).
@@ -11342,7 +11373,7 @@ pub struct ProjectConfigSite {
 }
 
 /// OAuth 2.0 Protected Resource Metadata (RFC 9728): which authorization server this knowledge base trusts, served at /.well-known/oauth-protected-resource so a client — the Browser, an MCP client — learns where to send a user to sign in without configuration. A 401 from any protected route points here in its WWW-Authenticate challenge.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProtectedResourceMetadata {
     /// This knowledge base's resource identifier: its did:web identity resolved to an https URL (did:web:example.github.io:my-kb identifies https://example.github.io/my-kb). This is the exact value a token's aud claim must carry. It is an identifier, not an address — nothing dereferences it, and a knowledge base reached over http in local development still names itself by the https form, which is what makes the value stable across every host, port and proxy it is reached through.
@@ -11392,7 +11423,7 @@ impl ProtectedResourceMetadataBearerMethodsSupportedItem {
 }
 
 /// How an inference provider is reached.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Provider {
     /// Where the provider's API is reached. Anthropic's own API, and the shared Ollama, are stated by no baseURL.
@@ -11407,7 +11438,7 @@ pub struct Provider {
 schema!(Provider);
 
 /// A vector index kept in a Qdrant server, asked over its REST API with a token.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct QdrantVectorsConfig {
     pub r#type: QdrantVectorsConfigType,
@@ -11452,7 +11483,7 @@ impl QdrantVectorsConfigType {
 }
 
 /// Words of a text, as a selection quotes them: the words themselves, and maybe the text just before and just after them, which tell apart the places they occur.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct QuotedText {
     /// The words quoted.
@@ -11479,7 +11510,7 @@ impl QuotedText {
 schema!(QuotedText);
 
 /// Where a quoted selection was found in a text, and how it was found, told apart by `anchorMethod`, one of AnchorMethod's words: a fuzzy match also names its search, `matchQuality`, and no other states one.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ReconciledSpan {
     UniqueMatch(ReconciledSpanUniqueMatch),
@@ -11514,7 +11545,7 @@ impl<'de> serde::Deserialize<'de> for ReconciledSpan {
 schema!(ReconciledSpan);
 
 /// The text has the words in more than one place, and the span is the first that fits every hint the quote gave.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ReconciledSpanContextRecovered {
     /// The offset the span starts at, in Unicode code points from the text's start.
@@ -11565,7 +11596,7 @@ impl ReconciledSpanContextRecoveredAnchorMethod {
 }
 
 /// The text has the words in more than one place, and the span is the first, since the quote gave no hint or none fits.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ReconciledSpanFirstOfMany {
     /// The offset the span starts at, in Unicode code points from the text's start.
@@ -11616,7 +11647,7 @@ impl ReconciledSpanFirstOfManyAnchorMethod {
 }
 
 /// The text has the words nowhere, and a looser search found the span: `matchQuality` names which.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ReconciledSpanFuzzyMatch {
     /// The offset the span starts at, in Unicode code points from the text's start.
@@ -11675,7 +11706,7 @@ impl ReconciledSpanFuzzyMatchAnchorMethod {
 }
 
 /// The text has the words in exactly one place.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ReconciledSpanUniqueMatch {
     /// The offset the span starts at, in Unicode code points from the text's start.
@@ -11825,7 +11856,7 @@ pub struct RepresentationAddedPayload {
 schema!(RepresentationAddedPayload);
 
 /// The Archivist's 404 for a resource's bytes: an ErrorResponse whose `code` says which half of the lookup failed — `resource` when the record holds no such resource, `representation` when it holds the resource but not its bytes. Each reader answers the two differently.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct RepresentationNotFound {
     /// What went wrong, in a sentence.
     pub error: String,
@@ -11907,7 +11938,7 @@ impl RepresentationRel {
 }
 
 /// Payload for yield:representation-removed domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct RepresentationRemovedPayload {
     /// Checksum of the representation to remove
     pub checksum: String,
@@ -11916,7 +11947,7 @@ pub struct RepresentationRemovedPayload {
 schema!(RepresentationRemovedPayload);
 
 /// The request a notification is about: the JSON-RPC id its client gave it, as the client gave it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum RequestId {
     Text(String),
@@ -11926,7 +11957,7 @@ pub enum RequestId {
 schema!(RequestId);
 
 /// The annotations on one resource, as its materialized view holds them.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ResourceAnnotations {
     #[serde(rename = "resourceId")]
@@ -11943,7 +11974,7 @@ pub struct ResourceAnnotations {
 schema!(ResourceAnnotations);
 
 /// Payload for mark:archived domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct ResourceArchivedPayload {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
@@ -11952,7 +11983,7 @@ pub struct ResourceArchivedPayload {
 schema!(ResourceArchivedPayload);
 
 /// Payload for yield:cloned domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ResourceClonedPayload {
     pub name: String,
     pub format: ContentFormat,
@@ -12007,7 +12038,7 @@ impl ResourceClonedPayload {
 schema!(ResourceClonedPayload);
 
 /// Payload for yield:created domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ResourceCreatedPayload {
     pub name: String,
     pub format: ContentFormat,
@@ -12080,7 +12111,7 @@ impl ResourceCreatedPayload {
 schema!(ResourceCreatedPayload);
 
 /// What this resource was generated from: the resource, and the annotation on it when the generation was for one. The resource's descriptor names the resource as `wasDerivedFrom`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ResourceCreatedPayloadGeneratedFrom {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -12233,7 +12264,7 @@ impl ResourceDescriptor {
 schema!(ResourceDescriptor);
 
 /// JSON-LD context; URI, object, or array of these.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum ResourceDescriptorContext {
     Text(String),
@@ -12241,7 +12272,7 @@ pub enum ResourceDescriptorContext {
     List(Vec<ResourceDescriptorContextItem>),
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum ResourceDescriptorContextItem {
     Text(String),
@@ -12249,7 +12280,7 @@ pub enum ResourceDescriptorContextItem {
 }
 
 /// Persistent identifiers (e.g., DOI, URN).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum ResourceDescriptorIdentifier {
     Text(String),
@@ -12257,7 +12288,7 @@ pub enum ResourceDescriptorIdentifier {
     Object(ResourceDescriptorIdentifierObject),
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct ResourceDescriptorIdentifierObject {
     #[serde(rename = "@id")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12284,7 +12315,7 @@ member!(ResourceDescriptorRepresentations::Representation(
 ));
 
 /// W3C PROV: the resource, or resources, this one was derived from, each by its id
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum ResourceDescriptorWasDerivedFrom {
     ResourceId(ResourceId),
@@ -12292,7 +12323,7 @@ pub enum ResourceDescriptorWasDerivedFrom {
 }
 
 /// A client-local notice that a command on a resource failed, for a UI to show: the payload of `mark:create-error`, `mark:delete-error` and `bind:body-error`. Emitted by the caller that awaited the command, which knows whose command failed on which resource. The `*-failed` wire replies are correlation plumbing and are not for this.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ResourceErrorEvent {
     /// The resource the command addressed.
     #[serde(rename = "resourceId")]
@@ -12398,7 +12429,7 @@ impl PartialEq<&str> for ResourceId {
 schema!(ResourceId);
 
 /// Payload for yield:moved domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ResourceMovedPayload {
     /// Previous file:// URI
     #[serde(rename = "fromUri")]
@@ -12411,7 +12442,7 @@ pub struct ResourceMovedPayload {
 schema!(ResourceMovedPayload);
 
 /// What a text search for resources is told beside its text: MatchResourcesRequest's other members. client/surface.json's `match.resources` cases state what is sent for one left out.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ResourceSearchFilters {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12430,13 +12461,13 @@ pub struct ResourceSearchFilters {
 schema!(ResourceSearchFilters);
 
 /// Payload for mark:unarchived domain event (empty payload)
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct ResourceUnarchivedPayload {}
 
 schema!(ResourceUnarchivedPayload);
 
 /// Payload for yield:updated domain event
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ResourceUpdatedPayload {
     /// SHA-256 of new content
     #[serde(rename = "contentChecksum")]
@@ -12459,7 +12490,7 @@ impl ResourceUpdatedPayload {
 schema!(ResourceUpdatedPayload);
 
 /// The multipart upload that creates a resource. A client sends it to the gateway's `POST /resources`; the gateway forwards it untouched to the Archivist's `POST /resources`, which stores the bytes and records the resource. One body, two hops.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ResourceUpload {
     /// Human-readable resource name
     pub name: String,
@@ -12553,7 +12584,7 @@ pub struct ResourceView {
 schema!(ResourceView);
 
 /// What a container is given, in Kubernetes' spelling.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Resources {
     /// The most a container may use.
@@ -12563,7 +12594,7 @@ pub struct Resources {
 schema!(Resources);
 
 /// The most a container may use.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ResourcesLimits {
     /// The memory ceiling: a whole number of gigabytes or megabytes, `8G` or `512M`.
@@ -12571,7 +12602,7 @@ pub struct ResourcesLimits {
 }
 
 /// One knowledge base this machine knows: a registered or running local clone, or a codespace stack recorded here. Registration, the directory, the stack and the forward are separate facts, each stated as it is.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Root {
     /// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
@@ -12703,7 +12734,7 @@ impl RootPlacement {
 }
 
 /// roots.forget's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RootsForgetParams {
     /// The version of the control API the request is written to.
@@ -12716,7 +12747,7 @@ pub struct RootsForgetParams {
 schema!(RootsForgetParams);
 
 /// A forgotten registry row. Only the row is removed: no file of the clone, and none of its persistent stack state.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RootsForgetResult {
     /// The forgotten root's path.
@@ -12744,7 +12775,7 @@ impl RootsForgetResult {
 schema!(RootsForgetResult);
 
 /// roots.init's params: the local directory, permanent identity, and optional configuration inputs xynolog init takes.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RootsInitParams {
     #[serde(rename = "apiVersion")]
@@ -12840,7 +12871,7 @@ impl RootsInitParamsInference {
 }
 
 /// The local directory where xynolog init created and registered the knowledge base.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RootsInitResult {
     pub path: String,
@@ -12849,7 +12880,7 @@ pub struct RootsInitResult {
 schema!(RootsInitResult);
 
 /// roots.list's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RootsListParams {
     /// The version of the control API the request is written to.
@@ -12860,7 +12891,7 @@ pub struct RootsListParams {
 schema!(RootsListParams);
 
 /// Every knowledge base this machine knows, as xynolog roots lists them: the local roots first, then the codespace stacks.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RootsListResult {
     /// Each root.
@@ -12924,7 +12955,7 @@ impl RunService {
 schema!(RunService);
 
 /// Who runs a daemon: the launcher, from `image` with `resources`, or somebody else, reached at `external`. Exactly one of the two.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct Runner {}
 
 schema!(Runner);
@@ -12956,7 +12987,7 @@ impl Runtime {
 schema!(Runtime);
 
 /// One container runtime the launcher drives, and whether this machine has it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RuntimeState {
     pub name: Runtime,
@@ -13109,7 +13140,7 @@ impl ScoredResource {
 schema!(ScoredResource);
 
 /// A secret the document names and does not hold. The launcher hands it to the service that needs it, from where the reference says it is.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SecretRef {
     /// The environment variable that holds the secret where the launcher runs. Unset, the start that needs it is refused.
@@ -13120,7 +13151,7 @@ pub struct SecretRef {
 schema!(SecretRef);
 
 /// One W3C selector: a way of finding a segment of a resource. Tell them apart by `type`, which is required on each and single-valued.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum Selector {
     TextPositionSelector(TextPositionSelector),
@@ -13208,7 +13239,7 @@ impl SemanticMatch {
 schema!(SemanticMatch);
 
 /// The host and port a service listens at.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceAddress {
     pub host: String,
@@ -13253,7 +13284,7 @@ impl ServiceGroup {
 schema!(ServiceGroup);
 
 /// service.host's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceHostParams {
     /// The version of the control API the request is written to.
@@ -13277,7 +13308,7 @@ impl ServiceHostParams {
 schema!(ServiceHostParams);
 
 /// Where this machine and a run's instance meet, under a runtime: the address the launcher publishes an instance's ports on, and the address the instance reaches this machine's listeners at. A caller writes it into a document before the run.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceHostResult {
     pub runtime: Runtime,
@@ -13288,7 +13319,7 @@ pub struct ServiceHostResult {
 schema!(ServiceHostResult);
 
 /// The identity provider a service's account signs in at, by its issuer.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceIdentity {
     /// The issuer URL, exactly as tokens carry it in `iss`.
@@ -13298,7 +13329,7 @@ pub struct ServiceIdentity {
 schema!(ServiceIdentity);
 
 /// notifications/serviceOutput: one line a run's instance wrote, from its start, every line, in the order of its stream, as the instance wrote it. The launcher gives an instance none of its own secrets (R2), and keeps no copy.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceOutput {
     #[serde(rename = "requestId")]
@@ -13312,7 +13343,7 @@ pub struct ServiceOutput {
 schema!(ServiceOutput);
 
 /// service.run's params: one instance of one of a knowledge base's own services, run once from the image the target's stack documents name, unsupervised, on the caller's document, arguments and environment. contract/LAUNCHER-CONTROL.md, R1-R8.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceRunParams {
     /// The version of the control API the request is written to.
@@ -13375,7 +13406,7 @@ impl ServiceRunParams {
 schema!(ServiceRunParams);
 
 /// A run that ended: its instance exited. Sent once the instance's container has exited, after all of its output.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceRunResult {
     pub instance: RunInstance,
@@ -13390,7 +13421,7 @@ pub struct ServiceRunResult {
 schema!(ServiceRunResult);
 
 /// service.signal's params: a signal for a run's instance.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceSignalParams {
     /// The version of the control API the request is written to.
@@ -13448,7 +13479,7 @@ impl ServiceSignalParamsSignal {
 }
 
 /// A signal sent, or not needed. The instance's exit is its run's answer, not this one.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceSignalResult {
     /// Whether the instance still ran when the signal came. false: it has exited, and its run's answer is on its way; nothing was sent.
@@ -13458,7 +13489,7 @@ pub struct ServiceSignalResult {
 schema!(ServiceSignalResult);
 
 /// notifications/serviceStarted: a run's instance is running. Sent once, before any of its output.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceStarted {
     #[serde(rename = "requestId")]
@@ -13495,7 +13526,7 @@ impl ServiceStarted {
 schema!(ServiceStarted);
 
 /// One service, as xynolog status reads it: where it runs, its state, and whether it answers. Nothing is reported that the launcher did not observe: an endpoint is named only when the stack's record or the descriptor names one, and a page to open only when the service answers.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceStatus {
     /// The service, as xynolog status names it.
@@ -13595,7 +13626,7 @@ impl ServiceStatusState {
 }
 
 /// The launcher's own stored sign-in for a stack (xynolog login), never Desktop's. No token is in it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Session {
     /// valid: the stack's gateway accepts the stored token. expired: it refuses it (a refresh, or xynolog login, renews it). unverified: the stack did not answer. none: nothing is stored.
@@ -13638,7 +13669,7 @@ impl SessionEndReason {
 schema!(SessionEndReason);
 
 /// A session ended, and why.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SessionEnded {
     /// Why it ended.
@@ -13648,7 +13679,7 @@ pub struct SessionEnded {
 schema!(SessionEnded);
 
 /// A participant opened a live connection to this KB — an SSE stream on /bus/subscribe. Presence is CONNECTION lifecycle, not login: a token can be minted and sit unused, so what this reports is that someone is WATCHING. One person with two tabs produces two of these, which is why connectionId is required — the DID alone cannot tell two connections apart, and a consumer that counts DIDs will undercount viewers.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct SessionJoinedEvent {
     /// DID of the authenticated principal on that connection. A person or a software agent — the bus does not distinguish.
     pub participant: UserId,
@@ -13660,7 +13691,7 @@ pub struct SessionJoinedEvent {
 schema!(SessionJoinedEvent);
 
 /// A participant's live connection to this KB ended — the SSE stream aborted. Carries the same connectionId as the session:joined that opened it, so a consumer tracking who is present can retire the right connection rather than assuming one per participant.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct SessionLeftEvent {
     /// DID of the authenticated principal on that connection.
     pub participant: UserId,
@@ -13699,7 +13730,7 @@ impl SessionState {
 }
 
 /// One setting the launcher keeps, as xynolog settings shows it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Setting {
     /// Its name, as xynolog settings takes it.
@@ -13763,7 +13794,7 @@ impl SettingAppliesTo {
 }
 
 /// One value of a setting, and where it came from, as xynolog settings shows it. A secret's value is never one: a secret setting shows where the value is kept.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SettingLine {
     /// The value in effect.
@@ -13775,7 +13806,7 @@ pub struct SettingLine {
 schema!(SettingLine);
 
 /// settings.get's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SettingsGetParams {
     /// The version of the control API the request is written to.
@@ -13806,7 +13837,7 @@ impl SettingsGetParams {
 schema!(SettingsGetParams);
 
 /// Emitted when the hover delay setting changes
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct SettingsHoverDelayChangedEvent {
     #[serde(rename = "hoverDelayMs")]
     pub hover_delay_ms: i64,
@@ -13815,7 +13846,7 @@ pub struct SettingsHoverDelayChangedEvent {
 schema!(SettingsHoverDelayChangedEvent);
 
 /// settings.list's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SettingsListParams {
     /// The version of the control API the request is written to.
@@ -13839,7 +13870,7 @@ impl SettingsListParams {
 schema!(SettingsListParams);
 
 /// Every setting the launcher keeps: the machine's, then the knowledge base's.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SettingsListResult {
     /// The knowledge base whose settings are listed, when one resolved.
@@ -13866,7 +13897,7 @@ impl SettingsListResult {
 schema!(SettingsListResult);
 
 /// Emitted when the UI locale setting changes
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct SettingsLocaleChangedEvent {
     pub locale: String,
 }
@@ -13874,7 +13905,7 @@ pub struct SettingsLocaleChangedEvent {
 schema!(SettingsLocaleChangedEvent);
 
 /// settings.path's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SettingsPathParams {
     /// The version of the control API the request is written to.
@@ -13914,7 +13945,7 @@ impl SettingsPathParamsDocument {
 }
 
 /// Where a machine document is. When there is none, it is written from the launcher's catalog first, as a start writes it; one that does not hold is refused, as a start refuses it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SettingsPathResult {
     /// The document's path.
@@ -13924,7 +13955,7 @@ pub struct SettingsPathResult {
 schema!(SettingsPathResult);
 
 /// settings.set's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SettingsSetParams {
     /// The version of the control API the request is written to.
@@ -13958,7 +13989,7 @@ impl SettingsSetParams {
 schema!(SettingsSetParams);
 
 /// Emitted when the UI theme setting changes
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct SettingsThemeChangedEvent {
     pub theme: SettingsThemeChangedEventTheme,
 }
@@ -13989,7 +14020,7 @@ impl SettingsThemeChangedEventTheme {
 }
 
 /// settings.unset's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SettingsUnsetParams {
     /// The version of the control API the request is written to.
@@ -14020,7 +14051,7 @@ impl SettingsUnsetParams {
 schema!(SettingsUnsetParams);
 
 /// The entry a sign-in landed on, and what the person believed, so a host can set the two against each other and say when they differ. The sign-in stands either way: the knowledge base that answered is the one reached.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SignInOutcome {
     /// The entry the sign-in made or signed in to again.
@@ -14040,7 +14071,7 @@ impl SignInOutcome {
 schema!(SignInOutcome);
 
 /// What a completed sign-in learned, as a registry is handed it to record: where it was, who the knowledge base there says it is, the tokens, and what the person believed they were signing in to.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SignedIn {
     /// Where the sign-in was.
@@ -14080,7 +14111,7 @@ impl SignedIn {
 schema!(SignedIn);
 
 /// Bus command to rebuild anchored-text artifacts by re-running extraction — every geometry-capable resource when resourceId is absent, one resource when present. Served by the Smelter, serialized (each unit can be a multi-second OCR pass), and never destructive: nothing is deleted first, stale entries are simply overwritten. Re-anchoring makes zero embedding calls — the vectors are already correct; only the derived map is re-made. Partial completion replies failed, with counts: a rebuild that quietly skipped resources would present exactly like a document with no text.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct SmeltRebuildAnchorsCommand {
     /// When present, re-anchor only this resource; otherwise every geometry-capable resource in the catalog.
     #[serde(rename = "resourceId")]
@@ -14095,7 +14126,7 @@ pub struct SmeltRebuildAnchorsCommand {
 schema!(SmeltRebuildAnchorsCommand);
 
 /// The payload of `smelt:settled`: the Smelter's decision for one resource's content, keyed by the checksum of the bytes it inspected. `indexed`: the content is in the vector index. `skipped`: it declined, and `reason` says why.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct SmeltSettled {
     /// The resource whose content was inspected.
     #[serde(rename = "resourceId")]
@@ -14181,7 +14212,7 @@ impl SmeltSettledReason {
 }
 
 /// The two numbers a text is cut by before it is embedded, both in tokens, a token being taken as four code points.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SmelterChunking {
     /// The size of a chunk.
@@ -14194,7 +14225,7 @@ pub struct SmelterChunking {
 schema!(SmelterChunking);
 
 /// Everything a Smelter reads at boot: nothing in it is defaulted by the Smelter. Whoever starts a Smelter writes it, from the knowledge base's stack documents, and the Smelter reads it from the path its `--config` flag names. This schema is the contract, and a Smelter needs no launcher. Started without `--config`, or with a path that names no file, the Smelter refuses to start and says which. No secret is a value here: an embedding provider's key is named by the environment variable that holds it, and the Smelter's own service account is `XYNOLOG_OIDC_CLIENT_ID` and `XYNOLOG_OIDC_CLIENT_SECRET` in its environment. A document that does not validate is refused at boot, naming each failing field.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SmelterConfig {
     pub kb: KbIdentity,
@@ -14224,7 +14255,7 @@ pub struct SmelterConfig {
 schema!(SmelterConfig);
 
 /// The Smelter's health answer (SMELTER.md § Health): seven members, each from what the Smelter holds, for it asks nothing of the gateway, its embedding provider or its vector database to answer. `status` is `ok` whenever it answers, and says what else is so in the members beside it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SmelterHealth {
     pub status: SmelterHealthStatus,
@@ -14268,7 +14299,7 @@ impl SmelterHealth {
 schema!(SmelterHealth);
 
 /// What the Smelter holds its index to, and what this start did for that.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SmelterHealthIndex {
     /// The model and the cut it makes an index by.
@@ -14279,7 +14310,7 @@ pub struct SmelterHealthIndex {
 }
 
 /// The model and the cut it makes an index by.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SmelterHealthIndexStamp {
     /// The embedding provider's kind and model.
@@ -14288,7 +14319,7 @@ pub struct SmelterHealthIndexStamp {
 }
 
 /// The embedding provider's kind and model.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SmelterHealthIndexStampEmbedding {
     pub r#type: String,
@@ -14296,7 +14327,7 @@ pub struct SmelterHealthIndexStampEmbedding {
 }
 
 /// How far the latest reconcile has got: the pass's `summary` when it is done, or its `error` when it failed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SmelterHealthReconcile {
     pub phase: SmelterHealthReconcilePhase,
@@ -14399,7 +14430,7 @@ impl SmelterHealthStream {
 }
 
 /// What a Smelter's reconcile came to (SMELTER.md § Reconcile), as its health reports a pass that is done (SmelterHealth's `reconcile.summary`). The first four add up to how many resources it set out to index, less any whose indexing was no longer wanted when its turn came.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SmelterReconcileSummary {
     /// How many resources it set out to index were indexed.
@@ -14442,7 +14473,7 @@ pub struct SmelterReconcileSummary {
 
 schema!(SmelterReconcileSummary);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct SpecificResource {
     pub r#type: SpecificResourceType,
     /// The id of the resource this body leads to
@@ -14503,7 +14534,7 @@ impl StackApiVersion {
 schema!(StackApiVersion);
 
 /// A knowledge base's record and the services that keep it: the Gateway, the Dispatcher, the Archivist, and the broker between them. They live and die with the knowledge base.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBase {
     #[serde(rename = "apiVersion")]
@@ -14550,7 +14581,7 @@ impl StackKnowledgeBaseKind {
 }
 
 /// The knowledge base's services, and how each runs.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpec {
     #[serde(rename = "logLevel")]
@@ -14568,7 +14599,7 @@ pub struct StackKnowledgeBaseSpec {
 }
 
 /// The Archivist: it keeps the knowledge base's record in its working tree.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecArchivist {
     pub image: Image,
@@ -14590,7 +14621,7 @@ impl StackKnowledgeBaseSpecArchivist {
 }
 
 /// The Dispatcher: it hands queued jobs to workers.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecDispatcher {
     pub image: Image,
@@ -14598,7 +14629,7 @@ pub struct StackKnowledgeBaseSpecDispatcher {
 }
 
 /// The Gateway: where every client and every service reaches the knowledge base.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecGateway {
     pub image: Image,
@@ -14611,7 +14642,7 @@ pub struct StackKnowledgeBaseSpecGateway {
 }
 
 /// The issuer the knowledge base trusts: the one the launcher runs for the knowledge bases on a machine, at `shared`, with the knowledge base's own realm in it, or somebody else's, at `external`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecIssuer {
     /// The issuer the launcher runs for the knowledge bases on a machine (the state home's Issuer document). The launcher creates the knowledge base's realm in it.
@@ -14637,7 +14668,7 @@ impl StackKnowledgeBaseSpecIssuer {
 }
 
 /// An issuer somebody else runs.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecIssuerExternal {
     /// `oidc`, or `keycloak`.
@@ -14647,7 +14678,7 @@ pub struct StackKnowledgeBaseSpecIssuerExternal {
 }
 
 /// The issuer the launcher runs for the knowledge bases on a machine (the state home's Issuer document). The launcher creates the knowledge base's realm in it.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecIssuerShared {
     /// How long a token the realm mints stays valid, in seconds: the window in which a disabled account can still act.
@@ -14656,7 +14687,7 @@ pub struct StackKnowledgeBaseSpecIssuerShared {
 }
 
 /// The broker the job queue and the signal plane share: the launcher's, run from `image`, or somebody else's, at `external`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecMessaging {
     /// The Dispatcher's queue.
@@ -14689,7 +14720,7 @@ impl StackKnowledgeBaseSpecMessaging {
 }
 
 /// A broker somebody else runs, serving this knowledge base alone: a second knowledge base on it would share the job queue and, on a `nats` signal plane, the frames and the gateway's record of pending replies. The launcher refuses to start a knowledge base whose `servers` another knowledge base on its machine names.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecMessagingExternal {
     /// Where it listens: `host:port`.
@@ -14699,7 +14730,7 @@ pub struct StackKnowledgeBaseSpecMessagingExternal {
 }
 
 /// The Dispatcher's queue.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecMessagingJobs {
     /// The queue's driver: `jetstream`.
@@ -14707,7 +14738,7 @@ pub struct StackKnowledgeBaseSpecMessagingJobs {
 }
 
 /// The Gateway's signal plane.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackKnowledgeBaseSpecMessagingSignal {
     /// `in-process`, one Gateway on its own fabric, or `nats`, on the broker.
@@ -14715,7 +14746,7 @@ pub struct StackKnowledgeBaseSpecMessagingSignal {
 }
 
 /// stack.start's params: what xynolog start takes, but its help and its narration switches.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackStartParams {
     /// The version of the control API the request is written to.
@@ -14809,7 +14840,7 @@ impl StackStartParamsOllamaCache {
 }
 
 /// A start that ran to its end: the stack as status reads it afterwards. A start that failed is an error, whatever it started before it did; its progress lines say what it did.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackStartResult {
     /// Whether the start ran nothing.
@@ -14838,7 +14869,7 @@ impl StackStartResult {
 schema!(StackStartResult);
 
 /// stack.stop's params: what xynolog stop takes, but its help.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackStopParams {
     /// The version of the control API the request is written to.
@@ -14888,7 +14919,7 @@ impl StackStopParams {
 schema!(StackStopParams);
 
 /// A stop that ran to its end: what status reads afterwards. A stop that failed is an error.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StackStopResult {
     /// Whether the stop stopped nothing.
@@ -14916,7 +14947,7 @@ impl StackStopResult {
 
 schema!(StackStopResult);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct StatusResponse {
     pub status: String,
     pub version: String,
@@ -14947,7 +14978,7 @@ impl StatusResponse {
 
 schema!(StatusResponse);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct StatusResponseFeatures {
     #[serde(rename = "semanticContent")]
     pub semantic_content: String,
@@ -14955,7 +14986,7 @@ pub struct StatusResponseFeatures {
 }
 
 /// status.snapshot's params.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StatusSnapshotParams {
     /// The version of the control API the request is written to.
@@ -14983,7 +15014,7 @@ impl StatusSnapshotParams {
 schema!(StatusSnapshotParams);
 
 /// What xynolog status reports: each knowledge base with its own services, and each service the knowledge bases share, once, with the knowledge bases it serves.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StatusSnapshotResult {
     /// The target's stack; with no target, the stack of the knowledge base the control server stands in, else every recorded one.
@@ -14996,7 +15027,7 @@ pub struct StatusSnapshotResult {
 schema!(StatusSnapshotResult);
 
 /// One entry of the storage-uri index: the file `projections/storage-uri/<ab>/<cd>/<sha256 of the URI, hex>.json` under the state directory. It answers which resource's content is at a place in the working tree. Written as JSON indented by two spaces, `uri` first.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StorageUriEntry {
     /// The `file://` URI of a place in the working tree, relative to the knowledge base's root.
@@ -15008,7 +15039,7 @@ pub struct StorageUriEntry {
 schema!(StorageUriEntry);
 
 /// A persisted domain event with metadata. Flat shape — event fields and metadata are peers.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct StoredEventResponse {
     /// Unique event ID (UUID)
     pub id: String,
@@ -15057,7 +15088,7 @@ impl StoredEventResponse {
 schema!(StoredEventResponse);
 
 /// What is kept of a sign-in: the tokens an issuer issued, the client they were issued to, and the issuer's endpoints a renewal and a sign-out need, learned once at sign-in so no session asks again. TOKENS, never a password. A stored value that lacks a member it requires is no session.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct StoredSession {
     /// The access token: short-lived, sent as a Bearer token.
     pub access: String,
@@ -15306,7 +15337,7 @@ impl SupportedMediaType {
 
 schema!(SupportedMediaType);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct SvgSelector {
     pub r#type: SvgSelectorType,
     /// SVG markup defining the region (must include xmlns attribute)
@@ -15343,7 +15374,7 @@ impl SvgSelectorType {
 }
 
 /// What checking one open resource against its knowledge base concluded. `gone` is the only verdict that closes it, and it means the knowledge base said the resource does not exist, not that the check failed: a failed transport, a timeout and a peer that is down are each `unknown`, and an unknown resource stays open.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum TabCheck {
     Gone(TabCheckGone),
@@ -15371,7 +15402,7 @@ impl<'de> serde::Deserialize<'de> for TabCheck {
 schema!(TabCheck);
 
 /// The knowledge base said the resource does not exist.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TabCheckGone {
     /// What checking an open resource against its knowledge base concluded.
@@ -15412,7 +15443,7 @@ impl TabCheckGoneVerdict {
 }
 
 /// The knowledge base has the resource, and said what it is called now.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TabCheckReady {
     /// What checking an open resource against its knowledge base concluded.
@@ -15455,7 +15486,7 @@ impl TabCheckReadyVerdict {
 }
 
 /// The check found out nothing.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TabCheckUnknown {
     /// What checking an open resource against its knowledge base concluded.
@@ -15522,7 +15553,7 @@ impl TabVerdict {
 schema!(TabVerdict);
 
 /// A single category within a tag schema (e.g. 'Issue' in IRAC, 'distinguished' in legal-citation-treatment). Each category carries methodology-bound semantics: a name, a description, and examples used in the LLM prompt.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct TagCategory {
     pub name: String,
     pub description: String,
@@ -15532,7 +15563,7 @@ pub struct TagCategory {
 schema!(TagCategory);
 
 /// A structural-analysis schema (e.g. legal-irac, scientific-imrad, argument-toulmin). Defines a methodology framework as an id, name, description, domain hint, and an ordered list of categories. KBs and their skills register schemas with the runtime registry via `frame.addTagSchema(...)` at session start.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct TagSchema {
     pub id: String,
     pub name: String,
@@ -15545,7 +15576,7 @@ pub struct TagSchema {
 schema!(TagSchema);
 
 /// Payload for frame:tag-schema-added domain event (system-level, no resourceId — fan-out is global to the KB).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct TagSchemaAddedPayload {
     pub schema: TagSchema,
 }
@@ -15553,7 +15584,7 @@ pub struct TagSchemaAddedPayload {
 schema!(TagSchemaAddedPayload);
 
 /// The knowledge base's tag schemas: the file `projections/__system__/tagschemas.json` under the state directory, the sum of the `frame:tag-schema-added` events. Written as JSON indented by two spaces.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TagSchemasProjection {
     /// Every tag schema added, sorted by `id`. A schema added again under an `id` replaces the one held.
@@ -15564,7 +15595,7 @@ pub struct TagSchemasProjection {
 schema!(TagSchemasProjection);
 
 /// What a tagging job takes: passages of the resource are marked with categories of one tag schema.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TaggingJobParams {
     pub motivation: TaggingJobParamsMotivation,
@@ -15615,7 +15646,7 @@ impl TaggingJobParamsMotivation {
 }
 
 /// Which knowledge base an operation acts on: a local clone's stack, or a codespace's. The launcher resolves it as the command line resolves --root and --repo, and refuses a choice it would have to guess.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Target {
     /// Where the stack runs: on this machine (local), or on a GitHub codespace whose knowledge base is forwarded here (codespace).
@@ -15662,7 +15693,7 @@ impl TargetKind {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct TextPositionSelector {
     pub r#type: TextPositionSelectorType,
     /// Offset into the resource's decoded text, exactly as decoded, in Unicode code points from its start: where the selected text starts.
@@ -15701,7 +15732,7 @@ impl TextPositionSelectorType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct TextQuoteSelector {
     pub r#type: TextQuoteSelectorType,
     pub exact: String,
@@ -15743,7 +15774,7 @@ impl TextQuoteSelectorType {
 }
 
 /// A span of a text: the code points from `start` up to but not including `end`, the words they are, and maybe the text just before and just after them.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TextSpan {
     /// The offset the span starts at, in Unicode code points from the text's start.
@@ -15775,7 +15806,7 @@ impl TextSpan {
 
 schema!(TextSpan);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct TextualBody {
     pub r#type: TextualBodyType,
     /// The text content (e.g., entity type name)
@@ -15828,7 +15859,7 @@ impl TextualBodyType {
 /// MERGE IS MONOTONE PER UNIT, not a union. `completedUnits` is a set and converges under concurrent snapshots because a set only grows; a cursor converges only if a stale snapshot can never move it backward.
 ///
 /// IT CARRIES THE UNIT'S RUNNING TALLIES TOO, and they are required. A resumed unit counts only the chunks it actually runs, so without them a retry's terminal record reports the remainder of the document as if it were the whole — measured at a `found` of 19 where the document yielded 25. The position and the tallies are ONE observation of the same committed chunk; splitting them would let a resume take the saving and still report a number nobody can trust.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct UnitCursor {
     /// Unicode code points of the text consumed once the last COMMITTED chunk completed — the resume position, and the length of the text for a unit whose last chunk it was. Deliberately the chunk's `next`, never its `at`: the checkpoint must not lead the log, so it records where a chunk that is already durable ended, not where the in-flight one began. Recording `at` would make a resume re-run the chunk it already paid for.
     pub next: u64,
@@ -15844,7 +15875,7 @@ pub struct UnitCursor {
 
 schema!(UnitCursor);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct UpdateAnnotationBodyRequest {
     /// Resource ID containing the annotation (required for O(1) Layer 3 lookup)
     #[serde(rename = "resourceId")]
@@ -15856,7 +15887,7 @@ pub struct UpdateAnnotationBodyRequest {
 schema!(UpdateAnnotationBodyRequest);
 
 /// What an upload reports as it goes, told apart by `phase`: its size first, then the bytes sent so far, then the resource made.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum UploadProgress {
     Started(UploadProgressStarted),
@@ -15884,7 +15915,7 @@ impl<'de> serde::Deserialize<'de> for UploadProgress {
 schema!(UploadProgress);
 
 /// The upload ended, and the resource is made.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UploadProgressFinished {
     pub phase: UploadProgressFinishedPhase,
@@ -15920,7 +15951,7 @@ impl UploadProgressFinishedPhase {
 }
 
 /// Bytes were sent.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UploadProgressProgress {
     pub phase: UploadProgressProgressPhase,
@@ -15961,7 +15992,7 @@ impl UploadProgressProgressPhase {
 }
 
 /// The upload began.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UploadProgressStarted {
     pub phase: UploadProgressStartedPhase,
@@ -15998,7 +16029,7 @@ impl UploadProgressStartedPhase {
 }
 
 /// A sign-in waits for a person: open the verification page and enter the code. The code is sent here and nowhere else — in no progress line, no log record and no diagnostic.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UserAction {
     #[serde(rename = "requestId")]
@@ -16137,7 +16168,7 @@ schema!(UserId);
 /// The `did` is the identity: it is what the bus stamps on every event, what resource creation is attributed to, and what a client must compare against to recognise its own work in the data. It is the only identifier: a row id would appear nowhere else in the system and correlate with nothing.
 ///
 /// The remaining fields exist to be displayed, and all of them come from the token's own claims.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct UserResponse {
     /// The authenticated principal's DID: `did:web:<domain>:agents:<subject>` for an agent, whose token's `kind` claim is `agent`, and `did:web:<domain>:users:<subject>` for a person, where the subject is the issuer claim the knowledge base names its principals by (`identity.subjectClaim`).
     pub did: UserId,
@@ -16152,7 +16183,7 @@ pub struct UserResponse {
 schema!(UserResponse);
 
 /// The vector store the launcher runs for the knowledge bases on a machine, each knowledge base's index in collections of its own. It belongs to no knowledge base, so its document is kept in the launcher's state home, in `stack/vectors.yaml`, not in a knowledge base's repository. A knowledge base keeps its index in it by naming `shared` at `spec.vectors`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct VectorStore {
     #[serde(rename = "apiVersion")]
@@ -16195,7 +16226,7 @@ impl VectorStoreKind {
 }
 
 /// The vector store, and where it is published.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct VectorStoreSpec {
     /// The vector store's driver: `qdrant`.
@@ -16207,7 +16238,7 @@ pub struct VectorStoreSpec {
 }
 
 /// The vector index a service writes or searches, and what that kind of index needs to be reached: one of the kinds `xynolog-vectors` has a store for, told apart by `type`.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum VectorsConfig {
     QdrantVectorsConfig(QdrantVectorsConfig),
@@ -16235,7 +16266,7 @@ member!(VectorsConfig::MemoryVectorsConfig(MemoryVectorsConfig));
 schema!(VectorsConfig);
 
 /// An embedding model served by Voyage AI. No service has been run against Voyage itself.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct VoyageEmbeddingConfig {
     pub r#type: VoyageEmbeddingConfigType,
@@ -16284,7 +16315,7 @@ impl VoyageEmbeddingConfigType {
 }
 
 /// The payload of `weave:applied`: the Weaver has applied a resource's events to the graph up to this sequence number. Emitted after applying an event, or a batch's last event.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct WeaveApplied {
     /// The resource whose events were applied.
     #[serde(rename = "resourceId")]
@@ -16297,7 +16328,7 @@ pub struct WeaveApplied {
 schema!(WeaveApplied);
 
 /// Bus command to rebuild the graph projection from the event log — the whole graph when resourceId is absent, one resource when present. Served by the Weaver; replaces direct rebuild access, which does not survive the Weaver's container split.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct WeaveRebuildCommand {
     /// When present, rebuild only this resource; otherwise clear and rebuild the entire graph.
     #[serde(rename = "resourceId")]
@@ -16312,7 +16343,7 @@ pub struct WeaveRebuildCommand {
 schema!(WeaveRebuildCommand);
 
 /// Everything a Weaver reads at boot: nothing in it is defaulted by the Weaver. The launcher writes it for the Weaver it starts, from the knowledge base's stack documents, and the Weaver reads it from the path its `--config` flag names (its image passes `/etc/xynolog/weaver.json`). Whoever starts a Weaver another way writes the same document: this schema is the contract, and a Weaver needs no launcher. Started without `--config`, or with a path that names no file, the Weaver refuses to start and says which. No secret is a value here: the graph database's password is named by the environment variable that holds it, and the Weaver's own service account is `XYNOLOG_OIDC_CLIENT_ID` and `XYNOLOG_OIDC_CLIENT_SECRET` in its environment. A document that does not validate is refused at boot, naming each failing field.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WeaverConfig {
     pub kb: KbIdentity,
@@ -16337,7 +16368,7 @@ pub struct WeaverConfig {
 schema!(WeaverConfig);
 
 /// The Weaver's health answer (WEAVER.md § Health). `status` is `ok` whenever the Weaver answers: it says nothing of whether the Weaver can reach the gateway or the graph.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WeaverHealth {
     pub status: WeaverHealthStatus,
@@ -16363,7 +16394,7 @@ impl WeaverHealth {
 schema!(WeaverHealth);
 
 /// How far the reconcile its first sweep is followed by has got (WEAVER.md § Reconcile): the pass's `summary` when it is done, or its `error` when it failed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WeaverHealthReconcile {
     pub phase: WeaverHealthReconcilePhase,
@@ -16413,7 +16444,7 @@ impl WeaverHealthReconcilePhase {
 }
 
 /// What the pass found and did.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WeaverHealthReconcileSummary {
     /// How many resources it checked.
@@ -16448,7 +16479,7 @@ impl WeaverHealthStatus {
 }
 
 /// Everything a worker reads at boot: nothing in it is defaulted by the worker. The launcher writes it for the machine's worker, from the knowledge bases on that worker's list: each local knowledge base as its start places it, from its stack documents, and each added by `xynolog worker kb add`, offered the engines of the local one it was added from. The worker reads it from the path its `--config` flag names (its image passes `/etc/xynolog/worker.json`). Whoever starts a worker another way writes the same document: this schema is the contract, and a worker needs no launcher. Started without `--config`, or with a path that names no file, the worker refuses to start and says which. No secret is a value here: a provider's key is named by the environment variable that holds it, and the key the worker signs in with at every knowledge base is `XYNOLOG_OIDC_CLIENT_KEY` in its environment, an RSA private key; each knowledge base names the client that holds its public half there. A document that does not validate is refused at boot, naming each failing field.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerConfig {
     /// The knowledge bases this worker does jobs for. At each it signs in, confirms which knowledge base it reached and claims for its engines, apart from every other: one knowledge base's trouble stops that knowledge base's work alone (`contract/WORKER-SERVICE.md` § Knowledge bases). No two name one `domain`, which the worker refuses at boot.
@@ -16468,7 +16499,7 @@ pub struct WorkerConfig {
 schema!(WorkerConfig);
 
 /// One engine a worker runs: which it is, the jobs the worker claims to do with it, and where its provider is reached.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerEngineConfig {
     pub engine: Engine,
@@ -16498,7 +16529,7 @@ impl WorkerEngineConfig {
 schema!(WorkerEngineConfig);
 
 /// One engine at one knowledge base: which it is, the jobs it claims, and what its claims can say of themselves (WORKER-CONTRACT V1).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerEngineHealth {
     pub engine: Engine,
@@ -16527,7 +16558,7 @@ pub struct WorkerEngineHealth {
 schema!(WorkerEngineHealth);
 
 /// The job it holds, or null.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerEngineHealthActiveJob {
     #[serde(rename = "jobId")]
@@ -16538,7 +16569,7 @@ pub struct WorkerEngineHealthActiveJob {
 }
 
 /// The Worker service's health answer (WORKER-SERVICE H1). It answers only once a knowledge base of its document is confirmed, so a 200 means it is working somewhere.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerHealth {
     pub status: WorkerHealthStatus,
@@ -16577,7 +16608,7 @@ impl WorkerHealthStatus {
 }
 
 /// One knowledge base a worker does jobs for: which it is, where its gateway is, the account the worker signs in as there, and the engines it offers it. The worker signs in, confirms the knowledge base and claims at each knowledge base apart from every other.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerKnowledgeBaseConfig {
     /// The knowledge base's did:web domain, as it answers `browse:kb-requested`: which knowledge base this is. The worker confirms it there before it claims, and refuses a knowledge base that answers another domain, or none.
@@ -16594,7 +16625,7 @@ pub struct WorkerKnowledgeBaseConfig {
 schema!(WorkerKnowledgeBaseConfig);
 
 /// Where the worker signs in for this knowledge base, and as which client.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerKnowledgeBaseConfigIdentity {
     /// The issuer URL, exactly as tokens carry it in `iss`.
@@ -16605,7 +16636,7 @@ pub struct WorkerKnowledgeBaseConfigIdentity {
 }
 
 /// One knowledge base the worker serves, as its health says it. `did` and `engines` are there while it is `working`, and only then.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerKnowledgeBaseHealth {
     /// The entry's `domain`.
@@ -16659,7 +16690,7 @@ impl WorkerKnowledgeBaseHealthState {
 }
 
 /// The shared worker that does knowledge bases' jobs: its image, its memory and its log level. They are shared, not any knowledge base's, so its document is kept in the launcher's state home, in `stack/workers.yaml`, not in a knowledge base's repository. A knowledge base's jobs are done when its Inference document gives a job an engine. A worker needs only the Gateway, and an issuer's token with the worker's role.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerPool {
     #[serde(rename = "apiVersion")]
@@ -16702,7 +16733,7 @@ impl WorkerPoolKind {
 }
 
 /// How the worker runs.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerPoolSpec {
     #[serde(rename = "logLevel")]
@@ -16712,7 +16743,7 @@ pub struct WorkerPoolSpec {
 }
 
 /// The Worker.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkerPoolSpecWorker {
     pub image: Image,
@@ -16720,7 +16751,7 @@ pub struct WorkerPoolSpecWorker {
 }
 
 /// A knowledge base's operational readings from Collector metrics. Request-tracking occupancy and queue depth are current gauges; completed and failed are worker counters since that worker process started. Missing readings are unknown, never zero.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkloadStatus {
     /// The Gateway's request tracking: correlation IDs it currently holds so replies can be routed to the app client that sent each request, and the tracking capacity.
@@ -16734,7 +16765,7 @@ pub struct WorkloadStatus {
 schema!(WorkloadStatus);
 
 /// The Gateway's request tracking: correlation IDs it currently holds so replies can be routed to the app client that sent each request, and the tracking capacity.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkloadStatusLedger {
     /// Number of request IDs currently held to route replies to their requesting app clients. Includes requests still waiting for a reply and recently answered requests still within the tracking window.
@@ -16744,7 +16775,7 @@ pub struct WorkloadStatusLedger {
 }
 
 /// Current Dispatcher depth and, when the worker has emitted counters, completed and failed work since worker start. These are different measurements and time windows.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkloadStatusQueue {
     /// Jobs currently waiting for a worker.
@@ -16772,7 +16803,7 @@ impl WorkloadStatusQueue {
 }
 
 /// Bus command to create a cloned resource from a clone token. Bytes are stored by the upload path BEFORE this command is emitted, because bytes travel over HTTP and never over the bus — the command carries the storage coordinates, never content.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldCloneCreateCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -16819,7 +16850,7 @@ impl YieldCloneCreateCommand {
 schema!(YieldCloneCreateCommand);
 
 /// Success response after creating a cloned resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldCloneCreated {
     pub response: YieldedResource,
 }
@@ -16833,7 +16864,7 @@ schema!(YieldCloneCreated);
 /// Distinct from `yield:create` because a clone is a distinct operation, not a creation with an extra field. It REQUIRES a parent, and that requirement is what a separate command expresses: an optional `parentResourceId` on the create command could not say that a clone without a parent is not a clone. `ResourceClonedPayload` requires it for the same reason.
 ///
 /// Generated resources are NOT clones: they carry provenance in `generatedFrom` and stay on `yield:create`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldClonePersistCommand {
     /// Injected by the gateway from the authenticated principal; never supplied by a wire caller.
     #[serde(rename = "_userId")]
@@ -16886,7 +16917,7 @@ impl YieldClonePersistCommand {
 schema!(YieldClonePersistCommand);
 
 /// Success reply after cloning a resource, matched to the originating command by correlationId.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldClonePersistOk {
     /// The clone's identity — a new resource, distinct from its parent.
     pub response: YieldedResource,
@@ -16895,7 +16926,7 @@ pub struct YieldClonePersistOk {
 schema!(YieldClonePersistOk);
 
 /// Bus command to request cloning a resource using a clone token.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldCloneResourceRequest {
     pub token: String,
 }
@@ -16903,7 +16934,7 @@ pub struct YieldCloneResourceRequest {
 schema!(YieldCloneResourceRequest);
 
 /// Bus command to request a clone token for a resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldCloneTokenRequest {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,
@@ -16912,7 +16943,7 @@ pub struct YieldCloneTokenRequest {
 schema!(YieldCloneTokenRequest);
 
 /// Bus command to create a yielded resource in the knowledge base.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldCreateCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -16983,7 +17014,7 @@ impl YieldCreateCommand {
 
 schema!(YieldCreateCommand);
 
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct YieldCreateCommandGeneratedFrom {
     #[serde(rename = "resourceId")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -16994,7 +17025,7 @@ pub struct YieldCreateCommandGeneratedFrom {
 }
 
 /// Success reply after creating a yielded resource, matched to the originating command by correlationId.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldCreateOk {
     /// The created resource's identity.
     pub response: YieldedResource,
@@ -17003,7 +17034,7 @@ pub struct YieldCreateOk {
 schema!(YieldCreateOk);
 
 /// A `yield` job's worker says the job is complete, with what a `yield` job reports.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldJobCompleteCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -17111,7 +17142,7 @@ impl YieldJobCreateCommandJobType {
 }
 
 /// What a `yield` job reports when it has made its resource. The worker creates the resource first (the create round trip returns its id), then emits job:complete carrying it, so resourceId is always present on the wire.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct YieldJobDone {
     /// ID of the generated resource, obtained by the worker from the create round-trip before job:complete is emitted
@@ -17127,7 +17158,7 @@ pub struct YieldJobDone {
 schema!(YieldJobDone);
 
 /// `yield` jobs.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct YieldJobFilter {
     #[serde(rename = "jobType")]
@@ -17222,7 +17253,7 @@ impl YieldJobQueuedEventJobType {
 }
 
 /// What a `yield` job reports when it concludes without failing: the resource it made, or a decline. Neither names its kind: a decline is the one with `declined`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum YieldJobResult {
     YieldJobDone(YieldJobDone),
@@ -17234,7 +17265,7 @@ member!(YieldJobResult::JobDeclined(JobDeclined));
 schema!(YieldJobResult);
 
 /// Bus command to update a yielded resource's storage content.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldUpdateCommand {
     /// Authenticated user's DID, injected by the /bus/emit gateway. Clients do not set this.
     #[serde(rename = "_userId")]
@@ -17272,7 +17303,7 @@ impl YieldUpdateCommand {
 schema!(YieldUpdateCommand);
 
 /// Success reply after updating a yielded resource, matched to the originating command by correlationId.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldUpdateOk {
     /// The updated resource's identity.
     pub response: YieldedResource,
@@ -17281,7 +17312,7 @@ pub struct YieldUpdateOk {
 schema!(YieldUpdateOk);
 
 /// The resource a yield command wrote, by its id.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct YieldedResource {
     #[serde(rename = "resourceId")]
     pub resource_id: ResourceId,

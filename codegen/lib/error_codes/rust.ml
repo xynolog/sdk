@@ -45,6 +45,15 @@ let vocabulary ~name (v : Table.vocabulary) =
         for_ = R.named name;
         items =
           [
+            R.I_const
+              {
+                doc = [ "Every code of the vocabulary, in the table's order." ];
+                vis = Pub;
+                name = "ALL";
+                ty = R.Array_of (R.named name, List.length v.codes);
+                value = Some (R.Array (List.map of_ v.codes));
+              };
+            R.I_blank;
             R.I_fn
               (R.fn_
                  ~doc:[ "The code as every SDK reports it." ]
@@ -170,5 +179,6 @@ let file (t : Table.t) =
               };
             R.Blank;
           ]
-        @ List.concat_map (fun v -> vocabulary ~name:(names v) v) t.others);
+        @ List.concat_map (fun v -> vocabulary ~name:(names v) v) t.others
+        @ vocabulary ~name:(names t.control) t.control);
   }

@@ -191,10 +191,10 @@ impl Tasks {
 /// `C`. A frame whose payload is not that channel's says nothing: it came
 /// over the wire from a participant this client does not answer for.
 pub(crate) fn said<C: Channel>(frame: &Frame) -> Option<C::Payload> {
-    if frame.channel != C::NAME {
+    if frame.bus_frame.channel != C::NAME {
         return None;
     }
-    decoded::<C>(frame.payload.clone()).ok()
+    decoded::<C>(frame.bus_frame.payload.clone()).ok()
 }
 
 /// Say something to the client's own parts, as a namespace's signal does.

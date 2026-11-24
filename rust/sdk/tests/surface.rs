@@ -16,7 +16,6 @@ use std::time::Duration;
 use xynolog::channels::BRIDGED_CHANNELS;
 use xynolog::claims::JOB_CLAIM_CHANNELS;
 use xynolog::client::XynologClient;
-use xynolog::namespaces::ResourceFilters;
 use xynolog::testing::as_id;
 use xynolog::testing::{
     ContentCall, FaultyTransport, InMemoryContent, StubGateway, TestClientOptions,
@@ -149,20 +148,14 @@ impl Args {
         self.0.get("options").map(object).unwrap_or_default()
     }
 
-    /// The filters a list or a search is given. A filter this SDK has no
-    /// field for fails the case rather than going unsent.
-    fn filters(&self) -> ResourceFilters {
-        let mut filters = ResourceFilters::default();
-        for (name, stated) in self.0.get("filters").map(object).unwrap_or_default() {
-            match name.as_str() {
-                "limit" => filters.limit = stated.as_u64(),
-                "offset" => filters.offset = stated.as_u64(),
-                "archived" => filters.archived = stated.as_bool(),
-                "entityType" => filters.entity_type = stated.as_str().map(str::to_owned),
-                other => panic!("the case filters by {other}, which ResourceFilters has not"),
-            }
+    /// An argument a method may be given, as the type the method takes: its
+    /// default when the case states none.
+    fn stated<T: DeserializeOwned + Default>(&self, name: &str) -> T {
+        if self.0.contains_key(name) {
+            self.typed(name)
+        } else {
+            T::default()
         }
-        filters
     }
 }
 
@@ -280,7 +273,7 @@ fn call(world: &World, namespace: &str, method: &str, args: Args) {
             .browse
             .resource(&as_id(&args.text("resourceId")))
             .fresh()),
-        ("browse", "resources") => go!(client.browse.resources(args.filters()).fresh()),
+        ("browse", "resources") => go!(client.browse.resources(args.stated("filters")).fresh()),
         ("browse", "annotations") => {
             go!(client
                 .browse
@@ -432,15 +425,9 @@ fn call(world: &World, namespace: &str, method: &str, args: Args) {
                 .into_future())
         }
         ("gather", "resource") => {
-            let resource_id = args.text("resourceId");
-            // What the case does not state is what the SDK sends unasked.
-            let mut options = object(
-                &serde_json::to_value(xynolog::types::GatherResourceRequestOptions::default())
-                    .expect("the options serialize"),
-            );
-            options.extend(args.options());
-            let options = serde_json::from_value(Value::Object(options)).expect("gather options");
-            go!(client.gather.resource(&as_id(&resource_id), options))
+            go!(client
+                .gather
+                .resource(&as_id(&args.text("resourceId")), args.stated("options")))
         }
         ("gather", "referencedBy") => {
             go!(client
@@ -450,21 +437,22 @@ fn call(world: &World, namespace: &str, method: &str, args: Args) {
         }
 
         ("match", "search") => {
-            let mut request = json!({
-                "resourceId": args.text("resourceId"),
-                "referenceId": args.text("referenceId"),
-                "context": args.0["context"],
-            });
-            object_of(&mut request).extend(args.options());
-            let request = serde_json::from_value(request).expect("a search request");
-            go!(client.match_.search(request).into_future())
+            go!(client
+                .match_
+                .search(
+                    &as_id(&args.text("resourceId")),
+                    &as_id(&args.text("referenceId")),
+                    args.typed("context"),
+                    args.stated("options"),
+                )
+                .into_future())
         }
         ("match", "requestSearch") => client
             .match_
             .request_search(args.typed("input"), &args.text("correlationId")),
         ("match", "resources") => go!(client
             .match_
-            .resources(&args.text("search"), args.filters())
+            .resources(&args.text("search"), args.stated("filters"))
             .fresh()),
 
         ("yield", "resource") => {
@@ -559,7 +547,7 @@ fn call(world: &World, namespace: &str, method: &str, args: Args) {
             let job_id = args.text("jobId");
             go!(client
                 .job
-                .poll_until_complete(&as_id(&job_id), None, None, |_| {}))
+                .poll_until_complete(&as_id(&job_id), args.stated("options"), |_| {}))
         }
         ("job", "cancel") => {
             let job_id = args.text("jobId");
@@ -689,15 +677,15 @@ async fn held_to(world: &World, at: usize, via: &Map<String, Value>, sends: &Val
                 world.transport.emitted().get(at).cloned()
             })
             .await;
-            assert_eq!(frame.channel, named, "{why}");
+            assert_eq!(frame.bus_frame.channel, named, "{why}");
             same(
-                &Value::Object(frame.payload),
+                &Value::Object(frame.bus_frame.payload),
                 sends,
                 &format!("{why}: what was sent"),
             );
-            assert_eq!(frame.scope, None, "{why}: it is sent globally");
+            assert_eq!(frame.bus_frame.scope, None, "{why}: it is sent globally");
             assert_eq!(
-                frame.correlation_id.is_some(),
+                frame.bus_frame.correlation_id.is_some(),
                 kind == "request",
                 "{why}: a request carries a key of the client's making, and a frame nobody answers carries none"
             );
@@ -769,12 +757,12 @@ async fn every_method_does_what_its_row_says() {
                             .expect("not lagged")
                             .expect("not refused");
                         same(
-                            &Value::Object(frame.payload),
+                            &Value::Object(frame.bus_frame.payload),
                             &sends,
                             &format!("{why}: what was published"),
                         );
                         assert_eq!(
-                            frame.correlation_id.as_deref(),
+                            frame.bus_frame.correlation_id.as_deref(),
                             case["correlationId"].as_str(),
                             "{why}: the key on its envelope"
                         );

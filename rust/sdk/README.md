@@ -87,7 +87,7 @@ client
 // around it.
 let context = client
     .gather
-    .resource(&paper_id, GatherResourceRequestOptions::default())
+    .resource(&paper_id, GatherResourceOptions::default())
     .await?;
 
 // Generate: a new resource, grounded in that context and linked to its
@@ -384,6 +384,7 @@ A method's return type says how to use it.
 | `async fn … -> Result<Option<u64>, XynologError>` | a drive at the other participants | `.await?`: how many the gateway reached, `None` when it kept no count |
 | `Typed<C, BusFrames>` | one channel's events, from now on | `.next()` |
 | `Claims` | a worker's claims, from `job.claim` | `.next().await` for the next job the worker holds, or the next claim it was refused; a held job says its own lifecycle, and `complete`, `fail` and `cancel` take it by value |
+| `Questions<R>` | the requests of an operation a service answers, from `bus.questions::<R>()` | `.next().await` for the next `Question<R>`, whose `asked` is the request with who sent it and its trace; `answer(Ok(result))` or `answer(Err(failure))` sends the reply under the asker's correlation id. A request that is not the operation's is refused, and its asker told why when the request names what the failure carries |
 
 A `Running` and an `Upload` are consumed by value, so one operation is never
 started twice. Nothing is sent until one is first polled, and dropping one

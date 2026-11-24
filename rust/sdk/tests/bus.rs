@@ -10,6 +10,7 @@ use xynolog::channels::BRIDGED_CHANNELS;
 use xynolog::errors::{TransportErrorCode, XynologError};
 use xynolog::testing::{FaultAction, FaultyTransport};
 use xynolog::transport::{ConnectionState, Frame, STREAM_BACKLOG, Transport};
+use xynolog::types::BusFrame;
 
 const WITHIN: Duration = Duration::from_secs(5);
 
@@ -105,10 +106,12 @@ async fn a_failure_reply_fails_under_the_code_its_own_code_becomes() {
             payload.insert("code".to_owned(), json!(stated));
         }
         transport.deliver(Frame {
-            channel: read().failure.to_owned(),
-            payload: payload.clone(),
-            correlation_id,
-            scope: None,
+            bus_frame: BusFrame {
+                channel: read().failure.to_owned(),
+                payload: payload.clone(),
+                correlation_id,
+                scope: None,
+            },
             trace: None,
             stream_id: None,
         });
@@ -148,10 +151,12 @@ async fn a_failure_reply_that_is_not_its_channels_is_refused_naming_its_fault() 
         tokio::time::sleep(Duration::from_millis(1)).await;
         let correlation_id = transport.request_log()[0].correlation_id.clone();
         transport.deliver(Frame {
-            channel: read().failure.to_owned(),
-            payload: payload.as_object().cloned().expect("an object"),
-            correlation_id,
-            scope: None,
+            bus_frame: BusFrame {
+                channel: read().failure.to_owned(),
+                payload: payload.as_object().cloned().expect("an object"),
+                correlation_id,
+                scope: None,
+            },
             trace: None,
             stream_id: None,
         });
@@ -270,13 +275,15 @@ async fn a_reply_buried_under_its_channels_traffic_is_still_delivered() {
     tokio::time::sleep(Duration::from_millis(1)).await;
     let correlation_id = transport.request_log()[0].correlation_id.clone();
     let frame = |correlation_id: Option<String>, response: Value| Frame {
-        channel: read().result.to_owned(),
-        payload: json!({ "response": response })
-            .as_object()
-            .cloned()
-            .expect("an object"),
-        correlation_id,
-        scope: None,
+        bus_frame: BusFrame {
+            channel: read().result.to_owned(),
+            payload: json!({ "response": response })
+                .as_object()
+                .cloned()
+                .expect("an object"),
+            correlation_id,
+            scope: None,
+        },
         trace: None,
         stream_id: None,
     };

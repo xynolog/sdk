@@ -15,6 +15,7 @@ use std::time::Duration;
 use tokio::sync::{mpsc, watch};
 use tokio_stream::StreamExt;
 use tokio_stream::wrappers::UnboundedReceiverStream;
+use xynolog::gateway_http::{EMIT_ON_BUS, SUBSCRIBE_TO_BUS};
 use xynolog::transport::{ConnectionState, Frame, Transport};
 use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
 
@@ -61,8 +62,8 @@ impl Gateway {
     pub async fn start() -> Gateway {
         let staged = Arc::new(Staged::default());
         let app = Router::new()
-            .route("/bus/subscribe", post(subscribe))
-            .route("/bus/emit", post(emit))
+            .route(SUBSCRIBE_TO_BUS.path, post(subscribe))
+            .route(EMIT_ON_BUS.path, post(emit))
             .with_state(staged.clone());
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
             .await

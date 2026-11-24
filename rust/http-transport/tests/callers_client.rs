@@ -15,6 +15,9 @@ use std::convert::Infallible;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::sync::watch;
+use xynolog::gateway_http::{
+    EMIT_ON_BUS, GET_CURRENT_USER, GET_RESOURCE_REPRESENTATION, SUBSCRIBE_TO_BUS,
+};
 use xynolog::testing::as_id;
 use xynolog::transport::{
     ConnectionState, ContentTransport, Envelope, GatewayOperations, Transport,
@@ -34,18 +37,20 @@ async fn gateway(State(arrived): State<Arrived>, uri: Uri, headers: HeaderMap) -
         .unwrap()
         .push((path.clone(), headers.contains_key(MARK)));
     match path.as_str() {
-        "/bus/subscribe" => (
+        path if path == SUBSCRIBE_TO_BUS.path => (
             [(header::CONTENT_TYPE, "text/event-stream")],
             Body::from_stream(futures::stream::pending::<Result<Bytes, Infallible>>()),
         )
             .into_response(),
-        "/bus/emit" => (StatusCode::ACCEPTED, Json(json!({}))).into_response(),
-        "/api/users/me" => Json(json!({
+        path if path == EMIT_ON_BUS.path => (StatusCode::ACCEPTED, Json(json!({}))).into_response(),
+        path if path == GET_CURRENT_USER.path => Json(json!({
             "did": "did:web:example.org:users:alice", "email": "alice@example.org",
             "name": "Alice", "image": null, "domain": "example.org",
         }))
         .into_response(),
-        "/resources/res-1" => ([(header::CONTENT_TYPE, "text/plain")], "hello").into_response(),
+        path if path == GET_RESOURCE_REPRESENTATION.path_for(&as_id("res-1")) => {
+            ([(header::CONTENT_TYPE, "text/plain")], "hello").into_response()
+        }
         _ => StatusCode::NOT_FOUND.into_response(),
     }
 }
@@ -99,13 +104,13 @@ async fn a_transport_makes_its_stream_its_emits_its_requests_and_its_content_wit
 
     let arrived = arrived.lock().unwrap().clone();
     for path in [
-        "/bus/subscribe",
-        "/bus/emit",
-        "/api/users/me",
-        "/resources/res-1",
+        SUBSCRIBE_TO_BUS.path.to_owned(),
+        EMIT_ON_BUS.path.to_owned(),
+        GET_CURRENT_USER.path.to_owned(),
+        GET_RESOURCE_REPRESENTATION.path_for(&as_id("res-1")),
     ] {
         assert!(
-            arrived.iter().any(|(made, _)| made == path),
+            arrived.iter().any(|(made, _)| *made == path),
             "{path} never arrived: {arrived:?}"
         );
     }

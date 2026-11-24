@@ -1,7 +1,7 @@
 // Generated from protocol/specs/src/sign-in-store/SignIn.json; do not edit.
 // Regenerate: make generate (codegen/lib/rust_types/rust_types.ml)
 /// One sign-in to a running stack's knowledge base, as the sign-in store keeps it: the tokens an issuer issued to the script client, and what a renewal and a sign-out need of that issuer, learned once at sign-in. TOKENS, never a password. An entry of <stateDir>/tokens.json (see README.md).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct SignIn {
     /// The access token: short-lived, sent as a Bearer token.
     pub token: String,

@@ -256,3 +256,38 @@ fn the_registry_names_each_operation_its_reply_and_its_failure() {
         "job:complete is not answered"
     );
 }
+
+#[test]
+fn a_value_is_read_as_its_schema_held_to_what_the_table_states() {
+    use xynolog::read_as;
+    use xynolog::types::{BrowseDirectoryRequest, WorkerHealth};
+
+    assert_eq!(
+        read_as::<BrowseDirectoryRequest>(serde_json::json!({ "path": "docs" })),
+        Ok(BrowseDirectoryRequest::new("docs"))
+    );
+    assert_eq!(
+        read_as::<BrowseDirectoryRequest>(serde_json::json!({})),
+        Err("it has no `path`".to_owned())
+    );
+    assert_eq!(
+        read_as::<WorkerHealth>(serde_json::json!({ "status": "healthy" })),
+        Err("it has no `knowledgeBases`".to_owned())
+    );
+}
+
+#[test]
+fn a_members_bounds_are_the_tables() {
+    use xynolog::types::MatchSearchRequest;
+    use xynolog::{Bounds, bounds_of};
+
+    assert_eq!(
+        bounds_of::<MatchSearchRequest>("limit"),
+        Some(Bounds {
+            minimum: Some(1.0),
+            maximum: Some(200.0),
+            ..Bounds::default()
+        })
+    );
+    assert_eq!(bounds_of::<MatchSearchRequest>("nothing"), None);
+}

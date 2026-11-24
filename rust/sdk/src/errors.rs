@@ -69,7 +69,10 @@ impl std::error::Error for TransportError {}
 pub struct BusRequestError {
     pub code: BusRequestErrorCode,
     pub message: String,
-    /// The failure the peer answered with (a `CommandError`), when it answered one.
+    /// The failure the peer answered with, when it answered one: its
+    /// channel's payload, held to that channel's schema. Every failure
+    /// channel's carries `CommandError`'s members, which `code` and `message`
+    /// are read from, and some carry more.
     pub failure: Option<Map<String, Value>>,
 }
 

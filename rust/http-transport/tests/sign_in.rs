@@ -44,6 +44,10 @@ use xynolog::errors::{
     BusRequestErrorCode, IdentityUnverifiable, IdentityUnverifiableReason, SessionError,
     SessionErrorCode, SignInError, SignInErrorCode, XynologError,
 };
+use xynolog::gateway_http::{
+    EMIT_ON_BUS, GET_CURRENT_USER, GET_PROTECTED_RESOURCE_METADATA, GET_RESOURCE_REPRESENTATION,
+    SUBSCRIBE_TO_BUS, UPLOAD_RESOURCE,
+};
 use xynolog::identity::agent_did;
 use xynolog::refresh::CacheQuery;
 use xynolog::roles::{AGENT_KIND, KIND_CLAIM, is_agent};
@@ -506,15 +510,12 @@ impl World {
             discovery_reads: Mutex::default(),
         });
         let app = Router::new()
-            .route(
-                "/.well-known/oauth-protected-resource",
-                get(resource_metadata),
-            )
-            .route("/api/users/me", get(me))
-            .route("/resources/{id}", get(content))
-            .route("/resources", post(upload))
-            .route("/bus/subscribe", post(subscribe))
-            .route("/bus/emit", post(emit))
+            .route(GET_PROTECTED_RESOURCE_METADATA.path, get(resource_metadata))
+            .route(GET_CURRENT_USER.path, get(me))
+            .route(GET_RESOURCE_REPRESENTATION.path, get(content))
+            .route(UPLOAD_RESOURCE.path, post(upload))
+            .route(SUBSCRIBE_TO_BUS.path, post(subscribe))
+            .route(EMIT_ON_BUS.path, post(emit))
             .route(
                 "/realms/xynolog/.well-known/openid-configuration",
                 get(openid_configuration),

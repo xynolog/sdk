@@ -56,17 +56,20 @@ use xynolog::claims::JOB_CLAIM_CHANNELS;
 use xynolog::client::XynologClient;
 use xynolog::discovery::{DiscoveryRead, DiscoveryState, DiscoveryTransport, subscribe_discovery};
 use xynolog::errors::{BusRequestErrorCode, XynologError};
+use xynolog::gateway_http::{
+    EMIT_ON_BUS, GET_HEALTH, GET_PROTECTED_RESOURCE_METADATA, SUBSCRIBE_TO_BUS,
+};
 use xynolog::session::{XynologSession, XynologSessionConfig, kept_in, store_session};
 use xynolog::storage::InMemorySessionStorage;
 use xynolog::testing::{FaultyTransport, TestClientOptions, as_id, create_test_client};
 use xynolog::transport::{
     BoxFuture, ConnectionState, Envelope, Frame, GatewayOperations, ResourceHold, Transport,
 };
-use xynolog::types::{ClaimOptions, StoredSession};
 use xynolog::types::{
-    DiscoveredKB, HighlightingJobParams, HttpEndpoint, HttpEndpointProtocol, JobFilter,
-    JobProgress, JobStatusResponse, KbTarget, UserResponse,
+    BusFrame, DiscoveredKB, HighlightingJobParams, HttpEndpoint, HttpEndpointProtocol, JobFilter,
+    JobPollOptions, JobProgress, JobStatusResponse, KbTarget, UserResponse,
 };
+use xynolog::types::{ClaimOptions, StoredSession};
 use xynolog_http_transport::oauth::sign_in_with_device_grant;
 use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
 
@@ -309,10 +312,6 @@ fn tally<T: Send + Sync + 'static>(
 
 // ── The gateway ─────────────────────────────────────────────────────────
 
-const SUBSCRIBE: &str = "/bus/subscribe";
-const EMIT: &str = "/bus/emit";
-const HEALTH: &str = "/api/health";
-
 /// What a gateway in this process has heard.
 #[derive(Default)]
 struct Ledger {
@@ -430,7 +429,7 @@ async fn gateway_answer(State(gateway): State<Arc<Gateway>>, request: Request) -
     if gateway.refused.contains(&path.as_str()) {
         return gateway.refusal();
     }
-    if path != SUBSCRIBE {
+    if path != SUBSCRIBE_TO_BUS.path {
         return gateway.ledger.stray(format!("{method} {path}"));
     }
     match gateway.stream {
@@ -521,7 +520,7 @@ fn refused_stream(given: Map<String, Value>) -> LocalBoxFuture<'static, Subject>
         .await;
         let ledger = network.ledger.clone();
         Subject {
-            counted: Box::new(move || ledger.asked(SUBSCRIBE)),
+            counted: Box::new(move || ledger.asked(SUBSCRIBE_TO_BUS.path)),
             act: None,
             network: Some(network),
             _held: vec![Box::new(transport)],
@@ -535,7 +534,7 @@ fn unanswered_stream(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> 
         let (transport, network) = over_a_gateway(StreamAnswer::Never, None, &[], &[]).await;
         let ledger = network.ledger.clone();
         Subject {
-            counted: Box::new(move || ledger.asked(SUBSCRIBE)),
+            counted: Box::new(move || ledger.asked(SUBSCRIBE_TO_BUS.path)),
             act: None,
             network: Some(network),
             _held: vec![Box::new(transport)],
@@ -581,7 +580,7 @@ fn scope_taken(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
         let (transport, network) = over_a_gateway(StreamAnswer::Holds, None, &[], &[]).await;
         let ledger = network.ledger.clone();
         Subject {
-            counted: Box::new(move || ledger.asked(SUBSCRIBE)),
+            counted: Box::new(move || ledger.asked(SUBSCRIBE_TO_BUS.path)),
             act: Some(taking(&transport)),
             network: Some(network),
             _held: vec![Box::new(transport)],
@@ -603,7 +602,7 @@ fn scope_let_go(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
             Mutex::new(Some(transport.subscribe_to_resource(&as_id("res-1"))));
         let ledger = network.ledger.clone();
         Subject {
-            counted: Box::new(move || ledger.asked(SUBSCRIBE)),
+            counted: Box::new(move || ledger.asked(SUBSCRIBE_TO_BUS.path)),
             act: Some(Box::new(move || {
                 drop(hold.lock().expect("the hold").take());
                 async {}.boxed_local()
@@ -631,7 +630,8 @@ fn handoff_linger(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
 
 fn unanswered_request(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
     async move {
-        let (transport, network) = over_a_gateway(StreamAnswer::Holds, None, &[], &[HEALTH]).await;
+        let (transport, network) =
+            over_a_gateway(StreamAnswer::Holds, None, &[], &[GET_HEALTH.path]).await;
         let failed = Arc::new(Mutex::new(None));
         let (asking, telling) = (transport.clone(), failed.clone());
         tokio::spawn(async move {
@@ -657,7 +657,8 @@ fn unanswered_request(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject>
 
 fn unanswered_emit(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
     async move {
-        let (transport, network) = over_a_gateway(StreamAnswer::Holds, None, &[], &[EMIT]).await;
+        let (transport, network) =
+            over_a_gateway(StreamAnswer::Holds, None, &[], &[EMIT_ON_BUS.path]).await;
         let emitting = transport.clone();
         tokio::spawn(async move {
             let payload = json!({ "annotationId": "ann-1" });
@@ -671,7 +672,7 @@ fn unanswered_emit(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
         });
         let ledger = network.ledger.clone();
         Subject {
-            counted: Box::new(move || ledger.asked(EMIT)),
+            counted: Box::new(move || ledger.asked(EMIT_ON_BUS.path)),
             act: None,
             network: Some(network),
             _held: vec![Box::new(transport)],
@@ -690,7 +691,7 @@ async fn refused_request(given: &Map<String, Value>) -> (Arc<HttpTransport>, Net
     let (transport, network) = over_a_gateway(
         StreamAnswer::Holds,
         given_seconds(given, "retryAfterSeconds"),
-        &[EMIT],
+        &[EMIT_ON_BUS.path],
         &[],
     )
     .await;
@@ -721,7 +722,7 @@ fn refused_bus_request(given: Map<String, Value>) -> LocalBoxFuture<'static, Sub
                 if let Some(Ok(answer)) = &*ended.lock().expect("the outcome") {
                     panic!("the request was answered: {answer:?}");
                 }
-                ledger.asked(EMIT)
+                ledger.asked(EMIT_ON_BUS.path)
             }),
             act: None,
             network: Some(network),
@@ -781,7 +782,7 @@ async fn issuer_answer(State(issuer): State<Arc<Issuer>>, request: Request) -> R
         .expect("the request's body");
     let realm = format!("{}{REALM}", issuer.origin);
     match path.strip_prefix(REALM) {
-        None if path == "/.well-known/oauth-protected-resource" => Json(json!({
+        None if path == GET_PROTECTED_RESOURCE_METADATA.path => Json(json!({
             "resource": issuer.origin,
             "authorization_servers": [realm],
             "bearer_methods_supported": ["header"],
@@ -1171,7 +1172,7 @@ fn job_follower(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
                 counting
                     .emitted()
                     .iter()
-                    .filter(|frame| frame.channel == "job:status-requested")
+                    .filter(|frame| frame.bus_frame.channel == "job:status-requested")
                     .count()
             }),
             act: Some(Box::new(move || {
@@ -1180,10 +1181,12 @@ fn job_follower(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
                     "percentage": 10, "progress": { "percentage": 10 },
                 });
                 delivering.deliver(Frame {
-                    channel: "job:report-progress".to_owned(),
-                    payload: report.as_object().cloned().expect("an object"),
-                    correlation_id: None,
-                    scope: None,
+                    bus_frame: BusFrame {
+                        channel: "job:report-progress".to_owned(),
+                        payload: report.as_object().cloned().expect("an object"),
+                        correlation_id: None,
+                        scope: None,
+                    },
                     trace: None,
                     stream_id: None,
                 });
@@ -1215,7 +1218,7 @@ fn polling() -> (FaultyTransport, Arc<XynologClient>, Polled) {
     tokio::spawn(async move {
         let polled = asking
             .job
-            .poll_until_complete(&as_id("job-1"), None, None, |_| {})
+            .poll_until_complete(&as_id("job-1"), JobPollOptions::default(), |_| {})
             .await;
         *telling.lock().expect("the outcome") = Some(polled);
     });
@@ -1234,7 +1237,7 @@ fn job_poll(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
                 transport
                     .emitted()
                     .iter()
-                    .filter(|frame| frame.channel == "job:status-requested")
+                    .filter(|frame| frame.bus_frame.channel == "job:status-requested")
                     .count()
             }),
             act: None,

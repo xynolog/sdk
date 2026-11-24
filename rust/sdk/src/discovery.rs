@@ -35,9 +35,6 @@ use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::task::AbortHandle;
 
-/// The version of the document this client reads.
-const VERSION: i64 = 1;
-
 /// How often a launcher's document is read again, unless told otherwise.
 pub const DISCOVERY_INTERVAL: Duration = crate::timing::DISCOVERY_INTERVAL;
 
@@ -95,12 +92,13 @@ pub fn parse_discovery_document(text: &str) -> DiscoveryState {
     }
     match parsed["version"].as_i64() {
         None => return DiscoveryState::absent(Invalid, "missing numeric \"version\""),
-        Some(VERSION) => {}
+        Some(DiscoveryDocument::VERSION) => {}
         Some(other) => {
             return DiscoveryState::absent(
                 UnsupportedVersion,
                 format!(
-                    "discovery document version {other} is not the one this client speaks ({VERSION}); it is not read in part"
+                    "discovery document version {other} is not the one this client speaks ({}); it is not read in part",
+                    DiscoveryDocument::VERSION
                 ),
             );
         }

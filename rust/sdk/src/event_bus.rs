@@ -19,7 +19,7 @@ use crate::bus::{Typed, payload_of};
 use crate::channels::Channel;
 use crate::errors::TransportError;
 use crate::transport::{Broadcast, Envelope, Events, Frame, FrameRefusal, Lagged, STREAM_BACKLOG};
-use crate::types::ResourceId;
+use crate::types::{BusFrame, ResourceId};
 use futures_core::Stream;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -55,7 +55,7 @@ impl Inner {
     /// scope name. How many readers that view had.
     fn deliver(&self, carried: Result<Frame, FrameRefusal>) -> usize {
         let (channel, scope) = match &carried {
-            Ok(frame) => (&frame.channel, &frame.scope),
+            Ok(frame) => (&frame.bus_frame.channel, &frame.bus_frame.scope),
             Err(refusal) => (&refusal.channel, &refusal.scope),
         };
         let mut channels = self.channels();
@@ -153,7 +153,7 @@ impl Stream for BusFrames {
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         loop {
             match Pin::new(&mut self.events).poll_next(cx) {
-                Poll::Ready(Some(Ok(Ok(frame)))) if frame.scope != self.scope => continue,
+                Poll::Ready(Some(Ok(Ok(frame)))) if frame.bus_frame.scope != self.scope => continue,
                 Poll::Ready(Some(Ok(Err(refusal)))) if refusal.scope != self.scope => continue,
                 other => return other,
             }
@@ -207,10 +207,12 @@ impl EventBus {
     /// its view had when it was published. A destroyed bus publishes nothing.
     pub fn emit(&self, channel: &str, payload: Map<String, Value>, envelope: Envelope) -> usize {
         self.emit_frame(Frame {
-            channel: channel.to_owned(),
-            payload,
-            correlation_id: envelope.correlation_id,
-            scope: envelope.scope,
+            bus_frame: BusFrame {
+                channel: channel.to_owned(),
+                payload,
+                correlation_id: envelope.correlation_id,
+                scope: envelope.scope,
+            },
             trace: None,
             stream_id: None,
         })
@@ -311,10 +313,12 @@ impl ScopedEventBus {
         correlation_id: Option<String>,
     ) -> usize {
         self.inner.deliver(Ok(Frame {
-            channel: channel.to_owned(),
-            payload,
-            correlation_id,
-            scope: Some(self.scope.clone()),
+            bus_frame: BusFrame {
+                channel: channel.to_owned(),
+                payload,
+                correlation_id,
+                scope: Some(self.scope.clone()),
+            },
             trace: None,
             stream_id: None,
         }))
@@ -364,7 +368,10 @@ mod tests {
         bus.destroy();
 
         let seen = |frames: Vec<Frame>| -> Vec<Value> {
-            frames.into_iter().map(|f| f.payload["n"].clone()).collect()
+            frames
+                .into_iter()
+                .map(|f| f.bus_frame.payload["n"].clone())
+                .collect()
         };
         let mut drained = Vec::new();
         while let Some(Ok(Ok(frame))) = global.next().await {
@@ -415,7 +422,10 @@ mod tests {
 
         let mut seen = Vec::new();
         while let Some(Ok(Ok(frame))) = both.next().await {
-            seen.push((frame.channel, frame.payload["n"].clone()));
+            seen.push((
+                frame.bus_frame.channel,
+                frame.bus_frame.payload["n"].clone(),
+            ));
         }
         let said = |channel: &str, n: u64| (channel.to_owned(), json!(n));
         assert_eq!(

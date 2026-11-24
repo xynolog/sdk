@@ -29,7 +29,7 @@ async fn with_no_telemetry_installed_no_trace_leaves_and_a_frames_own_is_handed_
         })
     );
     assert!(
-        !frame.payload.contains_key("_trace"),
+        !frame.bus_frame.payload.contains_key("_trace"),
         "the payload carries no trace"
     );
 }

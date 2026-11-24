@@ -37,6 +37,7 @@ use xynolog::timing::{
     DEVICE_POLL, DEVICE_POLL_FLOOR, DEVICE_SLOW_DOWN, HTTP_REQUEST_TIMEOUT, REFRESH_RETRY,
 };
 use xynolog::transport::{GatewayOperations, Transport};
+use xynolog::types::StoredSession;
 use xynolog::types::{BeginAuthorizationOptions, DeviceCode, HttpEndpoint, IssuedTokens};
 
 /// Where a sign-in that is under way is remembered.
@@ -253,6 +254,23 @@ pub async fn begin_authorization(
         '?'
     };
     Ok(format!("{}{joiner}{asked}", record.issuer.authorization))
+}
+
+/// What a sign-in at `issuer`, as the client `client_id`, keeps: the tokens
+/// it was issued, and where they are renewed and revoked.
+pub fn stored_session_of(
+    client_id: &str,
+    issuer: IssuerEndpoints,
+    tokens: IssuedTokens,
+) -> StoredSession {
+    StoredSession {
+        access: tokens.access,
+        refresh: tokens.refresh,
+        client_id: client_id.to_owned(),
+        token_endpoint: issuer.token,
+        revocation_endpoint: issuer.revocation,
+        person_key: None,
+    }
 }
 
 /// Finish the authorization-code grant from the URL the issuer sent the
