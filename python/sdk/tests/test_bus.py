@@ -369,9 +369,7 @@ def test_a_request_is_answered_under_its_correlation_id_with_its_result_or_its_f
         traces: list[TraceContext | None] = []
 
         def asked(correlation_id: str) -> Delivered[MatchSearchRequest]:
-            return Delivered(
-                payload=MATCH_SEARCH_REQUESTED.request.decode(request), correlation_id=correlation_id, trace=asked_under
-            )
+            return Delivered(payload=MATCH_SEARCH_REQUESTED.request.decode(request), correlation_id=correlation_id, trace=asked_under)
 
         async def found(heard: Delivered[MatchSearchRequest]) -> MatchSearchResult | CommandError:
             traces.append(telemetry.active())

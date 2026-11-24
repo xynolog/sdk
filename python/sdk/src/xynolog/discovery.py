@@ -52,6 +52,7 @@ __all__ = [
 DISCOVERY_INTERVAL: Final = DISCOVERY_INTERVAL_MS / 1000
 """How often a launcher's document is read again, in seconds, unless a caller says otherwise."""
 
+
 def _version() -> int:
     """The version of the document this client reads: the one, and only, its schema admits."""
     match get_args(DiscoveryDocument.model_fields["version"].annotation):

@@ -24,11 +24,10 @@ from xynolog.errors import XynologError
 from xynolog.events import Events
 from xynolog.http import HttpTransport, Timing, TokenRefresher
 from xynolog.identifiers import AnnotationId, InvalidIdentifier, JobId, ResourceId
-from xynolog.model import WireModel
+from xynolog.model import WireModel, stated
 from xynolog.operations import OPERATIONS
 from xynolog.retry import RetryPolicy
 from xynolog.transport import ConnectionState, Frame, FrameRefusal, PutBinaryRequest, ResourceHold
-from xynolog.model import stated
 from xynolog.types import (
     ConformanceDriverLineErrorStream,
     ConformanceDriverLineFrame,

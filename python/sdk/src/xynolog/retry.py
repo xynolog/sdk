@@ -104,6 +104,7 @@ transient; a refused grant, and any fault this rule does not name, is
 terminal, because trying again only delays a sign-in the person must perform
 anyway."""
 
+
 def _job(facts: RetryFacts) -> bool:
     return facts.status is not None and (facts.status in (408, 429) or facts.status >= 500)
 

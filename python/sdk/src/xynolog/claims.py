@@ -120,8 +120,8 @@ from xynolog.types import (
     MarkJobCompleteCommand,
     MarkJobResult,
     UnitCursor,
-    YieldJobCompleteCommand,
     WorkerEngineHealthActiveJob,
+    YieldJobCompleteCommand,
     YieldJobResult,
 )
 from xynolog.watched import Variable, Watched

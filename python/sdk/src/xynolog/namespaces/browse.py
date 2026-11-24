@@ -50,6 +50,7 @@ from xynolog.types import (
 
 __all__ = ["BrowseNamespace", "EngineWithLimits"]
 
+
 @final
 @dataclass(frozen=True, slots=True, kw_only=True)
 class EngineWithLimits:

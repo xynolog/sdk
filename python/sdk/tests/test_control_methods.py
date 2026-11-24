@@ -20,7 +20,7 @@ def model(schema_id: str) -> object:
 def test_the_version_is_the_one_its_schema_admits() -> None:
     (admitted,) = get_args(get_args(wire.ApiVersion.__value__)[0])
     assert model(text(TABLE["apiVersion"], "apiVersion")) is wire.ApiVersion
-    assert CONTROL_API_VERSION == admitted
+    assert admitted == CONTROL_API_VERSION
 
 
 def test_each_notification_is_its_rows_name_sender_and_params() -> None:
