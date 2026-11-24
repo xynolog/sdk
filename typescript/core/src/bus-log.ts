@@ -29,12 +29,12 @@
 import { RESOURCE_SCOPED_CHANNELS } from './bridged-channels';
 import { BRIDGED_CHANNELS } from './bridging';
 import { CREDENTIALS } from './bus-log-credentials';
-import { ServiceEnvironmentVariables } from './service-environment';
+import { ServiceEnvironmentVariable } from './service-environment';
 import { isObject } from './type-guards';
 
 const NODE_BUS_LOG =
   typeof process !== 'undefined' &&
-  !!process.env?.[ServiceEnvironmentVariables.XYNOLOG_BUS_LOG];
+  !!process.env?.[ServiceEnvironmentVariable.XYNOLOG_BUS_LOG];
 
 const IS_NODE = typeof process !== 'undefined' && !!process.versions?.node;
 

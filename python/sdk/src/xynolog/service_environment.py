@@ -2,7 +2,8 @@
 # Regenerate: make generate (codegen/lib/service_environment/service_environment.ml)
 # ruff: noqa: E501, I001, RUF002, RUF022, RUF100
 
-"""Every environment variable a Xynolog service reads, beside its configuration document, each by its name.
+"""Every environment variable a Xynolog service reads, beside its configuration document, each by
+its name.
 """
 
 from typing import Final

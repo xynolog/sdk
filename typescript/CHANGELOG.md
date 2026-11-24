@@ -8,9 +8,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
-- `ServiceEnvironmentVariables`: every environment variable a Xynolog service
+- `ServiceEnvironmentVariable`: every environment variable a Xynolog service
   reads, beside its configuration document, by its name
-  (`ServiceEnvironmentVariables.XYNOLOG_BUS_LOG`). The bus log reads its
+  (`ServiceEnvironmentVariable.XYNOLOG_BUS_LOG`). The bus log reads its
   variable by it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
@@ -27,7 +27,7 @@ the coming release's, and gathers its changes as they land.
   `ControlParams<M>`, `ControlResult<M>`, `ControlNotificationParams<N>`,
   `ControlErrorData`, and the control codes, `ControlErrorCode`.
 - The tables the services keep to, each its JSON typed as its own schema
-  (`records['ServiceEnvironmentVariables']`, …), and `SERVICE_TABLES`
+  (`records['ServiceEnvironmentVariable']`, …), and `SERVICE_TABLES`
   holding each by its file: the variables each service reads and its boot
   refusals, its telemetry and log lines, each service's messages, the job
   budgets and storage, the reply bounds, the embedding requests, the

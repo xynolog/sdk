@@ -165,7 +165,7 @@ abstract class Census : DefaultTask() {
                 }
                 if (path.startsWith("main/") || path.startsWith("generated/")) {
                     for (read in Regex("""\bgetenv\s*\(([^)]*)\)""").findAll(line)) {
-                        if (read.groupValues[1].trim() != "ServiceEnvironmentVariables.XYNOLOG_BUS_LOG") {
+                        if (read.groupValues[1].trim() != "ServiceEnvironmentVariable.XYNOLOG_BUS_LOG") {
                             failures += "$at reads the environment (${read.value}): the SDK reads XYNOLOG_BUS_LOG and nothing else, and is handed the rest by the application"
                         }
                     }

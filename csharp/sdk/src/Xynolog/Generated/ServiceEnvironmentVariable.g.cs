@@ -3,7 +3,7 @@
 // Regenerate: make generate (codegen/lib/service_environment/service_environment.ml)
 namespace Xynolog.Services;
 
-public static class ServiceEnvironmentVariables
+public static class ServiceEnvironmentVariable
 {
     /// <summary>The gateway's signing key ring: comma-separated keys of at least 32 characters, whitespace around each ignored. Media tokens are signed with the first key, and a media token signed with any key is accepted. Unset, or with a key shorter than 32 characters, the gateway refuses to start.</summary>
     public const string JwtSecret = "JWT_SECRET";

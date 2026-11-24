@@ -12,7 +12,7 @@ the coming release's, and gathers its changes as they land.
   method as a `ControlMethod<TParams, TResult>` and each notification as a
   `ControlNotification<TParams>`, typed by the models of what it carries, and
   `ControlSender` says which side sends a notification.
-- `Xynolog.Services.ServiceEnvironmentVariables`: every environment variable a
+- `Xynolog.Services.ServiceEnvironmentVariable`: every environment variable a
   Xynolog service reads, beside its configuration document, a constant of its
   name (`XynologBusLog`). The bus log reads its variable by it.
 - A type for every schema Protocol states, not only the gateway's components:

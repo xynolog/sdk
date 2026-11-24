@@ -7,7 +7,7 @@ import xynolog.Generated
 
 /** Every environment variable a Xynolog service reads, beside its configuration document, each by its name. */
 @Generated
-public object ServiceEnvironmentVariables {
+public object ServiceEnvironmentVariable {
     /** The gateway's signing key ring: comma-separated keys of at least 32 characters, whitespace around each ignored. Media tokens are signed with the first key, and a media token signed with any key is accepted. Unset, or with a key shorter than 32 characters, the gateway refuses to start. */
     public const val JWT_SECRET: String = "JWT_SECRET"
 

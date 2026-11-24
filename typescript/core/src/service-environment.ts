@@ -4,7 +4,7 @@
 // Regenerate:  make generate  (codegen/lib/service_environment/service_environment.ml)
 
 /** Every environment variable a Xynolog service reads, beside its configuration document, each by its name. */
-export const ServiceEnvironmentVariables = {
+export const ServiceEnvironmentVariable = {
   /** The gateway's signing key ring: comma-separated keys of at least 32 characters, whitespace around each ignored. Media tokens are signed with the first key, and a media token signed with any key is accepted. Unset, or with a key shorter than 32 characters, the gateway refuses to start. */
   JWT_SECRET: 'JWT_SECRET',
   /** The client id of the service's own account at the issuer, whose token the service signs in with: the gateway's reaches the Archivist, and every other service's is its bearer at the bus. Unset, the service refuses to start. */

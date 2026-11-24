@@ -4,7 +4,7 @@
    that reads one names it from here. Go's is go_types' (Go_types.Environment),
    and Kotlin's the Kotlin SDK's (Kotlin_sdk.Service_environment), beside the
    services' tables.
-   Each SDK groups them under one name: ServiceEnvironmentVariables where its
+   Each SDK groups them under one name: ServiceEnvironmentVariable, as Go names its type, where its
    language groups constants in a type or an object, its module
    service_environment where a module is the group. *)
 
@@ -12,7 +12,7 @@ module T = Tables.Service_environment_variables
 
 let table = "service-environment/variables.json"
 let from_ = "protocol/specs/src/" ^ table
-let group = "ServiceEnvironmentVariables"
+let group = "ServiceEnvironmentVariable"
 
 let about =
   "Every environment variable a Xynolog service reads, beside its \
@@ -59,7 +59,7 @@ let python (t : T.t) =
       P.text
         {
           header = Banner.python_lines ~from_ __FILE__;
-          doc = As_is (about ^ "\n");
+          doc = Wrapped about;
           imports = [ [ P.From ("typing", [ "Final" ]) ] ];
           body =
             P.assign "__all__"
@@ -92,7 +92,7 @@ let rust (t : T.t) =
                  attrs = [];
                  vis = Pub;
                  name = v.name;
-                 ty = R.static_str;
+                 ty = R.str_ty;
                  value = R.Str v.name;
                })
            t.variables);
@@ -103,7 +103,7 @@ let swift (t : T.t) =
   let doc text = Text.wrapped ~lead:"/// " ~width:100 text in
   {
     Output.path =
-      "swift/sdk/Sources/Xynolog/Generated/ServiceEnvironmentVariables.swift";
+      "swift/sdk/Sources/Xynolog/Generated/ServiceEnvironmentVariable.swift";
     text =
       S.print
         {
@@ -147,7 +147,7 @@ let csharp (t : T.t) =
   let module C = Csharp_syntax in
   {
     Output.path =
-      "csharp/sdk/src/Xynolog/Generated/ServiceEnvironmentVariables.g.cs";
+      "csharp/sdk/src/Xynolog/Generated/ServiceEnvironmentVariable.g.cs";
     text =
       C.text
         {

@@ -1,5 +1,5 @@
 (* Every environment variable a Xynolog service reads as the Kotlin SDK names
-   it (kotlin/sdk/src/generated/kotlin/xynolog/services/ServiceEnvironmentVariables.kt,
+   it (kotlin/sdk/src/generated/kotlin/xynolog/services/ServiceEnvironmentVariable.kt,
    from protocol/specs/src/service-environment/variables.json): an object of a
    constant per variable, named as the variable is, with its effect. *)
 
@@ -8,7 +8,7 @@ module T = Tables.Service_environment_variables
 
 let from_ = "service-environment/variables.json"
 let writer = __FILE__
-let name = "ServiceEnvironmentVariables"
+let name = "ServiceEnvironmentVariable"
 
 let declarations (t : T.t) =
   [

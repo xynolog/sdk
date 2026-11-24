@@ -14,7 +14,7 @@ func shownOnBus(_ value: JSONValue) -> JSONValue {
 }
 struct BusLog {
   private static let enabled =
-    ProcessInfo.processInfo.environment[ServiceEnvironmentVariables.xynologBusLog].map {
+    ProcessInfo.processInfo.environment[ServiceEnvironmentVariable.xynologBusLog].map {
       !$0.isEmpty
     } ?? false
   static func line(
