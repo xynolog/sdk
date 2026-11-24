@@ -278,7 +278,9 @@ export async function completeAuthorization(
   };
 }
 
-const isPendingAuthorization = (value: unknown): value is PendingAuthorization =>
+const isPendingAuthorization = (
+  value: unknown,
+): value is PendingAuthorization =>
   faultOf('PendingAuthorization', value) === undefined;
 
 function parsePending(raw: string): PendingAuthorization | null {
