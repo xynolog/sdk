@@ -29,6 +29,7 @@ val raw : Yojson.Raw.t -> Yojson.Raw.t
 
 val required : t -> (Yojson.Raw.t -> 'a) -> string -> 'a
 val optional : t -> (Yojson.Raw.t -> 'a) -> string -> 'a Types.presence
+
 val maybe : t -> (Yojson.Raw.t -> 'a) -> string -> 'a option
 (** A member that may be absent but not null, a null read as absent. *)
 
