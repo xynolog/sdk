@@ -43,6 +43,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A struct's fields are in the order its schema states its members, as in
+  every SDK, where they were in the order of their names.
 - A stream's place, and each place `CoupledBookmarks` keeps, is an id
   `LastEventIds` holds in its scope, read as the generated `api.LastEventIds`,
   in place of an id held to `PersistedEventId` by that schema's name.

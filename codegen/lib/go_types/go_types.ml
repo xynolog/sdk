@@ -53,59 +53,11 @@ let path = "go/api/types_gen.go"
    value of that type in package servicetables ([Service_tables]). *)
 let table_model table = Definitions.stem (Places.schema_of table)
 
-(* Every schema a generation is rooted on, the service tables' included. *)
-let definitions (spec : Spec.t) (bundle : Definitions.bundle) =
-  let named name =
-    match bundle.definitions.schema name with
-    | _ -> true
-    | exception Definitions.Refused _ -> false
-  in
-  let tables =
-    List.map
-      (fun table ->
-        let file = Places.schema_of table and name = table_model table in
-        if named name then
-          raise
-            (Definitions.Refused
-               (Printf.sprintf
-                  "%s, the schema of %s, is named as a schema already is" file
-                  table));
-        match List.assoc_opt file spec.schemas with
-        | Some s -> (name, bundle.view (Normalize.shape_only s))
-        | None ->
-            raise
-              (Definitions.Refused
-                 (Printf.sprintf "%s has no schema %s" table file)))
-      (Roots.service_tables spec)
-  in
-  ( {
-      Definitions.names = bundle.definitions.names @ List.map fst tables;
-      schema =
-        (fun name ->
-          match List.assoc_opt name tables with
-          | Some s -> s
-          | None -> bundle.definitions.schema name);
-    },
-    List.map fst tables )
-
 let generated (spec : Spec.t) =
-  let bundle = Definitions.bundle spec in
-  let definitions, tables = definitions spec bundle in
-  let identifiers =
+  ( Generate.generate (Typing.of_spec spec ~tables:(Roots.service_tables spec)),
     List.map
-      (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)
-      spec.tables.identifiers_kinds.kinds
-  in
-  let roots =
-    List.filter (fun n -> not (List.mem n identifiers)) bundle.definitions.names
-    @ List.map (fun (_, name, _) -> name) (Definitions.records spec)
-    @ Definitions.generated_client_types spec
-    @ tables
-  in
-  ( Generate.generate definitions ~identifiers
-      ~keys:(Definitions.map_keys spec)
-      roots,
-    List.map (fun name -> (name, None)) identifiers )
+      (fun (k : Tables.Identifiers_kinds.kinds_item) -> (k.schema, None))
+      spec.tables.identifiers_kinds.kinds )
 
 (* Every type package api declares, and what it is an alias of, if it is
    one: the generated types, the kinds of id and why no launcher was found. *)

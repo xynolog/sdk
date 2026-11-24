@@ -222,3 +222,14 @@
  (name contracts)
  (modules contracts)
  (libraries xynolog_codegen alcotest))
+
+; dune exec test/typing_census.exe -- ..
+(executable
+ (name typing_census)
+ (modules typing_census)
+ (libraries xynolog_codegen xynolog-protocol.schema))
+
+(test
+ (name typing)
+ (modules typing)
+ (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema fixture yojson alcotest))

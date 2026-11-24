@@ -163,7 +163,10 @@ let contains ~sub text =
   go 0
 
 let python rows =
-  (Surface.Python.file ~kinds:[] definitions (methods rows)).Output.text
+  (Surface.Python.file ~kinds:[]
+     (Typing.make definitions ~roots:definitions.names ~identifiers:[] ~keys:[])
+     (methods rows))
+    .Output.text
 
 let has code sub =
   if not (contains ~sub code) then Alcotest.failf "no %S in:\n%s" sub code
