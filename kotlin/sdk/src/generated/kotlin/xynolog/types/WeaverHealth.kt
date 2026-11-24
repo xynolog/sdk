@@ -13,16 +13,15 @@ public data class WeaverHealth(
     @EncodeDefault
     public val status: WeaverHealthStatus = WeaverHealthStatus.Ok,
     /** The DID of the knowledge base it serves: the one its settings name, which that knowledge base said it is before the Weaver connected to the graph database. */
-    public val kb: String,
-    /** How far a follower of the record has followed it, as every follower says it at its health port (WEAVER.md § Health, SMELTER.md § Health). */
-    public val following: WeaverHealthFollowing,
+    public val kb: KbDid,
+    public val following: FollowerFollowing,
     /** How far the reconcile its first sweep is followed by has got (WEAVER.md § Reconcile): the pass's `summary` when it is done, or its `error` when it failed. */
     public val reconcile: WeaverHealthReconcile,
 ) {
     /** How Java makes a `WeaverHealth`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val kb: String,
-        private val following: WeaverHealthFollowing,
+        private val kb: KbDid,
+        private val following: FollowerFollowing,
         private val reconcile: WeaverHealthReconcile,
     ) {
         public fun build(): WeaverHealth = WeaverHealth(kb = kb, following = following, reconcile = reconcile)
@@ -31,6 +30,6 @@ public data class WeaverHealth(
     public companion object {
         /** A builder of a `WeaverHealth` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(kb: String, following: WeaverHealthFollowing, reconcile: WeaverHealthReconcile): Builder = Builder(kb, following, reconcile)
+        public fun builder(kb: KbDid, following: FollowerFollowing, reconcile: WeaverHealthReconcile): Builder = Builder(kb, following, reconcile)
     }
 }

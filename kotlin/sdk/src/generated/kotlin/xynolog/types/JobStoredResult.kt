@@ -16,6 +16,7 @@ public sealed interface JobStoredResult {
 internal object JobStoredResultSerializer : KindsUnionSerializer<JobStoredResult>(
     JobStoredResult::class,
     strings = { listOf(JobResult.serializer()) },
+    scalars = { listOf(JobResult.serializer()) },
     arrays = { listOf(JobResult.serializer()) },
     objects = { listOf(JobResult.serializer(), JobStoredResult.Empty.serializer()) },
 )

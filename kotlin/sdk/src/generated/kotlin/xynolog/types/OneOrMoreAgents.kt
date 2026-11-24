@@ -18,6 +18,7 @@ public sealed interface OneOrMoreAgents {
 internal object OneOrMoreAgentsSerializer : KindsUnionSerializer<OneOrMoreAgents>(
     OneOrMoreAgents::class,
     strings = { listOf(Agent.serializer()) },
+    scalars = { listOf(Agent.serializer()) },
     arrays = { listOf(Agent.serializer(), OneOrMoreAgents.List.serializer()) },
     objects = { listOf(Agent.serializer()) },
 )

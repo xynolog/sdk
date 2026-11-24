@@ -6,12 +6,12 @@ module Xynolog.Internal.Generated.Models.LibrarianHealth (LibrarianHealth (..), 
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
-import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.KbDid
 
 data LibrarianHealth = LibrarianHealth
   { librarianHealthActors :: [LibrarianHealthActorsItem],
-    librarianHealthKb :: Text,
+    librarianHealthKb :: KbDid,
     librarianHealthStatus :: LibrarianHealthStatus
   }
   deriving (Eq, Show)

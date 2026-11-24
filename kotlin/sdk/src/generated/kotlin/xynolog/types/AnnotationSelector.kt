@@ -18,6 +18,7 @@ public sealed interface AnnotationSelector {
 internal object AnnotationSelectorSerializer : KindsUnionSerializer<AnnotationSelector>(
     AnnotationSelector::class,
     strings = { listOf(Selector.serializer()) },
+    scalars = { listOf(Selector.serializer()) },
     arrays = { listOf(Selector.serializer(), AnnotationSelector.List.serializer()) },
     objects = { listOf(Selector.serializer()) },
 )

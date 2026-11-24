@@ -12,6 +12,7 @@ public sealed interface MarkJobResult
 internal object MarkJobResultSerializer : KindsUnionSerializer<MarkJobResult>(
     MarkJobResult::class,
     strings = { emptyList() },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(MarkJobDone.serializer(), JobDeclined.serializer()) },
 )

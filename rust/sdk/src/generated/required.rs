@@ -2,6 +2,56 @@
 // Regenerate: make generate (codegen/lib/required/rust.ml)
 pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
     (
+        "AboutParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[("apiVersion", reference("ApiVersion"))],
+            closed: Some(&["apiVersion"]),
+            ..NONE
+        },
+    ),
+    (
+        "AboutResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["development", "apiVersions", "imageRegistry", "runtimes"],
+            members: &[
+                (
+                    "apiVersions",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                ("built", of(&[Kind::String])),
+                ("commit", of(&[Kind::String])),
+                ("development", of(&[Kind::Boolean])),
+                ("imageRegistry", of(&[Kind::String])),
+                (
+                    "runtimes",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("RuntimeState")),
+                        ..NONE
+                    },
+                ),
+                ("version", of(&[Kind::String])),
+            ],
+            closed: Some(&[
+                "apiVersions",
+                "built",
+                "commit",
+                "development",
+                "imageRegistry",
+                "runtimes",
+                "version",
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "Agent",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -205,11 +255,11 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     kinds: Some(&[Kind::Array]),
                     items: Some(&Shape {
                         kinds: Some(&[Kind::String]),
-                        pattern: Some(&[Step {
+                        pattern: Some(&[Term::Step(Step {
                             of: &[(48, 57), (97, 102)],
                             min: 64,
                             max: Some(64),
-                        }]),
+                        })]),
                         ..NONE
                     }),
                     ..NONE
@@ -319,7 +369,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 "stamp",
                 Shape {
                     kinds: Some(&[Kind::String]),
-                    pattern: Some(&[Step {
+                    pattern: Some(&[Term::Step(Step {
                         of: &[
                             (0, 8),
                             (14, 31),
@@ -335,7 +385,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ],
                         min: 1,
                         max: None,
-                    }]),
+                    })]),
                     min_length: Some(1),
                     ..NONE
                 },
@@ -354,11 +404,11 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     "contentChecksum",
                     Shape {
                         kinds: Some(&[Kind::String]),
-                        pattern: Some(&[Step {
+                        pattern: Some(&[Term::Step(Step {
                             of: &[(48, 57), (97, 102)],
                             min: 64,
                             max: Some(64),
-                        }]),
+                        })]),
                         ..NONE
                     },
                 ),
@@ -473,11 +523,11 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         "AnnotationId",
         Shape {
             kinds: Some(&[Kind::String]),
-            pattern: Some(&[Step {
+            pattern: Some(&[Term::Step(Step {
                 of: &[(45, 45), (48, 57), (65, 90), (95, 95), (97, 122)],
                 min: 1,
                 max: Some(128),
-            }]),
+            })]),
             ..NONE
         },
     ),
@@ -522,6 +572,14 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     },
                 ),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "ApiVersion",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[Listed::Text("control.xynolog.org/v1alpha1")]),
             ..NONE
         },
     ),
@@ -843,6 +901,62 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     ..NONE
                 },
             ],
+            ..NONE
+        },
+    ),
+    (
+        "AuthLoginParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("runtime", reference("Runtime")),
+                ("target", reference("Target")),
+            ],
+            closed: Some(&["apiVersion", "runtime", "target"]),
+            ..NONE
+        },
+    ),
+    (
+        "AuthLoginResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["key", "who", "issuer"],
+            members: &[
+                ("issuer", of(&[Kind::String])),
+                ("key", of(&[Kind::String])),
+                ("who", of(&[Kind::String])),
+            ],
+            closed: Some(&["issuer", "key", "who"]),
+            ..NONE
+        },
+    ),
+    (
+        "AuthLogoutParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("runtime", reference("Runtime")),
+                ("target", reference("Target")),
+            ],
+            closed: Some(&["apiVersion", "runtime", "target"]),
+            ..NONE
+        },
+    ),
+    (
+        "AuthLogoutResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["wasSignedIn", "revoked"],
+            members: &[
+                ("key", of(&[Kind::String])),
+                ("revoked", of(&[Kind::Boolean])),
+                ("wasSignedIn", of(&[Kind::Boolean])),
+            ],
+            closed: Some(&["key", "revoked", "wasSignedIn"]),
             ..NONE
         },
     ),
@@ -1486,6 +1600,49 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Browser",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "kind", "metadata", "spec"],
+            members: &[
+                ("apiVersion", reference("StackApiVersion")),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("Browser")]),
+                        ..NONE
+                    },
+                ),
+                ("metadata", reference("Metadata")),
+                (
+                    "spec",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["image", "resources", "port"],
+                        members: &[
+                            ("image", reference("Image")),
+                            (
+                                "port",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(1.0),
+                                    maximum: Some(65535.0),
+                                    ..NONE
+                                },
+                            ),
+                            ("resources", reference("Resources")),
+                        ],
+                        closed: Some(&["image", "port", "resources"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "kind", "metadata", "spec"]),
+            ..NONE
+        },
+    ),
+    (
         "BusEmitAccepted",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -1727,6 +1884,39 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Cancelled",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["requestId"],
+            members: &[
+                ("reason", of(&[Kind::String])),
+                ("requestId", reference("RequestId")),
+            ],
+            closed: Some(&["reason", "requestId"]),
+            ..NONE
+        },
+    ),
+    (
+        "ClientSecretForm",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["grant_type", "client_id", "client_secret"],
+            members: &[
+                ("client_id", of(&[Kind::String])),
+                ("client_secret", of(&[Kind::String])),
+                (
+                    "grant_type",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("client_credentials")]),
+                        ..NONE
+                    },
+                ),
+            ],
+            ..NONE
+        },
+    ),
+    (
         "CloneResourceWithTokenResponse",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -1804,6 +1994,1384 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 "sourceLanguage",
                 "tone",
             ]),
+            ..NONE
+        },
+    ),
+    (
+        "ConformanceBusFetch",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["fetch", "as"],
+            members: &[
+                (
+                    "as",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(65, 90), (97, 122)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(48, 57), (65, 90), (97, 122)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "fetch",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(97, 122)],
+                                min: 1,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[(58, 58)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(45, 45), (97, 122)],
+                                min: 1,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["as", "fetch", "payload"]),
+            ..NONE
+        },
+    ),
+    (
+        "ConformanceCase",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["about", "source", "steps"],
+            members: &[
+                (
+                    "about",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "planes",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[Listed::Text("in-process"), Listed::Text("nats")]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "source",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "steps",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&reference("ConformanceStep")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "telemetry",
+                    Shape {
+                        kinds: Some(&[Kind::Boolean]),
+                        enumeration: Some(&[Listed::Boolean(true)]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "tier",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("fleet"), Listed::Text("parity")]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["about", "planes", "source", "steps", "telemetry", "tier"]),
+            ..NONE
+        },
+    ),
+    (
+        "ConformanceDriverLine",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["ready"],
+                    members: &[(
+                        "ready",
+                        Shape {
+                            kinds: Some(&[Kind::Boolean]),
+                            enumeration: Some(&[Listed::Boolean(true)]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["ready"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["id", "ok"],
+                    members: &[(
+                        "id",
+                        Shape {
+                            kinds: Some(&[Kind::Integer]),
+                            minimum: Some(1.0),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["id", "ok"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["id", "error"],
+                    members: &[
+                        ("error", reference("ConformanceFailure")),
+                        (
+                            "id",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(1.0),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["error", "id"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["id", "abandoned"],
+                    members: &[
+                        (
+                            "abandoned",
+                            Shape {
+                                kinds: Some(&[Kind::Boolean]),
+                                enumeration: Some(&[Listed::Boolean(true)]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "id",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(1.0),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["abandoned", "id"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["id", "unsupported"],
+                    members: &[
+                        (
+                            "id",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(1.0),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "unsupported",
+                            Shape {
+                                kinds: Some(&[Kind::Boolean]),
+                                enumeration: Some(&[Listed::Boolean(true)]),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["id", "unsupported"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["id", "misuse"],
+                    members: &[
+                        (
+                            "id",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(1.0),
+                                ..NONE
+                            },
+                        ),
+                        ("misuse", of(&[Kind::String])),
+                    ],
+                    closed: Some(&["id", "misuse"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["state"],
+                    members: &[("state", of(&[Kind::String]))],
+                    closed: Some(&["state"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["frame"],
+                    members: &[(
+                        "frame",
+                        Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["channel"],
+                            members: &[
+                                ("channel", of(&[Kind::String])),
+                                ("correlationId", of(&[Kind::String])),
+                                ("scope", reference("ResourceId")),
+                            ],
+                            closed: Some(&["channel", "correlationId", "payload", "scope"]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["frame"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["error"],
+                    members: &[("error", reference("ConformanceFailure"))],
+                    closed: Some(&["error"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["progress"],
+                    members: &[(
+                        "progress",
+                        Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["upload", "bytesUploaded", "totalBytes"],
+                            members: &[
+                                (
+                                    "bytesUploaded",
+                                    Shape {
+                                        kinds: Some(&[Kind::Integer]),
+                                        minimum: Some(0.0),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "totalBytes",
+                                    Shape {
+                                        kinds: Some(&[Kind::Integer]),
+                                        minimum: Some(0.0),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "upload",
+                                    Shape {
+                                        kinds: Some(&[Kind::Integer]),
+                                        minimum: Some(1.0),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["bytesUploaded", "totalBytes", "upload"]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["progress"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["emission"],
+                    members: &[(
+                        "emission",
+                        Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["observer", "state"],
+                            members: &[
+                                ("observer", of(&[Kind::String])),
+                                (
+                                    "state",
+                                    Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        one_of: &[
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["status"],
+                                                members: &[(
+                                                    "status",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        enumeration: Some(&[Listed::Text(
+                                                            "pending",
+                                                        )]),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["status"]),
+                                                ..NONE
+                                            },
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["status", "value"],
+                                                members: &[(
+                                                    "status",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        enumeration: Some(&[Listed::Text("ready")]),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["status", "value"]),
+                                                ..NONE
+                                            },
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["status", "error"],
+                                                members: &[
+                                                    ("error", reference("ConformanceFailure")),
+                                                    (
+                                                        "status",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            enumeration: Some(&[Listed::Text(
+                                                                "failed",
+                                                            )]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                ],
+                                                closed: Some(&["error", "status"]),
+                                                ..NONE
+                                            },
+                                        ],
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["observer", "state"]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["emission"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["completed"],
+                    members: &[("completed", of(&[Kind::String]))],
+                    closed: Some(&["completed"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["claimed"],
+                    members: &[("claimed", of(&[Kind::Object]))],
+                    closed: Some(&["claimed"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["refused"],
+                    members: &[("refused", reference("ConformanceFailure"))],
+                    closed: Some(&["refused"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["signalled"],
+                    members: &[("signalled", of(&[Kind::String]))],
+                    closed: Some(&["signalled"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["stalled"],
+                    members: &[("stalled", of(&[Kind::String]))],
+                    closed: Some(&["stalled"]),
+                    ..NONE
+                },
+            ],
+            ..NONE
+        },
+    ),
+    (
+        "ConformanceFailure",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["detail"],
+            members: &[
+                ("code", of(&[Kind::String])),
+                ("detail", of(&[Kind::String])),
+                ("failureClass", reference("FailureClass")),
+                ("status", of(&[Kind::Integer])),
+            ],
+            closed: Some(&["code", "detail", "failureClass", "status"]),
+            ..NONE
+        },
+    ),
+    (
+        "ConformanceHttpFetch",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["fetch"],
+            members: &[(
+                "fetch",
+                Shape {
+                    kinds: Some(&[Kind::String]),
+                    pattern: Some(&[
+                        Term::Step(Step {
+                            of: &[(71, 71)],
+                            min: 1,
+                            max: Some(1),
+                        }),
+                        Term::Step(Step {
+                            of: &[(69, 69)],
+                            min: 1,
+                            max: Some(1),
+                        }),
+                        Term::Step(Step {
+                            of: &[(84, 84)],
+                            min: 1,
+                            max: Some(1),
+                        }),
+                        Term::Step(Step {
+                            of: &[(32, 32)],
+                            min: 1,
+                            max: Some(1),
+                        }),
+                        Term::Step(Step {
+                            of: &[(47, 47)],
+                            min: 1,
+                            max: Some(1),
+                        }),
+                        Term::Step(Step {
+                            of: &[(0, 1114111)],
+                            min: 0,
+                            max: None,
+                        }),
+                    ]),
+                    ..NONE
+                },
+            )],
+            closed: Some(&["fetch", "params"]),
+            ..NONE
+        },
+    ),
+    (
+        "ConformanceImplementations",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["launcher", "target", "sdks"],
+            members: &[
+                (
+                    "launcher",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            min_length: Some(1),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "modelCatalogue",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "sdks",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            members: &[
+                                (
+                                    "exempt",
+                                    Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        values: Some(&Shape {
+                                            kinds: Some(&[Kind::String]),
+                                            min_length: Some(1),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "live",
+                                    Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        required: &["command", "tier"],
+                                        members: &[
+                                            (
+                                                "command",
+                                                Shape {
+                                                    kinds: Some(&[Kind::Array]),
+                                                    min_items: Some(1),
+                                                    items: Some(&Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        min_length: Some(1),
+                                                        ..NONE
+                                                    }),
+                                                    ..NONE
+                                                },
+                                            ),
+                                            (
+                                                "tier",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    enumeration: Some(&[
+                                                        Listed::Text("fleet"),
+                                                        Listed::Text("parity"),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                        ],
+                                        closed: Some(&["command", "tier"]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "wire",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        min_items: Some(1),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::String]),
+                                            min_length: Some(1),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "worker",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        min_items: Some(1),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::String]),
+                                            min_length: Some(1),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["exempt", "live", "wire", "worker"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                ("target", reference("LocalTarget")),
+            ],
+            closed: Some(&["launcher", "modelCatalogue", "sdks", "target"]),
+            ..NONE
+        },
+    ),
+    (
+        "ConformanceStep",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["let"],
+                    members: &[(
+                        "let",
+                        Shape {
+                            kinds: Some(&[Kind::Object]),
+                            min_members: Some(1),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["let"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["driver"],
+                    members: &[
+                        (
+                            "as",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                pattern: Some(&[
+                                    Term::Step(Step {
+                                        of: &[(65, 90), (97, 122)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(48, 57), (65, 90), (97, 122)],
+                                        min: 0,
+                                        max: None,
+                                    }),
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "driver",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                min_length: Some(1),
+                                ..NONE
+                            },
+                        ),
+                        ("with", of(&[Kind::Object])),
+                    ],
+                    closed: Some(&["as", "driver", "fails", "returns", "with"]),
+                    not_all: &[&["returns", "fails"]],
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["abandon"],
+                    members: &[(
+                        "abandon",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57), (65, 90), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["abandon"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["settles"],
+                    members: &[
+                        (
+                            "abandoned",
+                            Shape {
+                                kinds: Some(&[Kind::Boolean]),
+                                enumeration: Some(&[Listed::Boolean(true)]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "settles",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                pattern: Some(&[
+                                    Term::Step(Step {
+                                        of: &[(65, 90), (97, 122)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(48, 57), (65, 90), (97, 122)],
+                                        min: 0,
+                                        max: None,
+                                    }),
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["abandoned", "fails", "returns", "settles"]),
+                    not_all: &[
+                        &["returns", "fails"],
+                        &["returns", "abandoned"],
+                        &["fails", "abandoned"],
+                    ],
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["wire"],
+                    members: &[
+                        (
+                            "as",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                pattern: Some(&[
+                                    Term::Step(Step {
+                                        of: &[(65, 90), (97, 122)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(48, 57), (65, 90), (97, 122)],
+                                        min: 0,
+                                        max: None,
+                                    }),
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "at",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[
+                                    Listed::Text("arrival"),
+                                    Listed::Text("answer"),
+                                    Listed::Text("live"),
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "follows",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                pattern: Some(&[
+                                    Term::Step(Step {
+                                        of: &[(65, 90), (97, 122)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(48, 57), (65, 90), (97, 122)],
+                                        min: 0,
+                                        max: None,
+                                    }),
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                        ("headers", of(&[Kind::Object])),
+                        ("status", of(&[Kind::Integer])),
+                        (
+                            "waited",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                pattern: Some(&[
+                                    Term::Step(Step {
+                                        of: &[(65, 90), (97, 122)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(48, 57), (65, 90), (97, 122)],
+                                        min: 0,
+                                        max: None,
+                                    }),
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "wire",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                pattern: Some(&[
+                                    Term::Group(Group {
+                                        either: &[
+                                            &[
+                                                Term::Step(Step {
+                                                    of: &[(71, 71)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(69, 69)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(84, 84)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                            ],
+                                            &[
+                                                Term::Step(Step {
+                                                    of: &[(80, 80)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(79, 79)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(83, 83)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(84, 84)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                            ],
+                                            &[
+                                                Term::Step(Step {
+                                                    of: &[(80, 80)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(85, 85)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(84, 84)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                            ],
+                                            &[
+                                                Term::Step(Step {
+                                                    of: &[(68, 68)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(69, 69)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(76, 76)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(69, 69)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(84, 84)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(69, 69)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                            ],
+                                            &[
+                                                Term::Step(Step {
+                                                    of: &[(80, 80)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(65, 65)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(84, 84)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(67, 67)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(72, 72)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                            ],
+                                        ],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(32, 32)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(47, 47)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(0, 1114111)],
+                                        min: 0,
+                                        max: None,
+                                    }),
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&[
+                        "answer", "as", "at", "body", "follows", "headers", "params", "status",
+                        "token", "waited", "wire",
+                    ]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["carried", "is"],
+                    members: &[(
+                        "carried",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57), (65, 90), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["carried", "is"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["closed"],
+                    members: &[(
+                        "closed",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57), (65, 90), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["closed"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["progress"],
+                    members: &[(
+                        "progress",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57), (65, 90), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["progress"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["state"],
+                    members: &[(
+                        "state",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[
+                                Listed::Text("initial"),
+                                Listed::Text("connecting"),
+                                Listed::Text("open"),
+                                Listed::Text("reconnecting"),
+                                Listed::Text("degraded"),
+                                Listed::Text("unauthenticated"),
+                                Listed::Text("closed"),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["state"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["stays"],
+                    members: &[(
+                        "stays",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[
+                                Listed::Text("initial"),
+                                Listed::Text("connecting"),
+                                Listed::Text("open"),
+                                Listed::Text("reconnecting"),
+                                Listed::Text("degraded"),
+                                Listed::Text("unauthenticated"),
+                                Listed::Text("closed"),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["stays"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["frame", "is"],
+                    members: &[(
+                        "frame",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            min_length: Some(1),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["frame", "is"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["frames", "count"],
+                    members: &[
+                        (
+                            "count",
+                            Shape {
+                                kinds: Some(&[Kind::Integer]),
+                                minimum: Some(1.0),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "frames",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                min_length: Some(1),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["count", "frames"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["error"],
+                    closed: Some(&["error"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["backend"],
+                    members: &[
+                        (
+                            "backend",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[
+                                    Listed::Text("listen"),
+                                    Listed::Text("emit"),
+                                    Listed::Text("record"),
+                                    Listed::Text("content"),
+                                    Listed::Text("description"),
+                                    Listed::Text("annotations"),
+                                    Listed::Text("anchored-text"),
+                                    Listed::Text("uploaded"),
+                                    Listed::Text("refuse"),
+                                    Listed::Text("unanswered"),
+                                    Listed::Text("answer-lost"),
+                                    Listed::Text("hold"),
+                                    Listed::Text("release"),
+                                    Listed::Text("rechunk"),
+                                    Listed::Text("carry"),
+                                    Listed::Text("cut"),
+                                    Listed::Text("down"),
+                                    Listed::Text("up"),
+                                    Listed::Text("archivist"),
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                        ("with", of(&[Kind::Object])),
+                    ],
+                    closed: Some(&["backend", "with"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["quiet"],
+                    members: &[(
+                        "quiet",
+                        Shape {
+                            kinds: Some(&[Kind::Integer]),
+                            minimum: Some(1.0),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["quiet"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["observe", "as"],
+                    members: &[
+                        (
+                            "as",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                pattern: Some(&[
+                                    Term::Step(Step {
+                                        of: &[(65, 90), (97, 122)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(48, 57), (65, 90), (97, 122)],
+                                        min: 0,
+                                        max: None,
+                                    }),
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "observe",
+                            Shape {
+                                kinds: Some(&[Kind::Object]),
+                                required: &["query"],
+                                members: &[(
+                                    "query",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                )],
+                                closed: Some(&[
+                                    "annotation",
+                                    "filters",
+                                    "query",
+                                    "resource",
+                                    "search",
+                                ]),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["as", "observe"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["leave"],
+                    members: &[(
+                        "leave",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57), (65, 90), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["leave"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["reaches", "state"],
+                    members: &[(
+                        "reaches",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57), (65, 90), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["reaches", "state"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["holds", "state"],
+                    members: &[(
+                        "holds",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57), (65, 90), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["holds", "state"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["completes"],
+                    members: &[(
+                        "completes",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57), (65, 90), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["completes"]),
+                    ..NONE
+                },
+                reference("ConformanceBusFetch"),
+                reference("ConformanceHttpFetch"),
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["fetches"],
+                    members: &[(
+                        "fetches",
+                        Shape {
+                            kinds: Some(&[Kind::Array]),
+                            min_items: Some(2),
+                            items: Some(&Shape {
+                                kinds: Some(&[Kind::Object]),
+                                one_of: &[
+                                    reference("ConformanceBusFetch"),
+                                    reference("ConformanceHttpFetch"),
+                                ],
+                                ..NONE
+                            }),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["fetches"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["scopes"],
+                    members: &[("scopes", of(&[Kind::Array]))],
+                    closed: Some(&["scopes"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["claimed"],
+                    closed: Some(&["claimed"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["refused"],
+                    closed: Some(&["refused"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["signalled"],
+                    closed: Some(&["signalled"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["stalled"],
+                    closed: Some(&["stalled"]),
+                    ..NONE
+                },
+            ],
             ..NONE
         },
     ),
@@ -2313,21 +3881,135 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         Shape {
             kinds: Some(&[Kind::String]),
             pattern: Some(&[
-                Step {
+                Term::Step(Step {
                     of: &[(101, 101)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(45, 45)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(0, 57), (59, 1114111)],
                     min: 1,
                     max: None,
-                },
+                }),
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "ErrorData",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["code", "retryable"],
+            members: &[
+                (
+                    "choices",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("Target")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "code",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(99, 99)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(110, 110)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(116, 116)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(114, 114)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(108, 108)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(46, 46)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(97, 122)],
+                                min: 1,
+                                max: None,
+                            }),
+                            Term::Group(Group {
+                                either: &[&[
+                                    Term::Step(Step {
+                                        of: &[(45, 45)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(97, 122)],
+                                        min: 1,
+                                        max: None,
+                                    }),
+                                ]],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "fields",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("FieldFault")),
+                        ..NONE
+                    },
+                ),
+                ("mayStillRun", of(&[Kind::Boolean])),
+                ("retryable", of(&[Kind::Boolean])),
+                (
+                    "supported",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "choices",
+                "code",
+                "fields",
+                "mayStillRun",
+                "retryable",
+                "supported",
             ]),
             ..NONE
         },
@@ -2461,6 +4143,19 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "FieldFault",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["field", "message"],
+            members: &[
+                ("field", of(&[Kind::String])),
+                ("message", of(&[Kind::String])),
+            ],
+            closed: Some(&["field", "message"]),
+            ..NONE
+        },
+    ),
+    (
         "FileEntry",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -2503,6 +4198,54 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 "tracked",
                 "type",
             ]),
+            ..NONE
+        },
+    ),
+    (
+        "FollowerFollowing",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["sweep", "stopped", "refused", "streamDrops"],
+            members: &[
+                (
+                    "refused",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "stopped",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "streamDrops",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "sweep",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[
+                            Listed::Text("pending"),
+                            Listed::Text("running"),
+                            Listed::Text("done"),
+                            Listed::Text("due"),
+                        ]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["refused", "stopped", "streamDrops", "sweep"]),
             ..NONE
         },
     ),
@@ -3425,6 +5168,34 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "HostPort",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["host", "port"],
+            members: &[
+                (
+                    "host",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "port",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        maximum: Some(65535.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["host", "port"]),
+            ..NONE
+        },
+    ),
+    (
         "HttpEndpoint",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -3457,6 +5228,201 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     },
                 ),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "HttpStatus",
+        Shape {
+            kinds: Some(&[Kind::Integer]),
+            minimum: Some(100.0),
+            maximum: Some(599.0),
+            ..NONE
+        },
+    ),
+    (
+        "IdentityUser",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["email", "identity", "enabled"],
+            members: &[
+                ("email", of(&[Kind::String])),
+                ("enabled", of(&[Kind::Boolean])),
+                ("identity", of(&[Kind::String])),
+            ],
+            closed: Some(&["email", "enabled", "identity"]),
+            ..NONE
+        },
+    ),
+    (
+        "IdentityUseraddParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "target", "email", "generatePassword"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                (
+                    "email",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(3),
+                        ..NONE
+                    },
+                ),
+                ("generatePassword", of(&[Kind::Boolean])),
+                (
+                    "password",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("target", reference("LocalTarget")),
+            ],
+            closed: Some(&[
+                "apiVersion",
+                "email",
+                "generatePassword",
+                "password",
+                "target",
+            ]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["password"],
+                    members: &[(
+                        "generatePassword",
+                        Shape {
+                            kinds: Some(&[Kind::Boolean]),
+                            enumeration: Some(&[Listed::Boolean(false)]),
+                            ..NONE
+                        },
+                    )],
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    members: &[(
+                        "generatePassword",
+                        Shape {
+                            kinds: Some(&[Kind::Boolean]),
+                            enumeration: Some(&[Listed::Boolean(true)]),
+                            ..NONE
+                        },
+                    )],
+                    not_all: &[&["password"]],
+                    ..NONE
+                },
+            ],
+            ..NONE
+        },
+    ),
+    (
+        "IdentityUseraddResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["email", "identity", "created"],
+            members: &[
+                ("created", of(&[Kind::Boolean])),
+                ("email", of(&[Kind::String])),
+                ("generatedPassword", of(&[Kind::String])),
+                ("identity", of(&[Kind::String])),
+            ],
+            closed: Some(&["created", "email", "generatedPassword", "identity"]),
+            ..NONE
+        },
+    ),
+    (
+        "IdentityUsersListParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "target"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("target", reference("LocalTarget")),
+            ],
+            closed: Some(&["apiVersion", "target"]),
+            ..NONE
+        },
+    ),
+    (
+        "IdentityUsersListResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["users"],
+            members: &[(
+                "users",
+                Shape {
+                    kinds: Some(&[Kind::Array]),
+                    items: Some(&reference("IdentityUser")),
+                    ..NONE
+                },
+            )],
+            closed: Some(&["users"]),
+            ..NONE
+        },
+    ),
+    (
+        "Image",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            min_length: Some(1),
+            ..NONE
+        },
+    ),
+    (
+        "Inference",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "kind", "metadata", "spec"],
+            members: &[
+                ("apiVersion", reference("StackApiVersion")),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("Inference")]),
+                        ..NONE
+                    },
+                ),
+                ("metadata", reference("Metadata")),
+                (
+                    "spec",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["providers", "engines"],
+                        members: &[
+                            ("engines", reference("ArchivistEngines")),
+                            (
+                                "providers",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    values: Some(&reference("Provider")),
+                                    min_members: Some(1),
+                                    names: Some(&Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        enumeration: Some(&[
+                                            Listed::Text("anthropic"),
+                                            Listed::Text("google"),
+                                            Listed::Text("llamacpp"),
+                                            Listed::Text("ollama"),
+                                            Listed::Text("openai"),
+                                            Listed::Text("together"),
+                                            Listed::Text("vllm"),
+                                        ]),
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["engines", "providers"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "kind", "metadata", "spec"]),
             ..NONE
         },
     ),
@@ -3495,6 +5461,172 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     ..NONE
                 },
             )],
+            ..NONE
+        },
+    ),
+    (
+        "Issuer",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "kind", "metadata", "spec"],
+            members: &[
+                ("apiVersion", reference("StackApiVersion")),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("Issuer")]),
+                        ..NONE
+                    },
+                ),
+                ("metadata", reference("Metadata")),
+                (
+                    "spec",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["type", "image", "resources", "port", "database"],
+                        members: &[
+                            (
+                                "database",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["type", "name", "user"],
+                                    members: &[
+                                        (
+                                            "external",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["host", "port", "password"],
+                                                members: &[
+                                                    (
+                                                        "host",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            min_length: Some(1),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    ("password", reference("SecretRef")),
+                                                    (
+                                                        "port",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::Integer]),
+                                                            minimum: Some(1.0),
+                                                            maximum: Some(65535.0),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                ],
+                                                closed: Some(&["host", "password", "port"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        ("image", reference("Image")),
+                                        (
+                                            "name",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                pattern: Some(&[
+                                                    Term::Step(Step {
+                                                        of: &[(95, 95), (97, 122)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(48, 57), (95, 95), (97, 122)],
+                                                        min: 0,
+                                                        max: Some(62),
+                                                    }),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "port",
+                                            Shape {
+                                                kinds: Some(&[Kind::Integer]),
+                                                minimum: Some(1.0),
+                                                maximum: Some(65535.0),
+                                                ..NONE
+                                            },
+                                        ),
+                                        ("resources", reference("Resources")),
+                                        (
+                                            "type",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "user",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&[
+                                        "external",
+                                        "image",
+                                        "name",
+                                        "port",
+                                        "resources",
+                                        "type",
+                                        "user",
+                                    ]),
+                                    all_of: &[
+                                        reference("Runner"),
+                                        Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            one_of: &[
+                                                Shape {
+                                                    kinds: Some(&[Kind::Object]),
+                                                    required: &["port"],
+                                                    not_all: &[&["external"]],
+                                                    ..NONE
+                                                },
+                                                Shape {
+                                                    kinds: Some(&[Kind::Object]),
+                                                    required: &["external"],
+                                                    not_all: &[&["port"]],
+                                                    ..NONE
+                                                },
+                                            ],
+                                            ..NONE
+                                        },
+                                    ],
+                                    ..NONE
+                                },
+                            ),
+                            ("image", reference("Image")),
+                            (
+                                "port",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(1.0),
+                                    maximum: Some(65535.0),
+                                    ..NONE
+                                },
+                            ),
+                            ("resources", reference("Resources")),
+                            (
+                                "type",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["database", "image", "port", "resources", "type"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "kind", "metadata", "spec"]),
             ..NONE
         },
     ),
@@ -3969,11 +6101,11 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         "JobId",
         Shape {
             kinds: Some(&[Kind::String]),
-            pattern: Some(&[Step {
+            pattern: Some(&[Term::Step(Step {
                 of: &[(45, 45), (48, 57), (65, 90), (95, 95), (97, 122)],
                 min: 1,
                 max: Some(128),
-            }]),
+            })]),
             ..NONE
         },
     ),
@@ -4596,6 +6728,72 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "KbDid",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            pattern: Some(&[
+                Term::Step(Step {
+                    of: &[(100, 100)],
+                    min: 1,
+                    max: Some(1),
+                }),
+                Term::Step(Step {
+                    of: &[(105, 105)],
+                    min: 1,
+                    max: Some(1),
+                }),
+                Term::Step(Step {
+                    of: &[(100, 100)],
+                    min: 1,
+                    max: Some(1),
+                }),
+                Term::Step(Step {
+                    of: &[(58, 58)],
+                    min: 1,
+                    max: Some(1),
+                }),
+                Term::Step(Step {
+                    of: &[(119, 119)],
+                    min: 1,
+                    max: Some(1),
+                }),
+                Term::Step(Step {
+                    of: &[(101, 101)],
+                    min: 1,
+                    max: Some(1),
+                }),
+                Term::Step(Step {
+                    of: &[(98, 98)],
+                    min: 1,
+                    max: Some(1),
+                }),
+                Term::Step(Step {
+                    of: &[(58, 58)],
+                    min: 1,
+                    max: Some(1),
+                }),
+                Term::Step(Step {
+                    of: &[
+                        (0, 8),
+                        (14, 31),
+                        (33, 159),
+                        (161, 5759),
+                        (5761, 8191),
+                        (8203, 8231),
+                        (8234, 8238),
+                        (8240, 8286),
+                        (8288, 12287),
+                        (12289, 65278),
+                        (65280, 1114111),
+                    ],
+                    min: 1,
+                    max: None,
+                }),
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "KbEndpoint",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -4617,7 +6815,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     "domain",
                     Shape {
                         kinds: Some(&[Kind::String]),
-                        pattern: Some(&[Step {
+                        pattern: Some(&[Term::Step(Step {
                             of: &[
                                 (0, 8),
                                 (14, 31),
@@ -4633,7 +6831,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                             ],
                             min: 1,
                             max: None,
-                        }]),
+                        })]),
                         min_length: Some(1),
                         ..NONE
                     },
@@ -4685,6 +6883,78 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "KnowledgeBaseStatus",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "name",
+                "key",
+                "recorded",
+                "placement",
+                "starting",
+                "healthy",
+                "services",
+            ],
+            members: &[
+                ("did", of(&[Kind::String])),
+                ("gateway", of(&[Kind::String])),
+                ("healthy", of(&[Kind::Boolean])),
+                ("identityError", of(&[Kind::String])),
+                ("kb", reference("DiscoveredKB")),
+                ("key", of(&[Kind::String])),
+                ("lan", of(&[Kind::String])),
+                ("name", of(&[Kind::String])),
+                (
+                    "placement",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
+                        ..NONE
+                    },
+                ),
+                ("recorded", of(&[Kind::Boolean])),
+                ("repo", of(&[Kind::String])),
+                ("root", of(&[Kind::String])),
+                ("runtime", reference("Runtime")),
+                ("secretStore", of(&[Kind::String])),
+                (
+                    "services",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("ServiceStatus")),
+                        ..NONE
+                    },
+                ),
+                ("session", reference("Session")),
+                ("siteName", of(&[Kind::String])),
+                ("starting", of(&[Kind::Boolean])),
+                ("workload", reference("WorkloadStatus")),
+            ],
+            closed: Some(&[
+                "did",
+                "gateway",
+                "healthy",
+                "identityError",
+                "kb",
+                "key",
+                "lan",
+                "name",
+                "placement",
+                "recorded",
+                "repo",
+                "root",
+                "runtime",
+                "secretStore",
+                "services",
+                "session",
+                "siteName",
+                "starting",
+                "workload",
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "KnowledgeGraph",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -4730,6 +7000,385 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
                 ("truncated", of(&[Kind::Boolean])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "KnowledgeIndex",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "kind", "metadata", "spec"],
+            members: &[
+                ("apiVersion", reference("StackApiVersion")),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("KnowledgeIndex")]),
+                        ..NONE
+                    },
+                ),
+                ("metadata", reference("Metadata")),
+                (
+                    "spec",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &[
+                            "knowledgeBase",
+                            "logLevel",
+                            "graph",
+                            "vectors",
+                            "embedding",
+                            "librarian",
+                            "smelter",
+                            "weaver",
+                        ],
+                        members: &[
+                            (
+                                "embedding",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["type", "model", "chunking"],
+                                    members: &[
+                                        ("apiKey", reference("SecretRef")),
+                                        (
+                                            "chunking",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["chunkSize", "overlap"],
+                                                members: &[
+                                                    (
+                                                        "chunkSize",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::Integer]),
+                                                            minimum: Some(1.0),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    (
+                                                        "overlap",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::Integer]),
+                                                            minimum: Some(0.0),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                ],
+                                                closed: Some(&["chunkSize", "overlap"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "endpoint",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "model",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "type",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&[
+                                        "apiKey", "chunking", "endpoint", "model", "type",
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "graph",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["type", "username"],
+                                    members: &[
+                                        (
+                                            "external",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["uri", "password"],
+                                                members: &[
+                                                    ("password", reference("SecretRef")),
+                                                    (
+                                                        "uri",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            min_length: Some(1),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                ],
+                                                closed: Some(&["password", "uri"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        ("image", reference("Image")),
+                                        ("resources", reference("Resources")),
+                                        (
+                                            "type",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "username",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&[
+                                        "external",
+                                        "image",
+                                        "resources",
+                                        "type",
+                                        "username",
+                                    ]),
+                                    all_of: &[reference("Runner")],
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "knowledgeBase",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(48, 57), (97, 122)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Group(Group {
+                                            either: &[&[
+                                                Term::Step(Step {
+                                                    of: &[(45, 45), (48, 57), (97, 122)],
+                                                    min: 0,
+                                                    max: None,
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(48, 57), (97, 122)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                            ]],
+                                            min: 0,
+                                            max: Some(1),
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "librarian",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["image", "resources", "gather", "search"],
+                                    members: &[
+                                        (
+                                            "gather",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["settleTimeoutMs"],
+                                                members: &[(
+                                                    "settleTimeoutMs",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::Integer]),
+                                                        minimum: Some(1.0),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["settleTimeoutMs"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        ("image", reference("Image")),
+                                        ("resources", reference("Resources")),
+                                        (
+                                            "search",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["semanticFloor"],
+                                                members: &[(
+                                                    "semanticFloor",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::Number]),
+                                                        minimum: Some(0.0),
+                                                        maximum: Some(1.0),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["semanticFloor"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&["gather", "image", "resources", "search"]),
+                                    ..NONE
+                                },
+                            ),
+                            ("logLevel", reference("LogLevel")),
+                            (
+                                "smelter",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["image", "resources", "pdfsAtOnce"],
+                                    members: &[
+                                        ("image", reference("Image")),
+                                        (
+                                            "pdfsAtOnce",
+                                            Shape {
+                                                kinds: Some(&[Kind::Integer]),
+                                                minimum: Some(1.0),
+                                                ..NONE
+                                            },
+                                        ),
+                                        ("resources", reference("Resources")),
+                                    ],
+                                    closed: Some(&["image", "pdfsAtOnce", "resources"]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "vectors",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["type"],
+                                    members: &[
+                                        (
+                                            "external",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &[
+                                                    "host",
+                                                    "port",
+                                                    "smelterToken",
+                                                    "librarianToken",
+                                                ],
+                                                members: &[
+                                                    (
+                                                        "host",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            min_length: Some(1),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    ("librarianToken", reference("SecretRef")),
+                                                    (
+                                                        "port",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::Integer]),
+                                                            minimum: Some(1.0),
+                                                            maximum: Some(65535.0),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    ("smelterToken", reference("SecretRef")),
+                                                ],
+                                                closed: Some(&[
+                                                    "host",
+                                                    "librarianToken",
+                                                    "port",
+                                                    "smelterToken",
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        ("image", reference("Image")),
+                                        ("resources", reference("Resources")),
+                                        (
+                                            "shared",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                closed: Some(&[]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "type",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&[
+                                        "external",
+                                        "image",
+                                        "resources",
+                                        "shared",
+                                        "type",
+                                    ]),
+                                    one_of: &[
+                                        Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            required: &["shared"],
+                                            not_all: &[&["image"], &["resources"], &["external"]],
+                                            ..NONE
+                                        },
+                                        Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            required: &["image", "resources"],
+                                            not_all: &[&["shared"], &["external"]],
+                                            ..NONE
+                                        },
+                                        Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            required: &["external"],
+                                            not_all: &[&["shared"], &["image"], &["resources"]],
+                                            ..NONE
+                                        },
+                                    ],
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "weaver",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["image", "resources"],
+                                    members: &[
+                                        ("image", reference("Image")),
+                                        ("resources", reference("Resources")),
+                                    ],
+                                    closed: Some(&["image", "resources"]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&[
+                            "embedding",
+                            "graph",
+                            "knowledgeBase",
+                            "librarian",
+                            "logLevel",
+                            "smelter",
+                            "vectors",
+                            "weaver",
+                        ]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "kind", "metadata", "spec"]),
             ..NONE
         },
     ),
@@ -4893,72 +7542,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                (
-                    "kb",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        pattern: Some(&[
-                            Step {
-                                of: &[(100, 100)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(105, 105)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(100, 100)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(58, 58)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(119, 119)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(101, 101)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(98, 98)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(58, 58)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[
-                                    (0, 8),
-                                    (14, 31),
-                                    (33, 159),
-                                    (161, 5759),
-                                    (5761, 8191),
-                                    (8203, 8231),
-                                    (8234, 8238),
-                                    (8240, 8286),
-                                    (8288, 12287),
-                                    (12289, 65278),
-                                    (65280, 1114111),
-                                ],
-                                min: 1,
-                                max: None,
-                            },
-                        ]),
-                        ..NONE
-                    },
-                ),
+                ("kb", reference("KbDid")),
                 (
                     "status",
                     Shape {
@@ -4969,6 +7553,19 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
             ],
             closed: Some(&["actors", "kb", "status"]),
+            ..NONE
+        },
+    ),
+    (
+        "LibrarianPromptScore",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["candidate", "score"],
+            members: &[
+                ("candidate", of(&[Kind::Number])),
+                ("score", of(&[Kind::Number])),
+            ],
+            closed: Some(&["candidate", "score"]),
             ..NONE
         },
     ),
@@ -5079,6 +7676,33 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "LocalTarget",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["kind", "root"],
+            members: &[
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("local")]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "root",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["kind", "root"]),
+            ..NONE
+        },
+    ),
+    (
         "LogFormat",
         Shape {
             kinds: Some(&[Kind::String]),
@@ -5097,6 +7721,68 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 Listed::Text("http"),
                 Listed::Text("debug"),
             ]),
+            ..NONE
+        },
+    ),
+    (
+        "LogRecord",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["requestId", "service", "stream", "line", "receivedAt"],
+            members: &[
+                ("line", of(&[Kind::String])),
+                (
+                    "receivedAt",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("requestId", reference("RequestId")),
+                ("service", of(&[Kind::String])),
+                ("stream", reference("OutputStream")),
+            ],
+            closed: Some(&["line", "receivedAt", "requestId", "service", "stream"]),
+            ..NONE
+        },
+    ),
+    (
+        "LogsFollowParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("runtime", reference("Runtime")),
+                (
+                    "service",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("target", reference("Target")),
+            ],
+            closed: Some(&["apiVersion", "runtime", "service", "target"]),
+            ..NONE
+        },
+    ),
+    (
+        "LogsFollowResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["services"],
+            members: &[(
+                "services",
+                Shape {
+                    kinds: Some(&[Kind::Array]),
+                    items: Some(&of(&[Kind::String])),
+                    ..NONE
+                },
+            )],
+            closed: Some(&["services"]),
             ..NONE
         },
     ),
@@ -5727,6 +8413,95 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Metadata",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["name"],
+            members: &[
+                (
+                    "annotations",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                (
+                    "labels",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                (
+                    "name",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(48, 57), (97, 122)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Group(Group {
+                                either: &[&[
+                                    Term::Step(Step {
+                                        of: &[(45, 45), (48, 57), (97, 122)],
+                                        min: 0,
+                                        max: None,
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(48, 57), (97, 122)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                ]],
+                                min: 0,
+                                max: Some(1),
+                            }),
+                        ]),
+                        max_length: Some(63),
+                        ..NONE
+                    },
+                ),
+                (
+                    "namespace",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(48, 57), (97, 122)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Group(Group {
+                                either: &[&[
+                                    Term::Step(Step {
+                                        of: &[(45, 45), (48, 57), (97, 122)],
+                                        min: 0,
+                                        max: None,
+                                    }),
+                                    Term::Step(Step {
+                                        of: &[(48, 57), (97, 122)],
+                                        min: 1,
+                                        max: Some(1),
+                                    }),
+                                ]],
+                                min: 0,
+                                max: Some(1),
+                            }),
+                        ]),
+                        max_length: Some(63),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["annotations", "labels", "name", "namespace"]),
+            ..NONE
+        },
+    ),
+    (
         "Motivation",
         Shape {
             kinds: Some(&[Kind::String]),
@@ -5938,6 +8713,44 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "OpenResource",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["id", "name", "openedAt", "order"],
+            members: &[
+                ("id", reference("ResourceId")),
+                ("mediaType", of(&[Kind::String])),
+                ("name", of(&[Kind::String])),
+                (
+                    "openedAt",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "order",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("storageUri", of(&[Kind::String])),
+            ],
+            ..NONE
+        },
+    ),
+    (
+        "OutputStream",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[Listed::Text("stdout"), Listed::Text("stderr")]),
+            ..NONE
+        },
+    ),
+    (
         "PdfClass",
         Shape {
             kinds: Some(&[Kind::String]),
@@ -5989,31 +8802,31 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         Shape {
             kinds: Some(&[Kind::String]),
             pattern: Some(&[
-                Step {
+                Term::Step(Step {
                     of: &[(112, 112)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(45, 45)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(0, 9), (11, 12), (14, 8231), (8234, 1114111)],
                     min: 1,
                     max: None,
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(45, 45)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(48, 57)],
                     min: 1,
                     max: None,
-                },
+                }),
             ]),
             ..NONE
         },
@@ -6070,6 +8883,130 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Progress",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["requestId", "kind", "text"],
+            members: &[
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[
+                            Listed::Text("log"),
+                            Listed::Text("note"),
+                            Listed::Text("ok"),
+                            Listed::Text("warn"),
+                            Listed::Text("fail"),
+                            Listed::Text("banner"),
+                            Listed::Text("section"),
+                            Listed::Text("stamp"),
+                            Listed::Text("command"),
+                            Listed::Text("output"),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                ("requestId", reference("RequestId")),
+                ("text", of(&[Kind::String])),
+            ],
+            closed: Some(&["kind", "requestId", "text"]),
+            ..NONE
+        },
+    ),
+    (
+        "ProjectConfig",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["project", "git", "site"],
+            members: &[
+                (
+                    "git",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["sync"],
+                        members: &[("sync", of(&[Kind::Boolean]))],
+                        closed: Some(&["sync"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "project",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["name"],
+                        members: &[
+                            (
+                                "name",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "version",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["name", "version"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "site",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["domain", "siteName"],
+                        members: &[
+                            (
+                                "domain",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[Term::Step(Step {
+                                        of: &[
+                                            (0, 8),
+                                            (14, 31),
+                                            (33, 159),
+                                            (161, 5759),
+                                            (5761, 8191),
+                                            (8203, 8231),
+                                            (8234, 8238),
+                                            (8240, 8286),
+                                            (8288, 12287),
+                                            (12289, 65278),
+                                            (65280, 1114111),
+                                        ],
+                                        min: 1,
+                                        max: None,
+                                    })]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "siteName",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["domain", "siteName"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["git", "project", "site"]),
+            ..NONE
+        },
+    ),
+    (
         "ProtectedResourceMetadata",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -6108,6 +9045,25 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 "resource",
                 "resource_name",
             ]),
+            ..NONE
+        },
+    ),
+    (
+        "Provider",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                ("apiKey", reference("SecretRef")),
+                (
+                    "baseURL",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiKey", "baseURL"]),
             ..NONE
         },
     ),
@@ -6160,41 +9116,41 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         Shape {
             kinds: Some(&[Kind::String]),
             pattern: Some(&[
-                Step {
+                Term::Step(Step {
                     of: &[(101, 101)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(45, 45)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(0, 57), (59, 1114111)],
                     min: 1,
                     max: None,
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(58, 58)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(0, 57), (59, 1114111)],
                     min: 1,
                     max: None,
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(58, 58)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(0, 9), (11, 12), (14, 8231), (8234, 1114111)],
                     min: 1,
                     max: None,
-                },
+                }),
             ]),
             ..NONE
         },
@@ -6319,6 +9275,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             ..NONE
         },
     ),
+    ("RequestId", of(&[Kind::String, Kind::Integer])),
     (
         "ResourceAnnotations",
         Shape {
@@ -6583,11 +9540,11 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         "ResourceId",
         Shape {
             kinds: Some(&[Kind::String]),
-            pattern: Some(&[Step {
+            pattern: Some(&[Term::Step(Step {
                 of: &[(45, 45), (48, 57), (65, 90), (95, 95), (97, 122)],
                 min: 1,
                 max: Some(128),
-            }]),
+            })]),
             ..NONE
         },
     ),
@@ -6662,6 +9619,419 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Resources",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["limits"],
+            members: &[(
+                "limits",
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["memory"],
+                    members: &[(
+                        "memory",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(49, 57)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                                Term::Step(Step {
+                                    of: &[(71, 71), (77, 77)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                            ]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["memory"]),
+                    ..NONE
+                },
+            )],
+            closed: Some(&["limits"]),
+            ..NONE
+        },
+    ),
+    (
+        "Root",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["placement", "registered", "running"],
+            members: &[
+                ("codespace", of(&[Kind::String])),
+                ("codespaceState", of(&[Kind::String])),
+                ("config", of(&[Kind::String])),
+                (
+                    "configs",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                (
+                    "current",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("cwd"), Listed::Text("xynolog-root")]),
+                        ..NONE
+                    },
+                ),
+                ("did", of(&[Kind::String])),
+                ("forwardPort", of(&[Kind::Integer])),
+                ("forwarded", of(&[Kind::Boolean])),
+                ("identityError", of(&[Kind::String])),
+                ("lastUsed", of(&[Kind::String])),
+                ("path", of(&[Kind::String])),
+                (
+                    "placement",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
+                        ..NONE
+                    },
+                ),
+                ("present", of(&[Kind::Boolean])),
+                ("reachable", of(&[Kind::Boolean])),
+                ("registered", of(&[Kind::Boolean])),
+                ("repo", of(&[Kind::String])),
+                ("running", of(&[Kind::Boolean])),
+                ("siteName", of(&[Kind::String])),
+            ],
+            closed: Some(&[
+                "codespace",
+                "codespaceState",
+                "config",
+                "configs",
+                "current",
+                "did",
+                "forwardPort",
+                "forwarded",
+                "identityError",
+                "lastUsed",
+                "path",
+                "placement",
+                "present",
+                "reachable",
+                "registered",
+                "repo",
+                "running",
+                "siteName",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "RootsForgetParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "root"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                (
+                    "root",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "root"]),
+            ..NONE
+        },
+    ),
+    (
+        "RootsForgetResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["path", "directoryMissing"],
+            members: &[
+                ("directoryMissing", of(&[Kind::Boolean])),
+                ("path", of(&[Kind::String])),
+                ("persistentState", of(&[Kind::String])),
+            ],
+            closed: Some(&["directoryMissing", "path", "persistentState"]),
+            ..NONE
+        },
+    ),
+    (
+        "RootsInitParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "path", "domain"],
+            members: &[
+                (
+                    "anthropicEndpoint",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("apiVersion", reference("ApiVersion")),
+                (
+                    "configName",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "domain",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "embedding",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "inference",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("anthropic"), Listed::Text("ollama")]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "model",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "modelLight",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "name",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "ollamaBase",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "ollamaRegistry",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "path",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "siteName",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "anthropicEndpoint",
+                "apiVersion",
+                "configName",
+                "domain",
+                "embedding",
+                "inference",
+                "model",
+                "modelLight",
+                "name",
+                "ollamaBase",
+                "ollamaRegistry",
+                "path",
+                "siteName",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "RootsInitResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["path"],
+            members: &[(
+                "path",
+                Shape {
+                    kinds: Some(&[Kind::String]),
+                    min_length: Some(1),
+                    ..NONE
+                },
+            )],
+            closed: Some(&["path"]),
+            ..NONE
+        },
+    ),
+    (
+        "RootsListParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[("apiVersion", reference("ApiVersion"))],
+            closed: Some(&["apiVersion"]),
+            ..NONE
+        },
+    ),
+    (
+        "RootsListResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["roots"],
+            members: &[
+                (
+                    "roots",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("Root")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "warnings",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["roots", "warnings"]),
+            ..NONE
+        },
+    ),
+    (
+        "RunInstance",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            pattern: Some(&[
+                Term::Step(Step {
+                    of: &[(48, 57), (97, 122)],
+                    min: 1,
+                    max: None,
+                }),
+                Term::Group(Group {
+                    either: &[&[
+                        Term::Step(Step {
+                            of: &[(45, 45)],
+                            min: 1,
+                            max: Some(1),
+                        }),
+                        Term::Step(Step {
+                            of: &[(48, 57), (97, 122)],
+                            min: 1,
+                            max: None,
+                        }),
+                    ]],
+                    min: 0,
+                    max: None,
+                }),
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "RunService",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("archivist"),
+                Listed::Text("dispatcher"),
+                Listed::Text("gateway"),
+                Listed::Text("librarian"),
+                Listed::Text("smelter"),
+                Listed::Text("weaver"),
+                Listed::Text("worker"),
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "Runner",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["image", "resources"],
+                    not_all: &[&["external"]],
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["external"],
+                    not_all: &[&["image"], &["resources"]],
+                    ..NONE
+                },
+            ],
+            ..NONE
+        },
+    ),
+    (
+        "Runtime",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("container"),
+                Listed::Text("docker"),
+                Listed::Text("podman"),
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "RuntimeState",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["name", "found"],
+            members: &[
+                ("found", of(&[Kind::Boolean])),
+                ("name", reference("Runtime")),
+            ],
+            closed: Some(&["found", "name"]),
+            ..NONE
+        },
+    ),
+    (
         "ScoredResource",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -6676,6 +10046,34 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     ..NONE
                 },
             ],
+            ..NONE
+        },
+    ),
+    (
+        "SecretRef",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["fromEnv"],
+            members: &[(
+                "fromEnv",
+                Shape {
+                    kinds: Some(&[Kind::String]),
+                    pattern: Some(&[
+                        Term::Step(Step {
+                            of: &[(65, 90), (95, 95), (97, 122)],
+                            min: 1,
+                            max: Some(1),
+                        }),
+                        Term::Step(Step {
+                            of: &[(48, 57), (65, 90), (95, 95), (97, 122)],
+                            min: 0,
+                            max: None,
+                        }),
+                    ]),
+                    ..NONE
+                },
+            )],
+            closed: Some(&["fromEnv"]),
             ..NONE
         },
     ),
@@ -6754,6 +10152,54 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "ServiceGroup",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("record"),
+                Listed::Text("index"),
+                Listed::Text("issuer"),
+                Listed::Text("knowledge-workers"),
+                Listed::Text("providers"),
+                Listed::Text("telemetry"),
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "ServiceHostParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("runtime", reference("Runtime")),
+            ],
+            closed: Some(&["apiVersion", "runtime"]),
+            ..NONE
+        },
+    ),
+    (
+        "ServiceHostResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["runtime", "address"],
+            members: &[
+                (
+                    "address",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("runtime", reference("Runtime")),
+            ],
+            closed: Some(&["address", "runtime"]),
+            ..NONE
+        },
+    ),
+    (
         "ServiceIdentity",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -6767,6 +10213,330 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 },
             )],
             closed: Some(&["issuer"]),
+            ..NONE
+        },
+    ),
+    (
+        "ServiceOutput",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["requestId", "instance", "stream", "line"],
+            members: &[
+                ("instance", reference("RunInstance")),
+                ("line", of(&[Kind::String])),
+                ("requestId", reference("RequestId")),
+                ("stream", reference("OutputStream")),
+            ],
+            closed: Some(&["instance", "line", "requestId", "stream"]),
+            ..NONE
+        },
+    ),
+    (
+        "ServiceRunParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "apiVersion",
+                "target",
+                "service",
+                "instance",
+                "environment",
+                "mounts",
+                "pathFirst",
+                "ports",
+            ],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                (
+                    "args",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                ("document", of(&[Kind::String])),
+                (
+                    "environment",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                ("instance", reference("RunInstance")),
+                (
+                    "mounts",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(47, 47)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(0, 1114111)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "pathFirst",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(47, 47)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(0, 1114111)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "ports",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Integer]),
+                            minimum: Some(1.0),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                ("runtime", reference("Runtime")),
+                ("service", reference("RunService")),
+                ("target", reference("LocalTarget")),
+            ],
+            closed: Some(&[
+                "apiVersion",
+                "args",
+                "document",
+                "environment",
+                "instance",
+                "mounts",
+                "pathFirst",
+                "ports",
+                "runtime",
+                "service",
+                "target",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "ServiceRunResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["instance", "exitCode", "ranMs"],
+            members: &[
+                (
+                    "exitCode",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("instance", reference("RunInstance")),
+                (
+                    "ranMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["exitCode", "instance", "ranMs"]),
+            ..NONE
+        },
+    ),
+    (
+        "ServiceSignalParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "target", "instance", "signal"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("instance", reference("RunInstance")),
+                ("runtime", reference("Runtime")),
+                (
+                    "signal",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("term"), Listed::Text("kill")]),
+                        ..NONE
+                    },
+                ),
+                ("target", reference("LocalTarget")),
+            ],
+            closed: Some(&["apiVersion", "instance", "runtime", "signal", "target"]),
+            ..NONE
+        },
+    ),
+    (
+        "ServiceSignalResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["delivered"],
+            members: &[("delivered", of(&[Kind::Boolean]))],
+            closed: Some(&["delivered"]),
+            ..NONE
+        },
+    ),
+    (
+        "ServiceStarted",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["requestId", "instance", "container", "address"],
+            members: &[
+                (
+                    "address",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "container",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "documentPath",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                ("instance", reference("RunInstance")),
+                ("requestId", reference("RequestId")),
+            ],
+            closed: Some(&[
+                "address",
+                "container",
+                "documentPath",
+                "instance",
+                "requestId",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "ServiceStatus",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["role", "group", "state", "healthy", "counted"],
+            members: &[
+                ("containerState", of(&[Kind::String])),
+                ("counted", of(&[Kind::Boolean])),
+                ("group", reference("ServiceGroup")),
+                ("healthy", of(&[Kind::Boolean])),
+                ("page", of(&[Kind::String])),
+                ("probe", of(&[Kind::String])),
+                ("product", of(&[Kind::String])),
+                ("realm", of(&[Kind::String])),
+                ("role", of(&[Kind::String])),
+                ("runsOn", of(&[Kind::String])),
+                (
+                    "serves",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                (
+                    "state",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[
+                            Listed::Text("running"),
+                            Listed::Text("stopped"),
+                            Listed::Text("reachable"),
+                            Listed::Text("unreachable"),
+                            Listed::Text("absent"),
+                            Listed::Text("not-configured"),
+                        ]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "containerState",
+                "counted",
+                "group",
+                "healthy",
+                "page",
+                "probe",
+                "product",
+                "realm",
+                "role",
+                "runsOn",
+                "serves",
+                "state",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "Session",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["state"],
+            members: &[
+                ("email", of(&[Kind::String])),
+                (
+                    "state",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[
+                            Listed::Text("valid"),
+                            Listed::Text("expired"),
+                            Listed::Text("unverified"),
+                            Listed::Text("none"),
+                        ]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["email", "state"]),
             ..NONE
         },
     ),
@@ -6795,6 +10565,89 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Setting",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["name", "default", "appliesTo", "values", "settable"],
+            members: &[
+                (
+                    "appliesTo",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[
+                            Listed::Text("machine"),
+                            Listed::Text("knowledge-base"),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                ("changedBy", of(&[Kind::String])),
+                ("default", of(&[Kind::Boolean])),
+                ("name", of(&[Kind::String])),
+                ("settable", of(&[Kind::Boolean])),
+                (
+                    "values",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("SettingLine")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "appliesTo",
+                "changedBy",
+                "default",
+                "name",
+                "settable",
+                "values",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "SettingLine",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["value", "source"],
+            members: &[
+                ("source", of(&[Kind::String])),
+                ("value", of(&[Kind::String])),
+            ],
+            closed: Some(&["source", "value"]),
+            ..NONE
+        },
+    ),
+    (
+        "SettingsGetParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "name"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("default", of(&[Kind::Boolean])),
+                (
+                    "name",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "root",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "default", "name", "root"]),
+            ..NONE
+        },
+    ),
+    (
         "SettingsHoverDelayChangedEvent",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -6804,11 +10657,124 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "SettingsListParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                (
+                    "root",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "root"]),
+            ..NONE
+        },
+    ),
+    (
+        "SettingsListResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["settings"],
+            members: &[
+                ("root", of(&[Kind::String])),
+                (
+                    "settings",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("Setting")),
+                        ..NONE
+                    },
+                ),
+                ("unresolved", of(&[Kind::String])),
+            ],
+            closed: Some(&["root", "settings", "unresolved"]),
+            ..NONE
+        },
+    ),
+    (
         "SettingsLocaleChangedEvent",
         Shape {
             kinds: Some(&[Kind::Object]),
             required: &["locale"],
             members: &[("locale", of(&[Kind::String]))],
+            ..NONE
+        },
+    ),
+    (
+        "SettingsPathParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "document"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                (
+                    "document",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[
+                            Listed::Text("browser"),
+                            Listed::Text("worker"),
+                            Listed::Text("issuer"),
+                            Listed::Text("vectors"),
+                        ]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "document"]),
+            ..NONE
+        },
+    ),
+    (
+        "SettingsPathResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["path"],
+            members: &[("path", of(&[Kind::String]))],
+            closed: Some(&["path"]),
+            ..NONE
+        },
+    ),
+    (
+        "SettingsSetParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "name", "value"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("default", of(&[Kind::Boolean])),
+                (
+                    "name",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "root",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "value",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "default", "name", "root", "value"]),
             ..NONE
         },
     ),
@@ -6829,6 +10795,35 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     ..NONE
                 },
             )],
+            ..NONE
+        },
+    ),
+    (
+        "SettingsUnsetParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "name"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("default", of(&[Kind::Boolean])),
+                (
+                    "name",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "root",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "default", "name", "root"]),
             ..NONE
         },
     ),
@@ -6998,54 +10993,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                (
-                    "following",
-                    Shape {
-                        kinds: Some(&[Kind::Object]),
-                        required: &["sweep", "stopped", "refused", "streamDrops"],
-                        members: &[
-                            (
-                                "refused",
-                                Shape {
-                                    kinds: Some(&[Kind::Integer]),
-                                    minimum: Some(0.0),
-                                    ..NONE
-                                },
-                            ),
-                            (
-                                "stopped",
-                                Shape {
-                                    kinds: Some(&[Kind::Integer]),
-                                    minimum: Some(0.0),
-                                    ..NONE
-                                },
-                            ),
-                            (
-                                "streamDrops",
-                                Shape {
-                                    kinds: Some(&[Kind::Integer]),
-                                    minimum: Some(0.0),
-                                    ..NONE
-                                },
-                            ),
-                            (
-                                "sweep",
-                                Shape {
-                                    kinds: Some(&[Kind::String]),
-                                    enumeration: Some(&[
-                                        Listed::Text("pending"),
-                                        Listed::Text("running"),
-                                        Listed::Text("done"),
-                                        Listed::Text("due"),
-                                    ]),
-                                    ..NONE
-                                },
-                            ),
-                        ],
-                        closed: Some(&["refused", "stopped", "streamDrops", "sweep"]),
-                        ..NONE
-                    },
-                ),
+                ("following", reference("FollowerFollowing")),
                 (
                     "index",
                     Shape {
@@ -7097,72 +11045,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                (
-                    "kb",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        pattern: Some(&[
-                            Step {
-                                of: &[(100, 100)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(105, 105)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(100, 100)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(58, 58)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(119, 119)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(101, 101)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(98, 98)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(58, 58)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[
-                                    (0, 8),
-                                    (14, 31),
-                                    (33, 159),
-                                    (161, 5759),
-                                    (5761, 8191),
-                                    (8203, 8231),
-                                    (8234, 8238),
-                                    (8240, 8286),
-                                    (8288, 12287),
-                                    (12289, 65278),
-                                    (65280, 1114111),
-                                ],
-                                min: 1,
-                                max: None,
-                            },
-                        ]),
-                        ..NONE
-                    },
-                ),
+                ("kb", reference("KbDid")),
                 (
                     "reconcile",
                     Shape {
@@ -7384,6 +11267,439 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "StackApiVersion",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[Listed::Text("xynolog.org/v1alpha1")]),
+            ..NONE
+        },
+    ),
+    (
+        "StackKnowledgeBase",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "kind", "metadata", "spec"],
+            members: &[
+                ("apiVersion", reference("StackApiVersion")),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("KnowledgeBase")]),
+                        ..NONE
+                    },
+                ),
+                ("metadata", reference("Metadata")),
+                (
+                    "spec",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &[
+                            "logLevel",
+                            "gateway",
+                            "dispatcher",
+                            "archivist",
+                            "messaging",
+                            "issuer",
+                        ],
+                        members: &[
+                            (
+                                "archivist",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["image", "resources"],
+                                    members: &[
+                                        ("address", reference("HostPort")),
+                                        ("image", reference("Image")),
+                                        ("resources", reference("Resources")),
+                                    ],
+                                    closed: Some(&["address", "image", "resources"]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "dispatcher",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["image", "resources"],
+                                    members: &[
+                                        ("image", reference("Image")),
+                                        ("resources", reference("Resources")),
+                                    ],
+                                    closed: Some(&["image", "resources"]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "gateway",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["image", "resources", "port", "publicURL"],
+                                    members: &[
+                                        ("image", reference("Image")),
+                                        (
+                                            "port",
+                                            Shape {
+                                                kinds: Some(&[Kind::Integer]),
+                                                minimum: Some(1.0),
+                                                maximum: Some(65535.0),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "publicURL",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                        ("resources", reference("Resources")),
+                                    ],
+                                    closed: Some(&["image", "port", "publicURL", "resources"]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "issuer",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["subjectClaim"],
+                                    members: &[
+                                        (
+                                            "external",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["type", "url"],
+                                                members: &[
+                                                    (
+                                                        "type",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            min_length: Some(1),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    (
+                                                        "url",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            min_length: Some(1),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                ],
+                                                closed: Some(&["type", "url"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "shared",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["accessTokenLifespan"],
+                                                members: &[(
+                                                    "accessTokenLifespan",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::Integer]),
+                                                        minimum: Some(1.0),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["accessTokenLifespan"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "subjectClaim",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&["external", "shared", "subjectClaim"]),
+                                    one_of: &[
+                                        Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            required: &["shared"],
+                                            ..NONE
+                                        },
+                                        Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            required: &["external"],
+                                            ..NONE
+                                        },
+                                    ],
+                                    ..NONE
+                                },
+                            ),
+                            ("logLevel", reference("LogLevel")),
+                            (
+                                "messaging",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["jobs", "signal"],
+                                    members: &[
+                                        (
+                                            "external",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["servers", "user", "password"],
+                                                members: &[
+                                                    ("password", reference("SecretRef")),
+                                                    (
+                                                        "servers",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            min_length: Some(1),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    ("user", reference("SecretRef")),
+                                                ],
+                                                closed: Some(&["password", "servers", "user"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        ("image", reference("Image")),
+                                        (
+                                            "jobs",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["type"],
+                                                members: &[(
+                                                    "type",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        min_length: Some(1),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["type"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        ("resources", reference("Resources")),
+                                        (
+                                            "signal",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["type"],
+                                                members: &[(
+                                                    "type",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        min_length: Some(1),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["type"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&[
+                                        "external",
+                                        "image",
+                                        "jobs",
+                                        "resources",
+                                        "signal",
+                                    ]),
+                                    all_of: &[reference("Runner")],
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&[
+                            "archivist",
+                            "dispatcher",
+                            "gateway",
+                            "issuer",
+                            "logLevel",
+                            "messaging",
+                        ]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "kind", "metadata", "spec"]),
+            ..NONE
+        },
+    ),
+    (
+        "StackStartParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                (
+                    "codespaceName",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "config",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("dryRun", of(&[Kind::Boolean])),
+                ("group", reference("ServiceGroup")),
+                (
+                    "idleTimeout",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "machine",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("observe", of(&[Kind::Boolean])),
+                (
+                    "ollamaCache",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("host"), Listed::Text("volume")]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "retentionPeriod",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("runtime", reference("Runtime")),
+                (
+                    "service",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("target", reference("Target")),
+            ],
+            closed: Some(&[
+                "apiVersion",
+                "codespaceName",
+                "config",
+                "dryRun",
+                "group",
+                "idleTimeout",
+                "machine",
+                "observe",
+                "ollamaCache",
+                "retentionPeriod",
+                "runtime",
+                "service",
+                "target",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "StackStartResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["dryRun"],
+            members: &[
+                ("dryRun", of(&[Kind::Boolean])),
+                ("knowledgeBase", reference("KnowledgeBaseStatus")),
+                (
+                    "shared",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("ServiceStatus")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["dryRun", "knowledgeBase", "shared"]),
+            ..NONE
+        },
+    ),
+    (
+        "StackStopParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("delete", of(&[Kind::Boolean])),
+                ("deleteConfirmed", of(&[Kind::Boolean])),
+                ("dryRun", of(&[Kind::Boolean])),
+                ("group", reference("ServiceGroup")),
+                ("runtime", reference("Runtime")),
+                (
+                    "service",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("target", reference("Target")),
+            ],
+            closed: Some(&[
+                "apiVersion",
+                "delete",
+                "deleteConfirmed",
+                "dryRun",
+                "group",
+                "runtime",
+                "service",
+                "target",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "StackStopResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["dryRun"],
+            members: &[
+                ("dryRun", of(&[Kind::Boolean])),
+                (
+                    "knowledgeBases",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("KnowledgeBaseStatus")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "shared",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("ServiceStatus")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["dryRun", "knowledgeBases", "shared"]),
+            ..NONE
+        },
+    ),
+    (
         "StatusResponse",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -7406,6 +11722,47 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("status", of(&[Kind::String])),
                 ("version", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "StatusSnapshotParams",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion"],
+            members: &[
+                ("apiVersion", reference("ApiVersion")),
+                ("runtime", reference("Runtime")),
+                ("target", reference("Target")),
+            ],
+            closed: Some(&["apiVersion", "runtime", "target"]),
+            ..NONE
+        },
+    ),
+    (
+        "StatusSnapshotResult",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["knowledgeBases", "shared"],
+            members: &[
+                (
+                    "knowledgeBases",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("KnowledgeBaseStatus")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "shared",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("ServiceStatus")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["knowledgeBases", "shared"]),
             ..NONE
         },
     ),
@@ -7656,6 +12013,112 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Target",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["kind"],
+            members: &[
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "repo",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 46),
+                                    (48, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 46),
+                                    (48, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "root",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["kind", "repo", "root"]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    members: &[(
+                        "kind",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[Listed::Text("local")]),
+                            ..NONE
+                        },
+                    )],
+                    not_all: &[&["repo"]],
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["repo"],
+                    members: &[(
+                        "kind",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[Listed::Text("codespace")]),
+                            ..NONE
+                        },
+                    )],
+                    not_all: &[&["root"]],
+                    ..NONE
+                },
+            ],
+            ..NONE
+        },
+    ),
+    (
         "TextPositionSelector",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -7803,31 +12266,65 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "UserAction",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "requestId",
+                "verificationUri",
+                "userCode",
+                "expiresInSeconds",
+            ],
+            members: &[
+                (
+                    "expiresInSeconds",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("requestId", reference("RequestId")),
+                ("userCode", of(&[Kind::String])),
+                ("verificationUri", of(&[Kind::String])),
+                ("verificationUriComplete", of(&[Kind::String])),
+            ],
+            closed: Some(&[
+                "expiresInSeconds",
+                "requestId",
+                "userCode",
+                "verificationUri",
+                "verificationUriComplete",
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "UserId",
         Shape {
             kinds: Some(&[Kind::String]),
             pattern: Some(&[
-                Step {
+                Term::Step(Step {
                     of: &[(100, 100)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(105, 105)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(100, 100)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[(58, 58)],
                     min: 1,
                     max: Some(1),
-                },
-                Step {
+                }),
+                Term::Step(Step {
                     of: &[
                         (0, 8),
                         (14, 31),
@@ -7843,7 +12340,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     ],
                     min: 1,
                     max: None,
-                },
+                }),
             ]),
             ..NONE
         },
@@ -7860,6 +12357,57 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("image", of(&[Kind::String, Kind::Null])),
                 ("name", of(&[Kind::String, Kind::Null])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "VectorStore",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "kind", "metadata", "spec"],
+            members: &[
+                ("apiVersion", reference("StackApiVersion")),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("VectorStore")]),
+                        ..NONE
+                    },
+                ),
+                ("metadata", reference("Metadata")),
+                (
+                    "spec",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["type", "image", "resources", "port"],
+                        members: &[
+                            ("image", reference("Image")),
+                            (
+                                "port",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(1.0),
+                                    maximum: Some(65535.0),
+                                    ..NONE
+                                },
+                            ),
+                            ("resources", reference("Resources")),
+                            (
+                                "type",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["image", "port", "resources", "type"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "kind", "metadata", "spec"]),
             ..NONE
         },
     ),
@@ -8005,120 +12553,8 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             kinds: Some(&[Kind::Object]),
             required: &["status", "kb", "following", "reconcile"],
             members: &[
-                (
-                    "following",
-                    Shape {
-                        kinds: Some(&[Kind::Object]),
-                        required: &["sweep", "stopped", "refused", "streamDrops"],
-                        members: &[
-                            (
-                                "refused",
-                                Shape {
-                                    kinds: Some(&[Kind::Integer]),
-                                    minimum: Some(0.0),
-                                    ..NONE
-                                },
-                            ),
-                            (
-                                "stopped",
-                                Shape {
-                                    kinds: Some(&[Kind::Integer]),
-                                    minimum: Some(0.0),
-                                    ..NONE
-                                },
-                            ),
-                            (
-                                "streamDrops",
-                                Shape {
-                                    kinds: Some(&[Kind::Integer]),
-                                    minimum: Some(0.0),
-                                    ..NONE
-                                },
-                            ),
-                            (
-                                "sweep",
-                                Shape {
-                                    kinds: Some(&[Kind::String]),
-                                    enumeration: Some(&[
-                                        Listed::Text("pending"),
-                                        Listed::Text("running"),
-                                        Listed::Text("done"),
-                                        Listed::Text("due"),
-                                    ]),
-                                    ..NONE
-                                },
-                            ),
-                        ],
-                        closed: Some(&["refused", "stopped", "streamDrops", "sweep"]),
-                        ..NONE
-                    },
-                ),
-                (
-                    "kb",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        pattern: Some(&[
-                            Step {
-                                of: &[(100, 100)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(105, 105)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(100, 100)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(58, 58)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(119, 119)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(101, 101)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(98, 98)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[(58, 58)],
-                                min: 1,
-                                max: Some(1),
-                            },
-                            Step {
-                                of: &[
-                                    (0, 8),
-                                    (14, 31),
-                                    (33, 159),
-                                    (161, 5759),
-                                    (5761, 8191),
-                                    (8203, 8231),
-                                    (8234, 8238),
-                                    (8240, 8286),
-                                    (8288, 12287),
-                                    (12289, 65278),
-                                    (65280, 1114111),
-                                ],
-                                min: 1,
-                                max: None,
-                            },
-                        ]),
-                        ..NONE
-                    },
-                ),
+                ("following", reference("FollowerFollowing")),
+                ("kb", reference("KbDid")),
                 (
                     "reconcile",
                     Shape {
@@ -8509,6 +12945,132 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
             ],
             closed: Some(&["did", "domain", "engines", "state"]),
+            ..NONE
+        },
+    ),
+    (
+        "WorkerPool",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["apiVersion", "kind", "metadata", "spec"],
+            members: &[
+                ("apiVersion", reference("StackApiVersion")),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("WorkerPool")]),
+                        ..NONE
+                    },
+                ),
+                ("metadata", reference("Metadata")),
+                (
+                    "spec",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["logLevel", "worker"],
+                        members: &[
+                            ("logLevel", reference("LogLevel")),
+                            (
+                                "worker",
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["image", "resources"],
+                                    members: &[
+                                        ("image", reference("Image")),
+                                        ("resources", reference("Resources")),
+                                    ],
+                                    closed: Some(&["image", "resources"]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["logLevel", "worker"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["apiVersion", "kind", "metadata", "spec"]),
+            ..NONE
+        },
+    ),
+    (
+        "WorkloadStatus",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                (
+                    "ledger",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["claims", "capacity"],
+                        members: &[
+                            (
+                                "capacity",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(1.0),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "claims",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(0.0),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["capacity", "claims"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "queue",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["pending", "running"],
+                        members: &[
+                            (
+                                "completed",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(0.0),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "failed",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(0.0),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "pending",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(0.0),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "running",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(0.0),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["completed", "failed", "pending", "running"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["ledger", "queue"]),
             ..NONE
         },
     ),

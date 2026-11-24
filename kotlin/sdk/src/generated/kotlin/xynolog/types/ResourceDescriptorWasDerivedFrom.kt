@@ -25,6 +25,7 @@ public sealed interface ResourceDescriptorWasDerivedFrom {
 internal object ResourceDescriptorWasDerivedFromSerializer : KindsUnionSerializer<ResourceDescriptorWasDerivedFrom>(
     ResourceDescriptorWasDerivedFrom::class,
     strings = { listOf(ResourceDescriptorWasDerivedFrom.ResourceId.serializer()) },
+    scalars = { emptyList() },
     arrays = { listOf(ResourceDescriptorWasDerivedFrom.List.serializer()) },
     objects = { emptyList() },
 )

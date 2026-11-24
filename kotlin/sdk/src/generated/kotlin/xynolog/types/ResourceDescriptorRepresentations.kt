@@ -18,6 +18,7 @@ public sealed interface ResourceDescriptorRepresentations {
 internal object ResourceDescriptorRepresentationsSerializer : KindsUnionSerializer<ResourceDescriptorRepresentations>(
     ResourceDescriptorRepresentations::class,
     strings = { emptyList() },
+    scalars = { emptyList() },
     arrays = { listOf(ResourceDescriptorRepresentations.List.serializer()) },
     objects = { listOf(Representation.serializer()) },
 )

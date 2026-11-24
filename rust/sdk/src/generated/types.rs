@@ -1,5 +1,63 @@
 // Generated from the component schemas in protocol/specs/src; do not edit.
 // Regenerate: make generate (codegen/lib/rust_types/rust_types.ml)
+/// launcher.about's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AboutParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+}
+
+schema!(AboutParams);
+
+/// What the launcher is. A client asks this first, to learn whether it speaks to the launcher it found.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AboutResult {
+    /// The version stamped into the launcher at build. Absent from a development build, which states none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    /// Whether this is a development build: one with no version stamped.
+    pub development: bool,
+    /// The commit it was built from, when stamped.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub commit: Option<String>,
+    /// When it was built, when stamped.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub built: Option<String>,
+    /// Each version of the control API it speaks. A client that speaks none of them stops here.
+    #[serde(rename = "apiVersions")]
+    pub api_versions: Vec<String>,
+    /// The registry its catalog's images come from.
+    #[serde(rename = "imageRegistry")]
+    pub image_registry: String,
+    /// Each container runtime it drives, in the order it prefers them, and whether this machine has it.
+    pub runtimes: Vec<RuntimeState>,
+}
+
+impl AboutResult {
+    /// The `AboutResult` that states these and nothing else.
+    pub fn new(
+        development: bool,
+        api_versions: Vec<String>,
+        image_registry: impl Into<String>,
+        runtimes: Vec<RuntimeState>,
+    ) -> Self {
+        Self {
+            version: None,
+            development,
+            commit: None,
+            built: None,
+            api_versions,
+            image_registry: image_registry.into(),
+            runtimes,
+        }
+    }
+}
+
+schema!(AboutResult);
+
 /// Web Annotation / W3C PROV Agent. Discriminated by @type — Person, Organization, or Software (named member schemas: AgentPerson, AgentOrganization, AgentSoftware). Software peers are first-class participants, not a sub-class of Person.
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
@@ -797,6 +855,26 @@ impl AnnotationType {
     }
 }
 
+/// The group and version of the control API. Every request's params state it; a launcher refuses a version it does not speak with control.unsupported-api-version, and names the ones it does.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ApiVersion {
+    #[serde(rename = "control.xynolog.org/v1alpha1")]
+    ControlXynologOrgV1alpha1,
+}
+
+impl ApiVersion {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ApiVersion::ControlXynologOrgV1alpha1 => "control.xynolog.org/v1alpha1",
+        }
+    }
+}
+
+schema!(ApiVersion);
+
 /// Everything the Archivist reads at boot: nothing in it is defaulted by the Archivist. The launcher writes it for the Archivist it starts, from the knowledge base's stack documents, and the Archivist reads it from the path its `--config` flag names (its image passes `/etc/xynolog/archivist.json`). Started without `--config`, or with a path that names no file, the Archivist refuses to start and says which. No secret is a value here. What the knowledge base says of itself is not here either: its name, its `site.domain` and its `git.sync` are read from the committed `.xynolog/config.yaml` of the tree at `root`. The Archivist's other inputs are the environment variables specs/src/service-environment/variables.json lists for it. A document that does not validate is refused at boot, naming each failing field.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -1126,6 +1204,103 @@ impl AttributedEvent {
 }
 
 schema!(AttributedEvent);
+
+/// auth.login's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthLoginParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<Target>,
+    /// Keep to the local stacks, as --runtime does.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+}
+
+impl AuthLoginParams {
+    /// The `AuthLoginParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion) -> Self {
+        Self {
+            api_version,
+            target: None,
+            runtime: None,
+        }
+    }
+}
+
+schema!(AuthLoginParams);
+
+/// A completed sign-in, kept in the launcher's sign-in store. No token is in it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthLoginResult {
+    /// The stack's key in the sign-in store.
+    pub key: String,
+    /// Who the gateway says is signed in: their email, else their DID.
+    pub who: String,
+    /// The issuer the knowledge base named, where the person signed in.
+    pub issuer: String,
+}
+
+schema!(AuthLoginResult);
+
+/// auth.logout's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthLogoutParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<Target>,
+    /// Keep to the local stacks, as --runtime does.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+}
+
+impl AuthLogoutParams {
+    /// The `AuthLogoutParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion) -> Self {
+        Self {
+            api_version,
+            target: None,
+            runtime: None,
+        }
+    }
+}
+
+schema!(AuthLogoutParams);
+
+/// The launcher's session for a stack, ended. Desktop's own session is not touched.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthLogoutResult {
+    /// The stack's key in the sign-in store. Absent when no stack is recorded.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
+    /// Whether a session was stored. false: nothing was done.
+    #[serde(rename = "wasSignedIn")]
+    pub was_signed_in: bool,
+    /// Whether the issuer revoked the session's refresh token. false with wasSignedIn: the local token is forgotten, and the refresh token stays valid at the issuer until it expires.
+    pub revoked: bool,
+}
+
+impl AuthLogoutResult {
+    /// The `AuthLogoutResult` that states these and nothing else.
+    pub fn new(was_signed_in: bool, revoked: bool) -> Self {
+        Self {
+            key: None,
+            was_signed_in,
+            revoked,
+        }
+    }
+}
+
+schema!(AuthLogoutResult);
 
 /// Emitted to draw attention to a resource: to one of its annotations, or, with no annotation, to the resource as a whole. The resource is always named. A focus on an annotation scrolls a viewer showing that resource to it, and a viewer showing a different resource ignores it — a deliberate ignore rather than a silent no-op. A focus on the resource as a whole brings that resource forward, opened if it is not open, at its top.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -1747,6 +1922,16 @@ impl BrowseExternalNavigateEvent {
 
 schema!(BrowseExternalNavigateEvent);
 
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BrowseFilesResponse {
+    /// The directory path that was listed, relative to project root
+    pub path: String,
+    pub entries: Vec<DirectoryEntry>,
+}
+
+schema!(BrowseFilesResponse);
+
 /// Request for the knowledge base's description of itself
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct BrowseKbRequest {}
@@ -1961,6 +2146,59 @@ pub struct BrowseTagSchemasResult {
 }
 
 schema!(BrowseTagSchemasResult);
+
+/// The shared Browser: one viewer for every knowledge base the machine reaches. It belongs to no knowledge base, so its document is kept in the launcher's state home, in `stack/browser.yaml`, not in a knowledge base's repository.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Browser {
+    #[serde(rename = "apiVersion")]
+    pub api_version: StackApiVersion,
+    pub kind: BrowserKind,
+    pub metadata: Metadata,
+    /// How the Browser runs.
+    pub spec: BrowserSpec,
+}
+
+impl Browser {
+    /// The `Browser` that states these and nothing else.
+    pub fn new(api_version: StackApiVersion, metadata: Metadata, spec: BrowserSpec) -> Self {
+        Self {
+            api_version,
+            kind: BrowserKind::Browser,
+            metadata,
+            spec,
+        }
+    }
+}
+
+schema!(Browser);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum BrowserKind {
+    #[serde(rename = "Browser")]
+    Browser,
+}
+
+impl BrowserKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            BrowserKind::Browser => "Browser",
+        }
+    }
+}
+
+/// How the Browser runs.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BrowserSpec {
+    pub image: Image,
+    pub resources: Resources,
+    /// The port the Browser is published on, on this machine's loopback: where a person opens it, and the origin the issuer's realm allows its sign-in from.
+    pub port: u16,
+}
 
 /// Result of publishing one event. `subscribers` is the number of observers attached to the target subject at dispatch — the GLOBAL subject for an unscoped emit, the scoped one when `scope` is set. Zero means the signal reached nobody: /bus/subscribe enforces no channel allowlist and the emit handler publishes unconditionally, so a client can emit a channel no participant subscribes to and otherwise receive a clean 202 with no way to tell. Deliberately NOT named `delivered`: this is the count at dispatch, and a subscriber may still drop the frame downstream, so the field is named after what the server can actually observe.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -2231,6 +2469,29 @@ impl BusSubscribeRequestScopedItem {
     }
 }
 
+/// The client gives up on one of its requests. The launcher answers that request with control.cancelled, unless it has answered it already; a cancellation of a request it does not know is ignored.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Cancelled {
+    #[serde(rename = "requestId")]
+    pub request_id: RequestId,
+    /// Why, for the launcher's diagnostics.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+impl Cancelled {
+    /// The `Cancelled` that states these and nothing else.
+    pub fn new(request_id: RequestId) -> Self {
+        Self {
+            request_id,
+            reason: None,
+        }
+    }
+}
+
+schema!(Cancelled);
+
 /// What a worker's claiming of jobs is told: the jobs it takes, and how long it waits for what it waits on. A wait left out is client/timing.json's of the same name.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -2269,6 +2530,48 @@ impl ClaimOptions {
 }
 
 schema!(ClaimOptions);
+
+/// The form a service account that holds a client secret posts to its issuer's token endpoint for a client-credentials grant: its client id and secret in the body (RFC 6749 §2.3.1). An account that holds a key proves itself by the client assertion of client-assertion-cases.json instead.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct ClientSecretForm {
+    /// The grant, client-assertion-cases.json's grantType.
+    pub grant_type: ClientSecretFormGrantType,
+    /// The account's client id.
+    pub client_id: String,
+    /// The account's client secret.
+    pub client_secret: String,
+}
+
+impl ClientSecretForm {
+    /// The `ClientSecretForm` that states these and nothing else.
+    pub fn new(client_id: impl Into<String>, client_secret: impl Into<String>) -> Self {
+        Self {
+            grant_type: ClientSecretFormGrantType::ClientCredentials,
+            client_id: client_id.into(),
+            client_secret: client_secret.into(),
+        }
+    }
+}
+
+schema!(ClientSecretForm);
+
+/// The grant, client-assertion-cases.json's grantType.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientSecretFormGrantType {
+    #[serde(rename = "client_credentials")]
+    ClientCredentials,
+}
+
+impl ClientSecretFormGrantType {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientSecretFormGrantType::ClientCredentials => "client_credentials",
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct CloneResourceWithTokenResponse {
@@ -2420,6 +2723,1146 @@ impl CommentingJobParamsTone {
             CommentingJobParamsTone::Explanatory => "explanatory",
             CommentingJobParamsTone::Conversational => "conversational",
             CommentingJobParamsTone::Technical => "technical",
+        }
+    }
+}
+
+/// A request on the bus a live case expects the client to make, on this channel; `as` names its correlation id, for the backend to answer.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceBusFetch {
+    /// The request's channel, a request of specs/src/bus/registry.json.
+    pub fetch: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payload: Option<serde_json::Value>,
+    /// The request's correlation id, for the backend's answer.
+    pub r#as: String,
+}
+
+impl ConformanceBusFetch {
+    /// The `ConformanceBusFetch` that states these and nothing else.
+    pub fn new(fetch: impl Into<String>, r#as: impl Into<String>) -> Self {
+        Self {
+            fetch: fetch.into(),
+            payload: None,
+            r#as: r#as.into(),
+        }
+    }
+}
+
+schema!(ConformanceBusFetch);
+
+/// One case of the conformance corpus: a scenario every SDK's driver is put through, a JSON file of conformance/sdk/wire, conformance/sdk/live or conformance/worker/cases named by the case. What the client is asked to do, what the backend does around it, and the transcript a conforming client produces. conformance/sdk/README.md explains each step; the reader reads every file of the corpus through this schema.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceCase {
+    /// What the case holds a client to, in a sentence.
+    pub about: String,
+    /// Where the protocol or the spec states it.
+    pub source: String,
+    /// The signal planes the case runs on. Absent, it runs on both.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub planes: Option<Vec<ConformanceCasePlanesItem>>,
+    /// A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tier: Option<ConformanceCaseTier>,
+    /// Run the client exporting to an OTLP receiver, and once it has exited hold what it exported to specs/src/sdk-telemetry/telemetry.json. A worker case also holds the worker to a trace of its own for each job it ran (conformance/worker/README.md).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub telemetry: Option<bool>,
+    /// The steps, run in order.
+    pub steps: Vec<ConformanceStep>,
+}
+
+impl ConformanceCase {
+    /// The `ConformanceCase` that states these and nothing else.
+    pub fn new(
+        about: impl Into<String>,
+        source: impl Into<String>,
+        steps: Vec<ConformanceStep>,
+    ) -> Self {
+        Self {
+            about: about.into(),
+            source: source.into(),
+            planes: None,
+            tier: None,
+            telemetry: None,
+            steps,
+        }
+    }
+}
+
+schema!(ConformanceCase);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceCasePlanesItem {
+    #[serde(rename = "in-process")]
+    InProcess,
+    #[serde(rename = "nats")]
+    Nats,
+}
+
+impl ConformanceCasePlanesItem {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceCasePlanesItem::InProcess => "in-process",
+            ConformanceCasePlanesItem::Nats => "nats",
+        }
+    }
+}
+
+/// A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceCaseTier {
+    #[serde(rename = "fleet")]
+    Fleet,
+    #[serde(rename = "parity")]
+    Parity,
+}
+
+impl ConformanceCaseTier {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceCaseTier::Fleet => "fleet",
+            ConformanceCaseTier::Parity => "parity",
+        }
+    }
+}
+
+/// A line a conformance driver writes on its standard output, one JSON object each (conformance/sdk/README.md, "The driver protocol"; conformance/worker/README.md, "The worker driver"): that it is ready, an operation's outcome, or what its client observed as it happened. The suite refuses any other line.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum ConformanceDriverLine {
+    Ready(ConformanceDriverLineReady),
+    Ok(ConformanceDriverLineOk),
+    Failed(ConformanceDriverLineFailed),
+    Abandoned(ConformanceDriverLineAbandoned),
+    Unsupported(ConformanceDriverLineUnsupported),
+    Misuse(ConformanceDriverLineMisuse),
+    State(ConformanceDriverLineState),
+    Frame(ConformanceDriverLineFrame),
+    ErrorStream(ConformanceDriverLineErrorStream),
+    Progress(ConformanceDriverLineProgress),
+    Emission(ConformanceDriverLineEmission),
+    Completed(ConformanceDriverLineCompleted),
+    Claimed(ConformanceDriverLineClaimed),
+    Refused(ConformanceDriverLineRefused),
+    Signalled(ConformanceDriverLineSignalled),
+    Stalled(ConformanceDriverLineStalled),
+}
+
+schema!(ConformanceDriverLine);
+
+/// The suite abandoned the operation, and the SDK reported nothing else.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineAbandoned {
+    /// The operation's id.
+    pub id: u64,
+    /// It was abandoned.
+    pub abandoned: bool,
+}
+
+/// A worker driver: its worker claimed a job.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineClaimed {
+    /// The job, as the worker read the record.
+    pub claimed: std::collections::BTreeMap<String, serde_json::Value>,
+}
+
+/// The live driver: the observer's live query completed.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineCompleted {
+    /// The observer.
+    pub completed: String,
+}
+
+/// The live driver: an observer was given a state.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineEmission {
+    /// The emission.
+    pub emission: ConformanceDriverLineEmissionEmission,
+}
+
+/// The emission.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineEmissionEmission {
+    /// The observer.
+    pub observer: String,
+    /// The state.
+    pub state: ConformanceDriverLineEmissionEmissionState,
+}
+
+/// The state.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum ConformanceDriverLineEmissionEmissionState {
+    Pending(ConformanceDriverLineEmissionEmissionStatePending),
+    Ready(ConformanceDriverLineEmissionEmissionStateReady),
+    Failed(ConformanceDriverLineEmissionEmissionStateFailed),
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineEmissionEmissionStateFailed {
+    /// The query failed.
+    pub status: ConformanceDriverLineEmissionEmissionStateFailedStatus,
+    /// The failure.
+    pub error: ConformanceFailure,
+}
+
+impl ConformanceDriverLineEmissionEmissionStateFailed {
+    /// The `ConformanceDriverLineEmissionEmissionStateFailed` that states these and nothing else.
+    pub fn new(error: ConformanceFailure) -> Self {
+        Self {
+            status: ConformanceDriverLineEmissionEmissionStateFailedStatus::Failed,
+            error,
+        }
+    }
+}
+
+/// The query failed.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceDriverLineEmissionEmissionStateFailedStatus {
+    #[serde(rename = "failed")]
+    Failed,
+}
+
+impl ConformanceDriverLineEmissionEmissionStateFailedStatus {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceDriverLineEmissionEmissionStateFailedStatus::Failed => "failed",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineEmissionEmissionStatePending {
+    /// Nothing to show yet.
+    pub status: ConformanceDriverLineEmissionEmissionStatePendingStatus,
+}
+
+impl Default for ConformanceDriverLineEmissionEmissionStatePending {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ConformanceDriverLineEmissionEmissionStatePending {
+    /// The `ConformanceDriverLineEmissionEmissionStatePending` that states what it must and nothing else.
+    pub fn new() -> Self {
+        Self {
+            status: ConformanceDriverLineEmissionEmissionStatePendingStatus::Pending,
+        }
+    }
+}
+
+/// Nothing to show yet.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceDriverLineEmissionEmissionStatePendingStatus {
+    #[serde(rename = "pending")]
+    Pending,
+}
+
+impl ConformanceDriverLineEmissionEmissionStatePendingStatus {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceDriverLineEmissionEmissionStatePendingStatus::Pending => "pending",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineEmissionEmissionStateReady {
+    /// A value to show.
+    pub status: ConformanceDriverLineEmissionEmissionStateReadyStatus,
+    pub value: serde_json::Value,
+}
+
+impl ConformanceDriverLineEmissionEmissionStateReady {
+    /// The `ConformanceDriverLineEmissionEmissionStateReady` that states these and nothing else.
+    pub fn new(value: serde_json::Value) -> Self {
+        Self {
+            status: ConformanceDriverLineEmissionEmissionStateReadyStatus::Ready,
+            value,
+        }
+    }
+}
+
+/// A value to show.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceDriverLineEmissionEmissionStateReadyStatus {
+    #[serde(rename = "ready")]
+    Ready,
+}
+
+impl ConformanceDriverLineEmissionEmissionStateReadyStatus {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceDriverLineEmissionEmissionStateReadyStatus::Ready => "ready",
+        }
+    }
+}
+
+/// The error stream carried a failure.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineErrorStream {
+    /// The failure.
+    pub error: ConformanceFailure,
+}
+
+/// The SDK failed the operation.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineFailed {
+    /// The operation's id.
+    pub id: u64,
+    /// The failure.
+    pub error: ConformanceFailure,
+}
+
+/// A frame was delivered on a channel the driver listens to.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineFrame {
+    /// The frame.
+    pub frame: ConformanceDriverLineFrameFrame,
+}
+
+/// The frame.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineFrameFrame {
+    /// The channel.
+    pub channel: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payload: Option<serde_json::Value>,
+    /// The frame's correlation id, when it has one.
+    #[serde(rename = "correlationId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub correlation_id: Option<String>,
+    /// The frame's scope, when it has one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scope: Option<ResourceId>,
+}
+
+impl ConformanceDriverLineFrameFrame {
+    /// The `ConformanceDriverLineFrameFrame` that states these and nothing else.
+    pub fn new(channel: impl Into<String>) -> Self {
+        Self {
+            channel: channel.into(),
+            payload: None,
+            correlation_id: None,
+            scope: None,
+        }
+    }
+}
+
+/// The suite's arguments made no sense: the suite's mistake, never the SDK's.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineMisuse {
+    /// The operation's id.
+    pub id: u64,
+    /// What made no sense.
+    pub misuse: String,
+}
+
+/// The operation succeeded.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineOk {
+    /// The operation's id.
+    pub id: u64,
+    pub ok: serde_json::Value,
+}
+
+/// An upload reported how much of it has been sent.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineProgress {
+    /// The report.
+    pub progress: ConformanceDriverLineProgressProgress,
+}
+
+/// The report.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineProgressProgress {
+    /// The `upload` operation's id.
+    pub upload: u64,
+    /// How many bytes it has sent.
+    #[serde(rename = "bytesUploaded")]
+    pub bytes_uploaded: u64,
+    /// How many it will send.
+    #[serde(rename = "totalBytes")]
+    pub total_bytes: u64,
+}
+
+/// The driver can take operations.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineReady {
+    /// Written once.
+    pub ready: bool,
+}
+
+/// A worker driver: a claim was refused.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineRefused {
+    /// The refusal: with a code when the bus refused it, with none when the worker did.
+    pub refused: ConformanceFailure,
+}
+
+/// A worker driver: a held job's cancellation was signalled.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineSignalled {
+    /// The job's id.
+    pub signalled: String,
+}
+
+/// A worker driver: a held job stalled.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineStalled {
+    /// The job's id.
+    pub stalled: String,
+}
+
+/// The transport's connection state changed.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineState {
+    /// The state it is in now: one a case's `state` step names (ConformanceStep.json), or another the case never waits for.
+    pub state: String,
+}
+
+/// The driver has no such operation. It says so at once, before it reads its next operation.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceDriverLineUnsupported {
+    /// The operation's id.
+    pub id: u64,
+    /// It has none.
+    pub unsupported: bool,
+}
+
+/// A failure as an SDK reports it to the suite (conformance/sdk/README.md, "The driver protocol"): its code, the status when a server stated one, and a job failure's class when it has one; and the SDK's own words for it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceFailure {
+    /// The SDK's code for it, from specs/src/errors/codes.json.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    /// The HTTP status, when a server stated one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<i64>,
+    /// A job failure's class, when it has one.
+    #[serde(rename = "failureClass")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure_class: Option<FailureClass>,
+    /// The SDK's words, for a person; nothing compares it.
+    pub detail: String,
+}
+
+impl ConformanceFailure {
+    /// The `ConformanceFailure` that states these and nothing else.
+    pub fn new(detail: impl Into<String>) -> Self {
+        Self {
+            code: None,
+            status: None,
+            failure_class: None,
+            detail: detail.into(),
+        }
+    }
+}
+
+schema!(ConformanceFailure);
+
+/// A read over HTTP a live case expects the client to make: an operation of the gateway's API by its method and path, with the values its path carries. The stand-in Archivist answers it from what the case seeded.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceHttpFetch {
+    /// The operation, by its method and path.
+    pub fetch: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub params: Option<serde_json::Value>,
+}
+
+impl ConformanceHttpFetch {
+    /// The `ConformanceHttpFetch` that states these and nothing else.
+    pub fn new(fetch: impl Into<String>) -> Self {
+        Self {
+            fetch: fetch.into(),
+            params: None,
+        }
+    }
+}
+
+schema!(ConformanceHttpFetch);
+
+/// The implementations manifest: the file a run of the conformance harness is given with --implementations, naming what the run holds to Protocol. Every service is run by the xynolog launcher, from the image the knowledge base's stack documents name (contract/LAUNCHER-CONTROL.md, service.run): an implementation is a knowledge base whose documents name its images, and another implementation is another manifest. Each SDK's drivers are programs the harness starts itself, since none is a service. There is no default manifest. The reader reads this schema in the table dialect and derives its model (Tables.Conformance_implementations), for the harness to decode a manifest by.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceImplementations {
+    /// How the launcher's control API is served: the xynolog command, run with control. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written.
+    pub launcher: Vec<String>,
+    /// The knowledge base whose stack documents name each service's image, and whose stack runs the record and index the suites need. A relative root is resolved against the manifest's own directory.
+    pub target: LocalTarget,
+    /// Each SDK's drivers, by the SDK's name: the programs the SDK and worker suites talk to in its place (conformance/sdk/README.md, "The driver protocol").
+    pub sdks: std::collections::BTreeMap<String, ConformanceImplementationsSdksValue>,
+    /// The model catalogue the implementation supplies, by its path; a relative one is resolved against the manifest's own directory. The Librarian's and the worker service's documents name one, so a run of either suite without it refuses to start.
+    #[serde(rename = "modelCatalogue")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model_catalogue: Option<String>,
+}
+
+impl ConformanceImplementations {
+    /// The `ConformanceImplementations` that states these and nothing else.
+    pub fn new(
+        launcher: Vec<String>,
+        target: LocalTarget,
+        sdks: std::collections::BTreeMap<String, ConformanceImplementationsSdksValue>,
+    ) -> Self {
+        Self {
+            launcher,
+            target,
+            sdks,
+            model_catalogue: None,
+        }
+    }
+}
+
+schema!(ConformanceImplementations);
+
+/// One SDK's drivers.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceImplementationsSdksValue {
+    /// How its wire driver is started. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wire: Option<Vec<String>>,
+    /// How its live driver is started, and the tier of the live corpus the SDK is held to.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub live: Option<ConformanceImplementationsSdksValueLive>,
+    /// How its worker driver is started, when the SDK has a worker's surface (conformance/worker/README.md). A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub worker: Option<Vec<String>>,
+    /// The wire cases its driver cannot be put through, by the case's name, each with why. The suite holds an exemption as it holds a case: the driver must answer unsupported to what the case asks, or the exemption is stale.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exempt: Option<std::collections::BTreeMap<String, String>>,
+}
+
+/// How its live driver is started, and the tier of the live corpus the SDK is held to.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceImplementationsSdksValueLive {
+    /// How its live driver is started. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written.
+    pub command: Vec<String>,
+    /// A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does.
+    pub tier: ConformanceImplementationsSdksValueLiveTier,
+}
+
+/// A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceImplementationsSdksValueLiveTier {
+    #[serde(rename = "fleet")]
+    Fleet,
+    #[serde(rename = "parity")]
+    Parity,
+}
+
+impl ConformanceImplementationsSdksValueLiveTier {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceImplementationsSdksValueLiveTier::Fleet => "fleet",
+            ConformanceImplementationsSdksValueLiveTier::Parity => "parity",
+        }
+    }
+}
+
+/// One step of a case of the conformance corpus (ConformanceCase.json): each is told apart by the member only it requires. conformance/sdk/README.md, "A case", says what each does.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum ConformanceStep {
+    Let(ConformanceStepLet),
+    Driver(ConformanceStepDriver),
+    Abandon(ConformanceStepAbandon),
+    Settles(ConformanceStepSettles),
+    Wire(ConformanceStepWire),
+    Carried(ConformanceStepCarried),
+    Closed(ConformanceStepClosed),
+    Progress(ConformanceStepProgress),
+    State(ConformanceStepState),
+    Stays(ConformanceStepStays),
+    Frame(ConformanceStepFrame),
+    Frames(ConformanceStepFrames),
+    Error(ConformanceStepError),
+    Backend(ConformanceStepBackend),
+    Quiet(ConformanceStepQuiet),
+    Observe(ConformanceStepObserve),
+    Leave(ConformanceStepLeave),
+    Reaches(ConformanceStepReaches),
+    Holds(ConformanceStepHolds),
+    Completes(ConformanceStepCompletes),
+    BusFetch(ConformanceBusFetch),
+    HttpFetch(ConformanceHttpFetch),
+    Fetches(ConformanceStepFetches),
+    Scopes(ConformanceStepScopes),
+    Claimed(ConformanceStepClaimed),
+    Refused(ConformanceStepRefused),
+    Signalled(ConformanceStepSignalled),
+    Stalled(ConformanceStepStalled),
+}
+
+member!(ConformanceStep::BusFetch(ConformanceBusFetch));
+member!(ConformanceStep::HttpFetch(ConformanceHttpFetch));
+schema!(ConformanceStep);
+
+/// Abandon an operation started with `as`, as its caller would.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepAbandon {
+    /// The operation.
+    pub abandon: String,
+}
+
+/// The backend does something (conformance/sdk/README.md, "Backend directives").
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepBackend {
+    /// The directive.
+    pub backend: ConformanceStepBackendBackend,
+    /// The directive's arguments.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub with: Option<std::collections::BTreeMap<String, serde_json::Value>>,
+}
+
+impl ConformanceStepBackend {
+    /// The `ConformanceStepBackend` that states these and nothing else.
+    pub fn new(backend: ConformanceStepBackendBackend) -> Self {
+        Self {
+            backend,
+            with: None,
+        }
+    }
+}
+
+/// The directive.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceStepBackendBackend {
+    #[serde(rename = "listen")]
+    Listen,
+    #[serde(rename = "emit")]
+    Emit,
+    #[serde(rename = "record")]
+    Record,
+    #[serde(rename = "content")]
+    Content,
+    #[serde(rename = "description")]
+    Description,
+    #[serde(rename = "annotations")]
+    Annotations,
+    #[serde(rename = "anchored-text")]
+    AnchoredText,
+    #[serde(rename = "uploaded")]
+    Uploaded,
+    #[serde(rename = "refuse")]
+    Refuse,
+    #[serde(rename = "unanswered")]
+    Unanswered,
+    #[serde(rename = "answer-lost")]
+    AnswerLost,
+    #[serde(rename = "hold")]
+    Hold,
+    #[serde(rename = "release")]
+    Release,
+    #[serde(rename = "rechunk")]
+    Rechunk,
+    #[serde(rename = "carry")]
+    Carry,
+    #[serde(rename = "cut")]
+    Cut,
+    #[serde(rename = "down")]
+    Down,
+    #[serde(rename = "up")]
+    Up,
+    #[serde(rename = "archivist")]
+    Archivist,
+}
+
+impl ConformanceStepBackendBackend {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceStepBackendBackend::Listen => "listen",
+            ConformanceStepBackendBackend::Emit => "emit",
+            ConformanceStepBackendBackend::Record => "record",
+            ConformanceStepBackendBackend::Content => "content",
+            ConformanceStepBackendBackend::Description => "description",
+            ConformanceStepBackendBackend::Annotations => "annotations",
+            ConformanceStepBackendBackend::AnchoredText => "anchored-text",
+            ConformanceStepBackendBackend::Uploaded => "uploaded",
+            ConformanceStepBackendBackend::Refuse => "refuse",
+            ConformanceStepBackendBackend::Unanswered => "unanswered",
+            ConformanceStepBackendBackend::AnswerLost => "answer-lost",
+            ConformanceStepBackendBackend::Hold => "hold",
+            ConformanceStepBackendBackend::Release => "release",
+            ConformanceStepBackendBackend::Rechunk => "rechunk",
+            ConformanceStepBackendBackend::Carry => "carry",
+            ConformanceStepBackendBackend::Cut => "cut",
+            ConformanceStepBackendBackend::Down => "down",
+            ConformanceStepBackendBackend::Up => "up",
+            ConformanceStepBackendBackend::Archivist => "archivist",
+        }
+    }
+}
+
+/// The stream a wire step named has carried this frame to the client.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepCarried {
+    /// The stream.
+    pub carried: String,
+    pub is: serde_json::Value,
+}
+
+/// A worker case: the next job the worker reports as claimed, as it read the record.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepClaimed {
+    pub claimed: serde_json::Value,
+}
+
+/// The request a `wire` step named has ended with no answer reaching the client: the client closed it, or the proxy kept the gateway's answer from it (`answer-lost`).
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepClosed {
+    /// The request.
+    pub closed: String,
+}
+
+/// Live: the observer's live query completes.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepCompletes {
+    /// The observer.
+    pub completes: String,
+}
+
+/// Ask the driver for an operation. It must succeed, with `returns` when given, or fail with `fails`. With `as`, the step does not wait: a later `settles` step does.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepDriver {
+    /// The operation (conformance/sdk/README.md, "Operations").
+    pub driver: String,
+    /// The operation's arguments.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub with: Option<std::collections::BTreeMap<String, serde_json::Value>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub returns: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fails: Option<serde_json::Value>,
+    /// The operation's name, for the `settles` or `abandon` step that ends it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub r#as: Option<String>,
+}
+
+impl ConformanceStepDriver {
+    /// The `ConformanceStepDriver` that states these and nothing else.
+    pub fn new(driver: impl Into<String>) -> Self {
+        Self {
+            driver: driver.into(),
+            with: None,
+            returns: None,
+            fails: None,
+            r#as: None,
+        }
+    }
+}
+
+/// The next failure on the client's error stream is this one.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepError {
+    pub error: serde_json::Value,
+}
+
+/// Live: the next requests the client makes of a service are these, in whatever order it makes them.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepFetches {
+    /// The requests.
+    pub fetches: Vec<ConformanceStepFetchesFetchesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum ConformanceStepFetchesFetchesItem {
+    BusFetch(ConformanceBusFetch),
+    HttpFetch(ConformanceHttpFetch),
+}
+
+member!(ConformanceStepFetchesFetchesItem::BusFetch(
+    ConformanceBusFetch,
+));
+member!(ConformanceStepFetchesFetchesItem::HttpFetch(
+    ConformanceHttpFetch,
+));
+
+/// The next frame the client delivers on this channel is this one.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepFrame {
+    /// The channel.
+    pub frame: String,
+    pub is: serde_json::Value,
+}
+
+/// The client delivers this many more frames on this channel. What they are is held, as every frame is, to what the gateway sent.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepFrames {
+    /// The channel.
+    pub frames: String,
+    /// How many more.
+    pub count: u64,
+}
+
+/// Live: the state the observer holds now is this one.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepHolds {
+    /// The observer.
+    pub holds: String,
+    pub state: serde_json::Value,
+}
+
+/// Live: the observer stops observing.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepLeave {
+    /// The observer.
+    pub leave: String,
+}
+
+/// Name values for later steps.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepLet {
+    /// Each name, and the value it takes.
+    pub r#let: std::collections::BTreeMap<String, serde_json::Value>,
+}
+
+/// Live: an observer, named by `as`, begins observing a live query.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepObserve {
+    /// The live query.
+    pub observe: ConformanceStepObserveObserve,
+    /// The observer.
+    pub r#as: String,
+}
+
+/// The live query.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepObserveObserve {
+    /// The live query, by its name in specs/src/client/refresh.json.
+    pub query: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub annotation: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub search: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filters: Option<serde_json::Value>,
+}
+
+impl ConformanceStepObserveObserve {
+    /// The `ConformanceStepObserveObserve` that states these and nothing else.
+    pub fn new(query: impl Into<String>) -> Self {
+        Self {
+            query: query.into(),
+            resource: None,
+            annotation: None,
+            search: None,
+            filters: None,
+        }
+    }
+}
+
+/// An upload started with `as`, and not yet settled, has reported all of it sent: every report states the same total, none states less than the one before, and the last states the total.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepProgress {
+    /// The upload.
+    pub progress: String,
+}
+
+/// The client puts nothing more on the wire for this many milliseconds.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepQuiet {
+    /// How long, in milliseconds.
+    pub quiet: u64,
+}
+
+/// Live: the observer comes to hold this state.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepReaches {
+    /// The observer.
+    pub reaches: String,
+    pub state: serde_json::Value,
+}
+
+/// A worker case: the next refusal of a claim the worker reports.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepRefused {
+    pub refused: serde_json::Value,
+}
+
+/// Live: the client's stream comes to name exactly these scopes.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepScopes {
+    /// The scopes.
+    pub scopes: Vec<serde_json::Value>,
+}
+
+/// An operation started with `as` settles: it succeeded, with `returns` when given; or failed with `fails`; or, `abandoned`, it ended because the case abandoned it and reported nothing.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepSettles {
+    /// The operation.
+    pub settles: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub returns: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fails: Option<serde_json::Value>,
+    /// It ended because the case abandoned it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub abandoned: Option<bool>,
+}
+
+impl ConformanceStepSettles {
+    /// The `ConformanceStepSettles` that states these and nothing else.
+    pub fn new(settles: impl Into<String>) -> Self {
+        Self {
+            settles: settles.into(),
+            returns: None,
+            fails: None,
+            abandoned: None,
+        }
+    }
+}
+
+/// A worker case: the next held job whose cancellation the worker says was signalled.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepSignalled {
+    pub signalled: serde_json::Value,
+}
+
+/// A worker case: the next held job the worker says has stalled.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepStalled {
+    pub stalled: serde_json::Value,
+}
+
+/// The transport comes to report this state.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepState {
+    /// The state.
+    pub state: ConformanceStepStateState,
+}
+
+/// The state.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceStepStateState {
+    #[serde(rename = "initial")]
+    Initial,
+    #[serde(rename = "connecting")]
+    Connecting,
+    #[serde(rename = "open")]
+    Open,
+    #[serde(rename = "reconnecting")]
+    Reconnecting,
+    #[serde(rename = "degraded")]
+    Degraded,
+    #[serde(rename = "unauthenticated")]
+    Unauthenticated,
+    #[serde(rename = "closed")]
+    Closed,
+}
+
+impl ConformanceStepStateState {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceStepStateState::Initial => "initial",
+            ConformanceStepStateState::Connecting => "connecting",
+            ConformanceStepStateState::Open => "open",
+            ConformanceStepStateState::Reconnecting => "reconnecting",
+            ConformanceStepStateState::Degraded => "degraded",
+            ConformanceStepStateState::Unauthenticated => "unauthenticated",
+            ConformanceStepStateState::Closed => "closed",
+        }
+    }
+}
+
+/// The transport is in this state and has reported no other since the case last read its state.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepStays {
+    /// The state.
+    pub stays: ConformanceStepStaysStays,
+}
+
+/// The state.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceStepStaysStays {
+    #[serde(rename = "initial")]
+    Initial,
+    #[serde(rename = "connecting")]
+    Connecting,
+    #[serde(rename = "open")]
+    Open,
+    #[serde(rename = "reconnecting")]
+    Reconnecting,
+    #[serde(rename = "degraded")]
+    Degraded,
+    #[serde(rename = "unauthenticated")]
+    Unauthenticated,
+    #[serde(rename = "closed")]
+    Closed,
+}
+
+impl ConformanceStepStaysStays {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceStepStaysStays::Initial => "initial",
+            ConformanceStepStaysStays::Connecting => "connecting",
+            ConformanceStepStaysStays::Open => "open",
+            ConformanceStepStaysStays::Reconnecting => "reconnecting",
+            ConformanceStepStaysStays::Degraded => "degraded",
+            ConformanceStepStaysStays::Unauthenticated => "unauthenticated",
+            ConformanceStepStaysStays::Closed => "closed",
+        }
+    }
+}
+
+/// The next request the client put on the wire is this operation, with each field given.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConformanceStepWire {
+    /// The operation of the gateway's API, by its method and path.
+    pub wire: String,
+    /// When it is read: on arrival, once answered (the default), or once its stream has caught up.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub at: Option<ConformanceStepWireAt>,
+    /// The status it was answered with.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<i64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub params: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token: Option<serde_json::Value>,
+    /// The request's headers named here, each as a pattern; headers not named are not compared.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub headers: Option<std::collections::BTreeMap<String, serde_json::Value>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub answer: Option<serde_json::Value>,
+    /// The request's name, for a later step.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub r#as: Option<String>,
+    /// A request named earlier, which was answered before this one arrived.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub follows: Option<String>,
+    /// A request named earlier, answered with a Retry-After, which this one waited out.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub waited: Option<String>,
+}
+
+impl ConformanceStepWire {
+    /// The `ConformanceStepWire` that states these and nothing else.
+    pub fn new(wire: impl Into<String>) -> Self {
+        Self {
+            wire: wire.into(),
+            at: None,
+            status: None,
+            params: None,
+            body: None,
+            token: None,
+            headers: None,
+            answer: None,
+            r#as: None,
+            follows: None,
+            waited: None,
+        }
+    }
+}
+
+/// When it is read: on arrival, once answered (the default), or once its stream has caught up.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConformanceStepWireAt {
+    #[serde(rename = "arrival")]
+    Arrival,
+    #[serde(rename = "answer")]
+    Answer,
+    #[serde(rename = "live")]
+    Live,
+}
+
+impl ConformanceStepWireAt {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConformanceStepWireAt::Arrival => "arrival",
+            ConformanceStepWireAt::Answer => "answer",
+            ConformanceStepWireAt::Live => "live",
         }
     }
 }
@@ -3092,6 +4535,59 @@ pub struct EntityTypeAddedPayload {
 
 schema!(EntityTypeAddedPayload);
 
+/// The knowledge base's entity-type vocabulary: the file `projections/__system__/entitytypes.json` under the state directory, the sum of the `frame:entity-type-added` events. Written as JSON indented by two spaces.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EntityTypesProjection {
+    /// Every entity type added, each once, sorted.
+    #[serde(rename = "entityTypes")]
+    pub entity_types: Vec<String>,
+}
+
+schema!(EntityTypesProjection);
+
+/// `e-<publishId>` — the id of any other frame, given once when the frame is published: the same on every connection that carries it, through every replica, so a copy arriving on two connections (a reconnect overlap) dedups. Never a resumption watermark.
+pub type EphemeralEventId = String;
+
+/// The data of a control error: the launcher's code for the failure, one of specs/src/errors/codes.json's control group, and what a client can act on. A request's failure is never only a message.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorData {
+    /// Why the request failed: a code of the control group of specs/src/errors/codes.json.
+    pub code: String,
+    /// Whether the same request can succeed sent again unchanged, once something outside it changes: a start finishes, a runtime is installed, a stack comes up.
+    pub retryable: bool,
+    /// For params the contract refuses: each fault, where it is.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fields: Option<Vec<FieldFault>>,
+    /// For control.target-required and control.target-ambiguous: each target the request could have meant, to send again with one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub choices: Option<Vec<Target>>,
+    /// For control.unsupported-api-version: each version this launcher speaks.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supported: Option<Vec<String>>,
+    /// For a cancelled stack.start: whether services the start launched may still be running. The launcher stops waiting, and stops nothing.
+    #[serde(rename = "mayStillRun")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub may_still_run: Option<bool>,
+}
+
+impl ErrorData {
+    /// The `ErrorData` that states these and nothing else.
+    pub fn new(code: impl Into<String>, retryable: bool) -> Self {
+        Self {
+            code: code.into(),
+            retryable,
+            fields: None,
+            choices: None,
+            supported: None,
+            may_still_run: None,
+        }
+    }
+}
+
+schema!(ErrorData);
+
 /// The body of every error the gateway answers, whatever the status and whatever the route — including a path it does not serve.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct ErrorResponse {
@@ -3314,6 +4810,38 @@ impl ExtractionMethod {
 
 schema!(ExtractionMethod);
 
+/// The full outcome of text extraction for one representation — the record the anchored-text store holds and the wire serves. Discriminated on `kind`: 'extracted' — the anchored text with its provenance; 'declined' — a named decline. ocrConfidence is extraction quality for operators, deliberately not anchor confidence.
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[serde(untagged)]
+pub enum ExtractionOutcome {
+    ExtractedText(ExtractedText),
+    ExtractionDeclined(ExtractionDeclined),
+}
+
+impl<'de> serde::Deserialize<'de> for ExtractionOutcome {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
+        let member = match value.get("kind").and_then(serde_json::Value::as_str) {
+            Some("extracted") => {
+                serde_json::from_value(value).map(ExtractionOutcome::ExtractedText)
+            }
+            Some("declined") => {
+                serde_json::from_value(value).map(ExtractionOutcome::ExtractionDeclined)
+            }
+            _ => {
+                return Err(serde::de::Error::custom(
+                    "a ExtractionOutcome states a `kind` that is one of `extracted`, `declined`",
+                ));
+            }
+        };
+        member.map_err(serde::de::Error::custom)
+    }
+}
+
+member!(ExtractionOutcome::ExtractedText(ExtractedText));
+member!(ExtractionOutcome::ExtractionDeclined(ExtractionDeclined));
+schema!(ExtractionOutcome);
+
 /// The class of a job's failure, stated by the worker, where the failure is still typed: at the gateway it is already text, and classing a failure by its text is what this exists to avoid. A job no worker concluded, because its worker stopped reporting, is classed by the dispatcher, as 'transient'. Each value is a claim. 'transient': nothing about the request was judged (the worker's own bound ran out, the provider said not now), so another attempt may succeed. 'deterministic': the same request cannot succeed on a second attempt. 'withheld': the model's provider had the request and withheld its answer, by a refusal or a content filter, and the same request is withheld again; nothing broke. A 'deterministic' or a 'withheld' failure is not retried, whatever retry budget is left. ABSENT means the failure was not classified, which is not the claim 'transient' makes; it is retried as a transient one is. Only a failure known to be deterministic or withheld is called so: calling a transient failure either one halves reliability, where the reverse costs one wasted attempt.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -3339,6 +4867,18 @@ impl FailureClass {
 }
 
 schema!(FailureClass);
+
+/// One fault in a request's params, named where it is.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FieldFault {
+    /// Where in the params the fault is, as a JSON pointer (RFC 6901); empty for the params as a whole.
+    pub field: String,
+    /// What is wrong there.
+    pub message: String,
+}
+
+schema!(FieldFault);
 
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -3410,6 +4950,50 @@ impl FileEntryType {
     pub const fn as_str(&self) -> &'static str {
         match self {
             FileEntryType::File => "file",
+        }
+    }
+}
+
+/// How far a follower of the record has followed it, as every follower says it at its health port (WEAVER.md § Health, SMELTER.md § Health).
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FollowerFollowing {
+    /// The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again.
+    pub sweep: FollowerFollowingSweep,
+    /// How many resources' logs a failed taking has stopped until the next sweep.
+    pub stopped: u64,
+    /// How many events it refused as recorded since it started.
+    pub refused: u64,
+    /// How many times its stream has dropped since it started.
+    #[serde(rename = "streamDrops")]
+    pub stream_drops: u64,
+}
+
+schema!(FollowerFollowing);
+
+/// The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum FollowerFollowingSweep {
+    #[serde(rename = "pending")]
+    Pending,
+    #[serde(rename = "running")]
+    Running,
+    #[serde(rename = "done")]
+    Done,
+    #[serde(rename = "due")]
+    Due,
+}
+
+impl FollowerFollowingSweep {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            FollowerFollowingSweep::Pending => "pending",
+            FollowerFollowingSweep::Running => "running",
+            FollowerFollowingSweep::Done => "done",
+            FollowerFollowingSweep::Due => "due",
         }
     }
 }
@@ -4586,6 +6170,18 @@ impl HighlightingJobParamsMotivation {
     }
 }
 
+/// Where somebody else's daemon listens.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct HostPort {
+    /// A host name or address the stack's containers can reach.
+    pub host: String,
+    /// The port it listens on.
+    pub port: u16,
+}
+
+schema!(HostPort);
+
 /// A knowledge base reached through its gateway, over HTTP. The gateway's origin is the protocol, the host in lowercase and the port; a host that is not a host's name is refused before it is put into a URL (specs/src/session/gateway-url-cases.json).
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct HttpEndpoint {
@@ -4652,6 +6248,157 @@ impl HttpEndpointProtocol {
     }
 }
 
+/// An HTTP response's status code, as the tables state one. No API states it, so it is no component.
+pub type HttpStatus = u16;
+
+/// An account in a knowledge base's launcher-managed identity realm. Passwords and tokens are never included.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentityUser {
+    /// The account's sign-in name, normally its email address.
+    pub email: String,
+    /// The identity the account acts under in Xynolog.
+    pub identity: String,
+    /// Whether the identity provider currently allows this account to sign in.
+    pub enabled: bool,
+}
+
+schema!(IdentityUser);
+
+/// Create one account in the launcher-managed Keycloak realm for a specific local knowledge base.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentityUseraddParams {
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    pub target: LocalTarget,
+    /// The email address that will sign in to this knowledge base.
+    pub email: String,
+    /// The user's password. Secret: carried only in this local control request, never in progress, diagnostics, or persistent state.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
+    /// Generate a random password in the launcher and return it once in the result.
+    #[serde(rename = "generatePassword")]
+    pub generate_password: bool,
+}
+
+impl IdentityUseraddParams {
+    /// The `IdentityUseraddParams` that states these and nothing else.
+    pub fn new(
+        api_version: ApiVersion,
+        target: LocalTarget,
+        email: impl Into<String>,
+        generate_password: bool,
+    ) -> Self {
+        Self {
+            api_version,
+            target,
+            email: email.into(),
+            password: None,
+            generate_password,
+        }
+    }
+}
+
+schema!(IdentityUseraddParams);
+
+/// The created account's sign-in identity. A generated password is present only in this one answer and is not stored by the launcher.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentityUseraddResult {
+    /// The account's email address.
+    pub email: String,
+    /// The identity the account acts under in Xynolog.
+    pub identity: String,
+    /// Whether a new account was created.
+    pub created: bool,
+    /// The generated password, returned once so the operator can share it with the user. Absent when the operator supplied the password.
+    #[serde(rename = "generatedPassword")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generated_password: Option<String>,
+}
+
+impl IdentityUseraddResult {
+    /// The `IdentityUseraddResult` that states these and nothing else.
+    pub fn new(email: impl Into<String>, identity: impl Into<String>, created: bool) -> Self {
+        Self {
+            email: email.into(),
+            identity: identity.into(),
+            created,
+            generated_password: None,
+        }
+    }
+}
+
+schema!(IdentityUseraddResult);
+
+/// List accounts in one local knowledge base's launcher-managed Keycloak realm.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentityUsersListParams {
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    pub target: LocalTarget,
+}
+
+schema!(IdentityUsersListParams);
+
+/// Accounts in the selected knowledge base's launcher-managed identity realm.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentityUsersListResult {
+    /// Accounts, sorted by sign-in name.
+    pub users: Vec<IdentityUser>,
+}
+
+schema!(IdentityUsersListResult);
+
+/// The container image a service runs, as a registry names it: `ghcr.io/xynolog/xynolog-gateway:latest`.
+pub type Image = String;
+
+/// The engines a machine uses for a knowledge base: the providers it reaches, and the provider and model each job and each Librarian actor is done with. A knowledge base's repository may carry several, one for each provider, and a machine chooses one.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Inference {
+    #[serde(rename = "apiVersion")]
+    pub api_version: StackApiVersion,
+    pub kind: InferenceKind,
+    pub metadata: Metadata,
+    /// The providers, and the engine for each job and each Librarian actor.
+    pub spec: InferenceSpec,
+}
+
+impl Inference {
+    /// The `Inference` that states these and nothing else.
+    pub fn new(api_version: StackApiVersion, metadata: Metadata, spec: InferenceSpec) -> Self {
+        Self {
+            api_version,
+            kind: InferenceKind::Inference,
+            metadata,
+            spec,
+        }
+    }
+}
+
+schema!(Inference);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum InferenceKind {
+    #[serde(rename = "Inference")]
+    Inference,
+}
+
+impl InferenceKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            InferenceKind::Inference => "Inference",
+        }
+    }
+}
+
 /// A provider's actual ceilings for a model, discovered from the provider itself (Anthropic Models API; Ollama /api/show) — never hand-maintained constants. Semantics differ by provider shape: Anthropic reports maximum input tokens in contextTokens with a separate output ceiling in maxOutputTokens; Ollama reports the shared input+output window and mirrors it into both fields (there is no separate output ceiling), so maxOutputTokens === contextTokens signals a shared window.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct InferenceLimits {
@@ -4699,6 +6446,16 @@ pub struct InferenceLimitsResultResponse {
     pub limits: Vec<EngineLimits>,
 }
 
+/// The providers, and the engine for each job and each Librarian actor.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct InferenceSpec {
+    /// Each provider an engine names, and how it is reached.
+    pub providers: std::collections::BTreeMap<String, Provider>,
+    /// The engine each job is done with when software does it, and the engine each Librarian actor asks.
+    pub engines: ArchivistEngines,
+}
+
 /// The tokens an issuer issued at the end of a sign-in.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -4710,6 +6467,115 @@ pub struct IssuedTokens {
 }
 
 schema!(IssuedTokens);
+
+/// The issuer the launcher runs for the knowledge bases on a machine, with a realm for each, and the database it keeps their realms in. It belongs to no knowledge base, so its document is kept in the launcher's state home, in `stack/issuer.yaml`, not in a knowledge base's repository. A knowledge base trusts it by naming `shared`; one trusting somebody else's issuer names it at `external`.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Issuer {
+    #[serde(rename = "apiVersion")]
+    pub api_version: StackApiVersion,
+    pub kind: IssuerKind,
+    pub metadata: Metadata,
+    /// The issuer, where it is published, and the database it keeps its realms in.
+    pub spec: IssuerSpec,
+}
+
+impl Issuer {
+    /// The `Issuer` that states these and nothing else.
+    pub fn new(api_version: StackApiVersion, metadata: Metadata, spec: IssuerSpec) -> Self {
+        Self {
+            api_version,
+            kind: IssuerKind::Issuer,
+            metadata,
+            spec,
+        }
+    }
+}
+
+schema!(Issuer);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum IssuerKind {
+    #[serde(rename = "Issuer")]
+    Issuer,
+}
+
+impl IssuerKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            IssuerKind::Issuer => "Issuer",
+        }
+    }
+}
+
+/// The issuer, where it is published, and the database it keeps its realms in.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IssuerSpec {
+    /// The issuer's driver: `keycloak`.
+    pub r#type: String,
+    pub image: Image,
+    pub resources: Resources,
+    /// The port the issuer is published on, on this machine: the origin of every realm's `iss`, so the one number wherever the issuer is reached.
+    pub port: u16,
+    /// The database the issuer keeps its realms in.
+    pub database: IssuerSpecDatabase,
+}
+
+/// The database the issuer keeps its realms in.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IssuerSpecDatabase {
+    /// The database's driver: `postgres`.
+    pub r#type: String,
+    /// The database the issuer keeps its realms in: a lowercase PostgreSQL identifier, as PostgreSQL itself names an unquoted one. On a PostgreSQL the launcher runs, the launcher creates it; on one somebody else runs (`external`), it must already exist there.
+    pub name: String,
+    /// The user the issuer signs in as.
+    pub user: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image: Option<Image>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resources: Option<Resources>,
+    /// The port a PostgreSQL the launcher runs is published on, on this machine, where the issuer reaches it. One somebody else runs is reached at `external`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub port: Option<u16>,
+    /// A database somebody else runs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub external: Option<IssuerSpecDatabaseExternal>,
+}
+
+impl IssuerSpecDatabase {
+    /// The `IssuerSpecDatabase` that states these and nothing else.
+    pub fn new(
+        r#type: impl Into<String>,
+        name: impl Into<String>,
+        user: impl Into<String>,
+    ) -> Self {
+        Self {
+            r#type: r#type.into(),
+            name: name.into(),
+            user: user.into(),
+            image: None,
+            resources: None,
+            port: None,
+            external: None,
+        }
+    }
+}
+
+/// A database somebody else runs.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IssuerSpecDatabaseExternal {
+    /// A host name or address the issuer can reach.
+    pub host: String,
+    /// The port it listens on.
+    pub port: u16,
+    pub password: SecretRef,
+}
 
 /// A graph kept in a JanusGraph server, asked in Gremlin. No service has been run against one.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -6362,6 +8228,18 @@ member!(JobQueuedEvent::MarkJobQueuedEvent(MarkJobQueuedEvent));
 member!(JobQueuedEvent::YieldJobQueuedEvent(YieldJobQueuedEvent));
 schema!(JobQueuedEvent);
 
+/// One job as the queue stores it: the job, and when it last showed life. The dead-worker sweep reads `lastProgressAt`: a running job whose worker has reported nothing for the configured interval is presumed dead. Where the queue keeps these records is the job storage layout, specs/src/jobs/storage.json.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobRecord {
+    pub job: Job,
+    /// When the job was created, claimed, checkpointed or last reported progress, as an ISO 8601 timestamp.
+    #[serde(rename = "lastProgressAt")]
+    pub last_progress_at: String,
+}
+
+schema!(JobRecord);
+
 /// Command to report progress on a job
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct JobReportProgressCommand {
@@ -6707,6 +8585,9 @@ impl KbDescription {
 
 schema!(KbDescription);
 
+/// A knowledge base's DID: `did:web:` and its domain. No API states one as such, so it is no component.
+pub type KbDid = String;
+
 /// How a knowledge base is reached: a gateway over HTTP, or a knowledge base the host process has loaded. Told apart by `kind`. Only what builds a transport, or signs in at an issuer, reads it.
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
@@ -7037,6 +8918,122 @@ impl KnowledgeBase {
 
 schema!(KnowledgeBase);
 
+/// One knowledge base's stack as xynolog status reads it: what it is, where it runs, and each of its own services. The services every knowledge base shares are reported once, in the snapshot's shared list.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeBaseStatus {
+    /// What the snapshot calls the knowledge base: the last segment of its DID, or the whole DID where two would share one, or its key.
+    pub name: String,
+    /// The knowledge base's key on this machine, which names its containers and its state.
+    pub key: String,
+    /// Whether a stack of it is recorded. When none is, its services are found by name.
+    pub recorded: bool,
+    /// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+    pub placement: KnowledgeBaseStatusPlacement,
+    /// Its clone, for a local stack.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root: Option<String>,
+    /// owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repo: Option<String>,
+    /// The KB's did:web identifier, from its committed .xynolog/config.yaml — "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no domain has no identity to publish, and the launcher refuses to start it rather than inventing or defaulting one. NOT unique within a document: a did names the knowledge base, not a running copy of it, so a local clone and a codespace of the same repo legitimately share one and both are published. host:port is the unique field (at most one entry per address), so consumers look up by ADDRESS and use the did to VERIFY that the copy they reached is the KB they meant — an address alone cannot say which KB is which, and an identity alone cannot say which copy.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub did: Option<String>,
+    /// Human-readable site name from the KB's .xynolog/config.yaml (site.siteName), for display
+    #[serde(rename = "siteName")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site_name: Option<String>,
+    /// Why its identity could not be read from its clone, when it could not.
+    #[serde(rename = "identityError")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_error: Option<String>,
+    /// The knowledge base as the discovery document publishes it, when it does.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kb: Option<DiscoveredKB>,
+    /// The runtime its record names.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+    /// The base URL of its gateway, from its record.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gateway: Option<String>,
+    /// Where the values the launcher generates for it are kept, as xynolog settings secret-store describes it.
+    #[serde(rename = "secretStore")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub secret_store: Option<String>,
+    /// This machine's address on the network, when the stack is started with network lan.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lan: Option<String>,
+    /// Whether a xynolog start of it holds its start lock: its services are not ready, whatever they report.
+    pub starting: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub session: Option<Session>,
+    /// Whether each of its counted services, and the issuer it signs in at, answers.
+    pub healthy: bool,
+    /// Its own services, group by group, then the issuer it signs in at. Empty for a codespace's, whose services its own launcher reports.
+    pub services: Vec<ServiceStatus>,
+    /// The ledger and job queue readings the launcher can attribute to this knowledge base. A missing reading means the Collector has not reported that metric, not that its value is zero.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workload: Option<WorkloadStatus>,
+}
+
+impl KnowledgeBaseStatus {
+    /// The `KnowledgeBaseStatus` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        key: impl Into<String>,
+        recorded: bool,
+        placement: KnowledgeBaseStatusPlacement,
+        starting: bool,
+        healthy: bool,
+        services: Vec<ServiceStatus>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            key: key.into(),
+            recorded,
+            placement,
+            root: None,
+            repo: None,
+            did: None,
+            site_name: None,
+            identity_error: None,
+            kb: None,
+            runtime: None,
+            gateway: None,
+            secret_store: None,
+            lan: None,
+            starting,
+            session: None,
+            healthy,
+            services,
+            workload: None,
+        }
+    }
+}
+
+schema!(KnowledgeBaseStatus);
+
+/// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum KnowledgeBaseStatusPlacement {
+    #[serde(rename = "local")]
+    Local,
+    #[serde(rename = "codespace")]
+    Codespace,
+}
+
+impl KnowledgeBaseStatusPlacement {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            KnowledgeBaseStatusPlacement::Local => "local",
+            KnowledgeBaseStatusPlacement::Codespace => "codespace",
+        }
+    }
+}
+
 /// Knowledge graph gathered for an LLM context — a shared backbone in which resources AND annotations are typed nodes, connected by typed (optionally bidirectional) edges. Flattened views the matcher/generation read (connections, citedBy, siblings) are derived from these nodes/edges.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct KnowledgeGraph {
@@ -7119,6 +9116,256 @@ impl<'de> serde::Deserialize<'de> for KnowledgeGraphNodesItem {
 
 member!(KnowledgeGraphNodesItem::ResourceNode(GraphResourceNode));
 member!(KnowledgeGraphNodesItem::AnnotationNode(GraphAnnotationNode));
+
+/// What a knowledge base's record is indexed into, and the services that keep and read the indexes: the Weaver's graph, the Smelter's vectors and anchored text, and the Librarian that answers from them. Each can be rebuilt from the record.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndex {
+    #[serde(rename = "apiVersion")]
+    pub api_version: StackApiVersion,
+    pub kind: KnowledgeIndexKind,
+    pub metadata: Metadata,
+    /// The indexes, the services that keep and read them, and the knowledge base they index.
+    pub spec: KnowledgeIndexSpec,
+}
+
+impl KnowledgeIndex {
+    /// The `KnowledgeIndex` that states these and nothing else.
+    pub fn new(api_version: StackApiVersion, metadata: Metadata, spec: KnowledgeIndexSpec) -> Self {
+        Self {
+            api_version,
+            kind: KnowledgeIndexKind::KnowledgeIndex,
+            metadata,
+            spec,
+        }
+    }
+}
+
+schema!(KnowledgeIndex);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum KnowledgeIndexKind {
+    #[serde(rename = "KnowledgeIndex")]
+    KnowledgeIndex,
+}
+
+impl KnowledgeIndexKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            KnowledgeIndexKind::KnowledgeIndex => "KnowledgeIndex",
+        }
+    }
+}
+
+/// The indexes, the services that keep and read them, and the knowledge base they index.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpec {
+    /// The name of the KnowledgeBase document whose record this indexes.
+    #[serde(rename = "knowledgeBase")]
+    pub knowledge_base: String,
+    #[serde(rename = "logLevel")]
+    pub log_level: LogLevel,
+    /// The graph store the Weaver writes and the Librarian reads. The knowledge base's graph is in the database its DID names (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it when it first starts, and one somebody else runs must already hold it.
+    pub graph: KnowledgeIndexSpecGraph,
+    /// The vector store the Smelter writes and the Librarian reads: the one the launcher runs for the knowledge bases on a machine, at `shared`; one of the knowledge base's own the launcher runs, from `image` with `resources`; or somebody else's, at `external`. Exactly one of the three.
+    pub vectors: KnowledgeIndexSpecVectors,
+    /// The model that turns text into vectors. Vectors made by one model are not comparable with another's, so the model is the index's.
+    pub embedding: KnowledgeIndexSpecEmbedding,
+    /// The Librarian: it answers gathers and searches from the indexes.
+    pub librarian: KnowledgeIndexSpecLibrarian,
+    /// The Smelter: it writes the vectors and the anchored text.
+    pub smelter: KnowledgeIndexSpecSmelter,
+    /// The Weaver: it writes the graph.
+    pub weaver: KnowledgeIndexSpecWeaver,
+}
+
+/// The model that turns text into vectors. Vectors made by one model are not comparable with another's, so the model is the index's.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecEmbedding {
+    /// Who serves the model: `ollama`, or `voyage`.
+    pub r#type: String,
+    /// The model, as its provider names it.
+    pub model: String,
+    /// How a text is cut before it is embedded.
+    pub chunking: KnowledgeIndexSpecEmbeddingChunking,
+    /// Where the provider's API is reached. The shared Ollama is stated by no endpoint.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint: Option<String>,
+    #[serde(rename = "apiKey")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_key: Option<SecretRef>,
+}
+
+impl KnowledgeIndexSpecEmbedding {
+    /// The `KnowledgeIndexSpecEmbedding` that states these and nothing else.
+    pub fn new(
+        r#type: impl Into<String>,
+        model: impl Into<String>,
+        chunking: KnowledgeIndexSpecEmbeddingChunking,
+    ) -> Self {
+        Self {
+            r#type: r#type.into(),
+            model: model.into(),
+            chunking,
+            endpoint: None,
+            api_key: None,
+        }
+    }
+}
+
+/// How a text is cut before it is embedded.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecEmbeddingChunking {
+    /// The size of a piece.
+    #[serde(rename = "chunkSize")]
+    pub chunk_size: u64,
+    /// How much of one piece the next repeats.
+    pub overlap: u64,
+}
+
+/// The graph store the Weaver writes and the Librarian reads. The knowledge base's graph is in the database its DID names (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it when it first starts, and one somebody else runs must already hold it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecGraph {
+    /// The graph store's driver: `neo4j`.
+    pub r#type: String,
+    /// The user the services sign in to the store as.
+    pub username: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image: Option<Image>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resources: Option<Resources>,
+    /// A graph store somebody else runs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub external: Option<KnowledgeIndexSpecGraphExternal>,
+}
+
+impl KnowledgeIndexSpecGraph {
+    /// The `KnowledgeIndexSpecGraph` that states these and nothing else.
+    pub fn new(r#type: impl Into<String>, username: impl Into<String>) -> Self {
+        Self {
+            r#type: r#type.into(),
+            username: username.into(),
+            image: None,
+            resources: None,
+            external: None,
+        }
+    }
+}
+
+/// A graph store somebody else runs.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecGraphExternal {
+    /// Where it listens: `bolt://host:port`.
+    pub uri: String,
+    pub password: SecretRef,
+}
+
+/// The Librarian: it answers gathers and searches from the indexes.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecLibrarian {
+    pub image: Image,
+    pub resources: Resources,
+    /// How a gather waits.
+    pub gather: KnowledgeIndexSpecLibrarianGather,
+    /// What a search by meaning keeps.
+    pub search: KnowledgeIndexSpecLibrarianSearch,
+}
+
+/// How a gather waits.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecLibrarianGather {
+    /// How long a gather waits for the Smelter to settle a resource, in milliseconds.
+    #[serde(rename = "settleTimeoutMs")]
+    pub settle_timeout_ms: u64,
+}
+
+/// What a search by meaning keeps.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecLibrarianSearch {
+    /// The least similarity a hit by meaning must have.
+    #[serde(rename = "semanticFloor")]
+    pub semantic_floor: f64,
+}
+
+/// The Smelter: it writes the vectors and the anchored text.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecSmelter {
+    pub image: Image,
+    pub resources: Resources,
+    /// How many PDFs it works on at once. A page of a scan held for OCR is large; one for each 2G of its memory is a reading of what fits.
+    #[serde(rename = "pdfsAtOnce")]
+    pub pdfs_at_once: u64,
+}
+
+/// The vector store the Smelter writes and the Librarian reads: the one the launcher runs for the knowledge bases on a machine, at `shared`; one of the knowledge base's own the launcher runs, from `image` with `resources`; or somebody else's, at `external`. Exactly one of the three.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecVectors {
+    /// The vector store's driver: `qdrant`.
+    pub r#type: String,
+    /// The vector store the launcher runs for the knowledge bases on a machine (the state home's VectorStore document). Each knowledge base keeps its index in collections of its own there, so nothing is said of it here.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shared: Option<KnowledgeIndexSpecVectorsShared>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image: Option<Image>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resources: Option<Resources>,
+    /// A vector store somebody else runs, with the token each service presents to it: the Smelter's may make, write and delete this knowledge base's collections, and the Librarian's may read them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub external: Option<KnowledgeIndexSpecVectorsExternal>,
+}
+
+impl KnowledgeIndexSpecVectors {
+    /// The `KnowledgeIndexSpecVectors` that states these and nothing else.
+    pub fn new(r#type: impl Into<String>) -> Self {
+        Self {
+            r#type: r#type.into(),
+            shared: None,
+            image: None,
+            resources: None,
+            external: None,
+        }
+    }
+}
+
+/// A vector store somebody else runs, with the token each service presents to it: the Smelter's may make, write and delete this knowledge base's collections, and the Librarian's may read them.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecVectorsExternal {
+    /// A host name or address the stack's containers can reach.
+    pub host: String,
+    /// The port its REST API listens on.
+    pub port: u16,
+    #[serde(rename = "smelterToken")]
+    pub smelter_token: SecretRef,
+    #[serde(rename = "librarianToken")]
+    pub librarian_token: SecretRef,
+}
+
+/// The vector store the launcher runs for the knowledge bases on a machine (the state home's VectorStore document). Each knowledge base keeps its index in collections of its own there, so nothing is said of it here.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecVectorsShared {}
+
+/// The Weaver: it writes the graph.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnowledgeIndexSpecWeaver {
+    pub image: Image,
+    pub resources: Resources,
+}
 
 /// Everything a Librarian reads at boot: nothing in it is defaulted by the Librarian. Whoever starts a Librarian writes it, from the knowledge base's stack documents, and the Librarian reads it from the path its `--config` flag names. This schema is the contract, and a Librarian needs no launcher. Started without `--config`, or with a path that names no file, the Librarian refuses to start and says which. No secret is a value here: the graph database's password, an embedding provider's key and a model provider's key are each named by the environment variable that holds it, and the Librarian's own service account is `XYNOLOG_OIDC_CLIENT_ID` and `XYNOLOG_OIDC_CLIENT_SECRET` in its environment. A document that does not validate is refused at boot, naming each failing field.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -7205,17 +9452,17 @@ schema!(LibrarianEngineConfig);
 pub struct LibrarianHealth {
     pub status: LibrarianHealthStatus,
     /// The DID of the knowledge base it serves: the one its document names, which that knowledge base said it is before the Librarian reached its stores.
-    pub kb: String,
+    pub kb: KbDid,
     /// The two actors it runs, `matcher` and `gatherer`.
     pub actors: Vec<LibrarianHealthActorsItem>,
 }
 
 impl LibrarianHealth {
     /// The `LibrarianHealth` that states these and nothing else.
-    pub fn new(kb: impl Into<String>, actors: Vec<LibrarianHealthActorsItem>) -> Self {
+    pub fn new(kb: KbDid, actors: Vec<LibrarianHealthActorsItem>) -> Self {
         Self {
             status: LibrarianHealthStatus::Ok,
-            kb: kb.into(),
+            kb,
             actors,
         }
     }
@@ -7259,6 +9506,15 @@ impl LibrarianHealthStatus {
         }
     }
 }
+
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct LibrarianPromptScore {
+    pub candidate: f64,
+    pub score: f64,
+}
+
+schema!(LibrarianPromptScore);
 
 /// An ErrorResponse that names, in `code`, the limit the request met.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -7421,6 +9677,46 @@ impl LocalEndpointKind {
     }
 }
 
+/// A local knowledge base, named explicitly: the operations that act on one local stack and never resolve one for the caller (identity administration, a service's run).
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct LocalTarget {
+    /// Only a local stack.
+    pub kind: LocalTargetKind,
+    /// The knowledge base's clone, by its path.
+    pub root: String,
+}
+
+impl LocalTarget {
+    /// The `LocalTarget` that states these and nothing else.
+    pub fn new(root: impl Into<String>) -> Self {
+        Self {
+            kind: LocalTargetKind::Local,
+            root: root.into(),
+        }
+    }
+}
+
+schema!(LocalTarget);
+
+/// Only a local stack.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum LocalTargetKind {
+    #[serde(rename = "local")]
+    Local,
+}
+
+impl LocalTargetKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            LocalTargetKind::Local => "local",
+        }
+    }
+}
+
 /// How each log line is written to stdout (service-telemetry/log-lines.json): `json`, one JSON object per line; or `simple`, a line of words followed by any metadata as JSON.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -7475,6 +9771,67 @@ impl LogLevel {
 }
 
 schema!(LogLevel);
+
+/// One line one of a stack's services wrote. The launcher removes from it each secret value the launcher generated or read; anything else the service wrote is the client's to handle. The launcher keeps no copy.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct LogRecord {
+    #[serde(rename = "requestId")]
+    pub request_id: RequestId,
+    /// The role whose container wrote the line, as xynolog status names it.
+    pub service: String,
+    /// Which of the container's streams the line was on.
+    pub stream: OutputStream,
+    /// The line, without its newline.
+    pub line: String,
+    /// When the launcher read the line, in RFC 3339 with its fraction: a container's own lines carry the time it wrote them, if any.
+    #[serde(rename = "receivedAt")]
+    pub received_at: String,
+}
+
+schema!(LogRecord);
+
+/// logs.follow's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct LogsFollowParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<Target>,
+    /// Keep to the local stacks, as --runtime does.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+    /// Just this service's container, as --service names it. Absent: each Xynolog service the stack runs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service: Option<String>,
+}
+
+impl LogsFollowParams {
+    /// The `LogsFollowParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion) -> Self {
+        Self {
+            api_version,
+            target: None,
+            runtime: None,
+            service: None,
+        }
+    }
+}
+
+schema!(LogsFollowParams);
+
+/// A follow whose every source ended on its own. A follow the client cancels is answered with control.cancelled.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct LogsFollowResult {
+    /// The services that were followed.
+    pub services: Vec<String>,
+}
+
+schema!(LogsFollowResult);
 
 /// Bus command to archive a resource and optionally remove its file.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -8388,6 +10745,37 @@ impl MemoryVectorsConfigType {
     }
 }
 
+/// What names a document, as Kubernetes names an object. Documents refer to one another by `name`.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Metadata {
+    /// The document's name: lower-case letters, digits and `-`, beginning and ending with a letter or digit. It names the document, never the knowledge base.
+    pub name: String,
+    /// The Kubernetes namespace the document belongs in. The launcher reads none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub namespace: Option<String>,
+    /// Kubernetes labels. The launcher reads none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub labels: Option<std::collections::BTreeMap<String, String>>,
+    /// Kubernetes annotations. The launcher reads none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub annotations: Option<std::collections::BTreeMap<String, String>>,
+}
+
+impl Metadata {
+    /// The `Metadata` that states these and nothing else.
+    pub fn new(name: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            namespace: None,
+            labels: None,
+            annotations: None,
+        }
+    }
+}
+
+schema!(Metadata);
+
 /// Xynolog-supported W3C Web Annotation motivations - https://www.w3.org/TR/annotation-vocab/#motivation
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -8629,6 +11017,67 @@ pub enum OneOrMoreUris {
 
 schema!(OneOrMoreUris);
 
+/// A resource open in a knowledge base: which resource, the name it is shown by, when it was opened and its place among the others open there. A registry shows them by their places, and two in one place by when each was opened, first first.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct OpenResource {
+    /// The resource.
+    pub id: ResourceId,
+    /// The name the resource is shown by.
+    pub name: String,
+    /// When the resource was opened, in milliseconds since the Unix epoch. Opening it again while it is open changes neither this nor its place.
+    #[serde(rename = "openedAt")]
+    pub opened_at: u64,
+    /// The resource's place among those open in the knowledge base. One opened is given the place after the last taken, so a place freed by closing one is not given twice; a move gives each its place in the new order, counted from 0.
+    pub order: u64,
+    /// The resource's media type, which its icon is chosen by. Absent when it is not known.
+    #[serde(rename = "mediaType")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub media_type: Option<String>,
+    /// Where the resource is in the knowledge base's working tree, as a URI (file://docs/overview.md). Absent when it is not known.
+    #[serde(rename = "storageUri")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_uri: Option<String>,
+}
+
+impl OpenResource {
+    /// The `OpenResource` that states these and nothing else.
+    pub fn new(id: ResourceId, name: impl Into<String>, opened_at: u64, order: u64) -> Self {
+        Self {
+            id,
+            name: name.into(),
+            opened_at,
+            order,
+            media_type: None,
+            storage_uri: None,
+        }
+    }
+}
+
+schema!(OpenResource);
+
+/// Which of a container's streams a line was on.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum OutputStream {
+    #[serde(rename = "stdout")]
+    Stdout,
+    #[serde(rename = "stderr")]
+    Stderr,
+}
+
+impl OutputStream {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            OutputStream::Stdout => "stdout",
+            OutputStream::Stderr => "stderr",
+        }
+    }
+}
+
+schema!(OutputStream);
+
 /// The class a PDF is sorted into, which decides how its text is read. smelter/extraction-cases.json states what each class is.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -8722,6 +11171,9 @@ pub struct PermissionDenied {
 
 schema!(PermissionDenied);
 
+/// `p-<scope>-<sequenceNumber>` — the id of a persisted event delivered on a scoped subscription. Resumable: send it back as that scope's `lastEventId`. Stable across connections, so a client dedups by it.
+pub type PersistedEventId = String;
+
 /// Bus command saying what a principal is called. The gateway emits it when a principal ACTS, carrying the display name it just verified on its token; a principal may also emit it itself, for itself, which is how an agent, whose token carries no name, says what it is called. Either way the gateway stamps `_userId` with the sender's verified DID, so a principal names only itself. The Stower persists it as principal:profiled, and only when the name differs from the latest one recorded for that DID — so the log holds one line per name a principal has had, not one per act. A name is a fact ABOUT an identity, never part of the record of an act: no artifact carries it, and readers resolve it from the profiles projection. Emitted for a person and for an agent alike; never for a request that merely reads.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct PrincipalProfileCommand {
@@ -8765,6 +11217,129 @@ pub struct Profile {
 }
 
 schema!(Profile);
+
+/// What the principals of a knowledge base are called: the file `projections/__system__/profiles.json` under the state directory, the sum of the `principal:profiled` events. The Archivist writes it; the Archivist and the Librarian read it to name the principals a reply mentions. Written as JSON indented by two spaces.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProfilesProjection {
+    /// Each principal's current profile, keyed by its DID.
+    pub profiles: std::collections::BTreeMap<String, Profile>,
+}
+
+schema!(ProfilesProjection);
+
+/// One line of what an operation is doing, as the command line would tell a person, without colour. A secret value the launcher generated or read never appears in one.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Progress {
+    #[serde(rename = "requestId")]
+    pub request_id: RequestId,
+    /// What the line is: narration (log, note), an outcome (ok, warn, fail), a heading (banner, section), a timestamp (stamp), a runtime command about to run (command), or text the operation printed (output).
+    pub kind: ProgressKind,
+    /// The line.
+    pub text: String,
+}
+
+schema!(Progress);
+
+/// What the line is: narration (log, note), an outcome (ok, warn, fail), a heading (banner, section), a timestamp (stamp), a runtime command about to run (command), or text the operation printed (output).
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ProgressKind {
+    #[serde(rename = "log")]
+    Log,
+    #[serde(rename = "note")]
+    Note,
+    #[serde(rename = "ok")]
+    Ok,
+    #[serde(rename = "warn")]
+    Warn,
+    #[serde(rename = "fail")]
+    Fail,
+    #[serde(rename = "banner")]
+    Banner,
+    #[serde(rename = "section")]
+    Section,
+    #[serde(rename = "stamp")]
+    Stamp,
+    #[serde(rename = "command")]
+    Command,
+    #[serde(rename = "output")]
+    Output,
+}
+
+impl ProgressKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ProgressKind::Log => "log",
+            ProgressKind::Note => "note",
+            ProgressKind::Ok => "ok",
+            ProgressKind::Warn => "warn",
+            ProgressKind::Fail => "fail",
+            ProgressKind::Banner => "banner",
+            ProgressKind::Section => "section",
+            ProgressKind::Stamp => "stamp",
+            ProgressKind::Command => "command",
+            ProgressKind::Output => "output",
+        }
+    }
+}
+
+/// A knowledge base's committed `.xynolog/config.yaml`: its name, whether its changes are staged in git, and its permanent identity. A deployment's documents never restate any of it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProjectConfig {
+    /// The knowledge base's name.
+    pub project: ProjectConfigProject,
+    /// How the knowledge base's changes reach git.
+    pub git: ProjectConfigGit,
+    /// The knowledge base's identity.
+    pub site: ProjectConfigSite,
+}
+
+schema!(ProjectConfig);
+
+/// How the knowledge base's changes reach git.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProjectConfigGit {
+    /// Whether changes to the working tree and the event log are staged in git as they are made.
+    pub sync: bool,
+}
+
+/// The knowledge base's name.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProjectConfigProject {
+    /// The knowledge base's name, which decides where its state is kept.
+    pub name: String,
+    /// A version the knowledge base's author gives it. Nothing changes it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+}
+
+impl ProjectConfigProject {
+    /// The `ProjectConfigProject` that states these and nothing else.
+    pub fn new(name: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            version: None,
+        }
+    }
+}
+
+/// The knowledge base's identity.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProjectConfigSite {
+    /// The knowledge base's permanent identity, in did:web's colon-path form (`owner.github.io:repo`): stamped into every event it records, so never a machine's address and never changed. With no white space in it, which no DID holds (UserId.json).
+    pub domain: String,
+    /// The name people see for the knowledge base.
+    #[serde(rename = "siteName")]
+    pub site_name: String,
+}
 
 /// OAuth 2.0 Protected Resource Metadata (RFC 9728): which authorization server this knowledge base trusts, served at /.well-known/oauth-protected-resource so a client — the Browser, an MCP client — learns where to send a user to sign in without configuration. A 401 from any protected route points here in its WWW-Authenticate challenge.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -8815,6 +11390,21 @@ impl ProtectedResourceMetadataBearerMethodsSupportedItem {
         }
     }
 }
+
+/// How an inference provider is reached.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Provider {
+    /// Where the provider's API is reached. Anthropic's own API, and the shared Ollama, are stated by no baseURL.
+    #[serde(rename = "baseURL")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub base_u_r_l: Option<String>,
+    #[serde(rename = "apiKey")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_key: Option<SecretRef>,
+}
+
+schema!(Provider);
 
 /// A vector index kept in a Qdrant server, asked over its REST API with a token.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -9135,6 +11725,9 @@ impl ReconciledSpanUniqueMatchAnchorMethod {
     }
 }
 
+/// `e-<channel>:<correlationId>` — the id of a frame that carries a correlationId. Deterministic: the same reply has the same id on every connection, so a copy arriving on two connections (a reconnect overlap, or a replay of a retained reply) dedups. Never a resumption watermark.
+pub type ReplyEventId = String;
+
 /// A specific, byte-addressable rendition of a resource (file/asset/variant).
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct Representation {
@@ -9321,6 +11914,33 @@ pub struct RepresentationRemovedPayload {
 }
 
 schema!(RepresentationRemovedPayload);
+
+/// The request a notification is about: the JSON-RPC id its client gave it, as the client gave it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum RequestId {
+    Text(String),
+    Integer(i64),
+}
+
+schema!(RequestId);
+
+/// The annotations on one resource, as its materialized view holds them.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ResourceAnnotations {
+    #[serde(rename = "resourceId")]
+    pub resource_id: ResourceId,
+    /// Each annotation as the `mark:added` event that recorded it carried it, with the body changes recorded since applied. In the order they were first recorded.
+    pub annotations: Vec<Annotation>,
+    /// How many of the resource's events the view has applied.
+    pub version: u64,
+    /// The timestamp of the last event applied; the empty string before any.
+    #[serde(rename = "updatedAt")]
+    pub updated_at: String,
+}
+
+schema!(ResourceAnnotations);
 
 /// Payload for mark:archived domain event
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -9838,6 +12458,514 @@ impl ResourceUpdatedPayload {
 
 schema!(ResourceUpdatedPayload);
 
+/// The multipart upload that creates a resource. A client sends it to the gateway's `POST /resources`; the gateway forwards it untouched to the Archivist's `POST /resources`, which stores the bytes and records the resource. One body, two hops.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct ResourceUpload {
+    /// Human-readable resource name
+    pub name: String,
+    /// Binary content
+    pub file: String,
+    /// Media type of the content (e.g. text/plain, text/markdown, image/png)
+    pub format: String,
+    /// Where the content lives (file://... for local). Required — the client names the location; the server does not derive one.
+    #[serde(rename = "storageUri")]
+    pub storage_uri: String,
+    /// ISO 639-1 language code
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
+    /// JSON-stringified array of entity type names
+    #[serde(rename = "entityTypes")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub entity_types: Option<String>,
+    /// For AI-generated resources: the annotation that triggered generation. Nested into generatedFrom.annotationId on the persisted event.
+    #[serde(rename = "sourceAnnotationId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_annotation_id: Option<AnnotationId>,
+    /// For AI-generated resources: the source resource the generating annotation lives on. Nested into generatedFrom.resourceId on the persisted event.
+    #[serde(rename = "sourceResourceId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_resource_id: Option<ResourceId>,
+    /// For AI-generated resources: the prompt that drove generation
+    #[serde(rename = "generationPrompt")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generation_prompt: Option<String>,
+    /// For AI-generated resources: JSON-stringified Agent naming the model/worker that produced the content. Its identity must be the uploading agent's own — the knowledge base refuses a generator naming anyone else. `creator` and `wasAttributedTo` are never sent; the knowledge base derives them from the cited job.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generator: Option<String>,
+    /// The job this resource fulfils, when a worker is creating it. Forwarded onto yield:create; the knowledge base derives who requested the resource from the cited job's own events, and refuses a worker-role create that cites none. Absent for a person's own upload.
+    #[serde(rename = "jobId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub job_id: Option<JobId>,
+    /// 'true' or 'false' — whether the resource is a draft
+    #[serde(rename = "isDraft")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub is_draft: Option<String>,
+    /// A clone token from `yield:clone-token-requested`. With it, the resource is created as a clone of the token's source, inheriting its entity types; `language`, `entityTypes` and the generation fields are then not read.
+    #[serde(rename = "cloneToken")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clone_token: Option<String>,
+    /// With `cloneToken`: 'true' archives the source once the clone exists.
+    #[serde(rename = "archiveOriginal")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub archive_original: Option<String>,
+}
+
+impl ResourceUpload {
+    /// The `ResourceUpload` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        file: impl Into<String>,
+        format: impl Into<String>,
+        storage_uri: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            file: file.into(),
+            format: format.into(),
+            storage_uri: storage_uri.into(),
+            language: None,
+            entity_types: None,
+            source_annotation_id: None,
+            source_resource_id: None,
+            generation_prompt: None,
+            generator: None,
+            job_id: None,
+            is_draft: None,
+            clone_token: None,
+            archive_original: None,
+        }
+    }
+}
+
+schema!(ResourceUpload);
+
+/// A resource's materialized view: the file the Archivist writes at `resources/<ab>/<cd>/<resourceId>.json` under the knowledge base's state directory, and every reader of that file reads. It is what the resource's events add up to, and is rebuilt from the event log whenever it is missing. Written as JSON indented by two spaces, by writing a sibling temporary file and renaming it onto the path, so a reader sees a whole document or none.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ResourceView {
+    pub resource: ResourceDescriptor,
+    pub annotations: ResourceAnnotations,
+    /// The sequence number of the last event applied. A graph read that follows a write waits for the graph projection to reach it.
+    #[serde(rename = "lastSequence")]
+    pub last_sequence: u64,
+}
+
+schema!(ResourceView);
+
+/// What a container is given, in Kubernetes' spelling.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Resources {
+    /// The most a container may use.
+    pub limits: ResourcesLimits,
+}
+
+schema!(Resources);
+
+/// The most a container may use.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ResourcesLimits {
+    /// The memory ceiling: a whole number of gigabytes or megabytes, `8G` or `512M`.
+    pub memory: String,
+}
+
+/// One knowledge base this machine knows: a registered or running local clone, or a codespace stack recorded here. Registration, the directory, the stack and the forward are separate facts, each stated as it is.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Root {
+    /// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+    pub placement: RootPlacement,
+    /// For a local root: the clone's path.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+    /// For a local root: whether the directory exists. A registered root whose directory is gone is kept, and says so.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub present: Option<bool>,
+    /// For a local root: how the control server's own directory selects it, when it does — standing in it (cwd), or XYNOLOG_ROOT.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current: Option<RootCurrent>,
+    /// Whether the registry (roots.json) records it.
+    pub registered: bool,
+    /// Whether a stack of it is recorded on this machine.
+    pub running: bool,
+    /// When a command last used it, in RFC 3339, as the registry records it.
+    #[serde(rename = "lastUsed")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_used: Option<String>,
+    /// The KB's did:web identifier, from its committed .xynolog/config.yaml — "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no domain has no identity to publish, and the launcher refuses to start it rather than inventing or defaulting one. NOT unique within a document: a did names the knowledge base, not a running copy of it, so a local clone and a codespace of the same repo legitimately share one and both are published. host:port is the unique field (at most one entry per address), so consumers look up by ADDRESS and use the did to VERIFY that the copy they reached is the KB they meant — an address alone cannot say which KB is which, and an identity alone cannot say which copy.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub did: Option<String>,
+    /// Human-readable site name from the KB's .xynolog/config.yaml (site.siteName), for display
+    #[serde(rename = "siteName")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site_name: Option<String>,
+    /// Why its identity could not be read from its clone, when it could not.
+    #[serde(rename = "identityError")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_error: Option<String>,
+    /// The Inference document a start of it runs, as the registry records it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub config: Option<String>,
+    /// For a present local root: the Inference documents its clone has, as start --config names them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub configs: Option<Vec<String>>,
+    /// owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repo: Option<String>,
+    /// For a codespace root: the codespace's name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub codespace: Option<String>,
+    /// For a codespace root: GitHub's word for the codespace's state (Available, Shutdown), when gh answered.
+    #[serde(rename = "codespaceState")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub codespace_state: Option<String>,
+    /// For a codespace root: the port on this machine its knowledge base is forwarded to, when one is recorded.
+    #[serde(rename = "forwardPort")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub forward_port: Option<i64>,
+    /// For a codespace root: whether the recorded forward is alive.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub forwarded: Option<bool>,
+    /// For a codespace root: whether its knowledge base answers through the forward.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reachable: Option<bool>,
+}
+
+impl Root {
+    /// The `Root` that states these and nothing else.
+    pub fn new(placement: RootPlacement, registered: bool, running: bool) -> Self {
+        Self {
+            placement,
+            path: None,
+            present: None,
+            current: None,
+            registered,
+            running,
+            last_used: None,
+            did: None,
+            site_name: None,
+            identity_error: None,
+            config: None,
+            configs: None,
+            repo: None,
+            codespace: None,
+            codespace_state: None,
+            forward_port: None,
+            forwarded: None,
+            reachable: None,
+        }
+    }
+}
+
+schema!(Root);
+
+/// For a local root: how the control server's own directory selects it, when it does — standing in it (cwd), or XYNOLOG_ROOT.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum RootCurrent {
+    #[serde(rename = "cwd")]
+    Cwd,
+    #[serde(rename = "xynolog-root")]
+    XynologRoot,
+}
+
+impl RootCurrent {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            RootCurrent::Cwd => "cwd",
+            RootCurrent::XynologRoot => "xynolog-root",
+        }
+    }
+}
+
+/// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum RootPlacement {
+    #[serde(rename = "local")]
+    Local,
+    #[serde(rename = "codespace")]
+    Codespace,
+}
+
+impl RootPlacement {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            RootPlacement::Local => "local",
+            RootPlacement::Codespace => "codespace",
+        }
+    }
+}
+
+/// roots.forget's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RootsForgetParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// The registered root to forget: its path, or its basename when only one registered root has it.
+    pub root: String,
+}
+
+schema!(RootsForgetParams);
+
+/// A forgotten registry row. Only the row is removed: no file of the clone, and none of its persistent stack state.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RootsForgetResult {
+    /// The forgotten root's path.
+    pub path: String,
+    /// Whether its directory was already gone.
+    #[serde(rename = "directoryMissing")]
+    pub directory_missing: bool,
+    /// The key whose persistent stack state remains, when some does and no surviving root shares its DID: xynolog clean --root <key> removes it.
+    #[serde(rename = "persistentState")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub persistent_state: Option<String>,
+}
+
+impl RootsForgetResult {
+    /// The `RootsForgetResult` that states these and nothing else.
+    pub fn new(path: impl Into<String>, directory_missing: bool) -> Self {
+        Self {
+            path: path.into(),
+            directory_missing,
+            persistent_state: None,
+        }
+    }
+}
+
+schema!(RootsForgetResult);
+
+/// roots.init's params: the local directory, permanent identity, and optional configuration inputs xynolog init takes.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RootsInitParams {
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// Existing local directory in which to create the knowledge base.
+    pub path: String,
+    /// The permanent did:web domain, in colon-path form, such as owner.github.io:repo.
+    pub domain: String,
+    /// Project name. Absent: the directory basename.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// Human-readable site name. Absent: the project name.
+    #[serde(rename = "siteName")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site_name: Option<String>,
+    /// Inference provider for the generated local stack documents.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inference: Option<RootsInitParamsInference>,
+    /// The primary model bound to roles and jobs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    /// A light model example emitted in the generated config.
+    #[serde(rename = "modelLight")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model_light: Option<String>,
+    /// Ollama embedding model name, without the ollama: prefix.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub embedding: Option<String>,
+    /// Inference document name. Absent: the provider name.
+    #[serde(rename = "configName")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub config_name: Option<String>,
+    /// Anthropic API base URL.
+    #[serde(rename = "anthropicEndpoint")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub anthropic_endpoint: Option<String>,
+    /// Local Ollama API base URL.
+    #[serde(rename = "ollamaBase")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ollama_base: Option<String>,
+    /// Ollama registry base URL.
+    #[serde(rename = "ollamaRegistry")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ollama_registry: Option<String>,
+}
+
+impl RootsInitParams {
+    /// The `RootsInitParams` that states these and nothing else.
+    pub fn new(
+        api_version: ApiVersion,
+        path: impl Into<String>,
+        domain: impl Into<String>,
+    ) -> Self {
+        Self {
+            api_version,
+            path: path.into(),
+            domain: domain.into(),
+            name: None,
+            site_name: None,
+            inference: None,
+            model: None,
+            model_light: None,
+            embedding: None,
+            config_name: None,
+            anthropic_endpoint: None,
+            ollama_base: None,
+            ollama_registry: None,
+        }
+    }
+}
+
+schema!(RootsInitParams);
+
+/// Inference provider for the generated local stack documents.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum RootsInitParamsInference {
+    #[serde(rename = "anthropic")]
+    Anthropic,
+    #[serde(rename = "ollama")]
+    Ollama,
+}
+
+impl RootsInitParamsInference {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            RootsInitParamsInference::Anthropic => "anthropic",
+            RootsInitParamsInference::Ollama => "ollama",
+        }
+    }
+}
+
+/// The local directory where xynolog init created and registered the knowledge base.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RootsInitResult {
+    pub path: String,
+}
+
+schema!(RootsInitResult);
+
+/// roots.list's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RootsListParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+}
+
+schema!(RootsListParams);
+
+/// Every knowledge base this machine knows, as xynolog roots lists them: the local roots first, then the codespace stacks.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RootsListResult {
+    /// Each root.
+    pub roots: Vec<Root>,
+    /// What xynolog roots warns of without failing: an invalid XYNOLOG_ROOT, a clone whose project file is refused.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub warnings: Option<Vec<String>>,
+}
+
+impl RootsListResult {
+    /// The `RootsListResult` that states these and nothing else.
+    pub fn new(roots: Vec<Root>) -> Self {
+        Self {
+            roots,
+            warnings: None,
+        }
+    }
+}
+
+schema!(RootsListResult);
+
+/// A run's instance, by the name its caller gave it: unique among the target's instances that run on this machine. A second dispatcher beside the first is another instance. The launcher names the instance's container from the target's key and this name.
+pub type RunInstance = String;
+
+/// One of a knowledge base's own services, which service.run runs: the seven Xynolog services, as service-telemetry/telemetry.json names them. The reader holds the two lists to each other.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum RunService {
+    #[serde(rename = "archivist")]
+    Archivist,
+    #[serde(rename = "dispatcher")]
+    Dispatcher,
+    #[serde(rename = "gateway")]
+    Gateway,
+    #[serde(rename = "librarian")]
+    Librarian,
+    #[serde(rename = "smelter")]
+    Smelter,
+    #[serde(rename = "weaver")]
+    Weaver,
+    #[serde(rename = "worker")]
+    Worker,
+}
+
+impl RunService {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            RunService::Archivist => "archivist",
+            RunService::Dispatcher => "dispatcher",
+            RunService::Gateway => "gateway",
+            RunService::Librarian => "librarian",
+            RunService::Smelter => "smelter",
+            RunService::Weaver => "weaver",
+            RunService::Worker => "worker",
+        }
+    }
+}
+
+schema!(RunService);
+
+/// Who runs a daemon: the launcher, from `image` with `resources`, or somebody else, reached at `external`. Exactly one of the two.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct Runner {}
+
+schema!(Runner);
+
+/// A container runtime the launcher drives, as --runtime names it: Apple container, Docker or Podman.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum Runtime {
+    #[serde(rename = "container")]
+    Container,
+    #[serde(rename = "docker")]
+    Docker,
+    #[serde(rename = "podman")]
+    Podman,
+}
+
+impl Runtime {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Runtime::Container => "container",
+            Runtime::Docker => "docker",
+            Runtime::Podman => "podman",
+        }
+    }
+}
+
+schema!(Runtime);
+
+/// One container runtime the launcher drives, and whether this machine has it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RuntimeState {
+    pub name: Runtime,
+    /// Whether it is on the launcher's PATH.
+    pub found: bool,
+}
+
+schema!(RuntimeState);
+
 /// A resource returned by a search, carrying its relevance score and the reason it matched.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct ScoredResource {
@@ -9980,6 +13108,17 @@ impl ScoredResource {
 
 schema!(ScoredResource);
 
+/// A secret the document names and does not hold. The launcher hands it to the service that needs it, from where the reference says it is.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SecretRef {
+    /// The environment variable that holds the secret where the launcher runs. Unset, the start that needs it is refused.
+    #[serde(rename = "fromEnv")]
+    pub from_env: String,
+}
+
+schema!(SecretRef);
+
 /// One W3C selector: a way of finding a segment of a resource. Tell them apart by `type`, which is required on each and single-valued.
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
@@ -10078,6 +13217,76 @@ pub struct ServiceAddress {
 
 schema!(ServiceAddress);
 
+/// A group of services, as xynolog status reports them and --group names them: a knowledge base's record and its index, the issuer that signs its accounts in, the knowledge workers where people and agents work on it, the providers of its models, and the telemetry that watches them all.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceGroup {
+    #[serde(rename = "record")]
+    Record,
+    #[serde(rename = "index")]
+    Index,
+    #[serde(rename = "issuer")]
+    Issuer,
+    #[serde(rename = "knowledge-workers")]
+    KnowledgeWorkers,
+    #[serde(rename = "providers")]
+    Providers,
+    #[serde(rename = "telemetry")]
+    Telemetry,
+}
+
+impl ServiceGroup {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceGroup::Record => "record",
+            ServiceGroup::Index => "index",
+            ServiceGroup::Issuer => "issuer",
+            ServiceGroup::KnowledgeWorkers => "knowledge-workers",
+            ServiceGroup::Providers => "providers",
+            ServiceGroup::Telemetry => "telemetry",
+        }
+    }
+}
+
+schema!(ServiceGroup);
+
+/// service.host's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceHostParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else the first installed one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+}
+
+impl ServiceHostParams {
+    /// The `ServiceHostParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion) -> Self {
+        Self {
+            api_version,
+            runtime: None,
+        }
+    }
+}
+
+schema!(ServiceHostParams);
+
+/// Where this machine and a run's instance meet, under a runtime: the address the launcher publishes an instance's ports on, and the address the instance reaches this machine's listeners at. A caller writes it into a document before the run.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceHostResult {
+    pub runtime: Runtime,
+    /// The host address: an IP address or a host name, as the launcher's own stack dials it under this runtime.
+    pub address: String,
+}
+
+schema!(ServiceHostResult);
+
 /// The identity provider a service's account signs in at, by its issuer.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -10087,6 +13296,323 @@ pub struct ServiceIdentity {
 }
 
 schema!(ServiceIdentity);
+
+/// notifications/serviceOutput: one line a run's instance wrote, from its start, every line, in the order of its stream, as the instance wrote it. The launcher gives an instance none of its own secrets (R2), and keeps no copy.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceOutput {
+    #[serde(rename = "requestId")]
+    pub request_id: RequestId,
+    pub instance: RunInstance,
+    pub stream: OutputStream,
+    /// The line, without its newline.
+    pub line: String,
+}
+
+schema!(ServiceOutput);
+
+/// service.run's params: one instance of one of a knowledge base's own services, run once from the image the target's stack documents name, unsupervised, on the caller's document, arguments and environment. contract/LAUNCHER-CONTROL.md, R1-R8.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceRunParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// The knowledge base whose stack documents name the service's image, and whose stack the instance belongs to: stack.stop of it removes the instance too.
+    pub target: LocalTarget,
+    /// The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else the first installed one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+    /// The service whose image runs.
+    pub service: RunService,
+    pub instance: RunInstance,
+    /// The configuration document's text, written as it is, at the path the image's own arguments name: it need not be JSON. Absent: no file is at that path.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document: Option<String>,
+    /// The arguments the image's program is given in place of the image's own (--config and the document's path). Absent: the image's own.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub args: Option<Vec<String>>,
+    /// Every variable the instance is given beside the image's own, by name: nothing of the launcher's is added (R2). Empty: none.
+    pub environment: std::collections::BTreeMap<String, String>,
+    /// Directories of this machine, each mounted read-write at its own path, so that a path the document names is the same inside the instance and out (R4). Empty: none.
+    pub mounts: Vec<String>,
+    /// Directories put before the image's PATH, in order, each mounted at its own path. Empty: the image's PATH as it is.
+    #[serde(rename = "pathFirst")]
+    pub path_first: Vec<String>,
+    /// The ports the instance listens on, each published at the same number on the host address (R3). Empty: none.
+    pub ports: Vec<u64>,
+}
+
+impl ServiceRunParams {
+    /// The `ServiceRunParams` that states these and nothing else.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        api_version: ApiVersion,
+        target: LocalTarget,
+        service: RunService,
+        instance: RunInstance,
+        environment: std::collections::BTreeMap<String, String>,
+        mounts: Vec<String>,
+        path_first: Vec<String>,
+        ports: Vec<u64>,
+    ) -> Self {
+        Self {
+            api_version,
+            target,
+            runtime: None,
+            service,
+            instance,
+            document: None,
+            args: None,
+            environment,
+            mounts,
+            path_first,
+            ports,
+        }
+    }
+}
+
+schema!(ServiceRunParams);
+
+/// A run that ended: its instance exited. Sent once the instance's container has exited, after all of its output.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceRunResult {
+    pub instance: RunInstance,
+    /// The instance's exit status: the service's own, since nothing supervises it (R1). An instance a signal ended exits with 128 and the signal's number: 143 for SIGTERM, 137 for SIGKILL.
+    #[serde(rename = "exitCode")]
+    pub exit_code: u64,
+    /// Milliseconds from its container's start to its exit.
+    #[serde(rename = "ranMs")]
+    pub ran_ms: u64,
+}
+
+schema!(ServiceRunResult);
+
+/// service.signal's params: a signal for a run's instance.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceSignalParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// The knowledge base whose stack documents name the service's image, and whose stack the instance belongs to: stack.stop of it removes the instance too.
+    pub target: LocalTarget,
+    /// The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else the first installed one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+    pub instance: RunInstance,
+    /// term: SIGTERM, and SIGKILL 15 seconds later if it has not exited. kill: SIGKILL, so nothing it would settle on the way out is settled.
+    pub signal: ServiceSignalParamsSignal,
+}
+
+impl ServiceSignalParams {
+    /// The `ServiceSignalParams` that states these and nothing else.
+    pub fn new(
+        api_version: ApiVersion,
+        target: LocalTarget,
+        instance: RunInstance,
+        signal: ServiceSignalParamsSignal,
+    ) -> Self {
+        Self {
+            api_version,
+            target,
+            runtime: None,
+            instance,
+            signal,
+        }
+    }
+}
+
+schema!(ServiceSignalParams);
+
+/// term: SIGTERM, and SIGKILL 15 seconds later if it has not exited. kill: SIGKILL, so nothing it would settle on the way out is settled.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceSignalParamsSignal {
+    #[serde(rename = "term")]
+    Term,
+    #[serde(rename = "kill")]
+    Kill,
+}
+
+impl ServiceSignalParamsSignal {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceSignalParamsSignal::Term => "term",
+            ServiceSignalParamsSignal::Kill => "kill",
+        }
+    }
+}
+
+/// A signal sent, or not needed. The instance's exit is its run's answer, not this one.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceSignalResult {
+    /// Whether the instance still ran when the signal came. false: it has exited, and its run's answer is on its way; nothing was sent.
+    pub delivered: bool,
+}
+
+schema!(ServiceSignalResult);
+
+/// notifications/serviceStarted: a run's instance is running. Sent once, before any of its output.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceStarted {
+    #[serde(rename = "requestId")]
+    pub request_id: RequestId,
+    pub instance: RunInstance,
+    /// The runtime's name for the instance's container.
+    pub container: String,
+    /// Where the instance reads its document: the path the image's own arguments name. Present when the run gave a document.
+    #[serde(rename = "documentPath")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document_path: Option<String>,
+    /// The host address the instance's ports are published on, as service.host names it for the run's runtime.
+    pub address: String,
+}
+
+impl ServiceStarted {
+    /// The `ServiceStarted` that states these and nothing else.
+    pub fn new(
+        request_id: RequestId,
+        instance: RunInstance,
+        container: impl Into<String>,
+        address: impl Into<String>,
+    ) -> Self {
+        Self {
+            request_id,
+            instance,
+            container: container.into(),
+            document_path: None,
+            address: address.into(),
+        }
+    }
+}
+
+schema!(ServiceStarted);
+
+/// One service, as xynolog status reads it: where it runs, its state, and whether it answers. Nothing is reported that the launcher did not observe: an endpoint is named only when the stack's record or the descriptor names one, and a page to open only when the service answers.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceStatus {
+    /// The service, as xynolog status names it.
+    pub role: String,
+    /// The group it belongs to.
+    pub group: ServiceGroup,
+    /// The product its driver names (Neo4j, Keycloak), when its record names a driver.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub product: Option<String>,
+    /// Where it runs: the runtime its container runs under, external (somebody else runs it), or host (a process on this machine). Absent when nothing runs it.
+    #[serde(rename = "runsOn")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runs_on: Option<String>,
+    /// running: its container runs. stopped: its container exists and does not run (containerState says how). reachable, unreachable: somebody else runs it, and its endpoint answers or does not. absent: there is no container of it. not-configured: the stack's documents ask for none.
+    pub state: ServiceStatusState,
+    /// The runtime's own word for a container that is not running (exited, created).
+    #[serde(rename = "containerState")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub container_state: Option<String>,
+    /// Whether its health endpoint answers.
+    pub healthy: bool,
+    /// Whether its health counts toward its knowledge base's: a service the documents ask for none of, and a telemetry backend --no-observe leaves out, do not.
+    pub counted: bool,
+    /// The endpoint the launcher asks its health of: an http URL, or tcp://host:port.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub probe: Option<String>,
+    /// The page a person opens: the Browser, Jaeger's and Prometheus's interfaces, the collector's metrics readout. Present only when the service answers. The collector's OTLP receiver is never one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub page: Option<String>,
+    /// For the issuer the knowledge base signs in at, when it is the machine's: its realm there.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub realm: Option<String>,
+    /// For a service several knowledge bases share: the name of each it serves, as knowledgeBases names them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub serves: Option<Vec<String>>,
+}
+
+impl ServiceStatus {
+    /// The `ServiceStatus` that states these and nothing else.
+    pub fn new(
+        role: impl Into<String>,
+        group: ServiceGroup,
+        state: ServiceStatusState,
+        healthy: bool,
+        counted: bool,
+    ) -> Self {
+        Self {
+            role: role.into(),
+            group,
+            product: None,
+            runs_on: None,
+            state,
+            container_state: None,
+            healthy,
+            counted,
+            probe: None,
+            page: None,
+            realm: None,
+            serves: None,
+        }
+    }
+}
+
+schema!(ServiceStatus);
+
+/// running: its container runs. stopped: its container exists and does not run (containerState says how). reachable, unreachable: somebody else runs it, and its endpoint answers or does not. absent: there is no container of it. not-configured: the stack's documents ask for none.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ServiceStatusState {
+    #[serde(rename = "running")]
+    Running,
+    #[serde(rename = "stopped")]
+    Stopped,
+    #[serde(rename = "reachable")]
+    Reachable,
+    #[serde(rename = "unreachable")]
+    Unreachable,
+    #[serde(rename = "absent")]
+    Absent,
+    #[serde(rename = "not-configured")]
+    NotConfigured,
+}
+
+impl ServiceStatusState {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ServiceStatusState::Running => "running",
+            ServiceStatusState::Stopped => "stopped",
+            ServiceStatusState::Reachable => "reachable",
+            ServiceStatusState::Unreachable => "unreachable",
+            ServiceStatusState::Absent => "absent",
+            ServiceStatusState::NotConfigured => "not-configured",
+        }
+    }
+}
+
+/// The launcher's own stored sign-in for a stack (xynolog login), never Desktop's. No token is in it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Session {
+    /// valid: the stack's gateway accepts the stored token. expired: it refuses it (a refresh, or xynolog login, renews it). unverified: the stack did not answer. none: nothing is stored.
+    pub state: SessionState,
+    /// The email the session was signed in as, when the store records one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+}
+
+impl Session {
+    /// The `Session` that states these and nothing else.
+    pub fn new(state: SessionState) -> Self {
+        Self { state, email: None }
+    }
+}
+
+schema!(Session);
 
 /// Why a session ended: `expired`, the issuer refused to renew its token; `refused`, the gateway refused a token its issuer had just issued.
 #[derive(
@@ -10145,6 +13671,140 @@ pub struct SessionLeftEvent {
 
 schema!(SessionLeftEvent);
 
+/// valid: the stack's gateway accepts the stored token. expired: it refuses it (a refresh, or xynolog login, renews it). unverified: the stack did not answer. none: nothing is stored.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum SessionState {
+    #[serde(rename = "valid")]
+    Valid,
+    #[serde(rename = "expired")]
+    Expired,
+    #[serde(rename = "unverified")]
+    Unverified,
+    #[serde(rename = "none")]
+    None,
+}
+
+impl SessionState {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            SessionState::Valid => "valid",
+            SessionState::Expired => "expired",
+            SessionState::Unverified => "unverified",
+            SessionState::None => "none",
+        }
+    }
+}
+
+/// One setting the launcher keeps, as xynolog settings shows it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Setting {
+    /// Its name, as xynolog settings takes it.
+    pub name: String,
+    /// Whether this is the machine-wide form of a knowledge-base setting (secret-store --default).
+    pub default: bool,
+    /// What it applies to: every knowledge base on this machine, or one.
+    #[serde(rename = "appliesTo")]
+    pub applies_to: SettingAppliesTo,
+    /// The values in effect, one per line xynolog settings shows.
+    pub values: Vec<SettingLine>,
+    /// Whether settings.set and settings.unset change it.
+    pub settable: bool,
+    /// For one they do not: how it is changed instead.
+    #[serde(rename = "changedBy")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub changed_by: Option<String>,
+}
+
+impl Setting {
+    /// The `Setting` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        default: bool,
+        applies_to: SettingAppliesTo,
+        values: Vec<SettingLine>,
+        settable: bool,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            default,
+            applies_to,
+            values,
+            settable,
+            changed_by: None,
+        }
+    }
+}
+
+schema!(Setting);
+
+/// What it applies to: every knowledge base on this machine, or one.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum SettingAppliesTo {
+    #[serde(rename = "machine")]
+    Machine,
+    #[serde(rename = "knowledge-base")]
+    KnowledgeBase,
+}
+
+impl SettingAppliesTo {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            SettingAppliesTo::Machine => "machine",
+            SettingAppliesTo::KnowledgeBase => "knowledge-base",
+        }
+    }
+}
+
+/// One value of a setting, and where it came from, as xynolog settings shows it. A secret's value is never one: a secret setting shows where the value is kept.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingLine {
+    /// The value in effect.
+    pub value: String,
+    /// Where it came from: a record, a document, the default.
+    pub source: String,
+}
+
+schema!(SettingLine);
+
+/// settings.get's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingsGetParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// The setting, as xynolog settings names it.
+    pub name: String,
+    /// The machine-wide form of a knowledge-base setting: --default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default: Option<bool>,
+    /// A knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the clone the control server was started in.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root: Option<String>,
+}
+
+impl SettingsGetParams {
+    /// The `SettingsGetParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion, name: impl Into<String>) -> Self {
+        Self {
+            api_version,
+            name: name.into(),
+            default: None,
+            root: None,
+        }
+    }
+}
+
+schema!(SettingsGetParams);
+
 /// Emitted when the hover delay setting changes
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct SettingsHoverDelayChangedEvent {
@@ -10154,6 +13814,57 @@ pub struct SettingsHoverDelayChangedEvent {
 
 schema!(SettingsHoverDelayChangedEvent);
 
+/// settings.list's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingsListParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// A knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the clone the control server was started in.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root: Option<String>,
+}
+
+impl SettingsListParams {
+    /// The `SettingsListParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion) -> Self {
+        Self {
+            api_version,
+            root: None,
+        }
+    }
+}
+
+schema!(SettingsListParams);
+
+/// Every setting the launcher keeps: the machine's, then the knowledge base's.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingsListResult {
+    /// The knowledge base whose settings are listed, when one resolved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root: Option<String>,
+    /// Why no knowledge base resolved, when none did: its settings are not listed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unresolved: Option<String>,
+    /// Each setting.
+    pub settings: Vec<Setting>,
+}
+
+impl SettingsListResult {
+    /// The `SettingsListResult` that states these and nothing else.
+    pub fn new(settings: Vec<Setting>) -> Self {
+        Self {
+            root: None,
+            unresolved: None,
+            settings,
+        }
+    }
+}
+
+schema!(SettingsListResult);
+
 /// Emitted when the UI locale setting changes
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct SettingsLocaleChangedEvent {
@@ -10161,6 +13872,90 @@ pub struct SettingsLocaleChangedEvent {
 }
 
 schema!(SettingsLocaleChangedEvent);
+
+/// settings.path's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingsPathParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// Whose document: the Browser's, the worker's, the issuer's or the vector store's.
+    pub document: SettingsPathParamsDocument,
+}
+
+schema!(SettingsPathParams);
+
+/// Whose document: the Browser's, the worker's, the issuer's or the vector store's.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum SettingsPathParamsDocument {
+    #[serde(rename = "browser")]
+    Browser,
+    #[serde(rename = "worker")]
+    Worker,
+    #[serde(rename = "issuer")]
+    Issuer,
+    #[serde(rename = "vectors")]
+    Vectors,
+}
+
+impl SettingsPathParamsDocument {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            SettingsPathParamsDocument::Browser => "browser",
+            SettingsPathParamsDocument::Worker => "worker",
+            SettingsPathParamsDocument::Issuer => "issuer",
+            SettingsPathParamsDocument::Vectors => "vectors",
+        }
+    }
+}
+
+/// Where a machine document is. When there is none, it is written from the launcher's catalog first, as a start writes it; one that does not hold is refused, as a start refuses it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingsPathResult {
+    /// The document's path.
+    pub path: String,
+}
+
+schema!(SettingsPathResult);
+
+/// settings.set's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingsSetParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// The setting, as xynolog settings names it.
+    pub name: String,
+    /// The machine-wide form of a knowledge-base setting: --default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default: Option<bool>,
+    /// A knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the clone the control server was started in.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root: Option<String>,
+    /// The value, checked as a start would check it.
+    pub value: String,
+}
+
+impl SettingsSetParams {
+    /// The `SettingsSetParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion, name: impl Into<String>, value: impl Into<String>) -> Self {
+        Self {
+            api_version,
+            name: name.into(),
+            default: None,
+            root: None,
+            value: value.into(),
+        }
+    }
+}
+
+schema!(SettingsSetParams);
 
 /// Emitted when the UI theme setting changes
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -10192,6 +13987,37 @@ impl SettingsThemeChangedEventTheme {
         }
     }
 }
+
+/// settings.unset's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingsUnsetParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// The setting, as xynolog settings names it.
+    pub name: String,
+    /// The machine-wide form of a knowledge-base setting: --default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default: Option<bool>,
+    /// A knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the clone the control server was started in.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root: Option<String>,
+}
+
+impl SettingsUnsetParams {
+    /// The `SettingsUnsetParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion, name: impl Into<String>) -> Self {
+        Self {
+            api_version,
+            name: name.into(),
+            default: None,
+            root: None,
+        }
+    }
+}
+
+schema!(SettingsUnsetParams);
 
 /// The entry a sign-in landed on, and what the person believed, so a host can set the two against each other and say when they differ. The sign-in stands either way: the knowledge base that answered is the one reached.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -10403,11 +14229,11 @@ schema!(SmelterConfig);
 pub struct SmelterHealth {
     pub status: SmelterHealthStatus,
     /// The DID of the knowledge base it serves: the one its settings name, which that knowledge base said it is before the Smelter reached its index.
-    pub kb: String,
+    pub kb: KbDid,
     /// The state of its own stream of the record, one of the seven of TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while it is `open`.
     pub stream: SmelterHealthStream,
     /// How far it has followed the record. Its sweep is also `due` where its start's reconcile failed.
-    pub following: SmelterHealthFollowing,
+    pub following: FollowerFollowing,
     /// How many events it has applied since it started: events of the kinds that do something, and not refused. Neither an event taken as nothing nor the work of a reconcile or a rebuild is counted.
     #[serde(rename = "eventsProcessed")]
     pub events_processed: u64,
@@ -10420,16 +14246,16 @@ pub struct SmelterHealth {
 impl SmelterHealth {
     /// The `SmelterHealth` that states these and nothing else.
     pub fn new(
-        kb: impl Into<String>,
+        kb: KbDid,
         stream: SmelterHealthStream,
-        following: SmelterHealthFollowing,
+        following: FollowerFollowing,
         events_processed: u64,
         reconcile: SmelterHealthReconcile,
         index: SmelterHealthIndex,
     ) -> Self {
         Self {
             status: SmelterHealthStatus::Ok,
-            kb: kb.into(),
+            kb,
             stream,
             following,
             events_processed,
@@ -10440,48 +14266,6 @@ impl SmelterHealth {
 }
 
 schema!(SmelterHealth);
-
-/// How far it has followed the record. Its sweep is also `due` where its start's reconcile failed.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct SmelterHealthFollowing {
-    /// The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again.
-    pub sweep: SmelterHealthFollowingSweep,
-    /// How many resources' logs a failed taking has stopped until the next sweep.
-    pub stopped: u64,
-    /// How many events it refused as recorded since it started.
-    pub refused: u64,
-    /// How many times its stream has dropped since it started.
-    #[serde(rename = "streamDrops")]
-    pub stream_drops: u64,
-}
-
-/// The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum SmelterHealthFollowingSweep {
-    #[serde(rename = "pending")]
-    Pending,
-    #[serde(rename = "running")]
-    Running,
-    #[serde(rename = "done")]
-    Done,
-    #[serde(rename = "due")]
-    Due,
-}
-
-impl SmelterHealthFollowingSweep {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            SmelterHealthFollowingSweep::Pending => "pending",
-            SmelterHealthFollowingSweep::Running => "running",
-            SmelterHealthFollowingSweep::Done => "done",
-            SmelterHealthFollowingSweep::Due => "due",
-        }
-    }
-}
 
 /// What the Smelter holds its index to, and what this start did for that.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -10698,6 +14482,440 @@ impl SpecificResourceType {
     }
 }
 
+/// The group and version of Xynolog's kinds. The group names who defines a kind, under the domain the knowledge bases' DIDs use; which knowledge base a document is about is said inside it.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum StackApiVersion {
+    #[serde(rename = "xynolog.org/v1alpha1")]
+    XynologOrgV1alpha1,
+}
+
+impl StackApiVersion {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            StackApiVersion::XynologOrgV1alpha1 => "xynolog.org/v1alpha1",
+        }
+    }
+}
+
+schema!(StackApiVersion);
+
+/// A knowledge base's record and the services that keep it: the Gateway, the Dispatcher, the Archivist, and the broker between them. They live and die with the knowledge base.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBase {
+    #[serde(rename = "apiVersion")]
+    pub api_version: StackApiVersion,
+    pub kind: StackKnowledgeBaseKind,
+    pub metadata: Metadata,
+    /// The knowledge base's services, and how each runs.
+    pub spec: StackKnowledgeBaseSpec,
+}
+
+impl StackKnowledgeBase {
+    /// The `StackKnowledgeBase` that states these and nothing else.
+    pub fn new(
+        api_version: StackApiVersion,
+        metadata: Metadata,
+        spec: StackKnowledgeBaseSpec,
+    ) -> Self {
+        Self {
+            api_version,
+            kind: StackKnowledgeBaseKind::KnowledgeBase,
+            metadata,
+            spec,
+        }
+    }
+}
+
+schema!(StackKnowledgeBase);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum StackKnowledgeBaseKind {
+    #[serde(rename = "KnowledgeBase")]
+    KnowledgeBase,
+}
+
+impl StackKnowledgeBaseKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            StackKnowledgeBaseKind::KnowledgeBase => "KnowledgeBase",
+        }
+    }
+}
+
+/// The knowledge base's services, and how each runs.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpec {
+    #[serde(rename = "logLevel")]
+    pub log_level: LogLevel,
+    /// The Gateway: where every client and every service reaches the knowledge base.
+    pub gateway: StackKnowledgeBaseSpecGateway,
+    /// The Dispatcher: it hands queued jobs to workers.
+    pub dispatcher: StackKnowledgeBaseSpecDispatcher,
+    /// The Archivist: it keeps the knowledge base's record in its working tree.
+    pub archivist: StackKnowledgeBaseSpecArchivist,
+    /// The broker the job queue and the signal plane share: the launcher's, run from `image`, or somebody else's, at `external`.
+    pub messaging: StackKnowledgeBaseSpecMessaging,
+    /// The issuer the knowledge base trusts: the one the launcher runs for the knowledge bases on a machine, at `shared`, with the knowledge base's own realm in it, or somebody else's, at `external`.
+    pub issuer: StackKnowledgeBaseSpecIssuer,
+}
+
+/// The Archivist: it keeps the knowledge base's record in its working tree.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecArchivist {
+    pub image: Image,
+    pub resources: Resources,
+    /// Where the stack's services reach the Archivist, when that is somewhere the launcher cannot see. Absent, they reach it where the launcher places it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address: Option<HostPort>,
+}
+
+impl StackKnowledgeBaseSpecArchivist {
+    /// The `StackKnowledgeBaseSpecArchivist` that states these and nothing else.
+    pub fn new(image: Image, resources: Resources) -> Self {
+        Self {
+            image,
+            resources,
+            address: None,
+        }
+    }
+}
+
+/// The Dispatcher: it hands queued jobs to workers.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecDispatcher {
+    pub image: Image,
+    pub resources: Resources,
+}
+
+/// The Gateway: where every client and every service reaches the knowledge base.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecGateway {
+    pub image: Image,
+    pub resources: Resources,
+    /// The port the Gateway is published on.
+    pub port: u16,
+    /// Where clients reach the Gateway: the server its API document names. A service of the stack reaches it where the launcher places it, on `port`.
+    #[serde(rename = "publicURL")]
+    pub public_u_r_l: String,
+}
+
+/// The issuer the knowledge base trusts: the one the launcher runs for the knowledge bases on a machine, at `shared`, with the knowledge base's own realm in it, or somebody else's, at `external`.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecIssuer {
+    /// The issuer the launcher runs for the knowledge bases on a machine (the state home's Issuer document). The launcher creates the knowledge base's realm in it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shared: Option<StackKnowledgeBaseSpecIssuerShared>,
+    /// An issuer somebody else runs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub external: Option<StackKnowledgeBaseSpecIssuerExternal>,
+    /// The claim a person's DID is built from: did:web:<site domain>:users:<its value>.
+    #[serde(rename = "subjectClaim")]
+    pub subject_claim: String,
+}
+
+impl StackKnowledgeBaseSpecIssuer {
+    /// The `StackKnowledgeBaseSpecIssuer` that states these and nothing else.
+    pub fn new(subject_claim: impl Into<String>) -> Self {
+        Self {
+            shared: None,
+            external: None,
+            subject_claim: subject_claim.into(),
+        }
+    }
+}
+
+/// An issuer somebody else runs.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecIssuerExternal {
+    /// `oidc`, or `keycloak`.
+    pub r#type: String,
+    /// The URL in its tokens' `iss` claim.
+    pub url: String,
+}
+
+/// The issuer the launcher runs for the knowledge bases on a machine (the state home's Issuer document). The launcher creates the knowledge base's realm in it.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecIssuerShared {
+    /// How long a token the realm mints stays valid, in seconds: the window in which a disabled account can still act.
+    #[serde(rename = "accessTokenLifespan")]
+    pub access_token_lifespan: u64,
+}
+
+/// The broker the job queue and the signal plane share: the launcher's, run from `image`, or somebody else's, at `external`.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecMessaging {
+    /// The Dispatcher's queue.
+    pub jobs: StackKnowledgeBaseSpecMessagingJobs,
+    /// The Gateway's signal plane.
+    pub signal: StackKnowledgeBaseSpecMessagingSignal,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image: Option<Image>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resources: Option<Resources>,
+    /// A broker somebody else runs, serving this knowledge base alone: a second knowledge base on it would share the job queue and, on a `nats` signal plane, the frames and the gateway's record of pending replies. The launcher refuses to start a knowledge base whose `servers` another knowledge base on its machine names.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub external: Option<StackKnowledgeBaseSpecMessagingExternal>,
+}
+
+impl StackKnowledgeBaseSpecMessaging {
+    /// The `StackKnowledgeBaseSpecMessaging` that states these and nothing else.
+    pub fn new(
+        jobs: StackKnowledgeBaseSpecMessagingJobs,
+        signal: StackKnowledgeBaseSpecMessagingSignal,
+    ) -> Self {
+        Self {
+            jobs,
+            signal,
+            image: None,
+            resources: None,
+            external: None,
+        }
+    }
+}
+
+/// A broker somebody else runs, serving this knowledge base alone: a second knowledge base on it would share the job queue and, on a `nats` signal plane, the frames and the gateway's record of pending replies. The launcher refuses to start a knowledge base whose `servers` another knowledge base on its machine names.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecMessagingExternal {
+    /// Where it listens: `host:port`.
+    pub servers: String,
+    pub user: SecretRef,
+    pub password: SecretRef,
+}
+
+/// The Dispatcher's queue.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecMessagingJobs {
+    /// The queue's driver: `jetstream`.
+    pub r#type: String,
+}
+
+/// The Gateway's signal plane.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackKnowledgeBaseSpecMessagingSignal {
+    /// `in-process`, one Gateway on its own fabric, or `nats`, on the broker.
+    pub r#type: String,
+}
+
+/// stack.start's params: what xynolog start takes, but its help and its narration switches.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackStartParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<Target>,
+    /// The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else every installed one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+    /// The Inference document to run, as --config names it. Absent: the knowledge base's recorded preference, else the default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub config: Option<String>,
+    /// Just this one service, as --service names it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service: Option<String>,
+    /// Just this one group of services, as --group names it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub group: Option<ServiceGroup>,
+    /// For a codespace target: which of the repository's codespaces, as --codespace names it.
+    #[serde(rename = "codespaceName")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub codespace_name: Option<String>,
+    /// For a codespace target being created: its VM class, as --machine names it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub machine: Option<String>,
+    /// For a codespace target being created: inactivity before it stops, as --idle-timeout takes it.
+    #[serde(rename = "idleTimeout")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub idle_timeout: Option<String>,
+    /// For a codespace target being created: how long a stopped codespace is kept, as --retention-period takes it.
+    #[serde(rename = "retentionPeriod")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub retention_period: Option<String>,
+    /// Whether to start the telemetry backends, Jaeger and Prometheus. false is --no-observe. Absent: true.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub observe: Option<bool>,
+    /// Where a started Ollama keeps its models, as --ollama-cache names it. Absent: the host's ~/.ollama when there is one, else the named volume — what the command line's prompt does when nobody answers it.
+    #[serde(rename = "ollamaCache")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ollama_cache: Option<StackStartParamsOllamaCache>,
+    /// Whether to run nothing, and report each runtime command a start would run as a command progress line.
+    #[serde(rename = "dryRun")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dry_run: Option<bool>,
+}
+
+impl StackStartParams {
+    /// The `StackStartParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion) -> Self {
+        Self {
+            api_version,
+            target: None,
+            runtime: None,
+            config: None,
+            service: None,
+            group: None,
+            codespace_name: None,
+            machine: None,
+            idle_timeout: None,
+            retention_period: None,
+            observe: None,
+            ollama_cache: None,
+            dry_run: None,
+        }
+    }
+}
+
+schema!(StackStartParams);
+
+/// Where a started Ollama keeps its models, as --ollama-cache names it. Absent: the host's ~/.ollama when there is one, else the named volume — what the command line's prompt does when nobody answers it.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum StackStartParamsOllamaCache {
+    #[serde(rename = "host")]
+    Host,
+    #[serde(rename = "volume")]
+    Volume,
+}
+
+impl StackStartParamsOllamaCache {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            StackStartParamsOllamaCache::Host => "host",
+            StackStartParamsOllamaCache::Volume => "volume",
+        }
+    }
+}
+
+/// A start that ran to its end: the stack as status reads it afterwards. A start that failed is an error, whatever it started before it did; its progress lines say what it did.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackStartResult {
+    /// Whether the start ran nothing.
+    #[serde(rename = "dryRun")]
+    pub dry_run: bool,
+    /// The started knowledge base's stack, as status reads it after the start. Absent from a dry run, and from a start of services no knowledge base owns.
+    #[serde(rename = "knowledgeBase")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub knowledge_base: Option<KnowledgeBaseStatus>,
+    /// The shared services, as status reads them after the start. Absent from a dry run.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shared: Option<Vec<ServiceStatus>>,
+}
+
+impl StackStartResult {
+    /// The `StackStartResult` that states these and nothing else.
+    pub fn new(dry_run: bool) -> Self {
+        Self {
+            dry_run,
+            knowledge_base: None,
+            shared: None,
+        }
+    }
+}
+
+schema!(StackStartResult);
+
+/// stack.stop's params: what xynolog stop takes, but its help.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackStopParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<Target>,
+    /// The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else every installed one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+    /// Just this one service, as --service names it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service: Option<String>,
+    /// Just this one group of services, as --group names it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub group: Option<ServiceGroup>,
+    /// For a codespace target: destroy the codespace, state and all, and forget its record. The command line's --delete. Refused without deleteConfirmed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delete: Option<bool>,
+    /// That the person confirmed the deletion: delete is refused with control.confirmation-required without it.
+    #[serde(rename = "deleteConfirmed")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delete_confirmed: Option<bool>,
+    /// Whether to stop nothing, and report each runtime command a stop would run as a command progress line.
+    #[serde(rename = "dryRun")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dry_run: Option<bool>,
+}
+
+impl StackStopParams {
+    /// The `StackStopParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion) -> Self {
+        Self {
+            api_version,
+            target: None,
+            runtime: None,
+            service: None,
+            group: None,
+            delete: None,
+            delete_confirmed: None,
+            dry_run: None,
+        }
+    }
+}
+
+schema!(StackStopParams);
+
+/// A stop that ran to its end: what status reads afterwards. A stop that failed is an error.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StackStopResult {
+    /// Whether the stop stopped nothing.
+    #[serde(rename = "dryRun")]
+    pub dry_run: bool,
+    /// The knowledge bases still recorded, as status reads them after the stop. Absent from a dry run.
+    #[serde(rename = "knowledgeBases")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub knowledge_bases: Option<Vec<KnowledgeBaseStatus>>,
+    /// The shared services, as status reads them after the stop. Absent from a dry run.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shared: Option<Vec<ServiceStatus>>,
+}
+
+impl StackStopResult {
+    /// The `StackStopResult` that states these and nothing else.
+    pub fn new(dry_run: bool) -> Self {
+        Self {
+            dry_run,
+            knowledge_bases: None,
+            shared: None,
+        }
+    }
+}
+
+schema!(StackStopResult);
+
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct StatusResponse {
     pub status: String,
@@ -10735,6 +14953,59 @@ pub struct StatusResponseFeatures {
     pub semantic_content: String,
     pub collaboration: String,
 }
+
+/// status.snapshot's params.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StatusSnapshotParams {
+    /// The version of the control API the request is written to.
+    #[serde(rename = "apiVersion")]
+    pub api_version: ApiVersion,
+    /// Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<Target>,
+    /// The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else every installed one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime: Option<Runtime>,
+}
+
+impl StatusSnapshotParams {
+    /// The `StatusSnapshotParams` that states these and nothing else.
+    pub fn new(api_version: ApiVersion) -> Self {
+        Self {
+            api_version,
+            target: None,
+            runtime: None,
+        }
+    }
+}
+
+schema!(StatusSnapshotParams);
+
+/// What xynolog status reports: each knowledge base with its own services, and each service the knowledge bases share, once, with the knowledge bases it serves.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StatusSnapshotResult {
+    /// The target's stack; with no target, the stack of the knowledge base the control server stands in, else every recorded one.
+    #[serde(rename = "knowledgeBases")]
+    pub knowledge_bases: Vec<KnowledgeBaseStatus>,
+    /// The services every knowledge base shares, group by group, and those the machine serves for the knowledge bases that name them.
+    pub shared: Vec<ServiceStatus>,
+}
+
+schema!(StatusSnapshotResult);
+
+/// One entry of the storage-uri index: the file `projections/storage-uri/<ab>/<cd>/<sha256 of the URI, hex>.json` under the state directory. It answers which resource's content is at a place in the working tree. Written as JSON indented by two spaces, `uri` first.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StorageUriEntry {
+    /// The `file://` URI of a place in the working tree, relative to the knowledge base's root.
+    pub uri: String,
+    #[serde(rename = "resourceId")]
+    pub resource_id: ResourceId,
+}
+
+schema!(StorageUriEntry);
 
 /// A persisted domain event with metadata. Flat shape — event fields and metadata are peers.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -11281,6 +15552,17 @@ pub struct TagSchemaAddedPayload {
 
 schema!(TagSchemaAddedPayload);
 
+/// The knowledge base's tag schemas: the file `projections/__system__/tagschemas.json` under the state directory, the sum of the `frame:tag-schema-added` events. Written as JSON indented by two spaces.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct TagSchemasProjection {
+    /// Every tag schema added, sorted by `id`. A schema added again under an `id` replaces the one held.
+    #[serde(rename = "tagSchemas")]
+    pub tag_schemas: Vec<TagSchema>,
+}
+
+schema!(TagSchemasProjection);
+
 /// What a tagging job takes: passages of the resource are marked with categories of one tag schema.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -11328,6 +15610,54 @@ impl TaggingJobParamsMotivation {
     pub const fn as_str(&self) -> &'static str {
         match self {
             TaggingJobParamsMotivation::Tagging => "tagging",
+        }
+    }
+}
+
+/// Which knowledge base an operation acts on: a local clone's stack, or a codespace's. The launcher resolves it as the command line resolves --root and --repo, and refuses a choice it would have to guess.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Target {
+    /// Where the stack runs: on this machine (local), or on a GitHub codespace whose knowledge base is forwarded here (codespace).
+    pub kind: TargetKind,
+    /// For a local target: the knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the local stack the command line chooses with --runtime, standing where the control server was started.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root: Option<String>,
+    /// For a codespace target: the GitHub repository, as --repo takes it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repo: Option<String>,
+}
+
+impl Target {
+    /// The `Target` that states these and nothing else.
+    pub fn new(kind: TargetKind) -> Self {
+        Self {
+            kind,
+            root: None,
+            repo: None,
+        }
+    }
+}
+
+schema!(Target);
+
+/// Where the stack runs: on this machine (local), or on a GitHub codespace whose knowledge base is forwarded here (codespace).
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum TargetKind {
+    #[serde(rename = "local")]
+    Local,
+    #[serde(rename = "codespace")]
+    Codespace,
+}
+
+impl TargetKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            TargetKind::Local => "local",
+            TargetKind::Codespace => "codespace",
         }
     }
 }
@@ -11514,6 +15844,17 @@ pub struct UnitCursor {
 
 schema!(UnitCursor);
 
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct UpdateAnnotationBodyRequest {
+    /// Resource ID containing the annotation (required for O(1) Layer 3 lookup)
+    #[serde(rename = "resourceId")]
+    pub resource_id: ResourceId,
+    /// Array of body modification operations to apply
+    pub operations: Vec<BodyOperation>,
+}
+
+schema!(UpdateAnnotationBodyRequest);
+
 /// What an upload reports as it goes, told apart by `phase`: its size first, then the bytes sent so far, then the resource made.
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
@@ -11656,6 +15997,47 @@ impl UploadProgressStartedPhase {
     }
 }
 
+/// A sign-in waits for a person: open the verification page and enter the code. The code is sent here and nowhere else — in no progress line, no log record and no diagnostic.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct UserAction {
+    #[serde(rename = "requestId")]
+    pub request_id: RequestId,
+    /// The page where the person enters the code.
+    #[serde(rename = "verificationUri")]
+    pub verification_uri: String,
+    /// The page with the code already in it, when the issuer offers one.
+    #[serde(rename = "verificationUriComplete")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verification_uri_complete: Option<String>,
+    /// The code the person enters.
+    #[serde(rename = "userCode")]
+    pub user_code: String,
+    /// How long the code is good for, from when it was issued.
+    #[serde(rename = "expiresInSeconds")]
+    pub expires_in_seconds: u64,
+}
+
+impl UserAction {
+    /// The `UserAction` that states these and nothing else.
+    pub fn new(
+        request_id: RequestId,
+        verification_uri: impl Into<String>,
+        user_code: impl Into<String>,
+        expires_in_seconds: u64,
+    ) -> Self {
+        Self {
+            request_id,
+            verification_uri: verification_uri.into(),
+            verification_uri_complete: None,
+            user_code: user_code.into(),
+            expires_in_seconds,
+        }
+    }
+}
+
+schema!(UserAction);
+
 /// The identity of whoever did something, a person or a software agent alike: a DID (`did:web:<domain>:users:<subject>`, `did:web:<domain>:agents:<subject>`), with no whitespace in it. Never a name, an address, or a row in a table. What follows `did:` is not constrained further: a subject is the issuer's, percent-encoded, and that encoding leaves some punctuation as it is.
 #[derive(
     Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -11768,6 +16150,61 @@ pub struct UserResponse {
 }
 
 schema!(UserResponse);
+
+/// The vector store the launcher runs for the knowledge bases on a machine, each knowledge base's index in collections of its own. It belongs to no knowledge base, so its document is kept in the launcher's state home, in `stack/vectors.yaml`, not in a knowledge base's repository. A knowledge base keeps its index in it by naming `shared` at `spec.vectors`.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct VectorStore {
+    #[serde(rename = "apiVersion")]
+    pub api_version: StackApiVersion,
+    pub kind: VectorStoreKind,
+    pub metadata: Metadata,
+    /// The vector store, and where it is published.
+    pub spec: VectorStoreSpec,
+}
+
+impl VectorStore {
+    /// The `VectorStore` that states these and nothing else.
+    pub fn new(api_version: StackApiVersion, metadata: Metadata, spec: VectorStoreSpec) -> Self {
+        Self {
+            api_version,
+            kind: VectorStoreKind::VectorStore,
+            metadata,
+            spec,
+        }
+    }
+}
+
+schema!(VectorStore);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum VectorStoreKind {
+    #[serde(rename = "VectorStore")]
+    VectorStore,
+}
+
+impl VectorStoreKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            VectorStoreKind::VectorStore => "VectorStore",
+        }
+    }
+}
+
+/// The vector store, and where it is published.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct VectorStoreSpec {
+    /// The vector store's driver: `qdrant`.
+    pub r#type: String,
+    pub image: Image,
+    pub resources: Resources,
+    /// The port the vector store is published on, on this machine, where every knowledge base's Smelter and Librarian reach it.
+    pub port: u16,
+}
 
 /// The vector index a service writes or searches, and what that kind of index needs to be reached: one of the kinds `xynolog-vectors` has a store for, told apart by `type`.
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
@@ -11905,23 +16342,18 @@ schema!(WeaverConfig);
 pub struct WeaverHealth {
     pub status: WeaverHealthStatus,
     /// The DID of the knowledge base it serves: the one its settings name, which that knowledge base said it is before the Weaver connected to the graph database.
-    pub kb: String,
-    /// How far a follower of the record has followed it, as every follower says it at its health port (WEAVER.md § Health, SMELTER.md § Health).
-    pub following: WeaverHealthFollowing,
+    pub kb: KbDid,
+    pub following: FollowerFollowing,
     /// How far the reconcile its first sweep is followed by has got (WEAVER.md § Reconcile): the pass's `summary` when it is done, or its `error` when it failed.
     pub reconcile: WeaverHealthReconcile,
 }
 
 impl WeaverHealth {
     /// The `WeaverHealth` that states these and nothing else.
-    pub fn new(
-        kb: impl Into<String>,
-        following: WeaverHealthFollowing,
-        reconcile: WeaverHealthReconcile,
-    ) -> Self {
+    pub fn new(kb: KbDid, following: FollowerFollowing, reconcile: WeaverHealthReconcile) -> Self {
         Self {
             status: WeaverHealthStatus::Ok,
-            kb: kb.into(),
+            kb,
             following,
             reconcile,
         }
@@ -11929,48 +16361,6 @@ impl WeaverHealth {
 }
 
 schema!(WeaverHealth);
-
-/// How far a follower of the record has followed it, as every follower says it at its health port (WEAVER.md § Health, SMELTER.md § Health).
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct WeaverHealthFollowing {
-    /// The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again.
-    pub sweep: WeaverHealthFollowingSweep,
-    /// How many resources' logs a failed taking has stopped until the next sweep.
-    pub stopped: u64,
-    /// How many events it refused as recorded since it started.
-    pub refused: u64,
-    /// How many times its stream has dropped since it started.
-    #[serde(rename = "streamDrops")]
-    pub stream_drops: u64,
-}
-
-/// The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum WeaverHealthFollowingSweep {
-    #[serde(rename = "pending")]
-    Pending,
-    #[serde(rename = "running")]
-    Running,
-    #[serde(rename = "done")]
-    Done,
-    #[serde(rename = "due")]
-    Due,
-}
-
-impl WeaverHealthFollowingSweep {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            WeaverHealthFollowingSweep::Pending => "pending",
-            WeaverHealthFollowingSweep::Running => "running",
-            WeaverHealthFollowingSweep::Done => "done",
-            WeaverHealthFollowingSweep::Due => "due",
-        }
-    }
-}
 
 /// How far the reconcile its first sweep is followed by has got (WEAVER.md § Reconcile): the pass's `summary` when it is done, or its `error` when it failed.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -12264,6 +16654,119 @@ impl WorkerKnowledgeBaseHealthState {
             WorkerKnowledgeBaseHealthState::Starting => "starting",
             WorkerKnowledgeBaseHealthState::Working => "working",
             WorkerKnowledgeBaseHealthState::Refused => "refused",
+        }
+    }
+}
+
+/// The shared worker that does knowledge bases' jobs: its image, its memory and its log level. They are shared, not any knowledge base's, so its document is kept in the launcher's state home, in `stack/workers.yaml`, not in a knowledge base's repository. A knowledge base's jobs are done when its Inference document gives a job an engine. A worker needs only the Gateway, and an issuer's token with the worker's role.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerPool {
+    #[serde(rename = "apiVersion")]
+    pub api_version: StackApiVersion,
+    pub kind: WorkerPoolKind,
+    pub metadata: Metadata,
+    /// How the worker runs.
+    pub spec: WorkerPoolSpec,
+}
+
+impl WorkerPool {
+    /// The `WorkerPool` that states these and nothing else.
+    pub fn new(api_version: StackApiVersion, metadata: Metadata, spec: WorkerPoolSpec) -> Self {
+        Self {
+            api_version,
+            kind: WorkerPoolKind::WorkerPool,
+            metadata,
+            spec,
+        }
+    }
+}
+
+schema!(WorkerPool);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum WorkerPoolKind {
+    #[serde(rename = "WorkerPool")]
+    WorkerPool,
+}
+
+impl WorkerPoolKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            WorkerPoolKind::WorkerPool => "WorkerPool",
+        }
+    }
+}
+
+/// How the worker runs.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerPoolSpec {
+    #[serde(rename = "logLevel")]
+    pub log_level: LogLevel,
+    /// The Worker.
+    pub worker: WorkerPoolSpecWorker,
+}
+
+/// The Worker.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerPoolSpecWorker {
+    pub image: Image,
+    pub resources: Resources,
+}
+
+/// A knowledge base's operational readings from Collector metrics. Request-tracking occupancy and queue depth are current gauges; completed and failed are worker counters since that worker process started. Missing readings are unknown, never zero.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkloadStatus {
+    /// The Gateway's request tracking: correlation IDs it currently holds so replies can be routed to the app client that sent each request, and the tracking capacity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ledger: Option<WorkloadStatusLedger>,
+    /// Current Dispatcher depth and, when the worker has emitted counters, completed and failed work since worker start. These are different measurements and time windows.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub queue: Option<WorkloadStatusQueue>,
+}
+
+schema!(WorkloadStatus);
+
+/// The Gateway's request tracking: correlation IDs it currently holds so replies can be routed to the app client that sent each request, and the tracking capacity.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkloadStatusLedger {
+    /// Number of request IDs currently held to route replies to their requesting app clients. Includes requests still waiting for a reply and recently answered requests still within the tracking window.
+    pub claims: u64,
+    /// The maximum number of IDs held in this Gateway's local tracking projection.
+    pub capacity: u64,
+}
+
+/// Current Dispatcher depth and, when the worker has emitted counters, completed and failed work since worker start. These are different measurements and time windows.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkloadStatusQueue {
+    /// Jobs currently waiting for a worker.
+    pub pending: u64,
+    /// Jobs currently claimed by workers.
+    pub running: u64,
+    /// Jobs completed since worker start.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub completed: Option<u64>,
+    /// Jobs finally failed since worker start.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failed: Option<u64>,
+}
+
+impl WorkloadStatusQueue {
+    /// The `WorkloadStatusQueue` that states these and nothing else.
+    pub fn new(pending: u64, running: u64) -> Self {
+        Self {
+            pending,
+            running,
+            completed: None,
+            failed: None,
         }
     }
 }

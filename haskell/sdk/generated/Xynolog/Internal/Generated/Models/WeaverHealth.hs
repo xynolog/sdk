@@ -2,16 +2,18 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.WeaverHealth (WeaverHealth (..), WeaverHealthFollowing (..), WeaverHealthFollowingSweep (..), WeaverHealthReconcile (..), WeaverHealthReconcilePhase (..), WeaverHealthReconcileSummary (..), WeaverHealthStatus (..)) where
+module Xynolog.Internal.Generated.Models.WeaverHealth (WeaverHealth (..), WeaverHealthReconcile (..), WeaverHealthReconcilePhase (..), WeaverHealthReconcileSummary (..), WeaverHealthStatus (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.FollowerFollowing
+import Xynolog.Internal.Generated.Models.KbDid
 
 data WeaverHealth = WeaverHealth
-  { weaverHealthFollowing :: WeaverHealthFollowing,
-    weaverHealthKb :: Text,
+  { weaverHealthFollowing :: FollowerFollowing,
+    weaverHealthKb :: KbDid,
     weaverHealthReconcile :: WeaverHealthReconcile,
     weaverHealthStatus :: WeaverHealthStatus
   }
@@ -20,28 +22,6 @@ data WeaverHealth = WeaverHealth
 instance FromJSON WeaverHealth where parseJSON = checked "WeaverHealth" $ withObject "WeaverHealth" (\fields -> WeaverHealth <$> (fields .: "following") <*> (fields .: "kb") <*> (fields .: "reconcile") <*> (fields .: "status"))
 
 instance ToJSON WeaverHealth where toJSON value = Object (KM.fromList (concat [[("following", toJSON (weaverHealthFollowing value))], [("kb", toJSON (weaverHealthKb value))], [("reconcile", toJSON (weaverHealthReconcile value))], [("status", toJSON (weaverHealthStatus value))]]))
-
-data WeaverHealthFollowing = WeaverHealthFollowing
-  { weaverHealthFollowingRefused :: Integer,
-    weaverHealthFollowingStopped :: Integer,
-    weaverHealthFollowingStreamDrops :: Integer,
-    weaverHealthFollowingSweep :: WeaverHealthFollowingSweep
-  }
-  deriving (Eq, Show)
-
-instance FromJSON WeaverHealthFollowing where parseJSON = checked "WeaverHealthFollowing" $ withObject "WeaverHealthFollowing" (\fields -> WeaverHealthFollowing <$> (fields .: "refused") <*> (fields .: "stopped") <*> (fields .: "streamDrops") <*> (fields .: "sweep"))
-
-instance ToJSON WeaverHealthFollowing where toJSON value = Object (KM.fromList (concat [[("refused", toJSON (weaverHealthFollowingRefused value))], [("stopped", toJSON (weaverHealthFollowingStopped value))], [("streamDrops", toJSON (weaverHealthFollowingStreamDrops value))], [("sweep", toJSON (weaverHealthFollowingSweep value))]]))
-
-data WeaverHealthFollowingSweep = WeaverHealthFollowingSweepPending | WeaverHealthFollowingSweepRunning | WeaverHealthFollowingSweepDone | WeaverHealthFollowingSweepDue deriving (Eq, Show)
-
-instance FromJSON WeaverHealthFollowingSweep where parseJSON = checked "WeaverHealthFollowingSweep" $ \value -> if value == String "pending" then pure WeaverHealthFollowingSweepPending else if value == String "running" then pure WeaverHealthFollowingSweepRunning else if value == String "done" then pure WeaverHealthFollowingSweepDone else if value == String "due" then pure WeaverHealthFollowingSweepDue else fail "unknown enumeration member"
-
-instance ToJSON WeaverHealthFollowingSweep where
-  toJSON WeaverHealthFollowingSweepPending = String "pending"
-  toJSON WeaverHealthFollowingSweepRunning = String "running"
-  toJSON WeaverHealthFollowingSweepDone = String "done"
-  toJSON WeaverHealthFollowingSweepDue = String "due"
 
 data WeaverHealthReconcile = WeaverHealthReconcile
   { weaverHealthReconcileError :: Maybe Text,

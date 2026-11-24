@@ -16,6 +16,7 @@ public sealed interface JobStoredProgress {
 internal object JobStoredProgressSerializer : KindsUnionSerializer<JobStoredProgress>(
     JobStoredProgress::class,
     strings = { emptyList() },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(JobProgress.serializer(), JobStoredProgress.Empty.serializer()) },
 )

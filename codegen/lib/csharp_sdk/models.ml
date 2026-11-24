@@ -74,7 +74,11 @@ let member_of keyword i v =
   let l = layer keyword v in
   stated keyword
     (Option.bind
-       (match keyword with "oneOf" -> l.one_of | _ -> l.any_of)
+       (match keyword with
+       | "oneOf" -> l.one_of
+       | "anyOf" -> l.any_of
+       | "allOf" -> l.all_of
+       | _ -> refuse "%s composes no schema" keyword)
        (fun members -> List.nth_opt members i))
 
 (* What the models read of a schema: every part a schema object, and a type
@@ -131,12 +135,18 @@ let referenced state (r : Decode.reference) =
   | Some name -> name
   | None -> refuse "%s names no schema the models are made from" r.target
 
-let rec plain_text state (s : Schema.schema) =
-  match s.ref_ with
-  | Some r ->
+(* The C# type of a schema of one plain value, text of no enumeration or a
+   number or a boolean, which is no model of its own. *)
+let rec plain state (s : Schema.schema) =
+  match s with
+  | { ref_ = Some r; _ } ->
       let name = referenced state r in
-      plain_text state (layer name (definition state name).schema)
-  | None -> s.type_ = Some [ String ] && s.enum = None
+      plain state (layer name (definition state name).schema)
+  | { type_ = Some [ String ]; enum = None; _ } -> Some (C.T "string")
+  | { type_ = Some [ Integer ]; enum = None; _ } -> Some (C.T "long")
+  | { type_ = Some [ Number ]; enum = None; _ } -> Some (C.T "double")
+  | { type_ = Some [ Boolean ]; enum = None; _ } -> Some (C.T "bool")
+  | _ -> None
 
 (* A schema's one string value, when it admits one. *)
 let constant (s : Schema.schema) =
@@ -164,12 +174,13 @@ let rec named state name =
     C.T ("global::Xynolog.Identifiers." ^ name)
   else
     let d = definition state name in
-    if plain_text state (layer name d.schema) then C.T "string"
-    else (
-      if not (Hashtbl.mem state.written name) then (
-        Hashtbl.replace state.written name [];
-        Hashtbl.replace state.written name (declare state name d));
-      C.T (types ^ name))
+    match plain state (layer name d.schema) with
+    | Some type_ -> type_
+    | None ->
+        if not (Hashtbl.mem state.written name) then (
+          Hashtbl.replace state.written name [];
+          Hashtbl.replace state.written name (declare state name d));
+        C.T (types ^ name)
 
 and inline state owner property (schema, validated) =
   let key = owner ^ "." ^ property in
@@ -439,9 +450,11 @@ and object_ state name ~attribute ~original d =
       };
   ]
 
-(* The case a union's member is: what it refers to, Array, Text, or the one
-   string its first property that admits one admits, else Object. *)
+(* The case a union's member is: what it refers to, Array, Text, the one
+   string its first property that admits one admits, else its title, else
+   Object. *)
 and union state name keyword (members, validated) =
+  let titled (s : Schema.schema) = Option.value s.title ~default:"Object" in
   let variant (s : Schema.schema) =
     match s with
     | { ref_ = Some r; _ } -> referenced state r
@@ -457,8 +470,8 @@ and union state name keyword (members, validated) =
             properties
         with
         | Some tag -> tag
-        | None -> "Object")
-    | _ -> "Object"
+        | None -> titled s)
+    | _ -> titled s
   in
   let cases =
     List.mapi

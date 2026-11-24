@@ -24,6 +24,7 @@ public sealed interface OneOrMoreUris {
 internal object OneOrMoreUrisSerializer : KindsUnionSerializer<OneOrMoreUris>(
     OneOrMoreUris::class,
     strings = { listOf(OneOrMoreUris.Text.serializer()) },
+    scalars = { emptyList() },
     arrays = { listOf(OneOrMoreUris.List.serializer()) },
     objects = { emptyList() },
 )

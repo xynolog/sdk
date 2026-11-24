@@ -12,6 +12,7 @@ public sealed interface BusStreamMessage
 internal object BusStreamMessageSerializer : KindsUnionSerializer<BusStreamMessage>(
     BusStreamMessage::class,
     strings = { emptyList() },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(BusEventMessage.serializer(), BusPingMessage.serializer()) },
 )

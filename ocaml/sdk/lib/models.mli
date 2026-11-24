@@ -9,6 +9,8 @@ type decode_error = Invalid_json of string | Invalid_payload of fault
 val decode : 'schema descriptor -> string -> ('schema t, decode_error) result
 val encode : 'schema t -> string
 val json : 'schema t -> Yojson.Raw.t
+val about_params : [ `AboutParams ] descriptor
+val about_result : [ `AboutResult ] descriptor
 val agent : [ `Agent ] descriptor
 val agent_organization : [ `AgentOrganization ] descriptor
 val agent_person : [ `AgentPerson ] descriptor
@@ -35,6 +37,7 @@ val annotation_id : [ `AnnotationId ] descriptor
 val annotation_removed_payload : [ `AnnotationRemovedPayload ] descriptor
 val annotation_selector : [ `AnnotationSelector ] descriptor
 val annotation_target : [ `AnnotationTarget ] descriptor
+val api_version : [ `ApiVersion ] descriptor
 val archivist_config : [ `ArchivistConfig ] descriptor
 val archivist_engines : [ `ArchivistEngines ] descriptor
 val archivist_events_response : [ `ArchivistEventsResponse ] descriptor
@@ -43,6 +46,10 @@ val archivist_stream : [ `ArchivistStream ] descriptor
 val archivist_streams_response : [ `ArchivistStreamsResponse ] descriptor
 val assessing_job_params : [ `AssessingJobParams ] descriptor
 val attributed_event : [ `AttributedEvent ] descriptor
+val auth_login_params : [ `AuthLoginParams ] descriptor
+val auth_login_result : [ `AuthLoginResult ] descriptor
+val auth_logout_params : [ `AuthLogoutParams ] descriptor
+val auth_logout_result : [ `AuthLogoutResult ] descriptor
 val beckon_focus_event : [ `BeckonFocusEvent ] descriptor
 val beckon_hover_event : [ `BeckonHoverEvent ] descriptor
 val beckon_sparkle_event : [ `BeckonSparkleEvent ] descriptor
@@ -102,6 +109,7 @@ val browse_resources_result : [ `BrowseResourcesResult ] descriptor
 val browse_router_push_event : [ `BrowseRouterPushEvent ] descriptor
 val browse_tag_schemas_request : [ `BrowseTagSchemasRequest ] descriptor
 val browse_tag_schemas_result : [ `BrowseTagSchemasResult ] descriptor
+val browser : [ `Browser ] descriptor
 val bus_emit_accepted : [ `BusEmitAccepted ] descriptor
 val bus_emit_request : [ `BusEmitRequest ] descriptor
 val bus_event_message : [ `BusEventMessage ] descriptor
@@ -110,12 +118,21 @@ val bus_ping_message : [ `BusPingMessage ] descriptor
 val bus_resume_gap : [ `BusResumeGap ] descriptor
 val bus_stream_message : [ `BusStreamMessage ] descriptor
 val bus_subscribe_request : [ `BusSubscribeRequest ] descriptor
+val cancelled : [ `Cancelled ] descriptor
+val client_secret_form : [ `ClientSecretForm ] descriptor
 
 val clone_resource_with_token_response :
   [ `CloneResourceWithTokenResponse ] descriptor
 
 val command_error : [ `CommandError ] descriptor
 val commenting_job_params : [ `CommentingJobParams ] descriptor
+val conformance_bus_fetch : [ `ConformanceBusFetch ] descriptor
+val conformance_case : [ `ConformanceCase ] descriptor
+val conformance_driver_line : [ `ConformanceDriverLine ] descriptor
+val conformance_failure : [ `ConformanceFailure ] descriptor
+val conformance_http_fetch : [ `ConformanceHttpFetch ] descriptor
+val conformance_implementations : [ `ConformanceImplementations ] descriptor
+val conformance_step : [ `ConformanceStep ] descriptor
 val content_format : [ `ContentFormat ] descriptor
 val contextual_summary_response : [ `ContextualSummaryResponse ] descriptor
 val create_annotation_request : [ `CreateAnnotationRequest ] descriptor
@@ -137,6 +154,7 @@ val entity_tag_changed_payload : [ `EntityTagChangedPayload ] descriptor
 val entity_type_added_payload : [ `EntityTypeAddedPayload ] descriptor
 val entity_types_projection : [ `EntityTypesProjection ] descriptor
 val ephemeral_event_id : [ `EphemeralEventId ] descriptor
+val error_data : [ `ErrorData ] descriptor
 val error_response : [ `ErrorResponse ] descriptor
 val event_metadata : [ `EventMetadata ] descriptor
 val extracted_text : [ `ExtractedText ] descriptor
@@ -145,7 +163,9 @@ val extraction_declined_reason : [ `ExtractionDeclinedReason ] descriptor
 val extraction_method : [ `ExtractionMethod ] descriptor
 val extraction_outcome : [ `ExtractionOutcome ] descriptor
 val failure_class : [ `FailureClass ] descriptor
+val field_fault : [ `FieldFault ] descriptor
 val file_entry : [ `FileEntry ] descriptor
+val follower_following : [ `FollowerFollowing ] descriptor
 val fragment_selector : [ `FragmentSelector ] descriptor
 val frame_add_entity_type_command : [ `FrameAddEntityTypeCommand ] descriptor
 val frame_add_tag_schema_command : [ `FrameAddTagSchemaCommand ] descriptor
@@ -188,10 +208,20 @@ val graph_config : [ `GraphConfig ] descriptor
 val graph_resource_node : [ `GraphResourceNode ] descriptor
 val health_response : [ `HealthResponse ] descriptor
 val highlighting_job_params : [ `HighlightingJobParams ] descriptor
+val host_port : [ `HostPort ] descriptor
 val http_endpoint : [ `HttpEndpoint ] descriptor
+val http_status : [ `HttpStatus ] descriptor
+val identity_user : [ `IdentityUser ] descriptor
+val identity_useradd_params : [ `IdentityUseraddParams ] descriptor
+val identity_useradd_result : [ `IdentityUseraddResult ] descriptor
+val identity_users_list_params : [ `IdentityUsersListParams ] descriptor
+val identity_users_list_result : [ `IdentityUsersListResult ] descriptor
+val image : [ `Image ] descriptor
+val inference : [ `Inference ] descriptor
 val inference_limits : [ `InferenceLimits ] descriptor
 val inference_limits_request : [ `InferenceLimitsRequest ] descriptor
 val inference_limits_result : [ `InferenceLimitsResult ] descriptor
+val issuer : [ `Issuer ] descriptor
 val janus_graph_config : [ `JanusGraphConfig ] descriptor
 val job : [ `Job ] descriptor
 val job_assign_command : [ `JobAssignCommand ] descriptor
@@ -256,21 +286,29 @@ val job_stored_progress : [ `JobStoredProgress ] descriptor
 val job_stored_result : [ `JobStoredResult ] descriptor
 val job_type : [ `JobType ] descriptor
 val kb_description : [ `KbDescription ] descriptor
+val kb_did : [ `KbDid ] descriptor
 val kb_endpoint : [ `KbEndpoint ] descriptor
 val kb_identity : [ `KbIdentity ] descriptor
 val kb_read : [ `KbRead ] descriptor
 val kb_target : [ `KbTarget ] descriptor
 val knowledge_base : [ `KnowledgeBase ] descriptor
+val knowledge_base_status : [ `KnowledgeBaseStatus ] descriptor
 val knowledge_graph : [ `KnowledgeGraph ] descriptor
+val knowledge_index : [ `KnowledgeIndex ] descriptor
 val librarian_config : [ `LibrarianConfig ] descriptor
 val librarian_engine_config : [ `LibrarianEngineConfig ] descriptor
 val librarian_health : [ `LibrarianHealth ] descriptor
+val librarian_prompt_score : [ `LibrarianPromptScore ] descriptor
 val limit_refusal : [ `LimitRefusal ] descriptor
 val linking_job_params : [ `LinkingJobParams ] descriptor
 val list_resources_response : [ `ListResourcesResponse ] descriptor
 val local_endpoint : [ `LocalEndpoint ] descriptor
+val local_target : [ `LocalTarget ] descriptor
 val log_format : [ `LogFormat ] descriptor
 val log_level : [ `LogLevel ] descriptor
+val log_record : [ `LogRecord ] descriptor
+val logs_follow_params : [ `LogsFollowParams ] descriptor
+val logs_follow_result : [ `LogsFollowResult ] descriptor
 val mark_archive_command : [ `MarkArchiveCommand ] descriptor
 val mark_commit_command : [ `MarkCommitCommand ] descriptor
 val mark_commit_ok : [ `MarkCommitOk ] descriptor
@@ -305,6 +343,7 @@ val media_token_request : [ `MediaTokenRequest ] descriptor
 val media_token_response : [ `MediaTokenResponse ] descriptor
 val memory_graph_config : [ `MemoryGraphConfig ] descriptor
 val memory_vectors_config : [ `MemoryVectorsConfig ] descriptor
+val metadata : [ `Metadata ] descriptor
 val motivation : [ `Motivation ] descriptor
 val neo4j_graph_config : [ `Neo4jGraphConfig ] descriptor
 val neptune_graph_config : [ `NeptuneGraphConfig ] descriptor
@@ -314,6 +353,8 @@ val ollama_embedding_config : [ `OllamaEmbeddingConfig ] descriptor
 val one_or_more_agents : [ `OneOrMoreAgents ] descriptor
 val one_or_more_strings : [ `OneOrMoreStrings ] descriptor
 val one_or_more_uris : [ `OneOrMoreUris ] descriptor
+val open_resource : [ `OpenResource ] descriptor
+val output_stream : [ `OutputStream ] descriptor
 val pdf_class : [ `PdfClass ] descriptor
 val pdf_text_item : [ `PdfTextItem ] descriptor
 val persisted_event_id : [ `PersistedEventId ] descriptor
@@ -321,7 +362,10 @@ val principal_profile_command : [ `PrincipalProfileCommand ] descriptor
 val principal_profiled_payload : [ `PrincipalProfiledPayload ] descriptor
 val profile : [ `Profile ] descriptor
 val profiles_projection : [ `ProfilesProjection ] descriptor
+val progress : [ `Progress ] descriptor
+val project_config : [ `ProjectConfig ] descriptor
 val protected_resource_metadata : [ `ProtectedResourceMetadata ] descriptor
+val provider : [ `Provider ] descriptor
 val qdrant_vectors_config : [ `QdrantVectorsConfig ] descriptor
 val reply_event_id : [ `ReplyEventId ] descriptor
 val representation : [ `Representation ] descriptor
@@ -331,6 +375,7 @@ val representation_not_found : [ `RepresentationNotFound ] descriptor
 val representation_removed_payload :
   [ `RepresentationRemovedPayload ] descriptor
 
+val request_id : [ `RequestId ] descriptor
 val resource_annotations : [ `ResourceAnnotations ] descriptor
 val resource_archived_payload : [ `ResourceArchivedPayload ] descriptor
 val resource_cloned_payload : [ `ResourceClonedPayload ] descriptor
@@ -343,19 +388,53 @@ val resource_unarchived_payload : [ `ResourceUnarchivedPayload ] descriptor
 val resource_updated_payload : [ `ResourceUpdatedPayload ] descriptor
 val resource_upload : [ `ResourceUpload ] descriptor
 val resource_view : [ `ResourceView ] descriptor
+val resources : [ `Resources ] descriptor
+val root : [ `Root ] descriptor
+val roots_forget_params : [ `RootsForgetParams ] descriptor
+val roots_forget_result : [ `RootsForgetResult ] descriptor
+val roots_init_params : [ `RootsInitParams ] descriptor
+val roots_init_result : [ `RootsInitResult ] descriptor
+val roots_list_params : [ `RootsListParams ] descriptor
+val roots_list_result : [ `RootsListResult ] descriptor
+val run_instance : [ `RunInstance ] descriptor
+val run_service : [ `RunService ] descriptor
+val runner : [ `Runner ] descriptor
+val runtime : [ `Runtime ] descriptor
+val runtime_state : [ `RuntimeState ] descriptor
 val scored_resource : [ `ScoredResource ] descriptor
+val secret_ref : [ `SecretRef ] descriptor
 val selector : [ `Selector ] descriptor
 val semantic_match : [ `SemanticMatch ] descriptor
 val service_address : [ `ServiceAddress ] descriptor
+val service_group : [ `ServiceGroup ] descriptor
+val service_host_params : [ `ServiceHostParams ] descriptor
+val service_host_result : [ `ServiceHostResult ] descriptor
 val service_identity : [ `ServiceIdentity ] descriptor
+val service_output : [ `ServiceOutput ] descriptor
+val service_run_params : [ `ServiceRunParams ] descriptor
+val service_run_result : [ `ServiceRunResult ] descriptor
+val service_signal_params : [ `ServiceSignalParams ] descriptor
+val service_signal_result : [ `ServiceSignalResult ] descriptor
+val service_started : [ `ServiceStarted ] descriptor
+val service_status : [ `ServiceStatus ] descriptor
+val session : [ `Session ] descriptor
 val session_joined_event : [ `SessionJoinedEvent ] descriptor
 val session_left_event : [ `SessionLeftEvent ] descriptor
+val setting : [ `Setting ] descriptor
+val setting_line : [ `SettingLine ] descriptor
+val settings_get_params : [ `SettingsGetParams ] descriptor
 
 val settings_hover_delay_changed_event :
   [ `SettingsHoverDelayChangedEvent ] descriptor
 
+val settings_list_params : [ `SettingsListParams ] descriptor
+val settings_list_result : [ `SettingsListResult ] descriptor
 val settings_locale_changed_event : [ `SettingsLocaleChangedEvent ] descriptor
+val settings_path_params : [ `SettingsPathParams ] descriptor
+val settings_path_result : [ `SettingsPathResult ] descriptor
+val settings_set_params : [ `SettingsSetParams ] descriptor
 val settings_theme_changed_event : [ `SettingsThemeChangedEvent ] descriptor
+val settings_unset_params : [ `SettingsUnsetParams ] descriptor
 val smelt_rebuild_anchors_command : [ `SmeltRebuildAnchorsCommand ] descriptor
 val smelt_settled : [ `SmeltSettled ] descriptor
 val smelter_chunking : [ `SmelterChunking ] descriptor
@@ -363,7 +442,15 @@ val smelter_config : [ `SmelterConfig ] descriptor
 val smelter_health : [ `SmelterHealth ] descriptor
 val smelter_reconcile_summary : [ `SmelterReconcileSummary ] descriptor
 val specific_resource : [ `SpecificResource ] descriptor
+val stack_api_version : [ `StackApiVersion ] descriptor
+val stack_knowledge_base : [ `StackKnowledgeBase ] descriptor
+val stack_start_params : [ `StackStartParams ] descriptor
+val stack_start_result : [ `StackStartResult ] descriptor
+val stack_stop_params : [ `StackStopParams ] descriptor
+val stack_stop_result : [ `StackStopResult ] descriptor
 val status_response : [ `StatusResponse ] descriptor
+val status_snapshot_params : [ `StatusSnapshotParams ] descriptor
+val status_snapshot_result : [ `StatusSnapshotResult ] descriptor
 val storage_uri_entry : [ `StorageUriEntry ] descriptor
 val stored_event_response : [ `StoredEventResponse ] descriptor
 val supported_media_type : [ `SupportedMediaType ] descriptor
@@ -373,13 +460,16 @@ val tag_schema : [ `TagSchema ] descriptor
 val tag_schema_added_payload : [ `TagSchemaAddedPayload ] descriptor
 val tag_schemas_projection : [ `TagSchemasProjection ] descriptor
 val tagging_job_params : [ `TaggingJobParams ] descriptor
+val target : [ `Target ] descriptor
 val text_position_selector : [ `TextPositionSelector ] descriptor
 val text_quote_selector : [ `TextQuoteSelector ] descriptor
 val textual_body : [ `TextualBody ] descriptor
 val unit_cursor : [ `UnitCursor ] descriptor
 val update_annotation_body_request : [ `UpdateAnnotationBodyRequest ] descriptor
+val user_action : [ `UserAction ] descriptor
 val user_id : [ `UserId ] descriptor
 val user_response : [ `UserResponse ] descriptor
+val vector_store : [ `VectorStore ] descriptor
 val vectors_config : [ `VectorsConfig ] descriptor
 val voyage_embedding_config : [ `VoyageEmbeddingConfig ] descriptor
 val weave_applied : [ `WeaveApplied ] descriptor
@@ -392,6 +482,8 @@ val worker_engine_health : [ `WorkerEngineHealth ] descriptor
 val worker_health : [ `WorkerHealth ] descriptor
 val worker_knowledge_base_config : [ `WorkerKnowledgeBaseConfig ] descriptor
 val worker_knowledge_base_health : [ `WorkerKnowledgeBaseHealth ] descriptor
+val worker_pool : [ `WorkerPool ] descriptor
+val workload_status : [ `WorkloadStatus ] descriptor
 val yield_clone_create_command : [ `YieldCloneCreateCommand ] descriptor
 val yield_clone_created : [ `YieldCloneCreated ] descriptor
 val yield_clone_persist_command : [ `YieldClonePersistCommand ] descriptor

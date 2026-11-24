@@ -11,6 +11,34 @@ import type { components } from './types';
 export const REQUIRED_SCHEMAS: {
   readonly [Name in keyof components['schemas']]: Shape;
 } = {
+  AboutParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: { apiVersion: { ref: 'ApiVersion' } },
+    closed: ['apiVersion'],
+  },
+  AboutResult: {
+    kinds: ['object'],
+    required: ['development', 'apiVersions', 'imageRegistry', 'runtimes'],
+    members: {
+      apiVersions: { kinds: ['array'], items: { kinds: ['string'] } },
+      built: { kinds: ['string'] },
+      commit: { kinds: ['string'] },
+      development: { kinds: ['boolean'] },
+      imageRegistry: { kinds: ['string'] },
+      runtimes: { kinds: ['array'], items: { ref: 'RuntimeState' } },
+      version: { kinds: ['string'] },
+    },
+    closed: [
+      'apiVersions',
+      'built',
+      'commit',
+      'development',
+      'imageRegistry',
+      'runtimes',
+      'version',
+    ],
+  },
   Agent: {
     kinds: ['object'],
     oneOf: [
@@ -331,6 +359,7 @@ export const REQUIRED_SCHEMAS: {
       type: { kinds: ['string'], enum: ['SpecificResource'] },
     },
   },
+  ApiVersion: { kinds: ['string'], enum: ['control.xynolog.org/v1alpha1'] },
   ArchivistConfig: {
     kinds: ['object'],
     required: [
@@ -491,6 +520,46 @@ export const REQUIRED_SCHEMAS: {
         members: { agent: { ref: 'Agent' } },
       },
     ],
+  },
+  AuthLoginParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      runtime: { ref: 'Runtime' },
+      target: { ref: 'Target' },
+    },
+    closed: ['apiVersion', 'runtime', 'target'],
+  },
+  AuthLoginResult: {
+    kinds: ['object'],
+    required: ['key', 'who', 'issuer'],
+    members: {
+      issuer: { kinds: ['string'] },
+      key: { kinds: ['string'] },
+      who: { kinds: ['string'] },
+    },
+    closed: ['issuer', 'key', 'who'],
+  },
+  AuthLogoutParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      runtime: { ref: 'Runtime' },
+      target: { ref: 'Target' },
+    },
+    closed: ['apiVersion', 'runtime', 'target'],
+  },
+  AuthLogoutResult: {
+    kinds: ['object'],
+    required: ['wasSignedIn', 'revoked'],
+    members: {
+      key: { kinds: ['string'] },
+      revoked: { kinds: ['boolean'] },
+      wasSignedIn: { kinds: ['boolean'] },
+    },
+    closed: ['key', 'revoked', 'wasSignedIn'],
   },
   BeckonFocusEvent: {
     kinds: ['object'],
@@ -837,6 +906,26 @@ export const REQUIRED_SCHEMAS: {
     required: ['response'],
     members: { response: { ref: 'GetTagSchemasResponse' } },
   },
+  Browser: {
+    kinds: ['object'],
+    required: ['apiVersion', 'kind', 'metadata', 'spec'],
+    members: {
+      apiVersion: { ref: 'StackApiVersion' },
+      kind: { kinds: ['string'], enum: ['Browser'] },
+      metadata: { ref: 'Metadata' },
+      spec: {
+        kinds: ['object'],
+        required: ['image', 'resources', 'port'],
+        members: {
+          image: { ref: 'Image' },
+          port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
+          resources: { ref: 'Resources' },
+        },
+        closed: ['image', 'port', 'resources'],
+      },
+    },
+    closed: ['apiVersion', 'kind', 'metadata', 'spec'],
+  },
   BusEmitAccepted: {
     kinds: ['object'],
     members: { subscribers: { kinds: ['integer'], minimum: 0 } },
@@ -943,6 +1032,21 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['clientId', 'global', 'pendingReplies', 'scoped'],
   },
+  Cancelled: {
+    kinds: ['object'],
+    required: ['requestId'],
+    members: { reason: { kinds: ['string'] }, requestId: { ref: 'RequestId' } },
+    closed: ['reason', 'requestId'],
+  },
+  ClientSecretForm: {
+    kinds: ['object'],
+    required: ['grant_type', 'client_id', 'client_secret'],
+    members: {
+      client_id: { kinds: ['string'] },
+      client_secret: { kinds: ['string'] },
+      grant_type: { kinds: ['string'], enum: ['client_credentials'] },
+    },
+  },
   CloneResourceWithTokenResponse: {
     kinds: ['object'],
     required: ['token', 'expiresAt', 'resource'],
@@ -990,6 +1094,906 @@ export const REQUIRED_SCHEMAS: {
       'motivation',
       'sourceLanguage',
       'tone',
+    ],
+  },
+  ConformanceBusFetch: {
+    kinds: ['object'],
+    required: ['fetch', 'as'],
+    members: {
+      as: {
+        kinds: ['string'],
+        pattern: [
+          {
+            of: [
+              [65, 90],
+              [97, 122],
+            ],
+            min: 1,
+            max: 1,
+          },
+          {
+            of: [
+              [48, 57],
+              [65, 90],
+              [97, 122],
+            ],
+            min: 0,
+          },
+        ],
+      },
+      fetch: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[97, 122]], min: 1 },
+          { of: [[58, 58]], min: 1, max: 1 },
+          {
+            of: [
+              [45, 45],
+              [97, 122],
+            ],
+            min: 1,
+          },
+        ],
+      },
+    },
+    closed: ['as', 'fetch', 'payload'],
+  },
+  ConformanceCase: {
+    kinds: ['object'],
+    required: ['about', 'source', 'steps'],
+    members: {
+      about: { kinds: ['string'], minLength: 1 },
+      planes: {
+        kinds: ['array'],
+        minItems: 1,
+        items: { kinds: ['string'], enum: ['in-process', 'nats'] },
+      },
+      source: { kinds: ['string'], minLength: 1 },
+      steps: {
+        kinds: ['array'],
+        minItems: 1,
+        items: { ref: 'ConformanceStep' },
+      },
+      telemetry: { kinds: ['boolean'], enum: [true] },
+      tier: { kinds: ['string'], enum: ['fleet', 'parity'] },
+    },
+    closed: ['about', 'planes', 'source', 'steps', 'telemetry', 'tier'],
+  },
+  ConformanceDriverLine: {
+    kinds: ['object'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        required: ['ready'],
+        members: { ready: { kinds: ['boolean'], enum: [true] } },
+        closed: ['ready'],
+      },
+      {
+        kinds: ['object'],
+        required: ['id', 'ok'],
+        members: { id: { kinds: ['integer'], minimum: 1 } },
+        closed: ['id', 'ok'],
+      },
+      {
+        kinds: ['object'],
+        required: ['id', 'error'],
+        members: {
+          error: { ref: 'ConformanceFailure' },
+          id: { kinds: ['integer'], minimum: 1 },
+        },
+        closed: ['error', 'id'],
+      },
+      {
+        kinds: ['object'],
+        required: ['id', 'abandoned'],
+        members: {
+          abandoned: { kinds: ['boolean'], enum: [true] },
+          id: { kinds: ['integer'], minimum: 1 },
+        },
+        closed: ['abandoned', 'id'],
+      },
+      {
+        kinds: ['object'],
+        required: ['id', 'unsupported'],
+        members: {
+          id: { kinds: ['integer'], minimum: 1 },
+          unsupported: { kinds: ['boolean'], enum: [true] },
+        },
+        closed: ['id', 'unsupported'],
+      },
+      {
+        kinds: ['object'],
+        required: ['id', 'misuse'],
+        members: {
+          id: { kinds: ['integer'], minimum: 1 },
+          misuse: { kinds: ['string'] },
+        },
+        closed: ['id', 'misuse'],
+      },
+      {
+        kinds: ['object'],
+        required: ['state'],
+        members: { state: { kinds: ['string'] } },
+        closed: ['state'],
+      },
+      {
+        kinds: ['object'],
+        required: ['frame'],
+        members: {
+          frame: {
+            kinds: ['object'],
+            required: ['channel'],
+            members: {
+              channel: { kinds: ['string'] },
+              correlationId: { kinds: ['string'] },
+              scope: { ref: 'ResourceId' },
+            },
+            closed: ['channel', 'correlationId', 'payload', 'scope'],
+          },
+        },
+        closed: ['frame'],
+      },
+      {
+        kinds: ['object'],
+        required: ['error'],
+        members: { error: { ref: 'ConformanceFailure' } },
+        closed: ['error'],
+      },
+      {
+        kinds: ['object'],
+        required: ['progress'],
+        members: {
+          progress: {
+            kinds: ['object'],
+            required: ['upload', 'bytesUploaded', 'totalBytes'],
+            members: {
+              bytesUploaded: { kinds: ['integer'], minimum: 0 },
+              totalBytes: { kinds: ['integer'], minimum: 0 },
+              upload: { kinds: ['integer'], minimum: 1 },
+            },
+            closed: ['bytesUploaded', 'totalBytes', 'upload'],
+          },
+        },
+        closed: ['progress'],
+      },
+      {
+        kinds: ['object'],
+        required: ['emission'],
+        members: {
+          emission: {
+            kinds: ['object'],
+            required: ['observer', 'state'],
+            members: {
+              observer: { kinds: ['string'] },
+              state: {
+                kinds: ['object'],
+                oneOf: [
+                  {
+                    kinds: ['object'],
+                    required: ['status'],
+                    members: {
+                      status: { kinds: ['string'], enum: ['pending'] },
+                    },
+                    closed: ['status'],
+                  },
+                  {
+                    kinds: ['object'],
+                    required: ['status', 'value'],
+                    members: { status: { kinds: ['string'], enum: ['ready'] } },
+                    closed: ['status', 'value'],
+                  },
+                  {
+                    kinds: ['object'],
+                    required: ['status', 'error'],
+                    members: {
+                      error: { ref: 'ConformanceFailure' },
+                      status: { kinds: ['string'], enum: ['failed'] },
+                    },
+                    closed: ['error', 'status'],
+                  },
+                ],
+              },
+            },
+            closed: ['observer', 'state'],
+          },
+        },
+        closed: ['emission'],
+      },
+      {
+        kinds: ['object'],
+        required: ['completed'],
+        members: { completed: { kinds: ['string'] } },
+        closed: ['completed'],
+      },
+      {
+        kinds: ['object'],
+        required: ['claimed'],
+        members: { claimed: { kinds: ['object'] } },
+        closed: ['claimed'],
+      },
+      {
+        kinds: ['object'],
+        required: ['refused'],
+        members: { refused: { ref: 'ConformanceFailure' } },
+        closed: ['refused'],
+      },
+      {
+        kinds: ['object'],
+        required: ['signalled'],
+        members: { signalled: { kinds: ['string'] } },
+        closed: ['signalled'],
+      },
+      {
+        kinds: ['object'],
+        required: ['stalled'],
+        members: { stalled: { kinds: ['string'] } },
+        closed: ['stalled'],
+      },
+    ],
+  },
+  ConformanceFailure: {
+    kinds: ['object'],
+    required: ['detail'],
+    members: {
+      code: { kinds: ['string'] },
+      detail: { kinds: ['string'] },
+      failureClass: { ref: 'FailureClass' },
+      status: { kinds: ['integer'] },
+    },
+    closed: ['code', 'detail', 'failureClass', 'status'],
+  },
+  ConformanceHttpFetch: {
+    kinds: ['object'],
+    required: ['fetch'],
+    members: {
+      fetch: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[71, 71]], min: 1, max: 1 },
+          { of: [[69, 69]], min: 1, max: 1 },
+          { of: [[84, 84]], min: 1, max: 1 },
+          { of: [[32, 32]], min: 1, max: 1 },
+          { of: [[47, 47]], min: 1, max: 1 },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+    },
+    closed: ['fetch', 'params'],
+  },
+  ConformanceImplementations: {
+    kinds: ['object'],
+    required: ['launcher', 'target', 'sdks'],
+    members: {
+      launcher: {
+        kinds: ['array'],
+        minItems: 1,
+        items: { kinds: ['string'], minLength: 1 },
+      },
+      modelCatalogue: { kinds: ['string'], minLength: 1 },
+      sdks: {
+        kinds: ['object'],
+        values: {
+          kinds: ['object'],
+          members: {
+            exempt: {
+              kinds: ['object'],
+              values: { kinds: ['string'], minLength: 1 },
+            },
+            live: {
+              kinds: ['object'],
+              required: ['command', 'tier'],
+              members: {
+                command: {
+                  kinds: ['array'],
+                  minItems: 1,
+                  items: { kinds: ['string'], minLength: 1 },
+                },
+                tier: { kinds: ['string'], enum: ['fleet', 'parity'] },
+              },
+              closed: ['command', 'tier'],
+            },
+            wire: {
+              kinds: ['array'],
+              minItems: 1,
+              items: { kinds: ['string'], minLength: 1 },
+            },
+            worker: {
+              kinds: ['array'],
+              minItems: 1,
+              items: { kinds: ['string'], minLength: 1 },
+            },
+          },
+          closed: ['exempt', 'live', 'wire', 'worker'],
+        },
+      },
+      target: { ref: 'LocalTarget' },
+    },
+    closed: ['launcher', 'modelCatalogue', 'sdks', 'target'],
+  },
+  ConformanceStep: {
+    kinds: ['object'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        required: ['let'],
+        members: { let: { kinds: ['object'], minMembers: 1 } },
+        closed: ['let'],
+      },
+      {
+        kinds: ['object'],
+        required: ['driver'],
+        members: {
+          as: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+          driver: { kinds: ['string'], minLength: 1 },
+          with: { kinds: ['object'] },
+        },
+        closed: ['as', 'driver', 'fails', 'returns', 'with'],
+        notAll: [['returns', 'fails']],
+      },
+      {
+        kinds: ['object'],
+        required: ['abandon'],
+        members: {
+          abandon: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['abandon'],
+      },
+      {
+        kinds: ['object'],
+        required: ['settles'],
+        members: {
+          abandoned: { kinds: ['boolean'], enum: [true] },
+          settles: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['abandoned', 'fails', 'returns', 'settles'],
+        notAll: [
+          ['returns', 'fails'],
+          ['returns', 'abandoned'],
+          ['fails', 'abandoned'],
+        ],
+      },
+      {
+        kinds: ['object'],
+        required: ['wire'],
+        members: {
+          as: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+          at: { kinds: ['string'], enum: ['arrival', 'answer', 'live'] },
+          follows: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+          headers: { kinds: ['object'] },
+          status: { kinds: ['integer'] },
+          waited: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+          wire: {
+            kinds: ['string'],
+            pattern: [
+              {
+                either: [
+                  [
+                    { of: [[71, 71]], min: 1, max: 1 },
+                    { of: [[69, 69]], min: 1, max: 1 },
+                    { of: [[84, 84]], min: 1, max: 1 },
+                  ],
+                  [
+                    { of: [[80, 80]], min: 1, max: 1 },
+                    { of: [[79, 79]], min: 1, max: 1 },
+                    { of: [[83, 83]], min: 1, max: 1 },
+                    { of: [[84, 84]], min: 1, max: 1 },
+                  ],
+                  [
+                    { of: [[80, 80]], min: 1, max: 1 },
+                    { of: [[85, 85]], min: 1, max: 1 },
+                    { of: [[84, 84]], min: 1, max: 1 },
+                  ],
+                  [
+                    { of: [[68, 68]], min: 1, max: 1 },
+                    { of: [[69, 69]], min: 1, max: 1 },
+                    { of: [[76, 76]], min: 1, max: 1 },
+                    { of: [[69, 69]], min: 1, max: 1 },
+                    { of: [[84, 84]], min: 1, max: 1 },
+                    { of: [[69, 69]], min: 1, max: 1 },
+                  ],
+                  [
+                    { of: [[80, 80]], min: 1, max: 1 },
+                    { of: [[65, 65]], min: 1, max: 1 },
+                    { of: [[84, 84]], min: 1, max: 1 },
+                    { of: [[67, 67]], min: 1, max: 1 },
+                    { of: [[72, 72]], min: 1, max: 1 },
+                  ],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[32, 32]], min: 1, max: 1 },
+              { of: [[47, 47]], min: 1, max: 1 },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+        },
+        closed: [
+          'answer',
+          'as',
+          'at',
+          'body',
+          'follows',
+          'headers',
+          'params',
+          'status',
+          'token',
+          'waited',
+          'wire',
+        ],
+      },
+      {
+        kinds: ['object'],
+        required: ['carried', 'is'],
+        members: {
+          carried: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['carried', 'is'],
+      },
+      {
+        kinds: ['object'],
+        required: ['closed'],
+        members: {
+          closed: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['closed'],
+      },
+      {
+        kinds: ['object'],
+        required: ['progress'],
+        members: {
+          progress: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['progress'],
+      },
+      {
+        kinds: ['object'],
+        required: ['state'],
+        members: {
+          state: {
+            kinds: ['string'],
+            enum: [
+              'initial',
+              'connecting',
+              'open',
+              'reconnecting',
+              'degraded',
+              'unauthenticated',
+              'closed',
+            ],
+          },
+        },
+        closed: ['state'],
+      },
+      {
+        kinds: ['object'],
+        required: ['stays'],
+        members: {
+          stays: {
+            kinds: ['string'],
+            enum: [
+              'initial',
+              'connecting',
+              'open',
+              'reconnecting',
+              'degraded',
+              'unauthenticated',
+              'closed',
+            ],
+          },
+        },
+        closed: ['stays'],
+      },
+      {
+        kinds: ['object'],
+        required: ['frame', 'is'],
+        members: { frame: { kinds: ['string'], minLength: 1 } },
+        closed: ['frame', 'is'],
+      },
+      {
+        kinds: ['object'],
+        required: ['frames', 'count'],
+        members: {
+          count: { kinds: ['integer'], minimum: 1 },
+          frames: { kinds: ['string'], minLength: 1 },
+        },
+        closed: ['count', 'frames'],
+      },
+      { kinds: ['object'], required: ['error'], closed: ['error'] },
+      {
+        kinds: ['object'],
+        required: ['backend'],
+        members: {
+          backend: {
+            kinds: ['string'],
+            enum: [
+              'listen',
+              'emit',
+              'record',
+              'content',
+              'description',
+              'annotations',
+              'anchored-text',
+              'uploaded',
+              'refuse',
+              'unanswered',
+              'answer-lost',
+              'hold',
+              'release',
+              'rechunk',
+              'carry',
+              'cut',
+              'down',
+              'up',
+              'archivist',
+            ],
+          },
+          with: { kinds: ['object'] },
+        },
+        closed: ['backend', 'with'],
+      },
+      {
+        kinds: ['object'],
+        required: ['quiet'],
+        members: { quiet: { kinds: ['integer'], minimum: 1 } },
+        closed: ['quiet'],
+      },
+      {
+        kinds: ['object'],
+        required: ['observe', 'as'],
+        members: {
+          as: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+          observe: {
+            kinds: ['object'],
+            required: ['query'],
+            members: { query: { kinds: ['string'], minLength: 1 } },
+            closed: ['annotation', 'filters', 'query', 'resource', 'search'],
+          },
+        },
+        closed: ['as', 'observe'],
+      },
+      {
+        kinds: ['object'],
+        required: ['leave'],
+        members: {
+          leave: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['leave'],
+      },
+      {
+        kinds: ['object'],
+        required: ['reaches', 'state'],
+        members: {
+          reaches: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['reaches', 'state'],
+      },
+      {
+        kinds: ['object'],
+        required: ['holds', 'state'],
+        members: {
+          holds: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['holds', 'state'],
+      },
+      {
+        kinds: ['object'],
+        required: ['completes'],
+        members: {
+          completes: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                of: [
+                  [48, 57],
+                  [65, 90],
+                  [97, 122],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['completes'],
+      },
+      { ref: 'ConformanceBusFetch' },
+      { ref: 'ConformanceHttpFetch' },
+      {
+        kinds: ['object'],
+        required: ['fetches'],
+        members: {
+          fetches: {
+            kinds: ['array'],
+            minItems: 2,
+            items: {
+              kinds: ['object'],
+              oneOf: [
+                { ref: 'ConformanceBusFetch' },
+                { ref: 'ConformanceHttpFetch' },
+              ],
+            },
+          },
+        },
+        closed: ['fetches'],
+      },
+      {
+        kinds: ['object'],
+        required: ['scopes'],
+        members: { scopes: { kinds: ['array'] } },
+        closed: ['scopes'],
+      },
+      { kinds: ['object'], required: ['claimed'], closed: ['claimed'] },
+      { kinds: ['object'], required: ['refused'], closed: ['refused'] },
+      { kinds: ['object'], required: ['signalled'], closed: ['signalled'] },
+      { kinds: ['object'], required: ['stalled'], closed: ['stalled'] },
     ],
   },
   ContentFormat: { kinds: ['string'] },
@@ -1239,6 +2243,48 @@ export const REQUIRED_SCHEMAS: {
       },
     ],
   },
+  ErrorData: {
+    kinds: ['object'],
+    required: ['code', 'retryable'],
+    members: {
+      choices: { kinds: ['array'], items: { ref: 'Target' } },
+      code: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[99, 99]], min: 1, max: 1 },
+          { of: [[111, 111]], min: 1, max: 1 },
+          { of: [[110, 110]], min: 1, max: 1 },
+          { of: [[116, 116]], min: 1, max: 1 },
+          { of: [[114, 114]], min: 1, max: 1 },
+          { of: [[111, 111]], min: 1, max: 1 },
+          { of: [[108, 108]], min: 1, max: 1 },
+          { of: [[46, 46]], min: 1, max: 1 },
+          { of: [[97, 122]], min: 1 },
+          {
+            either: [
+              [
+                { of: [[45, 45]], min: 1, max: 1 },
+                { of: [[97, 122]], min: 1 },
+              ],
+            ],
+            min: 0,
+          },
+        ],
+      },
+      fields: { kinds: ['array'], items: { ref: 'FieldFault' } },
+      mayStillRun: { kinds: ['boolean'] },
+      retryable: { kinds: ['boolean'] },
+      supported: { kinds: ['array'], items: { kinds: ['string'] } },
+    },
+    closed: [
+      'choices',
+      'code',
+      'fields',
+      'mayStillRun',
+      'retryable',
+      'supported',
+    ],
+  },
   ErrorResponse: {
     kinds: ['object'],
     required: ['error'],
@@ -1295,6 +2341,12 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['string'],
     enum: ['transient', 'deterministic', 'withheld'],
   },
+  FieldFault: {
+    kinds: ['object'],
+    required: ['field', 'message'],
+    members: { field: { kinds: ['string'] }, message: { kinds: ['string'] } },
+    closed: ['field', 'message'],
+  },
   FileEntry: {
     kinds: ['object'],
     required: ['type', 'name', 'path', 'size', 'mtime', 'tracked'],
@@ -1322,6 +2374,17 @@ export const REQUIRED_SCHEMAS: {
       'tracked',
       'type',
     ],
+  },
+  FollowerFollowing: {
+    kinds: ['object'],
+    required: ['sweep', 'stopped', 'refused', 'streamDrops'],
+    members: {
+      refused: { kinds: ['integer'], minimum: 0 },
+      stopped: { kinds: ['integer'], minimum: 0 },
+      streamDrops: { kinds: ['integer'], minimum: 0 },
+      sweep: { kinds: ['string'], enum: ['pending', 'running', 'done', 'due'] },
+    },
+    closed: ['refused', 'stopped', 'streamDrops', 'sweep'],
   },
   FragmentSelector: {
     kinds: ['object'],
@@ -1773,6 +2836,15 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['density', 'instructions', 'motivation', 'sourceLanguage'],
   },
+  HostPort: {
+    kinds: ['object'],
+    required: ['host', 'port'],
+    members: {
+      host: { kinds: ['string'], minLength: 1 },
+      port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
+    },
+    closed: ['host', 'port'],
+  },
   HttpEndpoint: {
     kinds: ['object'],
     required: ['kind', 'host', 'port', 'protocol'],
@@ -1782,6 +2854,103 @@ export const REQUIRED_SCHEMAS: {
       port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
       protocol: { kinds: ['string'], enum: ['http', 'https'] },
     },
+  },
+  HttpStatus: { kinds: ['integer'], minimum: 100, maximum: 599 },
+  IdentityUser: {
+    kinds: ['object'],
+    required: ['email', 'identity', 'enabled'],
+    members: {
+      email: { kinds: ['string'] },
+      enabled: { kinds: ['boolean'] },
+      identity: { kinds: ['string'] },
+    },
+    closed: ['email', 'enabled', 'identity'],
+  },
+  IdentityUseraddParams: {
+    kinds: ['object'],
+    required: ['apiVersion', 'target', 'email', 'generatePassword'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      email: { kinds: ['string'], minLength: 3 },
+      generatePassword: { kinds: ['boolean'] },
+      password: { kinds: ['string'], minLength: 1 },
+      target: { ref: 'LocalTarget' },
+    },
+    closed: ['apiVersion', 'email', 'generatePassword', 'password', 'target'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        required: ['password'],
+        members: { generatePassword: { kinds: ['boolean'], enum: [false] } },
+      },
+      {
+        kinds: ['object'],
+        members: { generatePassword: { kinds: ['boolean'], enum: [true] } },
+        notAll: [['password']],
+      },
+    ],
+  },
+  IdentityUseraddResult: {
+    kinds: ['object'],
+    required: ['email', 'identity', 'created'],
+    members: {
+      created: { kinds: ['boolean'] },
+      email: { kinds: ['string'] },
+      generatedPassword: { kinds: ['string'] },
+      identity: { kinds: ['string'] },
+    },
+    closed: ['created', 'email', 'generatedPassword', 'identity'],
+  },
+  IdentityUsersListParams: {
+    kinds: ['object'],
+    required: ['apiVersion', 'target'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      target: { ref: 'LocalTarget' },
+    },
+    closed: ['apiVersion', 'target'],
+  },
+  IdentityUsersListResult: {
+    kinds: ['object'],
+    required: ['users'],
+    members: { users: { kinds: ['array'], items: { ref: 'IdentityUser' } } },
+    closed: ['users'],
+  },
+  Image: { kinds: ['string'], minLength: 1 },
+  Inference: {
+    kinds: ['object'],
+    required: ['apiVersion', 'kind', 'metadata', 'spec'],
+    members: {
+      apiVersion: { ref: 'StackApiVersion' },
+      kind: { kinds: ['string'], enum: ['Inference'] },
+      metadata: { ref: 'Metadata' },
+      spec: {
+        kinds: ['object'],
+        required: ['providers', 'engines'],
+        members: {
+          engines: { ref: 'ArchivistEngines' },
+          providers: {
+            kinds: ['object'],
+            values: { ref: 'Provider' },
+            minMembers: 1,
+            names: {
+              kinds: ['string'],
+              enum: [
+                'anthropic',
+                'google',
+                'llamacpp',
+                'ollama',
+                'openai',
+                'together',
+                'vllm',
+              ],
+            },
+          },
+        },
+        closed: ['engines', 'providers'],
+      },
+    },
+    closed: ['apiVersion', 'kind', 'metadata', 'spec'],
   },
   InferenceLimits: {
     kinds: ['object'],
@@ -1805,6 +2974,97 @@ export const REQUIRED_SCHEMAS: {
         },
       },
     },
+  },
+  Issuer: {
+    kinds: ['object'],
+    required: ['apiVersion', 'kind', 'metadata', 'spec'],
+    members: {
+      apiVersion: { ref: 'StackApiVersion' },
+      kind: { kinds: ['string'], enum: ['Issuer'] },
+      metadata: { ref: 'Metadata' },
+      spec: {
+        kinds: ['object'],
+        required: ['type', 'image', 'resources', 'port', 'database'],
+        members: {
+          database: {
+            kinds: ['object'],
+            required: ['type', 'name', 'user'],
+            members: {
+              external: {
+                kinds: ['object'],
+                required: ['host', 'port', 'password'],
+                members: {
+                  host: { kinds: ['string'], minLength: 1 },
+                  password: { ref: 'SecretRef' },
+                  port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
+                },
+                closed: ['host', 'password', 'port'],
+              },
+              image: { ref: 'Image' },
+              name: {
+                kinds: ['string'],
+                pattern: [
+                  {
+                    of: [
+                      [95, 95],
+                      [97, 122],
+                    ],
+                    min: 1,
+                    max: 1,
+                  },
+                  {
+                    of: [
+                      [48, 57],
+                      [95, 95],
+                      [97, 122],
+                    ],
+                    min: 0,
+                    max: 62,
+                  },
+                ],
+              },
+              port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
+              resources: { ref: 'Resources' },
+              type: { kinds: ['string'], minLength: 1 },
+              user: { kinds: ['string'], minLength: 1 },
+            },
+            closed: [
+              'external',
+              'image',
+              'name',
+              'port',
+              'resources',
+              'type',
+              'user',
+            ],
+            allOf: [
+              { ref: 'Runner' },
+              {
+                kinds: ['object'],
+                oneOf: [
+                  {
+                    kinds: ['object'],
+                    required: ['port'],
+                    notAll: [['external']],
+                  },
+                  {
+                    kinds: ['object'],
+                    required: ['external'],
+                    notAll: [['port']],
+                  },
+                ],
+              },
+            ],
+          },
+          image: { ref: 'Image' },
+          port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
+          resources: { ref: 'Resources' },
+          type: { kinds: ['string'], minLength: 1 },
+        },
+        closed: ['database', 'image', 'port', 'resources', 'type'],
+      },
+    },
+    closed: ['apiVersion', 'kind', 'metadata', 'spec'],
   },
   JanusGraphConfig: {
     kinds: ['object'],
@@ -2376,6 +3636,35 @@ export const REQUIRED_SCHEMAS: {
       name: { kinds: ['string'] },
     },
   },
+  KbDid: {
+    kinds: ['string'],
+    pattern: [
+      { of: [[100, 100]], min: 1, max: 1 },
+      { of: [[105, 105]], min: 1, max: 1 },
+      { of: [[100, 100]], min: 1, max: 1 },
+      { of: [[58, 58]], min: 1, max: 1 },
+      { of: [[119, 119]], min: 1, max: 1 },
+      { of: [[101, 101]], min: 1, max: 1 },
+      { of: [[98, 98]], min: 1, max: 1 },
+      { of: [[58, 58]], min: 1, max: 1 },
+      {
+        of: [
+          [0, 8],
+          [14, 31],
+          [33, 159],
+          [161, 5759],
+          [5761, 8191],
+          [8203, 8231],
+          [8234, 8238],
+          [8240, 8286],
+          [8288, 12287],
+          [12289, 65278],
+          [65280, 1114111],
+        ],
+        min: 1,
+      },
+    ],
+  },
   KbEndpoint: {
     kinds: ['object'],
     oneOf: [{ ref: 'HttpEndpoint' }, { ref: 'LocalEndpoint' }],
@@ -2429,6 +3718,60 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     allOf: [{ ref: 'KbTarget' }, { ref: 'NewKnowledgeBase' }],
   },
+  KnowledgeBaseStatus: {
+    kinds: ['object'],
+    required: [
+      'name',
+      'key',
+      'recorded',
+      'placement',
+      'starting',
+      'healthy',
+      'services',
+    ],
+    members: {
+      did: { kinds: ['string'] },
+      gateway: { kinds: ['string'] },
+      healthy: { kinds: ['boolean'] },
+      identityError: { kinds: ['string'] },
+      kb: { ref: 'DiscoveredKB' },
+      key: { kinds: ['string'] },
+      lan: { kinds: ['string'] },
+      name: { kinds: ['string'] },
+      placement: { kinds: ['string'], enum: ['local', 'codespace'] },
+      recorded: { kinds: ['boolean'] },
+      repo: { kinds: ['string'] },
+      root: { kinds: ['string'] },
+      runtime: { ref: 'Runtime' },
+      secretStore: { kinds: ['string'] },
+      services: { kinds: ['array'], items: { ref: 'ServiceStatus' } },
+      session: { ref: 'Session' },
+      siteName: { kinds: ['string'] },
+      starting: { kinds: ['boolean'] },
+      workload: { ref: 'WorkloadStatus' },
+    },
+    closed: [
+      'did',
+      'gateway',
+      'healthy',
+      'identityError',
+      'kb',
+      'key',
+      'lan',
+      'name',
+      'placement',
+      'recorded',
+      'repo',
+      'root',
+      'runtime',
+      'secretStore',
+      'services',
+      'session',
+      'siteName',
+      'starting',
+      'workload',
+    ],
+  },
   KnowledgeGraph: {
     kinds: ['object'],
     required: ['nodes', 'edges'],
@@ -2460,6 +3803,203 @@ export const REQUIRED_SCHEMAS: {
       },
       truncated: { kinds: ['boolean'] },
     },
+  },
+  KnowledgeIndex: {
+    kinds: ['object'],
+    required: ['apiVersion', 'kind', 'metadata', 'spec'],
+    members: {
+      apiVersion: { ref: 'StackApiVersion' },
+      kind: { kinds: ['string'], enum: ['KnowledgeIndex'] },
+      metadata: { ref: 'Metadata' },
+      spec: {
+        kinds: ['object'],
+        required: [
+          'knowledgeBase',
+          'logLevel',
+          'graph',
+          'vectors',
+          'embedding',
+          'librarian',
+          'smelter',
+          'weaver',
+        ],
+        members: {
+          embedding: {
+            kinds: ['object'],
+            required: ['type', 'model', 'chunking'],
+            members: {
+              apiKey: { ref: 'SecretRef' },
+              chunking: {
+                kinds: ['object'],
+                required: ['chunkSize', 'overlap'],
+                members: {
+                  chunkSize: { kinds: ['integer'], minimum: 1 },
+                  overlap: { kinds: ['integer'], minimum: 0 },
+                },
+                closed: ['chunkSize', 'overlap'],
+              },
+              endpoint: { kinds: ['string'], minLength: 1 },
+              model: { kinds: ['string'], minLength: 1 },
+              type: { kinds: ['string'], minLength: 1 },
+            },
+            closed: ['apiKey', 'chunking', 'endpoint', 'model', 'type'],
+          },
+          graph: {
+            kinds: ['object'],
+            required: ['type', 'username'],
+            members: {
+              external: {
+                kinds: ['object'],
+                required: ['uri', 'password'],
+                members: {
+                  password: { ref: 'SecretRef' },
+                  uri: { kinds: ['string'], minLength: 1 },
+                },
+                closed: ['password', 'uri'],
+              },
+              image: { ref: 'Image' },
+              resources: { ref: 'Resources' },
+              type: { kinds: ['string'], minLength: 1 },
+              username: { kinds: ['string'], minLength: 1 },
+            },
+            closed: ['external', 'image', 'resources', 'type', 'username'],
+            allOf: [{ ref: 'Runner' }],
+          },
+          knowledgeBase: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [48, 57],
+                  [97, 122],
+                ],
+                min: 1,
+                max: 1,
+              },
+              {
+                either: [
+                  [
+                    {
+                      of: [
+                        [45, 45],
+                        [48, 57],
+                        [97, 122],
+                      ],
+                      min: 0,
+                    },
+                    {
+                      of: [
+                        [48, 57],
+                        [97, 122],
+                      ],
+                      min: 1,
+                      max: 1,
+                    },
+                  ],
+                ],
+                min: 0,
+                max: 1,
+              },
+            ],
+          },
+          librarian: {
+            kinds: ['object'],
+            required: ['image', 'resources', 'gather', 'search'],
+            members: {
+              gather: {
+                kinds: ['object'],
+                required: ['settleTimeoutMs'],
+                members: {
+                  settleTimeoutMs: { kinds: ['integer'], minimum: 1 },
+                },
+                closed: ['settleTimeoutMs'],
+              },
+              image: { ref: 'Image' },
+              resources: { ref: 'Resources' },
+              search: {
+                kinds: ['object'],
+                required: ['semanticFloor'],
+                members: {
+                  semanticFloor: { kinds: ['number'], minimum: 0, maximum: 1 },
+                },
+                closed: ['semanticFloor'],
+              },
+            },
+            closed: ['gather', 'image', 'resources', 'search'],
+          },
+          logLevel: { ref: 'LogLevel' },
+          smelter: {
+            kinds: ['object'],
+            required: ['image', 'resources', 'pdfsAtOnce'],
+            members: {
+              image: { ref: 'Image' },
+              pdfsAtOnce: { kinds: ['integer'], minimum: 1 },
+              resources: { ref: 'Resources' },
+            },
+            closed: ['image', 'pdfsAtOnce', 'resources'],
+          },
+          vectors: {
+            kinds: ['object'],
+            required: ['type'],
+            members: {
+              external: {
+                kinds: ['object'],
+                required: ['host', 'port', 'smelterToken', 'librarianToken'],
+                members: {
+                  host: { kinds: ['string'], minLength: 1 },
+                  librarianToken: { ref: 'SecretRef' },
+                  port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
+                  smelterToken: { ref: 'SecretRef' },
+                },
+                closed: ['host', 'librarianToken', 'port', 'smelterToken'],
+              },
+              image: { ref: 'Image' },
+              resources: { ref: 'Resources' },
+              shared: { kinds: ['object'], closed: [] },
+              type: { kinds: ['string'], minLength: 1 },
+            },
+            closed: ['external', 'image', 'resources', 'shared', 'type'],
+            oneOf: [
+              {
+                kinds: ['object'],
+                required: ['shared'],
+                notAll: [['image'], ['resources'], ['external']],
+              },
+              {
+                kinds: ['object'],
+                required: ['image', 'resources'],
+                notAll: [['shared'], ['external']],
+              },
+              {
+                kinds: ['object'],
+                required: ['external'],
+                notAll: [['shared'], ['image'], ['resources']],
+              },
+            ],
+          },
+          weaver: {
+            kinds: ['object'],
+            required: ['image', 'resources'],
+            members: {
+              image: { ref: 'Image' },
+              resources: { ref: 'Resources' },
+            },
+            closed: ['image', 'resources'],
+          },
+        },
+        closed: [
+          'embedding',
+          'graph',
+          'knowledgeBase',
+          'librarian',
+          'logLevel',
+          'smelter',
+          'vectors',
+          'weaver',
+        ],
+      },
+    },
+    closed: ['apiVersion', 'kind', 'metadata', 'spec'],
   },
   LibrarianConfig: {
     kinds: ['object'],
@@ -2546,38 +4086,16 @@ export const REQUIRED_SCHEMAS: {
         minItems: 2,
         items: { kinds: ['string'], enum: ['matcher', 'gatherer'] },
       },
-      kb: {
-        kinds: ['string'],
-        pattern: [
-          { of: [[100, 100]], min: 1, max: 1 },
-          { of: [[105, 105]], min: 1, max: 1 },
-          { of: [[100, 100]], min: 1, max: 1 },
-          { of: [[58, 58]], min: 1, max: 1 },
-          { of: [[119, 119]], min: 1, max: 1 },
-          { of: [[101, 101]], min: 1, max: 1 },
-          { of: [[98, 98]], min: 1, max: 1 },
-          { of: [[58, 58]], min: 1, max: 1 },
-          {
-            of: [
-              [0, 8],
-              [14, 31],
-              [33, 159],
-              [161, 5759],
-              [5761, 8191],
-              [8203, 8231],
-              [8234, 8238],
-              [8240, 8286],
-              [8288, 12287],
-              [12289, 65278],
-              [65280, 1114111],
-            ],
-            min: 1,
-          },
-        ],
-      },
+      kb: { ref: 'KbDid' },
       status: { kinds: ['string'], enum: ['ok'] },
     },
     closed: ['actors', 'kb', 'status'],
+  },
+  LibrarianPromptScore: {
+    kinds: ['object'],
+    required: ['candidate', 'score'],
+    members: { candidate: { kinds: ['number'] }, score: { kinds: ['number'] } },
+    closed: ['candidate', 'score'],
   },
   LimitRefusal: {
     kinds: ['object'],
@@ -2641,10 +4159,48 @@ export const REQUIRED_SCHEMAS: {
       kind: { kinds: ['string'], enum: ['local'] },
     },
   },
+  LocalTarget: {
+    kinds: ['object'],
+    required: ['kind', 'root'],
+    members: {
+      kind: { kinds: ['string'], enum: ['local'] },
+      root: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['kind', 'root'],
+  },
   LogFormat: { kinds: ['string'], enum: ['json', 'simple'] },
   LogLevel: {
     kinds: ['string'],
     enum: ['error', 'warn', 'info', 'http', 'debug'],
+  },
+  LogRecord: {
+    kinds: ['object'],
+    required: ['requestId', 'service', 'stream', 'line', 'receivedAt'],
+    members: {
+      line: { kinds: ['string'] },
+      receivedAt: { kinds: ['string'], minLength: 1 },
+      requestId: { ref: 'RequestId' },
+      service: { kinds: ['string'] },
+      stream: { ref: 'OutputStream' },
+    },
+    closed: ['line', 'receivedAt', 'requestId', 'service', 'stream'],
+  },
+  LogsFollowParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      runtime: { ref: 'Runtime' },
+      service: { kinds: ['string'], minLength: 1 },
+      target: { ref: 'Target' },
+    },
+    closed: ['apiVersion', 'runtime', 'service', 'target'],
+  },
+  LogsFollowResult: {
+    kinds: ['object'],
+    required: ['services'],
+    members: { services: { kinds: ['array'], items: { kinds: ['string'] } } },
+    closed: ['services'],
   },
   MarkArchiveCommand: {
     kinds: ['object'],
@@ -2948,6 +4504,91 @@ export const REQUIRED_SCHEMAS: {
     members: { type: { kinds: ['string'], enum: ['memory'] } },
     closed: ['type'],
   },
+  Metadata: {
+    kinds: ['object'],
+    required: ['name'],
+    members: {
+      annotations: { kinds: ['object'], values: { kinds: ['string'] } },
+      labels: { kinds: ['object'], values: { kinds: ['string'] } },
+      name: {
+        kinds: ['string'],
+        pattern: [
+          {
+            of: [
+              [48, 57],
+              [97, 122],
+            ],
+            min: 1,
+            max: 1,
+          },
+          {
+            either: [
+              [
+                {
+                  of: [
+                    [45, 45],
+                    [48, 57],
+                    [97, 122],
+                  ],
+                  min: 0,
+                },
+                {
+                  of: [
+                    [48, 57],
+                    [97, 122],
+                  ],
+                  min: 1,
+                  max: 1,
+                },
+              ],
+            ],
+            min: 0,
+            max: 1,
+          },
+        ],
+        maxLength: 63,
+      },
+      namespace: {
+        kinds: ['string'],
+        pattern: [
+          {
+            of: [
+              [48, 57],
+              [97, 122],
+            ],
+            min: 1,
+            max: 1,
+          },
+          {
+            either: [
+              [
+                {
+                  of: [
+                    [45, 45],
+                    [48, 57],
+                    [97, 122],
+                  ],
+                  min: 0,
+                },
+                {
+                  of: [
+                    [48, 57],
+                    [97, 122],
+                  ],
+                  min: 1,
+                  max: 1,
+                },
+              ],
+            ],
+            min: 0,
+            max: 1,
+          },
+        ],
+        maxLength: 63,
+      },
+    },
+    closed: ['annotations', 'labels', 'name', 'namespace'],
+  },
   Motivation: {
     kinds: ['string'],
     enum: ['assessing', 'commenting', 'highlighting', 'linking', 'tagging'],
@@ -3024,6 +4665,19 @@ export const REQUIRED_SCHEMAS: {
       { kinds: ['array'], minItems: 1, items: { kinds: ['string'] } },
     ],
   },
+  OpenResource: {
+    kinds: ['object'],
+    required: ['id', 'name', 'openedAt', 'order'],
+    members: {
+      id: { ref: 'ResourceId' },
+      mediaType: { kinds: ['string'] },
+      name: { kinds: ['string'] },
+      openedAt: { kinds: ['integer'], minimum: 0 },
+      order: { kinds: ['integer'], minimum: 0 },
+      storageUri: { kinds: ['string'] },
+    },
+  },
+  OutputStream: { kinds: ['string'], enum: ['stdout', 'stderr'] },
   PdfClass: { kinds: ['string'], enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G'] },
   PdfTextItem: {
     kinds: ['object'],
@@ -3078,6 +4732,82 @@ export const REQUIRED_SCHEMAS: {
     members: { profiles: { kinds: ['object'], values: { ref: 'Profile' } } },
     closed: ['profiles'],
   },
+  Progress: {
+    kinds: ['object'],
+    required: ['requestId', 'kind', 'text'],
+    members: {
+      kind: {
+        kinds: ['string'],
+        enum: [
+          'log',
+          'note',
+          'ok',
+          'warn',
+          'fail',
+          'banner',
+          'section',
+          'stamp',
+          'command',
+          'output',
+        ],
+      },
+      requestId: { ref: 'RequestId' },
+      text: { kinds: ['string'] },
+    },
+    closed: ['kind', 'requestId', 'text'],
+  },
+  ProjectConfig: {
+    kinds: ['object'],
+    required: ['project', 'git', 'site'],
+    members: {
+      git: {
+        kinds: ['object'],
+        required: ['sync'],
+        members: { sync: { kinds: ['boolean'] } },
+        closed: ['sync'],
+      },
+      project: {
+        kinds: ['object'],
+        required: ['name'],
+        members: {
+          name: { kinds: ['string'], minLength: 1 },
+          version: { kinds: ['string'], minLength: 1 },
+        },
+        closed: ['name', 'version'],
+      },
+      site: {
+        kinds: ['object'],
+        required: ['domain', 'siteName'],
+        members: {
+          domain: {
+            kinds: ['string'],
+            pattern: [
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+              },
+            ],
+            minLength: 1,
+          },
+          siteName: { kinds: ['string'], minLength: 1 },
+        },
+        closed: ['domain', 'siteName'],
+      },
+    },
+    closed: ['git', 'project', 'site'],
+  },
   ProtectedResourceMetadata: {
     kinds: ['object'],
     required: ['resource', 'authorization_servers', 'bearer_methods_supported'],
@@ -3096,6 +4826,14 @@ export const REQUIRED_SCHEMAS: {
       'resource',
       'resource_name',
     ],
+  },
+  Provider: {
+    kinds: ['object'],
+    members: {
+      apiKey: { ref: 'SecretRef' },
+      baseURL: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['apiKey', 'baseURL'],
   },
   QdrantVectorsConfig: {
     kinds: ['object'],
@@ -3196,6 +4934,7 @@ export const REQUIRED_SCHEMAS: {
     required: ['checksum'],
     members: { checksum: { kinds: ['string'] } },
   },
+  RequestId: { kinds: ['string', 'integer'] },
   ResourceAnnotations: {
     kinds: ['object'],
     required: ['resourceId', 'annotations', 'version', 'updatedAt'],
@@ -3393,6 +5132,214 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['annotations', 'lastSequence', 'resource'],
   },
+  Resources: {
+    kinds: ['object'],
+    required: ['limits'],
+    members: {
+      limits: {
+        kinds: ['object'],
+        required: ['memory'],
+        members: {
+          memory: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[49, 57]], min: 1, max: 1 },
+              { of: [[48, 57]], min: 0 },
+              {
+                of: [
+                  [71, 71],
+                  [77, 77],
+                ],
+                min: 1,
+                max: 1,
+              },
+            ],
+          },
+        },
+        closed: ['memory'],
+      },
+    },
+    closed: ['limits'],
+  },
+  Root: {
+    kinds: ['object'],
+    required: ['placement', 'registered', 'running'],
+    members: {
+      codespace: { kinds: ['string'] },
+      codespaceState: { kinds: ['string'] },
+      config: { kinds: ['string'] },
+      configs: { kinds: ['array'], items: { kinds: ['string'] } },
+      current: { kinds: ['string'], enum: ['cwd', 'xynolog-root'] },
+      did: { kinds: ['string'] },
+      forwardPort: { kinds: ['integer'] },
+      forwarded: { kinds: ['boolean'] },
+      identityError: { kinds: ['string'] },
+      lastUsed: { kinds: ['string'] },
+      path: { kinds: ['string'] },
+      placement: { kinds: ['string'], enum: ['local', 'codespace'] },
+      present: { kinds: ['boolean'] },
+      reachable: { kinds: ['boolean'] },
+      registered: { kinds: ['boolean'] },
+      repo: { kinds: ['string'] },
+      running: { kinds: ['boolean'] },
+      siteName: { kinds: ['string'] },
+    },
+    closed: [
+      'codespace',
+      'codespaceState',
+      'config',
+      'configs',
+      'current',
+      'did',
+      'forwardPort',
+      'forwarded',
+      'identityError',
+      'lastUsed',
+      'path',
+      'placement',
+      'present',
+      'reachable',
+      'registered',
+      'repo',
+      'running',
+      'siteName',
+    ],
+  },
+  RootsForgetParams: {
+    kinds: ['object'],
+    required: ['apiVersion', 'root'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      root: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['apiVersion', 'root'],
+  },
+  RootsForgetResult: {
+    kinds: ['object'],
+    required: ['path', 'directoryMissing'],
+    members: {
+      directoryMissing: { kinds: ['boolean'] },
+      path: { kinds: ['string'] },
+      persistentState: { kinds: ['string'] },
+    },
+    closed: ['directoryMissing', 'path', 'persistentState'],
+  },
+  RootsInitParams: {
+    kinds: ['object'],
+    required: ['apiVersion', 'path', 'domain'],
+    members: {
+      anthropicEndpoint: { kinds: ['string'], minLength: 1 },
+      apiVersion: { ref: 'ApiVersion' },
+      configName: { kinds: ['string'], minLength: 1 },
+      domain: { kinds: ['string'], minLength: 1 },
+      embedding: { kinds: ['string'], minLength: 1 },
+      inference: { kinds: ['string'], enum: ['anthropic', 'ollama'] },
+      model: { kinds: ['string'], minLength: 1 },
+      modelLight: { kinds: ['string'], minLength: 1 },
+      name: { kinds: ['string'], minLength: 1 },
+      ollamaBase: { kinds: ['string'], minLength: 1 },
+      ollamaRegistry: { kinds: ['string'], minLength: 1 },
+      path: { kinds: ['string'], minLength: 1 },
+      siteName: { kinds: ['string'], minLength: 1 },
+    },
+    closed: [
+      'anthropicEndpoint',
+      'apiVersion',
+      'configName',
+      'domain',
+      'embedding',
+      'inference',
+      'model',
+      'modelLight',
+      'name',
+      'ollamaBase',
+      'ollamaRegistry',
+      'path',
+      'siteName',
+    ],
+  },
+  RootsInitResult: {
+    kinds: ['object'],
+    required: ['path'],
+    members: { path: { kinds: ['string'], minLength: 1 } },
+    closed: ['path'],
+  },
+  RootsListParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: { apiVersion: { ref: 'ApiVersion' } },
+    closed: ['apiVersion'],
+  },
+  RootsListResult: {
+    kinds: ['object'],
+    required: ['roots'],
+    members: {
+      roots: { kinds: ['array'], items: { ref: 'Root' } },
+      warnings: { kinds: ['array'], items: { kinds: ['string'] } },
+    },
+    closed: ['roots', 'warnings'],
+  },
+  RunInstance: {
+    kinds: ['string'],
+    pattern: [
+      {
+        of: [
+          [48, 57],
+          [97, 122],
+        ],
+        min: 1,
+      },
+      {
+        either: [
+          [
+            { of: [[45, 45]], min: 1, max: 1 },
+            {
+              of: [
+                [48, 57],
+                [97, 122],
+              ],
+              min: 1,
+            },
+          ],
+        ],
+        min: 0,
+      },
+    ],
+  },
+  RunService: {
+    kinds: ['string'],
+    enum: [
+      'archivist',
+      'dispatcher',
+      'gateway',
+      'librarian',
+      'smelter',
+      'weaver',
+      'worker',
+    ],
+  },
+  Runner: {
+    kinds: ['object'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        required: ['image', 'resources'],
+        notAll: [['external']],
+      },
+      {
+        kinds: ['object'],
+        required: ['external'],
+        notAll: [['image'], ['resources']],
+      },
+    ],
+  },
+  Runtime: { kinds: ['string'], enum: ['container', 'docker', 'podman'] },
+  RuntimeState: {
+    kinds: ['object'],
+    required: ['name', 'found'],
+    members: { found: { kinds: ['boolean'] }, name: { ref: 'Runtime' } },
+    closed: ['found', 'name'],
+  },
   ScoredResource: {
     kinds: ['object'],
     allOf: [
@@ -3405,6 +5352,36 @@ export const REQUIRED_SCHEMAS: {
         },
       },
     ],
+  },
+  SecretRef: {
+    kinds: ['object'],
+    required: ['fromEnv'],
+    members: {
+      fromEnv: {
+        kinds: ['string'],
+        pattern: [
+          {
+            of: [
+              [65, 90],
+              [95, 95],
+              [97, 122],
+            ],
+            min: 1,
+            max: 1,
+          },
+          {
+            of: [
+              [48, 57],
+              [65, 90],
+              [95, 95],
+              [97, 122],
+            ],
+            min: 0,
+          },
+        ],
+      },
+    },
+    closed: ['fromEnv'],
   },
   Selector: {
     kinds: ['object'],
@@ -3446,11 +5423,205 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['host', 'port'],
   },
+  ServiceGroup: {
+    kinds: ['string'],
+    enum: [
+      'record',
+      'index',
+      'issuer',
+      'knowledge-workers',
+      'providers',
+      'telemetry',
+    ],
+  },
+  ServiceHostParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: { apiVersion: { ref: 'ApiVersion' }, runtime: { ref: 'Runtime' } },
+    closed: ['apiVersion', 'runtime'],
+  },
+  ServiceHostResult: {
+    kinds: ['object'],
+    required: ['runtime', 'address'],
+    members: {
+      address: { kinds: ['string'], minLength: 1 },
+      runtime: { ref: 'Runtime' },
+    },
+    closed: ['address', 'runtime'],
+  },
   ServiceIdentity: {
     kinds: ['object'],
     required: ['issuer'],
     members: { issuer: { kinds: ['string'], minLength: 1 } },
     closed: ['issuer'],
+  },
+  ServiceOutput: {
+    kinds: ['object'],
+    required: ['requestId', 'instance', 'stream', 'line'],
+    members: {
+      instance: { ref: 'RunInstance' },
+      line: { kinds: ['string'] },
+      requestId: { ref: 'RequestId' },
+      stream: { ref: 'OutputStream' },
+    },
+    closed: ['instance', 'line', 'requestId', 'stream'],
+  },
+  ServiceRunParams: {
+    kinds: ['object'],
+    required: [
+      'apiVersion',
+      'target',
+      'service',
+      'instance',
+      'environment',
+      'mounts',
+      'pathFirst',
+      'ports',
+    ],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      args: { kinds: ['array'], items: { kinds: ['string'] } },
+      document: { kinds: ['string'] },
+      environment: { kinds: ['object'], values: { kinds: ['string'] } },
+      instance: { ref: 'RunInstance' },
+      mounts: {
+        kinds: ['array'],
+        items: {
+          kinds: ['string'],
+          pattern: [
+            { of: [[47, 47]], min: 1, max: 1 },
+            { of: [[0, 1114111]], min: 0 },
+          ],
+        },
+      },
+      pathFirst: {
+        kinds: ['array'],
+        items: {
+          kinds: ['string'],
+          pattern: [
+            { of: [[47, 47]], min: 1, max: 1 },
+            { of: [[0, 1114111]], min: 0 },
+          ],
+        },
+      },
+      ports: { kinds: ['array'], items: { kinds: ['integer'], minimum: 1 } },
+      runtime: { ref: 'Runtime' },
+      service: { ref: 'RunService' },
+      target: { ref: 'LocalTarget' },
+    },
+    closed: [
+      'apiVersion',
+      'args',
+      'document',
+      'environment',
+      'instance',
+      'mounts',
+      'pathFirst',
+      'ports',
+      'runtime',
+      'service',
+      'target',
+    ],
+  },
+  ServiceRunResult: {
+    kinds: ['object'],
+    required: ['instance', 'exitCode', 'ranMs'],
+    members: {
+      exitCode: { kinds: ['integer'], minimum: 0 },
+      instance: { ref: 'RunInstance' },
+      ranMs: { kinds: ['integer'], minimum: 0 },
+    },
+    closed: ['exitCode', 'instance', 'ranMs'],
+  },
+  ServiceSignalParams: {
+    kinds: ['object'],
+    required: ['apiVersion', 'target', 'instance', 'signal'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      instance: { ref: 'RunInstance' },
+      runtime: { ref: 'Runtime' },
+      signal: { kinds: ['string'], enum: ['term', 'kill'] },
+      target: { ref: 'LocalTarget' },
+    },
+    closed: ['apiVersion', 'instance', 'runtime', 'signal', 'target'],
+  },
+  ServiceSignalResult: {
+    kinds: ['object'],
+    required: ['delivered'],
+    members: { delivered: { kinds: ['boolean'] } },
+    closed: ['delivered'],
+  },
+  ServiceStarted: {
+    kinds: ['object'],
+    required: ['requestId', 'instance', 'container', 'address'],
+    members: {
+      address: { kinds: ['string'], minLength: 1 },
+      container: { kinds: ['string'], minLength: 1 },
+      documentPath: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[47, 47]], min: 1, max: 1 },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      instance: { ref: 'RunInstance' },
+      requestId: { ref: 'RequestId' },
+    },
+    closed: ['address', 'container', 'documentPath', 'instance', 'requestId'],
+  },
+  ServiceStatus: {
+    kinds: ['object'],
+    required: ['role', 'group', 'state', 'healthy', 'counted'],
+    members: {
+      containerState: { kinds: ['string'] },
+      counted: { kinds: ['boolean'] },
+      group: { ref: 'ServiceGroup' },
+      healthy: { kinds: ['boolean'] },
+      page: { kinds: ['string'] },
+      probe: { kinds: ['string'] },
+      product: { kinds: ['string'] },
+      realm: { kinds: ['string'] },
+      role: { kinds: ['string'] },
+      runsOn: { kinds: ['string'] },
+      serves: { kinds: ['array'], items: { kinds: ['string'] } },
+      state: {
+        kinds: ['string'],
+        enum: [
+          'running',
+          'stopped',
+          'reachable',
+          'unreachable',
+          'absent',
+          'not-configured',
+        ],
+      },
+    },
+    closed: [
+      'containerState',
+      'counted',
+      'group',
+      'healthy',
+      'page',
+      'probe',
+      'product',
+      'realm',
+      'role',
+      'runsOn',
+      'serves',
+      'state',
+    ],
+  },
+  Session: {
+    kinds: ['object'],
+    required: ['state'],
+    members: {
+      email: { kinds: ['string'] },
+      state: {
+        kinds: ['string'],
+        enum: ['valid', 'expired', 'unverified', 'none'],
+      },
+    },
+    closed: ['email', 'state'],
   },
   SessionJoinedEvent: {
     kinds: ['object'],
@@ -3468,15 +5639,94 @@ export const REQUIRED_SCHEMAS: {
       participant: { ref: 'UserId' },
     },
   },
+  Setting: {
+    kinds: ['object'],
+    required: ['name', 'default', 'appliesTo', 'values', 'settable'],
+    members: {
+      appliesTo: { kinds: ['string'], enum: ['machine', 'knowledge-base'] },
+      changedBy: { kinds: ['string'] },
+      default: { kinds: ['boolean'] },
+      name: { kinds: ['string'] },
+      settable: { kinds: ['boolean'] },
+      values: { kinds: ['array'], items: { ref: 'SettingLine' } },
+    },
+    closed: ['appliesTo', 'changedBy', 'default', 'name', 'settable', 'values'],
+  },
+  SettingLine: {
+    kinds: ['object'],
+    required: ['value', 'source'],
+    members: { source: { kinds: ['string'] }, value: { kinds: ['string'] } },
+    closed: ['source', 'value'],
+  },
+  SettingsGetParams: {
+    kinds: ['object'],
+    required: ['apiVersion', 'name'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      default: { kinds: ['boolean'] },
+      name: { kinds: ['string'], minLength: 1 },
+      root: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['apiVersion', 'default', 'name', 'root'],
+  },
   SettingsHoverDelayChangedEvent: {
     kinds: ['object'],
     required: ['hoverDelayMs'],
     members: { hoverDelayMs: { kinds: ['integer'] } },
   },
+  SettingsListParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      root: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['apiVersion', 'root'],
+  },
+  SettingsListResult: {
+    kinds: ['object'],
+    required: ['settings'],
+    members: {
+      root: { kinds: ['string'] },
+      settings: { kinds: ['array'], items: { ref: 'Setting' } },
+      unresolved: { kinds: ['string'] },
+    },
+    closed: ['root', 'settings', 'unresolved'],
+  },
   SettingsLocaleChangedEvent: {
     kinds: ['object'],
     required: ['locale'],
     members: { locale: { kinds: ['string'] } },
+  },
+  SettingsPathParams: {
+    kinds: ['object'],
+    required: ['apiVersion', 'document'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      document: {
+        kinds: ['string'],
+        enum: ['browser', 'worker', 'issuer', 'vectors'],
+      },
+    },
+    closed: ['apiVersion', 'document'],
+  },
+  SettingsPathResult: {
+    kinds: ['object'],
+    required: ['path'],
+    members: { path: { kinds: ['string'] } },
+    closed: ['path'],
+  },
+  SettingsSetParams: {
+    kinds: ['object'],
+    required: ['apiVersion', 'name', 'value'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      default: { kinds: ['boolean'] },
+      name: { kinds: ['string'], minLength: 1 },
+      root: { kinds: ['string'], minLength: 1 },
+      value: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['apiVersion', 'default', 'name', 'root', 'value'],
   },
   SettingsThemeChangedEvent: {
     kinds: ['object'],
@@ -3484,6 +5734,17 @@ export const REQUIRED_SCHEMAS: {
     members: {
       theme: { kinds: ['string'], enum: ['light', 'dark', 'system'] },
     },
+  },
+  SettingsUnsetParams: {
+    kinds: ['object'],
+    required: ['apiVersion', 'name'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      default: { kinds: ['boolean'] },
+      name: { kinds: ['string'], minLength: 1 },
+      root: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['apiVersion', 'default', 'name', 'root'],
   },
   SmeltRebuildAnchorsCommand: {
     kinds: ['object'],
@@ -3576,20 +5837,7 @@ export const REQUIRED_SCHEMAS: {
     ],
     members: {
       eventsProcessed: { kinds: ['integer'], minimum: 0 },
-      following: {
-        kinds: ['object'],
-        required: ['sweep', 'stopped', 'refused', 'streamDrops'],
-        members: {
-          refused: { kinds: ['integer'], minimum: 0 },
-          stopped: { kinds: ['integer'], minimum: 0 },
-          streamDrops: { kinds: ['integer'], minimum: 0 },
-          sweep: {
-            kinds: ['string'],
-            enum: ['pending', 'running', 'done', 'due'],
-          },
-        },
-        closed: ['refused', 'stopped', 'streamDrops', 'sweep'],
-      },
+      following: { ref: 'FollowerFollowing' },
       index: {
         kinds: ['object'],
         required: ['stamp', 'madeAnew'],
@@ -3615,35 +5863,7 @@ export const REQUIRED_SCHEMAS: {
         },
         closed: ['madeAnew', 'stamp'],
       },
-      kb: {
-        kinds: ['string'],
-        pattern: [
-          { of: [[100, 100]], min: 1, max: 1 },
-          { of: [[105, 105]], min: 1, max: 1 },
-          { of: [[100, 100]], min: 1, max: 1 },
-          { of: [[58, 58]], min: 1, max: 1 },
-          { of: [[119, 119]], min: 1, max: 1 },
-          { of: [[101, 101]], min: 1, max: 1 },
-          { of: [[98, 98]], min: 1, max: 1 },
-          { of: [[58, 58]], min: 1, max: 1 },
-          {
-            of: [
-              [0, 8],
-              [14, 31],
-              [33, 159],
-              [161, 5759],
-              [5761, 8191],
-              [8203, 8231],
-              [8234, 8238],
-              [8240, 8286],
-              [8288, 12287],
-              [12289, 65278],
-              [65280, 1114111],
-            ],
-            min: 1,
-          },
-        ],
-      },
+      kb: { ref: 'KbDid' },
       reconcile: {
         kinds: ['object'],
         required: ['phase'],
@@ -3738,6 +5958,211 @@ export const REQUIRED_SCHEMAS: {
       type: { kinds: ['string'], enum: ['SpecificResource'] },
     },
   },
+  StackApiVersion: { kinds: ['string'], enum: ['xynolog.org/v1alpha1'] },
+  StackKnowledgeBase: {
+    kinds: ['object'],
+    required: ['apiVersion', 'kind', 'metadata', 'spec'],
+    members: {
+      apiVersion: { ref: 'StackApiVersion' },
+      kind: { kinds: ['string'], enum: ['KnowledgeBase'] },
+      metadata: { ref: 'Metadata' },
+      spec: {
+        kinds: ['object'],
+        required: [
+          'logLevel',
+          'gateway',
+          'dispatcher',
+          'archivist',
+          'messaging',
+          'issuer',
+        ],
+        members: {
+          archivist: {
+            kinds: ['object'],
+            required: ['image', 'resources'],
+            members: {
+              address: { ref: 'HostPort' },
+              image: { ref: 'Image' },
+              resources: { ref: 'Resources' },
+            },
+            closed: ['address', 'image', 'resources'],
+          },
+          dispatcher: {
+            kinds: ['object'],
+            required: ['image', 'resources'],
+            members: {
+              image: { ref: 'Image' },
+              resources: { ref: 'Resources' },
+            },
+            closed: ['image', 'resources'],
+          },
+          gateway: {
+            kinds: ['object'],
+            required: ['image', 'resources', 'port', 'publicURL'],
+            members: {
+              image: { ref: 'Image' },
+              port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
+              publicURL: { kinds: ['string'], minLength: 1 },
+              resources: { ref: 'Resources' },
+            },
+            closed: ['image', 'port', 'publicURL', 'resources'],
+          },
+          issuer: {
+            kinds: ['object'],
+            required: ['subjectClaim'],
+            members: {
+              external: {
+                kinds: ['object'],
+                required: ['type', 'url'],
+                members: {
+                  type: { kinds: ['string'], minLength: 1 },
+                  url: { kinds: ['string'], minLength: 1 },
+                },
+                closed: ['type', 'url'],
+              },
+              shared: {
+                kinds: ['object'],
+                required: ['accessTokenLifespan'],
+                members: {
+                  accessTokenLifespan: { kinds: ['integer'], minimum: 1 },
+                },
+                closed: ['accessTokenLifespan'],
+              },
+              subjectClaim: { kinds: ['string'], minLength: 1 },
+            },
+            closed: ['external', 'shared', 'subjectClaim'],
+            oneOf: [
+              { kinds: ['object'], required: ['shared'] },
+              { kinds: ['object'], required: ['external'] },
+            ],
+          },
+          logLevel: { ref: 'LogLevel' },
+          messaging: {
+            kinds: ['object'],
+            required: ['jobs', 'signal'],
+            members: {
+              external: {
+                kinds: ['object'],
+                required: ['servers', 'user', 'password'],
+                members: {
+                  password: { ref: 'SecretRef' },
+                  servers: { kinds: ['string'], minLength: 1 },
+                  user: { ref: 'SecretRef' },
+                },
+                closed: ['password', 'servers', 'user'],
+              },
+              image: { ref: 'Image' },
+              jobs: {
+                kinds: ['object'],
+                required: ['type'],
+                members: { type: { kinds: ['string'], minLength: 1 } },
+                closed: ['type'],
+              },
+              resources: { ref: 'Resources' },
+              signal: {
+                kinds: ['object'],
+                required: ['type'],
+                members: { type: { kinds: ['string'], minLength: 1 } },
+                closed: ['type'],
+              },
+            },
+            closed: ['external', 'image', 'jobs', 'resources', 'signal'],
+            allOf: [{ ref: 'Runner' }],
+          },
+        },
+        closed: [
+          'archivist',
+          'dispatcher',
+          'gateway',
+          'issuer',
+          'logLevel',
+          'messaging',
+        ],
+      },
+    },
+    closed: ['apiVersion', 'kind', 'metadata', 'spec'],
+  },
+  StackStartParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      codespaceName: { kinds: ['string'], minLength: 1 },
+      config: { kinds: ['string'], minLength: 1 },
+      dryRun: { kinds: ['boolean'] },
+      group: { ref: 'ServiceGroup' },
+      idleTimeout: { kinds: ['string'], minLength: 1 },
+      machine: { kinds: ['string'], minLength: 1 },
+      observe: { kinds: ['boolean'] },
+      ollamaCache: { kinds: ['string'], enum: ['host', 'volume'] },
+      retentionPeriod: { kinds: ['string'], minLength: 1 },
+      runtime: { ref: 'Runtime' },
+      service: { kinds: ['string'], minLength: 1 },
+      target: { ref: 'Target' },
+    },
+    closed: [
+      'apiVersion',
+      'codespaceName',
+      'config',
+      'dryRun',
+      'group',
+      'idleTimeout',
+      'machine',
+      'observe',
+      'ollamaCache',
+      'retentionPeriod',
+      'runtime',
+      'service',
+      'target',
+    ],
+  },
+  StackStartResult: {
+    kinds: ['object'],
+    required: ['dryRun'],
+    members: {
+      dryRun: { kinds: ['boolean'] },
+      knowledgeBase: { ref: 'KnowledgeBaseStatus' },
+      shared: { kinds: ['array'], items: { ref: 'ServiceStatus' } },
+    },
+    closed: ['dryRun', 'knowledgeBase', 'shared'],
+  },
+  StackStopParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      delete: { kinds: ['boolean'] },
+      deleteConfirmed: { kinds: ['boolean'] },
+      dryRun: { kinds: ['boolean'] },
+      group: { ref: 'ServiceGroup' },
+      runtime: { ref: 'Runtime' },
+      service: { kinds: ['string'], minLength: 1 },
+      target: { ref: 'Target' },
+    },
+    closed: [
+      'apiVersion',
+      'delete',
+      'deleteConfirmed',
+      'dryRun',
+      'group',
+      'runtime',
+      'service',
+      'target',
+    ],
+  },
+  StackStopResult: {
+    kinds: ['object'],
+    required: ['dryRun'],
+    members: {
+      dryRun: { kinds: ['boolean'] },
+      knowledgeBases: {
+        kinds: ['array'],
+        items: { ref: 'KnowledgeBaseStatus' },
+      },
+      shared: { kinds: ['array'], items: { ref: 'ServiceStatus' } },
+    },
+    closed: ['dryRun', 'knowledgeBases', 'shared'],
+  },
   StatusResponse: {
     kinds: ['object'],
     required: ['status', 'version', 'features', 'message'],
@@ -3755,6 +6180,28 @@ export const REQUIRED_SCHEMAS: {
       status: { kinds: ['string'] },
       version: { kinds: ['string'] },
     },
+  },
+  StatusSnapshotParams: {
+    kinds: ['object'],
+    required: ['apiVersion'],
+    members: {
+      apiVersion: { ref: 'ApiVersion' },
+      runtime: { ref: 'Runtime' },
+      target: { ref: 'Target' },
+    },
+    closed: ['apiVersion', 'runtime', 'target'],
+  },
+  StatusSnapshotResult: {
+    kinds: ['object'],
+    required: ['knowledgeBases', 'shared'],
+    members: {
+      knowledgeBases: {
+        kinds: ['array'],
+        items: { ref: 'KnowledgeBaseStatus' },
+      },
+      shared: { kinds: ['array'], items: { ref: 'ServiceStatus' } },
+    },
+    closed: ['knowledgeBases', 'shared'],
   },
   StorageUriEntry: {
     kinds: ['object'],
@@ -3913,6 +6360,68 @@ export const REQUIRED_SCHEMAS: {
       'sourceLanguage',
     ],
   },
+  Target: {
+    kinds: ['object'],
+    required: ['kind'],
+    members: {
+      kind: { kinds: ['string'], enum: ['local', 'codespace'] },
+      repo: {
+        kinds: ['string'],
+        pattern: [
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 46],
+              [48, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+          },
+          { of: [[47, 47]], min: 1, max: 1 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 46],
+              [48, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+          },
+        ],
+      },
+      root: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['kind', 'repo', 'root'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        members: { kind: { kinds: ['string'], enum: ['local'] } },
+        notAll: [['repo']],
+      },
+      {
+        kinds: ['object'],
+        required: ['repo'],
+        members: { kind: { kinds: ['string'], enum: ['codespace'] } },
+        notAll: [['root']],
+      },
+    ],
+  },
   TextPositionSelector: {
     kinds: ['object'],
     required: ['type', 'start', 'end'],
@@ -3966,6 +6475,24 @@ export const REQUIRED_SCHEMAS: {
       resourceId: { ref: 'ResourceId' },
     },
   },
+  UserAction: {
+    kinds: ['object'],
+    required: ['requestId', 'verificationUri', 'userCode', 'expiresInSeconds'],
+    members: {
+      expiresInSeconds: { kinds: ['integer'], minimum: 0 },
+      requestId: { ref: 'RequestId' },
+      userCode: { kinds: ['string'] },
+      verificationUri: { kinds: ['string'] },
+      verificationUriComplete: { kinds: ['string'] },
+    },
+    closed: [
+      'expiresInSeconds',
+      'requestId',
+      'userCode',
+      'verificationUri',
+      'verificationUriComplete',
+    ],
+  },
   UserId: {
     kinds: ['string'],
     pattern: [
@@ -4001,6 +6528,27 @@ export const REQUIRED_SCHEMAS: {
       image: { kinds: ['string', 'null'] },
       name: { kinds: ['string', 'null'] },
     },
+  },
+  VectorStore: {
+    kinds: ['object'],
+    required: ['apiVersion', 'kind', 'metadata', 'spec'],
+    members: {
+      apiVersion: { ref: 'StackApiVersion' },
+      kind: { kinds: ['string'], enum: ['VectorStore'] },
+      metadata: { ref: 'Metadata' },
+      spec: {
+        kinds: ['object'],
+        required: ['type', 'image', 'resources', 'port'],
+        members: {
+          image: { ref: 'Image' },
+          port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
+          resources: { ref: 'Resources' },
+          type: { kinds: ['string'], minLength: 1 },
+        },
+        closed: ['image', 'port', 'resources', 'type'],
+      },
+    },
+    closed: ['apiVersion', 'kind', 'metadata', 'spec'],
   },
   VectorsConfig: {
     kinds: ['object'],
@@ -4070,49 +6618,8 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     required: ['status', 'kb', 'following', 'reconcile'],
     members: {
-      following: {
-        kinds: ['object'],
-        required: ['sweep', 'stopped', 'refused', 'streamDrops'],
-        members: {
-          refused: { kinds: ['integer'], minimum: 0 },
-          stopped: { kinds: ['integer'], minimum: 0 },
-          streamDrops: { kinds: ['integer'], minimum: 0 },
-          sweep: {
-            kinds: ['string'],
-            enum: ['pending', 'running', 'done', 'due'],
-          },
-        },
-        closed: ['refused', 'stopped', 'streamDrops', 'sweep'],
-      },
-      kb: {
-        kinds: ['string'],
-        pattern: [
-          { of: [[100, 100]], min: 1, max: 1 },
-          { of: [[105, 105]], min: 1, max: 1 },
-          { of: [[100, 100]], min: 1, max: 1 },
-          { of: [[58, 58]], min: 1, max: 1 },
-          { of: [[119, 119]], min: 1, max: 1 },
-          { of: [[101, 101]], min: 1, max: 1 },
-          { of: [[98, 98]], min: 1, max: 1 },
-          { of: [[58, 58]], min: 1, max: 1 },
-          {
-            of: [
-              [0, 8],
-              [14, 31],
-              [33, 159],
-              [161, 5759],
-              [5761, 8191],
-              [8203, 8231],
-              [8234, 8238],
-              [8240, 8286],
-              [8288, 12287],
-              [12289, 65278],
-              [65280, 1114111],
-            ],
-            min: 1,
-          },
-        ],
-      },
+      following: { ref: 'FollowerFollowing' },
+      kb: { ref: 'KbDid' },
       reconcile: {
         kinds: ['object'],
         required: ['phase'],
@@ -4284,6 +6791,59 @@ export const REQUIRED_SCHEMAS: {
       state: { kinds: ['string'], enum: ['starting', 'working', 'refused'] },
     },
     closed: ['did', 'domain', 'engines', 'state'],
+  },
+  WorkerPool: {
+    kinds: ['object'],
+    required: ['apiVersion', 'kind', 'metadata', 'spec'],
+    members: {
+      apiVersion: { ref: 'StackApiVersion' },
+      kind: { kinds: ['string'], enum: ['WorkerPool'] },
+      metadata: { ref: 'Metadata' },
+      spec: {
+        kinds: ['object'],
+        required: ['logLevel', 'worker'],
+        members: {
+          logLevel: { ref: 'LogLevel' },
+          worker: {
+            kinds: ['object'],
+            required: ['image', 'resources'],
+            members: {
+              image: { ref: 'Image' },
+              resources: { ref: 'Resources' },
+            },
+            closed: ['image', 'resources'],
+          },
+        },
+        closed: ['logLevel', 'worker'],
+      },
+    },
+    closed: ['apiVersion', 'kind', 'metadata', 'spec'],
+  },
+  WorkloadStatus: {
+    kinds: ['object'],
+    members: {
+      ledger: {
+        kinds: ['object'],
+        required: ['claims', 'capacity'],
+        members: {
+          capacity: { kinds: ['integer'], minimum: 1 },
+          claims: { kinds: ['integer'], minimum: 0 },
+        },
+        closed: ['capacity', 'claims'],
+      },
+      queue: {
+        kinds: ['object'],
+        required: ['pending', 'running'],
+        members: {
+          completed: { kinds: ['integer'], minimum: 0 },
+          failed: { kinds: ['integer'], minimum: 0 },
+          pending: { kinds: ['integer'], minimum: 0 },
+          running: { kinds: ['integer'], minimum: 0 },
+        },
+        closed: ['completed', 'failed', 'pending', 'running'],
+      },
+    },
+    closed: ['ledger', 'queue'],
   },
   YieldCloneCreateCommand: {
     kinds: ['object'],
