@@ -3,7 +3,8 @@
 // Authority:   protocol/specs/src/annotations/reader-cases.json
 // Regenerate:  make generate  (codegen/lib/case_data/typescript.ml)
 
-export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+export type Json =
+  null | boolean | number | string | Json[] | { [key: string]: Json };
 
 export type Reads = {
   bodySource: string | null;
@@ -39,550 +40,542 @@ export type Table = {
 };
 
 export const table: Table = {
-  "$comment": "What each annotation reader answers, as every implementation must answer it: Every SDK runs every case and fails on a difference. An `annotation` is as the wire carries it. `reads` names each reader that applies to it, by the name every SDK spells in its own convention (`bodySource` is getBodySource, body_source), and what it answers: `null` for nothing. A reader of a part is given that part: bodySource and isBodyResolved the body, targetSource and targetSelector the target, exactText and textQuoteSelector the target's selector. Every case states every reader, but textQuoteSelector where the target has no selector to give it. Add a case here before changing an implementation.",
-  "readers": [
-    "bodySource",
-    "isBodyResolved",
-    "targetSource",
-    "targetSelector",
-    "isHighlight",
-    "isReference",
-    "isAssessment",
-    "isComment",
-    "isTag",
-    "commentText",
-    "isStubReference",
-    "isResolvedReference",
-    "exactText",
-    "annotationExactText",
-    "textQuoteSelector",
-    "entityTypes",
-    "tagCategory",
-    "tagSchemaId"
+  $comment:
+    "What each annotation reader answers, as every implementation must answer it: Every SDK runs every case and fails on a difference. An `annotation` is as the wire carries it. `reads` names each reader that applies to it, by the name every SDK spells in its own convention (`bodySource` is getBodySource, body_source), and what it answers: `null` for nothing. A reader of a part is given that part: bodySource and isBodyResolved the body, targetSource and targetSelector the target, exactText and textQuoteSelector the target's selector. Every case states every reader, but textQuoteSelector where the target has no selector to give it. Add a case here before changing an implementation.",
+  readers: [
+    'bodySource',
+    'isBodyResolved',
+    'targetSource',
+    'targetSelector',
+    'isHighlight',
+    'isReference',
+    'isAssessment',
+    'isComment',
+    'isTag',
+    'commentText',
+    'isStubReference',
+    'isResolvedReference',
+    'exactText',
+    'annotationExactText',
+    'textQuoteSelector',
+    'entityTypes',
+    'tagCategory',
+    'tagSchemaId',
   ],
-  "cases": [
+  cases: [
     {
-      "why": "a highlight has no body, and the passage it marks is its quote selector's exact text",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-1",
-        "motivation": "highlighting",
-        "target": {
-          "source": "res-1",
-          "selector": {
-            "type": "TextQuoteSelector",
-            "exact": "the quoted words",
-            "prefix": "before ",
-            "suffix": " after"
-          }
+      why: "a highlight has no body, and the passage it marks is its quote selector's exact text",
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-1',
+        motivation: 'highlighting',
+        target: {
+          source: 'res-1',
+          selector: {
+            type: 'TextQuoteSelector',
+            exact: 'the quoted words',
+            prefix: 'before ',
+            suffix: ' after',
+          },
         },
-        "created": "2026-01-01T00:00:00.000Z"
+        created: '2026-01-01T00:00:00.000Z',
       },
-      "reads": {
-        "bodySource": null,
-        "isBodyResolved": false,
-        "targetSource": "res-1",
-        "targetSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+      reads: {
+        bodySource: null,
+        isBodyResolved: false,
+        targetSource: 'res-1',
+        targetSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "isHighlight": true,
-        "isReference": false,
-        "isAssessment": false,
-        "isComment": false,
-        "isTag": false,
-        "commentText": null,
-        "isStubReference": false,
-        "isResolvedReference": false,
-        "exactText": "the quoted words",
-        "annotationExactText": "the quoted words",
-        "textQuoteSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+        isHighlight: true,
+        isReference: false,
+        isAssessment: false,
+        isComment: false,
+        isTag: false,
+        commentText: null,
+        isStubReference: false,
+        isResolvedReference: false,
+        exactText: 'the quoted words',
+        annotationExactText: 'the quoted words',
+        textQuoteSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "entityTypes": [],
-        "tagCategory": null,
-        "tagSchemaId": null
-      }
+        entityTypes: [],
+        tagCategory: null,
+        tagSchemaId: null,
+      },
     },
     {
-      "why": "a target that is only a resource's id names that resource and has no selector: it quotes nothing; and a comment's text is its one body's",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-2",
-        "motivation": "commenting",
-        "target": "res-1",
-        "body": {
-          "type": "TextualBody",
-          "value": "A comment",
-          "purpose": "commenting"
+      why: "a target that is only a resource's id names that resource and has no selector: it quotes nothing; and a comment's text is its one body's",
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-2',
+        motivation: 'commenting',
+        target: 'res-1',
+        body: {
+          type: 'TextualBody',
+          value: 'A comment',
+          purpose: 'commenting',
         },
-        "created": "2026-01-01T00:00:00.000Z"
+        created: '2026-01-01T00:00:00.000Z',
       },
-      "reads": {
-        "bodySource": null,
-        "isBodyResolved": false,
-        "targetSource": "res-1",
-        "targetSelector": null,
-        "isHighlight": false,
-        "isReference": false,
-        "isAssessment": false,
-        "isComment": true,
-        "isTag": false,
-        "commentText": "A comment",
-        "isStubReference": false,
-        "isResolvedReference": false,
-        "exactText": "",
-        "annotationExactText": "",
-        "entityTypes": [],
-        "tagCategory": null,
-        "tagSchemaId": null
-      }
+      reads: {
+        bodySource: null,
+        isBodyResolved: false,
+        targetSource: 'res-1',
+        targetSelector: null,
+        isHighlight: false,
+        isReference: false,
+        isAssessment: false,
+        isComment: true,
+        isTag: false,
+        commentText: 'A comment',
+        isStubReference: false,
+        isResolvedReference: false,
+        exactText: '',
+        annotationExactText: '',
+        entityTypes: [],
+        tagCategory: null,
+        tagSchemaId: null,
+      },
     },
     {
-      "why": "of several selectors, the quoted text is the quote selector's, wherever in the list it is; and only a comment has comment text",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-3",
-        "motivation": "assessing",
-        "target": {
-          "source": "res-1",
-          "selector": [
+      why: "of several selectors, the quoted text is the quote selector's, wherever in the list it is; and only a comment has comment text",
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-3',
+        motivation: 'assessing',
+        target: {
+          source: 'res-1',
+          selector: [
             {
-              "type": "TextPositionSelector",
-              "start": 4,
-              "end": 20
+              type: 'TextPositionSelector',
+              start: 4,
+              end: 20,
             },
             {
-              "type": "TextQuoteSelector",
-              "exact": "the quoted words",
-              "prefix": "before ",
-              "suffix": " after"
-            }
-          ]
+              type: 'TextQuoteSelector',
+              exact: 'the quoted words',
+              prefix: 'before ',
+              suffix: ' after',
+            },
+          ],
         },
-        "body": [
+        body: [
           {
-            "type": "TextualBody",
-            "value": "Unsupported claim",
-            "purpose": "assessing"
-          }
+            type: 'TextualBody',
+            value: 'Unsupported claim',
+            purpose: 'assessing',
+          },
         ],
-        "created": "2026-01-01T00:00:00.000Z"
+        created: '2026-01-01T00:00:00.000Z',
       },
-      "reads": {
-        "bodySource": null,
-        "isBodyResolved": false,
-        "targetSource": "res-1",
-        "targetSelector": [
+      reads: {
+        bodySource: null,
+        isBodyResolved: false,
+        targetSource: 'res-1',
+        targetSelector: [
           {
-            "type": "TextPositionSelector",
-            "start": 4,
-            "end": 20
+            type: 'TextPositionSelector',
+            start: 4,
+            end: 20,
           },
           {
-            "type": "TextQuoteSelector",
-            "exact": "the quoted words",
-            "prefix": "before ",
-            "suffix": " after"
-          }
+            type: 'TextQuoteSelector',
+            exact: 'the quoted words',
+            prefix: 'before ',
+            suffix: ' after',
+          },
         ],
-        "isHighlight": false,
-        "isReference": false,
-        "isAssessment": true,
-        "isComment": false,
-        "isTag": false,
-        "commentText": null,
-        "isStubReference": false,
-        "isResolvedReference": false,
-        "exactText": "the quoted words",
-        "annotationExactText": "the quoted words",
-        "textQuoteSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+        isHighlight: false,
+        isReference: false,
+        isAssessment: true,
+        isComment: false,
+        isTag: false,
+        commentText: null,
+        isStubReference: false,
+        isResolvedReference: false,
+        exactText: 'the quoted words',
+        annotationExactText: 'the quoted words',
+        textQuoteSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "entityTypes": [],
-        "tagCategory": null,
-        "tagSchemaId": null
-      }
-    },
-    {
-      "why": "a selector that quotes nothing has no exact text: a region of a page is not a passage",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-4",
-        "motivation": "highlighting",
-        "target": {
-          "source": "res-1",
-          "selector": {
-            "type": "FragmentSelector",
-            "value": "page=1&viewrect=100,200,50,30",
-            "conformsTo": "http://tools.ietf.org/rfc/rfc3778"
-          }
-        },
-        "created": "2026-01-01T00:00:00.000Z"
+        entityTypes: [],
+        tagCategory: null,
+        tagSchemaId: null,
       },
-      "reads": {
-        "bodySource": null,
-        "isBodyResolved": false,
-        "targetSource": "res-1",
-        "targetSelector": {
-          "type": "FragmentSelector",
-          "value": "page=1&viewrect=100,200,50,30",
-          "conformsTo": "http://tools.ietf.org/rfc/rfc3778"
-        },
-        "isHighlight": true,
-        "isReference": false,
-        "isAssessment": false,
-        "isComment": false,
-        "isTag": false,
-        "commentText": null,
-        "isStubReference": false,
-        "isResolvedReference": false,
-        "exactText": "",
-        "annotationExactText": "",
-        "textQuoteSelector": null,
-        "entityTypes": [],
-        "tagCategory": null,
-        "tagSchemaId": null
-      }
     },
     {
-      "why": "a reference that links to nothing yet is a stub: it states its entity types, in the order its body has them, and a body that tags with no text states none; it is no tag, so it has no category",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-5",
-        "motivation": "linking",
-        "target": {
-          "source": "res-1",
-          "selector": {
-            "type": "TextQuoteSelector",
-            "exact": "the quoted words",
-            "prefix": "before ",
-            "suffix": " after"
-          }
+      why: 'a selector that quotes nothing has no exact text: a region of a page is not a passage',
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-4',
+        motivation: 'highlighting',
+        target: {
+          source: 'res-1',
+          selector: {
+            type: 'FragmentSelector',
+            value: 'page=1&viewrect=100,200,50,30',
+            conformsTo: 'http://tools.ietf.org/rfc/rfc3778',
+          },
         },
-        "body": [
+        created: '2026-01-01T00:00:00.000Z',
+      },
+      reads: {
+        bodySource: null,
+        isBodyResolved: false,
+        targetSource: 'res-1',
+        targetSelector: {
+          type: 'FragmentSelector',
+          value: 'page=1&viewrect=100,200,50,30',
+          conformsTo: 'http://tools.ietf.org/rfc/rfc3778',
+        },
+        isHighlight: true,
+        isReference: false,
+        isAssessment: false,
+        isComment: false,
+        isTag: false,
+        commentText: null,
+        isStubReference: false,
+        isResolvedReference: false,
+        exactText: '',
+        annotationExactText: '',
+        textQuoteSelector: null,
+        entityTypes: [],
+        tagCategory: null,
+        tagSchemaId: null,
+      },
+    },
+    {
+      why: 'a reference that links to nothing yet is a stub: it states its entity types, in the order its body has them, and a body that tags with no text states none; it is no tag, so it has no category',
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-5',
+        motivation: 'linking',
+        target: {
+          source: 'res-1',
+          selector: {
+            type: 'TextQuoteSelector',
+            exact: 'the quoted words',
+            prefix: 'before ',
+            suffix: ' after',
+          },
+        },
+        body: [
           {
-            "type": "TextualBody",
-            "value": "Person",
-            "purpose": "tagging"
+            type: 'TextualBody',
+            value: 'Person',
+            purpose: 'tagging',
           },
           {
-            "type": "TextualBody",
-            "value": "",
-            "purpose": "tagging"
+            type: 'TextualBody',
+            value: '',
+            purpose: 'tagging',
           },
           {
-            "type": "TextualBody",
-            "value": "Scientist",
-            "purpose": "tagging"
-          }
+            type: 'TextualBody',
+            value: 'Scientist',
+            purpose: 'tagging',
+          },
         ],
-        "created": "2026-01-01T00:00:00.000Z"
+        created: '2026-01-01T00:00:00.000Z',
       },
-      "reads": {
-        "bodySource": null,
-        "isBodyResolved": false,
-        "targetSource": "res-1",
-        "targetSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+      reads: {
+        bodySource: null,
+        isBodyResolved: false,
+        targetSource: 'res-1',
+        targetSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "isHighlight": false,
-        "isReference": true,
-        "isAssessment": false,
-        "isComment": false,
-        "isTag": false,
-        "commentText": null,
-        "isStubReference": true,
-        "isResolvedReference": false,
-        "exactText": "the quoted words",
-        "annotationExactText": "the quoted words",
-        "textQuoteSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+        isHighlight: false,
+        isReference: true,
+        isAssessment: false,
+        isComment: false,
+        isTag: false,
+        commentText: null,
+        isStubReference: true,
+        isResolvedReference: false,
+        exactText: 'the quoted words',
+        annotationExactText: 'the quoted words',
+        textQuoteSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "entityTypes": [
-          "Person",
-          "Scientist"
-        ],
-        "tagCategory": null,
-        "tagSchemaId": null
-      }
+        entityTypes: ['Person', 'Scientist'],
+        tagCategory: null,
+        tagSchemaId: null,
+      },
     },
     {
-      "why": "a bound reference links to the FIRST resource its body names, which is what the graph draws; a later one is not the link",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-6",
-        "motivation": "linking",
-        "target": {
-          "source": "res-1",
-          "selector": {
-            "type": "TextQuoteSelector",
-            "exact": "the quoted words",
-            "prefix": "before ",
-            "suffix": " after"
-          }
+      why: 'a bound reference links to the FIRST resource its body names, which is what the graph draws; a later one is not the link',
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-6',
+        motivation: 'linking',
+        target: {
+          source: 'res-1',
+          selector: {
+            type: 'TextQuoteSelector',
+            exact: 'the quoted words',
+            prefix: 'before ',
+            suffix: ' after',
+          },
         },
-        "body": [
+        body: [
           {
-            "type": "TextualBody",
-            "value": "Person",
-            "purpose": "tagging"
+            type: 'TextualBody',
+            value: 'Person',
+            purpose: 'tagging',
           },
           {
-            "type": "SpecificResource",
-            "source": "res-2",
-            "purpose": "linking"
+            type: 'SpecificResource',
+            source: 'res-2',
+            purpose: 'linking',
           },
           {
-            "type": "SpecificResource",
-            "source": "res-3",
-            "purpose": "linking"
-          }
+            type: 'SpecificResource',
+            source: 'res-3',
+            purpose: 'linking',
+          },
         ],
-        "created": "2026-01-01T00:00:00.000Z"
+        created: '2026-01-01T00:00:00.000Z',
       },
-      "reads": {
-        "bodySource": "res-2",
-        "isBodyResolved": true,
-        "targetSource": "res-1",
-        "targetSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+      reads: {
+        bodySource: 'res-2',
+        isBodyResolved: true,
+        targetSource: 'res-1',
+        targetSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "isHighlight": false,
-        "isReference": true,
-        "isAssessment": false,
-        "isComment": false,
-        "isTag": false,
-        "commentText": null,
-        "isStubReference": false,
-        "isResolvedReference": true,
-        "exactText": "the quoted words",
-        "annotationExactText": "the quoted words",
-        "textQuoteSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+        isHighlight: false,
+        isReference: true,
+        isAssessment: false,
+        isComment: false,
+        isTag: false,
+        commentText: null,
+        isStubReference: false,
+        isResolvedReference: true,
+        exactText: 'the quoted words',
+        annotationExactText: 'the quoted words',
+        textQuoteSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "entityTypes": [
-          "Person"
-        ],
-        "tagCategory": null,
-        "tagSchemaId": null
-      }
+        entityTypes: ['Person'],
+        tagCategory: null,
+        tagSchemaId: null,
+      },
     },
     {
-      "why": "a body that is one item and not a list is read as that item: one linked resource",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-7",
-        "motivation": "linking",
-        "target": "res-1",
-        "body": {
-          "type": "SpecificResource",
-          "source": "res-2",
-          "purpose": "linking"
+      why: 'a body that is one item and not a list is read as that item: one linked resource',
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-7',
+        motivation: 'linking',
+        target: 'res-1',
+        body: {
+          type: 'SpecificResource',
+          source: 'res-2',
+          purpose: 'linking',
         },
-        "created": "2026-01-01T00:00:00.000Z"
+        created: '2026-01-01T00:00:00.000Z',
       },
-      "reads": {
-        "bodySource": "res-2",
-        "isBodyResolved": true,
-        "targetSource": "res-1",
-        "targetSelector": null,
-        "isHighlight": false,
-        "isReference": true,
-        "isAssessment": false,
-        "isComment": false,
-        "isTag": false,
-        "commentText": null,
-        "isStubReference": false,
-        "isResolvedReference": true,
-        "exactText": "",
-        "annotationExactText": "",
-        "entityTypes": [],
-        "tagCategory": null,
-        "tagSchemaId": null
-      }
+      reads: {
+        bodySource: 'res-2',
+        isBodyResolved: true,
+        targetSource: 'res-1',
+        targetSelector: null,
+        isHighlight: false,
+        isReference: true,
+        isAssessment: false,
+        isComment: false,
+        isTag: false,
+        commentText: null,
+        isStubReference: false,
+        isResolvedReference: true,
+        exactText: '',
+        annotationExactText: '',
+        entityTypes: [],
+        tagCategory: null,
+        tagSchemaId: null,
+      },
     },
     {
-      "why": "a body that is one tagging item and not a list states that entity type",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-8",
-        "motivation": "linking",
-        "target": "res-1",
-        "body": {
-          "type": "TextualBody",
-          "value": "Organization",
-          "purpose": "tagging"
+      why: 'a body that is one tagging item and not a list states that entity type',
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-8',
+        motivation: 'linking',
+        target: 'res-1',
+        body: {
+          type: 'TextualBody',
+          value: 'Organization',
+          purpose: 'tagging',
         },
-        "created": "2026-01-01T00:00:00.000Z"
+        created: '2026-01-01T00:00:00.000Z',
       },
-      "reads": {
-        "bodySource": null,
-        "isBodyResolved": false,
-        "targetSource": "res-1",
-        "targetSelector": null,
-        "isHighlight": false,
-        "isReference": true,
-        "isAssessment": false,
-        "isComment": false,
-        "isTag": false,
-        "commentText": null,
-        "isStubReference": true,
-        "isResolvedReference": false,
-        "exactText": "",
-        "annotationExactText": "",
-        "entityTypes": [
-          "Organization"
-        ],
-        "tagCategory": null,
-        "tagSchemaId": null
-      }
+      reads: {
+        bodySource: null,
+        isBodyResolved: false,
+        targetSource: 'res-1',
+        targetSelector: null,
+        isHighlight: false,
+        isReference: true,
+        isAssessment: false,
+        isComment: false,
+        isTag: false,
+        commentText: null,
+        isStubReference: true,
+        isResolvedReference: false,
+        exactText: '',
+        annotationExactText: '',
+        entityTypes: ['Organization'],
+        tagCategory: null,
+        tagSchemaId: null,
+      },
     },
     {
-      "why": "a tag's category is the body that tags and its schema the body that classifies; and a body that tags is read as an entity type whatever the annotation's motivation",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-9",
-        "motivation": "tagging",
-        "target": {
-          "source": "res-1",
-          "selector": {
-            "type": "TextQuoteSelector",
-            "exact": "the quoted words",
-            "prefix": "before ",
-            "suffix": " after"
-          }
+      why: "a tag's category is the body that tags and its schema the body that classifies; and a body that tags is read as an entity type whatever the annotation's motivation",
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-9',
+        motivation: 'tagging',
+        target: {
+          source: 'res-1',
+          selector: {
+            type: 'TextQuoteSelector',
+            exact: 'the quoted words',
+            prefix: 'before ',
+            suffix: ' after',
+          },
         },
-        "body": [
+        body: [
           {
-            "type": "TextualBody",
-            "value": "Issue",
-            "purpose": "tagging"
+            type: 'TextualBody',
+            value: 'Issue',
+            purpose: 'tagging',
           },
           {
-            "type": "TextualBody",
-            "value": "legal-irac",
-            "purpose": "classifying"
-          }
+            type: 'TextualBody',
+            value: 'legal-irac',
+            purpose: 'classifying',
+          },
         ],
-        "created": "2026-01-01T00:00:00.000Z"
+        created: '2026-01-01T00:00:00.000Z',
       },
-      "reads": {
-        "bodySource": null,
-        "isBodyResolved": false,
-        "targetSource": "res-1",
-        "targetSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+      reads: {
+        bodySource: null,
+        isBodyResolved: false,
+        targetSource: 'res-1',
+        targetSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "isHighlight": false,
-        "isReference": false,
-        "isAssessment": false,
-        "isComment": false,
-        "isTag": true,
-        "commentText": null,
-        "isStubReference": false,
-        "isResolvedReference": false,
-        "exactText": "the quoted words",
-        "annotationExactText": "the quoted words",
-        "textQuoteSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+        isHighlight: false,
+        isReference: false,
+        isAssessment: false,
+        isComment: false,
+        isTag: true,
+        commentText: null,
+        isStubReference: false,
+        isResolvedReference: false,
+        exactText: 'the quoted words',
+        annotationExactText: 'the quoted words',
+        textQuoteSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "entityTypes": [
-          "Issue"
-        ],
-        "tagCategory": "Issue",
-        "tagSchemaId": "legal-irac"
-      }
+        entityTypes: ['Issue'],
+        tagCategory: 'Issue',
+        tagSchemaId: 'legal-irac',
+      },
     },
     {
-      "why": "a comment whose body is a list says its first item's text; and a body with no purpose states no entity type",
-      "annotation": {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
-        "type": "Annotation",
-        "id": "ann-10",
-        "motivation": "commenting",
-        "target": {
-          "source": "res-1",
-          "selector": {
-            "type": "TextQuoteSelector",
-            "exact": "the quoted words",
-            "prefix": "before ",
-            "suffix": " after"
-          }
+      why: "a comment whose body is a list says its first item's text; and a body with no purpose states no entity type",
+      annotation: {
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        type: 'Annotation',
+        id: 'ann-10',
+        motivation: 'commenting',
+        target: {
+          source: 'res-1',
+          selector: {
+            type: 'TextQuoteSelector',
+            exact: 'the quoted words',
+            prefix: 'before ',
+            suffix: ' after',
+          },
         },
-        "body": [
+        body: [
           {
-            "type": "TextualBody",
-            "value": "First"
-          }
+            type: 'TextualBody',
+            value: 'First',
+          },
         ],
-        "created": "2026-01-01T00:00:00.000Z"
+        created: '2026-01-01T00:00:00.000Z',
       },
-      "reads": {
-        "bodySource": null,
-        "isBodyResolved": false,
-        "targetSource": "res-1",
-        "targetSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+      reads: {
+        bodySource: null,
+        isBodyResolved: false,
+        targetSource: 'res-1',
+        targetSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "isHighlight": false,
-        "isReference": false,
-        "isAssessment": false,
-        "isComment": true,
-        "isTag": false,
-        "commentText": "First",
-        "isStubReference": false,
-        "isResolvedReference": false,
-        "exactText": "the quoted words",
-        "annotationExactText": "the quoted words",
-        "textQuoteSelector": {
-          "type": "TextQuoteSelector",
-          "exact": "the quoted words",
-          "prefix": "before ",
-          "suffix": " after"
+        isHighlight: false,
+        isReference: false,
+        isAssessment: false,
+        isComment: true,
+        isTag: false,
+        commentText: 'First',
+        isStubReference: false,
+        isResolvedReference: false,
+        exactText: 'the quoted words',
+        annotationExactText: 'the quoted words',
+        textQuoteSelector: {
+          type: 'TextQuoteSelector',
+          exact: 'the quoted words',
+          prefix: 'before ',
+          suffix: ' after',
         },
-        "entityTypes": [],
-        "tagCategory": null,
-        "tagSchemaId": null
-      }
-    }
-  ]
+        entityTypes: [],
+        tagCategory: null,
+        tagSchemaId: null,
+      },
+    },
+  ],
 };

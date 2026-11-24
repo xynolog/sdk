@@ -50,7 +50,10 @@ export interface components {
      * AgentOrganization, AgentSoftware). Software peers are first-class
      * participants, not a sub-class of Person.
      */
-    Agent: components['schemas']['AgentPerson'] | components['schemas']['AgentOrganization'] | components['schemas']['AgentSoftware'];
+    Agent:
+      | components['schemas']['AgentPerson']
+      | components['schemas']['AgentOrganization']
+      | components['schemas']['AgentSoftware'];
     /** An organization — the Organization branch of Agent. */
     AgentOrganization: {
       '@type': 'Organization';
@@ -188,7 +191,10 @@ export interface components {
      * an outcome inside a status envelope and giving the wire two `kind` fields
      * at different depths.
      */
-    AnchoredTextAnswer: components['schemas']['ExtractedText'] | components['schemas']['ExtractionDeclined'] | components['schemas']['AnchoredTextAbsent'];
+    AnchoredTextAnswer:
+      | components['schemas']['ExtractedText']
+      | components['schemas']['ExtractionDeclined']
+      | components['schemas']['AnchoredTextAbsent'];
     /** The bytes were declined: no text is extracted from them. */
     AnchoredTextDeclinedEntry: {
       /** The entry format. */
@@ -220,7 +226,9 @@ export interface components {
      * (`AnchoredTextStamp`) is kept, followed by a newline, in the file `STAMP`
      * at the store's root.
      */
-    AnchoredTextEntry: components['schemas']['AnchoredTextExtractedEntry'] | components['schemas']['AnchoredTextDeclinedEntry'];
+    AnchoredTextEntry:
+      | components['schemas']['AnchoredTextExtractedEntry']
+      | components['schemas']['AnchoredTextDeclinedEntry'];
     /**
      * The text extracted from the bytes, where each word is on the page, and
      * how it was extracted.
@@ -306,7 +314,9 @@ export interface components {
        * whole of it is, or an object with source and optional selector
        * (fragment)
        */
-      target: components['schemas']['ResourceId'] | components['schemas']['AnnotationTarget'];
+      target:
+        | components['schemas']['ResourceId']
+        | components['schemas']['AnnotationTarget'];
       /**
        * W3C Web Annotation body. Optional per the W3C spec — annotations whose
        * motivation alone is meaningful (highlighting) legitimately omit it.
@@ -360,7 +370,9 @@ export interface components {
      * What an annotation's `body` holds: one body, or a non-empty list of them.
      * There is no empty list: an annotation with nothing to say has no `body`.
      */
-    AnnotationBodies: components['schemas']['AnnotationBody'] | components['schemas']['AnnotationBody'][];
+    AnnotationBodies:
+      | components['schemas']['AnnotationBody']
+      | components['schemas']['AnnotationBody'][];
     /**
      * An annotation's body: a TextualBody carries text the annotation states
      * (entity tags, descriptions, comments), a SpecificResource points at what
@@ -368,7 +380,9 @@ export interface components {
      * single-valued — a consumer never has to probe for which fields happen to
      * be present.
      */
-    AnnotationBody: components['schemas']['TextualBody'] | components['schemas']['SpecificResource'];
+    AnnotationBody:
+      | components['schemas']['TextualBody']
+      | components['schemas']['SpecificResource'];
     /** Payload for mark:body-updated domain event */
     AnnotationBodyUpdatedPayload: {
       annotationId: components['schemas']['AnnotationId'];
@@ -390,7 +404,8 @@ export interface components {
      * What a target's `selector` holds: one W3C selector, or several of the
      * same segment.
      */
-    AnnotationSelector: components['schemas']['Selector'] | components['schemas']['Selector'][];
+    AnnotationSelector:
+      components['schemas']['Selector'] | components['schemas']['Selector'][];
     /**
      * W3C Web Annotation target object - source is required, selector is
      * optional
@@ -719,7 +734,10 @@ export interface components {
      * One change to an annotation's bodies: a body added, a body removed, or
      * one body replaced by another.
      */
-    BodyOperation: components['schemas']['BodyOperationAdd'] | components['schemas']['BodyOperationRemove'] | components['schemas']['BodyOperationReplace'];
+    BodyOperation:
+      | components['schemas']['BodyOperationAdd']
+      | components['schemas']['BodyOperationRemove']
+      | components['schemas']['BodyOperationReplace'];
     BodyOperationAdd: {
       op: 'add';
       item: components['schemas']['AnnotationBody'];
@@ -737,7 +755,20 @@ export interface components {
      * W3C Web Annotation body purpose vocabulary -
      * https://www.w3.org/TR/annotation-vocab/#motivation
      */
-    BodyPurpose: 'assessing' | 'bookmarking' | 'classifying' | 'commenting' | 'describing' | 'editing' | 'highlighting' | 'identifying' | 'linking' | 'moderating' | 'questioning' | 'replying' | 'tagging';
+    BodyPurpose:
+      | 'assessing'
+      | 'bookmarking'
+      | 'classifying'
+      | 'commenting'
+      | 'describing'
+      | 'editing'
+      | 'highlighting'
+      | 'identifying'
+      | 'linking'
+      | 'moderating'
+      | 'questioning'
+      | 'replying'
+      | 'tagging';
     /** Request to browse the history of an annotation */
     BrowseAnnotationHistoryRequest: {
       resourceId: components['schemas']['ResourceId'];
@@ -1042,7 +1073,10 @@ export interface components {
      */
     BusEventMessage: {
       event: 'bus-event';
-      id: components['schemas']['PersistedEventId'] | components['schemas']['ReplyEventId'] | components['schemas']['EphemeralEventId'];
+      id:
+        | components['schemas']['PersistedEventId']
+        | components['schemas']['ReplyEventId']
+        | components['schemas']['EphemeralEventId'];
       data: components['schemas']['BusFrame'];
     };
     /**
@@ -1098,13 +1132,19 @@ export interface components {
        * record no longer holds the events after it (what it still holds is
        * replayed first). `query-error`: the record could not be read.
        */
-      reason: 'unparseable-last-event-id' | 'scope-mismatch' | 'retention-exceeded' | 'query-error';
+      reason:
+        | 'unparseable-last-event-id'
+        | 'scope-mismatch'
+        | 'retention-exceeded'
+        | 'query-error';
     };
     /**
      * Every message the bus stream carries. A client ignores an `event` it does
      * not know; the gateway writes no other.
      */
-    BusStreamMessage: components['schemas']['BusEventMessage'] | components['schemas']['BusPingMessage'];
+    BusStreamMessage:
+      | components['schemas']['BusEventMessage']
+      | components['schemas']['BusPingMessage'];
     /**
      * Subscription matrix for the bus stream. `global` channels are delivered
      * unscoped; each `scoped` entry subscribes the connection to one resource
@@ -1290,102 +1330,121 @@ export interface components {
      * operation's outcome, or what its client observed as it happened. The
      * suite refuses any other line.
      */
-    ConformanceDriverLine: {
-      /** Written once. */
-      ready: true;
-    } | {
-      /** The operation's id. */
-      id: number;
-      ok: unknown;
-    } | {
-      /** The operation's id. */
-      id: number;
-      /** The failure. */
-      error: components['schemas']['ConformanceFailure'];
-    } | {
-      /** The operation's id. */
-      id: number;
-      /** It was abandoned. */
-      abandoned: true;
-    } | {
-      /** The operation's id. */
-      id: number;
-      /** It has none. */
-      unsupported: true;
-    } | {
-      /** The operation's id. */
-      id: number;
-      /** What made no sense. */
-      misuse: string;
-    } | {
-      /**
-       * The state it is in now: one a case's `state` step names
-       * (ConformanceStep.json), or another the case never waits for.
-       */
-      state: string;
-    } | {
-      /** The frame. */
-      frame: {
-        /** The channel. */
-        channel: string;
-        payload?: unknown;
-        /** The frame's correlation id, when it has one. */
-        correlationId?: string;
-        /** The frame's scope, when it has one. */
-        scope?: components['schemas']['ResourceId'];
-      };
-    } | {
-      /** The failure. */
-      error: components['schemas']['ConformanceFailure'];
-    } | {
-      /** The report. */
-      progress: {
-        /** The `upload` operation's id. */
-        upload: number;
-        /** How many bytes it has sent. */
-        bytesUploaded: number;
-        /** How many it will send. */
-        totalBytes: number;
-      };
-    } | {
-      /** The emission. */
-      emission: {
-        /** The observer. */
-        observer: string;
-        /** The state. */
-        state: {
-          /** Nothing to show yet. */
-          status: 'pending';
-        } | {
-          /** A value to show. */
-          status: 'ready';
-          value: unknown;
-        } | {
-          /** The query failed. */
-          status: 'failed';
+    ConformanceDriverLine:
+      | {
+          /** Written once. */
+          ready: true;
+        }
+      | {
+          /** The operation's id. */
+          id: number;
+          ok: unknown;
+        }
+      | {
+          /** The operation's id. */
+          id: number;
           /** The failure. */
           error: components['schemas']['ConformanceFailure'];
+        }
+      | {
+          /** The operation's id. */
+          id: number;
+          /** It was abandoned. */
+          abandoned: true;
+        }
+      | {
+          /** The operation's id. */
+          id: number;
+          /** It has none. */
+          unsupported: true;
+        }
+      | {
+          /** The operation's id. */
+          id: number;
+          /** What made no sense. */
+          misuse: string;
+        }
+      | {
+          /**
+           * The state it is in now: one a case's `state` step names
+           * (ConformanceStep.json), or another the case never waits for.
+           */
+          state: string;
+        }
+      | {
+          /** The frame. */
+          frame: {
+            /** The channel. */
+            channel: string;
+            payload?: unknown;
+            /** The frame's correlation id, when it has one. */
+            correlationId?: string;
+            /** The frame's scope, when it has one. */
+            scope?: components['schemas']['ResourceId'];
+          };
+        }
+      | {
+          /** The failure. */
+          error: components['schemas']['ConformanceFailure'];
+        }
+      | {
+          /** The report. */
+          progress: {
+            /** The `upload` operation's id. */
+            upload: number;
+            /** How many bytes it has sent. */
+            bytesUploaded: number;
+            /** How many it will send. */
+            totalBytes: number;
+          };
+        }
+      | {
+          /** The emission. */
+          emission: {
+            /** The observer. */
+            observer: string;
+            /** The state. */
+            state:
+              | {
+                  /** Nothing to show yet. */
+                  status: 'pending';
+                }
+              | {
+                  /** A value to show. */
+                  status: 'ready';
+                  value: unknown;
+                }
+              | {
+                  /** The query failed. */
+                  status: 'failed';
+                  /** The failure. */
+                  error: components['schemas']['ConformanceFailure'];
+                };
+          };
+        }
+      | {
+          /** The observer. */
+          completed: string;
+        }
+      | {
+          /** The job, as the worker read the record. */
+          claimed: { [key: string]: unknown };
+        }
+      | {
+          /**
+           * The refusal: with a code when the bus refused it, with none when the
+           * worker did.
+           */
+          refused: components['schemas']['ConformanceFailure'];
+        }
+      | {
+          /** The job's id. */
+          signalled: string;
+        }
+      | {
+          /** The job's id. */
+          stalled: string;
         };
-      };
-    } | {
-      /** The observer. */
-      completed: string;
-    } | {
-      /** The job, as the worker read the record. */
-      claimed: { [key: string]: unknown };
-    } | {
-      /**
-       * The refusal: with a code when the bus refused it, with none when the
-       * worker did.
-       */
-      refused: components['schemas']['ConformanceFailure'];
-    } | {
-      /** The job's id. */
-      signalled: string;
-    } | {
-      /** The job's id. */
-      stalled: string;
-    };
     /**
      * A failure as an SDK reports it to the suite (conformance/sdk/README.md,
      * "The driver protocol"): its code, the status when a server stated one,
@@ -1443,48 +1502,50 @@ export interface components {
        * suites talk to in its place (conformance/sdk/README.md, "The driver
        * protocol").
        */
-      sdks: { [key: string]: {
-        /**
-         * How its wire driver is started. A command and its arguments, as the
-         * harness starts it. An argument that starts with ./ or ../ is a path,
-         * resolved against the manifest's own directory; every other is passed
-         * as written.
-         */
-        wire?: string[];
-        /**
-         * How its live driver is started, and the tier of the live corpus the
-         * SDK is held to.
-         */
-        live?: {
+      sdks: {
+        [key: string]: {
           /**
-           * How its live driver is started. A command and its arguments, as the
-           * harness starts it. An argument that starts with ./ or ../ is a
-           * path, resolved against the manifest's own directory; every other is
-           * passed as written.
+           * How its wire driver is started. A command and its arguments, as the
+           * harness starts it. An argument that starts with ./ or ../ is a path,
+           * resolved against the manifest's own directory; every other is passed
+           * as written.
            */
-          command: string[];
+          wire?: string[];
           /**
-           * A live case's tier: `fleet`, what every SDK with a live layer does,
-           * or `parity`, what one that implements all of CACHE-SEMANTICS does.
+           * How its live driver is started, and the tier of the live corpus the
+           * SDK is held to.
            */
-          tier: 'fleet' | 'parity';
+          live?: {
+            /**
+             * How its live driver is started. A command and its arguments, as the
+             * harness starts it. An argument that starts with ./ or ../ is a
+             * path, resolved against the manifest's own directory; every other is
+             * passed as written.
+             */
+            command: string[];
+            /**
+             * A live case's tier: `fleet`, what every SDK with a live layer does,
+             * or `parity`, what one that implements all of CACHE-SEMANTICS does.
+             */
+            tier: 'fleet' | 'parity';
+          };
+          /**
+           * How its worker driver is started, when the SDK has a worker's surface
+           * (conformance/worker/README.md). A command and its arguments, as the
+           * harness starts it. An argument that starts with ./ or ../ is a path,
+           * resolved against the manifest's own directory; every other is passed
+           * as written.
+           */
+          worker?: string[];
+          /**
+           * The wire cases its driver cannot be put through, by the case's name,
+           * each with why. The suite holds an exemption as it holds a case: the
+           * driver must answer unsupported to what the case asks, or the
+           * exemption is stale.
+           */
+          exempt?: { [key: string]: string };
         };
-        /**
-         * How its worker driver is started, when the SDK has a worker's surface
-         * (conformance/worker/README.md). A command and its arguments, as the
-         * harness starts it. An argument that starts with ./ or ../ is a path,
-         * resolved against the manifest's own directory; every other is passed
-         * as written.
-         */
-        worker?: string[];
-        /**
-         * The wire cases its driver cannot be put through, by the case's name,
-         * each with why. The suite holds an exemption as it holds a case: the
-         * driver must answer unsupported to what the case asks, or the
-         * exemption is stale.
-         */
-        exempt?: { [key: string]: string };
-      } };
+      };
       /**
        * The model catalogue the implementation supplies, by its path; a
        * relative one is resolved against the manifest's own directory. The
@@ -1498,136 +1559,200 @@ export interface components {
      * is told apart by the member only it requires. conformance/sdk/README.md,
      * "A case", says what each does.
      */
-    ConformanceStep: {
-      /** Each name, and the value it takes. */
-      let: { [key: string]: unknown };
-    } | {
-      /** The operation (conformance/sdk/README.md, "Operations"). */
-      driver: string;
-      /** The operation's arguments. */
-      with?: { [key: string]: unknown };
-      returns?: unknown;
-      fails?: unknown;
-      /**
-       * The operation's name, for the `settles` or `abandon` step that ends it.
-       */
-      as?: string;
-    } | {
-      /** The operation. */
-      abandon: string;
-    } | {
-      /** The operation. */
-      settles: string;
-      returns?: unknown;
-      fails?: unknown;
-      /** It ended because the case abandoned it. */
-      abandoned?: true;
-    } | {
-      /** The operation of the gateway's API, by its method and path. */
-      wire: string;
-      /**
-       * When it is read: on arrival, once answered (the default), or once its
-       * stream has caught up.
-       */
-      at?: 'arrival' | 'answer' | 'live';
-      /** The status it was answered with. */
-      status?: number;
-      params?: unknown;
-      body?: unknown;
-      token?: unknown;
-      /**
-       * The request's headers named here, each as a pattern; headers not named
-       * are not compared.
-       */
-      headers?: { [key: string]: unknown };
-      answer?: unknown;
-      /** The request's name, for a later step. */
-      as?: string;
-      /**
-       * A request named earlier, which was answered before this one arrived.
-       */
-      follows?: string;
-      /**
-       * A request named earlier, answered with a Retry-After, which this one
-       * waited out.
-       */
-      waited?: string;
-    } | {
-      /** The stream. */
-      carried: string;
-      is: unknown;
-    } | {
-      /** The request. */
-      closed: string;
-    } | {
-      /** The upload. */
-      progress: string;
-    } | {
-      /** The state. */
-      state: 'initial' | 'connecting' | 'open' | 'reconnecting' | 'degraded' | 'unauthenticated' | 'closed';
-    } | {
-      /** The state. */
-      stays: 'initial' | 'connecting' | 'open' | 'reconnecting' | 'degraded' | 'unauthenticated' | 'closed';
-    } | {
-      /** The channel. */
-      frame: string;
-      is: unknown;
-    } | {
-      /** The channel. */
-      frames: string;
-      /** How many more. */
-      count: number;
-    } | {
-      error: unknown;
-    } | {
-      /** The directive. */
-      backend: 'listen' | 'emit' | 'record' | 'content' | 'description' | 'annotations' | 'anchored-text' | 'uploaded' | 'refuse' | 'unanswered' | 'answer-lost' | 'hold' | 'release' | 'rechunk' | 'carry' | 'cut' | 'down' | 'up' | 'archivist';
-      /** The directive's arguments. */
-      with?: { [key: string]: unknown };
-    } | {
-      /** How long, in milliseconds. */
-      quiet: number;
-    } | {
-      /** The live query. */
-      observe: {
-        /** The live query, by its name in specs/src/client/refresh.json. */
-        query: string;
-        resource?: unknown;
-        annotation?: unknown;
-        search?: unknown;
-        filters?: unknown;
-      };
-      /** The observer. */
-      as: string;
-    } | {
-      /** The observer. */
-      leave: string;
-    } | {
-      /** The observer. */
-      reaches: string;
-      state: unknown;
-    } | {
-      /** The observer. */
-      holds: string;
-      state: unknown;
-    } | {
-      /** The observer. */
-      completes: string;
-    } | components['schemas']['ConformanceBusFetch'] | components['schemas']['ConformanceHttpFetch'] | {
-      /** The requests. */
-      fetches: (components['schemas']['ConformanceBusFetch'] | components['schemas']['ConformanceHttpFetch'])[];
-    } | {
-      /** The scopes. */
-      scopes: unknown[];
-    } | {
-      claimed: unknown;
-    } | {
-      refused: unknown;
-    } | {
-      signalled: unknown;
-    } | {
-      stalled: unknown;
-    };
+    ConformanceStep:
+      | {
+          /** Each name, and the value it takes. */
+          let: { [key: string]: unknown };
+        }
+      | {
+          /** The operation (conformance/sdk/README.md, "Operations"). */
+          driver: string;
+          /** The operation's arguments. */
+          with?: { [key: string]: unknown };
+          returns?: unknown;
+          fails?: unknown;
+          /**
+           * The operation's name, for the `settles` or `abandon` step that ends it.
+           */
+          as?: string;
+        }
+      | {
+          /** The operation. */
+          abandon: string;
+        }
+      | {
+          /** The operation. */
+          settles: string;
+          returns?: unknown;
+          fails?: unknown;
+          /** It ended because the case abandoned it. */
+          abandoned?: true;
+        }
+      | {
+          /** The operation of the gateway's API, by its method and path. */
+          wire: string;
+          /**
+           * When it is read: on arrival, once answered (the default), or once its
+           * stream has caught up.
+           */
+          at?: 'arrival' | 'answer' | 'live';
+          /** The status it was answered with. */
+          status?: number;
+          params?: unknown;
+          body?: unknown;
+          token?: unknown;
+          /**
+           * The request's headers named here, each as a pattern; headers not named
+           * are not compared.
+           */
+          headers?: { [key: string]: unknown };
+          answer?: unknown;
+          /** The request's name, for a later step. */
+          as?: string;
+          /**
+           * A request named earlier, which was answered before this one arrived.
+           */
+          follows?: string;
+          /**
+           * A request named earlier, answered with a Retry-After, which this one
+           * waited out.
+           */
+          waited?: string;
+        }
+      | {
+          /** The stream. */
+          carried: string;
+          is: unknown;
+        }
+      | {
+          /** The request. */
+          closed: string;
+        }
+      | {
+          /** The upload. */
+          progress: string;
+        }
+      | {
+          /** The state. */
+          state:
+            | 'initial'
+            | 'connecting'
+            | 'open'
+            | 'reconnecting'
+            | 'degraded'
+            | 'unauthenticated'
+            | 'closed';
+        }
+      | {
+          /** The state. */
+          stays:
+            | 'initial'
+            | 'connecting'
+            | 'open'
+            | 'reconnecting'
+            | 'degraded'
+            | 'unauthenticated'
+            | 'closed';
+        }
+      | {
+          /** The channel. */
+          frame: string;
+          is: unknown;
+        }
+      | {
+          /** The channel. */
+          frames: string;
+          /** How many more. */
+          count: number;
+        }
+      | {
+          error: unknown;
+        }
+      | {
+          /** The directive. */
+          backend:
+            | 'listen'
+            | 'emit'
+            | 'record'
+            | 'content'
+            | 'description'
+            | 'annotations'
+            | 'anchored-text'
+            | 'uploaded'
+            | 'refuse'
+            | 'unanswered'
+            | 'answer-lost'
+            | 'hold'
+            | 'release'
+            | 'rechunk'
+            | 'carry'
+            | 'cut'
+            | 'down'
+            | 'up'
+            | 'archivist';
+          /** The directive's arguments. */
+          with?: { [key: string]: unknown };
+        }
+      | {
+          /** How long, in milliseconds. */
+          quiet: number;
+        }
+      | {
+          /** The live query. */
+          observe: {
+            /** The live query, by its name in specs/src/client/refresh.json. */
+            query: string;
+            resource?: unknown;
+            annotation?: unknown;
+            search?: unknown;
+            filters?: unknown;
+          };
+          /** The observer. */
+          as: string;
+        }
+      | {
+          /** The observer. */
+          leave: string;
+        }
+      | {
+          /** The observer. */
+          reaches: string;
+          state: unknown;
+        }
+      | {
+          /** The observer. */
+          holds: string;
+          state: unknown;
+        }
+      | {
+          /** The observer. */
+          completes: string;
+        }
+      | components['schemas']['ConformanceBusFetch']
+      | components['schemas']['ConformanceHttpFetch']
+      | {
+          /** The requests. */
+          fetches: (
+            | components['schemas']['ConformanceBusFetch']
+            | components['schemas']['ConformanceHttpFetch']
+          )[];
+        }
+      | {
+          /** The scopes. */
+          scopes: unknown[];
+        }
+      | {
+          claimed: unknown;
+        }
+      | {
+          refused: unknown;
+        }
+      | {
+          signalled: unknown;
+        }
+      | {
+          stalled: unknown;
+        };
     /**
      * Content format as a MIME type, optionally with parameters. The base type
      * (everything before the first ';') MUST be a SupportedMediaType;
@@ -1699,7 +1824,8 @@ export interface components {
      * was ingested as, or a subdirectory. Tell them apart by `type`, which is
      * required on both and single-valued.
      */
-    DirectoryEntry: components['schemas']['FileEntry'] | components['schemas']['DirEntry'];
+    DirectoryEntry:
+      components['schemas']['FileEntry'] | components['schemas']['DirEntry'];
     /**
      * One knowledge base the Xynolog launcher manages on this machine, as
      * published in the discovery document (see DiscoveryDocument). Endpoints
@@ -1878,7 +2004,11 @@ export interface components {
      * that committed no annotations. Never defaulted: a manufactured value here
      * is a claim nobody made, in a log nobody can rewrite.
      */
-    DurabilityEvidence: 'acknowledged' | 'probe-confirmed' | 'probe-refused' | 'probe-unreachable';
+    DurabilityEvidence:
+      | 'acknowledged'
+      | 'probe-confirmed'
+      | 'probe-refused'
+      | 'probe-unreachable';
     /**
      * The embedding provider a service asks for vectors, and what that kind of
      * provider needs to be asked: one of the providers `xynolog-vectors` has,
@@ -1887,7 +2017,9 @@ export interface components {
      * the model that made it. A secret is never a value here: a provider's key
      * is named by the environment variable that holds it.
      */
-    EmbeddingConfig: components['schemas']['OllamaEmbeddingConfig'] | components['schemas']['VoyageEmbeddingConfig'];
+    EmbeddingConfig:
+      | components['schemas']['OllamaEmbeddingConfig']
+      | components['schemas']['VoyageEmbeddingConfig'];
     /**
      * An engine: an inference provider and a model, which software does a job
      * or an actor's step with. An engine is not a principal: the principal that
@@ -1901,7 +2033,14 @@ export interface components {
        * `ollama` and `vllm` are servers a deployment runs or reaches, each
        * named for the server's software.
        */
-      provider: 'anthropic' | 'google' | 'llamacpp' | 'ollama' | 'openai' | 'together' | 'vllm';
+      provider:
+        | 'anthropic'
+        | 'google'
+        | 'llamacpp'
+        | 'ollama'
+        | 'openai'
+        | 'together'
+        | 'vllm';
       /** The model identifier, as the provider names it. */
       model: string;
     };
@@ -2073,13 +2212,15 @@ export interface components {
       declined: components['schemas']['ExtractionDeclinedReason'];
     };
     /** Why extraction yielded nothing, by class. */
-    ExtractionDeclinedReason: 'no-text-layer' | 'encrypted' | 'corrupt' | 'too-large';
+    ExtractionDeclinedReason:
+      'no-text-layer' | 'encrypted' | 'corrupt' | 'too-large';
     /**
      * How a text was extracted: a plain text taken as it is, a PDF's text layer
      * read, a grid written as rows, a filled form's values read, or pixels read
      * by OCR.
      */
-    ExtractionMethod: 'text-passthrough' | 'pdf-text-layer' | 'table' | 'form' | 'ocr';
+    ExtractionMethod:
+      'text-passthrough' | 'pdf-text-layer' | 'table' | 'form' | 'ocr';
     /**
      * The full outcome of text extraction for one representation — the record
      * the anchored-text store holds and the wire serves. Discriminated on
@@ -2087,7 +2228,9 @@ export interface components {
      * a named decline. ocrConfidence is extraction quality for operators,
      * deliberately not anchor confidence.
      */
-    ExtractionOutcome: components['schemas']['ExtractedText'] | components['schemas']['ExtractionDeclined'];
+    ExtractionOutcome:
+      | components['schemas']['ExtractedText']
+      | components['schemas']['ExtractionDeclined'];
     /**
      * The class of a job's failure, stated by the worker, where the failure is
      * still typed: at the gateway it is already text, and classing a failure by
@@ -2414,53 +2557,55 @@ export interface components {
      */
     GatheredContext: {
       /** The gather anchor. Discriminated on `kind`. */
-      focus: {
-        kind: 'annotation';
-        /** The annotation this context was gathered for */
-        annotation: components['schemas']['Annotation'];
-        /** The resource containing the annotation */
-        sourceResource: components['schemas']['ResourceDescriptor'];
-        /** Text context around the annotation target */
-        selected?: {
-          /** Text appearing before the selected passage */
-          before?: string;
-          /** The selected text passage (the annotation target) */
-          text: string;
-          /** Text appearing after the selected passage */
-          after?: string;
-        };
-        /**
-         * User-provided hint to supplement or replace the selected text for
-         * search and generation
-         */
-        userHint?: string;
-        /**
-         * The resource the annotation links to, if it is a resolved reference.
-         * Dormant capability — produced/exposed but not yet consumed.
-         */
-        targetResource?: components['schemas']['ResourceDescriptor'];
-        /**
-         * Context about the annotation's link target. Dormant —
-         * produced/exposed but not yet consumed.
-         */
-        targetContext?: {
-          content: string;
-          summary?: string;
-        };
-      } | {
-        kind: 'resource';
-        /** The resource this context was gathered for */
-        resource: components['schemas']['ResourceDescriptor'];
-        summary?: string;
-        suggestedReferences?: string[];
-        /** Resource content (included when requested) */
-        content?: {
-          /** Content of the focal resource */
-          main?: string;
-          /** Map of related resource IDs to their content */
-          related?: { [key: string]: string };
-        };
-      };
+      focus:
+        | {
+            kind: 'annotation';
+            /** The annotation this context was gathered for */
+            annotation: components['schemas']['Annotation'];
+            /** The resource containing the annotation */
+            sourceResource: components['schemas']['ResourceDescriptor'];
+            /** Text context around the annotation target */
+            selected?: {
+              /** Text appearing before the selected passage */
+              before?: string;
+              /** The selected text passage (the annotation target) */
+              text: string;
+              /** Text appearing after the selected passage */
+              after?: string;
+            };
+            /**
+             * User-provided hint to supplement or replace the selected text for
+             * search and generation
+             */
+            userHint?: string;
+            /**
+             * The resource the annotation links to, if it is a resolved reference.
+             * Dormant capability — produced/exposed but not yet consumed.
+             */
+            targetResource?: components['schemas']['ResourceDescriptor'];
+            /**
+             * Context about the annotation's link target. Dormant —
+             * produced/exposed but not yet consumed.
+             */
+            targetContext?: {
+              content: string;
+              summary?: string;
+            };
+          }
+        | {
+            kind: 'resource';
+            /** The resource this context was gathered for */
+            resource: components['schemas']['ResourceDescriptor'];
+            summary?: string;
+            suggestedReferences?: string[];
+            /** Resource content (included when requested) */
+            content?: {
+              /** Content of the focal resource */
+              main?: string;
+              /** Map of related resource IDs to their content */
+              related?: { [key: string]: string };
+            };
+          };
       /**
        * Knowledge graph backbone — resources AND annotations as typed nodes.
        * The flattened views (connections, citedBy, siblings) are derived from
@@ -2690,7 +2835,11 @@ export interface components {
      * store for, told apart by `type`. A secret is never a value here: a
      * database's password is named by the environment variable that holds it.
      */
-    GraphConfig: components['schemas']['Neo4jGraphConfig'] | components['schemas']['JanusGraphConfig'] | components['schemas']['NeptuneGraphConfig'] | components['schemas']['MemoryGraphConfig'];
+    GraphConfig:
+      | components['schemas']['Neo4jGraphConfig']
+      | components['schemas']['JanusGraphConfig']
+      | components['schemas']['NeptuneGraphConfig']
+      | components['schemas']['MemoryGraphConfig'];
     /** A resource's presence in the gathered knowledge graph. */
     GraphResourceNode: {
       /** The resource's ResourceId */
@@ -2926,35 +3075,36 @@ export interface components {
          */
         port: number;
         /** The database the issuer keeps its realms in. */
-        database: components['schemas']['Runner'] & unknown & {
-          /** The database's driver: `postgres`. */
-          type: string;
-          /**
-           * The database the issuer keeps its realms in: a lowercase PostgreSQL
-           * identifier, as PostgreSQL itself names an unquoted one. On a
-           * PostgreSQL the launcher runs, the launcher creates it; on one
-           * somebody else runs (`external`), it must already exist there.
-           */
-          name: string;
-          /** The user the issuer signs in as. */
-          user: string;
-          image?: components['schemas']['Image'];
-          resources?: components['schemas']['Resources'];
-          /**
-           * The port a PostgreSQL the launcher runs is published on, on this
-           * machine, where the issuer reaches it. One somebody else runs is
-           * reached at `external`.
-           */
-          port?: number;
-          /** A database somebody else runs. */
-          external?: {
-            /** A host name or address the issuer can reach. */
-            host: string;
-            /** The port it listens on. */
-            port: number;
-            password: components['schemas']['SecretRef'];
+        database: components['schemas']['Runner'] &
+          unknown & {
+            /** The database's driver: `postgres`. */
+            type: string;
+            /**
+             * The database the issuer keeps its realms in: a lowercase PostgreSQL
+             * identifier, as PostgreSQL itself names an unquoted one. On a
+             * PostgreSQL the launcher runs, the launcher creates it; on one
+             * somebody else runs (`external`), it must already exist there.
+             */
+            name: string;
+            /** The user the issuer signs in as. */
+            user: string;
+            image?: components['schemas']['Image'];
+            resources?: components['schemas']['Resources'];
+            /**
+             * The port a PostgreSQL the launcher runs is published on, on this
+             * machine, where the issuer reaches it. One somebody else runs is
+             * reached at `external`.
+             */
+            port?: number;
+            /** A database somebody else runs. */
+            external?: {
+              /** A host name or address the issuer can reach. */
+              host: string;
+              /** The port it listens on. */
+              port: number;
+              password: components['schemas']['SecretRef'];
+            };
           };
-        };
       };
     };
     /**
@@ -2973,7 +3123,12 @@ export interface components {
      * and outcome fields it carries. It is what a claim returns (`job:claimed`,
      * always `running`) and what the queue stores, inside a JobRecord.
      */
-    Job: components['schemas']['JobPending'] | components['schemas']['JobRunning'] | components['schemas']['JobComplete'] | components['schemas']['JobFailed'] | components['schemas']['JobCancelled'];
+    Job:
+      | components['schemas']['JobPending']
+      | components['schemas']['JobRunning']
+      | components['schemas']['JobComplete']
+      | components['schemas']['JobFailed']
+      | components['schemas']['JobCancelled'];
     /**
      * Bus command the dispatcher emits, under its own service identity,
      * immediately after it accepts a job:claim — the correlated job:claimed
@@ -3195,7 +3350,9 @@ export interface components {
      * decline from either. A completion whose result is the other verb's is
      * refused where the command is admitted.
      */
-    JobCompleteCommand: components['schemas']['MarkJobCompleteCommand'] | components['schemas']['YieldJobCompleteCommand'];
+    JobCompleteCommand:
+      | components['schemas']['MarkJobCompleteCommand']
+      | components['schemas']['YieldJobCompleteCommand'];
     /** Payload for job:completed domain event */
     JobCompletedPayload: {
       jobId: components['schemas']['JobId'];
@@ -3228,7 +3385,9 @@ export interface components {
      * be well formed: a `mark` job names its resource and, in its parameters,
      * its motivation; a `yield` job names its context.
      */
-    JobCreateCommand: components['schemas']['MarkJobCreateCommand'] | components['schemas']['YieldJobCreateCommand'];
+    JobCreateCommand:
+      | components['schemas']['MarkJobCreateCommand']
+      | components['schemas']['YieldJobCreateCommand'];
     /** Result of a job:create command */
     JobCreatedResult: {
       response: components['schemas']['JobCreatedResultResponse'];
@@ -3370,7 +3529,9 @@ export interface components {
      * at the description's own paths. A job matches when every field stated
      * here equals the job's. A `mark` filter always states its motivation.
      */
-    JobFilter: components['schemas']['MarkJobFilter'] | components['schemas']['YieldJobFilter'];
+    JobFilter:
+      | components['schemas']['MarkJobFilter']
+      | components['schemas']['YieldJobFilter'];
     /**
      * A job's id. 1 to 128 of the letters `A`–`Z` and `a`–`z`, the digits, `_`
      * and `-`. It is one segment of a URL and one name in a file system, and it
@@ -3629,7 +3790,17 @@ export interface components {
      * extending it means adding a named variant here and copy in every client,
      * gated by the locale-completeness check.
      */
-    JobProgressMessage: components['schemas']['JobProgressLoading'] | components['schemas']['JobProgressAnalyzing'] | components['schemas']['JobProgressAnalyzingTags'] | components['schemas']['JobProgressGeneratingResource'] | components['schemas']['JobProgressCreatingResource'] | components['schemas']['JobProgressCompleteGenerated'] | components['schemas']['JobProgressDetectingEntities'] | components['schemas']['JobProgressCreatingAnnotations'] | components['schemas']['JobProgressCreatingTagAnnotations'] | components['schemas']['JobProgressCompleteCreated'];
+    JobProgressMessage:
+      | components['schemas']['JobProgressLoading']
+      | components['schemas']['JobProgressAnalyzing']
+      | components['schemas']['JobProgressAnalyzingTags']
+      | components['schemas']['JobProgressGeneratingResource']
+      | components['schemas']['JobProgressCreatingResource']
+      | components['schemas']['JobProgressCompleteGenerated']
+      | components['schemas']['JobProgressDetectingEntities']
+      | components['schemas']['JobProgressCreatingAnnotations']
+      | components['schemas']['JobProgressCreatingTagAnnotations']
+      | components['schemas']['JobProgressCompleteCreated'];
     /**
      * A pending job, announced when it is created and again at each tick while
      * it waits. It carries the job description less the job's input, so that a
@@ -3637,7 +3808,9 @@ export interface components {
      * matched against. It is a wake-up and not an offer of this job: a claim is
      * answered with the next pending job it matches.
      */
-    JobQueuedEvent: components['schemas']['MarkJobQueuedEvent'] | components['schemas']['YieldJobQueuedEvent'];
+    JobQueuedEvent:
+      | components['schemas']['MarkJobQueuedEvent']
+      | components['schemas']['YieldJobQueuedEvent'];
     /**
      * One job as the queue stores it: the job, and when it last showed life.
      * The dead-worker sweep reads `lastProgressAt`: a running job whose worker
@@ -3689,7 +3862,10 @@ export interface components {
      * which job it answers, and the three share no member, so each is told from
      * the others by what it alone carries.
      */
-    JobResult: components['schemas']['MarkJobDone'] | components['schemas']['YieldJobDone'] | components['schemas']['JobDeclined'];
+    JobResult:
+      | components['schemas']['MarkJobDone']
+      | components['schemas']['YieldJobDone']
+      | components['schemas']['JobDeclined'];
     /** A job a worker has claimed and not yet concluded. */
     JobRunning: {
       status: 'running';
@@ -3761,7 +3937,8 @@ export interface components {
      * JobProgress its worker reported with `job:report-progress`, or an empty
      * object before the first report.
      */
-    JobStoredProgress: components['schemas']['JobProgress'] | Record<string, never>;
+    JobStoredProgress:
+      components['schemas']['JobProgress'] | Record<string, never>;
     /**
      * A completed job's result as the dispatcher stores it: the result its
      * worker reported with `job:complete`, or an empty object when it reported
@@ -3813,7 +3990,9 @@ export interface components {
      * the host process has loaded. Told apart by `kind`. Only what builds a
      * transport, or signs in at an issuer, reads it.
      */
-    KbEndpoint: components['schemas']['HttpEndpoint'] | components['schemas']['LocalEndpoint'];
+    KbEndpoint:
+      | components['schemas']['HttpEndpoint']
+      | components['schemas']['LocalEndpoint'];
     /**
      * A knowledge base's committed identity (`project.name` and `site.domain`
      * in its .xynolog/config.yaml), as a service's document names the knowledge
@@ -3878,7 +4057,8 @@ export interface components {
      * what an answer is verified against; nothing selects by did. Its `label`
      * and `lastRead` are written only from an answer that carried its did.
      */
-    KnowledgeBase: components['schemas']['KbTarget'] & components['schemas']['NewKnowledgeBase'];
+    KnowledgeBase: components['schemas']['KbTarget'] &
+      components['schemas']['NewKnowledgeBase'];
     /**
      * One knowledge base's stack as xynolog status reads it: what it is, where
      * it runs, and each of its own services. The services every knowledge base
@@ -3984,7 +4164,10 @@ export interface components {
      * (connections, citedBy, siblings) are derived from these nodes/edges.
      */
     KnowledgeGraph: {
-      nodes: (components['schemas']['GraphResourceNode'] | components['schemas']['GraphAnnotationNode'])[];
+      nodes: (
+        | components['schemas']['GraphResourceNode']
+        | components['schemas']['GraphAnnotationNode']
+      )[];
       edges: {
         source: string;
         target: string;
@@ -4246,7 +4429,12 @@ export interface components {
        * request again rather than waiting (contract/TRANSPORT-CONTRACT.md § A
        * refused credential).
        */
-      code: 'streams' | 'emit-rate' | 'unanswered-requests' | 'capacity' | 'refusal-rate';
+      code:
+        | 'streams'
+        | 'emit-rate'
+        | 'unanswered-requests'
+        | 'capacity'
+        | 'refusal-rate';
     };
     /**
      * What a linking job takes: mentions of the named entity types are marked
@@ -4573,7 +4761,12 @@ export interface components {
      * motivation takes its own parameters and no others: a parameter a job does
      * not take is refused where the job is created.
      */
-    MarkJobParams: components['schemas']['HighlightingJobParams'] | components['schemas']['CommentingJobParams'] | components['schemas']['AssessingJobParams'] | components['schemas']['LinkingJobParams'] | components['schemas']['TaggingJobParams'];
+    MarkJobParams:
+      | components['schemas']['HighlightingJobParams']
+      | components['schemas']['CommentingJobParams']
+      | components['schemas']['AssessingJobParams']
+      | components['schemas']['LinkingJobParams']
+      | components['schemas']['TaggingJobParams'];
     /**
      * A pending `mark` job, announced with its parameters as it was created.
      */
@@ -4591,7 +4784,9 @@ export interface components {
      * or a decline. Neither names its kind: a decline is the one with
      * `declined`.
      */
-    MarkJobResult: components['schemas']['MarkJobDone'] | components['schemas']['JobDeclined'];
+    MarkJobResult:
+      | components['schemas']['MarkJobDone']
+      | components['schemas']['JobDeclined'];
     /** Emitted when the user requests a new mark (annotation) on a resource */
     MarkRequestedEvent: {
       /**
@@ -4798,7 +4993,8 @@ export interface components {
      * Xynolog-supported W3C Web Annotation motivations -
      * https://www.w3.org/TR/annotation-vocab/#motivation
      */
-    Motivation: 'assessing' | 'commenting' | 'highlighting' | 'linking' | 'tagging';
+    Motivation:
+      'assessing' | 'commenting' | 'highlighting' | 'linking' | 'tagging';
     /** A graph kept in a Neo4j database. */
     Neo4jGraphConfig: {
       type: 'neo4j';
@@ -4867,7 +5063,8 @@ export interface components {
      * Annotation model let a resource or an annotation name in one place, as
      * one agent or several.
      */
-    OneOrMoreAgents: components['schemas']['Agent'] | components['schemas']['Agent'][];
+    OneOrMoreAgents:
+      components['schemas']['Agent'] | components['schemas']['Agent'][];
     /**
      * One string, or a non-empty list of them: a JSON-LD term that may take one
      * value or several.
@@ -5026,7 +5223,17 @@ export interface components {
        * heading (banner, section), a timestamp (stamp), a runtime command about
        * to run (command), or text the operation printed (output).
        */
-      kind: 'log' | 'note' | 'ok' | 'warn' | 'fail' | 'banner' | 'section' | 'stamp' | 'command' | 'output';
+      kind:
+        | 'log'
+        | 'note'
+        | 'ok'
+        | 'warn'
+        | 'fail'
+        | 'banner'
+        | 'section'
+        | 'stamp'
+        | 'command'
+        | 'output';
       /** The line. */
       text: string;
     };
@@ -5181,7 +5388,13 @@ export interface components {
        * Semantics of this rendition relative to the resource (e.g., original,
        * thumbnail, preview, derived).
        */
-      rel?: 'original' | 'thumbnail' | 'preview' | 'optimized' | 'derived' | 'other';
+      rel?:
+        | 'original'
+        | 'thumbnail'
+        | 'preview'
+        | 'optimized'
+        | 'derived'
+        | 'other';
     } & { [key: string]: unknown };
     /** Payload for yield:representation-added domain event */
     RepresentationAddedPayload: {
@@ -5309,7 +5522,10 @@ export interface components {
      */
     ResourceDescriptor: {
       /** JSON-LD context; URI, object, or array of these. */
-      '@context': string | { [key: string]: unknown } | (string | { [key: string]: unknown })[];
+      '@context':
+        | string
+        | { [key: string]: unknown }
+        | (string | { [key: string]: unknown })[];
       /** The id of the resource being described. */
       '@id': components['schemas']['ResourceId'];
       /** Type(s) of the resource (IRIs/CURIEs via @context). */
@@ -5317,11 +5533,14 @@ export interface components {
       name: string;
       description?: string;
       /** Persistent identifiers (e.g., DOI, URN). */
-      identifier?: string | string[] | {
-        '@id'?: string;
-        value?: string;
-        scheme?: string;
-      } & { [key: string]: unknown };
+      identifier?:
+        | string
+        | string[]
+        | ({
+            '@id'?: string;
+            value?: string;
+            scheme?: string;
+          } & { [key: string]: unknown });
       /** Topics (IRIs or strings). */
       about?: components['schemas']['OneOrMoreStrings'];
       /** Equivalent/authoritative references. */
@@ -5336,7 +5555,9 @@ export interface components {
        * W3C PROV: the resource, or resources, this one was derived from, each
        * by its id
        */
-      wasDerivedFrom?: components['schemas']['ResourceId'] | components['schemas']['ResourceId'][];
+      wasDerivedFrom?:
+        | components['schemas']['ResourceId']
+        | components['schemas']['ResourceId'][];
       /**
        * W3C PROV — every party responsible for this resource, derived by the
        * knowledge base at creation from verified identities: `[requester,
@@ -5355,7 +5576,9 @@ export interface components {
       /** Convenience set summarizing media types across representations. */
       availableFormats?: string[];
       /** Managed or referenced byte-level renditions of this resource. */
-      representations: components['schemas']['Representation'] | components['schemas']['Representation'][];
+      representations:
+        | components['schemas']['Representation']
+        | components['schemas']['Representation'][];
       /** Application-specific: Whether this resource is archived */
       archived?: boolean;
       /** Application-specific: Entity types for this resource */
@@ -5689,7 +5912,14 @@ export interface components {
      * Xynolog services, as service-telemetry/telemetry.json names them. The
      * reader holds the two lists to each other.
      */
-    RunService: 'archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker';
+    RunService:
+      | 'archivist'
+      | 'dispatcher'
+      | 'gateway'
+      | 'librarian'
+      | 'smelter'
+      | 'weaver'
+      | 'worker';
     /**
      * Who runs a daemon: the launcher, from `image` with `resources`, or
      * somebody else, reached at `external`. Exactly one of the two.
@@ -5736,7 +5966,11 @@ export interface components {
      * One W3C selector: a way of finding a segment of a resource. Tell them
      * apart by `type`, which is required on each and single-valued.
      */
-    Selector: components['schemas']['TextPositionSelector'] | components['schemas']['TextQuoteSelector'] | components['schemas']['SvgSelector'] | components['schemas']['FragmentSelector'];
+    Selector:
+      | components['schemas']['TextPositionSelector']
+      | components['schemas']['TextQuoteSelector']
+      | components['schemas']['SvgSelector']
+      | components['schemas']['FragmentSelector'];
     SemanticMatch: {
       /** The chunk text that matched */
       text: string;
@@ -5777,7 +6011,13 @@ export interface components {
      * accounts in, the knowledge workers where people and agents work on it,
      * the providers of its models, and the telemetry that watches them all.
      */
-    ServiceGroup: 'record' | 'index' | 'issuer' | 'knowledge-workers' | 'providers' | 'telemetry';
+    ServiceGroup:
+      | 'record'
+      | 'index'
+      | 'issuer'
+      | 'knowledge-workers'
+      | 'providers'
+      | 'telemetry';
     /** service.host's params. */
     ServiceHostParams: {
       /** The version of the control API the request is written to. */
@@ -5972,7 +6212,13 @@ export interface components {
        * runs it, and its endpoint answers or does not. absent: there is no
        * container of it. not-configured: the stack's documents ask for none.
        */
-      state: 'running' | 'stopped' | 'reachable' | 'unreachable' | 'absent' | 'not-configured';
+      state:
+        | 'running'
+        | 'stopped'
+        | 'reachable'
+        | 'unreachable'
+        | 'absent'
+        | 'not-configured';
       /**
        * The runtime's own word for a container that is not running (exited,
        * created).
@@ -6222,7 +6468,13 @@ export interface components {
       contentChecksum: string;
       outcome: 'indexed' | 'skipped';
       /** Why the content was skipped. */
-      reason?: 'no-extractor' | 'empty' | 'no-text-layer' | 'encrypted' | 'corrupt' | 'too-large';
+      reason?:
+        | 'no-extractor'
+        | 'empty'
+        | 'no-text-layer'
+        | 'encrypted'
+        | 'corrupt'
+        | 'too-large';
     };
     /**
      * The two numbers a text is cut by before it is embedded, both in tokens, a
@@ -6293,7 +6545,14 @@ export interface components {
        * TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it
        * while it is `open`.
        */
-      stream: 'initial' | 'connecting' | 'open' | 'reconnecting' | 'degraded' | 'unauthenticated' | 'closed';
+      stream:
+        | 'initial'
+        | 'connecting'
+        | 'open'
+        | 'reconnecting'
+        | 'degraded'
+        | 'unauthenticated'
+        | 'closed';
       /**
        * How far it has followed the record. Its sweep is also `due` where its
        * start's reconcile failed.
@@ -6718,7 +6977,70 @@ export interface components {
      * author) is curated per type in @xynolog/core's media-type registry, which
      * is keyed by this enum.
      */
-    SupportedMediaType: 'text/plain' | 'text/markdown' | 'text/html' | 'text/css' | 'text/csv' | 'text/xml' | 'application/json' | 'application/xml' | 'application/yaml' | 'application/x-yaml' | 'application/pdf' | 'application/msword' | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' | 'application/vnd.ms-excel' | 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' | 'application/vnd.ms-powerpoint' | 'application/vnd.openxmlformats-officedocument.presentationml.presentation' | 'application/zip' | 'application/gzip' | 'application/x-tar' | 'application/x-7z-compressed' | 'application/octet-stream' | 'application/wasm' | 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp' | 'image/svg+xml' | 'image/bmp' | 'image/tiff' | 'image/x-icon' | 'video/mp4' | 'video/mpeg' | 'video/webm' | 'video/ogg' | 'video/quicktime' | 'video/x-msvideo' | 'audio/mpeg' | 'audio/wav' | 'audio/ogg' | 'audio/webm' | 'audio/aac' | 'audio/flac' | 'text/javascript' | 'application/javascript' | 'text/x-typescript' | 'application/typescript' | 'text/x-python' | 'text/x-java' | 'text/x-c' | 'text/x-c++' | 'text/x-csharp' | 'text/x-go' | 'text/x-rust' | 'text/x-ruby' | 'text/x-php' | 'text/x-swift' | 'text/x-kotlin' | 'text/x-shell' | 'font/woff' | 'font/woff2' | 'font/ttf' | 'font/otf';
+    SupportedMediaType:
+      | 'text/plain'
+      | 'text/markdown'
+      | 'text/html'
+      | 'text/css'
+      | 'text/csv'
+      | 'text/xml'
+      | 'application/json'
+      | 'application/xml'
+      | 'application/yaml'
+      | 'application/x-yaml'
+      | 'application/pdf'
+      | 'application/msword'
+      | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      | 'application/vnd.ms-excel'
+      | 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      | 'application/vnd.ms-powerpoint'
+      | 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+      | 'application/zip'
+      | 'application/gzip'
+      | 'application/x-tar'
+      | 'application/x-7z-compressed'
+      | 'application/octet-stream'
+      | 'application/wasm'
+      | 'image/png'
+      | 'image/jpeg'
+      | 'image/gif'
+      | 'image/webp'
+      | 'image/svg+xml'
+      | 'image/bmp'
+      | 'image/tiff'
+      | 'image/x-icon'
+      | 'video/mp4'
+      | 'video/mpeg'
+      | 'video/webm'
+      | 'video/ogg'
+      | 'video/quicktime'
+      | 'video/x-msvideo'
+      | 'audio/mpeg'
+      | 'audio/wav'
+      | 'audio/ogg'
+      | 'audio/webm'
+      | 'audio/aac'
+      | 'audio/flac'
+      | 'text/javascript'
+      | 'application/javascript'
+      | 'text/x-typescript'
+      | 'application/typescript'
+      | 'text/x-python'
+      | 'text/x-java'
+      | 'text/x-c'
+      | 'text/x-c++'
+      | 'text/x-csharp'
+      | 'text/x-go'
+      | 'text/x-rust'
+      | 'text/x-ruby'
+      | 'text/x-php'
+      | 'text/x-swift'
+      | 'text/x-kotlin'
+      | 'text/x-shell'
+      | 'font/woff'
+      | 'font/woff2'
+      | 'font/ttf'
+      | 'font/otf';
     SvgSelector: {
       type: 'SvgSelector';
       /** SVG markup defining the region (must include xmlns attribute) */
@@ -7002,7 +7324,9 @@ export interface components {
      * index needs to be reached: one of the kinds `xynolog-vectors` has a store
      * for, told apart by `type`.
      */
-    VectorsConfig: components['schemas']['QdrantVectorsConfig'] | components['schemas']['MemoryVectorsConfig'];
+    VectorsConfig:
+      | components['schemas']['QdrantVectorsConfig']
+      | components['schemas']['MemoryVectorsConfig'];
     /**
      * An embedding model served by Voyage AI. No service has been run against
      * Voyage itself.
@@ -7600,7 +7924,9 @@ export interface components {
      * resource it made, or a decline. Neither names its kind: a decline is the
      * one with `declined`.
      */
-    YieldJobResult: components['schemas']['YieldJobDone'] | components['schemas']['JobDeclined'];
+    YieldJobResult:
+      | components['schemas']['YieldJobDone']
+      | components['schemas']['JobDeclined'];
     /** Bus command to update a yielded resource's storage content. */
     YieldUpdateCommand: {
       /**
@@ -7636,16 +7962,557 @@ export interface components {
 }
 
 /**
- * The records Protocol states in its tables, the client types and the tables
- * the SDK carries as values, which no wire message carries, and what only they
- * reach.
+ * The records Protocol states in its tables and the client types, which no wire
+ * message carries, and what only they reach.
  */
 export interface records {
   /**
    * How a quoted selection was found in a text. Which word a span is found by
    * is reconcile's rule (specs/src/annotations/reconcile-cases.json).
    */
-  AnchorMethod: 'unique-match' | 'context-recovered' | 'first-of-many' | 'fuzzy-match';
+  AnchorMethod:
+    'unique-match' | 'context-recovered' | 'first-of-many' | 'fuzzy-match';
+  /**
+   * What starting an authorization-code grant is told: the knowledge base to
+   * sign in to, where the issuer sends the person back, and, re-authenticating,
+   * which registered knowledge base it is and what the person believed they
+   * chose.
+   */
+  BeginAuthorizationOptions: {
+    target: components['schemas']['HttpEndpoint'];
+    /** Where the issuer sends the person back to. */
+    redirectUri: string;
+    /**
+     * The registered knowledge base being re-authenticated, rather than a new
+     * address connected to.
+     */
+    kbId?: string;
+    /**
+     * The knowledge base's DID the person believed they chose: verified after,
+     * never assumed.
+     */
+    expectedDid?: string;
+    /**
+     * The knowledge base's name the person believed they chose: verified after,
+     * never assumed.
+     */
+    expectedName?: string;
+  };
+  /**
+   * What a worker's claiming of jobs is told: the jobs it takes, and how long
+   * it waits for what it waits on. A wait left out is client/timing.json's of
+   * the same name.
+   */
+  ClaimOptions: {
+    /**
+     * The jobs this claim takes. A job is handed over when it matches any one
+     * of them.
+     */
+    accepts: components['schemas']['JobFilter'][];
+    /** How long it waits for the answer to one claim, in milliseconds. */
+    jobClaimTimeoutMs?: number;
+    /**
+     * How long a held job may show no activity before it is called stalled, in
+     * milliseconds.
+     */
+    heldJobStallMs?: number;
+    /**
+     * How often it looks at how long a held job has shown no activity, in
+     * milliseconds.
+     */
+    heldJobStallCheckMs?: number;
+    /**
+     * How long it waits for the record to acknowledge a commit of annotations,
+     * in milliseconds.
+     */
+    markCommitTimeoutMs?: number;
+  };
+  /**
+   * Who the knowledge base at an address says it is, asked with a token just
+   * issued, before any entry is made for it.
+   */
+  ConnectionIdentity: {
+    /** The did it reports for itself. */
+    did: components['schemas']['UserId'];
+    /** What it says of itself. */
+    description: components['schemas']['KbDescription'];
+  };
+  /**
+   * What creating a resource from a clone token is told: the token, the clone's
+   * name and text, and whether the source is archived once the clone exists.
+   */
+  CreateFromTokenOptions: {
+    token: string;
+    name: string;
+    /** The clone's text, uploaded as its content. */
+    content: string;
+    archiveOriginal?: boolean;
+  };
+  /**
+   * What a device-authorization grant (RFC 8628) shows the person signing in:
+   * the code they enter, and where.
+   */
+  DeviceCode: {
+    /** The code the person enters at the issuer. */
+    userCode: string;
+    /** Where the person enters it. */
+    verificationUri: string;
+    /**
+     * Where the person goes to sign in with the code already entered, when the
+     * issuer gives one.
+     */
+    verificationUriComplete?: string;
+    /** How many seconds the code stays good for. */
+    expiresIn: number;
+  };
+  /**
+   * What a person believed they were signing in to: the did and the name of the
+   * row they clicked, or of the entry they signed in to again.
+   */
+  Expected: {
+    /** The did they believed it has. */
+    did: string;
+    /** The name they believed it has. Absent when they had none. */
+    name?: string;
+  };
+  /**
+   * Why a reader refused a frame, for its first fault: `lacks`, a member it
+   * lacks; `malformed`, a member that is not of its shape. A reader's rule
+   * (specs/src/bus/frame-cases.json).
+   */
+  FrameRefusalReason: 'lacks' | 'malformed';
+  /**
+   * What gathering the context of a resource is told beside the resource:
+   * GatherResourceRequestOptions, each member of which a caller may leave out.
+   * client/surface.json's `gather.resource` cases state what is sent for one
+   * left out.
+   */
+  GatherResourceOptions: {
+    /**
+     * How many links out from the resource the knowledge graph reaches, nearest
+     * first: 1 is what the resource links to and what cites it, and each
+     * further link out adds what those link to and what cites them
+     */
+    depth?: number;
+    /** Maximum number of related resources to include */
+    maxResources?: number;
+    /** Whether to include resource content in the gathered result */
+    includeContent?: boolean;
+    /** Whether to include resource summaries in the gathered result */
+    includeSummary?: boolean;
+    /**
+     * Entity types to exclude from the semantic recall built into this context
+     * (caller-supplied; e.g. a chat consumer passes ['Question'] so prior
+     * questions never ground answer generation). Optional; default none.
+     */
+    excludeEntityTypes?: string[];
+  };
+  /** The tokens an issuer issued at the end of a sign-in. */
+  IssuedTokens: {
+    /** The access token: short-lived, sent as a Bearer token. */
+    access: string;
+    /**
+     * The refresh token: what renews the access token without another sign-in.
+     */
+    refresh: string;
+  };
+  /**
+   * How a job's `pollUntilComplete` asks for the job's status: how long it
+   * waits between its asks, and how long it goes on asking. A member left out
+   * is client/timing.json's: `jobPollMs` and `jobPollTimeoutMs`.
+   */
+  JobPollOptions: {
+    /** How long it waits between one ask and the next, in milliseconds. */
+    everyMs?: number;
+    /**
+     * How long it goes on asking, from its first ask, before it fails as timed
+     * out, in milliseconds.
+     */
+    withinMs?: number;
+  };
+  /**
+   * A different knowledge base answers at a registered address. Both dids,
+   * because neither alone says what to do: a person has to recognise which
+   * knowledge base they registered and which one answers.
+   */
+  KbIdentityConflict: {
+    /** The did the entry records. */
+    expectedDid: string;
+    /** The did the knowledge base that answered reported. */
+    observedDid: string;
+  };
+  /** What reading the active knowledge base against its entry concluded. */
+  KbReadKind: 'recorded' | 'conflict' | 'no-verdict';
+  /**
+   * What a knowledge base said when it was asked to describe itself, read
+   * against the entry it was asked as.
+   */
+  KbReadVerdict:
+    | {
+        kind: records['KbReadKind'] & 'recorded';
+      }
+    | {
+        kind: records['KbReadKind'] & 'conflict';
+        /** The did the knowledge base that answered reported. */
+        observedDid: string;
+        /** The name the knowledge base that answered gave itself. */
+        observedName: string;
+      }
+    | {
+        kind: records['KbReadKind'] & 'no-verdict';
+      };
+  /**
+   * What the credential stored for a knowledge base says, read without asking
+   * anyone: `authenticated`, a token is stored and has not expired; `expired`,
+   * a token is stored and has expired; `signed-out`, nothing is stored.
+   */
+  KbSessionStatus: 'authenticated' | 'expired' | 'signed-out';
+  /**
+   * Which looser search found a quoted selection, stated of a span whose
+   * `anchorMethod` is `fuzzy-match` and only then. Which search finds it is
+   * reconcile's rule (specs/src/annotations/reconcile-cases.json).
+   */
+  MatchQuality: 'normalized' | 'case-insensitive' | 'fuzzy';
+  /**
+   * What a search for what a reference could refer to is told beside the
+   * reference and its context: MatchSearchRequest's other members.
+   * client/surface.json's `match.search` cases state what is sent for one left
+   * out.
+   */
+  MatchSearchOptions: {
+    /** Maximum number of candidate results to return */
+    limit?: number;
+    /** Enable semantic similarity scoring in addition to keyword matching */
+    useSemanticScoring?: boolean;
+  };
+  /**
+   * A rectangle on a page of a PDF, in PDF points, from the page's bottom-left
+   * corner with y increasing upward: what an RFC 3778 fragment selector names.
+   */
+  PdfCoordinate: {
+    /** The page the rectangle is on. */
+    page: number;
+    /** The rectangle's x. */
+    x: number;
+    /** The rectangle's y. */
+    y: number;
+    /** The rectangle's width. */
+    width: number;
+    /** The rectangle's height. */
+    height: number;
+  };
+  /**
+   * The annotation a mark state unit is composing, from the selection a request
+   * asked for, until it is submitted or cancelled.
+   */
+  PendingAnnotation: {
+    selector: components['schemas']['AnnotationSelector'];
+    motivation: components['schemas']['Motivation'];
+  };
+  /** A request was refused for lack of permission. */
+  PermissionDenied: {
+    /** The refusal's own message, untranslated; null when it gave none. */
+    detail: string | null;
+  };
+  /**
+   * Words of a text, as a selection quotes them: the words themselves, and
+   * maybe the text just before and just after them, which tell apart the places
+   * they occur.
+   */
+  QuotedText: {
+    /** The words quoted. */
+    exact: string;
+    /** The text just before them. */
+    prefix?: string;
+    /** The text just after them. */
+    suffix?: string;
+  };
+  /**
+   * Where a quoted selection was found in a text, and how it was found, told
+   * apart by `anchorMethod`, one of AnchorMethod's words: a fuzzy match also
+   * names its search, `matchQuality`, and no other states one.
+   */
+  ReconciledSpan:
+    | {
+        /**
+         * The offset the span starts at, in Unicode code points from the text's
+         * start.
+         */
+        start: number;
+        /**
+         * The offset just past the span, in Unicode code points from the text's
+         * start.
+         */
+        end: number;
+        /** The words quoted. */
+        exact: string;
+        /** The text just before them. */
+        prefix?: string;
+        /** The text just after them. */
+        suffix?: string;
+        anchorMethod: 'unique-match';
+      }
+    | {
+        /**
+         * The offset the span starts at, in Unicode code points from the text's
+         * start.
+         */
+        start: number;
+        /**
+         * The offset just past the span, in Unicode code points from the text's
+         * start.
+         */
+        end: number;
+        /** The words quoted. */
+        exact: string;
+        /** The text just before them. */
+        prefix?: string;
+        /** The text just after them. */
+        suffix?: string;
+        anchorMethod: 'context-recovered';
+      }
+    | {
+        /**
+         * The offset the span starts at, in Unicode code points from the text's
+         * start.
+         */
+        start: number;
+        /**
+         * The offset just past the span, in Unicode code points from the text's
+         * start.
+         */
+        end: number;
+        /** The words quoted. */
+        exact: string;
+        /** The text just before them. */
+        prefix?: string;
+        /** The text just after them. */
+        suffix?: string;
+        anchorMethod: 'first-of-many';
+      }
+    | {
+        /**
+         * The offset the span starts at, in Unicode code points from the text's
+         * start.
+         */
+        start: number;
+        /**
+         * The offset just past the span, in Unicode code points from the text's
+         * start.
+         */
+        end: number;
+        /** The words quoted. */
+        exact: string;
+        /** The text just before them. */
+        prefix?: string;
+        /** The text just after them. */
+        suffix?: string;
+        anchorMethod: 'fuzzy-match';
+        matchQuality: records['MatchQuality'];
+      };
+  /**
+   * What a text search for resources is told beside its text:
+   * MatchResourcesRequest's other members. client/surface.json's
+   * `match.resources` cases state what is sent for one left out.
+   */
+  ResourceSearchFilters: {
+    archived?: boolean;
+    entityType?: string;
+    /**
+     * How many of the resources the search finds are passed over before the
+     * page begins.
+     */
+    offset?: number;
+    /** The most resources a page has. */
+    limit?: number;
+  };
+  /**
+   * Why a session ended: `expired`, the issuer refused to renew its token;
+   * `refused`, the gateway refused a token its issuer had just issued.
+   */
+  SessionEndReason: 'expired' | 'refused';
+  /** A session ended, and why. */
+  SessionEnded: {
+    /** Why it ended. */
+    reason: records['SessionEndReason'];
+  };
+  /**
+   * The entry a sign-in landed on, and what the person believed, so a host can
+   * set the two against each other and say when they differ. The sign-in stands
+   * either way: the knowledge base that answered is the one reached.
+   */
+  SignInOutcome: {
+    /** The entry the sign-in made or signed in to again. */
+    kb: components['schemas']['KnowledgeBase'];
+    /**
+     * What the person believed they were signing in to. Absent when they named
+     * nothing.
+     */
+    expected?: records['Expected'];
+  };
+  /**
+   * What a completed sign-in learned, as a registry is handed it to record:
+   * where it was, who the knowledge base there says it is, the tokens, and what
+   * the person believed they were signing in to.
+   */
+  SignedIn: {
+    /** Where the sign-in was. */
+    endpoint: components['schemas']['KbEndpoint'];
+    /** What the knowledge base said of itself, asked with the new token. */
+    description: components['schemas']['KbDescription'];
+    /** The tokens, as a registry keeps them. */
+    session: records['StoredSession'];
+    /**
+     * The registered knowledge base the person signed in to again. Absent when
+     * it is none.
+     */
+    kbId?: string;
+    /**
+     * The did of what the person believed they clicked. Absent when they named
+     * nothing.
+     */
+    expectedDid?: string;
+    /**
+     * The name of what the person believed they clicked. Absent when they named
+     * nothing.
+     */
+    expectedName?: string;
+  };
+  /**
+   * What is kept of a sign-in: the tokens an issuer issued, the client they
+   * were issued to, and the issuer's endpoints a renewal and a sign-out need,
+   * learned once at sign-in so no session asks again. TOKENS, never a password.
+   * A stored value that lacks a member it requires is no session.
+   */
+  StoredSession: {
+    /** The access token: short-lived, sent as a Bearer token. */
+    access: string;
+    /**
+     * The refresh token: what renews the access token at the issuer without
+     * another sign-in.
+     */
+    refresh: string;
+    /**
+     * The client the tokens were issued to, which a renewal and a revocation
+     * name.
+     */
+    clientId: string;
+    /** The issuer's token endpoint, where the refresh grant is made. */
+    tokenEndpoint: string;
+    /**
+     * The issuer's revocation endpoint (RFC 7009), where a sign-out tells it to
+     * forget the refresh token. Absent when the issuer has none.
+     */
+    revocationEndpoint?: string;
+    /**
+     * Who the gateway said the sign-in's person is, as the key their caches and
+     * stream position are kept under (`lastEventIdKeyPrefix`), never the did
+     * itself. Written once the gateway names the person, on the sign-in whose
+     * token it was asked about; a renewal keeps it, a new sign-in starts
+     * without it, and forgetting the sign-in, however it is forgotten, reads it
+     * first to delete what is kept under it. Absent for a sign-in whose gateway
+     * has not yet named its person.
+     */
+    personKey?: string;
+  };
+  /**
+   * What checking one open resource against its knowledge base concluded.
+   * `gone` is the only verdict that closes it, and it means the knowledge base
+   * said the resource does not exist, not that the check failed: a failed
+   * transport, a timeout and a peer that is down are each `unknown`, and an
+   * unknown resource stays open.
+   */
+  TabCheck:
+    | {
+        verdict: records['TabVerdict'] & 'gone';
+      }
+    | {
+        verdict: records['TabVerdict'] & 'ready';
+        /** The name the knowledge base gave the resource. */
+        name: string;
+        /**
+         * The media type of its primary representation. Absent when it said none.
+         */
+        mediaType?: string;
+      }
+    | {
+        verdict: records['TabVerdict'] & 'unknown';
+      };
+  /** What checking an open resource against its knowledge base concluded. */
+  TabVerdict: 'gone' | 'ready' | 'unknown';
+  /**
+   * A span of a text: the code points from `start` up to but not including
+   * `end`, the words they are, and maybe the text just before and just after
+   * them.
+   */
+  TextSpan: {
+    /**
+     * The offset the span starts at, in Unicode code points from the text's
+     * start.
+     */
+    start: number;
+    /**
+     * The offset just past the span, in Unicode code points from the text's
+     * start.
+     */
+    end: number;
+    /** The words quoted. */
+    exact: string;
+    /** The text just before them. */
+    prefix?: string;
+    /** The text just after them. */
+    suffix?: string;
+  };
+  /**
+   * What an upload reports as it goes, told apart by `phase`: its size first,
+   * then the bytes sent so far, then the resource made.
+   */
+  UploadProgress:
+    | {
+        phase: 'started';
+        /** How many bytes the upload is. */
+        totalBytes: number;
+      }
+    | {
+        phase: 'progress';
+        /** How many bytes are sent so far. */
+        bytesUploaded: number;
+        /** How many bytes the upload is. */
+        totalBytes: number;
+      }
+    | {
+        phase: 'finished';
+        resourceId: components['schemas']['ResourceId'];
+      };
+  /** Why no launcher was found. */
+  DiscoveryAbsentReason:
+    /**
+     * There is no document where it was looked for: no file, an HTTP status
+     * that is not success, or a page that is not JSON.
+     */
+    | 'not-found'
+    /** There is a document, and it is not JSON. */
+    | 'not-json'
+    /**
+     * It is JSON, and not a discovery document: one entry that is not what the
+     * schema says makes the whole document invalid, since a partial reading
+     * would hide a running knowledge base without a trace.
+     */
+    | 'invalid'
+    /**
+     * It is a discovery document of a version this client does not speak, and
+     * is not read in part.
+     */
+    | 'unsupported-version'
+    /**
+     * It could not be read at all: the file could not be opened or decoded, or
+     * the request got no answer by its deadline.
+     */
+    | 'unreadable';
+}
+
+/** The tables the SDK carries as values, and what only they reach. */
+export interface tables {
   /**
    * archivist/default-entity-types.json: the entity types an Archivist seeds,
    * in the order it seeds them.
@@ -7918,32 +8785,6 @@ export interface records {
     }[];
   };
   /**
-   * What starting an authorization-code grant is told: the knowledge base to
-   * sign in to, where the issuer sends the person back, and, re-authenticating,
-   * which registered knowledge base it is and what the person believed they
-   * chose.
-   */
-  BeginAuthorizationOptions: {
-    target: components['schemas']['HttpEndpoint'];
-    /** Where the issuer sends the person back to. */
-    redirectUri: string;
-    /**
-     * The registered knowledge base being re-authenticated, rather than a new
-     * address connected to.
-     */
-    kbId?: string;
-    /**
-     * The knowledge base's DID the person believed they chose: verified after,
-     * never assumed.
-     */
-    expectedDid?: string;
-    /**
-     * The knowledge base's name the person believed they chose: verified after,
-     * never assumed.
-     */
-    expectedName?: string;
-  };
-  /**
    * bus/reply-bounds.json: each list or map an operation's reply carries that
    * its own schema does not bound, and what bounds it.
    */
@@ -7951,83 +8792,22 @@ export interface records {
     /** The rule the table states, in prose. */
     $comment: string;
     /** Each operation, by its request's channel. */
-    replies: { [key: string]: { [key: string]: {
-      /**
-       * The member of the request that bounds it: an array, or an integer with
-       * a maximum.
-       */
-      by: string;
-    } | {
-      /** What it grows with. */
-      grows: string;
-    } } };
-  };
-  /**
-   * What a worker's claiming of jobs is told: the jobs it takes, and how long
-   * it waits for what it waits on. A wait left out is client/timing.json's of
-   * the same name.
-   */
-  ClaimOptions: {
-    /**
-     * The jobs this claim takes. A job is handed over when it matches any one
-     * of them.
-     */
-    accepts: components['schemas']['JobFilter'][];
-    /** How long it waits for the answer to one claim, in milliseconds. */
-    jobClaimTimeoutMs?: number;
-    /**
-     * How long a held job may show no activity before it is called stalled, in
-     * milliseconds.
-     */
-    heldJobStallMs?: number;
-    /**
-     * How often it looks at how long a held job has shown no activity, in
-     * milliseconds.
-     */
-    heldJobStallCheckMs?: number;
-    /**
-     * How long it waits for the record to acknowledge a commit of annotations,
-     * in milliseconds.
-     */
-    markCommitTimeoutMs?: number;
-  };
-  /**
-   * Who the knowledge base at an address says it is, asked with a token just
-   * issued, before any entry is made for it.
-   */
-  ConnectionIdentity: {
-    /** The did it reports for itself. */
-    did: components['schemas']['UserId'];
-    /** What it says of itself. */
-    description: components['schemas']['KbDescription'];
-  };
-  /**
-   * What creating a resource from a clone token is told: the token, the clone's
-   * name and text, and whether the source is archived once the clone exists.
-   */
-  CreateFromTokenOptions: {
-    token: string;
-    name: string;
-    /** The clone's text, uploaded as its content. */
-    content: string;
-    archiveOriginal?: boolean;
-  };
-  /**
-   * What a device-authorization grant (RFC 8628) shows the person signing in:
-   * the code they enter, and where.
-   */
-  DeviceCode: {
-    /** The code the person enters at the issuer. */
-    userCode: string;
-    /** Where the person enters it. */
-    verificationUri: string;
-    /**
-     * Where the person goes to sign in with the code already entered, when the
-     * issuer gives one.
-     */
-    verificationUriComplete?: string;
-    /** How many seconds the code stays good for. */
-    expiresIn: number;
+    replies: {
+      [key: string]: {
+        [key: string]:
+          | {
+              /**
+               * The member of the request that bounds it: an array, or an integer with
+               * a maximum.
+               */
+              by: string;
+            }
+          | {
+              /** What it grows with. */
+              grows: string;
+            };
+      };
+    };
   };
   /**
    * dispatcher/messages.json: the words of the dispatcher's own refusals, and
@@ -8115,18 +8895,20 @@ export interface records {
      * How each kind of provider is asked, by its `type` (EmbeddingConfig):
      * every kind, and no other.
      */
-    providers: { [key: string]: {
-      /**
-       * How many texts one request carries, at most: a batch is cut into slices
-       * of this many, each one request, in the order of the texts.
-       */
-      textsPerRequest: number;
-      /**
-       * How many requests are made of the provider at once, however many
-       * resources are being indexed.
-       */
-      atOnce: number;
-    } };
+    providers: {
+      [key: string]: {
+        /**
+         * How many texts one request carries, at most: a batch is cut into slices
+         * of this many, each one request, in the order of the texts.
+         */
+        textsPerRequest: number;
+        /**
+         * How many requests are made of the provider at once, however many
+         * resources are being indexed.
+         */
+        atOnce: number;
+      };
+    };
     /**
      * How long each request has, counted from when it is sent and not from when
      * its batch began. Asking a busy provider again is within it.
@@ -8152,22 +8934,6 @@ export interface records {
      */
     startAgain: number;
   };
-  /**
-   * What a person believed they were signing in to: the did and the name of the
-   * row they clicked, or of the entry they signed in to again.
-   */
-  Expected: {
-    /** The did they believed it has. */
-    did: string;
-    /** The name they believed it has. Absent when they had none. */
-    name?: string;
-  };
-  /**
-   * Why a reader refused a frame, for its first fault: `lacks`, a member it
-   * lacks; `malformed`, a member that is not of its shape. A reader's rule
-   * (specs/src/bus/frame-cases.json).
-   */
-  FrameRefusalReason: 'lacks' | 'malformed';
   /** gateway/media-token.json: what a media token is. */
   GatewayMediaToken: {
     /** The rule the table states, in prose. */
@@ -8300,32 +9066,6 @@ export interface records {
     };
   };
   /**
-   * What gathering the context of a resource is told beside the resource:
-   * GatherResourceRequestOptions, each member of which a caller may leave out.
-   * client/surface.json's `gather.resource` cases state what is sent for one
-   * left out.
-   */
-  GatherResourceOptions: {
-    /**
-     * How many links out from the resource the knowledge graph reaches, nearest
-     * first: 1 is what the resource links to and what cites it, and each
-     * further link out adds what those link to and what cites them
-     */
-    depth?: number;
-    /** Maximum number of related resources to include */
-    maxResources?: number;
-    /** Whether to include resource content in the gathered result */
-    includeContent?: boolean;
-    /** Whether to include resource summaries in the gathered result */
-    includeSummary?: boolean;
-    /**
-     * Entity types to exclude from the semantic recall built into this context
-     * (caller-supplied; e.g. a chat consumer passes ['Question'] so prior
-     * questions never ground answer generation). Optional; default none.
-     */
-    excludeEntityTypes?: string[];
-  };
-  /**
    * graph/schema.json: the shape of the graph a store keeps, as a reader of the
    * store finds it.
    */
@@ -8452,29 +9192,6 @@ export interface records {
       marker: string;
     };
   };
-  /** The tokens an issuer issued at the end of a sign-in. */
-  IssuedTokens: {
-    /** The access token: short-lived, sent as a Bearer token. */
-    access: string;
-    /**
-     * The refresh token: what renews the access token without another sign-in.
-     */
-    refresh: string;
-  };
-  /**
-   * How a job's `pollUntilComplete` asks for the job's status: how long it
-   * waits between its asks, and how long it goes on asking. A member left out
-   * is client/timing.json's: `jobPollMs` and `jobPollTimeoutMs`.
-   */
-  JobPollOptions: {
-    /** How long it waits between one ask and the next, in milliseconds. */
-    everyMs?: number;
-    /**
-     * How long it goes on asking, from its first ask, before it fails as timed
-     * out, in milliseconds.
-     */
-    withinMs?: number;
-  };
   /** jobs/budgets.json: the retry budget of each job type. */
   JobsBudgets: {
     /** The rule the table states, in prose. */
@@ -8515,195 +9232,6 @@ export interface records {
       /** The component schema each of the bucket's values is. */
       record: string;
     };
-  };
-  /**
-   * A different knowledge base answers at a registered address. Both dids,
-   * because neither alone says what to do: a person has to recognise which
-   * knowledge base they registered and which one answers.
-   */
-  KbIdentityConflict: {
-    /** The did the entry records. */
-    expectedDid: string;
-    /** The did the knowledge base that answered reported. */
-    observedDid: string;
-  };
-  /** What reading the active knowledge base against its entry concluded. */
-  KbReadKind: 'recorded' | 'conflict' | 'no-verdict';
-  /**
-   * What a knowledge base said when it was asked to describe itself, read
-   * against the entry it was asked as.
-   */
-  KbReadVerdict: {
-    kind: records['KbReadKind'] & 'recorded';
-  } | {
-    kind: records['KbReadKind'] & 'conflict';
-    /** The did the knowledge base that answered reported. */
-    observedDid: string;
-    /** The name the knowledge base that answered gave itself. */
-    observedName: string;
-  } | {
-    kind: records['KbReadKind'] & 'no-verdict';
-  };
-  /**
-   * What the credential stored for a knowledge base says, read without asking
-   * anyone: `authenticated`, a token is stored and has not expired; `expired`,
-   * a token is stored and has expired; `signed-out`, nothing is stored.
-   */
-  KbSessionStatus: 'authenticated' | 'expired' | 'signed-out';
-  /**
-   * Which looser search found a quoted selection, stated of a span whose
-   * `anchorMethod` is `fuzzy-match` and only then. Which search finds it is
-   * reconcile's rule (specs/src/annotations/reconcile-cases.json).
-   */
-  MatchQuality: 'normalized' | 'case-insensitive' | 'fuzzy';
-  /**
-   * What a search for what a reference could refer to is told beside the
-   * reference and its context: MatchSearchRequest's other members.
-   * client/surface.json's `match.search` cases state what is sent for one left
-   * out.
-   */
-  MatchSearchOptions: {
-    /** Maximum number of candidate results to return */
-    limit?: number;
-    /** Enable semantic similarity scoring in addition to keyword matching */
-    useSemanticScoring?: boolean;
-  };
-  /**
-   * A rectangle on a page of a PDF, in PDF points, from the page's bottom-left
-   * corner with y increasing upward: what an RFC 3778 fragment selector names.
-   */
-  PdfCoordinate: {
-    /** The page the rectangle is on. */
-    page: number;
-    /** The rectangle's x. */
-    x: number;
-    /** The rectangle's y. */
-    y: number;
-    /** The rectangle's width. */
-    width: number;
-    /** The rectangle's height. */
-    height: number;
-  };
-  /**
-   * The annotation a mark state unit is composing, from the selection a request
-   * asked for, until it is submitted or cancelled.
-   */
-  PendingAnnotation: {
-    selector: components['schemas']['AnnotationSelector'];
-    motivation: components['schemas']['Motivation'];
-  };
-  /** A request was refused for lack of permission. */
-  PermissionDenied: {
-    /** The refusal's own message, untranslated; null when it gave none. */
-    detail: string | null;
-  };
-  /**
-   * Words of a text, as a selection quotes them: the words themselves, and
-   * maybe the text just before and just after them, which tell apart the places
-   * they occur.
-   */
-  QuotedText: {
-    /** The words quoted. */
-    exact: string;
-    /** The text just before them. */
-    prefix?: string;
-    /** The text just after them. */
-    suffix?: string;
-  };
-  /**
-   * Where a quoted selection was found in a text, and how it was found, told
-   * apart by `anchorMethod`, one of AnchorMethod's words: a fuzzy match also
-   * names its search, `matchQuality`, and no other states one.
-   */
-  ReconciledSpan: {
-    /**
-     * The offset the span starts at, in Unicode code points from the text's
-     * start.
-     */
-    start: number;
-    /**
-     * The offset just past the span, in Unicode code points from the text's
-     * start.
-     */
-    end: number;
-    /** The words quoted. */
-    exact: string;
-    /** The text just before them. */
-    prefix?: string;
-    /** The text just after them. */
-    suffix?: string;
-    anchorMethod: 'unique-match';
-  } | {
-    /**
-     * The offset the span starts at, in Unicode code points from the text's
-     * start.
-     */
-    start: number;
-    /**
-     * The offset just past the span, in Unicode code points from the text's
-     * start.
-     */
-    end: number;
-    /** The words quoted. */
-    exact: string;
-    /** The text just before them. */
-    prefix?: string;
-    /** The text just after them. */
-    suffix?: string;
-    anchorMethod: 'context-recovered';
-  } | {
-    /**
-     * The offset the span starts at, in Unicode code points from the text's
-     * start.
-     */
-    start: number;
-    /**
-     * The offset just past the span, in Unicode code points from the text's
-     * start.
-     */
-    end: number;
-    /** The words quoted. */
-    exact: string;
-    /** The text just before them. */
-    prefix?: string;
-    /** The text just after them. */
-    suffix?: string;
-    anchorMethod: 'first-of-many';
-  } | {
-    /**
-     * The offset the span starts at, in Unicode code points from the text's
-     * start.
-     */
-    start: number;
-    /**
-     * The offset just past the span, in Unicode code points from the text's
-     * start.
-     */
-    end: number;
-    /** The words quoted. */
-    exact: string;
-    /** The text just before them. */
-    prefix?: string;
-    /** The text just after them. */
-    suffix?: string;
-    anchorMethod: 'fuzzy-match';
-    matchQuality: records['MatchQuality'];
-  };
-  /**
-   * What a text search for resources is told beside its text:
-   * MatchResourcesRequest's other members. client/surface.json's
-   * `match.resources` cases state what is sent for one left out.
-   */
-  ResourceSearchFilters: {
-    archived?: boolean;
-    entityType?: string;
-    /**
-     * How many of the resources the search finds are passed over before the
-     * page begins.
-     */
-    offset?: number;
-    /** The most resources a page has. */
-    limit?: number;
   };
   /**
    * retry/rules.json: what each of the four retry rules retries, as sets.
@@ -8768,7 +9296,15 @@ export interface records {
     /** The rule the table states, in prose. */
     $comment: string;
     /** The services that refuse to start so. */
-    services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+    services: (
+      | 'archivist'
+      | 'dispatcher'
+      | 'gateway'
+      | 'librarian'
+      | 'smelter'
+      | 'weaver'
+      | 'worker'
+    )[];
     /**
      * The one line the service writes to stderr, its refusal in place of
      * `{refusal}`, before it exits.
@@ -8812,7 +9348,15 @@ export interface records {
       /** The variable's name. */
       name: string;
       /** The services that read it. */
-      services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+      services: (
+        | 'archivist'
+        | 'dispatcher'
+        | 'gateway'
+        | 'librarian'
+        | 'smelter'
+        | 'weaver'
+        | 'worker'
+      )[];
       /** What reads it: the service's own code, or the OpenTelemetry SDK. */
       readBy: 'service' | 'opentelemetry';
       /** What sets it where the launcher runs the service. */
@@ -8894,7 +9438,15 @@ export interface records {
       /** The attribute's key. */
       key: string;
       /** The services that export the row. */
-      services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+      services: (
+        | 'archivist'
+        | 'dispatcher'
+        | 'gateway'
+        | 'librarian'
+        | 'smelter'
+        | 'weaver'
+        | 'worker'
+      )[];
       /** What the attribute says. */
       meaning: string;
       /**
@@ -8910,7 +9462,15 @@ export interface records {
        */
       name: string;
       /** The services that export the row. */
-      services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+      services: (
+        | 'archivist'
+        | 'dispatcher'
+        | 'gateway'
+        | 'librarian'
+        | 'smelter'
+        | 'weaver'
+        | 'worker'
+      )[];
       /** The span's kind, in OTLP's words. */
       kind: 'client' | 'consumer' | 'internal' | 'producer' | 'server';
       /** When the row arrives. */
@@ -8940,7 +9500,15 @@ export interface records {
        */
       name: string;
       /** The services that export the row. */
-      services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+      services: (
+        | 'archivist'
+        | 'dispatcher'
+        | 'gateway'
+        | 'librarian'
+        | 'smelter'
+        | 'weaver'
+        | 'worker'
+      )[];
       /** The metric's instrument. */
       instrument: 'counter' | 'up-down counter' | 'gauge' | 'histogram';
       /** When the row arrives. */
@@ -8965,58 +9533,6 @@ export interface records {
         values?: (string | boolean)[];
       }[];
     }[];
-  };
-  /**
-   * Why a session ended: `expired`, the issuer refused to renew its token;
-   * `refused`, the gateway refused a token its issuer had just issued.
-   */
-  SessionEndReason: 'expired' | 'refused';
-  /** A session ended, and why. */
-  SessionEnded: {
-    /** Why it ended. */
-    reason: records['SessionEndReason'];
-  };
-  /**
-   * The entry a sign-in landed on, and what the person believed, so a host can
-   * set the two against each other and say when they differ. The sign-in stands
-   * either way: the knowledge base that answered is the one reached.
-   */
-  SignInOutcome: {
-    /** The entry the sign-in made or signed in to again. */
-    kb: components['schemas']['KnowledgeBase'];
-    /**
-     * What the person believed they were signing in to. Absent when they named
-     * nothing.
-     */
-    expected?: records['Expected'];
-  };
-  /**
-   * What a completed sign-in learned, as a registry is handed it to record:
-   * where it was, who the knowledge base there says it is, the tokens, and what
-   * the person believed they were signing in to.
-   */
-  SignedIn: {
-    /** Where the sign-in was. */
-    endpoint: components['schemas']['KbEndpoint'];
-    /** What the knowledge base said of itself, asked with the new token. */
-    description: components['schemas']['KbDescription'];
-    /** The tokens, as a registry keeps them. */
-    session: records['StoredSession'];
-    /**
-     * The registered knowledge base the person signed in to again. Absent when
-     * it is none.
-     */
-    kbId?: string;
-    /**
-     * The did of what the person believed they clicked. Absent when they named
-     * nothing.
-     */
-    expectedDid?: string;
-    /**
-     * The name of what the person believed they clicked. Absent when they named
-     * nothing.
-     */
-    expectedName?: string;
   };
   /**
    * smelter/messages.json: the words of the Smelter's refusals, and of the
@@ -9069,106 +9585,6 @@ export interface records {
     }[];
   };
   /**
-   * What is kept of a sign-in: the tokens an issuer issued, the client they
-   * were issued to, and the issuer's endpoints a renewal and a sign-out need,
-   * learned once at sign-in so no session asks again. TOKENS, never a password.
-   * A stored value that lacks a member it requires is no session.
-   */
-  StoredSession: {
-    /** The access token: short-lived, sent as a Bearer token. */
-    access: string;
-    /**
-     * The refresh token: what renews the access token at the issuer without
-     * another sign-in.
-     */
-    refresh: string;
-    /**
-     * The client the tokens were issued to, which a renewal and a revocation
-     * name.
-     */
-    clientId: string;
-    /** The issuer's token endpoint, where the refresh grant is made. */
-    tokenEndpoint: string;
-    /**
-     * The issuer's revocation endpoint (RFC 7009), where a sign-out tells it to
-     * forget the refresh token. Absent when the issuer has none.
-     */
-    revocationEndpoint?: string;
-    /**
-     * Who the gateway said the sign-in's person is, as the key their caches and
-     * stream position are kept under (`lastEventIdKeyPrefix`), never the did
-     * itself. Written once the gateway names the person, on the sign-in whose
-     * token it was asked about; a renewal keeps it, a new sign-in starts
-     * without it, and forgetting the sign-in, however it is forgotten, reads it
-     * first to delete what is kept under it. Absent for a sign-in whose gateway
-     * has not yet named its person.
-     */
-    personKey?: string;
-  };
-  /**
-   * What checking one open resource against its knowledge base concluded.
-   * `gone` is the only verdict that closes it, and it means the knowledge base
-   * said the resource does not exist, not that the check failed: a failed
-   * transport, a timeout and a peer that is down are each `unknown`, and an
-   * unknown resource stays open.
-   */
-  TabCheck: {
-    verdict: records['TabVerdict'] & 'gone';
-  } | {
-    verdict: records['TabVerdict'] & 'ready';
-    /** The name the knowledge base gave the resource. */
-    name: string;
-    /**
-     * The media type of its primary representation. Absent when it said none.
-     */
-    mediaType?: string;
-  } | {
-    verdict: records['TabVerdict'] & 'unknown';
-  };
-  /** What checking an open resource against its knowledge base concluded. */
-  TabVerdict: 'gone' | 'ready' | 'unknown';
-  /**
-   * A span of a text: the code points from `start` up to but not including
-   * `end`, the words they are, and maybe the text just before and just after
-   * them.
-   */
-  TextSpan: {
-    /**
-     * The offset the span starts at, in Unicode code points from the text's
-     * start.
-     */
-    start: number;
-    /**
-     * The offset just past the span, in Unicode code points from the text's
-     * start.
-     */
-    end: number;
-    /** The words quoted. */
-    exact: string;
-    /** The text just before them. */
-    prefix?: string;
-    /** The text just after them. */
-    suffix?: string;
-  };
-  /**
-   * What an upload reports as it goes, told apart by `phase`: its size first,
-   * then the bytes sent so far, then the resource made.
-   */
-  UploadProgress: {
-    phase: 'started';
-    /** How many bytes the upload is. */
-    totalBytes: number;
-  } | {
-    phase: 'progress';
-    /** How many bytes are sent so far. */
-    bytesUploaded: number;
-    /** How many bytes the upload is. */
-    totalBytes: number;
-  } | {
-    phase: 'finished';
-    resourceId: components['schemas']['ResourceId'];
-  };
-  /**
    * worker/answer-formats.json: the element of the array each kind of detection
    * asks a model for.
    */
@@ -9195,29 +9611,32 @@ export interface records {
      * Each refusal to start, written in
      * service-environment/boot-refusals.json's `line`.
      */
-    boot: ({
-      /** The situation's name. */
-      name: string;
-      /** When it is written, and what fills each `{name}` of its text. */
-      situation: string;
-      /**
-       * The refusal, in place of the line's `{refusal}`. A `{name}` in it is
-       * filled with what the row's `situation` names, and nothing else in it
-       * varies.
-       */
-      refusal: string;
-    } | {
-      /** The situation's name. */
-      name: string;
-      /** When it is written. What fills its text is the shared row's. */
-      situation: string;
-      /**
-       * The `name` of the row of service-environment/boot-refusals.json's
-       * `refusals` that is this refusal, with `{service}` `worker` and
-       * `{schema}` `WorkerConfig`.
-       */
-      bootRefusal: string;
-    })[];
+    boot: (
+      | {
+          /** The situation's name. */
+          name: string;
+          /** When it is written, and what fills each `{name}` of its text. */
+          situation: string;
+          /**
+           * The refusal, in place of the line's `{refusal}`. A `{name}` in it is
+           * filled with what the row's `situation` names, and nothing else in it
+           * varies.
+           */
+          refusal: string;
+        }
+      | {
+          /** The situation's name. */
+          name: string;
+          /** When it is written. What fills its text is the shared row's. */
+          situation: string;
+          /**
+           * The `name` of the row of service-environment/boot-refusals.json's
+           * `refusals` that is this refusal, with `{service}` `worker` and
+           * `{schema}` `WorkerConfig`.
+           */
+          bootRefusal: string;
+        }
+    )[];
     /** Each line of the `{reasons}` of `invalid`. */
     reasons: {
       /** The situation's name. */
@@ -9306,29 +9725,4 @@ export interface records {
       carries: string[];
     }[];
   };
-  /** Why no launcher was found. */
-  DiscoveryAbsentReason: 
-    /**
-     * There is no document where it was looked for: no file, an HTTP status
-     * that is not success, or a page that is not JSON.
-     */
-    | 'not-found'
-    /** There is a document, and it is not JSON. */
-    | 'not-json'
-    /**
-     * It is JSON, and not a discovery document: one entry that is not what the
-     * schema says makes the whole document invalid, since a partial reading
-     * would hide a running knowledge base without a trace.
-     */
-    | 'invalid'
-    /**
-     * It is a discovery document of a version this client does not speak, and
-     * is not read in part.
-     */
-    | 'unsupported-version'
-    /**
-     * It could not be read at all: the file could not be opened or decoded, or
-     * the request got no answer by its deadline.
-     */
-    | 'unreadable';
 }

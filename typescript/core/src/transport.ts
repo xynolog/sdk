@@ -268,10 +268,7 @@ export type PutBinaryRequest = Pick<
   Partial<
     Pick<ResourceUpload, 'language' | 'generationPrompt' | 'cloneToken'> &
       Pick<YieldCreateCommand, 'entityTypes' | 'generator' | 'isDraft'> &
-      Pick<
-        components['schemas']['YieldCloneCreateCommand'],
-        'archiveOriginal'
-      >
+      Pick<components['schemas']['YieldCloneCreateCommand'], 'archiveOriginal'>
   > & {
     file: File | Buffer;
     sourceAnnotationId?: AnnotationId;

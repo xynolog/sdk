@@ -12,9 +12,7 @@ import { Bus, isMarkJobResult, isReportedJobResult } from '@xynolog/core';
 import type { DelegationObservable, MarkJobCompletion } from '../awaitable';
 import { delegated, type DelegatedVerb } from './delegation';
 import type { JobFollowTiming } from './job-status-poll';
-import type {
-  MarkNamespace as IMarkNamespace,
-} from './types';
+import type { MarkNamespace as IMarkNamespace } from './types';
 
 /** A `mark` job's completion, as its follower hears or learns it. */
 const MARK: DelegatedVerb<MarkJobCompletion> = {

@@ -30,10 +30,7 @@ export const SCHEDULE_LENGTH = { minimum: 1, maximum: 8 } as const;
 export const SLACK = 4;
 
 /** One step of an interleaving: a write, or a client-initiated transition. */
-export const DELIVERY_OPS = [
-  'write',
-  'transition',
-] as const;
+export const DELIVERY_OPS = ['write', 'transition'] as const;
 
 export type DeliveryOp = (typeof DELIVERY_OPS)[number];
 
@@ -55,10 +52,15 @@ export interface LivenessScenario {
 
 /** A composition, and the schedules it is run under. */
 export interface LivenessSpec {
-  setup: (transport: FaultyTransport) => LivenessScenario | Promise<LivenessScenario>;
+  setup: (
+    transport: FaultyTransport,
+  ) => LivenessScenario | Promise<LivenessScenario>;
   timeoutMs: number;
   retryBudget?: number;
   cases?: number;
   schedules?: Arbitrary<readonly FaultAction[]>;
-  makeResponse?: (operation: string, payload: Record<string, unknown>) => unknown;
+  makeResponse?: (
+    operation: string,
+    payload: Record<string, unknown>,
+  ) => unknown;
 }

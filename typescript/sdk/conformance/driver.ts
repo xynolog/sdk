@@ -157,7 +157,13 @@ function live(query: Arguments): CacheObservable<unknown> {
   }
 }
 
-const state = (s: CacheState<unknown>): Record<string, unknown> =>
+/** A live query's state, as an emission line carries it. */
+type EmittedState = Extract<
+  components['schemas']['ConformanceDriverLine'],
+  { emission: unknown }
+>['emission']['state'];
+
+const state = (s: CacheState<unknown>): EmittedState =>
   s.status === 'failed' ? { status: 'failed', error: failure(s.error) } : s;
 
 const operations: Record<

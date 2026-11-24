@@ -3,10 +3,7 @@
 // Authority:   protocol/specs/src/jobs/retry-cases.json
 // Regenerate:  make generate  (codegen/lib/case_data/typescript.ml)
 
-export type FailureClass =
-  | 'transient'
-  | 'deterministic'
-  | 'withheld';
+export type FailureClass = 'transient' | 'deterministic' | 'withheld';
 
 export type CasesItem = {
   why: string;
@@ -22,67 +19,68 @@ export type Table = {
 };
 
 export const table: Table = {
-  "$comment": "Whether a failed attempt is retried, as every implementation of the retry predicate must answer it: the dispatcher's queue acts on the answer, and a worker reports it on job:fail as willRetry, so the two must never disagree. A retry is allowed exactly when failureClass is neither \"deterministic\" nor \"withheld\" and retryCount < maxRetries, on the record before the failure is applied (contract/JOBS.md, Retries). Every SDK's `willRetryAfter`, spelled in its own convention, runs every case and fails on any difference; the dispatcher decides with an SDK's, and has none of its own. `failureClass` absent means the failure was not classified. Add a case here before changing an implementation.",
-  "cases": [
+  $comment:
+    'Whether a failed attempt is retried, as every implementation of the retry predicate must answer it: the dispatcher\'s queue acts on the answer, and a worker reports it on job:fail as willRetry, so the two must never disagree. A retry is allowed exactly when failureClass is neither "deterministic" nor "withheld" and retryCount < maxRetries, on the record before the failure is applied (contract/JOBS.md, Retries). Every SDK\'s `willRetryAfter`, spelled in its own convention, runs every case and fails on any difference; the dispatcher decides with an SDK\'s, and has none of its own. `failureClass` absent means the failure was not classified. Add a case here before changing an implementation.',
+  cases: [
     {
-      "why": "a transient failure with budget left",
-      "retryCount": 0,
-      "maxRetries": 1,
-      "failureClass": "transient",
-      "retries": true
+      why: 'a transient failure with budget left',
+      retryCount: 0,
+      maxRetries: 1,
+      failureClass: 'transient',
+      retries: true,
     },
     {
-      "why": "an unclassified failure is treated as transient",
-      "retryCount": 0,
-      "maxRetries": 1,
-      "retries": true
+      why: 'an unclassified failure is treated as transient',
+      retryCount: 0,
+      maxRetries: 1,
+      retries: true,
     },
     {
-      "why": "the budget is spent",
-      "retryCount": 1,
-      "maxRetries": 1,
-      "failureClass": "transient",
-      "retries": false
+      why: 'the budget is spent',
+      retryCount: 1,
+      maxRetries: 1,
+      failureClass: 'transient',
+      retries: false,
     },
     {
-      "why": "an unclassified failure with the budget spent",
-      "retryCount": 1,
-      "maxRetries": 1,
-      "retries": false
+      why: 'an unclassified failure with the budget spent',
+      retryCount: 1,
+      maxRetries: 1,
+      retries: false,
     },
     {
-      "why": "a deterministic failure, whatever budget is left: the same request cannot succeed a second time",
-      "retryCount": 0,
-      "maxRetries": 3,
-      "failureClass": "deterministic",
-      "retries": false
+      why: 'a deterministic failure, whatever budget is left: the same request cannot succeed a second time',
+      retryCount: 0,
+      maxRetries: 3,
+      failureClass: 'deterministic',
+      retries: false,
     },
     {
-      "why": "an answer the provider withheld, whatever budget is left: the same request is withheld again",
-      "retryCount": 0,
-      "maxRetries": 3,
-      "failureClass": "withheld",
-      "retries": false
+      why: 'an answer the provider withheld, whatever budget is left: the same request is withheld again',
+      retryCount: 0,
+      maxRetries: 3,
+      failureClass: 'withheld',
+      retries: false,
     },
     {
-      "why": "a withheld answer after an earlier retry, with budget still left",
-      "retryCount": 1,
-      "maxRetries": 3,
-      "failureClass": "withheld",
-      "retries": false
+      why: 'a withheld answer after an earlier retry, with budget still left',
+      retryCount: 1,
+      maxRetries: 3,
+      failureClass: 'withheld',
+      retries: false,
     },
     {
-      "why": "no retries were ever budgeted (a generation job)",
-      "retryCount": 0,
-      "maxRetries": 0,
-      "failureClass": "transient",
-      "retries": false
+      why: 'no retries were ever budgeted (a generation job)',
+      retryCount: 0,
+      maxRetries: 0,
+      failureClass: 'transient',
+      retries: false,
     },
     {
-      "why": "budget left after an earlier retry",
-      "retryCount": 1,
-      "maxRetries": 3,
-      "retries": true
-    }
-  ]
+      why: 'budget left after an earlier retry',
+      retryCount: 1,
+      maxRetries: 3,
+      retries: true,
+    },
+  ],
 };

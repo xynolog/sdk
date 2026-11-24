@@ -94,9 +94,7 @@ export function inMemoryContent(): IContentTransport {
       });
       return { resourceId: rId };
     },
-    async getBinary(
-      rId: ResourceId,
-    ): Promise<ResourceRepresentation> {
+    async getBinary(rId: ResourceId): Promise<ResourceRepresentation> {
       const hit = store.get(rId as string);
       if (!hit)
         throw new Error(

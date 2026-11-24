@@ -5,20 +5,17 @@
 
 /** protocol/specs/src/librarian/elements/LibrarianPromptScore.json: the JSON Schema of an element the Librarian asks a model for, as it is sent. */
 export const LIBRARIAN_PROMPT_SCORE_SCHEMA = {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://xynolog.org/protocol/LibrarianPromptScore.json",
-  "type": "object",
-  "properties": {
-    "candidate": {
-      "type": "number"
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'https://xynolog.org/protocol/LibrarianPromptScore.json',
+  type: 'object',
+  properties: {
+    candidate: {
+      type: 'number',
     },
-    "score": {
-      "type": "number"
-    }
+    score: {
+      type: 'number',
+    },
   },
-  "required": [
-    "candidate",
-    "score"
-  ],
-  "additionalProperties": false
+  required: ['candidate', 'score'],
+  additionalProperties: false,
 } as const;

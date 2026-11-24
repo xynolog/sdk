@@ -88,8 +88,7 @@ type MatchSearchResult = components['schemas']['MatchSearchResult'];
 type ListResourcesResponse = components['schemas']['ListResourcesResponse'];
 type BrowseResourcesRequest = components['schemas']['BrowseResourcesRequest'];
 type MatchResourcesResponse = components['schemas']['MatchResourcesResponse'];
-type CreateAnnotationRequest =
-  components['schemas']['CreateAnnotationRequest'];
+type CreateAnnotationRequest = components['schemas']['CreateAnnotationRequest'];
 type MarkCreateOkResponse = components['schemas']['MarkCreateOkResponse'];
 export type GatherAnnotationComplete =
   components['schemas']['GatherAnnotationComplete'];

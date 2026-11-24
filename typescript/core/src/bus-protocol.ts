@@ -35,8 +35,12 @@ export type StatedEventMap = {
   'yield:cloned': StoredEvent<EventOfType<'yield:cloned'>>;
   'yield:updated': StoredEvent<EventOfType<'yield:updated'>>;
   'yield:moved': StoredEvent<EventOfType<'yield:moved'>>;
-  'yield:representation-added': StoredEvent<EventOfType<'yield:representation-added'>>;
-  'yield:representation-removed': StoredEvent<EventOfType<'yield:representation-removed'>>;
+  'yield:representation-added': StoredEvent<
+    EventOfType<'yield:representation-added'>
+  >;
+  'yield:representation-removed': StoredEvent<
+    EventOfType<'yield:representation-removed'>
+  >;
 
   // Generation lifecycle flows through the unified job:* family (job:start,
   // job:report-progress, job:complete, job:fail).
@@ -57,9 +61,13 @@ export type StatedEventMap = {
   'yield:clone-persist-failed': components['schemas']['CommandError'];
   'yield:update-ok': components['schemas']['YieldUpdateOk'];
   'yield:update-failed': components['schemas']['CommandError'];
-  'yield:clone-token-generated': { response: components['schemas']['CloneResourceWithTokenResponse'] };
+  'yield:clone-token-generated': {
+    response: components['schemas']['CloneResourceWithTokenResponse'];
+  };
   'yield:clone-token-failed': components['schemas']['CommandError'];
-  'yield:clone-resource-result': { response: components['schemas']['GetResourceByTokenResponse'] };
+  'yield:clone-resource-result': {
+    response: components['schemas']['GetResourceByTokenResponse'];
+  };
   'yield:clone-resource-failed': components['schemas']['CommandError'];
   'yield:clone-created': components['schemas']['YieldCloneCreated'];
   'yield:clone-create-failed': components['schemas']['CommandError'];
@@ -73,7 +81,9 @@ export type StatedEventMap = {
   'mark:removed': StoredEvent<EventOfType<'mark:removed'>>;
   'mark:body-updated': EnrichedEvent<EventOfType<'mark:body-updated'>>;
   'mark:entity-tag-added': StoredEvent<EventOfType<'mark:entity-tag-added'>>;
-  'mark:entity-tag-removed': StoredEvent<EventOfType<'mark:entity-tag-removed'>>;
+  'mark:entity-tag-removed': StoredEvent<
+    EventOfType<'mark:entity-tag-removed'>
+  >;
   'mark:archived': StoredEvent<EventOfType<'mark:archived'>>;
   'mark:unarchived': StoredEvent<EventOfType<'mark:unarchived'>>;
 
@@ -146,7 +156,9 @@ export type StatedEventMap = {
   // ========================================================================
 
   // Domain events (branded — system of record). System-level: no resourceId.
-  'frame:entity-type-added': StoredEvent<EventOfType<'frame:entity-type-added'>>;
+  'frame:entity-type-added': StoredEvent<
+    EventOfType<'frame:entity-type-added'>
+  >;
   'frame:tag-schema-added': StoredEvent<EventOfType<'frame:tag-schema-added'>>;
 
   // Commands
@@ -214,7 +226,9 @@ export type StatedEventMap = {
   'gather:resource-failed': components['schemas']['GatherResourceFailed'];
 
   'gather:summary-requested': components['schemas']['GatherSummaryRequest'];
-  'gather:summary-result': { response: components['schemas']['ContextualSummaryResponse'] };
+  'gather:summary-result': {
+    response: components['schemas']['ContextualSummaryResponse'];
+  };
   'gather:summary-failed': components['schemas']['CommandError'];
 
   // What refers to a resource: the annotations elsewhere that cite it.
@@ -431,7 +445,9 @@ export type StatedEventMap = {
  * - void: UI-only signals with no payload
  */
 export type EventMap = {
-  [K in keyof StatedEventMap]: K extends keyof ChannelRefinements ? ChannelRefinements[K] : StatedEventMap[K];
+  [K in keyof StatedEventMap]: K extends keyof ChannelRefinements
+    ? ChannelRefinements[K]
+    : StatedEventMap[K];
 };
 
 /**
@@ -470,7 +486,7 @@ export const ENRICHED_EVENT_TYPES = [
   'mark:body-updated',
 ] as const satisfies readonly PersistedEventType[];
 
-export type EnrichedEventType = typeof ENRICHED_EVENT_TYPES[number];
+export type EnrichedEventType = (typeof ENRICHED_EVENT_TYPES)[number];
 
 /**
  * Authoritative map from bus channel to OpenAPI schema name.
@@ -706,7 +722,7 @@ export const CHANNEL_SCHEMAS = {
 
 /** Channels where `/bus/emit` validates the payload (non-null schema). */
 export type EmittableChannel = {
-  [K in EventName]: typeof CHANNEL_SCHEMAS[K] extends null ? never : K;
+  [K in EventName]: (typeof CHANNEL_SCHEMAS)[K] extends null ? never : K;
 }[EventName];
 
 /** The field of a relayed frame's payload that carries the trace the frame was published under: an object of W3C's `traceparent` and, when it has one, `tracestate`. A frame the gateway relays over the stream has no headers of its own, so the gateway writes the field on its payload, and a receiver takes it off before the payload is delivered and continues the trace from it. No payload schema declares it, and no subscriber sees it. An emit carries its trace in its request's `traceparent` header, and its payload carries no such field. */
@@ -727,22 +743,13 @@ export const CHANNEL_STAMPS = {
   'yield:moved': [],
   'yield:representation-added': [],
   'yield:representation-removed': [],
-  'yield:create': [
-    '_roles',
-    '_userId',
-  ],
-  'yield:clone-persist': [
-    '_userId',
-  ],
-  'yield:update': [
-    '_userId',
-  ],
+  'yield:create': ['_roles', '_userId'],
+  'yield:clone-persist': ['_userId'],
+  'yield:update': ['_userId'],
   'yield:clone': [],
   'yield:clone-token-requested': [],
   'yield:clone-resource-requested': [],
-  'yield:clone-create': [
-    '_userId',
-  ],
+  'yield:clone-create': ['_userId'],
   'yield:create-ok': [],
   'yield:create-failed': [],
   'yield:clone-persist-ok': [],
@@ -763,27 +770,14 @@ export const CHANNEL_STAMPS = {
   'mark:archived': [],
   'mark:unarchived': [],
   'mark:create-request': [],
-  'mark:delete': [
-    '_userId',
-  ],
-  'mark:update-body': [
-    '_userId',
-  ],
-  'mark:archive': [
-    '_userId',
-  ],
-  'mark:unarchive': [
-    '_userId',
-  ],
-  'mark:update-entity-types': [
-    '_userId',
-  ],
+  'mark:delete': ['_userId'],
+  'mark:update-body': ['_userId'],
+  'mark:archive': ['_userId'],
+  'mark:unarchive': ['_userId'],
+  'mark:update-entity-types': ['_userId'],
   'mark:create-ok': [],
   'mark:create-failed': [],
-  'mark:commit': [
-    '_roles',
-    '_userId',
-  ],
+  'mark:commit': ['_roles', '_userId'],
   'mark:commit-ok': [],
   'mark:commit-failed': [],
   'mark:delete-ok': [],
@@ -803,24 +797,16 @@ export const CHANNEL_STAMPS = {
   'bind:body-error': [],
   'frame:entity-type-added': [],
   'frame:tag-schema-added': [],
-  'frame:add-entity-type': [
-    '_userId',
-  ],
-  'frame:add-tag-schema': [
-    '_userId',
-  ],
+  'frame:add-entity-type': ['_userId'],
+  'frame:add-tag-schema': ['_userId'],
   'frame:entity-type-add-ok': [],
   'frame:entity-type-add-failed': [],
   'frame:tag-schema-add-ok': [],
   'frame:tag-schema-add-failed': [],
   'principal:profiled': [],
-  'principal:profile': [
-    '_userId',
-  ],
+  'principal:profile': ['_userId'],
   'bind:initiate': [],
-  'bind:update-body': [
-    '_userId',
-  ],
+  'bind:update-body': ['_userId'],
   'bind:body-updated': [],
   'bind:body-update-failed': [],
   'match:search-requested': [],
@@ -900,41 +886,21 @@ export const CHANNEL_STAMPS = {
   'job:assigned': [],
   'job:completed': [],
   'job:failed': [],
-  'job:start': [
-    '_userId',
-  ],
-  'job:assign': [
-    '_userId',
-  ],
-  'job:report-progress': [
-    '_userId',
-  ],
-  'job:complete': [
-    '_userId',
-  ],
-  'job:fail': [
-    '_userId',
-  ],
-  'job:checkpoint': [
-    '_userId',
-  ],
+  'job:start': ['_userId'],
+  'job:assign': ['_userId'],
+  'job:report-progress': ['_userId'],
+  'job:complete': ['_userId'],
+  'job:fail': ['_userId'],
+  'job:checkpoint': ['_userId'],
   'job:queued': [],
   'job:cancel-requested': [],
-  'job:cancel': [
-    '_userId',
-  ],
+  'job:cancel': ['_userId'],
   'job:limits-requested': [],
   'job:limits-result': [],
   'job:limits-failed': [],
   'job:status-requested': [],
-  'job:create': [
-    '_roles',
-    '_userId',
-  ],
-  'job:claim': [
-    '_roles',
-    '_userId',
-  ],
+  'job:create': ['_roles', '_userId'],
+  'job:claim': ['_roles', '_userId'],
   'job:status-result': [],
   'job:status-failed': [],
   'job:created': [],
@@ -945,14 +911,10 @@ export const CHANNEL_STAMPS = {
   'job:cancel-failed': [],
   'weave:applied': [],
   'smelt:settled': [],
-  'weave:rebuild': [
-    '_userId',
-  ],
+  'weave:rebuild': ['_userId'],
   'weave:rebuild-ok': [],
   'weave:rebuild-failed': [],
-  'smelt:rebuild-anchors': [
-    '_userId',
-  ],
+  'smelt:rebuild-anchors': ['_userId'],
   'smelt:rebuild-anchors-ok': [],
   'smelt:rebuild-anchors-failed': [],
   'settings:theme-changed': [],
@@ -1081,8 +1043,12 @@ export const CHANNEL_PAYLOADS = {
   'browse:events-requested': { payload: 'BrowseEventsRequest' },
   'browse:events-result': { payload: 'BrowseEventsResult' },
   'browse:events-failed': { payload: 'CommandError' },
-  'browse:annotation-history-requested': { payload: 'BrowseAnnotationHistoryRequest' },
-  'browse:annotation-history-result': { payload: 'BrowseAnnotationHistoryResult' },
+  'browse:annotation-history-requested': {
+    payload: 'BrowseAnnotationHistoryRequest',
+  },
+  'browse:annotation-history-result': {
+    payload: 'BrowseAnnotationHistoryResult',
+  },
   'browse:annotation-history-failed': { payload: 'CommandError' },
   'browse:entity-types-requested': { payload: 'BrowseEntityTypesRequest' },
   'browse:entity-types-result': { payload: 'BrowseEntityTypesResult' },
@@ -1160,4 +1126,9 @@ export const CHANNEL_PAYLOADS = {
   'bus:resume-gap': { payload: 'BusResumeGap' },
   'session:joined': { payload: 'SessionJoinedEvent' },
   'session:left': { payload: 'SessionLeftEvent' },
-} as const satisfies Record<EventName, { readonly payload: keyof components['schemas'] } | { readonly response: keyof components['schemas'] } | Record<string, never>>;
+} as const satisfies Record<
+  EventName,
+  | { readonly payload: keyof components['schemas'] }
+  | { readonly response: keyof components['schemas'] }
+  | Record<string, never>
+>;

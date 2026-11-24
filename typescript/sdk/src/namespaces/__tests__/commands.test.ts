@@ -1198,8 +1198,8 @@ describe('JobNamespace.pollUntilComplete', () => {
     const job = new JobNamespace(mock.transport, new EventBus());
 
     const polling = job.pollUntilComplete(jobId('j1'), {
-      interval: 10,
-      timeout: 50,
+      everyMs: 10,
+      withinMs: 50,
     });
     const refusal = expect(polling).rejects.toMatchObject({
       code: 'bus.timeout',

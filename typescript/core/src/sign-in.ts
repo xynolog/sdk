@@ -27,15 +27,18 @@ export interface SignIn {
 
 /** Whether `value` is a SignIn: what it requires is there, and every member it has is text. */
 export function isSignIn(value: unknown): value is SignIn {
-  return isObject(value)
-    && isString(value['token'])
-    && (value['refreshToken'] === undefined || isString(value['refreshToken']))
-    && (value['email'] === undefined || isString(value['email']))
-    && isString(value['obtainedAt'])
-    && (value['expiresAt'] === undefined || isString(value['expiresAt']))
-    && isString(value['issuer'])
-    && isString(value['tokenEndpoint'])
-    && (value['revocationEndpoint'] === undefined || isString(value['revocationEndpoint']));
+  return (
+    isObject(value) &&
+    isString(value['token']) &&
+    (value['refreshToken'] === undefined || isString(value['refreshToken'])) &&
+    (value['email'] === undefined || isString(value['email'])) &&
+    isString(value['obtainedAt']) &&
+    (value['expiresAt'] === undefined || isString(value['expiresAt'])) &&
+    isString(value['issuer']) &&
+    isString(value['tokenEndpoint']) &&
+    (value['revocationEndpoint'] === undefined ||
+      isString(value['revocationEndpoint']))
+  );
 }
 
 /** The directory's mode, in octal, on a system that has modes: its owner reads, writes and enters it, and nobody else does. */

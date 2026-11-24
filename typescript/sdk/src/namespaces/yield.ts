@@ -20,9 +20,7 @@ import {
 import { delegated, type DelegatedVerb } from './delegation';
 import { deriveStallDeadlineMs } from './generation-stall';
 import type { JobFollowTiming } from './job-status-poll';
-import type {
-  YieldNamespace as IYieldNamespace,
-} from './types';
+import type { YieldNamespace as IYieldNamespace } from './types';
 
 import type {
   CreateFromTokenOptions,
@@ -81,21 +79,21 @@ export class YieldNamespace implements IYieldNamespace {
       const abortController = new AbortController();
       this.content
         .putBinary(data, {
-            // Byte-progress hook. `HttpContentTransport` calls it as the
-            // bytes are sent; a transport with no wire never calls it.
-            onProgress: ({ bytesUploaded, totalBytes: txTotal }) => {
-              if (cancelled) return;
-              // Prefer the transport's reported total; fall back to the
-              // pre-flight size if the transport reports 0 (chunked encoding
-              // or indeterminate length).
-              const total = txTotal > 0 ? txTotal : totalBytes;
-              subscriber.next({
-                phase: 'progress',
-                bytesUploaded,
-                totalBytes: total,
-              });
-            },
-            signal: abortController.signal,
+          // Byte-progress hook. `HttpContentTransport` calls it as the
+          // bytes are sent; a transport with no wire never calls it.
+          onProgress: ({ bytesUploaded, totalBytes: txTotal }) => {
+            if (cancelled) return;
+            // Prefer the transport's reported total; fall back to the
+            // pre-flight size if the transport reports 0 (chunked encoding
+            // or indeterminate length).
+            const total = txTotal > 0 ? txTotal : totalBytes;
+            subscriber.next({
+              phase: 'progress',
+              bytesUploaded,
+              totalBytes: total,
+            });
+          },
+          signal: abortController.signal,
         })
         .then((result) => {
           if (cancelled) return;

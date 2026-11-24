@@ -17,9 +17,7 @@ import { Bus } from '@xynolog/core';
 import { CacheObservable, StreamObservable } from '../awaitable';
 import { createCache, type Cache } from '../cache';
 import { CacheRefresher } from '../cache-refresh';
-import type {
-  MatchNamespace as IMatchNamespace,
-} from './types';
+import type { MatchNamespace as IMatchNamespace } from './types';
 
 type MatchSearchResult = components['schemas']['MatchSearchResult'];
 type MatchResourcesResponse = components['schemas']['MatchResourcesResponse'];

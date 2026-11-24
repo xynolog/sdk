@@ -16,7 +16,9 @@ import {
   FrameRefusal,
   XynologError,
   accessToken,
+  annotationId,
   baseUrl,
+  jobId,
   resourceId,
   type AccessToken,
   type BusOperationKey,
@@ -127,14 +129,16 @@ function uploadOf(args: Arguments): PutBinaryRequest {
       : { language: text(args, 'language') }),
     ...(args['sourceResourceId'] === undefined
       ? {}
-      : { sourceResourceId: text(args, 'sourceResourceId') }),
+      : { sourceResourceId: resourceId(text(args, 'sourceResourceId')) }),
     ...(args['sourceAnnotationId'] === undefined
       ? {}
-      : { sourceAnnotationId: text(args, 'sourceAnnotationId') }),
+      : { sourceAnnotationId: annotationId(text(args, 'sourceAnnotationId')) }),
     ...(args['generationPrompt'] === undefined
       ? {}
       : { generationPrompt: text(args, 'generationPrompt') }),
-    ...(args['jobId'] === undefined ? {} : { jobId: text(args, 'jobId') }),
+    ...(args['jobId'] === undefined
+      ? {}
+      : { jobId: jobId(text(args, 'jobId')) }),
     ...(args['isDraft'] === undefined
       ? {}
       : { isDraft: args['isDraft'] === true }),

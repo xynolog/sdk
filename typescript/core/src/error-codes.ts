@@ -26,7 +26,7 @@ export type BusRequestErrorCode =
 export const busRequestCodeByWireCode = {
   'not-found': 'bus.not-found',
   'peer-unavailable': 'bus.peer-unavailable',
-  'unauthorized': 'bus.unauthorized',
+  unauthorized: 'bus.unauthorized',
   'none-pending': 'bus.none-pending',
 } as const;
 
@@ -55,15 +55,24 @@ export type TransportErrorCode =
   | 'error';
 
 /** The transport code an HTTP status becomes. */
-export function transportErrorCodeForStatus(status: number): TransportErrorCode {
+export function transportErrorCodeForStatus(
+  status: number,
+): TransportErrorCode {
   switch (status) {
-    case 401: return 'unauthorized';
-    case 403: return 'forbidden';
-    case 404: return 'not-found';
-    case 409: return 'conflict';
-    case 400: return 'bad-request';
-    case 422: return 'unprocessable';
-    case 429: return 'rate-limited';
+    case 401:
+      return 'unauthorized';
+    case 403:
+      return 'forbidden';
+    case 404:
+      return 'not-found';
+    case 409:
+      return 'conflict';
+    case 400:
+      return 'bad-request';
+    case 422:
+      return 'unprocessable';
+    case 429:
+      return 'rate-limited';
   }
   if (status >= 500) return 'unavailable';
   return 'error';

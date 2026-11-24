@@ -11,9 +11,7 @@ export const JOBS_STREAM = 'JOBS';
 export const JOBS_SUBJECT_ROOT = 'jobs';
 
 /** The stream's capture filter: every subject under the root. */
-export const JOBS_STREAM_SUBJECTS = [
-  'jobs.>',
-] as const;
+export const JOBS_STREAM_SUBJECTS = ['jobs.>'] as const;
 
 /** The durable consumer that holds each job's message as its lease. */
 export const JOBS_CONSUMER = 'dispatcher-leases';
@@ -22,10 +20,7 @@ export const JOBS_CONSUMER = 'dispatcher-leases';
 export const JOBS_BUCKET = 'jobs';
 
 /** Every job type. */
-export const JOB_TYPES = [
-  'mark',
-  'yield',
-] as const;
+export const JOB_TYPES = ['mark', 'yield'] as const;
 
 /** Every motivation a `mark` job has: the ones MarkJobParams is told apart by. */
 export const MARK_MOTIVATIONS = [

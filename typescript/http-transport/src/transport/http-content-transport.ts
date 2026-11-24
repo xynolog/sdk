@@ -610,7 +610,10 @@ function uploadViaXhr(
     } catch (error) {
       // What a browser will not make a request of, it refuses in words that
       // say it: a token that is no header value among them.
-      const unmade = APIError.unanswered(`${UPLOAD.method} ${UPLOAD.path}`, error);
+      const unmade = APIError.unanswered(
+        `${UPLOAD.method} ${UPLOAD.path}`,
+        error,
+      );
       onApiError(unmade, false);
       reject(unmade);
       return;

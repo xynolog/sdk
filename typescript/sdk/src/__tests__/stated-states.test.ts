@@ -10,9 +10,11 @@ import type { CacheState } from '../cache';
 
 type Schemas = components['schemas'];
 
+// The transport's step: its `state` is a string, where a live observer's
+// (`reaches`, `holds`) is any value.
 type StatedConnection = Extract<
   Schemas['ConformanceStep'],
-  { state: unknown }
+  { state: string }
 >['state'];
 
 type StatedEmission = Extract<
@@ -23,6 +25,8 @@ type StatedEmission = Extract<
 describe('the states a client reports', () => {
   it('are the states the conformance schemas state', () => {
     expectTypeOf<ConnectionState>().toEqualTypeOf<StatedConnection>();
-    expectTypeOf<CacheState<unknown>['status']>().toEqualTypeOf<StatedEmission>();
+    expectTypeOf<
+      CacheState<unknown>['status']
+    >().toEqualTypeOf<StatedEmission>();
   });
 });

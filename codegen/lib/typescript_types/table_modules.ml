@@ -1,5 +1,5 @@
 (* The tables of Protocol @xynolog/core carries as values, each its JSON as
-   it is, typed as its own schema's record of types.ts ([Places.schema_of]):
+   it is, typed as its own schema's member of types.ts's [tables] ([Places.schema_of]):
    the tables the services keep to (Roots.service_tables), in
    typescript/core/src/service-tables.ts with SERVICE_TABLES holding each by
    its file, and the retry rules (typescript/core/src/retry-sets.ts), whose
@@ -16,9 +16,8 @@ let elements = "librarian/elements"
 let elements_path = "typescript/core/src/librarian-elements.ts"
 let archivist_path = "typescript/core/src/archivist-http.ts"
 
-(* Every table whose schema types.ts declares as a record for this writer. *)
+(* Every table whose schema types.ts declares in [tables] for this writer. *)
 let tables spec = Roots.service_tables spec @ [ retry_table ]
-
 let refusal file message = { Decode.file; pointer = ""; message }
 
 (* [service-environment/variables.json] is [SERVICE_ENVIRONMENT_VARIABLES]. *)
@@ -29,8 +28,8 @@ let constant table =
       | _ -> '_')
     (Filename.remove_extension table)
 
-let record table =
-  T.T_index (T_name "records", T_str (Definitions.stem (Places.schema_of table)))
+let table_type table =
+  T.T_index (T_name "tables", T_str (Definitions.stem (Places.schema_of table)))
 
 let banner authority = Banner.typescript_lines ~authority __FILE__
 
@@ -42,7 +41,7 @@ let parsed specs file =
 let value specs table =
   Result.map
     (fun json ->
-      T.const (constant table) ~annotation:(record table)
+      T.const (constant table) ~annotation:(table_type table)
         ~about:
           [
             Doc
@@ -58,7 +57,7 @@ let all results =
   in
   if refused = [] then Ok found else Error (List.concat refused)
 
-let import_records = T.import ~type_only:true [ "records" ] "./types"
+let import_tables = T.import ~type_only:true [ "tables" ] "./types"
 
 let service_file specs spec =
   let service = Roots.service_tables spec in
@@ -71,11 +70,14 @@ let service_file specs spec =
             {
               banner = banner [ "the services' tables of protocol/specs/src" ];
               body =
-                (import_records :: values)
+                (import_tables :: values)
                 @ [
                     T.const "SERVICE_TABLES" ~as_const:true
                       ~about:
-                        [ Doc "Every table, by its file under protocol/specs/src." ]
+                        [
+                          Doc
+                            "Every table, by its file under protocol/specs/src.";
+                        ]
                       (T.rows
                          (List.map
                             (fun table ->
@@ -95,7 +97,7 @@ let retry_file specs =
           T.text
             {
               banner = banner [ "protocol/specs/src/" ^ retry_table ];
-              body = [ import_records; v ];
+              body = [ import_tables; v ];
             };
       })
     (value specs retry_table)
@@ -154,8 +156,7 @@ let archivist_file (spec : Spec.t) =
             [
               Error
                 [
-                  refusal "archivist/openapi.json"
-                    ("names no path item " ^ file);
+                  refusal "archivist/openapi.json" ("names no path item " ^ file);
                 ];
             ]
         | Some (item : Openapi.path_item) ->

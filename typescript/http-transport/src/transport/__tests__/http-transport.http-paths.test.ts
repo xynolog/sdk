@@ -21,6 +21,7 @@ import type { KyInstance } from 'ky';
 import {
   BRIDGED_CHANNELS,
   HTTP_REQUEST_TIMEOUT_MS,
+  annotationId,
   baseUrl,
   resourceId,
 } from '@xynolog/core';
@@ -508,8 +509,8 @@ describe('HttpTransport — HTTP wire shape', () => {
         file: Buffer.from('# Summary\n'),
         format: 'text/markdown',
         storageUri: 'file://generated/summary.md',
-        sourceResourceId: 'res-abc',
-        sourceAnnotationId: 'ann-xyz',
+        sourceResourceId: resourceId('res-abc'),
+        sourceAnnotationId: annotationId('ann-xyz'),
         generationPrompt: 'Summarize the key points',
         generator: agent,
         isDraft: true,

@@ -2,8 +2,9 @@
    component schema of the gateway's document as a member of
    [components['schemas']], and every record Protocol states in its tables
    ([Table_records]), with every other schema only they reach, as a member of
-   [records], each written as the schema states it, and each kind of id
-   branded, so that a property of one kind is of no other. *)
+   [records]; every table the SDK carries as a value, with what only it
+   reaches, as a member of [tables]; each written as the schema states it, and
+   each kind of id branded, so that a property of one kind is of no other. *)
 
 module D = Definitions
 module T = Typescript_syntax
@@ -168,6 +169,10 @@ let discovery_absent (spec : Spec.t) =
    schema only such records reach. *)
 let record name = T.T_index (T_name "records", T_str name)
 
+(* [tables[name]]: the type of a table the SDK carries as a value, or of a
+   schema only such tables reach. *)
+let table name = T.T_index (T_name "tables", T_str name)
+
 (* The tables the SDK carries as values (Table_modules.tables): the services'
    (Roots.service_tables) and the retry rules. Each table's schema is a
    record, named as its file is ([Places.schema_of]). *)
@@ -207,11 +212,18 @@ let text (spec : Spec.t) =
       (fun name -> not (List.mem name definitions.names))
       (reached definitions
          (List.map (fun (_, name, _) -> name) (Definitions.records spec)
-         @ Definitions.generated_client_types spec
-         @ List.map fst tables))
+         @ Definitions.generated_client_types spec))
+  in
+  let table_names =
+    List.filter
+      (fun name ->
+        not (List.mem name definitions.names || List.mem name records))
+      (reached definitions (List.map fst tables))
   in
   let named name =
-    if List.mem name records then record name else T.schema name
+    if List.mem name records then record name
+    else if List.mem name table_names then table name
+    else T.schema name
   in
   let kinds =
     List.map
@@ -261,15 +273,29 @@ let text (spec : Spec.t) =
                   Doc_prose
                     [
                       Text.Words
-                        "The records Protocol states in its tables, the \
-                         client types and the tables the SDK carries as values, \
-                         which no wire message carries, and what only they \
-                         reach.";
+                        "The records Protocol states in its tables and the \
+                         client types, which no wire message carries, and what \
+                         only they reach.";
                     ];
                 ];
               export = true;
               name = "records";
               members = List.map schema records @ [ discovery_absent spec ];
+            };
+          T.Interface
+            {
+              about =
+                [
+                  Doc_prose
+                    [
+                      Text.Words
+                        "The tables the SDK carries as values, and what only \
+                         they reach.";
+                    ];
+                ];
+              export = true;
+              name = "tables";
+              members = List.map schema table_names;
             };
         ];
     }
@@ -290,8 +316,7 @@ let control_text (spec : Spec.t) =
   let component id =
     let name = Filename.remove_extension (Filename.basename id) in
     if not (List.mem name definitions.names) then
-      D.refuse "control/methods.json names %s, which is no component schema"
-        id;
+      D.refuse "control/methods.json names %s, which is no component schema" id;
     name
   in
   let named id = T.Str (component id) in
@@ -302,11 +327,14 @@ let control_text (spec : Spec.t) =
   in
   let inline entries = T.Object { layout = Inline; entries } in
   let from = function C.Launcher -> "launcher" | C.Client -> "client" in
-  let schema_name = T.T_keyof (T.T_index (T_name "components", T_str "schemas")) in
+  let schema_name =
+    T.T_keyof (T.T_index (T_name "components", T_str "schemas"))
+  in
   let indexed table key member =
     T.T_index
       ( T_index (T_name "components", T_str "schemas"),
-        T_index (T_index (T_paren (T_typeof table), T_name key), T_str member) )
+        T_index (T_index (T_paren (T_typeof table), T_name key), T_str member)
+      )
   in
   let over table key =
     [ { T.param = key; bound = Some (T.T_keyof (T_typeof table)) } ]
@@ -327,8 +355,8 @@ let control_text (spec : Spec.t) =
             ~about:
               [
                 Doc
-                  "Each notification of the control API: who sends it, and \
-                   the schema of its params.";
+                  "Each notification of the control API: who sends it, and the \
+                   schema of its params.";
               ]
             ~satisfies:
               (T_index_signature
@@ -404,7 +432,12 @@ let control_text (spec : Spec.t) =
             ~about:[ Doc "What a notification of the control API carries." ]
             (indexed "CONTROL_NOTIFICATIONS" "N" "params");
           T.type_alias "ControlErrorData"
-            ~about:[ Doc "What a failed request of the control API carries as its error's data." ]
+            ~about:
+              [
+                Doc
+                  "What a failed request of the control API carries as its \
+                   error's data.";
+              ]
             (T.schema (component t.error_data));
         ];
     }

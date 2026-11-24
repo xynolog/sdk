@@ -11,10 +11,22 @@ export const archivistRoutes = {
   storeResource: { method: 'POST', path: '/resources' },
   getResourceContent: { method: 'GET', path: '/resources/{id}/content' },
   getResourceJsonLd: { method: 'GET', path: '/resources/{id}/jsonld' },
-  getResourceAnnotations: { method: 'GET', path: '/resources/{id}/annotations' },
-  getResourceAnchoredText: { method: 'GET', path: '/resources/{id}/anchored-text' },
-  putResourceAnchoredText: { method: 'PUT', path: '/resources/{id}/anchored-text' },
+  getResourceAnnotations: {
+    method: 'GET',
+    path: '/resources/{id}/annotations',
+  },
+  getResourceAnchoredText: {
+    method: 'GET',
+    path: '/resources/{id}/anchored-text',
+  },
+  putResourceAnchoredText: {
+    method: 'PUT',
+    path: '/resources/{id}/anchored-text',
+  },
   listAnchoredTextEntries: { method: 'GET', path: '/anchored-text/entries' },
-  getStoredResourceAnchoredText: { method: 'GET', path: '/resources/{id}/anchored-text/stored' },
+  getStoredResourceAnchoredText: {
+    method: 'GET',
+    path: '/resources/{id}/anchored-text/stored',
+  },
   putAnchoredTextStamp: { method: 'PUT', path: '/anchored-text/stamp' },
 } as const;
