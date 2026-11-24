@@ -72,7 +72,7 @@ let () =
         [
           Alcotest.test_case "literal fidelity" `Quick raw_json;
           Alcotest.test_case "exact numbers" `Quick exact_numbers;
-          Alcotest.test_case "optional nullable membership" `Quick presence;
+          Alcotest.test_case "raw membership" `Quick presence;
         ] );
       ( "ownership",
         [ Alcotest.test_case "owned fiber cleanup" `Quick owned_fibers ] );

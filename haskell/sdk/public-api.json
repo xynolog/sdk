@@ -194,7 +194,7 @@
     "generated/Xynolog/Internal/Generated/Models/GenerationJobRequest.hs": "96c84f648768e1cd92337bb569e77cb3f8132b5765162e3e36fd17c48002bf6c",
     "generated/Xynolog/Internal/Generated/Models/GetAnnotationHistoryResponse.hs": "30e5efa392778dd989d975725c0dc997b0a036911e388d49c0151a7d8c79c30e",
     "generated/Xynolog/Internal/Generated/Models/GetAnnotationResponse.hs": "83273d518de358a7603da3616f05bc2c5dfdbcdc31c084af91c030f7a6c3591a",
-    "generated/Xynolog/Internal/Generated/Models/GetAnnotationsResponse.hs": "3926133656bdc3e0ad748ea6c83d288aa94e7474fe895cc05b53d205c0341f55",
+    "generated/Xynolog/Internal/Generated/Models/GetAnnotationsResponse.hs": "1f37506a67a753c08bcebf1562a8e4c92f85afc0c59e1658301ba6455f990d6b",
     "generated/Xynolog/Internal/Generated/Models/GetEntityTypesResponse.hs": "1af480aae375210a762afbcca465a02a1b0b29b22a7c2609936e6dee70d6b566",
     "generated/Xynolog/Internal/Generated/Models/GetEventsResponse.hs": "4fbbd750334722e039209774bb7445d832902ad259b75c48049427c4d6e0221d",
     "generated/Xynolog/Internal/Generated/Models/GetOpenApiDocumentResponse.hs": "4b3a768aa8b14ae4c1df2f9318c7aa552a822dac9de2cd98778a89abaa927d81",
@@ -530,8 +530,8 @@
     "generated/Xynolog/Internal/Generated/OperationReports.hs": "8456e121145825e7e7b06f75e9a1baf6d5deb402218a4c854436f22378540046",
     "generated/Xynolog/Internal/Generated/PendingAnnotation.hs": "92d649918dbb3c601b8ecb95ad0f690d1d19f8bebb505734c6730bbdef89e830",
     "generated/Xynolog/Internal/Generated/Principals.hs": "02fd2fd7b956e96bcda03bb7685472bf1a029666bf21fe32c1ff3e0ab217ceb9",
-    "generated/Xynolog/Internal/Generated/Required.hs": "0f5445b5d6bf8e0c10898bc1ff42b0b7b87393394b3adb722ea69d4ac96338cf",
-    "generated/Xynolog/Internal/Generated/Schemas.hs": "d8a44e9b37f186cdaa93c6fddd5e8b6d2d533b0ce7928c5f5b9373e03d75825d",
+    "generated/Xynolog/Internal/Generated/Required.hs": "deb6b8b25b226c3cd7eeebc2e736be18878f00003a06a507eca4c6de6002dd6e",
+    "generated/Xynolog/Internal/Generated/Schemas.hs": "3a8cab21c5daa348377e8effa1f368a3f0c285172a52d97ac453f43cdf288ac1",
     "generated/Xynolog/Internal/Generated/SearchState.hs": "d5994a174a2a535cb04661283a500feb97cf4e80783492c2cf390e712b38c0a9",
     "generated/Xynolog/Internal/Generated/ServiceProof.hs": "86e44db90b1ac4a3713f4794f4f1f2f32bdf7eeeb7ad24e12046c050f8acadaf",
     "generated/Xynolog/Internal/Generated/SessionFactoryOptions.hs": "1378c790f4a48832e1a0a938eb64c8759870e4ebf73f2445e8ba81c354334c45",
@@ -556,7 +556,7 @@
     "internal/Xynolog/Internal/Cache.hs": "41299da4f86b18d8852236e361f26a6ffddc45862b76a09c7421a032c776c915",
     "internal/Xynolog/Internal/CacheDocument.hs": "2fc480b4263d4ee660ab958b7b3579c3aaef9cd6c905e83b28749d77dac1f807",
     "internal/Xynolog/Internal/CarriedTable.hs": "d58bb1bcc4f208ea2e175d227442344b14a69536365da901b34c667ee90c7e6e",
-    "internal/Xynolog/Internal/Codec.hs": "dbf2b827b57330c90a3c41591e70700b15bd40cb46fff9a4aec454c8ba520635",
+    "internal/Xynolog/Internal/Codec.hs": "5e9eaf1e8d7864e839108260916253a27c9eda8eda41b959248004c3630308cd",
     "internal/Xynolog/Internal/Coupled.hs": "2c4ce1d21fed207131f960829cd038dca0913eef877a0423fb6deff036a77d6b",
     "internal/Xynolog/Internal/DelegatedVerbs.hs": "411205f59624f021531d6c58fd8938caf6b44eb8bf31ba54394dc1a93bc7ff26",
     "internal/Xynolog/Internal/Delegation.hs": "a031df090d3b27771d75ee8da404fdfbc7de51e56edc4947a3326f219cf1096f",
@@ -667,10 +667,9 @@
     "src/Xynolog/Transport.hs": "5f0c95953108daa834e02c580f0ffb49c3d8fb30ad4cf0424ae3b19c500de034",
     "src/Xynolog/Transport/Facts.hs": "b861a07eb1fc5319a56fec2889c08f9fe7d59c43682d5b488d14520377ff08ba",
     "src/Xynolog/Types.hs": "4e2699b986232ad65853fe3615414a04992799713edeed4755811ce773d7f2c1",
-    "src/Xynolog/Types/Presence.hs": "0c700ed04e5fe1fe43786d384622dbf716ea8703a1af8b8d8b894876dbe13a8f",
     "src/Xynolog/Worker.hs": "4ef864aedc7cdc602443a72d8a59c3e385fdfbf36bb352d3a5511fd125492e46",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
-    "xynolog.cabal.in": "fde1426ed93274b7e84f5bfc5cd3084e2400cf569a6f008a7902767a8f600f6a"
+    "xynolog.cabal.in": "171bc716a64f3a951ec37a9f6526c834d862ef12c5bb5723f7464a25b71748e9"
   },
   "modules": {
     "Xynolog.Annotations": {
@@ -7537,7 +7536,7 @@
         "GenerationJobRequest": "Maybe Bool -> Maybe [Data.Text.Internal.Text] -> Maybe Data.Text.Internal.Text -> Maybe Data.Scientific.Scientific -> Maybe Xynolog.Internal.Generated.Models.SupportedMediaType.SupportedMediaType -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Scientific.Scientific -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.GenerationJobRequest.GenerationJobRequest",
         "GetAnnotationHistoryResponse": "Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> [Xynolog.Internal.Generated.Models.AttributedEvent.AttributedEvent] -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Data.Scientific.Scientific -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.GetAnnotationHistoryResponse.GetAnnotationHistoryResponse",
         "GetAnnotationResponse": "Xynolog.Internal.Generated.Models.Annotation.Annotation -> Maybe Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor -> Maybe Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.GetAnnotationResponse.GetAnnotationResponse",
-        "GetAnnotationsResponse": "[Xynolog.Internal.Generated.Models.Annotation.Annotation] -> Xynolog.Types.Presence.Presence Xynolog.Internal.Generated.Models.Motivation.Motivation -> Data.Scientific.Scientific -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse",
+        "GetAnnotationsResponse": "[Xynolog.Internal.Generated.Models.Annotation.Annotation] -> Maybe Xynolog.Internal.Generated.Models.Motivation.Motivation -> Data.Scientific.Scientific -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse",
         "GetEntityTypesResponse": "[Data.Text.Internal.Text] -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.GetEntityTypesResponse.GetEntityTypesResponse",
         "GetEventsResponse": "[Xynolog.Internal.Generated.Models.AttributedEvent.AttributedEvent] -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Data.Scientific.Scientific -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.GetEventsResponse.GetEventsResponse",
         "GetOpenApiDocumentResponse": "Xynolog.Internal.Generated.Models.GetOpenApiDocumentResponse.GetOpenApiDocumentResponseInfo -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.GetOpenApiDocumentResponse.GetOpenApiDocumentResponsePaths -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.GetOpenApiDocumentResponse.GetOpenApiDocumentResponse",
@@ -9346,7 +9345,7 @@
         "getAnnotationResponseResource": "Xynolog.Internal.Generated.Models.GetAnnotationResponse.GetAnnotationResponse -> Maybe Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor",
         "getAnnotationsResponseAdditionalProperties": "Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
         "getAnnotationsResponseAnnotations": "Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse -> [Xynolog.Internal.Generated.Models.Annotation.Annotation]",
-        "getAnnotationsResponseMotivation": "Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse -> Xynolog.Types.Presence.Presence Xynolog.Internal.Generated.Models.Motivation.Motivation",
+        "getAnnotationsResponseMotivation": "Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse -> Maybe Xynolog.Internal.Generated.Models.Motivation.Motivation",
         "getAnnotationsResponseTotal": "Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse -> Data.Scientific.Scientific",
         "getEntityTypesResponseAdditionalProperties": "Xynolog.Internal.Generated.Models.GetEntityTypesResponse.GetEntityTypesResponse -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
         "getEntityTypesResponseEntityTypes": "Xynolog.Internal.Generated.Models.GetEntityTypesResponse.GetEntityTypesResponse -> [Data.Text.Internal.Text]",
@@ -11104,19 +11103,6 @@
         "yieldUpdateOkResponse": "Xynolog.Internal.Generated.Models.YieldUpdateOk.YieldUpdateOk -> Xynolog.Internal.Generated.Models.YieldedResource.YieldedResource",
         "yieldedResourceAdditionalProperties": "Xynolog.Internal.Generated.Models.YieldedResource.YieldedResource -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
         "yieldedResourceResourceId": "Xynolog.Internal.Generated.Models.YieldedResource.YieldedResource -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId"
-      }
-    },
-    "Xynolog.Types.Presence": {
-      "types": {
-        "Presence": {
-          "definition": "data Xynolog.Types.Presence.Presence value = ...",
-          "kind": "* -> *"
-        }
-      },
-      "values": {
-        "Absent": "Xynolog.Types.Presence.Presence value",
-        "Null": "Xynolog.Types.Presence.Presence value",
-        "Present": "value -> Xynolog.Types.Presence.Presence value"
       }
     },
     "Xynolog.Worker": {

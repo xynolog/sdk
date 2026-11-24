@@ -327,7 +327,7 @@ Swift 6 language mode and warnings as errors apply to every target. The canary m
 
 The tests round-trip payloads from the three conformance corpora, run every identifier case, and verify nullable members and open objects.
 
-The models, the tables and the tests' dispatch are generated from `protocol/specs/src` by `make generate` (codegen/lib/swift_sdk) and committed under `swift/sdk/Sources/Xynolog/Generated` and `swift/sdk/Tests/XynologTests/Generated`; the generator's own tests, refused schema shapes among them, are the codegen's. Models keep timestamps and URIs as strings, use checked value types for identifiers, and preserve the three states of an optional nullable member with `Stated`. `JSONValue` carries values in open objects. Required nullable members must be present, even when null.
+The models, the tables and the tests' dispatch are generated from `protocol/specs/src` by `make generate` (codegen/lib/swift_sdk) and committed under `swift/sdk/Sources/Xynolog/Generated` and `swift/sdk/Tests/XynologTests/Generated`; the generator's own tests, refused schema shapes among them, are the codegen's. Models keep timestamps and URIs as strings, use checked value types for identifiers, and read an optional member as absent or a value. `JSONValue` carries values in open objects. Required nullable members must be present, even when null.
 
 `swift/sdk/Scripts/test.sh` builds instrumented tests and collects their LLVM profiles directly. `swift/sdk/Scripts/coverage.sh` exports the compiled test libraries, leaving out the generated sources and avoiding SwiftPM's automatic JSON export of dependency coverage.
 

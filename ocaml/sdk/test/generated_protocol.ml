@@ -195,7 +195,6 @@ let required_table () =
 let record_views () =
   let module M = Xynolog.Models in
   let module R = Xynolog.Records in
-  let module T = Xynolog.Types in
   let annotations source =
     (Result.get_ok (M.decode M.get_annotations_response source)
     |> R.Get_annotations_response.of_model)
@@ -212,10 +211,24 @@ let record_views () =
         "a null correlationId is malformed" true
         (fault.reason = Xynolog.Enums.Frame_refusal_reason.Malformed)
   | _ -> Alcotest.fail "a null correlationId was read");
+  (match
+     M.decode M.get_annotations_response
+       {|{"annotations":[],"total":0,"motivation":null}|}
+   with
+  | Error (M.Invalid_payload fault) ->
+      Alcotest.(check string)
+        "a null motivation is a fault of it" "motivation" fault.member;
+      Alcotest.(check bool)
+        "a null motivation is malformed" true
+        (fault.reason = Xynolog.Enums.Frame_refusal_reason.Malformed)
+  | _ -> Alcotest.fail "a null motivation was read");
   Alcotest.(check bool)
-    "null remains distinct from absence" true
-    (annotations {|{"annotations":[],"total":0,"motivation":null}|} = T.Null
-    && annotations {|{"annotations":[],"total":0}|} = T.Absent);
+    "an absent motivation is None" true
+    (annotations {|{"annotations":[],"total":0}|} = None);
+  Alcotest.(check bool)
+    "a motivation is its value" true
+    (annotations {|{"annotations":[],"total":0,"motivation":"highlighting"}|}
+    = Some Xynolog.Enums.Motivation.Highlighting);
   let endpoint =
     Result.get_ok
       (M.decode M.kb_endpoint

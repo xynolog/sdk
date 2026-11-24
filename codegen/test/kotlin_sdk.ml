@@ -84,8 +84,8 @@ let cases =
                );
              ]));
     case "a schema named as the SDK's own declaration is refused" (fun () ->
-        says ~what:"refusal" "Stated"
-          (refused [ ("Stated", {|{"type":"string"}|}) ]));
+        says ~what:"refusal" "InvalidIdentifier"
+          (refused [ ("InvalidIdentifier", {|{"type":"string"}|}) ]));
     case "a kind of id is a value class made only through its check" (fun () ->
         let code =
           generated ~identifiers:[ "ThingId" ]

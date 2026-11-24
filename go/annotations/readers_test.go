@@ -35,8 +35,7 @@ func optional[T any](value T, ok bool) any {
 
 // read is what one reader answers of an annotation, as the table writes it;
 // false for a reader this runner does not know.
-func read(t *testing.T, reader string, annotation api.Annotation) (any, bool) {
-	t.Helper()
+func read(reader string, annotation api.Annotation) (any, bool) {
 	selector := annotations.TargetSelector(annotation.Target)
 	switch reader {
 	case "bodySource":
@@ -73,7 +72,7 @@ func read(t *testing.T, reader string, annotation api.Annotation) (any, bool) {
 		return annotations.AnnotationExactText(annotation), true
 	case "textQuoteSelector":
 		if selector == nil {
-			t.Fatal("the table gives textQuoteSelector no selector to read")
+			return nil, true
 		}
 		return optional(annotations.TextQuoteSelector(*selector)), true
 	case "entityTypes":
@@ -118,11 +117,7 @@ func TestEveryReaderGivesWhatTheTableSaysOfEveryAnnotation(t *testing.T) {
 	}
 	var empty api.Annotation
 	for _, reader := range table.Readers {
-		// A reader of a selector is given one, and an annotation with none has none to give it.
-		if reader == "textQuoteSelector" {
-			continue
-		}
-		if _, known := read(t, reader, empty); !known {
+		if _, known := read(reader, empty); !known {
 			t.Errorf("the table names the reader %s, which this runner does not run", reader)
 		}
 	}
@@ -139,13 +134,10 @@ func TestEveryReaderGivesWhatTheTableSaysOfEveryAnnotation(t *testing.T) {
 		for _, reader := range table.Readers {
 			expected, said := stated.Reads[reader]
 			if !said {
-				if reader == "textQuoteSelector" && annotations.TargetSelector(annotation.Target) == nil {
-					continue
-				}
 				t.Errorf("%s: the case does not state %s", stated.Why, reader)
 				continue
 			}
-			answer, _ := read(t, reader, annotation)
+			answer, _ := read(reader, annotation)
 			var want any
 			if err := json.Unmarshal(expected, &want); err != nil {
 				t.Fatal(err)

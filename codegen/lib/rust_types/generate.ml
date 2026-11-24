@@ -771,21 +771,6 @@ and structure st name (members : T.member list) (rest : T.rest) doc =
             add_param (R.Param (field, rust_type));
             add_set (field, R.p field);
             make [] rust_type
-        | _ when nullable ->
-            incr optional;
-            add_set (field, R.p "None");
-            (* Absent, null and a value are three things: the outer option is
-               whether it was stated, the inner whether it was null. *)
-            make
-              [
-                serde
-                  [
-                    R.Word [ "default" ];
-                    R.Name_value ("deserialize_with", R.Str "stated");
-                    skip;
-                  ];
-              ]
-              (option (option rust_type))
         | _ ->
             incr optional;
             add_set (field, R.p "None");

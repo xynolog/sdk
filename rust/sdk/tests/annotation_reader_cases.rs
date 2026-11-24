@@ -38,9 +38,7 @@ fn read(reader: &str, annotation: &Annotation) -> Option<Value> {
         "isResolvedReference" => json!(is_resolved_reference(annotation)),
         "exactText" => json!(exact_text(selector)),
         "annotationExactText" => json!(annotation_exact_text(annotation)),
-        "textQuoteSelector" => json!(text_quote_selector(
-            selector.expect("the table gives textQuoteSelector a selector to read")
-        )),
+        "textQuoteSelector" => json!(selector.and_then(text_quote_selector)),
         "entityTypes" => json!(entity_types(annotation)),
         "tagCategory" => json!(tag_category(annotation)),
         "tagSchemaId" => json!(tag_schema_id(annotation)),
@@ -95,18 +93,10 @@ fn every_reader_gives_what_the_table_says_for_every_annotation() {
         let annotation: Annotation = serde_json::from_value(case["annotation"].clone())
             .unwrap_or_else(|refused| panic!("{why}: its annotation does not decode: {refused}"));
         let reads = case["reads"].as_object().expect("reads");
-        // Every case states every reader, but the quote selector where the
-        // target has no selector to give it.
-        let applies: Vec<&str> = readers
-            .iter()
-            .copied()
-            .filter(|reader| {
-                *reader != "textQuoteSelector" || target_selector(&annotation.target).is_some()
-            })
-            .collect();
+        // Every case states every reader.
         let mut stated: Vec<&str> = reads.keys().map(String::as_str).collect();
         stated.sort_unstable();
-        let mut expected = applies.clone();
+        let mut expected = readers.clone();
         expected.sort_unstable();
         assert_eq!(stated, expected, "{why}");
         for (reader, answer) in reads {

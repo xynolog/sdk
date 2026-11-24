@@ -1,3 +1,11 @@
+struct WireKey: CodingKey {
+  let stringValue: String
+  var intValue: Int? { nil }
+  init(_ value: String) { stringValue = value }
+  init?(stringValue: String) { self.stringValue = stringValue }
+  init?(intValue: Int) { return nil }
+}
+
 /// How a generated model reads its members: each by its wire name, so a
 /// model states only which members it has and which it requires.
 extension KeyedDecodingContainer where Key == WireKey {
@@ -10,14 +18,6 @@ extension KeyedDecodingContainer where Key == WireKey {
   /// not nullable.
   func ifPresent<T: Decodable>(_ name: String) throws -> T? {
     contains(WireKey(name)) ? try decode(T.self, forKey: WireKey(name)) : nil
-  }
-
-  /// A member that may be absent or null.
-  func stated<T: Decodable & Sendable>(_ name: String) throws -> Stated<T> {
-    let key = WireKey(name)
-    if !contains(key) { return .absent }
-    if try decodeNil(forKey: key) { return .null }
-    return .value(try decode(T.self, forKey: key))
   }
 
   /// Refuses a member that is none of `names`, the members of `model`.
@@ -48,15 +48,6 @@ extension KeyedEncodingContainer where Key == WireKey {
   /// A member that is written only when present.
   mutating func encodeIfPresent<T: Encodable>(_ value: T?, as name: String) throws {
     try encodeIfPresent(value, forKey: WireKey(name))
-  }
-
-  /// A member that may be absent or null.
-  mutating func encode<T: Encodable & Sendable>(stated: Stated<T>, as name: String) throws {
-    switch stated {
-    case .absent: break
-    case .null: try encodeNil(forKey: WireKey(name))
-    case .value(let value): try encode(value, forKey: WireKey(name))
-    }
   }
 
   /// The members `rest` holds, none of which may be one of `names`, the
