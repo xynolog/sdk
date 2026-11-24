@@ -49,12 +49,14 @@ from xynolog.errors import SessionError, SignInError, TransportError, XynologErr
 from xynolog.http import AgentToken, DeviceCode, HttpTransport, ServiceToken, session_from_kept, sign_in_device, sign_out
 from xynolog.http.oauth import (
     IssuedTokens,
+    IssuerEndpoints,
     discover_issuer,
     issuer_client,
     refresh_at_issuer,
     renew_kept,
     revoke_at_issuer,
     sign_in_with_device_grant,
+    stored_session_of,
 )
 from xynolog.identifiers import ResourceId, UserId
 from xynolog.identity import agent_did
@@ -304,6 +306,26 @@ def test_revocation_is_one_form_and_a_refusal_is_said() -> None:
 
 
 # ── The device grant ────────────────────────────────────────────────────
+
+
+def test_what_is_kept_of_a_sign_in_is_its_tokens_its_client_and_where_its_issuer_renews_and_revokes_them() -> None:
+    tokens = IssuedTokens(access="a1", refresh="r1")
+    revoking = IssuerEndpoints(
+        issuer="https://id.example",
+        authorization="https://id.example/auth",
+        token="https://id.example/token",
+        revocation="https://id.example/revoke",
+    )
+    assert stored_session_of("xynolog-browser", revoking, tokens) == StoredSession(
+        access="a1",
+        refresh="r1",
+        client_id="xynolog-browser",
+        token_endpoint="https://id.example/token",
+        revocation_endpoint="https://id.example/revoke",
+    )
+    # An issuer with no revocation endpoint has none kept.
+    unrevoking = IssuerEndpoints(issuer="https://id.example", authorization="https://id.example/auth", token="https://id.example/token")
+    assert stored_session_of("xynolog-script", unrevoking, tokens).revocation_endpoint is None
 
 
 def test_the_device_grant_shows_the_code_and_asks_at_the_issuers_interval_until_the_tokens_arrive() -> None:

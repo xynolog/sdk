@@ -27,7 +27,7 @@ lists is a person's act.
 import asyncio
 from collections.abc import AsyncGenerator, Awaitable, Callable, Sequence
 from dataclasses import dataclass
-from typing import Final, Protocol, final, override
+from typing import Final, Protocol, final, get_args, override
 
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
@@ -52,8 +52,16 @@ __all__ = [
 DISCOVERY_INTERVAL: Final = DISCOVERY_INTERVAL_MS / 1000
 """How often a launcher's document is read again, in seconds, unless a caller says otherwise."""
 
-_VERSION: Final = 1
-"""The version of the document this client reads."""
+def _version() -> int:
+    """The version of the document this client reads: the one, and only, its schema admits."""
+    match get_args(DiscoveryDocument.model_fields["version"].annotation):
+        case (int() as version,):
+            return version
+        case admitted:
+            raise TypeError(f"DiscoveryDocument admits the versions {admitted}, and this client reads one")
+
+
+_VERSION: Final = _version()
 
 _JSON: Final = TypeAdapter[JsonValue](JsonValue)
 

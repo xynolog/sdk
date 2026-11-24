@@ -11,7 +11,7 @@ What each query's cache holds is the type `protocol/specs/src/client/refresh.jso
 from collections.abc import Hashable, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Final, NamedTuple, TypeAliasType, final
+from typing import Final, TypeAliasType, final
 
 from pydantic import TypeAdapter
 
@@ -70,12 +70,11 @@ __all__ = [
     "EnginesValue",
     "EntityTypesValue",
     "EventsValue",
+    "LIST_LIMIT",
     "KeptPersisters",
     "Live",
     "MatchedResourcesValue",
     "ReferencedByValue",
-    "ResourceFilters",
-    "ResourceSearch",
     "ResourceValue",
     "ResourcesValue",
     "Subject",
@@ -92,6 +91,12 @@ type MatchedResourcesValue = MatchResourcesResponse
 type EntityTypesValue = list[str]
 type TagSchemasValue = list[TagSchema]
 type EnginesValue = list[EngineEntry]
+
+LIST_LIMIT: Final = 100
+"""The most resources a list, or a search, has when its caller states none.
+
+Every SDK asks for as many: the cases of protocol/specs/src/client/surface.json hold each to it.
+"""
 
 CACHE_VALUES: Final[Mapping[CacheQuery, TypeAliasType]] = MappingProxyType(
     {
@@ -156,22 +161,6 @@ class KeptPersisters:
         self.tag_schemas: Final = _persister(persistence, "tagSchemas", _WHOLE_KEY, TypeAdapter[TagSchemasValue](TagSchemasValue))
 
 
-class ResourceFilters(NamedTuple):
-    """Which resources a list, or a search, is of, and which page of them."""
-
-    limit: int
-    offset: int
-    archived: bool | None
-    entity_type: str | None
-
-
-class ResourceSearch(NamedTuple):
-    """A search for resources by text, among those its filters admit."""
-
-    search: str
-    filters: ResourceFilters
-
-
 @final
 @dataclass(frozen=True, slots=True, kw_only=True)
 class Subject:
@@ -201,7 +190,7 @@ class Live:
         is kept by its own id, and a request for it names its resource too."""
 
         self.resource: Final = Cache[ResourceId, ResourceValue](self._resource, tasks=links)
-        self.lists: Final = Cache[ResourceFilters, ResourcesValue](self._list, tasks=links)
+        self.lists: Final = Cache[BrowseResourcesRequest, ResourcesValue](self._list, tasks=links)
         self.annotations: Final = Cache[ResourceId, AnnotationsValue](self._annotations, tasks=links)
         self.annotation: Final = Cache[AnnotationId, AnnotationValue](self._annotation, tasks=links)
         self.entity_types: Final = Cache[WholeKey, EntityTypesValue](self._entity_types, tasks=links)
@@ -211,7 +200,7 @@ class Live:
         """Each key holder's report of its engines' limits, by the operation that asks it."""
         self.events: Final = Cache[ResourceId, EventsValue](self.events_of, tasks=links)
         self.referenced_by: Final = Cache[ResourceId, ReferencedByValue](self._referenced_by, tasks=links)
-        self.searches: Final = Cache[ResourceSearch, MatchedResourcesValue](self._search, tasks=links)
+        self.searches: Final = Cache[MatchResourcesRequest, MatchedResourcesValue](self._search, tasks=links)
         self._caches: Final = (
             self.resource,
             self.lists,
@@ -259,10 +248,7 @@ class Live:
     async def _resource(self, resource_id: ResourceId) -> ResourceValue:
         return (await self._links.request(BROWSE_RESOURCE_REQUESTED, BrowseResourceRequest(resource_id=resource_id))).response.resource
 
-    async def _list(self, filters: ResourceFilters) -> ResourcesValue:
-        request = BrowseResourcesRequest(
-            limit=filters.limit, offset=filters.offset, archived=filters.archived, entity_type=filters.entity_type
-        )
+    async def _list(self, request: BrowseResourcesRequest) -> ResourcesValue:
         return (await self._links.request(BROWSE_RESOURCES_REQUESTED, request)).response
 
     async def _annotations(self, resource_id: ResourceId) -> AnnotationsValue:
@@ -304,11 +290,7 @@ class Live:
         answer = await self._links.request(GATHER_REFERENCED_BY_REQUESTED, GatherReferencedByRequest(resource_id=resource_id))
         return answer.response.referenced_by
 
-    async def _search(self, search: ResourceSearch) -> MatchedResourcesValue:
-        filters = search.filters
-        request = MatchResourcesRequest(
-            search=search.search, limit=filters.limit, offset=filters.offset, archived=filters.archived, entity_type=filters.entity_type
-        )
+    async def _search(self, request: MatchResourcesRequest) -> MatchedResourcesValue:
         return (await self._links.request(MATCH_RESOURCES_REQUESTED, request)).response
 
     # ── What an event does ──────────────────────────────────────────────

@@ -10,19 +10,28 @@ from aio import run, soon, turns
 from kb import recorded, refusing, silent
 from pydantic import JsonValue, ValidationError
 
+from xynolog import telemetry
 from xynolog.bus import Bus, Delivered, decoded, reply_channels_for
 from xynolog.channel import Empty
 from xynolog.channels import BECKON_FOCUS, BECKON_HOVER, JOB_CREATE, JOB_QUEUED, MARK_ARCHIVED, MARK_DELETE, PANEL_CLOSE
 from xynolog.errors import BusRequestError, TransportError
 from xynolog.identifiers import AnnotationId, JobId, ResourceId
 from xynolog.model import stated, written
-from xynolog.operations import BROWSE_KB_REQUESTED, FRAME_ADD_ENTITY_TYPE, JOB_STATUS_REQUESTED, MARK_CREATE_REQUEST
+from xynolog.operations import (
+    BROWSE_KB_REQUESTED,
+    FRAME_ADD_ENTITY_TYPE,
+    JOB_STATUS_REQUESTED,
+    MARK_CREATE_REQUEST,
+    MATCH_SEARCH_REQUESTED,
+    OPERATIONS,
+)
 from xynolog.testing import FaultyTransport
-from xynolog.transport import Frame, FrameRefusal
+from xynolog.transport import Frame, FrameRefusal, TraceContext
 from xynolog.types import (
     BeckonFocusEvent,
     BeckonHoverEvent,
     BrowseKbRequest,
+    CommandError,
     CreateAnnotationRequest,
     FrameAddEntityTypeCommand,
     GatheredContext,
@@ -34,6 +43,7 @@ from xynolog.types import (
     MarkJobCreateCommand,
     MarkJobQueuedEvent,
     MatchSearchRequest,
+    MatchSearchResult,
     TaggingJobParams,
 )
 
@@ -347,3 +357,89 @@ def test_a_request_whose_replies_the_transport_does_not_carry_is_refused_before_
         assert transport.emitted == []
 
     run(scenario())
+
+
+def test_a_request_is_answered_under_its_correlation_id_with_its_result_or_its_failure_naming_what_it_asked_for() -> None:
+    asked_under = TraceContext(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
+    request: dict[str, JsonValue] = {"resourceId": "res-1", "referenceId": "ann-1", "context": dict(CONTEXT)}
+
+    async def scenario() -> None:
+        transport = FaultyTransport(channels=())
+        bus = Bus(transport)
+        traces: list[TraceContext | None] = []
+
+        def asked(correlation_id: str) -> Delivered[MatchSearchRequest]:
+            return Delivered(
+                payload=MATCH_SEARCH_REQUESTED.request.decode(request), correlation_id=correlation_id, trace=asked_under
+            )
+
+        async def found(heard: Delivered[MatchSearchRequest]) -> MatchSearchResult | CommandError:
+            traces.append(telemetry.active())
+            return MatchSearchResult(reference_id=heard.payload.reference_id, response=[])
+
+        async def unindexed(heard: Delivered[MatchSearchRequest]) -> MatchSearchResult | CommandError:
+            return CommandError(code="peer-unavailable", message="No index yet")
+
+        async def broken(heard: Delivered[MatchSearchRequest]) -> MatchSearchResult | CommandError:
+            raise RuntimeError("the index is corrupt")
+
+        await bus.answer(MATCH_SEARCH_REQUESTED, asked("c1"), found)
+        await bus.answer(MATCH_SEARCH_REQUESTED, asked("c2"), unindexed)
+        await bus.answer(MATCH_SEARCH_REQUESTED, asked("c3"), broken)
+        assert [(frame.channel, dict(frame.payload), frame.correlation_id) for frame in transport.emitted] == [
+            ("match:search-results", {"referenceId": "ann-1", "response": []}, "c1"),
+            ("match:search-failed", {"referenceId": "ann-1", "code": "peer-unavailable", "message": "No index yet"}, "c2"),
+            ("match:search-failed", {"referenceId": "ann-1", "message": "the index is corrupt"}, "c3"),
+        ]
+        # The answer is worked out in the trace the request was sent under.
+        assert [None if trace is None else trace.traceparent[:35] for trace in traces] == [asked_under.traceparent[:35]]
+
+    run(scenario())
+
+
+def test_a_request_that_is_not_its_channels_is_answered_as_failed_when_it_can_be_and_otherwise_is_not() -> None:
+    malformed: dict[str, JsonValue] = {"resourceId": "res-1", "referenceId": "ann-1", "context": "not a context"}
+
+    def refused(payload: JsonValue, correlation_id: str | None) -> FrameRefusal:
+        return FrameRefusal(
+            channel="match:search-requested",
+            member="payload.context",
+            reason="malformed",
+            payload=payload,
+            scope=None,
+            correlation_id=correlation_id,
+        )
+
+    async def never(heard: Delivered[MatchSearchRequest]) -> MatchSearchResult | CommandError:
+        raise AssertionError("a request that is not its channel's is not handled")
+
+    async def scenario() -> None:
+        transport = FaultyTransport(channels=())
+        bus = Bus(transport)
+        await bus.answer(MATCH_SEARCH_REQUESTED, refused(malformed, "c1"), never)
+        # With no correlation id nobody can be told; and a failure that names the reference cannot name one the request lacks.
+        await bus.answer(MATCH_SEARCH_REQUESTED, refused(malformed, None), never)
+        await bus.answer(MATCH_SEARCH_REQUESTED, refused({"resourceId": "res-1"}, "c2"), never)
+        await bus.answer(MATCH_SEARCH_REQUESTED, refused(None, "c3"), never)
+        assert [(frame.channel, dict(frame.payload), frame.correlation_id) for frame in transport.emitted] == [
+            (
+                "match:search-failed",
+                {
+                    "referenceId": "ann-1",
+                    "message": "The request on match:search-requested is not what that channel carries: its `payload.context` is malformed",
+                },
+                "c1",
+            ),
+        ]
+
+    run(scenario())
+
+
+def test_each_operations_failure_is_a_command_error_naming_beside_it_only_what_its_request_names() -> None:
+    errors = {field.alias or name for name, field in CommandError.model_fields.items()}
+    for name, operation in OPERATIONS.items():
+        (failure,) = operation.failure.members
+        assert issubclass(failure, CommandError), name
+        named = {field.alias or member for member, field in failure.model_fields.items()} - errors
+        for asked in operation.request.members:
+            assert named <= {field.alias or member for member, field in asked.model_fields.items()}, name

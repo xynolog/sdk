@@ -33,7 +33,7 @@ let returning pairs =
   List.map (fun (case, result) -> (case, [ P.Return result ])) pairs
 
 let text (t : Table.t) =
-  let vocabularies = t.bus :: t.transport :: t.others in
+  let vocabularies = (t.bus :: t.transport :: t.others) @ [ t.control ] in
   let exported =
     List.sort compare
       (List.concat_map
@@ -137,7 +137,7 @@ let text (t : Table.t) =
                   @ [ P.Return (str t.unclassified) ];
               };
           ]
-        @ List.concat_map union t.others;
+        @ List.concat_map union (t.others @ [ t.control ]);
     }
 
 let file t = { Output.path; text = text t }

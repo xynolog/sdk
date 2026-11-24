@@ -47,6 +47,7 @@ from xynolog.http.oauth import (
     renew_kept,
     revoke_at_issuer,
     sign_in_with_device_grant,
+    stored_session_of,
 )
 from xynolog.http.transport import HttpTransport
 from xynolog.identity import kb_did
@@ -576,15 +577,7 @@ async def sign_in_device(
     except ValueError as invalid:
         raise SignInError("discovery", str(invalid)) from None
     issuer, tokens = await sign_in_with_device_grant(base_url, on_code, http=http)
-    await kept.keep(
-        StoredSession(
-            access=tokens.access,
-            refresh=tokens.refresh,
-            client_id=SCRIPT_CLIENT_ID,
-            token_endpoint=issuer.token,
-            revocation_endpoint=issuer.revocation,
-        )
-    )
+    await kept.keep(stored_session_of(SCRIPT_CLIENT_ID, issuer, tokens))
 
 
 async def sign_out(kept: SignInKept, *, http: httpx.AsyncClient | None = None) -> None:
@@ -728,13 +721,7 @@ async def complete_sign_in(browser: XynologBrowser, callback_url: str, *, http: 
         SignedIn(
             endpoint=pending.target,
             description=identity.description,
-            session=StoredSession(
-                access=tokens.access,
-                refresh=tokens.refresh,
-                client_id=BROWSER_CLIENT_ID,
-                token_endpoint=pending.issuer.token,
-                revocation_endpoint=pending.issuer.revocation,
-            ),
+            session=stored_session_of(BROWSER_CLIENT_ID, pending.issuer, tokens),
             kb_id=pending.kb_id,
             expected_did=pending.expected_did,
             expected_name=pending.expected_name,

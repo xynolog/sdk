@@ -54,7 +54,7 @@ from xynolog.session import SignInKept, is_token_expired
 from xynolog.storage import SessionStorage
 from xynolog.stored import PENDING_AUTHORIZATION_KEY
 from xynolog.timing import DEVICE_POLL_FLOOR_MS, DEVICE_POLL_MS, DEVICE_SLOW_DOWN_MS, HTTP_REQUEST_TIMEOUT_MS, REFRESH_RETRY
-from xynolog.types import BeginAuthorizationOptions, DeviceCode, HttpEndpoint, IssuedTokens
+from xynolog.types import BeginAuthorizationOptions, DeviceCode, HttpEndpoint, IssuedTokens, StoredSession
 from xynolog.watched import Variable
 
 __all__ = [
@@ -76,6 +76,7 @@ __all__ = [
     "revoke_at_issuer",
     "seconds_in",
     "sign_in_with_device_grant",
+    "stored_session_of",
     "text_in",
 ]
 
@@ -97,6 +98,22 @@ class IssuerEndpoints:
     token: str
     device: str | None = None
     revocation: str | None = None
+
+
+def stored_session_of(client_id: str, issuer: IssuerEndpoints, tokens: IssuedTokens) -> StoredSession:
+    """What is kept of a sign-in: the tokens `issuer` issued to `client_id`, and where they are renewed and revoked.
+
+    The redirect grant's client is `BROWSER_CLIENT_ID`, and its issuer the
+    pending sign-in's (`complete_authorization`); the device grant's is
+    `SCRIPT_CLIENT_ID`.
+    """
+    return StoredSession(
+        access=tokens.access,
+        refresh=tokens.refresh,
+        client_id=client_id,
+        token_endpoint=issuer.token,
+        revocation_endpoint=issuer.revocation,
+    )
 
 
 def issuer_client(*, http: httpx.AsyncClient | None = None) -> AbstractAsyncContextManager[httpx.AsyncClient]:

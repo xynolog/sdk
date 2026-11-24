@@ -62,6 +62,7 @@ from typing import Final, Protocol, Self, final, override
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog._endpoints import same_place
+from xynolog._instant import instant
 from xynolog._kept_for_first_reader import KeptForFirstReader
 from xynolog._reading import Reading
 from xynolog.errors import BusRequestError, SessionError, TransportError, XynologError
@@ -410,8 +411,7 @@ _NO_VERDICT: Final = KbReadVerdictNoVerdict(kind="no-verdict")
 
 def _read_now(description: KbDescription) -> KbRead:
     """What a knowledge base said of itself now, beyond its name: the time as RFC 3339, in UTC, to the millisecond."""
-    at = datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-    return KbRead(at=at, git_branch=description.git_branch)
+    return KbRead(at=instant(datetime.now(UTC)), git_branch=description.git_branch)
 
 
 # ── The registry ────────────────────────────────────────────────────────

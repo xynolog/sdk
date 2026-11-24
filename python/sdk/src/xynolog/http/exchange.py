@@ -28,8 +28,8 @@ from pydantic import JsonValue, TypeAdapter, ValidationError
 from xynolog import telemetry
 from xynolog._kept_for_first_reader import KeptForFirstReader
 from xynolog.errors import TransportError, XynologError
-from xynolog.http._gateway_http import IDEMPOTENCY_KEY, RETRY_AFTER
 from xynolog.http._withheld import why_unanswered
+from xynolog.http.gateway_http import IDEMPOTENCY_KEY, RETRY_AFTER
 from xynolog.model import WireModel
 from xynolog.required import Fault, read_as
 from xynolog.retry import TRANSPORT, RetryFacts, retry_after_ms

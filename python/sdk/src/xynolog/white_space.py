@@ -9,6 +9,8 @@ module, and of nothing a string was born with.
 import re
 from typing import Final
 
+__all__ = ["WHITE_SPACE", "collapsed", "trimmed"]
+
 WHITE_SPACE: Final = frozenset(
     map(chr, (*range(0x0009, 0x000E), 0x0020, 0x0085, 0x00A0, 0x1680, *range(0x2000, 0x200B), 0x2028, 0x2029, 0x202F, 0x205F, 0x3000))
 )

@@ -38,9 +38,9 @@ from xynolog._reading import Reading
 from xynolog._shared_task import answer, heard
 from xynolog.errors import SignInError, TransportError, XynologError
 from xynolog.http._client_assertion import JWT_BEARER, client_assertion
-from xynolog.http._gateway_http import GET_CURRENT_USER, RETRY_AFTER, client_secret_form
 from xynolog.http._withheld import why_unanswered
 from xynolog.http.exchange import refusal
+from xynolog.http.gateway_http import GET_CURRENT_USER, RETRY_AFTER, client_secret_form
 from xynolog.http.oauth import issuer_client, object_in, post_form, seconds_in, text_in
 from xynolog.identifiers import UserId
 from xynolog.required import Fault, read_as

@@ -16,6 +16,8 @@ from xynolog.types import CommandErrorCode
 __all__ = [
     "BUS_REQUEST_ERROR_CODES",
     "BusRequestErrorCode",
+    "CONTROL_ERROR_CODES",
+    "ControlErrorCode",
     "IDENTITY_UNVERIFIABLE_REASONS",
     "IdentityUnverifiableReason",
     "JOB_ERROR_CODES",
@@ -295,4 +297,99 @@ SPAN_REFUSALS: Final[tuple[SpanRefusal, ...]] = (
     "nothing-located",
     "exact-not-covered",
     "item-out-of-range",
+)
+
+# Why a request of the launcher's control API (`xynolog control`, contract/LAUNCHER-CONTROL.md)
+# failed. The launcher sends one in each error's data, and Desktop reads it. A knowledge base
+# never sends one.
+type ControlErrorCode = Literal[
+    # The request's params are not what its method's schema admits. The error's fields name each
+    # fault; JSON-RPC's own invalid-params code (-32602) carries it.
+    "control.invalid-params",
+    # The request is written to a version of the control API this launcher does not speak. The
+    # error's supported field names the ones it does.
+    "control.unsupported-api-version",
+    # The launcher refuses the request as the command line refuses the same options: they
+    # contradict each other, or do not apply to what they name.
+    "control.invalid-request",
+    # The request names a service or a group the launcher has none of.
+    "control.invalid-service",
+    # The launcher refuses a setting's value, as a start would refuse it. The previous value is
+    # kept.
+    "control.invalid-value",
+    # The request names a setting the launcher does not keep.
+    "control.unknown-setting",
+    # Several stacks could be meant and the request names none of them. The error's choices name
+    # each; nothing was done.
+    "control.target-required",
+    # The root the request names is the basename of several registered roots. The error's
+    # choices name each by its path; nothing was done.
+    "control.target-ambiguous",
+    # The root the request names is not a knowledge base's clone: no such directory, no
+    # .xynolog/ in it, or a project file the launcher refuses.
+    "control.root-not-found",
+    # The root the request names is not in the registry.
+    "control.root-not-registered",
+    # The request needs a stack of its target recorded on this machine, and none is.
+    "control.stack-not-running",
+    # The request would change what a recorded stack depends on: stop the stack first.
+    "control.stack-running",
+    # Another xynolog start of the same knowledge base holds its start lock.
+    "control.start-in-progress",
+    # No container runtime the request can use is on the launcher's PATH.
+    "control.runtime-unavailable",
+    # A program the request needs besides a container runtime (gh, for a codespace) is not on
+    # the launcher's PATH.
+    "control.dependency-unavailable",
+    # What the request needs to reach did not answer: the knowledge base, its issuer, or a
+    # codespace's forward.
+    "control.unreachable",
+    # An instance of the name the run gives already runs on this machine for its target,
+    # whichever control server or command started it. Nothing was started.
+    "control.instance-in-use",
+    # No run of an instance of the name the request gives is in flight on this machine for its
+    # target: none was started, or its run has been answered.
+    "control.instance-not-found",
+    # The request would destroy something, and does not state that a person confirmed it.
+    "control.confirmation-required",
+    # The launcher's own record of this machine (the stack record, the registry, the sign-in
+    # store) cannot be read. Nothing was assumed in its place.
+    "control.unreadable-state",
+    # The launcher's stored session for the target is valid: there is nothing to sign in to.
+    "control.already-signed-in",
+    # The person was not signed in: the issuer refused or the code expired, the gateway refused
+    # the token, or the session could not be kept. Nothing was stored.
+    "control.sign-in-failed",
+    # The client cancelled the request before it ended.
+    "control.cancelled",
+    # The request failed for a reason no other code names. Its message says why, as the command
+    # line would.
+    "control.failed",
+]
+
+CONTROL_ERROR_CODES: Final[tuple[ControlErrorCode, ...]] = (
+    "control.invalid-params",
+    "control.unsupported-api-version",
+    "control.invalid-request",
+    "control.invalid-service",
+    "control.invalid-value",
+    "control.unknown-setting",
+    "control.target-required",
+    "control.target-ambiguous",
+    "control.root-not-found",
+    "control.root-not-registered",
+    "control.stack-not-running",
+    "control.stack-running",
+    "control.start-in-progress",
+    "control.runtime-unavailable",
+    "control.dependency-unavailable",
+    "control.unreachable",
+    "control.instance-in-use",
+    "control.instance-not-found",
+    "control.confirmation-required",
+    "control.unreadable-state",
+    "control.already-signed-in",
+    "control.sign-in-failed",
+    "control.cancelled",
+    "control.failed",
 )

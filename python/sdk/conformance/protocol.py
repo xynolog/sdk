@@ -18,6 +18,17 @@ from typing import Final, final
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog.errors import JobError, XynologError
+from xynolog.model import stated
+from xynolog.types import (
+    ConformanceDriverLine,
+    ConformanceDriverLineAbandoned,
+    ConformanceDriverLineFailed,
+    ConformanceDriverLineMisuse,
+    ConformanceDriverLineOk,
+    ConformanceDriverLineReady,
+    ConformanceDriverLineUnsupported,
+    ConformanceFailure,
+)
 
 __all__ = [
     "Arguments",
@@ -57,9 +68,9 @@ class Operation:
 _LINE: Final = TypeAdapter[dict[str, JsonValue]](dict[str, JsonValue])
 
 
-def say(line: Mapping[str, JsonValue]) -> None:
-    """Write one line of the protocol."""
-    sys.stdout.write(_LINE.dump_json(dict(line)).decode() + "\n")
+def say(line: ConformanceDriverLine) -> None:
+    """Write one line of the protocol: what it was given, and nothing it was not."""
+    sys.stdout.write(line.model_dump_json(exclude_unset=True) + "\n")
     sys.stdout.flush()
 
 
@@ -105,18 +116,13 @@ def texts(args: Arguments, name: str) -> list[str]:
     return found
 
 
-def failure(error: BaseException) -> dict[str, JsonValue]:
+def failure(error: BaseException) -> ConformanceFailure:
     """A failure as the protocol carries it: the SDK's code, a server's status, and a job failure's class, each where there is one."""
     detail = f"{type(error).__name__}: {error}"
     if not isinstance(error, XynologError):
-        return {"detail": detail}
-    stated: dict[str, JsonValue] = {"code": error.code}
-    if error.status is not None:
-        stated["status"] = error.status
-    if isinstance(error, JobError) and error.failure_class is not None:
-        stated["failureClass"] = error.failure_class
-    stated["detail"] = detail
-    return stated
+        return ConformanceFailure(detail=detail)
+    failure_class = error.failure_class if isinstance(error, JobError) else None
+    return stated(ConformanceFailure(code=error.code, status=error.status, failure_class=failure_class, detail=detail))
 
 
 def exporting() -> Callable[[], None] | None:
@@ -160,16 +166,16 @@ class _Serving:
         try:
             value = await operation.perform(asked, args)
         except Misuse as misuse:
-            say({"id": asked, "misuse": str(misuse)})
+            say(ConformanceDriverLineMisuse(id=asked, misuse=str(misuse)))
         except asyncio.CancelledError:
             if asked not in self._abandoned:
                 raise
-            say({"id": asked, "abandoned": True})
+            say(ConformanceDriverLineAbandoned(id=asked, abandoned=True))
         except Exception as error:
             # Whatever the SDK raised is what the suite judges: under its code when it has one.
-            say({"id": asked, "error": failure(error)})
+            say(ConformanceDriverLineFailed(id=asked, error=failure(error)))
         else:
-            say({"id": asked, "ok": value})
+            say(ConformanceDriverLineOk(id=asked, ok=value))
 
     def _abandon(self, asked: int, args: Arguments) -> None:
         try:
@@ -178,11 +184,11 @@ class _Serving:
             if running is None or running.done():
                 raise Misuse("no such request is unsettled")
         except Misuse as misuse:
-            say({"id": asked, "misuse": str(misuse)})
+            say(ConformanceDriverLineMisuse(id=asked, misuse=str(misuse)))
             return
         self._abandoned.add(abandoned)
         running.cancel()
-        say({"id": asked, "ok": None})
+        say(ConformanceDriverLineOk(id=asked, ok=None))
 
     async def line(self, running: asyncio.TaskGroup, line: bytes) -> None:
         """Act on one line of the suite's."""
@@ -201,7 +207,7 @@ class _Serving:
             return
         operation = self._operations.get(op)
         if operation is None:
-            say({"id": asked, "unsupported": True})
+            say(ConformanceDriverLineUnsupported(id=asked, unsupported=True))
         elif operation.in_turn:
             await self._settle(asked, operation, args)
         else:
@@ -216,7 +222,7 @@ class _Serving:
 async def serve(operations: Mapping[str, Operation], dispose: Callable[[], Awaitable[None]]) -> int:
     """Answer the suite until its stdin ends, then `dispose`. Returns the process's exit status."""
     serving = _Serving(operations)
-    say({"ready": True})
+    say(ConformanceDriverLineReady(ready=True))
     async with asyncio.TaskGroup() as running:
         # Read on a thread: a pipe, a file and a terminal are all read alike.
         while line := await asyncio.to_thread(sys.stdin.buffer.readline):

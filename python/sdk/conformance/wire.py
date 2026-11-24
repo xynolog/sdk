@@ -28,7 +28,16 @@ from xynolog.model import WireModel
 from xynolog.operations import OPERATIONS
 from xynolog.retry import RetryPolicy
 from xynolog.transport import ConnectionState, Frame, FrameRefusal, PutBinaryRequest, ResourceHold
-from xynolog.types import UploadProgressProgress
+from xynolog.model import stated
+from xynolog.types import (
+    ConformanceDriverLineErrorStream,
+    ConformanceDriverLineFrame,
+    ConformanceDriverLineFrameFrame,
+    ConformanceDriverLineProgress,
+    ConformanceDriverLineProgressProgress,
+    ConformanceDriverLineState,
+    UploadProgressProgress,
+)
 from xynolog.watched import Variable
 
 
@@ -119,7 +128,7 @@ class Wire:
     def _report(self, state: ConnectionState) -> None:
         if state != self._reported:
             self._reported = state
-            say({"state": state})
+            say(ConformanceDriverLineState(state=state))
 
     async def _states(self, transport: HttpTransport) -> None:
         async for state in transport.state:
@@ -127,7 +136,7 @@ class Wire:
 
     async def _failures(self, failures: Events[XynologError]) -> None:
         async for error in failures:
-            say({"error": failure(error)})
+            say(ConformanceDriverLineErrorStream(error=failure(error)))
 
     def _renewing(self, renewals: list[str]) -> TokenRefresher:
         """A refresher that gives `renewals`, one each time it is asked and nothing once they run out.
@@ -149,12 +158,10 @@ class Wire:
             if isinstance(frame, FrameRefusal):
                 # The suite has no line for a refusal: a stream that carries what BusFrame does not allow ends the driver.
                 raise RuntimeError(f"the transport refused a frame on {channel}: {frame.reason}, at its `{frame.member}`")
-            line: dict[str, JsonValue] = {"channel": channel, "payload": dict(frame.payload)}
-            if frame.correlation_id is not None:
-                line["correlationId"] = frame.correlation_id
-            if frame.scope is not None:
-                line["scope"] = frame.scope
-            say({"frame": line})
+            delivered = ConformanceDriverLineFrameFrame(
+                channel=channel, payload=dict(frame.payload), correlation_id=frame.correlation_id, scope=frame.scope
+            )
+            say(ConformanceDriverLineFrame(frame=stated(delivered)))
 
     async def open(self, _: int, args: Arguments) -> JsonValue:
         if self._transport is not None:
@@ -223,7 +230,10 @@ class Wire:
         async for progress in upload:
             # The driver protocol reports the bytes sent: the upload's start and its end are its answer's.
             if isinstance(progress, UploadProgressProgress):
-                say({"progress": {"upload": asked, "bytesUploaded": progress.bytes_uploaded, "totalBytes": progress.total_bytes}})
+                sent = ConformanceDriverLineProgressProgress(
+                    upload=asked, bytes_uploaded=progress.bytes_uploaded, total_bytes=progress.total_bytes
+                )
+                say(ConformanceDriverLineProgress(progress=sent))
         created = await upload
         return {"resourceId": created.resource_id}
 

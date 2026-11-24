@@ -66,7 +66,7 @@ def test_the_live_driver_answers_each_operation_once_and_disposes_of_its_client_
     assert answers[5] == {"misuse": "a client is already open"}
     assert answers[6] == {"misuse": "no live query no-such-query"}
     assert "misuse" in answers[7]
-    assert answers[8] == {"misuse": "a filter by colour, which no query of resources takes"}
+    assert answers[8] == {"misuse": "filters no query of resources takes: colour: Extra inputs are not permitted"}
     assert answers[9] == {"ok": None}
     assert answers[10] == {"misuse": "a is already observing"}
     assert answers[11] == {"misuse": "b is not observing"}

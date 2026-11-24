@@ -27,6 +27,9 @@ id is tracked until it settles, so a reply published while the stream was down
 is sent again. And it settles once: with its result, with a failure under this
 vocabulary's code, or as a timeout.
 
+A service answers a request it read with `Bus.answer`: on the operation's
+result channel, or its failure channel, under the request's correlation id.
+
 A caller abandons a request by cancelling the task that awaits it. What was
 sent stays sent, the reply stops being tracked, and one that comes anyway
 reaches nobody. Cancelled while it waits for the stream, it sends nothing.
@@ -34,19 +37,20 @@ reaches nobody. Cancelled while it waits for the stream, it sends nothing.
 
 import asyncio
 import uuid
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Final, Literal, Self, final, overload
 
 from pydantic import JsonValue, ValidationError
 
+from xynolog import telemetry
 from xynolog.channel import AnyChannel, AnyOperation, Channel, Operation, ScopedChannel
 from xynolog.channels import USER_FIELD
 from xynolog.errors import BusRequestError, TransportError
 from xynolog.events import Events
 from xynolog.identifiers import ResourceId, UserId
-from xynolog.model import WireModel
+from xynolog.model import WireModel, written
 from xynolog.required import UNDECODED, Fault, as_read
 from xynolog.timing import BUS_REQUEST_TIMEOUT_MS
 from xynolog.transport import ConnectionState, Frame, FrameRefusal, ResourceHold, TraceContext, Transport
@@ -368,6 +372,59 @@ class Bus:
         came is not the operation's.
         """
         return (await answer_of(self._transport, operation, payload, timeout_ms)).payload
+
+    async def answer[Q: WireModel, R: WireModel, F: WireModel](
+        self, operation: Operation[Q, R, F], asked: Heard[Q], handle: Callable[[Delivered[Q]], Awaitable[R | CommandError]]
+    ) -> None:
+        """Answer one request of `operation`, as `frames(operation.request)` read it, under its correlation id.
+
+        `handle` is run in the trace the request was sent under. What it
+        answers with is sent on the operation's result channel; a
+        `CommandError` it answers with, or what it raises, on its failure
+        channel. A failure names what the failure channel carries beside the
+        error as the request named it: `MatchSearchFailed`'s `referenceId`.
+
+        A request that is not its channel's is answered as failed, naming
+        its fault and nothing it held, when it has a correlation id and
+        names what its failure must. Otherwise nobody can be told, and it
+        is not answered. Raises what the emit of the answer raises.
+        """
+        match asked:
+            case FrameRefusal():
+                if asked.correlation_id is None or not isinstance(asked.payload, dict):
+                    return
+                fault = Fault(member=asked.member, reason=asked.reason)
+                refused = CommandError(message=f"The request on {asked.channel} is not what that channel carries: {fault}")
+                failure = _failure_of(operation.failure, asked.payload, refused)
+                if failure is not None:
+                    await self.emit(operation.failure, failure, correlation_id=asked.correlation_id)
+            case Delivered():
+                with telemetry.continuing(asked.trace):
+                    try:
+                        answered = await handle(asked)
+                    except Exception as raised:
+                        answered = CommandError(message=str(raised) or type(raised).__name__)
+                    if not isinstance(answered, CommandError):
+                        await self.emit(operation.result, answered, correlation_id=asked.correlation_id)
+                        return
+                    failure = _failure_of(operation.failure, operation.request.encode(asked.payload), answered)
+                    if failure is None:
+                        raise TypeError(f"{operation.failure.name} names what {operation.request.name} does not")
+                    await self.emit(operation.failure, failure, correlation_id=asked.correlation_id)
+
+
+def _failure_of[F: WireModel](failure: Channel[F], request: Mapping[str, JsonValue], error: CommandError) -> F | None:
+    """`error` as a payload of `failure`: with what it names beside the error, as `request` names it. None when `request` does not."""
+    if len(failure.members) != 1:
+        raise TypeError(f"{failure.name} carries one of several shapes, and a failure is answered with one")
+    (failed,) = failure.members
+    named = [field.alias or name for name, field in failed.model_fields.items() if name not in CommandError.model_fields]
+    if any(name not in request for name in named):
+        return None
+    try:
+        return failure.decode({**{name: request[name] for name in named}, **written(error)})
+    except ValidationError:
+        return None
 
 
 async def answer_of[Q: WireModel, R: WireModel, F: WireModel](

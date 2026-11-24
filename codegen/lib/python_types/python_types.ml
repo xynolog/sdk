@@ -579,8 +579,269 @@ let text (spec : Spec.t) =
              @ Definitions.generated_client_types spec));
     }
 
+(* The launcher's control API as the Python SDK reads it
+   (python/sdk/src/xynolog/control_methods.py, from
+   protocol/specs/src/control/methods.json): its version, each notification
+   with who sends it and its params' model, and each method with its params'
+   and its result's models, whether it runs alone and the notifications it
+   sends. Each model is one of types.py; the rows are xynolog.control's
+   classes. *)
+module C = Tables.Control_methods
+
+let control_path = "python/sdk/src/xynolog/control_methods.py"
+
+let control_text (spec : Spec.t) =
+  let definitions = (Definitions.bundle spec).definitions in
+  let t = spec.tables.control_methods in
+  let component id =
+    let name = Filename.remove_extension (Filename.basename id) in
+    if not (List.mem name definitions.names) then
+      refuse "control/methods.json names %s, which is no component schema" id;
+    name
+  in
+  let api_version =
+    match definitions.schema (component t.api_version) with
+    | D.Node { enum = Some [ Schema.String_literal v ]; _ } -> v
+    | _ -> refuse "control/methods.json: its apiVersion states no const"
+  in
+  let constant = Bus.Python.constant in
+  let notification (n : C.notifications_item) =
+    let params = component n.params in
+    P.assign (constant n.name) ~annotation:(P.Name "Final")
+      ~value:
+        (P.Call
+           ( P.sub "ControlNotification" [ P.item (P.Name params) ],
+             P.items ~magic:true
+               [
+                 P.keyword "name" (P.Str n.name);
+                 P.keyword "sent_by" (P.Str (C.from_value n.from));
+                 P.keyword "params" (P.Name params);
+               ] ))
+      ~doc:(Wrapped n.docs)
+  in
+  let method_ (m : C.methods_item) =
+    let params = component m.params and result = component m.result in
+    P.assign (constant m.name) ~annotation:(P.Name "Final")
+      ~value:
+        (P.Call
+           ( P.sub "ControlMethod"
+               [ P.item (P.Name params); P.item (P.Name result) ],
+             P.items ~magic:true
+               [
+                 P.keyword "name" (P.Str m.name);
+                 P.keyword "params" (P.Name params);
+                 P.keyword "result" (P.Name result);
+                 P.keyword "exclusive"
+                   (P.Name (if m.exclusive then "True" else "False"));
+                 P.keyword "sends"
+                   (P.tuple
+                      (List.map (fun s -> P.item (P.Name (constant s))) m.sends));
+               ] ))
+      ~doc:(Wrapped m.docs)
+  in
+  let by_name ~about ~value_type names =
+    P.assign ~about
+      ~annotation:
+        (P.sub "Final"
+           [
+             P.item
+               (P.sub "Mapping"
+                  [ P.item (P.Name "str"); P.item (P.Name value_type) ]);
+           ])
+      ~value:
+        (P.call "MappingProxyType"
+           [
+             P.item
+               (P.Dict
+                  (P.items ~magic:true
+                     (List.map
+                        (fun name ->
+                          P.entry (P.Str name) (P.Name (constant name)))
+                        names)));
+           ])
+  in
+  let notifications =
+    List.map (fun (n : C.notifications_item) -> n.name) t.notifications
+  in
+  let methods = List.map (fun (m : C.methods_item) -> m.name) t.methods in
+  let models =
+    List.sort_uniq compare
+      (component t.api_version
+       :: List.map
+            (fun (n : C.notifications_item) -> component n.params)
+            t.notifications
+      @ List.concat_map
+          (fun (m : C.methods_item) ->
+            [ component m.params; component m.result ])
+          t.methods)
+  in
+  P.text
+    {
+      header =
+        Banner.python_lines ~from_:"protocol/specs/src/control/methods.json"
+          __FILE__;
+      doc =
+        Wrapped
+          (Printf.sprintf
+             "The launcher's control API: its version, each of its \
+              notifications, and each of its methods, with the models of what \
+              each carries. A request that fails carries its error's data as \
+              `%s`."
+             (component t.error_data));
+      imports =
+        [
+          [
+            P.From ("collections.abc", [ "Mapping" ]);
+            P.From ("types", [ "MappingProxyType" ]);
+            P.From ("typing", [ "Final" ]);
+          ];
+          [
+            P.From
+              ( "xynolog.control",
+                [
+                  "AnyControlMethod";
+                  "AnyControlNotification";
+                  "ControlMethod";
+                  "ControlNotification";
+                ] );
+            P.From ("xynolog.types", models);
+          ];
+        ];
+      body =
+        [
+          P.assign "__all__"
+            ~value:
+              (P.List
+                 (P.items ~magic:true
+                    (List.map
+                       (fun n -> P.item (P.Str n))
+                       (List.sort compare
+                          ([
+                             "CONTROL_API_VERSION";
+                             "CONTROL_METHODS";
+                             "CONTROL_NOTIFICATIONS";
+                           ]
+                          @ List.map constant (notifications @ methods))))));
+          P.assign "CONTROL_API_VERSION"
+            ~annotation:
+              (P.sub "Final" [ P.item (P.Name (component t.api_version)) ])
+            ~value:(P.Str api_version)
+            ~doc:
+              (Wrapped
+                 "The version of the control API these tables state, which \
+                  every request's params state.");
+        ]
+        @ List.map notification t.notifications
+        @ List.map method_ t.methods
+        @ [
+            by_name
+              ~about:
+                [
+                  Line
+                    "Every notification, by its name: for code that is given a \
+                     name and not a constant.";
+                ]
+              ~value_type:"AnyControlNotification" notifications
+              "CONTROL_NOTIFICATIONS";
+            by_name
+              ~about:
+                [
+                  Line
+                    "Every method, by its name: for code that is given a name \
+                     and not a constant.";
+                ]
+              ~value_type:"AnyControlMethod" methods "CONTROL_METHODS";
+          ];
+    }
+
+(* The languages Xynolog supports, as the Python SDK reads them
+   (python/sdk/src/xynolog/locales.py, from
+   protocol/specs/src/locales/registry.json): each language's code, what it
+   calls itself and its name in English, in the registry's order. A native
+   name is written in ASCII, its other characters escaped. *)
+module L = Tables.Locales_registry
+
+let locales_path = "python/sdk/src/xynolog/locales.py"
+
+let locales_text (t : L.t) =
+  let codes = List.map (fun (l : L.locales_item) -> l.code) t.locales in
+  P.text
+    {
+      header =
+        Banner.python_lines ~from_:"protocol/specs/src/locales/registry.json"
+          __FILE__;
+      doc =
+        Wrapped
+          "The languages Xynolog supports: each one's code, what it calls \
+           itself, and its name in English. A person reads the interface in \
+           one of them, a resource is written in one, and a model is told \
+           which by its English name.";
+      imports =
+        [
+          [
+            P.From ("dataclasses", [ "dataclass" ]);
+            P.From ("typing", [ "Final"; "Literal"; "final" ]);
+          ];
+        ];
+      body =
+        [
+          P.assign "__all__"
+            ~value:
+              (P.List
+                 (P.items ~magic:true
+                    (List.map
+                       (fun n -> P.item (P.Str n))
+                       [ "LOCALES"; "LOCALE_CODES"; "LocaleCode"; "LocaleInfo" ])));
+          P.alias "LocaleCode"
+            ~doc:(Wrapped "The code of a supported language.")
+            (P.sub ~magic:true "Literal"
+               (List.map (fun c -> P.item (P.Str c)) codes));
+          P.assign "LOCALE_CODES"
+            ~annotation:(Bus.Python.final_tuple "LocaleCode")
+            ~value:(P.strings ~magic:true codes)
+            ~doc:
+              (Wrapped
+                 "The code of every supported language, in the registry's \
+                  order.");
+          P.frozen_dataclass "LocaleInfo"
+            "A supported language: its code, what it calls itself, and its \
+             name in English."
+            [
+              P.field "code" (P.Name "LocaleCode");
+              P.field "native_name" (P.Name "str");
+              P.field "english_name" (P.Name "str")
+                ~doc:"What a model is told a text is written in.";
+            ];
+          P.assign "LOCALES"
+            ~annotation:(Bus.Python.final_tuple "LocaleInfo")
+            ~value:
+              (P.tuple ~magic:true
+                 (List.map
+                    (fun (l : L.locales_item) ->
+                      P.item
+                        (P.call "LocaleInfo"
+                           [
+                             P.keyword "code" (P.Str l.code);
+                             P.keyword "native_name" (P.Ascii l.native_name);
+                             P.keyword "english_name" (P.Str l.english_name);
+                           ]))
+                    t.locales))
+            ~doc:
+              (Wrapped "A row per supported language, in the registry's order.");
+        ];
+    }
+
 let files ~root:_ (spec : Spec.t) =
-  match text spec with
-  | text -> Ok [ { Output.path; text } ]
+  match
+    (text spec, control_text spec, Locales.derive spec.tables.locales_registry)
+  with
+  | _, _, Error errors -> Error errors
+  | text, control, Ok locales ->
+      Ok
+        [
+          { Output.path; text };
+          { Output.path = control_path; text = control };
+          { Output.path = locales_path; text = locales_text locales };
+        ]
   | exception Definitions.Refused message ->
       Error [ { Decode.file = "openapi.json"; pointer = ""; message } ]

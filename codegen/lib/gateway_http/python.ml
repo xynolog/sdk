@@ -1,5 +1,5 @@
 (* The gateway's HTTP surface as the Python SDK reads it
-   (python/sdk/src/xynolog/http/_gateway_http.py): each operation as a
+   (python/sdk/src/xynolog/http/gateway_http.py): each operation as a
    GatewayRoute named for its operationId, with its method and path, and the
    media types it sends and answers with as constants of their own, stated
    only where it has a body; each header as a constant; a bus frame's
@@ -9,7 +9,7 @@
 
 module P = Python_syntax
 
-let path = "python/sdk/src/xynolog/http/_gateway_http.py"
+let path = "python/sdk/src/xynolog/http/gateway_http.py"
 let route_name (r : Model.route) = Text.upper_snake r.operation_id
 
 let header_name h =

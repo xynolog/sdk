@@ -18,6 +18,7 @@ from xynolog.errors import XynologError
 
 __all__ = [
     "BOOT",
+    "JOB",
     "REFRESH",
     "RETRY_RULES",
     "TRANSPORT",
@@ -103,7 +104,19 @@ transient; a refused grant, and any fault this rule does not name, is
 terminal, because trying again only delays a sign-in the person must perform
 anyway."""
 
-RETRY_RULES: Final[Mapping[str, RetryRule]] = MappingProxyType({rule.name: rule for rule in (BOOT, REFRESH, TRANSPORT)})
+def _job(facts: RetryFacts) -> bool:
+    return facts.status is not None and (facts.status in (408, 429) or facts.status >= 500)
+
+
+JOB: Final = RetryRule("job", _job)
+"""A job, which a worker failed, tried again: where not trying again discards
+paid work. A status from 500 up is retried here where a boot pass refuses it,
+because the alternative is throwing a long attempt away over one fault, and a
+retried job takes its units up where their cursors stand. A worker that
+classes a failure it was given a status for asks this rule whether it is
+`transient` (`FailureClass`)."""
+
+RETRY_RULES: Final[Mapping[str, RetryRule]] = MappingProxyType({rule.name: rule for rule in (BOOT, JOB, REFRESH, TRANSPORT)})
 """Every rule this SDK keeps, by its name in the table."""
 
 _WHOLE_SECONDS: Final = re.compile(r"[0-9]+", re.ASCII)

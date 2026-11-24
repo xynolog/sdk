@@ -22,9 +22,9 @@ from typing import Final
 from pydantic import JsonValue
 
 from xynolog._annotation_id import annotation_id_for
+from xynolog._instant import instant
 from xynolog._pdf_locate import fragment_of, locate
 from xynolog._spans import reconcile
-from xynolog._white_space import collapsed
 from xynolog.error_codes import SpanRefusal
 from xynolog.errors import SpanRefusedError
 from xynolog.identifiers import ResourceId
@@ -51,6 +51,7 @@ from xynolog.types import (
     TextSpan,
     TextualBody,
 )
+from xynolog.white_space import collapsed
 
 __all__ = [
     "AnchorMethod",
@@ -277,7 +278,7 @@ def _built(
             target=target,
             body=said,
             generator=None if generator is None else stated(generator),
-            created=datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            created=instant(datetime.now(UTC)),
         )
     )
 
