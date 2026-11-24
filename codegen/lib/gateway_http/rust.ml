@@ -5,7 +5,11 @@
    types; each header as a constant; an upload's members, a variant each,
    with the name each is sent under and whether every upload sends it; and
    the client secret form, its fixed members as they are and the others the
-   account's, in the schema's order. Sending a form is the SDK's own. *)
+   account's, in the schema's order. Sending a form is the SDK's own. And
+   the Archivist's (rust/sdk/src/generated/archivist_http.rs, which
+   rust/sdk/src/archivist_http.rs includes): the methods its operations use,
+   and each operation as an ArchivistRoute constant named for its
+   operationId, with its method and path. *)
 
 module R = Rust_syntax
 
@@ -197,4 +201,74 @@ let file (m : Model.t) =
         @ List.concat_map (fun r -> [ route r; R.Blank ]) m.routes
         @ List.map header m.headers @ [ R.Blank ] @ upload_fields m
         @ [ R.Blank; client_secret_form m ]);
+  }
+
+let archivist (spec : Spec.t) =
+  let operations = Model.archivist_operations spec in
+  let route (operation_id, method_, path) =
+    [
+      R.Blank;
+      R.Const
+        {
+          doc = [ "`" ^ operation_id ^ "`." ];
+          attrs = [];
+          vis = Pub;
+          name = Text.upper_snake operation_id;
+          ty = R.named "ArchivistRoute";
+          value =
+            R.Struct
+              ( [ "ArchivistRoute" ],
+                [
+                  ( "method",
+                    R.Path [ "ArchivistMethod"; method_variant method_ ] );
+                  ("path", R.Str path);
+                ],
+                None );
+        };
+    ]
+  in
+  {
+    Output.path = "rust/sdk/src/generated/archivist_http.rs";
+    text =
+      R.text
+        ~header:
+          (Banner.lines
+             ~from_:"protocol/specs/src/archivist/openapi.json and its paths"
+             __FILE__)
+        ([
+           R.Enum
+             {
+               doc = [ "A method the Archivist's operations use." ];
+               attrs =
+                 [ derive [ "Clone"; "Copy"; "Debug"; "PartialEq"; "Eq" ] ];
+               vis = Pub;
+               name = "ArchivistMethod";
+               variants =
+                 List.map
+                   (fun m -> R.variant (method_variant m))
+                   (List.sort_uniq compare
+                      (List.map (fun (_, m, _) -> m) operations));
+             };
+           R.Blank;
+           R.Struct_def
+             {
+               doc =
+                 [
+                   "An operation of the Archivist: its method and its path (a \
+                    `{name}` for each";
+                   "parameter, which the caller fills).";
+                 ];
+               attrs = [ derive [ "Clone"; "Copy"; "Debug" ] ];
+               vis = Pub;
+               name = "ArchivistRoute";
+               generics = [];
+               body =
+                 Fields
+                   [
+                     R.field "method" (R.named "ArchivistMethod");
+                     R.field "path" R.static_str;
+                   ];
+             };
+         ]
+        @ List.concat_map route operations);
   }

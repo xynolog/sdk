@@ -32,14 +32,173 @@ let generation (spec : Spec.t) (bundle : Definitions.bundle) :
     accessors;
   }
 
+(* Each table the services keep to ([Roots.service_tables]) is typed by its
+   own schema ([Places.schema_of]), named as that schema's file is. *)
+let table_type table = Definitions.stem (Places.schema_of table)
+
+(* [bundle]'s schemas and each service table's own, viewed as the bundle
+   views every schema. *)
+let with_tables (spec : Spec.t) (bundle : Definitions.bundle) =
+  let named name =
+    match bundle.definitions.schema name with
+    | _ -> true
+    | exception Definitions.Refused _ -> false
+  in
+  let tables =
+    List.map
+      (fun table ->
+        let file = Places.schema_of table and name = table_type table in
+        if named name then
+          Definitions.refuse "%s, the schema of %s, is named as a schema is"
+            file table;
+        match List.assoc_opt file spec.schemas with
+        | Some s -> (name, bundle.view (Normalize.shape_only s))
+        | None -> Definitions.refuse "%s has no schema %s" table file)
+      (Roots.service_tables spec)
+  in
+  {
+    Definitions.names = bundle.definitions.names @ List.map fst tables;
+    schema =
+      (fun name ->
+        match List.assoc_opt name tables with
+        | Some s -> s
+        | None -> bundle.definitions.schema name);
+  }
+
 let types (spec : Spec.t) =
   let bundle = Definitions.bundle spec in
+  let generation = generation spec bundle in
   {
     Output.path = "rust/sdk/src/generated/types.rs";
     text =
       Rust_syntax.text
         ~header:(regenerate "the component schemas in protocol/specs/src")
-        (Generate.items bundle.definitions (generation spec bundle));
+        (Generate.items (with_tables spec bundle)
+           {
+             generation with
+             roots =
+               List.sort_uniq String.compare
+                 (generation.roots
+                 @ List.map table_type (Roots.service_tables spec));
+           });
+  }
+
+(* JSON text in ASCII, as a Rust string the printer lays out must be: each
+   character past it as a JSON escape, which reads as the same value. *)
+let ascii_json text =
+  let b = Buffer.create (String.length text) in
+  let escape code = Buffer.add_string b (Printf.sprintf "\\u%04x" code) in
+  Text.fold_uchars
+    (fun () u ->
+      match Uchar.to_int u with
+      | code when code < 0x80 -> Buffer.add_char b (Char.chr code)
+      | code when code < 0x10000 -> escape code
+      | code ->
+          let c = code - 0x10000 in
+          escape (0xD800 lor (c lsr 10));
+          escape (0xDC00 lor (c land 0x3FF)))
+    () text;
+  Buffer.contents b
+
+(* The tables the services keep to (rust/sdk/src/service_tables.rs, which
+   names [types] and serde_json's [Error]): each table's text as protocol/specs/src holds it, read as its schema's type by
+   a function named as the type is, and every table by its file, read
+   through its type as a JSON value. *)
+let service_tables ~root (spec : Spec.t) =
+  let tables = Roots.service_tables spec in
+  let text_constant table = Text.upper_snake (table_type table) in
+  let reader table = Text.snake (table_type table) in
+  let error = R.named "Error" in
+  let read table =
+    let ty = table_type table in
+    [
+      R.Const
+        {
+          doc = [];
+          attrs = [];
+          vis = Private;
+          name = text_constant table;
+          ty = R.str_ty;
+          value =
+            R.Str
+              (ascii_json
+                 (Yojson.Safe.to_string
+                    (Yojson.Safe.from_file
+                       (Filename.concat root ("protocol/specs/src/" ^ table)))));
+        };
+      R.Blank;
+      R.Fn
+        (R.fn_
+           ~doc:[ "protocol/specs/src/" ^ table ^ ", read as `" ^ ty ^ "`." ]
+           ~vis:Pub
+           ~ret:
+             (R.named ~args:[ R.Named ([ "types"; ty ], []); error ] "Result")
+           (reader table)
+           [
+             R.Tail
+               (R.Call
+                  (R.p "serde_json::from_str", [ R.p (text_constant table) ]));
+           ]);
+      R.Blank;
+    ]
+  in
+  {
+    Output.path = "rust/sdk/src/generated/service_tables.rs";
+    text =
+      R.text
+        ~header:(regenerate "the services' tables of protocol/specs/src")
+        (List.concat_map read tables
+        @ [
+            R.Const
+              {
+                doc = [ "Every table, by its file under protocol/specs/src." ];
+                attrs = [];
+                vis = Pub;
+                name = "SERVICE_TABLE_FILES";
+                ty = R.Ref (None, R.Slice R.str_ty);
+                value = R.Ref_of (R.Array (List.map (fun t -> R.Str t) tables));
+              };
+            R.Blank;
+            R.Fn
+              (R.fn_
+                 ~doc:
+                   [
+                     "The table of a file under protocol/specs/src, read as \
+                      its schema's type";
+                     "and written as a JSON value; none if no service keeps to \
+                      it.";
+                   ]
+                 ~vis:Pub
+                 ~params:[ R.Param ("file", R.Ref (None, R.named "str")) ]
+                 ~ret:
+                   (R.named
+                      ~args:
+                        [
+                          R.named
+                            ~args:[ R.named "serde_json::Value"; error ]
+                            "Result";
+                        ]
+                      "Option")
+                 "service_table"
+                 [
+                   R.Tail
+                     (R.Match
+                        ( R.p "file",
+                          List.map
+                            (fun table ->
+                              ( R.Str table,
+                                R.Call
+                                  ( R.p "Some",
+                                    [
+                                      R.Method
+                                        ( R.Call (R.p (reader table), []),
+                                          "and_then",
+                                          [ R.p "serde_json::to_value" ] );
+                                    ] ) ))
+                            tables
+                          @ [ (R.Wild, R.p "None") ] ));
+                 ]);
+          ]);
   }
 
 let sign_in (spec : Spec.t) =
@@ -196,8 +355,16 @@ let control (spec : Spec.t) =
           ]);
   }
 
-let files ~root:_ (spec : Spec.t) =
-  match [ types spec; sign_in spec; discovery_absent spec; control spec ] with
+let files ~root (spec : Spec.t) =
+  match
+    [
+      types spec;
+      sign_in spec;
+      discovery_absent spec;
+      control spec;
+      service_tables ~root spec;
+    ]
+  with
   | files -> Ok files
   | exception Definitions.Refused message ->
       Error [ { Decode.file = "openapi.json"; pointer = ""; message } ]

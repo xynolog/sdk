@@ -221,6 +221,42 @@ let cases =
                   ty = R.named "String";
                 };
             ]));
+    case "a field's type too long for its line is an argument a line"
+      (writes
+         "pub struct A {\n\
+         \    pub replies: std::collections::BTreeMap<\n\
+         \        String,\n\
+         \        std::collections::BTreeMap<String, \
+          BusReplyBoundsRepliesValueValue>,\n\
+         \    >,\n\
+          }\n"
+         (file
+            [
+              R.Struct_def
+                {
+                  doc = [];
+                  attrs = [];
+                  vis = Pub;
+                  name = "A";
+                  generics = [];
+                  body =
+                    Fields
+                      [
+                        R.field "replies"
+                          (R.named "std::collections::BTreeMap"
+                             ~args:
+                               [
+                                 R.named "String";
+                                 R.named "std::collections::BTreeMap"
+                                   ~args:
+                                     [
+                                       R.named "String";
+                                       R.named "BusReplyBoundsRepliesValueValue";
+                                     ];
+                               ]);
+                      ];
+                };
+            ]));
     case "a blank ending the file is none"
       (writes "pub struct A;\n"
          (file
