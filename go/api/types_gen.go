@@ -5735,7 +5735,8 @@ type GetAnnotationResponse struct {
 
 type GetAnnotationsResponse struct {
 	Annotations []Annotation `json:"annotations"`
-	Motivation  *Motivation  `json:"motivation,omitempty"`
+	// Motivation Motivation filter applied (if any)
+	Motivation *Motivation `json:"motivation,omitempty"`
 	// Total Total number of annotations
 	Total float64 `json:"total"`
 }

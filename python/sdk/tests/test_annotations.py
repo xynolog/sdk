@@ -56,8 +56,7 @@ def _as_written(selector: AnnotationSelector | WireModel | None) -> JsonValue:
 
 def _quote(annotation: Annotation) -> JsonValue:
     selector = target_selector(annotation.target)
-    assert selector is not None, "the table gives textQuoteSelector no selector to read"
-    return _as_written(text_quote_selector(selector))
+    return None if selector is None else _as_written(text_quote_selector(selector))
 
 
 READERS: Final[dict[str, Callable[[Annotation], JsonValue]]] = {
@@ -87,12 +86,9 @@ def test_there_is_a_reader_here_for_each_the_table_names_and_no_other() -> None:
     assert len(TABLE.readers) == 18
 
 
-def test_every_case_states_every_reader_but_the_quote_selector_where_there_is_no_selector() -> None:
+def test_every_case_states_every_reader() -> None:
     for case in TABLE.cases:
-        applies = [
-            reader for reader in TABLE.readers if reader != "textQuoteSelector" or target_selector(case.annotation.target) is not None
-        ]
-        assert sorted(case.reads) == sorted(applies), case.why
+        assert sorted(case.reads) == sorted(TABLE.readers), case.why
 
 
 @pytest.mark.parametrize("case", TABLE.cases, ids=lambda case: case.annotation.id)

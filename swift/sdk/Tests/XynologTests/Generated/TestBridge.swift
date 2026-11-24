@@ -543,16 +543,14 @@ let identifierKinds:
   ]
 
 public struct FidelityFixture: Codable, Sendable, Hashable {
-  public var optionalNullable: Stated<String>
   public var optionalValue: String?
   public var requiredNullable: String?
   public var requiredValue: String
   public var rest: [String: JSONValue]
   public init(
-    optionalNullable: Stated<String> = .absent, optionalValue: String? = nil,
-    requiredNullable: String?, requiredValue: String, rest: [String: JSONValue] = [:]
+    optionalValue: String? = nil, requiredNullable: String?, requiredValue: String,
+    rest: [String: JSONValue] = [:]
   ) {
-    self.optionalNullable = optionalNullable
     self.optionalValue = optionalValue
     self.requiredNullable = requiredNullable
     self.requiredValue = requiredValue
@@ -560,21 +558,16 @@ public struct FidelityFixture: Codable, Sendable, Hashable {
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.optionalNullable = try c.stated("optionalNullable")
     self.optionalValue = try c.ifPresent("optionalValue")
     self.requiredNullable = try c.value("requiredNullable")
     self.requiredValue = try c.value("requiredValue")
-    rest = try c.rest(excluding: [
-      "optionalNullable", "optionalValue", "requiredNullable", "requiredValue",
-    ])
+    rest = try c.rest(excluding: ["optionalValue", "requiredNullable", "requiredValue"])
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(
-      rest: rest,
-      excluding: ["optionalNullable", "optionalValue", "requiredNullable", "requiredValue"],
+      rest: rest, excluding: ["optionalValue", "requiredNullable", "requiredValue"],
       of: "FidelityFixture")
-    try c.encode(stated: self.optionalNullable, as: "optionalNullable")
     try c.encodeIfPresent(self.optionalValue, as: "optionalValue")
     try c.encode(self.requiredNullable, as: "requiredNullable")
     try c.encode(self.requiredValue, as: "requiredValue")

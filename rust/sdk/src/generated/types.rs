@@ -6873,12 +6873,9 @@ pub struct GetAnnotationsResponse {
     pub annotations: Vec<Annotation>,
     /// Total number of annotations
     pub total: f64,
-    #[serde(
-        default,
-        deserialize_with = "stated",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub motivation: Option<Option<Motivation>>,
+    /// Motivation filter applied (if any)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub motivation: Option<Motivation>,
 }
 
 impl GetAnnotationsResponse {

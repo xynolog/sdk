@@ -55,6 +55,10 @@ the coming release's, and gathers its changes as they land.
 
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- `GetAnnotationsResponse::motivation` is an `Option<Motivation>`, where it
+  was an `Option<Option<Motivation>>`, and carries Protocol's description of
+  it. Protocol no longer allows it to be null: a null for it is refused as
+  malformed.
 - The smelter's and the weaver's health name how far they have followed the
   record as `FollowerFollowing`, the type Protocol states, in place of
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.

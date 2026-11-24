@@ -74,13 +74,15 @@ let cases =
                (Name "a", Null, Call (Name "f", [], [ Arg (Name "a") ])))));
     case "a call's type arguments and out variable"
       (writes
-         "x.TryRead<global::Xynolog.Types.Stated<string?>>(\"k\", out var p0)"
+         "x.TryRead<global::System.Collections.Generic.IReadOnlyList<string?>>(\"k\", \
+          out var p0)"
          (expr
             (Call
                ( Member (Name "x", "TryRead"),
                  [
                    Generic
-                     ("global::Xynolog.Types.Stated", [ Nullable (T "string") ]);
+                     ( "global::System.Collections.Generic.IReadOnlyList",
+                       [ Nullable (T "string") ] );
                  ],
                  [ Arg (Str "k"); Out_var "p0" ] ))));
     case "a switch expression's arms are a line each, its braces at its line's"

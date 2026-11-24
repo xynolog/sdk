@@ -51,9 +51,7 @@ const READERS: Record<string, (annotation: Annotation) => unknown> = {
   annotationExactText: getAnnotationExactText,
   textQuoteSelector: (a) => {
     const selector = getTargetSelector(a.target);
-    if (selector === undefined)
-      throw new Error('the table gives textQuoteSelector no selector to read');
-    return getTextQuoteSelector(selector);
+    return selector === undefined ? null : getTextQuoteSelector(selector);
   },
   entityTypes: getEntityTypes,
   tagCategory: (a) => getTagCategory(a) ?? null,
@@ -65,14 +63,9 @@ describe('the annotation readers (protocol/specs/src/annotations/reader-cases.js
     expect(Object.keys(READERS).sort()).toEqual([...table.readers].sort());
   });
 
-  it('states every reader in every case, but the quote selector where there is no selector', () => {
-    for (const { why, annotation, reads } of cases) {
-      const applies = table.readers.filter(
-        (reader) =>
-          reader !== 'textQuoteSelector' ||
-          getTargetSelector(annotation.target) !== undefined,
-      );
-      expect(Object.keys(reads).sort(), why).toEqual(applies.sort());
+  it('states every reader in every case', () => {
+    for (const { why, reads } of cases) {
+      expect(Object.keys(reads).sort(), why).toEqual([...table.readers].sort());
     }
   });
 

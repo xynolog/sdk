@@ -2806,10 +2806,7 @@ export const REQUIRED_SCHEMAS: {
     required: ['annotations', 'total'],
     members: {
       annotations: { kinds: ['array'], items: { ref: 'Annotation' } },
-      motivation: {
-        kinds: ['string', 'null'],
-        oneOf: [{ kinds: ['null'] }, { ref: 'Motivation' }],
-      },
+      motivation: { ref: 'Motivation' },
       total: { kinds: ['number'] },
     },
   },

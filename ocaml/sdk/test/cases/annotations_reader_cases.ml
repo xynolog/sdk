@@ -16,7 +16,7 @@ type reads = {
   is_resolved_reference : bool;
   exact_text : string;
   annotation_exact_text : string;
-  text_quote_selector : Yojson.Safe.t option option;
+  text_quote_selector : Yojson.Safe.t option;
   entity_types : string list;
   tag_category : string option;
   tag_schema_id : string option;
@@ -53,11 +53,10 @@ let reads_json (r : reads) =
          Option.Some ("exactText", (fun s -> `String s) r.exact_text);
          Option.Some
            ("annotationExactText", (fun s -> `String s) r.annotation_exact_text);
-         Option.map
-           (fun v ->
-             ( "textQuoteSelector",
-               (function Option.None -> `Null | Option.Some v -> Fun.id v) v ))
-           r.text_quote_selector;
+         Option.Some
+           ( "textQuoteSelector",
+             (function Option.None -> `Null | Option.Some v -> Fun.id v)
+               r.text_quote_selector );
          Option.Some
            ( "entityTypes",
              (fun l -> `List (List.map (fun s -> `String s) l)) r.entity_types
@@ -110,8 +109,8 @@ let table : t =
         `null` for nothing. A reader of a part is given that part: bodySource \
         and isBodyResolved the body, targetSource and targetSelector the \
         target, exactText and textQuoteSelector the target's selector. Every \
-        case states every reader, but textQuoteSelector where the target has \
-        no selector to give it. Add a case here before changing an \
+        case states every reader, and textQuoteSelector is null where the \
+        target has no selector to give it. Add a case here before changing an \
         implementation.";
      readers =
        [
@@ -188,14 +187,13 @@ let table : t =
                  annotation_exact_text = "the quoted words";
                  text_quote_selector =
                    Some
-                     (Some
-                        (`Assoc
-                           [
-                             ("type", `String "TextQuoteSelector");
-                             ("exact", `String "the quoted words");
-                             ("prefix", `String "before ");
-                             ("suffix", `String " after");
-                           ]));
+                     (`Assoc
+                        [
+                          ("type", `String "TextQuoteSelector");
+                          ("exact", `String "the quoted words");
+                          ("prefix", `String "before ");
+                          ("suffix", `String " after");
+                        ]);
                  entity_types = [];
                  tag_category = None;
                  tag_schema_id = None;
@@ -329,14 +327,13 @@ let table : t =
                  annotation_exact_text = "the quoted words";
                  text_quote_selector =
                    Some
-                     (Some
-                        (`Assoc
-                           [
-                             ("type", `String "TextQuoteSelector");
-                             ("exact", `String "the quoted words");
-                             ("prefix", `String "before ");
-                             ("suffix", `String " after");
-                           ]));
+                     (`Assoc
+                        [
+                          ("type", `String "TextQuoteSelector");
+                          ("exact", `String "the quoted words");
+                          ("prefix", `String "before ");
+                          ("suffix", `String " after");
+                        ]);
                  entity_types = [];
                  tag_category = None;
                  tag_schema_id = None;
@@ -394,7 +391,7 @@ let table : t =
                  is_resolved_reference = false;
                  exact_text = "";
                  annotation_exact_text = "";
-                 text_quote_selector = Some None;
+                 text_quote_selector = None;
                  entity_types = [];
                  tag_category = None;
                  tag_schema_id = None;
@@ -478,14 +475,13 @@ let table : t =
                  annotation_exact_text = "the quoted words";
                  text_quote_selector =
                    Some
-                     (Some
-                        (`Assoc
-                           [
-                             ("type", `String "TextQuoteSelector");
-                             ("exact", `String "the quoted words");
-                             ("prefix", `String "before ");
-                             ("suffix", `String " after");
-                           ]));
+                     (`Assoc
+                        [
+                          ("type", `String "TextQuoteSelector");
+                          ("exact", `String "the quoted words");
+                          ("prefix", `String "before ");
+                          ("suffix", `String " after");
+                        ]);
                  entity_types = [ "Person"; "Scientist" ];
                  tag_category = None;
                  tag_schema_id = None;
@@ -567,14 +563,13 @@ let table : t =
                  annotation_exact_text = "the quoted words";
                  text_quote_selector =
                    Some
-                     (Some
-                        (`Assoc
-                           [
-                             ("type", `String "TextQuoteSelector");
-                             ("exact", `String "the quoted words");
-                             ("prefix", `String "before ");
-                             ("suffix", `String " after");
-                           ]));
+                     (`Assoc
+                        [
+                          ("type", `String "TextQuoteSelector");
+                          ("exact", `String "the quoted words");
+                          ("prefix", `String "before ");
+                          ("suffix", `String " after");
+                        ]);
                  entity_types = [ "Person" ];
                  tag_category = None;
                  tag_schema_id = None;
@@ -741,14 +736,13 @@ let table : t =
                  annotation_exact_text = "the quoted words";
                  text_quote_selector =
                    Some
-                     (Some
-                        (`Assoc
-                           [
-                             ("type", `String "TextQuoteSelector");
-                             ("exact", `String "the quoted words");
-                             ("prefix", `String "before ");
-                             ("suffix", `String " after");
-                           ]));
+                     (`Assoc
+                        [
+                          ("type", `String "TextQuoteSelector");
+                          ("exact", `String "the quoted words");
+                          ("prefix", `String "before ");
+                          ("suffix", `String " after");
+                        ]);
                  entity_types = [ "Issue" ];
                  tag_category = Some "Issue";
                  tag_schema_id = Some "legal-irac";
@@ -817,14 +811,13 @@ let table : t =
                  annotation_exact_text = "the quoted words";
                  text_quote_selector =
                    Some
-                     (Some
-                        (`Assoc
-                           [
-                             ("type", `String "TextQuoteSelector");
-                             ("exact", `String "the quoted words");
-                             ("prefix", `String "before ");
-                             ("suffix", `String " after");
-                           ]));
+                     (`Assoc
+                        [
+                          ("type", `String "TextQuoteSelector");
+                          ("exact", `String "the quoted words");
+                          ("prefix", `String "before ");
+                          ("suffix", `String " after");
+                        ]);
                  entity_types = [];
                  tag_category = None;
                  tag_schema_id = None;

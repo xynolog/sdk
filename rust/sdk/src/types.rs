@@ -125,10 +125,3 @@ impl Rule {
             })
     }
 }
-
-/// A property that was stated, whatever it stated: null is `Some(None)`.
-fn stated<'de, T: serde::Deserialize<'de>, D: serde::Deserializer<'de>>(
-    deserializer: D,
-) -> Result<Option<Option<T>>, D::Error> {
-    serde::Deserialize::deserialize(deserializer).map(Some)
-}

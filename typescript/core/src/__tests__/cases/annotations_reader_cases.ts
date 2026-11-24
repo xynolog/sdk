@@ -21,7 +21,7 @@ export type Reads = {
   isResolvedReference: boolean;
   exactText: string;
   annotationExactText: string;
-  textQuoteSelector?: Json | null;
+  textQuoteSelector: Json | null;
   entityTypes: string[];
   tagCategory: string | null;
   tagSchemaId: string | null;
@@ -41,7 +41,7 @@ export type Table = {
 
 export const table: Table = {
   $comment:
-    "What each annotation reader answers, as every implementation must answer it: Every SDK runs every case and fails on a difference. An `annotation` is as the wire carries it. `reads` names each reader that applies to it, by the name every SDK spells in its own convention (`bodySource` is getBodySource, body_source), and what it answers: `null` for nothing. A reader of a part is given that part: bodySource and isBodyResolved the body, targetSource and targetSelector the target, exactText and textQuoteSelector the target's selector. Every case states every reader, but textQuoteSelector where the target has no selector to give it. Add a case here before changing an implementation.",
+    "What each annotation reader answers, as every implementation must answer it: Every SDK runs every case and fails on a difference. An `annotation` is as the wire carries it. `reads` names each reader that applies to it, by the name every SDK spells in its own convention (`bodySource` is getBodySource, body_source), and what it answers: `null` for nothing. A reader of a part is given that part: bodySource and isBodyResolved the body, targetSource and targetSelector the target, exactText and textQuoteSelector the target's selector. Every case states every reader, and textQuoteSelector is null where the target has no selector to give it. Add a case here before changing an implementation.",
   readers: [
     'bodySource',
     'isBodyResolved',
@@ -142,6 +142,7 @@ export const table: Table = {
         isResolvedReference: false,
         exactText: '',
         annotationExactText: '',
+        textQuoteSelector: null,
         entityTypes: [],
         tagCategory: null,
         tagSchemaId: null,
@@ -421,6 +422,7 @@ export const table: Table = {
         isResolvedReference: true,
         exactText: '',
         annotationExactText: '',
+        textQuoteSelector: null,
         entityTypes: [],
         tagCategory: null,
         tagSchemaId: null,
@@ -456,6 +458,7 @@ export const table: Table = {
         isResolvedReference: false,
         exactText: '',
         annotationExactText: '',
+        textQuoteSelector: null,
         entityTypes: ['Organization'],
         tagCategory: null,
         tagSchemaId: null,

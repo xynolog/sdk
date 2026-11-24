@@ -45,6 +45,9 @@ the coming release's, and gathers its changes as they land.
 
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- `GetAnnotationsResponse`'s `motivation` is an optional `Motivation`, where
+  it was `Motivation | null`. Protocol no longer allows it to be null: a null
+  for it is refused as malformed.
 - The element of an answer format (`WorkerAnswerFormatsFormatsItem`'s
   `element`) carries Protocol's description of it.
 - A knowledge base's DID in a health reply is a `KbDid`, and a follower's

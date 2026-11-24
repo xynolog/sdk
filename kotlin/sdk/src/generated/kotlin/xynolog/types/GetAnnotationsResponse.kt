@@ -13,16 +13,17 @@ public data class GetAnnotationsResponse(
     public val annotations: kotlin.collections.List<Annotation>,
     /** Total number of annotations */
     public val total: Double,
-    public val motivation: Stated<Motivation> = Stated.Absent,
+    /** Motivation filter applied (if any) */
+    public val motivation: Motivation? = null,
 ) {
     /** How Java makes a `GetAnnotationsResponse`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val annotations: kotlin.collections.List<Annotation>,
         private val total: Double,
     ) {
-        private var motivation: Stated<Motivation> = Stated.Absent
+        private var motivation: Motivation? = null
 
-        public fun motivation(motivation: Motivation?): Builder = apply { this.motivation = if (motivation == null) Stated.Null else Stated.Value(motivation) }
+        public fun motivation(motivation: Motivation?): Builder = apply { this.motivation = motivation }
 
         public fun build(): GetAnnotationsResponse = GetAnnotationsResponse(annotations = annotations, total = total, motivation = motivation)
     }

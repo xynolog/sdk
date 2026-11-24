@@ -46,8 +46,7 @@ internal sealed class WireEnumAttribute : JsonConverterAttribute
 
 /// <summary>
 /// A model read from and written to its schema's object. What each property is comes from its declaration:
-/// one with no setter is the schema's constant, a <see cref="Stated{T}"/> tells an absent member from a null one,
-/// a <c>required</c> one must be present (and is null only where its type admits null), and any other is absent when null.
+/// one with no setter is the schema's constant, a <c>required</c> one must be present (and is null only where its type admits null), and any other is absent when null.
 /// The model is validated against its schema, named as the type is, and its members are written in ordinal order of their names.
 /// </summary>
 internal sealed class WireObjectConverter<T> : JsonConverter<T>
@@ -108,7 +107,6 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
     private enum Kind
     {
         Constant,
-        Stated,
         Required,
         RequiredNullable,
         Optional,
@@ -129,11 +127,6 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
             if (!property.CanWrite)
             {
                 return new(wire.Name, property, Kind.Constant, type);
-            }
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Stated<>))
-            {
-                var stated = type.GetGenericArguments()[0];
-                return new(wire.Name, property, Kind.Stated, Nullable.GetUnderlyingType(stated) ?? stated);
             }
             if (property.IsDefined(typeof(RequiredMemberAttribute)))
             {
@@ -159,13 +152,6 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
                         Property.SetValue(model, WireJson.Read(optional, Value, options));
                     }
                     break;
-                case Kind.Stated:
-                    if (root.TryGetProperty(Wire, out var stated))
-                    {
-                        var value = stated.ValueKind == JsonValueKind.Null ? null : WireJson.Read(stated, Value, options);
-                        Property.SetValue(model, Activator.CreateInstance(Property.PropertyType, value));
-                    }
-                    break;
                 case Kind.Constant:
                     break;
             }
@@ -185,13 +171,6 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
                     if (value is not null)
                     {
                         fields.Add(Wire, JsonSerializer.SerializeToElement(value, Property.PropertyType, options));
-                    }
-                    break;
-                case Kind.Stated:
-                    var stated = Property.PropertyType;
-                    if (stated.GetProperty(nameof(Stated<object>.IsPresent))?.GetValue(value) is true)
-                    {
-                        fields.Add(Wire, JsonSerializer.SerializeToElement(stated.GetProperty(nameof(Stated<object>.Value))?.GetValue(value), stated.GetGenericArguments()[0], options));
                     }
                     break;
             }

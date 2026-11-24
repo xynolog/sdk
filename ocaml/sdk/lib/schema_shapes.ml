@@ -4317,16 +4317,7 @@ let shape_170 () =
             kinds = Some [ Array ];
             items = Some { any with reference = Some "Annotation" };
           } );
-        ( "motivation",
-          {
-            any with
-            kinds = Some [ String; Null ];
-            variants =
-              [
-                { any with kinds = Some [ Null ] };
-                { any with reference = Some "Motivation" };
-              ];
-          } );
+        ("motivation", { any with reference = Some "Motivation" });
         ("total", { any with kinds = Some [ Number ] });
       ];
   }

@@ -824,21 +824,6 @@ and structure st name ~owner (n : D.node) doc =
           add_param (R.Param (field, rust_type));
           add_set (field, R.p field);
           make [] rust_type)
-        else if nullable then (
-          incr optional;
-          add_set (field, R.p "None");
-          (* Absent, null and a value are three things: the outer option is
-             whether it was stated, the inner whether it was null. *)
-          make
-            [
-              serde
-                [
-                  R.Word [ "default" ];
-                  R.Name_value ("deserialize_with", R.Str "stated");
-                  skip;
-                ];
-            ]
-            (option (option rust_type)))
         else (
           incr optional;
           add_set (field, R.p "None");

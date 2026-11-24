@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record GetAnnotationsResponse
 {
     [global::Xynolog.Serialization.Wire("annotations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Annotation> Annotations { get; init; }
-    [global::Xynolog.Serialization.Wire("motivation")] public global::Xynolog.Types.Stated<global::Xynolog.Types.Motivation?> Motivation { get; init; }
+    [global::Xynolog.Serialization.Wire("motivation")] public global::Xynolog.Types.Motivation? Motivation { get; init; }
     [global::Xynolog.Serialization.Wire("total")] public required double Total { get; init; }
 }

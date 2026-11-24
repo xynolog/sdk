@@ -11,8 +11,7 @@
    merge to ([Normalize]), and validated as that merge. An object's properties are in order of
    name. One that is required is [required]; one that
    is required, not nullable and admits one string is that string, and is no
-   property to set; one that is optional is nullable; and one that is
-   optional and nullable is a [Stated]: absent, null or a value. An object
+   property to set; and one that is optional is nullable. An object
    that admits properties it does not name keeps them
    (AdditionalProperties). A union's value is read as the member
    [WireJson.Variant] says it is. *)
@@ -395,7 +394,6 @@ and object_ state name ~attribute ~original d =
     List.length (List.sort_uniq String.compare names) <> List.length names
     || (Option.is_some rest && List.mem "AdditionalProperties" names)
   then refuse "%s has colliding C# property names." name;
-  let stated t = C.Generic (types ^ "Stated", [ Nullable t ]) in
   let wire_name f : C.attribute =
     { name = "global::Xynolog.Serialization.Wire"; args = [ Str f.wire ] }
   in
@@ -429,9 +427,7 @@ and object_ state name ~attribute ~original d =
                   modifiers =
                     (if f.required then [ Public; Required ] else [ Public ]);
                   type_ =
-                    (if (not f.required) && f.nullable then stated f.type_
-                     else if (not f.required) || f.nullable then
-                       Nullable f.type_
+                    (if (not f.required) || f.nullable then Nullable f.type_
                      else f.type_);
                   name = f.name;
                   accessors = [ Get; Init ];

@@ -651,9 +651,8 @@ withKnowledgeBases storage http wall = bracket
 
 Import models from `Xynolog.Types`. Distinct identifier types expose checked
 makers such as `mkResourceId`; their constructors are hidden. JSON decoders
-apply the same protocol constraints. Optional nullable properties use
-`Xynolog.Types.Presence`, whose `Absent`, `Null`, and `Present` cases preserve
-JSON membership. Other optional properties use `Maybe`.
+apply the same protocol constraints. Optional properties use `Maybe`, and are
+absent or a value.
 
 `Xynolog.Resources` reads a descriptor's primary representation, primary media
 type and entity types. Representation order decides which is primary; media

@@ -38,6 +38,9 @@ the coming release's, and gathers its changes as they land.
 
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- `GetAnnotationsResponse.Motivation` is a `Motivation?`, absent or a value,
+  where it was a `Stated<Motivation?>`. Protocol no longer allows it to be
+  null: a null for it is refused as malformed.
 - The smelter's and the weaver's health name how far they have followed the
   record as `FollowerFollowing`, the type Protocol states, in place of
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
@@ -75,6 +78,12 @@ the coming release's, and gathers its changes as they land.
   place of JSON values under text. A model whose other members are of a
   schema holds each as that schema's type, and each id is a key
   System.Text.Json reads and writes.
+
+### Removed
+
+- `Xynolog.Types.Stated<T>` is removed. No member of Protocol is both optional
+  and nullable, so a model's optional member is a nullable type, absent when
+  null.
 
 ## 0.8.1
 
