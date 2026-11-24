@@ -10,7 +10,8 @@
 module O = Ocaml_syntax
 
 let path = "ocaml/sdk/lib/gateway_http.ml"
-let route_name (r : Model.route) = Text.snake r.operation_id
+let operation_name = Text.snake
+let route_name (r : Model.route) = operation_name r.operation_id
 let header_name h = String.concat "_" (Model.words h)
 
 let route (r : Model.route) =
@@ -91,6 +92,7 @@ let archivist (spec : Spec.t) =
          __FILE__)
     (List.map
        (fun (operation_id, method_, path) ->
-         O.let_ (Text.snake operation_id)
+         O.let_
+           (operation_name operation_id)
            (O.tuple [ O.string method_; O.string path ]))
        (Model.archivist_operations spec))

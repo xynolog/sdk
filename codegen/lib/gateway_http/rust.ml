@@ -15,6 +15,7 @@ module R = Rust_syntax
 
 let path = "rust/sdk/src/generated/gateway_http.rs"
 let derive names = R.List ([ "derive" ], List.map (fun n -> R.Word [ n ]) names)
+let route_name operation_id = Text.upper_snake operation_id
 let method_variant m = String.capitalize_ascii (String.lowercase_ascii m)
 
 let header_constant h =
@@ -34,7 +35,7 @@ let route (r : Model.route) =
       doc = [ "`" ^ r.operation_id ^ "`." ];
       attrs = [];
       vis = Pub;
-      name = Text.upper_snake r.operation_id;
+      name = route_name r.operation_id;
       ty = R.named "Route";
       value =
         R.Struct
@@ -213,7 +214,7 @@ let archivist (spec : Spec.t) =
           doc = [ "`" ^ operation_id ^ "`." ];
           attrs = [];
           vis = Pub;
-          name = Text.upper_snake operation_id;
+          name = route_name operation_id;
           ty = R.named "ArchivistRoute";
           value =
             R.Struct

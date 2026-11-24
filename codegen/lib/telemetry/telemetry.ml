@@ -1,9 +1,9 @@
 (* The telemetry group: every span and metric an SDK's transports export
    (protocol/specs/src/sdk-telemetry/telemetry.json), its kind or instrument,
    what it means, and its attributes, for the Go, Python, OCaml and Kotlin
-   SDKs; and every attribute key a row lists, for those and the TypeScript,
-   C#, Swift and Haskell SDKs. The Rust SDK's telemetry is held to the table
-   by its own tests.
+   SDKs; the name of each, for the TypeScript, C#, Haskell and Rust SDKs; and
+   every attribute key a row lists, for those and the Swift SDK, whose SDK
+   group writes its spans and metrics.
 
    A metric's instrument is a counter, and a span's name holds no placeholder
    but {channel}. A row says what it means and lists each attribute once;
@@ -11,6 +11,7 @@
    two attribute keys, are the same Go or Python name. *)
 
 module T = Tables.Sdk_telemetry_telemetry
+module Kotlin = Kotlin
 
 let file = "sdk-telemetry/telemetry.json"
 let channel = "{channel}"
@@ -361,18 +362,21 @@ let python (t : t) =
         };
   }
 
+(* A row's or an attribute key's name in the OCaml SDK: the name without
+   what stands for the channel, its dots underscores. *)
+let ocaml_name name = Text.replace_all ~sub:"." ~by:"_" (without_channel name)
+
 (* The rows as the OCaml SDK names them (ocaml/sdk/lib/telemetry_facts.ml): a
    span's name, its channel left for the caller, and its kind; a metric's
    name; and every attribute key, each by its name with the channel and the
    dots dropped. *)
 let ocaml (t : t) =
   let module O = Ocaml_syntax in
-  let name row = Text.replace_all ~sub:"." ~by:"_" (without_channel row) in
   O.implementation ~path:"ocaml/sdk/lib/telemetry_facts.ml"
     ~banner:(Banner.ocaml ~from_:file __FILE__)
     (List.map
        (fun (r : row) ->
-         O.let_ (name r.name)
+         O.let_ (ocaml_name r.name)
            (O.tuple
               [
                 O.string (Text.replace_all ~sub:channel ~by:"" r.name);
@@ -380,11 +384,46 @@ let ocaml (t : t) =
               ]))
        t.spans
     @ List.map
-        (fun (r : row) -> O.let_ (name r.name) (O.string r.name))
+        (fun (r : row) -> O.let_ (ocaml_name r.name) (O.string r.name))
         t.metrics
-    @ List.map (fun key -> O.let_ ("attr_" ^ name key) (O.string key)) t.keys)
+    @ List.map
+        (fun key -> O.let_ ("attr_" ^ ocaml_name key) (O.string key))
+        t.keys)
 
 let about = "An attribute key a row of the telemetry table lists."
+
+(* A row's name by the words of its name without what stands for the
+   channel, which the name itself keeps, for the caller to put the channel
+   in place of. *)
+let row_pascal (r : row) = key_pascal (without_channel r.name)
+let row_upper (r : row) = key_upper (without_channel r.name)
+let span_constant r = "SPAN_" ^ row_upper r
+let metric_constant r = "METRIC_" ^ row_upper r
+let haskell_span r = "span" ^ row_pascal r
+let haskell_metric r = "metric" ^ row_pascal r
+
+let typescript_names (t : t) =
+  let module T = Typescript_syntax in
+  let row name (r : row) =
+    T.const name ~about:[ Doc r.meaning ] (T.Str r.name)
+  in
+  {
+    Output.path = "typescript/observability/src/telemetry-names.ts";
+    text =
+      T.text
+        {
+          banner =
+            Banner.typescript_lines
+              ~authority:[ "protocol/specs/src/" ^ file ]
+              __FILE__;
+          body =
+            T.const "TELEMETRY_CHANNEL"
+              ~about:[ Doc "What stands for the bus channel in a span's name." ]
+              (T.Str channel)
+            :: List.map (fun r -> row (span_constant r) r) t.spans
+            @ List.map (fun r -> row (metric_constant r) r) t.metrics;
+        };
+  }
 
 let typescript (t : t) =
   let module T = Typescript_syntax in
@@ -444,6 +483,49 @@ let csharp (t : t) =
         };
   }
 
+let csharp_names (t : t) =
+  let module C = Csharp_syntax in
+  let constant name value =
+    C.Field
+      {
+        modifiers = [ Internal; Const ];
+        type_ = C.T "string";
+        name;
+        value = Some (C.Str value);
+      }
+  in
+  let class_ name fields =
+    C.Type
+      {
+        attributes = [];
+        modifiers = [ Internal; Static ];
+        kind = Class;
+        name;
+        params = None;
+        base = None;
+        body = Some (Packed, fields);
+      }
+  in
+  {
+    Output.path = "csharp/sdk/src/Xynolog/Generated/TelemetryNames.g.cs";
+    text =
+      C.text
+        {
+          header = Banner.lines ~from_:("protocol/specs/src/" ^ file) __FILE__;
+          nullable = false;
+          usings = [];
+          namespace = "Xynolog";
+          decls =
+            [
+              class_ "TelemetrySpans"
+                (constant "Channel" channel
+                :: List.map (fun r -> constant (row_pascal r) r.name) t.spans);
+              class_ "TelemetryMetrics"
+                (List.map (fun r -> constant (row_pascal r) r.name) t.metrics);
+            ];
+        };
+  }
+
 let swift (t : t) =
   let module S = Swift_syntax in
   {
@@ -488,6 +570,52 @@ let haskell (t : t) =
           t.keys;
     }
 
+let haskell_names (t : t) =
+  let module H = Haskell_syntax in
+  let row name (r : row) =
+    H.value
+      ~about:(Text.wrapped ~lead:"-- | " ~width:80 r.meaning)
+      (name r) (T_name "Text") (Str r.name)
+  in
+  Haskell_sdk.file ~under:"generated"
+    {
+      H.banner = Banner.lines ~from_:file __FILE__;
+      extensions = [ "OverloadedStrings" ];
+      name = "Xynolog.Internal.Generated.TelemetryNames";
+      imports = [ H.import "Data.Text" ~items:[ Plain "Text" ] ];
+      body =
+        H.value
+          ~about:[ "What stands for the bus channel in a span's name." ]
+          "telemetryChannel" (T_name "Text") (Str channel)
+        :: List.map (row haskell_span) t.spans
+        @ List.map (row haskell_metric) t.metrics;
+    }
+
+(* The table as the Rust telemetry crate reports it
+   (rust/telemetry/src/lib.rs): a constant per span, per metric and per
+   attribute key, each named by its words. *)
+let rust (t : t) =
+  let module R = Rust_syntax in
+  let constant ?(doc = []) name value =
+    R.Const
+      { doc; attrs = []; vis = Pub; name; ty = R.str_ty; value = R.Str value }
+  in
+  let row name (r : row) = constant ~doc:[ r.meaning ] (name r) r.name in
+  {
+    Output.path = "rust/telemetry/src/generated/table.rs";
+    text =
+      R.text
+        ~header:(Banner.lines ~from_:("protocol/specs/src/" ^ file) __FILE__)
+        (constant
+           ~doc:[ "What stands for the bus channel in a span's name." ]
+           "CHANNEL" channel
+         :: List.map (row span_constant) t.spans
+        @ List.map (row metric_constant) t.metrics
+        @ List.map
+            (fun k -> constant ~doc:[ about ] ("ATTR_" ^ key_upper k) k)
+            t.keys);
+  }
+
 let files ~root:_ (spec : Spec.t) =
   let table = spec.tables.sdk_telemetry_telemetry in
   Result.bind (derive table) (fun t ->
@@ -499,9 +627,13 @@ let files ~root:_ (spec : Spec.t) =
             ocaml t;
             kotlin;
             typescript t;
+            typescript_names t;
             csharp t;
+            csharp_names t;
             swift t;
             haskell t;
+            haskell_names t;
+            rust t;
           ])
         (Kotlin_sdk.written ~from_:file (fun () ->
              Kotlin.file ~from_:file

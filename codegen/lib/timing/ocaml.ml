@@ -13,13 +13,15 @@ let retry =
           (fun field -> (field, O.type_ "int"))
           [ "attempts"; "initial_delay_ms"; "max_delay_ms" ]))
 
+let name (e : Table.entry) = Text.snake e.name
+
 let files (t : Table.t) =
   [
     O.implementation ~path:"ocaml/sdk/lib/client_timing.ml" ~banner
       (O.type_item retry
       :: List.map
            (fun (e : Table.entry) ->
-             O.let_ (Text.snake e.name)
+             O.let_ (name e)
                (match e.value with
                | Duration n | Count n -> O.int n
                | Budget b ->
@@ -34,7 +36,7 @@ let files (t : Table.t) =
       (O.type_spec retry
       :: List.map
            (fun (e : Table.entry) ->
-             O.val_ (Text.snake e.name)
+             O.val_ (name e)
                (O.type_ (match e.value with Budget _ -> "retry" | _ -> "int")))
            t);
   ]

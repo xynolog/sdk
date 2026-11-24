@@ -8,6 +8,7 @@ module G = Go_syntax
 
 let path = "go/archivisthttp_gen.go"
 let route_type = "ArchivistRoute"
+let route_name operation_id = route_type ^ Text.pascal operation_id
 
 let operations (spec : Spec.t) =
   List.concat_map
@@ -29,7 +30,7 @@ let operations (spec : Spec.t) =
 
 let text (spec : Spec.t) =
   let route (operation_id, method_, path) =
-    let name = route_type ^ Text.pascal operation_id in
+    let name = route_name operation_id in
     G.spec
       ~doc:(G.prose (Printf.sprintf "%s is %s." name operation_id))
       name

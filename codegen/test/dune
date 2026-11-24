@@ -212,11 +212,16 @@
  (modules surface)
  (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema yojson alcotest))
 
-; dune exec test/types_census.exe -- ..
+; dune exec test/contracts_census.exe -- ..
 (executable
- (name types_census)
- (modules types_census)
+ (name contracts_census)
+ (modules contracts_census)
  (libraries xynolog_codegen))
+
+(test
+ (name contracts)
+ (modules contracts)
+ (libraries xynolog_codegen alcotest))
 
 ; dune exec test/typing_census.exe -- ..
 (executable

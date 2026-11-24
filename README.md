@@ -22,6 +22,8 @@ The Xynolog SDKs build applications on Xynolog knowledge bases, in nine language
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers building and testing the SDKs, their generated code, changelogs and releases, and what each language keeps.
 
+[CONTRACTS.md](CONTRACTS.md) counts every contract Protocol states and how many of its items each SDK declares.
+
 ## License
 
 Apache-2.0. See [LICENSE](./LICENSE) and [NOTICE](./NOTICE) for attribution.

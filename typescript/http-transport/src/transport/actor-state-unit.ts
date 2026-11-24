@@ -46,7 +46,9 @@ import {
 import {
   ATTR_BUS_CHANNEL,
   ATTR_BUS_SCOPE,
+  SPAN_BUS_RECV,
   SpanKind,
+  TELEMETRY_CHANNEL,
   extractTraceparent,
   getActiveTraceparent,
   withSpan,
@@ -854,7 +856,7 @@ export function createActorStateUnit(
               try {
                 await withTraceparent(carrier, () =>
                   withSpan(
-                    `bus.recv:${parsed.channel}`,
+                    SPAN_BUS_RECV.replace(TELEMETRY_CHANNEL, parsed.channel),
                     () => {
                       events$.next(
                         carrier ? { ...parsed, trace: carrier } : parsed,

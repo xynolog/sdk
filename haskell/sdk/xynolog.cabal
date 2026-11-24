@@ -136,6 +136,7 @@ library internal
     Xynolog.Internal.Generated.Principals
     Xynolog.Internal.Generated.BusLog
     Xynolog.Internal.Generated.TelemetryKeys
+    Xynolog.Internal.Generated.TelemetryNames
     Xynolog.Internal.BusLog
     Xynolog.Internal.Generated.UnicodeCase
     Xynolog.Annotations

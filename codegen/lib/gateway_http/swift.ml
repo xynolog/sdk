@@ -13,7 +13,8 @@ let decl ?(doc = []) modifiers body = { S.doc; modifiers; body }
 let docs text = Text.wrapped ~lead:"/// " ~width:100 text
 let member_docs text = Text.wrapped ~lead:"  /// " ~width:100 text
 let uncapitalized = String.uncapitalize_ascii
-let route_name (r : Model.route) = uncapitalized (Text.pascal r.operation_id)
+let operation_name operation_id = uncapitalized (Text.pascal operation_id)
+let route_name (r : Model.route) = operation_name r.operation_id
 
 let header_name h =
   uncapitalized
@@ -26,7 +27,7 @@ let constant ?(doc = []) name value =
 let route ~type_ ~operation_id ~method_ ~path =
   constant
     ~doc:(member_docs ("`" ^ operation_id ^ "`."))
-    (uncapitalized (Text.pascal operation_id))
+    (operation_name operation_id)
     (S.Call
        ( S.Name type_,
          [
