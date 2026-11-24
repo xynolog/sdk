@@ -11,13 +11,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data BusReplyBounds = BusReplyBounds
-  { busReplyBoundsReplies :: BusReplyBoundsReplies
+  { busReplyBoundsU24_comment :: Text,
+    busReplyBoundsReplies :: BusReplyBoundsReplies
   }
   deriving (Eq, Show)
 
-instance FromJSON BusReplyBounds where parseJSON = checked "BusReplyBounds" $ withObject "BusReplyBounds" (\fields -> BusReplyBounds <$> (fields .: "replies"))
+instance FromJSON BusReplyBounds where parseJSON = checked "BusReplyBounds" $ withObject "BusReplyBounds" (\fields -> BusReplyBounds <$> (fields .: "$comment") <*> (fields .: "replies"))
 
-instance ToJSON BusReplyBounds where toJSON value = Object (KM.fromList (concat [[("replies", toJSON (busReplyBoundsReplies value))]]))
+instance ToJSON BusReplyBounds where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (busReplyBoundsU24_comment value))], [("replies", toJSON (busReplyBoundsReplies value))]]))
 
 data BusReplyBoundsReplies = BusReplyBoundsReplies
   { busReplyBoundsRepliesAdditionalProperties :: KM.KeyMap BusReplyBoundsRepliesAdditionalValue

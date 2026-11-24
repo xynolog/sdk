@@ -179,10 +179,10 @@ clientCases fixtures = do
               atomically (modifyTVar' requests (<> [busFrameChannel frame]))
               input <- atomically (readTMVar inputCell)
               (reply, payload) <- case busFrameChannel frame of
-                "browse:resource-requested" -> do
+                request | request == Channel.channelName Channel.BrowseResourceRequested -> do
                   atomically (readTMVar blocked)
-                  pure ("browse:resource-result", toJSON (BrowseResourceResult (BrowseResourceResultResponse 1 (descriptor name)) mempty))
-                "browse:annotation-requested" -> pure ("browse:annotation-result", toJSON (BrowseAnnotationResult (GetAnnotationResponse annotationValue Nothing Nothing mempty) mempty))
+                  pure (Channel.channelName Channel.BrowseResourceResult, toJSON (BrowseResourceResult (BrowseResourceResultResponse 1 (descriptor name)) mempty))
+                request | request == Channel.channelName Channel.BrowseAnnotationRequested -> pure (Channel.channelName Channel.BrowseAnnotationResult, toJSON (BrowseAnnotationResult (GetAnnotationResponse annotationValue Nothing Nothing mempty) mempty))
                 request -> case find (\(Channel.SomeOperation operation) -> let (channel, _, _) = Channel.operationChannels operation in Channel.channelName channel == request) Channel.allOperations of
                   Nothing -> ioError (userError "Unexpected persistence request")
                   Just (Channel.SomeOperation operation) -> do
@@ -221,7 +221,7 @@ clientCases fixtures = do
     require "rehydrated query did not synchronously paint its durable value" (case initial of Cache.Ready value -> resourceDescriptorName value == "first"; _ -> False)
     watcher <- async (Cache.watch query (Stream.mapM_ (const (pure ()))))
     Time.settle
-    require "first restored observation did not issue exactly one resource revalidation" . (== ["browse:resource-requested"]) =<< readTVarIO calls
+    require "first restored observation did not issue exactly one resource revalidation" . (== [Channel.channelName Channel.BrowseResourceRequested]) =<< readTVarIO calls
     inFlight <- atomically (Cache.current query)
     require "restored query flashed pending during revalidation" (case inFlight of Cache.Ready value -> resourceDescriptorName value == "first"; _ -> False)
     atomically (putTMVar blocked ())

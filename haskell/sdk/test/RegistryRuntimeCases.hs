@@ -100,7 +100,7 @@ rig time fixtures = do
                 Just (Channels.SomeOperation operation) -> do
                   let (_, answer, _) = Channels.operationChannels operation
                   payload <-
-                    if busFrameChannel frame == "browse:kb-requested"
+                    if busFrameChannel frame == Channels.channelName Channels.BrowseKbRequested
                       then do
                         description <- fixture fixtures "KbDescription"
                         conflict <- readTVarIO different

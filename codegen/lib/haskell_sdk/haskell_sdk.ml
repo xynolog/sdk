@@ -192,11 +192,12 @@ let files ~root (spec : Spec.t) =
       | Error e -> Error e)
   in
   let* constants = within "client/surface.json" (Constants.modules spec) in
-  let* service_tables =
-    within "protocol/specs/src"
-      (Companions.service_tables_module
-         ~banner:(banner "the service tables of protocol/specs/src")
-         ~root spec)
+  let tables =
+    List.map
+      (Companions.tables_module
+         ~banner:(banner "the tables of protocol/specs/src")
+         ~root)
+      (Carried_tables.modules spec)
   in
   let* worker = Worker.modules ~root in
   let* manifest =
@@ -257,7 +258,6 @@ let files ~root (spec : Spec.t) =
              ~banner:
                (banner "protocol/specs/src/archivist/openapi.json and its paths")
              archivist);
-        file ~under:"src" service_tables;
         file ~under:"src"
           (Transport.file
              ~banner:
@@ -281,6 +281,7 @@ let files ~root (spec : Spec.t) =
                    protocol/specs/src/errors/codes.json")
              ~unrecognized readers);
       ]
+    @ List.map (file ~under:"src") tables
     @ List.map (file ~under:"generated") constants
     @ List.map (file ~under:"generated") worker
     @ manifest

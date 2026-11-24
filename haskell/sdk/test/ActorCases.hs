@@ -204,8 +204,8 @@ makeRig time config = do
             jobs = member "answers" config == String "jobs"
             auto
               | Just reply <- queued = Just reply
-              | jobs && channel == "job:create" = Just (object ["jobId" .= ("job-1" :: Text)])
-              | jobs && channel == "job:status-requested" = Just (object ["jobId" .= member "jobId" input, "type" .= ("mark" :: Text), "status" .= ("running" :: Text), "userId" .= ("did:web:example.org:users:alice" :: Text), "created" .= ("2026-10-01T00:00:00.000Z" :: Text)])
+              | jobs && channel == Channel.channelName Channel.JobCreate = Just (object ["jobId" .= ("job-1" :: Text)])
+              | jobs && channel == Channel.channelName Channel.JobStatusRequested = Just (object ["jobId" .= member "jobId" input, "type" .= ("mark" :: Text), "status" .= ("running" :: Text), "userId" .= ("did:web:example.org:users:alice" :: Text), "created" .= ("2026-10-01T00:00:00.000Z" :: Text)])
               | otherwise = Nothing
         case auto of
           Nothing | member "answers" config == String "never" -> pure ()

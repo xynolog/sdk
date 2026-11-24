@@ -25,6 +25,7 @@ import SessionCases (jwt)
 import System.FilePath ((</>))
 import System.Timeout (timeout)
 import Xynolog.Bus qualified as Bus
+import Xynolog.Channels qualified as Channel
 import Xynolog.Content qualified as Content
 import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (TransportError (..))
@@ -97,26 +98,28 @@ runCase fixtures row = do
       busOptions = Bus.BusOptions (Time.now time) (Time.waitUntil time) (Text.pack . show <$> fresh)
       unanswered name = throwIO (TransportError Code.TransportError ("the knowledge base does not answer " <> name) Nothing Nothing)
       respond _ name payload = case name of
-        "browse:kb-requested"
-          | kbAnswer == "itself" -> pure (Just (object ["name" .= ("Open" :: Text), "domain" .= kbDomain]))
-          | otherwise -> unanswered name
-        "browse:resource-requested" -> do
-          resource <- resourceOf why payload
-          case Map.lookup resource answers of
-            Just "ready" ->
-              pure
-                ( Just
-                    ( object
-                        [ "resource" .= object ["@context" .= ("https://schema.org/" :: Text), "@id" .= resource, "name" .= resource, "representations" .= ([] :: [Value])],
-                          "lastSequence" .= (1 :: Integer)
-                        ]
+        _
+          | name == Channel.channelName Channel.BrowseKbRequested,
+            kbAnswer == "itself" ->
+              pure (Just (object ["name" .= ("Open" :: Text), "domain" .= kbDomain]))
+          | name == Channel.channelName Channel.BrowseKbRequested -> unanswered name
+          | name == Channel.channelName Channel.BrowseResourceRequested -> do
+              resource <- resourceOf why payload
+              case Map.lookup resource answers of
+                Just "ready" ->
+                  pure
+                    ( Just
+                        ( object
+                            [ "resource" .= object ["@context" .= ("https://schema.org/" :: Text), "@id" .= resource, "name" .= resource, "representations" .= ([] :: [Value])],
+                              "lastSequence" .= (1 :: Integer)
+                            ]
+                        )
                     )
-                )
-            Just "unanswered" -> unanswered name
-            _ -> failure why ("was asked for " ++ Text.unpack resource ++ ", which it gives no answer about")
+                Just "unanswered" -> unanswered name
+                _ -> failure why ("was asked for " ++ Text.unpack resource ++ ", which it gives no answer about")
         _ -> Faulty.refuseUnscriptedOperation name payload
       gone _ name payload
-        | name /= "browse:resource-requested" = pure Nothing
+        | name /= Channel.channelName Channel.BrowseResourceRequested = pure Nothing
         | otherwise = do
             resource <- resourceOf why payload
             pure
@@ -169,7 +172,7 @@ runCase fixtures row = do
     requests <- Sessions.transports scripted kbId >>= fmap concat . mapM Faulty.requestLog
     askedAbout <-
       forM
-        [entry | entry <- requests, Faulty.requestLogEntryChannel entry == "browse:resource-requested"]
+        [entry | entry <- requests, Faulty.requestLogEntryChannel entry == Channel.channelName Channel.BrowseResourceRequested]
         (resourceOf why . Faulty.requestLogEntryPayload)
     held <- map (resourceIdValue . openResourceId) <$> atomically (State.current (Browser.openResources browser))
     agree why "asked about" askedAbout asked

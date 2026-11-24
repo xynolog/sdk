@@ -12,7 +12,8 @@ import Xynolog.Internal.Generated.Models.HttpStatus
 import Xynolog.Internal.Generated.Models.LogLevel
 
 data ArchivistMessages = ArchivistMessages
-  { archivistMessagesBoot :: [ArchivistMessagesBootItem],
+  { archivistMessagesU24_comment :: Text,
+    archivistMessagesBoot :: [ArchivistMessagesBootItem],
     archivistMessagesHttp :: [ArchivistMessagesHttpItem],
     archivistMessagesLogged :: [ArchivistMessagesLoggedItem],
     archivistMessagesRefusals :: [ArchivistMessagesRefusalsItem],
@@ -21,9 +22,9 @@ data ArchivistMessages = ArchivistMessages
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistMessages where parseJSON = checked "ArchivistMessages" $ withObject "ArchivistMessages" (\fields -> ArchivistMessages <$> (fields .: "boot") <*> (fields .: "http") <*> (fields .: "logged") <*> (fields .: "refusals") <*> (fields .: "unauthorized") <*> (fields .: "unsent"))
+instance FromJSON ArchivistMessages where parseJSON = checked "ArchivistMessages" $ withObject "ArchivistMessages" (\fields -> ArchivistMessages <$> (fields .: "$comment") <*> (fields .: "boot") <*> (fields .: "http") <*> (fields .: "logged") <*> (fields .: "refusals") <*> (fields .: "unauthorized") <*> (fields .: "unsent"))
 
-instance ToJSON ArchivistMessages where toJSON value = Object (KM.fromList (concat [[("boot", toJSON (archivistMessagesBoot value))], [("http", toJSON (archivistMessagesHttp value))], [("logged", toJSON (archivistMessagesLogged value))], [("refusals", toJSON (archivistMessagesRefusals value))], [("unauthorized", toJSON (archivistMessagesUnauthorized value))], [("unsent", toJSON (archivistMessagesUnsent value))]]))
+instance ToJSON ArchivistMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (archivistMessagesU24_comment value))], [("boot", toJSON (archivistMessagesBoot value))], [("http", toJSON (archivistMessagesHttp value))], [("logged", toJSON (archivistMessagesLogged value))], [("refusals", toJSON (archivistMessagesRefusals value))], [("unauthorized", toJSON (archivistMessagesUnauthorized value))], [("unsent", toJSON (archivistMessagesUnsent value))]]))
 
 data ArchivistMessagesBootItem = ArchivistMessagesBootItem
   { archivistMessagesBootItemName :: Text,

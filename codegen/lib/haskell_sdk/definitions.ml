@@ -1,5 +1,5 @@
 (* Every schema the Haskell SDK's models type, by name: the gateway's
-   component schemas, each service table's own ([Service_tables]), and the
+   component schemas, each carried table's own ([Carried_tables]), and the
    schemas the SDK derives beside them. A component is named by its file. Beside them are the form a resource's
    upload states its metadata in (ResourceUpload without its file), the trace
    carrier, the records of the client registry, of the state units' notices
@@ -128,7 +128,7 @@ let components (spec : Spec.t) =
           | None -> Error ("no schema file " ^ file))
       (Roots.all spec)
   in
-  let* tables = Service_tables.schemas spec in
+  let* tables = Carried_tables.schemas spec in
   let* tables = each (fun (name, s) -> rooted name s) tables in
   Ok (roots @ tables)
 

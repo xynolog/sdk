@@ -12,7 +12,8 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.LogLevel
 
 data WorkerMessages = WorkerMessages
-  { workerMessagesBoot :: [WorkerMessagesBootItem],
+  { workerMessagesU24_comment :: Text,
+    workerMessagesBoot :: [WorkerMessagesBootItem],
     workerMessagesDetails :: [WorkerMessagesDetailsItem],
     workerMessagesErrors :: [WorkerMessagesErrorsItem],
     workerMessagesJob :: WorkerMessagesJob,
@@ -22,9 +23,9 @@ data WorkerMessages = WorkerMessages
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessages where parseJSON = checked "WorkerMessages" $ withObject "WorkerMessages" (\fields -> WorkerMessages <$> (fields .: "boot") <*> (fields .: "details") <*> (fields .: "errors") <*> (fields .: "job") <*> (fields .: "logged") <*> (fields .: "reasons") <*> (fields .: "waits"))
+instance FromJSON WorkerMessages where parseJSON = checked "WorkerMessages" $ withObject "WorkerMessages" (\fields -> WorkerMessages <$> (fields .: "$comment") <*> (fields .: "boot") <*> (fields .: "details") <*> (fields .: "errors") <*> (fields .: "job") <*> (fields .: "logged") <*> (fields .: "reasons") <*> (fields .: "waits"))
 
-instance ToJSON WorkerMessages where toJSON value = Object (KM.fromList (concat [[("boot", toJSON (workerMessagesBoot value))], [("details", toJSON (workerMessagesDetails value))], [("errors", toJSON (workerMessagesErrors value))], [("job", toJSON (workerMessagesJob value))], [("logged", toJSON (workerMessagesLogged value))], [("reasons", toJSON (workerMessagesReasons value))], [("waits", toJSON (workerMessagesWaits value))]]))
+instance ToJSON WorkerMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (workerMessagesU24_comment value))], [("boot", toJSON (workerMessagesBoot value))], [("details", toJSON (workerMessagesDetails value))], [("errors", toJSON (workerMessagesErrors value))], [("job", toJSON (workerMessagesJob value))], [("logged", toJSON (workerMessagesLogged value))], [("reasons", toJSON (workerMessagesReasons value))], [("waits", toJSON (workerMessagesWaits value))]]))
 
 data WorkerMessagesBootItem = WorkerMessagesBootItemOwnBootRefusal WorkerMessagesBootItemOwnBootRefusalValue | WorkerMessagesBootItemSharedBootRefusal WorkerMessagesBootItemSharedBootRefusalValue deriving (Eq, Show)
 

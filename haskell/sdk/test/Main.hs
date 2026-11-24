@@ -75,6 +75,7 @@ import Xynolog.Internal.Required qualified as Required
 import Xynolog.Internal.Schema (checkSchema, validate, validateNamed)
 import Xynolog.Retry qualified as Retry
 import Xynolog.ServiceTables (serviceTables)
+import Xynolog.Tables (tables)
 import Xynolog.Timing.Settings qualified as TimingSettings
 import Xynolog.Types qualified as Types
 
@@ -286,10 +287,10 @@ identifierCases root = do
     _ -> ioError (userError "identifier table has no schema name")
 
 -- Each service table as the SDK carries it is the table as Protocol states it, but its prose.
-serviceTableCases :: FilePath -> IO ()
-serviceTableCases root = forM_ serviceTables $ \(file, carried) -> do
+tableCases :: FilePath -> IO ()
+tableCases root = forM_ (serviceTables ++ tables) $ \(file, carried) -> do
   stated <- readJSON (root </> "protocol/specs/src" </> T.unpack file)
-  require (T.unpack file ++ " is not carried as Protocol states it") (carried == Object (KM.delete "$comment" (object stated)))
+  require (T.unpack file ++ " is not carried as Protocol states it") (carried == stated)
 
 filesUnder :: FilePath -> IO [FilePath]
 filesUnder directory = do
@@ -599,8 +600,8 @@ runCases root = do
   clientAssertionCases root
   identifierCases root
   putStrLn "PASS shared identifier acceptance/refusal cases"
-  serviceTableCases root
-  putStrLn "PASS every service table carried as Protocol states it"
+  tableCases root
+  putStrLn "PASS every carried table as Protocol states it"
   channelCases root
   factCases root
   retryCases root

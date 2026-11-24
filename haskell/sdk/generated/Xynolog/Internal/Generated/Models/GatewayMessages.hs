@@ -11,15 +11,16 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.HttpStatus
 
 data GatewayMessages = GatewayMessages
-  { gatewayMessagesChallenges :: GatewayMessagesChallenges,
+  { gatewayMessagesU24_comment :: Text,
+    gatewayMessagesChallenges :: GatewayMessagesChallenges,
     gatewayMessagesFailures :: [GatewayMessagesFailuresItem],
     gatewayMessagesMessages :: [GatewayMessagesMessagesItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayMessages where parseJSON = checked "GatewayMessages" $ withObject "GatewayMessages" (\fields -> GatewayMessages <$> (fields .: "challenges") <*> (fields .: "failures") <*> (fields .: "messages"))
+instance FromJSON GatewayMessages where parseJSON = checked "GatewayMessages" $ withObject "GatewayMessages" (\fields -> GatewayMessages <$> (fields .: "$comment") <*> (fields .: "challenges") <*> (fields .: "failures") <*> (fields .: "messages"))
 
-instance ToJSON GatewayMessages where toJSON value = Object (KM.fromList (concat [[("challenges", toJSON (gatewayMessagesChallenges value))], [("failures", toJSON (gatewayMessagesFailures value))], [("messages", toJSON (gatewayMessagesMessages value))]]))
+instance ToJSON GatewayMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (gatewayMessagesU24_comment value))], [("challenges", toJSON (gatewayMessagesChallenges value))], [("failures", toJSON (gatewayMessagesFailures value))], [("messages", toJSON (gatewayMessagesMessages value))]]))
 
 data GatewayMessagesChallenges = GatewayMessagesChallenges
   { gatewayMessagesChallengesNoCredential :: Text,

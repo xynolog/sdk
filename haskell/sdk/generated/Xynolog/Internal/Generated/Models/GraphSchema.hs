@@ -10,15 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data GraphSchema = GraphSchema
-  { graphSchemaNodes :: GraphSchemaNodes,
+  { graphSchemaU24_comment :: Text,
+    graphSchemaNodes :: GraphSchemaNodes,
     graphSchemaRelationships :: GraphSchemaRelationships,
     graphSchemaStub :: GraphSchemaStub
   }
   deriving (Eq, Show)
 
-instance FromJSON GraphSchema where parseJSON = checked "GraphSchema" $ withObject "GraphSchema" (\fields -> GraphSchema <$> (fields .: "nodes") <*> (fields .: "relationships") <*> (fields .: "stub"))
+instance FromJSON GraphSchema where parseJSON = checked "GraphSchema" $ withObject "GraphSchema" (\fields -> GraphSchema <$> (fields .: "$comment") <*> (fields .: "nodes") <*> (fields .: "relationships") <*> (fields .: "stub"))
 
-instance ToJSON GraphSchema where toJSON value = Object (KM.fromList (concat [[("nodes", toJSON (graphSchemaNodes value))], [("relationships", toJSON (graphSchemaRelationships value))], [("stub", toJSON (graphSchemaStub value))]]))
+instance ToJSON GraphSchema where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (graphSchemaU24_comment value))], [("nodes", toJSON (graphSchemaNodes value))], [("relationships", toJSON (graphSchemaRelationships value))], [("stub", toJSON (graphSchemaStub value))]]))
 
 data GraphSchemaNodes = GraphSchemaNodes
   { graphSchemaNodesAnnotation :: GraphSchemaNodesAnnotation,
