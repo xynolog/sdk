@@ -1011,7 +1011,7 @@ func Store(ctx context.Context, content xynolog.ContentTransport, gateway xynolo
 		Name: "A page", Bytes: page, Format: "text/markdown", StorageURI: "file://pages/a.md", EntityTypes: []string{"Note"},
 	})
 	for progress := range upload.Progress() {
-		member, err := progress.ValueByDiscriminator()
+		member, err := progress.Member()
 		if err != nil {
 			return api.ResourceId{}, err
 		}

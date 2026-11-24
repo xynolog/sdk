@@ -17,11 +17,6 @@ module T = Typing
    [Typing] has the union, its members told apart by their patterns. *)
 let text_union (u : T.union) = List.for_all T.admits_only_text u.branches
 
-(* Go holds a union's value as the wire carries it, and its caller reads it
-   as whichever member the caller names ([As]); only a union told apart by
-   a tag says which member a value is ([ValueByDiscriminator]). [Typing]
-   tells every union's members apart by their signatures. *)
-
 (* Rust names an object in place that is closed and names no member, but
    does not say [maxProperties: 0], for its place, and Python every object in
    place that holds no member ([Typing.holds_none]), where [Typing] has the

@@ -54,6 +54,89 @@ let doc_of name description =
   | Some d -> G.prose (name ^ " " ^ String.trim d)
   | None -> []
 
+(* A value a schema states, as Go writes it. *)
+let literal (l : Schema.literal) =
+  match l with
+  | Schema.String_literal s -> G.Quoted s
+  | Schema.Int_literal n -> G.Int n
+  | Schema.Bool_literal b -> G.Name (string_of_bool b)
+
+let values ls =
+  G.Literal
+    {
+      of_ = Some (G.Slice any);
+      elements = List.map (fun l -> G.element (literal l)) ls;
+      layout = G.Inline;
+    }
+
+let words ws =
+  G.Literal
+    {
+      of_ = Some (G.Slice string_);
+      elements = List.map (fun w -> G.element (G.Quoted w)) ws;
+      layout = G.Inline;
+    }
+
+(* What a member of a union admits, as go/api/members.go's [signature] holds
+   it, stating only what it says. *)
+let signature (s : T.signature) =
+  let kind =
+    match s.kind with
+    | T.Text_kind -> "textKind"
+    | T.Integer_kind -> "integerKind"
+    | T.Number_kind -> "numberKind"
+    | T.Boolean_kind -> "booleanKind"
+    | T.List_kind -> "listKind"
+    | T.Object_kind -> "objectKind"
+    | T.Null_kind -> "nullKind"
+    | T.Any_kind -> "anyKind"
+  in
+  let field name value = G.element ~key:(G.Name name) value in
+  G.Literal
+    {
+      of_ = None;
+      elements =
+        ([ field "kind" (G.Name kind) ]
+        @ (if s.required = [] then []
+           else [ field "required" (words s.required) ])
+        @ (match s.allowed with
+          | Some allowed ->
+              [
+                field "allowed" (words allowed); field "closed" (G.Name "true");
+              ]
+          | None -> [])
+        @ (if s.fixed = [] then []
+           else
+             [
+               field "fixed"
+                 (G.Literal
+                    {
+                      of_ = Some (G.Slice (named "fixedValues"));
+                      elements =
+                        List.map
+                          (fun (p, vs) ->
+                            G.element
+                              (G.Literal
+                                 {
+                                   of_ = None;
+                                   elements =
+                                     [
+                                       G.element (G.Quoted p);
+                                       G.element (values vs);
+                                     ];
+                                   layout = G.Inline;
+                                 }))
+                          s.fixed;
+                      layout = G.Inline;
+                    });
+             ])
+        @
+        match s.values with
+        | Some vs -> [ field "values" (values vs) ]
+        | None -> []);
+      layout = G.Inline;
+    }
+
 let marker union = "memberOf" ^ union
 let member_interface union = union ^ "Member"
 
@@ -447,7 +530,7 @@ and union_declaration st name (u : T.union) doc =
   let discriminated =
     match told_apart with
     | None -> []
-    | Some (property, tags) ->
+    | Some (property, _) ->
         [
           G.func
             ~doc:
@@ -457,46 +540,66 @@ and union_declaration st name (u : T.union) doc =
             ~results:(G.Unnamed [ named "string"; named "error" ])
             "Discriminator"
             (G.One_line (G.Return [ G.call "u.stated" [ G.Quoted property ] ]));
-          G.func
-            ~doc:
-              (G.prose
-                 ("ValueByDiscriminator is the member this value's `" ^ property
-                ^ "` names."))
-            ~receiver:("u", named name)
-            ~results:(G.Unnamed [ any; named "error" ])
-            "ValueByDiscriminator"
-            (G.Block
-               [
-                 G.Define ([ "tag"; "err" ], G.call "u.Discriminator" []);
-                 G.If
-                   ( G.Binary (G.Name "err", G.Ne, G.Name "nil"),
-                     [ G.Return [ G.Name "nil"; G.Name "err" ] ] );
-                 G.Switch
-                   {
-                     tag = Some (G.Name "tag");
-                     cases =
-                       List.map2
-                         (fun t values ->
-                           ( List.map (fun v -> G.Quoted v) values,
-                             [
-                               G.Return
-                                 [
-                                   G.Call
-                                     ( G.Instance (G.Name "as", [ named t ]),
-                                       [ G.Name "u.union" ] );
-                                 ];
-                             ] ))
-                         member_types tags;
-                     default = None;
-                   };
-                 G.Return
-                   [
-                     G.Name "nil";
-                     G.call "unnamedMember"
-                       [ G.Quoted name; G.Quoted property; G.Name "tag" ];
-                   ];
-               ]);
         ]
+  in
+  (match T.apart_by_pattern_only u with
+  | Some (a, b) ->
+      refuse
+        "%s: its members %s and %s are told apart only by a pattern, which the \
+         Go SDK does not read"
+        name a b
+  | None -> ());
+  let members = String.uncapitalize_ascii name ^ "Members" in
+  let table =
+    G.Var
+      (G.spec
+         ~doc:
+           (G.prose
+              (members ^ " is what each member of " ^ name
+             ^ " admits, and how a value of it is read."))
+         members
+         (G.Literal
+            {
+              of_ = Some (G.Slice (named "unionMember"));
+              elements =
+                List.map2
+                  (fun t (b : T.branch) ->
+                    G.element
+                      (G.Literal
+                         {
+                           of_ = None;
+                           elements =
+                             [
+                               G.element (G.Quoted t);
+                               G.element
+                                 (G.Instance (G.Name "readAs", [ named t ]));
+                               G.element
+                                 (G.Literal
+                                    {
+                                      of_ = Some (G.Slice (named "signature"));
+                                      elements =
+                                        List.map
+                                          (fun s -> G.element (signature s))
+                                          b.signature;
+                                      layout = G.Inline;
+                                    });
+                             ];
+                           layout = G.Inline;
+                         }))
+                  member_types u.branches;
+              layout = G.Lines G.Packed;
+            }))
+  in
+  let member =
+    G.func
+      ~doc:
+        (G.prose
+           "Member is the member this value is: the one whose schema admits it.")
+      ~receiver:("u", named name)
+      ~results:(G.Unnamed [ any; named "error" ])
+      "Member"
+      (G.One_line
+         (G.Return [ G.call "u.member" [ G.Quoted name; G.Name members ] ]))
   in
   [
     G.Type
@@ -529,7 +632,7 @@ and union_declaration st name (u : T.union) doc =
         def = G.Interface [ G.method_ (marker name) [] ];
       };
   ]
-  @ discriminated
+  @ discriminated @ [ member; table ]
 
 (* The methods that make each member type a member of its unions, and say the
    value it is told apart by. *)

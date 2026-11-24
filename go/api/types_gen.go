@@ -61,21 +61,15 @@ type AgentMember interface {
 // Discriminator is the `@type` this value states.
 func (u Agent) Discriminator() (string, error) { return u.stated("@type") }
 
-// ValueByDiscriminator is the member this value's `@type` names.
-func (u Agent) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "Person":
-		return as[AgentPerson](u.union)
-	case "Organization":
-		return as[AgentOrganization](u.union)
-	case "Software":
-		return as[AgentSoftware](u.union)
-	}
-	return nil, unnamedMember("Agent", "@type", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u Agent) Member() (any, error) { return u.member("Agent", agentMembers) }
+
+// agentMembers is what each member of Agent admits, and how a value of it is
+// read.
+var agentMembers = []unionMember{
+	{"AgentPerson", readAs[AgentPerson], []signature{{kind: objectKind, required: []string{"@type"}, fixed: []fixedValues{{"@type", []any{"Person"}}}}}},
+	{"AgentOrganization", readAs[AgentOrganization], []signature{{kind: objectKind, required: []string{"@type", "name"}, fixed: []fixedValues{{"@type", []any{"Organization"}}}}}},
+	{"AgentSoftware", readAs[AgentSoftware], []signature{{kind: objectKind, required: []string{"@type"}, fixed: []fixedValues{{"@type", []any{"Software"}}}}}},
 }
 
 func (Agent) memberOfOneOrMoreAgents() {}
@@ -371,21 +365,17 @@ type AnchoredTextAnswerMember interface {
 // Discriminator is the `kind` this value states.
 func (u AnchoredTextAnswer) Discriminator() (string, error) { return u.stated("kind") }
 
-// ValueByDiscriminator is the member this value's `kind` names.
-func (u AnchoredTextAnswer) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "extracted":
-		return as[ExtractedText](u.union)
-	case "declined":
-		return as[ExtractionDeclined](u.union)
-	case "not-yet", "no-map", "unknown":
-		return as[AnchoredTextAbsent](u.union)
-	}
-	return nil, unnamedMember("AnchoredTextAnswer", "kind", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u AnchoredTextAnswer) Member() (any, error) {
+	return u.member("AnchoredTextAnswer", anchoredTextAnswerMembers)
+}
+
+// anchoredTextAnswerMembers is what each member of AnchoredTextAnswer admits,
+// and how a value of it is read.
+var anchoredTextAnswerMembers = []unionMember{
+	{"ExtractedText", readAs[ExtractedText], []signature{{kind: objectKind, required: []string{"text", "items", "kind", "method"}, fixed: []fixedValues{{"kind", []any{"extracted"}}, {"method", []any{"text-passthrough", "pdf-text-layer", "table", "form", "ocr"}}, {"pdfClass", []any{"A", "B", "C", "D", "E", "F", "G"}}}}}},
+	{"ExtractionDeclined", readAs[ExtractionDeclined], []signature{{kind: objectKind, required: []string{"kind", "declined"}, fixed: []fixedValues{{"kind", []any{"declined"}}, {"declined", []any{"no-text-layer", "encrypted", "corrupt", "too-large"}}}}}},
+	{"AnchoredTextAbsent", readAs[AnchoredTextAbsent], []signature{{kind: objectKind, required: []string{"kind"}, fixed: []fixedValues{{"kind", []any{"not-yet", "no-map", "unknown"}}}}}},
 }
 
 // AnchoredTextDeclinedEntry The bytes were declined: no text is extracted
@@ -451,6 +441,18 @@ type AnchoredTextEntry struct {
 // AnchoredTextExtractedEntry, AnchoredTextDeclinedEntry.
 type AnchoredTextEntryMember interface {
 	memberOfAnchoredTextEntry()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u AnchoredTextEntry) Member() (any, error) {
+	return u.member("AnchoredTextEntry", anchoredTextEntryMembers)
+}
+
+// anchoredTextEntryMembers is what each member of AnchoredTextEntry admits,
+// and how a value of it is read.
+var anchoredTextEntryMembers = []unionMember{
+	{"AnchoredTextExtractedEntry", readAs[AnchoredTextExtractedEntry], []signature{{kind: objectKind, required: []string{"v", "stamp", "text", "lines", "method"}, allowed: []string{"v", "stamp", "text", "lines", "method", "pdfClass", "ocrConfidence", "unreadPages"}, closed: true, fixed: []fixedValues{{"v", []any{3}}, {"method", []any{"text-passthrough", "pdf-text-layer", "table", "form", "ocr"}}, {"pdfClass", []any{"A", "B", "C", "D", "E", "F", "G"}}}}}},
+	{"AnchoredTextDeclinedEntry", readAs[AnchoredTextDeclinedEntry], []signature{{kind: objectKind, required: []string{"v", "stamp", "declined"}, allowed: []string{"v", "stamp", "declined"}, closed: true, fixed: []fixedValues{{"v", []any{3}}, {"declined", []any{"no-text-layer", "encrypted", "corrupt", "too-large"}}}}}},
 }
 
 // AnchoredTextExtractedEntry The text extracted from the bytes, where each
@@ -613,6 +615,18 @@ type AnnotationBodiesMember interface {
 	memberOfAnnotationBodies()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u AnnotationBodies) Member() (any, error) {
+	return u.member("AnnotationBodies", annotationBodiesMembers)
+}
+
+// annotationBodiesMembers is what each member of AnnotationBodies admits, and
+// how a value of it is read.
+var annotationBodiesMembers = []unionMember{
+	{"AnnotationBody", readAs[AnnotationBody], []signature{{kind: objectKind, required: []string{"type", "value"}, fixed: []fixedValues{{"type", []any{"TextualBody"}}, {"purpose", []any{"assessing", "bookmarking", "classifying", "commenting", "describing", "editing", "highlighting", "identifying", "linking", "moderating", "questioning", "replying", "tagging"}}}}, {kind: objectKind, required: []string{"type", "source"}, fixed: []fixedValues{{"type", []any{"SpecificResource"}}, {"purpose", []any{"assessing", "bookmarking", "classifying", "commenting", "describing", "editing", "highlighting", "identifying", "linking", "moderating", "questioning", "replying", "tagging"}}}}}},
+	{"AnnotationBodiesList", readAs[AnnotationBodiesList], []signature{{kind: listKind}}},
+}
+
 // AnnotationBodiesList is a AnnotationBodies that is a list.
 type AnnotationBodiesList []AnnotationBody
 
@@ -636,19 +650,16 @@ type AnnotationBodyMember interface {
 // Discriminator is the `type` this value states.
 func (u AnnotationBody) Discriminator() (string, error) { return u.stated("type") }
 
-// ValueByDiscriminator is the member this value's `type` names.
-func (u AnnotationBody) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "TextualBody":
-		return as[TextualBody](u.union)
-	case "SpecificResource":
-		return as[SpecificResource](u.union)
-	}
-	return nil, unnamedMember("AnnotationBody", "type", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u AnnotationBody) Member() (any, error) {
+	return u.member("AnnotationBody", annotationBodyMembers)
+}
+
+// annotationBodyMembers is what each member of AnnotationBody admits, and how
+// a value of it is read.
+var annotationBodyMembers = []unionMember{
+	{"TextualBody", readAs[TextualBody], []signature{{kind: objectKind, required: []string{"type", "value"}, fixed: []fixedValues{{"type", []any{"TextualBody"}}, {"purpose", []any{"assessing", "bookmarking", "classifying", "commenting", "describing", "editing", "highlighting", "identifying", "linking", "moderating", "questioning", "replying", "tagging"}}}}}},
+	{"SpecificResource", readAs[SpecificResource], []signature{{kind: objectKind, required: []string{"type", "source"}, fixed: []fixedValues{{"type", []any{"SpecificResource"}}, {"purpose", []any{"assessing", "bookmarking", "classifying", "commenting", "describing", "editing", "highlighting", "identifying", "linking", "moderating", "questioning", "replying", "tagging"}}}}}},
 }
 
 func (AnnotationBody) memberOfAnnotationBodies() {}
@@ -699,6 +710,18 @@ type AnnotationSelector struct {
 // AnnotationSelectorList.
 type AnnotationSelectorMember interface {
 	memberOfAnnotationSelector()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u AnnotationSelector) Member() (any, error) {
+	return u.member("AnnotationSelector", annotationSelectorMembers)
+}
+
+// annotationSelectorMembers is what each member of AnnotationSelector admits,
+// and how a value of it is read.
+var annotationSelectorMembers = []unionMember{
+	{"Selector", readAs[Selector], []signature{{kind: objectKind, required: []string{"type", "start", "end"}, fixed: []fixedValues{{"type", []any{"TextPositionSelector"}}}}, {kind: objectKind, required: []string{"type", "exact"}, fixed: []fixedValues{{"type", []any{"TextQuoteSelector"}}}}, {kind: objectKind, required: []string{"type", "value"}, fixed: []fixedValues{{"type", []any{"SvgSelector"}}}}, {kind: objectKind, required: []string{"type", "value"}, fixed: []fixedValues{{"type", []any{"FragmentSelector"}}}}}},
+	{"AnnotationSelectorList", readAs[AnnotationSelectorList], []signature{{kind: listKind}}},
 }
 
 // AnnotationSelectorList is a AnnotationSelector that is a list.
@@ -752,6 +775,18 @@ type AnnotationTargetValue struct {
 // ResourceId, AnnotationTarget.
 type AnnotationTargetValueMember interface {
 	memberOfAnnotationTargetValue()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u AnnotationTargetValue) Member() (any, error) {
+	return u.member("AnnotationTargetValue", annotationTargetValueMembers)
+}
+
+// annotationTargetValueMembers is what each member of AnnotationTargetValue
+// admits, and how a value of it is read.
+var annotationTargetValueMembers = []unionMember{
+	{"ResourceId", readAs[ResourceId], []signature{{kind: textKind}}},
+	{"AnnotationTarget", readAs[AnnotationTarget], []signature{{kind: objectKind, required: []string{"source"}, fixed: []fixedValues{{"type", []any{"SpecificResource"}}}}}},
 }
 
 // AnnotationType W3C Annotation type
@@ -1758,6 +1793,17 @@ type BodyOperationMember interface {
 	memberOfBodyOperation()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u BodyOperation) Member() (any, error) { return u.member("BodyOperation", bodyOperationMembers) }
+
+// bodyOperationMembers is what each member of BodyOperation admits, and how a
+// value of it is read.
+var bodyOperationMembers = []unionMember{
+	{"BodyOperationAdd", readAs[BodyOperationAdd], []signature{{kind: objectKind, required: []string{"op", "item"}, fixed: []fixedValues{{"op", []any{"add"}}}}}},
+	{"BodyOperationRemove", readAs[BodyOperationRemove], []signature{{kind: objectKind, required: []string{"op", "item"}, fixed: []fixedValues{{"op", []any{"remove"}}}}}},
+	{"BodyOperationReplace", readAs[BodyOperationReplace], []signature{{kind: objectKind, required: []string{"op", "oldItem", "newItem"}, fixed: []fixedValues{{"op", []any{"replace"}}}}}},
+}
+
 type BodyOperationAdd struct {
 	Op   BodyOperationAddOp `json:"op"`
 	Item AnnotationBody     `json:"item"`
@@ -2363,6 +2409,18 @@ type BusReplyBoundsRepliesValueValueMember interface {
 	memberOfBusReplyBoundsRepliesValueValue()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u BusReplyBoundsRepliesValueValue) Member() (any, error) {
+	return u.member("BusReplyBoundsRepliesValueValue", busReplyBoundsRepliesValueValueMembers)
+}
+
+// busReplyBoundsRepliesValueValueMembers is what each member of
+// BusReplyBoundsRepliesValueValue admits, and how a value of it is read.
+var busReplyBoundsRepliesValueValueMembers = []unionMember{
+	{"BusReplyBoundsRepliesValueValueBy", readAs[BusReplyBoundsRepliesValueValueBy], []signature{{kind: objectKind, required: []string{"by"}, allowed: []string{"by"}, closed: true}}},
+	{"BusReplyBoundsRepliesValueValueGrows", readAs[BusReplyBoundsRepliesValueValueGrows], []signature{{kind: objectKind, required: []string{"grows"}, allowed: []string{"grows"}, closed: true}}},
+}
+
 // BusReplyBoundsRepliesValueValueBy A list or map bounded by a member of the
 // request.
 type BusReplyBoundsRepliesValueValueBy struct {
@@ -2433,6 +2491,18 @@ type BusStreamMessage struct {
 // BusPingMessage.
 type BusStreamMessageMember interface {
 	memberOfBusStreamMessage()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u BusStreamMessage) Member() (any, error) {
+	return u.member("BusStreamMessage", busStreamMessageMembers)
+}
+
+// busStreamMessageMembers is what each member of BusStreamMessage admits, and
+// how a value of it is read.
+var busStreamMessageMembers = []unionMember{
+	{"BusEventMessage", readAs[BusEventMessage], []signature{{kind: objectKind, required: []string{"event", "id", "data"}, allowed: []string{"event", "id", "data"}, closed: true, fixed: []fixedValues{{"event", []any{"bus-event"}}}}}},
+	{"BusPingMessage", readAs[BusPingMessage], []signature{{kind: objectKind, required: []string{"event", "data"}, allowed: []string{"event", "data"}, closed: true, fixed: []fixedValues{{"event", []any{"ping"}}}}}},
 }
 
 // BusSubscribeRequest Subscription matrix for the bus stream. `global`
@@ -2825,6 +2895,32 @@ type ConformanceDriverLineMember interface {
 	memberOfConformanceDriverLine()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u ConformanceDriverLine) Member() (any, error) {
+	return u.member("ConformanceDriverLine", conformanceDriverLineMembers)
+}
+
+// conformanceDriverLineMembers is what each member of ConformanceDriverLine
+// admits, and how a value of it is read.
+var conformanceDriverLineMembers = []unionMember{
+	{"ConformanceDriverLineReady", readAs[ConformanceDriverLineReady], []signature{{kind: objectKind, required: []string{"ready"}, allowed: []string{"ready"}, closed: true, fixed: []fixedValues{{"ready", []any{true}}}}}},
+	{"ConformanceDriverLineOk", readAs[ConformanceDriverLineOk], []signature{{kind: objectKind, required: []string{"id", "ok"}, allowed: []string{"id", "ok"}, closed: true}}},
+	{"ConformanceDriverLineFailed", readAs[ConformanceDriverLineFailed], []signature{{kind: objectKind, required: []string{"id", "error"}, allowed: []string{"id", "error"}, closed: true}}},
+	{"ConformanceDriverLineAbandoned", readAs[ConformanceDriverLineAbandoned], []signature{{kind: objectKind, required: []string{"id", "abandoned"}, allowed: []string{"id", "abandoned"}, closed: true, fixed: []fixedValues{{"abandoned", []any{true}}}}}},
+	{"ConformanceDriverLineUnsupported", readAs[ConformanceDriverLineUnsupported], []signature{{kind: objectKind, required: []string{"id", "unsupported"}, allowed: []string{"id", "unsupported"}, closed: true, fixed: []fixedValues{{"unsupported", []any{true}}}}}},
+	{"ConformanceDriverLineMisuse", readAs[ConformanceDriverLineMisuse], []signature{{kind: objectKind, required: []string{"id", "misuse"}, allowed: []string{"id", "misuse"}, closed: true}}},
+	{"ConformanceDriverLineState", readAs[ConformanceDriverLineState], []signature{{kind: objectKind, required: []string{"state"}, allowed: []string{"state"}, closed: true}}},
+	{"ConformanceDriverLineFrame", readAs[ConformanceDriverLineFrame], []signature{{kind: objectKind, required: []string{"frame"}, allowed: []string{"frame"}, closed: true}}},
+	{"ConformanceDriverLineErrorStream", readAs[ConformanceDriverLineErrorStream], []signature{{kind: objectKind, required: []string{"error"}, allowed: []string{"error"}, closed: true}}},
+	{"ConformanceDriverLineProgress", readAs[ConformanceDriverLineProgress], []signature{{kind: objectKind, required: []string{"progress"}, allowed: []string{"progress"}, closed: true}}},
+	{"ConformanceDriverLineEmission", readAs[ConformanceDriverLineEmission], []signature{{kind: objectKind, required: []string{"emission"}, allowed: []string{"emission"}, closed: true}}},
+	{"ConformanceDriverLineCompleted", readAs[ConformanceDriverLineCompleted], []signature{{kind: objectKind, required: []string{"completed"}, allowed: []string{"completed"}, closed: true}}},
+	{"ConformanceDriverLineClaimed", readAs[ConformanceDriverLineClaimed], []signature{{kind: objectKind, required: []string{"claimed"}, allowed: []string{"claimed"}, closed: true}}},
+	{"ConformanceDriverLineRefused", readAs[ConformanceDriverLineRefused], []signature{{kind: objectKind, required: []string{"refused"}, allowed: []string{"refused"}, closed: true}}},
+	{"ConformanceDriverLineSignalled", readAs[ConformanceDriverLineSignalled], []signature{{kind: objectKind, required: []string{"signalled"}, allowed: []string{"signalled"}, closed: true}}},
+	{"ConformanceDriverLineStalled", readAs[ConformanceDriverLineStalled], []signature{{kind: objectKind, required: []string{"stalled"}, allowed: []string{"stalled"}, closed: true}}},
+}
+
 // ConformanceDriverLineAbandoned The suite abandoned the operation, and the
 // SDK reported nothing else.
 type ConformanceDriverLineAbandoned struct {
@@ -2900,6 +2996,20 @@ type ConformanceDriverLineEmissionEmissionState struct {
 // ConformanceDriverLineEmissionEmissionStateFailed.
 type ConformanceDriverLineEmissionEmissionStateMember interface {
 	memberOfConformanceDriverLineEmissionEmissionState()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ConformanceDriverLineEmissionEmissionState) Member() (any, error) {
+	return u.member("ConformanceDriverLineEmissionEmissionState", conformanceDriverLineEmissionEmissionStateMembers)
+}
+
+// conformanceDriverLineEmissionEmissionStateMembers is what each member of
+// ConformanceDriverLineEmissionEmissionState admits, and how a value of it is
+// read.
+var conformanceDriverLineEmissionEmissionStateMembers = []unionMember{
+	{"ConformanceDriverLineEmissionEmissionStatePending", readAs[ConformanceDriverLineEmissionEmissionStatePending], []signature{{kind: objectKind, required: []string{"status"}, allowed: []string{"status"}, closed: true, fixed: []fixedValues{{"status", []any{"pending"}}}}}},
+	{"ConformanceDriverLineEmissionEmissionStateReady", readAs[ConformanceDriverLineEmissionEmissionStateReady], []signature{{kind: objectKind, required: []string{"status", "value"}, allowed: []string{"status", "value"}, closed: true, fixed: []fixedValues{{"status", []any{"ready"}}}}}},
+	{"ConformanceDriverLineEmissionEmissionStateFailed", readAs[ConformanceDriverLineEmissionEmissionStateFailed], []signature{{kind: objectKind, required: []string{"status", "error"}, allowed: []string{"status", "error"}, closed: true, fixed: []fixedValues{{"status", []any{"failed"}}}}}},
 }
 
 type ConformanceDriverLineEmissionEmissionStateFailed struct {
@@ -3304,6 +3414,44 @@ type ConformanceStepMember interface {
 	memberOfConformanceStep()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u ConformanceStep) Member() (any, error) {
+	return u.member("ConformanceStep", conformanceStepMembers)
+}
+
+// conformanceStepMembers is what each member of ConformanceStep admits, and
+// how a value of it is read.
+var conformanceStepMembers = []unionMember{
+	{"ConformanceStepLet", readAs[ConformanceStepLet], []signature{{kind: objectKind, required: []string{"let"}, allowed: []string{"let"}, closed: true}}},
+	{"ConformanceStepDriver", readAs[ConformanceStepDriver], []signature{{kind: objectKind, required: []string{"driver"}, allowed: []string{"driver", "with", "returns", "fails", "as"}, closed: true}}},
+	{"ConformanceStepAbandon", readAs[ConformanceStepAbandon], []signature{{kind: objectKind, required: []string{"abandon"}, allowed: []string{"abandon"}, closed: true}}},
+	{"ConformanceStepSettles", readAs[ConformanceStepSettles], []signature{{kind: objectKind, required: []string{"settles"}, allowed: []string{"settles", "returns", "fails", "abandoned"}, closed: true, fixed: []fixedValues{{"abandoned", []any{true}}}}}},
+	{"ConformanceStepWire", readAs[ConformanceStepWire], []signature{{kind: objectKind, required: []string{"wire"}, allowed: []string{"wire", "at", "status", "params", "body", "token", "headers", "answer", "as", "follows", "waited"}, closed: true, fixed: []fixedValues{{"at", []any{"arrival", "answer", "live"}}}}}},
+	{"ConformanceStepCarried", readAs[ConformanceStepCarried], []signature{{kind: objectKind, required: []string{"carried", "is"}, allowed: []string{"carried", "is"}, closed: true}}},
+	{"ConformanceStepClosed", readAs[ConformanceStepClosed], []signature{{kind: objectKind, required: []string{"closed"}, allowed: []string{"closed"}, closed: true}}},
+	{"ConformanceStepProgress", readAs[ConformanceStepProgress], []signature{{kind: objectKind, required: []string{"progress"}, allowed: []string{"progress"}, closed: true}}},
+	{"ConformanceStepState", readAs[ConformanceStepState], []signature{{kind: objectKind, required: []string{"state"}, allowed: []string{"state"}, closed: true, fixed: []fixedValues{{"state", []any{"initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"}}}}}},
+	{"ConformanceStepStays", readAs[ConformanceStepStays], []signature{{kind: objectKind, required: []string{"stays"}, allowed: []string{"stays"}, closed: true, fixed: []fixedValues{{"stays", []any{"initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"}}}}}},
+	{"ConformanceStepFrame", readAs[ConformanceStepFrame], []signature{{kind: objectKind, required: []string{"frame", "is"}, allowed: []string{"frame", "is"}, closed: true}}},
+	{"ConformanceStepFrames", readAs[ConformanceStepFrames], []signature{{kind: objectKind, required: []string{"frames", "count"}, allowed: []string{"frames", "count"}, closed: true}}},
+	{"ConformanceStepError", readAs[ConformanceStepError], []signature{{kind: objectKind, required: []string{"error"}, allowed: []string{"error"}, closed: true}}},
+	{"ConformanceStepBackend", readAs[ConformanceStepBackend], []signature{{kind: objectKind, required: []string{"backend"}, allowed: []string{"backend", "with"}, closed: true, fixed: []fixedValues{{"backend", []any{"listen", "emit", "record", "content", "description", "annotations", "anchored-text", "uploaded", "refuse", "unanswered", "answer-lost", "hold", "release", "rechunk", "carry", "cut", "down", "up", "archivist"}}}}}},
+	{"ConformanceStepQuiet", readAs[ConformanceStepQuiet], []signature{{kind: objectKind, required: []string{"quiet"}, allowed: []string{"quiet"}, closed: true}}},
+	{"ConformanceStepObserve", readAs[ConformanceStepObserve], []signature{{kind: objectKind, required: []string{"observe", "as"}, allowed: []string{"observe", "as"}, closed: true}}},
+	{"ConformanceStepLeave", readAs[ConformanceStepLeave], []signature{{kind: objectKind, required: []string{"leave"}, allowed: []string{"leave"}, closed: true}}},
+	{"ConformanceStepReaches", readAs[ConformanceStepReaches], []signature{{kind: objectKind, required: []string{"reaches", "state"}, allowed: []string{"reaches", "state"}, closed: true}}},
+	{"ConformanceStepHolds", readAs[ConformanceStepHolds], []signature{{kind: objectKind, required: []string{"holds", "state"}, allowed: []string{"holds", "state"}, closed: true}}},
+	{"ConformanceStepCompletes", readAs[ConformanceStepCompletes], []signature{{kind: objectKind, required: []string{"completes"}, allowed: []string{"completes"}, closed: true}}},
+	{"ConformanceBusFetch", readAs[ConformanceBusFetch], []signature{{kind: objectKind, required: []string{"fetch", "as"}, allowed: []string{"fetch", "payload", "as"}, closed: true}}},
+	{"ConformanceHttpFetch", readAs[ConformanceHttpFetch], []signature{{kind: objectKind, required: []string{"fetch"}, allowed: []string{"fetch", "params"}, closed: true}}},
+	{"ConformanceStepFetches", readAs[ConformanceStepFetches], []signature{{kind: objectKind, required: []string{"fetches"}, allowed: []string{"fetches"}, closed: true}}},
+	{"ConformanceStepScopes", readAs[ConformanceStepScopes], []signature{{kind: objectKind, required: []string{"scopes"}, allowed: []string{"scopes"}, closed: true}}},
+	{"ConformanceStepClaimed", readAs[ConformanceStepClaimed], []signature{{kind: objectKind, required: []string{"claimed"}, allowed: []string{"claimed"}, closed: true}}},
+	{"ConformanceStepRefused", readAs[ConformanceStepRefused], []signature{{kind: objectKind, required: []string{"refused"}, allowed: []string{"refused"}, closed: true}}},
+	{"ConformanceStepSignalled", readAs[ConformanceStepSignalled], []signature{{kind: objectKind, required: []string{"signalled"}, allowed: []string{"signalled"}, closed: true}}},
+	{"ConformanceStepStalled", readAs[ConformanceStepStalled], []signature{{kind: objectKind, required: []string{"stalled"}, allowed: []string{"stalled"}, closed: true}}},
+}
+
 // ConformanceStepAbandon Abandon an operation started with `as`, as its
 // caller would.
 type ConformanceStepAbandon struct {
@@ -3445,6 +3593,18 @@ type ConformanceStepFetchesFetchesItem struct {
 // ConformanceHttpFetch.
 type ConformanceStepFetchesFetchesItemMember interface {
 	memberOfConformanceStepFetchesFetchesItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ConformanceStepFetchesFetchesItem) Member() (any, error) {
+	return u.member("ConformanceStepFetchesFetchesItem", conformanceStepFetchesFetchesItemMembers)
+}
+
+// conformanceStepFetchesFetchesItemMembers is what each member of
+// ConformanceStepFetchesFetchesItem admits, and how a value of it is read.
+var conformanceStepFetchesFetchesItemMembers = []unionMember{
+	{"ConformanceBusFetch", readAs[ConformanceBusFetch], []signature{{kind: objectKind, required: []string{"fetch", "as"}, allowed: []string{"fetch", "payload", "as"}, closed: true}}},
+	{"ConformanceHttpFetch", readAs[ConformanceHttpFetch], []signature{{kind: objectKind, required: []string{"fetch"}, allowed: []string{"fetch", "params"}, closed: true}}},
 }
 
 // ConformanceStepFrame The next frame the client delivers on this channel is
@@ -3876,19 +4036,16 @@ type DirectoryEntryMember interface {
 // Discriminator is the `type` this value states.
 func (u DirectoryEntry) Discriminator() (string, error) { return u.stated("type") }
 
-// ValueByDiscriminator is the member this value's `type` names.
-func (u DirectoryEntry) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "file":
-		return as[FileEntry](u.union)
-	case "dir":
-		return as[DirEntry](u.union)
-	}
-	return nil, unnamedMember("DirectoryEntry", "type", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u DirectoryEntry) Member() (any, error) {
+	return u.member("DirectoryEntry", directoryEntryMembers)
+}
+
+// directoryEntryMembers is what each member of DirectoryEntry admits, and how
+// a value of it is read.
+var directoryEntryMembers = []unionMember{
+	{"FileEntry", readAs[FileEntry], []signature{{kind: objectKind, required: []string{"type", "name", "path", "size", "mtime", "tracked"}, allowed: []string{"type", "name", "path", "size", "mtime", "tracked", "resourceId", "entityTypes", "annotationCount", "creator"}, closed: true, fixed: []fixedValues{{"type", []any{"file"}}}}}},
+	{"DirEntry", readAs[DirEntry], []signature{{kind: objectKind, required: []string{"type", "name", "path", "mtime"}, allowed: []string{"type", "name", "path", "mtime"}, closed: true, fixed: []fixedValues{{"type", []any{"dir"}}}}}},
 }
 
 // DiscoveredKB One knowledge base the Xynolog launcher manages on this
@@ -4272,19 +4429,16 @@ type EmbeddingConfigMember interface {
 // Discriminator is the `type` this value states.
 func (u EmbeddingConfig) Discriminator() (string, error) { return u.stated("type") }
 
-// ValueByDiscriminator is the member this value's `type` names.
-func (u EmbeddingConfig) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "ollama":
-		return as[OllamaEmbeddingConfig](u.union)
-	case "voyage":
-		return as[VoyageEmbeddingConfig](u.union)
-	}
-	return nil, unnamedMember("EmbeddingConfig", "type", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u EmbeddingConfig) Member() (any, error) {
+	return u.member("EmbeddingConfig", embeddingConfigMembers)
+}
+
+// embeddingConfigMembers is what each member of EmbeddingConfig admits, and
+// how a value of it is read.
+var embeddingConfigMembers = []unionMember{
+	{"OllamaEmbeddingConfig", readAs[OllamaEmbeddingConfig], []signature{{kind: objectKind, required: []string{"type", "model", "baseUrl"}, allowed: []string{"type", "model", "baseUrl"}, closed: true, fixed: []fixedValues{{"type", []any{"ollama"}}}}}},
+	{"VoyageEmbeddingConfig", readAs[VoyageEmbeddingConfig], []signature{{kind: objectKind, required: []string{"type", "model", "endpoint", "apiKeyEnv"}, allowed: []string{"type", "model", "endpoint", "apiKeyEnv"}, closed: true, fixed: []fixedValues{{"type", []any{"voyage"}}}}}},
 }
 
 // EmbeddingRequests embedding/requests.json: how a service asks its embedding
@@ -4673,19 +4827,16 @@ type ExtractionOutcomeMember interface {
 // Discriminator is the `kind` this value states.
 func (u ExtractionOutcome) Discriminator() (string, error) { return u.stated("kind") }
 
-// ValueByDiscriminator is the member this value's `kind` names.
-func (u ExtractionOutcome) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "extracted":
-		return as[ExtractedText](u.union)
-	case "declined":
-		return as[ExtractionDeclined](u.union)
-	}
-	return nil, unnamedMember("ExtractionOutcome", "kind", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u ExtractionOutcome) Member() (any, error) {
+	return u.member("ExtractionOutcome", extractionOutcomeMembers)
+}
+
+// extractionOutcomeMembers is what each member of ExtractionOutcome admits,
+// and how a value of it is read.
+var extractionOutcomeMembers = []unionMember{
+	{"ExtractedText", readAs[ExtractedText], []signature{{kind: objectKind, required: []string{"text", "items", "kind", "method"}, fixed: []fixedValues{{"kind", []any{"extracted"}}, {"method", []any{"text-passthrough", "pdf-text-layer", "table", "form", "ocr"}}, {"pdfClass", []any{"A", "B", "C", "D", "E", "F", "G"}}}}}},
+	{"ExtractionDeclined", readAs[ExtractionDeclined], []signature{{kind: objectKind, required: []string{"kind", "declined"}, fixed: []fixedValues{{"kind", []any{"declined"}}, {"declined", []any{"no-text-layer", "encrypted", "corrupt", "too-large"}}}}}},
 }
 
 // FailureClass The class of a job's failure, stated by the worker, where the
@@ -5454,6 +5605,18 @@ type GatheredContextFocusMember interface {
 	memberOfGatheredContextFocus()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u GatheredContextFocus) Member() (any, error) {
+	return u.member("GatheredContextFocus", gatheredContextFocusMembers)
+}
+
+// gatheredContextFocusMembers is what each member of GatheredContextFocus
+// admits, and how a value of it is read.
+var gatheredContextFocusMembers = []unionMember{
+	{"GatheredContextFocusAnnotation", readAs[GatheredContextFocusAnnotation], []signature{{kind: objectKind, required: []string{"kind", "annotation", "sourceResource"}, fixed: []fixedValues{{"kind", []any{"annotation"}}}}}},
+	{"GatheredContextFocusResource", readAs[GatheredContextFocusResource], []signature{{kind: objectKind, required: []string{"kind", "resource"}, fixed: []fixedValues{{"kind", []any{"resource"}}}}}},
+}
+
 // GatheredContextFocusAnnotation Annotation-anchored focus.
 type GatheredContextFocusAnnotation struct {
 	Kind GatheredContextFocusAnnotationKind `json:"kind"`
@@ -5893,23 +6056,16 @@ type GraphConfigMember interface {
 // Discriminator is the `type` this value states.
 func (u GraphConfig) Discriminator() (string, error) { return u.stated("type") }
 
-// ValueByDiscriminator is the member this value's `type` names.
-func (u GraphConfig) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "neo4j":
-		return as[Neo4jGraphConfig](u.union)
-	case "janusgraph":
-		return as[JanusGraphConfig](u.union)
-	case "neptune":
-		return as[NeptuneGraphConfig](u.union)
-	case "memory":
-		return as[MemoryGraphConfig](u.union)
-	}
-	return nil, unnamedMember("GraphConfig", "type", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u GraphConfig) Member() (any, error) { return u.member("GraphConfig", graphConfigMembers) }
+
+// graphConfigMembers is what each member of GraphConfig admits, and how a
+// value of it is read.
+var graphConfigMembers = []unionMember{
+	{"Neo4jGraphConfig", readAs[Neo4jGraphConfig], []signature{{kind: objectKind, required: []string{"type", "uri", "username", "passwordEnv", "database"}, allowed: []string{"type", "uri", "username", "passwordEnv", "database"}, closed: true, fixed: []fixedValues{{"type", []any{"neo4j"}}}}}},
+	{"JanusGraphConfig", readAs[JanusGraphConfig], []signature{{kind: objectKind, required: []string{"type", "host", "port"}, allowed: []string{"type", "host", "port"}, closed: true, fixed: []fixedValues{{"type", []any{"janusgraph"}}}}}},
+	{"NeptuneGraphConfig", readAs[NeptuneGraphConfig], []signature{{kind: objectKind, required: []string{"type", "endpoint", "port"}, allowed: []string{"type", "endpoint", "port"}, closed: true, fixed: []fixedValues{{"type", []any{"neptune"}}}}}},
+	{"MemoryGraphConfig", readAs[MemoryGraphConfig], []signature{{kind: objectKind, required: []string{"type"}, allowed: []string{"type"}, closed: true, fixed: []fixedValues{{"type", []any{"memory"}}}}}},
 }
 
 // GraphResourceNode A resource's presence in the gathered knowledge graph.
@@ -6502,25 +6658,17 @@ type JobMember interface {
 // Discriminator is the `status` this value states.
 func (u Job) Discriminator() (string, error) { return u.stated("status") }
 
-// ValueByDiscriminator is the member this value's `status` names.
-func (u Job) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "pending":
-		return as[JobPending](u.union)
-	case "running":
-		return as[JobRunning](u.union)
-	case "complete":
-		return as[JobComplete](u.union)
-	case "failed":
-		return as[JobFailed](u.union)
-	case "cancelled":
-		return as[JobCancelled](u.union)
-	}
-	return nil, unnamedMember("Job", "status", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u Job) Member() (any, error) { return u.member("Job", jobMembers) }
+
+// jobMembers is what each member of Job admits, and how a value of it is
+// read.
+var jobMembers = []unionMember{
+	{"JobPending", readAs[JobPending], []signature{{kind: objectKind, required: []string{"status", "metadata", "params"}, allowed: []string{"status", "metadata", "params"}, closed: true, fixed: []fixedValues{{"status", []any{"pending"}}}}}},
+	{"JobRunning", readAs[JobRunning], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "startedAt", "progress"}, allowed: []string{"status", "metadata", "params", "startedAt", "progress"}, closed: true, fixed: []fixedValues{{"status", []any{"running"}}}}}},
+	{"JobComplete", readAs[JobComplete], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "startedAt", "completedAt", "result"}, allowed: []string{"status", "metadata", "params", "startedAt", "completedAt", "result"}, closed: true, fixed: []fixedValues{{"status", []any{"complete"}}}}}},
+	{"JobFailed", readAs[JobFailed], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "completedAt", "error"}, allowed: []string{"status", "metadata", "params", "startedAt", "completedAt", "error", "failureClass"}, closed: true, fixed: []fixedValues{{"status", []any{"failed"}}, {"failureClass", []any{"transient", "deterministic", "withheld"}}}}}},
+	{"JobCancelled", readAs[JobCancelled], []signature{{kind: objectKind, required: []string{"status", "metadata", "params", "completedAt"}, allowed: []string{"status", "metadata", "params", "startedAt", "completedAt"}, closed: true, fixed: []fixedValues{{"status", []any{"cancelled"}}}}}},
 }
 
 // JobAssignCommand Bus command the dispatcher emits, under its own service
@@ -6750,19 +6898,16 @@ type JobCompleteCommandMember interface {
 // Discriminator is the `jobType` this value states.
 func (u JobCompleteCommand) Discriminator() (string, error) { return u.stated("jobType") }
 
-// ValueByDiscriminator is the member this value's `jobType` names.
-func (u JobCompleteCommand) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "mark":
-		return as[MarkJobCompleteCommand](u.union)
-	case "yield":
-		return as[YieldJobCompleteCommand](u.union)
-	}
-	return nil, unnamedMember("JobCompleteCommand", "jobType", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u JobCompleteCommand) Member() (any, error) {
+	return u.member("JobCompleteCommand", jobCompleteCommandMembers)
+}
+
+// jobCompleteCommandMembers is what each member of JobCompleteCommand admits,
+// and how a value of it is read.
+var jobCompleteCommandMembers = []unionMember{
+	{"MarkJobCompleteCommand", readAs[MarkJobCompleteCommand], []signature{{kind: objectKind, required: []string{"resourceId", "jobId", "jobType"}, fixed: []fixedValues{{"jobType", []any{"mark"}}, {"durability", []any{"acknowledged", "probe-confirmed", "probe-refused", "probe-unreachable"}}}}}},
+	{"YieldJobCompleteCommand", readAs[YieldJobCompleteCommand], []signature{{kind: objectKind, required: []string{"resourceId", "jobId", "jobType"}, fixed: []fixedValues{{"jobType", []any{"yield"}}, {"durability", []any{"acknowledged", "probe-confirmed", "probe-refused", "probe-unreachable"}}}}}},
 }
 
 type JobCompleteStatus string
@@ -6823,19 +6968,16 @@ type JobCreateCommandMember interface {
 // Discriminator is the `jobType` this value states.
 func (u JobCreateCommand) Discriminator() (string, error) { return u.stated("jobType") }
 
-// ValueByDiscriminator is the member this value's `jobType` names.
-func (u JobCreateCommand) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "mark":
-		return as[MarkJobCreateCommand](u.union)
-	case "yield":
-		return as[YieldJobCreateCommand](u.union)
-	}
-	return nil, unnamedMember("JobCreateCommand", "jobType", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u JobCreateCommand) Member() (any, error) {
+	return u.member("JobCreateCommand", jobCreateCommandMembers)
+}
+
+// jobCreateCommandMembers is what each member of JobCreateCommand admits, and
+// how a value of it is read.
+var jobCreateCommandMembers = []unionMember{
+	{"MarkJobCreateCommand", readAs[MarkJobCreateCommand], []signature{{kind: objectKind, required: []string{"jobType", "resourceId", "params"}, allowed: []string{"_userId", "_roles", "jobType", "resourceId", "params"}, closed: true, fixed: []fixedValues{{"jobType", []any{"mark"}}}}}},
+	{"YieldJobCreateCommand", readAs[YieldJobCreateCommand], []signature{{kind: objectKind, required: []string{"jobType", "params"}, allowed: []string{"_userId", "_roles", "jobType", "params"}, closed: true, fixed: []fixedValues{{"jobType", []any{"yield"}}}}}},
 }
 
 // JobCreatedResult Result of a job:create command
@@ -7036,19 +7178,14 @@ type JobFilterMember interface {
 // Discriminator is the `jobType` this value states.
 func (u JobFilter) Discriminator() (string, error) { return u.stated("jobType") }
 
-// ValueByDiscriminator is the member this value's `jobType` names.
-func (u JobFilter) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "mark":
-		return as[MarkJobFilter](u.union)
-	case "yield":
-		return as[YieldJobFilter](u.union)
-	}
-	return nil, unnamedMember("JobFilter", "jobType", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u JobFilter) Member() (any, error) { return u.member("JobFilter", jobFilterMembers) }
+
+// jobFilterMembers is what each member of JobFilter admits, and how a value
+// of it is read.
+var jobFilterMembers = []unionMember{
+	{"MarkJobFilter", readAs[MarkJobFilter], []signature{{kind: objectKind, required: []string{"jobType", "params"}, allowed: []string{"jobType", "params"}, closed: true, fixed: []fixedValues{{"jobType", []any{"mark"}}}}}},
+	{"YieldJobFilter", readAs[YieldJobFilter], []signature{{kind: objectKind, required: []string{"jobType"}, allowed: []string{"jobType"}, closed: true, fixed: []fixedValues{{"jobType", []any{"yield"}}}}}},
 }
 
 // JobMetadata What the dispatcher records about a job beside its parameters.
@@ -7558,35 +7695,24 @@ type JobProgressMessageMember interface {
 // Discriminator is the `code` this value states.
 func (u JobProgressMessage) Discriminator() (string, error) { return u.stated("code") }
 
-// ValueByDiscriminator is the member this value's `code` names.
-func (u JobProgressMessage) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "loading":
-		return as[JobProgressLoading](u.union)
-	case "analyzing":
-		return as[JobProgressAnalyzing](u.union)
-	case "analyzing-tags":
-		return as[JobProgressAnalyzingTags](u.union)
-	case "generating-resource":
-		return as[JobProgressGeneratingResource](u.union)
-	case "creating-resource":
-		return as[JobProgressCreatingResource](u.union)
-	case "complete-generated":
-		return as[JobProgressCompleteGenerated](u.union)
-	case "detecting-entities":
-		return as[JobProgressDetectingEntities](u.union)
-	case "creating-annotations":
-		return as[JobProgressCreatingAnnotations](u.union)
-	case "creating-tag-annotations":
-		return as[JobProgressCreatingTagAnnotations](u.union)
-	case "complete-created":
-		return as[JobProgressCompleteCreated](u.union)
-	}
-	return nil, unnamedMember("JobProgressMessage", "code", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u JobProgressMessage) Member() (any, error) {
+	return u.member("JobProgressMessage", jobProgressMessageMembers)
+}
+
+// jobProgressMessageMembers is what each member of JobProgressMessage admits,
+// and how a value of it is read.
+var jobProgressMessageMembers = []unionMember{
+	{"JobProgressLoading", readAs[JobProgressLoading], []signature{{kind: objectKind, required: []string{"code"}, fixed: []fixedValues{{"code", []any{"loading"}}}}}},
+	{"JobProgressAnalyzing", readAs[JobProgressAnalyzing], []signature{{kind: objectKind, required: []string{"code"}, fixed: []fixedValues{{"code", []any{"analyzing"}}}}}},
+	{"JobProgressAnalyzingTags", readAs[JobProgressAnalyzingTags], []signature{{kind: objectKind, required: []string{"code"}, fixed: []fixedValues{{"code", []any{"analyzing-tags"}}}}}},
+	{"JobProgressGeneratingResource", readAs[JobProgressGeneratingResource], []signature{{kind: objectKind, required: []string{"code"}, fixed: []fixedValues{{"code", []any{"generating-resource"}}}}}},
+	{"JobProgressCreatingResource", readAs[JobProgressCreatingResource], []signature{{kind: objectKind, required: []string{"code"}, fixed: []fixedValues{{"code", []any{"creating-resource"}}}}}},
+	{"JobProgressCompleteGenerated", readAs[JobProgressCompleteGenerated], []signature{{kind: objectKind, required: []string{"code", "truncated"}, fixed: []fixedValues{{"code", []any{"complete-generated"}}}}}},
+	{"JobProgressDetectingEntities", readAs[JobProgressDetectingEntities], []signature{{kind: objectKind, required: []string{"code", "entityType"}, fixed: []fixedValues{{"code", []any{"detecting-entities"}}}}}},
+	{"JobProgressCreatingAnnotations", readAs[JobProgressCreatingAnnotations], []signature{{kind: objectKind, required: []string{"code", "count"}, fixed: []fixedValues{{"code", []any{"creating-annotations"}}}}}},
+	{"JobProgressCreatingTagAnnotations", readAs[JobProgressCreatingTagAnnotations], []signature{{kind: objectKind, required: []string{"code", "count"}, fixed: []fixedValues{{"code", []any{"creating-tag-annotations"}}}}}},
+	{"JobProgressCompleteCreated", readAs[JobProgressCompleteCreated], []signature{{kind: objectKind, required: []string{"code", "count", "motivation"}, fixed: []fixedValues{{"code", []any{"complete-created"}}, {"motivation", []any{"assessing", "commenting", "highlighting", "linking", "tagging"}}}}}},
 }
 
 type JobProgressRequestParamsItem struct {
@@ -7635,19 +7761,16 @@ type JobQueuedEventMember interface {
 // Discriminator is the `jobType` this value states.
 func (u JobQueuedEvent) Discriminator() (string, error) { return u.stated("jobType") }
 
-// ValueByDiscriminator is the member this value's `jobType` names.
-func (u JobQueuedEvent) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "mark":
-		return as[MarkJobQueuedEvent](u.union)
-	case "yield":
-		return as[YieldJobQueuedEvent](u.union)
-	}
-	return nil, unnamedMember("JobQueuedEvent", "jobType", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u JobQueuedEvent) Member() (any, error) {
+	return u.member("JobQueuedEvent", jobQueuedEventMembers)
+}
+
+// jobQueuedEventMembers is what each member of JobQueuedEvent admits, and how
+// a value of it is read.
+var jobQueuedEventMembers = []unionMember{
+	{"MarkJobQueuedEvent", readAs[MarkJobQueuedEvent], []signature{{kind: objectKind, required: []string{"jobId", "jobType", "resourceId", "userId", "params"}, fixed: []fixedValues{{"jobType", []any{"mark"}}}}}},
+	{"YieldJobQueuedEvent", readAs[YieldJobQueuedEvent], []signature{{kind: objectKind, required: []string{"jobId", "jobType", "resourceId", "userId", "params"}, fixed: []fixedValues{{"jobType", []any{"yield"}}}}}},
 }
 
 // JobRecord One job as the queue stores it: the job, and when it last showed
@@ -7699,6 +7822,17 @@ type JobResult struct {
 // JobDeclined.
 type JobResultMember interface {
 	memberOfJobResult()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u JobResult) Member() (any, error) { return u.member("JobResult", jobResultMembers) }
+
+// jobResultMembers is what each member of JobResult admits, and how a value
+// of it is read.
+var jobResultMembers = []unionMember{
+	{"MarkJobDone", readAs[MarkJobDone], []signature{{kind: objectKind, required: []string{"found", "persisted"}, allowed: []string{"found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"}, closed: true}}},
+	{"YieldJobDone", readAs[YieldJobDone], []signature{{kind: objectKind, required: []string{"resourceId", "resourceName", "truncated"}, allowed: []string{"resourceId", "resourceName", "truncated"}, closed: true}}},
+	{"JobDeclined", readAs[JobDeclined], []signature{{kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, closed: true, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
 }
 
 func (JobResult) memberOfJobStoredResult() {}
@@ -7820,6 +7954,18 @@ type JobStoredProgressMember interface {
 	memberOfJobStoredProgress()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u JobStoredProgress) Member() (any, error) {
+	return u.member("JobStoredProgress", jobStoredProgressMembers)
+}
+
+// jobStoredProgressMembers is what each member of JobStoredProgress admits,
+// and how a value of it is read.
+var jobStoredProgressMembers = []unionMember{
+	{"JobProgress", readAs[JobProgress], []signature{{kind: objectKind, required: []string{"percentage"}}}},
+	{"EmptyObject", readAs[EmptyObject], []signature{{kind: objectKind, allowed: []string{}, closed: true}}},
+}
+
 // JobStoredResult A completed job's result as the dispatcher stores it: the
 // result its worker reported with `job:complete`, or an empty object when it
 // reported none.
@@ -7831,6 +7977,18 @@ type JobStoredResult struct {
 // EmptyObject.
 type JobStoredResultMember interface {
 	memberOfJobStoredResult()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u JobStoredResult) Member() (any, error) {
+	return u.member("JobStoredResult", jobStoredResultMembers)
+}
+
+// jobStoredResultMembers is what each member of JobStoredResult admits, and
+// how a value of it is read.
+var jobStoredResultMembers = []unionMember{
+	{"JobResult", readAs[JobResult], []signature{{kind: objectKind, required: []string{"found", "persisted"}, allowed: []string{"found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"}, closed: true}, {kind: objectKind, required: []string{"resourceId", "resourceName", "truncated"}, allowed: []string{"resourceId", "resourceName", "truncated"}, closed: true}, {kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, closed: true, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
+	{"EmptyObject", readAs[EmptyObject], []signature{{kind: objectKind, allowed: []string{}, closed: true}}},
 }
 
 // JobType What a job does, as the verb that asks for it: `mark` annotates a
@@ -7954,19 +8112,14 @@ type KbEndpointMember interface {
 // Discriminator is the `kind` this value states.
 func (u KbEndpoint) Discriminator() (string, error) { return u.stated("kind") }
 
-// ValueByDiscriminator is the member this value's `kind` names.
-func (u KbEndpoint) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "http":
-		return as[HttpEndpoint](u.union)
-	case "local":
-		return as[LocalEndpoint](u.union)
-	}
-	return nil, unnamedMember("KbEndpoint", "kind", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u KbEndpoint) Member() (any, error) { return u.member("KbEndpoint", kbEndpointMembers) }
+
+// kbEndpointMembers is what each member of KbEndpoint admits, and how a value
+// of it is read.
+var kbEndpointMembers = []unionMember{
+	{"HttpEndpoint", readAs[HttpEndpoint], []signature{{kind: objectKind, required: []string{"kind", "host", "port", "protocol"}, fixed: []fixedValues{{"kind", []any{"http"}}, {"protocol", []any{"http", "https"}}}}}},
+	{"LocalEndpoint", readAs[LocalEndpoint], []signature{{kind: objectKind, required: []string{"kind", "kbId"}, fixed: []fixedValues{{"kind", []any{"local"}}}}}},
 }
 
 // KbIdentity A knowledge base's committed identity (`project.name` and
@@ -8039,21 +8192,15 @@ type KbReadVerdictMember interface {
 // Discriminator is the `kind` this value states.
 func (u KbReadVerdict) Discriminator() (string, error) { return u.stated("kind") }
 
-// ValueByDiscriminator is the member this value's `kind` names.
-func (u KbReadVerdict) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "recorded":
-		return as[KbReadVerdictRecorded](u.union)
-	case "conflict":
-		return as[KbReadVerdictConflict](u.union)
-	case "no-verdict":
-		return as[KbReadVerdictNoVerdict](u.union)
-	}
-	return nil, unnamedMember("KbReadVerdict", "kind", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u KbReadVerdict) Member() (any, error) { return u.member("KbReadVerdict", kbReadVerdictMembers) }
+
+// kbReadVerdictMembers is what each member of KbReadVerdict admits, and how a
+// value of it is read.
+var kbReadVerdictMembers = []unionMember{
+	{"KbReadVerdictRecorded", readAs[KbReadVerdictRecorded], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, closed: true, fixed: []fixedValues{{"kind", []any{"recorded"}}}}}},
+	{"KbReadVerdictConflict", readAs[KbReadVerdictConflict], []signature{{kind: objectKind, required: []string{"kind", "observedDid", "observedName"}, allowed: []string{"kind", "observedDid", "observedName"}, closed: true, fixed: []fixedValues{{"kind", []any{"conflict"}}}}}},
+	{"KbReadVerdictNoVerdict", readAs[KbReadVerdictNoVerdict], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, closed: true, fixed: []fixedValues{{"kind", []any{"no-verdict"}}}}}},
 }
 
 // KbReadVerdictConflict A different knowledge base answered. Its did and the
@@ -8351,19 +8498,16 @@ type KnowledgeGraphNodesItemMember interface {
 // Discriminator is the `type` this value states.
 func (u KnowledgeGraphNodesItem) Discriminator() (string, error) { return u.stated("type") }
 
-// ValueByDiscriminator is the member this value's `type` names.
-func (u KnowledgeGraphNodesItem) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "resource":
-		return as[GraphResourceNode](u.union)
-	case "annotation":
-		return as[GraphAnnotationNode](u.union)
-	}
-	return nil, unnamedMember("KnowledgeGraphNodesItem", "type", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u KnowledgeGraphNodesItem) Member() (any, error) {
+	return u.member("KnowledgeGraphNodesItem", knowledgeGraphNodesItemMembers)
+}
+
+// knowledgeGraphNodesItemMembers is what each member of
+// KnowledgeGraphNodesItem admits, and how a value of it is read.
+var knowledgeGraphNodesItemMembers = []unionMember{
+	{"GraphResourceNode", readAs[GraphResourceNode], []signature{{kind: objectKind, required: []string{"id", "type", "label"}, fixed: []fixedValues{{"type", []any{"resource"}}}}}},
+	{"GraphAnnotationNode", readAs[GraphAnnotationNode], []signature{{kind: objectKind, required: []string{"id", "type", "label", "annotation"}, fixed: []fixedValues{{"type", []any{"annotation"}}}}}},
 }
 
 // KnowledgeIndex What a knowledge base's record is indexed into, and the
@@ -9213,25 +9357,17 @@ type MarkJobParamsMember interface {
 // Discriminator is the `motivation` this value states.
 func (u MarkJobParams) Discriminator() (string, error) { return u.stated("motivation") }
 
-// ValueByDiscriminator is the member this value's `motivation` names.
-func (u MarkJobParams) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "highlighting":
-		return as[HighlightingJobParams](u.union)
-	case "commenting":
-		return as[CommentingJobParams](u.union)
-	case "assessing":
-		return as[AssessingJobParams](u.union)
-	case "linking":
-		return as[LinkingJobParams](u.union)
-	case "tagging":
-		return as[TaggingJobParams](u.union)
-	}
-	return nil, unnamedMember("MarkJobParams", "motivation", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u MarkJobParams) Member() (any, error) { return u.member("MarkJobParams", markJobParamsMembers) }
+
+// markJobParamsMembers is what each member of MarkJobParams admits, and how a
+// value of it is read.
+var markJobParamsMembers = []unionMember{
+	{"HighlightingJobParams", readAs[HighlightingJobParams], []signature{{kind: objectKind, required: []string{"motivation"}, allowed: []string{"motivation", "instructions", "density", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"highlighting"}}}}}},
+	{"CommentingJobParams", readAs[CommentingJobParams], []signature{{kind: objectKind, required: []string{"motivation"}, allowed: []string{"motivation", "instructions", "tone", "density", "language", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"commenting"}}, {"tone", []any{"scholarly", "explanatory", "conversational", "technical"}}}}}},
+	{"AssessingJobParams", readAs[AssessingJobParams], []signature{{kind: objectKind, required: []string{"motivation"}, allowed: []string{"motivation", "instructions", "tone", "density", "language", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"assessing"}}, {"tone", []any{"analytical", "critical", "balanced", "constructive"}}}}}},
+	{"LinkingJobParams", readAs[LinkingJobParams], []signature{{kind: objectKind, required: []string{"motivation", "entityTypes"}, allowed: []string{"motivation", "entityTypes", "includeDescriptiveReferences", "language", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"linking"}}}}}},
+	{"TaggingJobParams", readAs[TaggingJobParams], []signature{{kind: objectKind, required: []string{"motivation", "schemaId", "categories"}, allowed: []string{"motivation", "schemaId", "categories", "language", "sourceLanguage"}, closed: true, fixed: []fixedValues{{"motivation", []any{"tagging"}}}}}},
 }
 
 // MarkJobQueuedEvent A pending `mark` job, announced with its parameters as
@@ -9275,6 +9411,16 @@ type MarkJobResult struct {
 // MarkJobResultMember is a member of MarkJobResult: MarkJobDone, JobDeclined.
 type MarkJobResultMember interface {
 	memberOfMarkJobResult()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u MarkJobResult) Member() (any, error) { return u.member("MarkJobResult", markJobResultMembers) }
+
+// markJobResultMembers is what each member of MarkJobResult admits, and how a
+// value of it is read.
+var markJobResultMembers = []unionMember{
+	{"MarkJobDone", readAs[MarkJobDone], []signature{{kind: objectKind, required: []string{"found", "persisted"}, allowed: []string{"found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"}, closed: true}}},
+	{"JobDeclined", readAs[JobDeclined], []signature{{kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, closed: true, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
 }
 
 // MarkRequestedEvent Emitted when the user requests a new mark (annotation)
@@ -9767,6 +9913,18 @@ type OneOrMoreAgentsMember interface {
 	memberOfOneOrMoreAgents()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u OneOrMoreAgents) Member() (any, error) {
+	return u.member("OneOrMoreAgents", oneOrMoreAgentsMembers)
+}
+
+// oneOrMoreAgentsMembers is what each member of OneOrMoreAgents admits, and
+// how a value of it is read.
+var oneOrMoreAgentsMembers = []unionMember{
+	{"Agent", readAs[Agent], []signature{{kind: objectKind, required: []string{"@type"}, fixed: []fixedValues{{"@type", []any{"Person"}}}}, {kind: objectKind, required: []string{"@type", "name"}, fixed: []fixedValues{{"@type", []any{"Organization"}}}}, {kind: objectKind, required: []string{"@type"}, fixed: []fixedValues{{"@type", []any{"Software"}}}}}},
+	{"OneOrMoreAgentsList", readAs[OneOrMoreAgentsList], []signature{{kind: listKind}}},
+}
+
 // OneOrMoreAgentsList is a OneOrMoreAgents that is a list.
 type OneOrMoreAgentsList []Agent
 
@@ -9782,6 +9940,18 @@ type OneOrMoreStrings struct {
 // OneOrMoreStringsText, OneOrMoreStringsList.
 type OneOrMoreStringsMember interface {
 	memberOfOneOrMoreStrings()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u OneOrMoreStrings) Member() (any, error) {
+	return u.member("OneOrMoreStrings", oneOrMoreStringsMembers)
+}
+
+// oneOrMoreStringsMembers is what each member of OneOrMoreStrings admits, and
+// how a value of it is read.
+var oneOrMoreStringsMembers = []unionMember{
+	{"OneOrMoreStringsText", readAs[OneOrMoreStringsText], []signature{{kind: textKind}}},
+	{"OneOrMoreStringsList", readAs[OneOrMoreStringsList], []signature{{kind: listKind}}},
 }
 
 // OneOrMoreStringsList is a OneOrMoreStrings that is a list.
@@ -9804,6 +9974,16 @@ type OneOrMoreUris struct {
 // OneOrMoreUrisList.
 type OneOrMoreUrisMember interface {
 	memberOfOneOrMoreUris()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u OneOrMoreUris) Member() (any, error) { return u.member("OneOrMoreUris", oneOrMoreUrisMembers) }
+
+// oneOrMoreUrisMembers is what each member of OneOrMoreUris admits, and how a
+// value of it is read.
+var oneOrMoreUrisMembers = []unionMember{
+	{"OneOrMoreUrisText", readAs[OneOrMoreUrisText], []signature{{kind: textKind}}},
+	{"OneOrMoreUrisList", readAs[OneOrMoreUrisList], []signature{{kind: listKind}}},
 }
 
 // OneOrMoreUrisList is a OneOrMoreUris that is a list.
@@ -10243,23 +10423,18 @@ type ReconciledSpanMember interface {
 // Discriminator is the `anchorMethod` this value states.
 func (u ReconciledSpan) Discriminator() (string, error) { return u.stated("anchorMethod") }
 
-// ValueByDiscriminator is the member this value's `anchorMethod` names.
-func (u ReconciledSpan) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "unique-match":
-		return as[ReconciledSpanUniqueMatch](u.union)
-	case "context-recovered":
-		return as[ReconciledSpanContextRecovered](u.union)
-	case "first-of-many":
-		return as[ReconciledSpanFirstOfMany](u.union)
-	case "fuzzy-match":
-		return as[ReconciledSpanFuzzyMatch](u.union)
-	}
-	return nil, unnamedMember("ReconciledSpan", "anchorMethod", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u ReconciledSpan) Member() (any, error) {
+	return u.member("ReconciledSpan", reconciledSpanMembers)
+}
+
+// reconciledSpanMembers is what each member of ReconciledSpan admits, and how
+// a value of it is read.
+var reconciledSpanMembers = []unionMember{
+	{"ReconciledSpanUniqueMatch", readAs[ReconciledSpanUniqueMatch], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod"}, closed: true, fixed: []fixedValues{{"anchorMethod", []any{"unique-match"}}}}}},
+	{"ReconciledSpanContextRecovered", readAs[ReconciledSpanContextRecovered], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod"}, closed: true, fixed: []fixedValues{{"anchorMethod", []any{"context-recovered"}}}}}},
+	{"ReconciledSpanFirstOfMany", readAs[ReconciledSpanFirstOfMany], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod"}, closed: true, fixed: []fixedValues{{"anchorMethod", []any{"first-of-many"}}}}}},
+	{"ReconciledSpanFuzzyMatch", readAs[ReconciledSpanFuzzyMatch], []signature{{kind: objectKind, required: []string{"start", "end", "exact", "anchorMethod", "matchQuality"}, allowed: []string{"start", "end", "exact", "prefix", "suffix", "anchorMethod", "matchQuality"}, closed: true, fixed: []fixedValues{{"anchorMethod", []any{"fuzzy-match"}}, {"matchQuality", []any{"normalized", "case-insensitive", "fuzzy"}}}}}},
 }
 
 // ReconciledSpanContextRecovered The text has the words in more than one
@@ -10564,6 +10739,16 @@ type RequestIdMember interface {
 	memberOfRequestId()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u RequestId) Member() (any, error) { return u.member("RequestId", requestIdMembers) }
+
+// requestIdMembers is what each member of RequestId admits, and how a value
+// of it is read.
+var requestIdMembers = []unionMember{
+	{"RequestIdText", readAs[RequestIdText], []signature{{kind: textKind}}},
+	{"RequestIdInteger", readAs[RequestIdInteger], []signature{{kind: integerKind}}},
+}
+
 // RequestIdInteger is a RequestId that is integer.
 type RequestIdInteger int
 
@@ -10759,6 +10944,19 @@ type ResourceDescriptorContextMember interface {
 	memberOfResourceDescriptorContext()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u ResourceDescriptorContext) Member() (any, error) {
+	return u.member("ResourceDescriptorContext", resourceDescriptorContextMembers)
+}
+
+// resourceDescriptorContextMembers is what each member of
+// ResourceDescriptorContext admits, and how a value of it is read.
+var resourceDescriptorContextMembers = []unionMember{
+	{"ResourceDescriptorContextText", readAs[ResourceDescriptorContextText], []signature{{kind: textKind}}},
+	{"ResourceDescriptorContextObject", readAs[ResourceDescriptorContextObject], []signature{{kind: objectKind}}},
+	{"ResourceDescriptorContextList", readAs[ResourceDescriptorContextList], []signature{{kind: listKind}}},
+}
+
 type ResourceDescriptorContextItem struct {
 	union[ResourceDescriptorContextItemMember]
 }
@@ -10768,6 +10966,18 @@ type ResourceDescriptorContextItem struct {
 // ResourceDescriptorContextItemObject.
 type ResourceDescriptorContextItemMember interface {
 	memberOfResourceDescriptorContextItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ResourceDescriptorContextItem) Member() (any, error) {
+	return u.member("ResourceDescriptorContextItem", resourceDescriptorContextItemMembers)
+}
+
+// resourceDescriptorContextItemMembers is what each member of
+// ResourceDescriptorContextItem admits, and how a value of it is read.
+var resourceDescriptorContextItemMembers = []unionMember{
+	{"ResourceDescriptorContextItemText", readAs[ResourceDescriptorContextItemText], []signature{{kind: textKind}}},
+	{"ResourceDescriptorContextItemObject", readAs[ResourceDescriptorContextItemObject], []signature{{kind: objectKind}}},
 }
 
 // ResourceDescriptorContextItemObject is a ResourceDescriptorContextItem that
@@ -10809,6 +11019,19 @@ type ResourceDescriptorIdentifier struct {
 // ResourceDescriptorIdentifierList, ResourceDescriptorIdentifierObject.
 type ResourceDescriptorIdentifierMember interface {
 	memberOfResourceDescriptorIdentifier()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ResourceDescriptorIdentifier) Member() (any, error) {
+	return u.member("ResourceDescriptorIdentifier", resourceDescriptorIdentifierMembers)
+}
+
+// resourceDescriptorIdentifierMembers is what each member of
+// ResourceDescriptorIdentifier admits, and how a value of it is read.
+var resourceDescriptorIdentifierMembers = []unionMember{
+	{"ResourceDescriptorIdentifierText", readAs[ResourceDescriptorIdentifierText], []signature{{kind: textKind}}},
+	{"ResourceDescriptorIdentifierList", readAs[ResourceDescriptorIdentifierList], []signature{{kind: listKind}}},
+	{"ResourceDescriptorIdentifierObject", readAs[ResourceDescriptorIdentifierObject], []signature{{kind: objectKind}}},
 }
 
 // ResourceDescriptorIdentifierList is a ResourceDescriptorIdentifier that is
@@ -10860,6 +11083,18 @@ type ResourceDescriptorRepresentationsMember interface {
 	memberOfResourceDescriptorRepresentations()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u ResourceDescriptorRepresentations) Member() (any, error) {
+	return u.member("ResourceDescriptorRepresentations", resourceDescriptorRepresentationsMembers)
+}
+
+// resourceDescriptorRepresentationsMembers is what each member of
+// ResourceDescriptorRepresentations admits, and how a value of it is read.
+var resourceDescriptorRepresentationsMembers = []unionMember{
+	{"Representation", readAs[Representation], []signature{{kind: objectKind, required: []string{"mediaType"}, fixed: []fixedValues{{"rel", []any{"original", "thumbnail", "preview", "optimized", "derived", "other"}}}}}},
+	{"ResourceDescriptorRepresentationsList", readAs[ResourceDescriptorRepresentationsList], []signature{{kind: listKind}}},
+}
+
 // ResourceDescriptorRepresentationsList is a
 // ResourceDescriptorRepresentations that is a list.
 type ResourceDescriptorRepresentationsList []Representation
@@ -10877,6 +11112,18 @@ type ResourceDescriptorWasDerivedFrom struct {
 // ResourceDescriptorWasDerivedFromList.
 type ResourceDescriptorWasDerivedFromMember interface {
 	memberOfResourceDescriptorWasDerivedFrom()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ResourceDescriptorWasDerivedFrom) Member() (any, error) {
+	return u.member("ResourceDescriptorWasDerivedFrom", resourceDescriptorWasDerivedFromMembers)
+}
+
+// resourceDescriptorWasDerivedFromMembers is what each member of
+// ResourceDescriptorWasDerivedFrom admits, and how a value of it is read.
+var resourceDescriptorWasDerivedFromMembers = []unionMember{
+	{"ResourceId", readAs[ResourceId], []signature{{kind: textKind}}},
+	{"ResourceDescriptorWasDerivedFromList", readAs[ResourceDescriptorWasDerivedFromList], []signature{{kind: listKind}}},
 }
 
 // ResourceDescriptorWasDerivedFromList is a ResourceDescriptorWasDerivedFrom
@@ -11392,23 +11639,16 @@ type SelectorMember interface {
 // Discriminator is the `type` this value states.
 func (u Selector) Discriminator() (string, error) { return u.stated("type") }
 
-// ValueByDiscriminator is the member this value's `type` names.
-func (u Selector) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "TextPositionSelector":
-		return as[TextPositionSelector](u.union)
-	case "TextQuoteSelector":
-		return as[TextQuoteSelector](u.union)
-	case "SvgSelector":
-		return as[SvgSelector](u.union)
-	case "FragmentSelector":
-		return as[FragmentSelector](u.union)
-	}
-	return nil, unnamedMember("Selector", "type", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u Selector) Member() (any, error) { return u.member("Selector", selectorMembers) }
+
+// selectorMembers is what each member of Selector admits, and how a value of
+// it is read.
+var selectorMembers = []unionMember{
+	{"TextPositionSelector", readAs[TextPositionSelector], []signature{{kind: objectKind, required: []string{"type", "start", "end"}, fixed: []fixedValues{{"type", []any{"TextPositionSelector"}}}}}},
+	{"TextQuoteSelector", readAs[TextQuoteSelector], []signature{{kind: objectKind, required: []string{"type", "exact"}, fixed: []fixedValues{{"type", []any{"TextQuoteSelector"}}}}}},
+	{"SvgSelector", readAs[SvgSelector], []signature{{kind: objectKind, required: []string{"type", "value"}, fixed: []fixedValues{{"type", []any{"SvgSelector"}}}}}},
+	{"FragmentSelector", readAs[FragmentSelector], []signature{{kind: objectKind, required: []string{"type", "value"}, fixed: []fixedValues{{"type", []any{"FragmentSelector"}}}}}},
 }
 
 func (Selector) memberOfAnnotationSelector() {}
@@ -12067,6 +12307,19 @@ type ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemMember interfac
 	memberOfServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem()
 }
 
+// Member is the member this value is: the one whose schema admits it.
+func (u ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem) Member() (any, error) {
+	return u.member("ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem", serviceTelemetryTelemetryMetricsItemAttributesItemValuesItemMembers)
+}
+
+// serviceTelemetryTelemetryMetricsItemAttributesItemValuesItemMembers is what
+// each member of ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem
+// admits, and how a value of it is read.
+var serviceTelemetryTelemetryMetricsItemAttributesItemValuesItemMembers = []unionMember{
+	{"ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText", readAs[ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText], []signature{{kind: textKind}}},
+	{"ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean", readAs[ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean], []signature{{kind: booleanKind}}},
+}
+
 // ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean is a
 // ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem that is
 // boolean.
@@ -12262,6 +12515,19 @@ type ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem struct {
 // ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean.
 type ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemMember interface {
 	memberOfServiceTelemetryTelemetrySpansItemAttributesItemValuesItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem) Member() (any, error) {
+	return u.member("ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem", serviceTelemetryTelemetrySpansItemAttributesItemValuesItemMembers)
+}
+
+// serviceTelemetryTelemetrySpansItemAttributesItemValuesItemMembers is what
+// each member of ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem
+// admits, and how a value of it is read.
+var serviceTelemetryTelemetrySpansItemAttributesItemValuesItemMembers = []unionMember{
+	{"ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText", readAs[ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText], []signature{{kind: textKind}}},
+	{"ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean", readAs[ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean], []signature{{kind: booleanKind}}},
 }
 
 // ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean is a
@@ -13552,21 +13818,15 @@ type TabCheckMember interface {
 // Discriminator is the `verdict` this value states.
 func (u TabCheck) Discriminator() (string, error) { return u.stated("verdict") }
 
-// ValueByDiscriminator is the member this value's `verdict` names.
-func (u TabCheck) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "gone":
-		return as[TabCheckGone](u.union)
-	case "ready":
-		return as[TabCheckReady](u.union)
-	case "unknown":
-		return as[TabCheckUnknown](u.union)
-	}
-	return nil, unnamedMember("TabCheck", "verdict", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u TabCheck) Member() (any, error) { return u.member("TabCheck", tabCheckMembers) }
+
+// tabCheckMembers is what each member of TabCheck admits, and how a value of
+// it is read.
+var tabCheckMembers = []unionMember{
+	{"TabCheckGone", readAs[TabCheckGone], []signature{{kind: objectKind, required: []string{"verdict"}, allowed: []string{"verdict"}, closed: true, fixed: []fixedValues{{"verdict", []any{"gone"}}}}}},
+	{"TabCheckReady", readAs[TabCheckReady], []signature{{kind: objectKind, required: []string{"verdict", "name"}, allowed: []string{"verdict", "name", "mediaType"}, closed: true, fixed: []fixedValues{{"verdict", []any{"ready"}}}}}},
+	{"TabCheckUnknown", readAs[TabCheckUnknown], []signature{{kind: objectKind, required: []string{"verdict"}, allowed: []string{"verdict"}, closed: true, fixed: []fixedValues{{"verdict", []any{"unknown"}}}}}},
 }
 
 // TabCheckGone The knowledge base said the resource does not exist.
@@ -14005,21 +14265,17 @@ type UploadProgressMember interface {
 // Discriminator is the `phase` this value states.
 func (u UploadProgress) Discriminator() (string, error) { return u.stated("phase") }
 
-// ValueByDiscriminator is the member this value's `phase` names.
-func (u UploadProgress) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "started":
-		return as[UploadProgressStarted](u.union)
-	case "progress":
-		return as[UploadProgressProgress](u.union)
-	case "finished":
-		return as[UploadProgressFinished](u.union)
-	}
-	return nil, unnamedMember("UploadProgress", "phase", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u UploadProgress) Member() (any, error) {
+	return u.member("UploadProgress", uploadProgressMembers)
+}
+
+// uploadProgressMembers is what each member of UploadProgress admits, and how
+// a value of it is read.
+var uploadProgressMembers = []unionMember{
+	{"UploadProgressStarted", readAs[UploadProgressStarted], []signature{{kind: objectKind, required: []string{"phase", "totalBytes"}, allowed: []string{"phase", "totalBytes"}, closed: true, fixed: []fixedValues{{"phase", []any{"started"}}}}}},
+	{"UploadProgressProgress", readAs[UploadProgressProgress], []signature{{kind: objectKind, required: []string{"phase", "bytesUploaded", "totalBytes"}, allowed: []string{"phase", "bytesUploaded", "totalBytes"}, closed: true, fixed: []fixedValues{{"phase", []any{"progress"}}}}}},
+	{"UploadProgressFinished", readAs[UploadProgressFinished], []signature{{kind: objectKind, required: []string{"phase", "resourceId"}, allowed: []string{"phase", "resourceId"}, closed: true, fixed: []fixedValues{{"phase", []any{"finished"}}}}}},
 }
 
 // UploadProgressFinished The upload ended, and the resource is made.
@@ -14197,19 +14453,14 @@ type VectorsConfigMember interface {
 // Discriminator is the `type` this value states.
 func (u VectorsConfig) Discriminator() (string, error) { return u.stated("type") }
 
-// ValueByDiscriminator is the member this value's `type` names.
-func (u VectorsConfig) ValueByDiscriminator() (any, error) {
-	tag, err := u.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch tag {
-	case "qdrant":
-		return as[QdrantVectorsConfig](u.union)
-	case "memory":
-		return as[MemoryVectorsConfig](u.union)
-	}
-	return nil, unnamedMember("VectorsConfig", "type", tag)
+// Member is the member this value is: the one whose schema admits it.
+func (u VectorsConfig) Member() (any, error) { return u.member("VectorsConfig", vectorsConfigMembers) }
+
+// vectorsConfigMembers is what each member of VectorsConfig admits, and how a
+// value of it is read.
+var vectorsConfigMembers = []unionMember{
+	{"QdrantVectorsConfig", readAs[QdrantVectorsConfig], []signature{{kind: objectKind, required: []string{"type", "host", "port", "tokenEnv"}, allowed: []string{"type", "host", "port", "tokenEnv"}, closed: true, fixed: []fixedValues{{"type", []any{"qdrant"}}}}}},
+	{"MemoryVectorsConfig", readAs[MemoryVectorsConfig], []signature{{kind: objectKind, required: []string{"type"}, allowed: []string{"type"}, closed: true, fixed: []fixedValues{{"type", []any{"memory"}}}}}},
 }
 
 // VoyageEmbeddingConfig An embedding model served by Voyage AI. No service
@@ -14666,6 +14917,18 @@ type WorkerMessagesBootItem struct {
 // WorkerMessagesBootItemSharedBootRefusal.
 type WorkerMessagesBootItemMember interface {
 	memberOfWorkerMessagesBootItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u WorkerMessagesBootItem) Member() (any, error) {
+	return u.member("WorkerMessagesBootItem", workerMessagesBootItemMembers)
+}
+
+// workerMessagesBootItemMembers is what each member of WorkerMessagesBootItem
+// admits, and how a value of it is read.
+var workerMessagesBootItemMembers = []unionMember{
+	{"WorkerMessagesBootItemOwnBootRefusal", readAs[WorkerMessagesBootItemOwnBootRefusal], []signature{{kind: objectKind, required: []string{"name", "situation", "refusal"}, allowed: []string{"name", "situation", "refusal"}, closed: true}}},
+	{"WorkerMessagesBootItemSharedBootRefusal", readAs[WorkerMessagesBootItemSharedBootRefusal], []signature{{kind: objectKind, required: []string{"name", "situation", "bootRefusal"}, allowed: []string{"name", "situation", "bootRefusal"}, closed: true}}},
 }
 
 type WorkerMessagesBootItemOwnBootRefusal struct {
@@ -15145,6 +15408,18 @@ type YieldJobResult struct {
 // JobDeclined.
 type YieldJobResultMember interface {
 	memberOfYieldJobResult()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u YieldJobResult) Member() (any, error) {
+	return u.member("YieldJobResult", yieldJobResultMembers)
+}
+
+// yieldJobResultMembers is what each member of YieldJobResult admits, and how
+// a value of it is read.
+var yieldJobResultMembers = []unionMember{
+	{"YieldJobDone", readAs[YieldJobDone], []signature{{kind: objectKind, required: []string{"resourceId", "resourceName", "truncated"}, allowed: []string{"resourceId", "resourceName", "truncated"}, closed: true}}},
+	{"JobDeclined", readAs[JobDeclined], []signature{{kind: objectKind, required: []string{"declined", "reason"}, allowed: []string{"declined", "reason"}, closed: true, fixed: []fixedValues{{"declined", []any{true}}, {"reason", []any{"no-text-layer", "encrypted", "corrupt", "too-large", "empty"}}}}}},
 }
 
 // YieldUpdateCommand Bus command to update a yielded resource's storage

@@ -50,6 +50,11 @@ the coming release's, and gathers its changes as they land.
   struct, as in every SDK: the members a value carries beside are read past
   and not written back, where it was an alias of `map[string]any` that kept
   them.
+- Every union says which member a value is: `Member` (in place of
+  `ValueByDiscriminator`, which only a union told apart by a property had)
+  reads it as the one member whose schema admits it. A value that no member
+  admits is refused, said of the one member that names it by its kind and
+  the values it states, where one does.
 - A stream's place, and each place `CoupledBookmarks` keeps, is an id
   `LastEventIds` holds in its scope, read as the generated `api.LastEventIds`,
   in place of an id held to `PersistedEventId` by that schema's name.
