@@ -8,8 +8,9 @@ open Fixture
 
 let generated ?(identifiers = []) ?(accessors = []) ?(keys = []) schemas root =
   Rust_syntax.text ~header:[]
-    (G.items (definitions schemas)
-       { roots = [ root ]; identifiers; accessors; keys })
+    (G.items
+       (Typing.make (definitions schemas) ~roots:[ root ] ~identifiers ~keys)
+       ~accessors)
 
 let thing pattern =
   [
@@ -136,9 +137,7 @@ let cases =
         has
           (generated
              [
-               ( "Target",
-                 {|{"type": "object", "properties": {"source": {"type": "string"}}, "required": ["source"]}|}
-               );
+               ("Target", {|{"type": "integer"}|});
                ( "Holder",
                  {|{"type": "object", "required": ["target"], "properties": {"target": {"oneOf": [
                      {"type": "string"},
@@ -400,7 +399,7 @@ let cases =
            pub enum Mark {";
         has code
           "            Some(\"tagging\") => \
-           serde_json::from_value(value).map(Mark::Tag),";
+           serde_json::from_value(value).map(Mark::MarkTag),";
         has code
           "                return Err(serde::de::Error::custom(\n\
           \                    \"a Mark states a `motivation` that is one of \
@@ -409,8 +408,8 @@ let cases =
         has code
           "    pub(crate) const fn motivation(&self) -> Motivation {\n\
           \        match self {\n\
-          \            Mark::Highlight(_) => Motivation::Highlighting,\n\
-          \            Mark::Tag(_) => Motivation::Tagging,\n\
+          \            Mark::MarkHighlight(_) => Motivation::Highlighting,\n\
+          \            Mark::MarkTag(_) => Motivation::Tagging,\n\
           \        }\n\
           \    }");
     case

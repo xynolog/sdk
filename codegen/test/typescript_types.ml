@@ -4,11 +4,13 @@
 open Xynolog_codegen
 open Fixture
 
-let written schemas root =
-  let definitions = definitions schemas in
+let written ?(identifiers = []) schemas root =
+  let typing =
+    Typing.make (definitions schemas) ~roots:[ root ] ~identifiers ~keys:[]
+  in
   Typescript_syntax.type_ ~depth:0
-    (Typescript_types.type_of ~named:Typescript_syntax.schema
-       (definitions.schema root))
+    (Typescript_types.declared ~named:Typescript_syntax.schema
+       (typing.find root))
 
 let one json = written [ ("S", json); ("A", {|{"type": "string"}|}) ] "S"
 let equal expected actual = Alcotest.(check string) "written" expected actual
@@ -85,17 +87,11 @@ let cases =
         equal "unknown" (one "{}"));
     case "a kind of id is text of a type of its own" (fun () ->
         equal "string & { readonly __brand: 'A' }"
-          (Typescript_syntax.type_ ~depth:0
-             (Typescript_types.branded
-                (definitions [ ("A", {|{"type": "string"}|}) ])
-                "A")));
+          (written ~identifiers:[ "A" ] [ ("A", {|{"type": "string"}|}) ] "A"));
     case "a kind of id whose schema is not text is refused" (fun () ->
         refused "N: a kind of id whose schema is not a string"
           (fun () ->
-            Typescript_syntax.type_ ~depth:0
-              (Typescript_types.branded
-                 (definitions [ ("N", {|{"type": "number"}|}) ])
-                 "N"))
+            written ~identifiers:[ "N" ] [ ("N", {|{"type": "number"}|}) ] "N")
           ());
   ]
 

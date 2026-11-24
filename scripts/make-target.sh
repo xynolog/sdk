@@ -303,7 +303,8 @@ case "${1:-}" in
     # reason, and every surface item an SDK lacks is one Protocol has, with a
     # reason. Every sdk path the pinned Protocol names is one this checkout
     # has, each base module a generated one imports stays below it, and every
-    # SDK declares a type for every schema Protocol states.
+    # SDK declares a type for every schema Protocol states, each of which
+    # Typing gives a form, reading every keyword Protocol states.
     in_container xynolog-ocaml-toolchain '
       cd /tmp/sdk/codegen
       dune build @all @opam
@@ -316,6 +317,7 @@ case "${1:-}" in
       dune exec -- xynolog-codegen read ..
       dune exec -- ./test/boundary_census.exe ..
       dune exec -- ./test/types_census.exe ..
+      dune exec -- ./test/typing_census.exe ..
       dune exec -- ./test/protocol_paths_census.exe .. ../protocol' --memory 4g "${OCAML_DUNE_CACHE_OPTIONS[@]}"
     ;;
   generate|check-generated)

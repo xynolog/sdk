@@ -1,53 +1,35 @@
-(* Rust types from component schemas: a struct per object, an enum per string
-   enumeration, an untagged enum per [oneOf] or [anyOf], an alias per named
-   string, a type of its own per kind of id, a field per property, optional
-   where the schema does not require it. It knows the shapes the spec's
-   schemas use and refuses any other, so a schema that grows a new shape
-   stops the run rather than generating something wrong.
+(* Rust types from Protocol's schemas as [Typing] reads them: a struct per
+   object, an enum per string enumeration, an untagged enum per union, an
+   alias per named string, a type of its own per kind of id, a field per
+   member, optional where the schema does not require it. It spells what
+   [Typing] decides, and refuses a form Rust has no spelling for, so a schema
+   that grows a new shape stops the run rather than generating something
+   wrong.
 
-   Every type written for a component schema, and not an alias, names that
-   schema ([Schema::NAME]), so code that needs a type's schema takes it from
-   the type, and a type with none does not compile there.
+   Every type written for a schema of the generation, and not an alias,
+   names that schema ([Schema::NAME]), so code that needs a type's schema
+   takes it from the type, and a type with none does not compile there.
 
    A union is written untagged. One whose schema names the property its
    members are told apart by ([status], [jobType], [motivation]), each member
    stating its own one value of it, is decoded as the member that value
    names, and a value that is wrong is refused for what is wrong with it. Any
-   other is decoded as the first member that fits: its members are told apart
-   by what they are (text, a list, an object) or, between objects, by one
-   being the empty object or by being closed with no required property in
-   common. A member's one value of such a property is its own to state: [new]
-   sets it and takes the rest. A union told apart so that a generation names
-   ([accessors]) says which value of the string enumeration the property
-   names its member states, and a member's value that is none of the
-   enumeration's is refused. What the schema says that a type cannot (a
-   pattern, a length, a bound) is the validators' to hold at the boundary,
-   before a value is decoded. A kind of id is the exception: its pattern is
-   written as the rule its only constructor holds a value to
+   other is decoded as the first member that fits
+   ([Deviations.single_tags]). A member's one value of such a property is its
+   own to state: [new] sets it and takes the rest. A union told apart so that
+   a generation names ([accessors]) says which value of the string
+   enumeration the property names its member states, and a member's value
+   that is none of the enumeration's is refused. What the schema says that a
+   type cannot (a pattern, a length, a bound) is the validators' to hold at
+   the boundary, before a value is decoded. A kind of id is the exception:
+   its pattern is written as the rule its only constructor holds a value to
    (rust/sdk/src/types.rs's [Rule]), and decoding goes through that
    constructor, so a value of the type has always passed its rule. *)
 
 module R = Rust_syntax
-module D = Definitions
+module T = Typing
 
-let refuse = D.refuse
-
-type generation = {
-  roots : string list;
-      (** The schemas generated, with every schema they reach. *)
-  identifiers : string list;
-      (** The kinds of id (identifiers/kinds.json): each a type of its own, made
-          only by a constructor that holds it to the schema's pattern. *)
-  accessors : string list;
-      (** The unions told apart by a property whose crate reads it: each is
-          given a [pub(crate)] method, named as the property is, saying which
-          value of the string enumeration the property names its member states.
-      *)
-  keys : (string * string) list;
-      (** The type a named map's keys are, by its name ([Definitions.map_keys]).
-      *)
-}
-
+let refuse = Definitions.refuse
 let empty_object = "EmptyObject"
 
 (* The names the SDK's own code gives what every generation shares
@@ -78,57 +60,25 @@ let doc_of description =
           else l)
         (lines d)
 
-let describe (s : D.t) =
-  match s with
-  | D.Node { description; _ } | D.Ref { description; _ } -> doc_of description
-  | _ -> []
-
-let type_is t (s : D.t) =
-  match s with D.Node { type_ = Some (D.One t'); _ } -> t = t' | _ -> false
-
-let is_upper c = c >= 'A' && c <= 'Z'
-
-(* The longest prefix every name shares that ends where a word ends, and
-   leaves each name a word of its own: [JobPending], [JobRunning] share
-   [Job]. *)
-let common_prefix names =
-  match names with
-  | first :: _ :: _ ->
-      let prefix = ref "" in
-      String.iteri
-        (fun i c ->
-          let candidate = String.sub first 0 i in
-          if
-            is_upper c && candidate <> ""
-            && List.for_all
-                 (fun n ->
-                   String.starts_with ~prefix:candidate n
-                   && String.length n > i
-                   && is_upper n.[i])
-                 names
-          then prefix := candidate)
-        first;
-      !prefix
-  | _ -> ""
+let describe description = doc_of description
 
 (* An integer's type: the narrowest its bounds allow of [u16], [u64] and
    [i64]. *)
-let integer_ty (n : D.node) =
+let integer_ty ~minimum ~maximum =
   let int = function
     | Some f when Float.is_integer f -> Some (int_of_float f)
     | _ -> None
   in
   ty
-    (match (int n.minimum, int n.maximum) with
+    (match (int minimum, int maximum) with
     | Some min, Some max when min >= 0 && max <= 65535 -> "u16"
     | Some min, _ when min >= 0 -> "u64"
     | _ -> "i64")
 
-let only_integer (s : D.t) =
-  match s with
-  | D.Node
-      { type_ = Some (D.One Integer); enum = Some [ Schema.Int_literal n ]; _ }
-    ->
+let only_integer (m : T.member) =
+  match (m.fixed, m.ty) with
+  | ( Some (Schema.Int_literal n),
+      T.Inline { form = T.Enum { base = Some (T.Integer _); _ }; _ } ) ->
       Some n
   | _ -> None
 
@@ -269,21 +219,24 @@ module Rule = struct
 end
 
 type state = {
-  definitions : D.definitions;
-  generation : generation;
+  typing : T.t;
+  accessors : string list;
+      (** The unions told apart by a property whose crate reads it: each is
+          given a [pub(crate)] method, named as the property is, saying which
+          value of the string enumeration the property names its member states.
+      *)
   written : (string, R.item list) Hashtbl.t;
       (** Every type written, by name, so a schema reached twice is written
           once. *)
 }
 
-let schema st name = st.definitions.schema name
-let defined st name = List.mem name st.definitions.names
+let shape what = refuse "%s: a schema shape the generator does not know" what
 
 let rec named st name =
   if not (Hashtbl.mem st.written name) then (
-    let s = schema st name in
+    let d = st.typing.find name in
     Hashtbl.replace st.written name [];
-    let items = declaration st name s in
+    let items = declaration st name d.form (describe d.node_description) in
     let alias =
       List.exists
         (function R.Type_alias { name = n; _ } -> n = name | _ -> false)
@@ -302,12 +255,12 @@ let rec named st name =
     Hashtbl.replace st.written name items);
   ty name
 
-and inline_name st owner property =
-  Naming.inline ~defined:(defined st) owner property
-
-and inline st name s =
-  Hashtbl.replace st.written name (declaration st name s);
-  ty name
+(* A type of its own written in place, declared by the name [Typing] gives
+   it. *)
+and declared st (i : T.inline) =
+  Hashtbl.replace st.written i.name
+    (declaration st i.name i.form (describe i.node_description));
+  ty i.name
 
 and empty st =
   if not (Hashtbl.mem st.written empty_object) then
@@ -339,147 +292,73 @@ and empty st =
       ];
   ty empty_object
 
-(* A keyword that constrains nothing, so a schema of these alone, as
-   JsonSchema.json written in place is, admits any value. *)
-and annotation key =
-  List.mem key [ "$schema"; "$id"; "$comment"; "title"; "description" ]
+(* The Rust type of a value of [ty], [what] holding it. *)
+and type_of st what (ty_ : T.ty) =
+  match ty_ with
+  | T.Named name -> named st name
+  | T.Any -> R.named "serde_json::Value"
+  | T.Nullable inner -> type_of st what inner
+  | T.Inline i -> in_place st what i
+  | T.Scalar (T.Text _) -> string_ty
+  | T.Scalar T.Boolean -> ty "bool"
+  | T.Scalar T.Number -> ty "f64"
+  | T.Scalar (T.Integer { minimum; maximum }) -> integer_ty ~minimum ~maximum
+  | T.Null -> refuse "%s: null alone" what
+  | T.List (Some items) -> generic "Vec" [ type_of st what items ]
+  | T.List None -> refuse "%s: an array that states no items" what
+  | T.Nothing -> shape what
 
-(* The Rust type of a value [owner]'s property [property] holds. *)
-and type_of st owner property (s : D.t) =
-  let what = owner ^ "." ^ property in
-  match s with
-  | D.Ref { name; _ } -> named st name
-  | D.Node { keys; _ } when List.for_all annotation keys ->
-      R.named "serde_json::Value"
-  | _ -> (
-      match View.without_null s with
-      | Some inner -> type_of st owner property inner
-      | None -> (
-          match s with
-          | D.Node { all_of = Some _; _ } ->
-              inline st (inline_name st owner property) s
-          | _ -> (
-              match View.union s with
-              | Some members ->
-                  if List.for_all (View.is_string st.definitions) members then
-                    string_ty
-                  else inline st (inline_name st owner property) s
-              | None -> (
-                  match s with
-                  | D.Node ({ type_ = Some (D.One t); _ } as n) -> (
-                      match t with
-                      | String when n.enum <> None ->
-                          inline st (inline_name st owner property) s
-                      | String -> string_ty
-                      | Boolean -> ty "bool"
-                      | Number -> ty "f64"
-                      | Null -> refuse "%s: null alone" what
-                      | Integer -> integer_ty n
-                      | Array -> (
-                          match n.items with
-                          | Some items ->
-                              generic "Vec"
-                                [ type_of st owner (property ^ "Item") items ]
-                          | None ->
-                              refuse "%s: an array that states no items" what)
-                      | Object -> (
-                          let has_properties =
-                            match n.properties with
-                            | Some (_ :: _) -> true
-                            | _ -> false
-                          in
-                          let none_at_all = n.max_properties = Some 0 in
-                          match (has_properties, n.additional_properties) with
-                          | true, _ ->
-                              inline st (inline_name st owner property) s
-                          | false, Some (D.Bool false) when none_at_all ->
-                              empty st
-                          | false, Some (D.Bool false) ->
-                              inline st (inline_name st owner property) s
-                          | false, (None | Some (D.Bool true)) when none_at_all
-                            ->
-                              empty st
-                          | false, (None | Some (D.Bool true)) ->
-                              R.named
-                                ~args:[ string_ty; R.named "serde_json::Value" ]
-                                "serde_json::Map"
-                          | false, Some values ->
-                              R.named
-                                ~args:
-                                  [
-                                    string_ty;
-                                    type_of st owner (property ^ "Value") values;
-                                  ]
-                                "std::collections::BTreeMap"))
-                  | _ ->
-                      refuse "%s: a schema shape the generator does not know"
-                        what))))
+and in_place st what (i : T.inline) =
+  match (i.form, i.composition) with
+  | _, Some _ | T.Record _, None -> declared st i
+  | T.Union u, None ->
+      if Deviations.text_union u then string_ty else declared st i
+  | T.Enum { base = Some (T.Text _); _ }, None -> declared st i
+  | T.Enum { base = Some (T.Integer { minimum; maximum }); _ }, None ->
+      integer_ty ~minimum ~maximum
+  | T.Enum { base = Some T.Boolean; _ }, None -> ty "bool"
+  | T.Enum { base = Some T.Number; _ }, None -> ty "f64"
+  | T.Empty _, None when Deviations.closed_empty_named i.form -> declared st i
+  | (T.Empty _ as form), None when T.holds_none form -> empty st
+  | T.Empty _, None ->
+      R.named ~args:[ string_ty; R.named "serde_json::Value" ] "serde_json::Map"
+  | T.Map { value; _ }, None ->
+      R.named
+        ~args:[ string_ty; type_of st what value ]
+        "std::collections::BTreeMap"
+  | (T.Enum { base = None; _ } | T.Alias _ | T.Identifier _ | T.Json), None ->
+      shape what
 
-and declaration st name (s : D.t) =
-  let doc = describe s in
-  match View.union s with
-  | Some members ->
-      let told_apart =
-        match s with
-        | D.Node { discriminator = Some property; _ } ->
-            Option.map
-              (fun tags -> (property, tags))
-              (View.tags st.definitions property members)
-        | _ -> None
-      in
-      union_declaration st name members told_apart doc
-  | None -> (
-      let owner = D.owners st.definitions name s in
-      let s = D.meant s in
-      let n =
-        match s with
-        | D.Node n -> n
-        | _ -> refuse "%s: a schema shape the generator does not know" name
-      in
-      if n.enum <> None then enumeration name n doc
-      else if List.mem name st.generation.identifiers then identifier name n doc
-      else if View.is_string st.definitions s then
-        [ R.Type_alias { doc; vis = Pub; name; ty = string_ty } ]
-      else if n.type_ = Some (D.One Integer) then
-        [ R.Type_alias { doc; vis = Pub; name; ty = integer_ty n } ]
-      else if n.type_ = Some (D.One Number) then
-        [ R.Type_alias { doc; vis = Pub; name; ty = ty "f64" } ]
-      else if n.type_ = Some (D.One Boolean) then
-        [ R.Type_alias { doc; vis = Pub; name; ty = ty "bool" } ]
-      else if n.type_ <> Some (D.One Object) then
-        refuse "%s: a schema shape the generator does not know" name
-      else
-        match (n.properties, n.additional_properties) with
-        | (None | Some []), Some ((D.Ref _ | D.Node _) as values) ->
-            let key =
-              match List.assoc_opt name st.generation.keys with
-              | Some key -> named st key
-              | None -> string_ty
-            in
-            [
-              R.Type_alias
-                {
-                  doc;
-                  vis = Pub;
-                  name;
-                  ty =
-                    R.named
-                      ~args:[ key; type_of st name "Value" values ]
-                      "std::collections::BTreeMap";
-                };
-            ]
-        | _ -> structure st name ~owner n doc)
+and declaration st name (form : T.form) doc =
+  let alias ty = [ R.Type_alias { doc; vis = Pub; name; ty } ] in
+  match form with
+  | T.Union u -> union_declaration st name u doc
+  | T.Enum { base = Some (T.Text _); values } ->
+      enumeration name
+        (List.map
+           (function
+             | Schema.String_literal v -> v
+             | _ -> refuse "%s: an enum value is not a string" name)
+           values)
+        doc
+  | T.Enum _ -> refuse "%s: only string enumerations are generated" name
+  | T.Identifier { pattern } -> identifier name pattern doc
+  | T.Alias (T.Scalar (T.Text _)) -> alias string_ty
+  | T.Alias (T.Scalar (T.Integer { minimum; maximum })) ->
+      alias (integer_ty ~minimum ~maximum)
+  | T.Alias (T.Scalar T.Number) -> alias (ty "f64")
+  | T.Alias (T.Scalar T.Boolean) -> alias (ty "bool")
+  | T.Map { key; value } ->
+      let key = match key with Some key -> named st key | None -> string_ty in
+      alias
+        (R.named
+           ~args:[ key; type_of st name value ]
+           "std::collections::BTreeMap")
+  | T.Record { members; rest } -> structure st name members rest doc
+  | T.Empty { rest; _ } -> structure st name [] rest doc
+  | T.Alias _ | T.Json -> shape name
 
-and enumeration name (n : D.node) doc =
-  if n.type_ <> Some (D.One String) then
-    refuse "%s: only string enumerations are generated" name;
-  let values =
-    List.map
-      (function
-        | Schema.String_literal v -> v
-        | _ -> refuse "%s: an enum value is not a string" name)
-      (Option.get n.enum)
-  in
+and enumeration name values doc =
   let variants = List.map (fun v -> (v, Naming.variant v)) values in
   List.iteri
     (fun i (_, variant) ->
@@ -543,11 +422,9 @@ and enumeration name (n : D.node) doc =
 (* A kind of id: a string no code can make but through [new], which holds it
    to the schema's pattern. Decoding goes through [new] too, so an id a peer
    sent is held to the same rule as one a caller made. *)
-and identifier name (n : D.node) doc =
-  if n.type_ <> Some (D.One String) then
-    refuse "%s: a kind of id that is not a string" name;
+and identifier name pattern doc =
   let pattern =
-    match n.pattern with
+    match pattern with
     | Some p -> p
     | None -> refuse "%s: a kind of id states no pattern" name
   in
@@ -736,20 +613,19 @@ and identifier name (n : D.node) doc =
       eq (R.Ref (None, ty "str")) (R.Deref (R.p "other"));
     ]
 
-and structure st name ~owner (n : D.node) doc =
-  let properties = Option.value n.properties ~default:[] in
-  let required = Option.value n.required ~default:[] in
-  let fields = List.map (fun (p, _) -> R.snake p) properties in
+and structure st name (members : T.member list) (rest : T.rest) doc =
+  let fields = List.map (fun (m : T.member) -> R.snake m.wire) members in
   List.iteri
     (fun i f ->
       if List.mem f (List.filteri (fun j _ -> j < i) fields) then
         refuse "%s: two properties are named %s in Rust" name f)
     fields;
+  let closed = rest = T.Closed in
   let open_ =
-    match n.additional_properties with
-    | Some (D.Bool true) -> true
-    | Some (D.Bool false) | None -> false
-    | Some _ ->
+    match rest with
+    | T.Open -> true
+    | T.Closed | T.Unstated -> false
+    | T.Of _ ->
         refuse
           "%s: properties beside additionalProperties of a schema, which the \
            generator does not know"
@@ -767,68 +643,72 @@ and structure st name ~owner (n : D.node) doc =
   let skip = R.Name_value ("skip_serializing_if", R.Str "Option::is_none") in
   let rust_fields =
     List.map
-      (fun (property, ps) ->
-        let rust_type = type_of st (owner property) property ps in
+      (fun (m : T.member) ->
+        let property = m.wire in
+        let rust_type = type_of st (name ^ "." ^ property) m.ty in
         let field = R.snake property in
         let renamed =
           if field <> property then
             [ serde [ R.Name_value ("rename", R.Str property) ] ]
           else []
         in
-        let nullable = Option.is_some (View.without_null ps) in
-        let only_value = View.only_value (D.meant ps) in
-        let is_required = List.mem property required in
+        let nullable = match m.ty with T.Nullable _ -> true | _ -> false in
+        let is_required = m.required in
         let make attrs t =
-          R.field ~doc:(describe ps) ~attrs:(renamed @ attrs) field t
+          R.field
+            ~doc:(describe m.node_description)
+            ~attrs:(renamed @ attrs) field t
         in
-        if is_required && nullable then (
-          add_param (R.Param (field, option rust_type));
-          add_set (field, R.p field);
-          make [] (option rust_type))
-        else if is_required && Option.is_some only_value then (
-          (* A property that admits one value says which member of a union
-             this is. It is the type's to state, not its maker's. *)
-          incr single_valued;
-          let type_name =
-            match rust_type with
-            | R.Named ([ t ], []) -> t
-            | _ -> refuse "%s.%s: one value of no enumeration" name property
-          in
-          add_set
-            (field, path [ type_name; Naming.variant (Option.get only_value) ]);
-          make [] rust_type)
-        else if is_required && Option.is_some (only_integer (D.meant ps)) then (
-          (* A property that admits one number states that number, which the
-             type names as a constant for a reader to compare with. *)
-          incr single_valued;
-          let constant = R.screaming property in
-          add_const
-            (R.I_const
-               {
-                 doc =
-                   [
-                     Printf.sprintf "The one `%s` a `%s` states." property name;
-                   ];
-                 vis = Pub;
-                 name = constant;
-                 ty = rust_type;
-                 value = Some (R.Int (Option.get (only_integer (D.meant ps))));
-               });
-          add_set (field, path [ "Self"; constant ]);
-          make [] rust_type)
-        else if is_required && rust_type = string_ty then (
-          add_param (R.Param (field, R.Impl_of (generic "Into" [ string_ty ])));
-          add_set (field, R.Method (R.p field, "into", []));
-          make [] rust_type)
-        else if is_required then (
-          add_param (R.Param (field, rust_type));
-          add_set (field, R.p field);
-          make [] rust_type)
-        else (
-          incr optional;
-          add_set (field, R.p "None");
-          make [ serde [ R.Word [ "default" ]; skip ] ] (option rust_type)))
-      properties
+        match (m.fixed, only_integer m) with
+        | _ when is_required && nullable ->
+            add_param (R.Param (field, option rust_type));
+            add_set (field, R.p field);
+            make [] (option rust_type)
+        | Some (Schema.String_literal value), _ when is_required ->
+            (* A property that admits one value says which member of a union
+               this is. It is the type's to state, not its maker's. *)
+            incr single_valued;
+            let type_name =
+              match rust_type with
+              | R.Named ([ t ], []) -> t
+              | _ -> refuse "%s.%s: one value of no enumeration" name property
+            in
+            add_set (field, path [ type_name; Naming.variant value ]);
+            make [] rust_type
+        | _, Some number when is_required ->
+            (* A property that admits one number states that number, which the
+               type names as a constant for a reader to compare with. *)
+            incr single_valued;
+            let constant = R.screaming property in
+            add_const
+              (R.I_const
+                 {
+                   doc =
+                     [
+                       Printf.sprintf "The one `%s` a `%s` states." property
+                         name;
+                     ];
+                   vis = Pub;
+                   name = constant;
+                   ty = rust_type;
+                   value = Some (R.Int number);
+                 });
+            add_set (field, path [ "Self"; constant ]);
+            make [] rust_type
+        | _ when is_required && rust_type = string_ty ->
+            add_param
+              (R.Param (field, R.Impl_of (generic "Into" [ string_ty ])));
+            add_set (field, R.Method (R.p field, "into", []));
+            make [] rust_type
+        | _ when is_required ->
+            add_param (R.Param (field, rust_type));
+            add_set (field, R.p field);
+            make [] rust_type
+        | _ ->
+            incr optional;
+            add_set (field, R.p "None");
+            make [ serde [ R.Word [ "default" ]; skip ] ] (option rust_type))
+      members
   in
   let rest =
     if open_ then
@@ -854,9 +734,7 @@ and structure st name ~owner (n : D.node) doc =
                else [])
             @ [ "serde::Deserialize"; "serde::Serialize" ])
           ::
-          (if n.additional_properties = Some (D.Bool false) then
-             [ serde [ R.Word [ "deny_unknown_fields" ] ] ]
-           else []);
+          (if closed then [ serde [ R.Word [ "deny_unknown_fields" ] ] ] else []);
         vis = Pub;
         name;
         generics = [];
@@ -912,51 +790,17 @@ and structure st name ~owner (n : D.node) doc =
         ]))
   else [ declared; R.Blank ]
 
-and union_declaration st name members told_apart doc =
-  let prefix = common_prefix (List.filter_map View.reference members) in
+and union_declaration st name (u : T.union) doc =
   let variants =
-    List.fold_left
-      (fun acc member ->
-        let variant, rust_type =
-          match member with
-          | D.Ref { name = target; _ } ->
-              let rust_type = named st target in
-              let short =
-                if String.starts_with ~prefix target then
-                  String.sub target (String.length prefix)
-                    (String.length target - String.length prefix)
-                else target
-              in
-              (short, rust_type)
-          | D.Node { type_ = Some (D.One Object); max_properties = Some 0; _ }
-            ->
-              ("Empty", empty st)
-          | _ when View.is_string st.definitions member -> ("Text", string_ty)
-          | D.Node { type_ = Some (D.One Array); items; _ } -> (
-              match items with
-              | Some items ->
-                  ("List", generic "Vec" [ type_of st name "Item" items ])
-              | None -> refuse "%s: an array that states no items" name)
-          | D.Node { type_ = Some (D.One Object); _ } ->
-              (* An inline member is named by the one value its discriminant
-                 takes, when it has one. *)
-              let variant =
-                match View.member_name member with
-                | Some named -> named
-                | None -> "Object"
-              in
-              (variant, type_of st name variant member)
-          | D.Node { type_ = Some (D.One Integer); _ } -> ("Integer", ty "i64")
-          | D.Node { type_ = Some (D.One Number); _ } -> ("Number", ty "f64")
-          | D.Node { type_ = Some (D.One Boolean); _ } -> ("Boolean", ty "bool")
-          | _ -> refuse "%s: a union member the generator does not know" name
-        in
-        if List.mem_assoc variant acc then
-          refuse "%s: two union members would both be the variant %s" name
-            variant;
-        acc @ [ (variant, rust_type) ])
-      [] members
+    List.map
+      (fun (b : T.branch) ->
+        ( b.variant,
+          match b.ty with
+          | T.Scalar (T.Integer _) -> ty "i64"
+          | member -> type_of st name member ))
+      u.branches
   in
+  let told_apart = Deviations.single_tags u in
   let enum =
     R.Enum
       {
@@ -1061,7 +905,7 @@ and union_declaration st name members told_apart doc =
         ]
   in
   let accessor =
-    if not (List.mem name st.generation.accessors) then []
+    if not (List.mem name st.accessors) then []
     else
       match told_apart with
       | None ->
@@ -1078,21 +922,20 @@ and union_declaration st name members told_apart doc =
   let froms =
     List.concat
       (List.map2
-         (fun member (variant, rust_type) ->
-           if
-             View.reference member <> None
-             && not (View.is_string st.definitions member)
-           then
-             [
-               R.Macro_item
-                 ( "member",
-                   [
-                     R.Call
-                       (path [ name; variant ], [ R.p (R.type_text rust_type) ]);
-                   ] );
-             ]
-           else [])
-         members variants)
+         (fun (b : T.branch) (variant, rust_type) ->
+           match b.ty with
+           | T.Named _ when not (T.admits_only_text b) ->
+               [
+                 R.Macro_item
+                   ( "member",
+                     [
+                       R.Call
+                         ( path [ name; variant ],
+                           [ R.p (R.type_text rust_type) ] );
+                     ] );
+               ]
+           | _ -> [])
+         u.branches variants)
   in
   blank_between ((enum :: deserialize) @ accessor @ froms)
 
@@ -1101,15 +944,15 @@ and union_declaration st name members told_apart doc =
 and discriminator_accessor st name property tags variants =
   let vocabulary = Text.pascal property in
   let values =
-    if not (defined st vocabulary) then
+    let none () =
       refuse "%s: told apart by `%s`, which names no string enumeration %s" name
         property vocabulary
+    in
+    if not (st.typing.defined vocabulary) then none ()
     else
-      match schema st vocabulary with
-      | D.Node { type_ = Some (D.One String); enum = Some values; _ } -> values
-      | _ ->
-          refuse "%s: told apart by `%s`, which names no string enumeration %s"
-            name property vocabulary
+      match (st.typing.find vocabulary).form with
+      | T.Enum { base = Some (T.Text _); values } -> values
+      | _ -> none ()
   in
   let returned = named st vocabulary in
   let arms =
@@ -1139,14 +982,14 @@ and discriminator_accessor st name property tags variants =
     ]
 
 (* The items of a generation's types, every type in the order of its name. *)
-let run definitions generation =
+let run (typing : T.t) ~accessors =
   List.iter
     (fun own ->
-      if List.mem own definitions.D.names then
+      if typing.defined own then
         refuse "%s is a schema's name, and the SDK's own" own)
     own_names;
-  let st = { definitions; generation; written = Hashtbl.create 512 } in
-  List.iter (fun root -> ignore (named st root)) generation.roots;
+  let st = { typing; accessors; written = Hashtbl.create 512 } in
+  List.iter (fun root -> ignore (named st root)) typing.names;
   let names =
     List.sort String.compare
       (Hashtbl.fold (fun n _ acc -> n :: acc) st.written [])
@@ -1228,8 +1071,8 @@ let with_eq_hash attrs =
       | meta -> meta)
     attrs
 
-let items definitions generation =
-  let st, names = run definitions generation in
+let items typing ~accessors =
+  let st, names = run typing ~accessors in
   let hashable = hashable st names in
   List.iter
     (fun name ->

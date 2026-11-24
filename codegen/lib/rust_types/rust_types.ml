@@ -13,75 +13,19 @@ module R = Rust_syntax
 let accessors = [ "MarkJobParams" ]
 let regenerate from_ = Banner.lines ~from_ __FILE__
 
-(* The SDK's types: [bundle]'s schemas it generates, and how. *)
-let generation (spec : Spec.t) (bundle : Definitions.bundle) :
-    Generate.generation =
-  let identifiers =
-    List.map
-      (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)
-      spec.tables.identifiers_kinds.kinds
-  in
-  {
-    roots =
-      List.sort_uniq String.compare
-        (List.map fst (Roots.all spec)
-        @ identifiers
-        @ Definitions.generated_client_types spec
-        @ List.map (fun (_, name, _) -> name) (Definitions.records spec));
-    identifiers;
-    accessors;
-    keys = Definitions.map_keys spec;
-  }
-
 (* Each table the services keep to ([Roots.service_tables]) is typed by its
    own schema ([Places.schema_of]), named as that schema's file is. *)
 let table_type table = Definitions.stem (Places.schema_of table)
 
-(* [bundle]'s schemas and each service table's own, viewed as the bundle
-   views every schema. *)
-let with_tables (spec : Spec.t) (bundle : Definitions.bundle) =
-  let named name =
-    match bundle.definitions.schema name with
-    | _ -> true
-    | exception Definitions.Refused _ -> false
-  in
-  let tables =
-    List.map
-      (fun table ->
-        let file = Places.schema_of table and name = table_type table in
-        if named name then
-          Definitions.refuse "%s, the schema of %s, is named as a schema is"
-            file table;
-        match List.assoc_opt file spec.schemas with
-        | Some s -> (name, bundle.view (Normalize.shape_only s))
-        | None -> Definitions.refuse "%s has no schema %s" table file)
-      (Roots.service_tables spec)
-  in
-  {
-    Definitions.names = bundle.definitions.names @ List.map fst tables;
-    schema =
-      (fun name ->
-        match List.assoc_opt name tables with
-        | Some s -> s
-        | None -> bundle.definitions.schema name);
-  }
-
 let types (spec : Spec.t) =
-  let bundle = Definitions.bundle spec in
-  let generation = generation spec bundle in
   {
     Output.path = "rust/sdk/src/generated/types.rs";
     text =
       Rust_syntax.text
         ~header:(regenerate "the component schemas in protocol/specs/src")
-        (Generate.items (with_tables spec bundle)
-           {
-             generation with
-             roots =
-               List.sort_uniq String.compare
-                 (generation.roots
-                 @ List.map table_type (Roots.service_tables spec));
-           });
+        (Generate.items
+           (Typing.of_spec spec ~tables:(Roots.service_tables spec))
+           ~accessors);
   }
 
 (* JSON text in ASCII, as a Rust string the printer lays out must be: each
@@ -214,8 +158,10 @@ let sign_in (spec : Spec.t) =
       Rust_syntax.text
         ~header:(regenerate ("protocol/specs/src/" ^ Roots.sign_in_entry))
         (Generate.items
-           (Definitions.alone ~ids:spec.ids ~name:"SignIn" schema)
-           { roots = [ "SignIn" ]; identifiers = []; accessors = []; keys = [] });
+           (Typing.make
+              (Definitions.alone ~ids:spec.ids ~name:"SignIn" schema)
+              ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[])
+           ~accessors:[]);
   }
 
 (* Why a client that read a launcher's discovery document found no launcher
@@ -223,8 +169,7 @@ let sign_in (spec : Spec.t) =
 let discovery_absent (spec : Spec.t) =
   let reasons =
     List.map
-      (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-        Schema.String_literal r.reason)
+      (fun (r : Tables.Client_discovery_absent.reasons_item) -> r.reason)
       spec.tables.client_discovery_absent.reasons
   in
   {
@@ -232,12 +177,7 @@ let discovery_absent (spec : Spec.t) =
     text =
       Rust_syntax.text
         ~header:(regenerate "protocol/specs/src/client/discovery-absent.json")
-        (Generate.enumeration "DiscoveryAbsentReason"
-           {
-             (Definitions.node [ "type"; "enum" ]) with
-             type_ = Some (One String);
-             enum = Some reasons;
-           }
+        (Generate.enumeration "DiscoveryAbsentReason" reasons
            [ "Why no launcher was found." ]);
   }
 
@@ -329,15 +269,7 @@ let control (spec : Spec.t) =
       Rust_syntax.text
         ~header:(regenerate ("protocol/specs/src/" ^ control_table))
         (Generate.enumeration "ControlSender"
-           {
-             (Definitions.node [ "type"; "enum" ]) with
-             type_ = Some (One String);
-             enum =
-               Some
-                 (List.map
-                    (fun from -> Schema.String_literal (sender from))
-                    [ C.Client; C.Launcher ]);
-           }
+           (List.map sender [ C.Client; C.Launcher ])
            [ "Which side of the control API sends a notification." ]
         @ List.concat_map (method_items spec) t.methods
         @ List.concat_map (notification_items spec) t.notifications

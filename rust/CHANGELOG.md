@@ -57,6 +57,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A union's variant for a schema it names is that schema's own name
+  (`Job::JobPending`, `ConformanceStep::ConformanceBusFetch`,
+  `Agent::AgentPerson`), as every SDK names it, where the prefix its members'
+  names share was stripped (`Job::Pending`).
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - `GetAnnotationsResponse::motivation` is an `Option<Motivation>`, where it
