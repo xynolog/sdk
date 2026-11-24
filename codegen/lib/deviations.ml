@@ -29,6 +29,11 @@ let single_tags (u : T.union) =
       Some (property, List.map List.hd values)
   | _ -> None
 
+(* Go holds a union's value as the wire carries it, and its caller reads it
+   as whichever member the caller names ([As]); only a union told apart by
+   a tag says which member a value is ([ValueByDiscriminator]). [Typing]
+   tells every union's members apart by their signatures. *)
+
 (* Rust names an object in place that is closed and names no member, but
    does not say [maxProperties: 0], for its place, and Python every object in
    place that holds no member ([Typing.holds_none]), where [Typing] has the
