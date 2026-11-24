@@ -8,6 +8,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `ServiceEnvironmentVariable`: every environment variable a Xynolog service
+  reads, beside its configuration document, by its name
+  (`ServiceEnvironmentVariable.xynologBusLog`). The bus log reads its variable
+  by it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
@@ -57,6 +61,13 @@ the coming release's, and gathers its changes as they land.
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
 - `OpenResource` is the type Protocol states: its `openedAt` is an `Int`, and
   its initializer takes its members in their alphabetical order.
+- `PendingAuthorization` is the type Protocol states: its members are
+  variables, its `issuer` is public as `PendingAuthorizationIssuer`, and its
+  initializer takes its members in their alphabetical order.
+- `LastEventIds` is keyed by `ResourceId`, as Protocol keys it, in place of
+  `String`. Each id (`ResourceId`, `AnnotationId`, `JobId`, `UserId`) is an
+  `Identifier`, which is `CodingKeyRepresentable`: a dictionary keyed by one
+  is a JSON object, and a key its kind's rule refuses is no key.
 - Every type Protocol states is `Hashable`, and so is `JSONValue`.
 - A method's options are the types Protocol states for them:
   `job.claim(ClaimOptions)` in place of the accepts and `WorkerTiming`,

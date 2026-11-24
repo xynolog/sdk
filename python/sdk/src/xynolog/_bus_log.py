@@ -32,6 +32,7 @@ from pydantic import JsonValue
 from xynolog import telemetry
 from xynolog._bus_log_credentials import CREDENTIALS
 from xynolog.identifiers import ResourceId
+from xynolog.service_environment import XYNOLOG_BUS_LOG
 
 _WITHHELD: Final = "[withheld]"
 """What a line says in place of a credential."""
@@ -40,7 +41,7 @@ _WITHHELD: Final = "[withheld]"
 @cache
 def enabled() -> bool:
     """Whether the bus log is written: what the process's environment said when this was first asked."""
-    return bool(os.environ.get("XYNOLOG_BUS_LOG"))
+    return bool(os.environ.get(XYNOLOG_BUS_LOG))
 
 
 def _shown(value: JsonValue) -> JsonValue:

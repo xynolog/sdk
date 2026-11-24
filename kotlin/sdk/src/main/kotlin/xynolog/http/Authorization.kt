@@ -2,7 +2,6 @@ package xynolog.http
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.serialization.Serializable
 import xynolog.errors.SignInError
 import xynolog.errors.SignInErrorCode
 import xynolog.identity.encodeUriComponent
@@ -12,8 +11,8 @@ import xynolog.signin.SIGN_IN_SCOPE
 import xynolog.storage.SessionStorage
 import xynolog.telemetry.futureOf
 import xynolog.types.BeginAuthorizationOptions
-import xynolog.types.HttpEndpoint
 import xynolog.types.IssuedTokens
+import xynolog.types.PendingAuthorization
 import xynolog.types.wireJson
 import java.net.URI
 import java.net.URISyntaxException
@@ -31,27 +30,6 @@ private val random = SecureRandom()
 
 /** RFC 7636 §4.2: BASE64URL(SHA-256(verifier)). */
 public fun codeChallenge(verifier: String): String = base64Url.encodeToString(MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray()))
-
-/**
- * What a sign-in remembers across the trip to the issuer and back: the
- * verifier and the state the response must match, where the person was
- * connecting, what they believed they were connecting to, and the issuer's
- * endpoints, so its completion asks nothing twice. Kept as every SDK keeps it,
- * so a sign-in one began is one another completes.
- */
-@Serializable
-public data class PendingAuthorization(
-    public val state: String,
-    public val verifier: String,
-    public val redirectUri: String,
-    public val target: HttpEndpoint,
-    public val issuer: IssuerEndpoints,
-    /** The registered knowledge base being signed in to again; null when it is none. */
-    public val kbId: String? = null,
-    /** What the person believed they clicked, checked afterwards and never assumed; null when they named nothing. */
-    public val expectedDid: String? = null,
-    public val expectedName: String? = null,
-)
 
 /** `size` random bytes, as base64url. */
 private fun randomUrlSafe(size: Int): String = base64Url.encodeToString(ByteArray(size).also(random::nextBytes))

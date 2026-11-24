@@ -8,6 +8,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `ServiceEnvironmentVariable`: every environment variable a Xynolog service
+  reads, beside its configuration document, by its name
+  (`ServiceEnvironmentVariable.XYNOLOG_BUS_LOG`). The bus log reads its
+  variable by it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
@@ -23,7 +27,7 @@ the coming release's, and gathers its changes as they land.
   `ControlParams<M>`, `ControlResult<M>`, `ControlNotificationParams<N>`,
   `ControlErrorData`, and the control codes, `ControlErrorCode`.
 - The tables the services keep to, each its JSON typed as its own schema
-  (`records['ServiceEnvironmentVariables']`, …), and `SERVICE_TABLES`
+  (`records['ServiceEnvironmentVariable']`, …), and `SERVICE_TABLES`
   holding each by its file: the variables each service reads and its boot
   refusals, its telemetry and log lines, each service's messages, the job
   budgets and storage, the reply bounds, the embedding requests, the
@@ -77,9 +81,17 @@ the coming release's, and gathers its changes as they land.
   table, where each rule listed its statuses by hand.
 - A discovery document is read by its schema; a refused one says the first
   fault the schema finds.
+- A sign-in pending its redirect is read as `PendingAuthorization`, the record
+  Protocol states, which `@xynolog/sdk` exports from `@xynolog/core`; a
+  stored one its schema refuses is no sign-in pending. Where each stream was
+  is written as `LastEventIds`.
+- A stream's place is what `isPlace(scope, id)`, which `@xynolog/core`
+  exports, says `LastEventIds` holds: the transport's place in each scope and
+  the places kept are decided by it.
 
 ### Removed
 
+- `IssuerEndpoints`, for `PendingAuthorization['issuer']`.
 - `Brand`, and `EventSignature` with `StoredEvent`'s `signature`, which
   nothing wrote or read.
 

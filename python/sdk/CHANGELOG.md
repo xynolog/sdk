@@ -8,6 +8,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `xynolog.service_environment`: every environment variable a Xynolog service
+  reads, beside its configuration document, a constant of its name
+  (`XYNOLOG_BUS_LOG`). The bus log reads its variable by it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
@@ -67,6 +70,17 @@ the coming release's, and gathers its changes as they land.
   the registry reads what it stored.
 - What is kept of a sign-in is `xynolog.types.StoredSession`, in place of
   `xynolog.session.HeldSignIn`; a changed one is made with `model_copy`.
+- A sign-in pending its redirect is `xynolog.types.PendingAuthorization`, and
+  its issuer `xynolog.types.PendingAuthorizationIssuer`, in place of
+  `xynolog.http.oauth.PendingAuthorization` and `IssuerEndpoints`.
+  `discover_issuer` and `sign_in_with_device_grant` give the issuer as one,
+  and `stored_session_of` takes one.
+- Where each stream was is `xynolog.types.LastEventIds`, in place of
+  `xynolog.stored.LastEventIds`.
+- `xynolog.resume.is_place(scope, event_id)`, whether `LastEventIds` holds
+  the id as the place reached in the scope, in place of
+  `is_recorded_event_id(event_id)`. The stream and the places kept both ask
+  it.
 - `claims.vitals()` is a `WorkerVitals` model named and written as
   `WorkerEngineHealth`'s members are: its times are the protocol's text, and
   the job it holds is a `WorkerEngineHealthActiveJob`. `ActiveJob` is gone. A

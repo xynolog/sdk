@@ -59,9 +59,6 @@ public sealed partial class TransportTests
         var document = table.RootElement.GetProperty("cacheDocument");
         Assert.Equal(document.GetProperty("properties").GetProperty("version").GetProperty("const").GetInt64(), KeptTable.Version);
         Assert.Equal(new[] { "version", "entries" }, document.GetProperty("required").EnumerateArray().Select(member => Assert.IsType<string>(member.GetString())));
-        var places = table.RootElement.GetProperty("lastEventIds");
-        Assert.EndsWith("/ResourceId.json", Text(places.GetProperty("propertyNames"), "$ref"), StringComparison.Ordinal);
-        Assert.EndsWith("/PersistedEventId.json", Text(places.GetProperty("additionalProperties"), "$ref"), StringComparison.Ordinal);
         var store = new MemoryStorage();
         var session = RegistryTokens() with { RevocationEndpoint = "https://issuer.test/revoke", PersonKey = PersonKeyOf(cacheExample) };
         RegistryStorage.StoreSession(store, "kb-1", session);
@@ -106,11 +103,8 @@ public sealed partial class TransportTests
     }
 
     [Fact]
-    public async Task ASignInBegunIsKeptAsTheStoredTableStatesIt()
+    public async Task WhatASignInBegunWasNotToldIsNotKept()
     {
-        using var table = ReadSpec("session/stored.json");
-        var schema = table.RootElement.GetProperty("pendingAuthorization");
-        var issuerSchema = schema.GetProperty("properties").GetProperty("issuer");
         using var server = new Handler();
         using var http = new HttpClient(server);
         server.Other = (request, _) => Task.FromResult(request.RequestUri?.AbsolutePath switch
@@ -137,24 +131,12 @@ public sealed partial class TransportTests
             await RedirectSignIn.BeginAuthorizationAsync(options, store, http);
             return JsonSerializer.Deserialize<JsonElement>(Assert.IsType<string>(store.Get(RedirectSignIn.PendingAuthorizationKey)));
         }
-        static string[] Members(JsonElement value) => value.EnumerateObject().Select(member => member.Name).Order().ToArray();
-        static string[] RequiredOf(JsonElement schema) =>
-            schema.GetProperty("required").EnumerateArray().Select(name => Assert.IsType<string>(name.GetString())).Order().ToArray();
+        static bool HoldsNull(JsonElement value) =>
+            value.EnumerateObject().Any(member => member.Value.ValueKind == JsonValueKind.Null);
 
-        var full = await Kept(new BeginAuthorizationOptions
-        {
-            Target = endpoint,
-            RedirectUri = "https://app.test/callback",
-            KbId = "kb-a",
-            ExpectedDid = "did:web:kb-a.test",
-            ExpectedName = "A",
-        });
-        Assert.Equal(Members(schema.GetProperty("properties")), Members(full));
-        var issuer = Members(full.GetProperty("issuer")).ToHashSet();
-        Assert.Subset(issuer, RequiredOf(issuerSchema).ToHashSet());
-        Assert.Subset(Members(issuerSchema.GetProperty("properties")).ToHashSet(), issuer);
         var bare = await Kept(new BeginAuthorizationOptions { Target = endpoint, RedirectUri = "https://app.test/callback" });
-        Assert.Equal(RequiredOf(schema), Members(bare));
+        Assert.False(HoldsNull(bare));
+        Assert.False(HoldsNull(bare.GetProperty("issuer")));
     }
 
     [Fact]

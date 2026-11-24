@@ -696,7 +696,10 @@ let redirect () =
     R.begin_sign_in
       (R.new_xynolog_browser ~storage:atomic_storage config)
       ~http ~issuer:"https://issuer.example" ~random ~redirect_uri:origin
-      ~target ~expected_did:"did:web:expected.example" ()
+      ~target:
+        (decode Models.http_endpoint
+           (Yojson.Safe.from_string (Models.encode target)))
+      ~expected_did:"did:web:expected.example" ()
     |> Result.get_ok |> Uri.of_string
   in
   let complete callback =
@@ -815,129 +818,6 @@ let open_resource_census () =
       storage.write key
         (Yojson.Safe.to_string (`Assoc [ ("kb-1", `List [ `Assoc fields ]) ]));
       R.open_resources browser ~kb_id:"kb-1" <> [])
-
-(* The pending authorization a redirect sign-in keeps
-   (session/stored.json's pendingAuthorization), and its issuer, each held to
-   the table: a value reads when the sign-in it began completes. *)
-let pending_authorization_census () =
-  Eio_mock.Backend.run @@ fun () ->
-  let storage = hashtable_storage () in
-  let config : R.xynolog_browser_config =
-    {
-      storage;
-      clock =
-        Clock.make
-          ~monotonic:(Eio_mock.Clock.Mono.make ())
-          ~wall:(Eio_mock.Clock.make ())
-          ~jitter:(Random.State.make [| 1 |]);
-      fresh_id = (fun () -> "kb-pending");
-      factory = (fun _ -> assert false);
-    }
-  in
-  let target =
-    decode Models.kb_endpoint
-      (Yojson.Safe.from_string
-         {|{"kind":"http","host":"localhost","port":4010,"protocol":"http"}|})
-  in
-  let http (request : OAuth.request) =
-    match request.meth with
-    | "GET" ->
-        ( 200,
-          {|{"issuer":"https://issuer.example","authorization_endpoint":"https://issuer.example/auth","token_endpoint":"https://issuer.example/token","device_authorization_endpoint":"https://issuer.example/device","revocation_endpoint":"https://issuer.example/revoke"}|}
-        )
-    | "POST" -> (200, {|{"access_token":"access","refresh_token":"refresh"}|})
-    | _ -> assert false
-  in
-  let origin = "http://localhost:4010/callback" in
-  let location =
-    R.begin_sign_in
-      (R.new_xynolog_browser config)
-      ~http ~issuer:"https://issuer.example"
-      ~random:(fun length -> String.make length 'a')
-      ~redirect_uri:origin ~target ~kb_id:"kb-pending"
-      ~expected_did:"did:web:kb.example" ~expected_name:"Actual" ()
-    |> Result.get_ok |> Uri.of_string
-  in
-  let callback =
-    origin ^ "?code=one&state="
-    ^ Option.get (Uri.get_query_param location "state")
-  in
-  let key = R.pending_authorization_key in
-  let written =
-    J.to_assoc (Yojson.Safe.from_string (Option.get (storage.read key)))
-  in
-  let reads fields =
-    storage.write key (Yojson.Safe.to_string (`Assoc fields));
-    Result.is_ok
-      (R.complete_sign_in (R.new_xynolog_browser config) ~http ~callback
-         ~describe:(fun _ ~access:_ ->
-           Ok
-             (decode Models.kb_description
-                (Yojson.Safe.from_string
-                   {|{"name":"Actual","domain":"kb.example"}|}))))
-  in
-  let schema = Protocol_cases.Session_stored.table.pending_authorization in
-  census ~what:"a pending authorization" schema written reads;
-  census ~what:"a pending authorization's issuer"
-    (field "issuer" (field "properties" schema))
-    (J.to_assoc (List.assoc "issuer" written))
-    (fun issuer ->
-      reads (("issuer", `Assoc issuer) :: List.remove_assoc "issuer" written))
-
-(* The pending authorization Redirect_sign_in keeps and takes, held to the
-   table as the registry's is: a value reads when it is taken. *)
-let redirect_sign_in_census () =
-  Eio_mock.Backend.run @@ fun () ->
-  let module S = Redirect_sign_in in
-  let issuer =
-    OAuth.discover
-      (fun _ ->
-        ( 200,
-          {|{"issuer":"https://issuer.example","authorization_endpoint":"https://issuer.example/auth","token_endpoint":"https://issuer.example/token","device_authorization_endpoint":"https://issuer.example/device","revocation_endpoint":"https://issuer.example/revoke"}|}
-        ))
-      ~issuer:"https://issuer.example"
-    |> Result.get_ok
-  in
-  let pending =
-    S.begin_authorization ~issuer
-      ~random:(fun length -> String.make length 'a')
-      {
-        redirect_uri = "http://localhost:4010/callback";
-        target =
-          Models.decode Models.http_endpoint
-            {|{"kind":"http","host":"localhost","port":4010,"protocol":"http"}|}
-          |> Result.get_ok;
-        kb_id = Some "kb-pending";
-        expected_did = Some "did:web:kb.example";
-        expected_name = Some "Actual";
-      }
-  in
-  let values = Hashtbl.create 2 in
-  let storage =
-    Storage.make ~get:(Hashtbl.find_opt values)
-      ~update:(fun key change ->
-        match change (Hashtbl.find_opt values key) with
-        | Some value -> Hashtbl.replace values key value
-        | None -> Hashtbl.remove values key)
-      ()
-  in
-  S.keep storage pending;
-  let key = S.pending_authorization_key in
-  let written =
-    J.to_assoc (Yojson.Safe.from_string (Hashtbl.find values key))
-  in
-  let reads fields =
-    Hashtbl.replace values key (Yojson.Safe.to_string (`Assoc fields));
-    S.take storage <> None
-  in
-  let schema = Protocol_cases.Session_stored.table.pending_authorization in
-  census ~what:"a pending authorization Redirect_sign_in keeps" schema written
-    reads;
-  census ~what:"its issuer"
-    (field "issuer" (field "properties" schema))
-    (J.to_assoc (List.assoc "issuer" written))
-    (fun issuer ->
-      reads (("issuer", `Assoc issuer) :: List.remove_assoc "issuer" written))
 
 let session_unit startup () =
   Eio_mock.Backend.run @@ fun () ->
@@ -1711,10 +1591,6 @@ let () =
             stored_session_census;
           Alcotest.test_case "an open resource is the table's" `Quick
             open_resource_census;
-          Alcotest.test_case "a pending authorization is the table's" `Quick
-            pending_authorization_census;
-          Alcotest.test_case "Redirect_sign_in's pending authorization too"
-            `Quick redirect_sign_in_census;
           Alcotest.test_case "session unit and durable renewal" `Quick
             (session_unit `Accept);
           Alcotest.test_case "startup refuses once then confirms" `Quick

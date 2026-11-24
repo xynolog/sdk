@@ -20,7 +20,6 @@ use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use rand_core::Rng;
 use ring::rand::SecureRandom;
-use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::sync::Mutex;
 use std::time::{Duration, SystemTime};
@@ -38,23 +37,14 @@ use xynolog::timing::{
 };
 use xynolog::transport::{GatewayOperations, Transport};
 use xynolog::types::StoredSession;
-use xynolog::types::{BeginAuthorizationOptions, DeviceCode, HttpEndpoint, IssuedTokens};
+use xynolog::types::{
+    BeginAuthorizationOptions, DeviceCode, HttpEndpoint, IssuedTokens, PendingAuthorization,
+    PendingAuthorizationIssuer,
+};
 
 /// Where a sign-in that is under way is remembered.
 pub const PENDING_AUTHORIZATION_KEY: &str = "xynolog.pendingAuthorization";
 const DEVICE_GRANT: &str = "urn:ietf:params:oauth:grant-type:device_code";
-
-/// An issuer, and the endpoints of it a client uses.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct IssuerEndpoints {
-    pub issuer: String,
-    pub authorization: String,
-    pub token: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub device: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub revocation: Option<String>,
-}
 
 fn gateway(target: &HttpEndpoint) -> Result<String, SignInError> {
     target
@@ -67,7 +57,7 @@ fn gateway(target: &HttpEndpoint) -> Result<String, SignInError> {
 pub async fn discover_issuer(
     target: &HttpEndpoint,
     http: &reqwest::Client,
-) -> Result<IssuerEndpoints, SignInError> {
+) -> Result<PendingAuthorizationIssuer, SignInError> {
     let no_issuer = || {
         SignInError::new(
             SignInErrorCode::NoIssuer,
@@ -142,7 +132,7 @@ pub async fn discover_issuer(
         endpoint("authorization_endpoint"),
         endpoint("token_endpoint"),
     ) {
-        (true, Some(authorization), Some(token)) => Ok(IssuerEndpoints {
+        (true, Some(authorization), Some(token)) => Ok(PendingAuthorizationIssuer {
             authorization,
             token,
             device: endpoint("device_authorization_endpoint"),
@@ -183,26 +173,6 @@ pub fn code_challenge(verifier: &str) -> String {
 }
 
 // ── The authorization-code grant ────────────────────────────────────────
-
-/// What a sign-in remembers across the trip to the issuer and back: the
-/// verifier and the state the response must match, where the person was
-/// connecting, what they believed they were connecting to, and the issuer's
-/// endpoints, so its completion asks nothing twice.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PendingAuthorization {
-    pub state: String,
-    pub verifier: String,
-    pub redirect_uri: String,
-    pub target: HttpEndpoint,
-    pub issuer: IssuerEndpoints,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub kb_id: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub expected_did: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub expected_name: Option<String>,
-}
 
 fn query(pairs: &[(&str, &str)]) -> String {
     pairs
@@ -260,7 +230,7 @@ pub async fn begin_authorization(
 /// it was issued, and where they are renewed and revoked.
 pub fn stored_session_of(
     client_id: &str,
-    issuer: IssuerEndpoints,
+    issuer: PendingAuthorizationIssuer,
     tokens: IssuedTokens,
 ) -> StoredSession {
     StoredSession {
@@ -564,7 +534,7 @@ pub async fn sign_in_with_device_grant(
     target: &HttpEndpoint,
     on_code: impl FnOnce(DeviceCode),
     http: &reqwest::Client,
-) -> Result<(IssuerEndpoints, IssuedTokens), SignInError> {
+) -> Result<(PendingAuthorizationIssuer, IssuedTokens), SignInError> {
     let issuer = discover_issuer(target, http).await?;
     let Some(device) = issuer.device.clone() else {
         return Err(SignInError::new(

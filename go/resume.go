@@ -20,13 +20,11 @@ import (
 type Bookmarks interface {
 	// Load is the id of the last recorded event taken in on each scope, as
 	// kept.
-	Load() map[api.ResourceId]string
+	Load() api.LastEventIds
 }
 
 // CoupledBookmarks keeps a stream's places in a SessionStorage, coupled to
-// the caches kept in the same storage, as
-// protocol/specs/src/session/stored.json's `lastEventIds`: an object from a
-// resource's id to a PersistedEventId.
+// the caches kept in the same storage, as api.LastEventIds.
 //
 // The place may lag the caches and never leads them. A place kept ahead of a
 // cache would have the next client resume past an event the cache it begins
@@ -42,8 +40,8 @@ type Bookmarks interface {
 // written after is the places noted before that reading, and a place noted
 // after it is not kept.
 //
-// A pair kept under the key that is not a resource's id and a
-// PersistedEventId is skipped; what is no object is no places.
+// A pair kept under the key that LastEventIds does not hold is skipped; what
+// is no object is no places.
 //
 //	places := xynolog.NewCoupledBookmarks(storage, xynolog.LastEventIDKey(kb.Id, personKey))
 //	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{..., Bookmarks: places})
@@ -55,7 +53,7 @@ type CoupledBookmarks struct {
 
 	mu sync.Mutex
 	// pending is the places reached and not yet written.
-	pending map[api.ResourceId]string
+	pending api.LastEventIds
 	atRest  func() bool
 	// sealed is whether the client's Close has read the gate: pending is then
 	// all that is written.
@@ -66,46 +64,45 @@ var _ Bookmarks = (*CoupledBookmarks)(nil)
 
 // NewCoupledBookmarks is places kept in storage under key.
 func NewCoupledBookmarks(storage SessionStorage, key string) *CoupledBookmarks {
-	return &CoupledBookmarks{storage: storage, key: key, pending: map[api.ResourceId]string{}}
+	return &CoupledBookmarks{storage: storage, key: key, pending: api.LastEventIds{}}
 }
 
 // Storage is the storage to give the caches: what they write goes to the
 // storage beneath, and carries the places with it.
 func (b *CoupledBookmarks) Storage() SessionStorage { return carrying{b} }
 
-// placeSchema is the schema of a place, as `lastEventIds` names it.
-const placeSchema = "PersistedEventId"
+// isPlace is whether LastEventIds holds eventID as the place reached in scope.
+func isPlace(scope api.ResourceId, eventID string) bool {
+	pair, _ := json.Marshal(api.LastEventIds{scope: eventID})
+	_, held := required.ReadAs[api.LastEventIds](pair)
+	return held
+}
 
-// persisted reports whether id is a recorded event's, and so a place.
-func persisted(id string) bool { return required.Holds(placeSchema, id) }
-
-func (b *CoupledBookmarks) Load() map[api.ResourceId]string {
-	places := map[api.ResourceId]string{}
+func (b *CoupledBookmarks) Load() api.LastEventIds {
+	places := api.LastEventIds{}
 	stored, ok := b.storage.Get(b.key)
 	if !ok {
 		return places
 	}
-	var pairs map[string]any
+	var pairs map[string]json.RawMessage
 	if json.Unmarshal([]byte(stored), &pairs) != nil {
 		return places
 	}
 	for scope, place := range pairs {
-		resource, err := api.ParseResourceId(scope)
-		eventID, isText := place.(string)
-		if err != nil || !isText || !persisted(eventID) {
-			continue
+		pair, _ := json.Marshal(map[string]json.RawMessage{scope: place})
+		if read, held := required.ReadAs[api.LastEventIds](pair); held {
+			maps.Copy(places, read)
 		}
-		places[resource] = eventID
 	}
 	return places
 }
 
 // Save remembers that a place was reached in scope: the client's refresher
 // calls it once it has taken the event. It is written with a later write of a
-// cache. An id that is no PersistedEventId is no place, and one reached after
-// the client's Close read the gate is not kept.
+// cache. An id LastEventIds does not hold in scope is no place, and one
+// reached after the client's Close read the gate is not kept.
 func (b *CoupledBookmarks) Save(scope api.ResourceId, eventID string) {
-	if !persisted(eventID) {
+	if !isPlace(scope, eventID) {
 		return
 	}
 	b.mu.Lock()
@@ -161,7 +158,7 @@ func (b *CoupledBookmarks) flush() error {
 	}
 	places := b.Load()
 	maps.Copy(places, b.pending)
-	b.pending = map[api.ResourceId]string{}
+	b.pending = api.LastEventIds{}
 	written, err := json.Marshal(places)
 	if err != nil {
 		// Every scope was read from storage or delivered on the stream, so none is the zero id, the one a ResourceId refuses to write.

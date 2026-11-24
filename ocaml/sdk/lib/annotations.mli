@@ -27,16 +27,7 @@ val tag_category : t -> string option
 val tag_schema_id : t -> string option
 
 type spanned = Text of string | Pdf of [ `AnchoredText ] Models.t
-
-type span_refusal =
-  | Span_out_of_range
-  | Item_out_of_range
-  | Exact_mismatch
-  | Nothing_located
-  | Exact_not_covered
-  | Prefix_mismatch
-  | Suffix_mismatch
-
+type span_refusal = Error_codes.Span_refusal.t
 type span_refused_error = { code : span_refusal }
 
 exception Span_refused of span_refused_error

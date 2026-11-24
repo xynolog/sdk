@@ -53,4 +53,25 @@ internal sealed class ResourceIdJsonConverter : global::System.Text.Json.Seriali
             throw new global::System.Text.Json.JsonException(error.Message, error);
         }
     }
+
+    public override ResourceId ReadAsPropertyName(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type type, global::System.Text.Json.JsonSerializerOptions options)
+    {
+        if (ResourceId.TryParse(reader.GetString(), out var parsed))
+        {
+            return parsed;
+        }
+        throw new global::System.Text.Json.JsonException("The value is not a ResourceId.");
+    }
+
+    public override void WriteAsPropertyName(global::System.Text.Json.Utf8JsonWriter writer, ResourceId value, global::System.Text.Json.JsonSerializerOptions options)
+    {
+        try
+        {
+            writer.WritePropertyName(value.Value);
+        }
+        catch (global::System.InvalidOperationException error)
+        {
+            throw new global::System.Text.Json.JsonException(error.Message, error);
+        }
+    }
 }

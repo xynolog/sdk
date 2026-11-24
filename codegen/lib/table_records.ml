@@ -27,7 +27,11 @@ let stated (spec : Spec.t) (key, (s : Schema.t)) =
 
 (* Each record, by the file and pointer a [$ref] names it by, and named by its
    title: the types a registry of knowledge bases hands its caller, what the
-   state units' signals say, why a session ended, and the stored session. *)
+   state units' signals say, why a session ended, the stored session, a
+   sign-in pending its redirect, and where each stream was. The stored
+   cache document is none: its entry is a tuple ([prefixItems]), which no
+   writer of types reads, and each SDK's reader of it is held to it
+   ([Stored]). *)
 let all (spec : Spec.t) : ((string * string * Schema.t) list, string) result =
   let t = spec.tables in
   let within file member =
@@ -50,4 +54,7 @@ let all (spec : Spec.t) : ((string * string * Schema.t) list, string) result =
            ("session/cases.json#/told", t.session_cases.told);
            ( "session/stored.json#/storedSession",
              t.session_stored.stored_session );
+           ( "session/stored.json#/pendingAuthorization",
+             t.session_stored.pending_authorization );
+           ("session/stored.json#/lastEventIds", t.session_stored.last_event_ids);
          ])

@@ -26,9 +26,6 @@ type poll =
       (** What one poll of a device grant brought: its tokens, or the issuer's
           word to ask again, after a longer wait for [Slow_down]. *)
 
-type issuer
-type redirect
-
 type device = {
   code : Records.Device_code.t;
   device_code : string;
@@ -37,33 +34,45 @@ type device = {
 (** A device grant under way: what the person is shown, and what the polls send
     and wait by. *)
 
-val discover : http -> issuer:string -> (issuer, error) result
-val issuer_url : issuer -> string
-val token_endpoint : issuer -> string
-val revocation_endpoint : issuer -> string option
+val discover :
+  http ->
+  issuer:string ->
+  (Records.Pending_authorization_issuer.t, error) result
+
 val code_challenge : string -> string
 
 val begin_redirect :
-  issuer -> random:(int -> string) -> redirect_uri:string -> redirect
+  Records.Pending_authorization_issuer.t ->
+  random:(int -> string) ->
+  Records.Begin_authorization_options.t ->
+  Records.Pending_authorization.t
 (** [random] must return cryptographically secure bytes. *)
 
-val url : redirect -> string
+val url : Records.Pending_authorization.t -> string
 
 val finish_redirect :
   http ->
-  issuer ->
-  redirect ->
+  Records.Pending_authorization.t ->
   callback:string ->
   (browser tokens, error) result
 
-val begin_device : http -> issuer -> (device, error) result
+val begin_device :
+  http -> Records.Pending_authorization_issuer.t -> (device, error) result
 
-val poll_device : http -> issuer -> device -> (poll, error) result
+val poll_device :
+  http ->
+  Records.Pending_authorization_issuer.t ->
+  device ->
+  (poll, error) result
 (** One poll. Wait at least [device.interval] seconds between polls and back off
     on [Slow_down]. *)
 
 val await_device :
-  clock:Clock.t -> http -> issuer -> device -> (script tokens, error) result
+  clock:Clock.t ->
+  http ->
+  Records.Pending_authorization_issuer.t ->
+  device ->
+  (script tokens, error) result
 (** Poll using the caller's clock, starting the expiry window when called. *)
 
 val refresh_refused : error -> bool
@@ -86,7 +95,7 @@ val refresh_script :
 
 val service_secret :
   http ->
-  issuer ->
+  Records.Pending_authorization_issuer.t ->
   client_id:string ->
   client_secret:string ->
   (service tokens, error) result
@@ -100,7 +109,7 @@ val rsa_thumbprint : e:string -> n:string -> string
 
 val service_key :
   http ->
-  issuer ->
+  Records.Pending_authorization_issuer.t ->
   clock:Clock.t ->
   jti:(unit -> string) ->
   client_id:string ->
@@ -116,6 +125,3 @@ val revoke_script :
   revocation_endpoint:string ->
   refresh_token:string ->
   (unit, error) result
-
-val keep_redirect : issuer -> redirect -> (string * Yojson.Safe.t) list
-val take_redirect : Yojson.Safe.t -> (issuer * redirect) option

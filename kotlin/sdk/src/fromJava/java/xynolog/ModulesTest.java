@@ -33,8 +33,6 @@ import xynolog.http.AuthorizationKt;
 import xynolog.http.ConnectKt;
 import xynolog.http.EndpointKt;
 import xynolog.http.HttpSessionFactory;
-import xynolog.http.IssuerEndpoints;
-import xynolog.http.PendingAuthorization;
 import xynolog.http.SessionsKt;
 import xynolog.identifiers.ResourceId;
 import xynolog.identifiers.UserId;
@@ -65,6 +63,8 @@ import xynolog.types.KnowledgeBase;
 import xynolog.types.LocalEndpoint;
 import xynolog.types.MatchQuality;
 import xynolog.types.Motivation;
+import xynolog.types.PendingAuthorization;
+import xynolog.types.PendingAuthorizationIssuer;
 import xynolog.types.QuotedText;
 import xynolog.types.ReconciledSpan;
 import xynolog.types.ReconciledSpanFuzzyMatch;
@@ -190,9 +190,9 @@ final class ModulesTest {
             assertEquals("A KB", described.getDescription().getName());
         }
 
-        IssuerEndpoints issuer = new IssuerEndpoints("https://issuer.example", "https://issuer.example/auth", "https://issuer.example/token", null, null);
-        PendingAuthorization pending = new PendingAuthorization("a-state", "a-verifier", "http://app.example/callback",
-                HttpEndpoint.builder("kb.example", 443, HttpEndpointProtocol.Https).build(), issuer, "kb-a", null, null);
+        PendingAuthorizationIssuer issuer = PendingAuthorizationIssuer.builder("https://issuer.example", "https://issuer.example/auth", "https://issuer.example/token").build();
+        PendingAuthorization pending = PendingAuthorization.builder("a-state", "a-verifier", "http://app.example/callback",
+                HttpEndpoint.builder("kb.example", 443, HttpEndpointProtocol.Https).build(), issuer).kbId("kb-a").build();
         assertEquals("kb-a", pending.getKbId());
         assertEquals("unreachable", new IdentityUnverifiableError(IdentityUnverifiableReason.Unreachable, "nothing answered").getReason().getCode());
     }

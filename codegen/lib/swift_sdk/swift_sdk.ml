@@ -184,7 +184,9 @@ let swift_files ~root (spec : Spec.t) =
            (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)
            spec.tables.identifiers_kinds.kinds)
     in
-    let models = Models.create definitions ~identifiers in
+    let models =
+      Models.create definitions ~identifiers ~keys:(Definitions.map_keys spec)
+    in
     let tables =
       Table_decls.declarations models ~spec ~view:bundle.view
         ~shapes:derivation.shapes ~timing ~codes ~user_field

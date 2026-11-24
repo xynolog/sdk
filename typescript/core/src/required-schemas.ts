@@ -4180,6 +4180,11 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['apiVersion', 'kind', 'metadata', 'spec'],
   },
+  LastEventIds: {
+    kinds: ['object'],
+    values: { ref: 'PersistedEventId' },
+    names: { ref: 'ResourceId' },
+  },
   LibrarianConfig: {
     kinds: ['object'],
     required: [
@@ -4903,6 +4908,30 @@ export const REQUIRED_SCHEMAS: {
       selector: { ref: 'AnnotationSelector' },
     },
     closed: ['motivation', 'selector'],
+  },
+  PendingAuthorization: {
+    kinds: ['object'],
+    required: ['state', 'verifier', 'redirectUri', 'target', 'issuer'],
+    members: {
+      expectedDid: { kinds: ['string'] },
+      expectedName: { kinds: ['string'] },
+      issuer: {
+        kinds: ['object'],
+        required: ['issuer', 'authorization', 'token'],
+        members: {
+          authorization: { kinds: ['string'] },
+          device: { kinds: ['string'] },
+          issuer: { kinds: ['string'] },
+          revocation: { kinds: ['string'] },
+          token: { kinds: ['string'] },
+        },
+      },
+      kbId: { kinds: ['string'] },
+      redirectUri: { kinds: ['string'] },
+      state: { kinds: ['string'] },
+      target: { ref: 'HttpEndpoint' },
+      verifier: { kinds: ['string'] },
+    },
   },
   PermissionDenied: {
     kinds: ['object'],

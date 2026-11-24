@@ -43,6 +43,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A stream's place, and each place `CoupledBookmarks` keeps, is an id
+  `LastEventIds` holds in its scope, read as the generated `api.LastEventIds`,
+  in place of an id held to `PersistedEventId` by that schema's name.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - The element of an answer format (`WorkerAnswerFormatsFormatsItem`'s
@@ -58,6 +61,13 @@ the coming release's, and gathers its changes as they land.
 - What is kept of a sign-in is `api.StoredSession`, in place of
   `HeldSignIn`: its `ClientId` is spelled as Protocol spells it, and an issuer
   with no revocation endpoint states none (nil).
+- What a sign-in by a page redirect remembers is `api.PendingAuthorization`,
+  in place of `PendingAuthorization`, and its issuer is
+  `api.PendingAuthorizationIssuer`, in place of `IssuerEndpoints`, the types
+  Protocol states: its `RedirectUri` and `KbId` are spelled as Protocol
+  spells them, and an issuer with no device or revocation endpoint states
+  none (nil). `Issuer.Discover` and `SignInWithDevice` give the issuer as
+  that type, and `Bookmarks.Load` gives the places as `api.LastEventIds`.
 - `Browse.Resources` takes `api.BrowseResourcesRequest` and `Match.Resources`
   takes `api.ResourceSearchFilters`, the types Protocol states, in place of
   `ResourceFilters`, which is gone. A limit left out (nil) is still the first

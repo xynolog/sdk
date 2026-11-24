@@ -27,25 +27,6 @@ import (
 // PendingAuthorizationKey is the key a pending sign-in is remembered under.
 const PendingAuthorizationKey = "xynolog.pendingAuthorization"
 
-// PendingAuthorization is what a sign-in remembers across the trip to the
-// issuer and back: the verifier and the state the response must match, where
-// the person was connecting, what they believed they were connecting to, and
-// the issuer's endpoints, so its completion asks nothing twice.
-type PendingAuthorization struct {
-	State       string           `json:"state"`
-	Verifier    string           `json:"verifier"`
-	RedirectURI string           `json:"redirectUri"`
-	Target      api.HttpEndpoint `json:"target"`
-	Issuer      IssuerEndpoints  `json:"issuer"`
-	// KbID is the registered knowledge base being signed in to again; nil when
-	// it is none.
-	KbID *string `json:"kbId,omitempty"`
-	// ExpectedDid and ExpectedName are what the person believed they clicked,
-	// checked afterwards and never assumed; nil when they named nothing.
-	ExpectedDid  *string `json:"expectedDid,omitempty"`
-	ExpectedName *string `json:"expectedName,omitempty"`
-}
-
 // CodeChallenge is RFC 7636 §4.2: BASE64URL(SHA-256(verifier)).
 func CodeChallenge(verifier string) string { return sha256URLSafe(verifier) }
 
@@ -87,13 +68,13 @@ func BeginAuthorization(ctx context.Context, issuer Issuer, options api.BeginAut
 	if err != nil {
 		return "", err
 	}
-	record := PendingAuthorization{
+	record := api.PendingAuthorization{
 		State:        randomURLSafe(24),
 		Verifier:     randomURLSafe(48),
-		RedirectURI:  options.RedirectUri,
+		RedirectUri:  options.RedirectUri,
 		Target:       options.Target,
 		Issuer:       endpoints,
-		KbID:         options.KbId,
+		KbId:         options.KbId,
 		ExpectedDid:  options.ExpectedDid,
 		ExpectedName: options.ExpectedName,
 	}
@@ -108,7 +89,7 @@ func BeginAuthorization(ctx context.Context, issuer Issuer, options api.BeginAut
 	asked := query(
 		[2]string{"response_type", "code"},
 		[2]string{"client_id", BrowserClientID},
-		[2]string{"redirect_uri", record.RedirectURI},
+		[2]string{"redirect_uri", record.RedirectUri},
 		[2]string{"scope", SignInScope},
 		[2]string{"state", record.State},
 		[2]string{"code_challenge", CodeChallenge(record.Verifier)},
@@ -127,18 +108,18 @@ func BeginAuthorization(ctx context.Context, issuer Issuer, options api.BeginAut
 // finds nothing to complete. A record that lacks a member
 // protocol/specs/src/session/stored.json's pendingAuthorization requires is
 // no pending sign-in.
-func CompleteAuthorization(ctx context.Context, issuer Issuer, callbackURL string, pending SessionStorage) (PendingAuthorization, api.IssuedTokens, error) {
+func CompleteAuthorization(ctx context.Context, issuer Issuer, callbackURL string, pending SessionStorage) (api.PendingAuthorization, api.IssuedTokens, error) {
 	var taken string
 	var had bool
 	if err := pending.Update(PendingAuthorizationKey, func(stored string, has bool) (string, bool) {
 		taken, had = stored, has
 		return "", false
 	}); err != nil {
-		return PendingAuthorization{}, api.IssuedTokens{}, err
+		return api.PendingAuthorization{}, api.IssuedTokens{}, err
 	}
-	record, readable := required.ReadAs[PendingAuthorization]([]byte(taken))
+	record, readable := required.ReadAs[api.PendingAuthorization]([]byte(taken))
 	if !had || !readable {
-		return PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeNoPending, "No sign-in is pending here")
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeNoPending, "No sign-in is pending here")
 	}
 
 	callback, err := url.Parse(callbackURL)
@@ -146,7 +127,7 @@ func CompleteAuthorization(ctx context.Context, issuer Issuer, callbackURL strin
 		err = errors.New("relative URL without a base")
 	}
 	if err != nil {
-		return PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The sign-in response is not a URL: "+err.Error())
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The sign-in response is not a URL: "+err.Error())
 	}
 	said := callback.Query()
 	if said.Has("error") {
@@ -158,32 +139,32 @@ func CompleteAuthorization(ctx context.Context, issuer Issuer, callbackURL strin
 		if said.Has("error_description") {
 			failure = said.Get("error_description")
 		}
-		return PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(code, failure)
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(code, failure)
 	}
 	if !said.Has("state") || said.Get("state") != record.State {
-		return PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeState, "The sign-in response does not belong to the pending sign-in")
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeState, "The sign-in response does not belong to the pending sign-in")
 	}
 	if !said.Has("code") {
-		return PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The sign-in response carries no authorization code")
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The sign-in response carries no authorization code")
 	}
 
 	status, answered, err := issuer.postForm(ctx, record.Issuer.Token, url.Values{
 		"grant_type":    {"authorization_code"},
 		"code":          {said.Get("code")},
-		"redirect_uri":  {record.RedirectURI},
+		"redirect_uri":  {record.RedirectUri},
 		"client_id":     {BrowserClientID},
 		"code_verifier": {record.Verifier},
 	})
 	if err != nil {
-		return PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
 	}
 	access, ok := answered.text("access_token")
 	if status != http.StatusOK || !ok {
-		return PendingAuthorization{}, api.IssuedTokens{}, NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the token request (%s)", answered.refusal(status)), status)
+		return api.PendingAuthorization{}, api.IssuedTokens{}, NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the token request (%s)", answered.refusal(status)), status)
 	}
 	refresh, ok := answered.text("refresh_token")
 	if !ok {
-		return PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer returned no refresh token: the session could not outlive its first access token")
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer returned no refresh token: the session could not outlive its first access token")
 	}
 	return record, api.IssuedTokens{Access: access, Refresh: refresh}, nil
 }

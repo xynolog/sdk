@@ -207,10 +207,10 @@ let jwt_claims token =
       | Error _ -> [])
   | _ -> []
 
-let save_device t ~key ~issuer tokens =
+let save_device t ~key ~(issuer : Records.Pending_authorization_issuer.t) tokens
+    =
   let claims = jwt_claims tokens.Oauth.access_token in
-  let issuer_url = Oauth.issuer_url issuer in
-  if field "iss" claims <> Some issuer_url then
+  if field "iss" claims <> Some issuer.issuer then
     Error { Oauth.code = Error_codes.Sign_in.exchange; status = None }
   else
     let optional key value =
@@ -219,11 +219,11 @@ let save_device t ~key ~issuer tokens =
     let fields =
       token_fields t tokens None
       @ [
-          ("issuer", `String issuer_url);
-          ("tokenEndpoint", `String (Oauth.token_endpoint issuer));
+          ("issuer", `String issuer.issuer);
+          ("tokenEndpoint", `String issuer.token);
         ]
       @ optional "email" (field "email" claims)
-      @ optional "revocationEndpoint" (Oauth.revocation_endpoint issuer)
+      @ optional "revocationEndpoint" issuer.revocation
     in
     with_lock t (fun entries -> write t (replace entries key fields));
     Ok ()

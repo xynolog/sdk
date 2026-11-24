@@ -25,7 +25,7 @@ let roots =
 let ids = Result.get_ok (Decode.ids [])
 
 let made ?(identifiers = []) ?(payloads = []) schemas =
-  M.make ~ids ~identifiers ~roots:(roots schemas)
+  M.make ~ids ~identifiers ~keys:[] ~roots:(roots schemas)
     ~made:(List.map (fun (name, text) -> (name, definition name text)) payloads)
 
 let refuses ?payloads schemas expected () =
@@ -90,6 +90,16 @@ let refusals =
            );
          ]
          "X has colliding C# property names.");
+    case
+      "an object whose other members are of a schema keeps them, so a member \
+       named as what it keeps is refused"
+      (refuses
+         [
+           ( "X",
+             {|{"type":"object","properties":{"additionalProperties":{"type":"string"}},"additionalProperties":{"type":"string"}}|}
+           );
+         ]
+         "X has colliding C# property names.");
     case "a union of two members of one case is refused"
       (refuses
          [
@@ -112,7 +122,7 @@ let refusals =
          "./Y.json#/properties/b names no schema the models are made from");
     case "a reference into a file names the root read from there" (fun () ->
         match
-          M.make ~ids ~identifiers:[]
+          M.make ~ids ~identifiers:[] ~keys:[]
             ~roots:
               [
                 ( "X",

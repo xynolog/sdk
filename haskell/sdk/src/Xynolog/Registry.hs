@@ -641,7 +641,7 @@ completeSignIn owner callback = Lifetime.run (lifetime owner) $ do
   (pending, tokens) <- Issuer.completeAuthorization (issuer owner) callback (storage owner)
   identityProof <- Connection.describeConnection (registryHttp (configuration owner)) (pendingAuthorizationTarget pending) (issuedTokensAccess tokens)
   let endpoints = pendingAuthorizationIssuer pending
-      grant = StoredSession (issuedTokensAccess tokens) Issuer.browserClientId Nothing (issuedTokensRefresh tokens) (issuerEndpointsRevocation endpoints) (issuerEndpointsToken endpoints) mempty
+      grant = StoredSession (issuedTokensAccess tokens) Issuer.browserClientId Nothing (issuedTokensRefresh tokens) (pendingAuthorizationIssuerRevocation endpoints) (pendingAuthorizationIssuerToken endpoints) mempty
       completed =
         SignedIn
           (connectionIdentityDescription identityProof)

@@ -15,7 +15,7 @@ type service_token = {
   proof : proof;
   jti : unit -> string;
   lock : Eio.Mutex.t;
-  mutable issuer : Oauth.issuer option;
+  mutable issuer : Records.Pending_authorization_issuer.t option;
   mutable cached : (string * Mtime.t) option;
   mutable closed : bool;
 }

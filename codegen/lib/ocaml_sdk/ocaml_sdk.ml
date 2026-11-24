@@ -2,8 +2,8 @@
    enums, the selector, the records of the component schemas and of
    Protocol's tables, what its
    HTTP transport says, the bus's channels and the methods that are one
-   each, the facts of tables no group writes for it, and the tables
-   Protocol states for its services; and
+   each, the facts of tables no group writes for it, the launcher's control API,
+   and the tables Protocol states for its services; and
    the repository's LICENSE, which its package ships. Each group that owns a
    table writes the OCaml SDK's module of it itself. *)
 
@@ -14,6 +14,7 @@ module Http_facts = Http_facts
 module Facts = Facts
 module Bus_modules = Bus_modules
 module Service_tables = Service_tables
+module Control = Control
 
 let files ~root (spec : Spec.t) =
   let ( let* ) = Result.bind in
@@ -38,6 +39,7 @@ let files ~root (spec : Spec.t) =
   let* shapes = Required.derive spec in
   let* bus_modules = Bus_modules.files spec bus ~shapes:shapes.shapes in
   let* service_tables = Service_tables.files ~root spec in
+  let* control = Control.file spec in
   let license =
     In_channel.with_open_bin
       (Filename.concat root "LICENSE")
@@ -45,5 +47,5 @@ let files ~root (spec : Spec.t) =
   in
   Ok
     (Enums.files enums @ Selector.files selector @ Records.files records
-   @ (http :: facts) @ bus_modules @ service_tables
+   @ (http :: control :: facts) @ bus_modules @ service_tables
     @ [ { Output.path = "ocaml/sdk/LICENSE"; text = license } ])

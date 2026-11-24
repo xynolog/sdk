@@ -65,9 +65,10 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
         .GetProperties(BindingFlags.Public | BindingFlags.Instance)
         .SingleOrDefault(property => property.IsDefined(typeof(WireRestAttribute))) is not { } rest
         ? null
-        : rest.PropertyType == typeof(IReadOnlyDictionary<string, JsonElement>)
+        : rest.PropertyType.IsGenericType && rest.PropertyType.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)
             ? rest
-            : throw new InvalidOperationException(Schema + "." + rest.Name + " is no IReadOnlyDictionary<string, JsonElement>.");
+            : throw new InvalidOperationException(Schema + "." + rest.Name + " is no IReadOnlyDictionary.");
+    private static readonly Type? RestRead = Rest is null ? null : typeof(Dictionary<,>).MakeGenericType(Rest.PropertyType.GetGenericArguments());
 
     public override T Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
     {
@@ -79,7 +80,10 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
         {
             member.Read(root, model, options);
         }
-        Rest?.SetValue(model, WireJson.Extra(root, Named));
+        if (Rest is not null && RestRead is not null)
+        {
+            Rest.SetValue(model, WireJson.Read(JsonSerializer.SerializeToElement(WireJson.Extra(root, Named)), RestRead, options));
+        }
         return model;
     }
 
@@ -92,10 +96,10 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
         }
         if (Rest is not null)
         {
-            var rest = Rest.GetValue(value) as IReadOnlyDictionary<string, JsonElement> ?? throw new JsonException(Schema + "." + Rest.Name + " is null.");
-            foreach (var pair in rest)
+            var rest = Rest.GetValue(value) ?? throw new JsonException(Schema + "." + Rest.Name + " is null.");
+            foreach (var pair in JsonSerializer.SerializeToElement(rest, Rest.PropertyType, options).EnumerateObject())
             {
-                fields.Add(pair.Key, pair.Value);
+                fields.Add(pair.Name, pair.Value);
             }
         }
         WireJson.WriteObject(writer, Schema, fields);

@@ -5,7 +5,7 @@
 -- the application's HTTP pool; deadlines, retry and polling use its clock.
 module Xynolog.Internal.Issuer
   ( IssuerOptions (..),
-    IssuerEndpoints (..),
+    PendingAuthorizationIssuer (..),
     IssuedTokens (..),
     DeviceCode (..),
     BeginAuthorizationOptions (..),
@@ -138,7 +138,7 @@ requestJson options code endpoint form = do
     Right (Right ()) -> failWith code "The issuer request deadline expired" Nothing
     Right (Left value) -> pure value
 
-discoverIssuer :: IssuerOptions -> HttpEndpoint -> IO IssuerEndpoints
+discoverIssuer :: IssuerOptions -> HttpEndpoint -> IO PendingAuthorizationIssuer
 discoverIssuer options target = do
   base <- either (\message -> failWith Code.SignInDiscovery message Nothing) pure (Gateway.gatewayUrl target)
   Answer metadataStatus body <- requestJson options Code.SignInDiscovery (base <> Route.routePath Route.GetProtectedResourceMetadata) Nothing
@@ -153,7 +153,7 @@ discoverIssuer options target = do
   doc <- configuration options identity
   authorization <- requiredText Code.SignInDiscovery "authorization_endpoint" doc
   tokenEndpoint <- requiredText Code.SignInDiscovery "token_endpoint" doc
-  pure (IssuerEndpoints authorization (text "device_authorization_endpoint" doc) identity (text "revocation_endpoint" doc) tokenEndpoint KM.empty)
+  pure (PendingAuthorizationIssuer authorization (text "device_authorization_endpoint" doc) identity (text "revocation_endpoint" doc) tokenEndpoint KM.empty)
 
 configuration :: IssuerOptions -> Text -> IO Value
 configuration options identity = do
@@ -184,7 +184,7 @@ beginAuthorization options begin storage = do
           (beginAuthorizationOptionsTarget begin)
           verifier
           KM.empty
-  address <- case parseURI (Text.unpack (issuerEndpointsAuthorization issuer)) of
+  address <- case parseURI (Text.unpack (pendingAuthorizationIssuerAuthorization issuer)) of
     Just uri | uriScheme uri `elem` ["http:", "https:"] && maybe False ((== "") . uriUserInfo) (uriAuthority uri) -> pure uri
     _ -> failWith Code.SignInDiscovery "The authorization endpoint is not a credential-free HTTP URL" Nothing
   let fields =
@@ -228,7 +228,7 @@ completeAuthorization options callback storage = do
   (access, renewal) <-
     tokenGrant
       options
-      (issuerEndpointsToken (pendingAuthorizationIssuer pending))
+      (pendingAuthorizationIssuerToken (pendingAuthorizationIssuer pending))
       [ ("grant_type", "authorization_code"),
         ("client_id", browserClientId),
         ("redirect_uri", pendingAuthorizationRedirectUri pending),
@@ -285,10 +285,10 @@ revokeStored options held = case storedSessionRevocationEndpoint held of
     (True <$ revokeAtIssuer options endpoint (storedSessionClientId held) (storedSessionRefresh held))
       `catch` \(_ :: SignInError) -> pure False
 
-signInWithDeviceGrant :: IssuerOptions -> HttpEndpoint -> (DeviceCode -> IO ()) -> IO (IssuerEndpoints, IssuedTokens)
+signInWithDeviceGrant :: IssuerOptions -> HttpEndpoint -> (DeviceCode -> IO ()) -> IO (PendingAuthorizationIssuer, IssuedTokens)
 signInWithDeviceGrant options target onCode = do
   issuer <- discoverIssuer options target
-  endpoint <- maybe (failWith Code.SignInDiscovery "The issuer offers no device authorization endpoint" Nothing) pure (issuerEndpointsDevice issuer)
+  endpoint <- maybe (failWith Code.SignInDiscovery "The issuer offers no device authorization endpoint" Nothing) pure (pendingAuthorizationIssuerDevice issuer)
   Answer status body <- requestJson options Code.SignInExchange endpoint (Just [("client_id", scriptClientId), ("scope", signInScope)])
   unless (status == 200) (failWith Code.SignInExchange "The issuer refused device authorization" (Just status))
   device <- requiredText Code.SignInExchange "device_code" body
@@ -313,7 +313,7 @@ signInWithDeviceGrant options target onCode = do
           requestJson
             options
             Code.SignInExchange
-            (issuerEndpointsToken issuer)
+            (pendingAuthorizationIssuerToken issuer)
             (Just [("grant_type", "urn:ietf:params:oauth:grant-type:device_code"), ("device_code", device), ("client_id", scriptClientId)])
         case (pollStatus, text "access_token" answer) of
           (200, Just access) -> do

@@ -1,50 +1,18 @@
 type identity_unverifiable_error = string
 
-type pending_authorization = {
-  issuer : Oauth.issuer;
-  redirect : Oauth.redirect;
-  target : [ `HttpEndpoint ] Models.t;
-  kb_id : string option;
-  expected_did : string option;
-  expected_name : string option;
-}
-
 let code_challenge = Oauth.code_challenge
 let pending_authorization_key = Registry.pending_authorization_key
 
-let begin_authorization ~issuer ~random
-    (options : Records.Begin_authorization_options.t) =
-  let redirect =
-    Oauth.begin_redirect issuer ~random ~redirect_uri:options.redirect_uri
-  in
-  {
-    issuer;
-    redirect;
-    target = options.target;
-    kb_id = options.kb_id;
-    expected_did = options.expected_did;
-    expected_name = options.expected_name;
-  }
+let begin_authorization ~issuer ~random options =
+  Oauth.begin_redirect issuer ~random options
 
-let complete_authorization http pending ~callback =
-  Oauth.finish_redirect http pending.issuer pending.redirect ~callback
-
+let complete_authorization = Oauth.finish_redirect
 let describe_connection = Registry.describe_connection
-let url pending = Oauth.url pending.redirect
+let url = Oauth.url
 
 let keep storage pending =
-  let optional key value =
-    Option.to_list (Option.map (fun text -> (key, `String text)) value)
-  in
-  let fields =
-    Oauth.keep_redirect pending.issuer pending.redirect
-    @ [ ("target", Yojson.Safe.from_string (Models.encode pending.target)) ]
-    @ optional "kbId" pending.kb_id
-    @ optional "expectedDid" pending.expected_did
-    @ optional "expectedName" pending.expected_name
-  in
   Storage.set storage pending_authorization_key
-    (Yojson.Safe.to_string (`Assoc fields))
+    (Yojson.Safe.to_string (Records.Pending_authorization.to_json pending))
 
 let take storage =
   let held = ref None in
@@ -54,23 +22,5 @@ let take storage =
   Option.bind !held (fun source ->
       let open Option.Syntax in
       let* _ = Strict_json.parse source |> Result.to_option in
-      let json = Yojson.Safe.from_string source in
-      let* issuer, redirect = Oauth.take_redirect json in
-      let member key = Yojson.Safe.Util.member key json in
-      let text key =
-        match member key with `String value -> Some value | _ -> None
-      in
-      let* target =
-        Models.decode Models.http_endpoint
-          (Yojson.Safe.to_string (member "target"))
-        |> Result.to_option
-      in
-      Some
-        {
-          issuer;
-          redirect;
-          target;
-          kb_id = text "kbId";
-          expected_did = text "expectedDid";
-          expected_name = text "expectedName";
-        })
+      Records.Pending_authorization.of_json (Yojson.Safe.from_string source)
+      |> Result.to_option)

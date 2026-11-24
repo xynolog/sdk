@@ -8,6 +8,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `xynolog.services.ServiceEnvironmentVariable`: every environment variable a
+  Xynolog service reads, beside its configuration document, a constant of its
+  name (`XYNOLOG_BUS_LOG`). The bus log reads its variable by it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
@@ -18,7 +21,7 @@ the coming release's, and gathers its changes as they land.
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
 - `xynolog.services.ServiceTables`: every table the services keep to, each
-  read as its schema's type (`GatewayMessages`, `ServiceEnvironmentVariables`,
+  read as its schema's type (`GatewayMessages`, `ServiceEnvironmentVariable`,
   `ArchivistLayout`, …, now in `xynolog.types`): the variables a service
   reads and its boot refusals, its telemetry and log lines, its messages,
   the jobs' budgets and storage, the bounds of the bus's replies, the
@@ -33,6 +36,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A stream's place, and each place the bookmarks keep, is an id
+  `LastEventIds` holds in its scope, in place of an id held to
+  `PersistedEventId` by that schema's name.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - The element of an answer format (`WorkerAnswerFormatsFormatsItem`'s
@@ -63,6 +69,11 @@ the coming release's, and gathers its changes as they land.
   place of `xynolog.channels.Empty`.
 - A discovery document is read as its schema states it: its versions are
   those `DiscoveryDocument` allows.
+- A sign-in by a page redirect that is under way is
+  `xynolog.types.PendingAuthorization`, the type Protocol states, in place of
+  `xynolog.http.PendingAuthorization`, and its issuer is
+  `xynolog.types.PendingAuthorizationIssuer`, in place of
+  `xynolog.http.IssuerEndpoints`. Java makes each with its `builder`.
 
 ## 0.8.1
 

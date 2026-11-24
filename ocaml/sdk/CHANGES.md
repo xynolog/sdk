@@ -29,9 +29,29 @@ the coming release's, and gathers its changes as they land.
   Protocol: the variables a service reads and why it refuses to start, what
   it tells OpenTelemetry and logs, its messages, the jobs' budgets, the bounds
   of the bus's replies, and the rest.
+- `Service_environment`: every environment variable a Xynolog service reads,
+  beside its configuration document, a value of its name
+  (`Service_environment.xynolog_bus_log`). The bus log reads its variable by
+  it.
+- `Control`, the launcher's control API: each method a `Control.Method.t`
+  typed by its params and its result descriptors, whether it runs alone and
+  the notifications it sends, and each notification a
+  `Control.Notification.t` typed by its params, with who sends it
+  (`Client | Launcher`).
+- `Error_codes` has every vocabulary of codes, the control plane's and span
+  refusal's among them, each with `t`, a constructor per code, and `code`,
+  the code each is.
+- `Archivist_http`: every route of the archivist, a method and a path by its
+  operation, where four were.
+- `Service_tables`: the services' tables, reachable from `Xynolog`.
+- An enum for every string enum Protocol roots (`Enums.Output_stream`,
+  `Runtime`, `Run_service`, `Service_group`, `Kb_read_kind`, `Tab_verdict`),
+  and each record's member of one is read as it.
 
 ### Changed
 
+- `Annotations.span_refusal` is `Error_codes.Span_refusal.t`, the
+  generated vocabulary, in place of a variant of its own.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - `Bus.frame_refusal_reason` is `Enums.Frame_refusal_reason.t`
@@ -42,6 +62,17 @@ the coming release's, and gathers its changes as they land.
   `Records.Pdf_text_item.t`, and `Oauth.device` holds the
   `Records.Device_code.t` the gateway answered, in place of records of their
   own that restated those schemas.
+- A sign-in by a page redirect that is under way is
+  `Records.Pending_authorization.t`, and an issuer is
+  `Records.Pending_authorization_issuer.t`, in place of
+  `Redirect_sign_in.pending_authorization`, `Oauth.issuer` and
+  `Oauth.redirect`, and their hand-written JSON (`Oauth.keep_redirect`,
+  `Oauth.take_redirect`). `Oauth.begin_redirect` takes
+  `Records.Begin_authorization_options.t`, `Oauth.url` and
+  `Oauth.finish_redirect` take the pending sign-in alone, and
+  `Registry.begin_sign_in`'s `~target` is an `HttpEndpoint`.
+  `Oauth.issuer_url`, `Oauth.token_endpoint` and `Oauth.revocation_endpoint`
+  go: the issuer's members are read directly.
 - An optional member that may not be null is an `option`; `Types.presence`
   is left to a member that may be absent and may be null.
 

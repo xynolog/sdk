@@ -8,6 +8,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `service_environment`: every environment variable a Xynolog service reads,
+  beside its configuration document, a constant of its name
+  (`service_environment::XYNOLOG_BUS_LOG`). The bus log reads its variable by
+  it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
@@ -82,6 +86,14 @@ the coming release's, and gathers its changes as they land.
 - A held yield job is anchored by its `GenerationJobParams`' focus.
 - The conformance drivers write each line as a generated
   `ConformanceDriverLine` and each failure as a `ConformanceFailure`.
+- A pending sign-in is `xynolog::types::PendingAuthorization`, the type
+  Protocol states, in place of `oauth::PendingAuthorization`, and its issuer is
+  `PendingAuthorizationIssuer` in place of `oauth::IssuerEndpoints`, which
+  `discover_issuer`, `stored_session_of` and `sign_in_with_device_grant` take
+  and give. `CoupledBookmarks::load` gives the generated `LastEventIds`.
+- `xynolog::resume::is_place(scope, event_id)`, whether `LastEventIds` holds
+  the id as the place reached in the scope, in place of
+  `is_persisted_event_id(id)`. The stream and the places kept both ask it.
 
 ## 0.8.1
 

@@ -86,9 +86,6 @@ let decode_session source =
 
 let encode_session session = json (Records.Stored_session.to_json session)
 
-let optional_field key value =
-  Option.to_list (Option.map (fun value -> (key, text value)) value)
-
 let stored_session (storage : storage) id =
   Option.bind (storage.read (session_key id)) decode_session
 
@@ -537,18 +534,20 @@ let begin_sign_in browser ~http ~issuer ~random ~redirect_uri ~target ?kb_id
     ?expected_did ?expected_name () =
   Result.map
     (fun issuer ->
-      let redirect = Oauth.begin_redirect issuer ~random ~redirect_uri in
-      let fields =
-        Oauth.keep_redirect issuer redirect
-        @ [ ("target", Yojson.Safe.from_string (Models.encode target)) ]
-        @ optional_field "kbId" kb_id
-        @ optional_field "expectedDid" expected_did
-        @ optional_field "expectedName" expected_name
+      let pending =
+        Oauth.begin_redirect issuer ~random
+          {
+            Records.Begin_authorization_options.target;
+            redirect_uri;
+            kb_id;
+            expected_did;
+            expected_name;
+          }
       in
       locked browser (fun () ->
           browser.config.storage.write pending_authorization_key
-            (json (`Assoc fields)));
-      Oauth.url redirect)
+            (json (Records.Pending_authorization.to_json pending)));
+      Oauth.url pending)
     (Oauth.discover http ~issuer)
 
 let complete_sign_in browser ~http ~callback ~describe =
@@ -568,21 +567,22 @@ let complete_sign_in browser ~http ~callback ~describe =
               storage.remove pending_authorization_key;
               value
         in
-        Option.bind value parse)
+        Option.bind value (fun source ->
+            Option.bind (parse source) (fun body ->
+                Result.to_option (Records.Pending_authorization.of_json body))))
   in
   let ( let* ) = Result.bind in
-  let required = function
-    | Some value -> Ok value
+  let* pending =
+    match pending with
+    | Some pending -> Ok pending
     | None -> Error Error_codes.Sign_in.no_pending
   in
-  let* body = required pending in
-  let* issuer, redirect = required (Oauth.take_redirect body) in
   let* endpoint =
-    Models.decode Models.kb_endpoint (json (member "target" body))
+    Models.decode Models.kb_endpoint (Models.encode pending.target)
     |> Result.map_error (fun _ -> Error_codes.Sign_in.no_pending)
   in
   let* tokens =
-    Oauth.finish_redirect http issuer redirect ~callback
+    Oauth.finish_redirect http pending ~callback
     |> Result.map_error (fun (error : Oauth.error) -> error.code)
   in
   let* refresh =
@@ -591,7 +591,6 @@ let complete_sign_in browser ~http ~callback ~describe =
     | None -> Error Error_codes.Sign_in.exchange
   in
   let* description = describe endpoint ~access:tokens.access_token in
-  let fields = object_ body in
   record_sign_in browser
     {
       Records.Signed_in.endpoint;
@@ -601,11 +600,11 @@ let complete_sign_in browser ~http ~callback ~describe =
           Records.Stored_session.access = tokens.access_token;
           refresh;
           client_id = Oauth_facts.browser;
-          token_endpoint = Oauth.token_endpoint issuer;
-          revocation_endpoint = Oauth.revocation_endpoint issuer;
+          token_endpoint = pending.issuer.token;
+          revocation_endpoint = pending.issuer.revocation;
           person_key = None;
         };
-      kb_id = optional "kbId" fields;
-      expected_did = optional "expectedDid" fields;
-      expected_name = optional "expectedName" fields;
+      kb_id = pending.kb_id;
+      expected_did = pending.expected_did;
+      expected_name = pending.expected_name;
     }

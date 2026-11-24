@@ -5,7 +5,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -30,6 +29,7 @@ import xynolog.types.HttpEndpoint
 import xynolog.types.IssuedTokens
 import xynolog.types.KbTarget
 import xynolog.types.LocalEndpoint
+import xynolog.types.PendingAuthorizationIssuer
 import xynolog.types.ProtectedResourceMetadata
 import xynolog.types.StoredSession
 import java.io.IOException
@@ -155,21 +155,6 @@ public fun renewKeptFuture(
 /** RFC 8628 §3.5's grant type, which the token endpoint is asked under while a person approves the code. */
 private const val DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
 
-/**
- * An issuer, and the endpoints of it a client uses: where a person is sent to
- * sign in, where tokens are asked for, and, when the issuer has them, where a
- * device is authorized and a refresh token revoked. Kept with a sign-in under
- * way, as every SDK keeps it.
- */
-@Serializable
-public data class IssuerEndpoints(
-    public val issuer: String,
-    public val authorization: String,
-    public val token: String,
-    public val device: String? = null,
-    public val revocation: String? = null,
-)
-
 /** An issuer that issued no refresh token: a session it began could not outlive its first access token. */
 internal fun noRefreshToken(): SignInError =
     SignInError(SignInErrorCode.Exchange, "The issuer returned no refresh token: the session could not outlive its first access token")
@@ -179,7 +164,7 @@ private fun noIssuer() = SignInError(SignInErrorCode.NoIssuer, "The knowledge ba
 private fun expired() = SignInError(SignInErrorCode.Expired, "The code expired before it was approved")
 
 /** Ask the knowledge base at `baseUrl` which issuer it trusts, and the issuer where its endpoints are, each with `http`. */
-internal suspend fun discoverIssuer(baseUrl: String, http: HttpClient): IssuerEndpoints {
+internal suspend fun discoverIssuer(baseUrl: String, http: HttpClient): PendingAuthorizationIssuer {
     // Its resource metadata is public: asked with no token.
     val asking = Exchange(baseUrl.trimEnd('/'), http, MutableStateFlow(null), null, Broadcast(), Timings.HTTP_REQUEST_TIMEOUT_MS) { false }
     val metadata = try {
@@ -204,7 +189,7 @@ internal suspend fun discoverIssuer(baseUrl: String, http: HttpClient): IssuerEn
     if (document.text("issuer") != issuer || authorization == null || token == null) {
         throw SignInError(SignInErrorCode.Discovery, "Issuer $issuer: its discovery document is not an OpenID configuration for it", status)
     }
-    return IssuerEndpoints(issuer, authorization, token, document.text("device_authorization_endpoint"), document.text("revocation_endpoint"))
+    return PendingAuthorizationIssuer(issuer, authorization, token, document.text("device_authorization_endpoint"), document.text("revocation_endpoint"))
 }
 
 /** RFC 7009. The issuer answers 200 for a token it has already forgotten, so revoking twice is revoking once. */
@@ -220,7 +205,7 @@ internal suspend fun revokeAtIssuer(revocationEndpoint: String, clientId: String
  * interval until the tokens arrive, each request with `http`. The code's
  * expiry is measured by `clock`. Cancelling it abandons the sign-in.
  */
-internal suspend fun signInWithDeviceGrant(baseUrl: String, http: HttpClient, clock: TimeSource, onCode: (DeviceCode) -> Unit): Pair<IssuerEndpoints, IssuedTokens> {
+internal suspend fun signInWithDeviceGrant(baseUrl: String, http: HttpClient, clock: TimeSource, onCode: (DeviceCode) -> Unit): Pair<PendingAuthorizationIssuer, IssuedTokens> {
     val issuer = discoverIssuer(baseUrl, http)
     val device = issuer.device ?: throw SignInError(
         SignInErrorCode.Discovery,

@@ -125,6 +125,9 @@ type state = {
       *)
   ids : Decode.ids;  (** Each schema's [$id]: what a reference names. *)
   identifiers : string list;
+  keys : (string * string) list;
+      (** The type a named map's keys are, by its name ([Definitions.map_keys]).
+      *)
   written : (string, C.decl list) Hashtbl.t;
   inlined : (string, string) Hashtbl.t;  (** [owner.property] → model. *)
 }
@@ -335,7 +338,20 @@ and object_ state name ~attribute ~original d =
     | None -> []
   in
   let required = Option.value s.required ~default:[] in
-  let open_ = s.additional_properties = Some (Boolean_schema true) in
+  (* An object whose other members are anything keeps them as JSON; one whose
+     other members are of a schema keeps them as that schema's type, keyed as
+     its member names' schema is, where that is a schema of its own. *)
+  let rest =
+    match s.additional_properties with
+    | Some (Boolean_schema true) -> Some (C.T "string", element)
+    | Some (Schema _ as values) ->
+        Some
+          ( (match List.assoc_opt name state.keys with
+            | Some key -> named state key
+            | None -> C.T "string"),
+            type_of state name "Value" (values, values_of d.validated) )
+    | Some (Boolean_schema false) | None -> None
+  in
   let owner =
     Inherited.of_schemas
       ~find:(fun n -> (definition state n).schema)
@@ -377,10 +393,9 @@ and object_ state name ~attribute ~original d =
   in
   if
     List.length (List.sort_uniq String.compare names) <> List.length names
-    || (open_ && List.mem "AdditionalProperties" names)
+    || (Option.is_some rest && List.mem "AdditionalProperties" names)
   then refuse "%s has colliding C# property names." name;
   let stated t = C.Generic (types ^ "Stated", [ Nullable t ]) in
-  let extra = generic "IReadOnlyDictionary" [ T "string"; element ] in
   let wire_name f : C.attribute =
     { name = "global::Xynolog.Serialization.Wire"; args = [ Str f.wire ] }
   in
@@ -425,27 +440,30 @@ and object_ state name ~attribute ~original d =
             ])
       fields
     @
-    if open_ then
-      [
-        C.Property
-          {
-            attributes =
-              [ { name = "global::Xynolog.Serialization.WireRest"; args = [] } ];
-            modifiers = [ Public ];
-            type_ = extra;
-            name = "AdditionalProperties";
-            accessors = [ Get; Init ];
-            value =
-              Some
-                (New
-                   {
-                     type_ = Some (generic "Dictionary" [ T "string"; element ]);
-                     args = Some [];
-                     init = None;
-                   });
-          };
-      ]
-    else []
+    match rest with
+    | Some (key, value) ->
+        [
+          C.Property
+            {
+              attributes =
+                [
+                  { name = "global::Xynolog.Serialization.WireRest"; args = [] };
+                ];
+              modifiers = [ Public ];
+              type_ = generic "IReadOnlyDictionary" [ key; value ];
+              name = "AdditionalProperties";
+              accessors = [ Get; Init ];
+              value =
+                Some
+                  (New
+                     {
+                       type_ = Some (generic "Dictionary" [ key; value ]);
+                       args = Some [];
+                       init = None;
+                     });
+            };
+        ]
+    | None -> []
   in
   [
     C.Type
@@ -541,7 +559,7 @@ type t = {
 (* [roots] are the schemas the models are made from, in order, each
    validated, and each what a [$ref] to where it is read from names; [made]
    are the bus's payload types beside them. *)
-let make ~ids ~identifiers ~roots ~made =
+let make ~ids ~identifiers ~keys ~roots ~made =
   let state =
     {
       definitions = Hashtbl.create 1024;
@@ -549,6 +567,7 @@ let make ~ids ~identifiers ~roots ~made =
       read_from = Hashtbl.create 1024;
       ids;
       identifiers;
+      keys;
       written = Hashtbl.create 1024;
       inlined = Hashtbl.create 256;
     }

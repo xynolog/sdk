@@ -1,18 +1,14 @@
-(* The vocabularies of codes the OCaml SDK says (ocaml/sdk/lib/error_codes.ml):
-   a module per vocabulary it says a code of, a value per code named by the
-   code's last segment ([bus.not-found] is [Bus_request.not_found]). Which
-   vocabularies those are is the SDK's choice, each named here by its type
-   name; one the table no longer states is refused. *)
+(* Every vocabulary of codes errors/codes.json states, as the OCaml SDK says
+   it (ocaml/sdk/lib/error_codes.ml): a module per vocabulary, named by its
+   member of the table ([signIn] is [Sign_in]); in it a value per code named
+   by the code's last segment ([bus.not-found] is [Bus_request.not_found]),
+   and [t], a constructor per code named as its value is
+   ([Bus_request.Not_found]), with [code], the code each is. Its test
+   (ocaml/sdk/test/error_codes_cases.ml) holds each constructor to the code
+   Protocol states for it. *)
 
-let said =
-  [
-    ("Bus_request", "BusRequestErrorCode");
-    ("Transport", "TransportErrorCode");
-    ("Job", "JobErrorCode");
-    ("Session", "XynologSessionErrorCode");
-    ("Sign_in", "SignInErrorCode");
-    ("Kb_identity", "IdentityUnverifiableReason");
-  ]
+let module_name (v : Table.vocabulary) =
+  String.capitalize_ascii (Text.snake v.member)
 
 let value_name code =
   let last = List.hd (List.rev (String.split_on_char '.' code)) in
@@ -25,50 +21,92 @@ let is_value name =
        (function 'a' .. 'z' | '0' .. '9' | '_' -> true | _ -> false)
        name
 
-let file (t : Table.t) =
+let constructor n = String.capitalize_ascii n
+
+(* Each of a vocabulary's constructors is the code Protocol states, with
+   [rest] after. *)
+let test (module_, values) rest =
+  Ocaml_syntax.let_module "Model"
+    ("Xynolog.Error_codes." ^ module_)
+    (Ocaml_syntax.sequence
+       (List.map
+          (fun (n, code) ->
+            Ocaml_syntax.apply
+              (Ocaml_syntax.ident "Alcotest.check")
+              [
+                Ocaml_syntax.ident "Alcotest.string";
+                Ocaml_syntax.string (module_ ^ " code");
+                Ocaml_syntax.string code;
+                Ocaml_syntax.apply
+                  (Ocaml_syntax.ident "Model.code")
+                  [ Ocaml_syntax.construct ("Model." ^ constructor n) ];
+              ])
+          values
+       @ [ rest ]))
+
+let files (t : Table.t) =
   let refusals = ref [] in
   let refuse message =
     refusals := { Decode.file = Table.file; pointer = ""; message } :: !refusals
   in
-  let vocabularies = t.bus :: t.transport :: t.others in
+  let vocabularies =
+    List.map
+      (fun (v : Table.vocabulary) ->
+        let module_ = module_name v and named = Hashtbl.create 16 in
+        let values =
+          List.map
+            (fun (c : Table.code) ->
+              let n = value_name c.code in
+              if not (is_value n) then
+                refuse (Printf.sprintf "%s names no OCaml value" c.code);
+              if Hashtbl.mem named n || n = "code" then
+                refuse
+                  (Printf.sprintf "two of %s's values are both named %s" module_
+                     n);
+              Hashtbl.replace named n ();
+              (n, c.code))
+            v.codes
+        in
+        (module_, values))
+      ((t.bus :: t.transport :: t.others) @ [ t.control ])
+  in
   let modules =
-    List.concat_map
-      (fun (module_, name) ->
-        match
-          List.find_opt
-            (fun (v : Table.vocabulary) -> v.name = name)
-            vocabularies
-        with
-        | None ->
-            refuse
-              (Printf.sprintf
-                 "states no vocabulary %s, which the OCaml SDK says as %s" name
-                 module_);
-            []
-        | Some v ->
-            let named = Hashtbl.create 16 in
-            [
-              Ocaml_syntax.module_ module_
-                (List.map
-                   (fun (c : Table.code) ->
-                     let n = value_name c.code in
-                     if not (is_value n) then
-                       refuse (Printf.sprintf "%s names no OCaml value" c.code);
-                     if Hashtbl.mem named n then
-                       refuse
-                         (Printf.sprintf "two of %s's codes are both named %s"
-                            module_ n);
-                     Hashtbl.replace named n ();
-                     Ocaml_syntax.let_ n (Ocaml_syntax.string c.code))
-                   v.codes);
-            ])
-      said
+    List.map
+      (fun (module_, values) ->
+        Ocaml_syntax.module_ module_
+          (Ocaml_syntax.type_item
+             (Ocaml_syntax.type_declaration "t"
+                (Variant
+                   (List.map
+                      (fun (n, _) -> Ocaml_syntax.constructor (constructor n))
+                      values)))
+          :: Ocaml_syntax.let_ "code"
+               (Ocaml_syntax.function_
+                  (List.map
+                     (fun (n, code) ->
+                       Ocaml_syntax.case
+                         (Ocaml_syntax.Pattern.construct (constructor n))
+                         (Ocaml_syntax.string code))
+                     values))
+          :: List.map
+               (fun (n, code) -> Ocaml_syntax.let_ n (Ocaml_syntax.string code))
+               values))
+      vocabularies
+  in
+  let banner =
+    Banner.ocaml ~from_:("protocol/specs/src/" ^ Table.file) __FILE__
   in
   match List.rev !refusals with
   | [] ->
       Ok
-        (Ocaml_syntax.implementation ~path:"ocaml/sdk/lib/error_codes.ml"
-           ~banner:
-             (Banner.ocaml ~from_:("protocol/specs/src/" ^ Table.file) __FILE__)
-           modules)
+        [
+          Ocaml_syntax.implementation ~path:"ocaml/sdk/lib/error_codes.ml"
+            ~banner modules;
+          Ocaml_syntax.implementation
+            ~path:"ocaml/sdk/test/error_codes_cases.ml" ~banner
+            [
+              Ocaml_syntax.let_unit
+                (List.fold_right test vocabularies Ocaml_syntax.unit);
+            ];
+        ]
   | errors -> Error errors

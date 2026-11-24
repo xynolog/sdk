@@ -16,9 +16,9 @@
 //!
 //! What is kept is protocol/specs/src/session/stored.json's `lastEventIds`:
 //! a JSON object from a scope, a resource's id, to the id of the last
-//! recorded event delivered on it, a `PersistedEventId`. A pair that is not
-//! one is skipped, when it is reached and when it is read; what is kept
-//! that is no object is no places.
+//! recorded event delivered on it. A pair `LastEventIds` does not hold is
+//! skipped, when it is reached and when it is read (`is_place`); what is
+//! kept that is no object is no places.
 //!
 //! **Closing takes the places once.** As a client closes, before it
 //! disposes of anything, it reads whether a fetch is in flight or a refetch
@@ -31,29 +31,32 @@ use crate::client::XynologClient;
 use crate::locked;
 use crate::required::{fault_of, schema};
 use crate::storage::{SessionStorage, StorageChange, StorageSubscription};
-use crate::types::ResourceId;
+use crate::types::{LastEventIds, ResourceId};
 use serde_json::Value;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 type Gate = Box<dyn Fn() -> bool + Send + Sync>;
 
-/// Whether `id` is a recorded event's id, a `PersistedEventId`: the only kind
-/// that is a place, and the one decider of it, by the spec's pattern.
-pub fn is_persisted_event_id(id: &str) -> bool {
-    fault_of(
-        schema("PersistedEventId"),
-        &mut Value::String(id.to_owned()),
-    )
-    .is_none()
+/// Whether `places` is places `LastEventIds` holds.
+fn holds_places(places: &mut Value) -> bool {
+    fault_of(schema("LastEventIds"), places).is_none()
+}
+
+/// Whether `LastEventIds` holds `event_id` as the place reached in `scope`:
+/// the one decider of what is a place.
+pub fn is_place(scope: &ResourceId, event_id: &str) -> bool {
+    holds_places(&mut Value::Object(serde_json::Map::from_iter([(
+        scope.to_string(),
+        Value::String(event_id.to_owned()),
+    )])))
 }
 
 /// The places reached and not yet written.
 enum Places {
     /// Each place reached is noted, and written when the gate allows.
-    Noting(HashMap<ResourceId, String>),
+    Noting(LastEventIds),
     /// Closing has begun: what its flush may write, and no more are noted.
-    Closing(HashMap<ResourceId, String>),
+    Closing(LastEventIds),
 }
 
 struct Coupling {
@@ -64,18 +67,22 @@ struct Coupling {
 }
 
 impl Coupling {
-    fn stored(stored: Option<&str>) -> HashMap<ResourceId, String> {
+    fn stored(stored: Option<&str>) -> LastEventIds {
         let Some(Value::Object(places)) =
             stored.and_then(|stored| serde_json::from_str(stored).ok())
         else {
-            return HashMap::new();
+            return LastEventIds::new();
         };
         places
             .into_iter()
-            .filter_map(|(scope, id)| match id {
-                Value::String(id) if is_persisted_event_id(&id) => Some((scope.parse().ok()?, id)),
-                _ => None,
+            .filter_map(|pair| {
+                let mut pair = Value::Object(serde_json::Map::from_iter([pair]));
+                if !holds_places(&mut pair) {
+                    return None;
+                }
+                serde_json::from_value::<LastEventIds>(pair).ok()
             })
+            .flatten()
             .collect()
     }
 
@@ -116,22 +123,22 @@ impl CoupledBookmarks {
             coupling: Arc::new(Coupling {
                 storage,
                 key: key.to_owned(),
-                places: Mutex::new(Places::Noting(HashMap::new())),
+                places: Mutex::new(Places::Noting(LastEventIds::new())),
                 gate: Mutex::new(None),
             }),
         }
     }
 
     /// The places kept, by scope.
-    pub fn load(&self) -> HashMap<ResourceId, String> {
+    pub fn load(&self) -> LastEventIds {
         Coupling::stored(self.coupling.storage.get(&self.coupling.key).as_deref())
     }
 
     /// A place was reached in `scope`. Remembered, and written with a later
-    /// write of a cache. An id that is no recorded event's is no place, and
-    /// once closing has begun no place is noted.
+    /// write of a cache. An id `LastEventIds` does not hold in `scope` is no
+    /// place, and once closing has begun no place is noted.
     pub fn save(&self, scope: &ResourceId, event_id: &str) {
-        if !is_persisted_event_id(event_id) {
+        if !is_place(scope, event_id) {
             return;
         }
         if let Places::Noting(pending) = &mut *locked(&self.coupling.places) {
@@ -149,7 +156,7 @@ impl CoupledBookmarks {
             let taken = if settled() {
                 std::mem::take(pending)
             } else {
-                HashMap::new()
+                LastEventIds::new()
             };
             *places = Places::Closing(taken);
         }
@@ -221,7 +228,7 @@ mod tests {
 
     const KEY: &str = "xynolog.lastEventId.kb-a";
 
-    fn places(pairs: &[(&str, &str)]) -> HashMap<ResourceId, String> {
+    fn places(pairs: &[(&str, &str)]) -> LastEventIds {
         pairs
             .iter()
             .map(|(scope, id)| (scope.parse().unwrap(), (*id).to_owned()))

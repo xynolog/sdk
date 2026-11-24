@@ -31,7 +31,19 @@ let pkce () =
     String.make count (Char.chr !next)
   in
   let redirect_uri = "http://localhost:4000/callback" in
-  let redirect = O.begin_redirect issuer ~random ~redirect_uri in
+  let redirect =
+    O.begin_redirect issuer ~random
+      {
+        target =
+          Models.decode Models.http_endpoint
+            {|{"kind":"http","host":"localhost","port":4000,"protocol":"http"}|}
+          |> Result.get_ok;
+        redirect_uri;
+        kb_id = None;
+        expected_did = None;
+        expected_name = None;
+      }
+  in
   let uri = Uri.of_string (O.url redirect) in
   let param key = Option.get (Uri.get_query_param uri key) in
   let callback state = redirect_uri ^ "?code=abc&state=" ^ state in
@@ -46,7 +58,7 @@ let pkce () =
     (200, {|{"access_token":"access"}|})
   in
   let refused code = Error { O.code; status = None } in
-  let finish callback = O.finish_redirect http issuer redirect ~callback in
+  let finish callback = O.finish_redirect http redirect ~callback in
   assert (finish (callback "wrong") = refused Error_codes.Sign_in.state);
   assert (
     finish (redirect_uri ^ "?error=access_denied&state=" ^ param "state")
@@ -59,9 +71,7 @@ let pkce () =
     = refused Error_codes.Sign_in.exchange);
   assert (!calls = 0);
   assert (
-    (get
-       (O.finish_redirect http issuer redirect
-          ~callback:(callback (param "state"))))
+    (get (O.finish_redirect http redirect ~callback:(callback (param "state"))))
       .access_token = "access");
   assert (!calls = 1)
 

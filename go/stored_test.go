@@ -3,7 +3,7 @@ package xynolog
 // What a session and a sign-in by a page redirect keep in a SessionStorage,
 // held to protocol/specs/src/session/stored.json: the keys of a stream's places
 // and of the kept queries, which queries are kept, the form of a kept document
-// and of the places, and what is kept of a sign-in begun. What each document
+// and of the places, and how a sign-in pending is read. What each document
 // holds is cache_cases_test.go's. The registry's own keys are
 // registry/stored_test.go's.
 
@@ -14,7 +14,6 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
-	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -55,21 +54,7 @@ type sessionTable struct {
 			Const json.RawMessage `json:"const"`
 		} `json:"properties"`
 	} `json:"cacheDocument"`
-	LastEventIds struct {
-		PropertyNames        schemaRef `json:"propertyNames"`
-		AdditionalProperties schemaRef `json:"additionalProperties"`
-	} `json:"lastEventIds"`
 	PendingAuthorization objectShape `json:"pendingAuthorization"`
-}
-
-// schemaRef is a schema that is a component schema of the spec's.
-type schemaRef struct {
-	Ref string `json:"$ref"`
-}
-
-// component is the name of the component schema ref names.
-func (ref schemaRef) component() string {
-	return strings.TrimSuffix(filepath.Base(ref.Ref), ".json")
 }
 
 // readSpec is what the spec's file at way, under protocol/specs/src, holds.
@@ -153,13 +138,6 @@ func TestAKeptDocumentAndThePlacesAreOfTheTablesForm(t *testing.T) {
 	if got, want := membersOf(t, []byte(written)), slices.Sorted(maps.Keys(table.CacheDocument.Properties)); !slices.Equal(got, want) {
 		t.Errorf("a kept document is written with %v; the table's members are %v", got, want)
 	}
-
-	if got, want := reflect.TypeFor[api.ResourceId]().Name(), table.LastEventIds.PropertyNames.component(); got != want {
-		t.Errorf("a place's scope is read as a %s; the table's is a %s", got, want)
-	}
-	if got, want := placeSchema, table.LastEventIds.AdditionalProperties.component(); got != want {
-		t.Errorf("a place is held to %s; the table's is a %s", got, want)
-	}
 }
 
 // membersOf is the members of the object text holds.
@@ -170,45 +148,6 @@ func membersOf(t *testing.T, text []byte) []string {
 		t.Fatal(err)
 	}
 	return slices.Sorted(maps.Keys(written))
-}
-
-func TestASignInBegunIsKeptAsTheTableStatesIt(t *testing.T) {
-	table := readSessionTable(t)
-	var issuer objectShape
-	if err := json.Unmarshal(table.PendingAuthorization.Properties["issuer"], &issuer); err != nil {
-		t.Fatal(err)
-	}
-	s := newStack(t)
-
-	believed := NewMemoryStorage()
-	if _, err := BeginAuthorization(context.Background(), issuerOf(), api.BeginAuthorizationOptions{
-		Target: gatewayEndpoint(t, s), RedirectUri: redirectURI, KbId: new("kb-a"), ExpectedDid: new("did:web:example.org:kb-a"), ExpectedName: new("KB A"),
-	}, believed); err != nil {
-		t.Fatal(err)
-	}
-	stored, _ := believed.Get(PendingAuthorizationKey)
-	if got, want := membersOf(t, []byte(stored)), slices.Sorted(maps.Keys(table.PendingAuthorization.Properties)); !slices.Equal(got, want) {
-		t.Errorf("a sign-in begun is kept with %v; the table's members are %v", got, want)
-	}
-	var record struct {
-		Issuer json.RawMessage `json:"issuer"`
-	}
-	if err := json.Unmarshal([]byte(stored), &record); err != nil {
-		t.Fatal(err)
-	}
-	if got, want := membersOf(t, record.Issuer), slices.Sorted(maps.Keys(issuer.Properties)); !slices.Equal(got, want) {
-		t.Errorf("its issuer is kept with %v; the table's members are %v", got, want)
-	}
-
-	// What the person named nothing of is not written.
-	bare := NewMemoryStorage()
-	if _, err := BeginAuthorization(context.Background(), issuerOf(), api.BeginAuthorizationOptions{Target: gatewayEndpoint(t, s), RedirectUri: redirectURI}, bare); err != nil {
-		t.Fatal(err)
-	}
-	stored, _ = bare.Get(PendingAuthorizationKey)
-	if got, want := membersOf(t, []byte(stored)), slices.Sorted(slices.Values(table.PendingAuthorization.Required)); !slices.Equal(got, want) {
-		t.Errorf("a sign-in begun with nothing believed is kept with %v; the table requires %v", got, want)
-	}
 }
 
 // without is text, an object, without the member way names: one of its own,

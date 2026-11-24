@@ -34,14 +34,14 @@ use xynolog::bus_log::{bus_log, bus_note};
 use xynolog::channels::{RESOURCE_SCOPED_CHANNELS, TRACE_FIELD};
 use xynolog::errors::{TransportError, TransportErrorCode};
 use xynolog::gateway_http::SUBSCRIBE_TO_BUS;
-use xynolog::resume::is_persisted_event_id;
+use xynolog::resume::is_place;
 use xynolog::retry::{equal_jitter, retry_after};
 use xynolog::timing::{DEGRADED_THRESHOLD, MAX_RECONNECT, RECONNECT_DEBOUNCE};
 use xynolog::transport::{ConnectionState, Frame, FrameRefusal, StreamId, TraceCarrier};
-use xynolog::types::ResourceId;
 use xynolog::types::{
     BusEventMessageEvent, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem,
 };
+use xynolog::types::{LastEventIds, ResourceId};
 
 pub(crate) enum Command {
     /// A resource's scope got its first hold.
@@ -49,7 +49,7 @@ pub(crate) enum Command {
     /// A resource's scope lost its last hold.
     RemoveScope(ResourceId),
     /// Places kept elsewhere, for the scopes the stream holds none for.
-    Restore(HashMap<ResourceId, String>),
+    Restore(LastEventIds),
     Close(oneshot::Sender<()>),
 }
 
@@ -443,10 +443,9 @@ impl Actor {
             }
         }
         // A scope's position is the last recorded event delivered on it:
-        // only a recorded event's id is one, and it always comes on its
-        // scope.
+        // only an id `LastEventIds` holds in its scope is one.
         if let Some(at) = &frame.stream_id
-            && is_persisted_event_id(&at.event_id)
+            && is_place(&at.scope, &at.event_id)
         {
             self.watermarks
                 .insert(at.scope.clone(), at.event_id.clone());

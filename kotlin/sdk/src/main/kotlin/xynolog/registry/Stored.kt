@@ -8,6 +8,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import xynolog.Timings
 import xynolog.bus.faultOfSchema
@@ -16,6 +17,7 @@ import xynolog.cache.CacheQuery
 import xynolog.cache.KeptCaches
 import xynolog.cache.PERSISTED_QUERIES
 import xynolog.http.codeChallenge
+import xynolog.identifiers.ResourceId
 import xynolog.storage.CachePersistence
 import xynolog.storage.SessionStorage
 import xynolog.storage.StoragePersister
@@ -62,11 +64,11 @@ public fun personKey(did: String): String = codeChallenge(did)
 /** The key the stream's places in each scope of knowledge base `kbId` are kept under, as `lastEventIds`, for the person whose key is `personKey`. */
 internal fun lastEventIdKey(kbId: String, personKey: String): String = "xynolog.lastEventId.$kbId.$personKey"
 
-/** The schema each place `lastEventIds` keeps is a value of. */
-internal const val PLACE_SCHEMA: String = "PersistedEventId"
+/** Whether `places` is places `lastEventIds` holds: in each scope, the id of a recorded event delivered on it. */
+internal fun holdsPlaces(places: JsonObject): Boolean = faultOfSchema("LastEventIds", places) == null
 
-/** Whether `id` is a PersistedEventId: the id of a recorded event, and the one kind of id that is a stream's place. */
-internal fun isPersistedEventId(id: String): Boolean = faultOfSchema(PLACE_SCHEMA, JsonPrimitive(id)) == null
+/** Whether `lastEventIds` holds `eventId` as the place reached in `scope`. */
+internal fun isPlace(scope: ResourceId, eventId: String): Boolean = holdsPlaces(JsonObject(mapOf(scope.value to JsonPrimitive(eventId))))
 
 /** The key the query `query` of knowledge base `kbId` is kept under, for the person whose key is `personKey`. */
 internal fun cacheKey(kbId: String, personKey: String, query: String): String = "xynolog.cache.$kbId.$personKey.$query"

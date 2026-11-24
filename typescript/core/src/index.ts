@@ -126,6 +126,8 @@ export type {
   KbIdentityConflict,
   SessionEndReason,
   StoredSession,
+  PendingAuthorization,
+  LastEventIds,
   AnchorMethod,
   MatchQuality,
   FrameRefusalReason,
@@ -288,6 +290,7 @@ export {
 // The client's deadlines, retry budgets and stream cadence, generated from
 // protocol/specs/src/client/timing.json — the table every SDK generates from.
 export * from './client-timing';
+export * from './service-environment';
 
 // What each event on the bus refreshes in a client's cache, generated from
 // protocol/specs/src/client/refresh.json — the table every SDK generates from.
@@ -431,7 +434,7 @@ export { privateKeyFromPem } from './client-assertion';
 export { SignInError } from './sign-in-error';
 export { UnansweredError, jsonOf, whyUnanswered } from './unanswered';
 export { withinDeadline } from './deadline';
-export { faultOf, isSchemaName, said, type Fault } from './required';
+export { faultOf, isPlace, isSchemaName, said, type Fault } from './required';
 
 // Knowledge-graph view derivation — pure fn over the KnowledgeGraph type,
 // run by @xynolog/react-ui.

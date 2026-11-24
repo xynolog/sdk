@@ -49,7 +49,6 @@ from xynolog.errors import SessionError, SignInError, TransportError, XynologErr
 from xynolog.http import AgentToken, DeviceCode, HttpTransport, ServiceToken, session_from_kept, sign_in_device, sign_out
 from xynolog.http.oauth import (
     IssuedTokens,
-    IssuerEndpoints,
     discover_issuer,
     issuer_client,
     refresh_at_issuer,
@@ -69,7 +68,7 @@ from xynolog.storage_keys import cache_key, last_event_id_key, person_key
 from xynolog.stored import KEPT_QUERIES
 from xynolog.testing import create_test_client
 from xynolog.timing import DEVICE_POLL_MS, DEVICE_SLOW_DOWN_MS, MAX_RECONNECT_MS, MIN_REFRESH_DELAY_MS
-from xynolog.types import HttpEndpoint, KbTarget, LocalEndpoint, SessionEndReason, StoredSession, UserResponse
+from xynolog.types import HttpEndpoint, KbTarget, LocalEndpoint, PendingAuthorizationIssuer, SessionEndReason, StoredSession, UserResponse
 from xynolog.watched import Variable, Watched, reached
 
 _JSON = TypeAdapter[JsonValue](JsonValue)
@@ -310,7 +309,7 @@ def test_revocation_is_one_form_and_a_refusal_is_said() -> None:
 
 def test_what_is_kept_of_a_sign_in_is_its_tokens_its_client_and_where_its_issuer_renews_and_revokes_them() -> None:
     tokens = IssuedTokens(access="a1", refresh="r1")
-    revoking = IssuerEndpoints(
+    revoking = PendingAuthorizationIssuer(
         issuer="https://id.example",
         authorization="https://id.example/auth",
         token="https://id.example/token",
@@ -324,7 +323,9 @@ def test_what_is_kept_of_a_sign_in_is_its_tokens_its_client_and_where_its_issuer
         revocation_endpoint="https://id.example/revoke",
     )
     # An issuer with no revocation endpoint has none kept.
-    unrevoking = IssuerEndpoints(issuer="https://id.example", authorization="https://id.example/auth", token="https://id.example/token")
+    unrevoking = PendingAuthorizationIssuer(
+        issuer="https://id.example", authorization="https://id.example/auth", token="https://id.example/token"
+    )
     assert stored_session_of("xynolog-script", unrevoking, tokens).revocation_endpoint is None
 
 

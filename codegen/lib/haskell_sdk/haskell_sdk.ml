@@ -1,8 +1,8 @@
 (* The Haskell SDK's modules that no other group's table owns: the models of
    every schema it reads or writes, with the module that exports them, the
    schemas it validates against and the round trips its tests drive; its
-   HTTP routes; its transport's facts; and its bus's channels and
-   operations, with each operation's failure. Each group that owns a table
+   HTTP routes; its transport's facts; its bus's channels and operations,
+   with each operation's failure; and the launcher's control API. Each group that owns a table
    writes the Haskell SDK's module of it itself. *)
 
 module Models = Models
@@ -14,6 +14,7 @@ module Channels = Channels
 module Marker = Marker
 module Constants = Constants
 module Worker = Worker
+module Control = Control
 module H = Haskell_syntax
 
 let ( let* ) = Result.bind
@@ -192,6 +193,12 @@ let files ~root (spec : Spec.t) =
       | Error e -> Error e)
   in
   let* constants = within "client/surface.json" (Constants.modules spec) in
+  let* control =
+    within "control/methods.json"
+      (Control.module_
+         ~banner:(banner "protocol/specs/src/control/methods.json")
+         spec.tables.control_methods)
+  in
   let tables =
     List.map
       (Companions.tables_module
@@ -281,7 +288,7 @@ let files ~root (spec : Spec.t) =
                    protocol/specs/src/errors/codes.json")
              ~unrecognized readers);
       ]
-    @ List.map (file ~under:"src") tables
+    @ List.map (file ~under:"src") (control :: tables)
     @ List.map (file ~under:"generated") constants
     @ List.map (file ~under:"generated") worker
     @ manifest
