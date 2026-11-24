@@ -19,11 +19,23 @@ module Rust = Rust
 
 let refusal file pointer message = { Decode.file; pointer; message }
 
-(* Each root ([Roots]): its name, its file and its schema, with each file it
-   refers to that no generation names written in its place
-   ([Schema_names.in_place]). *)
-let components (spec : Spec.t) =
+(* A schema as the table reads it: each file it refers to that no generation
+   names written in its place ([Schema_names.in_place]), and each schema
+   within it that closes what it composes read as the one object it means
+   ([Normalize.closed_within]). *)
+let whole (spec : Spec.t) =
   let in_place = Schema_names.in_place spec in
+  let find =
+    Definitions.schema_of ~ids:spec.ids
+      ~schemas:(Hashtbl.of_seq (List.to_seq spec.schemas))
+  in
+  fun schema ->
+    Result.bind (in_place schema) (Normalize.closed_within spec.ids ~find)
+
+(* Each root ([Roots]): its name, its file and its schema, read whole
+   ([whole]). *)
+let components (spec : Spec.t) =
+  let in_place = whole spec in
   List.map
     (fun (name, (reference : Decode.reference)) ->
       match Decode.resolve spec.Spec.ids reference with
@@ -45,6 +57,55 @@ let components (spec : Spec.t) =
                (Printf.sprintf "names %s, a place within a file"
                   reference.target)))
     (Roots.all spec)
+
+(* Each table record ([Table_records]), by its title, read where the table
+   states it; each client type every SDK generates
+   ([Definitions.generated_client_types]), by its file's stem; and why a
+   client found no launcher (client/discovery-absent.json), as the one text
+   of its reasons each SDK states it as. *)
+let records (spec : Spec.t) =
+  let in_place = whole spec in
+  let read (title, file, schema) =
+    Result.map_error (refusal file "")
+      (Result.map (fun schema -> (title, file, schema)) (in_place schema))
+  in
+  let file_of key =
+    match String.index_opt key '#' with
+    | Some at -> String.sub key 0 at
+    | None -> key
+  in
+  let client_types =
+    List.map
+      (fun name ->
+        let file = Roots.client_types ^ name ^ ".json" in
+        match List.assoc_opt file spec.schemas with
+        | Some schema -> read (name, file, schema)
+        | None -> Error (refusal file "" "is no JSON Schema"))
+      (Definitions.generated_client_types spec)
+  in
+  let discovery_absent =
+    Ok
+      ( "DiscoveryAbsentReason",
+        "client/discovery-absent.json",
+        Schema.Schema
+          {
+            Schema.empty with
+            type_ = Some [ Schema.String ];
+            enum =
+              Some
+                (List.map
+                   (fun (r : Tables.Client_discovery_absent.reasons_item) ->
+                     Schema.String_literal r.reason)
+                   spec.tables.client_discovery_absent.reasons);
+          } )
+  in
+  match Table_records.all spec with
+  | Error message -> [ Error (refusal "" "" message) ]
+  | Ok records ->
+      List.map
+        (fun (key, title, schema) -> read (title, file_of key, schema))
+        records
+      @ client_types @ [ discovery_absent ]
 
 (* Each gateway operation's reply: the schema of its one successful
    response's one content, by its operationId, capitalized. *)
@@ -104,10 +165,10 @@ let collect results =
       | Error error, Error errors -> Error (error :: errors))
     results (Ok [])
 
-(* What each component requires, by the component's name. *)
+(* What each root schema and each table record requires, by its name. *)
 let derive (spec : Spec.t) =
   Result.bind
-    (collect (components spec))
+    (collect (components spec @ records spec))
     (Shape.derive ~ids:spec.ids
        ~unrecognized:spec.tables.errors_codes.bus_request.unrecognized_failure)
 

@@ -9,10 +9,7 @@ let file (shapes : (string * Shape.shape) list) =
   if shapes = [] then
     Kotlin_sdk.Names.refuse "the table of what each schema requires holds none";
   Kotlin_sdk.data_file
-    ~banner:
-      (Banner.lines
-         ~from_:"the component schemas of protocol/specs/src/openapi.json"
-         __FILE__)
+    ~banner:(Banner.lines ~from_:Table.authority __FILE__)
     ~package:"xynolog.bus" ~name:"RequiredTable" ~imports:[]
     [
       K.property

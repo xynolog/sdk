@@ -722,6 +722,10 @@ let derive ~ids ~unrecognized components =
       | Some (`Within (file, pointer, schema)) ->
           (read schema).shape_of file pointer
       | None ->
+          if Option.is_some schema.unevaluated_properties then
+            refuse file at
+              "states unevaluatedProperties, which the table reads only as the \
+               one object it closes (Normalize.closed_within)";
           let kinds =
             let kinds = plain_kinds file at schema in
             if null then union [ Null ] kinds else kinds
@@ -791,40 +795,93 @@ let derive ~ids ~unrecognized components =
                   Option.map
                     (fun (d : Schema.discriminator) ->
                       let at = at ^ "/discriminator" in
-                      let mapping =
-                        match d.mapping with
-                        | Some mapping -> mapping
-                        | None -> refuse file at "states no mapping"
-                      in
-                      let named =
-                        List.map
-                          (function
-                            | Schema.Schema { ref_ = Some reference; _ }, _ ->
-                                Some (referred reference)
-                            | _ -> None)
-                          variants
-                      in
-                      {
-                        property = d.property_name;
-                        mapping =
-                          List.map
-                            (fun (value, target) ->
-                              let pointer = at ^ "/mapping/" ^ token value in
-                              let name =
-                                referred { Decode.target; file; pointer }
-                              in
-                              let rec place i = function
-                                | [] ->
-                                    refuse file pointer
-                                      "maps %S to %s, which is none of its \
-                                       variants"
-                                      value target
-                                | Some n :: _ when n = name -> i
-                                | _ :: rest -> place (i + 1) rest
-                              in
-                              (value, place 0 named))
-                            mapping;
-                      })
+                      match d.mapping with
+                      | None ->
+                          (* With no mapping, each variant states its own
+                             value of the property, as one string, in its
+                             own members or in a part of its allOf stated in
+                             place. *)
+                          let rec fixes = function
+                            | Schema.Schema ({ ref_ = None; _ } as l) ->
+                                (match
+                                   Option.bind l.properties
+                                     (List.assoc_opt d.property_name)
+                                 with
+                                  | Some
+                                      (Schema.Schema
+                                         {
+                                           enum =
+                                             Some [ Schema.String_literal v ];
+                                           _;
+                                         })
+                                  | Some
+                                      (Schema.Schema
+                                         {
+                                           const =
+                                             Some (Schema.String_literal v);
+                                           _;
+                                         }) ->
+                                      [ v ]
+                                  | _ -> [])
+                                @ List.concat_map fixes
+                                    (Option.value l.all_of ~default:[])
+                            | _ -> []
+                          in
+                          let fixed i = function
+                            | (Schema.Schema { ref_ = None; _ } as variant), _
+                              -> (
+                                match
+                                  List.sort_uniq String.compare (fixes variant)
+                                with
+                                | [ v ] -> (v, i)
+                                | _ ->
+                                    refuse file at
+                                      "states no mapping, and variant %d fixes \
+                                       no one %s"
+                                      i d.property_name)
+                            | _ ->
+                                refuse file at
+                                  "states no mapping, and variant %d is no \
+                                   object stated in place"
+                                  i
+                          in
+                          {
+                            property = d.property_name;
+                            mapping = List.mapi fixed variants;
+                          }
+                      | Some mapping ->
+                          let named =
+                            List.map
+                              (function
+                                | Schema.Schema { ref_ = Some reference; _ }, _
+                                  ->
+                                    Some (referred reference)
+                                | _ -> None)
+                              variants
+                          in
+                          {
+                            property = d.property_name;
+                            mapping =
+                              List.map
+                                (fun (value, target) ->
+                                  let pointer =
+                                    at ^ "/mapping/" ^ token value
+                                  in
+                                  let name =
+                                    referred { Decode.target; file; pointer }
+                                  in
+                                  let rec place i = function
+                                    | [] ->
+                                        refuse file pointer
+                                          "maps %S to %s, which is none of its \
+                                           variants"
+                                          value target
+                                    | Some n :: _ when n = name -> i
+                                    | _ :: rest -> place (i + 1) rest
+                                  in
+                                  (value, place 0 named))
+                                mapping;
+                          })
                     discriminator )
           in
           let all_of =

@@ -226,18 +226,13 @@ let records spec =
   | Ok records -> records
   | Error message -> refuse "%s" message
 
+(* What a client roots of its own: each client type, and each record a
+   table states ([Table_records]). *)
 let client_roots (spec : Spec.t) =
   List.filter
     (String.starts_with ~prefix:Roots.client_types)
     (List.map fst spec.schemas)
-  @ List.filter_map
-      (fun (key, _, _) ->
-        if
-          String.starts_with ~prefix:"client/registry.json#" key
-          || String.starts_with ~prefix:"client/state-units.json#" key
-        then Some key
-        else None)
-      (records spec)
+  @ List.map (fun (key, _, _) -> key) (records spec)
 
 (* The view of a schema written in [file], each [$ref] it holds resolved by
    [named] or written in place from [schemas]. *)

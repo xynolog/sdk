@@ -16,10 +16,7 @@ let text (shapes : (string * Shape.shape) list) =
   in
   P.text
     {
-      header =
-        Banner.python_lines
-          ~from_:"the component schemas of protocol/specs/src/openapi.json"
-          __FILE__;
+      header = Banner.python_lines ~from_:Table.authority __FILE__;
       doc =
         As_is
           "What each component schema requires of a value, by its name, as \

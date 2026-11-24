@@ -316,7 +316,38 @@ let unions =
          (s
         ^ ": /discriminator/mapping/b: maps \"b\" to ./B.json, which is none \
            of its variants"));
-    case "a discriminator with no mapping is refused"
+    case "a discriminator with no mapping maps the value each variant fixes"
+      (derives
+         [
+           ( "S",
+             {|{"oneOf":[
+                 {"type":"object","properties":{"kind":{"enum":["a"]}},"required":["kind"]},
+                 {"type":"object","properties":{"kind":{"const":"b"}},"required":["kind"]}],
+                "discriminator":{"propertyName":"kind"}}|}
+           );
+         ]
+         "S"
+         {|{"kinds":["object"],"oneOf":[
+             {"kinds":["object"],"required":["kind"],"members":{"kind":{"kinds":["string"],"enum":["a"]}}},
+             {"kinds":["object"],"required":["kind"],"members":{"kind":{"kinds":["string"],"enum":["b"]}}}],
+            "discriminator":{"property":"kind","mapping":{"a":0,"b":1}}}|});
+    case
+      "a discriminator with no mapping maps the value a variant's allOf fixes"
+      (derives
+         [
+           ( "S",
+             {|{"oneOf":[
+                 {"allOf":[{"type":"object","properties":{"kind":{"enum":["a"]}},"required":["kind"]}]},
+                 {"allOf":[{"type":"object","properties":{"kind":{"enum":["b"]}},"required":["kind"]}]}],
+                "discriminator":{"propertyName":"kind"}}|}
+           );
+         ]
+         "S"
+         {|{"kinds":["object"],"oneOf":[
+             {"kinds":["object"],"allOf":[{"kinds":["object"],"required":["kind"],"members":{"kind":{"kinds":["string"],"enum":["a"]}}}]},
+             {"kinds":["object"],"allOf":[{"kinds":["object"],"required":["kind"],"members":{"kind":{"kinds":["string"],"enum":["b"]}}}]}],
+            "discriminator":{"property":"kind","mapping":{"a":0,"b":1}}}|});
+    case "a discriminator with no mapping over a referred variant is refused"
       (refuses
          [
            ("A", {|{"type":"object","required":["kind"]}|});
@@ -324,7 +355,36 @@ let unions =
              {|{"oneOf":[{"$ref":"./A.json"}],"discriminator":{"propertyName":"kind"}}|}
            );
          ]
-         (s ^ ": /discriminator: states no mapping"));
+         (s
+        ^ ": /discriminator: states no mapping, and variant 0 is no object \
+           stated in place"));
+    case
+      "a discriminator with no mapping over a variant that fixes no value is \
+       refused"
+      (refuses
+         [
+           ( "S",
+             {|{"oneOf":[{"type":"object","properties":{"kind":{"type":"string"}}}],
+                "discriminator":{"propertyName":"kind"}}|}
+           );
+         ]
+         (s
+        ^ ": /discriminator: states no mapping, and variant 0 fixes no one kind"
+         ));
+    case
+      "a discriminator with no mapping over a variant that fixes two values is \
+       refused"
+      (refuses
+         [
+           ( "S",
+             {|{"oneOf":[{"type":"object","properties":{"kind":{"enum":["a"]}},
+                 "allOf":[{"type":"object","properties":{"kind":{"enum":["b"]}}}]}],
+                "discriminator":{"propertyName":"kind"}}|}
+           );
+         ]
+         (s
+        ^ ": /discriminator: states no mapping, and variant 0 fixes no one kind"
+         ));
     case "a discriminator beside no union is refused"
       (refuses
          [
@@ -333,6 +393,17 @@ let unions =
            );
          ]
          (s ^ ": /discriminator: is beside no oneOf or anyOf"));
+    case "unevaluatedProperties unread as one object is refused"
+      (refuses
+         [
+           ( "S",
+             {|{"allOf":[{"type":"object","properties":{"a":{"type":"string"}}}],
+                "unevaluatedProperties":false}|}
+           );
+         ]
+         (s
+        ^ ": /: states unevaluatedProperties, which the table reads only as \
+           the one object it closes (Normalize.closed_within)"));
     case "oneOf beside anyOf is refused"
       (refuses
          [
