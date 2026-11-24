@@ -3,14 +3,24 @@
 //! job is held with, a job description and the three results a job reports,
 //! and the registry's operations.
 
+use serde::{Serialize, de::DeserializeOwned};
 use serde_json::{Value, json};
 use xynolog::bus::operation;
 use xynolog::types::{
-    AnchoredTextAnswer, AnchoredTextDeclinedEntry, AnchoredTextDeclinedEntryV,
-    ExtractionDeclinedReason, HighlightingJobParams, Job, JobCreateCommand, JobDeclined,
-    JobDeclinedReason, JobFilter, JobQueuedEvent, JobResult, JobStoredProgress, JobStoredResult,
+    Agent, AgentOrganization, AgentPerson, AgentSoftware, AnchoredTextAnswer,
+    AnchoredTextDeclinedEntry, AnchoredTextDeclinedEntryV, AnchoredTextEntry,
+    AnchoredTextExtractedEntry, BodyOperation, BodyOperationAdd, BodyOperationRemove,
+    BodyOperationReplace, BusEventMessage, BusPingMessage, BusStreamMessage, ConformanceBusFetch,
+    ConformanceHttpFetch, ConformanceStep, ConformanceStepFetchesFetchesItem,
+    ExtractionDeclinedReason, GraphAnnotationNode, GraphResourceNode, HighlightingJobParams, Job,
+    JobCancelled, JobComplete, JobCreateCommand, JobDeclined, JobDeclinedReason, JobFailed,
+    JobFilter, JobPending, JobProgressAnalyzing, JobProgressAnalyzingTags,
+    JobProgressCompleteCreated, JobProgressCompleteGenerated, JobProgressCreatingAnnotations,
+    JobProgressCreatingResource, JobProgressCreatingTagAnnotations, JobProgressDetectingEntities,
+    JobProgressGeneratingResource, JobProgressLoading, JobProgressMessage, JobQueuedEvent,
+    JobResult, JobRunning, JobStoredProgress, JobStoredResult, KnowledgeGraphNodesItem,
     LinkingJobParams, MarkJobCreateCommand, MarkJobFilter, MarkJobFilterParams, MarkJobParams,
-    Motivation, TaggingJobParams, YieldJobFilter,
+    Motivation, Signature, TaggingJobParams, YieldJobFilter,
 };
 
 fn metadata() -> Value {
@@ -279,6 +289,183 @@ fn an_announcement_and_a_filter_decode_as_the_member_their_job_type_names() {
     );
     // A mark filter always states its motivation.
     assert!(serde_json::from_value::<JobFilter>(json!({ "jobType": "mark" })).is_err());
+}
+
+/// A value of `M`, and the union `U` that member is wherever `U` is wanted.
+fn member<M, U>(wire: Value) -> (Value, U)
+where
+    M: DeserializeOwned + Into<U>,
+{
+    let made = serde_json::from_value::<M>(wire.clone())
+        .unwrap_or_else(|error| panic!("{wire} is no member: {error}"))
+        .into();
+    (wire, made)
+}
+
+/// Each of `values` is read as the union `U` it was made, and written as it
+/// came; and they are a value of each of `U`'s `members`, each its own
+/// variant.
+fn each_member<U>(members: &[&[Signature]], values: Vec<(Value, U)>)
+where
+    U: DeserializeOwned + Serialize + PartialEq + std::fmt::Debug,
+{
+    let mut variants = Vec::new();
+    for (wire, made) in values {
+        let read: U = serde_json::from_value(wire.clone())
+            .unwrap_or_else(|error| panic!("{wire} is no value of the union: {error}"));
+        assert_eq!(read, made, "{wire} is read as another member");
+        assert_eq!(
+            serde_json::to_value(&read).expect("it writes"),
+            wire,
+            "it is written as it came"
+        );
+        let variant = std::mem::discriminant(&read);
+        assert!(
+            !variants.contains(&variant),
+            "{wire} is a variant read already"
+        );
+        variants.push(variant);
+    }
+    assert_eq!(variants.len(), members.len(), "a value of each member");
+}
+
+/// A member a union names is its variant of the member's own name, and the
+/// union wherever the union is wanted: a value of each is read as the union
+/// it was made, and written as it came.
+#[test]
+fn each_member_of_a_union_is_read_and_written_as_itself() {
+    let job = |status: &str, more: Value| {
+        let mut wire = json!({ "status": status, "metadata": metadata(), "params": params() });
+        wire.as_object_mut()
+            .expect("an object")
+            .extend(more.as_object().expect("an object").clone());
+        wire
+    };
+    let started = "2026-09-30T12:00:01.000Z";
+    let ended = "2026-09-30T12:00:02.000Z";
+    each_member::<Job>(
+        Job::MEMBERS,
+        vec![
+            member::<JobPending, _>(job("pending", json!({}))),
+            member::<JobRunning, _>(job(
+                "running",
+                json!({ "startedAt": started, "progress": {} }),
+            )),
+            member::<JobComplete, _>(job(
+                "complete",
+                json!({ "startedAt": started, "completedAt": ended, "result": {} }),
+            )),
+            member::<JobFailed, _>(job(
+                "failed",
+                json!({ "completedAt": ended, "error": "broken" }),
+            )),
+            member::<JobCancelled, _>(job("cancelled", json!({ "completedAt": ended }))),
+        ],
+    );
+    each_member::<JobProgressMessage>(
+        JobProgressMessage::MEMBERS,
+        vec![
+            member::<JobProgressLoading, _>(json!({ "code": "loading" })),
+            member::<JobProgressAnalyzing, _>(json!({ "code": "analyzing" })),
+            member::<JobProgressAnalyzingTags, _>(json!({ "code": "analyzing-tags" })),
+            member::<JobProgressGeneratingResource, _>(json!({ "code": "generating-resource" })),
+            member::<JobProgressCreatingResource, _>(json!({ "code": "creating-resource" })),
+            member::<JobProgressCompleteGenerated, _>(
+                json!({ "code": "complete-generated", "truncated": false }),
+            ),
+            member::<JobProgressDetectingEntities, _>(
+                json!({ "code": "detecting-entities", "entityType": "Person" }),
+            ),
+            member::<JobProgressCreatingAnnotations, _>(
+                json!({ "code": "creating-annotations", "count": 2 }),
+            ),
+            member::<JobProgressCreatingTagAnnotations, _>(
+                json!({ "code": "creating-tag-annotations", "count": 2 }),
+            ),
+            member::<JobProgressCompleteCreated, _>(
+                json!({ "code": "complete-created", "count": 2, "motivation": "tagging" }),
+            ),
+        ],
+    );
+    let body = |value: &str| json!({ "type": "TextualBody", "value": value });
+    each_member::<BodyOperation>(
+        BodyOperation::MEMBERS,
+        vec![
+            member::<BodyOperationAdd, _>(json!({ "op": "add", "item": body("new") })),
+            member::<BodyOperationRemove, _>(json!({ "op": "remove", "item": body("old") })),
+            member::<BodyOperationReplace, _>(
+                json!({ "op": "replace", "oldItem": body("old"), "newItem": body("new") }),
+            ),
+        ],
+    );
+    each_member::<Agent>(
+        Agent::MEMBERS,
+        vec![
+            member::<AgentPerson, _>(json!({ "@type": "Person", "name": "Alice" })),
+            member::<AgentOrganization, _>(json!({ "@type": "Organization", "name": "Acme" })),
+            member::<AgentSoftware, _>(json!({ "@type": "Software", "name": "worker" })),
+        ],
+    );
+    each_member::<BusStreamMessage>(
+        BusStreamMessage::MEMBERS,
+        vec![
+            member::<BusEventMessage, _>(json!({
+                "event": "bus-event", "id": "e-1",
+                "data": { "channel": "mark:added", "payload": {} },
+            })),
+            member::<BusPingMessage, _>(json!({ "event": "ping", "data": "" })),
+        ],
+    );
+    let bus_fetch = json!({ "fetch": "browse:kb", "as": "kb" });
+    let http_fetch = json!({ "fetch": "GET /resources" });
+    each_member::<ConformanceStepFetchesFetchesItem>(
+        ConformanceStepFetchesFetchesItem::MEMBERS,
+        vec![
+            member::<ConformanceBusFetch, _>(bus_fetch.clone()),
+            member::<ConformanceHttpFetch, _>(http_fetch.clone()),
+        ],
+    );
+    for (wire, made) in [
+        member::<ConformanceBusFetch, ConformanceStep>(bus_fetch),
+        member::<ConformanceHttpFetch, ConformanceStep>(http_fetch),
+    ] {
+        assert_eq!(
+            serde_json::from_value::<ConformanceStep>(wire.clone()).ok(),
+            Some(made),
+            "{wire}"
+        );
+    }
+    each_member::<KnowledgeGraphNodesItem>(
+        KnowledgeGraphNodesItem::MEMBERS,
+        vec![
+            member::<GraphResourceNode, _>(
+                json!({ "id": "res-1", "type": "resource", "label": "One" }),
+            ),
+            member::<GraphAnnotationNode, _>(json!({
+                "id": "a-1", "type": "annotation", "label": "A note",
+                "annotation": {
+                    "@context": "http://www.w3.org/ns/anno.jsonld",
+                    "type": "Annotation",
+                    "id": "a-1",
+                    "motivation": "highlighting",
+                    "target": { "source": "res-1" },
+                    "created": "2026-10-01T12:00:00.000Z",
+                },
+            })),
+        ],
+    );
+    each_member::<AnchoredTextEntry>(
+        AnchoredTextEntry::MEMBERS,
+        vec![
+            member::<AnchoredTextExtractedEntry, _>(json!({
+                "v": 3, "stamp": "s", "text": "a", "method": "ocr",
+                "lines": [{ "p": 1, "y": 0.5, "h": 0.25, "words": [[0.0, 0.5]] }],
+            })),
+            member::<AnchoredTextDeclinedEntry, _>(
+                json!({ "v": 3, "stamp": "s", "declined": "encrypted" }),
+            ),
+        ],
+    );
 }
 
 #[test]
