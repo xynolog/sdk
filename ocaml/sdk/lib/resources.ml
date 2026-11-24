@@ -16,13 +16,7 @@ let primary_media_type model =
 
 let entity_types model =
   let fields = Records.Resource_descriptor.of_model model in
-  match fields.entity_types with
-  | Types.Present (`List values) ->
-      List.map
-        (fun value ->
-          Yojson.Safe.from_string (Yojson.Raw.to_string value) |> J.to_string)
-        values
-  | _ -> []
+  Option.value fields.entity_types ~default:[]
 
 let resource_text client id =
   Result.map

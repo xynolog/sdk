@@ -4,12 +4,6 @@
    copied here as test/dune copies them. *)
 module T = Protocol_cases.Client_shape_cases
 
-let reason : T.frame_refusal_reason -> [ `Lacks | `Malformed ] = function
-  | Lacks -> `Lacks
-  | Malformed -> `Malformed
-
-let reason_name = function `Lacks -> "lacks" | `Malformed -> "malformed"
-
 let held schema value =
   if not (Hashtbl.mem Schema_codec.shapes schema) then
     Alcotest.fail ("the table has no schema " ^ schema);
@@ -25,7 +19,7 @@ let case (row : T.cases_item) () =
       | Error (Invalid_payload fault) ->
           Alcotest.fail
             (Printf.sprintf "refused at %S, %s" fault.member
-               (reason_name fault.reason))
+               (Enums.Frame_refusal_reason.to_string fault.reason))
       | Error (Invalid_json message) -> Alcotest.fail message)
   | Shape_refused { schema; value; member; reason = stated; _ } -> (
       match held schema value with
@@ -33,8 +27,8 @@ let case (row : T.cases_item) () =
           Alcotest.(check string) "member" member fault.member;
           Alcotest.(check string)
             "reason"
-            (reason_name (reason stated))
-            (reason_name fault.reason)
+            (T.frame_refusal_reason_value stated)
+            (Enums.Frame_refusal_reason.to_string fault.reason)
       | Ok _ -> Alcotest.fail "the value was read"
       | Error (Invalid_json message) -> Alcotest.fail message)
 

@@ -377,7 +377,9 @@ let put t ~fields ~bytes ~on_progress =
     [
       ( Telemetry_facts.attr_content_format,
         Telemetry.String
-          (Option.value (List.assoc_opt "format" fields) ~default:"") );
+          (Option.value
+             (List.assoc_opt Gateway_http.Upload_field.format fields)
+             ~default:"") );
       ( Telemetry_facts.attr_content_size_bytes,
         Telemetry.Int (String.length bytes) );
     ]
@@ -436,7 +438,7 @@ let put t ~fields ~bytes ~on_progress =
           let created = Records.Create_resource_response.of_model response in
           on_progress
             (Records.Upload_progress.Finished
-               { resource_id = Record_reader.string created.resource_id });
+               { resource_id = created.resource_id });
           answer
       | Error _ ->
           fail t ~message:"The gateway's answer to the upload names no resource"

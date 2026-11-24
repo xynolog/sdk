@@ -1,27 +1,18 @@
-type kb = {
-  host : string;
-  port : int;
-  did : string;
-  placement : string;
-  managed_by : string;
-  repo : string option;
-  site_name : string option;
-}
 (** Whole-document launcher discovery. An empty managed document is distinct
     from an absent, invalid or unsupported one. *)
 
 type discovery_state =
   | Absent of Enums.Discovery_absent_reason.t
-  | Managed of kb list
+  | Managed of Records.Discovered_kb.t list
 
 type discovery_read = Read of discovery_state | Unchanged
 type discovery_transport = unit -> discovery_read
 
 type discovery_diff = {
   state : discovery_state;
-  added : kb list;
-  updated : kb list;
-  removed : kb list;
+  added : Records.Discovered_kb.t list;
+  updated : Records.Discovered_kb.t list;
+  removed : Records.Discovered_kb.t list;
   duplicated : (string * int) list;
 }
 

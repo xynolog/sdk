@@ -9,15 +9,6 @@ type storage = {
   remove : string -> unit;
 }
 
-type open_resource = {
-  id : string;
-  name : string;
-  opened_at : int;
-  order : int;
-  media_type : string option;
-  storage_uri : string option;
-}
-
 type session_factory_options = {
   kb : knowledge_base;
   storage : storage;
@@ -90,37 +81,13 @@ let parse text =
   | Error _ -> None
 
 let decode_session source =
-  let open Option.Syntax in
-  let* body = parse source in
-  let fields = object_ body in
-  let* access = optional "access" fields in
-  let* refresh = optional "refresh" fields in
-  let* client_id = optional "clientId" fields in
-  let* token_endpoint = optional "tokenEndpoint" fields in
-  Some
-    {
-      Records.Stored_session.access;
-      refresh;
-      client_id;
-      token_endpoint;
-      revocation_endpoint = optional "revocationEndpoint" fields;
-      person_key = optional "personKey" fields;
-    }
+  Option.bind (parse source) (fun body ->
+      Result.to_option (Records.Stored_session.of_json body))
+
+let encode_session session = json (Records.Stored_session.to_json session)
 
 let optional_field key value =
   Option.to_list (Option.map (fun value -> (key, text value)) value)
-
-let encode_session (session : Records.Stored_session.t) =
-  json
-    (`Assoc
-       ([
-          ("access", text session.access);
-          ("refresh", text session.refresh);
-          ("clientId", text session.client_id);
-          ("tokenEndpoint", text session.token_endpoint);
-        ]
-       @ optional_field "revocationEndpoint" session.revocation_endpoint
-       @ optional_field "personKey" session.person_key))
 
 let stored_session (storage : storage) id =
   Option.bind (storage.read (session_key id)) decode_session
@@ -144,26 +111,24 @@ let save_knowledge_bases (storage : storage) values =
   storage.write knowledge_bases_key
     ("[" ^ String.concat "," (List.map Models.encode values) ^ "]")
 
-let raw_int raw =
-  Yojson.Raw.to_string raw |> Yojson.Safe.from_string |> J.to_int
-
 let same_place a b =
   match (Records.Kb_endpoint.of_model a, Records.Kb_endpoint.of_model b) with
   | Some (Http a), Some (Http b) ->
       a.protocol = b.protocol
       && String.lowercase_ascii a.host = String.lowercase_ascii b.host
-      && raw_int a.port = raw_int b.port
+      && a.port = b.port
   | Some (Local a), Some (Local b) -> a.kb_id = b.kb_id
   | _ -> false
 
 let sort_open_resources tabs =
   List.stable_sort
-    (fun a b -> compare (a.order, a.opened_at) (b.order, b.opened_at))
+    (fun (a : Records.Open_resource.t) (b : Records.Open_resource.t) ->
+      compare (a.order, a.opened_at) (b.order, b.opened_at))
     tabs
 
 let apply_tab_checks tabs checks =
   List.filter_map
-    (fun tab ->
+    (fun (tab : Records.Open_resource.t) ->
       match List.assoc_opt tab.id checks with
       | Some Records.Tab_check.Gone -> None
       | Some (Ready { name; media_type }) -> Some { tab with name; media_type }
@@ -443,27 +408,10 @@ let open_resources browser ~kb_id =
   match List.assoc_opt kb_id (by_kb browser open_resources_by_kb_key) with
   | Some (`List tabs) ->
       List.filter_map
-        (function
-          | `Assoc fields -> (
-              match
-                ( optional "id" fields,
-                  optional "name" fields,
-                  List.assoc_opt "openedAt" fields,
-                  List.assoc_opt "order" fields )
-              with
-              | Some id, Some name, Some (`Int opened_at), Some (`Int order)
-                when opened_at >= 0 && order >= 0 ->
-                  Some
-                    {
-                      id;
-                      name;
-                      opened_at;
-                      order;
-                      media_type = optional "mediaType" fields;
-                      storage_uri = optional "storageUri" fields;
-                    }
-              | _ -> None)
-          | _ -> None)
+        (fun tab ->
+          Result.to_option
+            (Models.decode Models.open_resource (Yojson.Safe.to_string tab))
+          |> Option.map Records.Open_resource.of_model)
         tabs
       |> sort_open_resources
   | _ -> []
@@ -477,15 +425,8 @@ let set_by_kb browser key kb_id value =
 
 let set_open_resources browser ~kb_id tabs =
   let encode tab =
-    `Assoc
-      ([
-         ("id", text tab.id);
-         ("name", text tab.name);
-         ("openedAt", `Int tab.opened_at);
-         ("order", `Int tab.order);
-       ]
-      @ optional_field "mediaType" tab.media_type
-      @ optional_field "storageUri" tab.storage_uri)
+    Yojson.Safe.from_string
+      (Yojson.Raw.to_string (Records.Open_resource.to_json tab))
   in
   locked browser (fun () ->
       set_by_kb browser open_resources_by_kb_key kb_id

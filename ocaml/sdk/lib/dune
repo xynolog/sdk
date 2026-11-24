@@ -5,6 +5,7 @@
   annotation_id
   pattern
   record_reader
+  table_codec
   schema_shape
   schema_shapes
   schema_codec

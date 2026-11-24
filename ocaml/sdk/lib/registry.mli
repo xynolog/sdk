@@ -10,15 +10,6 @@ type storage = {
   remove : string -> unit;
 }
 
-type open_resource = {
-  id : string;
-  name : string;
-  opened_at : int;
-  order : int;
-  media_type : string option;
-  storage_uri : string option;
-}
-
 type session_factory_options = {
   kb : knowledge_base;
   storage : storage;
@@ -98,12 +89,13 @@ val http_session_factory :
   (session_factory_options -> (State_units.Session.t, string) result) ->
   session_factory
 
-val sort_open_resources : open_resource list -> open_resource list
+val sort_open_resources :
+  Records.Open_resource.t list -> Records.Open_resource.t list
 
 val apply_tab_checks :
-  open_resource list ->
+  Records.Open_resource.t list ->
   (string * Records.Tab_check.t) list ->
-  open_resource list
+  Records.Open_resource.t list
 
 val knowledge_bases_key : string
 val active_key : string
@@ -116,10 +108,12 @@ val store_session : storage -> string -> Records.Stored_session.t -> unit
 val clear_stored_session : storage -> string -> unit
 val load_knowledge_bases : storage -> knowledge_base list
 val save_knowledge_bases : storage -> knowledge_base list -> unit
-val open_resources : xynolog_browser -> kb_id:string -> open_resource list
+
+val open_resources :
+  xynolog_browser -> kb_id:string -> Records.Open_resource.t list
 
 val set_open_resources :
-  xynolog_browser -> kb_id:string -> open_resource list -> unit
+  xynolog_browser -> kb_id:string -> Records.Open_resource.t list -> unit
 
 val last_viewed : xynolog_browser -> kb_id:string -> string option
 val set_last_viewed : xynolog_browser -> kb_id:string -> string option -> unit

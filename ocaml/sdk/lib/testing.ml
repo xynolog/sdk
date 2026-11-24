@@ -68,18 +68,16 @@ let request_log t = List.rev t.log
 let queue_reply t reply = Queue.add reply t.queued
 
 let deliver t ?id ?correlation_id ?scope channel payload =
-  let optional key = Option.map (fun value -> (key, `String value)) in
-  let data =
-    Yojson.Safe.to_string
-      (`Assoc
-         (List.filter_map Fun.id
-            [
-              Some ("channel", `String channel);
-              Some ("payload", payload);
-              optional "correlationId" correlation_id;
-              optional "scope" scope;
-            ]))
+  let frame : Records.Bus_frame.t =
+    {
+      channel;
+      payload = Yojson.Raw.from_string (Yojson.Safe.to_string payload);
+      correlation_id;
+      scope;
+      extra = [];
+    }
   in
+  let data = Yojson.Raw.to_string (Records.Bus_frame.to_json frame) in
   let event =
     "event: " ^ Bus_registry.stream_event ^ "\n"
     ^ Option.fold ~none:"" ~some:(fun id -> "id: " ^ id ^ "\n") id
@@ -124,18 +122,29 @@ let call
     ~progress:_ =
   match path with
   | path when path = snd Gateway_http.subscribe_to_bus ->
+      let request =
+        match Models.decode Models.bus_subscribe_request body with
+        | Ok model -> Records.Bus_subscribe_request.of_model model
+        | Error _ ->
+            invalid_arg "a subscribe request that is no BusSubscribeRequest"
+      in
       let open Yojson.Safe.Util in
-      let request = Yojson.Safe.from_string body in
       let texts value = List.map to_string (to_list value) in
+      let scoped =
+        match request.scoped with
+        | Types.Present entries ->
+            to_list (Yojson.Safe.from_string (Yojson.Raw.to_string entries))
+        | Types.Absent | Types.Null -> []
+      in
       let heard =
         {
-          global = texts (member "global" request);
+          global = Option.value request.global ~default:[];
           scoped =
             List.map
               (fun entry ->
                 ( to_string (member "scope" entry),
                   texts (member "channels" entry) ))
-              (to_list (member "scoped" request));
+              scoped;
         }
       in
       let stream = Eio.Stream.create max_int in
@@ -147,11 +156,16 @@ let call
         [],
         Eio.Resource.T ((stream, ref ""), Eio.Flow.Pi.source (module Source)) )
   | path when path = snd Gateway_http.emit_on_bus -> (
-      let open Yojson.Safe.Util in
-      let frame = Yojson.Safe.from_string body in
-      let channel = to_string (member "channel" frame) in
-      let payload = member "payload" frame in
-      let correlation_id = to_string_option (member "correlationId" frame) in
+      let frame =
+        match Models.decode Models.bus_emit_request body with
+        | Ok model -> Records.Bus_emit_request.of_model model
+        | Error _ -> invalid_arg "an emit request that is no BusEmitRequest"
+      in
+      let channel = frame.channel in
+      let payload =
+        Yojson.Safe.from_string (Yojson.Raw.to_string frame.payload)
+      in
+      let correlation_id = frame.correlation_id in
       let retry_key =
         Option.value
           (List.assoc_opt Gateway_http.Header.idempotency_key headers)

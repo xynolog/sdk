@@ -18,7 +18,7 @@ type payload =
   | Void
 
 type 'a decoded
-type fault = { member : string; reason : [ `Lacks | `Malformed ] }
+type fault = { member : string; reason : Enums.Frame_refusal_reason.t }
 type decode_error = Invalid_json of string | Invalid_payload of fault
 
 val encode : 'a decoded -> string

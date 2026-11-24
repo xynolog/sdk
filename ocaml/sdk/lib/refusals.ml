@@ -1,10 +1,10 @@
 type fault = Models.fault = {
   member : string;
-  reason : [ `Lacks | `Malformed ];
+  reason : Enums.Frame_refusal_reason.t;
 }
 
 let of_error = function
-  | Models.Invalid_json _ -> { member = ""; reason = `Malformed }
+  | Models.Invalid_json _ -> { member = ""; reason = Malformed }
   | Invalid_payload fault -> fault
 
 let fault_of descriptor source =
@@ -14,6 +14,6 @@ let fault_of descriptor source =
 
 let said fault =
   match (fault.member, fault.reason) with
-  | member, `Lacks -> "it has no `" ^ member ^ "`"
-  | "", `Malformed -> "it is malformed"
-  | member, `Malformed -> "its `" ^ member ^ "` is malformed"
+  | member, Enums.Frame_refusal_reason.Lacks -> "it has no `" ^ member ^ "`"
+  | "", Malformed -> "it is malformed"
+  | member, Malformed -> "its `" ^ member ^ "` is malformed"

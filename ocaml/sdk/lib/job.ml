@@ -29,13 +29,13 @@ let poll_until_complete client ?(every_ms = Client_timing.job_poll_ms)
       | Error _ as error -> error
       | Ok reply -> (
           on_status reply;
-          let open Yojson.Safe.Util in
-          match
-            Yojson.Safe.from_string (B.encode reply)
-            |> member "response" |> member "status"
-          with
-          | `String ("complete" | "failed" | "cancelled") -> Ok reply
-          | _ ->
+          let result =
+            Records.Job_status_result.project
+              (Record_reader.fields_of (B.json reply))
+          in
+          match result.response.status with
+          | Complete | Failed | Cancelled -> Ok reply
+          | Pending | Running ->
               Clock.sleep_until clock
                 (after (Clock.monotonic_now clock) (max 1 every_ms));
               poll ())

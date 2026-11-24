@@ -86,7 +86,8 @@
 
 (test
  (name shape_cases)
- (modules shape_cases pattern schema_shape schema_shapes schema_codec strict_json)
+ (modules shape_cases pattern schema_shape schema_shapes schema_codec strict_json
+  enums)
  (libraries protocol_cases yojson uutf zarith alcotest))
 
 (rule
@@ -107,6 +108,11 @@
 (rule
  (target schema_codec.ml)
  (deps ../lib/schema_codec.ml)
+ (action (copy %{deps} %{target})))
+
+(rule
+ (target enums.ml)
+ (deps ../lib/enums.ml)
  (action (copy %{deps} %{target})))
 
 (rule

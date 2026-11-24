@@ -32,7 +32,7 @@ type t =
 
 type fault = Schema_codec.fault = {
   member : string;
-  reason : [ `Lacks | `Malformed ];
+  reason : Enums.Frame_refusal_reason.t;
 }
 
 let of_json : Yojson.Safe.t -> (t, fault) result = function

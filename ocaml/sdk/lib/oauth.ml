@@ -30,11 +30,8 @@ type redirect = {
 }
 
 type device = {
+  code : Records.Device_code.t;
   device_code : string;
-  user_code : string;
-  verification_uri : string;
-  verification_uri_complete : string option;
-  expires_in : int;
   interval : int;
 }
 
@@ -230,12 +227,15 @@ let begin_device http issuer =
   let* expires_in = required (seconds "expires_in" json) in
   Ok
     {
+      code =
+        {
+          user_code;
+          verification_uri;
+          verification_uri_complete =
+            Option.bind (string "verification_uri_complete" json) endpoint;
+          expires_in;
+        };
       device_code;
-      user_code;
-      verification_uri;
-      verification_uri_complete =
-        Option.bind (string "verification_uri_complete" json) endpoint;
-      expires_in;
       interval =
         (match member "interval" json with
         | Some (`Int seconds) when seconds >= 0 -> seconds
@@ -269,7 +269,7 @@ let await_device ~clock http issuer device =
     |> Option.value ~default:Mtime.max_stamp
   in
   let milliseconds seconds = min (max_int / 1000) seconds * 1000 in
-  let expires = after (stamp ()) (milliseconds device.expires_in) in
+  let expires = after (stamp ()) (milliseconds device.code.expires_in) in
   let rec wait interval =
     let due = after (stamp ()) interval in
     Clock.sleep_until clock

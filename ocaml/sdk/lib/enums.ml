@@ -426,6 +426,17 @@ module Anchor_method = struct
     | _ -> None
 end
 
+module Frame_refusal_reason = struct
+  type t = Lacks | Malformed
+
+  let to_string = function Lacks -> "lacks" | Malformed -> "malformed"
+
+  let of_string = function
+    | "lacks" -> Some Lacks
+    | "malformed" -> Some Malformed
+    | _ -> None
+end
+
 module Match_quality = struct
   type t = Normalized | Case_insensitive | Fuzzy
 
