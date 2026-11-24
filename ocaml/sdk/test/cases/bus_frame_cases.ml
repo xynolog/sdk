@@ -395,14 +395,13 @@ let table : t =
          (Frame_refused
             ({
                why =
-                 "a frame whose scope is null carries none, as BusFrame's walk \
-                  reads a null member it does not require, and is told to its \
-                  channel's readers";
+                 "a frame whose scope is null carries a scope, and null is no \
+                  resource's id: it is refused, naming the scope, and names no \
+                  reader";
                frame =
                  `Assoc
                    [
                      ("channel", `String "beckon:focus");
-                     ("correlationId", `Int 7);
                      ( "payload",
                        `Assoc
                          [
@@ -412,9 +411,9 @@ let table : t =
                      ("scope", `Null);
                    ];
                refused = true;
-               member = "correlationId";
+               member = "scope";
                reason = (Malformed : frame_refusal_reason);
-               told = (Readers : told);
+               told = (Failure_report : told);
                correlation_id = None;
                request = None;
              }

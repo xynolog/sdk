@@ -586,7 +586,7 @@
     "internal/Xynolog/Internal/StateTasks.hs": "13b771268f3fd2f5ec34b19ac2c6a98d43cd153dcf5ea313182f02270adf7fd8",
     "internal/Xynolog/Internal/StateValue.hs": "b606d06bc98038a3ac06fc2146b5626933c43e90e07b45686d445b0e33ac29c9",
     "internal/Xynolog/Internal/Stored.hs": "da9c392f344fca7aed7d6095841a30818050512a4c9add73618332e03722877a",
-    "internal/Xynolog/Internal/StreamFrame.hs": "a75b814f29f4c1691ce53bf0a521ec8aa449b05e439f17496c9074b7965213eb",
+    "internal/Xynolog/Internal/StreamFrame.hs": "09ba12982f0278f9809373609971f4d7dd23ff0698c507c5b415ce4b9407990b",
     "internal/Xynolog/Internal/Telemetry.hs": "cb2630824bbd7ac0ef0be09f625c2e53594cd905be9dd14376d744aa4e9032d6",
     "internal/Xynolog/Internal/Text.hs": "0299e35162f447e7c7e5cb521e0e75593351d413ff8041ab93bf2236fab1a11b",
     "internal/Xynolog/Internal/Transport.hs": "807623cd9ed2f919515428b6ce0d6f2fb6689969caa8df0e7dbaa010276847f3",

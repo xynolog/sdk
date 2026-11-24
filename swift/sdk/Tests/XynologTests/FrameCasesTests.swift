@@ -303,9 +303,7 @@ private func awaitingReply(_ transport: HttpTransport) async throws -> (
         #expect(refusal.member == fault.member, "\(why)")
         #expect(refusal.reason == fault.reason, "\(why)")
         #expect(refusal.payload == frame["payload"], "\(why)")
-        // A null where a member may be absent is its absence, as BusFrame reads it.
-        let scope = frame["scope"] == .null ? nil : frame["scope"]
-        #expect(refusal.scope.map { JSONValue.string($0.value) } == scope, "\(why)")
+        #expect(refusal.scope.map { JSONValue.string($0.value) } == frame["scope"], "\(why)")
         #expect(
           refusal.correlationId.map(JSONValue.string) == correlation(value["correlationId"]),
           "\(why)")

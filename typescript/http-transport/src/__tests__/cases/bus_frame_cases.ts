@@ -170,10 +170,9 @@ export const table: Table = {
       told: 'failure-report',
     },
     {
-      why: "a frame whose scope is null carries none, as BusFrame's walk reads a null member it does not require, and is told to its channel's readers",
+      why: "a frame whose scope is null carries a scope, and null is no resource's id: it is refused, naming the scope, and names no reader",
       frame: {
         channel: 'beckon:focus',
-        correlationId: 7,
         payload: {
           resourceId: 'res-1',
           annotationId: 'a-1',
@@ -181,9 +180,9 @@ export const table: Table = {
         scope: null,
       },
       refused: true,
-      member: 'correlationId',
+      member: 'scope',
       reason: 'malformed',
-      told: 'readers',
+      told: 'failure-report',
     },
     {
       why: "a frame whose scope is no resource's id names no reader, though its first fault is another member",
