@@ -411,7 +411,7 @@ let cases =
            pub enum Mark {";
         has code
           "            Some(\"tagging\") => \
-           serde_json::from_value(value).map(Mark::Tag),";
+           serde_json::from_value(value).map(Mark::MarkTag),";
         has code
           "                return Err(serde::de::Error::custom(\n\
           \                    \"a Mark states a `motivation` that is one of \
@@ -420,8 +420,8 @@ let cases =
         has code
           "    pub(crate) const fn motivation(&self) -> Motivation {\n\
           \        match self {\n\
-          \            Mark::Highlight(_) => Motivation::Highlighting,\n\
-          \            Mark::Tag(_) => Motivation::Tagging,\n\
+          \            Mark::MarkHighlight(_) => Motivation::Highlighting,\n\
+          \            Mark::MarkTag(_) => Motivation::Tagging,\n\
           \        }\n\
           \    }");
     case

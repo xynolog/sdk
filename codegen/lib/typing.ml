@@ -94,8 +94,7 @@ and union = {
 
 and branch = {
   variant : string;
-      (** Its name within the union: a schema's name less what every named
-          member's begins with, else what it is ([Text], [List], [Empty],
+      (** Its name within the union: the schema's it names, else what it is ([Text], [List], [Empty],
           [Integer], [Number], [Boolean]), or an object's one value of the
           member its discriminant is, or its title, or [Object]. *)
   ty : ty;
@@ -265,31 +264,6 @@ let member_name (s : D.t) =
   | Some d, _ -> Some (Text.pascal d)
   | None, D.Node { title = Some title; _ } -> Some (Text.pascal title)
   | None, _ -> None
-
-let is_upper c = c >= 'A' && c <= 'Z'
-
-(* The longest prefix every name shares that ends where a word ends, and
-   leaves each name a word of its own: [JobPending], [JobRunning] share
-   [Job]. *)
-let common_prefix names =
-  match names with
-  | first :: _ :: _ ->
-      let prefix = ref "" in
-      String.iteri
-        (fun i c ->
-          let candidate = String.sub first 0 i in
-          if
-            is_upper c && candidate <> ""
-            && List.for_all
-                 (fun n ->
-                   String.starts_with ~prefix:candidate n
-                   && String.length n > i
-                   && is_upper n.[i])
-                 names
-          then prefix := candidate)
-        first;
-      !prefix
-  | _ -> ""
 
 let scalar (n : D.node) (t : Schema.type_name) =
   match t with
@@ -478,24 +452,11 @@ and object_form st ~register ~name ~owners (n : D.node) =
   | members, rest -> Record { members; rest }
 
 and union st ~register ~name (n : D.node) members =
-  let prefix =
-    common_prefix
-      (List.filter_map
-         (function D.Ref { name; _ } -> Some name | _ -> None)
-         members)
-  in
   let at part = { owner = name; part } in
   let branch (m : D.t) =
     let variant, ty =
       match m with
-      | D.Ref { name = target; _ } ->
-          let short =
-            if String.starts_with ~prefix target then
-              String.sub target (String.length prefix)
-                (String.length target - String.length prefix)
-            else target
-          in
-          (short, Named target)
+      | D.Ref { name = target; _ } -> (target, Named target)
       | D.Node { type_ = Some (D.One Object); max_properties = Some 0; _ } ->
           ("Empty", classify st ~register (at "Empty") m)
       | _ when is_text st m -> ("Text", classify st ~register (at "Text") m)

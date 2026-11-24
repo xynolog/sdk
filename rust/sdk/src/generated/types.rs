@@ -62,18 +62,18 @@ schema!(AboutResult);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum Agent {
-    Person(AgentPerson),
-    Organization(AgentOrganization),
-    Software(AgentSoftware),
+    AgentPerson(AgentPerson),
+    AgentOrganization(AgentOrganization),
+    AgentSoftware(AgentSoftware),
 }
 
 impl<'de> serde::Deserialize<'de> for Agent {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
         let member = match value.get("@type").and_then(serde_json::Value::as_str) {
-            Some("Person") => serde_json::from_value(value).map(Agent::Person),
-            Some("Organization") => serde_json::from_value(value).map(Agent::Organization),
-            Some("Software") => serde_json::from_value(value).map(Agent::Software),
+            Some("Person") => serde_json::from_value(value).map(Agent::AgentPerson),
+            Some("Organization") => serde_json::from_value(value).map(Agent::AgentOrganization),
+            Some("Software") => serde_json::from_value(value).map(Agent::AgentSoftware),
             _ => {
                 return Err(serde::de::Error::custom(
                     "a Agent states a `@type` that is one of `Person`, `Organization`, `Software`",
@@ -84,9 +84,9 @@ impl<'de> serde::Deserialize<'de> for Agent {
     }
 }
 
-member!(Agent::Person(AgentPerson));
-member!(Agent::Organization(AgentOrganization));
-member!(Agent::Software(AgentSoftware));
+member!(Agent::AgentPerson(AgentPerson));
+member!(Agent::AgentOrganization(AgentOrganization));
+member!(Agent::AgentSoftware(AgentSoftware));
 schema!(Agent);
 
 /// An organization — the Organization branch of Agent.
@@ -438,14 +438,16 @@ schema!(AnchoredTextEntries);
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnchoredTextEntry {
-    ExtractedEntry(AnchoredTextExtractedEntry),
-    DeclinedEntry(AnchoredTextDeclinedEntry),
+    AnchoredTextExtractedEntry(AnchoredTextExtractedEntry),
+    AnchoredTextDeclinedEntry(AnchoredTextDeclinedEntry),
 }
 
-member!(AnchoredTextEntry::ExtractedEntry(
+member!(AnchoredTextEntry::AnchoredTextExtractedEntry(
     AnchoredTextExtractedEntry,
 ));
-member!(AnchoredTextEntry::DeclinedEntry(AnchoredTextDeclinedEntry));
+member!(AnchoredTextEntry::AnchoredTextDeclinedEntry(
+    AnchoredTextDeclinedEntry,
+));
 schema!(AnchoredTextEntry);
 
 /// The text extracted from the bytes, where each word is on the page, and how it was extracted.
@@ -2035,14 +2037,14 @@ schema!(BindUpdateBodyCommand);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum BodyOperation {
-    Add(BodyOperationAdd),
-    Remove(BodyOperationRemove),
-    Replace(BodyOperationReplace),
+    BodyOperationAdd(BodyOperationAdd),
+    BodyOperationRemove(BodyOperationRemove),
+    BodyOperationReplace(BodyOperationReplace),
 }
 
-member!(BodyOperation::Add(BodyOperationAdd));
-member!(BodyOperation::Remove(BodyOperationRemove));
-member!(BodyOperation::Replace(BodyOperationReplace));
+member!(BodyOperation::BodyOperationAdd(BodyOperationAdd));
+member!(BodyOperation::BodyOperationRemove(BodyOperationRemove));
+member!(BodyOperation::BodyOperationReplace(BodyOperationReplace));
 schema!(BodyOperation);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -2978,12 +2980,12 @@ impl BusResumeGapReason {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum BusStreamMessage {
-    EventMessage(BusEventMessage),
-    PingMessage(BusPingMessage),
+    BusEventMessage(BusEventMessage),
+    BusPingMessage(BusPingMessage),
 }
 
-member!(BusStreamMessage::EventMessage(BusEventMessage));
-member!(BusStreamMessage::PingMessage(BusPingMessage));
+member!(BusStreamMessage::BusEventMessage(BusEventMessage));
+member!(BusStreamMessage::BusPingMessage(BusPingMessage));
 schema!(BusStreamMessage);
 
 /// Subscription matrix for the bus stream. `global` channels are delivered unscoped; each `scoped` entry subscribes the connection to one resource scope's channels, optionally resuming from that scope's last-seen persisted event id. At least one global channel or one scoped entry is required, and no scope may appear in two entries.
@@ -3905,8 +3907,8 @@ pub enum ConformanceStep {
     Reaches(ConformanceStepReaches),
     Holds(ConformanceStepHolds),
     Completes(ConformanceStepCompletes),
-    BusFetch(ConformanceBusFetch),
-    HttpFetch(ConformanceHttpFetch),
+    ConformanceBusFetch(ConformanceBusFetch),
+    ConformanceHttpFetch(ConformanceHttpFetch),
     Fetches(ConformanceStepFetches),
     Scopes(ConformanceStepScopes),
     Claimed(ConformanceStepClaimed),
@@ -3915,8 +3917,8 @@ pub enum ConformanceStep {
     Stalled(ConformanceStepStalled),
 }
 
-member!(ConformanceStep::BusFetch(ConformanceBusFetch));
-member!(ConformanceStep::HttpFetch(ConformanceHttpFetch));
+member!(ConformanceStep::ConformanceBusFetch(ConformanceBusFetch));
+member!(ConformanceStep::ConformanceHttpFetch(ConformanceHttpFetch));
 schema!(ConformanceStep);
 
 /// Abandon an operation started with `as`, as its caller would.
@@ -4101,14 +4103,14 @@ pub struct ConformanceStepFetches {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum ConformanceStepFetchesFetchesItem {
-    BusFetch(ConformanceBusFetch),
-    HttpFetch(ConformanceHttpFetch),
+    ConformanceBusFetch(ConformanceBusFetch),
+    ConformanceHttpFetch(ConformanceHttpFetch),
 }
 
-member!(ConformanceStepFetchesFetchesItem::BusFetch(
+member!(ConformanceStepFetchesFetchesItem::ConformanceBusFetch(
     ConformanceBusFetch,
 ));
-member!(ConformanceStepFetchesFetchesItem::HttpFetch(
+member!(ConformanceStepFetchesFetchesItem::ConformanceHttpFetch(
     ConformanceHttpFetch,
 ));
 
@@ -7811,22 +7813,22 @@ impl JanusGraphConfigType {
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum Job {
-    Pending(JobPending),
-    Running(JobRunning),
-    Complete(JobComplete),
-    Failed(JobFailed),
-    Cancelled(JobCancelled),
+    JobPending(JobPending),
+    JobRunning(JobRunning),
+    JobComplete(JobComplete),
+    JobFailed(JobFailed),
+    JobCancelled(JobCancelled),
 }
 
 impl<'de> serde::Deserialize<'de> for Job {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
         let member = match value.get("status").and_then(serde_json::Value::as_str) {
-            Some("pending") => serde_json::from_value(value).map(Job::Pending),
-            Some("running") => serde_json::from_value(value).map(Job::Running),
-            Some("complete") => serde_json::from_value(value).map(Job::Complete),
-            Some("failed") => serde_json::from_value(value).map(Job::Failed),
-            Some("cancelled") => serde_json::from_value(value).map(Job::Cancelled),
+            Some("pending") => serde_json::from_value(value).map(Job::JobPending),
+            Some("running") => serde_json::from_value(value).map(Job::JobRunning),
+            Some("complete") => serde_json::from_value(value).map(Job::JobComplete),
+            Some("failed") => serde_json::from_value(value).map(Job::JobFailed),
+            Some("cancelled") => serde_json::from_value(value).map(Job::JobCancelled),
             _ => {
                 return Err(serde::de::Error::custom(
                     "a Job states a `status` that is one of `pending`, `running`, `complete`, `failed`, `cancelled`",
@@ -7837,11 +7839,11 @@ impl<'de> serde::Deserialize<'de> for Job {
     }
 }
 
-member!(Job::Pending(JobPending));
-member!(Job::Running(JobRunning));
-member!(Job::Complete(JobComplete));
-member!(Job::Failed(JobFailed));
-member!(Job::Cancelled(JobCancelled));
+member!(Job::JobPending(JobPending));
+member!(Job::JobRunning(JobRunning));
+member!(Job::JobComplete(JobComplete));
+member!(Job::JobFailed(JobFailed));
+member!(Job::JobCancelled(JobCancelled));
 schema!(Job);
 
 /// Bus command the dispatcher emits, under its own service identity, immediately after it accepts a job:claim — the correlated job:claimed reply is unchanged. The Stower persists it as job:assigned. It is the one fact only the dispatcher can vouch for: which holder took which job, and who requested it. A later write citing `jobId` is checked against the holder and its `creator` derived from the requester by reading the resource's own log, with nothing outside the record.
@@ -9276,47 +9278,49 @@ impl JobProgressLoadingCode {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum JobProgressMessage {
-    Loading(JobProgressLoading),
-    Analyzing(JobProgressAnalyzing),
-    AnalyzingTags(JobProgressAnalyzingTags),
-    GeneratingResource(JobProgressGeneratingResource),
-    CreatingResource(JobProgressCreatingResource),
-    CompleteGenerated(JobProgressCompleteGenerated),
-    DetectingEntities(JobProgressDetectingEntities),
-    CreatingAnnotations(JobProgressCreatingAnnotations),
-    CreatingTagAnnotations(JobProgressCreatingTagAnnotations),
-    CompleteCreated(JobProgressCompleteCreated),
+    JobProgressLoading(JobProgressLoading),
+    JobProgressAnalyzing(JobProgressAnalyzing),
+    JobProgressAnalyzingTags(JobProgressAnalyzingTags),
+    JobProgressGeneratingResource(JobProgressGeneratingResource),
+    JobProgressCreatingResource(JobProgressCreatingResource),
+    JobProgressCompleteGenerated(JobProgressCompleteGenerated),
+    JobProgressDetectingEntities(JobProgressDetectingEntities),
+    JobProgressCreatingAnnotations(JobProgressCreatingAnnotations),
+    JobProgressCreatingTagAnnotations(JobProgressCreatingTagAnnotations),
+    JobProgressCompleteCreated(JobProgressCompleteCreated),
 }
 
 impl<'de> serde::Deserialize<'de> for JobProgressMessage {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
         let member = match value.get("code").and_then(serde_json::Value::as_str) {
-            Some("loading") => serde_json::from_value(value).map(JobProgressMessage::Loading),
-            Some("analyzing") => serde_json::from_value(value).map(JobProgressMessage::Analyzing),
+            Some("loading") => {
+                serde_json::from_value(value).map(JobProgressMessage::JobProgressLoading)
+            }
+            Some("analyzing") => {
+                serde_json::from_value(value).map(JobProgressMessage::JobProgressAnalyzing)
+            }
             Some("analyzing-tags") => {
-                serde_json::from_value(value).map(JobProgressMessage::AnalyzingTags)
+                serde_json::from_value(value).map(JobProgressMessage::JobProgressAnalyzingTags)
             }
             Some("generating-resource") => {
-                serde_json::from_value(value).map(JobProgressMessage::GeneratingResource)
+                serde_json::from_value(value).map(JobProgressMessage::JobProgressGeneratingResource)
             }
             Some("creating-resource") => {
-                serde_json::from_value(value).map(JobProgressMessage::CreatingResource)
+                serde_json::from_value(value).map(JobProgressMessage::JobProgressCreatingResource)
             }
             Some("complete-generated") => {
-                serde_json::from_value(value).map(JobProgressMessage::CompleteGenerated)
+                serde_json::from_value(value).map(JobProgressMessage::JobProgressCompleteGenerated)
             }
             Some("detecting-entities") => {
-                serde_json::from_value(value).map(JobProgressMessage::DetectingEntities)
+                serde_json::from_value(value).map(JobProgressMessage::JobProgressDetectingEntities)
             }
-            Some("creating-annotations") => {
-                serde_json::from_value(value).map(JobProgressMessage::CreatingAnnotations)
-            }
-            Some("creating-tag-annotations") => {
-                serde_json::from_value(value).map(JobProgressMessage::CreatingTagAnnotations)
-            }
+            Some("creating-annotations") => serde_json::from_value(value)
+                .map(JobProgressMessage::JobProgressCreatingAnnotations),
+            Some("creating-tag-annotations") => serde_json::from_value(value)
+                .map(JobProgressMessage::JobProgressCreatingTagAnnotations),
             Some("complete-created") => {
-                serde_json::from_value(value).map(JobProgressMessage::CompleteCreated)
+                serde_json::from_value(value).map(JobProgressMessage::JobProgressCompleteCreated)
             }
             _ => {
                 return Err(serde::de::Error::custom(
@@ -9328,28 +9332,32 @@ impl<'de> serde::Deserialize<'de> for JobProgressMessage {
     }
 }
 
-member!(JobProgressMessage::Loading(JobProgressLoading));
-member!(JobProgressMessage::Analyzing(JobProgressAnalyzing));
-member!(JobProgressMessage::AnalyzingTags(JobProgressAnalyzingTags));
-member!(JobProgressMessage::GeneratingResource(
+member!(JobProgressMessage::JobProgressLoading(JobProgressLoading));
+member!(JobProgressMessage::JobProgressAnalyzing(
+    JobProgressAnalyzing,
+));
+member!(JobProgressMessage::JobProgressAnalyzingTags(
+    JobProgressAnalyzingTags,
+));
+member!(JobProgressMessage::JobProgressGeneratingResource(
     JobProgressGeneratingResource,
 ));
-member!(JobProgressMessage::CreatingResource(
+member!(JobProgressMessage::JobProgressCreatingResource(
     JobProgressCreatingResource,
 ));
-member!(JobProgressMessage::CompleteGenerated(
+member!(JobProgressMessage::JobProgressCompleteGenerated(
     JobProgressCompleteGenerated,
 ));
-member!(JobProgressMessage::DetectingEntities(
+member!(JobProgressMessage::JobProgressDetectingEntities(
     JobProgressDetectingEntities,
 ));
-member!(JobProgressMessage::CreatingAnnotations(
+member!(JobProgressMessage::JobProgressCreatingAnnotations(
     JobProgressCreatingAnnotations,
 ));
-member!(JobProgressMessage::CreatingTagAnnotations(
+member!(JobProgressMessage::JobProgressCreatingTagAnnotations(
     JobProgressCreatingTagAnnotations,
 ));
-member!(JobProgressMessage::CompleteCreated(
+member!(JobProgressMessage::JobProgressCompleteCreated(
     JobProgressCompleteCreated,
 ));
 schema!(JobProgressMessage);
@@ -10346,8 +10354,8 @@ impl KnowledgeGraphEdgesItem {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum KnowledgeGraphNodesItem {
-    ResourceNode(GraphResourceNode),
-    AnnotationNode(GraphAnnotationNode),
+    GraphResourceNode(GraphResourceNode),
+    GraphAnnotationNode(GraphAnnotationNode),
 }
 
 impl<'de> serde::Deserialize<'de> for KnowledgeGraphNodesItem {
@@ -10355,10 +10363,10 @@ impl<'de> serde::Deserialize<'de> for KnowledgeGraphNodesItem {
         let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
         let member = match value.get("type").and_then(serde_json::Value::as_str) {
             Some("resource") => {
-                serde_json::from_value(value).map(KnowledgeGraphNodesItem::ResourceNode)
+                serde_json::from_value(value).map(KnowledgeGraphNodesItem::GraphResourceNode)
             }
             Some("annotation") => {
-                serde_json::from_value(value).map(KnowledgeGraphNodesItem::AnnotationNode)
+                serde_json::from_value(value).map(KnowledgeGraphNodesItem::GraphAnnotationNode)
             }
             _ => {
                 return Err(serde::de::Error::custom(
@@ -10370,8 +10378,12 @@ impl<'de> serde::Deserialize<'de> for KnowledgeGraphNodesItem {
     }
 }
 
-member!(KnowledgeGraphNodesItem::ResourceNode(GraphResourceNode));
-member!(KnowledgeGraphNodesItem::AnnotationNode(GraphAnnotationNode));
+member!(KnowledgeGraphNodesItem::GraphResourceNode(
+    GraphResourceNode,
+));
+member!(KnowledgeGraphNodesItem::GraphAnnotationNode(
+    GraphAnnotationNode,
+));
 
 /// What a knowledge base's record is indexed into, and the services that keep and read the indexes: the Weaver's graph, the Smelter's vectors and anchored text, and the Librarian that answers from them. Each can be rebuilt from the record.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
