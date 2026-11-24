@@ -310,9 +310,9 @@ def _read_members(shape: _Shape, value: dict[str, JsonValue], way: str) -> dict[
             return Fault(member=_within(way, name), reason="lacks")
     read = dict(value)
     for name, member in members.items():
-        held = value.get(name)
-        if held is None:
+        if name not in value:
             continue
+        held = value[name]
         recognized = _resolved(member).recognized
         if recognized is not None and isinstance(held, str) and held not in recognized:
             del read[name]

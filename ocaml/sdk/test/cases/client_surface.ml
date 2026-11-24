@@ -6333,7 +6333,7 @@ let table : t =
                    ({
                       member = "FrameRefusalReason";
                       kind = "type";
-                      named = Some [ ("haskell", "FaultReason") ];
+                      named = None;
                       fields_named = None;
                       fields = None;
                     }

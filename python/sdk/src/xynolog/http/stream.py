@@ -144,7 +144,7 @@ def carried(data: str) -> BusFrame | FrameRefusal | Unaddressed:
         return Unaddressed(read)
     # Carried whenever it can be read: when it is what BusFrame allows, a text of at least one character.
     carries = correlation_id if isinstance(correlation_id, str) and correlation_id != "" else None
-    if scope is None:
+    if BUS_FRAME_SCOPE not in value:
         return FrameRefusal(
             channel=channel,
             member=read.member,

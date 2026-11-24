@@ -79,7 +79,7 @@ def test_an_object_carries_no_set_of_members_it_may_not_carry_all_of() -> None:
     assert fault_of(Target, {"kind": "local", "root": "/x"}) is None
     assert fault_of(Target, {"kind": "codespace", "repo": "a/b"}) is None
     assert fault_of(Target, {"kind": "local", "root": "/x", "repo": "a/b"}) == malformed("")
-    assert fault_of(Target, {"kind": "local", "root": "/x", "repo": None}) == malformed("")
+    assert fault_of(Target, {"kind": "local", "root": "/x", "repo": None}) == malformed("repo")
 
 
 def test_an_objects_members_are_as_many_and_named_as_it_says() -> None:

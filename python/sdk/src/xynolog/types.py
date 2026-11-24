@@ -10055,7 +10055,7 @@ class WeaverHealth(WireModel, frozen=True, extra="forbid"):
 class WorkerAnswerFormatsFormatsItem(WireModel, frozen=True, extra="forbid"):
     name: Annotated[str, Field(description="A motivation a `mark` job takes, or `count`.")]
     about: Annotated[str, Field(description="What an element is, in prose.")]
-    element: JsonValue
+    element: Annotated[JsonValue, Field(description="The JSON Schema of one element of the answer.")]
 
 
 class WorkerAnswerFormats(WireModel, frozen=True, extra="forbid"):

@@ -3851,9 +3851,6 @@ export const table: Table = {
         {
           member: 'FrameRefusalReason',
           kind: 'type',
-          named: {
-            haskell: 'FaultReason',
-          },
         },
         {
           member: 'Carried',

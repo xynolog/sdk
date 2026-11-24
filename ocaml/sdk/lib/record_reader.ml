@@ -44,12 +44,8 @@ let optional reader read name =
   | Some `Null -> Types.Null
   | Some value -> Types.Present (read value)
 
-(* A member that may be absent but not null: the decoder, as it reads one,
-   lets a null through as absent. *)
-let maybe reader read name =
-  match take reader name with
-  | None | Some `Null -> None
-  | Some value -> Some (read value)
+(* A member that may be absent but not null: the decoder refuses its null. *)
+let maybe reader read name = Option.map read (take reader name)
 
 let rest reader =
   List.filter (fun (name, _) -> not (List.mem name reader.named)) reader.fields

@@ -437,10 +437,9 @@ private func lineOf(_ data: String) -> Line {
   guard case .object(let stated) = value, case .string(let channel)? = stated["channel"],
     !channel.isEmpty
   else { return .unaddressed(fault) }
-  // A null where a member may be absent is its absence, as BusFrame reads it.
   let scope: ResourceId?
   switch stated["scope"] {
-  case nil, .null?: scope = nil
+  case nil: scope = nil
   case .string(let text)?:
     guard let resource = ResourceId.parse(text) else { return .unaddressed(fault) }
     scope = resource

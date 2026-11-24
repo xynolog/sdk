@@ -170,10 +170,9 @@ function carried(data: string): Received | Refused | string {
   if (fault === undefined) return value as Received;
   if (!isObject(value)) return said(fault);
   const scope = value['scope'];
-  // A null scope is none, as BusFrame's walk reads a null optional member.
   const readers = {
     channel: value['channel'],
-    ...(scope === undefined || scope === null ? {} : { scope }),
+    ...(scope === undefined ? {} : { scope }),
   };
   if (faultOf('BusFrame', { ...readers, payload: {} }) !== undefined)
     return said(fault);

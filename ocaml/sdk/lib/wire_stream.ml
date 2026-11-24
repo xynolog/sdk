@@ -43,7 +43,7 @@ let recover_route source =
       let get key read = Option.bind (List.assoc_opt key fields) read in
       let valid_scope =
         match List.assoc_opt Gateway_http.Bus_frame.scope fields with
-        | None | Some `Null -> Some None
+        | None -> Some None
         | Some value -> Option.map Option.some (scope value)
       in
       match (get Gateway_http.Bus_frame.channel string, valid_scope) with
