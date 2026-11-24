@@ -267,8 +267,7 @@ private fun readMembers(shape: Shape, value: JsonObject, way: String): Read {
     }
     val read = value.toMutableMap()
     for ((name, member) in members) {
-        val held = value[name]
-        if (held == null || held == JsonNull) continue
+        val held = value[name] ?: continue
         if (isUnrecognized(member, held)) {
             read.remove(name)
             continue

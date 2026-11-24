@@ -387,7 +387,7 @@ let payload_wire () =
   let stream =
     ": heartbeat\r\n\r\n"
     ^ frame "bad-frame"
-        {|{"channel":"mark:archive-ok","correlationId":"request","payload":null,"scope":null}|}
+        {|{"channel":"mark:archive-ok","correlationId":"request","payload":null}|}
     ^ frame "bad-payload"
         {|{"channel":"mark:archive-ok","payload":{"unexpected":true}}|}
     ^ frame "good"

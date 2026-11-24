@@ -12,6 +12,7 @@ public data class WorkerAnswerFormatsFormatsItem(
     public val name: String,
     /** What an element is, in prose. */
     public val about: String,
+    /** The JSON Schema of one element of the answer. */
     public val element: JsonElement,
 ) {
     /** How Java makes a `WorkerAnswerFormatsFormatsItem`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */

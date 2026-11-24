@@ -201,13 +201,17 @@ let record_views () =
     |> R.Get_annotations_response.of_model)
       .motivation
   in
-  Alcotest.(check (option string))
-    "a null correlationId is read as absent" None
-    (Result.get_ok
-       (M.decode M.bus_frame
-          {|{"channel":"mark:archive-ok","correlationId":null,"payload":{}}|})
-    |> R.Bus_frame.of_model)
-      .correlation_id;
+  (match
+     M.decode M.bus_frame
+       {|{"channel":"mark:archive-ok","correlationId":null,"payload":{}}|}
+   with
+  | Error (M.Invalid_payload fault) ->
+      Alcotest.(check string)
+        "a null correlationId is a fault of it" "correlationId" fault.member;
+      Alcotest.(check bool)
+        "a null correlationId is malformed" true
+        (fault.reason = Xynolog.Enums.Frame_refusal_reason.Malformed)
+  | _ -> Alcotest.fail "a null correlationId was read");
   Alcotest.(check bool)
     "null remains distinct from absence" true
     (annotations {|{"annotations":[],"total":0,"motivation":null}|} = T.Null

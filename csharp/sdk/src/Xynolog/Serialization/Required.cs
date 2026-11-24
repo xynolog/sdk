@@ -32,8 +32,7 @@ internal static partial class Required
 
     /// <summary>The first fault <paramref name="value"/> has as the component schema <paramref name="schema"/>, by the
     /// rules every SDK reads the table by; null when it has none, and then <paramref name="read"/> is what a reader
-    /// decodes: <paramref name="value"/> without each member that holds a text none of its recognized ones, or that
-    /// holds null where its shape does not allow null and the object does not require it.</summary>
+    /// decodes: <paramref name="value"/> without each member that holds a text none of its recognized ones.</summary>
     internal static Fault? FaultOf(string schema, JsonElement value, out JsonElement read)
     {
         var unread = new List<Place>();
@@ -400,8 +399,7 @@ internal static partial class Required
     /// <summary>The first fault of an object in the members the shape requires, in what its members are, in the
     /// members it may not carry, in its members' names, in the sets of members it may not carry all of, and in its
     /// values. A member that holds a text none of its recognized ones is no fault:
-    /// it is unread. So is a member the object does not require that holds null where its shape does not allow null:
-    /// the table states what a member must be only where it is not null.</summary>
+    /// it is unread.</summary>
     private static Fault? FaultOfMembers(Shape shape, JsonElement value, string way, Place at, List<Place> unread)
     {
         if (shape.Required is { } required)
@@ -421,11 +419,6 @@ internal static partial class Required
             foreach (var (name, member) in members.OrderBy(pair => pair.Key, CodePoints.Order))
             {
                 if (!value.TryGetProperty(name, out var held)) continue;
-                if (held.ValueKind == JsonValueKind.Null)
-                {
-                    if (!AllowsNull(Resolved(member).Kinds)) unread.Add(at.Of(name));
-                    continue;
-                }
                 if (IsUnrecognized(member, held))
                 {
                     unread.Add(at.Of(name));
