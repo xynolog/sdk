@@ -95,12 +95,12 @@
 (test
  (name kotlin_sdk)
  (modules kotlin_sdk)
- (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema yojson alcotest))
+ (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema fixture yojson alcotest))
 
 (test
  (name kotlin_tables)
  (modules kotlin_tables)
- (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema yojson alcotest))
+ (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema fixture yojson alcotest))
 
 (test
  (name csharp_syntax)

@@ -60,3 +60,14 @@ let closed_empty_named (form : T.form) =
 (* TypeScript writes every schema in place as what it holds, and Python a
    union in place but one a list holds, naming none of what [Typing]
    invents. *)
+
+(* Kotlin describes as Rust and Go do ([node_description]), holds a union
+   every member of which is text as a [String] ([text_union]), and decodes a
+   union as Rust does ([single_tags]): any union not told apart by one value
+   per member is decoded as the first member, of the kinds of JSON each is
+   read from, that fits, a member that names a union being read from every
+   kind. It holds an enumeration in place of integers, numbers or booleans,
+   as a const of one is, as its scalar, dropping its values. It declares an
+   object of no member that says nothing of others ([Unstated]) as a type
+   that drops them, and holds one in place as a JSON object, which keeps
+   them. *)
