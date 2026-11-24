@@ -179,7 +179,6 @@ let control (spec : Spec.t) =
                     [ C.Client; C.Launcher ]);
            }
            [ "Which side of the control API sends a notification." ]
-        @ [ R.Blank ]
         @ List.concat_map (method_items spec) t.methods
         @ List.concat_map (notification_items spec) t.notifications
         @ [

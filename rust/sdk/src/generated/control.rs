@@ -21,7 +21,6 @@ impl ControlSender {
     }
 }
 
-
 /// `launcher.about`: What the launcher is: its version, the API versions it speaks, the runtimes it detects. It reads none of the machine's state.
 pub struct LauncherAbout;
 impl ControlMethod for LauncherAbout {
