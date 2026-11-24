@@ -34,6 +34,14 @@ the coming release's, and gathers its changes as they land.
   associated types are what it carries (`LauncherAbout`, `RootsInit`,
   `NotificationsProgress`, …), and `CONTROL_METHODS`, `CONTROL_NOTIFICATIONS`
   and `control_method(name)` state the table by name.
+- `xynolog::service_tables`: each table the services keep to (the services'
+  own tables, `service-environment`, `service-telemetry`, `jobs` and
+  `bus/reply-bounds.json`), read as the generated type of its own schema by a
+  function named as the type is (`jobs_budgets()`), and every one by its file
+  (`SERVICE_TABLE_FILES`, `service_table(file)`). The types are in
+  `xynolog::types` (`JobsBudgets`, `ArchivistLayout`, …).
+- `xynolog::archivist_http`: each operation of the Archivist as an
+  `ArchivistRoute` constant, with its `ArchivistMethod` and its path.
 - `ControlErrorCode`, the control vocabulary of `errors/codes.json`. Every
   vocabulary's enum states its codes as `ALL`.
 - `read_as::<T>(value)` reads a value as the schema `T` is generated from,
