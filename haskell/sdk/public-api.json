@@ -130,7 +130,6 @@
     "generated/Xynolog/Internal/Generated/Models/ContentFormat.hs": "a402a9d35ce465700899227d6fd9e7f9dd9f9b42923c5f3739065ab8a04da272",
     "generated/Xynolog/Internal/Generated/Models/ContextualSummaryResponse.hs": "881acb17f2fd2e6f5e34f79ed26ca249c31db767fd744f3b761e6a42c970e857",
     "generated/Xynolog/Internal/Generated/Models/ContextualSummaryResponseBusEnvelope.hs": "005722a15930dd345f19630885fc835e57fa8ac84b00388ad587638999a33605",
-    "generated/Xynolog/Internal/Generated/Models/ControlMethods.hs": "33a3799fc95a005bf3f45a126173e910a0e704f1a33f4d906aeaa8f458ec51b1",
     "generated/Xynolog/Internal/Generated/Models/CreateAnnotationRequest.hs": "6124c0e6ca2ffcabfa80e8c7903a97be3e0252ab390d4b8bf6b34e5b72e8388f",
     "generated/Xynolog/Internal/Generated/Models/CreateFromTokenOptions.hs": "ae73f0a710933a6eaa1ea858376b9486bf0faa1b45d2a53b3ecadbd9fc9b8154",
     "generated/Xynolog/Internal/Generated/Models/CreateResourceResponse.hs": "4142869578505512d5b6948b23cafe98049625041f92f9b4ff368b551daadc33",
@@ -532,7 +531,7 @@
     "generated/Xynolog/Internal/Generated/PendingAnnotation.hs": "92d649918dbb3c601b8ecb95ad0f690d1d19f8bebb505734c6730bbdef89e830",
     "generated/Xynolog/Internal/Generated/Principals.hs": "02fd2fd7b956e96bcda03bb7685472bf1a029666bf21fe32c1ff3e0ab217ceb9",
     "generated/Xynolog/Internal/Generated/Required.hs": "52876f7b3f272a0c1bdf629b571cf7b072eafca5175d2b7e2a228bb48066e175",
-    "generated/Xynolog/Internal/Generated/Schemas.hs": "7345d0a3765db15e24c7c9627abb28ee28a4795df6151c54006c84a8fde14b63",
+    "generated/Xynolog/Internal/Generated/Schemas.hs": "d02ff7f135fff56066252118fd94e4961dbf5801501186fe0152e5bae2e9b8cf",
     "generated/Xynolog/Internal/Generated/SearchState.hs": "d5994a174a2a535cb04661283a500feb97cf4e80783492c2cf390e712b38c0a9",
     "generated/Xynolog/Internal/Generated/ServiceProof.hs": "86e44db90b1ac4a3713f4794f4f1f2f32bdf7eeeb7ad24e12046c050f8acadaf",
     "generated/Xynolog/Internal/Generated/SessionFactoryOptions.hs": "1378c790f4a48832e1a0a938eb64c8759870e4ebf73f2445e8ba81c354334c45",
@@ -552,7 +551,7 @@
     "internal/Xynolog/Internal/Broadcast.hs": "336246ac6d68e996f3a618dc295e2ca88445c7c04c6aa189b8271a763bc19ee8",
     "internal/Xynolog/Internal/Browse.hs": "579cbe694e901dc85a4af6b094306f6407c3de66422f01e617353aa868d4b29c",
     "internal/Xynolog/Internal/Bus.hs": "df3d57b3b5d9149c6c6bc795781125efedfdbbddf7d6013833e0936a5a09bc7c",
-    "internal/Xynolog/Internal/BusLog.hs": "777b527c5ea4e45ebdae229bdaf035a9822aaa257855f30b3744e9aacd695a59",
+    "internal/Xynolog/Internal/BusLog.hs": "0ad7baef1b416579ad51a626ce85cbdbc9989418bb74303207b1419833bba32e",
     "internal/Xynolog/Internal/Cache.hs": "41299da4f86b18d8852236e361f26a6ffddc45862b76a09c7421a032c776c915",
     "internal/Xynolog/Internal/CacheDocument.hs": "2fc480b4263d4ee660ab958b7b3579c3aaef9cd6c905e83b28749d77dac1f807",
     "internal/Xynolog/Internal/CarriedTable.hs": "d58bb1bcc4f208ea2e175d227442344b14a69536365da901b34c667ee90c7e6e",
@@ -607,6 +606,7 @@
     "src/Xynolog/Client.hs": "87f06a4d5477a902fe35a794423d21cecb609a63b79ebe61723d8bc19b8fcd37",
     "src/Xynolog/ClientAssertion.hs": "07004022f82dc3fce9c9f50b94dfbcf978fb123ca61a55189c5daa507aaf2d96",
     "src/Xynolog/Content.hs": "1d68f499332af81b8d435c8e69378473792a6bd6426c437c3407408d1a4425a0",
+    "src/Xynolog/Control.hs": "512c3c8296ac27f810a3a6b053a737fa46b878421742ba4b3ecd3dc4d3e46704",
     "src/Xynolog/Delegation.hs": "dc5779ae67ae4622e585e80020efcd7d2f49a8063d0c7b428d368652c08cc3bf",
     "src/Xynolog/Discovery.hs": "251635cef8030323d8df7b362ec99e601dbd40d6760afa766819215a85a34db5",
     "src/Xynolog/Discovery/Reasons.hs": "330719d247c1d390ec0ff28d1b953e2739b574b0246bba3a8ad8e653e34b456b",
@@ -635,6 +635,7 @@
     "src/Xynolog/Resources.hs": "3dcf53f70e35ee8a9458a3a5658497817b69e307f30a9ae2f3ab6044a43878b0",
     "src/Xynolog/Retry.hs": "38666ccb227cc8794ba07321f2ffc937cdfb7bcfa15014a56ad0d77473795962",
     "src/Xynolog/Running.hs": "a4be3104795d2ceb80a50b15573fe99ce7227355e44a9364a5f562acf79c6bce",
+    "src/Xynolog/ServiceEnvironment.hs": "8abe635a88470d6376ec42827ff02fed24ea215ec4cd1eeefa5f1ea6fa9b75f8",
     "src/Xynolog/ServiceTables.hs": "253fbcf1b33dab8746a231859478a0f3e446560bbee7823a538a35d2648dfb15",
     "src/Xynolog/ServiceToken.hs": "a75f98fa69737c6a2dafb9a152413cfef2e9b6a55da2c91a67a1cf2eb948adb4",
     "src/Xynolog/Session.hs": "f514bfc6e5b4eb4e54b1d1c4a2e2c29d6d9c18ad96b1a979cbe3a392de5ccbe1",
@@ -652,7 +653,7 @@
     "src/Xynolog/StateValue.hs": "02b60eb1456875a28f141af392f92472ff11ec56e444bca350deae9773b8d32a",
     "src/Xynolog/StoragePersister.hs": "f8f1c5dad13d4af51263a77d36a76f6c1ce46f116aaf75b0f89b63cd1eae44bf",
     "src/Xynolog/System.hs": "77a1552d357095689081183f3ec6b60b8254c606643468600390dbf912ba144a",
-    "src/Xynolog/Tables.hs": "a2ec4c564984eac382d729b0efb8e3b60603b5d70f7a8bb2357289529de60aea",
+    "src/Xynolog/Tables.hs": "d0573aee98ded79186eff8912edf2a44b1f3fd99c3e0f0821ef6c15e563358b5",
     "src/Xynolog/Testing.hs": "4e62b2c167784f45b01703ad7a8857997b1141058b857389cb9e487a74e25976",
     "src/Xynolog/Testing/Client.hs": "a266884957532bb9cd7f1702a93bf20873ebda0d4a9d16e69e83ab4fe542af71",
     "src/Xynolog/Testing/Liveness.hs": "9154c65fcf31661c0998efb11379f09c3ae053415cafe712e4c3e5d582a046c5",
@@ -664,11 +665,11 @@
     "src/Xynolog/Tokens.hs": "bba264adde2b8a6c123b9e64e99aeae6fd917f9a09f10194684a8daf708bceca",
     "src/Xynolog/Transport.hs": "5f0c95953108daa834e02c580f0ffb49c3d8fb30ad4cf0424ae3b19c500de034",
     "src/Xynolog/Transport/Facts.hs": "b861a07eb1fc5319a56fec2889c08f9fe7d59c43682d5b488d14520377ff08ba",
-    "src/Xynolog/Types.hs": "8be89d21e91c67afe7456cc406fb613ab626abddb3341c1b0c77cfacfc2fc563",
+    "src/Xynolog/Types.hs": "9e169146e8388c3a2d43ec169f3f6b5a840b9498e25bbb170d82882a822ef468",
     "src/Xynolog/Types/Presence.hs": "0c700ed04e5fe1fe43786d384622dbf716ea8703a1af8b8d8b894876dbe13a8f",
     "src/Xynolog/Worker.hs": "4ef864aedc7cdc602443a72d8a59c3e385fdfbf36bb352d3a5511fd125492e46",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
-    "xynolog.cabal.in": "4586902021ebaf5ce1107098d81c28de2fd00b0983d00464b9f7c1241bd143ff"
+    "xynolog.cabal.in": "1210e4f3994c9db48bb448fd7fd1dcbd20f3f614b5ef38d41a66179064e2b561"
   },
   "modules": {
     "Xynolog.Annotations": {
@@ -1365,6 +1366,61 @@
         "getResourceGraph": "Xynolog.Content.ContentTransport -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.GetResourceResponse.GetResourceResponse",
         "openBody": "Xynolog.Content.ReplayableBody -> Network.HTTP.Client.Types.GivesPopper ()",
         "putBinary": "Xynolog.Content.ContentTransport -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Xynolog.Content.ReplayableBody -> (Xynolog.Internal.Generated.OperationReports.UploadEvent -> IO ()) -> IO Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse"
+      }
+    },
+    "Xynolog.Control": {
+      "types": {
+        "ControlMethod": {
+          "definition": "data Xynolog.Control.ControlMethod params result = ...",
+          "kind": "forall {k} {k1}. k -> k1 -> *",
+          "roles": "phantom phantom"
+        },
+        "ControlNotification": {
+          "definition": "data Xynolog.Control.ControlNotification params = ...",
+          "kind": "forall {k}. k -> *",
+          "roles": "phantom"
+        },
+        "ControlSender": {
+          "definition": "data Xynolog.Control.ControlSender = ...",
+          "kind": "*"
+        }
+      },
+      "values": {
+        "ControlMethod": "forall {k} {k1} (params :: k) (result :: k1). Data.Text.Internal.Text -> Bool -> [Data.Text.Internal.Text] -> Xynolog.Control.ControlMethod params result",
+        "ControlNotification": "forall {k} (params :: k). Data.Text.Internal.Text -> Xynolog.Control.ControlSender -> Xynolog.Control.ControlNotification params",
+        "ControlSenderClient": "Xynolog.Control.ControlSender",
+        "ControlSenderLauncher": "Xynolog.Control.ControlSender",
+        "authLogin": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.AuthLoginParams.AuthLoginParams Xynolog.Internal.Generated.Models.AuthLoginResult.AuthLoginResult",
+        "authLogout": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.AuthLogoutParams.AuthLogoutParams Xynolog.Internal.Generated.Models.AuthLogoutResult.AuthLogoutResult",
+        "controlMethodExclusive": "forall {k1} {k2} (params :: k1) (result :: k2). Xynolog.Control.ControlMethod params result -> Bool",
+        "controlMethodName": "forall {k1} {k2} (params :: k1) (result :: k2). Xynolog.Control.ControlMethod params result -> Data.Text.Internal.Text",
+        "controlMethodSends": "forall {k1} {k2} (params :: k1) (result :: k2). Xynolog.Control.ControlMethod params result -> [Data.Text.Internal.Text]",
+        "controlNotificationFrom": "forall {k} (params :: k). Xynolog.Control.ControlNotification params -> Xynolog.Control.ControlSender",
+        "controlNotificationName": "forall {k} (params :: k). Xynolog.Control.ControlNotification params -> Data.Text.Internal.Text",
+        "identityUseradd": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.IdentityUseraddParams.IdentityUseraddParams Xynolog.Internal.Generated.Models.IdentityUseraddResult.IdentityUseraddResult",
+        "identityUsersList": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.IdentityUsersListParams.IdentityUsersListParams Xynolog.Internal.Generated.Models.IdentityUsersListResult.IdentityUsersListResult",
+        "launcherAbout": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.AboutParams.AboutParams Xynolog.Internal.Generated.Models.AboutResult.AboutResult",
+        "logsFollow": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.LogsFollowParams.LogsFollowParams Xynolog.Internal.Generated.Models.LogsFollowResult.LogsFollowResult",
+        "notificationsCancelled": "Xynolog.Control.ControlNotification Xynolog.Internal.Generated.Models.Cancelled.Cancelled",
+        "notificationsLog": "Xynolog.Control.ControlNotification Xynolog.Internal.Generated.Models.LogRecord.LogRecord",
+        "notificationsProgress": "Xynolog.Control.ControlNotification Xynolog.Internal.Generated.Models.Progress.Progress",
+        "notificationsServiceOutput": "Xynolog.Control.ControlNotification Xynolog.Internal.Generated.Models.ServiceOutput.ServiceOutput",
+        "notificationsServiceStarted": "Xynolog.Control.ControlNotification Xynolog.Internal.Generated.Models.ServiceStarted.ServiceStarted",
+        "notificationsUserAction": "Xynolog.Control.ControlNotification Xynolog.Internal.Generated.Models.UserAction.UserAction",
+        "rootsForget": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.RootsForgetParams.RootsForgetParams Xynolog.Internal.Generated.Models.RootsForgetResult.RootsForgetResult",
+        "rootsInit": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.RootsInitParams.RootsInitParams Xynolog.Internal.Generated.Models.RootsInitResult.RootsInitResult",
+        "rootsList": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.RootsListParams.RootsListParams Xynolog.Internal.Generated.Models.RootsListResult.RootsListResult",
+        "serviceHost": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.ServiceHostParams.ServiceHostParams Xynolog.Internal.Generated.Models.ServiceHostResult.ServiceHostResult",
+        "serviceRun": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.ServiceRunParams.ServiceRunParams Xynolog.Internal.Generated.Models.ServiceRunResult.ServiceRunResult",
+        "serviceSignal": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.ServiceSignalParams.ServiceSignalParams Xynolog.Internal.Generated.Models.ServiceSignalResult.ServiceSignalResult",
+        "settingsGet": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.SettingsGetParams.SettingsGetParams Xynolog.Internal.Generated.Models.Setting.Setting",
+        "settingsList": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.SettingsListParams.SettingsListParams Xynolog.Internal.Generated.Models.SettingsListResult.SettingsListResult",
+        "settingsPath": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.SettingsPathParams.SettingsPathParams Xynolog.Internal.Generated.Models.SettingsPathResult.SettingsPathResult",
+        "settingsSet": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.SettingsSetParams.SettingsSetParams Xynolog.Internal.Generated.Models.Setting.Setting",
+        "settingsUnset": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.SettingsUnsetParams.SettingsUnsetParams Xynolog.Internal.Generated.Models.Setting.Setting",
+        "stackStart": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.StackStartParams.StackStartParams Xynolog.Internal.Generated.Models.StackStartResult.StackStartResult",
+        "stackStop": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.StackStopParams.StackStopParams Xynolog.Internal.Generated.Models.StackStopResult.StackStopResult",
+        "statusSnapshot": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.StatusSnapshotParams.StatusSnapshotParams Xynolog.Internal.Generated.Models.StatusSnapshotResult.StatusSnapshotResult"
       }
     },
     "Xynolog.Delegation": {
@@ -2240,6 +2296,25 @@
         "withReports": "Xynolog.Internal.Running.Running report result -> (Streaming.Internal.Stream (Data.Functor.Of.Of report) IO result -> IO value) -> IO value"
       }
     },
+    "Xynolog.ServiceEnvironment": {
+      "types": {},
+      "values": {
+        "jwtSecret": "String",
+        "otelBspScheduleDelay": "String",
+        "otelConsoleExporter": "String",
+        "otelExporterOtlpEndpoint": "String",
+        "otelMetricExportInterval": "String",
+        "otelMetricsExporter": "String",
+        "otelSdkDisabled": "String",
+        "otelServiceName": "String",
+        "superviseEvents": "String",
+        "superviseName": "String",
+        "xynologBusLog": "String",
+        "xynologOidcClientId": "String",
+        "xynologOidcClientKey": "String",
+        "xynologOidcClientSecret": "String"
+      }
+    },
     "Xynolog.ServiceTables": {
       "types": {},
       "values": {
@@ -2618,7 +2693,6 @@
     "Xynolog.Tables": {
       "types": {},
       "values": {
-        "controlMethods": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethods",
         "localesRegistry": "Xynolog.Internal.Generated.Models.LocalesRegistry.LocalesRegistry",
         "retryRules": "Xynolog.Internal.Generated.Models.RetryRules.RetryRules",
         "tables": "[(Data.Text.Internal.Text, Data.Aeson.Types.Internal.Value)]"
@@ -4156,22 +4230,6 @@
         },
         "ContextualSummaryResponseRelevantFields": {
           "definition": "data Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseRelevantFields = ...",
-          "kind": "*"
-        },
-        "ControlMethods": {
-          "definition": "data Xynolog.Internal.Generated.Models.ControlMethods.ControlMethods = ...",
-          "kind": "*"
-        },
-        "ControlMethodsMethodsItem": {
-          "definition": "data Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem = ...",
-          "kind": "*"
-        },
-        "ControlMethodsNotificationsItem": {
-          "definition": "data Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItem = ...",
-          "kind": "*"
-        },
-        "ControlMethodsNotificationsItemFrom": {
-          "definition": "data Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItemFrom = ...",
           "kind": "*"
         },
         "CreateAnnotationRequest": {
@@ -7330,11 +7388,6 @@
         "ContextualSummaryResponseBusEnvelope": "Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponse -> Xynolog.Internal.Generated.Models.ContextualSummaryResponseBusEnvelope.ContextualSummaryResponseBusEnvelope",
         "ContextualSummaryResponseContext": "Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseContext",
         "ContextualSummaryResponseRelevantFields": "[Data.Text.Internal.Text] -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseRelevantFields",
-        "ControlMethods": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem] -> [Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItem] -> Xynolog.Internal.Generated.Models.ControlMethods.ControlMethods",
-        "ControlMethodsMethodsItem": "Data.Text.Internal.Text -> Bool -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> [Data.Text.Internal.Text] -> Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem",
-        "ControlMethodsNotificationsItem": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItemFrom -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItem",
-        "ControlMethodsNotificationsItemFromClient": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItemFrom",
-        "ControlMethodsNotificationsItemFromLauncher": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItemFrom",
         "CreateAnnotationRequest": "Maybe Xynolog.Internal.Generated.Models.AnnotationBodies.AnnotationBodies -> Xynolog.Internal.Generated.Models.Motivation.Motivation -> Xynolog.Internal.Generated.Models.AnnotationTarget.AnnotationTarget -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.CreateAnnotationRequest.CreateAnnotationRequest",
         "CreateFromTokenOptions": "Maybe Bool -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.CreateFromTokenOptions.CreateFromTokenOptions",
         "CreateResourceResponse": "Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse",
@@ -8932,22 +8985,6 @@
         "contextualSummaryResponseRelevantFieldsResourceId": "Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseRelevantFields -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId",
         "contextualSummaryResponseRelevantFieldsResourceName": "Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseRelevantFields -> Data.Text.Internal.Text",
         "contextualSummaryResponseSummary": "Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponse -> Data.Text.Internal.Text",
-        "controlMethodsApiVersion": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethods -> Data.Text.Internal.Text",
-        "controlMethodsErrorData": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethods -> Data.Text.Internal.Text",
-        "controlMethodsMethods": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethods -> [Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem]",
-        "controlMethodsMethodsItemDocs": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem -> Data.Text.Internal.Text",
-        "controlMethodsMethodsItemExclusive": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem -> Bool",
-        "controlMethodsMethodsItemName": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem -> Data.Text.Internal.Text",
-        "controlMethodsMethodsItemParams": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem -> Data.Text.Internal.Text",
-        "controlMethodsMethodsItemResult": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem -> Data.Text.Internal.Text",
-        "controlMethodsMethodsItemSends": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsMethodsItem -> [Data.Text.Internal.Text]",
-        "controlMethodsNotifications": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethods -> [Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItem]",
-        "controlMethodsNotificationsItemDocs": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItem -> Data.Text.Internal.Text",
-        "controlMethodsNotificationsItemFrom": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItem -> Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItemFrom",
-        "controlMethodsNotificationsItemFromText": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItemFrom -> Data.Text.Internal.Text",
-        "controlMethodsNotificationsItemName": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItem -> Data.Text.Internal.Text",
-        "controlMethodsNotificationsItemParams": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethodsNotificationsItem -> Data.Text.Internal.Text",
-        "controlMethodsU24_comment": "Xynolog.Internal.Generated.Models.ControlMethods.ControlMethods -> Data.Text.Internal.Text",
         "createAnnotationRequestAdditionalProperties": "Xynolog.Internal.Generated.Models.CreateAnnotationRequest.CreateAnnotationRequest -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
         "createAnnotationRequestBody": "Xynolog.Internal.Generated.Models.CreateAnnotationRequest.CreateAnnotationRequest -> Maybe Xynolog.Internal.Generated.Models.AnnotationBodies.AnnotationBodies",
         "createAnnotationRequestMotivation": "Xynolog.Internal.Generated.Models.CreateAnnotationRequest.CreateAnnotationRequest -> Xynolog.Internal.Generated.Models.Motivation.Motivation",

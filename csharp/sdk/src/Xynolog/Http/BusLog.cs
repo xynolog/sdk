@@ -24,7 +24,7 @@ internal static class BusLog
 
     internal static void Line(string direction, string channel, JsonElement payload)
     {
-        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("XYNOLOG_BUS_LOG")))
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(global::Xynolog.Services.ServiceEnvironmentVariables.XynologBusLog)))
             Console.Error.WriteLine($"{direction} {channel} {JsonSerializer.Serialize(Shown(JsonNode.Parse(payload.GetRawText())))}");
     }
 }

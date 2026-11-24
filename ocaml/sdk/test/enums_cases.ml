@@ -1,4 +1,4 @@
-(* Generated from string enums in protocol/specs/src/components/schemas and protocol/specs/src/client, and in Protocol's tables. Do not edit.
+(* Generated from the string enums among the schemas protocol/specs/src roots, its client types and its tables. Do not edit.
    Regenerate: make generate (codegen/lib/ocaml_sdk/enums.ml) *)
 
 let () =
@@ -204,6 +204,17 @@ let () =
     (Model.of_string "tagging" = Some Model.Tagging);
   Alcotest.check Alcotest.bool "Motivation rejects unknown values" true
     (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Output_stream in
+  Alcotest.check Alcotest.string "Output_stream encode" "stdout"
+    (Model.to_string Model.Stdout);
+  Alcotest.check Alcotest.bool "Output_stream decode" true
+    (Model.of_string "stdout" = Some Model.Stdout);
+  Alcotest.check Alcotest.string "Output_stream encode" "stderr"
+    (Model.to_string Model.Stderr);
+  Alcotest.check Alcotest.bool "Output_stream decode" true
+    (Model.of_string "stderr" = Some Model.Stderr);
+  Alcotest.check Alcotest.bool "Output_stream rejects unknown values" true
+    (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Pdf_class in
   Alcotest.check Alcotest.string "Pdf_class encode" "A"
     (Model.to_string Model.A);
@@ -234,6 +245,79 @@ let () =
   Alcotest.check Alcotest.bool "Pdf_class decode" true
     (Model.of_string "G" = Some Model.G);
   Alcotest.check Alcotest.bool "Pdf_class rejects unknown values" true
+    (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Run_service in
+  Alcotest.check Alcotest.string "Run_service encode" "archivist"
+    (Model.to_string Model.Archivist);
+  Alcotest.check Alcotest.bool "Run_service decode" true
+    (Model.of_string "archivist" = Some Model.Archivist);
+  Alcotest.check Alcotest.string "Run_service encode" "dispatcher"
+    (Model.to_string Model.Dispatcher);
+  Alcotest.check Alcotest.bool "Run_service decode" true
+    (Model.of_string "dispatcher" = Some Model.Dispatcher);
+  Alcotest.check Alcotest.string "Run_service encode" "gateway"
+    (Model.to_string Model.Gateway);
+  Alcotest.check Alcotest.bool "Run_service decode" true
+    (Model.of_string "gateway" = Some Model.Gateway);
+  Alcotest.check Alcotest.string "Run_service encode" "librarian"
+    (Model.to_string Model.Librarian);
+  Alcotest.check Alcotest.bool "Run_service decode" true
+    (Model.of_string "librarian" = Some Model.Librarian);
+  Alcotest.check Alcotest.string "Run_service encode" "smelter"
+    (Model.to_string Model.Smelter);
+  Alcotest.check Alcotest.bool "Run_service decode" true
+    (Model.of_string "smelter" = Some Model.Smelter);
+  Alcotest.check Alcotest.string "Run_service encode" "weaver"
+    (Model.to_string Model.Weaver);
+  Alcotest.check Alcotest.bool "Run_service decode" true
+    (Model.of_string "weaver" = Some Model.Weaver);
+  Alcotest.check Alcotest.string "Run_service encode" "worker"
+    (Model.to_string Model.Worker);
+  Alcotest.check Alcotest.bool "Run_service decode" true
+    (Model.of_string "worker" = Some Model.Worker);
+  Alcotest.check Alcotest.bool "Run_service rejects unknown values" true
+    (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Runtime in
+  Alcotest.check Alcotest.string "Runtime encode" "container"
+    (Model.to_string Model.Container);
+  Alcotest.check Alcotest.bool "Runtime decode" true
+    (Model.of_string "container" = Some Model.Container);
+  Alcotest.check Alcotest.string "Runtime encode" "docker"
+    (Model.to_string Model.Docker);
+  Alcotest.check Alcotest.bool "Runtime decode" true
+    (Model.of_string "docker" = Some Model.Docker);
+  Alcotest.check Alcotest.string "Runtime encode" "podman"
+    (Model.to_string Model.Podman);
+  Alcotest.check Alcotest.bool "Runtime decode" true
+    (Model.of_string "podman" = Some Model.Podman);
+  Alcotest.check Alcotest.bool "Runtime rejects unknown values" true
+    (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Service_group in
+  Alcotest.check Alcotest.string "Service_group encode" "record"
+    (Model.to_string Model.Record);
+  Alcotest.check Alcotest.bool "Service_group decode" true
+    (Model.of_string "record" = Some Model.Record);
+  Alcotest.check Alcotest.string "Service_group encode" "index"
+    (Model.to_string Model.Index);
+  Alcotest.check Alcotest.bool "Service_group decode" true
+    (Model.of_string "index" = Some Model.Index);
+  Alcotest.check Alcotest.string "Service_group encode" "issuer"
+    (Model.to_string Model.Issuer);
+  Alcotest.check Alcotest.bool "Service_group decode" true
+    (Model.of_string "issuer" = Some Model.Issuer);
+  Alcotest.check Alcotest.string "Service_group encode" "knowledge-workers"
+    (Model.to_string Model.Knowledge_workers);
+  Alcotest.check Alcotest.bool "Service_group decode" true
+    (Model.of_string "knowledge-workers" = Some Model.Knowledge_workers);
+  Alcotest.check Alcotest.string "Service_group encode" "providers"
+    (Model.to_string Model.Providers);
+  Alcotest.check Alcotest.bool "Service_group decode" true
+    (Model.of_string "providers" = Some Model.Providers);
+  Alcotest.check Alcotest.string "Service_group encode" "telemetry"
+    (Model.to_string Model.Telemetry);
+  Alcotest.check Alcotest.bool "Service_group decode" true
+    (Model.of_string "telemetry" = Some Model.Telemetry);
+  Alcotest.check Alcotest.bool "Service_group rejects unknown values" true
     (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Supported_media_type in
   Alcotest.check Alcotest.string "Supported_media_type encode" "text/plain"

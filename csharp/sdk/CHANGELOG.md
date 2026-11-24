@@ -8,6 +8,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Xynolog.Control`: the launcher's control API. `ControlMethods` holds each
+  method as a `ControlMethod<TParams, TResult>` and each notification as a
+  `ControlNotification<TParams>`, typed by the models of what it carries, and
+  `ControlSender` says which side sends a notification.
+- `Xynolog.Services.ServiceEnvironmentVariables`: every environment variable a
+  Xynolog service reads, beside its configuration document, a constant of its
+  name (`XynologBusLog`). The bus log reads its variable by it.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
