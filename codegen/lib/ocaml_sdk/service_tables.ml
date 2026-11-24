@@ -11,8 +11,7 @@ let refusal file message = { Decode.file; pointer = ""; message }
 let files ~root (spec : Spec.t) =
   let specs = Filename.concat root "protocol/specs/src" in
   match M.derive specs with
-  | Error refusals ->
-      Error (List.map (refusal "protocol/specs/src") refusals)
+  | Error refusals -> Error (List.map (refusal "protocol/specs/src") refusals)
   | Ok { tables = models; harness = _ } ->
       let file path =
         match List.find_opt (fun (m : M.model) -> m.path = path) models with

@@ -127,7 +127,8 @@ let descriptor kind = O.type_ "descriptor" ~args:[ kind ]
 let fault =
   O.Record
     [
-      ("member", O.type_ "string"); ("reason", O.type_ "Enums.Frame_refusal_reason.t");
+      ("member", O.type_ "string");
+      ("reason", O.type_ "Enums.Frame_refusal_reason.t");
     ]
 
 let decode_error =

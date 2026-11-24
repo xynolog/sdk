@@ -178,16 +178,16 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "6d47c97cbc7b58eee27fb73c750b388b6c64602d29855ff499d0a70ec4af1fd1",
-    "lib/models.mli": "4a1c315687fc4edcb6ba5421d1f9c2670acfad89fa5c9ceff601b619825995f7",
+    "lib/models.ml": "1d39b856d6380f13d77d83701e7bf137205e10d18bce5dc3469cca9e26a5dc24",
+    "lib/models.mli": "35fa2c9f53789014f719199da78380507b1b70a6774a9d88e08733475c906fe5",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
     "lib/oauth.ml": "4e6262fd4cfbf51890766793943c3e8824ef2d144694aab1490c02fe9d967cc1",
     "lib/oauth.mli": "33354ccc1b0ef3a73956ede5659fa9d6440160e236d801f499e29eae10f99183",
     "lib/oauth_facts.ml": "8d318f922bc93b766445f8e0f3f0fc2deb2e9a78244e7553f717d620d69127b2",
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
-    "lib/record_reader.ml": "90484fd3889be7951cbd8684541bc1aabc7a5a4dfebac0a214c50c09cedc5e69",
-    "lib/record_reader.mli": "4a10c3b334b16345e1dc0164b900f939e04938cb0b419056fb73afe4f31fe9f9",
-    "lib/records.ml": "9d936798b03e3a1657dbe3ca079d1e6a9ec095d99c1c3d6b98fd26543dd327b7",
+    "lib/record_reader.ml": "2325b9f9a078021d3dce570c567b0d63589efc393cae6654556257bc4b2ae1b4",
+    "lib/record_reader.mli": "761755e08752a65a369ef0853c36b1db381cca4fc8f343175dc0468d7598e192",
+    "lib/records.ml": "0646e21d6eb5379664411e6e8b214b5317ebc402ced1ce4cc48400990d78b365",
     "lib/redirect_sign_in.ml": "d3b7206b16548f24a4fcf3dfa6143bc7fc8fa0fe4de2e61598a460be41c2ef6f",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
     "lib/registry.ml": "0cf4b0ccf928703ee0c0b0feab808e7a9b5047ab04867899bd1c151282ad4430",
@@ -199,9 +199,9 @@
     "lib/retry.mli": "dc9e910cc0c0ac2904e00416c4259b80deebf0fe296852bc3f0ff1adcbe3387b",
     "lib/running.ml": "d1e491aa088ca534f4668aa784ce843b98aea9c83b0dfe42c8f679dbb8c0cb03",
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
-    "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
+    "lib/schema_codec.ml": "bda0e4251a601782045bb7d211555882c26611caf92aea60f042434b8b8cfcfc",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "695ac2d6f1a201c4108b7435c8412c1cf787e07b617501fe175f762f9044420c",
+    "lib/schema_shapes.ml": "f676b81d53500a27ed4c55b7b5f938be79aa5906f9aeb0e944a399e1ff40ebbe",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "aa663f563557765b0b8bf77b32669fd1ab0f7b7e5b618eb8865445dd642dc8b6",
@@ -3403,6 +3403,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.anchor_method",
+      "declaration": "val anchor_method : [ `AnchorMethod ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.anchor_rect",
       "declaration": "val anchor_rect : [ `AnchorRect ] descriptor"
     },
@@ -3575,6 +3580,11 @@
       "kind": "value",
       "path": "Xynolog.Models.beckon_sparkle_event",
       "declaration": "val beckon_sparkle_event : [ `BeckonSparkleEvent ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.begin_authorization_options",
+      "declaration": "val begin_authorization_options : [ `BeginAuthorizationOptions ] descriptor"
     },
     {
       "kind": "value",
@@ -3853,6 +3863,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.claim_options",
+      "declaration": "val claim_options : [ `ClaimOptions ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.client_secret_form",
       "declaration": "val client_secret_form : [ `ClientSecretForm ] descriptor"
     },
@@ -3908,6 +3923,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.connection_identity",
+      "declaration": "val connection_identity : [ `ConnectionIdentity ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.content_format",
       "declaration": "val content_format : [ `ContentFormat ] descriptor"
     },
@@ -3923,6 +3943,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.create_from_token_options",
+      "declaration": "val create_from_token_options : [ `CreateFromTokenOptions ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.create_resource_response",
       "declaration": "val create_resource_response : [ `CreateResourceResponse ] descriptor"
     },
@@ -3930,6 +3955,11 @@
       "kind": "value",
       "path": "Xynolog.Models.cursors_path",
       "declaration": "val cursors_path : [ `CursorsPath ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.device_code",
+      "declaration": "val device_code : [ `DeviceCode ] descriptor"
     },
     {
       "kind": "value",
@@ -3945,6 +3975,11 @@
       "kind": "value",
       "path": "Xynolog.Models.discovered_kb",
       "declaration": "val discovered_kb : [ `DiscoveredKB ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.discovery_absent_reason",
+      "declaration": "val discovery_absent_reason : [ `DiscoveryAbsentReason ] descriptor"
     },
     {
       "kind": "value",
@@ -4028,6 +4063,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.expected",
+      "declaration": "val expected : [ `Expected ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.extracted_text",
       "declaration": "val extracted_text : [ `ExtractedText ] descriptor"
     },
@@ -4088,6 +4128,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.frame_refusal_reason",
+      "declaration": "val frame_refusal_reason : [ `FrameRefusalReason ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.gateway_config",
       "declaration": "val gateway_config : [ `GatewayConfig ] descriptor"
     },
@@ -4130,6 +4175,11 @@
       "kind": "value",
       "path": "Xynolog.Models.gather_resource_failed",
       "declaration": "val gather_resource_failed : [ `GatherResourceFailed ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.gather_resource_options",
+      "declaration": "val gather_resource_options : [ `GatherResourceOptions ] descriptor"
     },
     {
       "kind": "value",
@@ -4303,6 +4353,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.issued_tokens",
+      "declaration": "val issued_tokens : [ `IssuedTokens ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.issuer",
       "declaration": "val issuer : [ `Issuer ] descriptor"
     },
@@ -4435,6 +4490,11 @@
       "kind": "value",
       "path": "Xynolog.Models.job_pending",
       "declaration": "val job_pending : [ `JobPending ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.job_poll_options",
+      "declaration": "val job_poll_options : [ `JobPollOptions ] descriptor"
     },
     {
       "kind": "value",
@@ -4583,8 +4643,28 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.kb_identity_conflict",
+      "declaration": "val kb_identity_conflict : [ `KbIdentityConflict ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.kb_read",
       "declaration": "val kb_read : [ `KbRead ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.kb_read_kind",
+      "declaration": "val kb_read_kind : [ `KbReadKind ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.kb_read_verdict",
+      "declaration": "val kb_read_verdict : [ `KbReadVerdict ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.kb_session_status",
+      "declaration": "val kb_session_status : [ `KbSessionStatus ] descriptor"
     },
     {
       "kind": "value",
@@ -4788,6 +4868,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.match_quality",
+      "declaration": "val match_quality : [ `MatchQuality ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.match_resources_request",
       "declaration": "val match_resources_request : [ `MatchResourcesRequest ] descriptor"
     },
@@ -4805,6 +4890,11 @@
       "kind": "value",
       "path": "Xynolog.Models.match_search_failed",
       "declaration": "val match_search_failed : [ `MatchSearchFailed ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.match_search_options",
+      "declaration": "val match_search_options : [ `MatchSearchOptions ] descriptor"
     },
     {
       "kind": "value",
@@ -4903,8 +4993,23 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.pdf_coordinate",
+      "declaration": "val pdf_coordinate : [ `PdfCoordinate ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.pdf_text_item",
       "declaration": "val pdf_text_item : [ `PdfTextItem ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.pending_annotation",
+      "declaration": "val pending_annotation : [ `PendingAnnotation ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.permission_denied",
+      "declaration": "val permission_denied : [ `PermissionDenied ] descriptor"
     },
     {
       "kind": "value",
@@ -4955,6 +5060,16 @@
       "kind": "value",
       "path": "Xynolog.Models.qdrant_vectors_config",
       "declaration": "val qdrant_vectors_config : [ `QdrantVectorsConfig ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.quoted_text",
+      "declaration": "val quoted_text : [ `QuotedText ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.reconciled_span",
+      "declaration": "val reconciled_span : [ `ReconciledSpan ] descriptor"
     },
     {
       "kind": "value",
@@ -5025,6 +5140,11 @@
       "kind": "value",
       "path": "Xynolog.Models.resource_moved_payload",
       "declaration": "val resource_moved_payload : [ `ResourceMovedPayload ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.resource_search_filters",
+      "declaration": "val resource_search_filters : [ `ResourceSearchFilters ] descriptor"
     },
     {
       "kind": "value",
@@ -5198,6 +5318,16 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.session_end_reason",
+      "declaration": "val session_end_reason : [ `SessionEndReason ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.session_ended",
+      "declaration": "val session_ended : [ `SessionEnded ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.session_joined_event",
       "declaration": "val session_joined_event : [ `SessionJoinedEvent ] descriptor"
     },
@@ -5265,6 +5395,16 @@
       "kind": "value",
       "path": "Xynolog.Models.settings_unset_params",
       "declaration": "val settings_unset_params : [ `SettingsUnsetParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.sign_in_outcome",
+      "declaration": "val sign_in_outcome : [ `SignInOutcome ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.signed_in",
+      "declaration": "val signed_in : [ `SignedIn ] descriptor"
     },
     {
       "kind": "value",
@@ -5358,6 +5498,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.stored_session",
+      "declaration": "val stored_session : [ `StoredSession ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.supported_media_type",
       "declaration": "val supported_media_type : [ `SupportedMediaType ] descriptor"
     },
@@ -5365,6 +5510,16 @@
       "kind": "value",
       "path": "Xynolog.Models.svg_selector",
       "declaration": "val svg_selector : [ `SvgSelector ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.tab_check",
+      "declaration": "val tab_check : [ `TabCheck ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.tab_verdict",
+      "declaration": "val tab_verdict : [ `TabVerdict ] descriptor"
     },
     {
       "kind": "value",
@@ -5408,6 +5563,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.text_span",
+      "declaration": "val text_span : [ `TextSpan ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.textual_body",
       "declaration": "val textual_body : [ `TextualBody ] descriptor"
     },
@@ -5420,6 +5580,11 @@
       "kind": "value",
       "path": "Xynolog.Models.update_annotation_body_request",
       "declaration": "val update_annotation_body_request :\n  [ `UpdateAnnotationBodyRequest ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.upload_progress",
+      "declaration": "val upload_progress : [ `UploadProgress ] descriptor"
     },
     {
       "kind": "value",
@@ -24445,34 +24610,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Pending_authorization_issuer",
-      "declaration": "module Pending_authorization_issuer :\n  sig\n    type t = {\n      issuer : string;\n      authorization : string;\n      token : string;\n      device : string option;\n      revocation : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Pending_authorization_issuer.t",
-      "declaration": "type t = {\n  issuer : string;\n  authorization : string;\n  token : string;\n  device : string option;\n  revocation : string option;\n}",
-      "representation": "record",
-      "fields": [
-        "issuer",
-        "authorization",
-        "token",
-        "device",
-        "revocation"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Pending_authorization_issuer.of_json",
-      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Pending_authorization_issuer.to_json",
-      "declaration": "val to_json : t -> Yojson.Safe.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Connection_identity",
       "declaration": "module Connection_identity :\n  sig\n    type t = {\n      did : string;\n      description : [ `KbDescription ] Xynolog__.Models.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -24713,27 +24850,6 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Stored_session.to_json",
-      "declaration": "val to_json : t -> Yojson.Safe.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Last_event_ids",
-      "declaration": "module Last_event_ids :\n  sig\n    type t = (string * string) list\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Last_event_ids.t",
-      "declaration": "type t = (string * string) list",
-      "representation": "abstract"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Last_event_ids.of_json",
-      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Last_event_ids.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -25259,37 +25375,6 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Sign_in_outcome.to_json",
-      "declaration": "val to_json : t -> Yojson.Safe.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Pending_authorization",
-      "declaration": "module Pending_authorization :\n  sig\n    type t = {\n      state : string;\n      verifier : string;\n      redirect_uri : string;\n      target : [ `HttpEndpoint ] Xynolog__.Models.t;\n      issuer : Pending_authorization_issuer.t;\n      kb_id : string option;\n      expected_did : string option;\n      expected_name : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Pending_authorization.t",
-      "declaration": "type t = {\n  state : string;\n  verifier : string;\n  redirect_uri : string;\n  target : [ `HttpEndpoint ] Xynolog__.Models.t;\n  issuer : Pending_authorization_issuer.t;\n  kb_id : string option;\n  expected_did : string option;\n  expected_name : string option;\n}",
-      "representation": "record",
-      "fields": [
-        "state",
-        "verifier",
-        "redirect_uri",
-        "target",
-        "issuer",
-        "kb_id",
-        "expected_did",
-        "expected_name"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Pending_authorization.of_json",
-      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Pending_authorization.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {

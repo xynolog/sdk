@@ -48,7 +48,8 @@ type scalar =
   | Int
   | Float
   | Enum of string  (** its module *)
-  | Stated of Enums.enum  (** an enum stated in place, its module the member's *)
+  | Stated of Enums.enum
+      (** an enum stated in place, its module the member's *)
   | Nested of string  (** the module of the record component it names *)
 
 type value = Scalar of scalar | List of scalar
@@ -56,6 +57,7 @@ type value = Scalar of scalar | List of scalar
 (* A member's schema as it is read: a value, null beside it or not, or
    raw. *)
 type member = Typed of { value : value; nullable : bool } | Raw_member
+
 type 'member composed = {
   properties : (string * 'member) list;
   required : string list;
@@ -93,16 +95,13 @@ let scalar_of_type ?module_ (l : Schema.t Schema.layer) =
   | _ -> None
 
 (* [record_of file] is the module of the record component [file] is. *)
-let scalar_of ?module_ ~record_of (spec : Spec.t) (l : Schema.t Schema.layer)
-    =
+let scalar_of ?module_ ~record_of (spec : Spec.t) (l : Schema.t Schema.layer) =
   match l.ref_ with
   | None -> scalar_of_type ?module_ l
   | Some r -> (
       match Decode.resolve spec.Spec.ids r with
       | file, "" -> (
-          match
-            (record_of file, List.assoc_opt file spec.schemas)
-          with
+          match (record_of file, List.assoc_opt file spec.schemas) with
           | Some module_, _ -> Some (Nested module_)
           | None, Some (Schema.Schema target as schema) -> (
               match Enums.component file schema with
@@ -120,9 +119,13 @@ let member_of ~record_of spec name = function
           match l with
           | { Schema.type_ = Some [ Array ]; items = Some (Schema.Schema i); _ }
             ->
-              Option.map (fun s -> List s) (scalar_of ~module_ ~record_of spec i)
+              Option.map
+                (fun s -> List s)
+                (scalar_of ~module_ ~record_of spec i)
           | _ ->
-              Option.map (fun s -> Scalar s) (scalar_of ~module_ ~record_of spec l)
+              Option.map
+                (fun s -> Scalar s)
+                (scalar_of ~module_ ~record_of spec l)
         in
         match value with
         | Some value -> Typed { value; nullable }
@@ -207,7 +210,8 @@ type tabled = {
 
 and form =
   | Fields of field list
-  | Map of base  (** each member's value, the member named as the caller chooses *)
+  | Map of base
+      (** each member's value, the member named as the caller chooses *)
   | Variants of { property : string; variants : variant list }
 
 and variant = { tag : string; constructor : string; fields : field list }
@@ -268,43 +272,43 @@ let tabled (spec : Spec.t) table =
      stated in place is a record of its own, [named]. *)
   let rec base_of key at ~named schema =
     match schema with
-      | Schema.Schema { ref_ = Some r; _ } -> (
-          let target = Table_records.key spec.Spec.ids r in
-          match (enum_of target, module_of target, component target) with
-          | Some m, _, _ -> (Enum_base m, None)
-          | None, Some m, _ -> (Record_base m, Some m)
-          | ( None,
-              None,
-              Some (_, Schema.Schema { type_ = Some [ String ]; enum = None; _ })
-            ) ->
-              (Text_base, None)
-          | None, None, Some (component, _) -> (Model_base component, None)
-          | None, None, None ->
-              refuse key at "names no schema the OCaml SDK has a type for")
-      | Schema.Schema { type_ = Some [ String ]; enum = None; _ } ->
-          (Text_base, None)
-      | Schema.Schema { type_ = Some [ Boolean ]; _ } -> (Bool_base, None)
-      | Schema.Schema { type_ = Some [ Integer ]; _ } -> (Int_base, None)
-      | Schema.Schema { type_ = Some [ Number ]; _ } -> (Float_base, None)
-      | Schema.Schema { type_ = Some [ Array ]; items = Some items; _ } ->
-          let item, need = base_of key at ~named items in
-          (List_base item, need)
-      | Schema.Schema
-          {
-            ref_ = None;
-            type_ = Some [ Object ];
-            properties = Some properties;
-            required;
-            _;
-          } ->
-          let fields, needs =
-            members key at ~owner:named
-              ~required:(Option.value ~default:[] required)
-              properties
-          in
-          stated := { module_ = named; form = Fields fields; needs } :: !stated;
-          (Record_base named, Some named)
-      | _ -> refuse key at "is no member the OCaml SDK has a type for"
+    | Schema.Schema { ref_ = Some r; _ } -> (
+        let target = Table_records.key spec.Spec.ids r in
+        match (enum_of target, module_of target, component target) with
+        | Some m, _, _ -> (Enum_base m, None)
+        | None, Some m, _ -> (Record_base m, Some m)
+        | ( None,
+            None,
+            Some (_, Schema.Schema { type_ = Some [ String ]; enum = None; _ })
+          ) ->
+            (Text_base, None)
+        | None, None, Some (component, _) -> (Model_base component, None)
+        | None, None, None ->
+            refuse key at "names no schema the OCaml SDK has a type for")
+    | Schema.Schema { type_ = Some [ String ]; enum = None; _ } ->
+        (Text_base, None)
+    | Schema.Schema { type_ = Some [ Boolean ]; _ } -> (Bool_base, None)
+    | Schema.Schema { type_ = Some [ Integer ]; _ } -> (Int_base, None)
+    | Schema.Schema { type_ = Some [ Number ]; _ } -> (Float_base, None)
+    | Schema.Schema { type_ = Some [ Array ]; items = Some items; _ } ->
+        let item, need = base_of key at ~named items in
+        (List_base item, need)
+    | Schema.Schema
+        {
+          ref_ = None;
+          type_ = Some [ Object ];
+          properties = Some properties;
+          required;
+          _;
+        } ->
+        let fields, needs =
+          members key at ~owner:named
+            ~required:(Option.value ~default:[] required)
+            properties
+        in
+        stated := { module_ = named; form = Fields fields; needs } :: !stated;
+        (Record_base named, Some named)
+    | _ -> refuse key at "is no member the OCaml SDK has a type for"
   (* A member, and the module of the table record it names. *)
   and member key at ~owner ~required (name, schema) =
     let at = at ^ "/properties/" ^ Decode.escape name in
@@ -321,7 +325,8 @@ let tabled (spec : Spec.t) table =
       base_of key at ~named:(owner ^ "_" ^ field_name name) schema
     in
     let required = List.mem name required in
-    if (not required) && nullable then refuse key at "may be both absent and null";
+    if (not required) && nullable then
+      refuse key at "may be both absent and null";
     ({ json = name; label = field_name name; base; required; nullable }, need)
   and members key at ~owner ~required properties =
     let typed = List.map (member key at ~owner ~required) properties in
@@ -471,8 +476,9 @@ let ordered spec ~record_of shapes =
     let rec go m =
       m = target
       || (not (Hashtbl.mem seen m))
-         && (Hashtbl.replace seen m ();
-             List.exists go (names m))
+         &&
+         (Hashtbl.replace seen m ();
+          List.exists go (names m))
     in
     List.exists go (names from)
   in
@@ -741,8 +747,21 @@ let field_type f =
    may shadow. *)
 let codec_names =
   [
-    "members"; "tag"; "string"; "bool"; "int"; "float"; "enum"; "record";
-    "model"; "list"; "map"; "nullable"; "required"; "optional"; "malformed";
+    "members";
+    "tag";
+    "string";
+    "bool";
+    "int";
+    "float";
+    "enum";
+    "record";
+    "model";
+    "list";
+    "map";
+    "nullable";
+    "required";
+    "optional";
+    "malformed";
     "write";
   ]
 
@@ -867,12 +886,12 @@ let files (records, unions, tabled) =
       (List.map Enums.impl
          (List.concat_map (fun (_, member) -> stated member) r.shape.properties)
       @ [
-        O.type_item t;
-        project;
-        of_model r.name (O.call "project" [ model_fields ]);
-        to_json;
-        to_model r.name;
-      ])
+          O.type_item t;
+          project;
+          of_model r.name (O.call "project" [ model_fields ]);
+          to_json;
+          to_model r.name;
+        ])
   in
   let union u =
     let m = Enums.module_name u.name in
@@ -947,7 +966,9 @@ let files (records, unions, tabled) =
                   variants))
     in
     let built constructor fields =
-      let record = O.record (List.map (fun f -> (f.label, O.ident f.label)) fields) in
+      let record =
+        O.record (List.map (fun f -> (f.label, O.ident f.label)) fields)
+      in
       O.construct "Ok"
         ~arg:
           (match constructor with
@@ -970,7 +991,10 @@ let files (records, unions, tabled) =
                       (read_fields t.module_ v.fields
                          (built (Some v.constructor) v.fields)))
                   variants
-               @ [ O.case O.Pattern.any (O.call "malformed" [ O.string property ]) ]))
+               @ [
+                   O.case O.Pattern.any
+                     (O.call "malformed" [ O.string property ]);
+                 ]))
     in
     let json = O.type_ "Yojson.Safe.t" in
     let of_json =
@@ -994,7 +1018,8 @@ let files (records, unions, tabled) =
         (O.open_in "Table_codec"
            (match t.form with
            | Fields fields ->
-               O.fun_ [ O.Pattern.var "value" ]
+               O.fun_
+                 [ O.Pattern.var "value" ]
                  (O.call "write" [ O.list (written_fields value fields) ])
            | Map base -> O.call "json_map" [ base_writer base ]
            | Variants { property; variants } ->
@@ -1020,8 +1045,7 @@ let files (records, unions, tabled) =
                              [ O.list (tag :: written_fields value v.fields) ]))
                     variants)))
     in
-    O.module_ t.module_
-      [ O.type_item declaration; of_json; to_json ]
+    O.module_ t.module_ [ O.type_item declaration; of_json; to_json ]
   in
   let entries =
     List.map record records @ List.map union unions @ List.map table tabled
