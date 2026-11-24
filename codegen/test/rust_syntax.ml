@@ -261,7 +261,7 @@ let cases =
       (writes "pub struct A;\n"
          (file
             [
-              R.Unit_struct { doc = []; vis = Pub; name = "A" };
+              R.Unit_struct { doc = []; attrs = []; vis = Pub; name = "A" };
               R.Blank;
               R.Blank;
             ]));

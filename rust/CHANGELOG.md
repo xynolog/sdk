@@ -22,8 +22,7 @@ the coming release's, and gathers its changes as they land.
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
 - A generated type derives `Eq` and `Hash` wherever none of its members is a
-  floating-point number, and `Default` when every member is optional. A
-  property that admits one integer is a constant (`DiscoveryDocument::VERSION`).
+  floating-point number, and `Default` when every member is optional.
 - `Claims::health(engine)` composes the generated `WorkerEngineHealth` from the
   engine, the jobs the worker claims and its vitals, with times at the
   millisecond.
@@ -61,6 +60,12 @@ the coming release's, and gathers its changes as they land.
   (`Job::JobPending`, `ConformanceStep::ConformanceBusFetch`,
   `Agent::AgentPerson`), as every SDK names it, where the prefix its members'
   names share was stripped (`Job::Pending`).
+- A property that admits one integer or boolean is a type of that value
+  alone (`DiscoveryDocumentVersion`, `JobDeclinedDeclined`), as Go declares
+  it: it is written as that value, and a value stating another is refused
+  where it was read. Its value is the type's `VALUE`
+  (`DiscoveryDocumentVersion::VALUE`), and the struct's constructor states it
+  (`ConformanceDriverLineAbandoned::new(id)`).
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - The smelter's and the weaver's health name how far they have followed the

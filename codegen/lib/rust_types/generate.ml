@@ -64,23 +64,17 @@ let describe description = doc_of description
 
 (* An integer's type: the narrowest its bounds allow of [u16], [u64] and
    [i64]. *)
-let integer_ty ~minimum ~maximum =
+let integer ~minimum ~maximum =
   let int = function
     | Some f when Float.is_integer f -> Some (int_of_float f)
     | _ -> None
   in
-  ty
-    (match (int minimum, int maximum) with
-    | Some min, Some max when min >= 0 && max <= 65535 -> "u16"
-    | Some min, _ when min >= 0 -> "u64"
-    | _ -> "i64")
+  match (int minimum, int maximum) with
+  | Some min, Some max when min >= 0 && max <= 65535 -> "u16"
+  | Some min, _ when min >= 0 -> "u64"
+  | _ -> "i64"
 
-let only_integer (m : T.member) =
-  match (m.fixed, m.ty) with
-  | ( Some (Schema.Int_literal n),
-      T.Inline { form = T.Enum { base = Some (T.Integer _); _ }; _ } ) ->
-      Some n
-  | _ -> None
+let integer_ty ~minimum ~maximum = ty (integer ~minimum ~maximum)
 
 let derive paths =
   R.List
@@ -313,11 +307,7 @@ and in_place st what (i : T.inline) =
   | _, Some _ | T.Record _, None -> declared st i
   | T.Union u, None ->
       if Deviations.text_union u then string_ty else declared st i
-  | T.Enum { base = Some (T.Text _); _ }, None -> declared st i
-  | T.Enum { base = Some (T.Integer { minimum; maximum }); _ }, None ->
-      integer_ty ~minimum ~maximum
-  | T.Enum { base = Some T.Boolean; _ }, None -> ty "bool"
-  | T.Enum { base = Some T.Number; _ }, None -> ty "f64"
+  | T.Enum { base = Some _; _ }, None -> declared st i
   | T.Empty _, None when Deviations.closed_empty_named i.form -> declared st i
   | (T.Empty _ as form), None when T.holds_none form -> empty st
   | T.Empty _, None ->
@@ -341,7 +331,19 @@ and declaration st name (form : T.form) doc =
              | _ -> refuse "%s: an enum value is not a string" name)
            values)
         doc
-  | T.Enum _ -> refuse "%s: only string enumerations are generated" name
+  | T.Enum
+      {
+        base = Some (T.Integer { minimum; maximum });
+        values = [ Schema.Int_literal n ];
+      } ->
+      constant name (integer ~minimum ~maximum) (R.Int n) doc
+  | T.Enum { base = Some T.Boolean; values = [ Schema.Bool_literal b ] } ->
+      constant name "bool" (R.Bool b) doc
+  | T.Enum _ ->
+      refuse
+        "%s: only an enumeration of strings, or one integer or boolean, is \
+         generated"
+        name
   | T.Identifier { pattern } -> identifier name pattern doc
   | T.Alias (T.Scalar (T.Text _)) -> alias string_ty
   | T.Alias (T.Scalar (T.Integer { minimum; maximum })) ->
@@ -357,6 +359,35 @@ and declaration st name (form : T.form) doc =
   | T.Record { members; rest } -> structure st name members rest doc
   | T.Empty { rest; _ } -> structure st name [] rest doc
   | T.Alias _ | T.Json -> shape name
+
+(* A schema of one integer or boolean: a type of no value of its own, which
+   types.rs's [constant!] writes as that one and reads from it alone. *)
+and constant name kind value doc =
+  [
+    R.Unit_struct
+      {
+        doc;
+        attrs =
+          [
+            derive
+              [
+                "Debug";
+                "Clone";
+                "Copy";
+                "Default";
+                "PartialEq";
+                "Eq";
+                "PartialOrd";
+                "Ord";
+                "Hash";
+              ];
+          ];
+        vis = Pub;
+        name;
+      };
+    R.Blank;
+    R.Macro_item ("constant", [ R.p name; R.p kind; value ]);
+  ]
 
 and enumeration name values doc =
   let variants = List.map (fun v -> (v, Naming.variant v)) values in
@@ -633,12 +664,10 @@ and structure st name (members : T.member list) (rest : T.rest) doc =
   in
   let parameters = ref []
   and set = ref []
-  and consts = ref []
   and optional = ref 0
   and single_valued = ref 0 in
   let add_param p = parameters := !parameters @ [ p ] in
   let add_set s = set := !set @ [ s ] in
-  let add_const c = consts := !consts @ [ c ] in
   let option t = generic "Option" [ t ] in
   let skip = R.Name_value ("skip_serializing_if", R.Str "Option::is_none") in
   let rust_fields =
@@ -659,41 +688,26 @@ and structure st name (members : T.member list) (rest : T.rest) doc =
             ~doc:(describe m.node_description)
             ~attrs:(renamed @ attrs) field t
         in
-        match (m.fixed, only_integer m) with
+        let type_name () =
+          match rust_type with
+          | R.Named ([ t ], []) -> t
+          | _ -> refuse "%s.%s: one value of no type of its own" name property
+        in
+        match m.fixed with
         | _ when is_required && nullable ->
             add_param (R.Param (field, option rust_type));
             add_set (field, R.p field);
             make [] (option rust_type)
-        | Some (Schema.String_literal value), _ when is_required ->
+        | Some (Schema.String_literal value) when is_required ->
             (* A property that admits one value says which member of a union
                this is. It is the type's to state, not its maker's. *)
             incr single_valued;
-            let type_name =
-              match rust_type with
-              | R.Named ([ t ], []) -> t
-              | _ -> refuse "%s.%s: one value of no enumeration" name property
-            in
-            add_set (field, path [ type_name; Naming.variant value ]);
+            add_set (field, path [ type_name (); Naming.variant value ]);
             make [] rust_type
-        | _, Some number when is_required ->
-            (* A property that admits one number states that number, which the
-               type names as a constant for a reader to compare with. *)
+        | Some (Schema.Int_literal _ | Schema.Bool_literal _) when is_required
+          ->
             incr single_valued;
-            let constant = R.screaming property in
-            add_const
-              (R.I_const
-                 {
-                   doc =
-                     [
-                       Printf.sprintf "The one `%s` a `%s` states." property
-                         name;
-                     ];
-                   vis = Pub;
-                   name = constant;
-                   ty = rust_type;
-                   value = Some (R.Int number);
-                 });
-            add_set (field, path [ "Self"; constant ]);
+            add_set (field, R.p (type_name ()));
             make [] rust_type
         | _ when is_required && rust_type = string_ty ->
             add_param
@@ -781,27 +795,26 @@ and structure st name (members : T.member list) (rest : T.rest) doc =
       ([ declared ] @ default
       @ [
           impl (ty name)
-            ((match !consts with [] -> [] | cs -> cs @ [ R.I_blank ])
-            @ [
-                R.I_fn
-                  (R.fn_
-                     ~doc:
-                       [
-                         Printf.sprintf
-                           "The `%s` that states %s and nothing else." name
-                           (if !parameters = [] then "what it must" else "these");
-                       ]
-                     ~attrs:
-                       (if List.length !parameters > 7 then
-                          [
-                            R.List
-                              ( [ "allow" ],
-                                [ R.Word [ "clippy"; "too_many_arguments" ] ] );
-                          ]
-                        else [])
-                     ~vis:Pub "new" ~params:!parameters ~ret:(ty "Self")
-                     [ R.Tail (R.Struct ([ "Self" ], !set, None)) ]);
-              ]);
+            [
+              R.I_fn
+                (R.fn_
+                   ~doc:
+                     [
+                       Printf.sprintf
+                         "The `%s` that states %s and nothing else." name
+                         (if !parameters = [] then "what it must" else "these");
+                     ]
+                   ~attrs:
+                     (if List.length !parameters > 7 then
+                        [
+                          R.List
+                            ( [ "allow" ],
+                              [ R.Word [ "clippy"; "too_many_arguments" ] ] );
+                        ]
+                      else [])
+                   ~vis:Pub "new" ~params:!parameters ~ret:(ty "Self")
+                   [ R.Tail (R.Struct ([ "Self" ], !set, None)) ]);
+            ];
         ]))
   else [ declared; R.Blank ]
 

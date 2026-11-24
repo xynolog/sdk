@@ -210,7 +210,12 @@ let method_items spec (m : C.methods_item) =
   let marker = Text.pascal m.name in
   [
     R.Unit_struct
-      { doc = [ "`" ^ m.name ^ "`: " ^ m.docs ]; vis = Pub; name = marker };
+      {
+        attrs = [];
+        doc = [ "`" ^ m.name ^ "`: " ^ m.docs ];
+        vis = Pub;
+        name = marker;
+      };
     R.Impl
       {
         generics = [];
@@ -232,7 +237,12 @@ let notification_items spec (n : C.notifications_item) =
   let marker = Text.pascal n.name in
   [
     R.Unit_struct
-      { doc = [ "`" ^ n.name ^ "`: " ^ n.docs ]; vis = Pub; name = marker };
+      {
+        attrs = [];
+        doc = [ "`" ^ n.name ^ "`: " ^ n.docs ];
+        vis = Pub;
+        name = marker;
+      };
     R.Impl
       {
         generics = [];

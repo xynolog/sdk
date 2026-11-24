@@ -61,6 +61,39 @@ macro_rules! member {
     };
 }
 
+/// `$name` is the one value `$value` of `$kind`: written as it, and read
+/// from it alone. Exported as `schema!` is.
+#[macro_export]
+macro_rules! constant {
+    ($name:ident, $kind:ty, $value:expr) => {
+        impl $name {
+            /// The one value it is.
+            pub const VALUE: $kind = $value;
+        }
+
+        impl serde::Serialize for $name {
+            fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                serde::Serialize::serialize(&Self::VALUE, serializer)
+            }
+        }
+
+        impl<'de> serde::Deserialize<'de> for $name {
+            fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+                let value = <$kind as serde::Deserialize>::deserialize(deserializer)?;
+                if value == Self::VALUE {
+                    Ok($name)
+                } else {
+                    Err(serde::de::Error::custom(format_args!(
+                        "{value}, where {} is {}",
+                        stringify!($name),
+                        Self::VALUE
+                    )))
+                }
+            }
+        }
+    };
+}
+
 include!("generated/types.rs");
 
 /// A type generated from a component schema, which it names.

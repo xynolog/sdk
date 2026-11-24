@@ -6,9 +6,11 @@
 use serde_json::{Value, json};
 use xynolog::bus::operation;
 use xynolog::types::{
-    HighlightingJobParams, Job, JobCreateCommand, JobFilter, JobQueuedEvent, JobResult,
-    JobStoredProgress, JobStoredResult, LinkingJobParams, MarkJobCreateCommand, MarkJobFilter,
-    MarkJobFilterParams, MarkJobParams, Motivation, TaggingJobParams, YieldJobFilter,
+    AnchoredTextDeclinedEntry, AnchoredTextDeclinedEntryV, ExtractionDeclinedReason,
+    HighlightingJobParams, Job, JobCreateCommand, JobDeclined, JobDeclinedReason, JobFilter,
+    JobQueuedEvent, JobResult, JobStoredProgress, JobStoredResult, LinkingJobParams,
+    MarkJobCreateCommand, MarkJobFilter, MarkJobFilterParams, MarkJobParams, Motivation,
+    TaggingJobParams, YieldJobFilter,
 };
 
 fn metadata() -> Value {
@@ -125,6 +127,45 @@ fn a_result_is_one_of_three_told_apart_by_what_each_alone_carries() {
     ] {
         assert!(result(none.clone()).is_err(), "{none} decoded as a result");
     }
+}
+
+/// A property that admits one value is a type of that value alone: it is
+/// written as that value, and a value that states another is no value of it.
+#[test]
+fn a_property_of_one_value_is_written_as_it_and_read_from_it_alone() {
+    let declined = JobDeclined::new(JobDeclinedReason::NoTextLayer);
+    assert_eq!(
+        serde_json::to_value(&declined).expect("a decline writes"),
+        json!({ "declined": true, "reason": "no-text-layer" })
+    );
+    assert!(
+        serde_json::from_value::<JobDeclined>(
+            json!({ "declined": false, "reason": "no-text-layer" })
+        )
+        .is_err(),
+        "a decline that is not declined is read"
+    );
+    assert!(
+        serde_json::from_value::<JobDeclined>(
+            json!({ "declined": "true", "reason": "no-text-layer" })
+        )
+        .is_err(),
+        "a decline whose `declined` is text is read"
+    );
+
+    let entry = AnchoredTextDeclinedEntry::new("stamp", ExtractionDeclinedReason::NoTextLayer);
+    let wire = serde_json::to_value(&entry).expect("an entry writes");
+    assert_eq!(wire["v"], json!(AnchoredTextDeclinedEntryV::VALUE));
+    assert_eq!(
+        serde_json::from_value::<AnchoredTextDeclinedEntry>(wire.clone()).expect("an entry reads"),
+        entry
+    );
+    let mut other = wire;
+    other["v"] = json!(AnchoredTextDeclinedEntryV::VALUE + 1);
+    assert!(
+        serde_json::from_value::<AnchoredTextDeclinedEntry>(other).is_err(),
+        "an entry of another format is read"
+    );
 }
 
 /// A job description is told apart by a property, and a value is decoded as

@@ -53,10 +53,6 @@ let closed_empty_named (form : T.form) =
    null alike (a pointer, [T | None]), where [Typing] has them apart
    ([member.required], [Nullable]). *)
 
-(* Rust holds an enumeration in place of integers, numbers or booleans as
-   its scalar, dropping its values, where [Typing] has the enumeration, as
-   Go declares it and Python and TypeScript hold it as its literals. *)
-
 (* TypeScript writes every schema in place as what it holds, and Python a
    union in place but one a list holds, naming none of what [Typing]
    invents. *)

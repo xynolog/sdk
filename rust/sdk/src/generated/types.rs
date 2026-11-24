@@ -402,7 +402,7 @@ schema!(AnchoredTextAnswer);
 #[serde(deny_unknown_fields)]
 pub struct AnchoredTextDeclinedEntry {
     /// The entry format.
-    pub v: i64,
+    pub v: AnchoredTextDeclinedEntryV,
     /// The stamp the entry was derived under: the PDF reader's and the OCR engine's. A reader takes the entry only when it equals the stamp the Smelter last stated.
     pub stamp: String,
     /// Why extraction yielded nothing, by class.
@@ -410,13 +410,10 @@ pub struct AnchoredTextDeclinedEntry {
 }
 
 impl AnchoredTextDeclinedEntry {
-    /// The one `v` a `AnchoredTextDeclinedEntry` states.
-    pub const V: i64 = 3;
-
     /// The `AnchoredTextDeclinedEntry` that states these and nothing else.
     pub fn new(stamp: impl Into<String>, declined: ExtractionDeclinedReason) -> Self {
         Self {
-            v: Self::V,
+            v: AnchoredTextDeclinedEntryV,
             stamp: stamp.into(),
             declined,
         }
@@ -424,6 +421,12 @@ impl AnchoredTextDeclinedEntry {
 }
 
 schema!(AnchoredTextDeclinedEntry);
+
+/// The entry format.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct AnchoredTextDeclinedEntryV;
+
+constant!(AnchoredTextDeclinedEntryV, i64, 3);
 
 /// The keys of the entries the anchored-text store holds under the stamp last stated: one checksum for each set of bytes whose text is stored, in no order.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -455,7 +458,7 @@ schema!(AnchoredTextEntry);
 #[serde(deny_unknown_fields)]
 pub struct AnchoredTextExtractedEntry {
     /// The entry format.
-    pub v: i64,
+    pub v: AnchoredTextExtractedEntryV,
     /// The stamp the entry was derived under: the PDF reader's and the OCR engine's. A reader takes the entry only when it equals the stamp the Smelter last stated.
     pub stamp: String,
     /// The extracted text.
@@ -479,9 +482,6 @@ pub struct AnchoredTextExtractedEntry {
 }
 
 impl AnchoredTextExtractedEntry {
-    /// The one `v` a `AnchoredTextExtractedEntry` states.
-    pub const V: i64 = 3;
-
     /// The `AnchoredTextExtractedEntry` that states these and nothing else.
     pub fn new(
         stamp: impl Into<String>,
@@ -490,7 +490,7 @@ impl AnchoredTextExtractedEntry {
         method: ExtractionMethod,
     ) -> Self {
         Self {
-            v: Self::V,
+            v: AnchoredTextExtractedEntryV,
             stamp: stamp.into(),
             text: text.into(),
             lines,
@@ -517,6 +517,12 @@ pub struct AnchoredTextExtractedEntryLinesItem {
     /// Each word as `[x, width, start, end]`: its horizontal position and width in PDF points, and the offsets of its text in `text`, which are whole numbers of Unicode code points from the start of `text`.
     pub words: Vec<Vec<f64>>,
 }
+
+/// The entry format.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct AnchoredTextExtractedEntryV;
+
+constant!(AnchoredTextExtractedEntryV, i64, 3);
 
 /// The stamp an anchored-text store's entries are taken under: which PDF reader and which OCR engine derived them. Its writer states it before it writes or lists an entry; an entry stored under another stamp is answered to no reader.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -3344,7 +3350,7 @@ pub struct ConformanceCase {
     pub tier: Option<ConformanceCaseTier>,
     /// Run the client exporting to an OTLP receiver, and once it has exited hold what it exported to specs/src/sdk-telemetry/telemetry.json. A worker case also holds the worker to a trace of its own for each job it ran (conformance/worker/README.md).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub telemetry: Option<bool>,
+    pub telemetry: Option<ConformanceCaseTelemetry>,
     /// The steps, run in order.
     pub steps: Vec<ConformanceStep>,
 }
@@ -3388,6 +3394,12 @@ impl ConformanceCasePlanesItem {
         }
     }
 }
+
+/// Run the client exporting to an OTLP receiver, and once it has exited hold what it exported to specs/src/sdk-telemetry/telemetry.json. A worker case also holds the worker to a trace of its own for each job it ran (conformance/worker/README.md).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ConformanceCaseTelemetry;
+
+constant!(ConformanceCaseTelemetry, bool, true);
 
 /// A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does.
 #[derive(
@@ -3441,8 +3453,24 @@ pub struct ConformanceDriverLineAbandoned {
     /// The operation's id.
     pub id: u64,
     /// It was abandoned.
-    pub abandoned: bool,
+    pub abandoned: ConformanceDriverLineAbandonedAbandoned,
 }
+
+impl ConformanceDriverLineAbandoned {
+    /// The `ConformanceDriverLineAbandoned` that states these and nothing else.
+    pub fn new(id: u64) -> Self {
+        Self {
+            id,
+            abandoned: ConformanceDriverLineAbandonedAbandoned,
+        }
+    }
+}
+
+/// It was abandoned.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ConformanceDriverLineAbandonedAbandoned;
+
+constant!(ConformanceDriverLineAbandonedAbandoned, bool, true);
 
 /// A worker driver: its worker claimed a job.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -3701,8 +3729,29 @@ pub struct ConformanceDriverLineProgressProgress {
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineReady {
     /// Written once.
-    pub ready: bool,
+    pub ready: ConformanceDriverLineReadyReady,
 }
+
+impl Default for ConformanceDriverLineReady {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ConformanceDriverLineReady {
+    /// The `ConformanceDriverLineReady` that states what it must and nothing else.
+    pub fn new() -> Self {
+        Self {
+            ready: ConformanceDriverLineReadyReady,
+        }
+    }
+}
+
+/// Written once.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ConformanceDriverLineReadyReady;
+
+constant!(ConformanceDriverLineReadyReady, bool, true);
 
 /// A worker driver: a claim was refused.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -3743,8 +3792,24 @@ pub struct ConformanceDriverLineUnsupported {
     /// The operation's id.
     pub id: u64,
     /// It has none.
-    pub unsupported: bool,
+    pub unsupported: ConformanceDriverLineUnsupportedUnsupported,
 }
+
+impl ConformanceDriverLineUnsupported {
+    /// The `ConformanceDriverLineUnsupported` that states these and nothing else.
+    pub fn new(id: u64) -> Self {
+        Self {
+            id,
+            unsupported: ConformanceDriverLineUnsupportedUnsupported,
+        }
+    }
+}
+
+/// It has none.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ConformanceDriverLineUnsupportedUnsupported;
+
+constant!(ConformanceDriverLineUnsupportedUnsupported, bool, true);
 
 /// A failure as an SDK reports it to the suite (conformance/sdk/README.md, "The driver protocol"): its code, the status when a server stated one, and a job failure's class when it has one; and the SDK's own words for it.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -4249,7 +4314,7 @@ pub struct ConformanceStepSettles {
     pub fails: Option<serde_json::Value>,
     /// It ended because the case abandoned it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub abandoned: Option<bool>,
+    pub abandoned: Option<ConformanceStepSettlesAbandoned>,
 }
 
 impl ConformanceStepSettles {
@@ -4263,6 +4328,12 @@ impl ConformanceStepSettles {
         }
     }
 }
+
+/// It ended because the case abandoned it.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ConformanceStepSettlesAbandoned;
+
+constant!(ConformanceStepSettlesAbandoned, bool, true);
 
 /// A worker case: the next held job whose cancellation the worker says was signalled.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -4746,25 +4817,28 @@ impl DiscoveredKBPlacement {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct DiscoveryDocument {
     /// Document schema version. Consumers MUST check it and ignore documents they do not understand.
-    pub version: i64,
+    pub version: DiscoveryDocumentVersion,
     /// Every KB the launcher currently manages, local and forwarded
     pub kbs: Vec<DiscoveredKB>,
 }
 
 impl DiscoveryDocument {
-    /// The one `version` a `DiscoveryDocument` states.
-    pub const VERSION: i64 = 1;
-
     /// The `DiscoveryDocument` that states these and nothing else.
     pub fn new(kbs: Vec<DiscoveredKB>) -> Self {
         Self {
-            version: Self::VERSION,
+            version: DiscoveryDocumentVersion,
             kbs,
         }
     }
 }
 
 schema!(DiscoveryDocument);
+
+/// Document schema version. Consumers MUST check it and ignore documents they do not understand.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct DiscoveryDocumentVersion;
+
+constant!(DiscoveryDocumentVersion, i64, 1);
 
 /// Everything the dispatcher reads at boot: nothing in it is defaulted by the dispatcher. The launcher writes it for the dispatcher it starts, from the knowledge base's stack documents, and the dispatcher reads it from the path its `--config` flag names (its image passes `/etc/xynolog/dispatcher.json`). Started without `--config`, or with a path that names no file, the dispatcher refuses to start and says which. Secrets are never values here: a field that needs one names the environment variable holding it. The dispatcher's other inputs are the environment variables specs/src/service-environment/variables.json lists for it, and the ones this document names. A document that does not validate is refused at boot, naming each failing field.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -8286,12 +8360,28 @@ schema!(JobCreatedResultResponse);
 #[serde(deny_unknown_fields)]
 pub struct JobDeclined {
     /// Always true. It is what tells a decline from the result of a job that did its work, which never carries it.
-    pub declined: bool,
+    pub declined: JobDeclinedDeclined,
     /// Why the resource could not be read. A CODE, not a sentence: the client owns the wording, so a browser renders it in the user's language and the CLI renders English terminal copy from the same value. A prose `message` composed server-side would be English everywhere.
     pub reason: JobDeclinedReason,
 }
 
+impl JobDeclined {
+    /// The `JobDeclined` that states these and nothing else.
+    pub fn new(reason: JobDeclinedReason) -> Self {
+        Self {
+            declined: JobDeclinedDeclined,
+            reason,
+        }
+    }
+}
+
 schema!(JobDeclined);
+
+/// Always true. It is what tells a decline from the result of a job that did its work, which never carries it.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct JobDeclinedDeclined;
+
+constant!(JobDeclinedDeclined, bool, true);
 
 /// Why the resource could not be read. A CODE, not a sentence: the client owns the wording, so a browser renders it in the user's language and the CLI renders English terminal copy from the same value. A prose `message` composed server-side would be English everywhere.
 #[derive(

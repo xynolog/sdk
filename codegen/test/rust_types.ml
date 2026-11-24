@@ -367,6 +367,45 @@ let cases =
              ]
              "Yielding")
           {|"yield"|});
+    case "a value of one integer or boolean is a type of that value alone"
+      (fun () ->
+        let code =
+          generated
+            [
+              ( "Entry",
+                {|{"type": "object", "required": ["v", "declined", "stamp"], "additionalProperties": false, "properties": {
+                    "v": {"type": "integer", "const": 3}, "declined": {"type": "boolean", "const": true}, "stamp": {"type": "string"}}}|}
+              );
+            ]
+            "Entry"
+        in
+        has code
+          "#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, \
+           Ord, Hash)]\n\
+           pub struct EntryV;\n\n\
+           constant!(EntryV, i64, 3);\n";
+        has code "constant!(EntryDeclined, bool, true);\n";
+        has code "    pub v: EntryV,\n";
+        has code
+          "    pub fn new(stamp: impl Into<String>) -> Self {\n\
+          \        Self {\n\
+          \            v: EntryV,\n\
+          \            declined: EntryDeclined,\n\
+          \            stamp: stamp.into(),\n\
+          \        }\n\
+          \    }\n";
+        lacks code "pub const V");
+    case "an enumeration of several integers is refused"
+      (refused
+         "EntryV: only an enumeration of strings, or one integer or boolean, \
+          is generated" (fun () ->
+           generated
+             [
+               ( "Entry",
+                 {|{"type": "object", "required": ["v"], "properties": {"v": {"type": "integer", "enum": [1, 2]}}}|}
+               );
+             ]
+             "Entry"));
     case
       "a member that is a schema of its own is its union wherever the union is \
        wanted" (fun () ->
