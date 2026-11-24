@@ -97,7 +97,7 @@ func (s *transportShared) exchange(ctx context.Context, spec request) (answered,
 			made.Header.Set("Content-Type", spec.contentType)
 		}
 		if spec.idempotencyKey != "" {
-			made.Header.Set(headerIdempotencyKey, spec.idempotencyKey)
+			made.Header.Set(HeaderIdempotencyKey, spec.idempotencyKey)
 		}
 		if spec.authenticated && token != "" {
 			made.Header.Set("Authorization", "Bearer "+token)
@@ -145,7 +145,7 @@ func (s *transportShared) exchange(ctx context.Context, spec request) (answered,
 		}
 		response.Body.Close()
 		cancel()
-		wait, hasWait := RetryAfter(response.Header.Get(headerRetryAfter))
+		wait, hasWait := RetryAfter(response.Header.Get(HeaderRetryAfter))
 		refused := refusal(refusalMessage(response, said), response.StatusCode, wait, hasWait, said)
 		if refused.Code == TransportErrorCodeUnauthorized {
 			if !renewed {

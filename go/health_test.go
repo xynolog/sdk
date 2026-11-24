@@ -11,6 +11,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
 )
 
 func healthOf(t *testing.T, serve http.HandlerFunc) (report string, ok bool, err error) {
@@ -95,5 +97,31 @@ func TestATransportThatCarriesNothingOpensNoStream(t *testing.T) {
 	}
 	if n := subscribed.Load(); n != 0 {
 		t.Errorf("a transport with no channel opened %d stream(s)", n)
+	}
+}
+
+// A media URL is read with no bearer: the route names the resource, and the
+// query carries the token a media token request gave.
+func TestAMediaURLIsReadWithItsTokenAndNoBearer(t *testing.T) {
+	var asked *http.Request
+	gateway := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		asked = r
+		w.Header().Set("Content-Type", "text/plain")
+		_, _ = w.Write([]byte("the bytes"))
+	}))
+	defer gateway.Close()
+	transport := NewHTTPTransport(HTTPTransportConfig{BaseURL: gateway.URL + "/", Token: NewVariable("the bearer"), HTTP: &http.Client{}, Timing: quickTiming()})
+	defer transport.Close()
+	resource, err := api.ParseResourceId("r-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	response, err := http.Get(transport.MediaURL(resource, api.MediaTokenResponse{Token: "a&b"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = response.Body.Close()
+	if asked.URL.Path != "/api/resources/r-1" || asked.URL.Query().Get("token") != "a&b" || asked.Header.Get("Authorization") != "" {
+		t.Errorf("asked %s %q with Authorization %q", asked.URL.Path, asked.URL.RawQuery, asked.Header.Get("Authorization"))
 	}
 }

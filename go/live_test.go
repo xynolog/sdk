@@ -327,8 +327,8 @@ func everything(t *testing.T, c *xynolog.Client) []aQuery {
 	return append(all,
 		queryOf("annotation ann-1", c.Browse.Annotation(resourceOf(t, "res-1"), annotationIdOf(t, "ann-1"))),
 		queryOf("annotation ann-2", c.Browse.Annotation(resourceOf(t, "res-2"), annotationIdOf(t, "ann-2"))),
-		queryOf("resources", c.Browse.Resources(xynolog.ResourceFilters{})),
-		queryOf("a search", c.Match.Resources("a search", xynolog.ResourceFilters{})),
+		queryOf("resources", c.Browse.Resources(api.BrowseResourcesRequest{})),
+		queryOf("a search", c.Match.Resources("a search", api.ResourceSearchFilters{})),
 		queryOf("entity types", c.Browse.EntityTypes()),
 		queryOf("tag schemas", c.Browse.TagSchemas()),
 		queryOf("engines", c.Browse.Engines()),
@@ -346,8 +346,8 @@ func eachQuery(t *testing.T, c *xynolog.Client) map[xynolog.CacheQuery]aQuery {
 		xynolog.CacheQueryAnnotation:       queryOf("annotation", c.Browse.Annotation(resource, annotation)),
 		xynolog.CacheQueryEvents:           queryOf("events", c.Browse.Events(resource)),
 		xynolog.CacheQueryReferencedBy:     queryOf("references", c.Gather.ReferencedBy(resource)),
-		xynolog.CacheQueryResources:        queryOf("resources", c.Browse.Resources(xynolog.ResourceFilters{})),
-		xynolog.CacheQueryMatchedResources: queryOf("a search", c.Match.Resources("text", xynolog.ResourceFilters{})),
+		xynolog.CacheQueryResources:        queryOf("resources", c.Browse.Resources(api.BrowseResourcesRequest{})),
+		xynolog.CacheQueryMatchedResources: queryOf("a search", c.Match.Resources("text", api.ResourceSearchFilters{})),
 		xynolog.CacheQueryEntityTypes:      queryOf("entity types", c.Browse.EntityTypes()),
 		xynolog.CacheQueryTagSchemas:       queryOf("tag schemas", c.Browse.TagSchemas()),
 		xynolog.CacheQueryEngines:          queryOf("engines", c.Browse.Engines()),
@@ -564,8 +564,8 @@ func TestWatchingAQueryOfAResourceHoldsItsScopeUntilTheWatcherLeaves(t *testing.
 
 	// A query of the knowledge base holds no scope, and neither does a read of any query.
 	for _, of := range []aQuery{
-		queryOf("resources", c.Browse.Resources(xynolog.ResourceFilters{})),
-		queryOf("a search", c.Match.Resources("text", xynolog.ResourceFilters{})),
+		queryOf("resources", c.Browse.Resources(api.BrowseResourcesRequest{})),
+		queryOf("a search", c.Match.Resources("text", api.ResourceSearchFilters{})),
 		queryOf("entity types", c.Browse.EntityTypes()),
 		queryOf("tag schemas", c.Browse.TagSchemas()),
 		queryOf("engines", c.Browse.Engines()),
@@ -663,7 +663,7 @@ func TestAResourcesAnnotationsAreTheListAndAListOrASearchIsOneQueryPerSetOfFilte
 	}
 
 	archived, person := true, "Person"
-	for _, filters := range []xynolog.ResourceFilters{{}, {Limit: 100}, {Archived: &archived}, {EntityType: &person}, {Limit: 5}} {
+	for _, filters := range []api.BrowseResourcesRequest{{}, {Limit: new(100)}, {Archived: &archived}, {EntityType: &person}, {Limit: new(5)}} {
 		watch(t, c.Browse.Resources(filters)).now(t)
 	}
 	lists := bus.BrowseResourcesRequested.Request().Channel()
@@ -679,10 +679,10 @@ func TestAResourcesAnnotationsAreTheListAndAListOrASearchIsOneQueryPerSetOfFilte
 
 	searches := bus.MatchResourcesRequested.Request().Channel()
 	notArchived := false
-	watch(t, c.Match.Resources("a", xynolog.ResourceFilters{})).now(t)
+	watch(t, c.Match.Resources("a", api.ResourceSearchFilters{})).now(t)
 	waitUntil(t, "the first search", 2*time.Second, func() bool { return len(requestsOn(w.transport, searches)) == 1 })
-	watch(t, c.Match.Resources("a", xynolog.ResourceFilters{})).now(t)
-	watch(t, c.Match.Resources("b", xynolog.ResourceFilters{Archived: &notArchived})).now(t)
+	watch(t, c.Match.Resources("a", api.ResourceSearchFilters{})).now(t)
+	watch(t, c.Match.Resources("b", api.ResourceSearchFilters{Archived: &notArchived})).now(t)
 	waitUntil(t, "the second search", 2*time.Second, func() bool { return len(requestsOn(w.transport, searches)) >= 2 })
 	time.Sleep(settling)
 	searched := payloadsOn(w.transport, searches)

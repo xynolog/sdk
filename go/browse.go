@@ -54,8 +54,9 @@ func (n *BrowseNamespace) Resource(resourceID api.ResourceId) *Cached[api.Resour
 // admits. It is kept true by what every client hears and by the events of the
 // resources this client holds the scope of, and by nothing else. Finding
 // resources by text is Match.Resources.
-func (n *BrowseNamespace) Resources(filters ResourceFilters) *Cached[api.ListResourcesResponse] {
-	return keyed(n.links, n.live.resources, keyOf(filters), itself[api.ListResourcesResponse], api.ResourceId{})
+func (n *BrowseNamespace) Resources(filters api.BrowseResourcesRequest) *Cached[api.ListResourcesResponse] {
+	filters.Limit, filters.Offset = paged(filters.Limit, filters.Offset)
+	return keyed(n.links, n.live.resources, sentKeyOf(filters), itself[api.ListResourcesResponse], api.ResourceId{})
 }
 
 // Annotations is a resource's annotations. Watching it holds the resource's

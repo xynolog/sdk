@@ -16,11 +16,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"slices"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/required"
 	"github.com/xynolog/sdk/go/mediatypes"
 )
 
@@ -62,13 +64,9 @@ func PrimaryRepresentation(resource api.ResourceDescriptor) (api.Representation,
 	}
 }
 
-// isRepresentation is whether raw is a representation as its schema has one:
-// an object that states its media type as text.
+// isRepresentation is whether raw is a representation as its schema has one.
 func isRepresentation(raw json.RawMessage) bool {
-	var stated struct {
-		MediaType *string `json:"mediaType"`
-	}
-	return bytes.HasPrefix(bytes.TrimLeft(raw, " \t\r\n"), []byte("{")) && json.Unmarshal(raw, &stated) == nil && stated.MediaType != nil
+	return required.Carries(raw, reflect.TypeFor[api.Representation]())
 }
 
 // noDescriptor refuses resource as no ResourceDescriptor, for why.

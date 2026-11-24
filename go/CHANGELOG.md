@@ -17,6 +17,22 @@ the coming release's, and gathers its changes as they land.
   pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
+- Package `control`, the launcher's control API: each method a
+  `control.Method[P, R]` and each notification a `control.Notification[P]`,
+  typed by `api`'s types of their schemas, with whether a method is exclusive,
+  what it may send, and who sends a notification (`control.Sender`).
+- `ControlErrorCode`, the control API's error codes, generated with the other
+  error codes.
+- `RetryRuleJob`, the rule a job's retry budget follows. Every rule's sets
+  (`Statuses`, `StatusFrom`, `IdempotentMethods`, `NoResponse`) are now
+  generated from `retry/rules.json`.
+- The gateway's routes are exported (`GatewayRoute`, `RouteGetHealth`, …), as
+  are the headers its operations name (`HeaderIdempotencyKey`, …) and the
+  query parameter a media token goes in (`MediaTokenQuery`).
+- `HTTPTransport.MediaURL`: where a reader that sends no bearer reads a
+  resource's representation with a media token.
+- `ServiceEnvironmentVariable`: every environment variable a Xynolog service
+  reads, as `service-environment/variables.json` names it.
 
 ### Changed
 
@@ -31,6 +47,20 @@ the coming release's, and gathers its changes as they land.
 - What is kept of a sign-in is `api.StoredSession`, in place of
   `HeldSignIn`: its `ClientId` is spelled as Protocol spells it, and an issuer
   with no revocation endpoint states none (nil).
+- `Browse.Resources` takes `api.BrowseResourcesRequest` and `Match.Resources`
+  takes `api.ResourceSearchFilters`, the types Protocol states, in place of
+  `ResourceFilters`, which is gone. A limit left out (nil) is still the first
+  hundred; a limit stated as zero is now sent as zero.
+- A union's member interface is exported (`api.MarkJobParamsMember`,
+  `api.ConformanceDriverLineMember`, …), so a function can take any member
+  of a union. Its marker method is still unexported: no other type joins it.
+- `Job.PollUntilComplete` takes `api.JobPollOptions` in place of its `every`
+  and `within` durations; a wait left out (nil) is the client's timing.
+- `Job.Claim` takes `api.ClaimOptions`: the filters it accepts, and any of its
+  four waits in place of the client's timing.
+- `ActiveJob.JobType` is `ActiveJob.Type`, as `WorkerEngineHealth` names it.
+- A resource's representation is held to the whole of its schema when it is
+  read, not to its media type alone.
 
 ## 0.8.1
 

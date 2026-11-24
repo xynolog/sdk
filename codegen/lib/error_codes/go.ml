@@ -163,7 +163,8 @@ let text (t : Table.t) =
                      };
                  ]);
           ]
-        @ List.concat_map vocabulary t.others;
+        @ List.concat_map vocabulary t.others
+        @ vocabulary t.control;
     }
 
 let file t = { Output.path; text = text t }

@@ -12,6 +12,7 @@ import (
 	"context"
 	"math/rand/v2"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -41,62 +42,36 @@ type RetryFacts struct {
 	Keyed bool
 }
 
-// RetryRule is which failures one context tries again.
+// RetryRule is which failures one context tries again: one rule of
+// protocol/specs/src/retry/rules.json, whose values retry_gen.go writes.
 type RetryRule struct {
 	// Name is the rule's name in the table.
-	Name      string
-	retryable func(RetryFacts) bool
+	Name string
+	// Statuses are the statuses it retries.
+	Statuses []int
+	// StatusFrom, when the rule states it, is a status at or above which every
+	// status is retried too.
+	StatusFrom *int
+	// IdempotentMethods, when the rule states them, are the methods a repeat
+	// of which cannot cause a second effect: a request of another method is
+	// retried only when it carries an Idempotency-Key. A rule that states none
+	// does not ask about the request.
+	IdempotentMethods []string
+	// NoResponse is whether a failure that got no response is retried.
+	NoResponse bool
 }
 
 // Retryable reports whether a failure of these facts is worth another attempt
 // under this rule.
-func (r RetryRule) Retryable(facts RetryFacts) bool { return r.retryable(facts) }
-
-func statusIn(facts RetryFacts, statuses ...int) bool {
+func (r RetryRule) Retryable(facts RetryFacts) bool {
 	if facts.Status == nil {
+		return r.NoResponse
+	}
+	if r.IdempotentMethods != nil && !facts.Keyed &&
+		(facts.Method == nil || !slices.Contains(r.IdempotentMethods, strings.ToUpper(*facts.Method))) {
 		return false
 	}
-	for _, status := range statuses {
-		if *facts.Status == status {
-			return true
-		}
-	}
-	return false
-}
-
-// RetryRuleBoot is a boot pass or a bus request, where the peer is usually
-// seconds from ready: the statuses that say "up, but not now". A 500 is not
-// among them: replaying it re-runs whatever broke it.
-var RetryRuleBoot = RetryRule{Name: "boot", retryable: func(facts RetryFacts) bool {
-	return statusIn(facts, 429, 503, 504)
-}}
-
-// Repeating these cannot cause a second effect upstream (RFC 9110 §9.2.2).
-var idempotentMethods = map[string]bool{"GET": true, "HEAD": true, "PUT": true, "DELETE": true, "OPTIONS": true, "TRACE": true}
-
-// RetryRuleTransport is an HTTP client's request. A retryable status applies
-// only when a repeat cannot cause a second effect: the method cannot, or the
-// request carries an Idempotency-Key, whose repeat the server answers as it
-// answered the first. A POST with no key answered 502 may already have been
-// processed. A 401 is not retried: a refused credential is renewed before any
-// rule is asked, and the same token gets the same answer.
-var RetryRuleTransport = RetryRule{Name: "transport", retryable: func(facts RetryFacts) bool {
-	repeatable := facts.Keyed || (facts.Method != nil && idempotentMethods[strings.ToUpper(*facts.Method)])
-	return repeatable && statusIn(facts, 408, 413, 429, 500, 502, 503, 504)
-}}
-
-// RetryRuleRefresh is exchanging a refresh token at its issuer. The issuer's
-// answer is the verdict and its absence never is: no response at all, or one
-// saying "not now", is transient; a refused grant, and any fault this rule
-// does not name, is terminal, because trying again only delays a sign-in the
-// person must perform anyway.
-var RetryRuleRefresh = RetryRule{Name: "refresh", retryable: func(facts RetryFacts) bool {
-	return facts.Status == nil || statusIn(facts, 408, 429) || *facts.Status >= 500
-}}
-
-// RetryRules is every rule this SDK keeps, as the table names them.
-func RetryRules() []RetryRule {
-	return []RetryRule{RetryRuleBoot, RetryRuleRefresh, RetryRuleTransport}
+	return slices.Contains(r.Statuses, *facts.Status) || (r.StatusFrom != nil && *facts.Status >= *r.StatusFrom)
 }
 
 var wholeSeconds = regexp.MustCompile(`^[0-9]+$`)

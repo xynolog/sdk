@@ -40,7 +40,7 @@ const withheld = "[withheld]"
 
 // busLogged is whether the bus log is written: what the process's
 // environment said when this was first asked.
-var busLogged = sync.OnceValue(func() bool { return os.Getenv("XYNOLOG_BUS_LOG") != "" })
+var busLogged = sync.OnceValue(func() bool { return os.Getenv(string(ServiceEnvironmentVariableXynologBusLog)) != "" })
 
 // busOp is what a line says was done: a frame sent or received, an upload or
 // a read of content, or a frame delivered on a connection a handoff retired.

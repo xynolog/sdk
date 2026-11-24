@@ -349,12 +349,12 @@ func (a *AgentToken) renewWithinBudget(due string) {
 		func(error) (time.Duration, bool) { return 0, false })
 }
 
-// named is the DID the gateway names the bearer of token by: routeGetCurrentUser.
+// named is the DID the gateway names the bearer of token by: RouteGetCurrentUser.
 func named(ctx context.Context, config AgentConfig, token string) (api.UserId, error) {
-	target := strings.TrimRight(config.Gateway, "/") + routeGetCurrentUser.path
+	target := strings.TrimRight(config.Gateway, "/") + RouteGetCurrentUser.Path
 	asking, cancel := context.WithTimeout(ctx, config.Timing.HttpRequestTimeout)
 	defer cancel()
-	request, err := http.NewRequestWithContext(asking, routeGetCurrentUser.method, target, nil)
+	request, err := http.NewRequestWithContext(asking, RouteGetCurrentUser.Method, target, nil)
 	if err != nil {
 		return api.UserId{}, err
 	}
@@ -369,7 +369,7 @@ func named(ctx context.Context, config AgentConfig, token string) (api.UserId, e
 		return api.UserId{}, transportErrorWithoutResponse(fmt.Sprintf("%s ended before its answer did: %v", target, err), TransportErrorCodeUnavailable)
 	}
 	if response.StatusCode < 200 || response.StatusCode > 299 {
-		wait, hasWait := RetryAfter(response.Header.Get(headerRetryAfter))
+		wait, hasWait := RetryAfter(response.Header.Get(HeaderRetryAfter))
 		return api.UserId{}, refusal(fmt.Sprintf("the gateway did not name the agent (HTTP %d)", response.StatusCode), response.StatusCode, wait, hasWait, answered)
 	}
 	var user api.UserResponse

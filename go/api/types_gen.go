@@ -49,12 +49,12 @@ func (v AboutResult) MarshalJSON() ([]byte, error) {
 // AgentOrganization, AgentSoftware). Software peers are first-class
 // participants, not a sub-class of Person.
 type Agent struct {
-	union[agentMember]
+	union[AgentMember]
 }
 
-// agentMember is a member of Agent: AgentPerson, AgentOrganization,
+// AgentMember is a member of Agent: AgentPerson, AgentOrganization,
 // AgentSoftware.
-type agentMember interface {
+type AgentMember interface {
 	memberOfAgent()
 }
 
@@ -359,12 +359,12 @@ func (e AnchoredTextAbsentKind) Valid() bool {
 // every member carries `kind`, rather than nesting an outcome inside a status
 // envelope and giving the wire two `kind` fields at different depths.
 type AnchoredTextAnswer struct {
-	union[anchoredTextAnswerMember]
+	union[AnchoredTextAnswerMember]
 }
 
-// anchoredTextAnswerMember is a member of AnchoredTextAnswer: ExtractedText,
+// AnchoredTextAnswerMember is a member of AnchoredTextAnswer: ExtractedText,
 // ExtractionDeclined, AnchoredTextAbsent.
-type anchoredTextAnswerMember interface {
+type AnchoredTextAnswerMember interface {
 	memberOfAnchoredTextAnswer()
 }
 
@@ -444,12 +444,12 @@ func (v AnchoredTextEntries) MarshalJSON() ([]byte, error) {
 // stamp the Smelter states (`AnchoredTextStamp`) is kept, followed by a
 // newline, in the file `STAMP` at the store's root.
 type AnchoredTextEntry struct {
-	union[anchoredTextEntryMember]
+	union[AnchoredTextEntryMember]
 }
 
-// anchoredTextEntryMember is a member of AnchoredTextEntry:
+// AnchoredTextEntryMember is a member of AnchoredTextEntry:
 // AnchoredTextExtractedEntry, AnchoredTextDeclinedEntry.
-type anchoredTextEntryMember interface {
+type AnchoredTextEntryMember interface {
 	memberOfAnchoredTextEntry()
 }
 
@@ -604,12 +604,12 @@ type AnnotationAddedPayload struct {
 // non-empty list of them. There is no empty list: an annotation with nothing
 // to say has no `body`.
 type AnnotationBodies struct {
-	union[annotationBodiesMember]
+	union[AnnotationBodiesMember]
 }
 
-// annotationBodiesMember is a member of AnnotationBodies: AnnotationBody,
+// AnnotationBodiesMember is a member of AnnotationBodies: AnnotationBody,
 // AnnotationBodiesList.
-type annotationBodiesMember interface {
+type AnnotationBodiesMember interface {
 	memberOfAnnotationBodies()
 }
 
@@ -624,12 +624,12 @@ func (AnnotationBodiesList) memberOfAnnotationBodies() {}
 // both and single-valued — a consumer never has to probe for which fields
 // happen to be present.
 type AnnotationBody struct {
-	union[annotationBodyMember]
+	union[AnnotationBodyMember]
 }
 
-// annotationBodyMember is a member of AnnotationBody: TextualBody,
+// AnnotationBodyMember is a member of AnnotationBody: TextualBody,
 // SpecificResource.
-type annotationBodyMember interface {
+type AnnotationBodyMember interface {
 	memberOfAnnotationBody()
 }
 
@@ -692,12 +692,12 @@ type AnnotationRemovedPayload struct {
 // AnnotationSelector What a target's `selector` holds: one W3C selector, or
 // several of the same segment.
 type AnnotationSelector struct {
-	union[annotationSelectorMember]
+	union[AnnotationSelectorMember]
 }
 
-// annotationSelectorMember is a member of AnnotationSelector: Selector,
+// AnnotationSelectorMember is a member of AnnotationSelector: Selector,
 // AnnotationSelectorList.
-type annotationSelectorMember interface {
+type AnnotationSelectorMember interface {
 	memberOfAnnotationSelector()
 }
 
@@ -745,12 +745,12 @@ func (e AnnotationTargetType) Valid() bool {
 // annotated, when the whole of it is, or an object with source and optional
 // selector (fragment)
 type AnnotationTargetValue struct {
-	union[annotationTargetValueMember]
+	union[AnnotationTargetValueMember]
 }
 
-// annotationTargetValueMember is a member of AnnotationTargetValue:
+// AnnotationTargetValueMember is a member of AnnotationTargetValue:
 // ResourceId, AnnotationTarget.
-type annotationTargetValueMember interface {
+type AnnotationTargetValueMember interface {
 	memberOfAnnotationTargetValue()
 }
 
@@ -843,6 +843,23 @@ type ArchivistConfigStaging struct {
 	// MaxWaitMs The longest a change waits to be staged while others keep
 	// arriving, measured from the oldest pending change.
 	MaxWaitMs int `json:"maxWaitMs"`
+}
+
+// ArchivistDefaultEntityTypes archivist/default-entity-types.json: the entity
+// types an Archivist seeds, in the order it seeds them.
+type ArchivistDefaultEntityTypes struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// EntityTypes The default entity types, in seed order.
+	EntityTypes []string `json:"entityTypes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ArchivistDefaultEntityTypes) MarshalJSON() ([]byte, error) {
+	type written ArchivistDefaultEntityTypes
+	v.EntityTypes = listOf(v.EntityTypes)
+	return json.Marshal(written(v))
 }
 
 // ArchivistEngines The engine for each job and each Librarian actor, behind
@@ -950,6 +967,506 @@ func (e ArchivistHealthStatus) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// ArchivistLayout archivist/layout.json: where the Archivist keeps the record
+// on disk.
+type ArchivistLayout struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// AnchoredTextEntry An entry of the anchored-text store, keyed by the
+	// checksum of the content it was extracted from.
+	AnchoredTextEntry ArchivistLayoutAnchoredTextEntry `json:"anchoredTextEntry"`
+	// AnchoredTextStamp The file holding the stamp the anchored-text store's
+	// entries are taken under: the stamp, followed by a newline.
+	AnchoredTextStamp ArchivistLayoutAnchoredTextStamp `json:"anchoredTextStamp"`
+	// EventFile The files of a stream.
+	EventFile ArchivistLayoutEventFile `json:"eventFile"`
+	// EventStream A resource's event stream: a directory of event files.
+	EventStream ArchivistLayoutEventStream `json:"eventStream"`
+	// StorageUriIndex An entry of the storage-uri index, which names the
+	// resource whose content is at a storage URI.
+	StorageUriIndex ArchivistLayoutStorageUriIndex `json:"storageUriIndex"`
+	// StoredEvent The schema a stored event, one line of an event file, is.
+	StoredEvent any `json:"storedEvent"`
+	// SystemProjections The projections of what the `__system__` stream adds up
+	// to, in the state directory.
+	SystemProjections ArchivistLayoutSystemProjections `json:"systemProjections"`
+	// SystemStream The knowledge base's own stream, of the events that name no
+	// resource. It is not sharded.
+	SystemStream ArchivistLayoutSystemStream `json:"systemStream"`
+	// View A resource's view, in the state directory.
+	View ArchivistLayoutView `json:"view"`
+}
+
+// ArchivistLayoutAnchoredTextEntry An entry of the anchored-text store, keyed
+// by the checksum of the content it was extracted from.
+type ArchivistLayoutAnchoredTextEntry struct {
+	// Path Its path in its tree, `/`-separated.
+	Path string `json:"path"`
+	// Schema The schema an entry is.
+	Schema any `json:"schema"`
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutAnchoredTextEntryTree `json:"tree"`
+}
+
+// ArchivistLayoutAnchoredTextEntryTree The tree the file is in: `root`, the
+// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
+// anchored-text store.
+type ArchivistLayoutAnchoredTextEntryTree string
+
+// The values of ArchivistLayoutAnchoredTextEntryTree.
+const (
+	ArchivistLayoutAnchoredTextEntryTreeRoot            ArchivistLayoutAnchoredTextEntryTree = "root"
+	ArchivistLayoutAnchoredTextEntryTreeStateHome       ArchivistLayoutAnchoredTextEntryTree = "stateHome"
+	ArchivistLayoutAnchoredTextEntryTreeAnchoredTextDir ArchivistLayoutAnchoredTextEntryTree = "anchoredTextDir"
+)
+
+// Valid is whether e is one of ArchivistLayoutAnchoredTextEntryTree's values.
+func (e ArchivistLayoutAnchoredTextEntryTree) Valid() bool {
+	switch e {
+	case ArchivistLayoutAnchoredTextEntryTreeRoot, ArchivistLayoutAnchoredTextEntryTreeStateHome, ArchivistLayoutAnchoredTextEntryTreeAnchoredTextDir:
+		return true
+	}
+	return false
+}
+
+// ArchivistLayoutAnchoredTextStamp The file holding the stamp the
+// anchored-text store's entries are taken under: the stamp, followed by a
+// newline.
+type ArchivistLayoutAnchoredTextStamp struct {
+	// Path Its path in its tree, `/`-separated.
+	Path string `json:"path"`
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutAnchoredTextStampTree `json:"tree"`
+}
+
+// ArchivistLayoutAnchoredTextStampTree The tree the file is in: `root`, the
+// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
+// anchored-text store.
+type ArchivistLayoutAnchoredTextStampTree string
+
+// The values of ArchivistLayoutAnchoredTextStampTree.
+const (
+	ArchivistLayoutAnchoredTextStampTreeRoot            ArchivistLayoutAnchoredTextStampTree = "root"
+	ArchivistLayoutAnchoredTextStampTreeStateHome       ArchivistLayoutAnchoredTextStampTree = "stateHome"
+	ArchivistLayoutAnchoredTextStampTreeAnchoredTextDir ArchivistLayoutAnchoredTextStampTree = "anchoredTextDir"
+)
+
+// Valid is whether e is one of ArchivistLayoutAnchoredTextStampTree's values.
+func (e ArchivistLayoutAnchoredTextStampTree) Valid() bool {
+	switch e {
+	case ArchivistLayoutAnchoredTextStampTreeRoot, ArchivistLayoutAnchoredTextStampTreeStateHome, ArchivistLayoutAnchoredTextStampTreeAnchoredTextDir:
+		return true
+	}
+	return false
+}
+
+// ArchivistLayoutEventFile The files of a stream.
+type ArchivistLayoutEventFile struct {
+	// Digits How many decimal digits a file's number is written in, with leading
+	// zeros.
+	Digits int `json:"digits"`
+	// First The first file's number. It is created, empty, with the stream's
+	// directory.
+	First int `json:"first"`
+	// MaxEvents The most events a file holds.
+	MaxEvents int `json:"maxEvents"`
+	// Name A file's name, `{number}` its number in `digits` decimal digits.
+	Name string `json:"name"`
+}
+
+// ArchivistLayoutEventStream A resource's event stream: a directory of event
+// files.
+type ArchivistLayoutEventStream struct {
+	// Path Its path in its tree, `/`-separated.
+	Path string `json:"path"`
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutEventStreamTree `json:"tree"`
+}
+
+// ArchivistLayoutEventStreamTree The tree the file is in: `root`, the working
+// tree, `stateHome`, the state directory, or `anchoredTextDir`, the
+// anchored-text store.
+type ArchivistLayoutEventStreamTree string
+
+// The values of ArchivistLayoutEventStreamTree.
+const (
+	ArchivistLayoutEventStreamTreeRoot            ArchivistLayoutEventStreamTree = "root"
+	ArchivistLayoutEventStreamTreeStateHome       ArchivistLayoutEventStreamTree = "stateHome"
+	ArchivistLayoutEventStreamTreeAnchoredTextDir ArchivistLayoutEventStreamTree = "anchoredTextDir"
+)
+
+// Valid is whether e is one of ArchivistLayoutEventStreamTree's values.
+func (e ArchivistLayoutEventStreamTree) Valid() bool {
+	switch e {
+	case ArchivistLayoutEventStreamTreeRoot, ArchivistLayoutEventStreamTreeStateHome, ArchivistLayoutEventStreamTreeAnchoredTextDir:
+		return true
+	}
+	return false
+}
+
+// ArchivistLayoutStorageUriIndex An entry of the storage-uri index, which
+// names the resource whose content is at a storage URI.
+type ArchivistLayoutStorageUriIndex struct {
+	// Path Its path in its tree, `/`-separated.
+	Path string `json:"path"`
+	// Schema The schema an entry is.
+	Schema any `json:"schema"`
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutStorageUriIndexTree `json:"tree"`
+}
+
+// ArchivistLayoutStorageUriIndexTree The tree the file is in: `root`, the
+// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
+// anchored-text store.
+type ArchivistLayoutStorageUriIndexTree string
+
+// The values of ArchivistLayoutStorageUriIndexTree.
+const (
+	ArchivistLayoutStorageUriIndexTreeRoot            ArchivistLayoutStorageUriIndexTree = "root"
+	ArchivistLayoutStorageUriIndexTreeStateHome       ArchivistLayoutStorageUriIndexTree = "stateHome"
+	ArchivistLayoutStorageUriIndexTreeAnchoredTextDir ArchivistLayoutStorageUriIndexTree = "anchoredTextDir"
+)
+
+// Valid is whether e is one of ArchivistLayoutStorageUriIndexTree's values.
+func (e ArchivistLayoutStorageUriIndexTree) Valid() bool {
+	switch e {
+	case ArchivistLayoutStorageUriIndexTreeRoot, ArchivistLayoutStorageUriIndexTreeStateHome, ArchivistLayoutStorageUriIndexTreeAnchoredTextDir:
+		return true
+	}
+	return false
+}
+
+// ArchivistLayoutSystemProjections The projections of what the `__system__`
+// stream adds up to, in the state directory.
+type ArchivistLayoutSystemProjections struct {
+	// Files Each projection's file.
+	Files []ArchivistLayoutSystemProjectionsFilesItem `json:"files"`
+	// Path The directory that holds them, in its tree, `/`-separated.
+	Path string `json:"path"`
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutSystemProjectionsTree `json:"tree"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ArchivistLayoutSystemProjections) MarshalJSON() ([]byte, error) {
+	type written ArchivistLayoutSystemProjections
+	v.Files = listOf(v.Files)
+	return json.Marshal(written(v))
+}
+
+type ArchivistLayoutSystemProjectionsFilesItem struct {
+	// Name The file's name.
+	Name string `json:"name"`
+	// Schema The schema the projection is.
+	Schema any `json:"schema"`
+}
+
+// ArchivistLayoutSystemProjectionsTree The tree the file is in: `root`, the
+// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
+// anchored-text store.
+type ArchivistLayoutSystemProjectionsTree string
+
+// The values of ArchivistLayoutSystemProjectionsTree.
+const (
+	ArchivistLayoutSystemProjectionsTreeRoot            ArchivistLayoutSystemProjectionsTree = "root"
+	ArchivistLayoutSystemProjectionsTreeStateHome       ArchivistLayoutSystemProjectionsTree = "stateHome"
+	ArchivistLayoutSystemProjectionsTreeAnchoredTextDir ArchivistLayoutSystemProjectionsTree = "anchoredTextDir"
+)
+
+// Valid is whether e is one of ArchivistLayoutSystemProjectionsTree's values.
+func (e ArchivistLayoutSystemProjectionsTree) Valid() bool {
+	switch e {
+	case ArchivistLayoutSystemProjectionsTreeRoot, ArchivistLayoutSystemProjectionsTreeStateHome, ArchivistLayoutSystemProjectionsTreeAnchoredTextDir:
+		return true
+	}
+	return false
+}
+
+// ArchivistLayoutSystemStream The knowledge base's own stream, of the events
+// that name no resource. It is not sharded.
+type ArchivistLayoutSystemStream struct {
+	// Path Its path in its tree, `/`-separated.
+	Path string `json:"path"`
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutSystemStreamTree `json:"tree"`
+}
+
+// ArchivistLayoutSystemStreamTree The tree the file is in: `root`, the
+// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
+// anchored-text store.
+type ArchivistLayoutSystemStreamTree string
+
+// The values of ArchivistLayoutSystemStreamTree.
+const (
+	ArchivistLayoutSystemStreamTreeRoot            ArchivistLayoutSystemStreamTree = "root"
+	ArchivistLayoutSystemStreamTreeStateHome       ArchivistLayoutSystemStreamTree = "stateHome"
+	ArchivistLayoutSystemStreamTreeAnchoredTextDir ArchivistLayoutSystemStreamTree = "anchoredTextDir"
+)
+
+// Valid is whether e is one of ArchivistLayoutSystemStreamTree's values.
+func (e ArchivistLayoutSystemStreamTree) Valid() bool {
+	switch e {
+	case ArchivistLayoutSystemStreamTreeRoot, ArchivistLayoutSystemStreamTreeStateHome, ArchivistLayoutSystemStreamTreeAnchoredTextDir:
+		return true
+	}
+	return false
+}
+
+// ArchivistLayoutView A resource's view, in the state directory.
+type ArchivistLayoutView struct {
+	// Path Its path in its tree, `/`-separated.
+	Path string `json:"path"`
+	// Schema The schema a view is.
+	Schema any `json:"schema"`
+	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
+	// state directory, or `anchoredTextDir`, the anchored-text store.
+	Tree ArchivistLayoutViewTree `json:"tree"`
+}
+
+// ArchivistLayoutViewTree The tree the file is in: `root`, the working tree,
+// `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text
+// store.
+type ArchivistLayoutViewTree string
+
+// The values of ArchivistLayoutViewTree.
+const (
+	ArchivistLayoutViewTreeRoot            ArchivistLayoutViewTree = "root"
+	ArchivistLayoutViewTreeStateHome       ArchivistLayoutViewTree = "stateHome"
+	ArchivistLayoutViewTreeAnchoredTextDir ArchivistLayoutViewTree = "anchoredTextDir"
+)
+
+// Valid is whether e is one of ArchivistLayoutViewTree's values.
+func (e ArchivistLayoutViewTree) Valid() bool {
+	switch e {
+	case ArchivistLayoutViewTreeRoot, ArchivistLayoutViewTreeStateHome, ArchivistLayoutViewTreeAnchoredTextDir:
+		return true
+	}
+	return false
+}
+
+// ArchivistMessages archivist/messages.json: the words of the Archivist's own
+// refusals, and of the messages it logs that a reader relies on.
+type ArchivistMessages struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Boot Each refusal to start of the Archivist's own, written in
+	// service-environment/boot-refusals.json's `line`.
+	Boot []ArchivistMessagesBootItem `json:"boot"`
+	// Http Each other error a route of the HTTP surface answers with.
+	Http []ArchivistMessagesHttpItem `json:"http"`
+	// Logged Each message the Archivist logs that a reader of its output relies
+	// on.
+	Logged []ArchivistMessagesLoggedItem `json:"logged"`
+	// Refusals Each refusal of an operation, on the operation's failure channel.
+	Refusals []ArchivistMessagesRefusalsItem `json:"refusals"`
+	// Unauthorized The refusal of every route of the HTTP surface but `/health`:
+	// a token that is missing, or not of the knowledge base's issuer and
+	// audience, or without the service role.
+	Unauthorized ArchivistMessagesUnauthorized `json:"unauthorized"`
+	// Unsent The failure a reply that cannot be sent is answered with instead,
+	// on the operation's failure channel.
+	Unsent []ArchivistMessagesUnsentItem `json:"unsent"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ArchivistMessages) MarshalJSON() ([]byte, error) {
+	type written ArchivistMessages
+	v.Boot = listOf(v.Boot)
+	v.Http = listOf(v.Http)
+	v.Logged = listOf(v.Logged)
+	v.Refusals = listOf(v.Refusals)
+	v.Unsent = listOf(v.Unsent)
+	return json.Marshal(written(v))
+}
+
+type ArchivistMessagesBootItem struct {
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Refusal The refusal, in place of the line's `{refusal}`. A `{name}` in it
+	// is filled with what the row's `situation` names, and nothing else in it
+	// varies.
+	Refusal string `json:"refusal"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+type ArchivistMessagesHttpItem struct {
+	// Code The body's `code`, where it carries one.
+	Code *string `json:"code,omitempty"`
+	// Error The body's `error`. A `{name}` in it is filled with what the row's
+	// `situation` names, and nothing else in it varies.
+	Error string `json:"error"`
+	// Method The route's method.
+	Method ArchivistMessagesHttpItemMethod `json:"method"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Route The route, as the Archivist's API names its path.
+	Route string `json:"route"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string     `json:"situation"`
+	Status    HttpStatus `json:"status"`
+}
+
+// ArchivistMessagesHttpItemMethod The route's method.
+type ArchivistMessagesHttpItemMethod string
+
+// The values of ArchivistMessagesHttpItemMethod.
+const (
+	ArchivistMessagesHttpItemMethodGET  ArchivistMessagesHttpItemMethod = "GET"
+	ArchivistMessagesHttpItemMethodPUT  ArchivistMessagesHttpItemMethod = "PUT"
+	ArchivistMessagesHttpItemMethodPOST ArchivistMessagesHttpItemMethod = "POST"
+)
+
+// Valid is whether e is one of ArchivistMessagesHttpItemMethod's values.
+func (e ArchivistMessagesHttpItemMethod) Valid() bool {
+	switch e {
+	case ArchivistMessagesHttpItemMethodGET, ArchivistMessagesHttpItemMethodPUT, ArchivistMessagesHttpItemMethodPOST:
+		return true
+	}
+	return false
+}
+
+type ArchivistMessagesLoggedItem struct {
+	// Fields The fields the line is logged with whose form is stated, by name:
+	// each a text whose `{name}` is filled as the row's `situation` says. The
+	// line may carry others.
+	Fields map[string]string `json:"fields"`
+	Level  LogLevel          `json:"level"`
+	// Message The line's message, word for word.
+	Message string `json:"message"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+type ArchivistMessagesRefusalsItem struct {
+	// Code Machine-readable failure class, for consumers that must BRANCH on why
+	// a command failed rather than log it. Optional and deliberately sparse:
+	// absent means 'no class declared', and every existing failure stays that
+	// way. An enum rather than a free string so the vocabulary has an owner — an
+	// unconstrained code is a mirror with no gate, and adding one should be a
+	// deliberate spec change. `message` remains the human-readable text and is
+	// unaffected. Members: `peer-unavailable` — the channel this command was
+	// sent on has no subscriber, i.e. the service that answers it has not
+	// connected yet. Transient by nature (a peer still starting), which is what
+	// distinguishes it from a refusal: retrying is the correct response.
+	// `not-found` — the resource this command addressed does not exist in this
+	// knowledge base. A verdict, not a symptom: it is emitted only where the
+	// answer comes from the event store, which is the system of record, and
+	// never from a projection that may merely be lagging. Deterministic, so
+	// unlike `peer-unavailable` retrying is pointless — and consumers may act
+	// destructively on it (the SDK deletes a restored tab). Absence is not
+	// denial: a future 'exists, but not for you' must travel as its own code,
+	// never as this one. `unauthorized` — that code: the caller is authenticated
+	// but not permitted to do what it asked. A verdict about the CALLER, not the
+	// resource, so retrying under the same credential cannot succeed and a
+	// consumer must never spin on it; emitted by `job:claim` for a caller whose
+	// token carries no worker role. `none-pending` — a declined claim, not an
+	// error: the queue holds no pending job of the requested types. Nothing went
+	// wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+	// wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying
+	// neither is unclassified — a malformed record or a missing injection — and
+	// a consumer treats it as 'log it, assume nothing'.
+	Code *ArchivistMessagesRefusalsItemCode `json:"code,omitempty"`
+	// Message The failure's `message`. A `{name}` in it is filled with what the
+	// row's `situation` names, and nothing else in it varies.
+	Message string `json:"message"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Operations The operations it refuses: requests of bus/registry.json's
+	// operations that the Archivist answers. `{channel}` in the message is the
+	// one refused.
+	Operations []string `json:"operations"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ArchivistMessagesRefusalsItem) MarshalJSON() ([]byte, error) {
+	type written ArchivistMessagesRefusalsItem
+	v.Operations = listOf(v.Operations)
+	return json.Marshal(written(v))
+}
+
+// ArchivistMessagesRefusalsItemCode Machine-readable failure class, for
+// consumers that must BRANCH on why a command failed rather than log it.
+// Optional and deliberately sparse: absent means 'no class declared', and
+// every existing failure stays that way. An enum rather than a free string so
+// the vocabulary has an owner — an unconstrained code is a mirror with no
+// gate, and adding one should be a deliberate spec change. `message` remains
+// the human-readable text and is unaffected. Members: `peer-unavailable` —
+// the channel this command was sent on has no subscriber, i.e. the service
+// that answers it has not connected yet. Transient by nature (a peer still
+// starting), which is what distinguishes it from a refusal: retrying is the
+// correct response. `not-found` — the resource this command addressed does
+// not exist in this knowledge base. A verdict, not a symptom: it is emitted
+// only where the answer comes from the event store, which is the system of
+// record, and never from a projection that may merely be lagging.
+// Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+// consumers may act destructively on it (the SDK deletes a restored tab).
+// Absence is not denial: a future 'exists, but not for you' must travel as
+// its own code, never as this one. `unauthorized` — that code: the caller is
+// authenticated but not permitted to do what it asked. A verdict about the
+// CALLER, not the resource, so retrying under the same credential cannot
+// succeed and a consumer must never spin on it; emitted by `job:claim` for a
+// caller whose token carries no worker role. `none-pending` — a declined
+// claim, not an error: the queue holds no pending job of the requested types.
+// Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to
+// do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal
+// carrying neither is unclassified — a malformed record or a missing
+// injection — and a consumer treats it as 'log it, assume nothing'.
+type ArchivistMessagesRefusalsItemCode string
+
+// The values of ArchivistMessagesRefusalsItemCode.
+const (
+	ArchivistMessagesRefusalsItemCodePeerUnavailable ArchivistMessagesRefusalsItemCode = "peer-unavailable"
+	ArchivistMessagesRefusalsItemCodeNotFound        ArchivistMessagesRefusalsItemCode = "not-found"
+	ArchivistMessagesRefusalsItemCodeUnauthorized    ArchivistMessagesRefusalsItemCode = "unauthorized"
+	ArchivistMessagesRefusalsItemCodeNonePending     ArchivistMessagesRefusalsItemCode = "none-pending"
+)
+
+// Valid is whether e is one of ArchivistMessagesRefusalsItemCode's values.
+func (e ArchivistMessagesRefusalsItemCode) Valid() bool {
+	switch e {
+	case ArchivistMessagesRefusalsItemCodePeerUnavailable, ArchivistMessagesRefusalsItemCodeNotFound, ArchivistMessagesRefusalsItemCodeUnauthorized, ArchivistMessagesRefusalsItemCodeNonePending:
+		return true
+	}
+	return false
+}
+
+// ArchivistMessagesUnauthorized The refusal of every route of the HTTP
+// surface but `/health`: a token that is missing, or not of the knowledge
+// base's issuer and audience, or without the service role.
+type ArchivistMessagesUnauthorized struct {
+	// Absent The `WWW-Authenticate` header when none was.
+	Absent string `json:"absent"`
+	// Error The body's `error`.
+	Error string `json:"error"`
+	// Presented The `WWW-Authenticate` header when a token was presented.
+	Presented string     `json:"presented"`
+	Status    HttpStatus `json:"status"`
+}
+
+type ArchivistMessagesUnsentItem struct {
+	// Message The failure's `message`. A `{name}` in it is filled with what the
+	// row's `situation` names, and nothing else in it varies.
+	Message string `json:"message"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 }
 
 // ArchivistStream One stream of the event log, and where it stands: the
@@ -1232,12 +1749,12 @@ func (v BindUpdateBodyCommand) MarshalJSON() ([]byte, error) {
 // BodyOperation One change to an annotation's bodies: a body added, a body
 // removed, or one body replaced by another.
 type BodyOperation struct {
-	union[bodyOperationMember]
+	union[BodyOperationMember]
 }
 
-// bodyOperationMember is a member of BodyOperation: BodyOperationAdd,
+// BodyOperationMember is a member of BodyOperation: BodyOperationAdd,
 // BodyOperationRemove, BodyOperationReplace.
-type bodyOperationMember interface {
+type BodyOperationMember interface {
 	memberOfBodyOperation()
 }
 
@@ -1826,6 +2343,45 @@ func (e BusPingMessageEvent) Valid() bool {
 	return false
 }
 
+// BusReplyBounds bus/reply-bounds.json: each list or map an operation's reply
+// carries that its own schema does not bound, and what bounds it.
+type BusReplyBounds struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Replies Each operation, by its request's channel.
+	Replies map[string]map[string]BusReplyBoundsRepliesValueValue `json:"replies"`
+}
+
+type BusReplyBoundsRepliesValueValue struct {
+	union[BusReplyBoundsRepliesValueValueMember]
+}
+
+// BusReplyBoundsRepliesValueValueMember is a member of
+// BusReplyBoundsRepliesValueValue: BusReplyBoundsRepliesValueValueBy,
+// BusReplyBoundsRepliesValueValueGrows.
+type BusReplyBoundsRepliesValueValueMember interface {
+	memberOfBusReplyBoundsRepliesValueValue()
+}
+
+// BusReplyBoundsRepliesValueValueBy A list or map bounded by a member of the
+// request.
+type BusReplyBoundsRepliesValueValueBy struct {
+	// By The member of the request that bounds it: an array, or an integer with
+	// a maximum.
+	By string `json:"by"`
+}
+
+func (BusReplyBoundsRepliesValueValueBy) memberOfBusReplyBoundsRepliesValueValue() {}
+
+// BusReplyBoundsRepliesValueValueGrows A list or map not yet bounded, which
+// grows.
+type BusReplyBoundsRepliesValueValueGrows struct {
+	// Grows What it grows with.
+	Grows string `json:"grows"`
+}
+
+func (BusReplyBoundsRepliesValueValueGrows) memberOfBusReplyBoundsRepliesValueValue() {}
+
 // BusResumeGap The payload of `bus:resume-gap`: a scope's `lastEventId` could
 // not be honoured, so the client cannot trust that it has every persisted
 // event of that scope and must refetch what it caches for it. Written by the
@@ -1870,12 +2426,12 @@ func (e BusResumeGapReason) Valid() bool {
 // BusStreamMessage Every message the bus stream carries. A client ignores an
 // `event` it does not know; the gateway writes no other.
 type BusStreamMessage struct {
-	union[busStreamMessageMember]
+	union[BusStreamMessageMember]
 }
 
-// busStreamMessageMember is a member of BusStreamMessage: BusEventMessage,
+// BusStreamMessageMember is a member of BusStreamMessage: BusEventMessage,
 // BusPingMessage.
-type busStreamMessageMember interface {
+type BusStreamMessageMember interface {
 	memberOfBusStreamMessage()
 }
 
@@ -2253,10 +2809,10 @@ func (e ConformanceCaseTier) Valid() bool {
 // ready, an operation's outcome, or what its client observed as it happened.
 // The suite refuses any other line.
 type ConformanceDriverLine struct {
-	union[conformanceDriverLineMember]
+	union[ConformanceDriverLineMember]
 }
 
-// conformanceDriverLineMember is a member of ConformanceDriverLine:
+// ConformanceDriverLineMember is a member of ConformanceDriverLine:
 // ConformanceDriverLineReady, ConformanceDriverLineOk,
 // ConformanceDriverLineFailed, ConformanceDriverLineAbandoned,
 // ConformanceDriverLineUnsupported, ConformanceDriverLineMisuse,
@@ -2265,7 +2821,7 @@ type ConformanceDriverLine struct {
 // ConformanceDriverLineEmission, ConformanceDriverLineCompleted,
 // ConformanceDriverLineClaimed, ConformanceDriverLineRefused,
 // ConformanceDriverLineSignalled, ConformanceDriverLineStalled.
-type conformanceDriverLineMember interface {
+type ConformanceDriverLineMember interface {
 	memberOfConformanceDriverLine()
 }
 
@@ -2334,15 +2890,15 @@ type ConformanceDriverLineEmissionEmission struct {
 
 // ConformanceDriverLineEmissionEmissionState The state.
 type ConformanceDriverLineEmissionEmissionState struct {
-	union[conformanceDriverLineEmissionEmissionStateMember]
+	union[ConformanceDriverLineEmissionEmissionStateMember]
 }
 
-// conformanceDriverLineEmissionEmissionStateMember is a member of
+// ConformanceDriverLineEmissionEmissionStateMember is a member of
 // ConformanceDriverLineEmissionEmissionState:
 // ConformanceDriverLineEmissionEmissionStatePending,
 // ConformanceDriverLineEmissionEmissionStateReady,
 // ConformanceDriverLineEmissionEmissionStateFailed.
-type conformanceDriverLineEmissionEmissionStateMember interface {
+type ConformanceDriverLineEmissionEmissionStateMember interface {
 	memberOfConformanceDriverLineEmissionEmissionState()
 }
 
@@ -2731,10 +3287,10 @@ func (e ConformanceImplementationsSdksValueLiveTier) Valid() bool {
 // (ConformanceCase.json): each is told apart by the member only it requires.
 // conformance/sdk/README.md, "A case", says what each does.
 type ConformanceStep struct {
-	union[conformanceStepMember]
+	union[ConformanceStepMember]
 }
 
-// conformanceStepMember is a member of ConformanceStep: ConformanceStepLet,
+// ConformanceStepMember is a member of ConformanceStep: ConformanceStepLet,
 // ConformanceStepDriver, ConformanceStepAbandon, ConformanceStepSettles,
 // ConformanceStepWire, ConformanceStepCarried, ConformanceStepClosed,
 // ConformanceStepProgress, ConformanceStepState, ConformanceStepStays,
@@ -2744,7 +3300,7 @@ type ConformanceStep struct {
 // ConformanceStepCompletes, ConformanceBusFetch, ConformanceHttpFetch,
 // ConformanceStepFetches, ConformanceStepScopes, ConformanceStepClaimed,
 // ConformanceStepRefused, ConformanceStepSignalled, ConformanceStepStalled.
-type conformanceStepMember interface {
+type ConformanceStepMember interface {
 	memberOfConformanceStep()
 }
 
@@ -2881,13 +3437,13 @@ func (v ConformanceStepFetches) MarshalJSON() ([]byte, error) {
 }
 
 type ConformanceStepFetchesFetchesItem struct {
-	union[conformanceStepFetchesFetchesItemMember]
+	union[ConformanceStepFetchesFetchesItemMember]
 }
 
-// conformanceStepFetchesFetchesItemMember is a member of
+// ConformanceStepFetchesFetchesItemMember is a member of
 // ConformanceStepFetchesFetchesItem: ConformanceBusFetch,
 // ConformanceHttpFetch.
-type conformanceStepFetchesFetchesItemMember interface {
+type ConformanceStepFetchesFetchesItemMember interface {
 	memberOfConformanceStepFetchesFetchesItem()
 }
 
@@ -3309,11 +3865,11 @@ func (e DirEntryType) Valid() bool {
 // the resource it was ingested as, or a subdirectory. Tell them apart by
 // `type`, which is required on both and single-valued.
 type DirectoryEntry struct {
-	union[directoryEntryMember]
+	union[DirectoryEntryMember]
 }
 
-// directoryEntryMember is a member of DirectoryEntry: FileEntry, DirEntry.
-type directoryEntryMember interface {
+// DirectoryEntryMember is a member of DirectoryEntry: FileEntry, DirEntry.
+type DirectoryEntryMember interface {
 	memberOfDirectoryEntry()
 }
 
@@ -3545,6 +4101,126 @@ func (e DispatcherHealthStatus) Valid() bool {
 	return false
 }
 
+// DispatcherMessages dispatcher/messages.json: the words of the dispatcher's
+// own refusals, and of the errors it writes into a job.
+type DispatcherMessages struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Errors Each error the dispatcher writes into a job on its own, as a
+	// `job:fail` would.
+	Errors []DispatcherMessagesErrorsItem `json:"errors"`
+	// Refusals Each refusal the dispatcher makes itself, on the operation's
+	// failure channel.
+	Refusals []DispatcherMessagesRefusalsItem `json:"refusals"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v DispatcherMessages) MarshalJSON() ([]byte, error) {
+	type written DispatcherMessages
+	v.Errors = listOf(v.Errors)
+	v.Refusals = listOf(v.Refusals)
+	return json.Marshal(written(v))
+}
+
+type DispatcherMessagesErrorsItem struct {
+	// Error The `error` it writes into the job. A `{name}` in it is filled with
+	// what the row's `situation` names, and nothing else in it varies.
+	Error        string       `json:"error"`
+	FailureClass FailureClass `json:"failureClass"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+type DispatcherMessagesRefusalsItem struct {
+	// Code Machine-readable failure class, for consumers that must BRANCH on why
+	// a command failed rather than log it. Optional and deliberately sparse:
+	// absent means 'no class declared', and every existing failure stays that
+	// way. An enum rather than a free string so the vocabulary has an owner — an
+	// unconstrained code is a mirror with no gate, and adding one should be a
+	// deliberate spec change. `message` remains the human-readable text and is
+	// unaffected. Members: `peer-unavailable` — the channel this command was
+	// sent on has no subscriber, i.e. the service that answers it has not
+	// connected yet. Transient by nature (a peer still starting), which is what
+	// distinguishes it from a refusal: retrying is the correct response.
+	// `not-found` — the resource this command addressed does not exist in this
+	// knowledge base. A verdict, not a symptom: it is emitted only where the
+	// answer comes from the event store, which is the system of record, and
+	// never from a projection that may merely be lagging. Deterministic, so
+	// unlike `peer-unavailable` retrying is pointless — and consumers may act
+	// destructively on it (the SDK deletes a restored tab). Absence is not
+	// denial: a future 'exists, but not for you' must travel as its own code,
+	// never as this one. `unauthorized` — that code: the caller is authenticated
+	// but not permitted to do what it asked. A verdict about the CALLER, not the
+	// resource, so retrying under the same credential cannot succeed and a
+	// consumer must never spin on it; emitted by `job:claim` for a caller whose
+	// token carries no worker role. `none-pending` — a declined claim, not an
+	// error: the queue holds no pending job of the requested types. Nothing went
+	// wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+	// wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying
+	// neither is unclassified — a malformed record or a missing injection — and
+	// a consumer treats it as 'log it, assume nothing'.
+	Code *DispatcherMessagesRefusalsItemCode `json:"code,omitempty"`
+	// Message The failure's `message`. A `{name}` in it is filled with what the
+	// row's `situation` names, and nothing else in it varies.
+	Message string `json:"message"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Operation The operation it refuses: a request of bus/registry.json's
+	// operations that the dispatcher answers.
+	Operation string `json:"operation"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+// DispatcherMessagesRefusalsItemCode Machine-readable failure class, for
+// consumers that must BRANCH on why a command failed rather than log it.
+// Optional and deliberately sparse: absent means 'no class declared', and
+// every existing failure stays that way. An enum rather than a free string so
+// the vocabulary has an owner — an unconstrained code is a mirror with no
+// gate, and adding one should be a deliberate spec change. `message` remains
+// the human-readable text and is unaffected. Members: `peer-unavailable` —
+// the channel this command was sent on has no subscriber, i.e. the service
+// that answers it has not connected yet. Transient by nature (a peer still
+// starting), which is what distinguishes it from a refusal: retrying is the
+// correct response. `not-found` — the resource this command addressed does
+// not exist in this knowledge base. A verdict, not a symptom: it is emitted
+// only where the answer comes from the event store, which is the system of
+// record, and never from a projection that may merely be lagging.
+// Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+// consumers may act destructively on it (the SDK deletes a restored tab).
+// Absence is not denial: a future 'exists, but not for you' must travel as
+// its own code, never as this one. `unauthorized` — that code: the caller is
+// authenticated but not permitted to do what it asked. A verdict about the
+// CALLER, not the resource, so retrying under the same credential cannot
+// succeed and a consumer must never spin on it; emitted by `job:claim` for a
+// caller whose token carries no worker role. `none-pending` — a declined
+// claim, not an error: the queue holds no pending job of the requested types.
+// Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to
+// do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal
+// carrying neither is unclassified — a malformed record or a missing
+// injection — and a consumer treats it as 'log it, assume nothing'.
+type DispatcherMessagesRefusalsItemCode string
+
+// The values of DispatcherMessagesRefusalsItemCode.
+const (
+	DispatcherMessagesRefusalsItemCodePeerUnavailable DispatcherMessagesRefusalsItemCode = "peer-unavailable"
+	DispatcherMessagesRefusalsItemCodeNotFound        DispatcherMessagesRefusalsItemCode = "not-found"
+	DispatcherMessagesRefusalsItemCodeUnauthorized    DispatcherMessagesRefusalsItemCode = "unauthorized"
+	DispatcherMessagesRefusalsItemCodeNonePending     DispatcherMessagesRefusalsItemCode = "none-pending"
+)
+
+// Valid is whether e is one of DispatcherMessagesRefusalsItemCode's values.
+func (e DispatcherMessagesRefusalsItemCode) Valid() bool {
+	switch e {
+	case DispatcherMessagesRefusalsItemCodePeerUnavailable, DispatcherMessagesRefusalsItemCodeNotFound, DispatcherMessagesRefusalsItemCodeUnauthorized, DispatcherMessagesRefusalsItemCodeNonePending:
+		return true
+	}
+	return false
+}
+
 // DurabilityEvidence How a job's annotations were established as durable —
 // the OBSERVATION, never a conclusion drawn from it. 'acknowledged': the
 // event log confirmed the batch (mark:commit-ok). 'probe-confirmed': the
@@ -3584,12 +4260,12 @@ func (e DurabilityEvidence) Valid() bool {
 // with vectors of the model that made it. A secret is never a value here: a
 // provider's key is named by the environment variable that holds it.
 type EmbeddingConfig struct {
-	union[embeddingConfigMember]
+	union[EmbeddingConfigMember]
 }
 
-// embeddingConfigMember is a member of EmbeddingConfig:
+// EmbeddingConfigMember is a member of EmbeddingConfig:
 // OllamaEmbeddingConfig, VoyageEmbeddingConfig.
-type embeddingConfigMember interface {
+type EmbeddingConfigMember interface {
 	memberOfEmbeddingConfig()
 }
 
@@ -3609,6 +4285,58 @@ func (u EmbeddingConfig) ValueByDiscriminator() (any, error) {
 		return as[VoyageEmbeddingConfig](u.union)
 	}
 	return nil, unnamedMember("EmbeddingConfig", "type", tag)
+}
+
+// EmbeddingRequests embedding/requests.json: how a service asks its embedding
+// provider for the vectors of many texts.
+type EmbeddingRequests struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Busy A request for the vectors of documents that the provider answers busy
+	// is asked again, after each wait in turn, while the request's own time
+	// allows the wait. A provider busy at every asking fails the request with
+	// that status. A query is asked once.
+	Busy EmbeddingRequestsBusy `json:"busy"`
+	// Providers How each kind of provider is asked, by its `type`
+	// (EmbeddingConfig): every kind, and no other.
+	Providers map[string]EmbeddingRequestsProvidersValue `json:"providers"`
+	// RequestSeconds How long each request has, counted from when it is sent and
+	// not from when its batch began. Asking a busy provider again is within it.
+	RequestSeconds int `json:"requestSeconds"`
+	// StartAgain How many times, at most, a starting service asks again a
+	// provider that answered 404, taken to be still fetching the model, or could
+	// not be reached, taken to be still starting: within the time the service
+	// has to start.
+	StartAgain int `json:"startAgain"`
+}
+
+// EmbeddingRequestsBusy A request for the vectors of documents that the
+// provider answers busy is asked again, after each wait in turn, while the
+// request's own time allows the wait. A provider busy at every asking fails
+// the request with that status. A query is asked once.
+type EmbeddingRequestsBusy struct {
+	// AgainAfterSeconds The wait before each asking again, in order.
+	AgainAfterSeconds []int `json:"againAfterSeconds"`
+	// Statuses The statuses by which a provider says it is busy.
+	Statuses []int `json:"statuses"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v EmbeddingRequestsBusy) MarshalJSON() ([]byte, error) {
+	type written EmbeddingRequestsBusy
+	v.AgainAfterSeconds = listOf(v.AgainAfterSeconds)
+	v.Statuses = listOf(v.Statuses)
+	return json.Marshal(written(v))
+}
+
+type EmbeddingRequestsProvidersValue struct {
+	// AtOnce How many requests are made of the provider at once, however many
+	// resources are being indexed.
+	AtOnce int `json:"atOnce"`
+	// TextsPerRequest How many texts one request carries, at most: a batch is
+	// cut into slices of this many, each one request, in the order of the texts.
+	TextsPerRequest int `json:"textsPerRequest"`
 }
 
 // EmptyObject is an object with no properties.
@@ -3933,12 +4661,12 @@ func (e ExtractionMethod) Valid() bool {
 // provenance; 'declined' — a named decline. ocrConfidence is extraction
 // quality for operators, deliberately not anchor confidence.
 type ExtractionOutcome struct {
-	union[extractionOutcomeMember]
+	union[ExtractionOutcomeMember]
 }
 
-// extractionOutcomeMember is a member of ExtractionOutcome: ExtractedText,
+// ExtractionOutcomeMember is a member of ExtractionOutcome: ExtractedText,
 // ExtractionDeclined.
-type extractionOutcomeMember interface {
+type ExtractionOutcomeMember interface {
 	memberOfExtractionOutcome()
 }
 
@@ -4255,6 +4983,247 @@ func (e GatewayConfigSignalType) Valid() bool {
 	return false
 }
 
+// GatewayMediaToken gateway/media-token.json: what a media token is.
+type GatewayMediaToken struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Claims Its claims beside `iat` and `exp`, each filled as the table says.
+	Claims GatewayMediaTokenClaims `json:"claims"`
+	// Header Its JOSE header, exactly.
+	Header GatewayMediaTokenHeader `json:"header"`
+	// LifetimeSeconds `exp` less `iat`.
+	LifetimeSeconds int `json:"lifetimeSeconds"`
+}
+
+// GatewayMediaTokenClaims Its claims beside `iat` and `exp`, each filled as
+// the table says.
+type GatewayMediaTokenClaims struct {
+	Iss     GatewayMediaTokenClaimsIss     `json:"iss"`
+	Purpose GatewayMediaTokenClaimsPurpose `json:"purpose"`
+	Sub     GatewayMediaTokenClaimsSub     `json:"sub"`
+}
+
+type GatewayMediaTokenClaimsIss string
+
+// The values of GatewayMediaTokenClaimsIss.
+const (
+	GatewayMediaTokenClaimsIssDomain GatewayMediaTokenClaimsIss = "{domain}"
+)
+
+// Valid is whether e is one of GatewayMediaTokenClaimsIss's values.
+func (e GatewayMediaTokenClaimsIss) Valid() bool {
+	switch e {
+	case GatewayMediaTokenClaimsIssDomain:
+		return true
+	}
+	return false
+}
+
+type GatewayMediaTokenClaimsPurpose string
+
+// The values of GatewayMediaTokenClaimsPurpose.
+const (
+	GatewayMediaTokenClaimsPurposeMedia GatewayMediaTokenClaimsPurpose = "media"
+)
+
+// Valid is whether e is one of GatewayMediaTokenClaimsPurpose's values.
+func (e GatewayMediaTokenClaimsPurpose) Valid() bool {
+	switch e {
+	case GatewayMediaTokenClaimsPurposeMedia:
+		return true
+	}
+	return false
+}
+
+type GatewayMediaTokenClaimsSub string
+
+// The values of GatewayMediaTokenClaimsSub.
+const (
+	GatewayMediaTokenClaimsSubResourceId GatewayMediaTokenClaimsSub = "{resourceId}"
+)
+
+// Valid is whether e is one of GatewayMediaTokenClaimsSub's values.
+func (e GatewayMediaTokenClaimsSub) Valid() bool {
+	switch e {
+	case GatewayMediaTokenClaimsSubResourceId:
+		return true
+	}
+	return false
+}
+
+// GatewayMediaTokenHeader Its JOSE header, exactly.
+type GatewayMediaTokenHeader struct {
+	Alg GatewayMediaTokenHeaderAlg `json:"alg"`
+	Typ GatewayMediaTokenHeaderTyp `json:"typ"`
+}
+
+type GatewayMediaTokenHeaderAlg string
+
+// The values of GatewayMediaTokenHeaderAlg.
+const (
+	GatewayMediaTokenHeaderAlgHS256 GatewayMediaTokenHeaderAlg = "HS256"
+)
+
+// Valid is whether e is one of GatewayMediaTokenHeaderAlg's values.
+func (e GatewayMediaTokenHeaderAlg) Valid() bool {
+	switch e {
+	case GatewayMediaTokenHeaderAlgHS256:
+		return true
+	}
+	return false
+}
+
+type GatewayMediaTokenHeaderTyp string
+
+// The values of GatewayMediaTokenHeaderTyp.
+const (
+	GatewayMediaTokenHeaderTypJWT GatewayMediaTokenHeaderTyp = "JWT"
+)
+
+// Valid is whether e is one of GatewayMediaTokenHeaderTyp's values.
+func (e GatewayMediaTokenHeaderTyp) Valid() bool {
+	switch e {
+	case GatewayMediaTokenHeaderTypJWT:
+		return true
+	}
+	return false
+}
+
+// GatewayMessages gateway/messages.json: the words of the gateway's own
+// refusals.
+type GatewayMessages struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Challenges The `WWW-Authenticate` of a 401.
+	Challenges GatewayMessagesChallenges `json:"challenges"`
+	// Failures Each failure frame the gateway delivers itself, on the stream of
+	// the client whose request it answers.
+	Failures []GatewayMessagesFailuresItem `json:"failures"`
+	// Messages Each refusal the gateway makes itself.
+	Messages []GatewayMessagesMessagesItem `json:"messages"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v GatewayMessages) MarshalJSON() ([]byte, error) {
+	type written GatewayMessages
+	v.Failures = listOf(v.Failures)
+	v.Messages = listOf(v.Messages)
+	return json.Marshal(written(v))
+}
+
+// GatewayMessagesChallenges The `WWW-Authenticate` of a 401.
+type GatewayMessagesChallenges struct {
+	// NoCredential For a request that presents no credential. The challenge.
+	// `{origin}` is the origin the Unauthorized response names: `http://` and
+	// the request's `Host`, or, for a request that names none, the gateway's
+	// `publicUrl`.
+	NoCredential string `json:"noCredential"`
+	// Refused For a request whose credential, a bearer token or a media token,
+	// is refused. The challenge. `{origin}` is the origin the Unauthorized
+	// response names: `http://` and the request's `Host`, or, for a request that
+	// names none, the gateway's `publicUrl`.
+	Refused string `json:"refused"`
+}
+
+type GatewayMessagesFailuresItem struct {
+	// Code Its `code`.
+	Code string `json:"code"`
+	// Message Its text. A `{name}` in it is filled with what the row's
+	// `situation` names, and nothing else in it varies.
+	Message string `json:"message"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When the gateway answers it, and what fills each `{name}` of its
+	// texts.
+	Situation string `json:"situation"`
+}
+
+type GatewayMessagesMessagesItem struct {
+	// Code Its `code`, where it carries one: a LimitRefusal's, or the transport
+	// code errors/codes.json names for its status.
+	Code *string `json:"code,omitempty"`
+	// Error Its text. A `{name}` in it is filled with what the row's `situation`
+	// names, and nothing else in it varies.
+	Error string `json:"error"`
+	// Hint Its `hint`, where it carries one.
+	Hint *string `json:"hint,omitempty"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When the gateway answers it, and what fills each `{name}` of its
+	// texts.
+	Situation string     `json:"situation"`
+	Status    HttpStatus `json:"status"`
+}
+
+// GatewayResponseHeaders gateway/response-headers.json: the headers on every
+// response the gateway sends.
+type GatewayResponseHeaders struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Absent Each header no response carries.
+	Absent []string `json:"absent"`
+	// Every Each header every response carries, and its value.
+	Every []GatewayResponseHeadersEveryItem `json:"every"`
+	// Preflight How the gateway answers an `OPTIONS` request.
+	Preflight GatewayResponseHeadersPreflight `json:"preflight"`
+	// RequestId The header that names the request.
+	RequestId string `json:"requestId"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v GatewayResponseHeaders) MarshalJSON() ([]byte, error) {
+	type written GatewayResponseHeaders
+	v.Absent = listOf(v.Absent)
+	v.Every = listOf(v.Every)
+	return json.Marshal(written(v))
+}
+
+type GatewayResponseHeadersEveryItem struct {
+	// Name A header's name, as HTTP spells it; a receiver reads it in any case.
+	Name string `json:"name"`
+	// Value Its value, exactly.
+	Value string `json:"value"`
+}
+
+// GatewayResponseHeadersPreflight How the gateway answers an `OPTIONS`
+// request.
+type GatewayResponseHeadersPreflight struct {
+	// Echoes Each header it carries when the request carries the header it
+	// echoes, with that header's value.
+	Echoes []GatewayResponseHeadersPreflightEchoesItem `json:"echoes"`
+	// Headers Each header it carries beside those of `every`, and its value.
+	Headers []GatewayResponseHeadersPreflightHeadersItem `json:"headers"`
+	Status  HttpStatus                                   `json:"status"`
+	// Vary The value of the `Vary` it carries when it echoes a header: the
+	// request headers it echoes.
+	Vary string `json:"vary"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v GatewayResponseHeadersPreflight) MarshalJSON() ([]byte, error) {
+	type written GatewayResponseHeadersPreflight
+	v.Echoes = listOf(v.Echoes)
+	v.Headers = listOf(v.Headers)
+	return json.Marshal(written(v))
+}
+
+type GatewayResponseHeadersPreflightEchoesItem struct {
+	// Name A header's name, as HTTP spells it; a receiver reads it in any case.
+	Name string `json:"name"`
+	// Of The request's header whose value it carries.
+	Of string `json:"of"`
+}
+
+type GatewayResponseHeadersPreflightHeadersItem struct {
+	// Name A header's name, as HTTP spells it; a receiver reads it in any case.
+	Name string `json:"name"`
+	// Value Its value, exactly.
+	Value string `json:"value"`
+}
+
 // GatherAnnotationComplete Completion payload emitted on the
 // gather:annotation-complete bus channel when annotation context gathering
 // finishes.
@@ -4476,12 +5445,12 @@ type GatheredContext struct {
 
 // GatheredContextFocus The gather anchor. Discriminated on `kind`.
 type GatheredContextFocus struct {
-	union[gatheredContextFocusMember]
+	union[GatheredContextFocusMember]
 }
 
-// gatheredContextFocusMember is a member of GatheredContextFocus:
+// GatheredContextFocusMember is a member of GatheredContextFocus:
 // GatheredContextFocusAnnotation, GatheredContextFocusResource.
-type gatheredContextFocusMember interface {
+type GatheredContextFocusMember interface {
 	memberOfGatheredContextFocus()
 }
 
@@ -4912,12 +5881,12 @@ func (e GraphAnnotationNodeType) Valid() bool {
 // a store for, told apart by `type`. A secret is never a value here: a
 // database's password is named by the environment variable that holds it.
 type GraphConfig struct {
-	union[graphConfigMember]
+	union[GraphConfigMember]
 }
 
-// graphConfigMember is a member of GraphConfig: Neo4jGraphConfig,
+// GraphConfigMember is a member of GraphConfig: Neo4jGraphConfig,
 // JanusGraphConfig, NeptuneGraphConfig, MemoryGraphConfig.
-type graphConfigMember interface {
+type GraphConfigMember interface {
 	memberOfGraphConfig()
 }
 
@@ -4973,6 +5942,168 @@ func (e GraphResourceNodeType) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// GraphSchema graph/schema.json: the shape of the graph a store keeps, as a
+// reader of the store finds it.
+type GraphSchema struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Nodes Each kind of node the graph holds.
+	Nodes GraphSchemaNodes `json:"nodes"`
+	// Relationships Each kind of relationship the graph holds.
+	Relationships GraphSchemaRelationships `json:"relationships"`
+	// Stub A link's target the graph has not been given yet: a node of its kind
+	// that holds its key and the marker, `true`, and nothing else. A node
+	// without the marker is no stub.
+	Stub GraphSchemaStub `json:"stub"`
+}
+
+// GraphSchemaNodes Each kind of node the graph holds.
+type GraphSchemaNodes struct {
+	// Annotation A kind of node: its label, the codec row it holds, the property
+	// it is one of its kind by, and the properties a reader finds one by.
+	Annotation GraphSchemaNodesAnnotation `json:"annotation"`
+	// EntityType A kind of node: its label, the codec row it holds, the property
+	// it is one of its kind by, and the properties a reader finds one by.
+	EntityType GraphSchemaNodesEntityType `json:"entityType"`
+	// Resource A kind of node: its label, the codec row it holds, the property
+	// it is one of its kind by, and the properties a reader finds one by.
+	Resource GraphSchemaNodesResource `json:"resource"`
+}
+
+// GraphSchemaNodesAnnotation A kind of node: its label, the codec row it
+// holds, the property it is one of its kind by, and the properties a reader
+// finds one by.
+type GraphSchemaNodesAnnotation struct {
+	// Key The property no two nodes of its kind share.
+	Key string `json:"key"`
+	// Label Its label.
+	Label string `json:"label"`
+	// Lookups The properties other than its key that a reader finds a node of
+	// its kind by.
+	Lookups []string `json:"lookups"`
+	// Row The part of graph/codec-cases.json whose `properties` and `json` are
+	// the node's properties. A node without one holds its key alone.
+	Row *string `json:"row,omitempty"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v GraphSchemaNodesAnnotation) MarshalJSON() ([]byte, error) {
+	type written GraphSchemaNodesAnnotation
+	v.Lookups = listOf(v.Lookups)
+	return json.Marshal(written(v))
+}
+
+// GraphSchemaNodesEntityType A kind of node: its label, the codec row it
+// holds, the property it is one of its kind by, and the properties a reader
+// finds one by.
+type GraphSchemaNodesEntityType struct {
+	// Key The property no two nodes of its kind share.
+	Key string `json:"key"`
+	// Label Its label.
+	Label string `json:"label"`
+	// Lookups The properties other than its key that a reader finds a node of
+	// its kind by.
+	Lookups []string `json:"lookups"`
+	// Row The part of graph/codec-cases.json whose `properties` and `json` are
+	// the node's properties. A node without one holds its key alone.
+	Row *string `json:"row,omitempty"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v GraphSchemaNodesEntityType) MarshalJSON() ([]byte, error) {
+	type written GraphSchemaNodesEntityType
+	v.Lookups = listOf(v.Lookups)
+	return json.Marshal(written(v))
+}
+
+// GraphSchemaNodesResource A kind of node: its label, the codec row it holds,
+// the property it is one of its kind by, and the properties a reader finds
+// one by.
+type GraphSchemaNodesResource struct {
+	// Key The property no two nodes of its kind share.
+	Key string `json:"key"`
+	// Label Its label.
+	Label string `json:"label"`
+	// Lookups The properties other than its key that a reader finds a node of
+	// its kind by.
+	Lookups []string `json:"lookups"`
+	// Row The part of graph/codec-cases.json whose `properties` and `json` are
+	// the node's properties. A node without one holds its key alone.
+	Row *string `json:"row,omitempty"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v GraphSchemaNodesResource) MarshalJSON() ([]byte, error) {
+	type written GraphSchemaNodesResource
+	v.Lookups = listOf(v.Lookups)
+	return json.Marshal(written(v))
+}
+
+// GraphSchemaRelationships Each kind of relationship the graph holds.
+type GraphSchemaRelationships struct {
+	// BelongsTo A kind of relationship: its type, the kind of node it goes from
+	// and the kind it goes to, and what it says.
+	BelongsTo GraphSchemaRelationshipsBelongsTo `json:"belongsTo"`
+	// References A kind of relationship: its type, the kind of node it goes from
+	// and the kind it goes to, and what it says.
+	References GraphSchemaRelationshipsReferences `json:"references"`
+	// TaggedAs A kind of relationship: its type, the kind of node it goes from
+	// and the kind it goes to, and what it says.
+	TaggedAs GraphSchemaRelationshipsTaggedAs `json:"taggedAs"`
+}
+
+// GraphSchemaRelationshipsBelongsTo A kind of relationship: its type, the
+// kind of node it goes from and the kind it goes to, and what it says.
+type GraphSchemaRelationshipsBelongsTo struct {
+	// From The kind of node it goes from, by its name under `nodes`.
+	From string `json:"from"`
+	// Says What one says.
+	Says string `json:"says"`
+	// To The kind of node it goes to, by its name under `nodes`.
+	To string `json:"to"`
+	// Type Its type.
+	Type string `json:"type"`
+}
+
+// GraphSchemaRelationshipsReferences A kind of relationship: its type, the
+// kind of node it goes from and the kind it goes to, and what it says.
+type GraphSchemaRelationshipsReferences struct {
+	// From The kind of node it goes from, by its name under `nodes`.
+	From string `json:"from"`
+	// Says What one says.
+	Says string `json:"says"`
+	// To The kind of node it goes to, by its name under `nodes`.
+	To string `json:"to"`
+	// Type Its type.
+	Type string `json:"type"`
+}
+
+// GraphSchemaRelationshipsTaggedAs A kind of relationship: its type, the kind
+// of node it goes from and the kind it goes to, and what it says.
+type GraphSchemaRelationshipsTaggedAs struct {
+	// From The kind of node it goes from, by its name under `nodes`.
+	From string `json:"from"`
+	// Says What one says.
+	Says string `json:"says"`
+	// To The kind of node it goes to, by its name under `nodes`.
+	To string `json:"to"`
+	// Type Its type.
+	Type string `json:"type"`
+}
+
+// GraphSchemaStub A link's target the graph has not been given yet: a node of
+// its kind that holds its key and the marker, `true`, and nothing else. A
+// node without the marker is no stub.
+type GraphSchemaStub struct {
+	// Marker The property that marks a stub.
+	Marker string `json:"marker"`
+	// Node The kind of node a stub is, by its name under `nodes`.
+	Node string `json:"node"`
 }
 
 // HealthResponse Liveness: the process is up and serving. It asks nothing of
@@ -5359,12 +6490,12 @@ func (e JanusGraphConfigType) Valid() bool {
 // and outcome fields it carries. It is what a claim returns (`job:claimed`,
 // always `running`) and what the queue stores, inside a JobRecord.
 type Job struct {
-	union[jobMember]
+	union[JobMember]
 }
 
-// jobMember is a member of Job: JobPending, JobRunning, JobComplete,
+// JobMember is a member of Job: JobPending, JobRunning, JobComplete,
 // JobFailed, JobCancelled.
-type jobMember interface {
+type JobMember interface {
 	memberOfJob()
 }
 
@@ -5607,12 +6738,12 @@ func (JobComplete) told() (string, string) { return "status", "complete" }
 // made, or a decline from either. A completion whose result is the other
 // verb's is refused where the command is admitted.
 type JobCompleteCommand struct {
-	union[jobCompleteCommandMember]
+	union[JobCompleteCommandMember]
 }
 
-// jobCompleteCommandMember is a member of JobCompleteCommand:
+// JobCompleteCommandMember is a member of JobCompleteCommand:
 // MarkJobCompleteCommand, YieldJobCompleteCommand.
-type jobCompleteCommandMember interface {
+type JobCompleteCommandMember interface {
 	memberOfJobCompleteCommand()
 }
 
@@ -5680,12 +6811,12 @@ type JobCompletedPayload struct {
 // enough parameters to be well formed: a `mark` job names its resource and,
 // in its parameters, its motivation; a `yield` job names its context.
 type JobCreateCommand struct {
-	union[jobCreateCommandMember]
+	union[JobCreateCommandMember]
 }
 
-// jobCreateCommandMember is a member of JobCreateCommand:
+// JobCreateCommandMember is a member of JobCreateCommand:
 // MarkJobCreateCommand, YieldJobCreateCommand.
-type jobCreateCommandMember interface {
+type JobCreateCommandMember interface {
 	memberOfJobCreateCommand()
 }
 
@@ -5894,11 +7025,11 @@ func (e JobFailedStatus) Valid() bool {
 // description, at the description's own paths. A job matches when every field
 // stated here equals the job's. A `mark` filter always states its motivation.
 type JobFilter struct {
-	union[jobFilterMember]
+	union[JobFilterMember]
 }
 
-// jobFilterMember is a member of JobFilter: MarkJobFilter, YieldJobFilter.
-type jobFilterMember interface {
+// JobFilterMember is a member of JobFilter: MarkJobFilter, YieldJobFilter.
+type JobFilterMember interface {
 	memberOfJobFilter()
 }
 
@@ -6411,16 +7542,16 @@ func (e JobProgressLoadingCode) Valid() bool {
 // Y8); extending it means adding a named variant here and copy in every
 // client, gated by the locale-completeness check.
 type JobProgressMessage struct {
-	union[jobProgressMessageMember]
+	union[JobProgressMessageMember]
 }
 
-// jobProgressMessageMember is a member of JobProgressMessage:
+// JobProgressMessageMember is a member of JobProgressMessage:
 // JobProgressLoading, JobProgressAnalyzing, JobProgressAnalyzingTags,
 // JobProgressGeneratingResource, JobProgressCreatingResource,
 // JobProgressCompleteGenerated, JobProgressDetectingEntities,
 // JobProgressCreatingAnnotations, JobProgressCreatingTagAnnotations,
 // JobProgressCompleteCreated.
-type jobProgressMessageMember interface {
+type JobProgressMessageMember interface {
 	memberOfJobProgressMessage()
 }
 
@@ -6492,12 +7623,12 @@ func (e JobProgressRequestParamsItemLabel) Valid() bool {
 // would be matched against. It is a wake-up and not an offer of this job: a
 // claim is answered with the next pending job it matches.
 type JobQueuedEvent struct {
-	union[jobQueuedEventMember]
+	union[JobQueuedEventMember]
 }
 
-// jobQueuedEventMember is a member of JobQueuedEvent: MarkJobQueuedEvent,
+// JobQueuedEventMember is a member of JobQueuedEvent: MarkJobQueuedEvent,
 // YieldJobQueuedEvent.
-type jobQueuedEventMember interface {
+type JobQueuedEventMember interface {
 	memberOfJobQueuedEvent()
 }
 
@@ -6561,12 +7692,12 @@ type JobReportProgressCommand struct {
 // which job it answers, and the three share no member, so each is told from
 // the others by what it alone carries.
 type JobResult struct {
-	union[jobResultMember]
+	union[JobResultMember]
 }
 
-// jobResultMember is a member of JobResult: MarkJobDone, YieldJobDone,
+// JobResultMember is a member of JobResult: MarkJobDone, YieldJobDone,
 // JobDeclined.
-type jobResultMember interface {
+type JobResultMember interface {
 	memberOfJobResult()
 }
 
@@ -6680,12 +7811,12 @@ type JobStatusResult struct {
 // last JobProgress its worker reported with `job:report-progress`, or an
 // empty object before the first report.
 type JobStoredProgress struct {
-	union[jobStoredProgressMember]
+	union[JobStoredProgressMember]
 }
 
-// jobStoredProgressMember is a member of JobStoredProgress: JobProgress,
+// JobStoredProgressMember is a member of JobStoredProgress: JobProgress,
 // EmptyObject.
-type jobStoredProgressMember interface {
+type JobStoredProgressMember interface {
 	memberOfJobStoredProgress()
 }
 
@@ -6693,12 +7824,12 @@ type jobStoredProgressMember interface {
 // result its worker reported with `job:complete`, or an empty object when it
 // reported none.
 type JobStoredResult struct {
-	union[jobStoredResultMember]
+	union[JobStoredResultMember]
 }
 
-// jobStoredResultMember is a member of JobStoredResult: JobResult,
+// JobStoredResultMember is a member of JobStoredResult: JobResult,
 // EmptyObject.
-type jobStoredResultMember interface {
+type JobStoredResultMember interface {
 	memberOfJobStoredResult()
 }
 
@@ -6720,6 +7851,65 @@ func (e JobType) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// JobsBudgets jobs/budgets.json: the retry budget of each job type.
+type JobsBudgets struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Budgets One row for each job type.
+	Budgets []JobsBudgetsBudgetsItem `json:"budgets"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v JobsBudgets) MarshalJSON() ([]byte, error) {
+	type written JobsBudgets
+	v.Budgets = listOf(v.Budgets)
+	return json.Marshal(written(v))
+}
+
+type JobsBudgetsBudgetsItem struct {
+	JobType JobType `json:"jobType"`
+	// MaxRetries How many times a failed attempt of a job of this type may be
+	// retried: its record's `metadata.maxRetries`.
+	MaxRetries int `json:"maxRetries"`
+}
+
+// JobsStorage jobs/storage.json: where the job queue keeps its state on the
+// broker.
+type JobsStorage struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Bucket The KV bucket that keeps one record per job, keyed by the job's id.
+	Bucket JobsStorageBucket `json:"bucket"`
+	// Consumer The durable consumer that delivers each job to the dispatcher
+	// holding its lease.
+	Consumer JobsStorageConsumer `json:"consumer"`
+	// Stream The work-queue stream every job is published into.
+	Stream JobsStorageStream `json:"stream"`
+}
+
+// JobsStorageBucket The KV bucket that keeps one record per job, keyed by the
+// job's id.
+type JobsStorageBucket struct {
+	Name string `json:"name"`
+	// Record The component schema each of the bucket's values is.
+	Record string `json:"record"`
+}
+
+// JobsStorageConsumer The durable consumer that delivers each job to the
+// dispatcher holding its lease.
+type JobsStorageConsumer struct {
+	DurableName string `json:"durableName"`
+}
+
+// JobsStorageStream The work-queue stream every job is published into.
+type JobsStorageStream struct {
+	Name string `json:"name"`
+	// SubjectRoot The root of the subjects the stream captures: a job is
+	// published on `<subjectRoot>.<jobType>`.
+	SubjectRoot string `json:"subjectRoot"`
 }
 
 // KbDescription What a knowledge base says about itself, answered by the
@@ -6753,11 +7943,11 @@ type (
 // knowledge base the host process has loaded. Told apart by `kind`. Only what
 // builds a transport, or signs in at an issuer, reads it.
 type KbEndpoint struct {
-	union[kbEndpointMember]
+	union[KbEndpointMember]
 }
 
-// kbEndpointMember is a member of KbEndpoint: HttpEndpoint, LocalEndpoint.
-type kbEndpointMember interface {
+// KbEndpointMember is a member of KbEndpoint: HttpEndpoint, LocalEndpoint.
+type KbEndpointMember interface {
 	memberOfKbEndpoint()
 }
 
@@ -6837,12 +8027,12 @@ func (e KbReadKind) Valid() bool {
 // KbReadVerdict What a knowledge base said when it was asked to describe
 // itself, read against the entry it was asked as.
 type KbReadVerdict struct {
-	union[kbReadVerdictMember]
+	union[KbReadVerdictMember]
 }
 
-// kbReadVerdictMember is a member of KbReadVerdict: KbReadVerdictRecorded,
+// KbReadVerdictMember is a member of KbReadVerdict: KbReadVerdictRecorded,
 // KbReadVerdictConflict, KbReadVerdictNoVerdict.
-type kbReadVerdictMember interface {
+type KbReadVerdictMember interface {
 	memberOfKbReadVerdict()
 }
 
@@ -7149,12 +8339,12 @@ type KnowledgeGraphEdgesItem struct {
 }
 
 type KnowledgeGraphNodesItem struct {
-	union[knowledgeGraphNodesItemMember]
+	union[KnowledgeGraphNodesItemMember]
 }
 
-// knowledgeGraphNodesItemMember is a member of KnowledgeGraphNodesItem:
+// KnowledgeGraphNodesItemMember is a member of KnowledgeGraphNodesItem:
 // GraphResourceNode, GraphAnnotationNode.
-type knowledgeGraphNodesItemMember interface {
+type KnowledgeGraphNodesItemMember interface {
 	memberOfKnowledgeGraphNodesItem()
 }
 
@@ -8006,13 +9196,13 @@ type MarkJobFilterParams struct {
 // Each motivation takes its own parameters and no others: a parameter a job
 // does not take is refused where the job is created.
 type MarkJobParams struct {
-	union[markJobParamsMember]
+	union[MarkJobParamsMember]
 }
 
-// markJobParamsMember is a member of MarkJobParams: HighlightingJobParams,
+// MarkJobParamsMember is a member of MarkJobParams: HighlightingJobParams,
 // CommentingJobParams, AssessingJobParams, LinkingJobParams,
 // TaggingJobParams.
-type markJobParamsMember interface {
+type MarkJobParamsMember interface {
 	memberOfMarkJobParams()
 }
 
@@ -8075,11 +9265,11 @@ func (e MarkJobQueuedEventJobType) Valid() bool {
 // its counts, or a decline. Neither names its kind: a decline is the one with
 // `declined`.
 type MarkJobResult struct {
-	union[markJobResultMember]
+	union[MarkJobResultMember]
 }
 
-// markJobResultMember is a member of MarkJobResult: MarkJobDone, JobDeclined.
-type markJobResultMember interface {
+// MarkJobResultMember is a member of MarkJobResult: MarkJobDone, JobDeclined.
+type MarkJobResultMember interface {
 	memberOfMarkJobResult()
 }
 
@@ -8564,12 +9754,12 @@ func (e OllamaEmbeddingConfigType) Valid() bool {
 // and the Web Annotation model let a resource or an annotation name in one
 // place, as one agent or several.
 type OneOrMoreAgents struct {
-	union[oneOrMoreAgentsMember]
+	union[OneOrMoreAgentsMember]
 }
 
-// oneOrMoreAgentsMember is a member of OneOrMoreAgents: Agent,
+// OneOrMoreAgentsMember is a member of OneOrMoreAgents: Agent,
 // OneOrMoreAgentsList.
-type oneOrMoreAgentsMember interface {
+type OneOrMoreAgentsMember interface {
 	memberOfOneOrMoreAgents()
 }
 
@@ -8581,12 +9771,12 @@ func (OneOrMoreAgentsList) memberOfOneOrMoreAgents() {}
 // OneOrMoreStrings One string, or a non-empty list of them: a JSON-LD term
 // that may take one value or several.
 type OneOrMoreStrings struct {
-	union[oneOrMoreStringsMember]
+	union[OneOrMoreStringsMember]
 }
 
-// oneOrMoreStringsMember is a member of OneOrMoreStrings:
+// OneOrMoreStringsMember is a member of OneOrMoreStrings:
 // OneOrMoreStringsText, OneOrMoreStringsList.
-type oneOrMoreStringsMember interface {
+type OneOrMoreStringsMember interface {
 	memberOfOneOrMoreStrings()
 }
 
@@ -8603,12 +9793,12 @@ func (OneOrMoreStringsText) memberOfOneOrMoreStrings() {}
 // OneOrMoreUris One URI, or a non-empty list of them: a JSON-LD term that may
 // name one resource or several.
 type OneOrMoreUris struct {
-	union[oneOrMoreUrisMember]
+	union[OneOrMoreUrisMember]
 }
 
-// oneOrMoreUrisMember is a member of OneOrMoreUris: OneOrMoreUrisText,
+// OneOrMoreUrisMember is a member of OneOrMoreUris: OneOrMoreUrisText,
 // OneOrMoreUrisList.
-type oneOrMoreUrisMember interface {
+type OneOrMoreUrisMember interface {
 	memberOfOneOrMoreUris()
 }
 
@@ -8987,13 +10177,13 @@ type QuotedText struct {
 // found, told apart by `anchorMethod`, one of AnchorMethod's words: a fuzzy
 // match also names its search, `matchQuality`, and no other states one.
 type ReconciledSpan struct {
-	union[reconciledSpanMember]
+	union[ReconciledSpanMember]
 }
 
-// reconciledSpanMember is a member of ReconciledSpan:
+// ReconciledSpanMember is a member of ReconciledSpan:
 // ReconciledSpanUniqueMatch, ReconciledSpanContextRecovered,
 // ReconciledSpanFirstOfMany, ReconciledSpanFuzzyMatch.
-type reconciledSpanMember interface {
+type ReconciledSpanMember interface {
 	memberOfReconciledSpan()
 }
 
@@ -9313,11 +10503,11 @@ type RepresentationRemovedPayload struct {
 // RequestId The request a notification is about: the JSON-RPC id its client
 // gave it, as the client gave it.
 type RequestId struct {
-	union[requestIdMember]
+	union[RequestIdMember]
 }
 
-// requestIdMember is a member of RequestId: RequestIdText, RequestIdInteger.
-type requestIdMember interface {
+// RequestIdMember is a member of RequestId: RequestIdText, RequestIdInteger.
+type RequestIdMember interface {
 	memberOfRequestId()
 }
 
@@ -9506,24 +10696,24 @@ func (v *ResourceDescriptor) UnmarshalJSON(raw []byte) error {
 
 // ResourceDescriptorContext JSON-LD context; URI, object, or array of these.
 type ResourceDescriptorContext struct {
-	union[resourceDescriptorContextMember]
+	union[ResourceDescriptorContextMember]
 }
 
-// resourceDescriptorContextMember is a member of ResourceDescriptorContext:
+// ResourceDescriptorContextMember is a member of ResourceDescriptorContext:
 // ResourceDescriptorContextText, ResourceDescriptorContextObject,
 // ResourceDescriptorContextList.
-type resourceDescriptorContextMember interface {
+type ResourceDescriptorContextMember interface {
 	memberOfResourceDescriptorContext()
 }
 
 type ResourceDescriptorContextItem struct {
-	union[resourceDescriptorContextItemMember]
+	union[ResourceDescriptorContextItemMember]
 }
 
-// resourceDescriptorContextItemMember is a member of
+// ResourceDescriptorContextItemMember is a member of
 // ResourceDescriptorContextItem: ResourceDescriptorContextItemText,
 // ResourceDescriptorContextItemObject.
-type resourceDescriptorContextItemMember interface {
+type ResourceDescriptorContextItemMember interface {
 	memberOfResourceDescriptorContextItem()
 }
 
@@ -9558,13 +10748,13 @@ func (ResourceDescriptorContextText) memberOfResourceDescriptorContext() {}
 
 // ResourceDescriptorIdentifier Persistent identifiers (e.g., DOI, URN).
 type ResourceDescriptorIdentifier struct {
-	union[resourceDescriptorIdentifierMember]
+	union[ResourceDescriptorIdentifierMember]
 }
 
-// resourceDescriptorIdentifierMember is a member of
+// ResourceDescriptorIdentifierMember is a member of
 // ResourceDescriptorIdentifier: ResourceDescriptorIdentifierText,
 // ResourceDescriptorIdentifierList, ResourceDescriptorIdentifierObject.
-type resourceDescriptorIdentifierMember interface {
+type ResourceDescriptorIdentifierMember interface {
 	memberOfResourceDescriptorIdentifier()
 }
 
@@ -9607,13 +10797,13 @@ func (ResourceDescriptorIdentifierText) memberOfResourceDescriptorIdentifier() {
 // ResourceDescriptorRepresentations Managed or referenced byte-level
 // renditions of this resource.
 type ResourceDescriptorRepresentations struct {
-	union[resourceDescriptorRepresentationsMember]
+	union[ResourceDescriptorRepresentationsMember]
 }
 
-// resourceDescriptorRepresentationsMember is a member of
+// ResourceDescriptorRepresentationsMember is a member of
 // ResourceDescriptorRepresentations: Representation,
 // ResourceDescriptorRepresentationsList.
-type resourceDescriptorRepresentationsMember interface {
+type ResourceDescriptorRepresentationsMember interface {
 	memberOfResourceDescriptorRepresentations()
 }
 
@@ -9626,13 +10816,13 @@ func (ResourceDescriptorRepresentationsList) memberOfResourceDescriptorRepresent
 // ResourceDescriptorWasDerivedFrom W3C PROV: the resource, or resources, this
 // one was derived from, each by its id
 type ResourceDescriptorWasDerivedFrom struct {
-	union[resourceDescriptorWasDerivedFromMember]
+	union[ResourceDescriptorWasDerivedFromMember]
 }
 
-// resourceDescriptorWasDerivedFromMember is a member of
+// ResourceDescriptorWasDerivedFromMember is a member of
 // ResourceDescriptorWasDerivedFrom: ResourceId,
 // ResourceDescriptorWasDerivedFromList.
-type resourceDescriptorWasDerivedFromMember interface {
+type ResourceDescriptorWasDerivedFromMember interface {
 	memberOfResourceDescriptorWasDerivedFrom()
 }
 
@@ -10137,12 +11327,12 @@ type SecretRef struct {
 // Selector One W3C selector: a way of finding a segment of a resource. Tell
 // them apart by `type`, which is required on each and single-valued.
 type Selector struct {
-	union[selectorMember]
+	union[SelectorMember]
 }
 
-// selectorMember is a member of Selector: TextPositionSelector,
+// SelectorMember is a member of Selector: TextPositionSelector,
 // TextQuoteSelector, SvgSelector, FragmentSelector.
-type selectorMember interface {
+type SelectorMember interface {
 	memberOfSelector()
 }
 
@@ -10200,6 +11390,185 @@ type SemanticMatch struct {
 type ServiceAddress struct {
 	Host string `json:"host"`
 	Port int    `json:"port"`
+}
+
+// ServiceEnvironmentBootRefusals service-environment/boot-refusals.json: what
+// a service writes when it refuses to start on its configuration document or
+// its environment.
+type ServiceEnvironmentBootRefusals struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// ExitCode The status it exits with.
+	ExitCode int `json:"exitCode"`
+	// Line The one line the service writes to stderr, its refusal in place of
+	// `{refusal}`, before it exits.
+	Line string `json:"line"`
+	// Members Each line of the refusal `invalid`: one for each way the document
+	// is not its schema's.
+	Members []ServiceEnvironmentBootRefusalsMembersItem `json:"members"`
+	// Refusals Each refusal.
+	Refusals []ServiceEnvironmentBootRefusalsRefusalsItem `json:"refusals"`
+	// Services The services that refuse to start so.
+	Services []ServiceEnvironmentBootRefusalsServicesItem `json:"services"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceEnvironmentBootRefusals) MarshalJSON() ([]byte, error) {
+	type written ServiceEnvironmentBootRefusals
+	v.Members = listOf(v.Members)
+	v.Refusals = listOf(v.Refusals)
+	v.Services = listOf(v.Services)
+	return json.Marshal(written(v))
+}
+
+type ServiceEnvironmentBootRefusalsMembersItem struct {
+	// Line The line, filled as the row's `situation` says.
+	Line string `json:"line"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+type ServiceEnvironmentBootRefusalsRefusalsItem struct {
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Refusal Its text. A `{name}` in it is filled with what the row's
+	// `situation` names, and nothing else in it varies.
+	Refusal string `json:"refusal"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+// ServiceEnvironmentBootRefusalsServicesItem A Xynolog service, by its name.
+type ServiceEnvironmentBootRefusalsServicesItem string
+
+// The values of ServiceEnvironmentBootRefusalsServicesItem.
+const (
+	ServiceEnvironmentBootRefusalsServicesItemArchivist  ServiceEnvironmentBootRefusalsServicesItem = "archivist"
+	ServiceEnvironmentBootRefusalsServicesItemDispatcher ServiceEnvironmentBootRefusalsServicesItem = "dispatcher"
+	ServiceEnvironmentBootRefusalsServicesItemGateway    ServiceEnvironmentBootRefusalsServicesItem = "gateway"
+	ServiceEnvironmentBootRefusalsServicesItemLibrarian  ServiceEnvironmentBootRefusalsServicesItem = "librarian"
+	ServiceEnvironmentBootRefusalsServicesItemSmelter    ServiceEnvironmentBootRefusalsServicesItem = "smelter"
+	ServiceEnvironmentBootRefusalsServicesItemWeaver     ServiceEnvironmentBootRefusalsServicesItem = "weaver"
+	ServiceEnvironmentBootRefusalsServicesItemWorker     ServiceEnvironmentBootRefusalsServicesItem = "worker"
+)
+
+// Valid is whether e is one of ServiceEnvironmentBootRefusalsServicesItem's
+// values.
+func (e ServiceEnvironmentBootRefusalsServicesItem) Valid() bool {
+	switch e {
+	case ServiceEnvironmentBootRefusalsServicesItemArchivist, ServiceEnvironmentBootRefusalsServicesItemDispatcher, ServiceEnvironmentBootRefusalsServicesItemGateway, ServiceEnvironmentBootRefusalsServicesItemLibrarian, ServiceEnvironmentBootRefusalsServicesItemSmelter, ServiceEnvironmentBootRefusalsServicesItemWeaver, ServiceEnvironmentBootRefusalsServicesItemWorker:
+		return true
+	}
+	return false
+}
+
+// ServiceEnvironmentVariables service-environment/variables.json: every
+// environment variable a Xynolog service reads, beside its configuration
+// document.
+type ServiceEnvironmentVariables struct {
+	// Comment The rule the table states, in prose.
+	Comment   string                                     `json:"$comment"`
+	Variables []ServiceEnvironmentVariablesVariablesItem `json:"variables"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceEnvironmentVariables) MarshalJSON() ([]byte, error) {
+	type written ServiceEnvironmentVariables
+	v.Variables = listOf(v.Variables)
+	return json.Marshal(written(v))
+}
+
+type ServiceEnvironmentVariablesVariablesItem struct {
+	// Effect What it does.
+	Effect string `json:"effect"`
+	// Name The variable's name.
+	Name string `json:"name"`
+	// ProvidedBy What sets it where the launcher runs the service.
+	ProvidedBy ServiceEnvironmentVariablesVariablesItemProvidedBy `json:"providedBy"`
+	// ReadBy What reads it: the service's own code, or the OpenTelemetry SDK.
+	ReadBy ServiceEnvironmentVariablesVariablesItemReadBy `json:"readBy"`
+	// Required Whether the service refuses to start without it.
+	Required bool `json:"required"`
+	// Services The services that read it.
+	Services []ServiceEnvironmentVariablesVariablesItemServicesItem `json:"services"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceEnvironmentVariablesVariablesItem) MarshalJSON() ([]byte, error) {
+	type written ServiceEnvironmentVariablesVariablesItem
+	v.Services = listOf(v.Services)
+	return json.Marshal(written(v))
+}
+
+// ServiceEnvironmentVariablesVariablesItemProvidedBy What sets it where the
+// launcher runs the service.
+type ServiceEnvironmentVariablesVariablesItemProvidedBy string
+
+// The values of ServiceEnvironmentVariablesVariablesItemProvidedBy.
+const (
+	ServiceEnvironmentVariablesVariablesItemProvidedByLauncher ServiceEnvironmentVariablesVariablesItemProvidedBy = "launcher"
+	ServiceEnvironmentVariablesVariablesItemProvidedByImage    ServiceEnvironmentVariablesVariablesItemProvidedBy = "image"
+	ServiceEnvironmentVariablesVariablesItemProvidedByOperator ServiceEnvironmentVariablesVariablesItemProvidedBy = "operator"
+)
+
+// Valid is whether e is one of
+// ServiceEnvironmentVariablesVariablesItemProvidedBy's values.
+func (e ServiceEnvironmentVariablesVariablesItemProvidedBy) Valid() bool {
+	switch e {
+	case ServiceEnvironmentVariablesVariablesItemProvidedByLauncher, ServiceEnvironmentVariablesVariablesItemProvidedByImage, ServiceEnvironmentVariablesVariablesItemProvidedByOperator:
+		return true
+	}
+	return false
+}
+
+// ServiceEnvironmentVariablesVariablesItemReadBy What reads it: the service's
+// own code, or the OpenTelemetry SDK.
+type ServiceEnvironmentVariablesVariablesItemReadBy string
+
+// The values of ServiceEnvironmentVariablesVariablesItemReadBy.
+const (
+	ServiceEnvironmentVariablesVariablesItemReadByService       ServiceEnvironmentVariablesVariablesItemReadBy = "service"
+	ServiceEnvironmentVariablesVariablesItemReadByOpentelemetry ServiceEnvironmentVariablesVariablesItemReadBy = "opentelemetry"
+)
+
+// Valid is whether e is one of
+// ServiceEnvironmentVariablesVariablesItemReadBy's values.
+func (e ServiceEnvironmentVariablesVariablesItemReadBy) Valid() bool {
+	switch e {
+	case ServiceEnvironmentVariablesVariablesItemReadByService, ServiceEnvironmentVariablesVariablesItemReadByOpentelemetry:
+		return true
+	}
+	return false
+}
+
+// ServiceEnvironmentVariablesVariablesItemServicesItem A Xynolog service, by
+// its name.
+type ServiceEnvironmentVariablesVariablesItemServicesItem string
+
+// The values of ServiceEnvironmentVariablesVariablesItemServicesItem.
+const (
+	ServiceEnvironmentVariablesVariablesItemServicesItemArchivist  ServiceEnvironmentVariablesVariablesItemServicesItem = "archivist"
+	ServiceEnvironmentVariablesVariablesItemServicesItemDispatcher ServiceEnvironmentVariablesVariablesItemServicesItem = "dispatcher"
+	ServiceEnvironmentVariablesVariablesItemServicesItemGateway    ServiceEnvironmentVariablesVariablesItemServicesItem = "gateway"
+	ServiceEnvironmentVariablesVariablesItemServicesItemLibrarian  ServiceEnvironmentVariablesVariablesItemServicesItem = "librarian"
+	ServiceEnvironmentVariablesVariablesItemServicesItemSmelter    ServiceEnvironmentVariablesVariablesItemServicesItem = "smelter"
+	ServiceEnvironmentVariablesVariablesItemServicesItemWeaver     ServiceEnvironmentVariablesVariablesItemServicesItem = "weaver"
+	ServiceEnvironmentVariablesVariablesItemServicesItemWorker     ServiceEnvironmentVariablesVariablesItemServicesItem = "worker"
+)
+
+// Valid is whether e is one of
+// ServiceEnvironmentVariablesVariablesItemServicesItem's values.
+func (e ServiceEnvironmentVariablesVariablesItemServicesItem) Valid() bool {
+	switch e {
+	case ServiceEnvironmentVariablesVariablesItemServicesItemArchivist, ServiceEnvironmentVariablesVariablesItemServicesItemDispatcher, ServiceEnvironmentVariablesVariablesItemServicesItemGateway, ServiceEnvironmentVariablesVariablesItemServicesItemLibrarian, ServiceEnvironmentVariablesVariablesItemServicesItemSmelter, ServiceEnvironmentVariablesVariablesItemServicesItemWeaver, ServiceEnvironmentVariablesVariablesItemServicesItemWorker:
+		return true
+	}
+	return false
 }
 
 // ServiceGroup A group of services, as xynolog status reports them and
@@ -10453,6 +11822,472 @@ const (
 func (e ServiceStatusState) Valid() bool {
 	switch e {
 	case ServiceStatusStateRunning, ServiceStatusStateStopped, ServiceStatusStateReachable, ServiceStatusStateUnreachable, ServiceStatusStateAbsent, ServiceStatusStateNotConfigured:
+		return true
+	}
+	return false
+}
+
+// ServiceTelemetryLogLines service-telemetry/log-lines.json: the lines a
+// service writes to its log, and the line of its supervisor it counts.
+type ServiceTelemetryLogLines struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Bus A line of the bus log.
+	Bus ServiceTelemetryLogLinesBus `json:"bus"`
+	// Logger The lines of a service's logger.
+	Logger ServiceTelemetryLogLinesLogger `json:"logger"`
+	// Supervisor The line the supervisor writes when it starts a service.
+	Supervisor ServiceTelemetryLogLinesSupervisor `json:"supervisor"`
+}
+
+// ServiceTelemetryLogLinesBus A line of the bus log.
+type ServiceTelemetryLogLinesBus struct {
+	// Line Its head.
+	Line string `json:"line"`
+	// Ops Each operation a line names.
+	Ops []string `json:"ops"`
+	// Parts What follows the head, in order, each where there is one.
+	Parts []ServiceTelemetryLogLinesBusPartsItem `json:"parts"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceTelemetryLogLinesBus) MarshalJSON() ([]byte, error) {
+	type written ServiceTelemetryLogLinesBus
+	v.Ops = listOf(v.Ops)
+	v.Parts = listOf(v.Parts)
+	return json.Marshal(written(v))
+}
+
+type ServiceTelemetryLogLinesBusPartsItem struct {
+	// Characters How many characters of it are shown, from its first.
+	Characters *int `json:"characters,omitempty"`
+	// Part What it shows.
+	Part string `json:"part"`
+	// Text Its text.
+	Text string `json:"text"`
+}
+
+// ServiceTelemetryLogLinesLogger The lines of a service's logger.
+type ServiceTelemetryLogLinesLogger struct {
+	// Json A line of the `json` format.
+	Json ServiceTelemetryLogLinesLoggerJson `json:"json"`
+	// Services The services whose document names a LogFormat.
+	Services []ServiceTelemetryLogLinesLoggerServicesItem `json:"services"`
+	// Simple A line of the `simple` format.
+	Simple string `json:"simple"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceTelemetryLogLinesLogger) MarshalJSON() ([]byte, error) {
+	type written ServiceTelemetryLogLinesLogger
+	v.Services = listOf(v.Services)
+	return json.Marshal(written(v))
+}
+
+// ServiceTelemetryLogLinesLoggerJson A line of the `json` format.
+type ServiceTelemetryLogLinesLoggerJson struct {
+	// First Its first members, in order.
+	First []string `json:"first"`
+	// Last Its last member: the moment.
+	Last string `json:"last"`
+	// RequestId The member that names the request a line was logged while
+	// answering.
+	RequestId string `json:"requestId"`
+	// Trace The members that name the active trace and span, in that order.
+	Trace []string `json:"trace"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceTelemetryLogLinesLoggerJson) MarshalJSON() ([]byte, error) {
+	type written ServiceTelemetryLogLinesLoggerJson
+	v.First = listOf(v.First)
+	v.Trace = listOf(v.Trace)
+	return json.Marshal(written(v))
+}
+
+type ServiceTelemetryLogLinesLoggerServicesItem string
+
+// The values of ServiceTelemetryLogLinesLoggerServicesItem.
+const (
+	ServiceTelemetryLogLinesLoggerServicesItemArchivist  ServiceTelemetryLogLinesLoggerServicesItem = "archivist"
+	ServiceTelemetryLogLinesLoggerServicesItemDispatcher ServiceTelemetryLogLinesLoggerServicesItem = "dispatcher"
+	ServiceTelemetryLogLinesLoggerServicesItemGateway    ServiceTelemetryLogLinesLoggerServicesItem = "gateway"
+)
+
+// Valid is whether e is one of ServiceTelemetryLogLinesLoggerServicesItem's
+// values.
+func (e ServiceTelemetryLogLinesLoggerServicesItem) Valid() bool {
+	switch e {
+	case ServiceTelemetryLogLinesLoggerServicesItemArchivist, ServiceTelemetryLogLinesLoggerServicesItemDispatcher, ServiceTelemetryLogLinesLoggerServicesItemGateway:
+		return true
+	}
+	return false
+}
+
+// ServiceTelemetryLogLinesSupervisor The line the supervisor writes when it
+// starts a service.
+type ServiceTelemetryLogLinesSupervisor struct {
+	// Counted What a service counts the lines that hold of, for each of its
+	// lives.
+	Counted string `json:"counted"`
+	// Line The line.
+	Line string `json:"line"`
+}
+
+// ServiceTelemetryTelemetry service-telemetry/telemetry.json: the telemetry
+// each Xynolog service exports over OTLP: its spans and metrics, the services
+// that export each, and the attributes each carries.
+type ServiceTelemetryTelemetry struct {
+	// Comment The rule the table states, in prose.
+	Comment  string                                  `json:"$comment"`
+	Metrics  []ServiceTelemetryTelemetryMetricsItem  `json:"metrics"`
+	Resource []ServiceTelemetryTelemetryResourceItem `json:"resource"`
+	// Sdk The services that reach the bus through an SDK, and for each the SDK
+	// transports it uses, or of a transport it uses part of, the rows it
+	// exports.
+	Sdk   map[string][]string                  `json:"sdk"`
+	Spans []ServiceTelemetryTelemetrySpansItem `json:"spans"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceTelemetryTelemetry) MarshalJSON() ([]byte, error) {
+	type written ServiceTelemetryTelemetry
+	v.Metrics = listOf(v.Metrics)
+	v.Resource = listOf(v.Resource)
+	v.Spans = listOf(v.Spans)
+	return json.Marshal(written(v))
+}
+
+type ServiceTelemetryTelemetryMetricsItem struct {
+	// Attributes The attributes the span carries.
+	Attributes []ServiceTelemetryTelemetryMetricsItemAttributesItem `json:"attributes"`
+	// Instrument The metric's instrument.
+	Instrument ServiceTelemetryTelemetryMetricsItemInstrument `json:"instrument"`
+	// Meaning What the row says.
+	Meaning string `json:"meaning"`
+	// Name The row's name; `{channel}` in it is the bus channel, and `{jobType}`
+	// the job's type.
+	Name string `json:"name"`
+	// Planes The only signal planes a gateway row arrives on.
+	Planes *[]ServiceTelemetryTelemetryMetricsItemPlanesItem `json:"planes,omitempty"`
+	// Services The services that export the row.
+	Services []ServiceTelemetryTelemetryMetricsItemServicesItem `json:"services"`
+	// When When the row arrives.
+	When ServiceTelemetryTelemetryMetricsItemWhen `json:"when"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceTelemetryTelemetryMetricsItem) MarshalJSON() ([]byte, error) {
+	type written ServiceTelemetryTelemetryMetricsItem
+	v.Attributes = listOf(v.Attributes)
+	v.Services = listOf(v.Services)
+	return json.Marshal(written(v))
+}
+
+// ServiceTelemetryTelemetryMetricsItemAttributesItem An attribute a row
+// carries.
+type ServiceTelemetryTelemetryMetricsItemAttributesItem struct {
+	// Key The attribute's key.
+	Key string `json:"key"`
+	// Only When alone the attribute is carried: a row's attribute without it is
+	// carried every time.
+	Only *string `json:"only,omitempty"`
+	// Values The only values it carries, each of the type it is carried as: a
+	// string or a boolean.
+	Values *[]ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem `json:"values,omitempty"`
+}
+
+type ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem struct {
+	union[ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemMember]
+}
+
+// ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemMember is a
+// member of ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem:
+// ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText,
+// ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean.
+type ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemMember interface {
+	memberOfServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem()
+}
+
+// ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean is a
+// ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem that is
+// boolean.
+type ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean bool
+
+func (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean) memberOfServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem() {
+}
+
+// ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText is a
+// ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem that is text.
+type ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText string
+
+func (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText) memberOfServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem() {
+}
+
+// ServiceTelemetryTelemetryMetricsItemInstrument The metric's instrument.
+type ServiceTelemetryTelemetryMetricsItemInstrument string
+
+// The values of ServiceTelemetryTelemetryMetricsItemInstrument.
+const (
+	ServiceTelemetryTelemetryMetricsItemInstrumentCounter       ServiceTelemetryTelemetryMetricsItemInstrument = "counter"
+	ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter ServiceTelemetryTelemetryMetricsItemInstrument = "up-down counter"
+	ServiceTelemetryTelemetryMetricsItemInstrumentGauge         ServiceTelemetryTelemetryMetricsItemInstrument = "gauge"
+	ServiceTelemetryTelemetryMetricsItemInstrumentHistogram     ServiceTelemetryTelemetryMetricsItemInstrument = "histogram"
+)
+
+// Valid is whether e is one of
+// ServiceTelemetryTelemetryMetricsItemInstrument's values.
+func (e ServiceTelemetryTelemetryMetricsItemInstrument) Valid() bool {
+	switch e {
+	case ServiceTelemetryTelemetryMetricsItemInstrumentCounter, ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter, ServiceTelemetryTelemetryMetricsItemInstrumentGauge, ServiceTelemetryTelemetryMetricsItemInstrumentHistogram:
+		return true
+	}
+	return false
+}
+
+type ServiceTelemetryTelemetryMetricsItemPlanesItem string
+
+// The values of ServiceTelemetryTelemetryMetricsItemPlanesItem.
+const (
+	ServiceTelemetryTelemetryMetricsItemPlanesItemInProcess ServiceTelemetryTelemetryMetricsItemPlanesItem = "in-process"
+	ServiceTelemetryTelemetryMetricsItemPlanesItemNats      ServiceTelemetryTelemetryMetricsItemPlanesItem = "nats"
+)
+
+// Valid is whether e is one of
+// ServiceTelemetryTelemetryMetricsItemPlanesItem's values.
+func (e ServiceTelemetryTelemetryMetricsItemPlanesItem) Valid() bool {
+	switch e {
+	case ServiceTelemetryTelemetryMetricsItemPlanesItemInProcess, ServiceTelemetryTelemetryMetricsItemPlanesItemNats:
+		return true
+	}
+	return false
+}
+
+// ServiceTelemetryTelemetryMetricsItemServicesItem A Xynolog service, by its
+// name.
+type ServiceTelemetryTelemetryMetricsItemServicesItem string
+
+// The values of ServiceTelemetryTelemetryMetricsItemServicesItem.
+const (
+	ServiceTelemetryTelemetryMetricsItemServicesItemArchivist  ServiceTelemetryTelemetryMetricsItemServicesItem = "archivist"
+	ServiceTelemetryTelemetryMetricsItemServicesItemDispatcher ServiceTelemetryTelemetryMetricsItemServicesItem = "dispatcher"
+	ServiceTelemetryTelemetryMetricsItemServicesItemGateway    ServiceTelemetryTelemetryMetricsItemServicesItem = "gateway"
+	ServiceTelemetryTelemetryMetricsItemServicesItemLibrarian  ServiceTelemetryTelemetryMetricsItemServicesItem = "librarian"
+	ServiceTelemetryTelemetryMetricsItemServicesItemSmelter    ServiceTelemetryTelemetryMetricsItemServicesItem = "smelter"
+	ServiceTelemetryTelemetryMetricsItemServicesItemWeaver     ServiceTelemetryTelemetryMetricsItemServicesItem = "weaver"
+	ServiceTelemetryTelemetryMetricsItemServicesItemWorker     ServiceTelemetryTelemetryMetricsItemServicesItem = "worker"
+)
+
+// Valid is whether e is one of
+// ServiceTelemetryTelemetryMetricsItemServicesItem's values.
+func (e ServiceTelemetryTelemetryMetricsItemServicesItem) Valid() bool {
+	switch e {
+	case ServiceTelemetryTelemetryMetricsItemServicesItemArchivist, ServiceTelemetryTelemetryMetricsItemServicesItemDispatcher, ServiceTelemetryTelemetryMetricsItemServicesItemGateway, ServiceTelemetryTelemetryMetricsItemServicesItemLibrarian, ServiceTelemetryTelemetryMetricsItemServicesItemSmelter, ServiceTelemetryTelemetryMetricsItemServicesItemWeaver, ServiceTelemetryTelemetryMetricsItemServicesItemWorker:
+		return true
+	}
+	return false
+}
+
+// ServiceTelemetryTelemetryMetricsItemWhen When the row arrives.
+type ServiceTelemetryTelemetryMetricsItemWhen string
+
+// The values of ServiceTelemetryTelemetryMetricsItemWhen.
+const (
+	ServiceTelemetryTelemetryMetricsItemWhenExport     ServiceTelemetryTelemetryMetricsItemWhen = "export"
+	ServiceTelemetryTelemetryMetricsItemWhenTraffic    ServiceTelemetryTelemetryMetricsItemWhen = "traffic"
+	ServiceTelemetryTelemetryMetricsItemWhenSupervised ServiceTelemetryTelemetryMetricsItemWhen = "supervised"
+	ServiceTelemetryTelemetryMetricsItemWhenFatal      ServiceTelemetryTelemetryMetricsItemWhen = "fatal"
+)
+
+// Valid is whether e is one of ServiceTelemetryTelemetryMetricsItemWhen's
+// values.
+func (e ServiceTelemetryTelemetryMetricsItemWhen) Valid() bool {
+	switch e {
+	case ServiceTelemetryTelemetryMetricsItemWhenExport, ServiceTelemetryTelemetryMetricsItemWhenTraffic, ServiceTelemetryTelemetryMetricsItemWhenSupervised, ServiceTelemetryTelemetryMetricsItemWhenFatal:
+		return true
+	}
+	return false
+}
+
+// ServiceTelemetryTelemetryResourceItem An attribute of the resource the
+// services' spans and metrics are exported under.
+type ServiceTelemetryTelemetryResourceItem struct {
+	// Default Its value when nothing says another, with `{service}` the
+	// service's name.
+	Default *string `json:"default,omitempty"`
+	// Key The attribute's key.
+	Key string `json:"key"`
+	// Meaning What the attribute says.
+	Meaning string `json:"meaning"`
+	// Services The services that export the row.
+	Services []ServiceTelemetryTelemetryResourceItemServicesItem `json:"services"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceTelemetryTelemetryResourceItem) MarshalJSON() ([]byte, error) {
+	type written ServiceTelemetryTelemetryResourceItem
+	v.Services = listOf(v.Services)
+	return json.Marshal(written(v))
+}
+
+// ServiceTelemetryTelemetryResourceItemServicesItem A Xynolog service, by its
+// name.
+type ServiceTelemetryTelemetryResourceItemServicesItem string
+
+// The values of ServiceTelemetryTelemetryResourceItemServicesItem.
+const (
+	ServiceTelemetryTelemetryResourceItemServicesItemArchivist  ServiceTelemetryTelemetryResourceItemServicesItem = "archivist"
+	ServiceTelemetryTelemetryResourceItemServicesItemDispatcher ServiceTelemetryTelemetryResourceItemServicesItem = "dispatcher"
+	ServiceTelemetryTelemetryResourceItemServicesItemGateway    ServiceTelemetryTelemetryResourceItemServicesItem = "gateway"
+	ServiceTelemetryTelemetryResourceItemServicesItemLibrarian  ServiceTelemetryTelemetryResourceItemServicesItem = "librarian"
+	ServiceTelemetryTelemetryResourceItemServicesItemSmelter    ServiceTelemetryTelemetryResourceItemServicesItem = "smelter"
+	ServiceTelemetryTelemetryResourceItemServicesItemWeaver     ServiceTelemetryTelemetryResourceItemServicesItem = "weaver"
+	ServiceTelemetryTelemetryResourceItemServicesItemWorker     ServiceTelemetryTelemetryResourceItemServicesItem = "worker"
+)
+
+// Valid is whether e is one of
+// ServiceTelemetryTelemetryResourceItemServicesItem's values.
+func (e ServiceTelemetryTelemetryResourceItemServicesItem) Valid() bool {
+	switch e {
+	case ServiceTelemetryTelemetryResourceItemServicesItemArchivist, ServiceTelemetryTelemetryResourceItemServicesItemDispatcher, ServiceTelemetryTelemetryResourceItemServicesItemGateway, ServiceTelemetryTelemetryResourceItemServicesItemLibrarian, ServiceTelemetryTelemetryResourceItemServicesItemSmelter, ServiceTelemetryTelemetryResourceItemServicesItemWeaver, ServiceTelemetryTelemetryResourceItemServicesItemWorker:
+		return true
+	}
+	return false
+}
+
+type ServiceTelemetryTelemetrySpansItem struct {
+	// Attributes The attributes the span carries.
+	Attributes []ServiceTelemetryTelemetrySpansItemAttributesItem `json:"attributes"`
+	// Kind The span's kind, in OTLP's words.
+	Kind ServiceTelemetryTelemetrySpansItemKind `json:"kind"`
+	// Meaning What the row says.
+	Meaning string `json:"meaning"`
+	// Name The row's name; `{channel}` in it is the bus channel, and `{jobType}`
+	// the job's type.
+	Name string `json:"name"`
+	// Services The services that export the row.
+	Services []ServiceTelemetryTelemetrySpansItemServicesItem `json:"services"`
+	// When When the row arrives.
+	When ServiceTelemetryTelemetrySpansItemWhen `json:"when"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceTelemetryTelemetrySpansItem) MarshalJSON() ([]byte, error) {
+	type written ServiceTelemetryTelemetrySpansItem
+	v.Attributes = listOf(v.Attributes)
+	v.Services = listOf(v.Services)
+	return json.Marshal(written(v))
+}
+
+// ServiceTelemetryTelemetrySpansItemAttributesItem An attribute a row
+// carries.
+type ServiceTelemetryTelemetrySpansItemAttributesItem struct {
+	// Key The attribute's key.
+	Key string `json:"key"`
+	// Only When alone the attribute is carried: a row's attribute without it is
+	// carried every time.
+	Only *string `json:"only,omitempty"`
+	// Values The only values it carries, each of the type it is carried as: a
+	// string or a boolean.
+	Values *[]ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem `json:"values,omitempty"`
+}
+
+type ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem struct {
+	union[ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemMember]
+}
+
+// ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemMember is a
+// member of ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem:
+// ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText,
+// ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean.
+type ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemMember interface {
+	memberOfServiceTelemetryTelemetrySpansItemAttributesItemValuesItem()
+}
+
+// ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean is a
+// ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem that is boolean.
+type ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean bool
+
+func (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean) memberOfServiceTelemetryTelemetrySpansItemAttributesItemValuesItem() {
+}
+
+// ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText is a
+// ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem that is text.
+type ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText string
+
+func (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText) memberOfServiceTelemetryTelemetrySpansItemAttributesItemValuesItem() {
+}
+
+// ServiceTelemetryTelemetrySpansItemKind The span's kind, in OTLP's words.
+type ServiceTelemetryTelemetrySpansItemKind string
+
+// The values of ServiceTelemetryTelemetrySpansItemKind.
+const (
+	ServiceTelemetryTelemetrySpansItemKindClient   ServiceTelemetryTelemetrySpansItemKind = "client"
+	ServiceTelemetryTelemetrySpansItemKindConsumer ServiceTelemetryTelemetrySpansItemKind = "consumer"
+	ServiceTelemetryTelemetrySpansItemKindInternal ServiceTelemetryTelemetrySpansItemKind = "internal"
+	ServiceTelemetryTelemetrySpansItemKindProducer ServiceTelemetryTelemetrySpansItemKind = "producer"
+	ServiceTelemetryTelemetrySpansItemKindServer   ServiceTelemetryTelemetrySpansItemKind = "server"
+)
+
+// Valid is whether e is one of ServiceTelemetryTelemetrySpansItemKind's
+// values.
+func (e ServiceTelemetryTelemetrySpansItemKind) Valid() bool {
+	switch e {
+	case ServiceTelemetryTelemetrySpansItemKindClient, ServiceTelemetryTelemetrySpansItemKindConsumer, ServiceTelemetryTelemetrySpansItemKindInternal, ServiceTelemetryTelemetrySpansItemKindProducer, ServiceTelemetryTelemetrySpansItemKindServer:
+		return true
+	}
+	return false
+}
+
+// ServiceTelemetryTelemetrySpansItemServicesItem A Xynolog service, by its
+// name.
+type ServiceTelemetryTelemetrySpansItemServicesItem string
+
+// The values of ServiceTelemetryTelemetrySpansItemServicesItem.
+const (
+	ServiceTelemetryTelemetrySpansItemServicesItemArchivist  ServiceTelemetryTelemetrySpansItemServicesItem = "archivist"
+	ServiceTelemetryTelemetrySpansItemServicesItemDispatcher ServiceTelemetryTelemetrySpansItemServicesItem = "dispatcher"
+	ServiceTelemetryTelemetrySpansItemServicesItemGateway    ServiceTelemetryTelemetrySpansItemServicesItem = "gateway"
+	ServiceTelemetryTelemetrySpansItemServicesItemLibrarian  ServiceTelemetryTelemetrySpansItemServicesItem = "librarian"
+	ServiceTelemetryTelemetrySpansItemServicesItemSmelter    ServiceTelemetryTelemetrySpansItemServicesItem = "smelter"
+	ServiceTelemetryTelemetrySpansItemServicesItemWeaver     ServiceTelemetryTelemetrySpansItemServicesItem = "weaver"
+	ServiceTelemetryTelemetrySpansItemServicesItemWorker     ServiceTelemetryTelemetrySpansItemServicesItem = "worker"
+)
+
+// Valid is whether e is one of
+// ServiceTelemetryTelemetrySpansItemServicesItem's values.
+func (e ServiceTelemetryTelemetrySpansItemServicesItem) Valid() bool {
+	switch e {
+	case ServiceTelemetryTelemetrySpansItemServicesItemArchivist, ServiceTelemetryTelemetrySpansItemServicesItemDispatcher, ServiceTelemetryTelemetrySpansItemServicesItemGateway, ServiceTelemetryTelemetrySpansItemServicesItemLibrarian, ServiceTelemetryTelemetrySpansItemServicesItemSmelter, ServiceTelemetryTelemetrySpansItemServicesItemWeaver, ServiceTelemetryTelemetrySpansItemServicesItemWorker:
+		return true
+	}
+	return false
+}
+
+// ServiceTelemetryTelemetrySpansItemWhen When the row arrives.
+type ServiceTelemetryTelemetrySpansItemWhen string
+
+// The values of ServiceTelemetryTelemetrySpansItemWhen.
+const (
+	ServiceTelemetryTelemetrySpansItemWhenExport     ServiceTelemetryTelemetrySpansItemWhen = "export"
+	ServiceTelemetryTelemetrySpansItemWhenTraffic    ServiceTelemetryTelemetrySpansItemWhen = "traffic"
+	ServiceTelemetryTelemetrySpansItemWhenSupervised ServiceTelemetryTelemetrySpansItemWhen = "supervised"
+	ServiceTelemetryTelemetrySpansItemWhenFatal      ServiceTelemetryTelemetrySpansItemWhen = "fatal"
+)
+
+// Valid is whether e is one of ServiceTelemetryTelemetrySpansItemWhen's
+// values.
+func (e ServiceTelemetryTelemetrySpansItemWhen) Valid() bool {
+	switch e {
+	case ServiceTelemetryTelemetrySpansItemWhenExport, ServiceTelemetryTelemetrySpansItemWhenTraffic, ServiceTelemetryTelemetrySpansItemWhenSupervised, ServiceTelemetryTelemetrySpansItemWhenFatal:
 		return true
 	}
 	return false
@@ -11013,6 +12848,67 @@ func (e SmelterHealthStream) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// SmelterMessages smelter/messages.json: the words of the Smelter's refusals,
+// and of the messages it logs that a reader relies on.
+type SmelterMessages struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Logged Each message the Smelter logs that a reader of its output relies
+	// on.
+	Logged []SmelterMessagesLoggedItem `json:"logged"`
+	// Refusals Each refusal of an operation, on the operation's failure channel.
+	Refusals []SmelterMessagesRefusalsItem `json:"refusals"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v SmelterMessages) MarshalJSON() ([]byte, error) {
+	type written SmelterMessages
+	v.Logged = listOf(v.Logged)
+	v.Refusals = listOf(v.Refusals)
+	return json.Marshal(written(v))
+}
+
+type SmelterMessagesLoggedItem struct {
+	// Carries The facts the line is logged with beside `fields`, whose value the
+	// row's `situation` says and whose form is not stated. The line may carry
+	// others.
+	Carries []string `json:"carries"`
+	// Fields The facts the line is logged with whose form is stated, by name:
+	// each a text whose `{name}` is filled as the row's `situation` says. A fact
+	// that is a number is its decimal digits.
+	Fields map[string]string `json:"fields"`
+	Level  LogLevel          `json:"level"`
+	// Message The line's message, word for word.
+	Message string `json:"message"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, what fills each `{name}` of its fields, and
+	// what each fact it carries says.
+	Situation string `json:"situation"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v SmelterMessagesLoggedItem) MarshalJSON() ([]byte, error) {
+	type written SmelterMessagesLoggedItem
+	v.Carries = listOf(v.Carries)
+	return json.Marshal(written(v))
+}
+
+type SmelterMessagesRefusalsItem struct {
+	// Message The failure's `message`. A `{name}` in it is filled with what the
+	// row's `situation` names, and nothing else in it varies.
+	Message string `json:"message"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Operation The operation it refuses: a request of bus/registry.json's
+	// operations that the Smelter answers.
+	Operation string `json:"operation"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 }
 
 // SmelterReconcileSummary What a Smelter's reconcile came to (SMELTER.md §
@@ -11591,12 +13487,12 @@ func (e SvgSelectorType) Valid() bool {
 // a failed transport, a timeout and a peer that is down are each `unknown`,
 // and an unknown resource stays open.
 type TabCheck struct {
-	union[tabCheckMember]
+	union[TabCheckMember]
 }
 
-// tabCheckMember is a member of TabCheck: TabCheckGone, TabCheckReady,
+// TabCheckMember is a member of TabCheck: TabCheckGone, TabCheckReady,
 // TabCheckUnknown.
-type tabCheckMember interface {
+type TabCheckMember interface {
 	memberOfTabCheck()
 }
 
@@ -12044,12 +13940,12 @@ func (v UpdateAnnotationBodyRequest) MarshalJSON() ([]byte, error) {
 // UploadProgress What an upload reports as it goes, told apart by `phase`:
 // its size first, then the bytes sent so far, then the resource made.
 type UploadProgress struct {
-	union[uploadProgressMember]
+	union[UploadProgressMember]
 }
 
-// uploadProgressMember is a member of UploadProgress: UploadProgressStarted,
+// UploadProgressMember is a member of UploadProgress: UploadProgressStarted,
 // UploadProgressProgress, UploadProgressFinished.
-type uploadProgressMember interface {
+type UploadProgressMember interface {
 	memberOfUploadProgress()
 }
 
@@ -12236,12 +14132,12 @@ type VectorStoreSpec struct {
 // kind of index needs to be reached: one of the kinds `xynolog-vectors` has a
 // store for, told apart by `type`.
 type VectorsConfig struct {
-	union[vectorsConfigMember]
+	union[VectorsConfigMember]
 }
 
-// vectorsConfigMember is a member of VectorsConfig: QdrantVectorsConfig,
+// VectorsConfigMember is a member of VectorsConfig: QdrantVectorsConfig,
 // MemoryVectorsConfig.
-type vectorsConfigMember interface {
+type VectorsConfigMember interface {
 	memberOfVectorsConfig()
 }
 
@@ -12426,6 +14322,30 @@ func (e WeaverHealthStatus) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// WorkerAnswerFormats worker/answer-formats.json: the element of the array
+// each kind of detection asks a model for.
+type WorkerAnswerFormats struct {
+	// Comment The rule the table states, in prose.
+	Comment string                           `json:"$comment"`
+	Formats []WorkerAnswerFormatsFormatsItem `json:"formats"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v WorkerAnswerFormats) MarshalJSON() ([]byte, error) {
+	type written WorkerAnswerFormats
+	v.Formats = listOf(v.Formats)
+	return json.Marshal(written(v))
+}
+
+type WorkerAnswerFormatsFormatsItem struct {
+	// About What an element is, in prose.
+	About   string `json:"about"`
+	Element any    `json:"element"`
+	// Name A motivation a `mark` job takes, or `count`.
+	Name string `json:"name"`
 }
 
 // WorkerConfig Everything a worker reads at boot: nothing in it is defaulted
@@ -12642,6 +14562,157 @@ func (e WorkerKnowledgeBaseHealthState) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// WorkerMessages worker/messages.json: the words of a Worker service's
+// refusals to start, of the errors it fails a job with, and of the messages
+// it logs that a reader relies on.
+type WorkerMessages struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Boot Each refusal to start, written in
+	// service-environment/boot-refusals.json's `line`.
+	Boot []WorkerMessagesBootItem `json:"boot"`
+	// Details Each `{detail}` of `unreadable`.
+	Details []WorkerMessagesDetailsItem `json:"details"`
+	// Errors Each error a job is failed with that is the worker's own: the
+	// `error` of its `job:fail`.
+	Errors []WorkerMessagesErrorsItem `json:"errors"`
+	// Job How an error names the job, by its type, as `{job}`: `{motivation}` is
+	// a mark job's motivation.
+	Job WorkerMessagesJob `json:"job"`
+	// Logged Each message a Worker service logs that a reader of its output
+	// relies on.
+	Logged []WorkerMessagesLoggedItem `json:"logged"`
+	// Reasons Each line of the `{reasons}` of `invalid`.
+	Reasons []WorkerMessagesReasonsItem `json:"reasons"`
+	// Waits Each `{said}` of `wait-stated`.
+	Waits []WorkerMessagesWaitsItem `json:"waits"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v WorkerMessages) MarshalJSON() ([]byte, error) {
+	type written WorkerMessages
+	v.Boot = listOf(v.Boot)
+	v.Details = listOf(v.Details)
+	v.Errors = listOf(v.Errors)
+	v.Logged = listOf(v.Logged)
+	v.Reasons = listOf(v.Reasons)
+	v.Waits = listOf(v.Waits)
+	return json.Marshal(written(v))
+}
+
+type WorkerMessagesBootItem struct {
+	union[WorkerMessagesBootItemMember]
+}
+
+// WorkerMessagesBootItemMember is a member of WorkerMessagesBootItem:
+// WorkerMessagesBootItemOwnBootRefusal,
+// WorkerMessagesBootItemSharedBootRefusal.
+type WorkerMessagesBootItemMember interface {
+	memberOfWorkerMessagesBootItem()
+}
+
+type WorkerMessagesBootItemOwnBootRefusal struct {
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Refusal The refusal, in place of the line's `{refusal}`. A `{name}` in it
+	// is filled with what the row's `situation` names, and nothing else in it
+	// varies.
+	Refusal string `json:"refusal"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+func (WorkerMessagesBootItemOwnBootRefusal) memberOfWorkerMessagesBootItem() {}
+
+type WorkerMessagesBootItemSharedBootRefusal struct {
+	// BootRefusal The `name` of the row of
+	// service-environment/boot-refusals.json's `refusals` that is this refusal,
+	// with `{service}` `worker` and `{schema}` `WorkerConfig`.
+	BootRefusal string `json:"bootRefusal"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written. What fills its text is the shared row's.
+	Situation string `json:"situation"`
+}
+
+func (WorkerMessagesBootItemSharedBootRefusal) memberOfWorkerMessagesBootItem() {}
+
+type WorkerMessagesDetailsItem struct {
+	// Detail The detail. A `{name}` in it is filled with what the row's
+	// `situation` names, and nothing else in it varies.
+	Detail string `json:"detail"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+type WorkerMessagesErrorsItem struct {
+	// Error The error. `{job}` in it is the job, as `job` names it. A `{name}`
+	// in it is filled with what the row's `situation` names, and nothing else in
+	// it varies.
+	Error string `json:"error"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+// WorkerMessagesJob How an error names the job, by its type, as `{job}`:
+// `{motivation}` is a mark job's motivation.
+type WorkerMessagesJob struct {
+	Mark  string `json:"mark"`
+	Yield string `json:"yield"`
+}
+
+type WorkerMessagesLoggedItem struct {
+	// Carries The facts the line is logged with beside `fields`, whose value the
+	// row's `situation` says and whose form is not stated. The line may carry
+	// others.
+	Carries []string `json:"carries"`
+	// Fields The facts the line is logged with whose form is stated, by name:
+	// each a text whose `{name}` is filled as the row's `situation` says. A fact
+	// that is a number is its decimal digits.
+	Fields map[string]string `json:"fields"`
+	Level  LogLevel          `json:"level"`
+	// Message The line's message, word for word.
+	Message string `json:"message"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, what fills each `{name}` of its fields, and
+	// what each fact it carries says.
+	Situation string `json:"situation"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v WorkerMessagesLoggedItem) MarshalJSON() ([]byte, error) {
+	type written WorkerMessagesLoggedItem
+	v.Carries = listOf(v.Carries)
+	return json.Marshal(written(v))
+}
+
+type WorkerMessagesReasonsItem struct {
+	// Line The line, indented by two spaces. A `{name}` in it is filled with
+	// what the row's `situation` names, and nothing else in it varies.
+	Line string `json:"line"`
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
+}
+
+type WorkerMessagesWaitsItem struct {
+	// Name The situation's name.
+	Name string `json:"name"`
+	// Said The wait, as the header stated it. A `{name}` in it is filled with
+	// what the row's `situation` names, and nothing else in it varies.
+	Said string `json:"said"`
+	// Situation When it is written, and what fills each `{name}` of its text.
+	Situation string `json:"situation"`
 }
 
 // WorkerPool The shared worker that does knowledge bases' jobs: its image,
@@ -13013,12 +15084,12 @@ func (e YieldJobQueuedEventJobType) Valid() bool {
 // failing: the resource it made, or a decline. Neither names its kind: a
 // decline is the one with `declined`.
 type YieldJobResult struct {
-	union[yieldJobResultMember]
+	union[YieldJobResultMember]
 }
 
-// yieldJobResultMember is a member of YieldJobResult: YieldJobDone,
+// YieldJobResultMember is a member of YieldJobResult: YieldJobDone,
 // JobDeclined.
-type yieldJobResultMember interface {
+type YieldJobResultMember interface {
 	memberOfYieldJobResult()
 }
 

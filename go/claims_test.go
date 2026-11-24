@@ -286,8 +286,10 @@ func sameJSON(t *testing.T, got, want string) bool {
 	return reflect.DeepEqual(readJSON[any](t, got), readJSON[any](t, want))
 }
 
-func filters(t *testing.T, text string) []api.JobFilter {
-	return readJSON[[]api.JobFilter](t, text)
+// claiming is a claim of the jobs text's filters accept, its waits the
+// client's.
+func claiming(t *testing.T, text string) api.ClaimOptions {
+	return api.ClaimOptions{Accepts: readJSON[[]api.JobFilter](t, text)}
 }
 
 const everything = `[{"jobType": "mark", "params": {"motivation": "highlighting"}}, {"jobType": "mark", "params": {"motivation": "commenting"}},
@@ -469,7 +471,7 @@ func TestClaimsNothingUntilRangedThenHoldsTheJobAsTheRecordStatesIt(t *testing.T
 	cursor := `{"next": 1200, "size": 800, "found": 4, "emitted": 3, "errors": 0}`
 	w.offer(running("job-1", "mark", `"retryCount": 1, "maxRetries": 3, "completedUnits": ["Person"], "unitCursors": {"Place": `+cursor+`}`,
 		`"motivation": "highlighting", "density": 3`))
-	claims := w.client.Job.Claim(filters(t, `[{"jobType": "mark", "params": {"motivation": "highlighting"}}]`))
+	claims := w.client.Job.Claim(claiming(t, `[{"jobType": "mark", "params": {"motivation": "highlighting"}}]`))
 	defer claims.Close()
 	settledFor()
 	if sent := w.wire.sent(bus.JobClaim.Request().Channel()); len(sent) != 0 {
@@ -498,7 +500,7 @@ func TestClaimsNothingUntilRangedThenHoldsTheJobAsTheRecordStatesIt(t *testing.T
 func TestClaimsAgainWhenAJobIsSettledAndAnAnnouncementWhileOneIsHeldIsIgnored(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
 	w.offer(running("job-1", "mark", "", ""), running("job-2", "mark", "", ""), running("job-3", "mark", "", ""))
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	pull := pulling(t, claims)
 	claimsSent := func() int { return len(w.wire.sent(bus.JobClaim.Request().Channel())) }
@@ -525,7 +527,7 @@ func TestClaimsAgainWhenAJobIsSettledAndAnAnnouncementWhileOneIsHeldIsIgnored(t 
 
 func TestAMatchingAnnouncementClaimsAndOneThatMatchesNoFilterDoesNot(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
-	claims := w.client.Job.Claim(filters(t, `[{"jobType": "mark", "params": {"motivation": "tagging"}}]`))
+	claims := w.client.Job.Claim(claiming(t, `[{"jobType": "mark", "params": {"motivation": "tagging"}}]`))
 	defer claims.Close()
 	claimsSent := func() int { return len(w.wire.sent(bus.JobClaim.Request().Channel())) }
 	pull := pulling(t, claims)
@@ -556,7 +558,7 @@ func TestAMatchingAnnouncementClaimsAndOneThatMatchesNoFilterDoesNot(t *testing.
 // an idle worker as a matching one would.
 func TestARefusedAnnouncementIsStampedAndClaimsForAnIdleWorker(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
-	claims := w.client.Job.Claim(filters(t, `[{"jobType": "mark", "params": {"motivation": "tagging"}}]`))
+	claims := w.client.Job.Claim(claiming(t, `[{"jobType": "mark", "params": {"motivation": "tagging"}}]`))
 	defer claims.Close()
 	claimsSent := func() int { return len(w.wire.sent(bus.JobClaim.Request().Channel())) }
 	came := pulling(t, claims).asking()
@@ -583,7 +585,7 @@ func TestARefusedAnnouncementClaimsOnceMoreAfterAClaimInFlightAndNotWhileAJobIsH
 	w := newClaimWorld(t, DefaultTiming())
 	turns := make(chan struct{})
 	w.claimTurns = turns
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	// Before the claims close: what is in flight is answered.
 	defer close(turns)
@@ -619,7 +621,7 @@ func TestARefusedAnnouncementClaimsOnceMoreAfterAClaimInFlightAndNotWhileAJobIsH
 func TestClaimsWhenTheStreamOpensAndWhenItOpensAgain(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
 	w.wire.state.Set(ConnectionStateConnecting)
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	claimsSent := func() int { return len(w.wire.sent(bus.JobClaim.Request().Channel())) }
 	go func() {
@@ -644,7 +646,7 @@ func TestClaimsWhenTheStreamOpensAndWhenItOpensAgain(t *testing.T) {
 func TestARefusalIsHandedOutWithItsCodeAndAReplyThatNamesNoJobIsRefusedHere(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
 	w.refusals = append(w.refusals, `{"message": "the caller is not a worker for this knowledge base", "code": "unauthorized"}`)
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	pull := pulling(t, claims)
 	var refused *ClaimRefusal
@@ -678,7 +680,7 @@ func TestAStreamThatDoesNotNameWhatClaimingReadsCannotCarryAWorkersClaims(t *tes
 	w := newClaimWorld(t, DefaultTiming())
 	// A worker on such a stream would claim once and never be woken, with nothing to show for it.
 	w.wire.channels = []bus.Channel{"job:claimed", "job:claim-failed"}
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	one := pulling(t, claims).take(t)
 	var refused *BusRequestError
@@ -694,7 +696,7 @@ func TestAHeldJobSaysItsWholeLifecycleItself(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
 	w.offer(running("job-1", "mark", `"retryCount": 1`, ""))
 	cursor := `{"next": 1200, "size": 800, "found": 4, "emitted": 3, "errors": 0}`
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	job, ok := pulling(t, claims).held(t).(*HeldMarkJob)
 	if !ok {
 		t.Fatal("a mark job is held as a *HeldMarkJob")
@@ -742,7 +744,7 @@ func TestAYieldJobFocusedOnAnAnnotationIsAnchoredToItAndSaysSo(t *testing.T) {
 	w.offer(running("job-1", "yield", `"maxRetries": 0`, `"context": {"focus": {"kind": "annotation", "annotation": `+annotationJSON("ann-7")+`,
 		"sourceResource": {"@context": "https://schema.org", "@id": "res-1", "name": "A resource", "representations": []}},
 		"graph": {"nodes": [], "edges": []}, "metadata": {}}`))
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	job, ok := pulling(t, claims).held(t).(*HeldYieldJob)
 	if !ok {
@@ -777,7 +779,7 @@ func TestAFailureSaysWhetherItWillBeRetriedAndACancelSaysOnlyWhatItsCommandNames
 	w := newClaimWorld(t, DefaultTiming())
 	w.offer(running("job-1", "mark", `"retryCount": 0, "maxRetries": 1`, ""), running("job-2", "mark", `"retryCount": 1, "maxRetries": 1`, ""),
 		running("job-3", "mark", "", ""))
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	pull := pulling(t, claims)
 	ctx := context.Background()
 	if err := pull.held(t).Fail(ctx, "the model timed out", JobFailure{CompletedUnits: []string{"Person"}}); err != nil {
@@ -806,7 +808,7 @@ func TestAFailureSaysWhetherItWillBeRetriedAndACancelSaysOnlyWhatItsCommandNames
 func TestACancellationThatNamesTheHeldJobIsSignalledAndAnyOtherIsNot(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
 	w.offer(running("job-1", "mark", "", ""))
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	job := pulling(t, claims).held(t)
 	w.wire.relay(bus.JobCancelRequested.Request().Channel(), `{"jobId": "job-7"}`)
@@ -828,7 +830,7 @@ func TestACancellationThatNamesTheHeldJobIsSignalledAndAnyOtherIsNot(t *testing.
 func TestAWorkerThatClosesFailsTheJobItHoldsAndClaimsNothingMore(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
 	w.offer(running("job-1", "mark", "", ""))
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	pull := pulling(t, claims)
 	job := pull.held(t)
 	claims.Close()
@@ -850,7 +852,7 @@ func TestAWorkerThatClosesFailsTheJobItHoldsAndClaimsNothingMore(t *testing.T) {
 
 func TestClosingTheClientEndsTheClaimsForWhoeverRangesOverThem(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	came := pulling(t, claims).asking()
 	eventually(t, "a claim", func() bool { return len(w.wire.sent(bus.JobClaim.Request().Channel())) == 1 })
 	w.client.Close()
@@ -866,7 +868,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 	}
 	held := func(t *testing.T, w *claimWorld) (*HeldMarkJob, *Claims) {
 		w.offer(running("job-1", "mark", "", ""))
-		claims := w.client.Job.Claim(filters(t, everything))
+		claims := w.client.Job.Claim(claiming(t, everything))
 		return pulling(t, claims).held(t).(*HeldMarkJob), claims
 	}
 
@@ -993,7 +995,7 @@ func TestVitalsSayWhatTheWorkerHoldsAndHasDoneAndASilentHeldJobIsStalled(t *test
 	timing.HeldJobStallCheck = 10 * time.Millisecond
 	w := newClaimWorld(t, timing)
 	w.offer(running("job-1", "mark", "", ""))
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	if vitals := claims.Vitals(); vitals.ActiveJob != nil || !vitals.LastClaimAt.IsZero() || vitals.JobsCompleted != 0 {
 		t.Fatalf("before any claim, %+v", vitals)
@@ -1033,7 +1035,7 @@ func TestVitalsSayWhatTheWorkerHoldsAndHasDoneAndASilentHeldJobIsStalled(t *test
 func TestTheFirstReaderOfTheStallsIsGivenTheLatestReportedBeforeItAndALaterReaderWhatFollows(t *testing.T) {
 	timing := DefaultTiming()
 	w := newClaimWorld(t, timing)
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	beyond := 5
 	reported := make([]*HeldJobStall, timing.ErrorsKeptForFirstReaderCount+beyond)
 	for n := range reported {
@@ -1055,7 +1057,7 @@ func TestTheFirstReaderOfTheStallsIsGivenTheLatestReportedBeforeItAndALaterReade
 // nothing: what was kept for it was let go of at the end.
 func TestAFirstReaderOfTheStallsWhoComesAfterTheClaimsEndedIsGivenNothing(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	claims.stalls.Report(&HeldJobStall{})
 	claims.Close()
 
@@ -1071,7 +1073,7 @@ func TestAReaderRangingOverTheClaimsIsHandedEveryRefusalHoweverSlowlyItTakesThem
 	w := newClaimWorld(t, timing)
 	untaken := timing.ErrorsKeptForFirstReaderCount + 5
 	w.refusing(untaken + 1)
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	pull := pulling(t, claims)
 	if one := pull.take(t); !refusedWith(one, 0) {
@@ -1101,7 +1103,7 @@ func TestClaimsNobodyRangesOverKeepTheLatestRefusalsAndTheJobClaimedAfterThem(t 
 	beyond := 5
 	unread := timing.ErrorsKeptForFirstReaderCount + beyond
 	w.refusing(unread + 1)
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	first := pulling(t, claims)
 	if one := first.take(t); !refusedWith(one, 0) {
@@ -1156,7 +1158,7 @@ func TestAHeldJobStatesTheTraceItsReplyArrivedIn(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
 	w.wire.replyTrace = TraceContext{Traceparent: "00-11111111111111111111111111111111-1111111111111111-01"}
 	w.offer(running("job-1", "mark", "", ""))
-	claims := w.client.Job.Claim(filters(t, everything))
+	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	if job := pulling(t, claims).held(t); job.Trace() != w.wire.replyTrace {
 		t.Fatalf("the job states %+v", job.Trace())

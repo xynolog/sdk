@@ -6,7 +6,7 @@ module G = Go_types.Generate
 open Fixture
 
 let generated ?(identifiers = []) schemas root =
-  let { G.decls; _ } = G.generate (definitions schemas) ~identifiers [ root ] in
+  let { G.decls; _ } = G.generate (definitions schemas) ~identifiers ~keys:[] [ root ] in
   String.concat "\n\n" (List.map Go_syntax.decl decls)
 
 let circle =
@@ -77,8 +77,8 @@ let cases =
            \tcase ColorRed, ColorLightBlue:");
     case "a union embeds union, and each member has its marker" (fun () ->
         let code = generated (shapes [ "Circle"; "Square" ]) "Shape" in
-        has code "type Shape struct {\n\tunion[shapeMember]\n}";
-        has code "type shapeMember interface {\n\tmemberOfShape()\n}";
+        has code "type Shape struct {\n\tunion[ShapeMember]\n}";
+        has code "type ShapeMember interface {\n\tmemberOfShape()\n}";
         has code "func (Circle) memberOfShape()";
         has code "func (Square) memberOfShape() {}");
     case "a member that states one value of its union's property says so"

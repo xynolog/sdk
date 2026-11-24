@@ -37,7 +37,7 @@ func Run(ctx context.Context, client *xynolog.Client) error {
 		return err
 	}
 	// Closing the claims stops the worker: a job it still holds is failed first, and the queue retries it.
-	claims := client.Job.Claim([]api.JobFilter{accepts})
+	claims := client.Job.Claim(api.ClaimOptions{Accepts: []api.JobFilter{accepts}})
 	defer claims.Close()
 	stop := context.AfterFunc(ctx, claims.Close)
 	defer stop()

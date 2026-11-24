@@ -1,9 +1,7 @@
 package xynolog_test
 
 // Trying again, held to the cases every SDK runs (protocol/specs/src/retry/cases.json).
-// The table states four rules. This SDK keeps the ones it has a use for, and
-// the rest are named below with why: a rule the table gains, or one this SDK
-// comes to keep, fails here until this file says so.
+// retry_gen.go writes every rule of retry/rules.json, and the cases name each.
 
 import (
 	"encoding/json"
@@ -15,11 +13,6 @@ import (
 
 	xynolog "github.com/xynolog/sdk/go"
 )
-
-// notKept is each rule of the table this SDK does not keep, with why.
-var notKept = map[string]string{
-	"job": "a job's retry budget is its worker's, and the Go SDK runs no worker service of its own",
-}
 
 // retryRow is one of the table's rules rows. A row that omits `keyed` states a
 // request with no key, so Keyed is false for it.
@@ -65,19 +58,16 @@ func keptRules() map[string]xynolog.RetryRule {
 	return kept
 }
 
-func TestEveryRuleOfTheTableIsKeptOrNamedAsNotKept(t *testing.T) {
+func TestTheCasesNameEveryRule(t *testing.T) {
 	rows, _ := readRetryTable(t)
 	stated := map[string]bool{}
 	for _, row := range rows {
 		stated[row.Rule] = true
 	}
 	kept := keptRules()
-	var named, missing []string
+	var missing []string
 	for name := range stated {
-		named = append(named, name)
-		_, isKept := kept[name]
-		_, isNot := notKept[name]
-		if isKept == isNot {
+		if _, isKept := kept[name]; !isKept {
 			missing = append(missing, name)
 		}
 	}
@@ -86,14 +76,9 @@ func TestEveryRuleOfTheTableIsKeptOrNamedAsNotKept(t *testing.T) {
 			missing = append(missing, name)
 		}
 	}
-	for name, why := range notKept {
-		if !stated[name] || why == "" {
-			missing = append(missing, name)
-		}
-	}
 	sort.Strings(missing)
 	if len(missing) > 0 {
-		t.Fatalf("the table's rules are %v; each must be kept or named, once, with why: %v", named, missing)
+		t.Fatalf("each rule is one the cases name and RetryRules keeps: %v", missing)
 	}
 }
 
@@ -101,10 +86,7 @@ func TestARuleAnswersAsTheTableDoes(t *testing.T) {
 	rows, _ := readRetryTable(t)
 	kept := keptRules()
 	for _, row := range rows {
-		rule, isKept := kept[row.Rule]
-		if !isKept {
-			continue
-		}
+		rule := kept[row.Rule]
 		facts := xynolog.RetryFacts{Status: row.Status, Method: row.Method, Keyed: row.Keyed}
 		if got := rule.Retryable(facts); got != row.Retries {
 			t.Errorf("%s: %s retries %v; the table says %v", row.Rule, row.Why, got, row.Retries)

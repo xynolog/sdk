@@ -15,6 +15,7 @@ import (
 	"sync"
 
 	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/api"
 )
 
 // Arguments is an operation's arguments, by name.
@@ -37,7 +38,12 @@ var out struct {
 func init() { out.encoder = json.NewEncoder(os.Stdout) }
 
 // Say writes one line of the protocol.
-func Say(line any) {
+func Say(member api.ConformanceDriverLineMember) {
+	var line api.ConformanceDriverLine
+	if err := line.From(member); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
 	out.mu.Lock()
 	defer out.mu.Unlock()
 	if err := out.encoder.Encode(line); err != nil {
@@ -47,14 +53,15 @@ func Say(line any) {
 
 // Failure is a failure as the protocol carries it: the SDK's code, a
 // server's status, and a job failure's class, each where there is one.
-func Failure(err xynolog.Error) map[string]any {
-	failure := map[string]any{"code": err.ErrorCode(), "detail": err.Error()}
+func Failure(err xynolog.Error) api.ConformanceFailure {
+	code := err.ErrorCode()
+	failure := api.ConformanceFailure{Code: &code, Detail: err.Error()}
 	if status, ok := err.Status(); ok {
-		failure["status"] = status
+		failure.Status = &status
 	}
 	var job *xynolog.JobError
-	if errors.As(err, &job) && job.FailureClass != nil {
-		failure["failureClass"] = *job.FailureClass
+	if errors.As(err, &job) {
+		failure.FailureClass = job.FailureClass
 	}
 	return failure
 }
@@ -159,7 +166,7 @@ func Serve(makeDriver func(Abandoner) Driver) {
 	for _, op := range driver.Operations() {
 		has[op] = true
 	}
-	Say(map[string]bool{"ready": true})
+	Say(api.ConformanceDriverLineReady{Ready: api.ConformanceDriverLineReadyReadyTrue})
 
 	var operations sync.WaitGroup
 	in := bufio.NewScanner(os.Stdin)
@@ -181,7 +188,7 @@ func Serve(makeDriver func(Abandoner) Driver) {
 		delete(line, "op")
 		if !has[op] {
 			// Said at once, before the next operation is read.
-			Say(map[string]any{"id": id, "unsupported": true})
+			Say(api.ConformanceDriverLineUnsupported{Id: int(id), Unsupported: api.ConformanceDriverLineUnsupportedUnsupportedTrue})
 			continue
 		}
 		// Abandonable before the next line is read: an abandon that follows
@@ -216,15 +223,15 @@ func answer(id uint64, value any, err error, abandoned bool) {
 	var failed xynolog.Error
 	switch {
 	case err == nil:
-		Say(map[string]any{"id": id, "ok": value})
+		Say(api.ConformanceDriverLineOk{Id: int(id), Ok: value})
 	case abandoned && errors.Is(err, context.Canceled):
 		// The suite abandoned it, and the SDK reported nothing else.
-		Say(map[string]any{"id": id, "abandoned": true})
+		Say(api.ConformanceDriverLineAbandoned{Id: int(id), Abandoned: api.ConformanceDriverLineAbandonedAbandonedTrue})
 	case errors.As(err, &misuse):
-		Say(map[string]any{"id": id, "misuse": misuse.Why})
+		Say(api.ConformanceDriverLineMisuse{Id: int(id), Misuse: misuse.Why})
 	case errors.As(err, &failed):
-		Say(map[string]any{"id": id, "error": Failure(failed)})
+		Say(api.ConformanceDriverLineFailed{Id: int(id), Error: Failure(failed)})
 	default:
-		Say(map[string]any{"id": id, "misuse": fmt.Sprintf("the SDK returned an error that is no failure of its vocabularies: %v", err)})
+		Say(api.ConformanceDriverLineMisuse{Id: int(id), Misuse: fmt.Sprintf("the SDK returned an error that is no failure of its vocabularies: %v", err)})
 	}
 }

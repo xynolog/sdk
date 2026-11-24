@@ -443,6 +443,14 @@ const (
 ~// Out of range.
 ~SpanRefusalSpanOutOfRange SpanRefusal = "span-out-of-range"
 )
+
+// Control.
+type ControlErrorCode string
+
+const (
+~// Failed.
+~ControlErrorCodeFailed ControlErrorCode = "control.failed"
+)
 |}
 
 let python =

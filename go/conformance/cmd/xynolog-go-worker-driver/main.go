@@ -107,8 +107,11 @@ func iso(at time.Time) any {
 	if at.IsZero() {
 		return nil
 	}
-	return at.UTC().Format("2006-01-02T15:04:05.000Z07:00")
+	return stamp(at)
 }
+
+// stamp is at as the wire writes a time.
+func stamp(at time.Time) string { return at.UTC().Format("2006-01-02T15:04:05.000Z07:00") }
 
 // running is the held job, and the span it is run in.
 type running struct {
@@ -187,7 +190,7 @@ func (w *worker) report(state xynolog.ConnectionState) {
 	defer w.mu.Unlock()
 	if w.reported != state {
 		w.reported = state
-		protocol.Say(map[string]string{"state": string(state)})
+		protocol.Say(api.ConformanceDriverLineState{State: string(state)})
 	}
 }
 
@@ -263,7 +266,7 @@ func (w *worker) open(args protocol.Arguments) error {
 	// Taken at once, so every failure from the first request on is said, each
 	// before the call that met it returns, until the transport closes.
 	transport.Failures(func(failed *xynolog.TransportError) {
-		protocol.Say(map[string]any{"error": protocol.Failure(failed)})
+		protocol.Say(api.ConformanceDriverLineErrorStream{Error: protocol.Failure(failed)})
 	})
 	c := xynolog.NewClient(xynolog.ClientConfig{Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: timing})
 	w.mu.Lock()
@@ -333,7 +336,7 @@ func (w *worker) claim(args protocol.Arguments) error {
 	if w.claims != nil {
 		return protocol.Misused("the worker is already claiming")
 	}
-	claims := c.Job.Claim(accepts)
+	claims := c.Job.Claim(api.ClaimOptions{Accepts: accepts})
 	w.claims = claims
 	w.reporters.Add(2)
 	go func() {
@@ -346,7 +349,7 @@ func (w *worker) claim(args protocol.Arguments) error {
 			if w.life.Err() != nil {
 				return
 			}
-			protocol.Say(map[string]string{"stalled": stall.JobId.String()})
+			protocol.Say(api.ConformanceDriverLineStalled{Stalled: stall.JobId.String()})
 		}
 	}()
 	return nil
@@ -357,14 +360,15 @@ func (w *worker) reading(claims *xynolog.Claims) {
 		if err != nil {
 			var refusal *xynolog.ClaimRefusal
 			if !errors.As(err, &refusal) {
-				protocol.Say(map[string]any{"refused": map[string]any{"detail": err.Error()}})
+				protocol.Say(api.ConformanceDriverLineRefused{Refused: api.ConformanceFailure{Detail: err.Error()}})
 				continue
 			}
-			refused := map[string]any{"detail": refusal.Message}
+			refused := api.ConformanceFailure{Detail: refusal.Message}
 			if refusal.Code != nil {
-				refused["code"] = *refusal.Code
+				code := string(*refusal.Code)
+				refused.Code = &code
 			}
-			protocol.Say(map[string]any{"refused": refused})
+			protocol.Say(api.ConformanceDriverLineRefused{Refused: refused})
 			continue
 		}
 		w.hold(job)
@@ -373,12 +377,12 @@ func (w *worker) reading(claims *xynolog.Claims) {
 			defer w.reporters.Done()
 			for cancelled := range job.Cancelled().Changes(w.life) {
 				if cancelled {
-					protocol.Say(map[string]string{"signalled": job.JobId().String()})
+					protocol.Say(api.ConformanceDriverLineSignalled{Signalled: job.JobId().String()})
 					return
 				}
 			}
 		}()
-		protocol.Say(map[string]any{"claimed": map[string]any{
+		protocol.Say(api.ConformanceDriverLineClaimed{Claimed: map[string]any{
 			"jobId":          job.JobId(),
 			"jobType":        job.JobType(),
 			"resourceId":     job.ResourceId(),
@@ -543,9 +547,9 @@ func (w *worker) vitals() (any, error) {
 		return nil, err
 	}
 	vitals := claims.Vitals()
-	var active any
+	var active *api.WorkerEngineHealthActiveJob
 	if job := vitals.ActiveJob; job != nil {
-		active = map[string]any{"jobId": job.JobId, "type": job.JobType, "since": iso(job.Since)}
+		active = &api.WorkerEngineHealthActiveJob{JobId: job.JobId, Type: job.Type, Since: stamp(job.Since)}
 	}
 	return map[string]any{
 		"lastQueuedEventAt": iso(vitals.LastQueuedEventAt),

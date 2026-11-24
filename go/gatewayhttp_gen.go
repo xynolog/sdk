@@ -6,57 +6,57 @@ package xynolog
 
 import "net/url"
 
-// gatewayRoute is an operation of the gateway: its method and its path, a
+// GatewayRoute is an operation of the gateway: its method and its path, a
 // {name} for each parameter, which the caller fills.
-type gatewayRoute struct {
-	method, path string
+type GatewayRoute struct {
+	Method, Path string
 }
 
-// routeGetHealth is getHealth.
-var routeGetHealth = gatewayRoute{method: "GET", path: "/api/health"}
+// RouteGetHealth is getHealth.
+var RouteGetHealth = GatewayRoute{Method: "GET", Path: "/api/health"}
 
-// routeGetHealthAtRoot is getHealthAtRoot.
-var routeGetHealthAtRoot = gatewayRoute{method: "GET", path: "/"}
+// RouteGetHealthAtRoot is getHealthAtRoot.
+var RouteGetHealthAtRoot = GatewayRoute{Method: "GET", Path: "/"}
 
-// routeGetOpenApiDocument is getOpenApiDocument.
-var routeGetOpenApiDocument = gatewayRoute{method: "GET", path: "/api/openapi.json"}
+// RouteGetOpenApiDocument is getOpenApiDocument.
+var RouteGetOpenApiDocument = GatewayRoute{Method: "GET", Path: "/api/openapi.json"}
 
-// routeGetProtectedResourceMetadata is getProtectedResourceMetadata.
-var routeGetProtectedResourceMetadata = gatewayRoute{method: "GET", path: "/.well-known/oauth-protected-resource"}
+// RouteGetProtectedResourceMetadata is getProtectedResourceMetadata.
+var RouteGetProtectedResourceMetadata = GatewayRoute{Method: "GET", Path: "/.well-known/oauth-protected-resource"}
 
-// routeCreateMediaToken is createMediaToken.
-var routeCreateMediaToken = gatewayRoute{method: "POST", path: "/api/tokens/media"}
+// RouteCreateMediaToken is createMediaToken.
+var RouteCreateMediaToken = GatewayRoute{Method: "POST", Path: "/api/tokens/media"}
 
-// routeGetCurrentUser is getCurrentUser.
-var routeGetCurrentUser = gatewayRoute{method: "GET", path: "/api/users/me"}
+// RouteGetCurrentUser is getCurrentUser.
+var RouteGetCurrentUser = GatewayRoute{Method: "GET", Path: "/api/users/me"}
 
-// routeGetStatus is getStatus.
-var routeGetStatus = gatewayRoute{method: "GET", path: "/api/status"}
+// RouteGetStatus is getStatus.
+var RouteGetStatus = GatewayRoute{Method: "GET", Path: "/api/status"}
 
-// routeSubscribeToBus is subscribeToBus.
-var routeSubscribeToBus = gatewayRoute{method: "POST", path: "/bus/subscribe"}
+// RouteSubscribeToBus is subscribeToBus.
+var RouteSubscribeToBus = GatewayRoute{Method: "POST", Path: "/bus/subscribe"}
 
-// routeEmitOnBus is emitOnBus.
-var routeEmitOnBus = gatewayRoute{method: "POST", path: "/bus/emit"}
+// RouteEmitOnBus is emitOnBus.
+var RouteEmitOnBus = GatewayRoute{Method: "POST", Path: "/bus/emit"}
 
-// routeUploadResource is uploadResource.
-var routeUploadResource = gatewayRoute{method: "POST", path: "/resources"}
+// RouteUploadResource is uploadResource.
+var RouteUploadResource = GatewayRoute{Method: "POST", Path: "/resources"}
 
-// routeGetResourceRepresentation is getResourceRepresentation.
-var routeGetResourceRepresentation = gatewayRoute{method: "GET", path: "/resources/{id}"}
+// RouteGetResourceRepresentation is getResourceRepresentation.
+var RouteGetResourceRepresentation = GatewayRoute{Method: "GET", Path: "/resources/{id}"}
 
-// routeGetResourceJsonLd is getResourceJsonLd.
-var routeGetResourceJsonLd = gatewayRoute{method: "GET", path: "/resources/{id}/jsonld"}
+// RouteGetResourceJsonLd is getResourceJsonLd.
+var RouteGetResourceJsonLd = GatewayRoute{Method: "GET", Path: "/resources/{id}/jsonld"}
 
-// routeGetResourceAnnotations is getResourceAnnotations.
-var routeGetResourceAnnotations = gatewayRoute{method: "GET", path: "/resources/{id}/annotations"}
+// RouteGetResourceAnnotations is getResourceAnnotations.
+var RouteGetResourceAnnotations = GatewayRoute{Method: "GET", Path: "/resources/{id}/annotations"}
 
-// routeGetResourceAnchoredText is getResourceAnchoredText.
-var routeGetResourceAnchoredText = gatewayRoute{method: "GET", path: "/resources/{id}/anchored-text"}
+// RouteGetResourceAnchoredText is getResourceAnchoredText.
+var RouteGetResourceAnchoredText = GatewayRoute{Method: "GET", Path: "/resources/{id}/anchored-text"}
 
-// routeGetResourceRepresentationWithMediaToken is
+// RouteGetResourceRepresentationWithMediaToken is
 // getResourceRepresentationWithMediaToken.
-var routeGetResourceRepresentationWithMediaToken = gatewayRoute{method: "GET", path: "/api/resources/{id}"}
+var RouteGetResourceRepresentationWithMediaToken = GatewayRoute{Method: "GET", Path: "/api/resources/{id}"}
 
 // The media type each operation sends and answers with, where it has a body.
 const (
@@ -83,11 +83,16 @@ const (
 
 // Each header the gateway's operations name, asked or answered.
 const (
-	headerCacheControl    = "Cache-Control"
-	headerIdempotencyKey  = "Idempotency-Key"
-	headerLink            = "Link"
-	headerRetryAfter      = "Retry-After"
-	headerWWWAuthenticate = "WWW-Authenticate"
+	HeaderCacheControl    = "Cache-Control"
+	HeaderIdempotencyKey  = "Idempotency-Key"
+	HeaderLink            = "Link"
+	HeaderRetryAfter      = "Retry-After"
+	HeaderWWWAuthenticate = "WWW-Authenticate"
+)
+
+const (
+	// MediaTokenQuery is the query parameter a mediaToken credential is sent in.
+	MediaTokenQuery = "token"
 )
 
 // uploadField is a member of an upload (ResourceUpload), and whether every

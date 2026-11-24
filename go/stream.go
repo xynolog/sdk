@@ -768,7 +768,7 @@ func (s *stream) read(ctx context.Context, conn uint64, token string, body api.B
 	// StreamOpenTimeout: once the stream is open, it may be quiet.
 	opening, cancel := context.WithCancel(ctx)
 	defer cancel()
-	request, err := http.NewRequestWithContext(opening, routeSubscribeToBus.method, s.shared.baseURL+routeSubscribeToBus.path, bytes.NewReader(encoded))
+	request, err := http.NewRequestWithContext(opening, RouteSubscribeToBus.Method, s.shared.baseURL+RouteSubscribeToBus.Path, bytes.NewReader(encoded))
 	if err != nil {
 		report(streamEvent{kind: eventEnded})
 		return
@@ -789,7 +789,7 @@ func (s *stream) read(ctx context.Context, conn uint64, token string, body api.B
 		return
 	}
 	if response.StatusCode < 200 || response.StatusCode > 299 {
-		wait, hasWait := RetryAfter(response.Header.Get(headerRetryAfter))
+		wait, hasWait := RetryAfter(response.Header.Get(HeaderRetryAfter))
 		// A refusal's body is read within HttpRequestTimeout, as any other
 		// answer is: one not read by then is a refusal that says nothing.
 		reading := time.AfterFunc(s.shared.timing.HttpRequestTimeout, cancel)
