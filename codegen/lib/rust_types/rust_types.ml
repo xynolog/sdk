@@ -94,7 +94,9 @@ let carried (spec : Spec.t) id =
     Decode.resolve spec.ids
       { Decode.target = id; file = control_table; pointer = "" }
   in
-  R.Named ([ "crate"; "types"; Filename.remove_extension (Filename.basename file) ], [])
+  R.Named
+    ( [ "crate"; "types"; Filename.remove_extension (Filename.basename file) ],
+      [] )
 
 let sender = function C.Client -> "client" | C.Launcher -> "launcher"
 let sender_variant from = R.Path [ "ControlSender"; Text.pascal (sender from) ]
@@ -107,7 +109,8 @@ let const name ty value =
 let method_items spec (m : C.methods_item) =
   let marker = Text.pascal m.name in
   [
-    R.Unit_struct { doc = [ "`" ^ m.name ^ "`: " ^ m.docs ]; vis = Pub; name = marker };
+    R.Unit_struct
+      { doc = [ "`" ^ m.name ^ "`: " ^ m.docs ]; vis = Pub; name = marker };
     R.Impl
       {
         generics = [];
@@ -128,7 +131,8 @@ let method_items spec (m : C.methods_item) =
 let notification_items spec (n : C.notifications_item) =
   let marker = Text.pascal n.name in
   [
-    R.Unit_struct { doc = [ "`" ^ n.name ^ "`: " ^ n.docs ]; vis = Pub; name = marker };
+    R.Unit_struct
+      { doc = [ "`" ^ n.name ^ "`: " ^ n.docs ]; vis = Pub; name = marker };
     R.Impl
       {
         generics = [];
@@ -154,7 +158,9 @@ let control (spec : Spec.t) =
         vis = Pub;
         name;
         ty = R.Ref (None, R.Slice (R.named ty));
-        value = R.Ref_of (R.Array (List.map (fun r -> R.Struct ([ ty ], fields r, None)) row));
+        value =
+          R.Ref_of
+            (R.Array (List.map (fun r -> R.Struct ([ ty ], fields r, None)) row));
       }
   in
   {
@@ -185,8 +191,8 @@ let control (spec : Spec.t) =
                   ("sends", strings m.sends);
                 ]);
             R.Blank;
-            table "CONTROL_NOTIFICATIONS" t.notifications "ControlNotificationRow"
-              (fun (n : C.notifications_item) ->
+            table "CONTROL_NOTIFICATIONS" t.notifications
+              "ControlNotificationRow" (fun (n : C.notifications_item) ->
                 [ ("name", R.Str n.name); ("from", sender_variant n.from) ]);
           ]);
   }

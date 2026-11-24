@@ -123,7 +123,8 @@ let integer_ty (n : D.node) =
 
 let only_integer (s : D.t) =
   match s with
-  | D.Node { type_ = Some (D.One Integer); enum = Some [ Schema.Int_literal n ]; _ }
+  | D.Node
+      { type_ = Some (D.One Integer); enum = Some [ Schema.Int_literal n ]; _ }
     ->
       Some n
   | _ -> None
@@ -875,25 +876,25 @@ and structure st name ~owner (n : D.node) doc =
           impl (ty name)
             ((match !consts with [] -> [] | cs -> cs @ [ R.I_blank ])
             @ [
-              R.I_fn
-                (R.fn_
-                   ~doc:
-                     [
-                       Printf.sprintf
-                         "The `%s` that states %s and nothing else." name
-                         (if !parameters = [] then "what it must" else "these");
-                     ]
-                   ~attrs:
-                     (if List.length !parameters > 7 then
-                        [
-                          R.List
-                            ( [ "allow" ],
-                              [ R.Word [ "clippy"; "too_many_arguments" ] ] );
-                        ]
-                      else [])
-                   ~vis:Pub "new" ~params:!parameters ~ret:(ty "Self")
-                   [ R.Tail (R.Struct ([ "Self" ], !set, None)) ]);
-            ]);
+                R.I_fn
+                  (R.fn_
+                     ~doc:
+                       [
+                         Printf.sprintf
+                           "The `%s` that states %s and nothing else." name
+                           (if !parameters = [] then "what it must" else "these");
+                       ]
+                     ~attrs:
+                       (if List.length !parameters > 7 then
+                          [
+                            R.List
+                              ( [ "allow" ],
+                                [ R.Word [ "clippy"; "too_many_arguments" ] ] );
+                          ]
+                        else [])
+                     ~vis:Pub "new" ~params:!parameters ~ret:(ty "Self")
+                     [ R.Tail (R.Struct ([ "Self" ], !set, None)) ]);
+              ]);
         ]))
   else [ declared; R.Blank ]
 
@@ -1166,7 +1167,10 @@ let hashable st names =
     | R.Named ([ name ], args) when Hashtbl.mem st.written name ->
         (not (Hashtbl.mem excluded name)) && List.for_all admits args
     | R.Named
-        ( ( [ ("String" | "bool" | "u16" | "u64" | "i64" | "Vec" | "Option" | "Box") ]
+        ( ( [
+              ( "String" | "bool" | "u16" | "u64" | "i64" | "Vec" | "Option"
+              | "Box" );
+            ]
           | [ "std"; "collections"; "BTreeMap" ]
           | [ "serde_json"; ("Map" | "Value") ] ),
           args ) ->
@@ -1194,8 +1198,8 @@ let hashable st names =
 let with_eq_hash attrs =
   List.map
     (function
-      | R.List ([ "derive" ], words) when List.mem (R.Word [ "PartialEq" ]) words
-        ->
+      | R.List ([ "derive" ], words)
+        when List.mem (R.Word [ "PartialEq" ]) words ->
           let lacking =
             List.filter
               (fun w -> not (List.mem w words))
@@ -1204,7 +1208,8 @@ let with_eq_hash attrs =
           R.List
             ( [ "derive" ],
               List.concat_map
-                (fun w -> if w = R.Word [ "PartialEq" ] then w :: lacking else [ w ])
+                (fun w ->
+                  if w = R.Word [ "PartialEq" ] then w :: lacking else [ w ])
                 words )
       | meta -> meta)
     attrs
