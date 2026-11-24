@@ -1,9 +1,9 @@
 (* The telemetry group: every span and metric an SDK's transports export
    (protocol/specs/src/sdk-telemetry/telemetry.json), its kind or instrument,
    what it means, and its attributes, for the Go, Python, OCaml and Kotlin
-   SDKs; the name of each, for the TypeScript, C# and Haskell SDKs; and every
-   attribute key a row lists, for those and the Swift SDK. The Rust SDK's
-   telemetry is held to the table by its own tests.
+   SDKs; the name of each, for the TypeScript, C#, Haskell and Rust SDKs; and
+   every attribute key a row lists, for those and the Swift SDK, whose SDK
+   group writes its spans and metrics.
 
    A metric's instrument is a counter, and a span's name holds no placeholder
    but {channel}. A row says what it means and lists each attribute once;
@@ -584,6 +584,40 @@ let haskell_names (t : t) =
         @ List.map (row "metric") t.metrics;
     }
 
+(* The table as the Rust telemetry crate reports it
+   (rust/telemetry/src/lib.rs): a constant per span, per metric and per
+   attribute key, each named by its words. *)
+let rust (t : t) =
+  let module R = Rust_syntax in
+  let constant ?(doc = []) name value =
+    R.Const
+      {
+        doc;
+        attrs = [];
+        vis = Pub;
+        name;
+        ty = R.str_ty;
+        value = R.Str value;
+      }
+  in
+  let row prefix (r : row) =
+    constant ~doc:[ r.meaning ] (prefix ^ row_upper r) r.name
+  in
+  {
+    Output.path = "rust/telemetry/src/generated/table.rs";
+    text =
+      R.text
+        ~header:(Banner.lines ~from_:("protocol/specs/src/" ^ file) __FILE__)
+        (constant
+           ~doc:[ "What stands for the bus channel in a span's name." ]
+           "CHANNEL" channel
+         :: List.map (row "SPAN_") t.spans
+        @ List.map (row "METRIC_") t.metrics
+        @ List.map
+            (fun k -> constant ~doc:[ about ] ("ATTR_" ^ key_upper k) k)
+            t.keys);
+  }
+
 let files ~root:_ (spec : Spec.t) =
   let table = spec.tables.sdk_telemetry_telemetry in
   Result.bind (derive table) (fun t ->
@@ -601,6 +635,7 @@ let files ~root:_ (spec : Spec.t) =
             swift t;
             haskell t;
             haskell_names t;
+            rust t;
           ])
         (Kotlin_sdk.written ~from_:file (fun () ->
              Kotlin.file ~from_:file

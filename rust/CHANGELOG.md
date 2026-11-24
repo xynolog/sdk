@@ -50,6 +50,10 @@ the coming release's, and gathers its changes as they land.
 - `stored_session_of(client_id, issuer, tokens)` in `xynolog-http-transport`:
   the session a completed sign-in keeps.
 - A held job's `accepted()`: whether a filter it was claimed with accepts it.
+- `xynolog_telemetry::table` names each span, metric and attribute key of
+  the SDK telemetry table (`SPAN_CONTENT_GET`, `METRIC_XYNOLOG_BUS_SENT`,
+  `ATTR_RESOURCE_ID`, …, and `CHANNEL`, what stands for the channel in a
+  span's name), and the crate's spans and count are named by them.
 
 ### Changed
 

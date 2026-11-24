@@ -7,8 +7,8 @@
 //! also the `xynolog.bus.sent` count, [`bus_recv`], [`content_put`],
 //! [`content_get`], [`content_get_graph`], [`content_get_annotations`] and
 //! [`content_get_anchored_text`].
-//! It names no span, kind or attribute of its own, and puts [`active_trace`]
-//! on what it sends.
+//! It names no span, kind or attribute of its own: each is the table's, in
+//! [`table`]. It puts [`active_trace`] on what it sends.
 //!
 //! A service's own spans are the service telemetry table's, which it states
 //! itself over [`in_span`] and [`in_span_now`], continuing a caller's trace
@@ -30,6 +30,12 @@ use std::collections::HashMap;
 use std::future::Future;
 use xynolog::transport::TraceCarrier;
 
+/// The SDK telemetry table's names: each span's, each metric's and each
+/// attribute key's, generated from protocol/specs/src/sdk-telemetry/telemetry.json.
+pub mod table {
+    include!("generated/table.rs");
+}
+
 /// The instrumentation scope every span and count here is made under.
 const SCOPE: &str = "xynolog";
 
@@ -40,12 +46,12 @@ const SCOPE: &str = "xynolog";
 pub async fn bus_emit<T>(channel: &str, scope: Option<&str>, send: impl Future<Output = T>) -> T {
     let attributes = on_the_bus(channel, scope);
     global::meter(SCOPE)
-        .u64_counter("xynolog.bus.sent")
+        .u64_counter(table::METRIC_XYNOLOG_BUS_SENT)
         .with_description("Emits sent")
         .build()
         .add(1, &attributes);
     in_span(
-        format!("bus.emit:{channel}"),
+        table::SPAN_BUS_EMIT.replace(table::CHANNEL, channel),
         SpanKind::Producer,
         attributes,
         Context::current(),
@@ -67,7 +73,7 @@ pub fn bus_recv(
         sent_under.as_ref().and_then(|t| t.tracestate.as_deref()),
     );
     in_span_now(
-        format!("bus.recv:{channel}"),
+        table::SPAN_BUS_RECV.replace(table::CHANNEL, channel),
         SpanKind::Consumer,
         on_the_bus(channel, scope),
         &parent,
@@ -79,12 +85,12 @@ pub fn bus_recv(
 /// `content.put`: an upload.
 pub async fn content_put<T>(format: &str, size_bytes: u64, upload: impl Future<Output = T>) -> T {
     in_span(
-        "content.put".to_owned(),
+        table::SPAN_CONTENT_PUT.to_owned(),
         SpanKind::Client,
         vec![
-            KeyValue::new("content.format", format.to_owned()),
+            KeyValue::new(table::ATTR_CONTENT_FORMAT, format.to_owned()),
             KeyValue::new(
-                "content.size_bytes",
+                table::ATTR_CONTENT_SIZE_BYTES,
                 i64::try_from(size_bytes).unwrap_or(i64::MAX),
             ),
         ],
@@ -96,12 +102,12 @@ pub async fn content_put<T>(format: &str, size_bytes: u64, upload: impl Future<O
 
 /// `content.get`: a read of a resource's bytes, whole or as a `stream`.
 pub async fn content_get<T>(resource_id: &str, stream: bool, read: impl Future<Output = T>) -> T {
-    let mut attributes = vec![KeyValue::new("resource.id", resource_id.to_owned())];
+    let mut attributes = vec![KeyValue::new(table::ATTR_RESOURCE_ID, resource_id.to_owned())];
     if stream {
-        attributes.push(KeyValue::new("content.stream", true));
+        attributes.push(KeyValue::new(table::ATTR_CONTENT_STREAM, true));
     }
     in_span(
-        "content.get".to_owned(),
+        table::SPAN_CONTENT_GET.to_owned(),
         SpanKind::Client,
         attributes,
         Context::current(),
@@ -113,9 +119,9 @@ pub async fn content_get<T>(resource_id: &str, stream: bool, read: impl Future<O
 /// `content.get_annotations`: a read of a resource's annotations.
 pub async fn content_get_annotations<T>(resource_id: &str, read: impl Future<Output = T>) -> T {
     in_span(
-        "content.get_annotations".to_owned(),
+        table::SPAN_CONTENT_GET_ANNOTATIONS.to_owned(),
         SpanKind::Client,
-        vec![KeyValue::new("resource.id", resource_id.to_owned())],
+        vec![KeyValue::new(table::ATTR_RESOURCE_ID, resource_id.to_owned())],
         Context::current(),
         read,
     )
@@ -125,9 +131,9 @@ pub async fn content_get_annotations<T>(resource_id: &str, read: impl Future<Out
 /// `content.get_graph`: a read of a resource's description.
 pub async fn content_get_graph<T>(resource_id: &str, read: impl Future<Output = T>) -> T {
     in_span(
-        "content.get_graph".to_owned(),
+        table::SPAN_CONTENT_GET_GRAPH.to_owned(),
         SpanKind::Client,
-        vec![KeyValue::new("resource.id", resource_id.to_owned())],
+        vec![KeyValue::new(table::ATTR_RESOURCE_ID, resource_id.to_owned())],
         Context::current(),
         read,
     )
@@ -137,9 +143,9 @@ pub async fn content_get_graph<T>(resource_id: &str, read: impl Future<Output = 
 /// `content.get_anchored_text`: a read of a resource's anchored text.
 pub async fn content_get_anchored_text<T>(resource_id: &str, read: impl Future<Output = T>) -> T {
     in_span(
-        "content.get_anchored_text".to_owned(),
+        table::SPAN_CONTENT_GET_ANCHORED_TEXT.to_owned(),
         SpanKind::Client,
-        vec![KeyValue::new("resource.id", resource_id.to_owned())],
+        vec![KeyValue::new(table::ATTR_RESOURCE_ID, resource_id.to_owned())],
         Context::current(),
         read,
     )
@@ -149,9 +155,9 @@ pub async fn content_get_anchored_text<T>(resource_id: &str, read: impl Future<O
 /// What a span or a count of the bus carries: the channel, and the scope
 /// when there is one.
 pub fn on_the_bus(channel: &str, scope: Option<&str>) -> Vec<KeyValue> {
-    let mut attributes = vec![KeyValue::new("bus.channel", channel.to_owned())];
+    let mut attributes = vec![KeyValue::new(table::ATTR_BUS_CHANNEL, channel.to_owned())];
     if let Some(scope) = scope {
-        attributes.push(KeyValue::new("bus.scope", scope.to_owned()));
+        attributes.push(KeyValue::new(table::ATTR_BUS_SCOPE, scope.to_owned()));
     }
     attributes
 }
