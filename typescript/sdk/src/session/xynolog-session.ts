@@ -82,7 +82,12 @@ import type { SignInKept } from './sign-in-kept';
 import type { SessionStorage } from './session-storage';
 import { personKeeping } from '../cache-persister';
 import type { DeviceCode, SessionEndReason } from '@xynolog/core';
-import { SCRIPT_CLIENT_ID, renewKept, signInWithDeviceGrant } from './oauth';
+import {
+  SCRIPT_CLIENT_ID,
+  renewKept,
+  signInWithDeviceGrant,
+  storedSessionOf,
+} from './oauth';
 import { sharedRenewal, type SharedRenewal } from './shared-renewal';
 
 export type UserInfo = components['schemas']['UserResponse'];
@@ -935,12 +940,6 @@ export class XynologSession implements StateUnit {
       ...(opts.signal ? { signal: opts.signal } : {}),
       ...(opts.fetch ? { fetch: opts.fetch } : {}),
     });
-    opts.kept.keep({
-      access: tokens.access,
-      refresh: tokens.refresh,
-      clientId: SCRIPT_CLIENT_ID,
-      tokenEndpoint: issuer.token,
-      ...(issuer.revocation ? { revocationEndpoint: issuer.revocation } : {}),
-    });
+    opts.kept.keep(storedSessionOf(SCRIPT_CLIENT_ID, issuer, tokens));
   }
 }

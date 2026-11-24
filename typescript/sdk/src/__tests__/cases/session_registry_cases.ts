@@ -3,8 +3,7 @@
 // Authority:   protocol/specs/src/session/registry-cases.json
 // Regenerate:  make generate  (codegen/lib/case_data/typescript.ml)
 
-export type Json =
-  null | boolean | number | string | Json[] | { [key: string]: Json };
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 export type CasesItem = {
   why: string;
@@ -26,196 +25,206 @@ export type Table = {
 };
 
 export const table: Table = {
-  $comment:
-    "AUTHORITY for when a registry of knowledge bases takes two endpoints for one place: the rule its sign-in looks up the entries at an address by, before the did the knowledge base reports decides which of them is signed in; and for the order a registry shows the resources open in a knowledge base in. Every SDK runs every case of both tables against its registry's own rule, and fails on a difference. A gateway is one place with another when the two have one origin, as specs/src/session/gateway-url-cases.json makes it: the same protocol, the same host once each is put in lowercase, and the same port. An entry at another origin is another place, though only the protocol differs: the session would talk to the entry's address, which the sign-in's read never proved. A knowledge base the host process has loaded is the place its id names. A gateway and a loaded knowledge base are never one place. READING A CASE. In `cases`, `one` and `other` are each a KbEndpoint (components/schemas/KbEndpoint.json), and `samePlace` whether a registry takes them for one place. In `openResourceOrder`, `open` is a list of open resources as a registry keeps them (specs/src/session/stored.json's `openResource`), and `shown` the ids of the same resources in the order a registry shows them: by place, and two in one place by when each was opened, first first.",
-  cases: [
+  "$comment": "AUTHORITY for when a registry of knowledge bases takes two endpoints for one place: the rule its sign-in looks up the entries at an address by, before the did the knowledge base reports decides which of them is signed in; and for the order a registry shows the resources open in a knowledge base in. Every SDK runs every case of both tables against its registry's own rule, and fails on a difference. A gateway is one place with another when the two have one origin, as specs/src/session/gateway-url-cases.json makes it: the same protocol, the same host once each is put in lowercase, and the same port. An entry at another origin is another place, though only the protocol differs: the session would talk to the entry's address, which the sign-in's read never proved. A knowledge base the host process has loaded is the place its id names. A gateway and a loaded knowledge base are never one place. READING A CASE. In `cases`, `one` and `other` are each a KbEndpoint (components/schemas/KbEndpoint.json), and `samePlace` whether a registry takes them for one place. In `openResourceOrder`, `open` is a list of open resources as a registry keeps them (specs/src/session/stored.json's `openResource`), and `shown` the ids of the same resources in the order a registry shows them: by place, and two in one place by when each was opened, first first.",
+  "cases": [
     {
-      why: 'the same protocol, host and port is one place',
-      one: {
-        kind: 'http',
-        host: 'kb.example.org',
-        port: 443,
-        protocol: 'https',
+      "why": "the same protocol, host and port is one place",
+      "one": {
+        "kind": "http",
+        "host": "kb.example.org",
+        "port": 443,
+        "protocol": "https"
       },
-      other: {
-        kind: 'http',
-        host: 'kb.example.org',
-        port: 443,
-        protocol: 'https',
+      "other": {
+        "kind": "http",
+        "host": "kb.example.org",
+        "port": 443,
+        "protocol": "https"
       },
-      samePlace: true,
+      "samePlace": true
     },
     {
-      why: 'another protocol is another place, though the host and the port are the same',
-      one: {
-        kind: 'http',
-        host: 'kb.example.org',
-        port: 4000,
-        protocol: 'http',
+      "why": "another protocol is another place, though the host and the port are the same",
+      "one": {
+        "kind": "http",
+        "host": "kb.example.org",
+        "port": 4000,
+        "protocol": "http"
       },
-      other: {
-        kind: 'http',
-        host: 'kb.example.org',
-        port: 4000,
-        protocol: 'https',
+      "other": {
+        "kind": "http",
+        "host": "kb.example.org",
+        "port": 4000,
+        "protocol": "https"
       },
-      samePlace: false,
+      "samePlace": false
     },
     {
-      why: 'another host is another place',
-      one: {
-        kind: 'http',
-        host: 'kb.example.org',
-        port: 443,
-        protocol: 'https',
+      "why": "another host is another place",
+      "one": {
+        "kind": "http",
+        "host": "kb.example.org",
+        "port": 443,
+        "protocol": "https"
       },
-      other: {
-        kind: 'http',
-        host: 'kb.example.net',
-        port: 443,
-        protocol: 'https',
+      "other": {
+        "kind": "http",
+        "host": "kb.example.net",
+        "port": 443,
+        "protocol": "https"
       },
-      samePlace: false,
+      "samePlace": false
     },
     {
-      why: 'another port is another place',
-      one: {
-        kind: 'http',
-        host: 'localhost',
-        port: 4000,
-        protocol: 'http',
+      "why": "another port is another place",
+      "one": {
+        "kind": "http",
+        "host": "localhost",
+        "port": 4000,
+        "protocol": "http"
       },
-      other: {
-        kind: 'http',
-        host: 'localhost',
-        port: 4001,
-        protocol: 'http',
+      "other": {
+        "kind": "http",
+        "host": "localhost",
+        "port": 4001,
+        "protocol": "http"
       },
-      samePlace: false,
+      "samePlace": false
     },
     {
-      why: 'a host written in other letter case is the same host: the origin puts it in lowercase',
-      one: {
-        kind: 'http',
-        host: 'KB.Example.org',
-        port: 443,
-        protocol: 'https',
+      "why": "a host written in other letter case is the same host: the origin puts it in lowercase",
+      "one": {
+        "kind": "http",
+        "host": "KB.Example.org",
+        "port": 443,
+        "protocol": "https"
       },
-      other: {
-        kind: 'http',
-        host: 'kb.example.org',
-        port: 443,
-        protocol: 'https',
+      "other": {
+        "kind": "http",
+        "host": "kb.example.org",
+        "port": 443,
+        "protocol": "https"
       },
-      samePlace: true,
+      "samePlace": true
     },
     {
-      why: 'a loaded knowledge base is the place its id names',
-      one: {
-        kind: 'local',
-        kbId: 'kb-a',
+      "why": "a loaded knowledge base is the place its id names",
+      "one": {
+        "kind": "local",
+        "kbId": "kb-a"
       },
-      other: {
-        kind: 'local',
-        kbId: 'kb-a',
+      "other": {
+        "kind": "local",
+        "kbId": "kb-a"
       },
-      samePlace: true,
+      "samePlace": true
     },
     {
-      why: 'another loaded knowledge base is another place',
-      one: {
-        kind: 'local',
-        kbId: 'kb-a',
+      "why": "another loaded knowledge base is another place",
+      "one": {
+        "kind": "local",
+        "kbId": "kb-a"
       },
-      other: {
-        kind: 'local',
-        kbId: 'kb-b',
+      "other": {
+        "kind": "local",
+        "kbId": "kb-b"
       },
-      samePlace: false,
+      "samePlace": false
     },
     {
-      why: 'a gateway and a loaded knowledge base are never one place',
-      one: {
-        kind: 'http',
-        host: 'localhost',
-        port: 4000,
-        protocol: 'http',
+      "why": "a gateway and a loaded knowledge base are never one place",
+      "one": {
+        "kind": "http",
+        "host": "localhost",
+        "port": 4000,
+        "protocol": "http"
       },
-      other: {
-        kind: 'local',
-        kbId: 'localhost',
+      "other": {
+        "kind": "local",
+        "kbId": "localhost"
       },
-      samePlace: false,
-    },
+      "samePlace": false
+    }
   ],
-  openResourceOrder: [
+  "openResourceOrder": [
     {
-      why: 'the place each has decides, though they were opened the other way round',
-      open: [
+      "why": "the place each has decides, though they were opened the other way round",
+      "open": [
         {
-          id: 'opened-first',
-          name: 'Opened first',
-          openedAt: 1000,
-          order: 1,
+          "id": "opened-first",
+          "name": "Opened first",
+          "openedAt": 1000,
+          "order": 1
         },
         {
-          id: 'opened-second',
-          name: 'Opened second',
-          openedAt: 2000,
-          order: 0,
-        },
+          "id": "opened-second",
+          "name": "Opened second",
+          "openedAt": 2000,
+          "order": 0
+        }
       ],
-      shown: ['opened-second', 'opened-first'],
+      "shown": [
+        "opened-second",
+        "opened-first"
+      ]
     },
     {
-      why: 'two in one place are shown by when each was opened, first first',
-      open: [
+      "why": "two in one place are shown by when each was opened, first first",
+      "open": [
         {
-          id: 'opened-second',
-          name: 'Opened second',
-          openedAt: 2000,
-          order: 0,
+          "id": "opened-second",
+          "name": "Opened second",
+          "openedAt": 2000,
+          "order": 0
         },
         {
-          id: 'opened-first',
-          name: 'Opened first',
-          openedAt: 1000,
-          order: 0,
-        },
+          "id": "opened-first",
+          "name": "Opened first",
+          "openedAt": 1000,
+          "order": 0
+        }
       ],
-      shown: ['opened-first', 'opened-second'],
+      "shown": [
+        "opened-first",
+        "opened-second"
+      ]
     },
     {
-      why: 'places decide first and open times only within a place, whatever the order kept',
-      open: [
+      "why": "places decide first and open times only within a place, whatever the order kept",
+      "open": [
         {
-          id: 'c',
-          name: 'C',
-          openedAt: 3000,
-          order: 2,
-          mediaType: 'text/plain',
+          "id": "c",
+          "name": "C",
+          "openedAt": 3000,
+          "order": 2,
+          "mediaType": "text/plain"
         },
         {
-          id: 'b',
-          name: 'B',
-          openedAt: 5000,
-          order: 0,
-          storageUri: 'file://docs/b.md',
+          "id": "b",
+          "name": "B",
+          "openedAt": 5000,
+          "order": 0,
+          "storageUri": "file://docs/b.md"
         },
         {
-          id: 'a',
-          name: 'A',
-          openedAt: 4000,
-          order: 0,
+          "id": "a",
+          "name": "A",
+          "openedAt": 4000,
+          "order": 0
         },
         {
-          id: 'd',
-          name: 'D',
-          openedAt: 1000,
-          order: 2,
-        },
+          "id": "d",
+          "name": "D",
+          "openedAt": 1000,
+          "order": 2
+        }
       ],
-      shown: ['a', 'b', 'd', 'c'],
-    },
-  ],
+      "shown": [
+        "a",
+        "b",
+        "d",
+        "c"
+      ]
+    }
+  ]
 };

@@ -20,6 +20,7 @@ import {
   type AccessToken,
   type GenerationJobParams,
   type MarkJobParams,
+  type components,
 } from '@xynolog/core';
 import type { Observable } from 'rxjs';
 import {
@@ -38,7 +39,7 @@ type Arguments = Record<string, unknown>;
 /** The suite sent something this driver cannot act on: the suite's mistake, never the SDK's. */
 class Misuse extends Error {}
 
-const say = (line: Record<string, unknown>): void => {
+const say = (line: components['schemas']['ConformanceDriverLine']): void => {
   process.stdout.write(`${JSON.stringify(line)}\n`);
 };
 
@@ -62,12 +63,7 @@ function object(args: Arguments, name: string): Arguments {
 }
 
 /** A failure as the protocol carries it: the SDK's code, the status when a server stated one, and a job failure's class when it has one. */
-function failure(error: unknown): {
-  code?: string;
-  status?: number;
-  failureClass?: string;
-  detail: string;
-} {
+function failure(error: unknown): components['schemas']['ConformanceFailure'] {
   const detail =
     error instanceof Error ? `${error.name}: ${error.message}` : String(error);
   if (!(error instanceof XynologError)) return { detail };

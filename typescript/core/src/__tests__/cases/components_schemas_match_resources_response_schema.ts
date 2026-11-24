@@ -4,41 +4,46 @@
 // Regenerate:  make generate  (codegen/lib/case_data/typescript.ml)
 
 export const schema = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'https://xynolog.org/protocol/MatchResourcesResponse.json',
-  type: 'object',
-  description:
-    'One page of the resources a text search found, and which kind of answer it is.',
-  properties: {
-    resources: {
-      type: 'array',
-      items: {
-        $ref: 'https://xynolog.org/protocol/ResourceDescriptor.json',
-      },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xynolog.org/protocol/MatchResourcesResponse.json",
+  "type": "object",
+  "description": "One page of the resources a text search found, and which kind of answer it is.",
+  "properties": {
+    "resources": {
+      "type": "array",
+      "items": {
+        "$ref": "https://xynolog.org/protocol/ResourceDescriptor.json"
+      }
     },
-    total: {
-      type: 'integer',
-      minimum: 0,
-      description:
-        'How many resources the search found in all, and not only on this page.',
+    "total": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many resources the search found in all, and not only on this page."
     },
-    offset: {
-      type: 'integer',
-      minimum: 0,
-      description:
-        'How many of the resources the search found were passed over before this page, as the request stated.',
+    "offset": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many of the resources the search found were passed over before this page, as the request stated."
     },
-    limit: {
-      type: 'integer',
-      minimum: 1,
-      description: 'The limit the search was made with.',
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The limit the search was made with."
     },
-    matchKind: {
-      type: 'string',
-      enum: ['lexical', 'semantic'],
-      description:
-        "What kind of answer this is: 'lexical' — the resources matched the query text; 'semantic' — no lexical match existed, and these resources discuss the query per the vector index. Required so every producer labels its answer; a UI can render semantic results as a different kind of page ('no title matches, but these documents discuss it').",
-    },
+    "matchKind": {
+      "type": "string",
+      "enum": [
+        "lexical",
+        "semantic"
+      ],
+      "description": "What kind of answer this is: 'lexical' — the resources matched the query text; 'semantic' — no lexical match existed, and these resources discuss the query per the vector index. Required so every producer labels its answer; a UI can render semantic results as a different kind of page ('no title matches, but these documents discuss it')."
+    }
   },
-  required: ['resources', 'total', 'offset', 'limit', 'matchKind'],
+  "required": [
+    "resources",
+    "total",
+    "offset",
+    "limit",
+    "matchKind"
+  ]
 } as const;

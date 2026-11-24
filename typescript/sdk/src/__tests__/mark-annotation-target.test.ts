@@ -13,10 +13,11 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { EventBus, annotationId, resourceId } from '@xynolog/core';
-import type { EventMap } from '@xynolog/core';
+import type { EventMap, components } from '@xynolog/core';
 import { MarkNamespace } from '../namespaces/mark';
-import type { CreateAnnotationInput } from '../namespaces/types';
 import { inMemoryTransport } from './helpers/in-memory-transport';
+
+type CreateAnnotationRequest = components['schemas']['CreateAnnotationRequest'];
 
 function makeTransport() {
   const bus = new EventBus();
@@ -64,7 +65,7 @@ describe('mark.annotation — selector-less (whole-resource) target', () => {
       makeMark();
     // Claim→Source edge: the target is the whole claim resource (no selector);
     // the body is a SpecificResource pointing at the source resource.
-    const input: CreateAnnotationInput = {
+    const input: CreateAnnotationRequest = {
       motivation: 'linking',
       target: { source: resourceId('res-claim-1') },
       body: { type: 'SpecificResource', source: resourceId('res-source-1') },
@@ -76,7 +77,7 @@ describe('mark.annotation — selector-less (whole-resource) target', () => {
     expect(getLastChannel()).toBe('mark:create-request');
     const payload = getLastPayload()!;
     expect(payload.resourceId).toBe('res-claim-1'); // routed from target.source
-    const req = payload.request as CreateAnnotationInput;
+    const req = payload.request as CreateAnnotationRequest;
     expect(req.target.source).toBe('res-claim-1');
     expect(req.target.selector).toBeUndefined(); // ← the pin: no selector injected or required
     expect(req.body).toEqual({
@@ -95,7 +96,7 @@ describe('mark.annotation — selector-less (whole-resource) target', () => {
 
   it('forwards a target WITH a selector unchanged (selector-agnostic both ways)', async () => {
     const { mark, push, getLastPayload, getLastCorrelationId } = makeMark();
-    const input: CreateAnnotationInput = {
+    const input: CreateAnnotationRequest = {
       motivation: 'commenting',
       target: {
         source: resourceId('res-doc-1'),
@@ -107,7 +108,7 @@ describe('mark.annotation — selector-less (whole-resource) target', () => {
     const promise = mark.annotation(input);
     await Promise.resolve();
 
-    const req = getLastPayload()!.request as CreateAnnotationInput;
+    const req = getLastPayload()!.request as CreateAnnotationRequest;
     expect(req.target.selector).toEqual({
       type: 'TextPositionSelector',
       start: 0,

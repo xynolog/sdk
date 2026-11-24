@@ -19,10 +19,9 @@
 import type { components } from './types';
 import type { ResourceId } from './identifiers';
 import type { EventBase } from './event-base';
-import type { EventPayloadRefinements } from './bus-refinements';
 
 /** Each persisted event type and the payload the registry states it carries. */
-export type StatedPersistedEventCatalog = {
+type PersistedEventCatalog = {
   'yield:created': components['schemas']['ResourceCreatedPayload'];
   'yield:cloned': components['schemas']['ResourceClonedPayload'];
   'yield:updated': components['schemas']['ResourceUpdatedPayload'];
@@ -45,33 +44,14 @@ export type StatedPersistedEventCatalog = {
   'job:failed': components['schemas']['JobFailedPayload'];
 };
 
-/**
- * Each persisted event type and the payload it carries: the stated one, or
- * its refinement where bus-refinements.ts narrows it to this layer's branded
- * types, so consumers read `payload.annotation.id` as `AnnotationId` without
- * an upcast at every seam.
- */
-type PersistedEventCatalog = {
-  [
-    K in keyof StatedPersistedEventCatalog
-  ]: K extends keyof EventPayloadRefinements
-    ? EventPayloadRefinements[K]
-    : StatedPersistedEventCatalog[K];
-};
-
 /** System event types — persisted events that have no resourceId. */
-type SystemEventType =
-  'frame:entity-type-added' | 'frame:tag-schema-added' | 'principal:profiled';
+type SystemEventType = 'frame:entity-type-added' | 'frame:tag-schema-added' | 'principal:profiled';
 
 /** Extract the concrete persisted event type for a given type string. */
 export type EventOfType<K extends keyof PersistedEventCatalog> =
   K extends SystemEventType
     ? EventBase & { type: K; payload: PersistedEventCatalog[K] }
-    : EventBase & {
-        type: K;
-        resourceId: ResourceId;
-        payload: PersistedEventCatalog[K];
-      };
+    : EventBase & { type: K; resourceId: ResourceId; payload: PersistedEventCatalog[K] };
 
 /** The union of all persisted event types. Discriminated on `type`. */
 export type PersistedEvent = {

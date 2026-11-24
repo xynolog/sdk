@@ -182,12 +182,6 @@ let protocol (bus : Registry.t) =
                     then_ = T_index (T_name "ChannelRefinements", T_name "K");
                     else_ = T_index (T_name "StatedEventMap", T_name "K");
                   }));
-          T.Export_from
-            {
-              type_only = true;
-              names = [ "AnchorRect" ];
-              from = "./bus-ui-types";
-            };
           T.type_alias "EventName"
             ~about:[ Doc_prose (Registry.prose reg.docs.event_name) ]
             (T_keyof (T_name "EventMap"));
@@ -339,11 +333,8 @@ let persisted (bus : Registry.t) =
               T.import ~type_only:true [ "components" ] "./types";
               T.import ~type_only:true [ "ResourceId" ] "./identifiers";
               T.import ~type_only:true [ "EventBase" ] "./event-base";
-              T.import ~type_only:true
-                [ "EventPayloadRefinements" ]
-                "./bus-refinements";
             ];
-          T.type_alias "StatedPersistedEventCatalog"
+          T.type_alias "PersistedEventCatalog" ~export:false
             ~about:
               [
                 Doc
@@ -356,39 +347,6 @@ let persisted (bus : Registry.t) =
                    (fun s ->
                      T.member (channel_key s.event) (T.schema s.payload))
                    stored ));
-          T.type_alias "PersistedEventCatalog" ~export:false
-            ~about:
-              [
-                Block
-                  [
-                    "Each persisted event type and the payload it carries: the \
-                     stated one, or";
-                    "its refinement where bus-refinements.ts narrows it to \
-                     this layer's branded";
-                    "types, so consumers read `payload.annotation.id` as \
-                     `AnnotationId` without";
-                    "an upcast at every seam.";
-                  ];
-              ]
-            (T_mapped
-               {
-                 layout = Rows;
-                 readonly = false;
-                 key = "K";
-                 in_ = T_keyof (T_name "StatedPersistedEventCatalog");
-                 value =
-                   T_conditional
-                     {
-                       layout = Rows;
-                       check = T_name "K";
-                       extends = T_keyof (T_name "EventPayloadRefinements");
-                       then_ =
-                         T_index (T_name "EventPayloadRefinements", T_name "K");
-                       else_ =
-                         T_index
-                           (T_name "StatedPersistedEventCatalog", T_name "K");
-                     };
-               });
           T.type_alias "SystemEventType" ~export:false
             ~about:
               [

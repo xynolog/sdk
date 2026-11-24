@@ -3,8 +3,7 @@
 // Authority:   protocol/specs/src/resources/reader-cases.json
 // Regenerate:  make generate  (codegen/lib/case_data/typescript.ml)
 
-export type Json =
-  null | boolean | number | string | Json[] | { [key: string]: Json };
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 export type Read = {
   why: string;
@@ -14,7 +13,9 @@ export type Read = {
   entityTypes: string[];
 };
 
-export type Reason = 'lacks' | 'malformed';
+export type Reason =
+  | 'lacks'
+  | 'malformed';
 
 export type Refused = {
   why: string;
@@ -24,7 +25,9 @@ export type Refused = {
   reason: Reason;
 };
 
-export type CasesItem = Read | Refused;
+export type CasesItem =
+  | Read
+  | Refused;
 
 export type Table = {
   $comment: string;
@@ -32,325 +35,342 @@ export type Table = {
 };
 
 export const table: Table = {
-  $comment:
-    "What the readers of a resource's description answer, as every SDK's readers must: `getPrimaryRepresentation`, `getPrimaryMediaType` and `getResourceEntityTypes`, each spelled in its SDK's convention (`getPrimaryRepresentation` is primary_representation). THE RULES. A resource's `representations` is one representation or a list of them. Its primary representation is that one, or the first of the list: the order decides, and nothing a representation says of itself (its `rel`) does. An empty list has no primary representation. A resource that states no `representations`, or states one that is neither one representation (an object that states its `mediaType` as text) nor a list of them, is no ResourceDescriptor, and it is REFUSED: no reader reads it as one with no representation. Its primary media type is the primary representation's `mediaType` as it is stated, with its parameters and in its letter case: nothing is taken from it. Its entity types are its `entityTypes` as they are stated, in their order and with nothing dropped, and an empty list where it states none. A CASE is a `resource`, which is a whole ResourceDescriptor by its schema (specs/src/components/schemas/ResourceDescriptor.json), and what each reader answers of it, or a `resource` the schema does not allow and `refused`: true, which states nothing else but the first fault in it, its `member` and its `reason`: `primaryRepresentation`, the representation whole, and `primaryMediaType`, both of them absent where the resource has no representation; and `entityTypes`, which every case states. HOW IT IS RUN. Every SDK holds each `resource` to what its schema requires (the table the consumer-owned generator writes from the component schemas, whose rules it states) before it decodes it as the type it has of one, and names the first fault it finds as it refuses it: a refused case states that fault, its `member`, the way to it (the names of the members it is within, and its own, joined by dots), and its `reason`, `lacks` (the resource does not carry the member, or the member holds null where it may not) or `malformed` (the member is not what its schema allows: of another kind, a value its enumeration does not list, a text not of its pattern, a number below or above its bounds, or a member a closed object does not name). Of a resource with two faults, every SDK names the same one first: the members a resource lacks, in the order its schema requires them, before a member that is malformed. Every case that is not refused has no fault, and every SDK reads it. Go's and TypeScript's readers, which can be handed a resource no reply brought, refuse one whose `representations` is malformed in its primary representation's and primary media type's readers, as the SDK's own failure whose code is `error`, naming `representations`. TypeScript's runner holds every `resource` here to the schema as well, which must not allow a refused one. Every runner reads every member of a case. Add a case here before changing a reader.",
-  cases: [
+  "$comment": "What the readers of a resource's description answer, as every SDK's readers must: `getPrimaryRepresentation`, `getPrimaryMediaType` and `getResourceEntityTypes`, each spelled in its SDK's convention (`getPrimaryRepresentation` is primary_representation). THE RULES. A resource's `representations` is one representation or a list of them. Its primary representation is that one, or the first of the list: the order decides, and nothing a representation says of itself (its `rel`) does. An empty list has no primary representation. A resource that states no `representations`, or states one that is neither one representation (an object that states its `mediaType` as text) nor a list of them, is no ResourceDescriptor, and it is REFUSED: no reader reads it as one with no representation. Its primary media type is the primary representation's `mediaType` as it is stated, with its parameters and in its letter case: nothing is taken from it. Its entity types are its `entityTypes` as they are stated, in their order and with nothing dropped, and an empty list where it states none. A CASE is a `resource`, which is a whole ResourceDescriptor by its schema (specs/src/components/schemas/ResourceDescriptor.json), and what each reader answers of it, or a `resource` the schema does not allow and `refused`: true, which states nothing else but the first fault in it, its `member` and its `reason`: `primaryRepresentation`, the representation whole, and `primaryMediaType`, both of them absent where the resource has no representation; and `entityTypes`, which every case states. HOW IT IS RUN. Every SDK holds each `resource` to what its schema requires (the table the consumer-owned generator writes from the component schemas, whose rules it states) before it decodes it as the type it has of one, and names the first fault it finds as it refuses it: a refused case states that fault, its `member`, the way to it (the names of the members it is within, and its own, joined by dots), and its `reason`, `lacks` (the resource does not carry the member, or the member holds null where it may not) or `malformed` (the member is not what its schema allows: of another kind, a value its enumeration does not list, a text not of its pattern, a number below or above its bounds, or a member a closed object does not name). Of a resource with two faults, every SDK names the same one first: the members a resource lacks, in the order its schema requires them, before a member that is malformed. Every case that is not refused has no fault, and every SDK reads it. Go's and TypeScript's readers, which can be handed a resource no reply brought, refuse one whose `representations` is malformed in its primary representation's and primary media type's readers, as the SDK's own failure whose code is `error`, naming `representations`. TypeScript's runner holds every `resource` here to the schema as well, which must not allow a refused one. Every runner reads every member of a case. Add a case here before changing a reader.",
+  "cases": [
     {
-      why: 'representations given as a list: the first is the primary one, and it is given whole',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-list-of-two',
-        name: 'A list of two',
-        representations: [
+      "why": "representations given as a list: the first is the primary one, and it is given whole",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-list-of-two",
+        "name": "A list of two",
+        "representations": [
           {
-            mediaType: 'text/markdown',
-            storageUri: 'file://notes/a-list-of-two.md',
-            byteSize: 1280,
-            checksum:
-              'sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
-            language: 'en',
-            rel: 'original',
+            "mediaType": "text/markdown",
+            "storageUri": "file://notes/a-list-of-two.md",
+            "byteSize": 1280,
+            "checksum": "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
+            "language": "en",
+            "rel": "original"
           },
           {
-            mediaType: 'application/pdf',
-            storageUri: 'file://notes/a-list-of-two.pdf',
-            rel: 'derived',
-          },
-        ],
+            "mediaType": "application/pdf",
+            "storageUri": "file://notes/a-list-of-two.pdf",
+            "rel": "derived"
+          }
+        ]
       },
-      primaryRepresentation: {
-        mediaType: 'text/markdown',
-        storageUri: 'file://notes/a-list-of-two.md',
-        byteSize: 1280,
-        checksum:
-          'sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
-        language: 'en',
-        rel: 'original',
+      "primaryRepresentation": {
+        "mediaType": "text/markdown",
+        "storageUri": "file://notes/a-list-of-two.md",
+        "byteSize": 1280,
+        "checksum": "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
+        "language": "en",
+        "rel": "original"
       },
-      primaryMediaType: 'text/markdown',
-      entityTypes: [],
+      "primaryMediaType": "text/markdown",
+      "entityTypes": []
     },
     {
-      why: 'the order decides, and not what each says it is: a thumbnail listed before the original is the primary one',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-thumbnail-first',
-        name: 'A thumbnail listed first',
-        representations: [
+      "why": "the order decides, and not what each says it is: a thumbnail listed before the original is the primary one",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-thumbnail-first",
+        "name": "A thumbnail listed first",
+        "representations": [
           {
-            mediaType: 'image/png',
-            width: 160,
-            height: 120,
-            rel: 'thumbnail',
+            "mediaType": "image/png",
+            "width": 160,
+            "height": 120,
+            "rel": "thumbnail"
           },
           {
-            mediaType: 'application/pdf',
-            rel: 'original',
-          },
-        ],
+            "mediaType": "application/pdf",
+            "rel": "original"
+          }
+        ]
       },
-      primaryRepresentation: {
-        mediaType: 'image/png',
-        width: 160,
-        height: 120,
-        rel: 'thumbnail',
+      "primaryRepresentation": {
+        "mediaType": "image/png",
+        "width": 160,
+        "height": 120,
+        "rel": "thumbnail"
       },
-      primaryMediaType: 'image/png',
-      entityTypes: [],
+      "primaryMediaType": "image/png",
+      "entityTypes": []
     },
     {
-      why: 'representations given as one representation, not a list: it is the primary one',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-one-not-a-list',
-        name: 'One representation, not a list',
-        representations: {
-          mediaType: 'image/png',
-          storageUri: 'file://figures/one.png',
-          byteSize: 2048,
+      "why": "representations given as one representation, not a list: it is the primary one",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-one-not-a-list",
+        "name": "One representation, not a list",
+        "representations": {
+          "mediaType": "image/png",
+          "storageUri": "file://figures/one.png",
+          "byteSize": 2048
+        }
+      },
+      "primaryRepresentation": {
+        "mediaType": "image/png",
+        "storageUri": "file://figures/one.png",
+        "byteSize": 2048
+      },
+      "primaryMediaType": "image/png",
+      "entityTypes": []
+    },
+    {
+      "why": "representations given as a list of one, which states its media type and nothing more",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-list-of-one",
+        "name": "A list of one",
+        "representations": [
+          {
+            "mediaType": "text/plain"
+          }
+        ]
+      },
+      "primaryRepresentation": {
+        "mediaType": "text/plain"
+      },
+      "primaryMediaType": "text/plain",
+      "entityTypes": []
+    },
+    {
+      "why": "the media type is given as the representation states it: its parameters and its letter case are not taken from it",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-stated-with-a-charset",
+        "name": "Stated with a charset",
+        "representations": [
+          {
+            "mediaType": "Text/Plain; charset=ISO-8859-1",
+            "storageUri": "file://letters/1998.txt"
+          }
+        ]
+      },
+      "primaryRepresentation": {
+        "mediaType": "Text/Plain; charset=ISO-8859-1",
+        "storageUri": "file://letters/1998.txt"
+      },
+      "primaryMediaType": "Text/Plain; charset=ISO-8859-1",
+      "entityTypes": []
+    },
+    {
+      "why": "representations given as an empty list: no representation is the primary one, there is no primary media type, and the entity types are read all the same",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-empty-list",
+        "name": "An empty list",
+        "representations": [],
+        "entityTypes": [
+          "Concept"
+        ]
+      },
+      "entityTypes": [
+        "Concept"
+      ]
+    },
+    {
+      "why": "entity types are given as they are stated, in their order: they are not sorted",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-three-entity-types",
+        "name": "Three entity types",
+        "representations": [
+          {
+            "mediaType": "text/markdown"
+          }
+        ],
+        "entityTypes": [
+          "Person",
+          "Organization",
+          "Location"
+        ]
+      },
+      "primaryRepresentation": {
+        "mediaType": "text/markdown"
+      },
+      "primaryMediaType": "text/markdown",
+      "entityTypes": [
+        "Person",
+        "Organization",
+        "Location"
+      ]
+    },
+    {
+      "why": "an entity type stated twice is given twice: nothing is dropped from the list",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-entity-type-twice",
+        "name": "An entity type stated twice",
+        "representations": {
+          "mediaType": "text/plain"
         },
+        "entityTypes": [
+          "Person",
+          "Author",
+          "Person"
+        ]
       },
-      primaryRepresentation: {
-        mediaType: 'image/png',
-        storageUri: 'file://figures/one.png',
-        byteSize: 2048,
+      "primaryRepresentation": {
+        "mediaType": "text/plain"
       },
-      primaryMediaType: 'image/png',
-      entityTypes: [],
+      "primaryMediaType": "text/plain",
+      "entityTypes": [
+        "Person",
+        "Author",
+        "Person"
+      ]
     },
     {
-      why: 'representations given as a list of one, which states its media type and nothing more',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-list-of-one',
-        name: 'A list of one',
-        representations: [
+      "why": "entity types stated as an empty list are an empty list",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-entity-types-empty",
+        "name": "Entity types stated as an empty list",
+        "representations": [
           {
-            mediaType: 'text/plain',
-          },
+            "mediaType": "application/pdf"
+          }
         ],
+        "entityTypes": []
       },
-      primaryRepresentation: {
-        mediaType: 'text/plain',
+      "primaryRepresentation": {
+        "mediaType": "application/pdf"
       },
-      primaryMediaType: 'text/plain',
-      entityTypes: [],
+      "primaryMediaType": "application/pdf",
+      "entityTypes": []
     },
     {
-      why: 'the media type is given as the representation states it: its parameters and its letter case are not taken from it',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-stated-with-a-charset',
-        name: 'Stated with a charset',
-        representations: [
+      "why": "a resource that states only what it must: it has no primary representation and no primary media type, and its entity types, which it does not state, are an empty list",
+      "resource": {
+        "@context": "https://schema.org",
+        "@id": "res-only-what-it-must",
+        "name": "Only what it must",
+        "representations": []
+      },
+      "entityTypes": []
+    },
+    {
+      "why": "a resource that states no representations is refused: it is no ResourceDescriptor, and no reader reads it as one with none",
+      "resource": {
+        "@context": "https://schema.org/",
+        "@id": "res-refused",
+        "name": "A resource that is no ResourceDescriptor"
+      },
+      "refused": true,
+      "member": "representations",
+      "reason": "lacks"
+    },
+    {
+      "why": "a resource that states no name is refused: it lacks a member its schema requires, whatever the member",
+      "resource": {
+        "@context": "https://schema.org/",
+        "@id": "res-refused",
+        "representations": [
           {
-            mediaType: 'Text/Plain; charset=ISO-8859-1',
-            storageUri: 'file://letters/1998.txt',
-          },
-        ],
+            "mediaType": "text/plain"
+          }
+        ]
       },
-      primaryRepresentation: {
-        mediaType: 'Text/Plain; charset=ISO-8859-1',
-        storageUri: 'file://letters/1998.txt',
-      },
-      primaryMediaType: 'Text/Plain; charset=ISO-8859-1',
-      entityTypes: [],
+      "refused": true,
+      "member": "name",
+      "reason": "lacks"
     },
     {
-      why: 'representations given as an empty list: no representation is the primary one, there is no primary media type, and the entity types are read all the same',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-empty-list',
-        name: 'An empty list',
-        representations: [],
-        entityTypes: ['Concept'],
+      "why": "a resource whose representations is neither one representation nor a list of them is refused",
+      "resource": {
+        "@context": "https://schema.org/",
+        "@id": "res-refused",
+        "name": "A resource that is no ResourceDescriptor",
+        "representations": "text/plain"
       },
-      entityTypes: ['Concept'],
+      "refused": true,
+      "member": "representations",
+      "reason": "malformed"
     },
     {
-      why: 'entity types are given as they are stated, in their order: they are not sorted',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-three-entity-types',
-        name: 'Three entity types',
-        representations: [
+      "why": "a list holding what is not a representation, which states no media type, is refused",
+      "resource": {
+        "@context": "https://schema.org/",
+        "@id": "res-refused",
+        "name": "A resource that is no ResourceDescriptor",
+        "representations": [
           {
-            mediaType: 'text/markdown',
-          },
-        ],
-        entityTypes: ['Person', 'Organization', 'Location'],
-      },
-      primaryRepresentation: {
-        mediaType: 'text/markdown',
-      },
-      primaryMediaType: 'text/markdown',
-      entityTypes: ['Person', 'Organization', 'Location'],
-    },
-    {
-      why: 'an entity type stated twice is given twice: nothing is dropped from the list',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-entity-type-twice',
-        name: 'An entity type stated twice',
-        representations: {
-          mediaType: 'text/plain',
-        },
-        entityTypes: ['Person', 'Author', 'Person'],
-      },
-      primaryRepresentation: {
-        mediaType: 'text/plain',
-      },
-      primaryMediaType: 'text/plain',
-      entityTypes: ['Person', 'Author', 'Person'],
-    },
-    {
-      why: 'entity types stated as an empty list are an empty list',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-entity-types-empty',
-        name: 'Entity types stated as an empty list',
-        representations: [
-          {
-            mediaType: 'application/pdf',
-          },
-        ],
-        entityTypes: [],
-      },
-      primaryRepresentation: {
-        mediaType: 'application/pdf',
-      },
-      primaryMediaType: 'application/pdf',
-      entityTypes: [],
-    },
-    {
-      why: 'a resource that states only what it must: it has no primary representation and no primary media type, and its entity types, which it does not state, are an empty list',
-      resource: {
-        '@context': 'https://schema.org',
-        '@id': 'res-only-what-it-must',
-        name: 'Only what it must',
-        representations: [],
-      },
-      entityTypes: [],
-    },
-    {
-      why: 'a resource that states no representations is refused: it is no ResourceDescriptor, and no reader reads it as one with none',
-      resource: {
-        '@context': 'https://schema.org/',
-        '@id': 'res-refused',
-        name: 'A resource that is no ResourceDescriptor',
-      },
-      refused: true,
-      member: 'representations',
-      reason: 'lacks',
-    },
-    {
-      why: 'a resource that states no name is refused: it lacks a member its schema requires, whatever the member',
-      resource: {
-        '@context': 'https://schema.org/',
-        '@id': 'res-refused',
-        representations: [
-          {
-            mediaType: 'text/plain',
-          },
-        ],
-      },
-      refused: true,
-      member: 'name',
-      reason: 'lacks',
-    },
-    {
-      why: 'a resource whose representations is neither one representation nor a list of them is refused',
-      resource: {
-        '@context': 'https://schema.org/',
-        '@id': 'res-refused',
-        name: 'A resource that is no ResourceDescriptor',
-        representations: 'text/plain',
-      },
-      refused: true,
-      member: 'representations',
-      reason: 'malformed',
-    },
-    {
-      why: 'a list holding what is not a representation, which states no media type, is refused',
-      resource: {
-        '@context': 'https://schema.org/',
-        '@id': 'res-refused',
-        name: 'A resource that is no ResourceDescriptor',
-        representations: [
-          {
-            mediaType: 'text/plain',
+            "mediaType": "text/plain"
           },
           {
-            storageUri: 'file://notes/no-media-type.txt',
-          },
-        ],
+            "storageUri": "file://notes/no-media-type.txt"
+          }
+        ]
       },
-      refused: true,
-      member: 'representations.mediaType',
-      reason: 'lacks',
+      "refused": true,
+      "member": "representations.mediaType",
+      "reason": "lacks"
     },
     {
-      why: 'a resource with two faults is refused for the first: a member it lacks is named before one that is malformed, whatever their names',
-      resource: {
-        '@context': 1998,
-        '@id': 'res-refused',
-        representations: [
+      "why": "a resource with two faults is refused for the first: a member it lacks is named before one that is malformed, whatever their names",
+      "resource": {
+        "@context": 1998,
+        "@id": "res-refused",
+        "representations": [
           {
-            mediaType: 'text/plain',
-          },
-        ],
+            "mediaType": "text/plain"
+          }
+        ]
       },
-      refused: true,
-      member: 'name',
-      reason: 'lacks',
+      "refused": true,
+      "member": "name",
+      "reason": "lacks"
     },
     {
-      why: 'a resource whose id is not of the form its schema states is refused, naming the id',
-      resource: {
-        '@context': 'https://schema.org/',
-        '@id': 'res refused',
-        name: 'A resource that is no ResourceDescriptor',
-        representations: [
+      "why": "a resource whose id is not of the form its schema states is refused, naming the id",
+      "resource": {
+        "@context": "https://schema.org/",
+        "@id": "res refused",
+        "name": "A resource that is no ResourceDescriptor",
+        "representations": [
           {
-            mediaType: 'text/plain',
-          },
-        ],
+            "mediaType": "text/plain"
+          }
+        ]
       },
-      refused: true,
-      member: '@id',
-      reason: 'malformed',
+      "refused": true,
+      "member": "@id",
+      "reason": "malformed"
     },
     {
-      why: 'a representation whose rel is none its schema lists is refused, naming the rel within the representations',
-      resource: {
-        '@context': 'https://schema.org/',
-        '@id': 'res-refused',
-        name: 'A resource that is no ResourceDescriptor',
-        representations: [
+      "why": "a representation whose rel is none its schema lists is refused, naming the rel within the representations",
+      "resource": {
+        "@context": "https://schema.org/",
+        "@id": "res-refused",
+        "name": "A resource that is no ResourceDescriptor",
+        "representations": [
           {
-            mediaType: 'text/plain',
-            rel: 'sideways',
-          },
-        ],
+            "mediaType": "text/plain",
+            "rel": "sideways"
+          }
+        ]
       },
-      refused: true,
-      member: 'representations.rel',
-      reason: 'malformed',
+      "refused": true,
+      "member": "representations.rel",
+      "reason": "malformed"
     },
     {
-      why: 'a representation whose size is below the least its schema allows is refused',
-      resource: {
-        '@context': 'https://schema.org/',
-        '@id': 'res-refused',
-        name: 'A resource that is no ResourceDescriptor',
-        representations: {
-          mediaType: 'text/plain',
-          byteSize: -1,
-        },
+      "why": "a representation whose size is below the least its schema allows is refused",
+      "resource": {
+        "@context": "https://schema.org/",
+        "@id": "res-refused",
+        "name": "A resource that is no ResourceDescriptor",
+        "representations": {
+          "mediaType": "text/plain",
+          "byteSize": -1
+        }
       },
-      refused: true,
-      member: 'representations.byteSize',
-      reason: 'malformed',
-    },
-  ],
+      "refused": true,
+      "member": "representations.byteSize",
+      "reason": "malformed"
+    }
+  ]
 };

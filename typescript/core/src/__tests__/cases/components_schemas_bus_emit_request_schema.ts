@@ -4,39 +4,37 @@
 // Regenerate:  make generate  (codegen/lib/case_data/typescript.ml)
 
 export const schema = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'https://xynolog.org/protocol/BusEmitRequest.json',
-  type: 'object',
-  description:
-    "One event for the bus. `channel` names a channel of the bus registry (specs/src/bus/registry.json) and `payload` must match the schema the registry's `validate` names for it. `scope` publishes a resource-bound broadcast to that resource's subscribers only; everything else is unscoped. `clientId` and `correlationId` are routing facts beside the payload, never inside it.",
-  properties: {
-    channel: {
-      type: 'string',
-      description: 'A channel of the bus registry.',
-      minLength: 1,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xynolog.org/protocol/BusEmitRequest.json",
+  "type": "object",
+  "description": "One event for the bus. `channel` names a channel of the bus registry (specs/src/bus/registry.json) and `payload` must match the schema the registry's `validate` names for it. `scope` publishes a resource-bound broadcast to that resource's subscribers only; everything else is unscoped. `clientId` and `correlationId` are routing facts beside the payload, never inside it.",
+  "properties": {
+    "channel": {
+      "type": "string",
+      "description": "A channel of the bus registry.",
+      "minLength": 1
     },
-    payload: {
-      type: 'object',
-      description:
-        "The channel's payload, validated against the schema its registry entry names. `_userId` and `_roles` are the gateway's to write: whatever a caller puts there is replaced.",
-      additionalProperties: true,
+    "payload": {
+      "type": "object",
+      "description": "The channel's payload, validated against the schema its registry entry names. `_userId` and `_roles` are the gateway's to write: whatever a caller puts there is replaced.",
+      "additionalProperties": true
     },
-    scope: {
-      $ref: 'https://xynolog.org/protocol/ResourceId.json',
-      description:
-        'The resource scope of a resource-bound broadcast. Publishers of those broadcasts only; a command or request never carries one.',
+    "scope": {
+      "$ref": "https://xynolog.org/protocol/ResourceId.json",
+      "description": "The resource scope of a resource-bound broadcast. Publishers of those broadcasts only; a command or request never carries one."
     },
-    clientId: {
-      type: 'string',
-      description:
-        "The address this request's reply is delivered to: the emit claims `correlationId` for this clientId and the verified principal. Required when `channel` is a registry operation's request and a correlationId is present; ignored otherwise. An empty string counts as absent.",
+    "clientId": {
+      "type": "string",
+      "description": "The address this request's reply is delivered to: the emit claims `correlationId` for this clientId and the verified principal. Required when `channel` is a registry operation's request and a correlationId is present; ignored otherwise. An empty string counts as absent."
     },
-    correlationId: {
-      type: 'string',
-      description:
-        "Pairs a reply with its request. On a registry operation's request it claims the id: a second claim of a live id is refused with 409. Replies carry it back on the frame, never in the payload.",
-      minLength: 1,
-    },
+    "correlationId": {
+      "type": "string",
+      "description": "Pairs a reply with its request. On a registry operation's request it claims the id: a second claim of a live id is refused with 409. Replies carry it back on the frame, never in the payload.",
+      "minLength": 1
+    }
   },
-  required: ['channel', 'payload'],
+  "required": [
+    "channel",
+    "payload"
+  ]
 } as const;

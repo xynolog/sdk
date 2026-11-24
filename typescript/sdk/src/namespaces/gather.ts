@@ -7,7 +7,7 @@ import type {
   EventBus,
   GatheredContext,
 } from '@xynolog/core';
-import type { ITransport } from '@xynolog/core';
+import type { GatherResourceOptions, ITransport } from '@xynolog/core';
 import { CacheObservable, StreamObservable } from '../awaitable';
 import { Bus } from '@xynolog/core';
 import { createCache, type Cache } from '../cache';
@@ -159,17 +159,7 @@ export class GatherNamespace implements IGatherNamespace {
    */
   resource(
     resourceId: ResourceId,
-    options?: {
-      /** How many links out from the resource the graph reaches, 1 to 3, nearest
-       *  first: what a resource links to and what cites it are both followed. */
-      depth?: number;
-      maxResources?: number;
-      includeContent?: boolean;
-      includeSummary?: boolean;
-      /** Entity types to exclude from the semantic recall built into the context
-       *  (e.g. ['Question'] so prior questions never ground answer generation). */
-      excludeEntityTypes?: string[];
-    },
+    options?: GatherResourceOptions,
   ): Promise<GatheredContext> {
     return this.wire.request('gather:resource-requested', {
       resourceId,

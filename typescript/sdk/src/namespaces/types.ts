@@ -49,6 +49,12 @@ import type {
   ClaimOptions,
   components,
   CreateFromTokenOptions,
+  GatherResourceOptions,
+  JobPollOptions,
+  ResourceRepresentation,
+  ResourceRepresentationStream,
+  MatchSearchOptions,
+  PutBinaryRequest,
   EventMap,
   FrameRefusal,
   HealthCheckResponse,
@@ -79,6 +85,12 @@ import type { AnchoredTextAnswer } from '@xynolog/core';
 import type { ResourceDescriptor } from '@xynolog/core';
 type GetResourceResponse = components['schemas']['GetResourceResponse'];
 type MatchSearchResult = components['schemas']['MatchSearchResult'];
+type ListResourcesResponse = components['schemas']['ListResourcesResponse'];
+type BrowseResourcesRequest = components['schemas']['BrowseResourcesRequest'];
+type MatchResourcesResponse = components['schemas']['MatchResourcesResponse'];
+type CreateAnnotationRequest =
+  components['schemas']['CreateAnnotationRequest'];
+type MarkCreateOkResponse = components['schemas']['MarkCreateOkResponse'];
 export type GatherAnnotationComplete =
   components['schemas']['GatherAnnotationComplete'];
 type JobStatusResponse = components['schemas']['JobStatusResponse'];
@@ -88,34 +100,6 @@ type ProtectedResourceMetadata =
   components['schemas']['ProtectedResourceMetadata'];
 
 // ── Domain-specific input types ─────────────────────────────────────────────
-
-/** Input for creating an annotation via mark.annotation() */
-export type CreateAnnotationInput =
-  components['schemas']['CreateAnnotationRequest'];
-
-/** Input for creating a resource via yield.resource() */
-export interface CreateResourceInput {
-  name: string;
-  file: File | Buffer;
-  format: string;
-  entityTypes?: string[];
-  language?: string;
-  sourceAnnotationId?: string;
-  sourceResourceId?: string;
-  storageUri: string;
-  /** Prompt that drove AI generation (for AI-generated resources). */
-  generationPrompt?: string;
-  /** Agent(s) that generated the content (for AI-generated resources). */
-  generator?: components['schemas']['Agent'] | components['schemas']['Agent'][];
-  /**
-   * The job this resource fulfils. A worker sets it from the job it holds;
-   * self-initiated creation leaves it absent. Who requested the resource is
-   * derived by the knowledge base from the cited job's events — this input
-   * never names a requester.
-   */
-  jobId?: string;
-  isDraft?: boolean;
-}
 
 /** Referenced-by entry from gather.referencedBy() */
 export type ReferencedByEntry =
@@ -128,48 +112,7 @@ export type AnnotationHistoryResponse =
 /** The signed-in user, as `GET /api/users/me` returns it. */
 export type User = components['schemas']['UserResponse'];
 
-// ── Progress types for long-running Observable operations ───────────────────
-//
-// `gather.annotation()` emits exactly one value: the assembled context. No
-// gather progress channel exists, so it has no progress type.
-
-/**
- * What the match.search() Observable emits: the final MatchSearchResult.
- * There are no intermediate progress events.
- */
-export type MatchSearchProgress = MatchSearchResult;
-
 // ── Namespace interfaces ────────────────────────────────────────────────────
-
-/**
- * What `browse.resources()` emits: the list-reply envelope, the page of
- * descriptors with the size of the whole listing.
- */
-export type ResourceList = Omit<
-  components['schemas']['ListResourcesResponse'],
-  'resources'
-> & {
-  resources: ResourceDescriptor[];
-};
-
-/** The filters a list of resources takes: the list request, whole. */
-export type ResourceListFilters =
-  components['schemas']['BrowseResourcesRequest'];
-
-/**
- * What `match.resources()` emits: the search-reply envelope, not just the
- * page of descriptors. `matchKind` labels how the answer was produced —
- * `'lexical'` (title/metadata matching) or `'semantic'` (the empty-lexical
- * vector fallback) — and it arrives WITH the resources it describes as one
- * value, so a consumer can never pair the label with a different query's
- * list.
- */
-export type MatchedResources = Omit<
-  components['schemas']['MatchResourcesResponse'],
-  'resources'
-> & {
-  resources: ResourceDescriptor[];
-};
 
 /**
  * Browse — reads from materialized views
@@ -184,7 +127,9 @@ export interface BrowseNamespace {
   // Live queries (Observable — refreshed by bus events, cached in BehaviorSubject;
   // `annotations` reads over HTTP, the rest ask the bus)
   resource(resourceId: ResourceId): CacheObservable<ResourceDescriptor>;
-  resources(filters?: ResourceListFilters): CacheObservable<ResourceList>;
+  resources(
+    filters?: BrowseResourcesRequest,
+  ): CacheObservable<ListResourcesResponse>;
   annotations(resourceId: ResourceId): CacheObservable<Annotation[]>;
   annotation(
     resourceId: ResourceId,
@@ -211,10 +156,10 @@ export interface BrowseNamespace {
   resourceAnchoredText(resourceId: ResourceId): Promise<AnchoredTextAnswer>;
   resourceRepresentation(
     resourceId: ResourceId,
-  ): Promise<{ data: ArrayBuffer; contentType: string }>;
+  ): Promise<ResourceRepresentation>;
   resourceRepresentationStream(
     resourceId: ResourceId,
-  ): Promise<{ stream: ReadableStream<Uint8Array>; contentType: string }>;
+  ): Promise<ResourceRepresentationStream>;
   resourceEvents(resourceId: ResourceId): Promise<AttributedEvent[]>;
   annotationHistory(
     resourceId: ResourceId,
@@ -290,9 +235,7 @@ export interface FrameNamespace {
 export interface MarkNamespace {
   // Annotation CRUD. `input.target.source` carries the resource id; the
   // namespace derives it for the bus payload, so callers don't pass it twice.
-  annotation(
-    input: CreateAnnotationInput,
-  ): Promise<{ annotationId: AnnotationId }>;
+  annotation(input: CreateAnnotationRequest): Promise<MarkCreateOkResponse>;
   delete(resourceId: ResourceId, annotationId: AnnotationId): Promise<void>;
 
   // Resource metadata
@@ -388,15 +331,7 @@ export interface GatherNamespace {
 
   resource(
     resourceId: ResourceId,
-    options?: {
-      depth?: number;
-      maxResources?: number;
-      includeContent?: boolean;
-      includeSummary?: boolean;
-      /** Entity types to exclude from the semantic recall built into the context
-       *  (e.g. ['Question'] so prior questions never ground answer generation). */
-      excludeEntityTypes?: string[];
-    },
+    options?: GatherResourceOptions,
   ): Promise<GatheredContext>;
 
   /** Live query: the annotations elsewhere that refer to a resource. */
@@ -417,8 +352,8 @@ export interface MatchNamespace {
     resourceId: ResourceId,
     referenceId: AnnotationId,
     context: GatheredContext,
-    options?: { limit?: number; useSemanticScoring?: boolean },
-  ): StreamObservable<MatchSearchProgress>;
+    options?: MatchSearchOptions,
+  ): StreamObservable<MatchSearchResult>;
 
   /** Fire-and-forget variant: match-state-unit orchestrates the call and its result Observable. */
   requestSearch(
@@ -433,7 +368,7 @@ export interface MatchNamespace {
   resources(
     search: string,
     filters?: ResourceSearchFilters,
-  ): CacheObservable<MatchedResources>;
+  ): CacheObservable<MatchResourcesResponse>;
 }
 
 /**
@@ -449,7 +384,7 @@ export interface YieldNamespace {
   // File upload. Returns an `UploadObservable` — subscribers see the full
   // `UploadProgress` lifecycle (started → finished); awaiting resolves to
   // `{ resourceId }` directly.
-  resource(data: CreateResourceInput): UploadObservable;
+  resource(data: PutBinaryRequest): UploadObservable;
 
   // Grounded generation, delegated as a `yield` job. The job names no
   // resource: the focus of `params.context` does — annotation focus binds the
@@ -514,18 +449,16 @@ export interface JobNamespace {
 
   status(jobId: JobId): Promise<JobStatusResponse>;
   /**
-   * Ask for the job's status, at once and then every `interval` ms
-   * (`JOB_POLL_MS` when unnamed), until it is an end. Fails `bus.timeout` at
-   * `timeout` ms from the first ask (`JOB_POLL_TIMEOUT_MS` when unnamed), the
-   * asks and the waits between them counted.
+   * Ask for the job's status, at once and then every `options.everyMs` ms
+   * (`JOB_POLL_MS` when unnamed), until it is an end, handing each answer to
+   * `onStatus`. Fails `bus.timeout` at `options.withinMs` ms from the first
+   * ask (`JOB_POLL_TIMEOUT_MS` when unnamed), the asks and the waits between
+   * them counted.
    */
   pollUntilComplete(
     jobId: JobId,
-    options?: {
-      interval?: number;
-      timeout?: number;
-      onProgress?: (status: JobStatusResponse) => void;
-    },
+    options?: JobPollOptions,
+    onStatus?: (status: JobStatusResponse) => void,
   ): Promise<JobStatusResponse>;
   /** Cancel ONE job by id; resolves with whether the queue acted on it. */
   cancel(jobId: JobId): Promise<boolean>;

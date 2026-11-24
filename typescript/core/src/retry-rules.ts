@@ -32,6 +32,8 @@
  * could simply be left out of.
  */
 
+import { RETRY_RULES as SETS } from './retry-sets';
+
 /**
  * What is known about a failure at the moment someone asks.
  *
@@ -63,15 +65,8 @@ export interface RetryRule {
   retryable(facts: RetryFacts): boolean;
 }
 
-/** Repeating these cannot cause a second effect upstream (RFC 9110 §9.2.2). */
-const IDEMPOTENT_METHODS: ReadonlySet<string> = new Set([
-  'GET',
-  'HEAD',
-  'PUT',
-  'DELETE',
-  'OPTIONS',
-  'TRACE',
-]);
+const listed = (statuses: readonly number[], status: number): boolean =>
+  statuses.includes(status);
 
 const boot: RetryRule = {
   name: 'boot',
@@ -82,7 +77,8 @@ const boot: RetryRule = {
     'an unclassified server fault is not, and replaying it inside a boot pass re-runs ' +
     'whatever broke it. Auth and validation failures stay out for the same reason a 401 ' +
     'does — the gateway is up and rejected us.',
-  retryable: ({ status }) => status === 429 || status === 503 || status === 504,
+  retryable: ({ status }) =>
+    status !== undefined && listed(SETS.boot.statuses, status),
 };
 
 const job: RetryRule = {
@@ -102,7 +98,8 @@ const job: RetryRule = {
     'If either changes — the client stops retrying, or resume stops working — this rule ' +
     'is the line to revisit.',
   retryable: ({ status }) =>
-    status === 408 || status === 429 || (status !== undefined && status >= 500),
+    status !== undefined &&
+    (listed(SETS.job.statuses, status) || status >= SETS.job.statusFrom),
 };
 
 const transport: RetryRule = {
@@ -119,17 +116,9 @@ const transport: RetryRule = {
     if (status === undefined) return false;
     const repeatable =
       keyed === true ||
-      (method !== undefined && IDEMPOTENT_METHODS.has(method.toUpperCase()));
-    if (!repeatable) return false;
-    return (
-      status === 408 ||
-      status === 413 ||
-      status === 429 ||
-      status === 500 ||
-      status === 502 ||
-      status === 503 ||
-      status === 504
-    );
+      (method !== undefined &&
+        SETS.transport.idempotentMethods.includes(method.toUpperCase()));
+    return repeatable && listed(SETS.transport.statuses, status);
   },
 };
 
@@ -156,8 +145,10 @@ const refresh: RetryRule = {
     // No status means `fetch` threw before there was a response — the network,
     // not the issuer. That is the case this rule exists to keep alive, so it is
     // the one place absence reads as permission rather than as refusal.
-    if (status === undefined) return true;
-    return status === 408 || status === 429 || status >= 500;
+    if (status === undefined) return SETS.refresh.noResponse;
+    return (
+      listed(SETS.refresh.statuses, status) || status >= SETS.refresh.statusFrom
+    );
   },
 };
 

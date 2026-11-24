@@ -14,7 +14,6 @@ import { delegated, type DelegatedVerb } from './delegation';
 import type { JobFollowTiming } from './job-status-poll';
 import type {
   MarkNamespace as IMarkNamespace,
-  CreateAnnotationInput,
 } from './types';
 
 /** A `mark` job's completion, as its follower hears or learns it. */
@@ -49,17 +48,16 @@ export class MarkNamespace implements IMarkNamespace {
   }
 
   async annotation(
-    input: CreateAnnotationInput,
-  ): Promise<{ annotationId: AnnotationId }> {
+    input: components['schemas']['CreateAnnotationRequest'],
+  ): Promise<components['schemas']['MarkCreateOkResponse']> {
     // The wire schema (`MarkCreateRequest`) carries `resourceId` separately
     // for routing — we derive it from `input.target.source`, which is the
     // same value semantically.
     const resourceId = input.target.source;
-    const result = await this.wire.request('mark:create-request', {
+    return this.wire.request('mark:create-request', {
       resourceId,
       request: input,
     });
-    return { annotationId: result.annotationId };
   }
 
   async delete(

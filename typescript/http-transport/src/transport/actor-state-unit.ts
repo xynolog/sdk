@@ -63,6 +63,10 @@ import type { TokenRefresher } from './http-transport';
 
 export type { ConnectionState };
 
+/** The SSE event name every frame of the stream is sent under. */
+const BUS_EVENT: components['schemas']['BusEventMessage']['event'] =
+  'bus-event';
+
 export interface ActorStateUnitOptions {
   baseUrl: string;
   token: string | (() => string);
@@ -794,7 +798,7 @@ export function createActorStateUnit(
             const isDuplicate =
               currentId !== undefined && seenEventIds.has(currentId);
             const parsed =
-              currentEvent === 'bus-event' && currentData && !isDuplicate
+              currentEvent === BUS_EVENT && currentData && !isDuplicate
                 ? carried(currentData)
                 : undefined;
             if (typeof parsed === 'string') {

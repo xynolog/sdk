@@ -68,7 +68,12 @@ import {
 import type { HttpTransport } from './http-transport';
 import { APIError, refusalBody } from './api-error';
 import { declaredBody } from './declared-body';
-import type { IContentTransport, PutBinaryRequest } from '@xynolog/core';
+import type {
+  IContentTransport,
+  PutBinaryRequest,
+  ResourceRepresentation,
+  ResourceRepresentationStream,
+} from '@xynolog/core';
 
 type GetResourceResponse = components['schemas']['GetResourceResponse'];
 type GetAnnotationsResponse = components['schemas']['GetAnnotationsResponse'];
@@ -205,7 +210,7 @@ export class HttpContentTransport implements IContentTransport {
   async getBinary(
     resourceId: ResourceId,
     options?: { auth?: AccessToken },
-  ): Promise<{ data: ArrayBuffer; contentType: string }> {
+  ): Promise<ResourceRepresentation> {
     busLog('GET', 'content', { resourceId });
     return withSpan(
       'content.get',
@@ -234,7 +239,7 @@ export class HttpContentTransport implements IContentTransport {
   async getBinaryStream(
     resourceId: ResourceId,
     options?: { auth?: AccessToken },
-  ): Promise<{ stream: ReadableStream<Uint8Array>; contentType: string }> {
+  ): Promise<ResourceRepresentationStream> {
     busLog('GET', 'content', { resourceId, stream: true });
     return withSpan(
       'content.get',
@@ -605,7 +610,7 @@ function uploadViaXhr(
     } catch (error) {
       // What a browser will not make a request of, it refuses in words that
       // say it: a token that is no header value among them.
-      const unmade = APIError.unanswered('POST /resources', error);
+      const unmade = APIError.unanswered(`${UPLOAD.method} ${UPLOAD.path}`, error);
       onApiError(unmade, false);
       reject(unmade);
       return;

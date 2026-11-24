@@ -36,171 +36,72 @@ export interface BusOperationSpec {
 
 export const BUS_OPERATIONS = {
   // ── BIND ────────────────────────────────────────────────────────
-  'bind:update-body': {
-    result: 'bind:body-updated',
-    failure: 'bind:body-update-failed',
-  },
+  'bind:update-body': { result: 'bind:body-updated', failure: 'bind:body-update-failed' },
 
   // ── BROWSE (reads) ──────────────────────────────────────────────
-  'browse:resource-requested': {
-    result: 'browse:resource-result',
-    failure: 'browse:resource-failed',
-  },
-  'browse:resources-requested': {
-    result: 'browse:resources-result',
-    failure: 'browse:resources-failed',
-  },
-  'browse:annotation-requested': {
-    result: 'browse:annotation-result',
-    failure: 'browse:annotation-failed',
-  },
-  'browse:annotation-history-requested': {
-    result: 'browse:annotation-history-result',
-    failure: 'browse:annotation-history-failed',
-  },
-  'browse:events-requested': {
-    result: 'browse:events-result',
-    failure: 'browse:events-failed',
-  },
-  'browse:entity-types-requested': {
-    result: 'browse:entity-types-result',
-    failure: 'browse:entity-types-failed',
-  },
-  'browse:tag-schemas-requested': {
-    result: 'browse:tag-schemas-result',
-    failure: 'browse:tag-schemas-failed',
-  },
-  'browse:engines-requested': {
-    result: 'browse:engines-result',
-    failure: 'browse:engines-failed',
-  },
-  'browse:profiles-requested': {
-    result: 'browse:profiles-result',
-    failure: 'browse:profiles-failed',
-  },
-  'browse:kb-requested': {
-    result: 'browse:kb-result',
-    failure: 'browse:kb-failed',
-  },
-  'browse:directory-requested': {
-    result: 'browse:directory-result',
-    failure: 'browse:directory-failed',
-  },
+  'browse:resource-requested': { result: 'browse:resource-result', failure: 'browse:resource-failed' },
+  'browse:resources-requested': { result: 'browse:resources-result', failure: 'browse:resources-failed' },
+  'browse:annotation-requested': { result: 'browse:annotation-result', failure: 'browse:annotation-failed' },
+  'browse:annotation-history-requested': { result: 'browse:annotation-history-result', failure: 'browse:annotation-history-failed' },
+  'browse:events-requested': { result: 'browse:events-result', failure: 'browse:events-failed' },
+  'browse:entity-types-requested': { result: 'browse:entity-types-result', failure: 'browse:entity-types-failed' },
+  'browse:tag-schemas-requested': { result: 'browse:tag-schemas-result', failure: 'browse:tag-schemas-failed' },
+  'browse:engines-requested': { result: 'browse:engines-result', failure: 'browse:engines-failed' },
+  'browse:profiles-requested': { result: 'browse:profiles-result', failure: 'browse:profiles-failed' },
+  'browse:kb-requested': { result: 'browse:kb-result', failure: 'browse:kb-failed' },
+  'browse:directory-requested': { result: 'browse:directory-result', failure: 'browse:directory-failed' },
 
   // ── FRAME (KB schema writes) ────────────────────────────────────
-  'frame:add-entity-type': {
-    result: 'frame:entity-type-add-ok',
-    failure: 'frame:entity-type-add-failed',
-  },
-  'frame:add-tag-schema': {
-    result: 'frame:tag-schema-add-ok',
-    failure: 'frame:tag-schema-add-failed',
-  },
+  'frame:add-entity-type': { result: 'frame:entity-type-add-ok', failure: 'frame:entity-type-add-failed' },
+  'frame:add-tag-schema': { result: 'frame:tag-schema-add-ok', failure: 'frame:tag-schema-add-failed' },
 
   // ── GATHER ──────────────────────────────────────────────────────
   'gather:requested': { result: 'gather:complete', failure: 'gather:failed' },
-  'gather:resource-requested': {
-    result: 'gather:resource-complete',
-    failure: 'gather:resource-failed',
-  },
+  'gather:resource-requested': { result: 'gather:resource-complete', failure: 'gather:resource-failed' },
   // dormant — handler registered, no client caller (annotation summary)
-  'gather:summary-requested': {
-    result: 'gather:summary-result',
-    failure: 'gather:summary-failed',
-  },
-  'gather:referenced-by-requested': {
-    result: 'gather:referenced-by-result',
-    failure: 'gather:referenced-by-failed',
-  },
-  'gather:limits-requested': {
-    result: 'gather:limits-result',
-    failure: 'gather:limits-failed',
-  },
+  'gather:summary-requested': { result: 'gather:summary-result', failure: 'gather:summary-failed' },
+  'gather:referenced-by-requested': { result: 'gather:referenced-by-result', failure: 'gather:referenced-by-failed' },
+  'gather:limits-requested': { result: 'gather:limits-result', failure: 'gather:limits-failed' },
 
   // ── JOB ─────────────────────────────────────────────────────────
   'job:create': { result: 'job:created', failure: 'job:create-failed' },
-  'job:status-requested': {
-    result: 'job:status-result',
-    failure: 'job:status-failed',
-  },
-  'job:limits-requested': {
-    result: 'job:limits-result',
-    failure: 'job:limits-failed',
-  },
-  'job:cancel-requested': {
-    result: 'job:cancel-ok',
-    failure: 'job:cancel-failed',
-  },
+  'job:status-requested': { result: 'job:status-result', failure: 'job:status-failed' },
+  'job:limits-requested': { result: 'job:limits-result', failure: 'job:limits-failed' },
+  'job:cancel-requested': { result: 'job:cancel-ok', failure: 'job:cancel-failed' },
   // worker-side: the worker claims a queued job (not an SDK call)
   'job:claim': { result: 'job:claimed', failure: 'job:claim-failed' },
 
   // ── MARK ────────────────────────────────────────────────────────
-  'mark:create-request': {
-    result: 'mark:create-ok',
-    failure: 'mark:create-failed',
-  },
+  'mark:create-request': { result: 'mark:create-ok', failure: 'mark:create-failed' },
   'mark:commit': { result: 'mark:commit-ok', failure: 'mark:commit-failed' },
   'mark:delete': { result: 'mark:delete-ok', failure: 'mark:delete-failed' },
   'mark:archive': { result: 'mark:archive-ok', failure: 'mark:archive-failed' },
-  'mark:unarchive': {
-    result: 'mark:unarchive-ok',
-    failure: 'mark:unarchive-failed',
-  },
-  'mark:update-entity-types': {
-    result: 'mark:update-entity-types-ok',
-    failure: 'mark:update-entity-types-failed',
-  },
+  'mark:unarchive': { result: 'mark:unarchive-ok', failure: 'mark:unarchive-failed' },
+  'mark:update-entity-types': { result: 'mark:update-entity-types-ok', failure: 'mark:update-entity-types-failed' },
 
   // ── MATCH ───────────────────────────────────────────────────────
   // take-1 dressed as an Observable in the SDK
-  'match:search-requested': {
-    result: 'match:search-results',
-    failure: 'match:search-failed',
-  },
-  'match:resources-requested': {
-    result: 'match:resources-result',
-    failure: 'match:resources-failed',
-  },
-  'match:limits-requested': {
-    result: 'match:limits-result',
-    failure: 'match:limits-failed',
-  },
+  'match:search-requested': { result: 'match:search-results', failure: 'match:search-failed' },
+  'match:resources-requested': { result: 'match:resources-result', failure: 'match:resources-failed' },
+  'match:limits-requested': { result: 'match:limits-result', failure: 'match:limits-failed' },
 
   // ── WEAVE ───────────────────────────────────────────────────────
   // Graph-projection rebuild, served by the Weaver
-  'weave:rebuild': {
-    result: 'weave:rebuild-ok',
-    failure: 'weave:rebuild-failed',
-  },
+  'weave:rebuild': { result: 'weave:rebuild-ok', failure: 'weave:rebuild-failed' },
 
   // ── SMELT ───────────────────────────────────────────────────────
   // Anchored-text rebuild, served by the Smelter
-  'smelt:rebuild-anchors': {
-    result: 'smelt:rebuild-anchors-ok',
-    failure: 'smelt:rebuild-anchors-failed',
-  },
+  'smelt:rebuild-anchors': { result: 'smelt:rebuild-anchors-ok', failure: 'smelt:rebuild-anchors-failed' },
 
   // ── YIELD ───────────────────────────────────────────────────────
   // clients refresh on the persisted `yield:created`, never on the -ok reply
   'yield:create': { result: 'yield:create-ok', failure: 'yield:create-failed' },
-  'yield:clone-persist': {
-    result: 'yield:clone-persist-ok',
-    failure: 'yield:clone-persist-failed',
-  },
+  'yield:clone-persist': { result: 'yield:clone-persist-ok', failure: 'yield:clone-persist-failed' },
   // dormant — handler in stower exists, no request emitter
   'yield:update': { result: 'yield:update-ok', failure: 'yield:update-failed' },
-  'yield:clone-create': {
-    result: 'yield:clone-created',
-    failure: 'yield:clone-create-failed',
-  },
-  'yield:clone-resource-requested': {
-    result: 'yield:clone-resource-result',
-    failure: 'yield:clone-resource-failed',
-  },
-  'yield:clone-token-requested': {
-    result: 'yield:clone-token-generated',
-    failure: 'yield:clone-token-failed',
-  },
+  'yield:clone-create': { result: 'yield:clone-created', failure: 'yield:clone-create-failed' },
+  'yield:clone-resource-requested': { result: 'yield:clone-resource-result', failure: 'yield:clone-resource-failed' },
+  'yield:clone-token-requested': { result: 'yield:clone-token-generated', failure: 'yield:clone-token-failed' },
 } as const satisfies Partial<Record<EmittableChannel, BusOperationSpec>>;
 
 /** The request-channel key of a registered operation — what `Bus.request` takes. */
@@ -234,8 +135,12 @@ export const REPLY_NAMES = {
   'browse:directory-requested': [],
   'frame:add-entity-type': [],
   'frame:add-tag-schema': [],
-  'gather:requested': ['annotationId'],
-  'gather:resource-requested': ['resourceId'],
+  'gather:requested': [
+    'annotationId',
+  ],
+  'gather:resource-requested': [
+    'resourceId',
+  ],
   'gather:summary-requested': [],
   'gather:referenced-by-requested': [],
   'gather:limits-requested': [],
@@ -250,7 +155,9 @@ export const REPLY_NAMES = {
   'mark:archive': [],
   'mark:unarchive': [],
   'mark:update-entity-types': [],
-  'match:search-requested': ['referenceId'],
+  'match:search-requested': [
+    'referenceId',
+  ],
   'match:resources-requested': [],
   'match:limits-requested': [],
   'weave:rebuild': [],
@@ -262,6 +169,5 @@ export const REPLY_NAMES = {
   'yield:clone-resource-requested': [],
   'yield:clone-token-requested': [],
 } as const satisfies {
-  readonly [Op in BusOperationKey]: readonly (keyof EventMap[Op] &
-    keyof EventMap[(typeof BUS_OPERATIONS)[Op]['result'] & EventName])[];
+  readonly [Op in BusOperationKey]: readonly (keyof EventMap[Op] & keyof EventMap[(typeof BUS_OPERATIONS)[Op]['result'] & EventName])[];
 };

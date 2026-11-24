@@ -168,14 +168,47 @@ let discovery_absent (spec : Spec.t) =
    schema only such records reach. *)
 let record name = T.T_index (T_name "records", T_str name)
 
+(* The tables the SDK carries as values (Table_modules.tables): the services'
+   (Roots.service_tables) and the retry rules. Each table's schema is a
+   record, named as its file is ([Places.schema_of]). *)
+let table_schemas (bundle : Definitions.bundle) (spec : Spec.t) =
+  let declared name =
+    match bundle.definitions.schema name with
+    | _ -> true
+    | exception D.Refused _ -> false
+  in
+  List.map
+    (fun table ->
+      let file = Places.schema_of table in
+      let name = D.stem file in
+      if declared name then
+        D.refuse "%s, the schema of %s, is named as a schema already is" file
+          table;
+      match List.assoc_opt file spec.schemas with
+      | Some s -> (name, bundle.view (Normalize.shape_only s))
+      | None -> D.refuse "%s has no schema %s" table file)
+    (Table_modules.tables spec)
+
 let text (spec : Spec.t) =
-  let definitions = (Definitions.bundle spec).definitions in
+  let bundle = Definitions.bundle spec in
+  let tables = table_schemas bundle spec in
+  let definitions =
+    {
+      bundle.definitions with
+      schema =
+        (fun name ->
+          match List.assoc_opt name tables with
+          | Some s -> s
+          | None -> bundle.definitions.schema name);
+    }
+  in
   let records =
     List.filter
       (fun name -> not (List.mem name definitions.names))
       (reached definitions
          (List.map (fun (_, name, _) -> name) (Definitions.records spec)
-         @ Definitions.generated_client_types spec))
+         @ Definitions.generated_client_types spec
+         @ List.map fst tables))
   in
   let named name =
     if List.mem name records then record name else T.schema name
@@ -202,6 +235,8 @@ let text (spec : Spec.t) =
               "the records Protocol states in its tables \
                (codegen/lib/table_records.ml)";
               "the client types it names, of protocol/specs/src/client/types";
+              "the schemas of the tables it carries as values \
+               (codegen/lib/typescript_types/table_modules.ml)";
               "protocol/specs/src/client/discovery-absent.json";
               "protocol/specs/src/identifiers/kinds.json, for the brands";
             ]
@@ -226,9 +261,10 @@ let text (spec : Spec.t) =
                   Doc_prose
                     [
                       Text.Words
-                        "The records Protocol states in its tables and the \
-                         client types, which no wire message carries, and what \
-                         only they reach.";
+                        "The records Protocol states in its tables, the \
+                         client types and the tables the SDK carries as values, \
+                         which no wire message carries, and what only they \
+                         reach.";
                     ];
                 ];
               export = true;
@@ -238,8 +274,149 @@ let text (spec : Spec.t) =
         ];
     }
 
-let files ~root:_ (spec : Spec.t) =
-  match text spec with
-  | text -> Ok [ { Output.path; text } ]
+(* The launcher's control API as the TypeScript SDK reads it
+   (typescript/core/src/control-methods.ts, from
+   protocol/specs/src/control/methods.json): its version, each method with the
+   names of its params' and its result's schemas, whether it runs alone and
+   the notifications it sends, and each notification with who sends it and
+   its params' schema. Each schema a component of types.ts. *)
+module C = Tables.Control_methods
+
+let control_path = "typescript/core/src/control-methods.ts"
+
+let control_text (spec : Spec.t) =
+  let definitions = (Definitions.bundle spec).definitions in
+  let t = spec.tables.control_methods in
+  let component id =
+    let name = Filename.remove_extension (Filename.basename id) in
+    if not (List.mem name definitions.names) then
+      D.refuse "control/methods.json names %s, which is no component schema"
+        id;
+    name
+  in
+  let named id = T.Str (component id) in
+  let api_version =
+    match definitions.schema (component t.api_version) with
+    | D.Node { enum = Some [ Schema.String_literal v ]; _ } -> v
+    | _ -> D.refuse "control/methods.json: its apiVersion states no const"
+  in
+  let inline entries = T.Object { layout = Inline; entries } in
+  let from = function C.Launcher -> "launcher" | C.Client -> "client" in
+  let schema_name = T.T_keyof (T.T_index (T_name "components", T_str "schemas")) in
+  let indexed table key member =
+    T.T_index
+      ( T_index (T_name "components", T_str "schemas"),
+        T_index (T_index (T_paren (T_typeof table), T_name key), T_str member) )
+  in
+  let over table key =
+    [ { T.param = key; bound = Some (T.T_keyof (T_typeof table)) } ]
+  in
+  T.text
+    {
+      banner =
+        Banner.typescript_lines
+          ~authority:[ "protocol/specs/src/control/methods.json" ]
+          __FILE__;
+      body =
+        [
+          T.import ~type_only:true [ "components" ] "./types";
+          T.const "CONTROL_API_VERSION" ~as_const:true
+            ~about:[ Doc "The version of the control API these tables state." ]
+            (T.Str api_version);
+          T.const "CONTROL_NOTIFICATIONS" ~as_const:true
+            ~about:
+              [
+                Doc
+                  "Each notification of the control API: who sends it, and \
+                   the schema of its params.";
+              ]
+            ~satisfies:
+              (T_index_signature
+                 (T_object
+                    ( Inline,
+                      [
+                        T.member ~readonly:true (Ident "from")
+                          (T_union [ T_str "launcher"; T_str "client" ]);
+                        T.member ~readonly:true (Ident "params") schema_name;
+                      ] )))
+            (T.rows
+               (List.map
+                  (fun (n : C.notifications_item) ->
+                    T.entry
+                      ~about:[ Doc_prose [ Text.Words n.docs ] ]
+                      (Quoted n.name)
+                      (inline
+                         [
+                           T.entry (Ident "from") (T.Str (from n.from));
+                           T.entry (Ident "params") (named n.params);
+                         ]))
+                  t.notifications));
+          T.type_alias "ControlNotification"
+            ~about:[ Doc "A notification of the control API, by its name." ]
+            (T_keyof (T_typeof "CONTROL_NOTIFICATIONS"));
+          T.const "CONTROL_METHODS" ~as_const:true
+            ~about:
+              [
+                Doc
+                  "Each method of the control API: the schemas of its params \
+                   and its result, whether it runs alone, and the \
+                   notifications it sends while it runs.";
+              ]
+            ~satisfies:
+              (T_index_signature
+                 (T_object
+                    ( Inline,
+                      [
+                        T.member ~readonly:true (Ident "params") schema_name;
+                        T.member ~readonly:true (Ident "result") schema_name;
+                        T.member ~readonly:true (Ident "exclusive")
+                          (T_name "boolean");
+                        T.member ~readonly:true (Ident "sends")
+                          (T_readonly (T_array (T_name "ControlNotification")));
+                      ] )))
+            (T.rows
+               (List.map
+                  (fun (m : C.methods_item) ->
+                    T.entry
+                      ~about:[ Doc_prose [ Text.Words m.docs ] ]
+                      (Quoted m.name)
+                      (inline
+                         [
+                           T.entry (Ident "params") (named m.params);
+                           T.entry (Ident "result") (named m.result);
+                           T.entry (Ident "exclusive") (T.Bool m.exclusive);
+                           T.entry (Ident "sends") (T.strings m.sends);
+                         ]))
+                  t.methods));
+          T.type_alias "ControlMethod"
+            ~about:[ Doc "A method of the control API, by its name." ]
+            (T_keyof (T_typeof "CONTROL_METHODS"));
+          T.type_alias "ControlParams"
+            ~params:(over "CONTROL_METHODS" "M")
+            ~about:[ Doc "What a method of the control API is asked with." ]
+            (indexed "CONTROL_METHODS" "M" "params");
+          T.type_alias "ControlResult"
+            ~params:(over "CONTROL_METHODS" "M")
+            ~about:[ Doc "What a method of the control API answers." ]
+            (indexed "CONTROL_METHODS" "M" "result");
+          T.type_alias "ControlNotificationParams"
+            ~params:(over "CONTROL_NOTIFICATIONS" "N")
+            ~about:[ Doc "What a notification of the control API carries." ]
+            (indexed "CONTROL_NOTIFICATIONS" "N" "params");
+          T.type_alias "ControlErrorData"
+            ~about:[ Doc "What a failed request of the control API carries as its error's data." ]
+            (T.schema (component t.error_data));
+        ];
+    }
+
+let files ~root (spec : Spec.t) =
+  match (text spec, control_text spec) with
+  | text, control ->
+      Result.map
+        (fun tables ->
+          { Output.path; text }
+          :: { Output.path = control_path; text = control }
+          :: tables)
+        (Table_modules.files ~root spec)
   | exception Definitions.Refused message ->
       Error [ { Decode.file = "openapi.json"; pointer = ""; message } ]

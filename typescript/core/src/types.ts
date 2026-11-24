@@ -3,6 +3,7 @@
 // Authority:   the component schemas of protocol/specs/src/openapi.json
 //              the records Protocol states in its tables (codegen/lib/table_records.ml)
 //              the client types it names, of protocol/specs/src/client/types
+//              the schemas of the tables it carries as values (codegen/lib/typescript_types/table_modules.ml)
 //              protocol/specs/src/client/discovery-absent.json
 //              protocol/specs/src/identifiers/kinds.json, for the brands
 // Regenerate:  make generate  (codegen/lib/typescript_types/typescript_types.ml)
@@ -49,10 +50,7 @@ export interface components {
      * AgentOrganization, AgentSoftware). Software peers are first-class
      * participants, not a sub-class of Person.
      */
-    Agent:
-      | components['schemas']['AgentPerson']
-      | components['schemas']['AgentOrganization']
-      | components['schemas']['AgentSoftware'];
+    Agent: components['schemas']['AgentPerson'] | components['schemas']['AgentOrganization'] | components['schemas']['AgentSoftware'];
     /** An organization — the Organization branch of Agent. */
     AgentOrganization: {
       '@type': 'Organization';
@@ -190,10 +188,7 @@ export interface components {
      * an outcome inside a status envelope and giving the wire two `kind` fields
      * at different depths.
      */
-    AnchoredTextAnswer:
-      | components['schemas']['ExtractedText']
-      | components['schemas']['ExtractionDeclined']
-      | components['schemas']['AnchoredTextAbsent'];
+    AnchoredTextAnswer: components['schemas']['ExtractedText'] | components['schemas']['ExtractionDeclined'] | components['schemas']['AnchoredTextAbsent'];
     /** The bytes were declined: no text is extracted from them. */
     AnchoredTextDeclinedEntry: {
       /** The entry format. */
@@ -225,9 +220,7 @@ export interface components {
      * (`AnchoredTextStamp`) is kept, followed by a newline, in the file `STAMP`
      * at the store's root.
      */
-    AnchoredTextEntry:
-      | components['schemas']['AnchoredTextExtractedEntry']
-      | components['schemas']['AnchoredTextDeclinedEntry'];
+    AnchoredTextEntry: components['schemas']['AnchoredTextExtractedEntry'] | components['schemas']['AnchoredTextDeclinedEntry'];
     /**
      * The text extracted from the bytes, where each word is on the page, and
      * how it was extracted.
@@ -313,9 +306,7 @@ export interface components {
        * whole of it is, or an object with source and optional selector
        * (fragment)
        */
-      target:
-        | components['schemas']['ResourceId']
-        | components['schemas']['AnnotationTarget'];
+      target: components['schemas']['ResourceId'] | components['schemas']['AnnotationTarget'];
       /**
        * W3C Web Annotation body. Optional per the W3C spec — annotations whose
        * motivation alone is meaningful (highlighting) legitimately omit it.
@@ -369,9 +360,7 @@ export interface components {
      * What an annotation's `body` holds: one body, or a non-empty list of them.
      * There is no empty list: an annotation with nothing to say has no `body`.
      */
-    AnnotationBodies:
-      | components['schemas']['AnnotationBody']
-      | components['schemas']['AnnotationBody'][];
+    AnnotationBodies: components['schemas']['AnnotationBody'] | components['schemas']['AnnotationBody'][];
     /**
      * An annotation's body: a TextualBody carries text the annotation states
      * (entity tags, descriptions, comments), a SpecificResource points at what
@@ -379,9 +368,7 @@ export interface components {
      * single-valued — a consumer never has to probe for which fields happen to
      * be present.
      */
-    AnnotationBody:
-      | components['schemas']['TextualBody']
-      | components['schemas']['SpecificResource'];
+    AnnotationBody: components['schemas']['TextualBody'] | components['schemas']['SpecificResource'];
     /** Payload for mark:body-updated domain event */
     AnnotationBodyUpdatedPayload: {
       annotationId: components['schemas']['AnnotationId'];
@@ -403,8 +390,7 @@ export interface components {
      * What a target's `selector` holds: one W3C selector, or several of the
      * same segment.
      */
-    AnnotationSelector:
-      components['schemas']['Selector'] | components['schemas']['Selector'][];
+    AnnotationSelector: components['schemas']['Selector'] | components['schemas']['Selector'][];
     /**
      * W3C Web Annotation target object - source is required, selector is
      * optional
@@ -733,10 +719,7 @@ export interface components {
      * One change to an annotation's bodies: a body added, a body removed, or
      * one body replaced by another.
      */
-    BodyOperation:
-      | components['schemas']['BodyOperationAdd']
-      | components['schemas']['BodyOperationRemove']
-      | components['schemas']['BodyOperationReplace'];
+    BodyOperation: components['schemas']['BodyOperationAdd'] | components['schemas']['BodyOperationRemove'] | components['schemas']['BodyOperationReplace'];
     BodyOperationAdd: {
       op: 'add';
       item: components['schemas']['AnnotationBody'];
@@ -754,20 +737,7 @@ export interface components {
      * W3C Web Annotation body purpose vocabulary -
      * https://www.w3.org/TR/annotation-vocab/#motivation
      */
-    BodyPurpose:
-      | 'assessing'
-      | 'bookmarking'
-      | 'classifying'
-      | 'commenting'
-      | 'describing'
-      | 'editing'
-      | 'highlighting'
-      | 'identifying'
-      | 'linking'
-      | 'moderating'
-      | 'questioning'
-      | 'replying'
-      | 'tagging';
+    BodyPurpose: 'assessing' | 'bookmarking' | 'classifying' | 'commenting' | 'describing' | 'editing' | 'highlighting' | 'identifying' | 'linking' | 'moderating' | 'questioning' | 'replying' | 'tagging';
     /** Request to browse the history of an annotation */
     BrowseAnnotationHistoryRequest: {
       resourceId: components['schemas']['ResourceId'];
@@ -1072,10 +1042,7 @@ export interface components {
      */
     BusEventMessage: {
       event: 'bus-event';
-      id:
-        | components['schemas']['PersistedEventId']
-        | components['schemas']['ReplyEventId']
-        | components['schemas']['EphemeralEventId'];
+      id: components['schemas']['PersistedEventId'] | components['schemas']['ReplyEventId'] | components['schemas']['EphemeralEventId'];
       data: components['schemas']['BusFrame'];
     };
     /**
@@ -1131,19 +1098,13 @@ export interface components {
        * record no longer holds the events after it (what it still holds is
        * replayed first). `query-error`: the record could not be read.
        */
-      reason:
-        | 'unparseable-last-event-id'
-        | 'scope-mismatch'
-        | 'retention-exceeded'
-        | 'query-error';
+      reason: 'unparseable-last-event-id' | 'scope-mismatch' | 'retention-exceeded' | 'query-error';
     };
     /**
      * Every message the bus stream carries. A client ignores an `event` it does
      * not know; the gateway writes no other.
      */
-    BusStreamMessage:
-      | components['schemas']['BusEventMessage']
-      | components['schemas']['BusPingMessage'];
+    BusStreamMessage: components['schemas']['BusEventMessage'] | components['schemas']['BusPingMessage'];
     /**
      * Subscription matrix for the bus stream. `global` channels are delivered
      * unscoped; each `scoped` entry subscribes the connection to one resource
@@ -1329,121 +1290,102 @@ export interface components {
      * operation's outcome, or what its client observed as it happened. The
      * suite refuses any other line.
      */
-    ConformanceDriverLine:
-      | {
-          /** Written once. */
-          ready: true;
-        }
-      | {
-          /** The operation's id. */
-          id: number;
-          ok: unknown;
-        }
-      | {
-          /** The operation's id. */
-          id: number;
+    ConformanceDriverLine: {
+      /** Written once. */
+      ready: true;
+    } | {
+      /** The operation's id. */
+      id: number;
+      ok: unknown;
+    } | {
+      /** The operation's id. */
+      id: number;
+      /** The failure. */
+      error: components['schemas']['ConformanceFailure'];
+    } | {
+      /** The operation's id. */
+      id: number;
+      /** It was abandoned. */
+      abandoned: true;
+    } | {
+      /** The operation's id. */
+      id: number;
+      /** It has none. */
+      unsupported: true;
+    } | {
+      /** The operation's id. */
+      id: number;
+      /** What made no sense. */
+      misuse: string;
+    } | {
+      /**
+       * The state it is in now: one a case's `state` step names
+       * (ConformanceStep.json), or another the case never waits for.
+       */
+      state: string;
+    } | {
+      /** The frame. */
+      frame: {
+        /** The channel. */
+        channel: string;
+        payload?: unknown;
+        /** The frame's correlation id, when it has one. */
+        correlationId?: string;
+        /** The frame's scope, when it has one. */
+        scope?: components['schemas']['ResourceId'];
+      };
+    } | {
+      /** The failure. */
+      error: components['schemas']['ConformanceFailure'];
+    } | {
+      /** The report. */
+      progress: {
+        /** The `upload` operation's id. */
+        upload: number;
+        /** How many bytes it has sent. */
+        bytesUploaded: number;
+        /** How many it will send. */
+        totalBytes: number;
+      };
+    } | {
+      /** The emission. */
+      emission: {
+        /** The observer. */
+        observer: string;
+        /** The state. */
+        state: {
+          /** Nothing to show yet. */
+          status: 'pending';
+        } | {
+          /** A value to show. */
+          status: 'ready';
+          value: unknown;
+        } | {
+          /** The query failed. */
+          status: 'failed';
           /** The failure. */
           error: components['schemas']['ConformanceFailure'];
-        }
-      | {
-          /** The operation's id. */
-          id: number;
-          /** It was abandoned. */
-          abandoned: true;
-        }
-      | {
-          /** The operation's id. */
-          id: number;
-          /** It has none. */
-          unsupported: true;
-        }
-      | {
-          /** The operation's id. */
-          id: number;
-          /** What made no sense. */
-          misuse: string;
-        }
-      | {
-          /**
-           * The state it is in now: one a case's `state` step names
-           * (ConformanceStep.json), or another the case never waits for.
-           */
-          state: string;
-        }
-      | {
-          /** The frame. */
-          frame: {
-            /** The channel. */
-            channel: string;
-            payload?: unknown;
-            /** The frame's correlation id, when it has one. */
-            correlationId?: string;
-            /** The frame's scope, when it has one. */
-            scope?: components['schemas']['ResourceId'];
-          };
-        }
-      | {
-          /** The failure. */
-          error: components['schemas']['ConformanceFailure'];
-        }
-      | {
-          /** The report. */
-          progress: {
-            /** The `upload` operation's id. */
-            upload: number;
-            /** How many bytes it has sent. */
-            bytesUploaded: number;
-            /** How many it will send. */
-            totalBytes: number;
-          };
-        }
-      | {
-          /** The emission. */
-          emission: {
-            /** The observer. */
-            observer: string;
-            /** The state. */
-            state:
-              | {
-                  /** Nothing to show yet. */
-                  status: 'pending';
-                }
-              | {
-                  /** A value to show. */
-                  status: 'ready';
-                  value: unknown;
-                }
-              | {
-                  /** The query failed. */
-                  status: 'failed';
-                  /** The failure. */
-                  error: components['schemas']['ConformanceFailure'];
-                };
-          };
-        }
-      | {
-          /** The observer. */
-          completed: string;
-        }
-      | {
-          /** The job, as the worker read the record. */
-          claimed: { [key: string]: unknown };
-        }
-      | {
-          /**
-           * The refusal: with a code when the bus refused it, with none when the
-           * worker did.
-           */
-          refused: components['schemas']['ConformanceFailure'];
-        }
-      | {
-          /** The job's id. */
-          signalled: string;
-        }
-      | {
-          /** The job's id. */
-          stalled: string;
         };
+      };
+    } | {
+      /** The observer. */
+      completed: string;
+    } | {
+      /** The job, as the worker read the record. */
+      claimed: { [key: string]: unknown };
+    } | {
+      /**
+       * The refusal: with a code when the bus refused it, with none when the
+       * worker did.
+       */
+      refused: components['schemas']['ConformanceFailure'];
+    } | {
+      /** The job's id. */
+      signalled: string;
+    } | {
+      /** The job's id. */
+      stalled: string;
+    };
     /**
      * A failure as an SDK reports it to the suite (conformance/sdk/README.md,
      * "The driver protocol"): its code, the status when a server stated one,
@@ -1501,50 +1443,48 @@ export interface components {
        * suites talk to in its place (conformance/sdk/README.md, "The driver
        * protocol").
        */
-      sdks: {
-        [key: string]: {
+      sdks: { [key: string]: {
+        /**
+         * How its wire driver is started. A command and its arguments, as the
+         * harness starts it. An argument that starts with ./ or ../ is a path,
+         * resolved against the manifest's own directory; every other is passed
+         * as written.
+         */
+        wire?: string[];
+        /**
+         * How its live driver is started, and the tier of the live corpus the
+         * SDK is held to.
+         */
+        live?: {
           /**
-           * How its wire driver is started. A command and its arguments, as the
-           * harness starts it. An argument that starts with ./ or ../ is a path,
-           * resolved against the manifest's own directory; every other is passed
-           * as written.
+           * How its live driver is started. A command and its arguments, as the
+           * harness starts it. An argument that starts with ./ or ../ is a
+           * path, resolved against the manifest's own directory; every other is
+           * passed as written.
            */
-          wire?: string[];
+          command: string[];
           /**
-           * How its live driver is started, and the tier of the live corpus the
-           * SDK is held to.
+           * A live case's tier: `fleet`, what every SDK with a live layer does,
+           * or `parity`, what one that implements all of CACHE-SEMANTICS does.
            */
-          live?: {
-            /**
-             * How its live driver is started. A command and its arguments, as the
-             * harness starts it. An argument that starts with ./ or ../ is a
-             * path, resolved against the manifest's own directory; every other is
-             * passed as written.
-             */
-            command: string[];
-            /**
-             * A live case's tier: `fleet`, what every SDK with a live layer does,
-             * or `parity`, what one that implements all of CACHE-SEMANTICS does.
-             */
-            tier: 'fleet' | 'parity';
-          };
-          /**
-           * How its worker driver is started, when the SDK has a worker's surface
-           * (conformance/worker/README.md). A command and its arguments, as the
-           * harness starts it. An argument that starts with ./ or ../ is a path,
-           * resolved against the manifest's own directory; every other is passed
-           * as written.
-           */
-          worker?: string[];
-          /**
-           * The wire cases its driver cannot be put through, by the case's name,
-           * each with why. The suite holds an exemption as it holds a case: the
-           * driver must answer unsupported to what the case asks, or the
-           * exemption is stale.
-           */
-          exempt?: { [key: string]: string };
+          tier: 'fleet' | 'parity';
         };
-      };
+        /**
+         * How its worker driver is started, when the SDK has a worker's surface
+         * (conformance/worker/README.md). A command and its arguments, as the
+         * harness starts it. An argument that starts with ./ or ../ is a path,
+         * resolved against the manifest's own directory; every other is passed
+         * as written.
+         */
+        worker?: string[];
+        /**
+         * The wire cases its driver cannot be put through, by the case's name,
+         * each with why. The suite holds an exemption as it holds a case: the
+         * driver must answer unsupported to what the case asks, or the
+         * exemption is stale.
+         */
+        exempt?: { [key: string]: string };
+      } };
       /**
        * The model catalogue the implementation supplies, by its path; a
        * relative one is resolved against the manifest's own directory. The
@@ -1558,200 +1498,136 @@ export interface components {
      * is told apart by the member only it requires. conformance/sdk/README.md,
      * "A case", says what each does.
      */
-    ConformanceStep:
-      | {
-          /** Each name, and the value it takes. */
-          let: { [key: string]: unknown };
-        }
-      | {
-          /** The operation (conformance/sdk/README.md, "Operations"). */
-          driver: string;
-          /** The operation's arguments. */
-          with?: { [key: string]: unknown };
-          returns?: unknown;
-          fails?: unknown;
-          /**
-           * The operation's name, for the `settles` or `abandon` step that ends it.
-           */
-          as?: string;
-        }
-      | {
-          /** The operation. */
-          abandon: string;
-        }
-      | {
-          /** The operation. */
-          settles: string;
-          returns?: unknown;
-          fails?: unknown;
-          /** It ended because the case abandoned it. */
-          abandoned?: true;
-        }
-      | {
-          /** The operation of the gateway's API, by its method and path. */
-          wire: string;
-          /**
-           * When it is read: on arrival, once answered (the default), or once its
-           * stream has caught up.
-           */
-          at?: 'arrival' | 'answer' | 'live';
-          /** The status it was answered with. */
-          status?: number;
-          params?: unknown;
-          body?: unknown;
-          token?: unknown;
-          /**
-           * The request's headers named here, each as a pattern; headers not named
-           * are not compared.
-           */
-          headers?: { [key: string]: unknown };
-          answer?: unknown;
-          /** The request's name, for a later step. */
-          as?: string;
-          /**
-           * A request named earlier, which was answered before this one arrived.
-           */
-          follows?: string;
-          /**
-           * A request named earlier, answered with a Retry-After, which this one
-           * waited out.
-           */
-          waited?: string;
-        }
-      | {
-          /** The stream. */
-          carried: string;
-          is: unknown;
-        }
-      | {
-          /** The request. */
-          closed: string;
-        }
-      | {
-          /** The upload. */
-          progress: string;
-        }
-      | {
-          /** The state. */
-          state:
-            | 'initial'
-            | 'connecting'
-            | 'open'
-            | 'reconnecting'
-            | 'degraded'
-            | 'unauthenticated'
-            | 'closed';
-        }
-      | {
-          /** The state. */
-          stays:
-            | 'initial'
-            | 'connecting'
-            | 'open'
-            | 'reconnecting'
-            | 'degraded'
-            | 'unauthenticated'
-            | 'closed';
-        }
-      | {
-          /** The channel. */
-          frame: string;
-          is: unknown;
-        }
-      | {
-          /** The channel. */
-          frames: string;
-          /** How many more. */
-          count: number;
-        }
-      | {
-          error: unknown;
-        }
-      | {
-          /** The directive. */
-          backend:
-            | 'listen'
-            | 'emit'
-            | 'record'
-            | 'content'
-            | 'description'
-            | 'annotations'
-            | 'anchored-text'
-            | 'uploaded'
-            | 'refuse'
-            | 'unanswered'
-            | 'answer-lost'
-            | 'hold'
-            | 'release'
-            | 'rechunk'
-            | 'carry'
-            | 'cut'
-            | 'down'
-            | 'up'
-            | 'archivist';
-          /** The directive's arguments. */
-          with?: { [key: string]: unknown };
-        }
-      | {
-          /** How long, in milliseconds. */
-          quiet: number;
-        }
-      | {
-          /** The live query. */
-          observe: {
-            /** The live query, by its name in specs/src/client/refresh.json. */
-            query: string;
-            resource?: unknown;
-            annotation?: unknown;
-            search?: unknown;
-            filters?: unknown;
-          };
-          /** The observer. */
-          as: string;
-        }
-      | {
-          /** The observer. */
-          leave: string;
-        }
-      | {
-          /** The observer. */
-          reaches: string;
-          state: unknown;
-        }
-      | {
-          /** The observer. */
-          holds: string;
-          state: unknown;
-        }
-      | {
-          /** The observer. */
-          completes: string;
-        }
-      | components['schemas']['ConformanceBusFetch']
-      | components['schemas']['ConformanceHttpFetch']
-      | {
-          /** The requests. */
-          fetches: (
-            | components['schemas']['ConformanceBusFetch']
-            | components['schemas']['ConformanceHttpFetch']
-          )[];
-        }
-      | {
-          /** The scopes. */
-          scopes: unknown[];
-        }
-      | {
-          claimed: unknown;
-        }
-      | {
-          refused: unknown;
-        }
-      | {
-          signalled: unknown;
-        }
-      | {
-          stalled: unknown;
-        };
+    ConformanceStep: {
+      /** Each name, and the value it takes. */
+      let: { [key: string]: unknown };
+    } | {
+      /** The operation (conformance/sdk/README.md, "Operations"). */
+      driver: string;
+      /** The operation's arguments. */
+      with?: { [key: string]: unknown };
+      returns?: unknown;
+      fails?: unknown;
+      /**
+       * The operation's name, for the `settles` or `abandon` step that ends it.
+       */
+      as?: string;
+    } | {
+      /** The operation. */
+      abandon: string;
+    } | {
+      /** The operation. */
+      settles: string;
+      returns?: unknown;
+      fails?: unknown;
+      /** It ended because the case abandoned it. */
+      abandoned?: true;
+    } | {
+      /** The operation of the gateway's API, by its method and path. */
+      wire: string;
+      /**
+       * When it is read: on arrival, once answered (the default), or once its
+       * stream has caught up.
+       */
+      at?: 'arrival' | 'answer' | 'live';
+      /** The status it was answered with. */
+      status?: number;
+      params?: unknown;
+      body?: unknown;
+      token?: unknown;
+      /**
+       * The request's headers named here, each as a pattern; headers not named
+       * are not compared.
+       */
+      headers?: { [key: string]: unknown };
+      answer?: unknown;
+      /** The request's name, for a later step. */
+      as?: string;
+      /**
+       * A request named earlier, which was answered before this one arrived.
+       */
+      follows?: string;
+      /**
+       * A request named earlier, answered with a Retry-After, which this one
+       * waited out.
+       */
+      waited?: string;
+    } | {
+      /** The stream. */
+      carried: string;
+      is: unknown;
+    } | {
+      /** The request. */
+      closed: string;
+    } | {
+      /** The upload. */
+      progress: string;
+    } | {
+      /** The state. */
+      state: 'initial' | 'connecting' | 'open' | 'reconnecting' | 'degraded' | 'unauthenticated' | 'closed';
+    } | {
+      /** The state. */
+      stays: 'initial' | 'connecting' | 'open' | 'reconnecting' | 'degraded' | 'unauthenticated' | 'closed';
+    } | {
+      /** The channel. */
+      frame: string;
+      is: unknown;
+    } | {
+      /** The channel. */
+      frames: string;
+      /** How many more. */
+      count: number;
+    } | {
+      error: unknown;
+    } | {
+      /** The directive. */
+      backend: 'listen' | 'emit' | 'record' | 'content' | 'description' | 'annotations' | 'anchored-text' | 'uploaded' | 'refuse' | 'unanswered' | 'answer-lost' | 'hold' | 'release' | 'rechunk' | 'carry' | 'cut' | 'down' | 'up' | 'archivist';
+      /** The directive's arguments. */
+      with?: { [key: string]: unknown };
+    } | {
+      /** How long, in milliseconds. */
+      quiet: number;
+    } | {
+      /** The live query. */
+      observe: {
+        /** The live query, by its name in specs/src/client/refresh.json. */
+        query: string;
+        resource?: unknown;
+        annotation?: unknown;
+        search?: unknown;
+        filters?: unknown;
+      };
+      /** The observer. */
+      as: string;
+    } | {
+      /** The observer. */
+      leave: string;
+    } | {
+      /** The observer. */
+      reaches: string;
+      state: unknown;
+    } | {
+      /** The observer. */
+      holds: string;
+      state: unknown;
+    } | {
+      /** The observer. */
+      completes: string;
+    } | components['schemas']['ConformanceBusFetch'] | components['schemas']['ConformanceHttpFetch'] | {
+      /** The requests. */
+      fetches: (components['schemas']['ConformanceBusFetch'] | components['schemas']['ConformanceHttpFetch'])[];
+    } | {
+      /** The scopes. */
+      scopes: unknown[];
+    } | {
+      claimed: unknown;
+    } | {
+      refused: unknown;
+    } | {
+      signalled: unknown;
+    } | {
+      stalled: unknown;
+    };
     /**
      * Content format as a MIME type, optionally with parameters. The base type
      * (everything before the first ';') MUST be a SupportedMediaType;
@@ -1823,8 +1699,7 @@ export interface components {
      * was ingested as, or a subdirectory. Tell them apart by `type`, which is
      * required on both and single-valued.
      */
-    DirectoryEntry:
-      components['schemas']['FileEntry'] | components['schemas']['DirEntry'];
+    DirectoryEntry: components['schemas']['FileEntry'] | components['schemas']['DirEntry'];
     /**
      * One knowledge base the Xynolog launcher manages on this machine, as
      * published in the discovery document (see DiscoveryDocument). Endpoints
@@ -2003,11 +1878,7 @@ export interface components {
      * that committed no annotations. Never defaulted: a manufactured value here
      * is a claim nobody made, in a log nobody can rewrite.
      */
-    DurabilityEvidence:
-      | 'acknowledged'
-      | 'probe-confirmed'
-      | 'probe-refused'
-      | 'probe-unreachable';
+    DurabilityEvidence: 'acknowledged' | 'probe-confirmed' | 'probe-refused' | 'probe-unreachable';
     /**
      * The embedding provider a service asks for vectors, and what that kind of
      * provider needs to be asked: one of the providers `xynolog-vectors` has,
@@ -2016,9 +1887,7 @@ export interface components {
      * the model that made it. A secret is never a value here: a provider's key
      * is named by the environment variable that holds it.
      */
-    EmbeddingConfig:
-      | components['schemas']['OllamaEmbeddingConfig']
-      | components['schemas']['VoyageEmbeddingConfig'];
+    EmbeddingConfig: components['schemas']['OllamaEmbeddingConfig'] | components['schemas']['VoyageEmbeddingConfig'];
     /**
      * An engine: an inference provider and a model, which software does a job
      * or an actor's step with. An engine is not a principal: the principal that
@@ -2032,14 +1901,7 @@ export interface components {
        * `ollama` and `vllm` are servers a deployment runs or reaches, each
        * named for the server's software.
        */
-      provider:
-        | 'anthropic'
-        | 'google'
-        | 'llamacpp'
-        | 'ollama'
-        | 'openai'
-        | 'together'
-        | 'vllm';
+      provider: 'anthropic' | 'google' | 'llamacpp' | 'ollama' | 'openai' | 'together' | 'vllm';
       /** The model identifier, as the provider names it. */
       model: string;
     };
@@ -2211,15 +2073,13 @@ export interface components {
       declined: components['schemas']['ExtractionDeclinedReason'];
     };
     /** Why extraction yielded nothing, by class. */
-    ExtractionDeclinedReason:
-      'no-text-layer' | 'encrypted' | 'corrupt' | 'too-large';
+    ExtractionDeclinedReason: 'no-text-layer' | 'encrypted' | 'corrupt' | 'too-large';
     /**
      * How a text was extracted: a plain text taken as it is, a PDF's text layer
      * read, a grid written as rows, a filled form's values read, or pixels read
      * by OCR.
      */
-    ExtractionMethod:
-      'text-passthrough' | 'pdf-text-layer' | 'table' | 'form' | 'ocr';
+    ExtractionMethod: 'text-passthrough' | 'pdf-text-layer' | 'table' | 'form' | 'ocr';
     /**
      * The full outcome of text extraction for one representation — the record
      * the anchored-text store holds and the wire serves. Discriminated on
@@ -2227,9 +2087,7 @@ export interface components {
      * a named decline. ocrConfidence is extraction quality for operators,
      * deliberately not anchor confidence.
      */
-    ExtractionOutcome:
-      | components['schemas']['ExtractedText']
-      | components['schemas']['ExtractionDeclined'];
+    ExtractionOutcome: components['schemas']['ExtractedText'] | components['schemas']['ExtractionDeclined'];
     /**
      * The class of a job's failure, stated by the worker, where the failure is
      * still typed: at the gateway it is already text, and classing a failure by
@@ -2556,55 +2414,53 @@ export interface components {
      */
     GatheredContext: {
       /** The gather anchor. Discriminated on `kind`. */
-      focus:
-        | {
-            kind: 'annotation';
-            /** The annotation this context was gathered for */
-            annotation: components['schemas']['Annotation'];
-            /** The resource containing the annotation */
-            sourceResource: components['schemas']['ResourceDescriptor'];
-            /** Text context around the annotation target */
-            selected?: {
-              /** Text appearing before the selected passage */
-              before?: string;
-              /** The selected text passage (the annotation target) */
-              text: string;
-              /** Text appearing after the selected passage */
-              after?: string;
-            };
-            /**
-             * User-provided hint to supplement or replace the selected text for
-             * search and generation
-             */
-            userHint?: string;
-            /**
-             * The resource the annotation links to, if it is a resolved reference.
-             * Dormant capability — produced/exposed but not yet consumed.
-             */
-            targetResource?: components['schemas']['ResourceDescriptor'];
-            /**
-             * Context about the annotation's link target. Dormant —
-             * produced/exposed but not yet consumed.
-             */
-            targetContext?: {
-              content: string;
-              summary?: string;
-            };
-          }
-        | {
-            kind: 'resource';
-            /** The resource this context was gathered for */
-            resource: components['schemas']['ResourceDescriptor'];
-            summary?: string;
-            suggestedReferences?: string[];
-            /** Resource content (included when requested) */
-            content?: {
-              /** Content of the focal resource */
-              main?: string;
-              /** Map of related resource IDs to their content */
-              related?: { [key: string]: string };
-            };
-          };
+      focus: {
+        kind: 'annotation';
+        /** The annotation this context was gathered for */
+        annotation: components['schemas']['Annotation'];
+        /** The resource containing the annotation */
+        sourceResource: components['schemas']['ResourceDescriptor'];
+        /** Text context around the annotation target */
+        selected?: {
+          /** Text appearing before the selected passage */
+          before?: string;
+          /** The selected text passage (the annotation target) */
+          text: string;
+          /** Text appearing after the selected passage */
+          after?: string;
+        };
+        /**
+         * User-provided hint to supplement or replace the selected text for
+         * search and generation
+         */
+        userHint?: string;
+        /**
+         * The resource the annotation links to, if it is a resolved reference.
+         * Dormant capability — produced/exposed but not yet consumed.
+         */
+        targetResource?: components['schemas']['ResourceDescriptor'];
+        /**
+         * Context about the annotation's link target. Dormant —
+         * produced/exposed but not yet consumed.
+         */
+        targetContext?: {
+          content: string;
+          summary?: string;
+        };
+      } | {
+        kind: 'resource';
+        /** The resource this context was gathered for */
+        resource: components['schemas']['ResourceDescriptor'];
+        summary?: string;
+        suggestedReferences?: string[];
+        /** Resource content (included when requested) */
+        content?: {
+          /** Content of the focal resource */
+          main?: string;
+          /** Map of related resource IDs to their content */
+          related?: { [key: string]: string };
+        };
+      };
       /**
        * Knowledge graph backbone — resources AND annotations as typed nodes.
        * The flattened views (connections, citedBy, siblings) are derived from
@@ -2834,11 +2690,7 @@ export interface components {
      * store for, told apart by `type`. A secret is never a value here: a
      * database's password is named by the environment variable that holds it.
      */
-    GraphConfig:
-      | components['schemas']['Neo4jGraphConfig']
-      | components['schemas']['JanusGraphConfig']
-      | components['schemas']['NeptuneGraphConfig']
-      | components['schemas']['MemoryGraphConfig'];
+    GraphConfig: components['schemas']['Neo4jGraphConfig'] | components['schemas']['JanusGraphConfig'] | components['schemas']['NeptuneGraphConfig'] | components['schemas']['MemoryGraphConfig'];
     /** A resource's presence in the gathered knowledge graph. */
     GraphResourceNode: {
       /** The resource's ResourceId */
@@ -3074,36 +2926,35 @@ export interface components {
          */
         port: number;
         /** The database the issuer keeps its realms in. */
-        database: components['schemas']['Runner'] &
-          unknown & {
-            /** The database's driver: `postgres`. */
-            type: string;
-            /**
-             * The database the issuer keeps its realms in: a lowercase PostgreSQL
-             * identifier, as PostgreSQL itself names an unquoted one. On a
-             * PostgreSQL the launcher runs, the launcher creates it; on one
-             * somebody else runs (`external`), it must already exist there.
-             */
-            name: string;
-            /** The user the issuer signs in as. */
-            user: string;
-            image?: components['schemas']['Image'];
-            resources?: components['schemas']['Resources'];
-            /**
-             * The port a PostgreSQL the launcher runs is published on, on this
-             * machine, where the issuer reaches it. One somebody else runs is
-             * reached at `external`.
-             */
-            port?: number;
-            /** A database somebody else runs. */
-            external?: {
-              /** A host name or address the issuer can reach. */
-              host: string;
-              /** The port it listens on. */
-              port: number;
-              password: components['schemas']['SecretRef'];
-            };
+        database: components['schemas']['Runner'] & unknown & {
+          /** The database's driver: `postgres`. */
+          type: string;
+          /**
+           * The database the issuer keeps its realms in: a lowercase PostgreSQL
+           * identifier, as PostgreSQL itself names an unquoted one. On a
+           * PostgreSQL the launcher runs, the launcher creates it; on one
+           * somebody else runs (`external`), it must already exist there.
+           */
+          name: string;
+          /** The user the issuer signs in as. */
+          user: string;
+          image?: components['schemas']['Image'];
+          resources?: components['schemas']['Resources'];
+          /**
+           * The port a PostgreSQL the launcher runs is published on, on this
+           * machine, where the issuer reaches it. One somebody else runs is
+           * reached at `external`.
+           */
+          port?: number;
+          /** A database somebody else runs. */
+          external?: {
+            /** A host name or address the issuer can reach. */
+            host: string;
+            /** The port it listens on. */
+            port: number;
+            password: components['schemas']['SecretRef'];
           };
+        };
       };
     };
     /**
@@ -3122,12 +2973,7 @@ export interface components {
      * and outcome fields it carries. It is what a claim returns (`job:claimed`,
      * always `running`) and what the queue stores, inside a JobRecord.
      */
-    Job:
-      | components['schemas']['JobPending']
-      | components['schemas']['JobRunning']
-      | components['schemas']['JobComplete']
-      | components['schemas']['JobFailed']
-      | components['schemas']['JobCancelled'];
+    Job: components['schemas']['JobPending'] | components['schemas']['JobRunning'] | components['schemas']['JobComplete'] | components['schemas']['JobFailed'] | components['schemas']['JobCancelled'];
     /**
      * Bus command the dispatcher emits, under its own service identity,
      * immediately after it accepts a job:claim — the correlated job:claimed
@@ -3349,9 +3195,7 @@ export interface components {
      * decline from either. A completion whose result is the other verb's is
      * refused where the command is admitted.
      */
-    JobCompleteCommand:
-      | components['schemas']['MarkJobCompleteCommand']
-      | components['schemas']['YieldJobCompleteCommand'];
+    JobCompleteCommand: components['schemas']['MarkJobCompleteCommand'] | components['schemas']['YieldJobCompleteCommand'];
     /** Payload for job:completed domain event */
     JobCompletedPayload: {
       jobId: components['schemas']['JobId'];
@@ -3384,9 +3228,7 @@ export interface components {
      * be well formed: a `mark` job names its resource and, in its parameters,
      * its motivation; a `yield` job names its context.
      */
-    JobCreateCommand:
-      | components['schemas']['MarkJobCreateCommand']
-      | components['schemas']['YieldJobCreateCommand'];
+    JobCreateCommand: components['schemas']['MarkJobCreateCommand'] | components['schemas']['YieldJobCreateCommand'];
     /** Result of a job:create command */
     JobCreatedResult: {
       response: components['schemas']['JobCreatedResultResponse'];
@@ -3528,9 +3370,7 @@ export interface components {
      * at the description's own paths. A job matches when every field stated
      * here equals the job's. A `mark` filter always states its motivation.
      */
-    JobFilter:
-      | components['schemas']['MarkJobFilter']
-      | components['schemas']['YieldJobFilter'];
+    JobFilter: components['schemas']['MarkJobFilter'] | components['schemas']['YieldJobFilter'];
     /**
      * A job's id. 1 to 128 of the letters `A`–`Z` and `a`–`z`, the digits, `_`
      * and `-`. It is one segment of a URL and one name in a file system, and it
@@ -3789,17 +3629,7 @@ export interface components {
      * extending it means adding a named variant here and copy in every client,
      * gated by the locale-completeness check.
      */
-    JobProgressMessage:
-      | components['schemas']['JobProgressLoading']
-      | components['schemas']['JobProgressAnalyzing']
-      | components['schemas']['JobProgressAnalyzingTags']
-      | components['schemas']['JobProgressGeneratingResource']
-      | components['schemas']['JobProgressCreatingResource']
-      | components['schemas']['JobProgressCompleteGenerated']
-      | components['schemas']['JobProgressDetectingEntities']
-      | components['schemas']['JobProgressCreatingAnnotations']
-      | components['schemas']['JobProgressCreatingTagAnnotations']
-      | components['schemas']['JobProgressCompleteCreated'];
+    JobProgressMessage: components['schemas']['JobProgressLoading'] | components['schemas']['JobProgressAnalyzing'] | components['schemas']['JobProgressAnalyzingTags'] | components['schemas']['JobProgressGeneratingResource'] | components['schemas']['JobProgressCreatingResource'] | components['schemas']['JobProgressCompleteGenerated'] | components['schemas']['JobProgressDetectingEntities'] | components['schemas']['JobProgressCreatingAnnotations'] | components['schemas']['JobProgressCreatingTagAnnotations'] | components['schemas']['JobProgressCompleteCreated'];
     /**
      * A pending job, announced when it is created and again at each tick while
      * it waits. It carries the job description less the job's input, so that a
@@ -3807,9 +3637,7 @@ export interface components {
      * matched against. It is a wake-up and not an offer of this job: a claim is
      * answered with the next pending job it matches.
      */
-    JobQueuedEvent:
-      | components['schemas']['MarkJobQueuedEvent']
-      | components['schemas']['YieldJobQueuedEvent'];
+    JobQueuedEvent: components['schemas']['MarkJobQueuedEvent'] | components['schemas']['YieldJobQueuedEvent'];
     /**
      * One job as the queue stores it: the job, and when it last showed life.
      * The dead-worker sweep reads `lastProgressAt`: a running job whose worker
@@ -3861,10 +3689,7 @@ export interface components {
      * which job it answers, and the three share no member, so each is told from
      * the others by what it alone carries.
      */
-    JobResult:
-      | components['schemas']['MarkJobDone']
-      | components['schemas']['YieldJobDone']
-      | components['schemas']['JobDeclined'];
+    JobResult: components['schemas']['MarkJobDone'] | components['schemas']['YieldJobDone'] | components['schemas']['JobDeclined'];
     /** A job a worker has claimed and not yet concluded. */
     JobRunning: {
       status: 'running';
@@ -3936,8 +3761,7 @@ export interface components {
      * JobProgress its worker reported with `job:report-progress`, or an empty
      * object before the first report.
      */
-    JobStoredProgress:
-      components['schemas']['JobProgress'] | Record<string, never>;
+    JobStoredProgress: components['schemas']['JobProgress'] | Record<string, never>;
     /**
      * A completed job's result as the dispatcher stores it: the result its
      * worker reported with `job:complete`, or an empty object when it reported
@@ -3989,9 +3813,7 @@ export interface components {
      * the host process has loaded. Told apart by `kind`. Only what builds a
      * transport, or signs in at an issuer, reads it.
      */
-    KbEndpoint:
-      | components['schemas']['HttpEndpoint']
-      | components['schemas']['LocalEndpoint'];
+    KbEndpoint: components['schemas']['HttpEndpoint'] | components['schemas']['LocalEndpoint'];
     /**
      * A knowledge base's committed identity (`project.name` and `site.domain`
      * in its .xynolog/config.yaml), as a service's document names the knowledge
@@ -4056,8 +3878,7 @@ export interface components {
      * what an answer is verified against; nothing selects by did. Its `label`
      * and `lastRead` are written only from an answer that carried its did.
      */
-    KnowledgeBase: components['schemas']['KbTarget'] &
-      components['schemas']['NewKnowledgeBase'];
+    KnowledgeBase: components['schemas']['KbTarget'] & components['schemas']['NewKnowledgeBase'];
     /**
      * One knowledge base's stack as xynolog status reads it: what it is, where
      * it runs, and each of its own services. The services every knowledge base
@@ -4163,10 +3984,7 @@ export interface components {
      * (connections, citedBy, siblings) are derived from these nodes/edges.
      */
     KnowledgeGraph: {
-      nodes: (
-        | components['schemas']['GraphResourceNode']
-        | components['schemas']['GraphAnnotationNode']
-      )[];
+      nodes: (components['schemas']['GraphResourceNode'] | components['schemas']['GraphAnnotationNode'])[];
       edges: {
         source: string;
         target: string;
@@ -4428,12 +4246,7 @@ export interface components {
        * request again rather than waiting (contract/TRANSPORT-CONTRACT.md § A
        * refused credential).
        */
-      code:
-        | 'streams'
-        | 'emit-rate'
-        | 'unanswered-requests'
-        | 'capacity'
-        | 'refusal-rate';
+      code: 'streams' | 'emit-rate' | 'unanswered-requests' | 'capacity' | 'refusal-rate';
     };
     /**
      * What a linking job takes: mentions of the named entity types are marked
@@ -4760,12 +4573,7 @@ export interface components {
      * motivation takes its own parameters and no others: a parameter a job does
      * not take is refused where the job is created.
      */
-    MarkJobParams:
-      | components['schemas']['HighlightingJobParams']
-      | components['schemas']['CommentingJobParams']
-      | components['schemas']['AssessingJobParams']
-      | components['schemas']['LinkingJobParams']
-      | components['schemas']['TaggingJobParams'];
+    MarkJobParams: components['schemas']['HighlightingJobParams'] | components['schemas']['CommentingJobParams'] | components['schemas']['AssessingJobParams'] | components['schemas']['LinkingJobParams'] | components['schemas']['TaggingJobParams'];
     /**
      * A pending `mark` job, announced with its parameters as it was created.
      */
@@ -4783,9 +4591,7 @@ export interface components {
      * or a decline. Neither names its kind: a decline is the one with
      * `declined`.
      */
-    MarkJobResult:
-      | components['schemas']['MarkJobDone']
-      | components['schemas']['JobDeclined'];
+    MarkJobResult: components['schemas']['MarkJobDone'] | components['schemas']['JobDeclined'];
     /** Emitted when the user requests a new mark (annotation) on a resource */
     MarkRequestedEvent: {
       /**
@@ -4992,8 +4798,7 @@ export interface components {
      * Xynolog-supported W3C Web Annotation motivations -
      * https://www.w3.org/TR/annotation-vocab/#motivation
      */
-    Motivation:
-      'assessing' | 'commenting' | 'highlighting' | 'linking' | 'tagging';
+    Motivation: 'assessing' | 'commenting' | 'highlighting' | 'linking' | 'tagging';
     /** A graph kept in a Neo4j database. */
     Neo4jGraphConfig: {
       type: 'neo4j';
@@ -5062,8 +4867,7 @@ export interface components {
      * Annotation model let a resource or an annotation name in one place, as
      * one agent or several.
      */
-    OneOrMoreAgents:
-      components['schemas']['Agent'] | components['schemas']['Agent'][];
+    OneOrMoreAgents: components['schemas']['Agent'] | components['schemas']['Agent'][];
     /**
      * One string, or a non-empty list of them: a JSON-LD term that may take one
      * value or several.
@@ -5222,17 +5026,7 @@ export interface components {
        * heading (banner, section), a timestamp (stamp), a runtime command about
        * to run (command), or text the operation printed (output).
        */
-      kind:
-        | 'log'
-        | 'note'
-        | 'ok'
-        | 'warn'
-        | 'fail'
-        | 'banner'
-        | 'section'
-        | 'stamp'
-        | 'command'
-        | 'output';
+      kind: 'log' | 'note' | 'ok' | 'warn' | 'fail' | 'banner' | 'section' | 'stamp' | 'command' | 'output';
       /** The line. */
       text: string;
     };
@@ -5387,13 +5181,7 @@ export interface components {
        * Semantics of this rendition relative to the resource (e.g., original,
        * thumbnail, preview, derived).
        */
-      rel?:
-        | 'original'
-        | 'thumbnail'
-        | 'preview'
-        | 'optimized'
-        | 'derived'
-        | 'other';
+      rel?: 'original' | 'thumbnail' | 'preview' | 'optimized' | 'derived' | 'other';
     } & { [key: string]: unknown };
     /** Payload for yield:representation-added domain event */
     RepresentationAddedPayload: {
@@ -5521,10 +5309,7 @@ export interface components {
      */
     ResourceDescriptor: {
       /** JSON-LD context; URI, object, or array of these. */
-      '@context':
-        | string
-        | { [key: string]: unknown }
-        | (string | { [key: string]: unknown })[];
+      '@context': string | { [key: string]: unknown } | (string | { [key: string]: unknown })[];
       /** The id of the resource being described. */
       '@id': components['schemas']['ResourceId'];
       /** Type(s) of the resource (IRIs/CURIEs via @context). */
@@ -5532,14 +5317,11 @@ export interface components {
       name: string;
       description?: string;
       /** Persistent identifiers (e.g., DOI, URN). */
-      identifier?:
-        | string
-        | string[]
-        | ({
-            '@id'?: string;
-            value?: string;
-            scheme?: string;
-          } & { [key: string]: unknown });
+      identifier?: string | string[] | {
+        '@id'?: string;
+        value?: string;
+        scheme?: string;
+      } & { [key: string]: unknown };
       /** Topics (IRIs or strings). */
       about?: components['schemas']['OneOrMoreStrings'];
       /** Equivalent/authoritative references. */
@@ -5554,9 +5336,7 @@ export interface components {
        * W3C PROV: the resource, or resources, this one was derived from, each
        * by its id
        */
-      wasDerivedFrom?:
-        | components['schemas']['ResourceId']
-        | components['schemas']['ResourceId'][];
+      wasDerivedFrom?: components['schemas']['ResourceId'] | components['schemas']['ResourceId'][];
       /**
        * W3C PROV — every party responsible for this resource, derived by the
        * knowledge base at creation from verified identities: `[requester,
@@ -5575,9 +5355,7 @@ export interface components {
       /** Convenience set summarizing media types across representations. */
       availableFormats?: string[];
       /** Managed or referenced byte-level renditions of this resource. */
-      representations:
-        | components['schemas']['Representation']
-        | components['schemas']['Representation'][];
+      representations: components['schemas']['Representation'] | components['schemas']['Representation'][];
       /** Application-specific: Whether this resource is archived */
       archived?: boolean;
       /** Application-specific: Entity types for this resource */
@@ -5911,14 +5689,7 @@ export interface components {
      * Xynolog services, as service-telemetry/telemetry.json names them. The
      * reader holds the two lists to each other.
      */
-    RunService:
-      | 'archivist'
-      | 'dispatcher'
-      | 'gateway'
-      | 'librarian'
-      | 'smelter'
-      | 'weaver'
-      | 'worker';
+    RunService: 'archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker';
     /**
      * Who runs a daemon: the launcher, from `image` with `resources`, or
      * somebody else, reached at `external`. Exactly one of the two.
@@ -5965,11 +5736,7 @@ export interface components {
      * One W3C selector: a way of finding a segment of a resource. Tell them
      * apart by `type`, which is required on each and single-valued.
      */
-    Selector:
-      | components['schemas']['TextPositionSelector']
-      | components['schemas']['TextQuoteSelector']
-      | components['schemas']['SvgSelector']
-      | components['schemas']['FragmentSelector'];
+    Selector: components['schemas']['TextPositionSelector'] | components['schemas']['TextQuoteSelector'] | components['schemas']['SvgSelector'] | components['schemas']['FragmentSelector'];
     SemanticMatch: {
       /** The chunk text that matched */
       text: string;
@@ -6010,13 +5777,7 @@ export interface components {
      * accounts in, the knowledge workers where people and agents work on it,
      * the providers of its models, and the telemetry that watches them all.
      */
-    ServiceGroup:
-      | 'record'
-      | 'index'
-      | 'issuer'
-      | 'knowledge-workers'
-      | 'providers'
-      | 'telemetry';
+    ServiceGroup: 'record' | 'index' | 'issuer' | 'knowledge-workers' | 'providers' | 'telemetry';
     /** service.host's params. */
     ServiceHostParams: {
       /** The version of the control API the request is written to. */
@@ -6211,13 +5972,7 @@ export interface components {
        * runs it, and its endpoint answers or does not. absent: there is no
        * container of it. not-configured: the stack's documents ask for none.
        */
-      state:
-        | 'running'
-        | 'stopped'
-        | 'reachable'
-        | 'unreachable'
-        | 'absent'
-        | 'not-configured';
+      state: 'running' | 'stopped' | 'reachable' | 'unreachable' | 'absent' | 'not-configured';
       /**
        * The runtime's own word for a container that is not running (exited,
        * created).
@@ -6467,13 +6222,7 @@ export interface components {
       contentChecksum: string;
       outcome: 'indexed' | 'skipped';
       /** Why the content was skipped. */
-      reason?:
-        | 'no-extractor'
-        | 'empty'
-        | 'no-text-layer'
-        | 'encrypted'
-        | 'corrupt'
-        | 'too-large';
+      reason?: 'no-extractor' | 'empty' | 'no-text-layer' | 'encrypted' | 'corrupt' | 'too-large';
     };
     /**
      * The two numbers a text is cut by before it is embedded, both in tokens, a
@@ -6544,14 +6293,7 @@ export interface components {
        * TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it
        * while it is `open`.
        */
-      stream:
-        | 'initial'
-        | 'connecting'
-        | 'open'
-        | 'reconnecting'
-        | 'degraded'
-        | 'unauthenticated'
-        | 'closed';
+      stream: 'initial' | 'connecting' | 'open' | 'reconnecting' | 'degraded' | 'unauthenticated' | 'closed';
       /**
        * How far it has followed the record. Its sweep is also `due` where its
        * start's reconcile failed.
@@ -6976,70 +6718,7 @@ export interface components {
      * author) is curated per type in @xynolog/core's media-type registry, which
      * is keyed by this enum.
      */
-    SupportedMediaType:
-      | 'text/plain'
-      | 'text/markdown'
-      | 'text/html'
-      | 'text/css'
-      | 'text/csv'
-      | 'text/xml'
-      | 'application/json'
-      | 'application/xml'
-      | 'application/yaml'
-      | 'application/x-yaml'
-      | 'application/pdf'
-      | 'application/msword'
-      | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      | 'application/vnd.ms-excel'
-      | 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      | 'application/vnd.ms-powerpoint'
-      | 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-      | 'application/zip'
-      | 'application/gzip'
-      | 'application/x-tar'
-      | 'application/x-7z-compressed'
-      | 'application/octet-stream'
-      | 'application/wasm'
-      | 'image/png'
-      | 'image/jpeg'
-      | 'image/gif'
-      | 'image/webp'
-      | 'image/svg+xml'
-      | 'image/bmp'
-      | 'image/tiff'
-      | 'image/x-icon'
-      | 'video/mp4'
-      | 'video/mpeg'
-      | 'video/webm'
-      | 'video/ogg'
-      | 'video/quicktime'
-      | 'video/x-msvideo'
-      | 'audio/mpeg'
-      | 'audio/wav'
-      | 'audio/ogg'
-      | 'audio/webm'
-      | 'audio/aac'
-      | 'audio/flac'
-      | 'text/javascript'
-      | 'application/javascript'
-      | 'text/x-typescript'
-      | 'application/typescript'
-      | 'text/x-python'
-      | 'text/x-java'
-      | 'text/x-c'
-      | 'text/x-c++'
-      | 'text/x-csharp'
-      | 'text/x-go'
-      | 'text/x-rust'
-      | 'text/x-ruby'
-      | 'text/x-php'
-      | 'text/x-swift'
-      | 'text/x-kotlin'
-      | 'text/x-shell'
-      | 'font/woff'
-      | 'font/woff2'
-      | 'font/ttf'
-      | 'font/otf';
+    SupportedMediaType: 'text/plain' | 'text/markdown' | 'text/html' | 'text/css' | 'text/csv' | 'text/xml' | 'application/json' | 'application/xml' | 'application/yaml' | 'application/x-yaml' | 'application/pdf' | 'application/msword' | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' | 'application/vnd.ms-excel' | 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' | 'application/vnd.ms-powerpoint' | 'application/vnd.openxmlformats-officedocument.presentationml.presentation' | 'application/zip' | 'application/gzip' | 'application/x-tar' | 'application/x-7z-compressed' | 'application/octet-stream' | 'application/wasm' | 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp' | 'image/svg+xml' | 'image/bmp' | 'image/tiff' | 'image/x-icon' | 'video/mp4' | 'video/mpeg' | 'video/webm' | 'video/ogg' | 'video/quicktime' | 'video/x-msvideo' | 'audio/mpeg' | 'audio/wav' | 'audio/ogg' | 'audio/webm' | 'audio/aac' | 'audio/flac' | 'text/javascript' | 'application/javascript' | 'text/x-typescript' | 'application/typescript' | 'text/x-python' | 'text/x-java' | 'text/x-c' | 'text/x-c++' | 'text/x-csharp' | 'text/x-go' | 'text/x-rust' | 'text/x-ruby' | 'text/x-php' | 'text/x-swift' | 'text/x-kotlin' | 'text/x-shell' | 'font/woff' | 'font/woff2' | 'font/ttf' | 'font/otf';
     SvgSelector: {
       type: 'SvgSelector';
       /** SVG markup defining the region (must include xmlns attribute) */
@@ -7323,9 +7002,7 @@ export interface components {
      * index needs to be reached: one of the kinds `xynolog-vectors` has a store
      * for, told apart by `type`.
      */
-    VectorsConfig:
-      | components['schemas']['QdrantVectorsConfig']
-      | components['schemas']['MemoryVectorsConfig'];
+    VectorsConfig: components['schemas']['QdrantVectorsConfig'] | components['schemas']['MemoryVectorsConfig'];
     /**
      * An embedding model served by Voyage AI. No service has been run against
      * Voyage itself.
@@ -7923,9 +7600,7 @@ export interface components {
      * resource it made, or a decline. Neither names its kind: a decline is the
      * one with `declined`.
      */
-    YieldJobResult:
-      | components['schemas']['YieldJobDone']
-      | components['schemas']['JobDeclined'];
+    YieldJobResult: components['schemas']['YieldJobDone'] | components['schemas']['JobDeclined'];
     /** Bus command to update a yielded resource's storage content. */
     YieldUpdateCommand: {
       /**
@@ -7961,16 +7636,287 @@ export interface components {
 }
 
 /**
- * The records Protocol states in its tables and the client types, which no wire
- * message carries, and what only they reach.
+ * The records Protocol states in its tables, the client types and the tables
+ * the SDK carries as values, which no wire message carries, and what only they
+ * reach.
  */
 export interface records {
   /**
    * How a quoted selection was found in a text. Which word a span is found by
    * is reconcile's rule (specs/src/annotations/reconcile-cases.json).
    */
-  AnchorMethod:
-    'unique-match' | 'context-recovered' | 'first-of-many' | 'fuzzy-match';
+  AnchorMethod: 'unique-match' | 'context-recovered' | 'first-of-many' | 'fuzzy-match';
+  /**
+   * archivist/default-entity-types.json: the entity types an Archivist seeds,
+   * in the order it seeds them.
+   */
+  ArchivistDefaultEntityTypes: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** The default entity types, in seed order. */
+    entityTypes: string[];
+  };
+  /** archivist/layout.json: where the Archivist keeps the record on disk. */
+  ArchivistLayout: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** A resource's event stream: a directory of event files. */
+    eventStream: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+    };
+    /**
+     * The knowledge base's own stream, of the events that name no resource. It
+     * is not sharded.
+     */
+    systemStream: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+    };
+    /** The files of a stream. */
+    eventFile: {
+      /** A file's name, `{number}` its number in `digits` decimal digits. */
+      name: string;
+      /**
+       * How many decimal digits a file's number is written in, with leading
+       * zeros.
+       */
+      digits: number;
+      /**
+       * The first file's number. It is created, empty, with the stream's
+       * directory.
+       */
+      first: number;
+      /** The most events a file holds. */
+      maxEvents: number;
+    };
+    /** The schema a stored event, one line of an event file, is. */
+    storedEvent: unknown;
+    /** A resource's view, in the state directory. */
+    view: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+      /** The schema a view is. */
+      schema: unknown;
+    };
+    /**
+     * The projections of what the `__system__` stream adds up to, in the state
+     * directory.
+     */
+    systemProjections: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** The directory that holds them, in its tree, `/`-separated. */
+      path: string;
+      /** Each projection's file. */
+      files: {
+        /** The file's name. */
+        name: string;
+        /** The schema the projection is. */
+        schema: unknown;
+      }[];
+    };
+    /**
+     * An entry of the storage-uri index, which names the resource whose content
+     * is at a storage URI.
+     */
+    storageUriIndex: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+      /** The schema an entry is. */
+      schema: unknown;
+    };
+    /**
+     * An entry of the anchored-text store, keyed by the checksum of the content
+     * it was extracted from.
+     */
+    anchoredTextEntry: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+      /** The schema an entry is. */
+      schema: unknown;
+    };
+    /**
+     * The file holding the stamp the anchored-text store's entries are taken
+     * under: the stamp, followed by a newline.
+     */
+    anchoredTextStamp: {
+      /**
+       * The tree the file is in: `root`, the working tree, `stateHome`, the
+       * state directory, or `anchoredTextDir`, the anchored-text store.
+       */
+      tree: 'root' | 'stateHome' | 'anchoredTextDir';
+      /** Its path in its tree, `/`-separated. */
+      path: string;
+    };
+  };
+  /**
+   * archivist/messages.json: the words of the Archivist's own refusals, and of
+   * the messages it logs that a reader relies on.
+   */
+  ArchivistMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * Each refusal to start of the Archivist's own, written in
+     * service-environment/boot-refusals.json's `line`.
+     */
+    boot: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The refusal, in place of the line's `{refusal}`. A `{name}` in it is
+       * filled with what the row's `situation` names, and nothing else in it
+       * varies.
+       */
+      refusal: string;
+    }[];
+    /**
+     * The failure a reply that cannot be sent is answered with instead, on the
+     * operation's failure channel.
+     */
+    unsent: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The failure's `message`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /** Each refusal of an operation, on the operation's failure channel. */
+    refusals: {
+      /** The situation's name. */
+      name: string;
+      /**
+       * The operations it refuses: requests of bus/registry.json's operations
+       * that the Archivist answers. `{channel}` in the message is the one
+       * refused.
+       */
+      operations: string[];
+      /**
+       * Machine-readable failure class, for consumers that must BRANCH on why a
+       * command failed rather than log it. Optional and deliberately sparse:
+       * absent means 'no class declared', and every existing failure stays that
+       * way. An enum rather than a free string so the vocabulary has an owner —
+       * an unconstrained code is a mirror with no gate, and adding one should
+       * be a deliberate spec change. `message` remains the human-readable text
+       * and is unaffected. Members: `peer-unavailable` — the channel this
+       * command was sent on has no subscriber, i.e. the service that answers it
+       * has not connected yet. Transient by nature (a peer still starting),
+       * which is what distinguishes it from a refusal: retrying is the correct
+       * response. `not-found` — the resource this command addressed does not
+       * exist in this knowledge base. A verdict, not a symptom: it is emitted
+       * only where the answer comes from the event store, which is the system
+       * of record, and never from a projection that may merely be lagging.
+       * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+       * consumers may act destructively on it (the SDK deletes a restored tab).
+       * Absence is not denial: a future 'exists, but not for you' must travel
+       * as its own code, never as this one. `unauthorized` — that code: the
+       * caller is authenticated but not permitted to do what it asked. A
+       * verdict about the CALLER, not the resource, so retrying under the same
+       * credential cannot succeed and a consumer must never spin on it; emitted
+       * by `job:claim` for a caller whose token carries no worker role.
+       * `none-pending` — a declined claim, not an error: the queue holds no
+       * pending job of the requested types. Nothing went wrong; the one code a
+       * consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by
+       * `job:claim` only. A `job:claim` refusal carrying neither is
+       * unclassified — a malformed record or a missing injection — and a
+       * consumer treats it as 'log it, assume nothing'.
+       */
+      code?: 'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The failure's `message`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /**
+     * The refusal of every route of the HTTP surface but `/health`: a token
+     * that is missing, or not of the knowledge base's issuer and audience, or
+     * without the service role.
+     */
+    unauthorized: {
+      status: components['schemas']['HttpStatus'];
+      /** The body's `error`. */
+      error: string;
+      /** The `WWW-Authenticate` header when a token was presented. */
+      presented: string;
+      /** The `WWW-Authenticate` header when none was. */
+      absent: string;
+    };
+    /** Each other error a route of the HTTP surface answers with. */
+    http: {
+      /** The situation's name. */
+      name: string;
+      /** The route's method. */
+      method: 'GET' | 'PUT' | 'POST';
+      /** The route, as the Archivist's API names its path. */
+      route: string;
+      status: components['schemas']['HttpStatus'];
+      /** The body's `code`, where it carries one. */
+      code?: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The body's `error`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      error: string;
+    }[];
+    /**
+     * Each message the Archivist logs that a reader of its output relies on.
+     */
+    logged: {
+      /** The situation's name. */
+      name: string;
+      level: components['schemas']['LogLevel'];
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /** The line's message, word for word. */
+      message: string;
+      /**
+       * The fields the line is logged with whose form is stated, by name: each
+       * a text whose `{name}` is filled as the row's `situation` says. The line
+       * may carry others.
+       */
+      fields: { [key: string]: string };
+    }[];
+  };
   /**
    * What starting an authorization-code grant is told: the knowledge base to
    * sign in to, where the issuer sends the person back, and, re-authenticating,
@@ -7996,6 +7942,25 @@ export interface records {
      * never assumed.
      */
     expectedName?: string;
+  };
+  /**
+   * bus/reply-bounds.json: each list or map an operation's reply carries that
+   * its own schema does not bound, and what bounds it.
+   */
+  BusReplyBounds: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each operation, by its request's channel. */
+    replies: { [key: string]: { [key: string]: {
+      /**
+       * The member of the request that bounds it: an array, or an integer with
+       * a maximum.
+       */
+      by: string;
+    } | {
+      /** What it grows with. */
+      grows: string;
+    } } };
   };
   /**
    * What a worker's claiming of jobs is told: the jobs it takes, and how long
@@ -8065,6 +8030,129 @@ export interface records {
     expiresIn: number;
   };
   /**
+   * dispatcher/messages.json: the words of the dispatcher's own refusals, and
+   * of the errors it writes into a job.
+   */
+  DispatcherMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * Each refusal the dispatcher makes itself, on the operation's failure
+     * channel.
+     */
+    refusals: {
+      /** The situation's name. */
+      name: string;
+      /**
+       * The operation it refuses: a request of bus/registry.json's operations
+       * that the dispatcher answers.
+       */
+      operation: string;
+      /**
+       * Machine-readable failure class, for consumers that must BRANCH on why a
+       * command failed rather than log it. Optional and deliberately sparse:
+       * absent means 'no class declared', and every existing failure stays that
+       * way. An enum rather than a free string so the vocabulary has an owner —
+       * an unconstrained code is a mirror with no gate, and adding one should
+       * be a deliberate spec change. `message` remains the human-readable text
+       * and is unaffected. Members: `peer-unavailable` — the channel this
+       * command was sent on has no subscriber, i.e. the service that answers it
+       * has not connected yet. Transient by nature (a peer still starting),
+       * which is what distinguishes it from a refusal: retrying is the correct
+       * response. `not-found` — the resource this command addressed does not
+       * exist in this knowledge base. A verdict, not a symptom: it is emitted
+       * only where the answer comes from the event store, which is the system
+       * of record, and never from a projection that may merely be lagging.
+       * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+       * consumers may act destructively on it (the SDK deletes a restored tab).
+       * Absence is not denial: a future 'exists, but not for you' must travel
+       * as its own code, never as this one. `unauthorized` — that code: the
+       * caller is authenticated but not permitted to do what it asked. A
+       * verdict about the CALLER, not the resource, so retrying under the same
+       * credential cannot succeed and a consumer must never spin on it; emitted
+       * by `job:claim` for a caller whose token carries no worker role.
+       * `none-pending` — a declined claim, not an error: the queue holds no
+       * pending job of the requested types. Nothing went wrong; the one code a
+       * consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by
+       * `job:claim` only. A `job:claim` refusal carrying neither is
+       * unclassified — a malformed record or a missing injection — and a
+       * consumer treats it as 'log it, assume nothing'.
+       */
+      code?: 'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The failure's `message`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /**
+     * Each error the dispatcher writes into a job on its own, as a `job:fail`
+     * would.
+     */
+    errors: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The `error` it writes into the job. A `{name}` in it is filled with
+       * what the row's `situation` names, and nothing else in it varies.
+       */
+      error: string;
+      failureClass: components['schemas']['FailureClass'];
+    }[];
+  };
+  /**
+   * embedding/requests.json: how a service asks its embedding provider for the
+   * vectors of many texts.
+   */
+  EmbeddingRequests: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * How each kind of provider is asked, by its `type` (EmbeddingConfig):
+     * every kind, and no other.
+     */
+    providers: { [key: string]: {
+      /**
+       * How many texts one request carries, at most: a batch is cut into slices
+       * of this many, each one request, in the order of the texts.
+       */
+      textsPerRequest: number;
+      /**
+       * How many requests are made of the provider at once, however many
+       * resources are being indexed.
+       */
+      atOnce: number;
+    } };
+    /**
+     * How long each request has, counted from when it is sent and not from when
+     * its batch began. Asking a busy provider again is within it.
+     */
+    requestSeconds: number;
+    /**
+     * A request for the vectors of documents that the provider answers busy is
+     * asked again, after each wait in turn, while the request's own time allows
+     * the wait. A provider busy at every asking fails the request with that
+     * status. A query is asked once.
+     */
+    busy: {
+      /** The statuses by which a provider says it is busy. */
+      statuses: number[];
+      /** The wait before each asking again, in order. */
+      againAfterSeconds: number[];
+    };
+    /**
+     * How many times, at most, a starting service asks again a provider that
+     * answered 404, taken to be still fetching the model, or could not be
+     * reached, taken to be still starting: within the time the service has to
+     * start.
+     */
+    startAgain: number;
+  };
+  /**
    * What a person believed they were signing in to: the did and the name of the
    * row they clicked, or of the entry they signed in to again.
    */
@@ -8080,6 +8168,137 @@ export interface records {
    * (specs/src/bus/frame-cases.json).
    */
   FrameRefusalReason: 'lacks' | 'malformed';
+  /** gateway/media-token.json: what a media token is. */
+  GatewayMediaToken: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Its JOSE header, exactly. */
+    header: {
+      alg: 'HS256';
+      typ: 'JWT';
+    };
+    /** Its claims beside `iat` and `exp`, each filled as the table says. */
+    claims: {
+      purpose: 'media';
+      iss: '{domain}';
+      sub: '{resourceId}';
+    };
+    /** `exp` less `iat`. */
+    lifetimeSeconds: number;
+  };
+  /** gateway/messages.json: the words of the gateway's own refusals. */
+  GatewayMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each refusal the gateway makes itself. */
+    messages: {
+      /** The situation's name. */
+      name: string;
+      status: components['schemas']['HttpStatus'];
+      /**
+       * Its `code`, where it carries one: a LimitRefusal's, or the transport
+       * code errors/codes.json names for its status.
+       */
+      code?: string;
+      /**
+       * When the gateway answers it, and what fills each `{name}` of its texts.
+       */
+      situation: string;
+      /**
+       * Its text. A `{name}` in it is filled with what the row's `situation`
+       * names, and nothing else in it varies.
+       */
+      error: string;
+      /** Its `hint`, where it carries one. */
+      hint?: string;
+    }[];
+    /**
+     * Each failure frame the gateway delivers itself, on the stream of the
+     * client whose request it answers.
+     */
+    failures: {
+      /** The situation's name. */
+      name: string;
+      /** Its `code`. */
+      code: string;
+      /**
+       * When the gateway answers it, and what fills each `{name}` of its texts.
+       */
+      situation: string;
+      /**
+       * Its text. A `{name}` in it is filled with what the row's `situation`
+       * names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /** The `WWW-Authenticate` of a 401. */
+    challenges: {
+      /**
+       * For a request that presents no credential. The challenge. `{origin}` is
+       * the origin the Unauthorized response names: `http://` and the request's
+       * `Host`, or, for a request that names none, the gateway's `publicUrl`.
+       */
+      noCredential: string;
+      /**
+       * For a request whose credential, a bearer token or a media token, is
+       * refused. The challenge. `{origin}` is the origin the Unauthorized
+       * response names: `http://` and the request's `Host`, or, for a request
+       * that names none, the gateway's `publicUrl`.
+       */
+      refused: string;
+    };
+  };
+  /**
+   * gateway/response-headers.json: the headers on every response the gateway
+   * sends.
+   */
+  GatewayResponseHeaders: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each header every response carries, and its value. */
+    every: {
+      /**
+       * A header's name, as HTTP spells it; a receiver reads it in any case.
+       */
+      name: string;
+      /** Its value, exactly. */
+      value: string;
+    }[];
+    /** The header that names the request. */
+    requestId: string;
+    /** Each header no response carries. */
+    absent: string[];
+    /** How the gateway answers an `OPTIONS` request. */
+    preflight: {
+      status: components['schemas']['HttpStatus'];
+      /** Each header it carries beside those of `every`, and its value. */
+      headers: {
+        /**
+         * A header's name, as HTTP spells it; a receiver reads it in any case.
+         */
+        name: string;
+        /** Its value, exactly. */
+        value: string;
+      }[];
+      /**
+       * Each header it carries when the request carries the header it echoes,
+       * with that header's value.
+       */
+      echoes: {
+        /**
+         * A header's name, as HTTP spells it; a receiver reads it in any case.
+         */
+        name: string;
+        /** The request's header whose value it carries. */
+        of: string;
+      }[];
+      /**
+       * The value of the `Vary` it carries when it echoes a header: the request
+       * headers it echoes.
+       */
+      vary: string;
+    };
+  };
   /**
    * What gathering the context of a resource is told beside the resource:
    * GatherResourceRequestOptions, each member of which a caller may leave out.
@@ -8106,6 +8325,133 @@ export interface records {
      */
     excludeEntityTypes?: string[];
   };
+  /**
+   * graph/schema.json: the shape of the graph a store keeps, as a reader of the
+   * store finds it.
+   */
+  GraphSchema: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each kind of node the graph holds. */
+    nodes: {
+      /**
+       * A kind of node: its label, the codec row it holds, the property it is
+       * one of its kind by, and the properties a reader finds one by.
+       */
+      resource: {
+        /** Its label. */
+        label: string;
+        /**
+         * The part of graph/codec-cases.json whose `properties` and `json` are
+         * the node's properties. A node without one holds its key alone.
+         */
+        row?: string;
+        /** The property no two nodes of its kind share. */
+        key: string;
+        /**
+         * The properties other than its key that a reader finds a node of its
+         * kind by.
+         */
+        lookups: string[];
+      };
+      /**
+       * A kind of node: its label, the codec row it holds, the property it is
+       * one of its kind by, and the properties a reader finds one by.
+       */
+      annotation: {
+        /** Its label. */
+        label: string;
+        /**
+         * The part of graph/codec-cases.json whose `properties` and `json` are
+         * the node's properties. A node without one holds its key alone.
+         */
+        row?: string;
+        /** The property no two nodes of its kind share. */
+        key: string;
+        /**
+         * The properties other than its key that a reader finds a node of its
+         * kind by.
+         */
+        lookups: string[];
+      };
+      /**
+       * A kind of node: its label, the codec row it holds, the property it is
+       * one of its kind by, and the properties a reader finds one by.
+       */
+      entityType: {
+        /** Its label. */
+        label: string;
+        /**
+         * The part of graph/codec-cases.json whose `properties` and `json` are
+         * the node's properties. A node without one holds its key alone.
+         */
+        row?: string;
+        /** The property no two nodes of its kind share. */
+        key: string;
+        /**
+         * The properties other than its key that a reader finds a node of its
+         * kind by.
+         */
+        lookups: string[];
+      };
+    };
+    /** Each kind of relationship the graph holds. */
+    relationships: {
+      /**
+       * A kind of relationship: its type, the kind of node it goes from and the
+       * kind it goes to, and what it says.
+       */
+      belongsTo: {
+        /** Its type. */
+        type: string;
+        /** The kind of node it goes from, by its name under `nodes`. */
+        from: string;
+        /** The kind of node it goes to, by its name under `nodes`. */
+        to: string;
+        /** What one says. */
+        says: string;
+      };
+      /**
+       * A kind of relationship: its type, the kind of node it goes from and the
+       * kind it goes to, and what it says.
+       */
+      references: {
+        /** Its type. */
+        type: string;
+        /** The kind of node it goes from, by its name under `nodes`. */
+        from: string;
+        /** The kind of node it goes to, by its name under `nodes`. */
+        to: string;
+        /** What one says. */
+        says: string;
+      };
+      /**
+       * A kind of relationship: its type, the kind of node it goes from and the
+       * kind it goes to, and what it says.
+       */
+      taggedAs: {
+        /** Its type. */
+        type: string;
+        /** The kind of node it goes from, by its name under `nodes`. */
+        from: string;
+        /** The kind of node it goes to, by its name under `nodes`. */
+        to: string;
+        /** What one says. */
+        says: string;
+      };
+    };
+    /**
+     * A link's target the graph has not been given yet: a node of its kind that
+     * holds its key and the marker, `true`, and nothing else. A node without
+     * the marker is no stub.
+     */
+    stub: {
+      /** The kind of node a stub is, by its name under `nodes`. */
+      node: string;
+      /** The property that marks a stub. */
+      marker: string;
+    };
+  };
   /** The tokens an issuer issued at the end of a sign-in. */
   IssuedTokens: {
     /** The access token: short-lived, sent as a Bearer token. */
@@ -8129,6 +8475,47 @@ export interface records {
      */
     withinMs?: number;
   };
+  /** jobs/budgets.json: the retry budget of each job type. */
+  JobsBudgets: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** One row for each job type. */
+    budgets: {
+      jobType: components['schemas']['JobType'];
+      /**
+       * How many times a failed attempt of a job of this type may be retried:
+       * its record's `metadata.maxRetries`.
+       */
+      maxRetries: number;
+    }[];
+  };
+  /** jobs/storage.json: where the job queue keeps its state on the broker. */
+  JobsStorage: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** The work-queue stream every job is published into. */
+    stream: {
+      name: string;
+      /**
+       * The root of the subjects the stream captures: a job is published on
+       * `<subjectRoot>.<jobType>`.
+       */
+      subjectRoot: string;
+    };
+    /**
+     * The durable consumer that delivers each job to the dispatcher holding its
+     * lease.
+     */
+    consumer: {
+      durableName: string;
+    };
+    /** The KV bucket that keeps one record per job, keyed by the job's id. */
+    bucket: {
+      name: string;
+      /** The component schema each of the bucket's values is. */
+      record: string;
+    };
+  };
   /**
    * A different knowledge base answers at a registered address. Both dids,
    * because neither alone says what to do: a person has to recognise which
@@ -8146,20 +8533,17 @@ export interface records {
    * What a knowledge base said when it was asked to describe itself, read
    * against the entry it was asked as.
    */
-  KbReadVerdict:
-    | {
-        kind: records['KbReadKind'] & 'recorded';
-      }
-    | {
-        kind: records['KbReadKind'] & 'conflict';
-        /** The did the knowledge base that answered reported. */
-        observedDid: string;
-        /** The name the knowledge base that answered gave itself. */
-        observedName: string;
-      }
-    | {
-        kind: records['KbReadKind'] & 'no-verdict';
-      };
+  KbReadVerdict: {
+    kind: records['KbReadKind'] & 'recorded';
+  } | {
+    kind: records['KbReadKind'] & 'conflict';
+    /** The did the knowledge base that answered reported. */
+    observedDid: string;
+    /** The name the knowledge base that answered gave itself. */
+    observedName: string;
+  } | {
+    kind: records['KbReadKind'] & 'no-verdict';
+  };
   /**
    * What the credential stored for a knowledge base says, read without asking
    * anyone: `authenticated`, a token is stored and has not expired; `expired`,
@@ -8231,84 +8615,80 @@ export interface records {
    * apart by `anchorMethod`, one of AnchorMethod's words: a fuzzy match also
    * names its search, `matchQuality`, and no other states one.
    */
-  ReconciledSpan:
-    | {
-        /**
-         * The offset the span starts at, in Unicode code points from the text's
-         * start.
-         */
-        start: number;
-        /**
-         * The offset just past the span, in Unicode code points from the text's
-         * start.
-         */
-        end: number;
-        /** The words quoted. */
-        exact: string;
-        /** The text just before them. */
-        prefix?: string;
-        /** The text just after them. */
-        suffix?: string;
-        anchorMethod: 'unique-match';
-      }
-    | {
-        /**
-         * The offset the span starts at, in Unicode code points from the text's
-         * start.
-         */
-        start: number;
-        /**
-         * The offset just past the span, in Unicode code points from the text's
-         * start.
-         */
-        end: number;
-        /** The words quoted. */
-        exact: string;
-        /** The text just before them. */
-        prefix?: string;
-        /** The text just after them. */
-        suffix?: string;
-        anchorMethod: 'context-recovered';
-      }
-    | {
-        /**
-         * The offset the span starts at, in Unicode code points from the text's
-         * start.
-         */
-        start: number;
-        /**
-         * The offset just past the span, in Unicode code points from the text's
-         * start.
-         */
-        end: number;
-        /** The words quoted. */
-        exact: string;
-        /** The text just before them. */
-        prefix?: string;
-        /** The text just after them. */
-        suffix?: string;
-        anchorMethod: 'first-of-many';
-      }
-    | {
-        /**
-         * The offset the span starts at, in Unicode code points from the text's
-         * start.
-         */
-        start: number;
-        /**
-         * The offset just past the span, in Unicode code points from the text's
-         * start.
-         */
-        end: number;
-        /** The words quoted. */
-        exact: string;
-        /** The text just before them. */
-        prefix?: string;
-        /** The text just after them. */
-        suffix?: string;
-        anchorMethod: 'fuzzy-match';
-        matchQuality: records['MatchQuality'];
-      };
+  ReconciledSpan: {
+    /**
+     * The offset the span starts at, in Unicode code points from the text's
+     * start.
+     */
+    start: number;
+    /**
+     * The offset just past the span, in Unicode code points from the text's
+     * start.
+     */
+    end: number;
+    /** The words quoted. */
+    exact: string;
+    /** The text just before them. */
+    prefix?: string;
+    /** The text just after them. */
+    suffix?: string;
+    anchorMethod: 'unique-match';
+  } | {
+    /**
+     * The offset the span starts at, in Unicode code points from the text's
+     * start.
+     */
+    start: number;
+    /**
+     * The offset just past the span, in Unicode code points from the text's
+     * start.
+     */
+    end: number;
+    /** The words quoted. */
+    exact: string;
+    /** The text just before them. */
+    prefix?: string;
+    /** The text just after them. */
+    suffix?: string;
+    anchorMethod: 'context-recovered';
+  } | {
+    /**
+     * The offset the span starts at, in Unicode code points from the text's
+     * start.
+     */
+    start: number;
+    /**
+     * The offset just past the span, in Unicode code points from the text's
+     * start.
+     */
+    end: number;
+    /** The words quoted. */
+    exact: string;
+    /** The text just before them. */
+    prefix?: string;
+    /** The text just after them. */
+    suffix?: string;
+    anchorMethod: 'first-of-many';
+  } | {
+    /**
+     * The offset the span starts at, in Unicode code points from the text's
+     * start.
+     */
+    start: number;
+    /**
+     * The offset just past the span, in Unicode code points from the text's
+     * start.
+     */
+    end: number;
+    /** The words quoted. */
+    exact: string;
+    /** The text just before them. */
+    prefix?: string;
+    /** The text just after them. */
+    suffix?: string;
+    anchorMethod: 'fuzzy-match';
+    matchQuality: records['MatchQuality'];
+  };
   /**
    * What a text search for resources is told beside its text:
    * MatchResourcesRequest's other members. client/surface.json's
@@ -8324,6 +8704,267 @@ export interface records {
     offset?: number;
     /** The most resources a page has. */
     limit?: number;
+  };
+  /**
+   * retry/rules.json: what each of the four retry rules retries, as sets.
+   * retry/cases.json's rows are examples of them.
+   */
+  RetryRules: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** A boot pass or a bus request, asked about a response's status. */
+    boot: {
+      /** The statuses the rule retries, in ascending order. */
+      statuses: components['schemas']['HttpStatus'][];
+    };
+    /** A job's retry budget, asked about a response's status. */
+    job: {
+      /** The statuses the rule retries, in ascending order. */
+      statuses: components['schemas']['HttpStatus'][];
+      /**
+       * Every status at or above this one is retried too. It is above every
+       * status of `statuses`.
+       */
+      statusFrom: components['schemas']['HttpStatus'];
+    };
+    /**
+     * An HTTP client's request, asked about a response's status, the request's
+     * method, and whether it carries an `Idempotency-Key`. It is retried at one
+     * of `statuses` when it carries a key or its method is one of
+     * `idempotentMethods`, and at no other status.
+     */
+    transport: {
+      /** The statuses the rule retries, in ascending order. */
+      statuses: components['schemas']['HttpStatus'][];
+      /**
+       * The methods a repeat of which cannot cause a second effect (RFC 9110 §
+       * 9.2.2), in capitals. A request's method is read in any case.
+       */
+      idempotentMethods: string[];
+    };
+    /**
+     * Exchanging a refresh token at its issuer, asked about the issuer's
+     * answer.
+     */
+    refresh: {
+      /** The statuses the rule retries, in ascending order. */
+      statuses: components['schemas']['HttpStatus'][];
+      /**
+       * Every status at or above this one is retried too. It is above every
+       * status of `statuses`.
+       */
+      statusFrom: components['schemas']['HttpStatus'];
+      /**
+       * Whether the exchange is retried when the issuer gave no answer at all.
+       */
+      noResponse: boolean;
+    };
+  };
+  /**
+   * service-environment/boot-refusals.json: what a service writes when it
+   * refuses to start on its configuration document or its environment.
+   */
+  ServiceEnvironmentBootRefusals: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** The services that refuse to start so. */
+    services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+    /**
+     * The one line the service writes to stderr, its refusal in place of
+     * `{refusal}`, before it exits.
+     */
+    line: string;
+    /** The status it exits with. */
+    exitCode: number;
+    /** Each refusal. */
+    refusals: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * Its text. A `{name}` in it is filled with what the row's `situation`
+       * names, and nothing else in it varies.
+       */
+      refusal: string;
+    }[];
+    /**
+     * Each line of the refusal `invalid`: one for each way the document is not
+     * its schema's.
+     */
+    members: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /** The line, filled as the row's `situation` says. */
+      line: string;
+    }[];
+  };
+  /**
+   * service-environment/variables.json: every environment variable a Xynolog
+   * service reads, beside its configuration document.
+   */
+  ServiceEnvironmentVariables: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    variables: {
+      /** The variable's name. */
+      name: string;
+      /** The services that read it. */
+      services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+      /** What reads it: the service's own code, or the OpenTelemetry SDK. */
+      readBy: 'service' | 'opentelemetry';
+      /** What sets it where the launcher runs the service. */
+      providedBy: 'launcher' | 'image' | 'operator';
+      /** Whether the service refuses to start without it. */
+      required: boolean;
+      /** What it does. */
+      effect: string;
+    }[];
+  };
+  /**
+   * service-telemetry/log-lines.json: the lines a service writes to its log,
+   * and the line of its supervisor it counts.
+   */
+  ServiceTelemetryLogLines: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** The lines of a service's logger. */
+    logger: {
+      /** The services whose document names a LogFormat. */
+      services: ('archivist' | 'dispatcher' | 'gateway')[];
+      /** A line of the `json` format. */
+      json: {
+        /** Its first members, in order. */
+        first: string[];
+        /**
+         * The member that names the request a line was logged while answering.
+         */
+        requestId: string;
+        /** The members that name the active trace and span, in that order. */
+        trace: string[];
+        /** Its last member: the moment. */
+        last: string;
+      };
+      /** A line of the `simple` format. */
+      simple: string;
+    };
+    /** A line of the bus log. */
+    bus: {
+      /** Its head. */
+      line: string;
+      /** What follows the head, in order, each where there is one. */
+      parts: {
+        /** What it shows. */
+        part: string;
+        /** Its text. */
+        text: string;
+        /** How many characters of it are shown, from its first. */
+        characters?: number;
+      }[];
+      /** Each operation a line names. */
+      ops: string[];
+    };
+    /** The line the supervisor writes when it starts a service. */
+    supervisor: {
+      /** The line. */
+      line: string;
+      /**
+       * What a service counts the lines that hold of, for each of its lives.
+       */
+      counted: string;
+    };
+  };
+  /**
+   * service-telemetry/telemetry.json: the telemetry each Xynolog service
+   * exports over OTLP: its spans and metrics, the services that export each,
+   * and the attributes each carries.
+   */
+  ServiceTelemetryTelemetry: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * The services that reach the bus through an SDK, and for each the SDK
+     * transports it uses, or of a transport it uses part of, the rows it
+     * exports.
+     */
+    sdk: { [key: string]: string[] };
+    resource: {
+      /** The attribute's key. */
+      key: string;
+      /** The services that export the row. */
+      services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+      /** What the attribute says. */
+      meaning: string;
+      /**
+       * Its value when nothing says another, with `{service}` the service's
+       * name.
+       */
+      default?: string;
+    }[];
+    spans: {
+      /**
+       * The row's name; `{channel}` in it is the bus channel, and `{jobType}`
+       * the job's type.
+       */
+      name: string;
+      /** The services that export the row. */
+      services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+      /** The span's kind, in OTLP's words. */
+      kind: 'client' | 'consumer' | 'internal' | 'producer' | 'server';
+      /** When the row arrives. */
+      when: 'export' | 'traffic' | 'supervised' | 'fatal';
+      /** What the row says. */
+      meaning: string;
+      /** The attributes the span carries. */
+      attributes: {
+        /** The attribute's key. */
+        key: string;
+        /**
+         * When alone the attribute is carried: a row's attribute without it is
+         * carried every time.
+         */
+        only?: string;
+        /**
+         * The only values it carries, each of the type it is carried as: a
+         * string or a boolean.
+         */
+        values?: (string | boolean)[];
+      }[];
+    }[];
+    metrics: {
+      /**
+       * The row's name; `{channel}` in it is the bus channel, and `{jobType}`
+       * the job's type.
+       */
+      name: string;
+      /** The services that export the row. */
+      services: ('archivist' | 'dispatcher' | 'gateway' | 'librarian' | 'smelter' | 'weaver' | 'worker')[];
+      /** The metric's instrument. */
+      instrument: 'counter' | 'up-down counter' | 'gauge' | 'histogram';
+      /** When the row arrives. */
+      when: 'export' | 'traffic' | 'supervised' | 'fatal';
+      /** The only signal planes a gateway row arrives on. */
+      planes?: ('in-process' | 'nats')[];
+      /** What the row says. */
+      meaning: string;
+      /** The attributes the span carries. */
+      attributes: {
+        /** The attribute's key. */
+        key: string;
+        /**
+         * When alone the attribute is carried: a row's attribute without it is
+         * carried every time.
+         */
+        only?: string;
+        /**
+         * The only values it carries, each of the type it is carried as: a
+         * string or a boolean.
+         */
+        values?: (string | boolean)[];
+      }[];
+    }[];
   };
   /**
    * Why a session ended: `expired`, the issuer refused to renew its token;
@@ -8378,6 +9019,56 @@ export interface records {
     expectedName?: string;
   };
   /**
+   * smelter/messages.json: the words of the Smelter's refusals, and of the
+   * messages it logs that a reader relies on.
+   */
+  SmelterMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /** Each refusal of an operation, on the operation's failure channel. */
+    refusals: {
+      /** The situation's name. */
+      name: string;
+      /**
+       * The operation it refuses: a request of bus/registry.json's operations
+       * that the Smelter answers.
+       */
+      operation: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The failure's `message`. A `{name}` in it is filled with what the row's
+       * `situation` names, and nothing else in it varies.
+       */
+      message: string;
+    }[];
+    /** Each message the Smelter logs that a reader of its output relies on. */
+    logged: {
+      /** The situation's name. */
+      name: string;
+      level: components['schemas']['LogLevel'];
+      /**
+       * When it is written, what fills each `{name}` of its fields, and what
+       * each fact it carries says.
+       */
+      situation: string;
+      /** The line's message, word for word. */
+      message: string;
+      /**
+       * The facts the line is logged with whose form is stated, by name: each a
+       * text whose `{name}` is filled as the row's `situation` says. A fact
+       * that is a number is its decimal digits.
+       */
+      fields: { [key: string]: string };
+      /**
+       * The facts the line is logged with beside `fields`, whose value the
+       * row's `situation` says and whose form is not stated. The line may carry
+       * others.
+       */
+      carries: string[];
+    }[];
+  };
+  /**
    * What is kept of a sign-in: the tokens an issuer issued, the client they
    * were issued to, and the issuer's endpoints a renewal and a sign-out need,
    * learned once at sign-in so no session asks again. TOKENS, never a password.
@@ -8421,22 +9112,19 @@ export interface records {
    * transport, a timeout and a peer that is down are each `unknown`, and an
    * unknown resource stays open.
    */
-  TabCheck:
-    | {
-        verdict: records['TabVerdict'] & 'gone';
-      }
-    | {
-        verdict: records['TabVerdict'] & 'ready';
-        /** The name the knowledge base gave the resource. */
-        name: string;
-        /**
-         * The media type of its primary representation. Absent when it said none.
-         */
-        mediaType?: string;
-      }
-    | {
-        verdict: records['TabVerdict'] & 'unknown';
-      };
+  TabCheck: {
+    verdict: records['TabVerdict'] & 'gone';
+  } | {
+    verdict: records['TabVerdict'] & 'ready';
+    /** The name the knowledge base gave the resource. */
+    name: string;
+    /**
+     * The media type of its primary representation. Absent when it said none.
+     */
+    mediaType?: string;
+  } | {
+    verdict: records['TabVerdict'] & 'unknown';
+  };
   /** What checking an open resource against its knowledge base concluded. */
   TabVerdict: 'gone' | 'ready' | 'unknown';
   /**
@@ -8466,25 +9154,160 @@ export interface records {
    * What an upload reports as it goes, told apart by `phase`: its size first,
    * then the bytes sent so far, then the resource made.
    */
-  UploadProgress:
-    | {
-        phase: 'started';
-        /** How many bytes the upload is. */
-        totalBytes: number;
-      }
-    | {
-        phase: 'progress';
-        /** How many bytes are sent so far. */
-        bytesUploaded: number;
-        /** How many bytes the upload is. */
-        totalBytes: number;
-      }
-    | {
-        phase: 'finished';
-        resourceId: components['schemas']['ResourceId'];
-      };
+  UploadProgress: {
+    phase: 'started';
+    /** How many bytes the upload is. */
+    totalBytes: number;
+  } | {
+    phase: 'progress';
+    /** How many bytes are sent so far. */
+    bytesUploaded: number;
+    /** How many bytes the upload is. */
+    totalBytes: number;
+  } | {
+    phase: 'finished';
+    resourceId: components['schemas']['ResourceId'];
+  };
+  /**
+   * worker/answer-formats.json: the element of the array each kind of detection
+   * asks a model for.
+   */
+  WorkerAnswerFormats: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    formats: {
+      /** A motivation a `mark` job takes, or `count`. */
+      name: string;
+      /** What an element is, in prose. */
+      about: string;
+      element: unknown;
+    }[];
+  };
+  /**
+   * worker/messages.json: the words of a Worker service's refusals to start, of
+   * the errors it fails a job with, and of the messages it logs that a reader
+   * relies on.
+   */
+  WorkerMessages: {
+    /** The rule the table states, in prose. */
+    $comment: string;
+    /**
+     * Each refusal to start, written in
+     * service-environment/boot-refusals.json's `line`.
+     */
+    boot: ({
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The refusal, in place of the line's `{refusal}`. A `{name}` in it is
+       * filled with what the row's `situation` names, and nothing else in it
+       * varies.
+       */
+      refusal: string;
+    } | {
+      /** The situation's name. */
+      name: string;
+      /** When it is written. What fills its text is the shared row's. */
+      situation: string;
+      /**
+       * The `name` of the row of service-environment/boot-refusals.json's
+       * `refusals` that is this refusal, with `{service}` `worker` and
+       * `{schema}` `WorkerConfig`.
+       */
+      bootRefusal: string;
+    })[];
+    /** Each line of the `{reasons}` of `invalid`. */
+    reasons: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The line, indented by two spaces. A `{name}` in it is filled with what
+       * the row's `situation` names, and nothing else in it varies.
+       */
+      line: string;
+    }[];
+    /**
+     * How an error names the job, by its type, as `{job}`: `{motivation}` is a
+     * mark job's motivation.
+     */
+    job: {
+      mark: string;
+      yield: string;
+    };
+    /**
+     * Each error a job is failed with that is the worker's own: the `error` of
+     * its `job:fail`.
+     */
+    errors: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The error. `{job}` in it is the job, as `job` names it. A `{name}` in
+       * it is filled with what the row's `situation` names, and nothing else in
+       * it varies.
+       */
+      error: string;
+    }[];
+    /** Each `{detail}` of `unreadable`. */
+    details: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The detail. A `{name}` in it is filled with what the row's `situation`
+       * names, and nothing else in it varies.
+       */
+      detail: string;
+    }[];
+    /** Each `{said}` of `wait-stated`. */
+    waits: {
+      /** The situation's name. */
+      name: string;
+      /** When it is written, and what fills each `{name}` of its text. */
+      situation: string;
+      /**
+       * The wait, as the header stated it. A `{name}` in it is filled with what
+       * the row's `situation` names, and nothing else in it varies.
+       */
+      said: string;
+    }[];
+    /**
+     * Each message a Worker service logs that a reader of its output relies on.
+     */
+    logged: {
+      /** The situation's name. */
+      name: string;
+      level: components['schemas']['LogLevel'];
+      /**
+       * When it is written, what fills each `{name}` of its fields, and what
+       * each fact it carries says.
+       */
+      situation: string;
+      /** The line's message, word for word. */
+      message: string;
+      /**
+       * The facts the line is logged with whose form is stated, by name: each a
+       * text whose `{name}` is filled as the row's `situation` says. A fact
+       * that is a number is its decimal digits.
+       */
+      fields: { [key: string]: string };
+      /**
+       * The facts the line is logged with beside `fields`, whose value the
+       * row's `situation` says and whose form is not stated. The line may carry
+       * others.
+       */
+      carries: string[];
+    }[];
+  };
   /** Why no launcher was found. */
-  DiscoveryAbsentReason:
+  DiscoveryAbsentReason: 
     /**
      * There is no document where it was looked for: no file, an HTTP status
      * that is not success, or a page that is not JSON.

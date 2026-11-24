@@ -14,6 +14,9 @@ import type { components, records } from './types';
 
 export type Selector = components['schemas']['Selector'];
 
+/** Where a clicked annotation's element is on the viewer's screen. */
+export type AnchorRect = components['schemas']['AnchorRect'];
+
 /** One of an annotation's bodies, and one change to its list of bodies. */
 export type AnnotationBody = components['schemas']['AnnotationBody'];
 export type BodyOperation = components['schemas']['BodyOperation'];

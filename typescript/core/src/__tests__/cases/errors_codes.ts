@@ -4,7 +4,10 @@
 // Regenerate:  make generate  (codegen/lib/case_data/typescript.ml)
 
 export type CommandErrorCode =
-  'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+  | 'peer-unavailable'
+  | 'not-found'
+  | 'unauthorized'
+  | 'none-pending';
 
 export type CodesItem = {
   code: string;
@@ -35,7 +38,10 @@ export type NoStatus = {
   docs: string;
 };
 
-export type TransportCodesItem = Status | StatusFrom | NoStatus;
+export type TransportCodesItem =
+  | Status
+  | StatusFrom
+  | NoStatus;
 
 export type Transport = {
   docs: string;
@@ -66,328 +72,327 @@ export type Table = {
 };
 
 export const table: Table = {
-  $comment:
-    'AUTHORITY for the error codes a Xynolog client reports. Every SDK generates its code types and its classifiers from this file, so a code means one thing in every language. TypeScript: the consumer-owned generator writes sdk/typescript/core/src/error-codes.ts. A code belongs here only when something produces it: a member nothing emits promises a distinction the system does not make.',
-  busRequest: {
-    docs: "Why a bus request did not resolve. Some members restate a failure the answering peer declared on the wire (`wire` names its `CommandError.code`); the rest are facts only the requesting side knows, which is why this vocabulary and the wire's stay separate.",
-    unrecognizedFailure: 'bus.rejected',
-    codes: [
+  "$comment": "AUTHORITY for the error codes a Xynolog client reports. Every SDK generates its code types and its classifiers from this file, so a code means one thing in every language. TypeScript: the consumer-owned generator writes sdk/typescript/core/src/error-codes.ts. A code belongs here only when something produces it: a member nothing emits promises a distinction the system does not make.",
+  "busRequest": {
+    "docs": "Why a bus request did not resolve. Some members restate a failure the answering peer declared on the wire (`wire` names its `CommandError.code`); the rest are facts only the requesting side knows, which is why this vocabulary and the wire's stay separate.",
+    "unrecognizedFailure": "bus.rejected",
+    "codes": [
       {
-        code: 'bus.timeout',
-        docs: 'No reply arrived within the time the request allowed.',
+        "code": "bus.timeout",
+        "docs": "No reply arrived within the time the request allowed."
       },
       {
-        code: 'bus.rejected',
-        docs: 'The peer answered with a failure that states no code, or one CommandError does not list, which is read as none.',
+        "code": "bus.rejected",
+        "docs": "The peer answered with a failure that states no code, or one CommandError does not list, which is read as none."
       },
       {
-        code: 'bus.closed',
-        docs: 'The bus stopped before a reply came: its client was disposed, or its transport closed.',
+        "code": "bus.closed",
+        "docs": "The bus stopped before a reply came: its client was disposed, or its transport closed."
       },
       {
-        code: 'bus.not-found',
-        docs: 'The peer says this resource does not exist in its knowledge base.',
-        wire: 'not-found',
+        "code": "bus.not-found",
+        "docs": "The peer says this resource does not exist in its knowledge base.",
+        "wire": "not-found"
       },
       {
-        code: 'bus.unsubscribed',
-        docs: 'THIS transport is not subscribed to the reply channel: a local misconfiguration, caught before emitting. Not to be confused with `bus.peer-unavailable`, which is the opposite end.',
+        "code": "bus.unsubscribed",
+        "docs": "THIS transport is not subscribed to the reply channel: a local misconfiguration, caught before emitting. Not to be confused with `bus.peer-unavailable`, which is the opposite end."
       },
       {
-        code: 'bus.peer-unavailable',
-        docs: 'The service that answers this channel is not connected. Transient by nature, a peer still starting, and therefore the one failure on this list worth retrying.',
-        wire: 'peer-unavailable',
+        "code": "bus.peer-unavailable",
+        "docs": "The service that answers this channel is not connected. Transient by nature, a peer still starting, and therefore the one failure on this list worth retrying.",
+        "wire": "peer-unavailable"
       },
       {
-        code: 'bus.unauthorized',
-        docs: 'The peer says this caller may not do what it asked: authenticated, not permitted. Retrying under the same credential cannot succeed, so a consumer surfaces it and never spins on it.',
-        wire: 'unauthorized',
+        "code": "bus.unauthorized",
+        "docs": "The peer says this caller may not do what it asked: authenticated, not permitted. Retrying under the same credential cannot succeed, so a consumer surfaces it and never spins on it.",
+        "wire": "unauthorized"
       },
       {
-        code: 'bus.none-pending',
-        docs: 'The peer declined and nothing went wrong: a `job:claim` found no pending job of the requested types. The one member a consumer parks on.',
-        wire: 'none-pending',
-      },
-    ],
+        "code": "bus.none-pending",
+        "docs": "The peer declined and nothing went wrong: a `job:claim` found no pending job of the requested types. The one member a consumer parks on.",
+        "wire": "none-pending"
+      }
+    ]
   },
-  transport: {
-    docs: 'Transport-neutral failure vocabulary. Every transport maps its native failures to one of these, so a routing layer matches on the code without knowing the wire kind. Over HTTP the mapping is by status: `status` is an exact status, `statusFrom` every status at or above it.',
-    unclassified: 'error',
-    codes: [
+  "transport": {
+    "docs": "Transport-neutral failure vocabulary. Every transport maps its native failures to one of these, so a routing layer matches on the code without knowing the wire kind. Over HTTP the mapping is by status: `status` is an exact status, `statusFrom` every status at or above it.",
+    "unclassified": "error",
+    "codes": [
       {
-        code: 'unauthorized',
-        docs: 'Authentication is required: the token is missing, expired, or refused. A 429 whose `code` is `refusal-rate` refuses the token too, and is reported as this code with its own status.',
-        status: 401,
+        "code": "unauthorized",
+        "docs": "Authentication is required: the token is missing, expired, or refused. A 429 whose `code` is `refusal-rate` refuses the token too, and is reported as this code with its own status.",
+        "status": 401
       },
       {
-        code: 'forbidden',
-        docs: 'Authenticated, and lacking permission.',
-        status: 403,
+        "code": "forbidden",
+        "docs": "Authenticated, and lacking permission.",
+        "status": 403
       },
       {
-        code: 'not-found',
-        docs: 'The resource is missing.',
-        status: 404,
+        "code": "not-found",
+        "docs": "The resource is missing.",
+        "status": 404
       },
       {
-        code: 'conflict',
-        docs: 'A concurrent modification, a duplicate, or another conflict with current state.',
-        status: 409,
+        "code": "conflict",
+        "docs": "A concurrent modification, a duplicate, or another conflict with current state.",
+        "status": 409
       },
       {
-        code: 'bad-request',
-        docs: 'The request is malformed.',
-        status: 400,
+        "code": "bad-request",
+        "docs": "The request is malformed.",
+        "status": 400
       },
       {
-        code: 'unprocessable',
-        docs: 'The request is well formed and cannot be carried out as it stands: an `Idempotency-Key` used for two different requests. Sent again, it is refused again.',
-        status: 422,
+        "code": "unprocessable",
+        "docs": "The request is well formed and cannot be carried out as it stands: an `Idempotency-Key` used for two different requests. Sent again, it is refused again.",
+        "status": 422
       },
       {
-        code: 'rate-limited',
-        docs: "A limit refused it; the refusal's `Retry-After` says when to return.",
-        status: 429,
+        "code": "rate-limited",
+        "docs": "A limit refused it; the refusal's `Retry-After` says when to return.",
+        "status": 429
       },
       {
-        code: 'unavailable',
-        docs: 'The gateway is unreachable, the network failed, or the server answered 5xx.',
-        statusFrom: 500,
+        "code": "unavailable",
+        "docs": "The gateway is unreachable, the network failed, or the server answered 5xx.",
+        "statusFrom": 500
       },
       {
-        code: 'error',
-        docs: 'A failure no other member names.',
-      },
-    ],
+        "code": "error",
+        "docs": "A failure no other member names."
+      }
+    ]
   },
-  job: {
-    docs: 'Why a job its client follows ended without a result. A failure the queue will retry is not one of these: the job goes on, and its follower is told of the setback and keeps following.',
-    codes: [
+  "job": {
+    "docs": "Why a job its client follows ended without a result. A failure the queue will retry is not one of these: the job goes on, and its follower is told of the setback and keeps following.",
+    "codes": [
       {
-        code: 'job.failed',
-        docs: 'The job failed and will not be tried again: the failure its worker reported, or the one its status states.',
+        "code": "job.failed",
+        "docs": "The job failed and will not be tried again: the failure its worker reported, or the one its status states."
       },
       {
-        code: 'job.cancelled',
-        docs: "The job was cancelled before it ended, as its status states. Nothing announces a cancellation: its follower learns of it when it asks for the job's status.",
+        "code": "job.cancelled",
+        "docs": "The job was cancelled before it ended, as its status states. Nothing announces a cancellation: its follower learns of it when it asks for the job's status."
       },
       {
-        code: 'job.stalled',
-        docs: 'The job said nothing for longer than its follower allows. The follower has asked for that job to be cancelled.',
-      },
-    ],
+        "code": "job.stalled",
+        "docs": "The job said nothing for longer than its follower allows. The follower has asked for that job to be cancelled."
+      }
+    ]
   },
-  session: {
-    docs: 'Why a session itself is unusable, or what its client keeps could not be kept or written. Per-request failures stay with their caller.',
-    codes: [
+  "session": {
+    "docs": "Why a session itself is unusable, or what its client keeps could not be kept or written. Per-request failures stay with their caller.",
+    "codes": [
       {
-        code: 'session.construct-failed',
-        docs: 'A session for the knowledge base could not be built or made ready.',
+        "code": "session.construct-failed",
+        "docs": "A session for the knowledge base could not be built or made ready."
       },
       {
-        code: 'session.auth-failed',
-        docs: 'The stored credential could not be validated at startup, for a reason other than the gateway refusing it.',
+        "code": "session.auth-failed",
+        "docs": "The stored credential could not be validated at startup, for a reason other than the gateway refusing it."
       },
       {
-        code: 'session.refresh-exhausted',
-        docs: 'The session could not be renewed: the issuer refused, or stayed unreachable until the retry budget was spent. Not a prompt to retry: retrying already happened.',
+        "code": "session.refresh-exhausted",
+        "docs": "The session could not be renewed: the issuer refused, or stayed unreachable until the retry budget was spent. Not a prompt to retry: retrying already happened."
       },
       {
-        code: 'session.credential-refused',
-        docs: 'The gateway refused a token the issuer had just issued. The two disagree about who may sign in, and renewing again cannot change the answer: the session is over, and signing in again is what is left.',
+        "code": "session.credential-refused",
+        "docs": "The gateway refused a token the issuer had just issued. The two disagree about who may sign in, and renewing again cannot change the answer: the session is over, and signing in again is what is left."
       },
       {
-        code: 'session.keep-failed',
-        docs: 'The sign-in the session holds could not be read before its client saved what it keeps, or could not record the person the gateway named, so it is not known to name the person that is kept for: the client keeps nothing more for the rest of its life. The session itself goes on, and says so once on its errors stream.',
+        "code": "session.keep-failed",
+        "docs": "The sign-in the session holds could not be read before its client saved what it keeps, or could not record the person the gateway named, so it is not known to name the person that is kept for: the client keeps nothing more for the rest of its life. The session itself goes on, and says so once on its errors stream."
       },
       {
-        code: 'session.save-refused',
-        docs: "The storage refused a write of what the session's client keeps. The save stays owed: the client's next change, or its closing, writes it again, and what its closing cannot write is lost. The session says so on its errors stream once for each write the storage refuses, with what the storage said, a refusal of its closing among them, before the stream ends. The session itself goes on.",
-      },
-    ],
+        "code": "session.save-refused",
+        "docs": "The storage refused a write of what the session's client keeps. The save stays owed: the client's next change, or its closing, writes it again, and what its closing cannot write is lost. The session says so on its errors stream once for each write the storage refuses, with what the storage said, a refusal of its closing among them, before the stream ends. The session itself goes on."
+      }
+    ]
   },
-  signIn: {
-    docs: 'Why a person could not be signed in at the issuer a knowledge base trusts, or a session could not be renewed there. Over the authorization-code grant, the device grant, the refresh grant and revocation alike.',
-    codes: [
+  "signIn": {
+    "docs": "Why a person could not be signed in at the issuer a knowledge base trusts, or a session could not be renewed there. Over the authorization-code grant, the device grant, the refresh grant and revocation alike.",
+    "codes": [
       {
-        code: 'no-issuer',
-        docs: 'The knowledge base trusts no external issuer: there is nowhere to sign in.',
+        "code": "no-issuer",
+        "docs": "The knowledge base trusts no external issuer: there is nowhere to sign in."
       },
       {
-        code: 'discovery',
-        docs: 'The knowledge base did not say which issuer it trusts, or the issuer did not describe itself, or described another issuer, or offers no endpoint the grant needs.',
+        "code": "discovery",
+        "docs": "The knowledge base did not say which issuer it trusts, or the issuer did not describe itself, or described another issuer, or offers no endpoint the grant needs."
       },
       {
-        code: 'no-pending',
-        docs: 'A sign-in response arrived and no sign-in is pending here: it was completed already, or begun somewhere else.',
+        "code": "no-pending",
+        "docs": "A sign-in response arrived and no sign-in is pending here: it was completed already, or begun somewhere else."
       },
       {
-        code: 'state',
-        docs: 'The sign-in response does not belong to the pending sign-in.',
+        "code": "state",
+        "docs": "The sign-in response does not belong to the pending sign-in."
       },
       {
-        code: 'denied',
-        docs: 'The person, or the issuer, refused the sign-in.',
+        "code": "denied",
+        "docs": "The person, or the issuer, refused the sign-in."
       },
       {
-        code: 'expired',
-        docs: 'The device code ran out before it was approved.',
+        "code": "expired",
+        "docs": "The device code ran out before it was approved."
       },
       {
-        code: 'aborted',
-        docs: 'The sign-in was abandoned by whoever began it.',
+        "code": "aborted",
+        "docs": "The sign-in was abandoned by whoever began it."
       },
       {
-        code: 'exchange',
-        docs: 'The issuer refused a token request, a device authorization or a revocation, or answered without what was asked for.',
-      },
-    ],
+        "code": "exchange",
+        "docs": "The issuer refused a token request, a device authorization or a revocation, or answered without what was asked for."
+      }
+    ]
   },
-  kbIdentity: {
-    docs: 'Why a knowledge base that was reached with a fresh sign-in could not be registered: it has to say who it is, and nothing stands in for its answer.',
-    codes: [
+  "kbIdentity": {
+    "docs": "Why a knowledge base that was reached with a fresh sign-in could not be registered: it has to say who it is, and nothing stands in for its answer.",
+    "codes": [
       {
-        code: 'unreachable',
-        docs: 'The knowledge base was not reached, so it said nothing.',
+        "code": "unreachable",
+        "docs": "The knowledge base was not reached, so it said nothing."
       },
       {
-        code: 'not-reported',
-        docs: 'The knowledge base answered that it cannot say what it is.',
-      },
-    ],
+        "code": "not-reported",
+        "docs": "The knowledge base answered that it cannot say what it is."
+      }
+    ]
   },
-  spanRefusal: {
-    docs: "Why no annotation was built of a span: the span is not the text's, or, for a PDF, is nowhere on its pages, or the PDF's anchored text does not hold together. specs/src/annotations/builder-cases.json holds when each is given.",
-    codes: [
+  "spanRefusal": {
+    "docs": "Why no annotation was built of a span: the span is not the text's, or, for a PDF, is nowhere on its pages, or the PDF's anchored text does not hold together. specs/src/annotations/builder-cases.json holds when each is given.",
+    "codes": [
       {
-        code: 'span-out-of-range',
-        docs: "The span's offsets are not two whole numbers from 0, the second no less than the first, within the text.",
+        "code": "span-out-of-range",
+        "docs": "The span's offsets are not two whole numbers from 0, the second no less than the first, within the text."
       },
       {
-        code: 'exact-mismatch',
-        docs: 'The words the span states are not the text between its offsets.',
+        "code": "exact-mismatch",
+        "docs": "The words the span states are not the text between its offsets."
       },
       {
-        code: 'prefix-mismatch',
-        docs: 'The prefix the span states is not the text just before it.',
+        "code": "prefix-mismatch",
+        "docs": "The prefix the span states is not the text just before it."
       },
       {
-        code: 'suffix-mismatch',
-        docs: 'The suffix the span states is not the text just after it.',
+        "code": "suffix-mismatch",
+        "docs": "The suffix the span states is not the text just after it."
       },
       {
-        code: 'nothing-located',
-        docs: "No item of the PDF's anchored text holds any of the span, so it is nowhere on a page.",
+        "code": "nothing-located",
+        "docs": "No item of the PDF's anchored text holds any of the span, so it is nowhere on a page."
       },
       {
-        code: 'exact-not-covered',
-        docs: "The items of the PDF's anchored text that hold the span do not have its words.",
+        "code": "exact-not-covered",
+        "docs": "The items of the PDF's anchored text that hold the span do not have its words."
       },
       {
-        code: 'item-out-of-range',
-        docs: "An item of the PDF's anchored text is no stretch of that text: its offsets are not two whole numbers from 0, the second no less than the first, within the text. This one is said of the anchored text and not of the span: the items are what say where the text is on a page, and no span is built on an anchored text one of whose items cannot be.",
-      },
-    ],
+        "code": "item-out-of-range",
+        "docs": "An item of the PDF's anchored text is no stretch of that text: its offsets are not two whole numbers from 0, the second no less than the first, within the text. This one is said of the anchored text and not of the span: the items are what say where the text is on a page, and no span is built on an anchored text one of whose items cannot be."
+      }
+    ]
   },
-  control: {
-    docs: "Why a request of the launcher's control API (`xynolog control`, contract/LAUNCHER-CONTROL.md) failed. The launcher sends one in each error's data, and Desktop reads it. A knowledge base never sends one.",
-    codes: [
+  "control": {
+    "docs": "Why a request of the launcher's control API (`xynolog control`, contract/LAUNCHER-CONTROL.md) failed. The launcher sends one in each error's data, and Desktop reads it. A knowledge base never sends one.",
+    "codes": [
       {
-        code: 'control.invalid-params',
-        docs: "The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it.",
+        "code": "control.invalid-params",
+        "docs": "The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it."
       },
       {
-        code: 'control.unsupported-api-version',
-        docs: "The request is written to a version of the control API this launcher does not speak. The error's supported field names the ones it does.",
+        "code": "control.unsupported-api-version",
+        "docs": "The request is written to a version of the control API this launcher does not speak. The error's supported field names the ones it does."
       },
       {
-        code: 'control.invalid-request',
-        docs: 'The launcher refuses the request as the command line refuses the same options: they contradict each other, or do not apply to what they name.',
+        "code": "control.invalid-request",
+        "docs": "The launcher refuses the request as the command line refuses the same options: they contradict each other, or do not apply to what they name."
       },
       {
-        code: 'control.invalid-service',
-        docs: 'The request names a service or a group the launcher has none of.',
+        "code": "control.invalid-service",
+        "docs": "The request names a service or a group the launcher has none of."
       },
       {
-        code: 'control.invalid-value',
-        docs: "The launcher refuses a setting's value, as a start would refuse it. The previous value is kept.",
+        "code": "control.invalid-value",
+        "docs": "The launcher refuses a setting's value, as a start would refuse it. The previous value is kept."
       },
       {
-        code: 'control.unknown-setting',
-        docs: 'The request names a setting the launcher does not keep.',
+        "code": "control.unknown-setting",
+        "docs": "The request names a setting the launcher does not keep."
       },
       {
-        code: 'control.target-required',
-        docs: "Several stacks could be meant and the request names none of them. The error's choices name each; nothing was done.",
+        "code": "control.target-required",
+        "docs": "Several stacks could be meant and the request names none of them. The error's choices name each; nothing was done."
       },
       {
-        code: 'control.target-ambiguous',
-        docs: "The root the request names is the basename of several registered roots. The error's choices name each by its path; nothing was done.",
+        "code": "control.target-ambiguous",
+        "docs": "The root the request names is the basename of several registered roots. The error's choices name each by its path; nothing was done."
       },
       {
-        code: 'control.root-not-found',
-        docs: "The root the request names is not a knowledge base's clone: no such directory, no .xynolog/ in it, or a project file the launcher refuses.",
+        "code": "control.root-not-found",
+        "docs": "The root the request names is not a knowledge base's clone: no such directory, no .xynolog/ in it, or a project file the launcher refuses."
       },
       {
-        code: 'control.root-not-registered',
-        docs: 'The root the request names is not in the registry.',
+        "code": "control.root-not-registered",
+        "docs": "The root the request names is not in the registry."
       },
       {
-        code: 'control.stack-not-running',
-        docs: 'The request needs a stack of its target recorded on this machine, and none is.',
+        "code": "control.stack-not-running",
+        "docs": "The request needs a stack of its target recorded on this machine, and none is."
       },
       {
-        code: 'control.stack-running',
-        docs: 'The request would change what a recorded stack depends on: stop the stack first.',
+        "code": "control.stack-running",
+        "docs": "The request would change what a recorded stack depends on: stop the stack first."
       },
       {
-        code: 'control.start-in-progress',
-        docs: 'Another xynolog start of the same knowledge base holds its start lock.',
+        "code": "control.start-in-progress",
+        "docs": "Another xynolog start of the same knowledge base holds its start lock."
       },
       {
-        code: 'control.runtime-unavailable',
-        docs: "No container runtime the request can use is on the launcher's PATH.",
+        "code": "control.runtime-unavailable",
+        "docs": "No container runtime the request can use is on the launcher's PATH."
       },
       {
-        code: 'control.dependency-unavailable',
-        docs: "A program the request needs besides a container runtime (gh, for a codespace) is not on the launcher's PATH.",
+        "code": "control.dependency-unavailable",
+        "docs": "A program the request needs besides a container runtime (gh, for a codespace) is not on the launcher's PATH."
       },
       {
-        code: 'control.unreachable',
-        docs: "What the request needs to reach did not answer: the knowledge base, its issuer, or a codespace's forward.",
+        "code": "control.unreachable",
+        "docs": "What the request needs to reach did not answer: the knowledge base, its issuer, or a codespace's forward."
       },
       {
-        code: 'control.instance-in-use',
-        docs: 'An instance of the name the run gives already runs on this machine for its target, whichever control server or command started it. Nothing was started.',
+        "code": "control.instance-in-use",
+        "docs": "An instance of the name the run gives already runs on this machine for its target, whichever control server or command started it. Nothing was started."
       },
       {
-        code: 'control.instance-not-found',
-        docs: 'No run of an instance of the name the request gives is in flight on this machine for its target: none was started, or its run has been answered.',
+        "code": "control.instance-not-found",
+        "docs": "No run of an instance of the name the request gives is in flight on this machine for its target: none was started, or its run has been answered."
       },
       {
-        code: 'control.confirmation-required',
-        docs: 'The request would destroy something, and does not state that a person confirmed it.',
+        "code": "control.confirmation-required",
+        "docs": "The request would destroy something, and does not state that a person confirmed it."
       },
       {
-        code: 'control.unreadable-state',
-        docs: "The launcher's own record of this machine (the stack record, the registry, the sign-in store) cannot be read. Nothing was assumed in its place.",
+        "code": "control.unreadable-state",
+        "docs": "The launcher's own record of this machine (the stack record, the registry, the sign-in store) cannot be read. Nothing was assumed in its place."
       },
       {
-        code: 'control.already-signed-in',
-        docs: "The launcher's stored session for the target is valid: there is nothing to sign in to.",
+        "code": "control.already-signed-in",
+        "docs": "The launcher's stored session for the target is valid: there is nothing to sign in to."
       },
       {
-        code: 'control.sign-in-failed',
-        docs: 'The person was not signed in: the issuer refused or the code expired, the gateway refused the token, or the session could not be kept. Nothing was stored.',
+        "code": "control.sign-in-failed",
+        "docs": "The person was not signed in: the issuer refused or the code expired, the gateway refused the token, or the session could not be kept. Nothing was stored."
       },
       {
-        code: 'control.cancelled',
-        docs: 'The client cancelled the request before it ended.',
+        "code": "control.cancelled",
+        "docs": "The client cancelled the request before it ended."
       },
       {
-        code: 'control.failed',
-        docs: 'The request failed for a reason no other code names. Its message says why, as the command line would.',
-      },
-    ],
-  },
+        "code": "control.failed",
+        "docs": "The request failed for a reason no other code names. Its message says why, as the command line would."
+      }
+    ]
+  }
 };

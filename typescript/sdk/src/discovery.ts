@@ -4,7 +4,7 @@
  * The launcher publishes an export view of the KBs it manages
  * (`DiscoveryDocument`, served by the frontend image at `DISCOVERY_URL_PATH`).
  * This module owns every consumer-side semantic so no consumer re-derives
- * them: the one validator (core type guards, never a trusting cast), the
+ * them: the one validator (the document's schema, read by `faultOf`), the
  * `version` compatibility gate (unknown → absent + diagnostic, never a
  * partial parse), the TYPED absent-vs-managed distinction ("no launcher
  * detected" vs "launcher manages nothing"), and the poll/diff subscription
@@ -25,13 +25,17 @@ import {
   DISCOVERY_INTERVAL_MS,
   DISCOVERY_URL_PATH,
   HTTP_REQUEST_TIMEOUT_MS,
-  isArray,
+  faultOf,
   isNumber,
   isObject,
-  isString,
+  said,
   withinDeadline,
 } from '@xynolog/core';
-import type { DiscoveredKB, DiscoveryAbsentReason } from '@xynolog/core';
+import type {
+  DiscoveredKB,
+  DiscoveryAbsentReason,
+  DiscoveryDocument,
+} from '@xynolog/core';
 import { fetchOf } from './fetch-of';
 
 /**
@@ -83,73 +87,25 @@ export function parseDiscoveryDocument(text: string): DiscoveryState {
     return absent('not-json', message(e));
   }
 
-  if (!isObject(parsed)) return absent('invalid', 'document is not an object');
-
-  if (!isNumber(parsed.version))
-    return absent('invalid', 'missing numeric "version"');
-  if (parsed.version !== 1) {
-    return absent(
-      'unsupported-version',
-      `discovery document version ${parsed.version} is newer than this client speaks (1) — refusing to partially parse`,
-    );
+  // A document of a version this client does not speak is refused whole, and
+  // so is one with any entry that is not what its schema says: a partial
+  // parse would silently hide a running knowledge base.
+  const fault = faultOf('DiscoveryDocument', parsed);
+  if (fault === undefined) {
+    const { kbs } = parsed as DiscoveryDocument;
+    // Protocol states no range for a port; this client refuses what no TCP
+    // port is.
+    return kbs.every((kb) => kb.port >= 1 && kb.port <= 65535)
+      ? { kind: 'managed', kbs }
+      : absent('invalid', 'a kb entry has a port outside 1-65535');
   }
-
-  if (!isArray(parsed.kbs)) return absent('invalid', 'missing "kbs" array');
-
-  const kbs: DiscoveredKB[] = [];
-  for (const entry of parsed.kbs) {
-    if (!isObject(entry)) return absent('invalid', 'kb entry is not an object');
-    const { host, port, placement, managedBy, repo, did, siteName } = entry;
-    if (
-      !isString(host) ||
-      !isString(managedBy) ||
-      !isNumber(port) ||
-      !Number.isInteger(port) ||
-      port <= 0 ||
-      port > 65535
-    ) {
-      return absent(
-        'invalid',
-        'kb entry missing required host/port/managedBy (port must be an integer 1-65535)',
-      );
-    }
-    if (placement !== 'local' && placement !== 'codespace') {
-      return absent(
-        'invalid',
-        `kb entry has unknown placement ${JSON.stringify(placement)}`,
-      );
-    }
-    if (repo !== undefined && !isString(repo))
-      return absent('invalid', 'kb "repo" must be a string');
-    if (siteName !== undefined && !isString(siteName))
-      return absent('invalid', 'kb "siteName" must be a string');
-    // `did` is REQUIRED: a knowledge base declares its identity or does not
-    // run. Rejecting the whole document rather than skipping the entry is
-    // deliberate and matches this validator's other required fields and the
-    // `version` gate — a partial parse would silently hide a running KB,
-    // which is the failure class a required identity exists to end. In
-    // practice this means a document written by a launcher older than the
-    // requirement reads as "no launcher detected" until that launcher is
-    // updated, which is honest: this client cannot vouch for what such a
-    // document says.
-    if (!isString(did)) {
-      return absent(
-        'invalid',
-        'kb entry has no "did" — identity is required; this document was likely written by a launcher predating that rule',
-      );
-    }
-    kbs.push({
-      host,
-      port,
-      placement,
-      managedBy,
-      did,
-      ...(repo !== undefined ? { repo } : {}),
-      ...(siteName !== undefined ? { siteName } : {}),
-    });
-  }
-
-  return { kind: 'managed', kbs };
+  const version = isObject(parsed) ? parsed['version'] : undefined;
+  return fault.member === 'version' && isNumber(version)
+    ? absent(
+        'unsupported-version',
+        `discovery document version ${version} is not one this client speaks — refusing to partially parse`,
+      )
+    : absent('invalid', `the launcher's discovery document: ${said(fault)}`);
 }
 
 /**

@@ -35,6 +35,7 @@ import type {
   DeviceCode,
   HttpEndpoint,
   IssuedTokens,
+  StoredSession,
 } from '@xynolog/core';
 import { fetchOf } from '../fetch-of';
 import type { SessionStorage } from './session-storage';
@@ -181,6 +182,24 @@ export interface PendingAuthorization {
   kbId?: string;
   expectedDid?: string;
   expectedName?: string;
+}
+
+/**
+ * What is kept of a sign-in a client made, as `clientId`, at `issuer`: the
+ * tokens it was issued, and where they are renewed and revoked.
+ */
+export function storedSessionOf(
+  clientId: string,
+  issuer: Pick<IssuerEndpoints, 'token' | 'revocation'>,
+  tokens: IssuedTokens,
+): StoredSession {
+  return {
+    access: tokens.access,
+    refresh: tokens.refresh,
+    clientId,
+    tokenEndpoint: issuer.token,
+    ...(issuer.revocation ? { revocationEndpoint: issuer.revocation } : {}),
+  };
 }
 
 /**

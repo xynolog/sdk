@@ -8,16 +8,21 @@ import type {
   EventBus,
   components,
 } from '@xynolog/core';
-import type { ITransport, ResourceSearchFilters } from '@xynolog/core';
+import type {
+  ITransport,
+  MatchSearchOptions,
+  ResourceSearchFilters,
+} from '@xynolog/core';
 import { Bus } from '@xynolog/core';
 import { CacheObservable, StreamObservable } from '../awaitable';
 import { createCache, type Cache } from '../cache';
 import { CacheRefresher } from '../cache-refresh';
 import type {
   MatchNamespace as IMatchNamespace,
-  MatchSearchProgress,
-  MatchedResources,
 } from './types';
+
+type MatchSearchResult = components['schemas']['MatchSearchResult'];
+type MatchResourcesResponse = components['schemas']['MatchResourcesResponse'];
 
 /**
  * The live queries of protocol/specs/src/client/refresh.json this namespace answers.
@@ -106,7 +111,7 @@ export class MatchNamespace implements IMatchNamespace {
   resources(
     search: string,
     filters?: ResourceSearchFilters,
-  ): CacheObservable<MatchedResources> {
+  ): CacheObservable<MatchResourcesResponse> {
     const key = JSON.stringify({ search, ...filters });
     this.resourcesAsked.set(key, { search, filters: filters ?? {} });
     return CacheObservable.from(this.resourcesCache.observe(key), () =>
@@ -139,9 +144,9 @@ export class MatchNamespace implements IMatchNamespace {
     resourceId: ResourceId,
     referenceId: AnnotationId,
     context: GatheredContext,
-    options?: { limit?: number; useSemanticScoring?: boolean },
-  ): StreamObservable<MatchSearchProgress> {
-    return new StreamObservable<MatchSearchProgress>((subscriber) => {
+    options?: MatchSearchOptions,
+  ): StreamObservable<MatchSearchResult> {
+    return new StreamObservable<MatchSearchResult>((subscriber) => {
       const abandoned = new AbortController();
       this.wire
         .request(

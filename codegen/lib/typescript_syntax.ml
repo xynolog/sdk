@@ -132,7 +132,6 @@ type import = { type_only : bool; names : string list; from : string }
 
 type decl =
   | Import of import
-  | Export_from of import
   | Comment of comment list
   | Const of {
       about : comment list;
@@ -564,8 +563,8 @@ let rec stmt ~depth = function
 
 let exported export = if export then "export " else ""
 
-let import_text keyword { type_only; names; from } =
-  keyword
+let import_text { type_only; names; from } =
+  "import"
   ^ (if type_only then " type" else "")
   ^ " { "
   ^ String.concat ", " (List.map checked names)
@@ -575,8 +574,7 @@ let lines_of about =
   List.map (fun l -> l ^ "\n") (comments ~depth:0 about) |> String.concat ""
 
 let rec decl = function
-  | Import i -> import_text "import" i
-  | Export_from i -> import_text "export" i
+  | Import i -> import_text i
   | Comment about -> String.concat "\n" (comments ~depth:0 about)
   | Const { about; export; name; annotation; value; as_const; satisfies } ->
       lines_of about ^ exported export ^ "const " ^ checked name

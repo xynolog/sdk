@@ -47,7 +47,6 @@ import type {
   BeckonNamespace,
   BindNamespace,
   BrowseNamespace,
-  CreateAnnotationInput,
   FrameNamespace,
   GatherNamespace,
   JobNamespace,
@@ -155,7 +154,9 @@ const CALLS: Calls = {
   },
   mark: {
     annotation: (c, a) =>
-      c.mark.annotation(a['input'] as CreateAnnotationInput),
+      c.mark.annotation(
+        a['input'] as components['schemas']['CreateAnnotationRequest'],
+      ),
     delete: (c, a) => c.mark.delete(rid(a), aid(a)),
     archive: (c, a) => c.mark.archive(rid(a)),
     unarchive: (c, a) => c.mark.unarchive(rid(a)),
@@ -257,8 +258,8 @@ const CALLS: Calls = {
     status: (c, a) => c.job.status(jobId(String(a['jobId']))),
     pollUntilComplete: (c, a) =>
       c.job.pollUntilComplete(jobId(String(a['jobId'])), {
-        interval: 10,
-        timeout: 50,
+        everyMs: 10,
+        withinMs: 50,
       }),
     cancel: (c, a) => c.job.cancel(jobId(String(a['jobId']))),
     claim: (c, a) => c.job.claim(a['options'] as unknown as ClaimOptions),

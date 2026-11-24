@@ -5,44 +5,44 @@
 
 /** Each operation's `x-xynolog-limits`, by `METHOD path`. */
 export const operationLimits = {
-  'POST /api/tokens/media': {
-    maxBodyBytes: 1048576,
+  "POST /api/tokens/media": {
+    "maxBodyBytes": 1048576
   },
-  'POST /bus/subscribe': {
-    maxBodyBytes: 1048576,
-    heartbeatSeconds: 15,
-    replyRetentionSeconds: 60,
-    pendingWriteBytes: 16777216,
-    replayBufferEvents: 1000,
-    streamsPerPrincipal: {
-      baseline: 64,
-      roles: {
-        'xynolog-service': 'unlimited',
-        'xynolog-worker': 'unlimited',
-      },
+  "POST /bus/subscribe": {
+    "maxBodyBytes": 1048576,
+    "heartbeatSeconds": 15,
+    "replyRetentionSeconds": 60,
+    "pendingWriteBytes": 16777216,
+    "replayBufferEvents": 1000,
+    "streamsPerPrincipal": {
+      "baseline": 64,
+      "roles": {
+        "xynolog-service": "unlimited",
+        "xynolog-worker": "unlimited"
+      }
     },
-    streamLeaseSeconds: 30,
+    "streamLeaseSeconds": 30
   },
-  'POST /bus/emit': {
-    maxBodyBytes: 4194304,
-    claimSeconds: 900,
-    idempotencySeconds: 600,
-    emitsPerPrincipal: {
-      baseline: {
-        perSecond: 100,
-        burst: 500,
+  "POST /bus/emit": {
+    "maxBodyBytes": 4194304,
+    "claimSeconds": 900,
+    "idempotencySeconds": 600,
+    "emitsPerPrincipal": {
+      "baseline": {
+        "perSecond": 100,
+        "burst": 500
       },
-      roles: {
-        'xynolog-service': 'unlimited',
-        'xynolog-worker': 'unlimited',
-      },
-    },
-  },
+      "roles": {
+        "xynolog-service": "unlimited",
+        "xynolog-worker": "unlimited"
+      }
+    }
+  }
 } as const;
 
 /** Each schema property's `maxItems`, by `Schema.property`. */
 export const itemLimits = {
-  'BrowseProfilesRequest.dids': 500,
-  'BusSubscribeRequest.pendingReplies': 256,
-  'BusSubscribeRequest.scoped': 512,
+  "BrowseProfilesRequest.dids": 500,
+  "BusSubscribeRequest.pendingReplies": 256,
+  "BusSubscribeRequest.scoped": 512
 } as const;
