@@ -1,7 +1,7 @@
 import Foundation
 
 /// A JSON value, including values in open objects the protocol does not name.
-public enum JSONValue: Codable, Sendable, Equatable {
+public enum JSONValue: Codable, Sendable, Hashable {
   case null
   case bool(Bool)
   case number(Double)

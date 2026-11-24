@@ -116,7 +116,7 @@ private func server<Value: Sendable>(
   try await server(.answering(.noHeaders)) { base, http in
     let clock = TestClock()
     let transport = HttpTransport(
-      baseUrl: base, httpClient: http, token: "token", channels: ["beckon:focus"],
+      baseUrl: base, httpClient: http, token: "token", channels: [Channels.beckonFocus.name],
       timing: TransportTiming(reconnectMs: 500, streamOpenMs: 20), clock: clock)
     defer { transport.dispose() }
     try await sleeping(clock, until: clock.now.advanced(by: .milliseconds(20)))
@@ -130,7 +130,7 @@ private func server<Value: Sendable>(
   try await server(.answering(.idleStream)) { base, http in
     let clock = TestClock()
     let transport = HttpTransport(
-      baseUrl: base, httpClient: http, token: "token", channels: ["beckon:focus"],
+      baseUrl: base, httpClient: http, token: "token", channels: [Channels.beckonFocus.name],
       timing: TransportTiming(streamOpenMs: 20), clock: clock)
     defer { transport.dispose() }
     let opening = clock.now.advanced(by: .milliseconds(20))
@@ -356,17 +356,20 @@ extension HttpTransport {
 @Test func aMultichannelViewKeepsArrivalOrderAndTraceMetadataSeparate() async throws {
   try await server(.answering(.noHeaders)) { base, http in
     let transport = HttpTransport(
-      baseUrl: base, httpClient: http, token: nil, channels: ["beckon:focus", "beckon:sparkle"])
-    let events = try await transport.frames(["beckon:focus", "beckon:sparkle"])
+      baseUrl: base, httpClient: http, token: nil,
+      channels: [Channels.beckonFocus.name, Channels.beckonSparkle.name])
+    let events = try await transport.frames([
+      Channels.beckonFocus.name, Channels.beckonSparkle.name,
+    ])
     let resource = try ResourceId("resource")
     let trace = ["traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"]
     let payload: [String: JSONValue] = [
       "annotationId": .string("annotation"), traceField: .object(trace.mapValues(JSONValue.string)),
     ]
     for (channel, id) in [
-      ("beckon:focus", "p-resource-1"), ("beckon:sparkle", "e-two"),
-      ("beckon:focus", "p-resource-3"),
-      ("beckon:sparkle", "e-two"), ("beckon:focus", "e-four"),
+      (Channels.beckonFocus.name, "p-resource-1"), (Channels.beckonSparkle.name, "e-two"),
+      (Channels.beckonFocus.name, "p-resource-3"),
+      (Channels.beckonSparkle.name, "e-two"), (Channels.beckonFocus.name, "e-four"),
     ] {
       try await transport.deliverForTest(
         BusFrame(channel: channel, payload: payload, scope: resource), id: id)
@@ -381,7 +384,10 @@ extension HttpTransport {
       received.append(frame)
     }
     #expect(
-      received.map(\.channel) == ["beckon:focus", "beckon:sparkle", "beckon:focus", "beckon:focus"])
+      received.map(\.channel) == [
+        Channels.beckonFocus.name, Channels.beckonSparkle.name, Channels.beckonFocus.name,
+        Channels.beckonFocus.name,
+      ])
     #expect(received.allSatisfy { $0.payload[traceField] == nil && $0.trace == trace })
     #expect(await transport.watermarks[resource] == "p-resource-3")
   }
@@ -427,16 +433,19 @@ private final class RecordedSpans: SpanExporter {
 @Test func httpClientBridgesAllDeliveredChannelsIntoItsOwnBus() async throws {
   try await server(.answering(.noHeaders)) { base, http in
     let transport = HttpTransport(
-      baseUrl: base, httpClient: http, token: nil, channels: ["beckon:focus", "beckon:sparkle"])
+      baseUrl: base, httpClient: http, token: nil,
+      channels: [Channels.beckonFocus.name, Channels.beckonSparkle.name])
     let client = try await XynologClient(transport: transport, gateway: transport)
     defer { client.dispose() }
     let focus = client.bus.frames(Channels.beckonFocus)
     let sparkle = client.bus.frames(Channels.beckonSparkle)
     try await transport.deliverForTest(
-      BusFrame(channel: "beckon:focus", payload: ["resourceId": .string("resource")]), id: "e-focus"
+      BusFrame(channel: Channels.beckonFocus.name, payload: ["resourceId": .string("resource")]),
+      id: "e-focus"
     )
     try await transport.deliverForTest(
-      BusFrame(channel: "beckon:sparkle", payload: ["annotationId": .string("annotation")]),
+      BusFrame(
+        channel: Channels.beckonSparkle.name, payload: ["annotationId": .string("annotation")]),
       id: "e-sparkle")
     let heardFocus = try await withinTestDeadline {
       var iterator = focus.makeAsyncIterator()

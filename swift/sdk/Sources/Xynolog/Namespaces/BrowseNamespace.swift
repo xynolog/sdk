@@ -8,10 +8,10 @@ public struct BrowseNamespace: Sendable {
   public func entityTypes() -> Cached<[String]> { live.entityTypes }
   public func tagSchemas() -> Cached<[TagSchema]> { live.tagSchemas }
 
-  public func resources(filters: ResourceFilters = ResourceFilters()) -> Cached<
+  public func resources(filters: BrowseResourcesRequest = BrowseResourcesRequest()) -> Cached<
     ListResourcesResponse
   > {
-    live.listedResources.observe(filters)
+    live.listedResources.observe(filters.paged)
   }
   public func engines() -> Cached<[EngineWithLimits]> { live.enginesWithLimits }
 

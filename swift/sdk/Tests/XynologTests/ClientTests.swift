@@ -198,27 +198,25 @@ extension ProbeTransport: ContentTransport {
       progress: Events(progress, stop: {}))
   }
 }
-private func resourceFilters(_ args: [String: JSONValue]) throws -> ResourceFilters {
-  let filters = try args["filters"]?.object ?? [:]
-  return try ResourceFilters(
-    archived: filters["archived"].map { try decoded(Bool.self, $0) },
-    entityType: filters["entityType"].map { try decoded(String.self, $0) },
-    limit: filters["limit"].map { try decoded(Int.self, $0) } ?? 100,
-    offset: filters["offset"].map { try decoded(Int.self, $0) } ?? 0)
-}
-
 private let callsByName:
   [String: @Sendable (XynologClient, [String: JSONValue]) async throws -> JSONValue?] = [
     "browse.resources": { client, args in
-      try await encoded(client.browse.resources(filters: resourceFilters(args)).fresh())
+      try await encoded(
+        client.browse.resources(
+          filters: args["filters"].map { try decoded(BrowseResourcesRequest.self, $0) }
+            ?? BrowseResourcesRequest()
+        ).fresh())
     },
     "browse.engines": { client, _ in
       try await encoded(client.browse.engines().fresh())
     },
     "match.resources": { client, args in
       try await encoded(
-        client.match.resources(required(args, "search").text, filters: resourceFilters(args))
-          .fresh())
+        client.match.resources(
+          required(args, "search").text,
+          filters: args["filters"].map { try decoded(ResourceSearchFilters.self, $0) }
+            ?? ResourceSearchFilters()
+        ).fresh())
     },
     "browse.resource": { client, args in
       try await encoded(
@@ -289,12 +287,9 @@ private let callsByName:
       return try await encoded(upload.completed())
     },
     "yield.createFromToken": { client, args in
-      let options = try required(args, "options").object
-      return try await encoded(
+      try await encoded(
         client.yield.createFromToken(
-          token: required(options, "token").text, name: required(options, "name").text,
-          content: required(options, "content").text,
-          archiveOriginal: options["archiveOriginal"].map { try decoded(Bool.self, $0) }))
+          decoded(CreateFromTokenOptions.self, required(args, "options"))))
     },
     "browse.resourceEvents": { client, args in
       try await encoded(
@@ -377,8 +372,7 @@ private let callsByName:
         ).completed())
     },
     "job.claim": { client, args in
-      let options = try required(args, "options").object
-      let claims = try client.job.claim(decoded([JobFilter].self, required(options, "accepts")))
+      let claims = try client.job.claim(decoded(ClaimOptions.self, required(args, "options")))
       var iterator = claims.makeAsyncIterator()
       let job = try #require(await iterator.next())
       return try encoded(job.jobId)
@@ -387,7 +381,11 @@ private let callsByName:
       try await encoded(client.job.status(decoded(JobId.self, required(args, "jobId"))))
     },
     "job.pollUntilComplete": { client, args in
-      try await encoded(client.job.pollUntilComplete(decoded(JobId.self, required(args, "jobId"))))
+      try await encoded(
+        client.job.pollUntilComplete(
+          decoded(JobId.self, required(args, "jobId")),
+          options: args["options"].map { try decoded(JobPollOptions.self, $0) }
+            ?? JobPollOptions()))
     },
     "job.cancel": { client, args in
       try await encoded(client.job.cancel(decoded(JobId.self, required(args, "jobId"))))
@@ -426,22 +424,13 @@ private let callsByName:
           options: args["options"].map { try decoded(GatherResourceOptions.self, $0) }))
     },
     "match.search": { client, args in
-      let options = try args["options"]?.object
-      if let options {
-        return try await encoded(
-          client.match.search(
-            resourceId: decoded(ResourceId.self, required(args, "resourceId")),
-            referenceId: decoded(AnnotationId.self, required(args, "referenceId")),
-            context: decoded(GatheredContext.self, required(args, "context")),
-            limit: decoded(Int.self, required(options, "limit")),
-            useSemanticScoring: decoded(Bool.self, required(options, "useSemanticScoring"))
-          ).completed())
-      }
-      return try await encoded(
+      try await encoded(
         client.match.search(
           resourceId: decoded(ResourceId.self, required(args, "resourceId")),
           referenceId: decoded(AnnotationId.self, required(args, "referenceId")),
-          context: decoded(GatheredContext.self, required(args, "context"))
+          context: decoded(GatheredContext.self, required(args, "context")),
+          options: args["options"].map { try decoded(MatchSearchOptions.self, $0) }
+            ?? MatchSearchOptions()
         ).completed())
     },
     "match.requestSearch": { client, args in
@@ -611,12 +600,12 @@ private let callsByName:
   probe.deliver(
     .frame(
       ReceivedFrame(
-        channel: "beckon:focus", correlationId: "first",
+        channel: Channels.beckonFocus.name, correlationId: "first",
         payload: ["_userId": .string("did:web:kb.test:users:person")], trace: trace)))
   probe.deliver(
     .frame(
       ReceivedFrame(
-        channel: "beckon:focus", correlationId: "second",
+        channel: Channels.beckonFocus.name, correlationId: "second",
         payload: [
           "resourceId": .string("res-1"), "_userId": .string("did:web:kb.test:users:person"),
           "_unrecognized": .string("ignore"),
@@ -626,7 +615,7 @@ private let callsByName:
     Issue.record("Malformed frame delivered")
     return
   }
-  #expect(bad.channel == "beckon:focus")
+  #expect(bad.channel == Channels.beckonFocus.name)
   #expect(bad.member == "payload.resourceId")
   #expect(bad.reason == .lacks)
   #expect(bad.correlationId == "first")
@@ -642,7 +631,8 @@ private let callsByName:
   var second = source.makeAsyncIterator()
   await #expect(throws: MultipleConsumers.self) { try await second.next() }
   probe.deliver(
-    .frame(ReceivedFrame(channel: "beckon:focus", payload: ["resourceId": .string("res-2")])))
+    .frame(
+      ReceivedFrame(channel: Channels.beckonFocus.name, payload: ["resourceId": .string("res-2")])))
   guard case .delivered(let third) = try await iterator.next() else {
     Issue.record("Second reader ended first")
     return
@@ -660,11 +650,14 @@ private let callsByName:
   // Another reader holds res-2, so its frame reaches the stream, and this read passes it by.
   let elsewhere = await probe.subscribeToResource(try ResourceId("res-2"))
   probe.deliver(
-    .frame(ReceivedFrame(channel: "mark:added", payload: [:], scope: try ResourceId("res-2"))))
+    .frame(
+      ReceivedFrame(channel: Channels.markAdded.name, payload: [:], scope: try ResourceId("res-2")))
+  )
   probe.deliver(
     .frame(
       ReceivedFrame(
-        channel: "mark:added", payload: ["test-source": .string("wanted")], scope: resource)))
+        channel: Channels.markAdded.name, payload: ["test-source": .string("wanted")],
+        scope: resource)))
   elsewhere.dispose()
   probe.dispose()
   var iterator = source.makeAsyncIterator()
@@ -689,7 +682,9 @@ private let callsByName:
   _ = try await client?.beckon.sparkleAll(AnnotationId("ann-1"))
   // Emission itself cannot loop back. Only the received copy is bridged.
   probe.deliver(
-    .frame(ReceivedFrame(channel: "beckon:sparkle", payload: ["annotationId": .string("ann-2")])))
+    .frame(
+      ReceivedFrame(
+        channel: Channels.beckonSparkle.name, payload: ["annotationId": .string("ann-2")])))
   let first = try await withinTestDeadline {
     var iterator = local.makeAsyncIterator()
     return try await iterator.next()
@@ -797,7 +792,9 @@ private func admitsNull(_ schema: [String: JSONValue]) -> Bool {
   let probe = ProbeTransport(channels: bridgedChannels)
   let source = try await Bus(probe).frames(Channels.markAdded, resource: ResourceId("res-1"))
   probe.deliver(
-    .frame(ReceivedFrame(channel: "mark:added", payload: [:], scope: try ResourceId("res-1"))))
+    .frame(
+      ReceivedFrame(channel: Channels.markAdded.name, payload: [:], scope: try ResourceId("res-1")))
+  )
   for try await _ in source { break }
   #expect(probe.holds == 0)
   let waiting = try await Bus(probe).frames(Channels.markAdded, resource: ResourceId("res-2"))

@@ -109,6 +109,10 @@ let encoding_func layout stmts =
 
 let codable = [ S.Named "Codable"; S.Named "Sendable" ]
 
+(* A schema's value: compared and hashed by its members, so it can key a
+   query's cache. *)
+let schema_value = codable @ [ S.Named "Hashable" ]
+
 (* The generator *)
 
 type t = {
@@ -136,6 +140,7 @@ let known_keywords =
     "allOf";
     "enum";
     "discriminator";
+    "$comment";
     "description";
     "title";
     "format";
@@ -186,7 +191,12 @@ let single_ref = function
   | D.Node { all_of = Some [ D.Ref { name = r; _ } ]; _ } -> Some r
   | _ -> None
 
-let is_empty = function D.Node { keys = []; _ } -> true | _ -> false
+(* A schema that says nothing of a value, only what it is or a note to its
+   reader, as JsonSchema.json written in place does, admits any value. *)
+let is_empty = function
+  | D.Node { keys; _ } ->
+      List.for_all (fun k -> List.mem k [ "$comment"; "description"; "title" ]) keys
+  | _ -> false
 let schema t name = t.definitions.schema name
 
 let rec named t n =
@@ -470,7 +480,7 @@ and object_ t ~modifiers ~owner n s =
        {
          name = n;
          generics = [];
-         inherits = codable;
+         inherits = schema_value;
          layout = S.Lines;
          members =
            stored
@@ -524,7 +534,7 @@ and enumeration ~modifiers n values s =
       (S.Enum
          {
            name = n;
-           inherits = codable;
+           inherits = schema_value;
            layout = S.Lines;
            members =
              [
@@ -787,7 +797,7 @@ and union t ~modifiers n members s =
     (S.Enum
        {
          name = n;
-         inherits = codable;
+         inherits = schema_value;
          layout = S.Lines;
          members =
            List.map

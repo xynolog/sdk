@@ -31,7 +31,8 @@ actor WorkerDriver {
   var transport: HttpTransport?
   /// Ends the failures `transport` told, once it is disposed.
   var telling: AsyncStream<TransportError>.Continuation?
-  var timing = WorkerTiming()
+  /// The waits `open` named of those its claims keep, as `ClaimOptions` members.
+  var claimWaits: [String: JSONValue] = [:]
   var claims: Claims?
   var held: (any HeldJob)?
   var scopes: [ResourceHold] = []
@@ -45,29 +46,21 @@ actor WorkerDriver {
   private func open(_ args: [String: JSONValue]) async throws {
     guard client == nil else { throw Misuse(description: "The worker is already open") }
     var transportTiming = TransportTiming()
-    var claim: Int?
-    var stall: Int?
-    var check: Int?
-    var commit: Int?
+    var claimWaits: [String: JSONValue] = [:]
     if args["timing"] != nil {
       let timing = try args.object("timing")
-      for name in timing.keys {
+      for (name, held) in timing {
         let value = try timing.integer(name)
         guard value >= 0 else { throw Misuse(description: "Negative timing \(name)") }
         switch name {
         case "reconnectMs": transportTiming.reconnectMs = value
         case "lazyRemoveMs": transportTiming.lazyRemoveMs = value
         case "lingerMs": transportTiming.lingerMs = value
-        case "jobClaimTimeoutMs": claim = value
-        case "heldJobStallMs": stall = value
-        case "heldJobStallCheckMs": check = value
-        case "markCommitTimeoutMs": commit = value
-        default: throw Misuse(description: "Unknown timing override \(name)")
+        default: claimWaits[name] = held
         }
       }
     }
-    self.timing = WorkerTiming(
-      claimTimeoutMs: claim, stallMs: stall, stallCheckMs: check, commitTimeoutMs: commit)
+    self.claimWaits = claimWaits
     var channels = jobClaimChannels
     if try args.optionalBool("commits") == true { channels += jobCommitChannels }
     let transport = HttpTransport(
@@ -85,10 +78,16 @@ actor WorkerDriver {
     let output = output
     reporters.append(
       Task {
-        for await state in transport.state { await output.say(["state": .string(state.rawValue)]) }
+        for await state in transport.state {
+          await output.say(.state(ConformanceDriverLineState(state: state.rawValue)))
+        }
       })
     reporters.append(
-      Task { for await error in failures { await output.say(["error": failure(error)]) } })
+      Task {
+        for await error in failures {
+          await output.say(.errorStream(ConformanceDriverLineErrorStream(error: failure(error))))
+        }
+      })
   }
 
   private func claimed(_ job: any HeldJob) async {
@@ -102,24 +101,33 @@ actor WorkerDriver {
         "retryCount": .number(Double(job.retryCount)),
         "maxRetries": .number(Double(job.maxRetries)),
       ]
-      await output.say(["claimed": .object(fields)])
+      await output.say(.claimed(ConformanceDriverLineClaimed(claimed: fields)))
     } catch {
-      await output.say(["error": failure(error)])
+      await output.say(.errorStream(ConformanceDriverLineErrorStream(error: failure(error))))
     }
     let output = output
     reporters.append(
       Task {
         for await signal in job.cancelled where signal {
-          await output.say(["signalled": .string(job.jobId.value)])
+          await output.say(.signalled(ConformanceDriverLineSignalled(signalled: job.jobId.value)))
           break
         }
       })
   }
 
-  private func startClaims(_ accepts: [JobFilter]) throws {
+  /// The options a claim of what `args` accepts is given: those accepts, and the waits `open` named.
+  private func claimOptions(_ args: [String: JSONValue]) throws -> ClaimOptions {
+    var options = claimWaits
+    options["accepts"] = args["accepts"]
+    do {
+      return try JSONDecoder().decode(ClaimOptions.self, from: JSONEncoder().encode(options))
+    } catch { throw Misuse(description: "The claim's options are invalid: \(error)") }
+  }
+
+  private func startClaims(_ options: ClaimOptions) throws {
     guard let client else { throw Misuse(description: "The worker is closed") }
     guard claims == nil else { throw Misuse(description: "The worker is already claiming") }
-    let claims = client.job.claim(accepts, timing: timing)
+    let claims = client.job.claim(options)
     self.claims = claims
     let output = output
     let refused = claims.refused()
@@ -127,9 +135,10 @@ actor WorkerDriver {
       Task {
         do {
           for try await error in refused {
-            var fields: [String: JSONValue] = ["detail": .string(error.detail)]
-            if let code = error.code { fields["code"] = .string(code.rawValue) }
-            await output.say(["refused": .object(fields)])
+            await output.say(
+              .refused(
+                ConformanceDriverLineRefused(
+                  refused: ConformanceFailure(code: error.code?.rawValue, detail: error.detail))))
           }
         } catch {}
       })
@@ -138,7 +147,7 @@ actor WorkerDriver {
       Task {
         do {
           for try await stall in stalled {
-            await output.say(["stalled": .string(stall.jobId.value)])
+            await output.say(.stalled(ConformanceDriverLineStalled(stalled: stall.jobId.value)))
           }
         } catch {}
       })
@@ -156,9 +165,7 @@ actor WorkerDriver {
   private func vitals() async throws -> JSONValue {
     guard let claims else { throw Misuse(description: "The worker is not claiming") }
     let vitals = await claims.vitals
-    func time(_ date: Date?) -> JSONValue {
-      date.map { .string($0.formatted(.iso8601.time(includingFractionalSeconds: true))) } ?? .null
-    }
+    func time(_ date: Date?) -> JSONValue { date.map { .string(dateTime($0)) } ?? .null }
     let active: JSONValue
     if let job = vitals.activeJob {
       active = .object([
@@ -185,7 +192,7 @@ actor WorkerDriver {
       for reporter in reporters { await reporter.value }
       reporters.removeAll()
       scopes.removeAll()
-    case "claim": try startClaims(args.decoded("accepts", as: [JobFilter].self))
+    case "claim": try startClaims(claimOptions(args))
     case "subscribe-resource":
       guard let transport else { throw Misuse(description: "The worker is closed") }
       let resource = try ResourceId(args.text("resource"))

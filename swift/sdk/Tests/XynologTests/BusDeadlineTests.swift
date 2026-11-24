@@ -67,13 +67,14 @@ func aRequestNobodyAnswersFailsAtItsDeadlineOnTheClientsClock(timeoutMs: Int?) a
   defer { client.dispose() }
   let claimTimeoutMs = 7000
   let claims = client.job.claim(
-    try decoded(
-      [JobFilter].self,
-      .array([
-        .object([
-          "jobType": .string("mark"), "params": .object(["motivation": .string("tagging")]),
-        ])
-      ])), timing: WorkerTiming(claimTimeoutMs: claimTimeoutMs))
+    ClaimOptions(
+      accepts: try decoded(
+        [JobFilter].self,
+        .array([
+          .object([
+            "jobType": .string("mark"), "params": .object(["motivation": .string("tagging")]),
+          ])
+        ])), jobClaimTimeoutMs: claimTimeoutMs))
   let refusals = claims.refused()
   let reading = Task {
     var jobs = claims.makeAsyncIterator()

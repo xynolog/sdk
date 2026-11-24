@@ -214,7 +214,8 @@ cancelling the follower itself stops observing and leaves the job running.
 `job.queued`, `progress`, `complete` and `fail` are independent typed listeners
 that start when asked for. `pollUntilComplete` reports every status through its
 optional callback and bounds requests and sleeps by the caller's deadline. Named
-no interval, it asks every `jobPollMs`; named no limit, it fails as timed out
+no `everyMs` in its `JobPollOptions`, it asks every `jobPollMs`; named no
+`withinMs`, it fails as timed out
 `jobPollTimeoutMs` after its first ask, as `protocol/specs/src/client/timing.json`
 states them.
 
@@ -336,8 +337,8 @@ has, from the call, its emit included, `busRequestTimeoutMs`
 (`XynologClient(busRequestTimeoutMs:)`, the timing table's value when none is
 given), or the `timeoutMs:` its caller gives, on the client's clock and over any
 transport, to be answered; then it fails as `busTimeout`, and an emit still in
-flight is given up, with no attempt after it. A worker's claim waits its `claimTimeoutMs`, and a held job's
-commit its `commitTimeoutMs`, the same way. `frames` on a
+flight is given up, with no attempt after it. A worker's claim waits its `ClaimOptions.jobClaimTimeoutMs`, and a held
+job's commit its `markCommitTimeoutMs`, the same way. `frames` on a
 `ScopedChannel` requires a resource and holds that resource only while the read
 is alive. Breaking, cancellation, completion or disposal releases the hold.
 A `Typed` sequence gives `Heard.delivered` with its original `ReceivedFrame`,

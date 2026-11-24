@@ -61,7 +61,7 @@ private final class Answers: Sendable {
   }
   let client = try await XynologClient(transport: probe)
   defer { client.dispose() }
-  let claims = client.job.claim(try accepted())
+  let claims = client.job.claim(ClaimOptions(accepts: try accepted()))
   let reading = Task {
     var jobs = claims.makeAsyncIterator()
     return await jobs.next()?.jobId
@@ -72,6 +72,32 @@ private final class Answers: Sendable {
   #expect(try await withinTestDeadline { await reading.value }?.value == "job-8")
   #expect(claimsAsked(probe) == 2)
   #expect(await claims.vitals.lastQueuedEventAt != nil)
+  await claims.stop()
+}
+
+@Test func aHeldJobsHealthIsWhatItsEngineSaysToAWorkersHealthEndpoint() async throws {
+  let probe = ProbeTransport(channels: jobClaimChannels)
+  probe.handle { _, _ in try jobClaimedFixture("job-8") }
+  let client = try await XynologClient(transport: probe)
+  defer { client.dispose() }
+  let claims = client.job.claim(ClaimOptions(accepts: try accepted()))
+  let reading = Task {
+    var jobs = claims.makeAsyncIterator()
+    return await jobs.next()
+  }
+  let held = try #require(try await withinTestDeadline { await reading.value })
+  let engine = Engine(model: "model", provider: .ollama)
+  let health = await claims.health(of: engine)
+  let read = try JSONDecoder().decode(WorkerEngineHealth.self, from: JSONEncoder().encode(health))
+  #expect(read == health)
+  #expect(health.engine == engine)
+  #expect(health.jobs == (try accepted()))
+  #expect(health.activeJob?.jobId == held.jobId)
+  #expect(health.activeJob?.type == held.jobType)
+  let claimedAt = try #require(health.lastClaimAt)
+  #expect(try Date.ISO8601FormatStyle(includingFractionalSeconds: true).parse(claimedAt) <= Date())
+  #expect(health.lastFinishedAt == nil)
+  #expect(health.jobsCompleted == 0)
   await claims.stop()
 }
 
@@ -87,7 +113,7 @@ private final class Answers: Sendable {
   }
   let client = try await XynologClient(transport: probe)
   defer { client.dispose() }
-  let claims = client.job.claim(try accepted())
+  let claims = client.job.claim(ClaimOptions(accepts: try accepted()))
   let reading = Task {
     var jobs = claims.makeAsyncIterator()
     _ = await jobs.next()
@@ -111,7 +137,7 @@ private final class Answers: Sendable {
   }
   let client = try await XynologClient(transport: probe)
   defer { client.dispose() }
-  let claims = client.job.claim(try accepted())
+  let claims = client.job.claim(ClaimOptions(accepts: try accepted()))
   var jobs = claims.makeAsyncIterator()
   let job = try #require(await jobs.next())
   probe.deliver(refusedAnnouncement("job-8"))
@@ -142,7 +168,7 @@ private func claimsRefused(_ refused: Int, over probe: ProbeTransport, client: X
     if answer > refused { return try jobClaimedFixture("job-1") }
     throw refusal(answer)
   }
-  let claims = client.job.claim(try accepted())
+  let claims = client.job.claim(ClaimOptions(accepts: try accepted()))
   let reading = Task {
     var jobs = claims.makeAsyncIterator()
     return await jobs.next()?.jobId
@@ -197,7 +223,8 @@ private func claimsOfJobs(over probe: ProbeTransport, client: XynologClient) thr
     guard name == Operations.jobClaim.request.name else { throw nonePending() }
     return try jobClaimedFixture("job-\(answers.next())")
   }
-  return client.job.claim(try accepted(), timing: WorkerTiming(stallMs: 1, stallCheckMs: 2))
+  return client.job.claim(
+    ClaimOptions(accepts: try accepted(), heldJobStallCheckMs: 2, heldJobStallMs: 1))
 }
 
 /// Until the claims wait on `clock` to look for a stall again: the look they took when the clock

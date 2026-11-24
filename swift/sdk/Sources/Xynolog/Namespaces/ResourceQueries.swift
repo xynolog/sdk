@@ -1,19 +1,28 @@
 import Synchronization
 
-/// The page and filters for browsing or searching a knowledge base's resources.
-public struct ResourceFilters: Hashable, Sendable {
-  public var archived: Bool?
-  public var entityType: String?
-  public var limit: Int
-  public var offset: Int
+/// The page a listing or search of resources sends where its caller names none, as
+/// client/surface.json's `browse.resources` and `match.resources` cases state it.
+private let pageLimit = 100
+private let pageOffset = 0
 
-  public init(
-    archived: Bool? = nil, entityType: String? = nil, limit: Int = 100, offset: Int = 0
-  ) {
-    self.archived = archived
-    self.entityType = entityType
-    self.limit = limit
-    self.offset = offset
+extension BrowseResourcesRequest {
+  /// The request a listing sends: these filters, with the page its caller left out filled. Each
+  /// listing is kept by it, so filters that send the same request share one.
+  var paged: Self {
+    var request = self
+    request.limit = limit ?? pageLimit
+    request.offset = offset ?? pageOffset
+    return request
+  }
+}
+
+extension MatchResourcesRequest {
+  /// The request a search for `search` sends: `filters`, with the page its caller left out
+  /// filled. Each search is kept by it, so searches that send the same request share one.
+  init(_ search: String, paging filters: ResourceSearchFilters) {
+    self.init(
+      archived: filters.archived, entityType: filters.entityType,
+      limit: filters.limit ?? pageLimit, offset: filters.offset ?? pageOffset, search: search)
   }
 }
 

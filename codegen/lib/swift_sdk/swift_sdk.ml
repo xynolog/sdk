@@ -14,6 +14,7 @@ module S = Swift_syntax
 module D = Definitions
 
 let models_path = "swift/sdk/Sources/Xynolog/Generated/Models.swift"
+let tables_path = "swift/sdk/Sources/Xynolog/Generated/ServiceTables.swift"
 let bridge_path = "swift/sdk/Tests/XynologTests/Generated/TestBridge.swift"
 let banner = Banner.lines ~from_:"protocol/specs/src" __FILE__
 
@@ -59,8 +60,82 @@ let discovery_absent (spec : Spec.t) =
 
 let import module_ = { S.module_; testable = false }
 
+(* A service table's model: its own schema's ([Places.schema_of]), named as
+   that file is. *)
+let table_model table = D.stem (Places.schema_of table)
+
+(* The tables Swift reads as their schemas' models: the services'
+   ([Roots.service_tables]), and the retry rules, which its transport retries
+   by. *)
+let read_tables (spec : Spec.t) =
+  Roots.service_tables spec @ [ "retry/rules.json" ]
+
+(* Each table [read_tables] names, a public constant of its schema's model,
+   read from the table's text once; and the services' tables by their
+   files. *)
+let service_tables ~root (spec : Spec.t) =
+  let tables = read_tables spec in
+  let constant table = Models.member_name (Filename.remove_extension table) in
+  let read table =
+    Yojson.Safe.to_string
+      (Yojson.Safe.from_file
+         (Filename.concat root ("protocol/specs/src/" ^ table)))
+  in
+  List.map
+    (fun table ->
+      {
+        S.doc =
+          [
+            Printf.sprintf "protocol/specs/src/%s, read as `%s`." table
+              (table_model table);
+          ];
+        modifiers = [ "public" ];
+        body =
+          S.Property
+            {
+              var = false;
+              name = constant table;
+              type_ = Some (S.Named (table_model table));
+              value =
+                Some
+                  (S.Call
+                     ( S.Name "readTable",
+                       [
+                         { label = Some "file"; value = S.String table };
+                         { label = None; value = S.String (read table) };
+                       ] ));
+            };
+      })
+    tables
+  @ [
+      {
+        S.doc = [ "Every table of the services, by its file." ];
+        modifiers = [ "public" ];
+        body =
+          S.Property
+            {
+              var = false;
+              name = "serviceTables";
+              type_ =
+                Some
+                  (S.Dictionary_of
+                     ( S.Named "String",
+                       S.Any
+                         (S.Composition
+                            [ S.Named "Encodable"; S.Named "Sendable" ]) ));
+              value =
+                Some
+                  (S.Dictionary
+                     ( S.Lines,
+                       List.map
+                         (fun table -> (S.String table, S.Name (constant table)))
+                         (Roots.service_tables spec) ));
+            };
+      };
+    ]
+
 (* The two files, as Swift. *)
-let swift_files (spec : Spec.t) =
+let swift_files ~root (spec : Spec.t) =
   let ( let* ) = Result.bind in
   let* derivation = Required.derive spec in
   let* timing = Timing.Table.derive spec.tables.client_timing in
@@ -74,16 +149,33 @@ let swift_files (spec : Spec.t) =
       | None -> D.refuse "Protocol has no %s" Roots.sign_in_entry
     in
     let records = List.map (fun (_, name, _) -> name) (D.records spec) in
+    let table_models =
+      List.map
+        (fun table ->
+          let file = Places.schema_of table and name = table_model table in
+          if List.mem name bundle.definitions.names then
+            D.refuse "%s, the schema of %s, is named as a schema already is"
+              file table;
+          match List.assoc_opt file spec.schemas with
+          | Some s -> (name, bundle.view (Normalize.shape_only s))
+          | None -> D.refuse "%s has no schema %s" table file)
+        (read_tables spec)
+    in
     let definitions =
       {
         D.names =
           List.sort String.compare
             (("SignIn" :: records)
             @ Definitions.generated_client_types spec
+            @ List.map fst table_models
             @ bundle.definitions.names);
         schema =
           (fun n ->
-            if n = "SignIn" then sign_in else bundle.definitions.schema n);
+            if n = "SignIn" then sign_in
+            else
+              match List.assoc_opt n table_models with
+              | Some s -> s
+              | None -> bundle.definitions.schema n);
       }
     in
     let identifiers =
@@ -123,13 +215,27 @@ let swift_files (spec : Spec.t) =
         decls = Test_bridge.decls ~names:definitions.names ~identifiers;
       }
     in
-    [ (models_path, models_file); (bridge_path, bridge) ]
+    let tables_file =
+      {
+        S.banner =
+          Banner.lines ~from_:"the services' tables of protocol/specs/src"
+            __FILE__;
+        imports = [ import "Foundation" ];
+        decls =
+          List.map (fun d -> (S.Blank, d)) (service_tables ~root spec);
+      }
+    in
+    [
+      (models_path, models_file);
+      (tables_path, tables_file);
+      (bridge_path, bridge);
+    ]
   with
   | files -> Ok files
   | exception D.Refused message ->
       Error [ { Decode.file = "openapi.json"; pointer = ""; message } ]
 
-let files ~root:_ spec =
+let files ~root spec =
   Result.map
     (List.map (fun (path, file) -> { Output.path; text = S.print file }))
-    (swift_files spec)
+    (swift_files ~root spec)

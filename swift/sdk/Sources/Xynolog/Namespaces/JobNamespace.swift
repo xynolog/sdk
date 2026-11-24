@@ -5,9 +5,8 @@ public struct JobNamespace: Sendable {
   let lifetime: Lifetime
   let clock: any Clock<Duration>
 
-  public func claim(_ accepts: [JobFilter], timing: WorkerTiming = WorkerTiming()) -> Claims {
-    Claims(
-      accepts: accepts, transport: transport, lifetime: lifetime, timing: timing, clock: clock)
+  public func claim(_ options: ClaimOptions) -> Claims {
+    Claims(options: options, transport: transport, lifetime: lifetime, clock: clock)
   }
   public func queued() -> Typed<JobQueuedEvent> { bus.frames(Channels.jobQueued) }
   public func progress() -> Typed<JobReportProgressCommand> {
@@ -23,11 +22,11 @@ public struct JobNamespace: Sendable {
       .cancelled
   }
   public func pollUntilComplete(
-    _ jobId: JobId, intervalMs: Int? = nil, timeoutMs: Int? = nil,
+    _ jobId: JobId, options: JobPollOptions = JobPollOptions(),
     onStatus: (@Sendable (JobStatusResponse) -> Void)? = nil
   ) async throws -> JobStatusResponse {
-    let interval = Duration.milliseconds(intervalMs ?? Timings.jobPollMs)
-    let timeout = Duration.milliseconds(timeoutMs ?? Timings.jobPollTimeoutMs)
+    let interval = Duration.milliseconds(options.everyMs ?? Timings.jobPollMs)
+    let timeout = Duration.milliseconds(options.withinMs ?? Timings.jobPollTimeoutMs)
     let elapsed = stopwatch(clock)
     while true {
       try Task.checkCancellation()

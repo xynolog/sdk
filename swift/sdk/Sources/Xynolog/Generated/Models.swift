@@ -2,7 +2,7 @@
 // Regenerate: make generate (codegen/lib/swift_sdk/swift_sdk.ml)
 import Foundation
 
-public struct AboutParams: Codable, Sendable {
+public struct AboutParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public init(apiVersion: ApiVersion) {
     self.apiVersion = apiVersion
@@ -18,7 +18,7 @@ public struct AboutParams: Codable, Sendable {
   }
 }
 
-public struct AboutResult: Codable, Sendable {
+public struct AboutResult: Codable, Sendable, Hashable {
   public var apiVersions: [String]
   public var built: String?
   public var commit: String?
@@ -63,7 +63,7 @@ public struct AboutResult: Codable, Sendable {
   }
 }
 
-public indirect enum Agent: Codable, Sendable {
+public indirect enum Agent: Codable, Sendable, Hashable {
   case agentPerson(AgentPerson)
   case agentOrganization(AgentOrganization)
   case agentSoftware(AgentSoftware)
@@ -88,7 +88,7 @@ public indirect enum Agent: Codable, Sendable {
   }
 }
 
-public struct AgentOrganization: Codable, Sendable {
+public struct AgentOrganization: Codable, Sendable, Hashable {
   public var id: String?
   public let type: AgentOrganizationType
   public var homepage: String?
@@ -126,7 +126,7 @@ public enum AgentOrganizationType: String, Codable, Sendable, CaseIterable {
   case organization = "Organization"
 }
 
-public struct AgentPerson: Codable, Sendable {
+public struct AgentPerson: Codable, Sendable, Hashable {
   public var id: String?
   public let type: AgentPersonType
   public var email: String?
@@ -181,7 +181,7 @@ public enum AgentPersonType: String, Codable, Sendable, CaseIterable {
   case person = "Person"
 }
 
-public struct AgentSoftware: Codable, Sendable {
+public struct AgentSoftware: Codable, Sendable, Hashable {
   public var id: String?
   public let type: AgentSoftwareType
   public var model: String?
@@ -236,7 +236,7 @@ public enum AnchorMethod: String, Codable, Sendable, CaseIterable {
   case fuzzyMatch = "fuzzy-match"
 }
 
-public struct AnchorRect: Codable, Sendable {
+public struct AnchorRect: Codable, Sendable, Hashable {
   public var bottom: Double
   public var height: Double
   public var left: Double
@@ -282,7 +282,7 @@ public struct AnchorRect: Codable, Sendable {
   }
 }
 
-public struct AnchoredText: Codable, Sendable {
+public struct AnchoredText: Codable, Sendable, Hashable {
   public var items: [PdfTextItem]
   public var text: String
   public init(items: [PdfTextItem], text: String) {
@@ -301,7 +301,7 @@ public struct AnchoredText: Codable, Sendable {
   }
 }
 
-public struct AnchoredTextAbsent: Codable, Sendable {
+public struct AnchoredTextAbsent: Codable, Sendable, Hashable {
   public var kind: AnchoredTextAbsentKind
   public init(kind: AnchoredTextAbsentKind) {
     self.kind = kind
@@ -322,7 +322,7 @@ public enum AnchoredTextAbsentKind: String, Codable, Sendable, CaseIterable {
   case unknown = "unknown"
 }
 
-public indirect enum AnchoredTextAnswer: Codable, Sendable {
+public indirect enum AnchoredTextAnswer: Codable, Sendable, Hashable {
   case extractedText(ExtractedText)
   case extractionDeclined(ExtractionDeclined)
   case anchoredTextAbsent(AnchoredTextAbsent)
@@ -349,7 +349,7 @@ public indirect enum AnchoredTextAnswer: Codable, Sendable {
   }
 }
 
-public struct AnchoredTextDeclinedEntry: Codable, Sendable {
+public struct AnchoredTextDeclinedEntry: Codable, Sendable, Hashable {
   public var declined: ExtractionDeclinedReason
   public var stamp: String
   public let v: AnchoredTextDeclinedEntryV
@@ -373,7 +373,7 @@ public struct AnchoredTextDeclinedEntry: Codable, Sendable {
   }
 }
 
-public enum AnchoredTextDeclinedEntryV: Codable, Sendable {
+public enum AnchoredTextDeclinedEntryV: Codable, Sendable, Hashable {
   case value
   public init(from decoder: any Decoder) throws {
     let c = try decoder.singleValueContainer()
@@ -388,7 +388,7 @@ public enum AnchoredTextDeclinedEntryV: Codable, Sendable {
   }
 }
 
-public struct AnchoredTextEntries: Codable, Sendable {
+public struct AnchoredTextEntries: Codable, Sendable, Hashable {
   public var checksums: [String]
   public init(checksums: [String]) {
     self.checksums = checksums
@@ -404,7 +404,7 @@ public struct AnchoredTextEntries: Codable, Sendable {
   }
 }
 
-public indirect enum AnchoredTextEntry: Codable, Sendable {
+public indirect enum AnchoredTextEntry: Codable, Sendable, Hashable {
   case anchoredTextExtractedEntry(AnchoredTextExtractedEntry)
   case anchoredTextDeclinedEntry(AnchoredTextDeclinedEntry)
   public init(from decoder: any Decoder) throws {
@@ -428,7 +428,7 @@ public indirect enum AnchoredTextEntry: Codable, Sendable {
   }
 }
 
-public struct AnchoredTextExtractedEntry: Codable, Sendable {
+public struct AnchoredTextExtractedEntry: Codable, Sendable, Hashable {
   public var lines: [AnchoredTextExtractedEntryLinesItem]
   public var method: ExtractionMethod
   public var ocrConfidence: OcrConfidence?
@@ -478,7 +478,7 @@ public struct AnchoredTextExtractedEntry: Codable, Sendable {
   }
 }
 
-public struct AnchoredTextExtractedEntryLinesItem: Codable, Sendable {
+public struct AnchoredTextExtractedEntryLinesItem: Codable, Sendable, Hashable {
   public var h: Double
   public var p: Int
   public var words: [[Double]]
@@ -506,7 +506,7 @@ public struct AnchoredTextExtractedEntryLinesItem: Codable, Sendable {
   }
 }
 
-public enum AnchoredTextExtractedEntryV: Codable, Sendable {
+public enum AnchoredTextExtractedEntryV: Codable, Sendable, Hashable {
   case value
   public init(from decoder: any Decoder) throws {
     let c = try decoder.singleValueContainer()
@@ -521,7 +521,7 @@ public enum AnchoredTextExtractedEntryV: Codable, Sendable {
   }
 }
 
-public struct AnchoredTextStamp: Codable, Sendable {
+public struct AnchoredTextStamp: Codable, Sendable, Hashable {
   public var stamp: String
   public init(stamp: String) {
     self.stamp = stamp
@@ -537,7 +537,7 @@ public struct AnchoredTextStamp: Codable, Sendable {
   }
 }
 
-public struct AnchoredTextWrite: Codable, Sendable {
+public struct AnchoredTextWrite: Codable, Sendable, Hashable {
   public var contentChecksum: String
   public var entry: AnchoredTextEntry
   public init(contentChecksum: String, entry: AnchoredTextEntry) {
@@ -557,7 +557,7 @@ public struct AnchoredTextWrite: Codable, Sendable {
   }
 }
 
-public struct Annotation: Codable, Sendable {
+public struct Annotation: Codable, Sendable, Hashable {
   public let context: AnnotationContext
   public var body: AnnotationBodies?
   public var created: String
@@ -616,7 +616,7 @@ public struct Annotation: Codable, Sendable {
   }
 }
 
-public struct AnnotationAddedPayload: Codable, Sendable {
+public struct AnnotationAddedPayload: Codable, Sendable, Hashable {
   public var annotation: Annotation
   public var contentChecksum: String?
   public init(annotation: Annotation, contentChecksum: String? = nil) {
@@ -635,7 +635,7 @@ public struct AnnotationAddedPayload: Codable, Sendable {
   }
 }
 
-public indirect enum AnnotationBodies: Codable, Sendable {
+public indirect enum AnnotationBodies: Codable, Sendable, Hashable {
   case annotationBody(AnnotationBody)
   case list([AnnotationBody])
   public init(from decoder: any Decoder) throws {
@@ -658,7 +658,7 @@ public indirect enum AnnotationBodies: Codable, Sendable {
   }
 }
 
-public indirect enum AnnotationBody: Codable, Sendable {
+public indirect enum AnnotationBody: Codable, Sendable, Hashable {
   case textualBody(TextualBody)
   case specificResource(SpecificResource)
   public init(from decoder: any Decoder) throws {
@@ -680,7 +680,7 @@ public indirect enum AnnotationBody: Codable, Sendable {
   }
 }
 
-public struct AnnotationBodyUpdatedPayload: Codable, Sendable {
+public struct AnnotationBodyUpdatedPayload: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public var operations: [BodyOperation]
   public init(annotationId: AnnotationId, operations: [BodyOperation]) {
@@ -739,7 +739,7 @@ public struct AnnotationId: Hashable, Sendable, Codable, CustomStringConvertible
   }
 }
 
-public struct AnnotationRemovedPayload: Codable, Sendable {
+public struct AnnotationRemovedPayload: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public init(annotationId: AnnotationId) {
     self.annotationId = annotationId
@@ -754,7 +754,7 @@ public struct AnnotationRemovedPayload: Codable, Sendable {
   }
 }
 
-public indirect enum AnnotationSelector: Codable, Sendable {
+public indirect enum AnnotationSelector: Codable, Sendable, Hashable {
   case selector(Selector)
   case list([Selector])
   public init(from decoder: any Decoder) throws {
@@ -778,7 +778,7 @@ public indirect enum AnnotationSelector: Codable, Sendable {
   }
 }
 
-public struct AnnotationTarget: Codable, Sendable {
+public struct AnnotationTarget: Codable, Sendable, Hashable {
   public var selector: AnnotationSelector?
   public var source: ResourceId
   public var type: AnnotationTargetType?
@@ -807,7 +807,7 @@ public enum AnnotationTargetType: String, Codable, Sendable, CaseIterable {
   case specificResource = "SpecificResource"
 }
 
-public indirect enum AnnotationTargetValue: Codable, Sendable {
+public indirect enum AnnotationTargetValue: Codable, Sendable, Hashable {
   case resourceId(ResourceId)
   case annotationTarget(AnnotationTarget)
   public init(from decoder: any Decoder) throws {
@@ -840,7 +840,7 @@ public enum ApiVersion: String, Codable, Sendable, CaseIterable {
   case controlXynologOrgV1alpha1 = "control.xynolog.org/v1alpha1"
 }
 
-public struct ArchivistConfig: Codable, Sendable {
+public struct ArchivistConfig: Codable, Sendable, Hashable {
   public var anchoredTextDir: String
   public var engines: ArchivistEngines
   public var gatewayUrl: String
@@ -904,7 +904,7 @@ public struct ArchivistConfig: Codable, Sendable {
   }
 }
 
-public struct ArchivistConfigStaging: Codable, Sendable {
+public struct ArchivistConfigStaging: Codable, Sendable, Hashable {
   public var flushMs: Int
   public var maxWaitMs: Int
   public init(flushMs: Int, maxWaitMs: Int) {
@@ -924,7 +924,27 @@ public struct ArchivistConfigStaging: Codable, Sendable {
   }
 }
 
-public struct ArchivistEngines: Codable, Sendable {
+public struct ArchivistDefaultEntityTypes: Codable, Sendable, Hashable {
+  public var comment: String
+  public var entityTypes: [String]
+  public init(comment: String, entityTypes: [String]) {
+    self.comment = comment
+    self.entityTypes = entityTypes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "entityTypes"], in: "ArchivistDefaultEntityTypes")
+    self.comment = try c.value("$comment")
+    self.entityTypes = try c.value("entityTypes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.entityTypes, as: "entityTypes")
+  }
+}
+
+public struct ArchivistEngines: Codable, Sendable, Hashable {
   public var actors: ArchivistEnginesActors
   public var jobs: ArchivistEnginesJobs
   public init(actors: ArchivistEnginesActors, jobs: ArchivistEnginesJobs) {
@@ -944,7 +964,7 @@ public struct ArchivistEngines: Codable, Sendable {
   }
 }
 
-public struct ArchivistEnginesActors: Codable, Sendable {
+public struct ArchivistEnginesActors: Codable, Sendable, Hashable {
   public var gatherer: Engine?
   public var matcher: Engine?
   public init(gatherer: Engine? = nil, matcher: Engine? = nil) {
@@ -964,7 +984,7 @@ public struct ArchivistEnginesActors: Codable, Sendable {
   }
 }
 
-public struct ArchivistEnginesJobs: Codable, Sendable {
+public struct ArchivistEnginesJobs: Codable, Sendable, Hashable {
   public var mark: ArchivistEnginesJobsMark?
   public var yield: Engine?
   public init(mark: ArchivistEnginesJobsMark? = nil, yield: Engine? = nil) {
@@ -984,7 +1004,7 @@ public struct ArchivistEnginesJobs: Codable, Sendable {
   }
 }
 
-public struct ArchivistEnginesJobsMark: Codable, Sendable {
+public struct ArchivistEnginesJobsMark: Codable, Sendable, Hashable {
   public var assessing: Engine?
   public var commenting: Engine?
   public var highlighting: Engine?
@@ -1021,7 +1041,7 @@ public struct ArchivistEnginesJobsMark: Codable, Sendable {
   }
 }
 
-public struct ArchivistEventsResponse: Codable, Sendable {
+public struct ArchivistEventsResponse: Codable, Sendable, Hashable {
   public var events: [StoredEventResponse]
   public var lastSequence: Int
   public init(events: [StoredEventResponse], lastSequence: Int) {
@@ -1040,7 +1060,7 @@ public struct ArchivistEventsResponse: Codable, Sendable {
   }
 }
 
-public struct ArchivistHealth: Codable, Sendable {
+public struct ArchivistHealth: Codable, Sendable, Hashable {
   public var actors: [ArchivistHealthActorsItem]
   public let status: ArchivistHealthStatus
   public init(actors: [ArchivistHealthActorsItem]) {
@@ -1069,7 +1089,570 @@ public enum ArchivistHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
 }
 
-public struct ArchivistStream: Codable, Sendable {
+public struct ArchivistLayout: Codable, Sendable, Hashable {
+  public var comment: String
+  public var anchoredTextEntry: ArchivistLayoutAnchoredTextEntry
+  public var anchoredTextStamp: ArchivistLayoutAnchoredTextStamp
+  public var eventFile: ArchivistLayoutEventFile
+  public var eventStream: ArchivistLayoutEventStream
+  public var storageUriIndex: ArchivistLayoutStorageUriIndex
+  public var storedEvent: JSONValue
+  public var systemProjections: ArchivistLayoutSystemProjections
+  public var systemStream: ArchivistLayoutSystemStream
+  public var view: ArchivistLayoutView
+  public init(
+    comment: String, anchoredTextEntry: ArchivistLayoutAnchoredTextEntry,
+    anchoredTextStamp: ArchivistLayoutAnchoredTextStamp, eventFile: ArchivistLayoutEventFile,
+    eventStream: ArchivistLayoutEventStream, storageUriIndex: ArchivistLayoutStorageUriIndex,
+    storedEvent: JSONValue, systemProjections: ArchivistLayoutSystemProjections,
+    systemStream: ArchivistLayoutSystemStream, view: ArchivistLayoutView
+  ) {
+    self.comment = comment
+    self.anchoredTextEntry = anchoredTextEntry
+    self.anchoredTextStamp = anchoredTextStamp
+    self.eventFile = eventFile
+    self.eventStream = eventStream
+    self.storageUriIndex = storageUriIndex
+    self.storedEvent = storedEvent
+    self.systemProjections = systemProjections
+    self.systemStream = systemStream
+    self.view = view
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "$comment", "anchoredTextEntry", "anchoredTextStamp", "eventFile", "eventStream",
+        "storageUriIndex", "storedEvent", "systemProjections", "systemStream", "view",
+      ], in: "ArchivistLayout")
+    self.comment = try c.value("$comment")
+    self.anchoredTextEntry = try c.value("anchoredTextEntry")
+    self.anchoredTextStamp = try c.value("anchoredTextStamp")
+    self.eventFile = try c.value("eventFile")
+    self.eventStream = try c.value("eventStream")
+    self.storageUriIndex = try c.value("storageUriIndex")
+    self.storedEvent = try c.value("storedEvent")
+    self.systemProjections = try c.value("systemProjections")
+    self.systemStream = try c.value("systemStream")
+    self.view = try c.value("view")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.anchoredTextEntry, as: "anchoredTextEntry")
+    try c.encode(self.anchoredTextStamp, as: "anchoredTextStamp")
+    try c.encode(self.eventFile, as: "eventFile")
+    try c.encode(self.eventStream, as: "eventStream")
+    try c.encode(self.storageUriIndex, as: "storageUriIndex")
+    try c.encode(self.storedEvent, as: "storedEvent")
+    try c.encode(self.systemProjections, as: "systemProjections")
+    try c.encode(self.systemStream, as: "systemStream")
+    try c.encode(self.view, as: "view")
+  }
+}
+
+public struct ArchivistLayoutAnchoredTextEntry: Codable, Sendable, Hashable {
+  public var path: String
+  public var schema: JSONValue
+  public var tree: ArchivistLayoutAnchoredTextEntryTree
+  public init(path: String, schema: JSONValue, tree: ArchivistLayoutAnchoredTextEntryTree) {
+    self.path = path
+    self.schema = schema
+    self.tree = tree
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["path", "schema", "tree"], in: "ArchivistLayoutAnchoredTextEntry")
+    self.path = try c.value("path")
+    self.schema = try c.value("schema")
+    self.tree = try c.value("tree")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.path, as: "path")
+    try c.encode(self.schema, as: "schema")
+    try c.encode(self.tree, as: "tree")
+  }
+}
+
+public enum ArchivistLayoutAnchoredTextEntryTree: String, Codable, Sendable, CaseIterable {
+  case root = "root"
+  case stateHome = "stateHome"
+  case anchoredTextDir = "anchoredTextDir"
+}
+
+public struct ArchivistLayoutAnchoredTextStamp: Codable, Sendable, Hashable {
+  public var path: String
+  public var tree: ArchivistLayoutAnchoredTextStampTree
+  public init(path: String, tree: ArchivistLayoutAnchoredTextStampTree) {
+    self.path = path
+    self.tree = tree
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["path", "tree"], in: "ArchivistLayoutAnchoredTextStamp")
+    self.path = try c.value("path")
+    self.tree = try c.value("tree")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.path, as: "path")
+    try c.encode(self.tree, as: "tree")
+  }
+}
+
+public enum ArchivistLayoutAnchoredTextStampTree: String, Codable, Sendable, CaseIterable {
+  case root = "root"
+  case stateHome = "stateHome"
+  case anchoredTextDir = "anchoredTextDir"
+}
+
+public struct ArchivistLayoutEventFile: Codable, Sendable, Hashable {
+  public var digits: Int
+  public var first: Int
+  public var maxEvents: Int
+  public var name: String
+  public init(digits: Int, first: Int, maxEvents: Int, name: String) {
+    self.digits = digits
+    self.first = first
+    self.maxEvents = maxEvents
+    self.name = name
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["digits", "first", "maxEvents", "name"], in: "ArchivistLayoutEventFile")
+    self.digits = try c.value("digits")
+    self.first = try c.value("first")
+    self.maxEvents = try c.value("maxEvents")
+    self.name = try c.value("name")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.digits, as: "digits")
+    try c.encode(self.first, as: "first")
+    try c.encode(self.maxEvents, as: "maxEvents")
+    try c.encode(self.name, as: "name")
+  }
+}
+
+public struct ArchivistLayoutEventStream: Codable, Sendable, Hashable {
+  public var path: String
+  public var tree: ArchivistLayoutEventStreamTree
+  public init(path: String, tree: ArchivistLayoutEventStreamTree) {
+    self.path = path
+    self.tree = tree
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["path", "tree"], in: "ArchivistLayoutEventStream")
+    self.path = try c.value("path")
+    self.tree = try c.value("tree")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.path, as: "path")
+    try c.encode(self.tree, as: "tree")
+  }
+}
+
+public enum ArchivistLayoutEventStreamTree: String, Codable, Sendable, CaseIterable {
+  case root = "root"
+  case stateHome = "stateHome"
+  case anchoredTextDir = "anchoredTextDir"
+}
+
+public struct ArchivistLayoutStorageUriIndex: Codable, Sendable, Hashable {
+  public var path: String
+  public var schema: JSONValue
+  public var tree: ArchivistLayoutStorageUriIndexTree
+  public init(path: String, schema: JSONValue, tree: ArchivistLayoutStorageUriIndexTree) {
+    self.path = path
+    self.schema = schema
+    self.tree = tree
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["path", "schema", "tree"], in: "ArchivistLayoutStorageUriIndex")
+    self.path = try c.value("path")
+    self.schema = try c.value("schema")
+    self.tree = try c.value("tree")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.path, as: "path")
+    try c.encode(self.schema, as: "schema")
+    try c.encode(self.tree, as: "tree")
+  }
+}
+
+public enum ArchivistLayoutStorageUriIndexTree: String, Codable, Sendable, CaseIterable {
+  case root = "root"
+  case stateHome = "stateHome"
+  case anchoredTextDir = "anchoredTextDir"
+}
+
+public struct ArchivistLayoutSystemProjections: Codable, Sendable, Hashable {
+  public var files: [ArchivistLayoutSystemProjectionsFilesItem]
+  public var path: String
+  public var tree: ArchivistLayoutSystemProjectionsTree
+  public init(
+    files: [ArchivistLayoutSystemProjectionsFilesItem], path: String,
+    tree: ArchivistLayoutSystemProjectionsTree
+  ) {
+    self.files = files
+    self.path = path
+    self.tree = tree
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["files", "path", "tree"], in: "ArchivistLayoutSystemProjections")
+    self.files = try c.value("files")
+    self.path = try c.value("path")
+    self.tree = try c.value("tree")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.files, as: "files")
+    try c.encode(self.path, as: "path")
+    try c.encode(self.tree, as: "tree")
+  }
+}
+
+public struct ArchivistLayoutSystemProjectionsFilesItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var schema: JSONValue
+  public init(name: String, schema: JSONValue) {
+    self.name = name
+    self.schema = schema
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "schema"], in: "ArchivistLayoutSystemProjectionsFilesItem")
+    self.name = try c.value("name")
+    self.schema = try c.value("schema")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.schema, as: "schema")
+  }
+}
+
+public enum ArchivistLayoutSystemProjectionsTree: String, Codable, Sendable, CaseIterable {
+  case root = "root"
+  case stateHome = "stateHome"
+  case anchoredTextDir = "anchoredTextDir"
+}
+
+public struct ArchivistLayoutSystemStream: Codable, Sendable, Hashable {
+  public var path: String
+  public var tree: ArchivistLayoutSystemStreamTree
+  public init(path: String, tree: ArchivistLayoutSystemStreamTree) {
+    self.path = path
+    self.tree = tree
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["path", "tree"], in: "ArchivistLayoutSystemStream")
+    self.path = try c.value("path")
+    self.tree = try c.value("tree")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.path, as: "path")
+    try c.encode(self.tree, as: "tree")
+  }
+}
+
+public enum ArchivistLayoutSystemStreamTree: String, Codable, Sendable, CaseIterable {
+  case root = "root"
+  case stateHome = "stateHome"
+  case anchoredTextDir = "anchoredTextDir"
+}
+
+public struct ArchivistLayoutView: Codable, Sendable, Hashable {
+  public var path: String
+  public var schema: JSONValue
+  public var tree: ArchivistLayoutViewTree
+  public init(path: String, schema: JSONValue, tree: ArchivistLayoutViewTree) {
+    self.path = path
+    self.schema = schema
+    self.tree = tree
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["path", "schema", "tree"], in: "ArchivistLayoutView")
+    self.path = try c.value("path")
+    self.schema = try c.value("schema")
+    self.tree = try c.value("tree")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.path, as: "path")
+    try c.encode(self.schema, as: "schema")
+    try c.encode(self.tree, as: "tree")
+  }
+}
+
+public enum ArchivistLayoutViewTree: String, Codable, Sendable, CaseIterable {
+  case root = "root"
+  case stateHome = "stateHome"
+  case anchoredTextDir = "anchoredTextDir"
+}
+
+public struct ArchivistMessages: Codable, Sendable, Hashable {
+  public var comment: String
+  public var boot: [ArchivistMessagesBootItem]
+  public var http: [ArchivistMessagesHttpItem]
+  public var logged: [ArchivistMessagesLoggedItem]
+  public var refusals: [ArchivistMessagesRefusalsItem]
+  public var unauthorized: ArchivistMessagesUnauthorized
+  public var unsent: [ArchivistMessagesUnsentItem]
+  public init(
+    comment: String, boot: [ArchivistMessagesBootItem], http: [ArchivistMessagesHttpItem],
+    logged: [ArchivistMessagesLoggedItem], refusals: [ArchivistMessagesRefusalsItem],
+    unauthorized: ArchivistMessagesUnauthorized, unsent: [ArchivistMessagesUnsentItem]
+  ) {
+    self.comment = comment
+    self.boot = boot
+    self.http = http
+    self.logged = logged
+    self.refusals = refusals
+    self.unauthorized = unauthorized
+    self.unsent = unsent
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "boot", "http", "logged", "refusals", "unauthorized", "unsent"],
+      in: "ArchivistMessages")
+    self.comment = try c.value("$comment")
+    self.boot = try c.value("boot")
+    self.http = try c.value("http")
+    self.logged = try c.value("logged")
+    self.refusals = try c.value("refusals")
+    self.unauthorized = try c.value("unauthorized")
+    self.unsent = try c.value("unsent")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.boot, as: "boot")
+    try c.encode(self.http, as: "http")
+    try c.encode(self.logged, as: "logged")
+    try c.encode(self.refusals, as: "refusals")
+    try c.encode(self.unauthorized, as: "unauthorized")
+    try c.encode(self.unsent, as: "unsent")
+  }
+}
+
+public struct ArchivistMessagesBootItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var refusal: String
+  public var situation: String
+  public init(name: String, refusal: String, situation: String) {
+    self.name = name
+    self.refusal = refusal
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "refusal", "situation"], in: "ArchivistMessagesBootItem")
+    self.name = try c.value("name")
+    self.refusal = try c.value("refusal")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.refusal, as: "refusal")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct ArchivistMessagesHttpItem: Codable, Sendable, Hashable {
+  public var code: String?
+  public var error: String
+  public var method: ArchivistMessagesHttpItemMethod
+  public var name: String
+  public var route: String
+  public var situation: String
+  public var status: HttpStatus
+  public init(
+    code: String? = nil, error: String, method: ArchivistMessagesHttpItemMethod, name: String,
+    route: String, situation: String, status: HttpStatus
+  ) {
+    self.code = code
+    self.error = error
+    self.method = method
+    self.name = name
+    self.route = route
+    self.situation = situation
+    self.status = status
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["code", "error", "method", "name", "route", "situation", "status"],
+      in: "ArchivistMessagesHttpItem")
+    self.code = try c.ifPresent("code")
+    self.error = try c.value("error")
+    self.method = try c.value("method")
+    self.name = try c.value("name")
+    self.route = try c.value("route")
+    self.situation = try c.value("situation")
+    self.status = try c.value("status")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.code, as: "code")
+    try c.encode(self.error, as: "error")
+    try c.encode(self.method, as: "method")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.route, as: "route")
+    try c.encode(self.situation, as: "situation")
+    try c.encode(self.status, as: "status")
+  }
+}
+
+public enum ArchivistMessagesHttpItemMethod: String, Codable, Sendable, CaseIterable {
+  case gET = "GET"
+  case pUT = "PUT"
+  case pOST = "POST"
+}
+
+public struct ArchivistMessagesLoggedItem: Codable, Sendable, Hashable {
+  public var fields: [String: String]
+  public var level: LogLevel
+  public var message: String
+  public var name: String
+  public var situation: String
+  public init(
+    fields: [String: String], level: LogLevel, message: String, name: String, situation: String
+  ) {
+    self.fields = fields
+    self.level = level
+    self.message = message
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["fields", "level", "message", "name", "situation"], in: "ArchivistMessagesLoggedItem")
+    self.fields = try c.value("fields")
+    self.level = try c.value("level")
+    self.message = try c.value("message")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.fields, as: "fields")
+    try c.encode(self.level, as: "level")
+    try c.encode(self.message, as: "message")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct ArchivistMessagesRefusalsItem: Codable, Sendable, Hashable {
+  public var code: ArchivistMessagesRefusalsItemCode?
+  public var message: String
+  public var name: String
+  public var operations: [String]
+  public var situation: String
+  public init(
+    code: ArchivistMessagesRefusalsItemCode? = nil, message: String, name: String,
+    operations: [String], situation: String
+  ) {
+    self.code = code
+    self.message = message
+    self.name = name
+    self.operations = operations
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["code", "message", "name", "operations", "situation"], in: "ArchivistMessagesRefusalsItem")
+    self.code = try c.ifPresent("code")
+    self.message = try c.value("message")
+    self.name = try c.value("name")
+    self.operations = try c.value("operations")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.code, as: "code")
+    try c.encode(self.message, as: "message")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.operations, as: "operations")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public enum ArchivistMessagesRefusalsItemCode: String, Codable, Sendable, CaseIterable {
+  case peerUnavailable = "peer-unavailable"
+  case notFound = "not-found"
+  case unauthorized = "unauthorized"
+  case nonePending = "none-pending"
+}
+
+public struct ArchivistMessagesUnauthorized: Codable, Sendable, Hashable {
+  public var absent: String
+  public var error: String
+  public var presented: String
+  public var status: HttpStatus
+  public init(absent: String, error: String, presented: String, status: HttpStatus) {
+    self.absent = absent
+    self.error = error
+    self.presented = presented
+    self.status = status
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["absent", "error", "presented", "status"], in: "ArchivistMessagesUnauthorized")
+    self.absent = try c.value("absent")
+    self.error = try c.value("error")
+    self.presented = try c.value("presented")
+    self.status = try c.value("status")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.absent, as: "absent")
+    try c.encode(self.error, as: "error")
+    try c.encode(self.presented, as: "presented")
+    try c.encode(self.status, as: "status")
+  }
+}
+
+public struct ArchivistMessagesUnsentItem: Codable, Sendable, Hashable {
+  public var message: String
+  public var name: String
+  public var situation: String
+  public init(message: String, name: String, situation: String) {
+    self.message = message
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["message", "name", "situation"], in: "ArchivistMessagesUnsentItem")
+    self.message = try c.value("message")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.message, as: "message")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct ArchivistStream: Codable, Sendable, Hashable {
   public var lastSequence: Int
   public var resourceId: ResourceId
   public init(lastSequence: Int, resourceId: ResourceId) {
@@ -1089,7 +1672,7 @@ public struct ArchivistStream: Codable, Sendable {
   }
 }
 
-public struct ArchivistStreamsResponse: Codable, Sendable {
+public struct ArchivistStreamsResponse: Codable, Sendable, Hashable {
   public var streams: [ArchivistStream]
   public init(streams: [ArchivistStream]) {
     self.streams = streams
@@ -1105,7 +1688,7 @@ public struct ArchivistStreamsResponse: Codable, Sendable {
   }
 }
 
-public struct AssessingJobParams: Codable, Sendable {
+public struct AssessingJobParams: Codable, Sendable, Hashable {
   public var density: Double?
   public var instructions: String?
   public var language: String?
@@ -1157,7 +1740,7 @@ public enum AssessingJobParamsTone: String, Codable, Sendable, CaseIterable {
   case constructive = "constructive"
 }
 
-public struct AttributedEvent: Codable, Sendable {
+public struct AttributedEvent: Codable, Sendable, Hashable {
   public var agent: Agent
   public var id: String
   public var metadata: EventMetadata
@@ -1207,7 +1790,7 @@ public struct AttributedEvent: Codable, Sendable {
   }
 }
 
-public struct AuthLoginParams: Codable, Sendable {
+public struct AuthLoginParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var runtime: Runtime?
   public var target: Target?
@@ -1231,7 +1814,7 @@ public struct AuthLoginParams: Codable, Sendable {
   }
 }
 
-public struct AuthLoginResult: Codable, Sendable {
+public struct AuthLoginResult: Codable, Sendable, Hashable {
   public var issuer: String
   public var key: String
   public var who: String
@@ -1255,7 +1838,7 @@ public struct AuthLoginResult: Codable, Sendable {
   }
 }
 
-public struct AuthLogoutParams: Codable, Sendable {
+public struct AuthLogoutParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var runtime: Runtime?
   public var target: Target?
@@ -1279,7 +1862,7 @@ public struct AuthLogoutParams: Codable, Sendable {
   }
 }
 
-public struct AuthLogoutResult: Codable, Sendable {
+public struct AuthLogoutResult: Codable, Sendable, Hashable {
   public var key: String?
   public var revoked: Bool
   public var wasSignedIn: Bool
@@ -1303,7 +1886,7 @@ public struct AuthLogoutResult: Codable, Sendable {
   }
 }
 
-public struct BeckonFocusEvent: Codable, Sendable {
+public struct BeckonFocusEvent: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId?
   public var resourceId: ResourceId
   public init(annotationId: AnnotationId? = nil, resourceId: ResourceId) {
@@ -1322,7 +1905,7 @@ public struct BeckonFocusEvent: Codable, Sendable {
   }
 }
 
-public struct BeckonHoverEvent: Codable, Sendable {
+public struct BeckonHoverEvent: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId?
   public init(annotationId: AnnotationId?) {
     self.annotationId = annotationId
@@ -1337,7 +1920,7 @@ public struct BeckonHoverEvent: Codable, Sendable {
   }
 }
 
-public struct BeckonSparkleEvent: Codable, Sendable {
+public struct BeckonSparkleEvent: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public init(annotationId: AnnotationId) {
     self.annotationId = annotationId
@@ -1352,7 +1935,7 @@ public struct BeckonSparkleEvent: Codable, Sendable {
   }
 }
 
-public struct BeginAuthorizationOptions: Codable, Sendable {
+public struct BeginAuthorizationOptions: Codable, Sendable, Hashable {
   public var expectedDid: String?
   public var expectedName: String?
   public var kbId: String?
@@ -1389,7 +1972,7 @@ public struct BeginAuthorizationOptions: Codable, Sendable {
   }
 }
 
-public struct BindBodyOperation: Codable, Sendable {
+public struct BindBodyOperation: Codable, Sendable, Hashable {
   public var item: AnnotationBody?
   public var newItem: AnnotationBody?
   public var oldItem: AnnotationBody?
@@ -1425,7 +2008,7 @@ public enum BindBodyOperationOp: String, Codable, Sendable, CaseIterable {
   case replace = "replace"
 }
 
-public struct BindBodyUpdated: Codable, Sendable {
+public struct BindBodyUpdated: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -1436,7 +2019,7 @@ public struct BindBodyUpdated: Codable, Sendable {
   }
 }
 
-public struct BindInitiateCommand: Codable, Sendable {
+public struct BindInitiateCommand: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public var defaultTitle: String
   public var entityTypes: [String]
@@ -1465,7 +2048,7 @@ public struct BindInitiateCommand: Codable, Sendable {
   }
 }
 
-public struct BindUpdateBodyCommand: Codable, Sendable {
+public struct BindUpdateBodyCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId
   public var operations: [BindBodyOperation]
@@ -1495,7 +2078,7 @@ public struct BindUpdateBodyCommand: Codable, Sendable {
   }
 }
 
-public indirect enum BodyOperation: Codable, Sendable {
+public indirect enum BodyOperation: Codable, Sendable, Hashable {
   case bodyOperationAdd(BodyOperationAdd)
   case bodyOperationRemove(BodyOperationRemove)
   case bodyOperationReplace(BodyOperationReplace)
@@ -1524,7 +2107,7 @@ public indirect enum BodyOperation: Codable, Sendable {
   }
 }
 
-public struct BodyOperationAdd: Codable, Sendable {
+public struct BodyOperationAdd: Codable, Sendable, Hashable {
   public var item: AnnotationBody
   public let op: BodyOperationAddOp
   public init(item: AnnotationBody) {
@@ -1547,7 +2130,7 @@ public enum BodyOperationAddOp: String, Codable, Sendable, CaseIterable {
   case add = "add"
 }
 
-public struct BodyOperationRemove: Codable, Sendable {
+public struct BodyOperationRemove: Codable, Sendable, Hashable {
   public var item: AnnotationBody
   public let op: BodyOperationRemoveOp
   public init(item: AnnotationBody) {
@@ -1570,7 +2153,7 @@ public enum BodyOperationRemoveOp: String, Codable, Sendable, CaseIterable {
   case remove = "remove"
 }
 
-public struct BodyOperationReplace: Codable, Sendable {
+public struct BodyOperationReplace: Codable, Sendable, Hashable {
   public var newItem: AnnotationBody
   public var oldItem: AnnotationBody
   public let op: BodyOperationReplaceOp
@@ -1613,7 +2196,7 @@ public enum BodyPurpose: String, Codable, Sendable, CaseIterable {
   case tagging = "tagging"
 }
 
-public struct BrowseAnnotationHistoryRequest: Codable, Sendable {
+public struct BrowseAnnotationHistoryRequest: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public var resourceId: ResourceId
   public init(annotationId: AnnotationId, resourceId: ResourceId) {
@@ -1632,7 +2215,7 @@ public struct BrowseAnnotationHistoryRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseAnnotationHistoryResult: Codable, Sendable {
+public struct BrowseAnnotationHistoryResult: Codable, Sendable, Hashable {
   public var response: GetAnnotationHistoryResponse
   public init(response: GetAnnotationHistoryResponse) {
     self.response = response
@@ -1647,7 +2230,7 @@ public struct BrowseAnnotationHistoryResult: Codable, Sendable {
   }
 }
 
-public struct BrowseAnnotationRequest: Codable, Sendable {
+public struct BrowseAnnotationRequest: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public var resourceId: ResourceId
   public init(annotationId: AnnotationId, resourceId: ResourceId) {
@@ -1666,7 +2249,7 @@ public struct BrowseAnnotationRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseAnnotationResult: Codable, Sendable {
+public struct BrowseAnnotationResult: Codable, Sendable, Hashable {
   public var response: GetAnnotationResponse
   public init(response: GetAnnotationResponse) {
     self.response = response
@@ -1681,7 +2264,7 @@ public struct BrowseAnnotationResult: Codable, Sendable {
   }
 }
 
-public struct BrowseClickEvent: Codable, Sendable {
+public struct BrowseClickEvent: Codable, Sendable, Hashable {
   public var anchorRect: AnchorRect?
   public var annotationId: AnnotationId
   public init(anchorRect: AnchorRect? = nil, annotationId: AnnotationId) {
@@ -1700,7 +2283,7 @@ public struct BrowseClickEvent: Codable, Sendable {
   }
 }
 
-public struct BrowseDirectoryFailed: Codable, Sendable {
+public struct BrowseDirectoryFailed: Codable, Sendable, Hashable {
   public var code: CommandErrorCode?
   public var details: String?
   public var message: String
@@ -1728,7 +2311,7 @@ public struct BrowseDirectoryFailed: Codable, Sendable {
   }
 }
 
-public struct BrowseDirectoryRequest: Codable, Sendable {
+public struct BrowseDirectoryRequest: Codable, Sendable, Hashable {
   public var path: String
   public var sort: BrowseDirectoryRequestSort?
   public init(path: String, sort: BrowseDirectoryRequestSort? = nil) {
@@ -1753,7 +2336,7 @@ public enum BrowseDirectoryRequestSort: String, Codable, Sendable, CaseIterable 
   case annotationCount = "annotationCount"
 }
 
-public struct BrowseDirectoryResult: Codable, Sendable {
+public struct BrowseDirectoryResult: Codable, Sendable, Hashable {
   public var response: BrowseDirectoryResultResponse
   public init(response: BrowseDirectoryResultResponse) {
     self.response = response
@@ -1768,7 +2351,7 @@ public struct BrowseDirectoryResult: Codable, Sendable {
   }
 }
 
-public struct BrowseDirectoryResultResponse: Codable, Sendable {
+public struct BrowseDirectoryResultResponse: Codable, Sendable, Hashable {
   public var entries: [DirectoryEntry]
   public var path: String
   public init(entries: [DirectoryEntry], path: String) {
@@ -1787,7 +2370,7 @@ public struct BrowseDirectoryResultResponse: Codable, Sendable {
   }
 }
 
-public struct BrowseEnginesRequest: Codable, Sendable {
+public struct BrowseEnginesRequest: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -1798,7 +2381,7 @@ public struct BrowseEnginesRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseEnginesResult: Codable, Sendable {
+public struct BrowseEnginesResult: Codable, Sendable, Hashable {
   public var response: BrowseEnginesResultResponse
   public init(response: BrowseEnginesResultResponse) {
     self.response = response
@@ -1813,7 +2396,7 @@ public struct BrowseEnginesResult: Codable, Sendable {
   }
 }
 
-public struct BrowseEnginesResultResponse: Codable, Sendable {
+public struct BrowseEnginesResultResponse: Codable, Sendable, Hashable {
   public var engines: [EngineEntry]
   public init(engines: [EngineEntry]) {
     self.engines = engines
@@ -1828,7 +2411,7 @@ public struct BrowseEnginesResultResponse: Codable, Sendable {
   }
 }
 
-public struct BrowseEntityTypeClickedEvent: Codable, Sendable {
+public struct BrowseEntityTypeClickedEvent: Codable, Sendable, Hashable {
   public var entityType: String
   public init(entityType: String) {
     self.entityType = entityType
@@ -1843,7 +2426,7 @@ public struct BrowseEntityTypeClickedEvent: Codable, Sendable {
   }
 }
 
-public struct BrowseEntityTypesRequest: Codable, Sendable {
+public struct BrowseEntityTypesRequest: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -1854,7 +2437,7 @@ public struct BrowseEntityTypesRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseEntityTypesResult: Codable, Sendable {
+public struct BrowseEntityTypesResult: Codable, Sendable, Hashable {
   public var response: GetEntityTypesResponse
   public init(response: GetEntityTypesResponse) {
     self.response = response
@@ -1869,7 +2452,7 @@ public struct BrowseEntityTypesResult: Codable, Sendable {
   }
 }
 
-public struct BrowseEventsRequest: Codable, Sendable {
+public struct BrowseEventsRequest: Codable, Sendable, Hashable {
   public var limit: Int?
   public var resourceId: ResourceId
   public var type: String?
@@ -1897,7 +2480,7 @@ public struct BrowseEventsRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseEventsResult: Codable, Sendable {
+public struct BrowseEventsResult: Codable, Sendable, Hashable {
   public var response: GetEventsResponse
   public init(response: GetEventsResponse) {
     self.response = response
@@ -1912,7 +2495,7 @@ public struct BrowseEventsResult: Codable, Sendable {
   }
 }
 
-public struct BrowseExternalNavigateEvent: Codable, Sendable {
+public struct BrowseExternalNavigateEvent: Codable, Sendable, Hashable {
   public var resourceId: ResourceId?
   public var url: String
   public init(resourceId: ResourceId? = nil, url: String) {
@@ -1931,7 +2514,7 @@ public struct BrowseExternalNavigateEvent: Codable, Sendable {
   }
 }
 
-public struct BrowseFilesResponse: Codable, Sendable {
+public struct BrowseFilesResponse: Codable, Sendable, Hashable {
   public var entries: [DirectoryEntry]
   public var path: String
   public init(entries: [DirectoryEntry], path: String) {
@@ -1951,7 +2534,7 @@ public struct BrowseFilesResponse: Codable, Sendable {
   }
 }
 
-public struct BrowseKbRequest: Codable, Sendable {
+public struct BrowseKbRequest: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -1962,7 +2545,7 @@ public struct BrowseKbRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseKbResult: Codable, Sendable {
+public struct BrowseKbResult: Codable, Sendable, Hashable {
   public var response: KbDescription
   public init(response: KbDescription) {
     self.response = response
@@ -1977,7 +2560,7 @@ public struct BrowseKbResult: Codable, Sendable {
   }
 }
 
-public struct BrowseLinkClickedEvent: Codable, Sendable {
+public struct BrowseLinkClickedEvent: Codable, Sendable, Hashable {
   public var href: String
   public var label: String?
   public init(href: String, label: String? = nil) {
@@ -1996,7 +2579,7 @@ public struct BrowseLinkClickedEvent: Codable, Sendable {
   }
 }
 
-public struct BrowsePanelOpenEvent: Codable, Sendable {
+public struct BrowsePanelOpenEvent: Codable, Sendable, Hashable {
   public var motivation: Motivation?
   public var panel: String
   public var scrollToAnnotationId: AnnotationId?
@@ -2021,7 +2604,7 @@ public struct BrowsePanelOpenEvent: Codable, Sendable {
   }
 }
 
-public struct BrowsePanelToggleEvent: Codable, Sendable {
+public struct BrowsePanelToggleEvent: Codable, Sendable, Hashable {
   public var panel: String
   public init(panel: String) {
     self.panel = panel
@@ -2036,7 +2619,7 @@ public struct BrowsePanelToggleEvent: Codable, Sendable {
   }
 }
 
-public struct BrowseProfilesRequest: Codable, Sendable {
+public struct BrowseProfilesRequest: Codable, Sendable, Hashable {
   public var dids: [UserId]
   public init(dids: [UserId]) {
     self.dids = dids
@@ -2052,7 +2635,7 @@ public struct BrowseProfilesRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseProfilesResult: Codable, Sendable {
+public struct BrowseProfilesResult: Codable, Sendable, Hashable {
   public var response: BrowseProfilesResultResponse
   public init(response: BrowseProfilesResultResponse) {
     self.response = response
@@ -2067,7 +2650,7 @@ public struct BrowseProfilesResult: Codable, Sendable {
   }
 }
 
-public struct BrowseProfilesResultResponse: Codable, Sendable {
+public struct BrowseProfilesResultResponse: Codable, Sendable, Hashable {
   public var profiles: [String: Profile]
   public init(profiles: [String: Profile]) {
     self.profiles = profiles
@@ -2083,7 +2666,7 @@ public struct BrowseProfilesResultResponse: Codable, Sendable {
   }
 }
 
-public struct BrowseResourceCloseEvent: Codable, Sendable {
+public struct BrowseResourceCloseEvent: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public init(resourceId: ResourceId) {
     self.resourceId = resourceId
@@ -2098,7 +2681,7 @@ public struct BrowseResourceCloseEvent: Codable, Sendable {
   }
 }
 
-public struct BrowseResourceOpenEvent: Codable, Sendable {
+public struct BrowseResourceOpenEvent: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public init(resourceId: ResourceId) {
     self.resourceId = resourceId
@@ -2113,7 +2696,7 @@ public struct BrowseResourceOpenEvent: Codable, Sendable {
   }
 }
 
-public struct BrowseResourceReorderEvent: Codable, Sendable {
+public struct BrowseResourceReorderEvent: Codable, Sendable, Hashable {
   public var newIndex: Int
   public var oldIndex: Int
   public init(newIndex: Int, oldIndex: Int) {
@@ -2132,7 +2715,7 @@ public struct BrowseResourceReorderEvent: Codable, Sendable {
   }
 }
 
-public struct BrowseResourceRequest: Codable, Sendable {
+public struct BrowseResourceRequest: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public init(resourceId: ResourceId) {
     self.resourceId = resourceId
@@ -2147,7 +2730,7 @@ public struct BrowseResourceRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseResourceResult: Codable, Sendable {
+public struct BrowseResourceResult: Codable, Sendable, Hashable {
   public var response: BrowseResourceResultResponse
   public init(response: BrowseResourceResultResponse) {
     self.response = response
@@ -2162,7 +2745,7 @@ public struct BrowseResourceResult: Codable, Sendable {
   }
 }
 
-public struct BrowseResourceResultResponse: Codable, Sendable {
+public struct BrowseResourceResultResponse: Codable, Sendable, Hashable {
   public var lastSequence: Int
   public var resource: ResourceDescriptor
   public init(lastSequence: Int, resource: ResourceDescriptor) {
@@ -2182,7 +2765,7 @@ public struct BrowseResourceResultResponse: Codable, Sendable {
   }
 }
 
-public struct BrowseResourceViewedEvent: Codable, Sendable {
+public struct BrowseResourceViewedEvent: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public init(resourceId: ResourceId) {
     self.resourceId = resourceId
@@ -2197,7 +2780,7 @@ public struct BrowseResourceViewedEvent: Codable, Sendable {
   }
 }
 
-public struct BrowseResourcesRequest: Codable, Sendable {
+public struct BrowseResourcesRequest: Codable, Sendable, Hashable {
   public var archived: Bool?
   public var entityType: String?
   public var limit: Int?
@@ -2226,7 +2809,7 @@ public struct BrowseResourcesRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseResourcesResult: Codable, Sendable {
+public struct BrowseResourcesResult: Codable, Sendable, Hashable {
   public var response: ListResourcesResponse
   public init(response: ListResourcesResponse) {
     self.response = response
@@ -2241,7 +2824,7 @@ public struct BrowseResourcesResult: Codable, Sendable {
   }
 }
 
-public struct BrowseRouterPushEvent: Codable, Sendable {
+public struct BrowseRouterPushEvent: Codable, Sendable, Hashable {
   public var path: String
   public var reason: String?
   public init(path: String, reason: String? = nil) {
@@ -2260,7 +2843,7 @@ public struct BrowseRouterPushEvent: Codable, Sendable {
   }
 }
 
-public struct BrowseTagSchemasRequest: Codable, Sendable {
+public struct BrowseTagSchemasRequest: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -2271,7 +2854,7 @@ public struct BrowseTagSchemasRequest: Codable, Sendable {
   }
 }
 
-public struct BrowseTagSchemasResult: Codable, Sendable {
+public struct BrowseTagSchemasResult: Codable, Sendable, Hashable {
   public var response: GetTagSchemasResponse
   public init(response: GetTagSchemasResponse) {
     self.response = response
@@ -2286,7 +2869,7 @@ public struct BrowseTagSchemasResult: Codable, Sendable {
   }
 }
 
-public struct Browser: Codable, Sendable {
+public struct Browser: Codable, Sendable, Hashable {
   public var apiVersion: StackApiVersion
   public let kind: BrowserKind
   public var metadata: Metadata
@@ -2318,7 +2901,7 @@ public enum BrowserKind: String, Codable, Sendable, CaseIterable {
   case browser = "Browser"
 }
 
-public struct BrowserSpec: Codable, Sendable {
+public struct BrowserSpec: Codable, Sendable, Hashable {
   public var image: Image
   public var port: Int
   public var resources: Resources
@@ -2342,7 +2925,7 @@ public struct BrowserSpec: Codable, Sendable {
   }
 }
 
-public struct BusEmitAccepted: Codable, Sendable {
+public struct BusEmitAccepted: Codable, Sendable, Hashable {
   public var subscribers: Int?
   public init(subscribers: Int? = nil) {
     self.subscribers = subscribers
@@ -2357,7 +2940,7 @@ public struct BusEmitAccepted: Codable, Sendable {
   }
 }
 
-public struct BusEmitRequest: Codable, Sendable {
+public struct BusEmitRequest: Codable, Sendable, Hashable {
   public var channel: String
   public var clientId: String?
   public var correlationId: String?
@@ -2391,7 +2974,7 @@ public struct BusEmitRequest: Codable, Sendable {
   }
 }
 
-public struct BusEmptyPayload: Codable, Sendable {
+public struct BusEmptyPayload: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -2403,7 +2986,7 @@ public struct BusEmptyPayload: Codable, Sendable {
   }
 }
 
-public struct BusEventMessage: Codable, Sendable {
+public struct BusEventMessage: Codable, Sendable, Hashable {
   public var data: BusFrame
   public let event: BusEventMessageEvent
   public var id: BusEventMessageId
@@ -2431,7 +3014,7 @@ public enum BusEventMessageEvent: String, Codable, Sendable, CaseIterable {
   case busEvent = "bus-event"
 }
 
-public indirect enum BusEventMessageId: Codable, Sendable {
+public indirect enum BusEventMessageId: Codable, Sendable, Hashable {
   case persistedEventId(PersistedEventId)
   case replyEventId(ReplyEventId)
   case ephemeralEventId(EphemeralEventId)
@@ -2461,7 +3044,7 @@ public indirect enum BusEventMessageId: Codable, Sendable {
   }
 }
 
-public struct BusFrame: Codable, Sendable {
+public struct BusFrame: Codable, Sendable, Hashable {
   public var channel: String
   public var correlationId: String?
   public var payload: [String: JSONValue]
@@ -2492,7 +3075,7 @@ public struct BusFrame: Codable, Sendable {
   }
 }
 
-public struct BusPingMessage: Codable, Sendable {
+public struct BusPingMessage: Codable, Sendable, Hashable {
   public var data: String
   public let event: BusPingMessageEvent
   public init(data: String) {
@@ -2516,7 +3099,84 @@ public enum BusPingMessageEvent: String, Codable, Sendable, CaseIterable {
   case ping = "ping"
 }
 
-public struct BusResumeGap: Codable, Sendable {
+public struct BusReplyBounds: Codable, Sendable, Hashable {
+  public var comment: String
+  public var replies: [String: [String: BusReplyBoundsRepliesValueValue]]
+  public init(comment: String, replies: [String: [String: BusReplyBoundsRepliesValueValue]]) {
+    self.comment = comment
+    self.replies = replies
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "replies"], in: "BusReplyBounds")
+    self.comment = try c.value("$comment")
+    self.replies = try c.value("replies")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.replies, as: "replies")
+  }
+}
+
+public indirect enum BusReplyBoundsRepliesValueValue: Codable, Sendable, Hashable {
+  case by(BusReplyBoundsRepliesValueValueBy)
+  case grows(BusReplyBoundsRepliesValueValueGrows)
+  public init(from decoder: any Decoder) throws {
+    if let value = try? BusReplyBoundsRepliesValueValueBy(from: decoder) {
+      self = .by(value)
+      return
+    }
+    if let value = try? BusReplyBoundsRepliesValueValueGrows(from: decoder) {
+      self = .grows(value)
+      return
+    }
+    throw DecodingError.dataCorrupted(
+      .init(
+        codingPath: decoder.codingPath,
+        debugDescription: "no member of BusReplyBoundsRepliesValueValue fits"))
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .by(let value): try value.encode(to: encoder)
+    case .grows(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct BusReplyBoundsRepliesValueValueBy: Codable, Sendable, Hashable {
+  public var by: String
+  public init(by: String) {
+    self.by = by
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["by"], in: "BusReplyBoundsRepliesValueValueBy")
+    self.by = try c.value("by")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.by, as: "by")
+  }
+}
+
+public struct BusReplyBoundsRepliesValueValueGrows: Codable, Sendable, Hashable {
+  public var grows: String
+  public init(grows: String) {
+    self.grows = grows
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["grows"], in: "BusReplyBoundsRepliesValueValueGrows")
+    self.grows = try c.value("grows")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.grows, as: "grows")
+  }
+}
+
+public struct BusResumeGap: Codable, Sendable, Hashable {
   public var lastSeenId: String
   public var reason: BusResumeGapReason
   public var scope: ResourceId
@@ -2547,7 +3207,7 @@ public enum BusResumeGapReason: String, Codable, Sendable, CaseIterable {
   case queryError = "query-error"
 }
 
-public indirect enum BusStreamMessage: Codable, Sendable {
+public indirect enum BusStreamMessage: Codable, Sendable, Hashable {
   case busEventMessage(BusEventMessage)
   case busPingMessage(BusPingMessage)
   public init(from decoder: any Decoder) throws {
@@ -2570,7 +3230,7 @@ public indirect enum BusStreamMessage: Codable, Sendable {
   }
 }
 
-public struct BusSubscribeRequest: Codable, Sendable {
+public struct BusSubscribeRequest: Codable, Sendable, Hashable {
   public var clientId: String
   public var global: [String]?
   public var pendingReplies: [String]?
@@ -2602,7 +3262,7 @@ public struct BusSubscribeRequest: Codable, Sendable {
   }
 }
 
-public struct BusSubscribeRequestScopedItem: Codable, Sendable {
+public struct BusSubscribeRequestScopedItem: Codable, Sendable, Hashable {
   public var channels: [String]
   public var lastEventId: String?
   public var scope: ResourceId
@@ -2626,7 +3286,7 @@ public struct BusSubscribeRequestScopedItem: Codable, Sendable {
   }
 }
 
-public struct Cancelled: Codable, Sendable {
+public struct Cancelled: Codable, Sendable, Hashable {
   public var reason: String?
   public var requestId: RequestId
   public init(reason: String? = nil, requestId: RequestId) {
@@ -2646,7 +3306,7 @@ public struct Cancelled: Codable, Sendable {
   }
 }
 
-public struct ClaimOptions: Codable, Sendable {
+public struct ClaimOptions: Codable, Sendable, Hashable {
   public var accepts: [JobFilter]
   public var heldJobStallCheckMs: Int?
   public var heldJobStallMs: Int?
@@ -2685,7 +3345,7 @@ public struct ClaimOptions: Codable, Sendable {
   }
 }
 
-public struct ClientSecretForm: Codable, Sendable {
+public struct ClientSecretForm: Codable, Sendable, Hashable {
   public var clientId: String
   public var clientSecret: String
   public let grantType: ClientSecretFormGrantType
@@ -2712,7 +3372,7 @@ public enum ClientSecretFormGrantType: String, Codable, Sendable, CaseIterable {
   case clientCredentials = "client_credentials"
 }
 
-public struct CloneResourceWithTokenResponse: Codable, Sendable {
+public struct CloneResourceWithTokenResponse: Codable, Sendable, Hashable {
   public var expiresAt: String
   public var resource: ResourceDescriptor
   public var token: String
@@ -2735,7 +3395,7 @@ public struct CloneResourceWithTokenResponse: Codable, Sendable {
   }
 }
 
-public struct CommandError: Codable, Sendable {
+public struct CommandError: Codable, Sendable, Hashable {
   public var code: CommandErrorCode?
   public var details: String?
   public var message: String
@@ -2765,7 +3425,7 @@ public enum CommandErrorCode: String, Codable, Sendable, CaseIterable {
   case nonePending = "none-pending"
 }
 
-public struct CommentingJobParams: Codable, Sendable {
+public struct CommentingJobParams: Codable, Sendable, Hashable {
   public var density: Double?
   public var instructions: String?
   public var language: String?
@@ -2817,7 +3477,7 @@ public enum CommentingJobParamsTone: String, Codable, Sendable, CaseIterable {
   case technical = "technical"
 }
 
-public struct ConformanceBusFetch: Codable, Sendable {
+public struct ConformanceBusFetch: Codable, Sendable, Hashable {
   public var `as`: String
   public var fetch: String
   public var payload: JSONValue?
@@ -2841,7 +3501,7 @@ public struct ConformanceBusFetch: Codable, Sendable {
   }
 }
 
-public struct ConformanceCase: Codable, Sendable {
+public struct ConformanceCase: Codable, Sendable, Hashable {
   public var about: String
   public var planes: [ConformanceCasePlanesItem]?
   public var source: String
@@ -2887,7 +3547,7 @@ public enum ConformanceCasePlanesItem: String, Codable, Sendable, CaseIterable {
   case nats = "nats"
 }
 
-public enum ConformanceCaseTelemetry: Codable, Sendable {
+public enum ConformanceCaseTelemetry: Codable, Sendable, Hashable {
   case value
   public init(from decoder: any Decoder) throws {
     let c = try decoder.singleValueContainer()
@@ -2907,7 +3567,7 @@ public enum ConformanceCaseTier: String, Codable, Sendable, CaseIterable {
   case parity = "parity"
 }
 
-public indirect enum ConformanceDriverLine: Codable, Sendable {
+public indirect enum ConformanceDriverLine: Codable, Sendable, Hashable {
   case ready(ConformanceDriverLineReady)
   case ok(ConformanceDriverLineOk)
   case failed(ConformanceDriverLineFailed)
@@ -3016,7 +3676,7 @@ public indirect enum ConformanceDriverLine: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineAbandoned: Codable, Sendable {
+public struct ConformanceDriverLineAbandoned: Codable, Sendable, Hashable {
   public let abandoned: ConformanceDriverLineAbandonedAbandoned
   public var id: Int
   public init(id: Int) {
@@ -3036,7 +3696,7 @@ public struct ConformanceDriverLineAbandoned: Codable, Sendable {
   }
 }
 
-public enum ConformanceDriverLineAbandonedAbandoned: Codable, Sendable {
+public enum ConformanceDriverLineAbandonedAbandoned: Codable, Sendable, Hashable {
   case value
   public init(from decoder: any Decoder) throws {
     let c = try decoder.singleValueContainer()
@@ -3052,7 +3712,7 @@ public enum ConformanceDriverLineAbandonedAbandoned: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineClaimed: Codable, Sendable {
+public struct ConformanceDriverLineClaimed: Codable, Sendable, Hashable {
   public var claimed: [String: JSONValue]
   public init(claimed: [String: JSONValue]) {
     self.claimed = claimed
@@ -3068,7 +3728,7 @@ public struct ConformanceDriverLineClaimed: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineCompleted: Codable, Sendable {
+public struct ConformanceDriverLineCompleted: Codable, Sendable, Hashable {
   public var completed: String
   public init(completed: String) {
     self.completed = completed
@@ -3084,7 +3744,7 @@ public struct ConformanceDriverLineCompleted: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineEmission: Codable, Sendable {
+public struct ConformanceDriverLineEmission: Codable, Sendable, Hashable {
   public var emission: ConformanceDriverLineEmissionEmission
   public init(emission: ConformanceDriverLineEmissionEmission) {
     self.emission = emission
@@ -3100,7 +3760,7 @@ public struct ConformanceDriverLineEmission: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineEmissionEmission: Codable, Sendable {
+public struct ConformanceDriverLineEmissionEmission: Codable, Sendable, Hashable {
   public var observer: String
   public var state: ConformanceDriverLineEmissionEmissionState
   public init(observer: String, state: ConformanceDriverLineEmissionEmissionState) {
@@ -3120,7 +3780,7 @@ public struct ConformanceDriverLineEmissionEmission: Codable, Sendable {
   }
 }
 
-public indirect enum ConformanceDriverLineEmissionEmissionState: Codable, Sendable {
+public indirect enum ConformanceDriverLineEmissionEmissionState: Codable, Sendable, Hashable {
   case pending(ConformanceDriverLineEmissionEmissionStatePending)
   case ready(ConformanceDriverLineEmissionEmissionStateReady)
   case failed(ConformanceDriverLineEmissionEmissionStateFailed)
@@ -3151,7 +3811,7 @@ public indirect enum ConformanceDriverLineEmissionEmissionState: Codable, Sendab
   }
 }
 
-public struct ConformanceDriverLineEmissionEmissionStateFailed: Codable, Sendable {
+public struct ConformanceDriverLineEmissionEmissionStateFailed: Codable, Sendable, Hashable {
   public var error: ConformanceFailure
   public let status: ConformanceDriverLineEmissionEmissionStateFailedStatus
   public init(error: ConformanceFailure) {
@@ -3178,7 +3838,7 @@ public enum ConformanceDriverLineEmissionEmissionStateFailedStatus: String, Coda
   case failed = "failed"
 }
 
-public struct ConformanceDriverLineEmissionEmissionStatePending: Codable, Sendable {
+public struct ConformanceDriverLineEmissionEmissionStatePending: Codable, Sendable, Hashable {
   public let status: ConformanceDriverLineEmissionEmissionStatePendingStatus
   public init() {
     self.status = .pending
@@ -3200,7 +3860,7 @@ public enum ConformanceDriverLineEmissionEmissionStatePendingStatus: String, Cod
   case pending = "pending"
 }
 
-public struct ConformanceDriverLineEmissionEmissionStateReady: Codable, Sendable {
+public struct ConformanceDriverLineEmissionEmissionStateReady: Codable, Sendable, Hashable {
   public let status: ConformanceDriverLineEmissionEmissionStateReadyStatus
   public var value: JSONValue
   public init(value: JSONValue) {
@@ -3226,7 +3886,7 @@ public enum ConformanceDriverLineEmissionEmissionStateReadyStatus: String, Codab
   case ready = "ready"
 }
 
-public struct ConformanceDriverLineErrorStream: Codable, Sendable {
+public struct ConformanceDriverLineErrorStream: Codable, Sendable, Hashable {
   public var error: ConformanceFailure
   public init(error: ConformanceFailure) {
     self.error = error
@@ -3242,7 +3902,7 @@ public struct ConformanceDriverLineErrorStream: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineFailed: Codable, Sendable {
+public struct ConformanceDriverLineFailed: Codable, Sendable, Hashable {
   public var error: ConformanceFailure
   public var id: Int
   public init(error: ConformanceFailure, id: Int) {
@@ -3262,7 +3922,7 @@ public struct ConformanceDriverLineFailed: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineFrame: Codable, Sendable {
+public struct ConformanceDriverLineFrame: Codable, Sendable, Hashable {
   public var frame: ConformanceDriverLineFrameFrame
   public init(frame: ConformanceDriverLineFrameFrame) {
     self.frame = frame
@@ -3278,7 +3938,7 @@ public struct ConformanceDriverLineFrame: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineFrameFrame: Codable, Sendable {
+public struct ConformanceDriverLineFrameFrame: Codable, Sendable, Hashable {
   public var channel: String
   public var correlationId: String?
   public var payload: JSONValue?
@@ -3310,7 +3970,7 @@ public struct ConformanceDriverLineFrameFrame: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineMisuse: Codable, Sendable {
+public struct ConformanceDriverLineMisuse: Codable, Sendable, Hashable {
   public var id: Int
   public var misuse: String
   public init(id: Int, misuse: String) {
@@ -3330,7 +3990,7 @@ public struct ConformanceDriverLineMisuse: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineOk: Codable, Sendable {
+public struct ConformanceDriverLineOk: Codable, Sendable, Hashable {
   public var id: Int
   public var ok: JSONValue
   public init(id: Int, ok: JSONValue) {
@@ -3350,7 +4010,7 @@ public struct ConformanceDriverLineOk: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineProgress: Codable, Sendable {
+public struct ConformanceDriverLineProgress: Codable, Sendable, Hashable {
   public var progress: ConformanceDriverLineProgressProgress
   public init(progress: ConformanceDriverLineProgressProgress) {
     self.progress = progress
@@ -3366,7 +4026,7 @@ public struct ConformanceDriverLineProgress: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineProgressProgress: Codable, Sendable {
+public struct ConformanceDriverLineProgressProgress: Codable, Sendable, Hashable {
   public var bytesUploaded: Int
   public var totalBytes: Int
   public var upload: Int
@@ -3391,7 +4051,7 @@ public struct ConformanceDriverLineProgressProgress: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineReady: Codable, Sendable {
+public struct ConformanceDriverLineReady: Codable, Sendable, Hashable {
   public let ready: ConformanceDriverLineReadyReady
   public init() {
     self.ready = .value
@@ -3407,7 +4067,7 @@ public struct ConformanceDriverLineReady: Codable, Sendable {
   }
 }
 
-public enum ConformanceDriverLineReadyReady: Codable, Sendable {
+public enum ConformanceDriverLineReadyReady: Codable, Sendable, Hashable {
   case value
   public init(from decoder: any Decoder) throws {
     let c = try decoder.singleValueContainer()
@@ -3423,7 +4083,7 @@ public enum ConformanceDriverLineReadyReady: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineRefused: Codable, Sendable {
+public struct ConformanceDriverLineRefused: Codable, Sendable, Hashable {
   public var refused: ConformanceFailure
   public init(refused: ConformanceFailure) {
     self.refused = refused
@@ -3439,7 +4099,7 @@ public struct ConformanceDriverLineRefused: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineSignalled: Codable, Sendable {
+public struct ConformanceDriverLineSignalled: Codable, Sendable, Hashable {
   public var signalled: String
   public init(signalled: String) {
     self.signalled = signalled
@@ -3455,7 +4115,7 @@ public struct ConformanceDriverLineSignalled: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineStalled: Codable, Sendable {
+public struct ConformanceDriverLineStalled: Codable, Sendable, Hashable {
   public var stalled: String
   public init(stalled: String) {
     self.stalled = stalled
@@ -3471,7 +4131,7 @@ public struct ConformanceDriverLineStalled: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineState: Codable, Sendable {
+public struct ConformanceDriverLineState: Codable, Sendable, Hashable {
   public var state: String
   public init(state: String) {
     self.state = state
@@ -3487,7 +4147,7 @@ public struct ConformanceDriverLineState: Codable, Sendable {
   }
 }
 
-public struct ConformanceDriverLineUnsupported: Codable, Sendable {
+public struct ConformanceDriverLineUnsupported: Codable, Sendable, Hashable {
   public var id: Int
   public let unsupported: ConformanceDriverLineUnsupportedUnsupported
   public init(id: Int) {
@@ -3507,7 +4167,7 @@ public struct ConformanceDriverLineUnsupported: Codable, Sendable {
   }
 }
 
-public enum ConformanceDriverLineUnsupportedUnsupported: Codable, Sendable {
+public enum ConformanceDriverLineUnsupportedUnsupported: Codable, Sendable, Hashable {
   case value
   public init(from decoder: any Decoder) throws {
     let c = try decoder.singleValueContainer()
@@ -3523,7 +4183,7 @@ public enum ConformanceDriverLineUnsupportedUnsupported: Codable, Sendable {
   }
 }
 
-public struct ConformanceFailure: Codable, Sendable {
+public struct ConformanceFailure: Codable, Sendable, Hashable {
   public var code: String?
   public var detail: String
   public var failureClass: FailureClass?
@@ -3553,7 +4213,7 @@ public struct ConformanceFailure: Codable, Sendable {
   }
 }
 
-public struct ConformanceHttpFetch: Codable, Sendable {
+public struct ConformanceHttpFetch: Codable, Sendable, Hashable {
   public var fetch: String
   public var params: JSONValue?
   public init(fetch: String, params: JSONValue? = nil) {
@@ -3573,7 +4233,7 @@ public struct ConformanceHttpFetch: Codable, Sendable {
   }
 }
 
-public struct ConformanceImplementations: Codable, Sendable {
+public struct ConformanceImplementations: Codable, Sendable, Hashable {
   public var launcher: [String]
   public var modelCatalogue: String?
   public var sdks: [String: ConformanceImplementationsSdksValue]
@@ -3605,7 +4265,7 @@ public struct ConformanceImplementations: Codable, Sendable {
   }
 }
 
-public struct ConformanceImplementationsSdksValue: Codable, Sendable {
+public struct ConformanceImplementationsSdksValue: Codable, Sendable, Hashable {
   public var exempt: [String: String]?
   public var live: ConformanceImplementationsSdksValueLive?
   public var wire: [String]?
@@ -3637,7 +4297,7 @@ public struct ConformanceImplementationsSdksValue: Codable, Sendable {
   }
 }
 
-public struct ConformanceImplementationsSdksValueLive: Codable, Sendable {
+public struct ConformanceImplementationsSdksValueLive: Codable, Sendable, Hashable {
   public var command: [String]
   public var tier: ConformanceImplementationsSdksValueLiveTier
   public init(command: [String], tier: ConformanceImplementationsSdksValueLiveTier) {
@@ -3662,7 +4322,7 @@ public enum ConformanceImplementationsSdksValueLiveTier: String, Codable, Sendab
   case parity = "parity"
 }
 
-public indirect enum ConformanceStep: Codable, Sendable {
+public indirect enum ConformanceStep: Codable, Sendable, Hashable {
   case `let`(ConformanceStepLet)
   case driver(ConformanceStepDriver)
   case abandon(ConformanceStepAbandon)
@@ -3841,7 +4501,7 @@ public indirect enum ConformanceStep: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepAbandon: Codable, Sendable {
+public struct ConformanceStepAbandon: Codable, Sendable, Hashable {
   public var abandon: String
   public init(abandon: String) {
     self.abandon = abandon
@@ -3857,7 +4517,7 @@ public struct ConformanceStepAbandon: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepBackend: Codable, Sendable {
+public struct ConformanceStepBackend: Codable, Sendable, Hashable {
   public var backend: ConformanceStepBackendBackend
   public var with: [String: JSONValue]?
   public init(backend: ConformanceStepBackendBackend, with: [String: JSONValue]? = nil) {
@@ -3899,7 +4559,7 @@ public enum ConformanceStepBackendBackend: String, Codable, Sendable, CaseIterab
   case archivist = "archivist"
 }
 
-public struct ConformanceStepCarried: Codable, Sendable {
+public struct ConformanceStepCarried: Codable, Sendable, Hashable {
   public var carried: String
   public var `is`: JSONValue
   public init(carried: String, `is`: JSONValue) {
@@ -3919,7 +4579,7 @@ public struct ConformanceStepCarried: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepClaimed: Codable, Sendable {
+public struct ConformanceStepClaimed: Codable, Sendable, Hashable {
   public var claimed: JSONValue
   public init(claimed: JSONValue) {
     self.claimed = claimed
@@ -3935,7 +4595,7 @@ public struct ConformanceStepClaimed: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepClosed: Codable, Sendable {
+public struct ConformanceStepClosed: Codable, Sendable, Hashable {
   public var closed: String
   public init(closed: String) {
     self.closed = closed
@@ -3951,7 +4611,7 @@ public struct ConformanceStepClosed: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepCompletes: Codable, Sendable {
+public struct ConformanceStepCompletes: Codable, Sendable, Hashable {
   public var completes: String
   public init(completes: String) {
     self.completes = completes
@@ -3967,7 +4627,7 @@ public struct ConformanceStepCompletes: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepDriver: Codable, Sendable {
+public struct ConformanceStepDriver: Codable, Sendable, Hashable {
   public var `as`: String?
   public var driver: String
   public var fails: JSONValue?
@@ -4002,7 +4662,7 @@ public struct ConformanceStepDriver: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepError: Codable, Sendable {
+public struct ConformanceStepError: Codable, Sendable, Hashable {
   public var error: JSONValue
   public init(error: JSONValue) {
     self.error = error
@@ -4018,7 +4678,7 @@ public struct ConformanceStepError: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepFetches: Codable, Sendable {
+public struct ConformanceStepFetches: Codable, Sendable, Hashable {
   public var fetches: [ConformanceStepFetchesFetchesItem]
   public init(fetches: [ConformanceStepFetchesFetchesItem]) {
     self.fetches = fetches
@@ -4034,7 +4694,7 @@ public struct ConformanceStepFetches: Codable, Sendable {
   }
 }
 
-public indirect enum ConformanceStepFetchesFetchesItem: Codable, Sendable {
+public indirect enum ConformanceStepFetchesFetchesItem: Codable, Sendable, Hashable {
   case conformanceBusFetch(ConformanceBusFetch)
   case conformanceHttpFetch(ConformanceHttpFetch)
   public init(from decoder: any Decoder) throws {
@@ -4059,7 +4719,7 @@ public indirect enum ConformanceStepFetchesFetchesItem: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepFrame: Codable, Sendable {
+public struct ConformanceStepFrame: Codable, Sendable, Hashable {
   public var frame: String
   public var `is`: JSONValue
   public init(frame: String, `is`: JSONValue) {
@@ -4079,7 +4739,7 @@ public struct ConformanceStepFrame: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepFrames: Codable, Sendable {
+public struct ConformanceStepFrames: Codable, Sendable, Hashable {
   public var count: Int
   public var frames: String
   public init(count: Int, frames: String) {
@@ -4099,7 +4759,7 @@ public struct ConformanceStepFrames: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepHolds: Codable, Sendable {
+public struct ConformanceStepHolds: Codable, Sendable, Hashable {
   public var holds: String
   public var state: JSONValue
   public init(holds: String, state: JSONValue) {
@@ -4119,7 +4779,7 @@ public struct ConformanceStepHolds: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepLeave: Codable, Sendable {
+public struct ConformanceStepLeave: Codable, Sendable, Hashable {
   public var leave: String
   public init(leave: String) {
     self.leave = leave
@@ -4135,7 +4795,7 @@ public struct ConformanceStepLeave: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepLet: Codable, Sendable {
+public struct ConformanceStepLet: Codable, Sendable, Hashable {
   public var `let`: [String: JSONValue]
   public init(`let`: [String: JSONValue]) {
     self.`let` = `let`
@@ -4151,7 +4811,7 @@ public struct ConformanceStepLet: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepObserve: Codable, Sendable {
+public struct ConformanceStepObserve: Codable, Sendable, Hashable {
   public var `as`: String
   public var observe: ConformanceStepObserveObserve
   public init(`as`: String, observe: ConformanceStepObserveObserve) {
@@ -4171,7 +4831,7 @@ public struct ConformanceStepObserve: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepObserveObserve: Codable, Sendable {
+public struct ConformanceStepObserveObserve: Codable, Sendable, Hashable {
   public var annotation: JSONValue?
   public var filters: JSONValue?
   public var query: String
@@ -4207,7 +4867,7 @@ public struct ConformanceStepObserveObserve: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepProgress: Codable, Sendable {
+public struct ConformanceStepProgress: Codable, Sendable, Hashable {
   public var progress: String
   public init(progress: String) {
     self.progress = progress
@@ -4223,7 +4883,7 @@ public struct ConformanceStepProgress: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepQuiet: Codable, Sendable {
+public struct ConformanceStepQuiet: Codable, Sendable, Hashable {
   public var quiet: Int
   public init(quiet: Int) {
     self.quiet = quiet
@@ -4239,7 +4899,7 @@ public struct ConformanceStepQuiet: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepReaches: Codable, Sendable {
+public struct ConformanceStepReaches: Codable, Sendable, Hashable {
   public var reaches: String
   public var state: JSONValue
   public init(reaches: String, state: JSONValue) {
@@ -4259,7 +4919,7 @@ public struct ConformanceStepReaches: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepRefused: Codable, Sendable {
+public struct ConformanceStepRefused: Codable, Sendable, Hashable {
   public var refused: JSONValue
   public init(refused: JSONValue) {
     self.refused = refused
@@ -4275,7 +4935,7 @@ public struct ConformanceStepRefused: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepScopes: Codable, Sendable {
+public struct ConformanceStepScopes: Codable, Sendable, Hashable {
   public var scopes: [JSONValue]
   public init(scopes: [JSONValue]) {
     self.scopes = scopes
@@ -4291,7 +4951,7 @@ public struct ConformanceStepScopes: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepSettles: Codable, Sendable {
+public struct ConformanceStepSettles: Codable, Sendable, Hashable {
   public var abandoned: ConformanceStepSettlesAbandoned?
   public var fails: JSONValue?
   public var returns: JSONValue?
@@ -4322,7 +4982,7 @@ public struct ConformanceStepSettles: Codable, Sendable {
   }
 }
 
-public enum ConformanceStepSettlesAbandoned: Codable, Sendable {
+public enum ConformanceStepSettlesAbandoned: Codable, Sendable, Hashable {
   case value
   public init(from decoder: any Decoder) throws {
     let c = try decoder.singleValueContainer()
@@ -4338,7 +4998,7 @@ public enum ConformanceStepSettlesAbandoned: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepSignalled: Codable, Sendable {
+public struct ConformanceStepSignalled: Codable, Sendable, Hashable {
   public var signalled: JSONValue
   public init(signalled: JSONValue) {
     self.signalled = signalled
@@ -4354,7 +5014,7 @@ public struct ConformanceStepSignalled: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepStalled: Codable, Sendable {
+public struct ConformanceStepStalled: Codable, Sendable, Hashable {
   public var stalled: JSONValue
   public init(stalled: JSONValue) {
     self.stalled = stalled
@@ -4370,7 +5030,7 @@ public struct ConformanceStepStalled: Codable, Sendable {
   }
 }
 
-public struct ConformanceStepState: Codable, Sendable {
+public struct ConformanceStepState: Codable, Sendable, Hashable {
   public var state: ConformanceStepStateState
   public init(state: ConformanceStepStateState) {
     self.state = state
@@ -4396,7 +5056,7 @@ public enum ConformanceStepStateState: String, Codable, Sendable, CaseIterable {
   case closed = "closed"
 }
 
-public struct ConformanceStepStays: Codable, Sendable {
+public struct ConformanceStepStays: Codable, Sendable, Hashable {
   public var stays: ConformanceStepStaysStays
   public init(stays: ConformanceStepStaysStays) {
     self.stays = stays
@@ -4422,7 +5082,7 @@ public enum ConformanceStepStaysStays: String, Codable, Sendable, CaseIterable {
   case closed = "closed"
 }
 
-public struct ConformanceStepWire: Codable, Sendable {
+public struct ConformanceStepWire: Codable, Sendable, Hashable {
   public var answer: JSONValue?
   public var `as`: String?
   public var at: ConformanceStepWireAt?
@@ -4493,7 +5153,7 @@ public enum ConformanceStepWireAt: String, Codable, Sendable, CaseIterable {
   case live = "live"
 }
 
-public struct ConnectionIdentity: Codable, Sendable {
+public struct ConnectionIdentity: Codable, Sendable, Hashable {
   public var description: KbDescription
   public var did: UserId
   public init(description: KbDescription, did: UserId) {
@@ -4515,7 +5175,7 @@ public struct ConnectionIdentity: Codable, Sendable {
 
 public typealias ContentFormat = String
 
-public struct ContextualSummaryResponse: Codable, Sendable {
+public struct ContextualSummaryResponse: Codable, Sendable, Hashable {
   public var context: ContextualSummaryResponseContext
   public var relevantFields: ContextualSummaryResponseRelevantFields
   public var summary: String
@@ -4541,7 +5201,7 @@ public struct ContextualSummaryResponse: Codable, Sendable {
   }
 }
 
-public struct ContextualSummaryResponseContext: Codable, Sendable {
+public struct ContextualSummaryResponseContext: Codable, Sendable, Hashable {
   public var after: String?
   public var before: String?
   public var selected: String
@@ -4564,7 +5224,7 @@ public struct ContextualSummaryResponseContext: Codable, Sendable {
   }
 }
 
-public struct ContextualSummaryResponseRelevantFields: Codable, Sendable {
+public struct ContextualSummaryResponseRelevantFields: Codable, Sendable, Hashable {
   public var entityTypes: [String]
   public var resourceId: ResourceId
   public var resourceName: String
@@ -4589,7 +5249,7 @@ public struct ContextualSummaryResponseRelevantFields: Codable, Sendable {
   }
 }
 
-public struct CreateAnnotationRequest: Codable, Sendable {
+public struct CreateAnnotationRequest: Codable, Sendable, Hashable {
   public var body: AnnotationBodies?
   public var motivation: Motivation
   public var target: AnnotationTarget
@@ -4612,7 +5272,7 @@ public struct CreateAnnotationRequest: Codable, Sendable {
   }
 }
 
-public struct CreateFromTokenOptions: Codable, Sendable {
+public struct CreateFromTokenOptions: Codable, Sendable, Hashable {
   public var archiveOriginal: Bool?
   public var content: String
   public var name: String
@@ -4641,7 +5301,7 @@ public struct CreateFromTokenOptions: Codable, Sendable {
   }
 }
 
-public struct CreateResourceResponse: Codable, Sendable {
+public struct CreateResourceResponse: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public init(resourceId: ResourceId) {
     self.resourceId = resourceId
@@ -4658,7 +5318,7 @@ public struct CreateResourceResponse: Codable, Sendable {
 
 public typealias CursorsPath = String
 
-public struct DeviceCode: Codable, Sendable {
+public struct DeviceCode: Codable, Sendable, Hashable {
   public var expiresIn: Int
   public var userCode: String
   public var verificationUri: String
@@ -4690,7 +5350,7 @@ public struct DeviceCode: Codable, Sendable {
   }
 }
 
-public struct DirEntry: Codable, Sendable {
+public struct DirEntry: Codable, Sendable, Hashable {
   public var mtime: String
   public var name: String
   public var path: String
@@ -4722,7 +5382,7 @@ public enum DirEntryType: String, Codable, Sendable, CaseIterable {
   case dir = "dir"
 }
 
-public indirect enum DirectoryEntry: Codable, Sendable {
+public indirect enum DirectoryEntry: Codable, Sendable, Hashable {
   case fileEntry(FileEntry)
   case dirEntry(DirEntry)
   public init(from decoder: any Decoder) throws {
@@ -4744,7 +5404,7 @@ public indirect enum DirectoryEntry: Codable, Sendable {
   }
 }
 
-public struct DiscoveredKB: Codable, Sendable {
+public struct DiscoveredKB: Codable, Sendable, Hashable {
   public var did: String
   public var host: String
   public var managedBy: String
@@ -4791,7 +5451,7 @@ public enum DiscoveredKBPlacement: String, Codable, Sendable, CaseIterable {
   case codespace = "codespace"
 }
 
-public struct DiscoveryDocument: Codable, Sendable {
+public struct DiscoveryDocument: Codable, Sendable, Hashable {
   public var kbs: [DiscoveredKB]
   public let version: DiscoveryDocumentVersion
   public init(kbs: [DiscoveredKB]) {
@@ -4810,7 +5470,7 @@ public struct DiscoveryDocument: Codable, Sendable {
   }
 }
 
-public enum DiscoveryDocumentVersion: Codable, Sendable {
+public enum DiscoveryDocumentVersion: Codable, Sendable, Hashable {
   case value
   public init(from decoder: any Decoder) throws {
     let c = try decoder.singleValueContainer()
@@ -4825,7 +5485,7 @@ public enum DiscoveryDocumentVersion: Codable, Sendable {
   }
 }
 
-public struct DispatcherConfig: Codable, Sendable {
+public struct DispatcherConfig: Codable, Sendable, Hashable {
   public var gatewayUrl: String
   public var identity: ServiceIdentity
   public var kb: KbIdentity
@@ -4874,7 +5534,7 @@ public struct DispatcherConfig: Codable, Sendable {
   }
 }
 
-public struct DispatcherConfigQueue: Codable, Sendable {
+public struct DispatcherConfigQueue: Codable, Sendable, Hashable {
   public var passwordEnv: String?
   public var servers: String
   public var userEnv: String?
@@ -4898,7 +5558,7 @@ public struct DispatcherConfigQueue: Codable, Sendable {
   }
 }
 
-public struct DispatcherConfigTiming: Codable, Sendable {
+public struct DispatcherConfigTiming: Codable, Sendable, Hashable {
   public var ackWaitMs: Int
   public var bootDeadlineMs: Int
   public var progressWriteIntervalMs: Int
@@ -4945,7 +5605,7 @@ public struct DispatcherConfigTiming: Codable, Sendable {
   }
 }
 
-public struct DispatcherHealth: Codable, Sendable {
+public struct DispatcherHealth: Codable, Sendable, Hashable {
   public let queue: DispatcherHealthQueue
   public let status: DispatcherHealthStatus
   public init() {
@@ -4973,6 +5633,105 @@ public enum DispatcherHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
 }
 
+public struct DispatcherMessages: Codable, Sendable, Hashable {
+  public var comment: String
+  public var errors: [DispatcherMessagesErrorsItem]
+  public var refusals: [DispatcherMessagesRefusalsItem]
+  public init(
+    comment: String, errors: [DispatcherMessagesErrorsItem],
+    refusals: [DispatcherMessagesRefusalsItem]
+  ) {
+    self.comment = comment
+    self.errors = errors
+    self.refusals = refusals
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "errors", "refusals"], in: "DispatcherMessages")
+    self.comment = try c.value("$comment")
+    self.errors = try c.value("errors")
+    self.refusals = try c.value("refusals")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.errors, as: "errors")
+    try c.encode(self.refusals, as: "refusals")
+  }
+}
+
+public struct DispatcherMessagesErrorsItem: Codable, Sendable, Hashable {
+  public var error: String
+  public var failureClass: FailureClass
+  public var name: String
+  public var situation: String
+  public init(error: String, failureClass: FailureClass, name: String, situation: String) {
+    self.error = error
+    self.failureClass = failureClass
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["error", "failureClass", "name", "situation"], in: "DispatcherMessagesErrorsItem")
+    self.error = try c.value("error")
+    self.failureClass = try c.value("failureClass")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.error, as: "error")
+    try c.encode(self.failureClass, as: "failureClass")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct DispatcherMessagesRefusalsItem: Codable, Sendable, Hashable {
+  public var code: DispatcherMessagesRefusalsItemCode?
+  public var message: String
+  public var name: String
+  public var operation: String
+  public var situation: String
+  public init(
+    code: DispatcherMessagesRefusalsItemCode? = nil, message: String, name: String,
+    operation: String, situation: String
+  ) {
+    self.code = code
+    self.message = message
+    self.name = name
+    self.operation = operation
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["code", "message", "name", "operation", "situation"], in: "DispatcherMessagesRefusalsItem")
+    self.code = try c.ifPresent("code")
+    self.message = try c.value("message")
+    self.name = try c.value("name")
+    self.operation = try c.value("operation")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.code, as: "code")
+    try c.encode(self.message, as: "message")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.operation, as: "operation")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public enum DispatcherMessagesRefusalsItemCode: String, Codable, Sendable, CaseIterable {
+  case peerUnavailable = "peer-unavailable"
+  case notFound = "not-found"
+  case unauthorized = "unauthorized"
+  case nonePending = "none-pending"
+}
+
 public enum DurabilityEvidence: String, Codable, Sendable, CaseIterable {
   case acknowledged = "acknowledged"
   case probeConfirmed = "probe-confirmed"
@@ -4980,7 +5739,7 @@ public enum DurabilityEvidence: String, Codable, Sendable, CaseIterable {
   case probeUnreachable = "probe-unreachable"
 }
 
-public indirect enum EmbeddingConfig: Codable, Sendable {
+public indirect enum EmbeddingConfig: Codable, Sendable, Hashable {
   case ollamaEmbeddingConfig(OllamaEmbeddingConfig)
   case voyageEmbeddingConfig(VoyageEmbeddingConfig)
   public init(from decoder: any Decoder) throws {
@@ -5002,7 +5761,83 @@ public indirect enum EmbeddingConfig: Codable, Sendable {
   }
 }
 
-public struct Engine: Codable, Sendable {
+public struct EmbeddingRequests: Codable, Sendable, Hashable {
+  public var comment: String
+  public var busy: EmbeddingRequestsBusy
+  public var providers: [String: EmbeddingRequestsProvidersValue]
+  public var requestSeconds: Int
+  public var startAgain: Int
+  public init(
+    comment: String, busy: EmbeddingRequestsBusy,
+    providers: [String: EmbeddingRequestsProvidersValue], requestSeconds: Int, startAgain: Int
+  ) {
+    self.comment = comment
+    self.busy = busy
+    self.providers = providers
+    self.requestSeconds = requestSeconds
+    self.startAgain = startAgain
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "busy", "providers", "requestSeconds", "startAgain"], in: "EmbeddingRequests")
+    self.comment = try c.value("$comment")
+    self.busy = try c.value("busy")
+    self.providers = try c.value("providers")
+    self.requestSeconds = try c.value("requestSeconds")
+    self.startAgain = try c.value("startAgain")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.busy, as: "busy")
+    try c.encode(self.providers, as: "providers")
+    try c.encode(self.requestSeconds, as: "requestSeconds")
+    try c.encode(self.startAgain, as: "startAgain")
+  }
+}
+
+public struct EmbeddingRequestsBusy: Codable, Sendable, Hashable {
+  public var againAfterSeconds: [Int]
+  public var statuses: [Int]
+  public init(againAfterSeconds: [Int], statuses: [Int]) {
+    self.againAfterSeconds = againAfterSeconds
+    self.statuses = statuses
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["againAfterSeconds", "statuses"], in: "EmbeddingRequestsBusy")
+    self.againAfterSeconds = try c.value("againAfterSeconds")
+    self.statuses = try c.value("statuses")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.againAfterSeconds, as: "againAfterSeconds")
+    try c.encode(self.statuses, as: "statuses")
+  }
+}
+
+public struct EmbeddingRequestsProvidersValue: Codable, Sendable, Hashable {
+  public var atOnce: Int
+  public var textsPerRequest: Int
+  public init(atOnce: Int, textsPerRequest: Int) {
+    self.atOnce = atOnce
+    self.textsPerRequest = textsPerRequest
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["atOnce", "textsPerRequest"], in: "EmbeddingRequestsProvidersValue")
+    self.atOnce = try c.value("atOnce")
+    self.textsPerRequest = try c.value("textsPerRequest")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.atOnce, as: "atOnce")
+    try c.encode(self.textsPerRequest, as: "textsPerRequest")
+  }
+}
+
+public struct Engine: Codable, Sendable, Hashable {
   public var model: String
   public var provider: EngineProvider
   public init(model: String, provider: EngineProvider) {
@@ -5022,7 +5857,7 @@ public struct Engine: Codable, Sendable {
   }
 }
 
-public struct EngineEntry: Codable, Sendable {
+public struct EngineEntry: Codable, Sendable, Hashable {
   public var engine: Engine
   public var jobs: [JobFilter]?
   public init(engine: Engine, jobs: [JobFilter]? = nil) {
@@ -5042,7 +5877,7 @@ public struct EngineEntry: Codable, Sendable {
   }
 }
 
-public struct EngineLimits: Codable, Sendable {
+public struct EngineLimits: Codable, Sendable, Hashable {
   public var engine: Engine
   public var limits: InferenceLimits
   public init(engine: Engine, limits: InferenceLimits) {
@@ -5072,7 +5907,7 @@ public enum EngineProvider: String, Codable, Sendable, CaseIterable {
   case vllm = "vllm"
 }
 
-public struct EnrichedResourceEvent: Codable, Sendable {
+public struct EnrichedResourceEvent: Codable, Sendable, Hashable {
   public var annotation: Annotation?
   public var id: String
   public var metadata: EventMetadata
@@ -5123,7 +5958,7 @@ public struct EnrichedResourceEvent: Codable, Sendable {
   }
 }
 
-public struct EntityTagChangedPayload: Codable, Sendable {
+public struct EntityTagChangedPayload: Codable, Sendable, Hashable {
   public var entityType: String
   public init(entityType: String) {
     self.entityType = entityType
@@ -5138,7 +5973,7 @@ public struct EntityTagChangedPayload: Codable, Sendable {
   }
 }
 
-public struct EntityTypeAddedPayload: Codable, Sendable {
+public struct EntityTypeAddedPayload: Codable, Sendable, Hashable {
   public var entityType: String
   public init(entityType: String) {
     self.entityType = entityType
@@ -5153,7 +5988,7 @@ public struct EntityTypeAddedPayload: Codable, Sendable {
   }
 }
 
-public struct EntityTypesProjection: Codable, Sendable {
+public struct EntityTypesProjection: Codable, Sendable, Hashable {
   public var entityTypes: [String]
   public init(entityTypes: [String]) {
     self.entityTypes = entityTypes
@@ -5171,7 +6006,7 @@ public struct EntityTypesProjection: Codable, Sendable {
 
 public typealias EphemeralEventId = String
 
-public struct ErrorData: Codable, Sendable {
+public struct ErrorData: Codable, Sendable, Hashable {
   public var choices: [Target]?
   public var code: String
   public var fields: [FieldFault]?
@@ -5211,7 +6046,7 @@ public struct ErrorData: Codable, Sendable {
   }
 }
 
-public struct ErrorResponse: Codable, Sendable {
+public struct ErrorResponse: Codable, Sendable, Hashable {
   public var code: String?
   public var details: JSONValue?
   public var error: String
@@ -5238,7 +6073,7 @@ public struct ErrorResponse: Codable, Sendable {
   }
 }
 
-public struct EventMetadata: Codable, Sendable {
+public struct EventMetadata: Codable, Sendable, Hashable {
   public var sequenceNumber: Int
   public init(sequenceNumber: Int) {
     self.sequenceNumber = sequenceNumber
@@ -5253,7 +6088,7 @@ public struct EventMetadata: Codable, Sendable {
   }
 }
 
-public struct Expected: Codable, Sendable {
+public struct Expected: Codable, Sendable, Hashable {
   public var did: String
   public var name: String?
   public init(did: String, name: String? = nil) {
@@ -5273,7 +6108,7 @@ public struct Expected: Codable, Sendable {
   }
 }
 
-public struct ExtractedText: Codable, Sendable {
+public struct ExtractedText: Codable, Sendable, Hashable {
   public var items: [PdfTextItem]
   public let kind: ExtractedTextKind
   public var method: ExtractionMethod
@@ -5319,7 +6154,7 @@ public enum ExtractedTextKind: String, Codable, Sendable, CaseIterable {
   case extracted = "extracted"
 }
 
-public struct ExtractionDeclined: Codable, Sendable {
+public struct ExtractionDeclined: Codable, Sendable, Hashable {
   public var declined: ExtractionDeclinedReason
   public let kind: ExtractionDeclinedKind
   public init(declined: ExtractionDeclinedReason) {
@@ -5357,7 +6192,7 @@ public enum ExtractionMethod: String, Codable, Sendable, CaseIterable {
   case ocr = "ocr"
 }
 
-public indirect enum ExtractionOutcome: Codable, Sendable {
+public indirect enum ExtractionOutcome: Codable, Sendable, Hashable {
   case extractedText(ExtractedText)
   case extractionDeclined(ExtractionDeclined)
   public init(from decoder: any Decoder) throws {
@@ -5385,7 +6220,7 @@ public enum FailureClass: String, Codable, Sendable, CaseIterable {
   case withheld = "withheld"
 }
 
-public struct FieldFault: Codable, Sendable {
+public struct FieldFault: Codable, Sendable, Hashable {
   public var field: String
   public var message: String
   public init(field: String, message: String) {
@@ -5405,7 +6240,7 @@ public struct FieldFault: Codable, Sendable {
   }
 }
 
-public struct FileEntry: Codable, Sendable {
+public struct FileEntry: Codable, Sendable, Hashable {
   public var annotationCount: Int?
   public var creator: String?
   public var entityTypes: [String]?
@@ -5469,7 +6304,7 @@ public enum FileEntryType: String, Codable, Sendable, CaseIterable {
   case file = "file"
 }
 
-public struct FollowerFollowing: Codable, Sendable {
+public struct FollowerFollowing: Codable, Sendable, Hashable {
   public var refused: Int
   public var stopped: Int
   public var streamDrops: Int
@@ -5504,7 +6339,7 @@ public enum FollowerFollowingSweep: String, Codable, Sendable, CaseIterable {
   case due = "due"
 }
 
-public struct FragmentSelector: Codable, Sendable {
+public struct FragmentSelector: Codable, Sendable, Hashable {
   public var conformsTo: String?
   public let type: FragmentSelectorType
   public var value: String
@@ -5531,7 +6366,7 @@ public enum FragmentSelectorType: String, Codable, Sendable, CaseIterable {
   case fragmentSelector = "FragmentSelector"
 }
 
-public struct FrameAddEntityTypeCommand: Codable, Sendable {
+public struct FrameAddEntityTypeCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var tag: String
   public init(_userId: UserId? = nil, tag: String) {
@@ -5550,7 +6385,7 @@ public struct FrameAddEntityTypeCommand: Codable, Sendable {
   }
 }
 
-public struct FrameAddTagSchemaCommand: Codable, Sendable {
+public struct FrameAddTagSchemaCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var schema: TagSchema
   public init(_userId: UserId? = nil, schema: TagSchema) {
@@ -5574,7 +6409,7 @@ public enum FrameRefusalReason: String, Codable, Sendable, CaseIterable {
   case malformed = "malformed"
 }
 
-public struct GatewayConfig: Codable, Sendable {
+public struct GatewayConfig: Codable, Sendable, Hashable {
   public var archivist: ServiceAddress
   public var capacity: GatewayConfigCapacity
   public var identity: GatewayConfigIdentity
@@ -5630,7 +6465,7 @@ public struct GatewayConfig: Codable, Sendable {
   }
 }
 
-public struct GatewayConfigCapacity: Codable, Sendable {
+public struct GatewayConfigCapacity: Codable, Sendable, Hashable {
   public var connections: Int
   public var queuedBytes: Int
   public init(connections: Int, queuedBytes: Int) {
@@ -5650,7 +6485,7 @@ public struct GatewayConfigCapacity: Codable, Sendable {
   }
 }
 
-public struct GatewayConfigIdentity: Codable, Sendable {
+public struct GatewayConfigIdentity: Codable, Sendable, Hashable {
   public var issuer: String
   public var subjectClaim: String
   public init(issuer: String, subjectClaim: String) {
@@ -5670,7 +6505,7 @@ public struct GatewayConfigIdentity: Codable, Sendable {
   }
 }
 
-public struct GatewayConfigSignal: Codable, Sendable {
+public struct GatewayConfigSignal: Codable, Sendable, Hashable {
   public var passwordEnv: String?
   public var servers: String?
   public var type: GatewayConfigSignalType
@@ -5706,7 +6541,351 @@ public enum GatewayConfigSignalType: String, Codable, Sendable, CaseIterable {
   case nats = "nats"
 }
 
-public struct GatherAnnotationComplete: Codable, Sendable {
+public struct GatewayMediaToken: Codable, Sendable, Hashable {
+  public var comment: String
+  public var claims: GatewayMediaTokenClaims
+  public var header: GatewayMediaTokenHeader
+  public var lifetimeSeconds: Int
+  public init(
+    comment: String, claims: GatewayMediaTokenClaims, header: GatewayMediaTokenHeader,
+    lifetimeSeconds: Int
+  ) {
+    self.comment = comment
+    self.claims = claims
+    self.header = header
+    self.lifetimeSeconds = lifetimeSeconds
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "claims", "header", "lifetimeSeconds"], in: "GatewayMediaToken")
+    self.comment = try c.value("$comment")
+    self.claims = try c.value("claims")
+    self.header = try c.value("header")
+    self.lifetimeSeconds = try c.value("lifetimeSeconds")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.claims, as: "claims")
+    try c.encode(self.header, as: "header")
+    try c.encode(self.lifetimeSeconds, as: "lifetimeSeconds")
+  }
+}
+
+public struct GatewayMediaTokenClaims: Codable, Sendable, Hashable {
+  public let iss: GatewayMediaTokenClaimsIss
+  public let purpose: GatewayMediaTokenClaimsPurpose
+  public let sub: GatewayMediaTokenClaimsSub
+  public init() {
+    self.iss = .domain
+    self.purpose = .media
+    self.sub = .resourceId
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["iss", "purpose", "sub"], in: "GatewayMediaTokenClaims")
+    self.iss = try c.value("iss")
+    self.purpose = try c.value("purpose")
+    self.sub = try c.value("sub")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.iss, as: "iss")
+    try c.encode(self.purpose, as: "purpose")
+    try c.encode(self.sub, as: "sub")
+  }
+}
+
+public enum GatewayMediaTokenClaimsIss: String, Codable, Sendable, CaseIterable {
+  case domain = "{domain}"
+}
+
+public enum GatewayMediaTokenClaimsPurpose: String, Codable, Sendable, CaseIterable {
+  case media = "media"
+}
+
+public enum GatewayMediaTokenClaimsSub: String, Codable, Sendable, CaseIterable {
+  case resourceId = "{resourceId}"
+}
+
+public struct GatewayMediaTokenHeader: Codable, Sendable, Hashable {
+  public let alg: GatewayMediaTokenHeaderAlg
+  public let typ: GatewayMediaTokenHeaderTyp
+  public init() {
+    self.alg = .hS256
+    self.typ = .jWT
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["alg", "typ"], in: "GatewayMediaTokenHeader")
+    self.alg = try c.value("alg")
+    self.typ = try c.value("typ")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.alg, as: "alg")
+    try c.encode(self.typ, as: "typ")
+  }
+}
+
+public enum GatewayMediaTokenHeaderAlg: String, Codable, Sendable, CaseIterable {
+  case hS256 = "HS256"
+}
+
+public enum GatewayMediaTokenHeaderTyp: String, Codable, Sendable, CaseIterable {
+  case jWT = "JWT"
+}
+
+public struct GatewayMessages: Codable, Sendable, Hashable {
+  public var comment: String
+  public var challenges: GatewayMessagesChallenges
+  public var failures: [GatewayMessagesFailuresItem]
+  public var messages: [GatewayMessagesMessagesItem]
+  public init(
+    comment: String, challenges: GatewayMessagesChallenges, failures: [GatewayMessagesFailuresItem],
+    messages: [GatewayMessagesMessagesItem]
+  ) {
+    self.comment = comment
+    self.challenges = challenges
+    self.failures = failures
+    self.messages = messages
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "challenges", "failures", "messages"], in: "GatewayMessages")
+    self.comment = try c.value("$comment")
+    self.challenges = try c.value("challenges")
+    self.failures = try c.value("failures")
+    self.messages = try c.value("messages")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.challenges, as: "challenges")
+    try c.encode(self.failures, as: "failures")
+    try c.encode(self.messages, as: "messages")
+  }
+}
+
+public struct GatewayMessagesChallenges: Codable, Sendable, Hashable {
+  public var noCredential: String
+  public var refused: String
+  public init(noCredential: String, refused: String) {
+    self.noCredential = noCredential
+    self.refused = refused
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["noCredential", "refused"], in: "GatewayMessagesChallenges")
+    self.noCredential = try c.value("noCredential")
+    self.refused = try c.value("refused")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.noCredential, as: "noCredential")
+    try c.encode(self.refused, as: "refused")
+  }
+}
+
+public struct GatewayMessagesFailuresItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var message: String
+  public var name: String
+  public var situation: String
+  public init(code: String, message: String, name: String, situation: String) {
+    self.code = code
+    self.message = message
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["code", "message", "name", "situation"], in: "GatewayMessagesFailuresItem")
+    self.code = try c.value("code")
+    self.message = try c.value("message")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.message, as: "message")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct GatewayMessagesMessagesItem: Codable, Sendable, Hashable {
+  public var code: String?
+  public var error: String
+  public var hint: String?
+  public var name: String
+  public var situation: String
+  public var status: HttpStatus
+  public init(
+    code: String? = nil, error: String, hint: String? = nil, name: String, situation: String,
+    status: HttpStatus
+  ) {
+    self.code = code
+    self.error = error
+    self.hint = hint
+    self.name = name
+    self.situation = situation
+    self.status = status
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["code", "error", "hint", "name", "situation", "status"], in: "GatewayMessagesMessagesItem")
+    self.code = try c.ifPresent("code")
+    self.error = try c.value("error")
+    self.hint = try c.ifPresent("hint")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+    self.status = try c.value("status")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.code, as: "code")
+    try c.encode(self.error, as: "error")
+    try c.encodeIfPresent(self.hint, as: "hint")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+    try c.encode(self.status, as: "status")
+  }
+}
+
+public struct GatewayResponseHeaders: Codable, Sendable, Hashable {
+  public var comment: String
+  public var absent: [String]
+  public var every: [GatewayResponseHeadersEveryItem]
+  public var preflight: GatewayResponseHeadersPreflight
+  public var requestId: String
+  public init(
+    comment: String, absent: [String], every: [GatewayResponseHeadersEveryItem],
+    preflight: GatewayResponseHeadersPreflight, requestId: String
+  ) {
+    self.comment = comment
+    self.absent = absent
+    self.every = every
+    self.preflight = preflight
+    self.requestId = requestId
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "absent", "every", "preflight", "requestId"], in: "GatewayResponseHeaders")
+    self.comment = try c.value("$comment")
+    self.absent = try c.value("absent")
+    self.every = try c.value("every")
+    self.preflight = try c.value("preflight")
+    self.requestId = try c.value("requestId")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.absent, as: "absent")
+    try c.encode(self.every, as: "every")
+    try c.encode(self.preflight, as: "preflight")
+    try c.encode(self.requestId, as: "requestId")
+  }
+}
+
+public struct GatewayResponseHeadersEveryItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var value: String
+  public init(name: String, value: String) {
+    self.name = name
+    self.value = value
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "value"], in: "GatewayResponseHeadersEveryItem")
+    self.name = try c.value("name")
+    self.value = try c.value("value")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.value, as: "value")
+  }
+}
+
+public struct GatewayResponseHeadersPreflight: Codable, Sendable, Hashable {
+  public var echoes: [GatewayResponseHeadersPreflightEchoesItem]
+  public var headers: [GatewayResponseHeadersPreflightHeadersItem]
+  public var status: HttpStatus
+  public var vary: String
+  public init(
+    echoes: [GatewayResponseHeadersPreflightEchoesItem],
+    headers: [GatewayResponseHeadersPreflightHeadersItem], status: HttpStatus, vary: String
+  ) {
+    self.echoes = echoes
+    self.headers = headers
+    self.status = status
+    self.vary = vary
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["echoes", "headers", "status", "vary"], in: "GatewayResponseHeadersPreflight")
+    self.echoes = try c.value("echoes")
+    self.headers = try c.value("headers")
+    self.status = try c.value("status")
+    self.vary = try c.value("vary")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.echoes, as: "echoes")
+    try c.encode(self.headers, as: "headers")
+    try c.encode(self.status, as: "status")
+    try c.encode(self.vary, as: "vary")
+  }
+}
+
+public struct GatewayResponseHeadersPreflightEchoesItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var of: String
+  public init(name: String, of: String) {
+    self.name = name
+    self.of = of
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "of"], in: "GatewayResponseHeadersPreflightEchoesItem")
+    self.name = try c.value("name")
+    self.of = try c.value("of")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.of, as: "of")
+  }
+}
+
+public struct GatewayResponseHeadersPreflightHeadersItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var value: String
+  public init(name: String, value: String) {
+    self.name = name
+    self.value = value
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "value"], in: "GatewayResponseHeadersPreflightHeadersItem")
+    self.name = try c.value("name")
+    self.value = try c.value("value")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.value, as: "value")
+  }
+}
+
+public struct GatherAnnotationComplete: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public var response: GatheredContext
   public init(annotationId: AnnotationId, response: GatheredContext) {
@@ -5725,7 +6904,7 @@ public struct GatherAnnotationComplete: Codable, Sendable {
   }
 }
 
-public struct GatherAnnotationOptions: Codable, Sendable {
+public struct GatherAnnotationOptions: Codable, Sendable, Hashable {
   public var contextWindow: Int?
   public var includeSourceContext: Bool?
   public var includeTargetContext: Bool?
@@ -5750,7 +6929,7 @@ public struct GatherAnnotationOptions: Codable, Sendable {
   }
 }
 
-public struct GatherAnnotationRequest: Codable, Sendable {
+public struct GatherAnnotationRequest: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public var options: GatherAnnotationOptions?
   public var resourceId: ResourceId
@@ -5775,7 +6954,7 @@ public struct GatherAnnotationRequest: Codable, Sendable {
   }
 }
 
-public struct GatherFailed: Codable, Sendable {
+public struct GatherFailed: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public var code: CommandErrorCode?
   public var details: String?
@@ -5805,7 +6984,7 @@ public struct GatherFailed: Codable, Sendable {
   }
 }
 
-public struct GatherReferencedByRequest: Codable, Sendable {
+public struct GatherReferencedByRequest: Codable, Sendable, Hashable {
   public var motivation: Motivation?
   public var resourceId: ResourceId
   public init(motivation: Motivation? = nil, resourceId: ResourceId) {
@@ -5824,7 +7003,7 @@ public struct GatherReferencedByRequest: Codable, Sendable {
   }
 }
 
-public struct GatherReferencedByResult: Codable, Sendable {
+public struct GatherReferencedByResult: Codable, Sendable, Hashable {
   public var response: GetReferencedByResponse
   public init(response: GetReferencedByResponse) {
     self.response = response
@@ -5839,7 +7018,7 @@ public struct GatherReferencedByResult: Codable, Sendable {
   }
 }
 
-public struct GatherResourceComplete: Codable, Sendable {
+public struct GatherResourceComplete: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public var response: GatheredContext
   public init(resourceId: ResourceId, response: GatheredContext) {
@@ -5858,7 +7037,7 @@ public struct GatherResourceComplete: Codable, Sendable {
   }
 }
 
-public struct GatherResourceFailed: Codable, Sendable {
+public struct GatherResourceFailed: Codable, Sendable, Hashable {
   public var code: CommandErrorCode?
   public var details: String?
   public var message: String
@@ -5887,7 +7066,7 @@ public struct GatherResourceFailed: Codable, Sendable {
   }
 }
 
-public struct GatherResourceOptions: Codable, Sendable {
+public struct GatherResourceOptions: Codable, Sendable, Hashable {
   public var depth: Int?
   public var excludeEntityTypes: [String]?
   public var includeContent: Bool?
@@ -5924,7 +7103,7 @@ public struct GatherResourceOptions: Codable, Sendable {
   }
 }
 
-public struct GatherResourceOptionsValue: Codable, Sendable {
+public struct GatherResourceOptionsValue: Codable, Sendable, Hashable {
   public var depth: Int?
   public var excludeEntityTypes: [String]?
   public var includeContent: Bool?
@@ -5961,7 +7140,7 @@ public struct GatherResourceOptionsValue: Codable, Sendable {
   }
 }
 
-public struct GatherResourceRequest: Codable, Sendable {
+public struct GatherResourceRequest: Codable, Sendable, Hashable {
   public var options: GatherResourceRequestOptions
   public var resourceId: ResourceId
   public init(options: GatherResourceRequestOptions, resourceId: ResourceId) {
@@ -5980,7 +7159,7 @@ public struct GatherResourceRequest: Codable, Sendable {
   }
 }
 
-public struct GatherResourceRequestOptions: Codable, Sendable {
+public struct GatherResourceRequestOptions: Codable, Sendable, Hashable {
   public var depth: Int
   public var excludeEntityTypes: [String]?
   public var includeContent: Bool
@@ -6014,7 +7193,7 @@ public struct GatherResourceRequestOptions: Codable, Sendable {
   }
 }
 
-public struct GatherSummaryRequest: Codable, Sendable {
+public struct GatherSummaryRequest: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public var resourceId: ResourceId
   public init(annotationId: AnnotationId, resourceId: ResourceId) {
@@ -6033,7 +7212,7 @@ public struct GatherSummaryRequest: Codable, Sendable {
   }
 }
 
-public struct GatheredContext: Codable, Sendable {
+public struct GatheredContext: Codable, Sendable, Hashable {
   public var focus: GatheredContextFocus
   public var graph: KnowledgeGraph
   public var inferredRelationshipSummary: String?
@@ -6067,7 +7246,7 @@ public struct GatheredContext: Codable, Sendable {
   }
 }
 
-public indirect enum GatheredContextFocus: Codable, Sendable {
+public indirect enum GatheredContextFocus: Codable, Sendable, Hashable {
   case annotation(GatheredContextFocusAnnotation)
   case resource(GatheredContextFocusResource)
   public init(from decoder: any Decoder) throws {
@@ -6091,7 +7270,7 @@ public indirect enum GatheredContextFocus: Codable, Sendable {
   }
 }
 
-public struct GatheredContextFocusAnnotation: Codable, Sendable {
+public struct GatheredContextFocusAnnotation: Codable, Sendable, Hashable {
   public var annotation: Annotation
   public let kind: GatheredContextFocusAnnotationKind
   public var selected: GatheredContextFocusAnnotationSelected?
@@ -6139,7 +7318,7 @@ public enum GatheredContextFocusAnnotationKind: String, Codable, Sendable, CaseI
   case annotation = "annotation"
 }
 
-public struct GatheredContextFocusAnnotationSelected: Codable, Sendable {
+public struct GatheredContextFocusAnnotationSelected: Codable, Sendable, Hashable {
   public var after: String?
   public var before: String?
   public var text: String
@@ -6162,7 +7341,7 @@ public struct GatheredContextFocusAnnotationSelected: Codable, Sendable {
   }
 }
 
-public struct GatheredContextFocusAnnotationTargetContext: Codable, Sendable {
+public struct GatheredContextFocusAnnotationTargetContext: Codable, Sendable, Hashable {
   public var content: String
   public var summary: String?
   public init(content: String, summary: String? = nil) {
@@ -6181,7 +7360,7 @@ public struct GatheredContextFocusAnnotationTargetContext: Codable, Sendable {
   }
 }
 
-public struct GatheredContextFocusResource: Codable, Sendable {
+public struct GatheredContextFocusResource: Codable, Sendable, Hashable {
   public var content: GatheredContextFocusResourceContent?
   public let kind: GatheredContextFocusResourceKind
   public var resource: ResourceDescriptor
@@ -6215,7 +7394,7 @@ public struct GatheredContextFocusResource: Codable, Sendable {
   }
 }
 
-public struct GatheredContextFocusResourceContent: Codable, Sendable {
+public struct GatheredContextFocusResourceContent: Codable, Sendable, Hashable {
   public var main: String?
   public var related: [String: String]?
   public init(main: String? = nil, related: [String: String]? = nil) {
@@ -6238,7 +7417,7 @@ public enum GatheredContextFocusResourceKind: String, Codable, Sendable, CaseIte
   case resource = "resource"
 }
 
-public struct GatheredContextMetadata: Codable, Sendable {
+public struct GatheredContextMetadata: Codable, Sendable, Hashable {
   public var entityTypeFrequencies: [String: Int]?
   public var entityTypes: [String]?
   public var language: String?
@@ -6268,7 +7447,7 @@ public struct GatheredContextMetadata: Codable, Sendable {
   }
 }
 
-public struct GatheredContextSemanticContext: Codable, Sendable {
+public struct GatheredContextSemanticContext: Codable, Sendable, Hashable {
   public var excludedEntityTypes: [String]?
   public var similar: [SemanticMatch]
   public init(excludedEntityTypes: [String]? = nil, similar: [SemanticMatch]) {
@@ -6287,7 +7466,7 @@ public struct GatheredContextSemanticContext: Codable, Sendable {
   }
 }
 
-public struct GenerationJobParams: Codable, Sendable {
+public struct GenerationJobParams: Codable, Sendable, Hashable {
   public var cite: Bool?
   public var context: GatheredContext
   public var entityTypes: [String]?
@@ -6355,7 +7534,7 @@ public struct GenerationJobParams: Codable, Sendable {
   }
 }
 
-public struct GenerationJobRequest: Codable, Sendable {
+public struct GenerationJobRequest: Codable, Sendable, Hashable {
   public var cite: Bool?
   public var entityTypes: [String]?
   public var language: String?
@@ -6419,7 +7598,7 @@ public struct GenerationJobRequest: Codable, Sendable {
   }
 }
 
-public struct GetAnnotationHistoryResponse: Codable, Sendable {
+public struct GetAnnotationHistoryResponse: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public var events: [AttributedEvent]
   public var resourceId: ResourceId
@@ -6448,7 +7627,7 @@ public struct GetAnnotationHistoryResponse: Codable, Sendable {
   }
 }
 
-public struct GetAnnotationResponse: Codable, Sendable {
+public struct GetAnnotationResponse: Codable, Sendable, Hashable {
   public var annotation: Annotation
   public var resolvedResource: ResourceDescriptor?
   public var resource: ResourceDescriptor?
@@ -6473,7 +7652,7 @@ public struct GetAnnotationResponse: Codable, Sendable {
   }
 }
 
-public struct GetAnnotationsResponse: Codable, Sendable {
+public struct GetAnnotationsResponse: Codable, Sendable, Hashable {
   public var annotations: [Annotation]
   public var motivation: Stated<Motivation>
   public var total: Double
@@ -6496,7 +7675,7 @@ public struct GetAnnotationsResponse: Codable, Sendable {
   }
 }
 
-public struct GetEntityTypesResponse: Codable, Sendable {
+public struct GetEntityTypesResponse: Codable, Sendable, Hashable {
   public var entityTypes: [String]
   public init(entityTypes: [String]) {
     self.entityTypes = entityTypes
@@ -6511,7 +7690,7 @@ public struct GetEntityTypesResponse: Codable, Sendable {
   }
 }
 
-public struct GetEventsResponse: Codable, Sendable {
+public struct GetEventsResponse: Codable, Sendable, Hashable {
   public var events: [AttributedEvent]
   public var resourceId: ResourceId
   public var total: Double
@@ -6534,7 +7713,7 @@ public struct GetEventsResponse: Codable, Sendable {
   }
 }
 
-public struct GetReferencedByResponse: Codable, Sendable {
+public struct GetReferencedByResponse: Codable, Sendable, Hashable {
   public var referencedBy: [GetReferencedByResponseReferencedByItem]
   public init(referencedBy: [GetReferencedByResponseReferencedByItem]) {
     self.referencedBy = referencedBy
@@ -6549,7 +7728,7 @@ public struct GetReferencedByResponse: Codable, Sendable {
   }
 }
 
-public struct GetReferencedByResponseReferencedByItem: Codable, Sendable {
+public struct GetReferencedByResponseReferencedByItem: Codable, Sendable, Hashable {
   public var id: AnnotationId
   public var resourceName: String?
   public var target: GetReferencedByResponseReferencedByItemTarget
@@ -6575,7 +7754,7 @@ public struct GetReferencedByResponseReferencedByItem: Codable, Sendable {
   }
 }
 
-public struct GetReferencedByResponseReferencedByItemTarget: Codable, Sendable {
+public struct GetReferencedByResponseReferencedByItemTarget: Codable, Sendable, Hashable {
   public var selector: GetReferencedByResponseReferencedByItemTargetSelector
   public var source: ResourceId
   public init(selector: GetReferencedByResponseReferencedByItemTargetSelector, source: ResourceId) {
@@ -6594,7 +7773,7 @@ public struct GetReferencedByResponseReferencedByItemTarget: Codable, Sendable {
   }
 }
 
-public struct GetReferencedByResponseReferencedByItemTargetSelector: Codable, Sendable {
+public struct GetReferencedByResponseReferencedByItemTargetSelector: Codable, Sendable, Hashable {
   public var exact: String
   public init(exact: String) {
     self.exact = exact
@@ -6609,7 +7788,7 @@ public struct GetReferencedByResponseReferencedByItemTargetSelector: Codable, Se
   }
 }
 
-public struct GetResourceByTokenResponse: Codable, Sendable {
+public struct GetResourceByTokenResponse: Codable, Sendable, Hashable {
   public var expiresAt: String
   public var sourceResource: ResourceDescriptor
   public init(expiresAt: String, sourceResource: ResourceDescriptor) {
@@ -6628,7 +7807,7 @@ public struct GetResourceByTokenResponse: Codable, Sendable {
   }
 }
 
-public struct GetResourceResponse: Codable, Sendable {
+public struct GetResourceResponse: Codable, Sendable, Hashable {
   public var annotations: [Annotation]
   public var resource: ResourceDescriptor
   public init(annotations: [Annotation], resource: ResourceDescriptor) {
@@ -6647,7 +7826,7 @@ public struct GetResourceResponse: Codable, Sendable {
   }
 }
 
-public struct GetTagSchemasResponse: Codable, Sendable {
+public struct GetTagSchemasResponse: Codable, Sendable, Hashable {
   public var tagSchemas: [TagSchema]
   public init(tagSchemas: [TagSchema]) {
     self.tagSchemas = tagSchemas
@@ -6662,7 +7841,7 @@ public struct GetTagSchemasResponse: Codable, Sendable {
   }
 }
 
-public struct GraphAnnotationNode: Codable, Sendable {
+public struct GraphAnnotationNode: Codable, Sendable, Hashable {
   public var annotation: Annotation
   public var entityTypes: [String]?
   public var id: AnnotationId
@@ -6704,7 +7883,7 @@ public enum GraphAnnotationNodeType: String, Codable, Sendable, CaseIterable {
   case annotation = "annotation"
 }
 
-public indirect enum GraphConfig: Codable, Sendable {
+public indirect enum GraphConfig: Codable, Sendable, Hashable {
   case neo4jGraphConfig(Neo4jGraphConfig)
   case janusGraphConfig(JanusGraphConfig)
   case neptuneGraphConfig(NeptuneGraphConfig)
@@ -6732,7 +7911,7 @@ public indirect enum GraphConfig: Codable, Sendable {
   }
 }
 
-public struct GraphResourceNode: Codable, Sendable {
+public struct GraphResourceNode: Codable, Sendable, Hashable {
   public var entityTypes: [String]?
   public var id: ResourceId
   public var label: String
@@ -6770,7 +7949,280 @@ public enum GraphResourceNodeType: String, Codable, Sendable, CaseIterable {
   case resource = "resource"
 }
 
-public struct HealthResponse: Codable, Sendable {
+public struct GraphSchema: Codable, Sendable, Hashable {
+  public var comment: String
+  public var nodes: GraphSchemaNodes
+  public var relationships: GraphSchemaRelationships
+  public var stub: GraphSchemaStub
+  public init(
+    comment: String, nodes: GraphSchemaNodes, relationships: GraphSchemaRelationships,
+    stub: GraphSchemaStub
+  ) {
+    self.comment = comment
+    self.nodes = nodes
+    self.relationships = relationships
+    self.stub = stub
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "nodes", "relationships", "stub"], in: "GraphSchema")
+    self.comment = try c.value("$comment")
+    self.nodes = try c.value("nodes")
+    self.relationships = try c.value("relationships")
+    self.stub = try c.value("stub")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.nodes, as: "nodes")
+    try c.encode(self.relationships, as: "relationships")
+    try c.encode(self.stub, as: "stub")
+  }
+}
+
+public struct GraphSchemaNodes: Codable, Sendable, Hashable {
+  public var annotation: GraphSchemaNodesAnnotation
+  public var entityType: GraphSchemaNodesEntityType
+  public var resource: GraphSchemaNodesResource
+  public init(
+    annotation: GraphSchemaNodesAnnotation, entityType: GraphSchemaNodesEntityType,
+    resource: GraphSchemaNodesResource
+  ) {
+    self.annotation = annotation
+    self.entityType = entityType
+    self.resource = resource
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["annotation", "entityType", "resource"], in: "GraphSchemaNodes")
+    self.annotation = try c.value("annotation")
+    self.entityType = try c.value("entityType")
+    self.resource = try c.value("resource")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.annotation, as: "annotation")
+    try c.encode(self.entityType, as: "entityType")
+    try c.encode(self.resource, as: "resource")
+  }
+}
+
+public struct GraphSchemaNodesAnnotation: Codable, Sendable, Hashable {
+  public var key: String
+  public var label: String
+  public var lookups: [String]
+  public var row: String?
+  public init(key: String, label: String, lookups: [String], row: String? = nil) {
+    self.key = key
+    self.label = label
+    self.lookups = lookups
+    self.row = row
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["key", "label", "lookups", "row"], in: "GraphSchemaNodesAnnotation")
+    self.key = try c.value("key")
+    self.label = try c.value("label")
+    self.lookups = try c.value("lookups")
+    self.row = try c.ifPresent("row")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.key, as: "key")
+    try c.encode(self.label, as: "label")
+    try c.encode(self.lookups, as: "lookups")
+    try c.encodeIfPresent(self.row, as: "row")
+  }
+}
+
+public struct GraphSchemaNodesEntityType: Codable, Sendable, Hashable {
+  public var key: String
+  public var label: String
+  public var lookups: [String]
+  public var row: String?
+  public init(key: String, label: String, lookups: [String], row: String? = nil) {
+    self.key = key
+    self.label = label
+    self.lookups = lookups
+    self.row = row
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["key", "label", "lookups", "row"], in: "GraphSchemaNodesEntityType")
+    self.key = try c.value("key")
+    self.label = try c.value("label")
+    self.lookups = try c.value("lookups")
+    self.row = try c.ifPresent("row")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.key, as: "key")
+    try c.encode(self.label, as: "label")
+    try c.encode(self.lookups, as: "lookups")
+    try c.encodeIfPresent(self.row, as: "row")
+  }
+}
+
+public struct GraphSchemaNodesResource: Codable, Sendable, Hashable {
+  public var key: String
+  public var label: String
+  public var lookups: [String]
+  public var row: String?
+  public init(key: String, label: String, lookups: [String], row: String? = nil) {
+    self.key = key
+    self.label = label
+    self.lookups = lookups
+    self.row = row
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["key", "label", "lookups", "row"], in: "GraphSchemaNodesResource")
+    self.key = try c.value("key")
+    self.label = try c.value("label")
+    self.lookups = try c.value("lookups")
+    self.row = try c.ifPresent("row")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.key, as: "key")
+    try c.encode(self.label, as: "label")
+    try c.encode(self.lookups, as: "lookups")
+    try c.encodeIfPresent(self.row, as: "row")
+  }
+}
+
+public struct GraphSchemaRelationships: Codable, Sendable, Hashable {
+  public var belongsTo: GraphSchemaRelationshipsBelongsTo
+  public var references: GraphSchemaRelationshipsReferences
+  public var taggedAs: GraphSchemaRelationshipsTaggedAs
+  public init(
+    belongsTo: GraphSchemaRelationshipsBelongsTo, references: GraphSchemaRelationshipsReferences,
+    taggedAs: GraphSchemaRelationshipsTaggedAs
+  ) {
+    self.belongsTo = belongsTo
+    self.references = references
+    self.taggedAs = taggedAs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["belongsTo", "references", "taggedAs"], in: "GraphSchemaRelationships")
+    self.belongsTo = try c.value("belongsTo")
+    self.references = try c.value("references")
+    self.taggedAs = try c.value("taggedAs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.belongsTo, as: "belongsTo")
+    try c.encode(self.references, as: "references")
+    try c.encode(self.taggedAs, as: "taggedAs")
+  }
+}
+
+public struct GraphSchemaRelationshipsBelongsTo: Codable, Sendable, Hashable {
+  public var from: String
+  public var says: String
+  public var to: String
+  public var type: String
+  public init(from: String, says: String, to: String, type: String) {
+    self.from = from
+    self.says = says
+    self.to = to
+    self.type = type
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["from", "says", "to", "type"], in: "GraphSchemaRelationshipsBelongsTo")
+    self.from = try c.value("from")
+    self.says = try c.value("says")
+    self.to = try c.value("to")
+    self.type = try c.value("type")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.from, as: "from")
+    try c.encode(self.says, as: "says")
+    try c.encode(self.to, as: "to")
+    try c.encode(self.type, as: "type")
+  }
+}
+
+public struct GraphSchemaRelationshipsReferences: Codable, Sendable, Hashable {
+  public var from: String
+  public var says: String
+  public var to: String
+  public var type: String
+  public init(from: String, says: String, to: String, type: String) {
+    self.from = from
+    self.says = says
+    self.to = to
+    self.type = type
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["from", "says", "to", "type"], in: "GraphSchemaRelationshipsReferences")
+    self.from = try c.value("from")
+    self.says = try c.value("says")
+    self.to = try c.value("to")
+    self.type = try c.value("type")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.from, as: "from")
+    try c.encode(self.says, as: "says")
+    try c.encode(self.to, as: "to")
+    try c.encode(self.type, as: "type")
+  }
+}
+
+public struct GraphSchemaRelationshipsTaggedAs: Codable, Sendable, Hashable {
+  public var from: String
+  public var says: String
+  public var to: String
+  public var type: String
+  public init(from: String, says: String, to: String, type: String) {
+    self.from = from
+    self.says = says
+    self.to = to
+    self.type = type
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["from", "says", "to", "type"], in: "GraphSchemaRelationshipsTaggedAs")
+    self.from = try c.value("from")
+    self.says = try c.value("says")
+    self.to = try c.value("to")
+    self.type = try c.value("type")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.from, as: "from")
+    try c.encode(self.says, as: "says")
+    try c.encode(self.to, as: "to")
+    try c.encode(self.type, as: "type")
+  }
+}
+
+public struct GraphSchemaStub: Codable, Sendable, Hashable {
+  public var marker: String
+  public var node: String
+  public init(marker: String, node: String) {
+    self.marker = marker
+    self.node = node
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["marker", "node"], in: "GraphSchemaStub")
+    self.marker = try c.value("marker")
+    self.node = try c.value("node")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.marker, as: "marker")
+    try c.encode(self.node, as: "node")
+  }
+}
+
+public struct HealthResponse: Codable, Sendable, Hashable {
   public var message: String
   public var status: String
   public var timestamp: String
@@ -6797,7 +8249,7 @@ public struct HealthResponse: Codable, Sendable {
   }
 }
 
-public struct HighlightingJobParams: Codable, Sendable {
+public struct HighlightingJobParams: Codable, Sendable, Hashable {
   public var density: Double?
   public var instructions: String?
   public let motivation: HighlightingJobParamsMotivation
@@ -6830,7 +8282,7 @@ public enum HighlightingJobParamsMotivation: String, Codable, Sendable, CaseIter
   case highlighting = "highlighting"
 }
 
-public struct HostPort: Codable, Sendable {
+public struct HostPort: Codable, Sendable, Hashable {
   public var host: String
   public var port: Int
   public init(host: String, port: Int) {
@@ -6850,7 +8302,7 @@ public struct HostPort: Codable, Sendable {
   }
 }
 
-public struct HttpEndpoint: Codable, Sendable {
+public struct HttpEndpoint: Codable, Sendable, Hashable {
   public var host: String
   public let kind: HttpEndpointKind
   public var port: Int
@@ -6888,7 +8340,7 @@ public enum HttpEndpointProtocol: String, Codable, Sendable, CaseIterable {
 
 public typealias HttpStatus = Int
 
-public struct IdentityUser: Codable, Sendable {
+public struct IdentityUser: Codable, Sendable, Hashable {
   public var email: String
   public var enabled: Bool
   public var identity: String
@@ -6912,7 +8364,7 @@ public struct IdentityUser: Codable, Sendable {
   }
 }
 
-public struct IdentityUseraddParams: Codable, Sendable {
+public struct IdentityUseraddParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var email: String
   public var generatePassword: Bool
@@ -6949,7 +8401,7 @@ public struct IdentityUseraddParams: Codable, Sendable {
   }
 }
 
-public struct IdentityUseraddResult: Codable, Sendable {
+public struct IdentityUseraddResult: Codable, Sendable, Hashable {
   public var created: Bool
   public var email: String
   public var generatedPassword: String?
@@ -6978,7 +8430,7 @@ public struct IdentityUseraddResult: Codable, Sendable {
   }
 }
 
-public struct IdentityUsersListParams: Codable, Sendable {
+public struct IdentityUsersListParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var target: LocalTarget
   public init(apiVersion: ApiVersion, target: LocalTarget) {
@@ -6998,7 +8450,7 @@ public struct IdentityUsersListParams: Codable, Sendable {
   }
 }
 
-public struct IdentityUsersListResult: Codable, Sendable {
+public struct IdentityUsersListResult: Codable, Sendable, Hashable {
   public var users: [IdentityUser]
   public init(users: [IdentityUser]) {
     self.users = users
@@ -7016,7 +8468,7 @@ public struct IdentityUsersListResult: Codable, Sendable {
 
 public typealias Image = String
 
-public struct Inference: Codable, Sendable {
+public struct Inference: Codable, Sendable, Hashable {
   public var apiVersion: StackApiVersion
   public let kind: InferenceKind
   public var metadata: Metadata
@@ -7048,7 +8500,7 @@ public enum InferenceKind: String, Codable, Sendable, CaseIterable {
   case inference = "Inference"
 }
 
-public struct InferenceLimits: Codable, Sendable {
+public struct InferenceLimits: Codable, Sendable, Hashable {
   public var acceptsTemperature: Bool?
   public var contextTokens: Double
   public var maxOutputTokens: Double
@@ -7071,7 +8523,7 @@ public struct InferenceLimits: Codable, Sendable {
   }
 }
 
-public struct InferenceLimitsRequest: Codable, Sendable {
+public struct InferenceLimitsRequest: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -7082,7 +8534,7 @@ public struct InferenceLimitsRequest: Codable, Sendable {
   }
 }
 
-public struct InferenceLimitsResult: Codable, Sendable {
+public struct InferenceLimitsResult: Codable, Sendable, Hashable {
   public var response: InferenceLimitsResultResponse
   public init(response: InferenceLimitsResultResponse) {
     self.response = response
@@ -7097,7 +8549,7 @@ public struct InferenceLimitsResult: Codable, Sendable {
   }
 }
 
-public struct InferenceLimitsResultResponse: Codable, Sendable {
+public struct InferenceLimitsResultResponse: Codable, Sendable, Hashable {
   public var limits: [EngineLimits]
   public init(limits: [EngineLimits]) {
     self.limits = limits
@@ -7112,7 +8564,7 @@ public struct InferenceLimitsResultResponse: Codable, Sendable {
   }
 }
 
-public struct InferenceSpec: Codable, Sendable {
+public struct InferenceSpec: Codable, Sendable, Hashable {
   public var engines: ArchivistEngines
   public var providers: [String: Provider]
   public init(engines: ArchivistEngines, providers: [String: Provider]) {
@@ -7132,7 +8584,7 @@ public struct InferenceSpec: Codable, Sendable {
   }
 }
 
-public struct IssuedTokens: Codable, Sendable {
+public struct IssuedTokens: Codable, Sendable, Hashable {
   public var access: String
   public var refresh: String
   public init(access: String, refresh: String) {
@@ -7152,7 +8604,7 @@ public struct IssuedTokens: Codable, Sendable {
   }
 }
 
-public struct Issuer: Codable, Sendable {
+public struct Issuer: Codable, Sendable, Hashable {
   public var apiVersion: StackApiVersion
   public let kind: IssuerKind
   public var metadata: Metadata
@@ -7184,7 +8636,7 @@ public enum IssuerKind: String, Codable, Sendable, CaseIterable {
   case issuer = "Issuer"
 }
 
-public struct IssuerSpec: Codable, Sendable {
+public struct IssuerSpec: Codable, Sendable, Hashable {
   public var database: IssuerSpecDatabase
   public var image: Image
   public var port: Int
@@ -7218,7 +8670,7 @@ public struct IssuerSpec: Codable, Sendable {
   }
 }
 
-public struct IssuerSpecDatabase: Codable, Sendable {
+public struct IssuerSpecDatabase: Codable, Sendable, Hashable {
   public var external: IssuerSpecDatabaseExternal?
   public var image: Image?
   public var name: String
@@ -7262,7 +8714,7 @@ public struct IssuerSpecDatabase: Codable, Sendable {
   }
 }
 
-public struct IssuerSpecDatabaseExternal: Codable, Sendable {
+public struct IssuerSpecDatabaseExternal: Codable, Sendable, Hashable {
   public var host: String
   public var password: SecretRef
   public var port: Int
@@ -7286,7 +8738,7 @@ public struct IssuerSpecDatabaseExternal: Codable, Sendable {
   }
 }
 
-public struct JanusGraphConfig: Codable, Sendable {
+public struct JanusGraphConfig: Codable, Sendable, Hashable {
   public var host: String
   public var port: Int
   public let type: JanusGraphConfigType
@@ -7314,7 +8766,7 @@ public enum JanusGraphConfigType: String, Codable, Sendable, CaseIterable {
   case janusgraph = "janusgraph"
 }
 
-public indirect enum Job: Codable, Sendable {
+public indirect enum Job: Codable, Sendable, Hashable {
   case jobPending(JobPending)
   case jobRunning(JobRunning)
   case jobComplete(JobComplete)
@@ -7345,7 +8797,7 @@ public indirect enum Job: Codable, Sendable {
   }
 }
 
-public struct JobAssignCommand: Codable, Sendable {
+public struct JobAssignCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var holder: UserId
   public var jobId: JobId
@@ -7383,7 +8835,7 @@ public struct JobAssignCommand: Codable, Sendable {
   }
 }
 
-public struct JobAssignedPayload: Codable, Sendable {
+public struct JobAssignedPayload: Codable, Sendable, Hashable {
   public var holder: UserId
   public var jobId: JobId
   public var jobType: JobType
@@ -7416,7 +8868,7 @@ public struct JobAssignedPayload: Codable, Sendable {
   }
 }
 
-public struct JobCancelCommand: Codable, Sendable {
+public struct JobCancelCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId?
   public var completedUnits: [String]?
@@ -7458,7 +8910,7 @@ public struct JobCancelCommand: Codable, Sendable {
   }
 }
 
-public struct JobCancelRequest: Codable, Sendable {
+public struct JobCancelRequest: Codable, Sendable, Hashable {
   public var jobId: JobId
   public init(jobId: JobId) {
     self.jobId = jobId
@@ -7473,7 +8925,7 @@ public struct JobCancelRequest: Codable, Sendable {
   }
 }
 
-public struct JobCancelResult: Codable, Sendable {
+public struct JobCancelResult: Codable, Sendable, Hashable {
   public var cancelled: Bool
   public init(cancelled: Bool) {
     self.cancelled = cancelled
@@ -7488,7 +8940,7 @@ public struct JobCancelResult: Codable, Sendable {
   }
 }
 
-public struct JobCancelled: Codable, Sendable {
+public struct JobCancelled: Codable, Sendable, Hashable {
   public var completedAt: String
   public var metadata: JobMetadata
   public var params: JobParams
@@ -7527,7 +8979,7 @@ public enum JobCancelledStatus: String, Codable, Sendable, CaseIterable {
   case cancelled = "cancelled"
 }
 
-public struct JobCheckpointCommand: Codable, Sendable {
+public struct JobCheckpointCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var completedUnits: [String]
   public var jobId: JobId
@@ -7557,7 +9009,7 @@ public struct JobCheckpointCommand: Codable, Sendable {
   }
 }
 
-public struct JobClaimCommand: Codable, Sendable {
+public struct JobClaimCommand: Codable, Sendable, Hashable {
   public var _roles: [String]?
   public var _userId: UserId?
   public var accepts: [JobFilter]
@@ -7580,7 +9032,7 @@ public struct JobClaimCommand: Codable, Sendable {
   }
 }
 
-public struct JobClaimedResult: Codable, Sendable {
+public struct JobClaimedResult: Codable, Sendable, Hashable {
   public var response: JobRunning
   public init(response: JobRunning) {
     self.response = response
@@ -7596,7 +9048,7 @@ public struct JobClaimedResult: Codable, Sendable {
   }
 }
 
-public struct JobComplete: Codable, Sendable {
+public struct JobComplete: Codable, Sendable, Hashable {
   public var completedAt: String
   public var metadata: JobMetadata
   public var params: JobParams
@@ -7636,7 +9088,7 @@ public struct JobComplete: Codable, Sendable {
   }
 }
 
-public indirect enum JobCompleteCommand: Codable, Sendable {
+public indirect enum JobCompleteCommand: Codable, Sendable, Hashable {
   case markJobCompleteCommand(MarkJobCompleteCommand)
   case yieldJobCompleteCommand(YieldJobCompleteCommand)
   public init(from decoder: any Decoder) throws {
@@ -7663,7 +9115,7 @@ public enum JobCompleteStatus: String, Codable, Sendable, CaseIterable {
   case complete = "complete"
 }
 
-public struct JobCompletedPayload: Codable, Sendable {
+public struct JobCompletedPayload: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId?
   public var annotationUri: String?
   public var attempt: Int?
@@ -7718,7 +9170,7 @@ public struct JobCompletedPayload: Codable, Sendable {
   }
 }
 
-public indirect enum JobCreateCommand: Codable, Sendable {
+public indirect enum JobCreateCommand: Codable, Sendable, Hashable {
   case markJobCreateCommand(MarkJobCreateCommand)
   case yieldJobCreateCommand(YieldJobCreateCommand)
   public init(from decoder: any Decoder) throws {
@@ -7741,7 +9193,7 @@ public indirect enum JobCreateCommand: Codable, Sendable {
   }
 }
 
-public struct JobCreatedResult: Codable, Sendable {
+public struct JobCreatedResult: Codable, Sendable, Hashable {
   public var response: JobCreatedResultResponse
   public init(response: JobCreatedResultResponse) {
     self.response = response
@@ -7756,7 +9208,7 @@ public struct JobCreatedResult: Codable, Sendable {
   }
 }
 
-public struct JobCreatedResultResponse: Codable, Sendable {
+public struct JobCreatedResultResponse: Codable, Sendable, Hashable {
   public var jobId: JobId
   public init(jobId: JobId) {
     self.jobId = jobId
@@ -7771,7 +9223,7 @@ public struct JobCreatedResultResponse: Codable, Sendable {
   }
 }
 
-public struct JobDeclined: Codable, Sendable {
+public struct JobDeclined: Codable, Sendable, Hashable {
   public let declined: JobDeclinedDeclined
   public var reason: JobDeclinedReason
   public init(reason: JobDeclinedReason) {
@@ -7791,7 +9243,7 @@ public struct JobDeclined: Codable, Sendable {
   }
 }
 
-public enum JobDeclinedDeclined: Codable, Sendable {
+public enum JobDeclinedDeclined: Codable, Sendable, Hashable {
   case value
   public init(from decoder: any Decoder) throws {
     let c = try decoder.singleValueContainer()
@@ -7814,7 +9266,7 @@ public enum JobDeclinedReason: String, Codable, Sendable, CaseIterable {
   case empty = "empty"
 }
 
-public struct JobFailCommand: Codable, Sendable {
+public struct JobFailCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId?
   public var attempt: Int?
@@ -7878,7 +9330,7 @@ public struct JobFailCommand: Codable, Sendable {
   }
 }
 
-public struct JobFailed: Codable, Sendable {
+public struct JobFailed: Codable, Sendable, Hashable {
   public var completedAt: String
   public var error: String
   public var failureClass: FailureClass?
@@ -7923,7 +9375,7 @@ public struct JobFailed: Codable, Sendable {
   }
 }
 
-public struct JobFailedPayload: Codable, Sendable {
+public struct JobFailedPayload: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId?
   public var attempt: Int?
   public var durability: DurabilityEvidence?
@@ -7974,7 +9426,7 @@ public enum JobFailedStatus: String, Codable, Sendable, CaseIterable {
   case failed = "failed"
 }
 
-public indirect enum JobFilter: Codable, Sendable {
+public indirect enum JobFilter: Codable, Sendable, Hashable {
   case markJobFilter(MarkJobFilter)
   case yieldJobFilter(YieldJobFilter)
   public init(from decoder: any Decoder) throws {
@@ -8030,7 +9482,7 @@ public struct JobId: Hashable, Sendable, Codable, CustomStringConvertible {
   }
 }
 
-public struct JobMetadata: Codable, Sendable {
+public struct JobMetadata: Codable, Sendable, Hashable {
   public var completedUnits: [String]?
   public var created: String
   public var id: JobId
@@ -8081,7 +9533,7 @@ public struct JobMetadata: Codable, Sendable {
   }
 }
 
-public struct JobParams: Codable, Sendable {
+public struct JobParams: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public var schema: TagSchema?
   public var rest: [String: JSONValue]
@@ -8104,7 +9556,7 @@ public struct JobParams: Codable, Sendable {
   }
 }
 
-public struct JobPending: Codable, Sendable {
+public struct JobPending: Codable, Sendable, Hashable {
   public var metadata: JobMetadata
   public var params: JobParams
   public let status: JobPendingStatus
@@ -8132,7 +9584,7 @@ public enum JobPendingStatus: String, Codable, Sendable, CaseIterable {
   case pending = "pending"
 }
 
-public struct JobPollOptions: Codable, Sendable {
+public struct JobPollOptions: Codable, Sendable, Hashable {
   public var everyMs: Int?
   public var withinMs: Int?
   public init(everyMs: Int? = nil, withinMs: Int? = nil) {
@@ -8152,7 +9604,7 @@ public struct JobPollOptions: Codable, Sendable {
   }
 }
 
-public struct JobProgress: Codable, Sendable {
+public struct JobProgress: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId?
   public var completedItems: [JobProgressCompletedItemsItem]?
   public var current: JobProgressCurrent?
@@ -8212,7 +9664,7 @@ public struct JobProgress: Codable, Sendable {
   }
 }
 
-public struct JobProgressAnalyzing: Codable, Sendable {
+public struct JobProgressAnalyzing: Codable, Sendable, Hashable {
   public let code: JobProgressAnalyzingCode
   public init() {
     self.code = .analyzing
@@ -8231,7 +9683,7 @@ public enum JobProgressAnalyzingCode: String, Codable, Sendable, CaseIterable {
   case analyzing = "analyzing"
 }
 
-public struct JobProgressAnalyzingTags: Codable, Sendable {
+public struct JobProgressAnalyzingTags: Codable, Sendable, Hashable {
   public let code: JobProgressAnalyzingTagsCode
   public init() {
     self.code = .analyzingTags
@@ -8250,7 +9702,7 @@ public enum JobProgressAnalyzingTagsCode: String, Codable, Sendable, CaseIterabl
   case analyzingTags = "analyzing-tags"
 }
 
-public struct JobProgressCompleteCreated: Codable, Sendable {
+public struct JobProgressCompleteCreated: Codable, Sendable, Hashable {
   public let code: JobProgressCompleteCreatedCode
   public var count: Int
   public var motivation: Motivation
@@ -8277,7 +9729,7 @@ public enum JobProgressCompleteCreatedCode: String, Codable, Sendable, CaseItera
   case completeCreated = "complete-created"
 }
 
-public struct JobProgressCompleteGenerated: Codable, Sendable {
+public struct JobProgressCompleteGenerated: Codable, Sendable, Hashable {
   public let code: JobProgressCompleteGeneratedCode
   public var truncated: Bool
   public init(truncated: Bool) {
@@ -8300,7 +9752,7 @@ public enum JobProgressCompleteGeneratedCode: String, Codable, Sendable, CaseIte
   case completeGenerated = "complete-generated"
 }
 
-public struct JobProgressCompletedItemsItem: Codable, Sendable {
+public struct JobProgressCompletedItemsItem: Codable, Sendable, Hashable {
   public var foundCount: Int
   public var persistedCount: Int?
   public var underReported: JobProgressCompletedItemsItemUnderReported?
@@ -8330,7 +9782,7 @@ public struct JobProgressCompletedItemsItem: Codable, Sendable {
   }
 }
 
-public struct JobProgressCompletedItemsItemUnderReported: Codable, Sendable {
+public struct JobProgressCompletedItemsItemUnderReported: Codable, Sendable, Hashable {
   public var counted: Int
   public var found: Int
   public var pieces: Int
@@ -8353,7 +9805,7 @@ public struct JobProgressCompletedItemsItemUnderReported: Codable, Sendable {
   }
 }
 
-public struct JobProgressCreatingAnnotations: Codable, Sendable {
+public struct JobProgressCreatingAnnotations: Codable, Sendable, Hashable {
   public let code: JobProgressCreatingAnnotationsCode
   public var count: Int
   public init(count: Int) {
@@ -8376,7 +9828,7 @@ public enum JobProgressCreatingAnnotationsCode: String, Codable, Sendable, CaseI
   case creatingAnnotations = "creating-annotations"
 }
 
-public struct JobProgressCreatingResource: Codable, Sendable {
+public struct JobProgressCreatingResource: Codable, Sendable, Hashable {
   public let code: JobProgressCreatingResourceCode
   public init() {
     self.code = .creatingResource
@@ -8395,7 +9847,7 @@ public enum JobProgressCreatingResourceCode: String, Codable, Sendable, CaseIter
   case creatingResource = "creating-resource"
 }
 
-public struct JobProgressCreatingTagAnnotations: Codable, Sendable {
+public struct JobProgressCreatingTagAnnotations: Codable, Sendable, Hashable {
   public let code: JobProgressCreatingTagAnnotationsCode
   public var count: Int
   public init(count: Int) {
@@ -8418,7 +9870,7 @@ public enum JobProgressCreatingTagAnnotationsCode: String, Codable, Sendable, Ca
   case creatingTagAnnotations = "creating-tag-annotations"
 }
 
-public struct JobProgressCurrent: Codable, Sendable {
+public struct JobProgressCurrent: Codable, Sendable, Hashable {
   public var kind: JobProgressCurrentKind
   public var value: String
   public init(kind: JobProgressCurrentKind, value: String) {
@@ -8442,7 +9894,7 @@ public enum JobProgressCurrentKind: String, Codable, Sendable, CaseIterable {
   case category = "category"
 }
 
-public struct JobProgressDetectingEntities: Codable, Sendable {
+public struct JobProgressDetectingEntities: Codable, Sendable, Hashable {
   public let code: JobProgressDetectingEntitiesCode
   public var entityType: String
   public init(entityType: String) {
@@ -8465,7 +9917,7 @@ public enum JobProgressDetectingEntitiesCode: String, Codable, Sendable, CaseIte
   case detectingEntities = "detecting-entities"
 }
 
-public struct JobProgressGeneratingResource: Codable, Sendable {
+public struct JobProgressGeneratingResource: Codable, Sendable, Hashable {
   public let code: JobProgressGeneratingResourceCode
   public init() {
     self.code = .generatingResource
@@ -8484,7 +9936,7 @@ public enum JobProgressGeneratingResourceCode: String, Codable, Sendable, CaseIt
   case generatingResource = "generating-resource"
 }
 
-public struct JobProgressLoading: Codable, Sendable {
+public struct JobProgressLoading: Codable, Sendable, Hashable {
   public let code: JobProgressLoadingCode
   public init() {
     self.code = .loading
@@ -8503,7 +9955,7 @@ public enum JobProgressLoadingCode: String, Codable, Sendable, CaseIterable {
   case loading = "loading"
 }
 
-public indirect enum JobProgressMessage: Codable, Sendable {
+public indirect enum JobProgressMessage: Codable, Sendable, Hashable {
   case jobProgressLoading(JobProgressLoading)
   case jobProgressAnalyzing(JobProgressAnalyzing)
   case jobProgressAnalyzingTags(JobProgressAnalyzingTags)
@@ -8559,7 +10011,7 @@ public indirect enum JobProgressMessage: Codable, Sendable {
   }
 }
 
-public struct JobProgressRequestParamsItem: Codable, Sendable {
+public struct JobProgressRequestParamsItem: Codable, Sendable, Hashable {
   public var label: JobProgressRequestParamsItemLabel
   public var value: String
   public init(label: JobProgressRequestParamsItemLabel, value: String) {
@@ -8585,7 +10037,7 @@ public enum JobProgressRequestParamsItemLabel: String, Codable, Sendable, CaseIt
   case density = "density"
 }
 
-public indirect enum JobQueuedEvent: Codable, Sendable {
+public indirect enum JobQueuedEvent: Codable, Sendable, Hashable {
   case markJobQueuedEvent(MarkJobQueuedEvent)
   case yieldJobQueuedEvent(YieldJobQueuedEvent)
   public init(from decoder: any Decoder) throws {
@@ -8607,7 +10059,7 @@ public indirect enum JobQueuedEvent: Codable, Sendable {
   }
 }
 
-public struct JobRecord: Codable, Sendable {
+public struct JobRecord: Codable, Sendable, Hashable {
   public var job: Job
   public var lastProgressAt: String
   public init(job: Job, lastProgressAt: String) {
@@ -8627,7 +10079,7 @@ public struct JobRecord: Codable, Sendable {
   }
 }
 
-public struct JobReportProgressCommand: Codable, Sendable {
+public struct JobReportProgressCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId?
   public var attempt: Int?
@@ -8673,7 +10125,7 @@ public struct JobReportProgressCommand: Codable, Sendable {
   }
 }
 
-public indirect enum JobResult: Codable, Sendable {
+public indirect enum JobResult: Codable, Sendable, Hashable {
   case markJobDone(MarkJobDone)
   case yieldJobDone(YieldJobDone)
   case jobDeclined(JobDeclined)
@@ -8702,7 +10154,7 @@ public indirect enum JobResult: Codable, Sendable {
   }
 }
 
-public struct JobRunning: Codable, Sendable {
+public struct JobRunning: Codable, Sendable, Hashable {
   public var metadata: JobMetadata
   public var params: JobParams
   public var progress: JobStoredProgress
@@ -8741,7 +10193,7 @@ public enum JobRunningStatus: String, Codable, Sendable, CaseIterable {
   case running = "running"
 }
 
-public struct JobStartCommand: Codable, Sendable {
+public struct JobStartCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId?
   public var attempt: Int?
@@ -8779,7 +10231,7 @@ public struct JobStartCommand: Codable, Sendable {
   }
 }
 
-public struct JobStartedPayload: Codable, Sendable {
+public struct JobStartedPayload: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId?
   public var jobId: JobId
   public var jobType: JobType
@@ -8808,7 +10260,7 @@ public struct JobStartedPayload: Codable, Sendable {
   }
 }
 
-public struct JobStatusRequest: Codable, Sendable {
+public struct JobStatusRequest: Codable, Sendable, Hashable {
   public var jobId: JobId
   public init(jobId: JobId) {
     self.jobId = jobId
@@ -8823,7 +10275,7 @@ public struct JobStatusRequest: Codable, Sendable {
   }
 }
 
-public struct JobStatusResponse: Codable, Sendable {
+public struct JobStatusResponse: Codable, Sendable, Hashable {
   public var completedAt: String?
   public var created: String
   public var error: String?
@@ -8891,7 +10343,7 @@ public enum JobStatusResponseStatus: String, Codable, Sendable, CaseIterable {
   case cancelled = "cancelled"
 }
 
-public struct JobStatusResult: Codable, Sendable {
+public struct JobStatusResult: Codable, Sendable, Hashable {
   public var response: JobStatusResponse
   public init(response: JobStatusResponse) {
     self.response = response
@@ -8906,7 +10358,7 @@ public struct JobStatusResult: Codable, Sendable {
   }
 }
 
-public indirect enum JobStoredProgress: Codable, Sendable {
+public indirect enum JobStoredProgress: Codable, Sendable, Hashable {
   case jobProgress(JobProgress)
   case empty(JobStoredProgressEmpty)
   public init(from decoder: any Decoder) throws {
@@ -8930,7 +10382,7 @@ public indirect enum JobStoredProgress: Codable, Sendable {
   }
 }
 
-public struct JobStoredProgressEmpty: Codable, Sendable {
+public struct JobStoredProgressEmpty: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -8942,7 +10394,7 @@ public struct JobStoredProgressEmpty: Codable, Sendable {
   }
 }
 
-public indirect enum JobStoredResult: Codable, Sendable {
+public indirect enum JobStoredResult: Codable, Sendable, Hashable {
   case jobResult(JobResult)
   case empty(JobStoredResultEmpty)
   public init(from decoder: any Decoder) throws {
@@ -8965,7 +10417,7 @@ public indirect enum JobStoredResult: Codable, Sendable {
   }
 }
 
-public struct JobStoredResultEmpty: Codable, Sendable {
+public struct JobStoredResultEmpty: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -8982,7 +10434,134 @@ public enum JobType: String, Codable, Sendable, CaseIterable {
   case yield = "yield"
 }
 
-public struct KbDescription: Codable, Sendable {
+public struct JobsBudgets: Codable, Sendable, Hashable {
+  public var comment: String
+  public var budgets: [JobsBudgetsBudgetsItem]
+  public init(comment: String, budgets: [JobsBudgetsBudgetsItem]) {
+    self.comment = comment
+    self.budgets = budgets
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "budgets"], in: "JobsBudgets")
+    self.comment = try c.value("$comment")
+    self.budgets = try c.value("budgets")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.budgets, as: "budgets")
+  }
+}
+
+public struct JobsBudgetsBudgetsItem: Codable, Sendable, Hashable {
+  public var jobType: JobType
+  public var maxRetries: Int
+  public init(jobType: JobType, maxRetries: Int) {
+    self.jobType = jobType
+    self.maxRetries = maxRetries
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["jobType", "maxRetries"], in: "JobsBudgetsBudgetsItem")
+    self.jobType = try c.value("jobType")
+    self.maxRetries = try c.value("maxRetries")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.jobType, as: "jobType")
+    try c.encode(self.maxRetries, as: "maxRetries")
+  }
+}
+
+public struct JobsStorage: Codable, Sendable, Hashable {
+  public var comment: String
+  public var bucket: JobsStorageBucket
+  public var consumer: JobsStorageConsumer
+  public var stream: JobsStorageStream
+  public init(
+    comment: String, bucket: JobsStorageBucket, consumer: JobsStorageConsumer,
+    stream: JobsStorageStream
+  ) {
+    self.comment = comment
+    self.bucket = bucket
+    self.consumer = consumer
+    self.stream = stream
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "bucket", "consumer", "stream"], in: "JobsStorage")
+    self.comment = try c.value("$comment")
+    self.bucket = try c.value("bucket")
+    self.consumer = try c.value("consumer")
+    self.stream = try c.value("stream")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.bucket, as: "bucket")
+    try c.encode(self.consumer, as: "consumer")
+    try c.encode(self.stream, as: "stream")
+  }
+}
+
+public struct JobsStorageBucket: Codable, Sendable, Hashable {
+  public var name: String
+  public var record: String
+  public init(name: String, record: String) {
+    self.name = name
+    self.record = record
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "record"], in: "JobsStorageBucket")
+    self.name = try c.value("name")
+    self.record = try c.value("record")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.record, as: "record")
+  }
+}
+
+public struct JobsStorageConsumer: Codable, Sendable, Hashable {
+  public var durableName: String
+  public init(durableName: String) {
+    self.durableName = durableName
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["durableName"], in: "JobsStorageConsumer")
+    self.durableName = try c.value("durableName")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.durableName, as: "durableName")
+  }
+}
+
+public struct JobsStorageStream: Codable, Sendable, Hashable {
+  public var name: String
+  public var subjectRoot: String
+  public init(name: String, subjectRoot: String) {
+    self.name = name
+    self.subjectRoot = subjectRoot
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "subjectRoot"], in: "JobsStorageStream")
+    self.name = try c.value("name")
+    self.subjectRoot = try c.value("subjectRoot")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.subjectRoot, as: "subjectRoot")
+  }
+}
+
+public struct KbDescription: Codable, Sendable, Hashable {
   public var domain: String
   public var gitBranch: String?
   public var name: String
@@ -9007,7 +10586,7 @@ public struct KbDescription: Codable, Sendable {
 
 public typealias KbDid = String
 
-public indirect enum KbEndpoint: Codable, Sendable {
+public indirect enum KbEndpoint: Codable, Sendable, Hashable {
   case httpEndpoint(HttpEndpoint)
   case localEndpoint(LocalEndpoint)
   public init(from decoder: any Decoder) throws {
@@ -9029,7 +10608,7 @@ public indirect enum KbEndpoint: Codable, Sendable {
   }
 }
 
-public struct KbIdentity: Codable, Sendable {
+public struct KbIdentity: Codable, Sendable, Hashable {
   public var domain: String
   public var name: String
   public init(domain: String, name: String) {
@@ -9049,7 +10628,7 @@ public struct KbIdentity: Codable, Sendable {
   }
 }
 
-public struct KbIdentityConflict: Codable, Sendable {
+public struct KbIdentityConflict: Codable, Sendable, Hashable {
   public var expectedDid: String
   public var observedDid: String
   public init(expectedDid: String, observedDid: String) {
@@ -9069,7 +10648,7 @@ public struct KbIdentityConflict: Codable, Sendable {
   }
 }
 
-public struct KbRead: Codable, Sendable {
+public struct KbRead: Codable, Sendable, Hashable {
   public var at: String
   public var gitBranch: String?
   public init(at: String, gitBranch: String? = nil) {
@@ -9094,7 +10673,7 @@ public enum KbReadKind: String, Codable, Sendable, CaseIterable {
   case noVerdict = "no-verdict"
 }
 
-public indirect enum KbReadVerdict: Codable, Sendable {
+public indirect enum KbReadVerdict: Codable, Sendable, Hashable {
   case recorded(KbReadVerdictRecorded)
   case conflict(KbReadVerdictConflict)
   case noVerdict(KbReadVerdictNoVerdict)
@@ -9119,7 +10698,7 @@ public indirect enum KbReadVerdict: Codable, Sendable {
   }
 }
 
-public struct KbReadVerdictConflict: Codable, Sendable {
+public struct KbReadVerdictConflict: Codable, Sendable, Hashable {
   public let kind: KbReadKind
   public var observedDid: String
   public var observedName: String
@@ -9143,7 +10722,7 @@ public struct KbReadVerdictConflict: Codable, Sendable {
   }
 }
 
-public struct KbReadVerdictNoVerdict: Codable, Sendable {
+public struct KbReadVerdictNoVerdict: Codable, Sendable, Hashable {
   public let kind: KbReadKind
   public init() {
     self.kind = .noVerdict
@@ -9159,7 +10738,7 @@ public struct KbReadVerdictNoVerdict: Codable, Sendable {
   }
 }
 
-public struct KbReadVerdictRecorded: Codable, Sendable {
+public struct KbReadVerdictRecorded: Codable, Sendable, Hashable {
   public let kind: KbReadKind
   public init() {
     self.kind = .recorded
@@ -9181,7 +10760,7 @@ public enum KbSessionStatus: String, Codable, Sendable, CaseIterable {
   case signedOut = "signed-out"
 }
 
-public struct KbTarget: Codable, Sendable {
+public struct KbTarget: Codable, Sendable, Hashable {
   public var endpoint: KbEndpoint
   public var id: String
   public var label: String
@@ -9204,7 +10783,7 @@ public struct KbTarget: Codable, Sendable {
   }
 }
 
-public struct KnowledgeBase: Codable, Sendable {
+public struct KnowledgeBase: Codable, Sendable, Hashable {
   public var did: String
   public var endpoint: KbEndpoint
   public var id: String
@@ -9236,7 +10815,7 @@ public struct KnowledgeBase: Codable, Sendable {
   }
 }
 
-public struct KnowledgeBaseStatus: Codable, Sendable {
+public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
   public var did: String?
   public var gateway: String?
   public var healthy: Bool
@@ -9341,7 +10920,7 @@ public enum KnowledgeBaseStatusPlacement: String, Codable, Sendable, CaseIterabl
   case codespace = "codespace"
 }
 
-public struct KnowledgeGraph: Codable, Sendable {
+public struct KnowledgeGraph: Codable, Sendable, Hashable {
   public var edges: [KnowledgeGraphEdgesItem]
   public var nodes: [KnowledgeGraphNodesItem]
   public var truncated: Bool?
@@ -9366,7 +10945,7 @@ public struct KnowledgeGraph: Codable, Sendable {
   }
 }
 
-public struct KnowledgeGraphEdgesItem: Codable, Sendable {
+public struct KnowledgeGraphEdgesItem: Codable, Sendable, Hashable {
   public var bidirectional: Bool?
   public var metadata: [String: JSONValue]?
   public var source: String
@@ -9400,7 +10979,7 @@ public struct KnowledgeGraphEdgesItem: Codable, Sendable {
   }
 }
 
-public indirect enum KnowledgeGraphNodesItem: Codable, Sendable {
+public indirect enum KnowledgeGraphNodesItem: Codable, Sendable, Hashable {
   case graphResourceNode(GraphResourceNode)
   case graphAnnotationNode(GraphAnnotationNode)
   public init(from decoder: any Decoder) throws {
@@ -9423,7 +11002,7 @@ public indirect enum KnowledgeGraphNodesItem: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndex: Codable, Sendable {
+public struct KnowledgeIndex: Codable, Sendable, Hashable {
   public var apiVersion: StackApiVersion
   public let kind: KnowledgeIndexKind
   public var metadata: Metadata
@@ -9455,7 +11034,7 @@ public enum KnowledgeIndexKind: String, Codable, Sendable, CaseIterable {
   case knowledgeIndex = "KnowledgeIndex"
 }
 
-public struct KnowledgeIndexSpec: Codable, Sendable {
+public struct KnowledgeIndexSpec: Codable, Sendable, Hashable {
   public var embedding: KnowledgeIndexSpecEmbedding
   public var graph: Runner
   public var knowledgeBase: String
@@ -9507,7 +11086,7 @@ public struct KnowledgeIndexSpec: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecEmbedding: Codable, Sendable {
+public struct KnowledgeIndexSpecEmbedding: Codable, Sendable, Hashable {
   public var apiKey: SecretRef?
   public var chunking: KnowledgeIndexSpecEmbeddingChunking
   public var endpoint: String?
@@ -9543,7 +11122,7 @@ public struct KnowledgeIndexSpecEmbedding: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecEmbeddingChunking: Codable, Sendable {
+public struct KnowledgeIndexSpecEmbeddingChunking: Codable, Sendable, Hashable {
   public var chunkSize: Int
   public var overlap: Int
   public init(chunkSize: Int, overlap: Int) {
@@ -9563,7 +11142,7 @@ public struct KnowledgeIndexSpecEmbeddingChunking: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecLibrarian: Codable, Sendable {
+public struct KnowledgeIndexSpecLibrarian: Codable, Sendable, Hashable {
   public var gather: KnowledgeIndexSpecLibrarianGather
   public var image: Image
   public var resources: Resources
@@ -9595,7 +11174,7 @@ public struct KnowledgeIndexSpecLibrarian: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecLibrarianGather: Codable, Sendable {
+public struct KnowledgeIndexSpecLibrarianGather: Codable, Sendable, Hashable {
   public var settleTimeoutMs: Int
   public init(settleTimeoutMs: Int) {
     self.settleTimeoutMs = settleTimeoutMs
@@ -9611,7 +11190,7 @@ public struct KnowledgeIndexSpecLibrarianGather: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecLibrarianSearch: Codable, Sendable {
+public struct KnowledgeIndexSpecLibrarianSearch: Codable, Sendable, Hashable {
   public var semanticFloor: Double
   public init(semanticFloor: Double) {
     self.semanticFloor = semanticFloor
@@ -9627,7 +11206,7 @@ public struct KnowledgeIndexSpecLibrarianSearch: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecSmelter: Codable, Sendable {
+public struct KnowledgeIndexSpecSmelter: Codable, Sendable, Hashable {
   public var image: Image
   public var pdfsAtOnce: Int
   public var resources: Resources
@@ -9651,7 +11230,7 @@ public struct KnowledgeIndexSpecSmelter: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecVectors: Codable, Sendable {
+public struct KnowledgeIndexSpecVectors: Codable, Sendable, Hashable {
   public var external: KnowledgeIndexSpecVectorsExternal?
   public var image: Image?
   public var resources: Resources?
@@ -9687,7 +11266,7 @@ public struct KnowledgeIndexSpecVectors: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecVectorsExternal: Codable, Sendable {
+public struct KnowledgeIndexSpecVectorsExternal: Codable, Sendable, Hashable {
   public var host: String
   public var librarianToken: SecretRef
   public var port: Int
@@ -9716,7 +11295,7 @@ public struct KnowledgeIndexSpecVectorsExternal: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecVectorsShared: Codable, Sendable {
+public struct KnowledgeIndexSpecVectorsShared: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -9728,7 +11307,7 @@ public struct KnowledgeIndexSpecVectorsShared: Codable, Sendable {
   }
 }
 
-public struct KnowledgeIndexSpecWeaver: Codable, Sendable {
+public struct KnowledgeIndexSpecWeaver: Codable, Sendable, Hashable {
   public var image: Image
   public var resources: Resources
   public init(image: Image, resources: Resources) {
@@ -9748,7 +11327,7 @@ public struct KnowledgeIndexSpecWeaver: Codable, Sendable {
   }
 }
 
-public struct LibrarianConfig: Codable, Sendable {
+public struct LibrarianConfig: Codable, Sendable, Hashable {
   public var archivist: ServiceAddress
   public var embedding: EmbeddingConfig
   public var gatewayUrl: String
@@ -9830,7 +11409,7 @@ public struct LibrarianConfig: Codable, Sendable {
   }
 }
 
-public struct LibrarianConfigGather: Codable, Sendable {
+public struct LibrarianConfigGather: Codable, Sendable, Hashable {
   public var settleTimeoutMs: Int
   public init(settleTimeoutMs: Int) {
     self.settleTimeoutMs = settleTimeoutMs
@@ -9846,7 +11425,7 @@ public struct LibrarianConfigGather: Codable, Sendable {
   }
 }
 
-public struct LibrarianConfigSearch: Codable, Sendable {
+public struct LibrarianConfigSearch: Codable, Sendable, Hashable {
   public var semanticFloor: Double
   public init(semanticFloor: Double) {
     self.semanticFloor = semanticFloor
@@ -9862,7 +11441,7 @@ public struct LibrarianConfigSearch: Codable, Sendable {
   }
 }
 
-public struct LibrarianEngineConfig: Codable, Sendable {
+public struct LibrarianEngineConfig: Codable, Sendable, Hashable {
   public var apiKeyEnv: String?
   public var baseUrl: String
   public var engine: Engine
@@ -9886,7 +11465,7 @@ public struct LibrarianEngineConfig: Codable, Sendable {
   }
 }
 
-public struct LibrarianHealth: Codable, Sendable {
+public struct LibrarianHealth: Codable, Sendable, Hashable {
   public var actors: [LibrarianHealthActorsItem]
   public var kb: KbDid
   public let status: LibrarianHealthStatus
@@ -9919,7 +11498,7 @@ public enum LibrarianHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
 }
 
-public struct LibrarianPromptScore: Codable, Sendable {
+public struct LibrarianPromptScore: Codable, Sendable, Hashable {
   public var candidate: Double
   public var score: Double
   public init(candidate: Double, score: Double) {
@@ -9939,7 +11518,7 @@ public struct LibrarianPromptScore: Codable, Sendable {
   }
 }
 
-public struct LimitRefusal: Codable, Sendable {
+public struct LimitRefusal: Codable, Sendable, Hashable {
   public var code: LimitRefusalCode
   public var details: JSONValue?
   public var error: String
@@ -9975,7 +11554,7 @@ public enum LimitRefusalCode: String, Codable, Sendable, CaseIterable {
   case refusalRate = "refusal-rate"
 }
 
-public struct LinkingJobParams: Codable, Sendable {
+public struct LinkingJobParams: Codable, Sendable, Hashable {
   public var entityTypes: [String]
   public var includeDescriptiveReferences: Bool?
   public var language: String?
@@ -10016,7 +11595,7 @@ public enum LinkingJobParamsMotivation: String, Codable, Sendable, CaseIterable 
   case linking = "linking"
 }
 
-public struct ListResourcesResponse: Codable, Sendable {
+public struct ListResourcesResponse: Codable, Sendable, Hashable {
   public var limit: Double
   public var offset: Double
   public var resources: [ResourceDescriptor]
@@ -10043,7 +11622,7 @@ public struct ListResourcesResponse: Codable, Sendable {
   }
 }
 
-public struct LocalEndpoint: Codable, Sendable {
+public struct LocalEndpoint: Codable, Sendable, Hashable {
   public var kbId: String
   public let kind: LocalEndpointKind
   public init(kbId: String) {
@@ -10066,7 +11645,7 @@ public enum LocalEndpointKind: String, Codable, Sendable, CaseIterable {
   case local = "local"
 }
 
-public struct LocalTarget: Codable, Sendable {
+public struct LocalTarget: Codable, Sendable, Hashable {
   public let kind: LocalTargetKind
   public var root: String
   public init(root: String) {
@@ -10103,7 +11682,7 @@ public enum LogLevel: String, Codable, Sendable, CaseIterable {
   case debug = "debug"
 }
 
-public struct LogRecord: Codable, Sendable {
+public struct LogRecord: Codable, Sendable, Hashable {
   public var line: String
   public var receivedAt: String
   public var requestId: RequestId
@@ -10137,7 +11716,7 @@ public struct LogRecord: Codable, Sendable {
   }
 }
 
-public struct LogsFollowParams: Codable, Sendable {
+public struct LogsFollowParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var runtime: Runtime?
   public var service: String?
@@ -10167,7 +11746,7 @@ public struct LogsFollowParams: Codable, Sendable {
   }
 }
 
-public struct LogsFollowResult: Codable, Sendable {
+public struct LogsFollowResult: Codable, Sendable, Hashable {
   public var services: [String]
   public init(services: [String]) {
     self.services = services
@@ -10183,7 +11762,7 @@ public struct LogsFollowResult: Codable, Sendable {
   }
 }
 
-public struct MarkArchiveCommand: Codable, Sendable {
+public struct MarkArchiveCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var keepFile: Bool?
   public var resourceId: ResourceId
@@ -10212,7 +11791,7 @@ public struct MarkArchiveCommand: Codable, Sendable {
   }
 }
 
-public struct MarkCommitCommand: Codable, Sendable {
+public struct MarkCommitCommand: Codable, Sendable, Hashable {
   public var _roles: [String]?
   public var _userId: UserId?
   public var annotations: [Annotation]
@@ -10246,7 +11825,7 @@ public struct MarkCommitCommand: Codable, Sendable {
   }
 }
 
-public struct MarkCommitOk: Codable, Sendable {
+public struct MarkCommitOk: Codable, Sendable, Hashable {
   public var response: MarkCommitOkResponse
   public init(response: MarkCommitOkResponse) {
     self.response = response
@@ -10261,7 +11840,7 @@ public struct MarkCommitOk: Codable, Sendable {
   }
 }
 
-public struct MarkCommitOkResponse: Codable, Sendable {
+public struct MarkCommitOkResponse: Codable, Sendable, Hashable {
   public var annotationIds: [AnnotationId]
   public var persisted: Int
   public init(annotationIds: [AnnotationId], persisted: Int) {
@@ -10280,7 +11859,7 @@ public struct MarkCommitOkResponse: Codable, Sendable {
   }
 }
 
-public struct MarkCreateOk: Codable, Sendable {
+public struct MarkCreateOk: Codable, Sendable, Hashable {
   public var response: MarkCreateOkResponse
   public init(response: MarkCreateOkResponse) {
     self.response = response
@@ -10295,7 +11874,7 @@ public struct MarkCreateOk: Codable, Sendable {
   }
 }
 
-public struct MarkCreateOkResponse: Codable, Sendable {
+public struct MarkCreateOkResponse: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public init(annotationId: AnnotationId) {
     self.annotationId = annotationId
@@ -10310,7 +11889,7 @@ public struct MarkCreateOkResponse: Codable, Sendable {
   }
 }
 
-public struct MarkCreateRequest: Codable, Sendable {
+public struct MarkCreateRequest: Codable, Sendable, Hashable {
   public var request: CreateAnnotationRequest
   public var resourceId: ResourceId
   public init(request: CreateAnnotationRequest, resourceId: ResourceId) {
@@ -10329,7 +11908,7 @@ public struct MarkCreateRequest: Codable, Sendable {
   }
 }
 
-public struct MarkDelegateTimeoutEvent: Codable, Sendable {
+public struct MarkDelegateTimeoutEvent: Codable, Sendable, Hashable {
   public var motivation: Motivation
   public var resourceId: ResourceId
   public init(motivation: Motivation, resourceId: ResourceId) {
@@ -10348,7 +11927,7 @@ public struct MarkDelegateTimeoutEvent: Codable, Sendable {
   }
 }
 
-public struct MarkDeleteCommand: Codable, Sendable {
+public struct MarkDeleteCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId
   public var resourceId: ResourceId?
@@ -10371,7 +11950,7 @@ public struct MarkDeleteCommand: Codable, Sendable {
   }
 }
 
-public struct MarkDeleteOk: Codable, Sendable {
+public struct MarkDeleteOk: Codable, Sendable, Hashable {
   public var response: MarkDeleteOkResponse
   public init(response: MarkDeleteOkResponse) {
     self.response = response
@@ -10386,7 +11965,7 @@ public struct MarkDeleteOk: Codable, Sendable {
   }
 }
 
-public struct MarkDeleteOkResponse: Codable, Sendable {
+public struct MarkDeleteOkResponse: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
   public init(annotationId: AnnotationId) {
     self.annotationId = annotationId
@@ -10401,7 +11980,7 @@ public struct MarkDeleteOkResponse: Codable, Sendable {
   }
 }
 
-public struct MarkJobCompleteCommand: Codable, Sendable {
+public struct MarkJobCompleteCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var attempt: Int?
   public var durability: DurabilityEvidence?
@@ -10447,7 +12026,7 @@ public enum MarkJobCompleteCommandJobType: String, Codable, Sendable, CaseIterab
   case mark = "mark"
 }
 
-public struct MarkJobCreateCommand: Codable, Sendable {
+public struct MarkJobCreateCommand: Codable, Sendable, Hashable {
   public var _roles: [String]?
   public var _userId: UserId?
   public let jobType: MarkJobCreateCommandJobType
@@ -10486,7 +12065,7 @@ public enum MarkJobCreateCommandJobType: String, Codable, Sendable, CaseIterable
   case mark = "mark"
 }
 
-public struct MarkJobDone: Codable, Sendable {
+public struct MarkJobDone: Codable, Sendable, Hashable {
   public var byCategory: [String: Int]?
   public var errors: Int?
   public var found: Int
@@ -10527,7 +12106,7 @@ public struct MarkJobDone: Codable, Sendable {
   }
 }
 
-public struct MarkJobFilter: Codable, Sendable {
+public struct MarkJobFilter: Codable, Sendable, Hashable {
   public let jobType: MarkJobFilterJobType
   public var params: MarkJobFilterParams
   public init(params: MarkJobFilterParams) {
@@ -10551,7 +12130,7 @@ public enum MarkJobFilterJobType: String, Codable, Sendable, CaseIterable {
   case mark = "mark"
 }
 
-public struct MarkJobFilterParams: Codable, Sendable {
+public struct MarkJobFilterParams: Codable, Sendable, Hashable {
   public var motivation: Motivation
   public init(motivation: Motivation) {
     self.motivation = motivation
@@ -10567,7 +12146,7 @@ public struct MarkJobFilterParams: Codable, Sendable {
   }
 }
 
-public indirect enum MarkJobParams: Codable, Sendable {
+public indirect enum MarkJobParams: Codable, Sendable, Hashable {
   case highlightingJobParams(HighlightingJobParams)
   case commentingJobParams(CommentingJobParams)
   case assessingJobParams(AssessingJobParams)
@@ -10599,7 +12178,7 @@ public indirect enum MarkJobParams: Codable, Sendable {
   }
 }
 
-public struct MarkJobQueuedEvent: Codable, Sendable {
+public struct MarkJobQueuedEvent: Codable, Sendable, Hashable {
   public var jobId: JobId
   public let jobType: MarkJobQueuedEventJobType
   public var params: MarkJobParams
@@ -10634,7 +12213,7 @@ public enum MarkJobQueuedEventJobType: String, Codable, Sendable, CaseIterable {
   case mark = "mark"
 }
 
-public indirect enum MarkJobResult: Codable, Sendable {
+public indirect enum MarkJobResult: Codable, Sendable, Hashable {
   case markJobDone(MarkJobDone)
   case jobDeclined(JobDeclined)
   public init(from decoder: any Decoder) throws {
@@ -10657,7 +12236,7 @@ public indirect enum MarkJobResult: Codable, Sendable {
   }
 }
 
-public struct MarkRequestedEvent: Codable, Sendable {
+public struct MarkRequestedEvent: Codable, Sendable, Hashable {
   public var motivation: Motivation
   public var selector: AnnotationSelector
   public var source: ResourceId
@@ -10680,7 +12259,7 @@ public struct MarkRequestedEvent: Codable, Sendable {
   }
 }
 
-public struct MarkSubmitEvent: Codable, Sendable {
+public struct MarkSubmitEvent: Codable, Sendable, Hashable {
   public var body: AnnotationBodies?
   public var motivation: Motivation
   public var selector: AnnotationSelector
@@ -10710,7 +12289,7 @@ public struct MarkSubmitEvent: Codable, Sendable {
   }
 }
 
-public struct MarkUnarchiveCommand: Codable, Sendable {
+public struct MarkUnarchiveCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var resourceId: ResourceId
   public var storageUri: String?
@@ -10733,7 +12312,7 @@ public struct MarkUnarchiveCommand: Codable, Sendable {
   }
 }
 
-public struct MarkUpdateBodyCommand: Codable, Sendable {
+public struct MarkUpdateBodyCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId
   public var operations: [BodyOperation]
@@ -10763,7 +12342,7 @@ public struct MarkUpdateBodyCommand: Codable, Sendable {
   }
 }
 
-public struct MarkUpdateEntityTypesCommand: Codable, Sendable {
+public struct MarkUpdateEntityTypesCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var currentEntityTypes: [String]
   public var resourceId: ResourceId
@@ -10799,7 +12378,7 @@ public enum MatchQuality: String, Codable, Sendable, CaseIterable {
   case fuzzy = "fuzzy"
 }
 
-public struct MatchResourcesRequest: Codable, Sendable {
+public struct MatchResourcesRequest: Codable, Sendable, Hashable {
   public var archived: Bool?
   public var entityType: String?
   public var limit: Int?
@@ -10833,7 +12412,7 @@ public struct MatchResourcesRequest: Codable, Sendable {
   }
 }
 
-public struct MatchResourcesResponse: Codable, Sendable {
+public struct MatchResourcesResponse: Codable, Sendable, Hashable {
   public var limit: Int
   public var matchKind: MatchResourcesResponseMatchKind
   public var offset: Int
@@ -10872,7 +12451,7 @@ public enum MatchResourcesResponseMatchKind: String, Codable, Sendable, CaseIter
   case semantic = "semantic"
 }
 
-public struct MatchResourcesResult: Codable, Sendable {
+public struct MatchResourcesResult: Codable, Sendable, Hashable {
   public var response: MatchResourcesResponse
   public init(response: MatchResourcesResponse) {
     self.response = response
@@ -10887,7 +12466,7 @@ public struct MatchResourcesResult: Codable, Sendable {
   }
 }
 
-public struct MatchSearchFailed: Codable, Sendable {
+public struct MatchSearchFailed: Codable, Sendable, Hashable {
   public var code: CommandErrorCode?
   public var details: String?
   public var message: String
@@ -10917,7 +12496,7 @@ public struct MatchSearchFailed: Codable, Sendable {
   }
 }
 
-public struct MatchSearchOptions: Codable, Sendable {
+public struct MatchSearchOptions: Codable, Sendable, Hashable {
   public var limit: Int?
   public var useSemanticScoring: Bool?
   public init(limit: Int? = nil, useSemanticScoring: Bool? = nil) {
@@ -10937,7 +12516,7 @@ public struct MatchSearchOptions: Codable, Sendable {
   }
 }
 
-public struct MatchSearchRequest: Codable, Sendable {
+public struct MatchSearchRequest: Codable, Sendable, Hashable {
   public var context: GatheredContext
   public var limit: Int?
   public var referenceId: AnnotationId
@@ -10971,7 +12550,7 @@ public struct MatchSearchRequest: Codable, Sendable {
   }
 }
 
-public struct MatchSearchResult: Codable, Sendable {
+public struct MatchSearchResult: Codable, Sendable, Hashable {
   public var referenceId: AnnotationId
   public var response: [ScoredResource]
   public init(referenceId: AnnotationId, response: [ScoredResource]) {
@@ -10990,7 +12569,7 @@ public struct MatchSearchResult: Codable, Sendable {
   }
 }
 
-public struct MediaTokenRequest: Codable, Sendable {
+public struct MediaTokenRequest: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public init(resourceId: ResourceId) {
     self.resourceId = resourceId
@@ -11005,7 +12584,7 @@ public struct MediaTokenRequest: Codable, Sendable {
   }
 }
 
-public struct MediaTokenResponse: Codable, Sendable {
+public struct MediaTokenResponse: Codable, Sendable, Hashable {
   public var token: String
   public init(token: String) {
     self.token = token
@@ -11020,7 +12599,7 @@ public struct MediaTokenResponse: Codable, Sendable {
   }
 }
 
-public struct MemoryGraphConfig: Codable, Sendable {
+public struct MemoryGraphConfig: Codable, Sendable, Hashable {
   public let type: MemoryGraphConfigType
   public init() {
     self.type = .memory
@@ -11040,7 +12619,7 @@ public enum MemoryGraphConfigType: String, Codable, Sendable, CaseIterable {
   case memory = "memory"
 }
 
-public struct MemoryVectorsConfig: Codable, Sendable {
+public struct MemoryVectorsConfig: Codable, Sendable, Hashable {
   public let type: MemoryVectorsConfigType
   public init() {
     self.type = .memory
@@ -11060,7 +12639,7 @@ public enum MemoryVectorsConfigType: String, Codable, Sendable, CaseIterable {
   case memory = "memory"
 }
 
-public struct Metadata: Codable, Sendable {
+public struct Metadata: Codable, Sendable, Hashable {
   public var annotations: [String: String]?
   public var labels: [String: String]?
   public var name: String
@@ -11099,7 +12678,7 @@ public enum Motivation: String, Codable, Sendable, CaseIterable {
   case tagging = "tagging"
 }
 
-public struct Neo4jGraphConfig: Codable, Sendable {
+public struct Neo4jGraphConfig: Codable, Sendable, Hashable {
   public var database: String
   public var passwordEnv: String
   public let type: Neo4jGraphConfigType
@@ -11136,7 +12715,7 @@ public enum Neo4jGraphConfigType: String, Codable, Sendable, CaseIterable {
   case neo4j = "neo4j"
 }
 
-public struct NeptuneGraphConfig: Codable, Sendable {
+public struct NeptuneGraphConfig: Codable, Sendable, Hashable {
   public var endpoint: String
   public var port: Int
   public let type: NeptuneGraphConfigType
@@ -11164,7 +12743,7 @@ public enum NeptuneGraphConfigType: String, Codable, Sendable, CaseIterable {
   case neptune = "neptune"
 }
 
-public struct NewKnowledgeBase: Codable, Sendable {
+public struct NewKnowledgeBase: Codable, Sendable, Hashable {
   public var did: String
   public var endpoint: KbEndpoint
   public var label: String
@@ -11191,7 +12770,7 @@ public struct NewKnowledgeBase: Codable, Sendable {
   }
 }
 
-public struct OcrConfidence: Codable, Sendable {
+public struct OcrConfidence: Codable, Sendable, Hashable {
   public var lowConfidenceWords: Int
   public var mean: Double
   public var totalWords: Int
@@ -11214,7 +12793,7 @@ public struct OcrConfidence: Codable, Sendable {
   }
 }
 
-public struct OllamaEmbeddingConfig: Codable, Sendable {
+public struct OllamaEmbeddingConfig: Codable, Sendable, Hashable {
   public var baseUrl: String
   public var model: String
   public let type: OllamaEmbeddingConfigType
@@ -11242,7 +12821,7 @@ public enum OllamaEmbeddingConfigType: String, Codable, Sendable, CaseIterable {
   case ollama = "ollama"
 }
 
-public indirect enum OneOrMoreAgents: Codable, Sendable {
+public indirect enum OneOrMoreAgents: Codable, Sendable, Hashable {
   case agent(Agent)
   case list([Agent])
   public init(from decoder: any Decoder) throws {
@@ -11265,7 +12844,7 @@ public indirect enum OneOrMoreAgents: Codable, Sendable {
   }
 }
 
-public indirect enum OneOrMoreStrings: Codable, Sendable {
+public indirect enum OneOrMoreStrings: Codable, Sendable, Hashable {
   case text(String)
   case list([String])
   public init(from decoder: any Decoder) throws {
@@ -11288,7 +12867,7 @@ public indirect enum OneOrMoreStrings: Codable, Sendable {
   }
 }
 
-public indirect enum OneOrMoreUris: Codable, Sendable {
+public indirect enum OneOrMoreUris: Codable, Sendable, Hashable {
   case text(String)
   case list([String])
   public init(from decoder: any Decoder) throws {
@@ -11311,7 +12890,7 @@ public indirect enum OneOrMoreUris: Codable, Sendable {
   }
 }
 
-public struct OpenResource: Codable, Sendable {
+public struct OpenResource: Codable, Sendable, Hashable {
   public var id: ResourceId
   public var mediaType: String?
   public var name: String
@@ -11364,7 +12943,7 @@ public enum PdfClass: String, Codable, Sendable, CaseIterable {
   case g = "G"
 }
 
-public struct PdfCoordinate: Codable, Sendable {
+public struct PdfCoordinate: Codable, Sendable, Hashable {
   public var height: Double
   public var page: Int
   public var width: Double
@@ -11396,7 +12975,7 @@ public struct PdfCoordinate: Codable, Sendable {
   }
 }
 
-public struct PdfTextItem: Codable, Sendable {
+public struct PdfTextItem: Codable, Sendable, Hashable {
   public var end: Int
   public var height: Double
   public var page: Int
@@ -11436,7 +13015,7 @@ public struct PdfTextItem: Codable, Sendable {
   }
 }
 
-public struct PendingAnnotation: Codable, Sendable {
+public struct PendingAnnotation: Codable, Sendable, Hashable {
   public var motivation: Motivation
   public var selector: AnnotationSelector
   public init(motivation: Motivation, selector: AnnotationSelector) {
@@ -11456,7 +13035,7 @@ public struct PendingAnnotation: Codable, Sendable {
   }
 }
 
-public struct PermissionDenied: Codable, Sendable {
+public struct PermissionDenied: Codable, Sendable, Hashable {
   public var detail: String?
   public init(detail: String?) {
     self.detail = detail
@@ -11474,7 +13053,7 @@ public struct PermissionDenied: Codable, Sendable {
 
 public typealias PersistedEventId = String
 
-public struct PrincipalProfileCommand: Codable, Sendable {
+public struct PrincipalProfileCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var name: String
   public init(_userId: UserId? = nil, name: String) {
@@ -11493,7 +13072,7 @@ public struct PrincipalProfileCommand: Codable, Sendable {
   }
 }
 
-public struct PrincipalProfiledPayload: Codable, Sendable {
+public struct PrincipalProfiledPayload: Codable, Sendable, Hashable {
   public var name: String
   public init(name: String) {
     self.name = name
@@ -11508,7 +13087,7 @@ public struct PrincipalProfiledPayload: Codable, Sendable {
   }
 }
 
-public struct Profile: Codable, Sendable {
+public struct Profile: Codable, Sendable, Hashable {
   public var name: String
   public var since: String
   public init(name: String, since: String) {
@@ -11528,7 +13107,7 @@ public struct Profile: Codable, Sendable {
   }
 }
 
-public struct ProfilesProjection: Codable, Sendable {
+public struct ProfilesProjection: Codable, Sendable, Hashable {
   public var profiles: [String: Profile]
   public init(profiles: [String: Profile]) {
     self.profiles = profiles
@@ -11544,7 +13123,7 @@ public struct ProfilesProjection: Codable, Sendable {
   }
 }
 
-public struct Progress: Codable, Sendable {
+public struct Progress: Codable, Sendable, Hashable {
   public var kind: ProgressKind
   public var requestId: RequestId
   public var text: String
@@ -11581,7 +13160,7 @@ public enum ProgressKind: String, Codable, Sendable, CaseIterable {
   case output = "output"
 }
 
-public struct ProjectConfig: Codable, Sendable {
+public struct ProjectConfig: Codable, Sendable, Hashable {
   public var git: ProjectConfigGit
   public var project: ProjectConfigProject
   public var site: ProjectConfigSite
@@ -11605,7 +13184,7 @@ public struct ProjectConfig: Codable, Sendable {
   }
 }
 
-public struct ProjectConfigGit: Codable, Sendable {
+public struct ProjectConfigGit: Codable, Sendable, Hashable {
   public var sync: Bool
   public init(sync: Bool) {
     self.sync = sync
@@ -11621,7 +13200,7 @@ public struct ProjectConfigGit: Codable, Sendable {
   }
 }
 
-public struct ProjectConfigProject: Codable, Sendable {
+public struct ProjectConfigProject: Codable, Sendable, Hashable {
   public var name: String
   public var version: String?
   public init(name: String, version: String? = nil) {
@@ -11641,7 +13220,7 @@ public struct ProjectConfigProject: Codable, Sendable {
   }
 }
 
-public struct ProjectConfigSite: Codable, Sendable {
+public struct ProjectConfigSite: Codable, Sendable, Hashable {
   public var domain: String
   public var siteName: String
   public init(domain: String, siteName: String) {
@@ -11661,7 +13240,7 @@ public struct ProjectConfigSite: Codable, Sendable {
   }
 }
 
-public struct ProtectedResourceMetadata: Codable, Sendable {
+public struct ProtectedResourceMetadata: Codable, Sendable, Hashable {
   public var authorizationServers: [String]
   public var bearerMethodsSupported: [ProtectedResourceMetadataBearerMethodsSupportedItem]
   public var resource: String
@@ -11701,7 +13280,7 @@ public enum ProtectedResourceMetadataBearerMethodsSupportedItem: String, Codable
   case header = "header"
 }
 
-public struct Provider: Codable, Sendable {
+public struct Provider: Codable, Sendable, Hashable {
   public var apiKey: SecretRef?
   public var baseURL: String?
   public init(apiKey: SecretRef? = nil, baseURL: String? = nil) {
@@ -11721,7 +13300,7 @@ public struct Provider: Codable, Sendable {
   }
 }
 
-public struct QdrantVectorsConfig: Codable, Sendable {
+public struct QdrantVectorsConfig: Codable, Sendable, Hashable {
   public var host: String
   public var port: Int
   public var tokenEnv: String
@@ -11753,7 +13332,7 @@ public enum QdrantVectorsConfigType: String, Codable, Sendable, CaseIterable {
   case qdrant = "qdrant"
 }
 
-public struct QuotedText: Codable, Sendable {
+public struct QuotedText: Codable, Sendable, Hashable {
   public var exact: String
   public var prefix: String?
   public var suffix: String?
@@ -11777,7 +13356,7 @@ public struct QuotedText: Codable, Sendable {
   }
 }
 
-public struct ReceivedFrame: Codable, Sendable {
+public struct ReceivedFrame: Codable, Sendable, Hashable {
   public var channel: String
   public var correlationId: String?
   public var eventId: String?
@@ -11817,7 +13396,7 @@ public struct ReceivedFrame: Codable, Sendable {
   }
 }
 
-public indirect enum ReconciledSpan: Codable, Sendable {
+public indirect enum ReconciledSpan: Codable, Sendable, Hashable {
   case uniqueMatch(ReconciledSpanUniqueMatch)
   case contextRecovered(ReconciledSpanContextRecovered)
   case firstOfMany(ReconciledSpanFirstOfMany)
@@ -11847,7 +13426,7 @@ public indirect enum ReconciledSpan: Codable, Sendable {
   }
 }
 
-public struct ReconciledSpanContextRecovered: Codable, Sendable {
+public struct ReconciledSpanContextRecovered: Codable, Sendable, Hashable {
   public let anchorMethod: ReconciledSpanContextRecoveredAnchorMethod
   public var end: Int
   public var exact: String
@@ -11889,7 +13468,7 @@ public enum ReconciledSpanContextRecoveredAnchorMethod: String, Codable, Sendabl
   case contextRecovered = "context-recovered"
 }
 
-public struct ReconciledSpanFirstOfMany: Codable, Sendable {
+public struct ReconciledSpanFirstOfMany: Codable, Sendable, Hashable {
   public let anchorMethod: ReconciledSpanFirstOfManyAnchorMethod
   public var end: Int
   public var exact: String
@@ -11931,7 +13510,7 @@ public enum ReconciledSpanFirstOfManyAnchorMethod: String, Codable, Sendable, Ca
   case firstOfMany = "first-of-many"
 }
 
-public struct ReconciledSpanFuzzyMatch: Codable, Sendable {
+public struct ReconciledSpanFuzzyMatch: Codable, Sendable, Hashable {
   public let anchorMethod: ReconciledSpanFuzzyMatchAnchorMethod
   public var end: Int
   public var exact: String
@@ -11980,7 +13559,7 @@ public enum ReconciledSpanFuzzyMatchAnchorMethod: String, Codable, Sendable, Cas
   case fuzzyMatch = "fuzzy-match"
 }
 
-public struct ReconciledSpanUniqueMatch: Codable, Sendable {
+public struct ReconciledSpanUniqueMatch: Codable, Sendable, Hashable {
   public let anchorMethod: ReconciledSpanUniqueMatchAnchorMethod
   public var end: Int
   public var exact: String
@@ -12024,7 +13603,7 @@ public enum ReconciledSpanUniqueMatchAnchorMethod: String, Codable, Sendable, Ca
 
 public typealias ReplyEventId = String
 
-public struct Representation: Codable, Sendable {
+public struct Representation: Codable, Sendable, Hashable {
   public var id: String?
   public var type: OneOrMoreStrings?
   public var byteSize: Int?
@@ -12124,7 +13703,7 @@ public struct Representation: Codable, Sendable {
   }
 }
 
-public struct RepresentationAddedPayload: Codable, Sendable {
+public struct RepresentationAddedPayload: Codable, Sendable, Hashable {
   public var representation: Representation
   public init(representation: Representation) {
     self.representation = representation
@@ -12139,7 +13718,7 @@ public struct RepresentationAddedPayload: Codable, Sendable {
   }
 }
 
-public struct RepresentationNotFound: Codable, Sendable {
+public struct RepresentationNotFound: Codable, Sendable, Hashable {
   public var code: RepresentationNotFoundCode
   public var details: JSONValue?
   public var error: String
@@ -12182,7 +13761,7 @@ public enum RepresentationRel: String, Codable, Sendable, CaseIterable {
   case other = "other"
 }
 
-public struct RepresentationRemovedPayload: Codable, Sendable {
+public struct RepresentationRemovedPayload: Codable, Sendable, Hashable {
   public var checksum: String
   public init(checksum: String) {
     self.checksum = checksum
@@ -12197,7 +13776,7 @@ public struct RepresentationRemovedPayload: Codable, Sendable {
   }
 }
 
-public indirect enum RequestId: Codable, Sendable {
+public indirect enum RequestId: Codable, Sendable, Hashable {
   case text(String)
   case integer(Int)
   public init(from decoder: any Decoder) throws {
@@ -12220,7 +13799,7 @@ public indirect enum RequestId: Codable, Sendable {
   }
 }
 
-public struct ResourceAnnotations: Codable, Sendable {
+public struct ResourceAnnotations: Codable, Sendable, Hashable {
   public var annotations: [Annotation]
   public var resourceId: ResourceId
   public var updatedAt: String
@@ -12249,7 +13828,7 @@ public struct ResourceAnnotations: Codable, Sendable {
   }
 }
 
-public struct ResourceArchivedPayload: Codable, Sendable {
+public struct ResourceArchivedPayload: Codable, Sendable, Hashable {
   public var reason: String?
   public init(reason: String? = nil) {
     self.reason = reason
@@ -12264,7 +13843,7 @@ public struct ResourceArchivedPayload: Codable, Sendable {
   }
 }
 
-public struct ResourceClonedPayload: Codable, Sendable {
+public struct ResourceClonedPayload: Codable, Sendable, Hashable {
   public var contentByteSize: Int?
   public var contentChecksum: String
   public var creator: Agent?
@@ -12319,7 +13898,7 @@ public struct ResourceClonedPayload: Codable, Sendable {
   }
 }
 
-public struct ResourceCreatedPayload: Codable, Sendable {
+public struct ResourceCreatedPayload: Codable, Sendable, Hashable {
   public var contentByteSize: Int?
   public var contentChecksum: String
   public var creator: Agent?
@@ -12393,7 +13972,7 @@ public struct ResourceCreatedPayload: Codable, Sendable {
   }
 }
 
-public struct ResourceCreatedPayloadGeneratedFrom: Codable, Sendable {
+public struct ResourceCreatedPayloadGeneratedFrom: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId?
   public var resourceId: ResourceId
   public init(annotationId: AnnotationId? = nil, resourceId: ResourceId) {
@@ -12412,7 +13991,7 @@ public struct ResourceCreatedPayloadGeneratedFrom: Codable, Sendable {
   }
 }
 
-public struct ResourceDescriptor: Codable, Sendable {
+public struct ResourceDescriptor: Codable, Sendable, Hashable {
   public var context: ResourceDescriptorContext
   public var id: ResourceId
   public var type: OneOrMoreStrings?
@@ -12556,7 +14135,7 @@ public struct ResourceDescriptor: Codable, Sendable {
   }
 }
 
-public indirect enum ResourceDescriptorContext: Codable, Sendable {
+public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
   case text(String)
   case empty([String: JSONValue])
   case list([ResourceDescriptorContextListItem])
@@ -12587,7 +14166,7 @@ public indirect enum ResourceDescriptorContext: Codable, Sendable {
   }
 }
 
-public indirect enum ResourceDescriptorContextListItem: Codable, Sendable {
+public indirect enum ResourceDescriptorContextListItem: Codable, Sendable, Hashable {
   case text(String)
   case empty([String: JSONValue])
   public init(from decoder: any Decoder) throws {
@@ -12612,7 +14191,7 @@ public indirect enum ResourceDescriptorContextListItem: Codable, Sendable {
   }
 }
 
-public indirect enum ResourceDescriptorIdentifier: Codable, Sendable {
+public indirect enum ResourceDescriptorIdentifier: Codable, Sendable, Hashable {
   case text(String)
   case list([String])
   case object(ResourceDescriptorIdentifierObject)
@@ -12643,7 +14222,7 @@ public indirect enum ResourceDescriptorIdentifier: Codable, Sendable {
   }
 }
 
-public struct ResourceDescriptorIdentifierObject: Codable, Sendable {
+public struct ResourceDescriptorIdentifierObject: Codable, Sendable, Hashable {
   public var id: String?
   public var scheme: String?
   public var value: String?
@@ -12673,7 +14252,7 @@ public struct ResourceDescriptorIdentifierObject: Codable, Sendable {
   }
 }
 
-public indirect enum ResourceDescriptorRepresentations: Codable, Sendable {
+public indirect enum ResourceDescriptorRepresentations: Codable, Sendable, Hashable {
   case representation(Representation)
   case list([Representation])
   public init(from decoder: any Decoder) throws {
@@ -12698,7 +14277,7 @@ public indirect enum ResourceDescriptorRepresentations: Codable, Sendable {
   }
 }
 
-public indirect enum ResourceDescriptorWasDerivedFrom: Codable, Sendable {
+public indirect enum ResourceDescriptorWasDerivedFrom: Codable, Sendable, Hashable {
   case resourceId(ResourceId)
   case list([ResourceId])
   public init(from decoder: any Decoder) throws {
@@ -12723,7 +14302,7 @@ public indirect enum ResourceDescriptorWasDerivedFrom: Codable, Sendable {
   }
 }
 
-public struct ResourceErrorEvent: Codable, Sendable {
+public struct ResourceErrorEvent: Codable, Sendable, Hashable {
   public var message: String
   public var resourceId: ResourceId
   public init(message: String, resourceId: ResourceId) {
@@ -12778,7 +14357,7 @@ public struct ResourceId: Hashable, Sendable, Codable, CustomStringConvertible {
   }
 }
 
-public struct ResourceMovedPayload: Codable, Sendable {
+public struct ResourceMovedPayload: Codable, Sendable, Hashable {
   public var fromUri: String
   public var toUri: String
   public init(fromUri: String, toUri: String) {
@@ -12797,7 +14376,7 @@ public struct ResourceMovedPayload: Codable, Sendable {
   }
 }
 
-public struct ResourceSearchFilters: Codable, Sendable {
+public struct ResourceSearchFilters: Codable, Sendable, Hashable {
   public var archived: Bool?
   public var entityType: String?
   public var limit: Int?
@@ -12827,7 +14406,7 @@ public struct ResourceSearchFilters: Codable, Sendable {
   }
 }
 
-public struct ResourceUnarchivedPayload: Codable, Sendable {
+public struct ResourceUnarchivedPayload: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -12838,7 +14417,7 @@ public struct ResourceUnarchivedPayload: Codable, Sendable {
   }
 }
 
-public struct ResourceUpdatedPayload: Codable, Sendable {
+public struct ResourceUpdatedPayload: Codable, Sendable, Hashable {
   public var contentByteSize: Int?
   public var contentChecksum: String
   public init(contentByteSize: Int? = nil, contentChecksum: String) {
@@ -12857,7 +14436,7 @@ public struct ResourceUpdatedPayload: Codable, Sendable {
   }
 }
 
-public struct ResourceUpload: Codable, Sendable {
+public struct ResourceUpload: Codable, Sendable, Hashable {
   public var archiveOriginal: String?
   public var cloneToken: String?
   public var entityTypes: String?
@@ -12929,7 +14508,7 @@ public struct ResourceUpload: Codable, Sendable {
   }
 }
 
-public struct ResourceView: Codable, Sendable {
+public struct ResourceView: Codable, Sendable, Hashable {
   public var annotations: ResourceAnnotations
   public var lastSequence: Int
   public var resource: ResourceDescriptor
@@ -12953,7 +14532,7 @@ public struct ResourceView: Codable, Sendable {
   }
 }
 
-public struct Resources: Codable, Sendable {
+public struct Resources: Codable, Sendable, Hashable {
   public var limits: ResourcesLimits
   public init(limits: ResourcesLimits) {
     self.limits = limits
@@ -12969,7 +14548,7 @@ public struct Resources: Codable, Sendable {
   }
 }
 
-public struct ResourcesLimits: Codable, Sendable {
+public struct ResourcesLimits: Codable, Sendable, Hashable {
   public var memory: String
   public init(memory: String) {
     self.memory = memory
@@ -12985,7 +14564,122 @@ public struct ResourcesLimits: Codable, Sendable {
   }
 }
 
-public struct Root: Codable, Sendable {
+public struct RetryRules: Codable, Sendable, Hashable {
+  public var comment: String
+  public var boot: RetryRulesBoot
+  public var job: RetryRulesJob
+  public var refresh: RetryRulesRefresh
+  public var transport: RetryRulesTransport
+  public init(
+    comment: String, boot: RetryRulesBoot, job: RetryRulesJob, refresh: RetryRulesRefresh,
+    transport: RetryRulesTransport
+  ) {
+    self.comment = comment
+    self.boot = boot
+    self.job = job
+    self.refresh = refresh
+    self.transport = transport
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "boot", "job", "refresh", "transport"], in: "RetryRules")
+    self.comment = try c.value("$comment")
+    self.boot = try c.value("boot")
+    self.job = try c.value("job")
+    self.refresh = try c.value("refresh")
+    self.transport = try c.value("transport")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.boot, as: "boot")
+    try c.encode(self.job, as: "job")
+    try c.encode(self.refresh, as: "refresh")
+    try c.encode(self.transport, as: "transport")
+  }
+}
+
+public struct RetryRulesBoot: Codable, Sendable, Hashable {
+  public var statuses: [HttpStatus]
+  public init(statuses: [HttpStatus]) {
+    self.statuses = statuses
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["statuses"], in: "RetryRulesBoot")
+    self.statuses = try c.value("statuses")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.statuses, as: "statuses")
+  }
+}
+
+public struct RetryRulesJob: Codable, Sendable, Hashable {
+  public var statusFrom: HttpStatus
+  public var statuses: [HttpStatus]
+  public init(statusFrom: HttpStatus, statuses: [HttpStatus]) {
+    self.statusFrom = statusFrom
+    self.statuses = statuses
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["statusFrom", "statuses"], in: "RetryRulesJob")
+    self.statusFrom = try c.value("statusFrom")
+    self.statuses = try c.value("statuses")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.statusFrom, as: "statusFrom")
+    try c.encode(self.statuses, as: "statuses")
+  }
+}
+
+public struct RetryRulesRefresh: Codable, Sendable, Hashable {
+  public var noResponse: Bool
+  public var statusFrom: HttpStatus
+  public var statuses: [HttpStatus]
+  public init(noResponse: Bool, statusFrom: HttpStatus, statuses: [HttpStatus]) {
+    self.noResponse = noResponse
+    self.statusFrom = statusFrom
+    self.statuses = statuses
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["noResponse", "statusFrom", "statuses"], in: "RetryRulesRefresh")
+    self.noResponse = try c.value("noResponse")
+    self.statusFrom = try c.value("statusFrom")
+    self.statuses = try c.value("statuses")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.noResponse, as: "noResponse")
+    try c.encode(self.statusFrom, as: "statusFrom")
+    try c.encode(self.statuses, as: "statuses")
+  }
+}
+
+public struct RetryRulesTransport: Codable, Sendable, Hashable {
+  public var idempotentMethods: [String]
+  public var statuses: [HttpStatus]
+  public init(idempotentMethods: [String], statuses: [HttpStatus]) {
+    self.idempotentMethods = idempotentMethods
+    self.statuses = statuses
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["idempotentMethods", "statuses"], in: "RetryRulesTransport")
+    self.idempotentMethods = try c.value("idempotentMethods")
+    self.statuses = try c.value("statuses")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.idempotentMethods, as: "idempotentMethods")
+    try c.encode(self.statuses, as: "statuses")
+  }
+}
+
+public struct Root: Codable, Sendable, Hashable {
   public var codespace: String?
   public var codespaceState: String?
   public var config: String?
@@ -13091,7 +14785,7 @@ public enum RootPlacement: String, Codable, Sendable, CaseIterable {
   case codespace = "codespace"
 }
 
-public struct RootsForgetParams: Codable, Sendable {
+public struct RootsForgetParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var root: String
   public init(apiVersion: ApiVersion, root: String) {
@@ -13111,7 +14805,7 @@ public struct RootsForgetParams: Codable, Sendable {
   }
 }
 
-public struct RootsForgetResult: Codable, Sendable {
+public struct RootsForgetResult: Codable, Sendable, Hashable {
   public var directoryMissing: Bool
   public var path: String
   public var persistentState: String?
@@ -13135,7 +14829,7 @@ public struct RootsForgetResult: Codable, Sendable {
   }
 }
 
-public struct RootsInitParams: Codable, Sendable {
+public struct RootsInitParams: Codable, Sendable, Hashable {
   public var anthropicEndpoint: String?
   public var apiVersion: ApiVersion
   public var configName: String?
@@ -13213,7 +14907,7 @@ public enum RootsInitParamsInference: String, Codable, Sendable, CaseIterable {
   case ollama = "ollama"
 }
 
-public struct RootsInitResult: Codable, Sendable {
+public struct RootsInitResult: Codable, Sendable, Hashable {
   public var path: String
   public init(path: String) {
     self.path = path
@@ -13229,7 +14923,7 @@ public struct RootsInitResult: Codable, Sendable {
   }
 }
 
-public struct RootsListParams: Codable, Sendable {
+public struct RootsListParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public init(apiVersion: ApiVersion) {
     self.apiVersion = apiVersion
@@ -13245,7 +14939,7 @@ public struct RootsListParams: Codable, Sendable {
   }
 }
 
-public struct RootsListResult: Codable, Sendable {
+public struct RootsListResult: Codable, Sendable, Hashable {
   public var roots: [Root]
   public var warnings: [String]?
   public init(roots: [Root], warnings: [String]? = nil) {
@@ -13277,7 +14971,7 @@ public enum RunService: String, Codable, Sendable, CaseIterable {
   case worker = "worker"
 }
 
-public struct Runner: Codable, Sendable {
+public struct Runner: Codable, Sendable, Hashable {
   public init() {
   }
   public init(from decoder: any Decoder) throws {
@@ -13294,7 +14988,7 @@ public enum Runtime: String, Codable, Sendable, CaseIterable {
   case podman = "podman"
 }
 
-public struct RuntimeState: Codable, Sendable {
+public struct RuntimeState: Codable, Sendable, Hashable {
   public var found: Bool
   public var name: Runtime
   public init(found: Bool, name: Runtime) {
@@ -13314,7 +15008,7 @@ public struct RuntimeState: Codable, Sendable {
   }
 }
 
-public struct ScoredResource: Codable, Sendable {
+public struct ScoredResource: Codable, Sendable, Hashable {
   public var context: ResourceDescriptorContext
   public var id: ResourceId
   public var type: OneOrMoreStrings?
@@ -13467,7 +15161,7 @@ public struct ScoredResource: Codable, Sendable {
   }
 }
 
-public struct SecretRef: Codable, Sendable {
+public struct SecretRef: Codable, Sendable, Hashable {
   public var fromEnv: String
   public init(fromEnv: String) {
     self.fromEnv = fromEnv
@@ -13483,7 +15177,7 @@ public struct SecretRef: Codable, Sendable {
   }
 }
 
-public indirect enum Selector: Codable, Sendable {
+public indirect enum Selector: Codable, Sendable, Hashable {
   case textPositionSelector(TextPositionSelector)
   case textQuoteSelector(TextQuoteSelector)
   case svgSelector(SvgSelector)
@@ -13512,7 +15206,7 @@ public indirect enum Selector: Codable, Sendable {
   }
 }
 
-public struct SemanticMatch: Codable, Sendable {
+public struct SemanticMatch: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId?
   public var entityTypes: [String]?
   public var machineRead: Bool?
@@ -13554,7 +15248,7 @@ public struct SemanticMatch: Codable, Sendable {
   }
 }
 
-public struct ServiceAddress: Codable, Sendable {
+public struct ServiceAddress: Codable, Sendable, Hashable {
   public var host: String
   public var port: Int
   public init(host: String, port: Int) {
@@ -13574,6 +15268,197 @@ public struct ServiceAddress: Codable, Sendable {
   }
 }
 
+public struct ServiceEnvironmentBootRefusals: Codable, Sendable, Hashable {
+  public var comment: String
+  public var exitCode: Int
+  public var line: String
+  public var members: [ServiceEnvironmentBootRefusalsMembersItem]
+  public var refusals: [ServiceEnvironmentBootRefusalsRefusalsItem]
+  public var services: [ServiceEnvironmentBootRefusalsServicesItem]
+  public init(
+    comment: String, exitCode: Int, line: String,
+    members: [ServiceEnvironmentBootRefusalsMembersItem],
+    refusals: [ServiceEnvironmentBootRefusalsRefusalsItem],
+    services: [ServiceEnvironmentBootRefusalsServicesItem]
+  ) {
+    self.comment = comment
+    self.exitCode = exitCode
+    self.line = line
+    self.members = members
+    self.refusals = refusals
+    self.services = services
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "exitCode", "line", "members", "refusals", "services"],
+      in: "ServiceEnvironmentBootRefusals")
+    self.comment = try c.value("$comment")
+    self.exitCode = try c.value("exitCode")
+    self.line = try c.value("line")
+    self.members = try c.value("members")
+    self.refusals = try c.value("refusals")
+    self.services = try c.value("services")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.exitCode, as: "exitCode")
+    try c.encode(self.line, as: "line")
+    try c.encode(self.members, as: "members")
+    try c.encode(self.refusals, as: "refusals")
+    try c.encode(self.services, as: "services")
+  }
+}
+
+public struct ServiceEnvironmentBootRefusalsMembersItem: Codable, Sendable, Hashable {
+  public var line: String
+  public var name: String
+  public var situation: String
+  public init(line: String, name: String, situation: String) {
+    self.line = line
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["line", "name", "situation"], in: "ServiceEnvironmentBootRefusalsMembersItem")
+    self.line = try c.value("line")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.line, as: "line")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct ServiceEnvironmentBootRefusalsRefusalsItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var refusal: String
+  public var situation: String
+  public init(name: String, refusal: String, situation: String) {
+    self.name = name
+    self.refusal = refusal
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["name", "refusal", "situation"], in: "ServiceEnvironmentBootRefusalsRefusalsItem")
+    self.name = try c.value("name")
+    self.refusal = try c.value("refusal")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.refusal, as: "refusal")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public enum ServiceEnvironmentBootRefusalsServicesItem: String, Codable, Sendable, CaseIterable {
+  case archivist = "archivist"
+  case dispatcher = "dispatcher"
+  case gateway = "gateway"
+  case librarian = "librarian"
+  case smelter = "smelter"
+  case weaver = "weaver"
+  case worker = "worker"
+}
+
+public struct ServiceEnvironmentVariables: Codable, Sendable, Hashable {
+  public var comment: String
+  public var variables: [ServiceEnvironmentVariablesVariablesItem]
+  public init(comment: String, variables: [ServiceEnvironmentVariablesVariablesItem]) {
+    self.comment = comment
+    self.variables = variables
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "variables"], in: "ServiceEnvironmentVariables")
+    self.comment = try c.value("$comment")
+    self.variables = try c.value("variables")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.variables, as: "variables")
+  }
+}
+
+public struct ServiceEnvironmentVariablesVariablesItem: Codable, Sendable, Hashable {
+  public var effect: String
+  public var name: String
+  public var providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy
+  public var readBy: ServiceEnvironmentVariablesVariablesItemReadBy
+  public var required: Bool
+  public var services: [ServiceEnvironmentVariablesVariablesItemServicesItem]
+  public init(
+    effect: String, name: String, providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy,
+    readBy: ServiceEnvironmentVariablesVariablesItemReadBy, required: Bool,
+    services: [ServiceEnvironmentVariablesVariablesItemServicesItem]
+  ) {
+    self.effect = effect
+    self.name = name
+    self.providedBy = providedBy
+    self.readBy = readBy
+    self.required = required
+    self.services = services
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["effect", "name", "providedBy", "readBy", "required", "services"],
+      in: "ServiceEnvironmentVariablesVariablesItem")
+    self.effect = try c.value("effect")
+    self.name = try c.value("name")
+    self.providedBy = try c.value("providedBy")
+    self.readBy = try c.value("readBy")
+    self.required = try c.value("required")
+    self.services = try c.value("services")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.effect, as: "effect")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.providedBy, as: "providedBy")
+    try c.encode(self.readBy, as: "readBy")
+    try c.encode(self.required, as: "required")
+    try c.encode(self.services, as: "services")
+  }
+}
+
+public enum ServiceEnvironmentVariablesVariablesItemProvidedBy: String, Codable, Sendable,
+  CaseIterable
+{
+  case launcher = "launcher"
+  case image = "image"
+  case `operator` = "operator"
+}
+
+public enum ServiceEnvironmentVariablesVariablesItemReadBy: String, Codable, Sendable, CaseIterable
+{
+  case service = "service"
+  case opentelemetry = "opentelemetry"
+}
+
+public enum ServiceEnvironmentVariablesVariablesItemServicesItem: String, Codable, Sendable,
+  CaseIterable
+{
+  case archivist = "archivist"
+  case dispatcher = "dispatcher"
+  case gateway = "gateway"
+  case librarian = "librarian"
+  case smelter = "smelter"
+  case weaver = "weaver"
+  case worker = "worker"
+}
+
 public enum ServiceGroup: String, Codable, Sendable, CaseIterable {
   case record = "record"
   case index = "index"
@@ -13583,7 +15468,7 @@ public enum ServiceGroup: String, Codable, Sendable, CaseIterable {
   case telemetry = "telemetry"
 }
 
-public struct ServiceHostParams: Codable, Sendable {
+public struct ServiceHostParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var runtime: Runtime?
   public init(apiVersion: ApiVersion, runtime: Runtime? = nil) {
@@ -13603,7 +15488,7 @@ public struct ServiceHostParams: Codable, Sendable {
   }
 }
 
-public struct ServiceHostResult: Codable, Sendable {
+public struct ServiceHostResult: Codable, Sendable, Hashable {
   public var address: String
   public var runtime: Runtime
   public init(address: String, runtime: Runtime) {
@@ -13623,7 +15508,7 @@ public struct ServiceHostResult: Codable, Sendable {
   }
 }
 
-public struct ServiceIdentity: Codable, Sendable {
+public struct ServiceIdentity: Codable, Sendable, Hashable {
   public var issuer: String
   public init(issuer: String) {
     self.issuer = issuer
@@ -13639,7 +15524,7 @@ public struct ServiceIdentity: Codable, Sendable {
   }
 }
 
-public struct ServiceOutput: Codable, Sendable {
+public struct ServiceOutput: Codable, Sendable, Hashable {
   public var instance: RunInstance
   public var line: String
   public var requestId: RequestId
@@ -13667,7 +15552,7 @@ public struct ServiceOutput: Codable, Sendable {
   }
 }
 
-public struct ServiceRunParams: Codable, Sendable {
+public struct ServiceRunParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var args: [String]?
   public var document: String?
@@ -13731,7 +15616,7 @@ public struct ServiceRunParams: Codable, Sendable {
   }
 }
 
-public struct ServiceRunResult: Codable, Sendable {
+public struct ServiceRunResult: Codable, Sendable, Hashable {
   public var exitCode: Int
   public var instance: RunInstance
   public var ranMs: Int
@@ -13755,7 +15640,7 @@ public struct ServiceRunResult: Codable, Sendable {
   }
 }
 
-public struct ServiceSignalParams: Codable, Sendable {
+public struct ServiceSignalParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var instance: RunInstance
   public var runtime: Runtime?
@@ -13796,7 +15681,7 @@ public enum ServiceSignalParamsSignal: String, Codable, Sendable, CaseIterable {
   case kill = "kill"
 }
 
-public struct ServiceSignalResult: Codable, Sendable {
+public struct ServiceSignalResult: Codable, Sendable, Hashable {
   public var delivered: Bool
   public init(delivered: Bool) {
     self.delivered = delivered
@@ -13812,7 +15697,7 @@ public struct ServiceSignalResult: Codable, Sendable {
   }
 }
 
-public struct ServiceStarted: Codable, Sendable {
+public struct ServiceStarted: Codable, Sendable, Hashable {
   public var address: String
   public var container: String
   public var documentPath: String?
@@ -13848,7 +15733,7 @@ public struct ServiceStarted: Codable, Sendable {
   }
 }
 
-public struct ServiceStatus: Codable, Sendable {
+public struct ServiceStatus: Codable, Sendable, Hashable {
   public var containerState: String?
   public var counted: Bool
   public var group: ServiceGroup
@@ -13925,7 +15810,512 @@ public enum ServiceStatusState: String, Codable, Sendable, CaseIterable {
   case notConfigured = "not-configured"
 }
 
-public struct Session: Codable, Sendable {
+public struct ServiceTelemetryLogLines: Codable, Sendable, Hashable {
+  public var comment: String
+  public var bus: ServiceTelemetryLogLinesBus
+  public var logger: ServiceTelemetryLogLinesLogger
+  public var supervisor: ServiceTelemetryLogLinesSupervisor
+  public init(
+    comment: String, bus: ServiceTelemetryLogLinesBus, logger: ServiceTelemetryLogLinesLogger,
+    supervisor: ServiceTelemetryLogLinesSupervisor
+  ) {
+    self.comment = comment
+    self.bus = bus
+    self.logger = logger
+    self.supervisor = supervisor
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "bus", "logger", "supervisor"], in: "ServiceTelemetryLogLines")
+    self.comment = try c.value("$comment")
+    self.bus = try c.value("bus")
+    self.logger = try c.value("logger")
+    self.supervisor = try c.value("supervisor")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.bus, as: "bus")
+    try c.encode(self.logger, as: "logger")
+    try c.encode(self.supervisor, as: "supervisor")
+  }
+}
+
+public struct ServiceTelemetryLogLinesBus: Codable, Sendable, Hashable {
+  public var line: String
+  public var ops: [String]
+  public var parts: [ServiceTelemetryLogLinesBusPartsItem]
+  public init(line: String, ops: [String], parts: [ServiceTelemetryLogLinesBusPartsItem]) {
+    self.line = line
+    self.ops = ops
+    self.parts = parts
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["line", "ops", "parts"], in: "ServiceTelemetryLogLinesBus")
+    self.line = try c.value("line")
+    self.ops = try c.value("ops")
+    self.parts = try c.value("parts")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.line, as: "line")
+    try c.encode(self.ops, as: "ops")
+    try c.encode(self.parts, as: "parts")
+  }
+}
+
+public struct ServiceTelemetryLogLinesBusPartsItem: Codable, Sendable, Hashable {
+  public var characters: Int?
+  public var part: String
+  public var text: String
+  public init(characters: Int? = nil, part: String, text: String) {
+    self.characters = characters
+    self.part = part
+    self.text = text
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["characters", "part", "text"], in: "ServiceTelemetryLogLinesBusPartsItem")
+    self.characters = try c.ifPresent("characters")
+    self.part = try c.value("part")
+    self.text = try c.value("text")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.characters, as: "characters")
+    try c.encode(self.part, as: "part")
+    try c.encode(self.text, as: "text")
+  }
+}
+
+public struct ServiceTelemetryLogLinesLogger: Codable, Sendable, Hashable {
+  public var json: ServiceTelemetryLogLinesLoggerJson
+  public var services: [ServiceTelemetryLogLinesLoggerServicesItem]
+  public var simple: String
+  public init(
+    json: ServiceTelemetryLogLinesLoggerJson,
+    services: [ServiceTelemetryLogLinesLoggerServicesItem], simple: String
+  ) {
+    self.json = json
+    self.services = services
+    self.simple = simple
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["json", "services", "simple"], in: "ServiceTelemetryLogLinesLogger")
+    self.json = try c.value("json")
+    self.services = try c.value("services")
+    self.simple = try c.value("simple")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.json, as: "json")
+    try c.encode(self.services, as: "services")
+    try c.encode(self.simple, as: "simple")
+  }
+}
+
+public struct ServiceTelemetryLogLinesLoggerJson: Codable, Sendable, Hashable {
+  public var first: [String]
+  public var last: String
+  public var requestId: String
+  public var trace: [String]
+  public init(first: [String], last: String, requestId: String, trace: [String]) {
+    self.first = first
+    self.last = last
+    self.requestId = requestId
+    self.trace = trace
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["first", "last", "requestId", "trace"], in: "ServiceTelemetryLogLinesLoggerJson")
+    self.first = try c.value("first")
+    self.last = try c.value("last")
+    self.requestId = try c.value("requestId")
+    self.trace = try c.value("trace")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.first, as: "first")
+    try c.encode(self.last, as: "last")
+    try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.trace, as: "trace")
+  }
+}
+
+public enum ServiceTelemetryLogLinesLoggerServicesItem: String, Codable, Sendable, CaseIterable {
+  case archivist = "archivist"
+  case dispatcher = "dispatcher"
+  case gateway = "gateway"
+}
+
+public struct ServiceTelemetryLogLinesSupervisor: Codable, Sendable, Hashable {
+  public var counted: String
+  public var line: String
+  public init(counted: String, line: String) {
+    self.counted = counted
+    self.line = line
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["counted", "line"], in: "ServiceTelemetryLogLinesSupervisor")
+    self.counted = try c.value("counted")
+    self.line = try c.value("line")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.counted, as: "counted")
+    try c.encode(self.line, as: "line")
+  }
+}
+
+public struct ServiceTelemetryTelemetry: Codable, Sendable, Hashable {
+  public var comment: String
+  public var metrics: [ServiceTelemetryTelemetryMetricsItem]
+  public var resource: [ServiceTelemetryTelemetryResourceItem]
+  public var sdk: [String: [String]]
+  public var spans: [ServiceTelemetryTelemetrySpansItem]
+  public init(
+    comment: String, metrics: [ServiceTelemetryTelemetryMetricsItem],
+    resource: [ServiceTelemetryTelemetryResourceItem], sdk: [String: [String]],
+    spans: [ServiceTelemetryTelemetrySpansItem]
+  ) {
+    self.comment = comment
+    self.metrics = metrics
+    self.resource = resource
+    self.sdk = sdk
+    self.spans = spans
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "metrics", "resource", "sdk", "spans"], in: "ServiceTelemetryTelemetry")
+    self.comment = try c.value("$comment")
+    self.metrics = try c.value("metrics")
+    self.resource = try c.value("resource")
+    self.sdk = try c.value("sdk")
+    self.spans = try c.value("spans")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.metrics, as: "metrics")
+    try c.encode(self.resource, as: "resource")
+    try c.encode(self.sdk, as: "sdk")
+    try c.encode(self.spans, as: "spans")
+  }
+}
+
+public struct ServiceTelemetryTelemetryMetricsItem: Codable, Sendable, Hashable {
+  public var attributes: [ServiceTelemetryTelemetryMetricsItemAttributesItem]
+  public var instrument: ServiceTelemetryTelemetryMetricsItemInstrument
+  public var meaning: String
+  public var name: String
+  public var planes: [ServiceTelemetryTelemetryMetricsItemPlanesItem]?
+  public var services: [ServiceTelemetryTelemetryMetricsItemServicesItem]
+  public var when: ServiceTelemetryTelemetryMetricsItemWhen
+  public init(
+    attributes: [ServiceTelemetryTelemetryMetricsItemAttributesItem],
+    instrument: ServiceTelemetryTelemetryMetricsItemInstrument, meaning: String, name: String,
+    planes: [ServiceTelemetryTelemetryMetricsItemPlanesItem]? = nil,
+    services: [ServiceTelemetryTelemetryMetricsItemServicesItem],
+    when: ServiceTelemetryTelemetryMetricsItemWhen
+  ) {
+    self.attributes = attributes
+    self.instrument = instrument
+    self.meaning = meaning
+    self.name = name
+    self.planes = planes
+    self.services = services
+    self.when = when
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["attributes", "instrument", "meaning", "name", "planes", "services", "when"],
+      in: "ServiceTelemetryTelemetryMetricsItem")
+    self.attributes = try c.value("attributes")
+    self.instrument = try c.value("instrument")
+    self.meaning = try c.value("meaning")
+    self.name = try c.value("name")
+    self.planes = try c.ifPresent("planes")
+    self.services = try c.value("services")
+    self.when = try c.value("when")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.attributes, as: "attributes")
+    try c.encode(self.instrument, as: "instrument")
+    try c.encode(self.meaning, as: "meaning")
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.planes, as: "planes")
+    try c.encode(self.services, as: "services")
+    try c.encode(self.when, as: "when")
+  }
+}
+
+public struct ServiceTelemetryTelemetryMetricsItemAttributesItem: Codable, Sendable, Hashable {
+  public var key: String
+  public var only: String?
+  public var values: [ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem]?
+  public init(
+    key: String, only: String? = nil,
+    values: [ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem]? = nil
+  ) {
+    self.key = key
+    self.only = only
+    self.values = values
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["key", "only", "values"], in: "ServiceTelemetryTelemetryMetricsItemAttributesItem")
+    self.key = try c.value("key")
+    self.only = try c.ifPresent("only")
+    self.values = try c.ifPresent("values")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.key, as: "key")
+    try c.encodeIfPresent(self.only, as: "only")
+    try c.encodeIfPresent(self.values, as: "values")
+  }
+}
+
+public indirect enum ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem: Codable,
+  Sendable, Hashable
+{
+  case text(String)
+  case boolean(Bool)
+  public init(from decoder: any Decoder) throws {
+    if let value = try? String(from: decoder) {
+      self = .text(value)
+      return
+    }
+    if let value = try? Bool(from: decoder) {
+      self = .boolean(value)
+      return
+    }
+    throw DecodingError.dataCorrupted(
+      .init(
+        codingPath: decoder.codingPath,
+        debugDescription:
+          "no member of ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem fits"))
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .text(let value): try value.encode(to: encoder)
+    case .boolean(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public enum ServiceTelemetryTelemetryMetricsItemInstrument: String, Codable, Sendable, CaseIterable
+{
+  case counter = "counter"
+  case upDownCounter = "up-down counter"
+  case gauge = "gauge"
+  case histogram = "histogram"
+}
+
+public enum ServiceTelemetryTelemetryMetricsItemPlanesItem: String, Codable, Sendable, CaseIterable
+{
+  case inProcess = "in-process"
+  case nats = "nats"
+}
+
+public enum ServiceTelemetryTelemetryMetricsItemServicesItem: String, Codable, Sendable,
+  CaseIterable
+{
+  case archivist = "archivist"
+  case dispatcher = "dispatcher"
+  case gateway = "gateway"
+  case librarian = "librarian"
+  case smelter = "smelter"
+  case weaver = "weaver"
+  case worker = "worker"
+}
+
+public enum ServiceTelemetryTelemetryMetricsItemWhen: String, Codable, Sendable, CaseIterable {
+  case export = "export"
+  case traffic = "traffic"
+  case supervised = "supervised"
+  case fatal = "fatal"
+}
+
+public struct ServiceTelemetryTelemetryResourceItem: Codable, Sendable, Hashable {
+  public var `default`: String?
+  public var key: String
+  public var meaning: String
+  public var services: [ServiceTelemetryTelemetryResourceItemServicesItem]
+  public init(
+    `default`: String? = nil, key: String, meaning: String,
+    services: [ServiceTelemetryTelemetryResourceItemServicesItem]
+  ) {
+    self.`default` = `default`
+    self.key = key
+    self.meaning = meaning
+    self.services = services
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["default", "key", "meaning", "services"], in: "ServiceTelemetryTelemetryResourceItem")
+    self.`default` = try c.ifPresent("default")
+    self.key = try c.value("key")
+    self.meaning = try c.value("meaning")
+    self.services = try c.value("services")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.`default`, as: "default")
+    try c.encode(self.key, as: "key")
+    try c.encode(self.meaning, as: "meaning")
+    try c.encode(self.services, as: "services")
+  }
+}
+
+public enum ServiceTelemetryTelemetryResourceItemServicesItem: String, Codable, Sendable,
+  CaseIterable
+{
+  case archivist = "archivist"
+  case dispatcher = "dispatcher"
+  case gateway = "gateway"
+  case librarian = "librarian"
+  case smelter = "smelter"
+  case weaver = "weaver"
+  case worker = "worker"
+}
+
+public struct ServiceTelemetryTelemetrySpansItem: Codable, Sendable, Hashable {
+  public var attributes: [ServiceTelemetryTelemetrySpansItemAttributesItem]
+  public var kind: ServiceTelemetryTelemetrySpansItemKind
+  public var meaning: String
+  public var name: String
+  public var services: [ServiceTelemetryTelemetrySpansItemServicesItem]
+  public var when: ServiceTelemetryTelemetrySpansItemWhen
+  public init(
+    attributes: [ServiceTelemetryTelemetrySpansItemAttributesItem],
+    kind: ServiceTelemetryTelemetrySpansItemKind, meaning: String, name: String,
+    services: [ServiceTelemetryTelemetrySpansItemServicesItem],
+    when: ServiceTelemetryTelemetrySpansItemWhen
+  ) {
+    self.attributes = attributes
+    self.kind = kind
+    self.meaning = meaning
+    self.name = name
+    self.services = services
+    self.when = when
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["attributes", "kind", "meaning", "name", "services", "when"],
+      in: "ServiceTelemetryTelemetrySpansItem")
+    self.attributes = try c.value("attributes")
+    self.kind = try c.value("kind")
+    self.meaning = try c.value("meaning")
+    self.name = try c.value("name")
+    self.services = try c.value("services")
+    self.when = try c.value("when")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.attributes, as: "attributes")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.meaning, as: "meaning")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.services, as: "services")
+    try c.encode(self.when, as: "when")
+  }
+}
+
+public struct ServiceTelemetryTelemetrySpansItemAttributesItem: Codable, Sendable, Hashable {
+  public var key: String
+  public var only: String?
+  public var values: [ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem]?
+  public init(
+    key: String, only: String? = nil,
+    values: [ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem]? = nil
+  ) {
+    self.key = key
+    self.only = only
+    self.values = values
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["key", "only", "values"], in: "ServiceTelemetryTelemetrySpansItemAttributesItem")
+    self.key = try c.value("key")
+    self.only = try c.ifPresent("only")
+    self.values = try c.ifPresent("values")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.key, as: "key")
+    try c.encodeIfPresent(self.only, as: "only")
+    try c.encodeIfPresent(self.values, as: "values")
+  }
+}
+
+public indirect enum ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem: Codable, Sendable,
+  Hashable
+{
+  case text(String)
+  case boolean(Bool)
+  public init(from decoder: any Decoder) throws {
+    if let value = try? String(from: decoder) {
+      self = .text(value)
+      return
+    }
+    if let value = try? Bool(from: decoder) {
+      self = .boolean(value)
+      return
+    }
+    throw DecodingError.dataCorrupted(
+      .init(
+        codingPath: decoder.codingPath,
+        debugDescription:
+          "no member of ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem fits"))
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .text(let value): try value.encode(to: encoder)
+    case .boolean(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public enum ServiceTelemetryTelemetrySpansItemKind: String, Codable, Sendable, CaseIterable {
+  case client = "client"
+  case consumer = "consumer"
+  case `internal` = "internal"
+  case producer = "producer"
+  case server = "server"
+}
+
+public enum ServiceTelemetryTelemetrySpansItemServicesItem: String, Codable, Sendable, CaseIterable
+{
+  case archivist = "archivist"
+  case dispatcher = "dispatcher"
+  case gateway = "gateway"
+  case librarian = "librarian"
+  case smelter = "smelter"
+  case weaver = "weaver"
+  case worker = "worker"
+}
+
+public enum ServiceTelemetryTelemetrySpansItemWhen: String, Codable, Sendable, CaseIterable {
+  case export = "export"
+  case traffic = "traffic"
+  case supervised = "supervised"
+  case fatal = "fatal"
+}
+
+public struct Session: Codable, Sendable, Hashable {
   public var email: String?
   public var state: SessionState
   public init(email: String? = nil, state: SessionState) {
@@ -13950,7 +16340,7 @@ public enum SessionEndReason: String, Codable, Sendable, CaseIterable {
   case refused = "refused"
 }
 
-public struct SessionEnded: Codable, Sendable {
+public struct SessionEnded: Codable, Sendable, Hashable {
   public var reason: SessionEndReason
   public init(reason: SessionEndReason) {
     self.reason = reason
@@ -13966,7 +16356,7 @@ public struct SessionEnded: Codable, Sendable {
   }
 }
 
-public struct SessionJoinedEvent: Codable, Sendable {
+public struct SessionJoinedEvent: Codable, Sendable, Hashable {
   public var connectionId: String
   public var participant: UserId
   public init(connectionId: String, participant: UserId) {
@@ -13985,7 +16375,7 @@ public struct SessionJoinedEvent: Codable, Sendable {
   }
 }
 
-public struct SessionLeftEvent: Codable, Sendable {
+public struct SessionLeftEvent: Codable, Sendable, Hashable {
   public var connectionId: String
   public var participant: UserId
   public init(connectionId: String, participant: UserId) {
@@ -14011,7 +16401,7 @@ public enum SessionState: String, Codable, Sendable, CaseIterable {
   case none = "none"
 }
 
-public struct Setting: Codable, Sendable {
+public struct Setting: Codable, Sendable, Hashable {
   public var appliesTo: SettingAppliesTo
   public var changedBy: String?
   public var `default`: Bool
@@ -14056,7 +16446,7 @@ public enum SettingAppliesTo: String, Codable, Sendable, CaseIterable {
   case knowledgeBase = "knowledge-base"
 }
 
-public struct SettingLine: Codable, Sendable {
+public struct SettingLine: Codable, Sendable, Hashable {
   public var source: String
   public var value: String
   public init(source: String, value: String) {
@@ -14076,7 +16466,7 @@ public struct SettingLine: Codable, Sendable {
   }
 }
 
-public struct SettingsGetParams: Codable, Sendable {
+public struct SettingsGetParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var `default`: Bool?
   public var name: String
@@ -14104,7 +16494,7 @@ public struct SettingsGetParams: Codable, Sendable {
   }
 }
 
-public struct SettingsHoverDelayChangedEvent: Codable, Sendable {
+public struct SettingsHoverDelayChangedEvent: Codable, Sendable, Hashable {
   public var hoverDelayMs: Int
   public init(hoverDelayMs: Int) {
     self.hoverDelayMs = hoverDelayMs
@@ -14119,7 +16509,7 @@ public struct SettingsHoverDelayChangedEvent: Codable, Sendable {
   }
 }
 
-public struct SettingsListParams: Codable, Sendable {
+public struct SettingsListParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var root: String?
   public init(apiVersion: ApiVersion, root: String? = nil) {
@@ -14139,7 +16529,7 @@ public struct SettingsListParams: Codable, Sendable {
   }
 }
 
-public struct SettingsListResult: Codable, Sendable {
+public struct SettingsListResult: Codable, Sendable, Hashable {
   public var root: String?
   public var settings: [Setting]
   public var unresolved: String?
@@ -14163,7 +16553,7 @@ public struct SettingsListResult: Codable, Sendable {
   }
 }
 
-public struct SettingsLocaleChangedEvent: Codable, Sendable {
+public struct SettingsLocaleChangedEvent: Codable, Sendable, Hashable {
   public var locale: String
   public init(locale: String) {
     self.locale = locale
@@ -14178,7 +16568,7 @@ public struct SettingsLocaleChangedEvent: Codable, Sendable {
   }
 }
 
-public struct SettingsPathParams: Codable, Sendable {
+public struct SettingsPathParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var document: SettingsPathParamsDocument
   public init(apiVersion: ApiVersion, document: SettingsPathParamsDocument) {
@@ -14205,7 +16595,7 @@ public enum SettingsPathParamsDocument: String, Codable, Sendable, CaseIterable 
   case vectors = "vectors"
 }
 
-public struct SettingsPathResult: Codable, Sendable {
+public struct SettingsPathResult: Codable, Sendable, Hashable {
   public var path: String
   public init(path: String) {
     self.path = path
@@ -14221,7 +16611,7 @@ public struct SettingsPathResult: Codable, Sendable {
   }
 }
 
-public struct SettingsSetParams: Codable, Sendable {
+public struct SettingsSetParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var `default`: Bool?
   public var name: String
@@ -14256,7 +16646,7 @@ public struct SettingsSetParams: Codable, Sendable {
   }
 }
 
-public struct SettingsThemeChangedEvent: Codable, Sendable {
+public struct SettingsThemeChangedEvent: Codable, Sendable, Hashable {
   public var theme: SettingsThemeChangedEventTheme
   public init(theme: SettingsThemeChangedEventTheme) {
     self.theme = theme
@@ -14277,7 +16667,7 @@ public enum SettingsThemeChangedEventTheme: String, Codable, Sendable, CaseItera
   case system = "system"
 }
 
-public struct SettingsUnsetParams: Codable, Sendable {
+public struct SettingsUnsetParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var `default`: Bool?
   public var name: String
@@ -14305,7 +16695,7 @@ public struct SettingsUnsetParams: Codable, Sendable {
   }
 }
 
-public struct SignIn: Codable, Sendable {
+public struct SignIn: Codable, Sendable, Hashable {
   public var email: String?
   public var expiresAt: String?
   public var issuer: String
@@ -14352,7 +16742,7 @@ public struct SignIn: Codable, Sendable {
   }
 }
 
-public struct SignInOutcome: Codable, Sendable {
+public struct SignInOutcome: Codable, Sendable, Hashable {
   public var expected: Expected?
   public var kb: KnowledgeBase
   public init(expected: Expected? = nil, kb: KnowledgeBase) {
@@ -14372,7 +16762,7 @@ public struct SignInOutcome: Codable, Sendable {
   }
 }
 
-public struct SignedIn: Codable, Sendable {
+public struct SignedIn: Codable, Sendable, Hashable {
   public var description: KbDescription
   public var endpoint: KbEndpoint
   public var expectedDid: String?
@@ -14412,7 +16802,7 @@ public struct SignedIn: Codable, Sendable {
   }
 }
 
-public struct SmeltRebuildAnchorsCommand: Codable, Sendable {
+public struct SmeltRebuildAnchorsCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var resourceId: ResourceId?
   public init(_userId: UserId? = nil, resourceId: ResourceId? = nil) {
@@ -14431,7 +16821,7 @@ public struct SmeltRebuildAnchorsCommand: Codable, Sendable {
   }
 }
 
-public struct SmeltSettled: Codable, Sendable {
+public struct SmeltSettled: Codable, Sendable, Hashable {
   public var contentChecksum: String
   public var outcome: SmeltSettledOutcome
   public var reason: SmeltSettledReason?
@@ -14475,7 +16865,7 @@ public enum SmeltSettledReason: String, Codable, Sendable, CaseIterable {
   case tooLarge = "too-large"
 }
 
-public struct SmelterChunking: Codable, Sendable {
+public struct SmelterChunking: Codable, Sendable, Hashable {
   public var chunkSize: Int
   public var overlap: Int
   public init(chunkSize: Int, overlap: Int) {
@@ -14495,7 +16885,7 @@ public struct SmelterChunking: Codable, Sendable {
   }
 }
 
-public struct SmelterConfig: Codable, Sendable {
+public struct SmelterConfig: Codable, Sendable, Hashable {
   public var archivist: ServiceAddress
   public var chunking: SmelterChunking
   public var cursorsPath: CursorsPath
@@ -14563,7 +16953,7 @@ public struct SmelterConfig: Codable, Sendable {
   }
 }
 
-public struct SmelterHealth: Codable, Sendable {
+public struct SmelterHealth: Codable, Sendable, Hashable {
   public var eventsProcessed: Int
   public var following: FollowerFollowing
   public var index: SmelterHealthIndex
@@ -14608,7 +16998,7 @@ public struct SmelterHealth: Codable, Sendable {
   }
 }
 
-public struct SmelterHealthIndex: Codable, Sendable {
+public struct SmelterHealthIndex: Codable, Sendable, Hashable {
   public var madeAnew: Bool
   public var stamp: SmelterHealthIndexStamp
   public init(madeAnew: Bool, stamp: SmelterHealthIndexStamp) {
@@ -14628,7 +17018,7 @@ public struct SmelterHealthIndex: Codable, Sendable {
   }
 }
 
-public struct SmelterHealthIndexStamp: Codable, Sendable {
+public struct SmelterHealthIndexStamp: Codable, Sendable, Hashable {
   public var chunking: SmelterChunking
   public var embedding: SmelterHealthIndexStampEmbedding
   public init(chunking: SmelterChunking, embedding: SmelterHealthIndexStampEmbedding) {
@@ -14648,7 +17038,7 @@ public struct SmelterHealthIndexStamp: Codable, Sendable {
   }
 }
 
-public struct SmelterHealthIndexStampEmbedding: Codable, Sendable {
+public struct SmelterHealthIndexStampEmbedding: Codable, Sendable, Hashable {
   public var model: String
   public var type: String
   public init(model: String, type: String) {
@@ -14668,7 +17058,7 @@ public struct SmelterHealthIndexStampEmbedding: Codable, Sendable {
   }
 }
 
-public struct SmelterHealthReconcile: Codable, Sendable {
+public struct SmelterHealthReconcile: Codable, Sendable, Hashable {
   public var error: String?
   public var phase: SmelterHealthReconcilePhase
   public var summary: SmelterReconcileSummary?
@@ -14716,7 +17106,103 @@ public enum SmelterHealthStream: String, Codable, Sendable, CaseIterable {
   case closed = "closed"
 }
 
-public struct SmelterReconcileSummary: Codable, Sendable {
+public struct SmelterMessages: Codable, Sendable, Hashable {
+  public var comment: String
+  public var logged: [SmelterMessagesLoggedItem]
+  public var refusals: [SmelterMessagesRefusalsItem]
+  public init(
+    comment: String, logged: [SmelterMessagesLoggedItem], refusals: [SmelterMessagesRefusalsItem]
+  ) {
+    self.comment = comment
+    self.logged = logged
+    self.refusals = refusals
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "logged", "refusals"], in: "SmelterMessages")
+    self.comment = try c.value("$comment")
+    self.logged = try c.value("logged")
+    self.refusals = try c.value("refusals")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.logged, as: "logged")
+    try c.encode(self.refusals, as: "refusals")
+  }
+}
+
+public struct SmelterMessagesLoggedItem: Codable, Sendable, Hashable {
+  public var carries: [String]
+  public var fields: [String: String]
+  public var level: LogLevel
+  public var message: String
+  public var name: String
+  public var situation: String
+  public init(
+    carries: [String], fields: [String: String], level: LogLevel, message: String, name: String,
+    situation: String
+  ) {
+    self.carries = carries
+    self.fields = fields
+    self.level = level
+    self.message = message
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["carries", "fields", "level", "message", "name", "situation"],
+      in: "SmelterMessagesLoggedItem")
+    self.carries = try c.value("carries")
+    self.fields = try c.value("fields")
+    self.level = try c.value("level")
+    self.message = try c.value("message")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.carries, as: "carries")
+    try c.encode(self.fields, as: "fields")
+    try c.encode(self.level, as: "level")
+    try c.encode(self.message, as: "message")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct SmelterMessagesRefusalsItem: Codable, Sendable, Hashable {
+  public var message: String
+  public var name: String
+  public var operation: String
+  public var situation: String
+  public init(message: String, name: String, operation: String, situation: String) {
+    self.message = message
+    self.name = name
+    self.operation = operation
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["message", "name", "operation", "situation"], in: "SmelterMessagesRefusalsItem")
+    self.message = try c.value("message")
+    self.name = try c.value("name")
+    self.operation = try c.value("operation")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.message, as: "message")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.operation, as: "operation")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct SmelterReconcileSummary: Codable, Sendable, Hashable {
   public var annotationVectorsDeleted: Int
   public var annotationsEmbedded: Int
   public var annotationsRestamped: Int
@@ -14787,7 +17273,7 @@ public struct SmelterReconcileSummary: Codable, Sendable {
   }
 }
 
-public struct SpecCacheQueriesItem: Codable, Sendable {
+public struct SpecCacheQueriesItem: Codable, Sendable, Hashable {
   public var asks: String?
   public var docs: String
   public var name: String
@@ -14829,7 +17315,7 @@ public struct SpecCacheQueriesItem: Codable, Sendable {
   }
 }
 
-public struct SpecCacheQueriesItemValue: Codable, Sendable {
+public struct SpecCacheQueriesItemValue: Codable, Sendable, Hashable {
   public var ref: String
   public init(ref: String) {
     self.ref = ref
@@ -14844,7 +17330,7 @@ public struct SpecCacheQueriesItemValue: Codable, Sendable {
   }
 }
 
-public struct SpecEncodingsItem: Codable, Sendable {
+public struct SpecEncodingsItem: Codable, Sendable, Hashable {
   public var bytes: String?
   public var encoding: String
   public var everyByte: String?
@@ -14882,7 +17368,30 @@ public struct SpecEncodingsItem: Codable, Sendable {
   }
 }
 
-public struct SpecMediaTypesItem: Codable, Sendable {
+public struct SpecLocalesItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var englishName: String
+  public var nativeName: String
+  public init(code: String, englishName: String, nativeName: String) {
+    self.code = code
+    self.englishName = englishName
+    self.nativeName = nativeName
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    self.code = try c.value("code")
+    self.englishName = try c.value("englishName")
+    self.nativeName = try c.value("nativeName")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.englishName, as: "englishName")
+    try c.encode(self.nativeName, as: "nativeName")
+  }
+}
+
+public struct SpecMediaTypesItem: Codable, Sendable, Hashable {
   public var anchoring: String
   public var authorable: Bool
   public var `extension`: String
@@ -14932,7 +17441,7 @@ public struct SpecMediaTypesItem: Codable, Sendable {
   }
 }
 
-public struct SpecOauthClientsItem: Codable, Sendable {
+public struct SpecOauthClientsItem: Codable, Sendable, Hashable {
   public var docs: String
   public var id: String
   public var name: String
@@ -14955,7 +17464,7 @@ public struct SpecOauthClientsItem: Codable, Sendable {
   }
 }
 
-public struct SpecOwnerOnlyDirectory: Codable, Sendable {
+public struct SpecOwnerOnlyDirectory: Codable, Sendable, Hashable {
   public var docs: String
   public var value: String
   public init(docs: String, value: String) {
@@ -14974,7 +17483,7 @@ public struct SpecOwnerOnlyDirectory: Codable, Sendable {
   }
 }
 
-public struct SpecOwnerOnlyFile: Codable, Sendable {
+public struct SpecOwnerOnlyFile: Codable, Sendable, Hashable {
   public var docs: String
   public var value: String
   public init(docs: String, value: String) {
@@ -14993,7 +17502,7 @@ public struct SpecOwnerOnlyFile: Codable, Sendable {
   }
 }
 
-public struct SpecSignInScope: Codable, Sendable {
+public struct SpecSignInScope: Codable, Sendable, Hashable {
   public var docs: String
   public var value: String
   public init(docs: String, value: String) {
@@ -15012,7 +17521,7 @@ public struct SpecSignInScope: Codable, Sendable {
   }
 }
 
-public struct SpecTelemetryMetricsItem: Codable, Sendable {
+public struct SpecTelemetryMetricsItem: Codable, Sendable, Hashable {
   public var attributes: [SpecTelemetryMetricsItemAttributesItem]
   public var instrument: String
   public var meaning: String
@@ -15046,7 +17555,7 @@ public struct SpecTelemetryMetricsItem: Codable, Sendable {
   }
 }
 
-public struct SpecTelemetryMetricsItemAttributesItem: Codable, Sendable {
+public struct SpecTelemetryMetricsItemAttributesItem: Codable, Sendable, Hashable {
   public var key: String
   public var only: String?
   public init(key: String, only: String? = nil) {
@@ -15065,7 +17574,7 @@ public struct SpecTelemetryMetricsItemAttributesItem: Codable, Sendable {
   }
 }
 
-public struct SpecTelemetrySpansItem: Codable, Sendable {
+public struct SpecTelemetrySpansItem: Codable, Sendable, Hashable {
   public var attributes: [SpecTelemetrySpansItemAttributesItem]
   public var kind: String
   public var meaning: String
@@ -15099,7 +17608,7 @@ public struct SpecTelemetrySpansItem: Codable, Sendable {
   }
 }
 
-public struct SpecTelemetrySpansItemAttributesItem: Codable, Sendable {
+public struct SpecTelemetrySpansItemAttributesItem: Codable, Sendable, Hashable {
   public var key: String
   public var only: String?
   public var values: [Bool]?
@@ -15122,7 +17631,7 @@ public struct SpecTelemetrySpansItemAttributesItem: Codable, Sendable {
   }
 }
 
-public struct SpecificResource: Codable, Sendable {
+public struct SpecificResource: Codable, Sendable, Hashable {
   public var purpose: BodyPurpose?
   public var source: ResourceId
   public let type: SpecificResourceType
@@ -15153,7 +17662,7 @@ public enum StackApiVersion: String, Codable, Sendable, CaseIterable {
   case xynologOrgV1alpha1 = "xynolog.org/v1alpha1"
 }
 
-public struct StackKnowledgeBase: Codable, Sendable {
+public struct StackKnowledgeBase: Codable, Sendable, Hashable {
   public var apiVersion: StackApiVersion
   public let kind: StackKnowledgeBaseKind
   public var metadata: Metadata
@@ -15185,7 +17694,7 @@ public enum StackKnowledgeBaseKind: String, Codable, Sendable, CaseIterable {
   case knowledgeBase = "KnowledgeBase"
 }
 
-public struct StackKnowledgeBaseSpec: Codable, Sendable {
+public struct StackKnowledgeBaseSpec: Codable, Sendable, Hashable {
   public var archivist: StackKnowledgeBaseSpecArchivist
   public var dispatcher: StackKnowledgeBaseSpecDispatcher
   public var gateway: StackKnowledgeBaseSpecGateway
@@ -15227,7 +17736,7 @@ public struct StackKnowledgeBaseSpec: Codable, Sendable {
   }
 }
 
-public struct StackKnowledgeBaseSpecArchivist: Codable, Sendable {
+public struct StackKnowledgeBaseSpecArchivist: Codable, Sendable, Hashable {
   public var address: HostPort?
   public var image: Image
   public var resources: Resources
@@ -15251,7 +17760,7 @@ public struct StackKnowledgeBaseSpecArchivist: Codable, Sendable {
   }
 }
 
-public struct StackKnowledgeBaseSpecDispatcher: Codable, Sendable {
+public struct StackKnowledgeBaseSpecDispatcher: Codable, Sendable, Hashable {
   public var image: Image
   public var resources: Resources
   public init(image: Image, resources: Resources) {
@@ -15271,7 +17780,7 @@ public struct StackKnowledgeBaseSpecDispatcher: Codable, Sendable {
   }
 }
 
-public struct StackKnowledgeBaseSpecGateway: Codable, Sendable {
+public struct StackKnowledgeBaseSpecGateway: Codable, Sendable, Hashable {
   public var image: Image
   public var port: Int
   public var publicURL: String
@@ -15300,7 +17809,7 @@ public struct StackKnowledgeBaseSpecGateway: Codable, Sendable {
   }
 }
 
-public struct StackKnowledgeBaseSpecIssuer: Codable, Sendable {
+public struct StackKnowledgeBaseSpecIssuer: Codable, Sendable, Hashable {
   public var external: StackKnowledgeBaseSpecIssuerExternal?
   public var shared: StackKnowledgeBaseSpecIssuerShared?
   public var subjectClaim: String
@@ -15327,7 +17836,7 @@ public struct StackKnowledgeBaseSpecIssuer: Codable, Sendable {
   }
 }
 
-public struct StackKnowledgeBaseSpecIssuerExternal: Codable, Sendable {
+public struct StackKnowledgeBaseSpecIssuerExternal: Codable, Sendable, Hashable {
   public var type: String
   public var url: String
   public init(type: String, url: String) {
@@ -15347,7 +17856,7 @@ public struct StackKnowledgeBaseSpecIssuerExternal: Codable, Sendable {
   }
 }
 
-public struct StackKnowledgeBaseSpecIssuerShared: Codable, Sendable {
+public struct StackKnowledgeBaseSpecIssuerShared: Codable, Sendable, Hashable {
   public var accessTokenLifespan: Int
   public init(accessTokenLifespan: Int) {
     self.accessTokenLifespan = accessTokenLifespan
@@ -15363,7 +17872,7 @@ public struct StackKnowledgeBaseSpecIssuerShared: Codable, Sendable {
   }
 }
 
-public struct StackStartParams: Codable, Sendable {
+public struct StackStartParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var codespaceName: String?
   public var config: String?
@@ -15442,7 +17951,7 @@ public enum StackStartParamsOllamaCache: String, Codable, Sendable, CaseIterable
   case volume = "volume"
 }
 
-public struct StackStartResult: Codable, Sendable {
+public struct StackStartResult: Codable, Sendable, Hashable {
   public var dryRun: Bool
   public var knowledgeBase: KnowledgeBaseStatus?
   public var shared: [ServiceStatus]?
@@ -15468,7 +17977,7 @@ public struct StackStartResult: Codable, Sendable {
   }
 }
 
-public struct StackStopParams: Codable, Sendable {
+public struct StackStopParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var delete: Bool?
   public var deleteConfirmed: Bool?
@@ -15520,7 +18029,7 @@ public struct StackStopParams: Codable, Sendable {
   }
 }
 
-public struct StackStopResult: Codable, Sendable {
+public struct StackStopResult: Codable, Sendable, Hashable {
   public var dryRun: Bool
   public var knowledgeBases: [KnowledgeBaseStatus]?
   public var shared: [ServiceStatus]?
@@ -15546,7 +18055,7 @@ public struct StackStopResult: Codable, Sendable {
   }
 }
 
-public struct StatusResponse: Codable, Sendable {
+public struct StatusResponse: Codable, Sendable, Hashable {
   public var authenticatedAs: String?
   public var features: StatusResponseFeatures
   public var message: String
@@ -15580,7 +18089,7 @@ public struct StatusResponse: Codable, Sendable {
   }
 }
 
-public struct StatusResponseFeatures: Codable, Sendable {
+public struct StatusResponseFeatures: Codable, Sendable, Hashable {
   public var collaboration: String
   public var semanticContent: String
   public init(collaboration: String, semanticContent: String) {
@@ -15599,7 +18108,7 @@ public struct StatusResponseFeatures: Codable, Sendable {
   }
 }
 
-public struct StatusSnapshotParams: Codable, Sendable {
+public struct StatusSnapshotParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
   public var runtime: Runtime?
   public var target: Target?
@@ -15623,7 +18132,7 @@ public struct StatusSnapshotParams: Codable, Sendable {
   }
 }
 
-public struct StatusSnapshotResult: Codable, Sendable {
+public struct StatusSnapshotResult: Codable, Sendable, Hashable {
   public var knowledgeBases: [KnowledgeBaseStatus]
   public var shared: [ServiceStatus]
   public init(knowledgeBases: [KnowledgeBaseStatus], shared: [ServiceStatus]) {
@@ -15643,7 +18152,7 @@ public struct StatusSnapshotResult: Codable, Sendable {
   }
 }
 
-public struct StorageUriEntry: Codable, Sendable {
+public struct StorageUriEntry: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public var uri: String
   public init(resourceId: ResourceId, uri: String) {
@@ -15663,7 +18172,7 @@ public struct StorageUriEntry: Codable, Sendable {
   }
 }
 
-public struct StoredEventResponse: Codable, Sendable {
+public struct StoredEventResponse: Codable, Sendable, Hashable {
   public var id: String
   public var metadata: EventMetadata
   public var payload: [String: JSONValue]
@@ -15709,7 +18218,7 @@ public struct StoredEventResponse: Codable, Sendable {
   }
 }
 
-public struct StoredSession: Codable, Sendable {
+public struct StoredSession: Codable, Sendable, Hashable {
   public var access: String
   public var clientId: String
   public var personKey: String?
@@ -15816,7 +18325,7 @@ public enum SupportedMediaType: String, Codable, Sendable, CaseIterable {
   case fontOtf = "font/otf"
 }
 
-public struct SvgSelector: Codable, Sendable {
+public struct SvgSelector: Codable, Sendable, Hashable {
   public let type: SvgSelectorType
   public var value: String
   public init(value: String) {
@@ -15839,7 +18348,7 @@ public enum SvgSelectorType: String, Codable, Sendable, CaseIterable {
   case svgSelector = "SvgSelector"
 }
 
-public indirect enum TabCheck: Codable, Sendable {
+public indirect enum TabCheck: Codable, Sendable, Hashable {
   case gone(TabCheckGone)
   case ready(TabCheckReady)
   case unknown(TabCheckUnknown)
@@ -15864,7 +18373,7 @@ public indirect enum TabCheck: Codable, Sendable {
   }
 }
 
-public struct TabCheckGone: Codable, Sendable {
+public struct TabCheckGone: Codable, Sendable, Hashable {
   public let verdict: TabVerdict
   public init() {
     self.verdict = .gone
@@ -15880,7 +18389,7 @@ public struct TabCheckGone: Codable, Sendable {
   }
 }
 
-public struct TabCheckReady: Codable, Sendable {
+public struct TabCheckReady: Codable, Sendable, Hashable {
   public var mediaType: String?
   public var name: String
   public let verdict: TabVerdict
@@ -15904,7 +18413,7 @@ public struct TabCheckReady: Codable, Sendable {
   }
 }
 
-public struct TabCheckUnknown: Codable, Sendable {
+public struct TabCheckUnknown: Codable, Sendable, Hashable {
   public let verdict: TabVerdict
   public init() {
     self.verdict = .unknown
@@ -15926,7 +18435,7 @@ public enum TabVerdict: String, Codable, Sendable, CaseIterable {
   case unknown = "unknown"
 }
 
-public struct TagCategory: Codable, Sendable {
+public struct TagCategory: Codable, Sendable, Hashable {
   public var description: String
   public var examples: [String]
   public var name: String
@@ -15949,7 +18458,7 @@ public struct TagCategory: Codable, Sendable {
   }
 }
 
-public struct TagSchema: Codable, Sendable {
+public struct TagSchema: Codable, Sendable, Hashable {
   public var description: String
   public var domain: String
   public var id: String
@@ -15980,7 +18489,7 @@ public struct TagSchema: Codable, Sendable {
   }
 }
 
-public struct TagSchemaAddedPayload: Codable, Sendable {
+public struct TagSchemaAddedPayload: Codable, Sendable, Hashable {
   public var schema: TagSchema
   public init(schema: TagSchema) {
     self.schema = schema
@@ -15995,7 +18504,7 @@ public struct TagSchemaAddedPayload: Codable, Sendable {
   }
 }
 
-public struct TagSchemasProjection: Codable, Sendable {
+public struct TagSchemasProjection: Codable, Sendable, Hashable {
   public var tagSchemas: [TagSchema]
   public init(tagSchemas: [TagSchema]) {
     self.tagSchemas = tagSchemas
@@ -16011,7 +18520,7 @@ public struct TagSchemasProjection: Codable, Sendable {
   }
 }
 
-public struct TaggingJobParams: Codable, Sendable {
+public struct TaggingJobParams: Codable, Sendable, Hashable {
   public var categories: [String]
   public var language: String?
   public let motivation: TaggingJobParamsMotivation
@@ -16051,7 +18560,7 @@ public enum TaggingJobParamsMotivation: String, Codable, Sendable, CaseIterable 
   case tagging = "tagging"
 }
 
-public struct Target: Codable, Sendable {
+public struct Target: Codable, Sendable, Hashable {
   public var kind: TargetKind
   public var repo: String?
   public var root: String?
@@ -16080,7 +18589,7 @@ public enum TargetKind: String, Codable, Sendable, CaseIterable {
   case codespace = "codespace"
 }
 
-public struct TextPositionSelector: Codable, Sendable {
+public struct TextPositionSelector: Codable, Sendable, Hashable {
   public var end: Int
   public var start: Int
   public let type: TextPositionSelectorType
@@ -16107,7 +18616,7 @@ public enum TextPositionSelectorType: String, Codable, Sendable, CaseIterable {
   case textPositionSelector = "TextPositionSelector"
 }
 
-public struct TextQuoteSelector: Codable, Sendable {
+public struct TextQuoteSelector: Codable, Sendable, Hashable {
   public var exact: String
   public var prefix: String?
   public var suffix: String?
@@ -16144,7 +18653,7 @@ public enum TextSource: String, Codable, Sendable, CaseIterable {
   case none = "none"
 }
 
-public struct TextSpan: Codable, Sendable {
+public struct TextSpan: Codable, Sendable, Hashable {
   public var end: Int
   public var exact: String
   public var prefix: String?
@@ -16176,7 +18685,7 @@ public struct TextSpan: Codable, Sendable {
   }
 }
 
-public struct TextualBody: Codable, Sendable {
+public struct TextualBody: Codable, Sendable, Hashable {
   public var format: String?
   public var language: String?
   public var purpose: BodyPurpose?
@@ -16213,7 +18722,7 @@ public enum TextualBodyType: String, Codable, Sendable, CaseIterable {
   case textualBody = "TextualBody"
 }
 
-public struct UnitCursor: Codable, Sendable {
+public struct UnitCursor: Codable, Sendable, Hashable {
   public var emitted: Int
   public var errors: Int
   public var found: Int
@@ -16244,7 +18753,7 @@ public struct UnitCursor: Codable, Sendable {
   }
 }
 
-public struct UpdateAnnotationBodyRequest: Codable, Sendable {
+public struct UpdateAnnotationBodyRequest: Codable, Sendable, Hashable {
   public var operations: [BodyOperation]
   public var resourceId: ResourceId
   public init(operations: [BodyOperation], resourceId: ResourceId) {
@@ -16263,7 +18772,7 @@ public struct UpdateAnnotationBodyRequest: Codable, Sendable {
   }
 }
 
-public indirect enum UploadProgress: Codable, Sendable {
+public indirect enum UploadProgress: Codable, Sendable, Hashable {
   case started(UploadProgressStarted)
   case progress(UploadProgressProgress)
   case finished(UploadProgressFinished)
@@ -16288,7 +18797,7 @@ public indirect enum UploadProgress: Codable, Sendable {
   }
 }
 
-public struct UploadProgressFinished: Codable, Sendable {
+public struct UploadProgressFinished: Codable, Sendable, Hashable {
   public let phase: UploadProgressFinishedPhase
   public var resourceId: ResourceId
   public init(resourceId: ResourceId) {
@@ -16312,7 +18821,7 @@ public enum UploadProgressFinishedPhase: String, Codable, Sendable, CaseIterable
   case finished = "finished"
 }
 
-public struct UploadProgressProgress: Codable, Sendable {
+public struct UploadProgressProgress: Codable, Sendable, Hashable {
   public var bytesUploaded: Int
   public let phase: UploadProgressProgressPhase
   public var totalBytes: Int
@@ -16340,7 +18849,7 @@ public enum UploadProgressProgressPhase: String, Codable, Sendable, CaseIterable
   case progress = "progress"
 }
 
-public struct UploadProgressStarted: Codable, Sendable {
+public struct UploadProgressStarted: Codable, Sendable, Hashable {
   public let phase: UploadProgressStartedPhase
   public var totalBytes: Int
   public init(totalBytes: Int) {
@@ -16364,7 +18873,7 @@ public enum UploadProgressStartedPhase: String, Codable, Sendable, CaseIterable 
   case started = "started"
 }
 
-public struct UserAction: Codable, Sendable {
+public struct UserAction: Codable, Sendable, Hashable {
   public var expiresInSeconds: Int
   public var requestId: RequestId
   public var userCode: String
@@ -16437,7 +18946,7 @@ public struct UserId: Hashable, Sendable, Codable, CustomStringConvertible {
   }
 }
 
-public struct UserResponse: Codable, Sendable {
+public struct UserResponse: Codable, Sendable, Hashable {
   public var did: UserId
   public var domain: String
   public var email: String?
@@ -16468,7 +18977,7 @@ public struct UserResponse: Codable, Sendable {
   }
 }
 
-public struct VectorStore: Codable, Sendable {
+public struct VectorStore: Codable, Sendable, Hashable {
   public var apiVersion: StackApiVersion
   public let kind: VectorStoreKind
   public var metadata: Metadata
@@ -16500,7 +19009,7 @@ public enum VectorStoreKind: String, Codable, Sendable, CaseIterable {
   case vectorStore = "VectorStore"
 }
 
-public struct VectorStoreSpec: Codable, Sendable {
+public struct VectorStoreSpec: Codable, Sendable, Hashable {
   public var image: Image
   public var port: Int
   public var resources: Resources
@@ -16528,7 +19037,7 @@ public struct VectorStoreSpec: Codable, Sendable {
   }
 }
 
-public indirect enum VectorsConfig: Codable, Sendable {
+public indirect enum VectorsConfig: Codable, Sendable, Hashable {
   case qdrantVectorsConfig(QdrantVectorsConfig)
   case memoryVectorsConfig(MemoryVectorsConfig)
   public init(from decoder: any Decoder) throws {
@@ -16550,7 +19059,7 @@ public indirect enum VectorsConfig: Codable, Sendable {
   }
 }
 
-public struct VoyageEmbeddingConfig: Codable, Sendable {
+public struct VoyageEmbeddingConfig: Codable, Sendable, Hashable {
   public var apiKeyEnv: String
   public var endpoint: String
   public var model: String
@@ -16582,7 +19091,7 @@ public enum VoyageEmbeddingConfigType: String, Codable, Sendable, CaseIterable {
   case voyage = "voyage"
 }
 
-public struct WeaveApplied: Codable, Sendable {
+public struct WeaveApplied: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public var sequenceNumber: Int
   public init(resourceId: ResourceId, sequenceNumber: Int) {
@@ -16601,7 +19110,7 @@ public struct WeaveApplied: Codable, Sendable {
   }
 }
 
-public struct WeaveRebuildCommand: Codable, Sendable {
+public struct WeaveRebuildCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var resourceId: ResourceId?
   public init(_userId: UserId? = nil, resourceId: ResourceId? = nil) {
@@ -16620,7 +19129,7 @@ public struct WeaveRebuildCommand: Codable, Sendable {
   }
 }
 
-public struct WeaverConfig: Codable, Sendable {
+public struct WeaverConfig: Codable, Sendable, Hashable {
   public var archivist: ServiceAddress
   public var cursorsPath: CursorsPath
   public var gatewayUrl: String
@@ -16675,7 +19184,7 @@ public struct WeaverConfig: Codable, Sendable {
   }
 }
 
-public struct WeaverHealth: Codable, Sendable {
+public struct WeaverHealth: Codable, Sendable, Hashable {
   public var following: FollowerFollowing
   public var kb: KbDid
   public var reconcile: WeaverHealthReconcile
@@ -16703,7 +19212,7 @@ public struct WeaverHealth: Codable, Sendable {
   }
 }
 
-public struct WeaverHealthReconcile: Codable, Sendable {
+public struct WeaverHealthReconcile: Codable, Sendable, Hashable {
   public var error: String?
   public var phase: WeaverHealthReconcilePhase
   public var summary: WeaverHealthReconcileSummary?
@@ -16737,7 +19246,7 @@ public enum WeaverHealthReconcilePhase: String, Codable, Sendable, CaseIterable 
   case failed = "failed"
 }
 
-public struct WeaverHealthReconcileSummary: Codable, Sendable {
+public struct WeaverHealthReconcileSummary: Codable, Sendable, Hashable {
   public var divergent: Int
   public var healFailures: Int
   public var healed: Int
@@ -16776,7 +19285,51 @@ public enum WeaverHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
 }
 
-public struct WorkerConfig: Codable, Sendable {
+public struct WorkerAnswerFormats: Codable, Sendable, Hashable {
+  public var comment: String
+  public var formats: [WorkerAnswerFormatsFormatsItem]
+  public init(comment: String, formats: [WorkerAnswerFormatsFormatsItem]) {
+    self.comment = comment
+    self.formats = formats
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "formats"], in: "WorkerAnswerFormats")
+    self.comment = try c.value("$comment")
+    self.formats = try c.value("formats")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.formats, as: "formats")
+  }
+}
+
+public struct WorkerAnswerFormatsFormatsItem: Codable, Sendable, Hashable {
+  public var about: String
+  public var element: JSONValue
+  public var name: String
+  public init(about: String, element: JSONValue, name: String) {
+    self.about = about
+    self.element = element
+    self.name = name
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["about", "element", "name"], in: "WorkerAnswerFormatsFormatsItem")
+    self.about = try c.value("about")
+    self.element = try c.value("element")
+    self.name = try c.value("name")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.about, as: "about")
+    try c.encode(self.element, as: "element")
+    try c.encode(self.name, as: "name")
+  }
+}
+
+public struct WorkerConfig: Codable, Sendable, Hashable {
   public var knowledgeBases: [WorkerKnowledgeBaseConfig]
   public var logFormat: LogFormat
   public var logLevel: LogLevel
@@ -16812,7 +19365,7 @@ public struct WorkerConfig: Codable, Sendable {
   }
 }
 
-public struct WorkerEngineConfig: Codable, Sendable {
+public struct WorkerEngineConfig: Codable, Sendable, Hashable {
   public var apiKeyEnv: String?
   public var baseUrl: String
   public var engine: Engine
@@ -16840,7 +19393,7 @@ public struct WorkerEngineConfig: Codable, Sendable {
   }
 }
 
-public struct WorkerEngineHealth: Codable, Sendable {
+public struct WorkerEngineHealth: Codable, Sendable, Hashable {
   public var activeJob: WorkerEngineHealthActiveJob?
   public var engine: Engine
   public var jobs: [JobFilter]
@@ -16892,7 +19445,7 @@ public struct WorkerEngineHealth: Codable, Sendable {
   }
 }
 
-public struct WorkerEngineHealthActiveJob: Codable, Sendable {
+public struct WorkerEngineHealthActiveJob: Codable, Sendable, Hashable {
   public var jobId: JobId
   public var since: String
   public var type: JobType
@@ -16916,7 +19469,7 @@ public struct WorkerEngineHealthActiveJob: Codable, Sendable {
   }
 }
 
-public struct WorkerHealth: Codable, Sendable {
+public struct WorkerHealth: Codable, Sendable, Hashable {
   public var knowledgeBases: [WorkerKnowledgeBaseHealth]
   public let status: WorkerHealthStatus
   public init(knowledgeBases: [WorkerKnowledgeBaseHealth]) {
@@ -16940,7 +19493,7 @@ public enum WorkerHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
 }
 
-public struct WorkerKnowledgeBaseConfig: Codable, Sendable {
+public struct WorkerKnowledgeBaseConfig: Codable, Sendable, Hashable {
   public var domain: String
   public var engines: [WorkerEngineConfig]
   public var gatewayUrl: String
@@ -16972,7 +19525,7 @@ public struct WorkerKnowledgeBaseConfig: Codable, Sendable {
   }
 }
 
-public struct WorkerKnowledgeBaseConfigIdentity: Codable, Sendable {
+public struct WorkerKnowledgeBaseConfigIdentity: Codable, Sendable, Hashable {
   public var clientId: String
   public var issuer: String
   public init(clientId: String, issuer: String) {
@@ -16992,7 +19545,7 @@ public struct WorkerKnowledgeBaseConfigIdentity: Codable, Sendable {
   }
 }
 
-public struct WorkerKnowledgeBaseHealth: Codable, Sendable {
+public struct WorkerKnowledgeBaseHealth: Codable, Sendable, Hashable {
   public var did: String?
   public var domain: String
   public var engines: [WorkerEngineHealth]?
@@ -17029,7 +19582,289 @@ public enum WorkerKnowledgeBaseHealthState: String, Codable, Sendable, CaseItera
   case refused = "refused"
 }
 
-public struct WorkerPool: Codable, Sendable {
+public struct WorkerMessages: Codable, Sendable, Hashable {
+  public var comment: String
+  public var boot: [WorkerMessagesBootItem]
+  public var details: [WorkerMessagesDetailsItem]
+  public var errors: [WorkerMessagesErrorsItem]
+  public var job: WorkerMessagesJob
+  public var logged: [WorkerMessagesLoggedItem]
+  public var reasons: [WorkerMessagesReasonsItem]
+  public var waits: [WorkerMessagesWaitsItem]
+  public init(
+    comment: String, boot: [WorkerMessagesBootItem], details: [WorkerMessagesDetailsItem],
+    errors: [WorkerMessagesErrorsItem], job: WorkerMessagesJob, logged: [WorkerMessagesLoggedItem],
+    reasons: [WorkerMessagesReasonsItem], waits: [WorkerMessagesWaitsItem]
+  ) {
+    self.comment = comment
+    self.boot = boot
+    self.details = details
+    self.errors = errors
+    self.job = job
+    self.logged = logged
+    self.reasons = reasons
+    self.waits = waits
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "boot", "details", "errors", "job", "logged", "reasons", "waits"],
+      in: "WorkerMessages")
+    self.comment = try c.value("$comment")
+    self.boot = try c.value("boot")
+    self.details = try c.value("details")
+    self.errors = try c.value("errors")
+    self.job = try c.value("job")
+    self.logged = try c.value("logged")
+    self.reasons = try c.value("reasons")
+    self.waits = try c.value("waits")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.boot, as: "boot")
+    try c.encode(self.details, as: "details")
+    try c.encode(self.errors, as: "errors")
+    try c.encode(self.job, as: "job")
+    try c.encode(self.logged, as: "logged")
+    try c.encode(self.reasons, as: "reasons")
+    try c.encode(self.waits, as: "waits")
+  }
+}
+
+public indirect enum WorkerMessagesBootItem: Codable, Sendable, Hashable {
+  case ownBootRefusal(WorkerMessagesBootItemOwnBootRefusal)
+  case sharedBootRefusal(WorkerMessagesBootItemSharedBootRefusal)
+  public init(from decoder: any Decoder) throws {
+    if let value = try? WorkerMessagesBootItemOwnBootRefusal(from: decoder) {
+      self = .ownBootRefusal(value)
+      return
+    }
+    if let value = try? WorkerMessagesBootItemSharedBootRefusal(from: decoder) {
+      self = .sharedBootRefusal(value)
+      return
+    }
+    throw DecodingError.dataCorrupted(
+      .init(
+        codingPath: decoder.codingPath, debugDescription: "no member of WorkerMessagesBootItem fits"
+      ))
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .ownBootRefusal(let value): try value.encode(to: encoder)
+    case .sharedBootRefusal(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct WorkerMessagesBootItemOwnBootRefusal: Codable, Sendable, Hashable {
+  public var name: String
+  public var refusal: String
+  public var situation: String
+  public init(name: String, refusal: String, situation: String) {
+    self.name = name
+    self.refusal = refusal
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["name", "refusal", "situation"], in: "WorkerMessagesBootItemOwnBootRefusal")
+    self.name = try c.value("name")
+    self.refusal = try c.value("refusal")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.refusal, as: "refusal")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct WorkerMessagesBootItemSharedBootRefusal: Codable, Sendable, Hashable {
+  public var bootRefusal: String
+  public var name: String
+  public var situation: String
+  public init(bootRefusal: String, name: String, situation: String) {
+    self.bootRefusal = bootRefusal
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["bootRefusal", "name", "situation"], in: "WorkerMessagesBootItemSharedBootRefusal")
+    self.bootRefusal = try c.value("bootRefusal")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.bootRefusal, as: "bootRefusal")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct WorkerMessagesDetailsItem: Codable, Sendable, Hashable {
+  public var detail: String
+  public var name: String
+  public var situation: String
+  public init(detail: String, name: String, situation: String) {
+    self.detail = detail
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["detail", "name", "situation"], in: "WorkerMessagesDetailsItem")
+    self.detail = try c.value("detail")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.detail, as: "detail")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct WorkerMessagesErrorsItem: Codable, Sendable, Hashable {
+  public var error: String
+  public var name: String
+  public var situation: String
+  public init(error: String, name: String, situation: String) {
+    self.error = error
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["error", "name", "situation"], in: "WorkerMessagesErrorsItem")
+    self.error = try c.value("error")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.error, as: "error")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct WorkerMessagesJob: Codable, Sendable, Hashable {
+  public var mark: String
+  public var yield: String
+  public init(mark: String, yield: String) {
+    self.mark = mark
+    self.yield = yield
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["mark", "yield"], in: "WorkerMessagesJob")
+    self.mark = try c.value("mark")
+    self.yield = try c.value("yield")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.mark, as: "mark")
+    try c.encode(self.yield, as: "yield")
+  }
+}
+
+public struct WorkerMessagesLoggedItem: Codable, Sendable, Hashable {
+  public var carries: [String]
+  public var fields: [String: String]
+  public var level: LogLevel
+  public var message: String
+  public var name: String
+  public var situation: String
+  public init(
+    carries: [String], fields: [String: String], level: LogLevel, message: String, name: String,
+    situation: String
+  ) {
+    self.carries = carries
+    self.fields = fields
+    self.level = level
+    self.message = message
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["carries", "fields", "level", "message", "name", "situation"], in: "WorkerMessagesLoggedItem"
+    )
+    self.carries = try c.value("carries")
+    self.fields = try c.value("fields")
+    self.level = try c.value("level")
+    self.message = try c.value("message")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.carries, as: "carries")
+    try c.encode(self.fields, as: "fields")
+    try c.encode(self.level, as: "level")
+    try c.encode(self.message, as: "message")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct WorkerMessagesReasonsItem: Codable, Sendable, Hashable {
+  public var line: String
+  public var name: String
+  public var situation: String
+  public init(line: String, name: String, situation: String) {
+    self.line = line
+    self.name = name
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["line", "name", "situation"], in: "WorkerMessagesReasonsItem")
+    self.line = try c.value("line")
+    self.name = try c.value("name")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.line, as: "line")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct WorkerMessagesWaitsItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var said: String
+  public var situation: String
+  public init(name: String, said: String, situation: String) {
+    self.name = name
+    self.said = said
+    self.situation = situation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "said", "situation"], in: "WorkerMessagesWaitsItem")
+    self.name = try c.value("name")
+    self.said = try c.value("said")
+    self.situation = try c.value("situation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.said, as: "said")
+    try c.encode(self.situation, as: "situation")
+  }
+}
+
+public struct WorkerPool: Codable, Sendable, Hashable {
   public var apiVersion: StackApiVersion
   public let kind: WorkerPoolKind
   public var metadata: Metadata
@@ -17061,7 +19896,7 @@ public enum WorkerPoolKind: String, Codable, Sendable, CaseIterable {
   case workerPool = "WorkerPool"
 }
 
-public struct WorkerPoolSpec: Codable, Sendable {
+public struct WorkerPoolSpec: Codable, Sendable, Hashable {
   public var logLevel: LogLevel
   public var worker: WorkerPoolSpecWorker
   public init(logLevel: LogLevel, worker: WorkerPoolSpecWorker) {
@@ -17081,7 +19916,7 @@ public struct WorkerPoolSpec: Codable, Sendable {
   }
 }
 
-public struct WorkerPoolSpecWorker: Codable, Sendable {
+public struct WorkerPoolSpecWorker: Codable, Sendable, Hashable {
   public var image: Image
   public var resources: Resources
   public init(image: Image, resources: Resources) {
@@ -17101,7 +19936,7 @@ public struct WorkerPoolSpecWorker: Codable, Sendable {
   }
 }
 
-public struct WorkloadStatus: Codable, Sendable {
+public struct WorkloadStatus: Codable, Sendable, Hashable {
   public var ledger: WorkloadStatusLedger?
   public var queue: WorkloadStatusQueue?
   public init(ledger: WorkloadStatusLedger? = nil, queue: WorkloadStatusQueue? = nil) {
@@ -17121,7 +19956,7 @@ public struct WorkloadStatus: Codable, Sendable {
   }
 }
 
-public struct WorkloadStatusLedger: Codable, Sendable {
+public struct WorkloadStatusLedger: Codable, Sendable, Hashable {
   public var capacity: Int
   public var claims: Int
   public init(capacity: Int, claims: Int) {
@@ -17141,7 +19976,7 @@ public struct WorkloadStatusLedger: Codable, Sendable {
   }
 }
 
-public struct WorkloadStatusQueue: Codable, Sendable {
+public struct WorkloadStatusQueue: Codable, Sendable, Hashable {
   public var completed: Int?
   public var failed: Int?
   public var pending: Int
@@ -17169,7 +20004,7 @@ public struct WorkloadStatusQueue: Codable, Sendable {
   }
 }
 
-public struct YieldCloneCreateCommand: Codable, Sendable {
+public struct YieldCloneCreateCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var archiveOriginal: Bool?
   public var byteSize: Int
@@ -17215,7 +20050,7 @@ public struct YieldCloneCreateCommand: Codable, Sendable {
   }
 }
 
-public struct YieldCloneCreated: Codable, Sendable {
+public struct YieldCloneCreated: Codable, Sendable, Hashable {
   public var response: YieldedResource
   public init(response: YieldedResource) {
     self.response = response
@@ -17230,7 +20065,7 @@ public struct YieldCloneCreated: Codable, Sendable {
   }
 }
 
-public struct YieldClonePersistCommand: Codable, Sendable {
+public struct YieldClonePersistCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var byteSize: Int
   public var contentChecksum: String
@@ -17281,7 +20116,7 @@ public struct YieldClonePersistCommand: Codable, Sendable {
   }
 }
 
-public struct YieldClonePersistOk: Codable, Sendable {
+public struct YieldClonePersistOk: Codable, Sendable, Hashable {
   public var response: YieldedResource
   public init(response: YieldedResource) {
     self.response = response
@@ -17296,7 +20131,7 @@ public struct YieldClonePersistOk: Codable, Sendable {
   }
 }
 
-public struct YieldCloneResourceRequest: Codable, Sendable {
+public struct YieldCloneResourceRequest: Codable, Sendable, Hashable {
   public var token: String
   public init(token: String) {
     self.token = token
@@ -17311,7 +20146,7 @@ public struct YieldCloneResourceRequest: Codable, Sendable {
   }
 }
 
-public struct YieldCloneTokenRequest: Codable, Sendable {
+public struct YieldCloneTokenRequest: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public init(resourceId: ResourceId) {
     self.resourceId = resourceId
@@ -17326,7 +20161,7 @@ public struct YieldCloneTokenRequest: Codable, Sendable {
   }
 }
 
-public struct YieldCreateCommand: Codable, Sendable {
+public struct YieldCreateCommand: Codable, Sendable, Hashable {
   public var _roles: [String]?
   public var _userId: UserId?
   public var byteSize: Int
@@ -17399,7 +20234,7 @@ public struct YieldCreateCommand: Codable, Sendable {
   }
 }
 
-public struct YieldCreateCommandGeneratedFrom: Codable, Sendable {
+public struct YieldCreateCommandGeneratedFrom: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId?
   public var resourceId: ResourceId?
   public init(annotationId: AnnotationId? = nil, resourceId: ResourceId? = nil) {
@@ -17418,7 +20253,7 @@ public struct YieldCreateCommandGeneratedFrom: Codable, Sendable {
   }
 }
 
-public struct YieldCreateOk: Codable, Sendable {
+public struct YieldCreateOk: Codable, Sendable, Hashable {
   public var response: YieldedResource
   public init(response: YieldedResource) {
     self.response = response
@@ -17433,7 +20268,7 @@ public struct YieldCreateOk: Codable, Sendable {
   }
 }
 
-public struct YieldJobCompleteCommand: Codable, Sendable {
+public struct YieldJobCompleteCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId?
   public var attempt: Int?
@@ -17484,7 +20319,7 @@ public enum YieldJobCompleteCommandJobType: String, Codable, Sendable, CaseItera
   case yield = "yield"
 }
 
-public struct YieldJobCreateCommand: Codable, Sendable {
+public struct YieldJobCreateCommand: Codable, Sendable, Hashable {
   public var _roles: [String]?
   public var _userId: UserId?
   public let jobType: YieldJobCreateCommandJobType
@@ -17516,7 +20351,7 @@ public enum YieldJobCreateCommandJobType: String, Codable, Sendable, CaseIterabl
   case yield = "yield"
 }
 
-public struct YieldJobDone: Codable, Sendable {
+public struct YieldJobDone: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public var resourceName: String
   public var truncated: Bool
@@ -17540,7 +20375,7 @@ public struct YieldJobDone: Codable, Sendable {
   }
 }
 
-public struct YieldJobFilter: Codable, Sendable {
+public struct YieldJobFilter: Codable, Sendable, Hashable {
   public let jobType: YieldJobFilterJobType
   public init() {
     self.jobType = .yield
@@ -17560,7 +20395,7 @@ public enum YieldJobFilterJobType: String, Codable, Sendable, CaseIterable {
   case yield = "yield"
 }
 
-public struct YieldJobQueuedEvent: Codable, Sendable {
+public struct YieldJobQueuedEvent: Codable, Sendable, Hashable {
   public var jobId: JobId
   public let jobType: YieldJobQueuedEventJobType
   public var params: GenerationJobRequest
@@ -17595,7 +20430,7 @@ public enum YieldJobQueuedEventJobType: String, Codable, Sendable, CaseIterable 
   case yield = "yield"
 }
 
-public indirect enum YieldJobResult: Codable, Sendable {
+public indirect enum YieldJobResult: Codable, Sendable, Hashable {
   case yieldJobDone(YieldJobDone)
   case jobDeclined(JobDeclined)
   public init(from decoder: any Decoder) throws {
@@ -17618,7 +20453,7 @@ public indirect enum YieldJobResult: Codable, Sendable {
   }
 }
 
-public struct YieldUpdateCommand: Codable, Sendable {
+public struct YieldUpdateCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var byteSize: Int
   public var contentChecksum: String
@@ -17652,7 +20487,7 @@ public struct YieldUpdateCommand: Codable, Sendable {
   }
 }
 
-public struct YieldUpdateOk: Codable, Sendable {
+public struct YieldUpdateOk: Codable, Sendable, Hashable {
   public var response: YieldedResource
   public init(response: YieldedResource) {
     self.response = response
@@ -17667,7 +20502,7 @@ public struct YieldUpdateOk: Codable, Sendable {
   }
 }
 
-public struct YieldedResource: Codable, Sendable {
+public struct YieldedResource: Codable, Sendable, Hashable {
   public var resourceId: ResourceId
   public init(resourceId: ResourceId) {
     self.resourceId = resourceId
@@ -17707,53 +20542,53 @@ extension ReceivedFrame {
       payload: frame.payload, scope: frame.scope, trace: trace)
   }
 }
-internal struct RetryBudget: Sendable {
-  let attempts: Int
-  let initialDelayMs: Int
-  let maxDelayMs: Int
+public struct RetryBudget: Sendable {
+  public let attempts: Int
+  public let initialDelayMs: Int
+  public let maxDelayMs: Int
 }
-internal enum Timings {
-  static let busRequestTimeoutMs: Int = 30000
-  static let emitTimeoutMs: Int = 30000
-  static let emitRetry = RetryBudget(attempts: 4, initialDelayMs: 1000, maxDelayMs: 4000)
-  static let httpRequestTimeoutMs: Int = 30000
-  static let requestRetryPauseMs: Int = 300
-  static let streamOpenTimeoutMs: Int = 30000
-  static let reconnectMs: Int = 5000
-  static let maxReconnectMs: Int = 60000
-  static let degradedThresholdMs: Int = 3000
-  static let lingerMs: Int = 1000
-  static let seenEventIdsCount: Int = 512
-  static let reconnectDebounceMs: Int = 100
-  static let lazyRemoveMs: Int = 5000
-  static let refreshRetry = RetryBudget(attempts: 4, initialDelayMs: 500, maxDelayMs: 4000)
-  static let refreshBeforeExpMs: Int = 300000
-  static let minRefreshDelayMs: Int = 10000
-  static let devicePollMs: Int = 5000
-  static let deviceSlowDownMs: Int = 5000
-  static let devicePollFloorMs: Int = 1000
-  static let invalidationWindowMs: Int = 1000
-  static let saveDebounceMs: Int = 50
-  static let maxStoredBytesCount: Int = 2_097_152
-  static let errorsKeptForFirstReaderCount: Int = 100
-  static let jobSilenceMs: Int = 10000
-  static let jobStatusPollMs: Int = 5000
-  static let jobPollMs: Int = 1000
-  static let jobPollTimeoutMs: Int = 60000
-  static let generationStallFloorMs: Int = 120000
-  static let generationStallPerTokenMs: Int = 75
-  static let generationStallAssumedTokensCount: Int = 500
-  static let delegateSilenceMs: Int = 180000
-  static let jobClaimTimeoutMs: Int = 10000
-  static let heldJobStallMs: Int = 900000
-  static let heldJobStallCheckMs: Int = 60000
-  static let markCommitTimeoutMs: Int = 60000
-  static let generatedTextAsksCount: Int = 8
-  static let anchoredTextReaskMs: Int = 5000
-  static let hoverDelayMs: Int = 150
-  static let searchDebounceMs: Int = 250
-  static let discoveryIntervalMs: Int = 5000
-  static let checksAtOnceCount: Int = 4
+public enum Timings {
+  public static let busRequestTimeoutMs: Int = 30000
+  public static let emitTimeoutMs: Int = 30000
+  public static let emitRetry = RetryBudget(attempts: 4, initialDelayMs: 1000, maxDelayMs: 4000)
+  public static let httpRequestTimeoutMs: Int = 30000
+  public static let requestRetryPauseMs: Int = 300
+  public static let streamOpenTimeoutMs: Int = 30000
+  public static let reconnectMs: Int = 5000
+  public static let maxReconnectMs: Int = 60000
+  public static let degradedThresholdMs: Int = 3000
+  public static let lingerMs: Int = 1000
+  public static let seenEventIdsCount: Int = 512
+  public static let reconnectDebounceMs: Int = 100
+  public static let lazyRemoveMs: Int = 5000
+  public static let refreshRetry = RetryBudget(attempts: 4, initialDelayMs: 500, maxDelayMs: 4000)
+  public static let refreshBeforeExpMs: Int = 300000
+  public static let minRefreshDelayMs: Int = 10000
+  public static let devicePollMs: Int = 5000
+  public static let deviceSlowDownMs: Int = 5000
+  public static let devicePollFloorMs: Int = 1000
+  public static let invalidationWindowMs: Int = 1000
+  public static let saveDebounceMs: Int = 50
+  public static let maxStoredBytesCount: Int = 2_097_152
+  public static let errorsKeptForFirstReaderCount: Int = 100
+  public static let jobSilenceMs: Int = 10000
+  public static let jobStatusPollMs: Int = 5000
+  public static let jobPollMs: Int = 1000
+  public static let jobPollTimeoutMs: Int = 60000
+  public static let generationStallFloorMs: Int = 120000
+  public static let generationStallPerTokenMs: Int = 75
+  public static let generationStallAssumedTokensCount: Int = 500
+  public static let delegateSilenceMs: Int = 180000
+  public static let jobClaimTimeoutMs: Int = 10000
+  public static let heldJobStallMs: Int = 900000
+  public static let heldJobStallCheckMs: Int = 60000
+  public static let markCommitTimeoutMs: Int = 60000
+  public static let generatedTextAsksCount: Int = 8
+  public static let anchoredTextReaskMs: Int = 5000
+  public static let hoverDelayMs: Int = 150
+  public static let searchDebounceMs: Int = 250
+  public static let discoveryIntervalMs: Int = 5000
+  public static let checksAtOnceCount: Int = 4
 }
 public enum TransportSpan: String, Codable, Sendable, CaseIterable {
   case busEmitChannel = "bus.emit:{channel}"
@@ -17870,7 +20705,7 @@ internal func busRequestCode(for wire: CommandErrorCode) -> BusRequestErrorCode 
   }
 }
 internal let unrecognizedBusFailure: BusRequestErrorCode = .busRejected
-internal let telemetrySpans: [SpecTelemetrySpansItem] = [
+public let telemetrySpans: [SpecTelemetrySpansItem] = [
   SpecTelemetrySpansItem(
     attributes: [
       SpecTelemetrySpansItemAttributesItem(key: "bus.channel"),
@@ -17936,7 +20771,7 @@ internal let telemetrySpans: [SpecTelemetrySpansItem] = [
     ], kind: "client", meaning: "A read of a resource's annotations.",
     name: "content.get_annotations", transport: "content"),
 ]
-internal let telemetryMetrics: [SpecTelemetryMetricsItem] = [
+public let telemetryMetrics: [SpecTelemetryMetricsItem] = [
   SpecTelemetryMetricsItem(
     attributes: [
       SpecTelemetryMetricsItemAttributesItem(key: "bus.channel"),
@@ -17945,7 +20780,7 @@ internal let telemetryMetrics: [SpecTelemetryMetricsItem] = [
     ], instrument: "counter", meaning: "Emits the client sent.", name: "xynolog.bus.sent",
     transport: "bus")
 ]
-internal let oauthClients: [SpecOauthClientsItem] = [
+public let oauthClients: [SpecOauthClientsItem] = [
   SpecOauthClientsItem(
     docs:
       "An application a person uses: the authorization-code grant with PKCE (RFC 7636), at a redirect address the registration lists.",
@@ -17955,19 +20790,19 @@ internal let oauthClients: [SpecOauthClientsItem] = [
       "A process with no browser of its own, and the launcher: the device authorization grant (RFC 8628).",
     id: "xynolog-cli", name: "script"),
 ]
-internal let signInScope: SpecSignInScope = SpecSignInScope(
+public let signInScope: SpecSignInScope = SpecSignInScope(
   docs:
     "What every sign-in asks for. `offline_access` asks for a refresh token that outlives the issuer's own browser session: a session with a knowledge base is renewed for weeks, not minutes.",
   value: "openid email profile offline_access")
-internal let ownerOnlyDirectory: SpecOwnerOnlyDirectory = SpecOwnerOnlyDirectory(
+public let ownerOnlyDirectory: SpecOwnerOnlyDirectory = SpecOwnerOnlyDirectory(
   docs:
     "The directory's mode, in octal, on a system that has modes: its owner reads, writes and enters it, and nobody else does.",
   value: "0700")
-internal let ownerOnlyFile: SpecOwnerOnlyFile = SpecOwnerOnlyFile(
+public let ownerOnlyFile: SpecOwnerOnlyFile = SpecOwnerOnlyFile(
   docs:
     "The mode, in octal, on a system that has modes, that a writer makes tokens.json's temporary file and its lock with, and the launcher its own files in its state home: its owner reads and writes each, and nobody else does.",
   value: "0600")
-internal let mediaTypes: [SpecMediaTypesItem] = [
+public let mediaTypes: [SpecMediaTypesItem] = [
   SpecMediaTypesItem(
     anchoring: "text-selector", authorable: true, extension: ".md", generatable: true,
     label: "Markdown", mediaType: "text/markdown", render: "text", textSource: .decode,
@@ -18195,7 +21030,7 @@ internal let mediaTypes: [SpecMediaTypesItem] = [
     label: "OpenType font", mediaType: "font/otf", render: "none", textSource: .none,
     uploadable: true),
 ]
-internal let encodings: [SpecEncodingsItem] = [
+public let encodings: [SpecEncodingsItem] = [
   SpecEncodingsItem(
     bytes: "c3 a9", encoding: "utf-8",
     labels: [
@@ -18412,7 +21247,7 @@ internal let encodings: [SpecEncodingsItem] = [
       "csiso2022kr", "hz-gb-2312", "iso-2022-cn", "iso-2022-cn-ext", "iso-2022-kr", "replacement",
     ], refused: true),
 ]
-internal let cacheQueries: [SpecCacheQueriesItem] = [
+public let cacheQueries: [SpecCacheQueriesItem] = [
   SpecCacheQueriesItem(
     asks: "browse:resource-requested", docs: "A resource's description.", name: "resource",
     per: "resource", persisted: true,
@@ -18471,26 +21306,57 @@ internal let cacheQueries: [SpecCacheQueriesItem] = [
         "https://xynolog.org/protocol/BrowseEnginesResult.json#/properties/response/properties/engines"
     )),
 ]
-internal let credentialNames: [String] = [
+public let credentialNames: [String] = [
   "token", "cloneToken", "accessToken", "access_token", "refreshToken", "refresh_token", "apiKey",
   "api_key", "clientSecret", "client_secret", "secret", "password", "authorization",
   "Authorization", "x-api-key", "x-goog-api-key",
 ]
-internal let extensionAliases: [String: String] = [
+public let locales: [SpecLocalesItem] = [
+  SpecLocalesItem(code: "ar", englishName: "Arabic", nativeName: "العربية"),
+  SpecLocalesItem(code: "bn", englishName: "Bengali", nativeName: "বাংলা"),
+  SpecLocalesItem(code: "cs", englishName: "Czech", nativeName: "Čeština"),
+  SpecLocalesItem(code: "da", englishName: "Danish", nativeName: "Dansk"),
+  SpecLocalesItem(code: "de", englishName: "German", nativeName: "Deutsch"),
+  SpecLocalesItem(code: "el", englishName: "Greek", nativeName: "Ελληνικά"),
+  SpecLocalesItem(code: "en", englishName: "English", nativeName: "English"),
+  SpecLocalesItem(code: "es", englishName: "Spanish", nativeName: "Español"),
+  SpecLocalesItem(code: "fa", englishName: "Persian", nativeName: "فارسی"),
+  SpecLocalesItem(code: "fi", englishName: "Finnish", nativeName: "Suomi"),
+  SpecLocalesItem(code: "fr", englishName: "French", nativeName: "Français"),
+  SpecLocalesItem(code: "he", englishName: "Hebrew", nativeName: "עברית"),
+  SpecLocalesItem(code: "hi", englishName: "Hindi", nativeName: "हिन्दी"),
+  SpecLocalesItem(code: "id", englishName: "Indonesian", nativeName: "Bahasa Indonesia"),
+  SpecLocalesItem(code: "it", englishName: "Italian", nativeName: "Italiano"),
+  SpecLocalesItem(code: "ja", englishName: "Japanese", nativeName: "日本語"),
+  SpecLocalesItem(code: "ko", englishName: "Korean", nativeName: "한국어"),
+  SpecLocalesItem(code: "ms", englishName: "Malay", nativeName: "Bahasa Melayu"),
+  SpecLocalesItem(code: "nl", englishName: "Dutch", nativeName: "Nederlands"),
+  SpecLocalesItem(code: "no", englishName: "Norwegian", nativeName: "Norsk"),
+  SpecLocalesItem(code: "pl", englishName: "Polish", nativeName: "Polski"),
+  SpecLocalesItem(code: "pt", englishName: "Portuguese", nativeName: "Português"),
+  SpecLocalesItem(code: "ro", englishName: "Romanian", nativeName: "Română"),
+  SpecLocalesItem(code: "sv", englishName: "Swedish", nativeName: "Svenska"),
+  SpecLocalesItem(code: "th", englishName: "Thai", nativeName: "ไทย"),
+  SpecLocalesItem(code: "tr", englishName: "Turkish", nativeName: "Türkçe"),
+  SpecLocalesItem(code: "uk", englishName: "Ukrainian", nativeName: "Українська"),
+  SpecLocalesItem(code: "vi", englishName: "Vietnamese", nativeName: "Tiếng Việt"),
+  SpecLocalesItem(code: "zh", englishName: "Chinese", nativeName: "中文"),
+]
+public let extensionAliases: [String: String] = [
   ".htm": ".html",
   ".jpeg": ".jpg",
   ".markdown": ".md",
   ".yml": ".yaml",
 ]
-internal let traceField = "_trace"
-internal let userField = "_userId"
+public let traceField = "_trace"
+public let userField = "_userId"
 public struct Channel<Payload: Codable & Sendable>: Sendable {
   public let name: String
-  let stamps: Set<String>
+  public let stamps: Set<String>
 }
 public struct ScopedChannel<Payload: Codable & Sendable>: Sendable {
   public let name: String
-  let stamps: Set<String>
+  public let stamps: Set<String>
 }
 public struct ResponseEnvelope<Payload: Codable & Sendable>: Codable, Sendable {
   public let response: Payload
@@ -18498,10 +21364,10 @@ public struct ResponseEnvelope<Payload: Codable & Sendable>: Codable, Sendable {
 public struct Operation<
   Request: Codable & Sendable, Result: Codable & Sendable, Failure: Codable & Sendable
 >: Sendable {
-  let request: Channel<Request>
-  let result: Channel<Result>
-  let failure: Channel<Failure>
-  let replyNames: [String]
+  public let request: Channel<Request>
+  public let result: Channel<Result>
+  public let failure: Channel<Failure>
+  public let replyNames: [String]
 }
 public enum Channels {
   public static let yieldCreated: Channel<StoredEventResponse> = .init(
@@ -19451,12 +22317,12 @@ public let bridgedChannels = [
   "yield:created", "yield:moved", "yield:update-failed", "yield:update-ok", "yield:updated",
 ]
 /// The channels delivered to a transport for each resource whose scope it holds, as the registry orders them.
-package let resourceScopedChannels = [
+public let resourceScopedChannels = [
   "mark:body-updated", "yield:representation-added", "yield:representation-removed", "mark:added",
   "mark:removed", "mark:entity-tag-added", "mark:entity-tag-removed", "mark:archived",
   "mark:unarchived", "job:started", "job:assigned", "job:completed", "job:failed",
 ]
-internal let storedEventChannels = [
+public let persistedEventTypes = [
   "yield:created", "yield:cloned", "yield:updated", "yield:moved", "yield:representation-added",
   "yield:representation-removed", "mark:added", "mark:removed", "mark:body-updated",
   "mark:entity-tag-added", "mark:entity-tag-removed", "mark:archived", "mark:unarchived",
@@ -19510,6 +22376,12 @@ internal let requiredSchemas: [String: Shape] = {
       "@type": Shape(kinds: [.string], enumeration: [.string("Software")]),
       "model": Shape(kinds: [.string]), "name": Shape(kinds: [.string]),
       "parameters": Shape(kinds: [.object]), "provider": Shape(kinds: [.string]),
+    ])
+  shapes["AnchorMethod"] = Shape(
+    kinds: [.string],
+    enumeration: [
+      .string("unique-match"), .string("context-recovered"), .string("first-of-many"),
+      .string("fuzzy-match"),
     ])
   shapes["AnchorRect"] = Shape(
     kinds: [.object], required: ["x", "y", "width", "height", "top", "right", "bottom", "left"],
@@ -19777,6 +22649,13 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["BeckonSparkleEvent"] = Shape(
     kinds: [.object], required: ["annotationId"],
     members: ["annotationId": Shape(ref: "AnnotationId")])
+  shapes["BeginAuthorizationOptions"] = Shape(
+    kinds: [.object], required: ["target", "redirectUri"],
+    members: [
+      "expectedDid": Shape(kinds: [.string]), "expectedName": Shape(kinds: [.string]),
+      "kbId": Shape(kinds: [.string]), "redirectUri": Shape(kinds: [.string]),
+      "target": Shape(ref: "HttpEndpoint"),
+    ], closed: ["expectedDid", "expectedName", "kbId", "redirectUri", "target"])
   shapes["BindBodyOperation"] = Shape(
     kinds: [.object], required: ["op"],
     members: [
@@ -20049,6 +22928,19 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["requestId"],
     members: ["reason": Shape(kinds: [.string]), "requestId": Shape(ref: "RequestId")],
     closed: ["reason", "requestId"])
+  shapes["ClaimOptions"] = Shape(
+    kinds: [.object], required: ["accepts"],
+    members: [
+      "accepts": Shape(kinds: [.array], minItems: 1, items: Shape(ref: "JobFilter")),
+      "heldJobStallCheckMs": Shape(kinds: [.integer], minimum: 0.0),
+      "heldJobStallMs": Shape(kinds: [.integer], minimum: 0.0),
+      "jobClaimTimeoutMs": Shape(kinds: [.integer], minimum: 0.0),
+      "markCommitTimeoutMs": Shape(kinds: [.integer], minimum: 0.0),
+    ],
+    closed: [
+      "accepts", "heldJobStallCheckMs", "heldJobStallMs", "jobClaimTimeoutMs",
+      "markCommitTimeoutMs",
+    ])
   shapes["ClientSecretForm"] = Shape(
     kinds: [.object], required: ["grant_type", "client_id", "client_secret"],
     members: [
@@ -20508,6 +23400,10 @@ internal let requiredSchemas: [String: Shape] = {
       Shape(kinds: [.object], required: ["signalled"], closed: ["signalled"]),
       Shape(kinds: [.object], required: ["stalled"], closed: ["stalled"]),
     ])
+  shapes["ConnectionIdentity"] = Shape(
+    kinds: [.object], required: ["did", "description"],
+    members: ["description": Shape(ref: "KbDescription"), "did": Shape(ref: "UserId")],
+    closed: ["description", "did"])
   shapes["ContentFormat"] = Shape(kinds: [.string])
   shapes["ContextualSummaryResponse"] = Shape(
     kinds: [.object], required: ["summary", "relevantFields", "context"],
@@ -20532,9 +23428,22 @@ internal let requiredSchemas: [String: Shape] = {
       "body": Shape(ref: "AnnotationBodies"), "motivation": Shape(ref: "Motivation"),
       "target": Shape(ref: "AnnotationTarget"),
     ])
+  shapes["CreateFromTokenOptions"] = Shape(
+    kinds: [.object], required: ["token", "name", "content"],
+    members: [
+      "archiveOriginal": Shape(kinds: [.boolean]), "content": Shape(kinds: [.string]),
+      "name": Shape(kinds: [.string]), "token": Shape(kinds: [.string]),
+    ], closed: ["archiveOriginal", "content", "name", "token"])
   shapes["CreateResourceResponse"] = Shape(
     kinds: [.object], required: ["resourceId"], members: ["resourceId": Shape(ref: "ResourceId")])
   shapes["CursorsPath"] = Shape(kinds: [.string], minLength: 1)
+  shapes["DeviceCode"] = Shape(
+    kinds: [.object], required: ["userCode", "verificationUri", "expiresIn"],
+    members: [
+      "expiresIn": Shape(kinds: [.integer], minimum: 0.0), "userCode": Shape(kinds: [.string]),
+      "verificationUri": Shape(kinds: [.string]),
+      "verificationUriComplete": Shape(kinds: [.string]),
+    ], closed: ["expiresIn", "userCode", "verificationUri", "verificationUriComplete"])
   shapes["DirEntry"] = Shape(
     kinds: [.object], required: ["type", "name", "path", "mtime"],
     members: [
@@ -20553,6 +23462,12 @@ internal let requiredSchemas: [String: Shape] = {
       "placement": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
       "port": Shape(kinds: [.integer]), "repo": Shape(kinds: [.string]),
       "siteName": Shape(kinds: [.string]),
+    ])
+  shapes["DiscoveryAbsentReason"] = Shape(
+    kinds: [.string],
+    enumeration: [
+      .string("not-found"), .string("not-json"), .string("invalid"), .string("unsupported-version"),
+      .string("unreadable"),
     ])
   shapes["DiscoveryDocument"] = Shape(
     kinds: [.object], required: ["version", "kbs"],
@@ -20687,6 +23602,10 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["EventMetadata"] = Shape(
     kinds: [.object], required: ["sequenceNumber"],
     members: ["sequenceNumber": Shape(kinds: [.integer])])
+  shapes["Expected"] = Shape(
+    kinds: [.object], required: ["did"],
+    members: ["did": Shape(kinds: [.string]), "name": Shape(kinds: [.string])],
+    closed: ["did", "name"])
   shapes["ExtractedText"] = Shape(
     kinds: [.object],
     allOf: [
@@ -20764,6 +23683,8 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["FrameAddTagSchemaCommand"] = Shape(
     kinds: [.object], required: ["schema"],
     members: ["_userId": Shape(ref: "UserId"), "schema": Shape(ref: "TagSchema")])
+  shapes["FrameRefusalReason"] = Shape(
+    kinds: [.string], enumeration: [.string("lacks"), .string("malformed")])
   shapes["GatewayConfig"] = Shape(
     kinds: [.object],
     required: [
@@ -20843,6 +23764,14 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object], required: ["resourceId"],
         members: ["resourceId": Shape(ref: "ResourceId")]),
     ])
+  shapes["GatherResourceOptions"] = Shape(
+    kinds: [.object],
+    members: [
+      "depth": Shape(kinds: [.integer], minimum: 1.0, maximum: 3.0),
+      "excludeEntityTypes": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "includeContent": Shape(kinds: [.boolean]), "includeSummary": Shape(kinds: [.boolean]),
+      "maxResources": Shape(kinds: [.integer], minimum: 1.0, maximum: 200.0),
+    ], closed: ["depth", "excludeEntityTypes", "includeContent", "includeSummary", "maxResources"])
   shapes["GatherResourceRequest"] = Shape(
     kinds: [.object], required: ["resourceId", "options"],
     members: [
@@ -21120,6 +24049,10 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object], required: ["limits"],
         members: ["limits": Shape(kinds: [.array], items: Shape(ref: "EngineLimits"))])
     ])
+  shapes["IssuedTokens"] = Shape(
+    kinds: [.object], required: ["access", "refresh"],
+    members: ["access": Shape(kinds: [.string]), "refresh": Shape(kinds: [.string])],
+    closed: ["access", "refresh"])
   shapes["Issuer"] = Shape(
     kinds: [.object], required: ["apiVersion", "kind", "metadata", "spec"],
     members: [
@@ -21329,6 +24262,12 @@ internal let requiredSchemas: [String: Shape] = {
       "metadata": Shape(ref: "JobMetadata"), "params": Shape(ref: "JobParams"),
       "status": Shape(kinds: [.string], enumeration: [.string("pending")]),
     ], closed: ["metadata", "params", "status"])
+  shapes["JobPollOptions"] = Shape(
+    kinds: [.object],
+    members: [
+      "everyMs": Shape(kinds: [.integer], minimum: 0.0),
+      "withinMs": Shape(kinds: [.integer], minimum: 0.0),
+    ], closed: ["everyMs", "withinMs"])
   shapes["JobProgress"] = Shape(
     kinds: [.object], required: ["percentage"],
     members: [
@@ -21529,9 +24468,45 @@ internal let requiredSchemas: [String: Shape] = {
               ], min: 1, max: nil))
         ], minLength: 1), "name": Shape(kinds: [.string], minLength: 1),
     ], closed: ["domain", "name"])
+  shapes["KbIdentityConflict"] = Shape(
+    kinds: [.object], required: ["expectedDid", "observedDid"],
+    members: ["expectedDid": Shape(kinds: [.string]), "observedDid": Shape(kinds: [.string])],
+    closed: ["expectedDid", "observedDid"])
   shapes["KbRead"] = Shape(
     kinds: [.object], required: ["at"],
     members: ["at": Shape(kinds: [.string]), "gitBranch": Shape(kinds: [.string])])
+  shapes["KbReadKind"] = Shape(
+    kinds: [.string],
+    enumeration: [.string("recorded"), .string("conflict"), .string("no-verdict")])
+  shapes["KbReadVerdict"] = Shape(
+    kinds: [.object],
+    oneOf: [
+      Shape(
+        kinds: [.object], required: ["kind"],
+        members: [
+          "kind": Shape(
+            kinds: [.string], enumeration: [.string("recorded")], allOf: [Shape(ref: "KbReadKind")])
+        ], closed: ["kind"]),
+      Shape(
+        kinds: [.object], required: ["kind", "observedDid", "observedName"],
+        members: [
+          "kind": Shape(
+            kinds: [.string], enumeration: [.string("conflict")], allOf: [Shape(ref: "KbReadKind")]),
+          "observedDid": Shape(kinds: [.string]), "observedName": Shape(kinds: [.string]),
+        ], closed: ["kind", "observedDid", "observedName"]),
+      Shape(
+        kinds: [.object], required: ["kind"],
+        members: [
+          "kind": Shape(
+            kinds: [.string], enumeration: [.string("no-verdict")],
+            allOf: [Shape(ref: "KbReadKind")])
+        ], closed: ["kind"]),
+    ],
+    discriminator: Discriminator(
+      property: "kind", mapping: ["conflict": 1, "no-verdict": 2, "recorded": 0]))
+  shapes["KbSessionStatus"] = Shape(
+    kinds: [.string],
+    enumeration: [.string("authenticated"), .string("expired"), .string("signed-out")])
   shapes["KbTarget"] = Shape(
     kinds: [.object], required: ["id", "label", "endpoint"],
     members: [
@@ -21943,6 +24918,9 @@ internal let requiredSchemas: [String: Shape] = {
       "resourceId": Shape(ref: "ResourceId"),
       "updatedEntityTypes": Shape(kinds: [.array], items: Shape(kinds: [.string])),
     ])
+  shapes["MatchQuality"] = Shape(
+    kinds: [.string],
+    enumeration: [.string("normalized"), .string("case-insensitive"), .string("fuzzy")])
   shapes["MatchResourcesRequest"] = Shape(
     kinds: [.object], required: ["search"],
     members: [
@@ -21970,6 +24948,12 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object], required: ["referenceId"],
         members: ["referenceId": Shape(ref: "AnnotationId")]),
     ])
+  shapes["MatchSearchOptions"] = Shape(
+    kinds: [.object],
+    members: [
+      "limit": Shape(kinds: [.integer], minimum: 1.0, maximum: 200.0),
+      "useSemanticScoring": Shape(kinds: [.boolean]),
+    ], closed: ["limit", "useSemanticScoring"])
   shapes["MatchSearchRequest"] = Shape(
     kinds: [.object], required: ["resourceId", "referenceId", "context"],
     members: [
@@ -22095,6 +25079,12 @@ internal let requiredSchemas: [String: Shape] = {
       .string("A"), .string("B"), .string("C"), .string("D"), .string("E"), .string("F"),
       .string("G"),
     ])
+  shapes["PdfCoordinate"] = Shape(
+    kinds: [.object], required: ["page", "x", "y", "width", "height"],
+    members: [
+      "height": Shape(kinds: [.number]), "page": Shape(kinds: [.integer]),
+      "width": Shape(kinds: [.number]), "x": Shape(kinds: [.number]), "y": Shape(kinds: [.number]),
+    ], closed: ["height", "page", "width", "x", "y"])
   shapes["PdfTextItem"] = Shape(
     kinds: [.object], required: ["start", "end", "page", "x", "y", "width", "height"],
     members: [
@@ -22102,6 +25092,14 @@ internal let requiredSchemas: [String: Shape] = {
       "page": Shape(kinds: [.integer]), "start": Shape(kinds: [.integer], minimum: 0.0),
       "width": Shape(kinds: [.number]), "x": Shape(kinds: [.number]), "y": Shape(kinds: [.number]),
     ])
+  shapes["PendingAnnotation"] = Shape(
+    kinds: [.object], required: ["selector", "motivation"],
+    members: [
+      "motivation": Shape(ref: "Motivation"), "selector": Shape(ref: "AnnotationSelector"),
+    ], closed: ["motivation", "selector"])
+  shapes["PermissionDenied"] = Shape(
+    kinds: [.object], required: ["detail"], members: ["detail": Shape(kinds: [.string, .null])],
+    closed: ["detail"])
   shapes["PersistedEventId"] = Shape(
     kinds: [.string],
     pattern: [
@@ -22180,6 +25178,51 @@ internal let requiredSchemas: [String: Shape] = {
       "tokenEnv": Shape(kinds: [.string], minLength: 1),
       "type": Shape(kinds: [.string], enumeration: [.string("qdrant")]),
     ], closed: ["host", "port", "tokenEnv", "type"])
+  shapes["QuotedText"] = Shape(
+    kinds: [.object], required: ["exact"],
+    members: [
+      "exact": Shape(kinds: [.string]), "prefix": Shape(kinds: [.string]),
+      "suffix": Shape(kinds: [.string]),
+    ], closed: ["exact", "prefix", "suffix"])
+  shapes["ReconciledSpan"] = Shape(
+    kinds: [.object],
+    oneOf: [
+      Shape(
+        kinds: [.object], required: ["start", "end", "exact", "anchorMethod"],
+        members: [
+          "anchorMethod": Shape(kinds: [.string], enumeration: [.string("unique-match")]),
+          "end": Shape(kinds: [.integer], minimum: 0.0), "exact": Shape(kinds: [.string]),
+          "prefix": Shape(kinds: [.string]), "start": Shape(kinds: [.integer], minimum: 0.0),
+          "suffix": Shape(kinds: [.string]),
+        ], closed: ["anchorMethod", "end", "exact", "prefix", "start", "suffix"]),
+      Shape(
+        kinds: [.object], required: ["start", "end", "exact", "anchorMethod"],
+        members: [
+          "anchorMethod": Shape(kinds: [.string], enumeration: [.string("context-recovered")]),
+          "end": Shape(kinds: [.integer], minimum: 0.0), "exact": Shape(kinds: [.string]),
+          "prefix": Shape(kinds: [.string]), "start": Shape(kinds: [.integer], minimum: 0.0),
+          "suffix": Shape(kinds: [.string]),
+        ], closed: ["anchorMethod", "end", "exact", "prefix", "start", "suffix"]),
+      Shape(
+        kinds: [.object], required: ["start", "end", "exact", "anchorMethod"],
+        members: [
+          "anchorMethod": Shape(kinds: [.string], enumeration: [.string("first-of-many")]),
+          "end": Shape(kinds: [.integer], minimum: 0.0), "exact": Shape(kinds: [.string]),
+          "prefix": Shape(kinds: [.string]), "start": Shape(kinds: [.integer], minimum: 0.0),
+          "suffix": Shape(kinds: [.string]),
+        ], closed: ["anchorMethod", "end", "exact", "prefix", "start", "suffix"]),
+      Shape(
+        kinds: [.object], required: ["start", "end", "exact", "anchorMethod", "matchQuality"],
+        members: [
+          "anchorMethod": Shape(kinds: [.string], enumeration: [.string("fuzzy-match")]),
+          "end": Shape(kinds: [.integer], minimum: 0.0), "exact": Shape(kinds: [.string]),
+          "matchQuality": Shape(ref: "MatchQuality"), "prefix": Shape(kinds: [.string]),
+          "start": Shape(kinds: [.integer], minimum: 0.0), "suffix": Shape(kinds: [.string]),
+        ], closed: ["anchorMethod", "end", "exact", "matchQuality", "prefix", "start", "suffix"]),
+    ],
+    discriminator: Discriminator(
+      property: "anchorMethod",
+      mapping: ["context-recovered": 1, "first-of-many": 2, "fuzzy-match": 3, "unique-match": 0]))
   shapes["ReplyEventId"] = Shape(
     kinds: [.string],
     pattern: [
@@ -22316,6 +25359,13 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["ResourceMovedPayload"] = Shape(
     kinds: [.object], required: ["fromUri", "toUri"],
     members: ["fromUri": Shape(kinds: [.string]), "toUri": Shape(kinds: [.string])])
+  shapes["ResourceSearchFilters"] = Shape(
+    kinds: [.object],
+    members: [
+      "archived": Shape(kinds: [.boolean]), "entityType": Shape(kinds: [.string]),
+      "limit": Shape(kinds: [.integer], minimum: 1.0, maximum: 200.0),
+      "offset": Shape(kinds: [.integer], minimum: 0.0),
+    ], closed: ["archived", "entityType", "limit", "offset"])
   shapes["ResourceUnarchivedPayload"] = Shape(kinds: [.object])
   shapes["ResourceUpdatedPayload"] = Shape(
     kinds: [.object], required: ["contentChecksum"],
@@ -22607,6 +25657,11 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.string],
         enumeration: [.string("valid"), .string("expired"), .string("unverified"), .string("none")]),
     ], closed: ["email", "state"])
+  shapes["SessionEndReason"] = Shape(
+    kinds: [.string], enumeration: [.string("expired"), .string("refused")])
+  shapes["SessionEnded"] = Shape(
+    kinds: [.object], required: ["reason"], members: ["reason": Shape(ref: "SessionEndReason")],
+    closed: ["reason"])
   shapes["SessionJoinedEvent"] = Shape(
     kinds: [.object], required: ["participant", "connectionId"],
     members: ["connectionId": Shape(kinds: [.string]), "participant": Shape(ref: "UserId")])
@@ -22679,6 +25734,17 @@ internal let requiredSchemas: [String: Shape] = {
       "apiVersion": Shape(ref: "ApiVersion"), "default": Shape(kinds: [.boolean]),
       "name": Shape(kinds: [.string], minLength: 1), "root": Shape(kinds: [.string], minLength: 1),
     ], closed: ["apiVersion", "default", "name", "root"])
+  shapes["SignInOutcome"] = Shape(
+    kinds: [.object], required: ["kb"],
+    members: ["expected": Shape(ref: "Expected"), "kb": Shape(ref: "KnowledgeBase")],
+    closed: ["expected", "kb"])
+  shapes["SignedIn"] = Shape(
+    kinds: [.object], required: ["endpoint", "description", "session"],
+    members: [
+      "description": Shape(ref: "KbDescription"), "endpoint": Shape(ref: "KbEndpoint"),
+      "expectedDid": Shape(kinds: [.string]), "expectedName": Shape(kinds: [.string]),
+      "kbId": Shape(kinds: [.string]), "session": Shape(ref: "StoredSession"),
+    ], closed: ["description", "endpoint", "expectedDid", "expectedName", "kbId", "session"])
   shapes["SmeltRebuildAnchorsCommand"] = Shape(
     kinds: [.object],
     members: ["_userId": Shape(ref: "UserId"), "resourceId": Shape(ref: "ResourceId")])
@@ -22938,6 +26004,13 @@ internal let requiredSchemas: [String: Shape] = {
       "timestamp": Shape(kinds: [.string]), "type": Shape(kinds: [.string]),
       "userId": Shape(ref: "UserId"), "version": Shape(kinds: [.integer]),
     ])
+  shapes["StoredSession"] = Shape(
+    kinds: [.object], required: ["access", "refresh", "clientId", "tokenEndpoint"],
+    members: [
+      "access": Shape(kinds: [.string]), "clientId": Shape(kinds: [.string]),
+      "personKey": Shape(kinds: [.string]), "refresh": Shape(kinds: [.string]),
+      "revocationEndpoint": Shape(kinds: [.string]), "tokenEndpoint": Shape(kinds: [.string]),
+    ])
   shapes["SupportedMediaType"] = Shape(
     kinds: [.string],
     enumeration: [
@@ -22971,6 +26044,33 @@ internal let requiredSchemas: [String: Shape] = {
       "type": Shape(kinds: [.string], enumeration: [.string("SvgSelector")]),
       "value": Shape(kinds: [.string]),
     ])
+  shapes["TabCheck"] = Shape(
+    kinds: [.object],
+    oneOf: [
+      Shape(
+        kinds: [.object], required: ["verdict"],
+        members: [
+          "verdict": Shape(
+            kinds: [.string], enumeration: [.string("gone")], allOf: [Shape(ref: "TabVerdict")])
+        ], closed: ["verdict"]),
+      Shape(
+        kinds: [.object], required: ["verdict", "name"],
+        members: [
+          "mediaType": Shape(kinds: [.string]), "name": Shape(kinds: [.string]),
+          "verdict": Shape(
+            kinds: [.string], enumeration: [.string("ready")], allOf: [Shape(ref: "TabVerdict")]),
+        ], closed: ["mediaType", "name", "verdict"]),
+      Shape(
+        kinds: [.object], required: ["verdict"],
+        members: [
+          "verdict": Shape(
+            kinds: [.string], enumeration: [.string("unknown")], allOf: [Shape(ref: "TabVerdict")])
+        ], closed: ["verdict"]),
+    ],
+    discriminator: Discriminator(
+      property: "verdict", mapping: ["gone": 0, "ready": 1, "unknown": 2]))
+  shapes["TabVerdict"] = Shape(
+    kinds: [.string], enumeration: [.string("gone"), .string("ready"), .string("unknown")])
   shapes["TagCategory"] = Shape(
     kinds: [.object], required: ["name", "description", "examples"],
     members: [
@@ -23044,6 +26144,13 @@ internal let requiredSchemas: [String: Shape] = {
       "suffix": Shape(kinds: [.string]),
       "type": Shape(kinds: [.string], enumeration: [.string("TextQuoteSelector")]),
     ])
+  shapes["TextSpan"] = Shape(
+    kinds: [.object], required: ["start", "end", "exact"],
+    members: [
+      "end": Shape(kinds: [.integer], minimum: 0.0), "exact": Shape(kinds: [.string]),
+      "prefix": Shape(kinds: [.string]), "start": Shape(kinds: [.integer], minimum: 0.0),
+      "suffix": Shape(kinds: [.string]),
+    ], closed: ["end", "exact", "prefix", "start", "suffix"])
   shapes["TextualBody"] = Shape(
     kinds: [.object], required: ["type", "value"],
     members: [
@@ -23067,6 +26174,31 @@ internal let requiredSchemas: [String: Shape] = {
       "operations": Shape(kinds: [.array], minItems: 1, items: Shape(ref: "BodyOperation")),
       "resourceId": Shape(ref: "ResourceId"),
     ])
+  shapes["UploadProgress"] = Shape(
+    kinds: [.object],
+    oneOf: [
+      Shape(
+        kinds: [.object], required: ["phase", "totalBytes"],
+        members: [
+          "phase": Shape(kinds: [.string], enumeration: [.string("started")]),
+          "totalBytes": Shape(kinds: [.integer], minimum: 0.0),
+        ], closed: ["phase", "totalBytes"]),
+      Shape(
+        kinds: [.object], required: ["phase", "bytesUploaded", "totalBytes"],
+        members: [
+          "bytesUploaded": Shape(kinds: [.integer], minimum: 0.0),
+          "phase": Shape(kinds: [.string], enumeration: [.string("progress")]),
+          "totalBytes": Shape(kinds: [.integer], minimum: 0.0),
+        ], closed: ["bytesUploaded", "phase", "totalBytes"]),
+      Shape(
+        kinds: [.object], required: ["phase", "resourceId"],
+        members: [
+          "phase": Shape(kinds: [.string], enumeration: [.string("finished")]),
+          "resourceId": Shape(ref: "ResourceId"),
+        ], closed: ["phase", "resourceId"]),
+    ],
+    discriminator: Discriminator(
+      property: "phase", mapping: ["finished": 2, "progress": 1, "started": 0]))
   shapes["UserAction"] = Shape(
     kinds: [.object], required: ["requestId", "verificationUri", "userCode", "expiresInSeconds"],
     members: [
@@ -23738,3 +26870,110 @@ extension KeptQuery {
 internal let wholeKey = "_"
 internal let cacheDocumentVersion = 1
 internal let keptPlace = "PersistedEventId"
+public struct ControlMethod<Params: Codable & Sendable, Result: Codable & Sendable>: Sendable {
+  public let name: String
+  public let exclusive: Bool
+  public let sends: [String]
+}
+public enum ControlParty: String, Codable, Sendable, CaseIterable {
+  case client = "client"
+  case launcher = "launcher"
+}
+public struct ControlNotification<Params: Codable & Sendable>: Sendable {
+  public let name: String
+  public let from: ControlParty
+}
+public enum Control {
+  /// What the launcher is: its version, the API versions it speaks, the runtimes it detects. It
+  /// reads none of the machine's state.
+  public static let launcherAbout: ControlMethod<AboutParams, AboutResult> = .init(
+    name: "launcher.about", exclusive: false, sends: [])
+  /// Every knowledge base this machine knows: xynolog roots.
+  public static let rootsList: ControlMethod<RootsListParams, RootsListResult> = .init(
+    name: "roots.list", exclusive: true, sends: [])
+  /// Create and register a new local knowledge base: xynolog init.
+  public static let rootsInit: ControlMethod<RootsInitParams, RootsInitResult> = .init(
+    name: "roots.init", exclusive: true, sends: ["notifications/progress"])
+  /// Remove one registry row, and no file: xynolog forget.
+  public static let rootsForget: ControlMethod<RootsForgetParams, RootsForgetResult> = .init(
+    name: "roots.forget", exclusive: true, sends: [])
+  /// Each knowledge base's stack, and the services they share: xynolog status.
+  public static let statusSnapshot: ControlMethod<StatusSnapshotParams, StatusSnapshotResult> =
+    .init(name: "status.snapshot", exclusive: true, sends: [])
+  /// Start a stack, or some of its services: xynolog start.
+  public static let stackStart: ControlMethod<StackStartParams, StackStartResult> = .init(
+    name: "stack.start", exclusive: true, sends: [])
+  /// Stop a stack, or some of its services: xynolog stop.
+  public static let stackStop: ControlMethod<StackStopParams, StackStopResult> = .init(
+    name: "stack.stop", exclusive: true, sends: [])
+  /// Sign in at the issuer a stack's knowledge base trusts, by the device grant, and keep the
+  /// session in the launcher's store: xynolog login. Exclusive while it finds the stack; the wait
+  /// for the person is not.
+  public static let authLogin: ControlMethod<AuthLoginParams, AuthLoginResult> = .init(
+    name: "auth.login", exclusive: true, sends: ["notifications/userAction"])
+  /// End the launcher's session for a stack: xynolog logout.
+  public static let authLogout: ControlMethod<AuthLogoutParams, AuthLogoutResult> = .init(
+    name: "auth.logout", exclusive: true, sends: [])
+  /// Create an account in a local knowledge base's launcher-managed Keycloak realm: xynolog
+  /// useradd. A supplied password is secret request data and is never narrated or persisted; a
+  /// generated password is returned once in the result.
+  public static let identityUseradd: ControlMethod<IdentityUseraddParams, IdentityUseraddResult> =
+    .init(name: "identity.useradd", exclusive: true, sends: [])
+  /// List accounts in one local knowledge base's launcher-managed Keycloak realm. Passwords and
+  /// tokens are never returned.
+  public static let identityUsersList:
+    ControlMethod<IdentityUsersListParams, IdentityUsersListResult> = .init(
+      name: "identity.users.list", exclusive: true, sends: [])
+  /// Follow a stack's service logs until the client cancels or every source ends: xynolog logs.
+  /// Exclusive while it finds the containers; the follow is not.
+  public static let logsFollow: ControlMethod<LogsFollowParams, LogsFollowResult> = .init(
+    name: "logs.follow", exclusive: true, sends: ["notifications/log"])
+  /// Every setting the launcher keeps: xynolog settings.
+  public static let settingsList: ControlMethod<SettingsListParams, SettingsListResult> = .init(
+    name: "settings.list", exclusive: true, sends: [])
+  /// One setting: xynolog settings <name>.
+  public static let settingsGet: ControlMethod<SettingsGetParams, Setting> = .init(
+    name: "settings.get", exclusive: true, sends: [])
+  /// Set a setting, checked as a start would check it: xynolog settings <name> <value>.
+  public static let settingsSet: ControlMethod<SettingsSetParams, Setting> = .init(
+    name: "settings.set", exclusive: true, sends: [])
+  /// Return a setting to its default: xynolog settings <name> --unset.
+  public static let settingsUnset: ControlMethod<SettingsUnsetParams, Setting> = .init(
+    name: "settings.unset", exclusive: true, sends: [])
+  /// Where a machine document is: xynolog settings <document> --path.
+  public static let settingsPath: ControlMethod<SettingsPathParams, SettingsPathResult> = .init(
+    name: "settings.path", exclusive: true, sends: [])
+  /// Where this machine and a run's instance meet under a runtime: the host address an instance's
+  /// ports are published on and its dials of this machine go to. A caller asks it before it writes
+  /// an instance's document.
+  public static let serviceHost: ControlMethod<ServiceHostParams, ServiceHostResult> = .init(
+    name: "service.host", exclusive: false, sends: [])
+  /// Run one instance of a knowledge base's own service once, from the image its stack documents
+  /// name, unsupervised, on the caller's document, arguments, environment and mounts, and answer
+  /// when it exits: xynolog run. Exclusive until its container runs; the wait for its exit is not.
+  public static let serviceRun: ControlMethod<ServiceRunParams, ServiceRunResult> = .init(
+    name: "service.run", exclusive: true,
+    sends: ["notifications/serviceStarted", "notifications/serviceOutput"])
+  /// Send a run's instance SIGTERM, then SIGKILL if it outlives 15 seconds, or SIGKILL at once:
+  /// xynolog signal.
+  public static let serviceSignal: ControlMethod<ServiceSignalParams, ServiceSignalResult> = .init(
+    name: "service.signal", exclusive: false, sends: [])
+  /// A line of what a request is doing.
+  public static let notificationsProgress: ControlNotification<Progress> = .init(
+    name: "notifications/progress", from: .launcher)
+  /// A sign-in waits for a person to enter a code.
+  public static let notificationsUserAction: ControlNotification<UserAction> = .init(
+    name: "notifications/userAction", from: .launcher)
+  /// A line a followed service wrote.
+  public static let notificationsLog: ControlNotification<LogRecord> = .init(
+    name: "notifications/log", from: .launcher)
+  /// A run's instance is running.
+  public static let notificationsServiceStarted: ControlNotification<ServiceStarted> = .init(
+    name: "notifications/serviceStarted", from: .launcher)
+  /// A line a run's instance wrote.
+  public static let notificationsServiceOutput: ControlNotification<ServiceOutput> = .init(
+    name: "notifications/serviceOutput", from: .launcher)
+  /// The client gives up on a request.
+  public static let notificationsCancelled: ControlNotification<Cancelled> = .init(
+    name: "notifications/cancelled", from: .client)
+}

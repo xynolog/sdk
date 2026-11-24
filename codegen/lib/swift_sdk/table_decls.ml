@@ -222,7 +222,7 @@ let typing_rows ~key type_ = function
 
 let timings (entries : Timing.Table.t) =
   [
-    decl [ "internal" ]
+    decl [ "public" ]
       (S.Struct
          {
            name = "RetryBudget";
@@ -232,7 +232,7 @@ let timings (entries : Timing.Table.t) =
            members =
              List.map
                (fun n ->
-                 decl []
+                 decl [ "public" ]
                    (S.Property
                       {
                         var = false;
@@ -242,7 +242,7 @@ let timings (entries : Timing.Table.t) =
                       }))
                [ "attempts"; "initialDelayMs"; "maxDelayMs" ];
          });
-    decl [ "internal" ]
+    decl [ "public" ]
       (S.Enum
          {
            name = "Timings";
@@ -253,10 +253,11 @@ let timings (entries : Timing.Table.t) =
                (fun (entry : Timing.Table.entry) ->
                  match entry.value with
                  | Duration n | Count n ->
-                     constant [ "static" ] entry.name (Some (S.Named "Int"))
+                     constant [ "public"; "static" ] entry.name
+                       (Some (S.Named "Int"))
                        (S.Int n)
                  | Budget { attempts; initial_delay_ms; max_delay_ms } ->
-                     constant [ "static" ] entry.name None
+                     constant [ "public"; "static" ] entry.name None
                        (labelled (name "RetryBudget")
                           [
                             arg "attempts" (S.Int attempts);
@@ -641,7 +642,8 @@ let channel_types =
     structure n [ "Payload" ] [ S.Named "Sendable" ]
       [
         field ~modifiers:[ "public" ] "name" string_type;
-        field "stamps" (S.Generic ("Set", [ string_type ]));
+        field ~modifiers:[ "public" ] "stamps"
+          (S.Generic ("Set", [ string_type ]));
       ]
   in
   [
@@ -653,10 +655,13 @@ let channel_types =
       [ "Request"; "Result"; "Failure" ]
       [ S.Named "Sendable" ]
       [
-        field "request" (S.Generic ("Channel", [ S.Named "Request" ]));
-        field "result" (S.Generic ("Channel", [ S.Named "Result" ]));
-        field "failure" (S.Generic ("Channel", [ S.Named "Failure" ]));
-        field "replyNames" (S.Array_of string_type);
+        field ~modifiers:[ "public" ] "request"
+          (S.Generic ("Channel", [ S.Named "Request" ]));
+        field ~modifiers:[ "public" ] "result"
+          (S.Generic ("Channel", [ S.Named "Result" ]));
+        field ~modifiers:[ "public" ] "failure"
+          (S.Generic ("Channel", [ S.Named "Failure" ]));
+        field ~modifiers:[ "public" ] "replyNames" (S.Array_of string_type);
       ];
   ]
 
@@ -917,8 +922,8 @@ let channels models ~shapes (registry : Tables.Bus_registry.t) =
               "The channels delivered to a transport for each resource whose \
                scope it holds, as the registry orders them.";
             ]
-          [ "package" ] "resourceScopedChannels" None (strings scoped);
-        constant [ "internal" ] "storedEventChannels" None
+          [ "public" ] "resourceScopedChannels" None (strings scoped);
+        constant [ "public" ] "persistedEventTypes" None
           (strings (List.rev !stored_events));
         shape_table "requiredSchemas"
           (List.map (fun (n, s) -> (n, shape_literal s)) shapes);
@@ -1242,6 +1247,107 @@ let kept models ~shapes (refresh : Tables.Client_refresh.t)
       constant [ "internal" ] "keptPlace" None (S.String place);
     ]
 
+(* Control *)
+
+(* The control API's methods and notifications (control/methods.json), each
+   by the types of what it carries, and who sends a notification. *)
+let control models (spec : Spec.t) =
+  let module T = Tables.Control_methods in
+  let t = spec.tables.control_methods in
+  let named =
+    match Schema_names.named spec with
+    | Ok named -> named
+    | Error message -> refuse "%s" message
+  in
+  let type_of target =
+    let file, _ =
+      Decode.resolve spec.ids
+        { Decode.target; file = "control/methods.json"; pointer = "" }
+    in
+    match named file with
+    | Some n -> M.named models n
+    | None -> refuse "control/methods.json names %s, which no type is" target
+  in
+  let party = function T.Client -> "client" | T.Launcher -> "launcher" in
+  let generic n =
+    {
+      S.name = n;
+      conforms = S.Composition [ S.Named "Codable"; S.Named "Sendable" ];
+    }
+  in
+  let field n type_ =
+    decl [ "public" ]
+      (S.Property { var = false; name = n; type_ = Some type_; value = None })
+  in
+  let structure n generics members =
+    decl [ "public" ]
+      (S.Struct
+         {
+           name = n;
+           generics = List.map generic generics;
+           inherits = [ S.Named "Sendable" ];
+           layout = S.Lines;
+           members;
+         })
+  in
+  let entry docs n type_ args =
+    decl
+      ~doc:(Text.wrapped ~lead:"  /// " ~width:100 docs)
+      [ "public"; "static" ]
+      (S.Property
+         {
+           var = false;
+           name = M.member_name n;
+           type_ = Some type_;
+           value = Some (labelled (S.Implicit_member "init") args);
+         })
+  in
+  let methods =
+    List.map
+      (fun (m : T.methods_item) ->
+        entry m.docs m.name
+          (S.Generic ("ControlMethod", [ type_of m.params; type_of m.result ]))
+          [
+            arg "name" (S.String m.name);
+            arg "exclusive" (S.Bool m.exclusive);
+            arg "sends" (strings m.sends);
+          ])
+      t.methods
+  in
+  let notifications =
+    List.map
+      (fun (n : T.notifications_item) ->
+        entry n.docs n.name
+          (S.Generic ("ControlNotification", [ type_of n.params ]))
+          [
+            arg "name" (S.String n.name);
+            arg "from" (case (party n.from));
+          ])
+      t.notifications
+  in
+  [
+    structure "ControlMethod" [ "Params"; "Result" ]
+      [
+        field "name" string_type;
+        field "exclusive" (S.Named "Bool");
+        field "sends" (S.Array_of string_type);
+      ];
+    string_enumeration [ "public" ] "ControlParty"
+      (List.sort_uniq String.compare
+         (List.map (fun (n : T.notifications_item) -> party n.from)
+            t.notifications));
+    structure "ControlNotification" [ "Params" ]
+      [ field "name" string_type; field "from" (S.Named "ControlParty") ];
+    decl [ "public" ]
+      (S.Enum
+         {
+           name = "Control";
+           inherits = [];
+           layout = S.Lines;
+           members = methods @ notifications;
+         });
+  ]
+
 (* Every table declaration, in the order the SDK's file holds them. *)
 let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
     ~user_field =
@@ -1357,12 +1463,12 @@ let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
           | None -> shape
         in
         let type_ = M.type_ models "Spec" n shape in
-        constant [ "internal" ] n (Some type_)
+        constant [ "public" ] n (Some type_)
           (expression models value shape ~owner:"Spec" ~part:n))
       (Spec_values.all tables)
   in
   let aliases =
-    constant [ "internal" ] "extensionAliases"
+    constant [ "public" ] "extensionAliases"
       (Some (M.dictionary_of string_type))
       (S.Dictionary
          ( S.Lines,
@@ -1373,10 +1479,10 @@ let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
                 tables.media_types_registry.extension_aliases) ))
   in
   let trace =
-    constant [ "internal" ] "traceField" None
+    constant [ "public" ] "traceField" None
       (S.String tables.bus_registry.trace.field)
   in
-  let user = constant [ "internal" ] "userField" None (S.String user_field) in
+  let user = constant [ "public" ] "userField" None (S.String user_field) in
   let channel_decls, channels = channels models ~shapes tables.bus_registry in
   let refresh = cache_refresh tables.client_refresh ~channels in
   let kept_decls =
@@ -1385,4 +1491,4 @@ let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
   [ received_frame ] @ timings timing
   @ [ telemetry "TransportSpan" spans; telemetry "TransportMetric" metrics ]
   @ error_decls @ values @ [ aliases; trace; user ] @ channel_decls @ refresh
-  @ kept_decls
+  @ kept_decls @ control models spec

@@ -597,7 +597,9 @@ private struct UnexpectedStatusFailure: Error {}
       JobStatusResult(response: statusFixture(status: count == 1 ? .pending : .complete)))
   }
   let statuses = Mutex<[JobStatusResponseStatus]>([])
-  _ = try await client.job.pollUntilComplete(JobId("job-1"), intervalMs: 1, timeoutMs: 10000) {
+  _ = try await client.job.pollUntilComplete(
+    JobId("job-1"), options: JobPollOptions(everyMs: 1, withinMs: 10000)
+  ) {
     value in statuses.withLock { $0.append(value.status) }
   }
   #expect(statuses.withLock { $0 } == [.pending, .complete])
@@ -619,7 +621,8 @@ func jobPollingDeadlineBoundsRequestsAndIntervals(unanswered: Bool) async throws
   }
   let deadline = clock.now.advanced(by: .milliseconds(2000))
   let polling = Task {
-    try await client.job.pollUntilComplete(JobId("job-1"), intervalMs: 60000, timeoutMs: 2000)
+    try await client.job.pollUntilComplete(
+      JobId("job-1"), options: JobPollOptions(everyMs: 60000, withinMs: 2000))
   }
   // The request's bound sleeps until the deadline; answered, so does the interval after it.
   let waits = unanswered ? 1 : 2

@@ -12,21 +12,12 @@ public let jobCommitChannels = [
   Operations.browseAnnotationRequested.failure.name,
 ].sorted()
 
-public struct WorkerTiming: Sendable {
-  public let claimTimeoutMs: Int
-  public let stallMs: Int
-  public let stallCheckMs: Int
-  public let commitTimeoutMs: Int
-
-  public init(
-    claimTimeoutMs: Int? = nil, stallMs: Int? = nil, stallCheckMs: Int? = nil,
-    commitTimeoutMs: Int? = nil
-  ) {
-    self.claimTimeoutMs = claimTimeoutMs ?? Timings.jobClaimTimeoutMs
-    self.stallMs = stallMs ?? Timings.heldJobStallMs
-    self.stallCheckMs = max(1, stallCheckMs ?? Timings.heldJobStallCheckMs)
-    self.commitTimeoutMs = commitTimeoutMs ?? Timings.markCommitTimeoutMs
-  }
+/// Each wait a claiming keeps: the one its options name, else client/timing.json's of that name.
+extension ClaimOptions {
+  var claimTimeoutMs: Int { jobClaimTimeoutMs ?? Timings.jobClaimTimeoutMs }
+  var stallMs: Int { heldJobStallMs ?? Timings.heldJobStallMs }
+  var stallCheckMs: Int { max(1, heldJobStallCheckMs ?? Timings.heldJobStallCheckMs) }
+  var commitTimeoutMs: Int { markCommitTimeoutMs ?? Timings.markCommitTimeoutMs }
 }
 
 public struct ClaimRefusal: Error, Sendable {
@@ -86,7 +77,7 @@ public func willRetryAfter(retryCount: Int, maxRetries: Int, failureClass: Failu
 public actor Claims: AsyncSequence {
   public typealias Element = any HeldJob
   private let transport: any Transport
-  private let timing: WorkerTiming
+  private let options: ClaimOptions
   private let clock: any Clock<Duration>
   private let command: JobClaimCommand
   private let filters: [JSONValue]
@@ -96,6 +87,21 @@ public actor Claims: AsyncSequence {
   private let stalls = Broadcast<HeldJobStall>(keepingForFirst: true)
   private var currentVitals = WorkerVitals()
   public var vitals: WorkerVitals { currentVitals }
+
+  /// What `engine`, claiming with these claims, says of itself to a worker's health endpoint: the
+  /// engine, the jobs the claims accept, and their vitals.
+  public func health(of engine: Engine) -> WorkerEngineHealth {
+    let vitals = currentVitals
+    return WorkerEngineHealth(
+      activeJob: vitals.activeJob.map {
+        WorkerEngineHealthActiveJob(jobId: $0.jobId, since: dateTime($0.since), type: $0.jobType)
+      }, engine: engine, jobs: options.accepts, jobsCompleted: vitals.jobsCompleted,
+      lastActivityAt: vitals.lastActivityAt.map(dateTime),
+      lastClaimAt: vitals.lastClaimAt.map(dateTime),
+      lastFinishedAt: vitals.lastFinishedAt.map(dateTime),
+      lastQueuedEventAt: vitals.lastQueuedEventAt.map(dateTime))
+  }
+
   private let iterated = Mutex(false)
   private var readers: [Task<Void, Never>] = []
   private var claimTask: Task<Void, Never>?
@@ -108,15 +114,14 @@ public actor Claims: AsyncSequence {
   private var stallReported = false
 
   init(
-    accepts: [JobFilter], transport: any Transport, lifetime: Lifetime, timing: WorkerTiming,
-    clock: any Clock<Duration>
+    options: ClaimOptions, transport: any Transport, lifetime: Lifetime, clock: any Clock<Duration>
   ) {
-    self.command = JobClaimCommand(accepts: accepts)
-    self.filters = accepts.compactMap { filter in
+    self.command = JobClaimCommand(accepts: options.accepts)
+    self.filters = options.accepts.compactMap { filter in
       (try? wirePayload(filter)).map(JSONValue.object)
     }
     self.transport = transport
-    self.timing = timing
+    self.options = options
     self.clock = clock
     (self.stream, self.jobs) = AsyncStream.makeStream()
     lifetime.onEnd { [weak self] in spawn { await self?.abandon() } }
@@ -155,7 +160,7 @@ public actor Claims: AsyncSequence {
   /// one who comes after the claims have ended, nothing.
   public nonisolated func refused() -> Events<ClaimRefusal> { refusals.listen() }
 
-  /// Each held job that showed no activity for longer than `WorkerTiming.stallMs`, once for each
+  /// Each held job that showed no activity for longer than `ClaimOptions.heldJobStallMs`, once for each
   /// job. The first listener is given first the latest `Timings.errorsKeptForFirstReaderCount`
   /// stalled before it listened; one who comes after the claims have ended, nothing.
   public nonisolated func stalled() -> Events<HeldJobStall> { stalls.listen() }
@@ -163,7 +168,7 @@ public actor Claims: AsyncSequence {
   private func begin() async {
     guard readers.isEmpty, !stopped else { return }
     let transport = transport
-    let timing = timing
+    let options = options
     let clock = clock
     readers.append(
       spawn { [weak self] in
@@ -182,7 +187,7 @@ public actor Claims: AsyncSequence {
     readers.append(
       spawn { [weak self] in
         while !Task.isCancelled {
-          do { try await sleepMilliseconds(timing.stallCheckMs, on: clock) } catch { return }
+          do { try await sleepMilliseconds(options.stallCheckMs, on: clock) } catch { return }
           await self?.checkStall()
         }
       })
@@ -236,13 +241,13 @@ public actor Claims: AsyncSequence {
     wakeOwed = false
     let transport = transport
     let command = command
-    let timing = timing
+    let options = options
     let clock = clock
     claimTask = spawn { [weak self] in
       do {
         let frame = try await resultOf(
           Operations.jobClaim.request.name, wirePayload(command), over: transport,
-          timeoutMs: timing.claimTimeoutMs, clock: clock, parent: [:])
+          timeoutMs: options.claimTimeoutMs, clock: clock, parent: [:])
         let answer = try JSONDecoder().decode(
           JobClaimedResult.self, from: JSONEncoder().encode(frame.payload))
         await self?.take(answer.response, trace: frame.trace)
@@ -258,11 +263,11 @@ public actor Claims: AsyncSequence {
     switch record.metadata.type {
     case .mark:
       job = HeldWork<MarkJobResult>(
-        record: record, trace: trace, transport: transport, owner: self, timing: timing,
+        record: record, trace: trace, transport: transport, owner: self, options: options,
         clock: clock)
     case .yield:
       job = HeldWork<YieldJobResult>(
-        record: record, trace: trace, transport: transport, owner: self, timing: timing,
+        record: record, trace: trace, transport: transport, owner: self, options: options,
         clock: clock)
     }
     if stopped {
@@ -314,7 +319,7 @@ public actor Claims: AsyncSequence {
       let lastActivityAt = currentVitals.lastActivityAt
     else { return }
     let silence = sinceActivity()
-    let threshold = Duration.milliseconds(timing.stallMs)
+    let threshold = Duration.milliseconds(options.stallMs)
     if silence > threshold {
       stallReported = true
       stalls.yield(

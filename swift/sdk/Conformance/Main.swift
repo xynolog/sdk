@@ -47,9 +47,9 @@ func encoded<Value: Encodable>(_ value: Value) throws -> JSONValue {
   try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode(value))
 }
 actor Output {
-  func say(_ object: [String: JSONValue]) {
+  func say(_ line: ConformanceDriverLine) {
     do {
-      var data = try JSONEncoder().encode(object)
+      var data = try JSONEncoder().encode(line)
       data.append(10)
       FileHandle.standardOutput.write(data)
     } catch { FileHandle.standardError.write(Data("Cannot encode driver output: \(error)\n".utf8)) }
@@ -64,20 +64,16 @@ func failuresTold(by transport: any Transport) -> (
   transport.tellFailures { telling.yield($0) }
   return (told, telling)
 }
-func failure(_ error: any Error) -> JSONValue {
-  var fields: [String: JSONValue] = ["detail": .string(String(describing: error))]
-  if let error = error as? TransportError {
-    fields["code"] = .string(error.code)
-    if let status = error.status { fields["status"] = .number(Double(status)) }
-  } else if let error = error as? BusRequestError {
-    fields["code"] = .string(error.code)
-  } else if let error = error as? JobError {
-    fields["code"] = .string(error.code)
-    if let classification = error.failureClass {
-      fields["failureClass"] = .string(classification.rawValue)
-    }
+func failure(_ error: any Error) -> ConformanceFailure {
+  let detail = String(describing: error)
+  return switch error {
+  case let error as TransportError:
+    ConformanceFailure(code: error.code, detail: detail, status: error.status)
+  case let error as BusRequestError: ConformanceFailure(code: error.code, detail: detail)
+  case let error as JobError:
+    ConformanceFailure(code: error.code, detail: detail, failureClass: error.failureClass)
+  default: ConformanceFailure(detail: detail)
   }
-  return .object(fields)
 }
 private actor Renewals {
   private var tokens: [String]
@@ -122,7 +118,7 @@ private actor Driver {
     let operations =
       worker != nil ? WorkerDriver.operations : live != nil ? LiveDriver.operations : supported
     guard operations.contains(op) else {
-      await output.say(["id": .number(Double(id)), "unsupported": .bool(true)])
+      await output.say(.unsupported(ConformanceDriverLineUnsupported(id: id)))
       return
     }
     let immediate: Set<String> = [
@@ -148,19 +144,19 @@ private actor Driver {
   func complete(_ id: Int, value: JSONValue) async {
     tasks.removeValue(forKey: id)
     if abandoned.remove(id) != nil {
-      await output.say(["id": .number(Double(id)), "abandoned": .bool(true)])
+      await output.say(.abandoned(ConformanceDriverLineAbandoned(id: id)))
     } else {
-      await output.say(["id": .number(Double(id)), "ok": value])
+      await output.say(.ok(ConformanceDriverLineOk(id: id, ok: value)))
     }
   }
   func complete(_ id: Int, error: any Error) async {
     tasks.removeValue(forKey: id)
     if abandoned.remove(id) != nil {
-      await output.say(["id": .number(Double(id)), "abandoned": .bool(true)])
+      await output.say(.abandoned(ConformanceDriverLineAbandoned(id: id)))
     } else if let misuse = error as? Misuse {
-      await output.say(["id": .number(Double(id)), "misuse": .string(misuse.description)])
+      await output.say(.misuse(ConformanceDriverLineMisuse(id: id, misuse: misuse.description)))
     } else {
-      await output.say(["id": .number(Double(id)), "error": failure(error)])
+      await output.say(.failed(ConformanceDriverLineFailed(error: failure(error), id: id)))
     }
   }
   func current() throws -> HttpTransport {
@@ -215,10 +211,16 @@ private actor Driver {
       let output = self.output
       reporters.append(
         Task {
-          for await state in client.state { await output.say(["state": .string(state.rawValue)]) }
+          for await state in client.state {
+            await output.say(.state(ConformanceDriverLineState(state: state.rawValue)))
+          }
         })
       reporters.append(
-        Task { for await error in errors { await output.say(["error": failure(error)]) } })
+        Task {
+          for await error in errors {
+            await output.say(.errorStream(ConformanceDriverLineErrorStream(error: failure(error))))
+          }
+        })
       return .null
     case "close":
       try current().dispose()
@@ -248,12 +250,12 @@ private actor Driver {
                       + "at its `\(refusal.member)`\n").utf8))
                 exit(1)
               }
-              guard case .object(var fields) = try encoded(frame) else {
-                throw Misuse(description: "A frame must encode as an object")
-              }
-              fields.removeValue(forKey: "trace")
-              fields.removeValue(forKey: "eventId")
-              await output.say(["frame": .object(fields)])
+              await output.say(
+                .frame(
+                  ConformanceDriverLineFrame(
+                    frame: ConformanceDriverLineFrameFrame(
+                      channel: frame.channel, correlationId: frame.correlationId,
+                      payload: .object(frame.payload), scope: frame.scope))))
             }
           } catch {}
         })
@@ -348,13 +350,11 @@ private actor Driver {
             // The driver protocol reports the bytes sent: the upload's start and its end are its
             // answer's.
             for try await case .progress(let sent) in upload {
-              await output.say([
-                "progress": .object([
-                  "upload": .number(Double(id)),
-                  "bytesUploaded": .number(Double(sent.bytesUploaded)),
-                  "totalBytes": .number(Double(sent.totalBytes)),
-                ])
-              ])
+              await output.say(
+                .progress(
+                  ConformanceDriverLineProgress(
+                    progress: ConformanceDriverLineProgressProgress(
+                      bytesUploaded: sent.bytesUploaded, totalBytes: sent.totalBytes, upload: id))))
             }
           } catch {}
         }
@@ -395,7 +395,7 @@ struct WireDriver {
     let driver = Driver(output: output, mode: CommandLine.arguments.dropFirst().first) {
       await telemetry?.flush()
     }
-    await output.say(["ready": .bool(true)])
+    await output.say(.ready(ConformanceDriverLineReady()))
     while let line = readLine() {
       do {
         let args = try JSONDecoder().decode([String: JSONValue].self, from: Data(line.utf8))

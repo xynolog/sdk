@@ -12,18 +12,18 @@ public struct YieldNamespace: Sendable {
     guard let content else { throw TransportError(.error, "No content transport is configured") }
     return content.putBinary(request)
   }
-  public func createFromToken(
-    token: String, name: String, content text: String, archiveOriginal: Bool? = nil
-  ) async throws -> CreateResourceResponse {
+  public func createFromToken(_ options: CreateFromTokenOptions) async throws
+    -> CreateResourceResponse
+  {
     guard let content else { throw TransportError(.error, "No content transport is configured") }
-    let source = try await fromToken(token)
+    let source = try await fromToken(options.token)
     try Task.checkCancellation()
     let format = cloneFormat(primaryMediaType(source))
     let upload = content.putBinary(
       PutBinaryRequest(
-        name: name, file: Data(text.utf8), format: format,
-        storageUri: storageURI(name, format: format),
-        cloneToken: token, archiveOriginal: archiveOriginal))
+        name: options.name, file: Data(options.content.utf8), format: format,
+        storageUri: storageURI(options.name, format: format),
+        cloneToken: options.token, archiveOriginal: options.archiveOriginal))
     return try await upload.completed()
   }
   public func delegate(params: GenerationJobParams, stallDeadlineMs: Int? = nil) throws

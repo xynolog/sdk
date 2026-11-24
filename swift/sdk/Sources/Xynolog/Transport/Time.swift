@@ -1,4 +1,10 @@
+import Foundation
 import Synchronization
+
+/// `date` as a schema's `format: date-time` holds it: RFC 3339, in UTC, to the millisecond.
+package func dateTime(_ date: Date) -> String {
+  Date.ISO8601FormatStyle(includingFractionalSeconds: true).format(date)
+}
 
 struct RequestDeadline: Error {}
 

@@ -13,6 +13,36 @@ the coming release's, and gathers its changes as they land.
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
   `KnowledgeIndex`, `Runner`, …), `ProjectConfig`, `FollowerFollowing`, the
   conformance documents, and the rest.
+- The Control API's table, `Control`: each method as a `ControlMethod` typed by
+  its params and result, with whether it is exclusive and the notifications
+  it sends, and each notification as a `ControlNotification` typed by its
+  params, with the `ControlParty` that sends it.
+- Protocol's tables are public: an `Operation`'s `request`, `result`,
+  `failure` and `replyNames`; a channel's `stamps`; `Timings` and
+  `RetryBudget`; `resourceScopedChannels`; `telemetrySpans`,
+  `telemetryMetrics` and the telemetry attribute keys; `oauthClients`,
+  `signInScope`, `ownerOnlyDirectory`, `ownerOnlyFile` and `signInLockName`;
+  `mediaTypes`, `extensionAliases` and `encodings`; `locales`, the languages
+  Xynolog supports; `cacheQueries`;
+  `credentialNames`; `traceField` and `userField`; and the gateway's
+  `GatewayRoute`, `GatewayMedia`, `GatewayHeader`, `UploadField` and
+  `clientSecretForm`.
+- The tables the services keep to, each as its schema's model: the
+  environment they read and why they refuse to start (`serviceEnvironmentVariables`,
+  `serviceEnvironmentBootRefusals`), what they tell OpenTelemetry and log
+  (`serviceTelemetryTelemetry`, `serviceTelemetryLogLines`), each service's
+  messages, the jobs' budgets and storage, the worker's answer formats, the
+  gateway's media token and response headers, the archivist's layout and
+  default entity types, the embedding requests and the bounds of the bus's
+  replies, and all of them by file as `serviceTables`.
+- `ArchivistRoute`: each of the archivist's operations, its method and path.
+- `retryRules`, `retry/rules.json` as its schema's model, and `RetryContext`,
+  which says by those rules whether a failure in a boot, a transport, a
+  refresh or a job is worth another try.
+- `faultOf(_:_:)` and `Fault`: the first fault a value has as a schema Protocol
+  states, named by its member and its reason, and what every SDK says of it.
+- `Claims.health(of:)`: what an engine claiming with these claims says of
+  itself to a worker's health endpoint, as `WorkerEngineHealth`.
 - What a value is held to before it is read takes in more of its schema: a
   pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
   object may not carry together, the fewest members it carries, and what its
@@ -25,6 +55,28 @@ the coming release's, and gathers its changes as they land.
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
 - `OpenResource` is the type Protocol states: its `openedAt` is an `Int`, and
   its initializer takes its members in their alphabetical order.
+- Every type Protocol states is `Hashable`, and so is `JSONValue`.
+- A method's options are the types Protocol states for them:
+  `job.claim(ClaimOptions)` in place of the accepts and `WorkerTiming`,
+  `job.pollUntilComplete(_:options: JobPollOptions, onStatus:)` in place of
+  `intervalMs` and `timeoutMs`, `match.search(…, options: MatchSearchOptions)`
+  in place of `limit` and `useSemanticScoring`, and
+  `yield.createFromToken(CreateFromTokenOptions)`.
+- `browse.resources` takes `BrowseResourcesRequest` and `match.resources`
+  takes `ResourceSearchFilters`, in place of `ResourceFilters`. Filters that
+  send the same request share one live query.
+- A failure a bus request is answered with is read as `CommandError`.
+
+### Fixed
+
+- An annotation's `created`, a knowledge base's `KbRead.at` and the worker
+  driver's vitals are RFC 3339 date-times in UTC. `created` lacked its `Z`,
+  and `at` and the vitals carried a time with no date.
+
+### Removed
+
+- `ResourceFilters` and `WorkerTiming`: `BrowseResourcesRequest`,
+  `ResourceSearchFilters` and `ClaimOptions` say what they said.
 
 ## 0.8.1
 

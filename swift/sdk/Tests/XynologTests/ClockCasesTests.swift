@@ -420,7 +420,7 @@ private func unansweredEmit(_ given: [String: JSONValue], _ clock: TestClock) as
   let gateway = try await Gateway.open(.holds, unanswered: [emitPath], clock: clock)
   let emitting = Task {
     try await gateway.transport.emit(
-      channel: "beckon:hover", payload: ["annotationId": .string("ann-1")])
+      channel: Channels.beckonHover.name, payload: ["annotationId": .string("ann-1")])
   }
   return Subject(
     counted: { gateway.ledger.asked(emitPath) }, activity: { gateway.ledger.events },
@@ -623,13 +623,14 @@ private func heldJobStall(_ given: [String: JSONValue], _ clock: TestClock) asyn
   surfaceReplies(probe, cloneAnswer: nil)
   let client = try await XynologClient(transport: probe, clock: clock)
   let claims = client.job.claim(
-    try decoded(
-      [JobFilter].self,
-      .array([
-        .object([
-          "jobType": .string("mark"), "params": .object(["motivation": .string("highlighting")]),
-        ])
-      ])))
+    ClaimOptions(
+      accepts: try decoded(
+        [JobFilter].self,
+        .array([
+          .object([
+            "jobType": .string("mark"), "params": .object(["motivation": .string("highlighting")]),
+          ])
+        ]))))
   var jobs = claims.makeAsyncIterator()
   guard let job = await jobs.next() else { throw ClockCaseFailure("No job was claimed") }
   let stalled = claims.stalled()
