@@ -33,6 +33,13 @@ the coming release's, and gathers its changes as they land.
   resource's representation with a media token.
 - `ServiceEnvironmentVariable`: every environment variable a Xynolog service
   reads, as `service-environment/variables.json` names it.
+- Package `servicetables`: every table the services keep to (the archivist's
+  layout, messages and default entity types, the jobs' budgets and
+  storage, the bus's reply bounds, the worker's answer formats, the
+  environment and telemetry tables and the rest), each a value of `api`'s
+  type of its own schema, read from the table as Protocol holds it.
+- `ArchivistRoute`: each operation of the Archivist's HTTP surface, its method
+  and its path (`ArchivistRouteGetHealth`, `ArchivistRouteStoreResource`, …).
 
 ### Changed
 
