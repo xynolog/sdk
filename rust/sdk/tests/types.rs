@@ -6,11 +6,11 @@
 use serde_json::{Value, json};
 use xynolog::bus::operation;
 use xynolog::types::{
-    AnchoredTextDeclinedEntry, AnchoredTextDeclinedEntryV, ExtractionDeclinedReason,
-    HighlightingJobParams, Job, JobCreateCommand, JobDeclined, JobDeclinedReason, JobFilter,
-    JobQueuedEvent, JobResult, JobStoredProgress, JobStoredResult, LinkingJobParams,
-    MarkJobCreateCommand, MarkJobFilter, MarkJobFilterParams, MarkJobParams, Motivation,
-    TaggingJobParams, YieldJobFilter,
+    AnchoredTextAnswer, AnchoredTextDeclinedEntry, AnchoredTextDeclinedEntryV,
+    ExtractionDeclinedReason, HighlightingJobParams, Job, JobCreateCommand, JobDeclined,
+    JobDeclinedReason, JobFilter, JobQueuedEvent, JobResult, JobStoredProgress, JobStoredResult,
+    LinkingJobParams, MarkJobCreateCommand, MarkJobFilter, MarkJobFilterParams, MarkJobParams,
+    Motivation, TaggingJobParams, YieldJobFilter,
 };
 
 fn metadata() -> Value {
@@ -165,6 +165,34 @@ fn a_property_of_one_value_is_written_as_it_and_read_from_it_alone() {
     assert!(
         serde_json::from_value::<AnchoredTextDeclinedEntry>(other).is_err(),
         "an entry of another format is read"
+    );
+}
+
+/// A union whose members state several values of the property that tells
+/// them apart is decoded as the one member that admits a value, and a value
+/// one member names but does not admit is refused for what is wrong with it
+/// as that member.
+#[test]
+fn a_union_is_decoded_as_the_one_member_that_admits_a_value() {
+    let answer = |wire: Value| serde_json::from_value::<AnchoredTextAnswer>(wire);
+    assert!(matches!(
+        answer(json!({ "kind": "no-map" })),
+        Ok(AnchoredTextAnswer::AnchoredTextAbsent(_))
+    ));
+    assert!(matches!(
+        answer(json!({ "kind": "declined", "declined": "encrypted" })),
+        Ok(AnchoredTextAnswer::ExtractionDeclined(_))
+    ));
+    let lacking = answer(json!({ "kind": "declined" }))
+        .expect_err("a decline that says not why")
+        .to_string();
+    assert!(lacking.contains("missing field `declined`"), "{lacking}");
+    let unnamed = answer(json!({ "kind": "later" }))
+        .expect_err("an answer of no kind")
+        .to_string();
+    assert!(
+        unnamed.contains("`extracted`, `declined`, `not-yet`, `no-map`, `unknown`"),
+        "{unnamed}"
     );
 }
 

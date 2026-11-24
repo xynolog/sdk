@@ -17,18 +17,6 @@ module T = Typing
    [Typing] has the union, its members told apart by their patterns. *)
 let text_union (u : T.union) = List.for_all T.admits_only_text u.branches
 
-(* Rust decodes a union whose [discriminator] names one value per member by
-   that value, and any other as the first member that fits, where [Typing]
-   tells every union's members apart by their signatures: a union whose
-   members state several values of it (AnchoredTextAnswer) is decoded as
-   the first that fits. *)
-let single_tags (u : T.union) =
-  match u.tag with
-  | Some { property; values }
-    when List.for_all (fun v -> List.length v = 1) values ->
-      Some (property, List.map List.hd values)
-  | _ -> None
-
 (* Go holds a union's value as the wire carries it, and its caller reads it
    as whichever member the caller names ([As]); only a union told apart by
    a tag says which member a value is ([ValueByDiscriminator]). [Typing]

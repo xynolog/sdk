@@ -67,23 +67,34 @@ pub enum Agent {
     AgentSoftware(AgentSoftware),
 }
 
-impl<'de> serde::Deserialize<'de> for Agent {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("@type").and_then(serde_json::Value::as_str) {
-            Some("Person") => serde_json::from_value(value).map(Agent::AgentPerson),
-            Some("Organization") => serde_json::from_value(value).map(Agent::AgentOrganization),
-            Some("Software") => serde_json::from_value(value).map(Agent::AgentSoftware),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a Agent states a `@type` that is one of `Person`, `Organization`, `Software`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl Agent {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["@type"],
+            allowed: None,
+            fixed: &[("@type", &[Literal::Text("Person")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["@type", "name"],
+            allowed: None,
+            fixed: &[("@type", &[Literal::Text("Organization")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["@type"],
+            allowed: None,
+            fixed: &[("@type", &[Literal::Text("Software")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(Agent, AgentPerson, AgentOrganization, AgentSoftware);
 member!(Agent::AgentPerson(AgentPerson));
 member!(Agent::AgentOrganization(AgentOrganization));
 member!(Agent::AgentSoftware(AgentSoftware));
@@ -384,7 +395,7 @@ impl AnchoredTextAbsentKind {
 /// Distinct from `ExtractionOutcome` on purpose. That type is what the STORE holds and what an extractor RETURNS — neither of which can ever be 'not yet'. This is the read answer, which can, so widening ExtractionOutcome itself would have put an impossible state into the store's own type.
 ///
 /// Flat, one discriminant: every member carries `kind`, rather than nesting an outcome inside a status envelope and giving the wire two `kind` fields at different depths.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnchoredTextAnswer {
     ExtractedText(ExtractedText),
@@ -392,6 +403,81 @@ pub enum AnchoredTextAnswer {
     AnchoredTextAbsent(AnchoredTextAbsent),
 }
 
+impl AnchoredTextAnswer {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["text", "items", "kind", "method"],
+            allowed: None,
+            fixed: &[
+                ("kind", &[Literal::Text("extracted")]),
+                (
+                    "method",
+                    &[
+                        Literal::Text("text-passthrough"),
+                        Literal::Text("pdf-text-layer"),
+                        Literal::Text("table"),
+                        Literal::Text("form"),
+                        Literal::Text("ocr"),
+                    ],
+                ),
+                (
+                    "pdfClass",
+                    &[
+                        Literal::Text("A"),
+                        Literal::Text("B"),
+                        Literal::Text("C"),
+                        Literal::Text("D"),
+                        Literal::Text("E"),
+                        Literal::Text("F"),
+                        Literal::Text("G"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "declined"],
+            allowed: None,
+            fixed: &[
+                ("kind", &[Literal::Text("declined")]),
+                (
+                    "declined",
+                    &[
+                        Literal::Text("no-text-layer"),
+                        Literal::Text("encrypted"),
+                        Literal::Text("corrupt"),
+                        Literal::Text("too-large"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind"],
+            allowed: None,
+            fixed: &[(
+                "kind",
+                &[
+                    Literal::Text("not-yet"),
+                    Literal::Text("no-map"),
+                    Literal::Text("unknown"),
+                ],
+            )],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    AnchoredTextAnswer,
+    ExtractedText,
+    ExtractionDeclined,
+    AnchoredTextAbsent,
+);
 member!(AnchoredTextAnswer::ExtractedText(ExtractedText));
 member!(AnchoredTextAnswer::ExtractionDeclined(ExtractionDeclined));
 member!(AnchoredTextAnswer::AnchoredTextAbsent(AnchoredTextAbsent));
@@ -438,13 +524,82 @@ pub struct AnchoredTextEntries {
 schema!(AnchoredTextEntries);
 
 /// One entry of the anchored-text store: the file `<ab>/<cd>/<key>.json` under the store's directory, where the key is the SHA-256 of the bytes the text was extracted from, in hex. The Smelter derives it and stores it over the Archivist's HTTP surface (`AnchoredTextWrite`); the Archivist writes it, as compact JSON with `v` and `stamp` first, to a sibling temporary file renamed onto the path. The stamp the Smelter states (`AnchoredTextStamp`) is kept, followed by a newline, in the file `STAMP` at the store's root.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnchoredTextEntry {
     AnchoredTextExtractedEntry(AnchoredTextExtractedEntry),
     AnchoredTextDeclinedEntry(AnchoredTextDeclinedEntry),
 }
 
+impl AnchoredTextEntry {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["v", "stamp", "text", "lines", "method"],
+            allowed: Some(&[
+                "v",
+                "stamp",
+                "text",
+                "lines",
+                "method",
+                "pdfClass",
+                "ocrConfidence",
+                "unreadPages",
+            ]),
+            fixed: &[
+                ("v", &[Literal::Integer(3)]),
+                (
+                    "method",
+                    &[
+                        Literal::Text("text-passthrough"),
+                        Literal::Text("pdf-text-layer"),
+                        Literal::Text("table"),
+                        Literal::Text("form"),
+                        Literal::Text("ocr"),
+                    ],
+                ),
+                (
+                    "pdfClass",
+                    &[
+                        Literal::Text("A"),
+                        Literal::Text("B"),
+                        Literal::Text("C"),
+                        Literal::Text("D"),
+                        Literal::Text("E"),
+                        Literal::Text("F"),
+                        Literal::Text("G"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["v", "stamp", "declined"],
+            allowed: Some(&["v", "stamp", "declined"]),
+            fixed: &[
+                ("v", &[Literal::Integer(3)]),
+                (
+                    "declined",
+                    &[
+                        Literal::Text("no-text-layer"),
+                        Literal::Text("encrypted"),
+                        Literal::Text("corrupt"),
+                        Literal::Text("too-large"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    AnchoredTextEntry,
+    AnchoredTextExtractedEntry,
+    AnchoredTextDeclinedEntry,
+);
 member!(AnchoredTextEntry::AnchoredTextExtractedEntry(
     AnchoredTextExtractedEntry,
 ));
@@ -625,13 +780,83 @@ impl AnnotationAddedPayload {
 schema!(AnnotationAddedPayload);
 
 /// What an annotation's `body` holds: one body, or a non-empty list of them. There is no empty list: an annotation with nothing to say has no `body`.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnnotationBodies {
     AnnotationBody(AnnotationBody),
     List(Vec<AnnotationBody>),
 }
 
+impl AnnotationBodies {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[
+            Signature {
+                kind: Kind::Object,
+                required: &["type", "value"],
+                allowed: None,
+                fixed: &[
+                    ("type", &[Literal::Text("TextualBody")]),
+                    (
+                        "purpose",
+                        &[
+                            Literal::Text("assessing"),
+                            Literal::Text("bookmarking"),
+                            Literal::Text("classifying"),
+                            Literal::Text("commenting"),
+                            Literal::Text("describing"),
+                            Literal::Text("editing"),
+                            Literal::Text("highlighting"),
+                            Literal::Text("identifying"),
+                            Literal::Text("linking"),
+                            Literal::Text("moderating"),
+                            Literal::Text("questioning"),
+                            Literal::Text("replying"),
+                            Literal::Text("tagging"),
+                        ],
+                    ),
+                ],
+                values: None,
+            },
+            Signature {
+                kind: Kind::Object,
+                required: &["type", "source"],
+                allowed: None,
+                fixed: &[
+                    ("type", &[Literal::Text("SpecificResource")]),
+                    (
+                        "purpose",
+                        &[
+                            Literal::Text("assessing"),
+                            Literal::Text("bookmarking"),
+                            Literal::Text("classifying"),
+                            Literal::Text("commenting"),
+                            Literal::Text("describing"),
+                            Literal::Text("editing"),
+                            Literal::Text("highlighting"),
+                            Literal::Text("identifying"),
+                            Literal::Text("linking"),
+                            Literal::Text("moderating"),
+                            Literal::Text("questioning"),
+                            Literal::Text("replying"),
+                            Literal::Text("tagging"),
+                        ],
+                    ),
+                ],
+                values: None,
+            },
+        ],
+        &[Signature {
+            kind: Kind::List,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(AnnotationBodies, AnnotationBody, List);
 member!(AnnotationBodies::AnnotationBody(AnnotationBody));
 schema!(AnnotationBodies);
 
@@ -643,24 +868,67 @@ pub enum AnnotationBody {
     SpecificResource(SpecificResource),
 }
 
-impl<'de> serde::Deserialize<'de> for AnnotationBody {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("type").and_then(serde_json::Value::as_str) {
-            Some("TextualBody") => serde_json::from_value(value).map(AnnotationBody::TextualBody),
-            Some("SpecificResource") => {
-                serde_json::from_value(value).map(AnnotationBody::SpecificResource)
-            }
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a AnnotationBody states a `type` that is one of `TextualBody`, `SpecificResource`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl AnnotationBody {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "value"],
+            allowed: None,
+            fixed: &[
+                ("type", &[Literal::Text("TextualBody")]),
+                (
+                    "purpose",
+                    &[
+                        Literal::Text("assessing"),
+                        Literal::Text("bookmarking"),
+                        Literal::Text("classifying"),
+                        Literal::Text("commenting"),
+                        Literal::Text("describing"),
+                        Literal::Text("editing"),
+                        Literal::Text("highlighting"),
+                        Literal::Text("identifying"),
+                        Literal::Text("linking"),
+                        Literal::Text("moderating"),
+                        Literal::Text("questioning"),
+                        Literal::Text("replying"),
+                        Literal::Text("tagging"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "source"],
+            allowed: None,
+            fixed: &[
+                ("type", &[Literal::Text("SpecificResource")]),
+                (
+                    "purpose",
+                    &[
+                        Literal::Text("assessing"),
+                        Literal::Text("bookmarking"),
+                        Literal::Text("classifying"),
+                        Literal::Text("commenting"),
+                        Literal::Text("describing"),
+                        Literal::Text("editing"),
+                        Literal::Text("highlighting"),
+                        Literal::Text("identifying"),
+                        Literal::Text("linking"),
+                        Literal::Text("moderating"),
+                        Literal::Text("questioning"),
+                        Literal::Text("replying"),
+                        Literal::Text("tagging"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+    ];
 }
 
+union!(AnnotationBody, TextualBody, SpecificResource);
 member!(AnnotationBody::TextualBody(TextualBody));
 member!(AnnotationBody::SpecificResource(SpecificResource));
 schema!(AnnotationBody);
@@ -797,13 +1065,57 @@ pub struct AnnotationRemovedPayload {
 schema!(AnnotationRemovedPayload);
 
 /// What a target's `selector` holds: one W3C selector, or several of the same segment.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnnotationSelector {
     Selector(Selector),
     List(Vec<Selector>),
 }
 
+impl AnnotationSelector {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[
+            Signature {
+                kind: Kind::Object,
+                required: &["type", "start", "end"],
+                allowed: None,
+                fixed: &[("type", &[Literal::Text("TextPositionSelector")])],
+                values: None,
+            },
+            Signature {
+                kind: Kind::Object,
+                required: &["type", "exact"],
+                allowed: None,
+                fixed: &[("type", &[Literal::Text("TextQuoteSelector")])],
+                values: None,
+            },
+            Signature {
+                kind: Kind::Object,
+                required: &["type", "value"],
+                allowed: None,
+                fixed: &[("type", &[Literal::Text("SvgSelector")])],
+                values: None,
+            },
+            Signature {
+                kind: Kind::Object,
+                required: &["type", "value"],
+                allowed: None,
+                fixed: &[("type", &[Literal::Text("FragmentSelector")])],
+                values: None,
+            },
+        ],
+        &[Signature {
+            kind: Kind::List,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(AnnotationSelector, Selector, List);
 member!(AnnotationSelector::Selector(Selector));
 schema!(AnnotationSelector);
 
@@ -852,13 +1164,34 @@ impl AnnotationTargetType {
 }
 
 /// W3C Web Annotation target: the id of the resource annotated, when the whole of it is, or an object with source and optional selector (fragment)
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum AnnotationTargetValue {
     ResourceId(ResourceId),
     AnnotationTarget(AnnotationTarget),
 }
 
+impl AnnotationTargetValue {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["source"],
+            allowed: None,
+            fixed: &[("type", &[Literal::Text("SpecificResource")])],
+            values: None,
+        }],
+    ];
+}
+
+union!(AnnotationTargetValue, ResourceId, AnnotationTarget);
 member!(AnnotationTargetValue::AnnotationTarget(AnnotationTarget));
 
 /// W3C Annotation type
@@ -2040,7 +2373,7 @@ impl BindUpdateBodyCommand {
 schema!(BindUpdateBodyCommand);
 
 /// One change to an annotation's bodies: a body added, a body removed, or one body replaced by another.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum BodyOperation {
     BodyOperationAdd(BodyOperationAdd),
@@ -2048,6 +2381,39 @@ pub enum BodyOperation {
     BodyOperationReplace(BodyOperationReplace),
 }
 
+impl BodyOperation {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["op", "item"],
+            allowed: None,
+            fixed: &[("op", &[Literal::Text("add")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["op", "item"],
+            allowed: None,
+            fixed: &[("op", &[Literal::Text("remove")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["op", "oldItem", "newItem"],
+            allowed: None,
+            fixed: &[("op", &[Literal::Text("replace")])],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    BodyOperation,
+    BodyOperationAdd,
+    BodyOperationRemove,
+    BodyOperationReplace,
+);
 member!(BodyOperation::BodyOperationAdd(BodyOperationAdd));
 member!(BodyOperation::BodyOperationRemove(BodyOperationRemove));
 member!(BodyOperation::BodyOperationReplace(BodyOperationReplace));
@@ -2917,12 +3283,34 @@ pub struct BusReplyBounds {
 
 schema!(BusReplyBounds);
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum BusReplyBoundsRepliesValueValue {
     By(BusReplyBoundsRepliesValueValueBy),
     Grows(BusReplyBoundsRepliesValueValueGrows),
 }
+
+impl BusReplyBoundsRepliesValueValue {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["by"],
+            allowed: Some(&["by"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["grows"],
+            allowed: Some(&["grows"]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(BusReplyBoundsRepliesValueValue, By, Grows);
 
 /// A list or map bounded by a member of the request.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -2983,13 +3371,34 @@ impl BusResumeGapReason {
 }
 
 /// Every message the bus stream carries. A client ignores an `event` it does not know; the gateway writes no other.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum BusStreamMessage {
     BusEventMessage(BusEventMessage),
     BusPingMessage(BusPingMessage),
 }
 
+impl BusStreamMessage {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["event", "id", "data"],
+            allowed: Some(&["event", "id", "data"]),
+            fixed: &[("event", &[Literal::Text("bus-event")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["event", "data"],
+            allowed: Some(&["event", "data"]),
+            fixed: &[("event", &[Literal::Text("ping")])],
+            values: None,
+        }],
+    ];
+}
+
+union!(BusStreamMessage, BusEventMessage, BusPingMessage);
 member!(BusStreamMessage::BusEventMessage(BusEventMessage));
 member!(BusStreamMessage::BusPingMessage(BusPingMessage));
 schema!(BusStreamMessage);
@@ -3423,7 +3832,7 @@ impl ConformanceCaseTier {
 }
 
 /// A line a conformance driver writes on its standard output, one JSON object each (conformance/sdk/README.md, "The driver protocol"; conformance/worker/README.md, "The worker driver"): that it is ready, an operation's outcome, or what its client observed as it happened. The suite refuses any other line.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ConformanceDriverLine {
     Ready(ConformanceDriverLineReady),
@@ -3444,6 +3853,143 @@ pub enum ConformanceDriverLine {
     Stalled(ConformanceDriverLineStalled),
 }
 
+impl ConformanceDriverLine {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["ready"],
+            allowed: Some(&["ready"]),
+            fixed: &[("ready", &[Literal::Boolean(true)])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["id", "ok"],
+            allowed: Some(&["id", "ok"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["id", "error"],
+            allowed: Some(&["id", "error"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["id", "abandoned"],
+            allowed: Some(&["id", "abandoned"]),
+            fixed: &[("abandoned", &[Literal::Boolean(true)])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["id", "unsupported"],
+            allowed: Some(&["id", "unsupported"]),
+            fixed: &[("unsupported", &[Literal::Boolean(true)])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["id", "misuse"],
+            allowed: Some(&["id", "misuse"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["state"],
+            allowed: Some(&["state"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["frame"],
+            allowed: Some(&["frame"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["error"],
+            allowed: Some(&["error"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["progress"],
+            allowed: Some(&["progress"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["emission"],
+            allowed: Some(&["emission"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["completed"],
+            allowed: Some(&["completed"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["claimed"],
+            allowed: Some(&["claimed"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["refused"],
+            allowed: Some(&["refused"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["signalled"],
+            allowed: Some(&["signalled"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["stalled"],
+            allowed: Some(&["stalled"]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    ConformanceDriverLine,
+    Ready,
+    Ok,
+    Failed,
+    Abandoned,
+    Unsupported,
+    Misuse,
+    State,
+    Frame,
+    ErrorStream,
+    Progress,
+    Emission,
+    Completed,
+    Claimed,
+    Refused,
+    Signalled,
+    Stalled,
+);
 schema!(ConformanceDriverLine);
 
 /// The suite abandoned the operation, and the SDK reported nothing else.
@@ -3507,13 +4053,47 @@ pub struct ConformanceDriverLineEmissionEmission {
 }
 
 /// The state.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ConformanceDriverLineEmissionEmissionState {
     Pending(ConformanceDriverLineEmissionEmissionStatePending),
     Ready(ConformanceDriverLineEmissionEmissionStateReady),
     Failed(ConformanceDriverLineEmissionEmissionStateFailed),
 }
+
+impl ConformanceDriverLineEmissionEmissionState {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["status"],
+            allowed: Some(&["status"]),
+            fixed: &[("status", &[Literal::Text("pending")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["status", "value"],
+            allowed: Some(&["status", "value"]),
+            fixed: &[("status", &[Literal::Text("ready")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["status", "error"],
+            allowed: Some(&["status", "error"]),
+            fixed: &[("status", &[Literal::Text("failed")])],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    ConformanceDriverLineEmissionEmissionState,
+    Pending,
+    Ready,
+    Failed,
+);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -3949,7 +4529,7 @@ impl ConformanceImplementationsSdksValueLiveTier {
 }
 
 /// One step of a case of the conformance corpus (ConformanceCase.json): each is told apart by the member only it requires. conformance/sdk/README.md, "A case", says what each does.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ConformanceStep {
     Let(ConformanceStepLet),
@@ -3982,6 +4562,294 @@ pub enum ConformanceStep {
     Stalled(ConformanceStepStalled),
 }
 
+impl ConformanceStep {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["let"],
+            allowed: Some(&["let"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["driver"],
+            allowed: Some(&["driver", "with", "returns", "fails", "as"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["abandon"],
+            allowed: Some(&["abandon"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["settles"],
+            allowed: Some(&["settles", "returns", "fails", "abandoned"]),
+            fixed: &[("abandoned", &[Literal::Boolean(true)])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["wire"],
+            allowed: Some(&[
+                "wire", "at", "status", "params", "body", "token", "headers", "answer", "as",
+                "follows", "waited",
+            ]),
+            fixed: &[(
+                "at",
+                &[
+                    Literal::Text("arrival"),
+                    Literal::Text("answer"),
+                    Literal::Text("live"),
+                ],
+            )],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["carried", "is"],
+            allowed: Some(&["carried", "is"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["closed"],
+            allowed: Some(&["closed"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["progress"],
+            allowed: Some(&["progress"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["state"],
+            allowed: Some(&["state"]),
+            fixed: &[(
+                "state",
+                &[
+                    Literal::Text("initial"),
+                    Literal::Text("connecting"),
+                    Literal::Text("open"),
+                    Literal::Text("reconnecting"),
+                    Literal::Text("degraded"),
+                    Literal::Text("unauthenticated"),
+                    Literal::Text("closed"),
+                ],
+            )],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["stays"],
+            allowed: Some(&["stays"]),
+            fixed: &[(
+                "stays",
+                &[
+                    Literal::Text("initial"),
+                    Literal::Text("connecting"),
+                    Literal::Text("open"),
+                    Literal::Text("reconnecting"),
+                    Literal::Text("degraded"),
+                    Literal::Text("unauthenticated"),
+                    Literal::Text("closed"),
+                ],
+            )],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["frame", "is"],
+            allowed: Some(&["frame", "is"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["frames", "count"],
+            allowed: Some(&["frames", "count"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["error"],
+            allowed: Some(&["error"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["backend"],
+            allowed: Some(&["backend", "with"]),
+            fixed: &[(
+                "backend",
+                &[
+                    Literal::Text("listen"),
+                    Literal::Text("emit"),
+                    Literal::Text("record"),
+                    Literal::Text("content"),
+                    Literal::Text("description"),
+                    Literal::Text("annotations"),
+                    Literal::Text("anchored-text"),
+                    Literal::Text("uploaded"),
+                    Literal::Text("refuse"),
+                    Literal::Text("unanswered"),
+                    Literal::Text("answer-lost"),
+                    Literal::Text("hold"),
+                    Literal::Text("release"),
+                    Literal::Text("rechunk"),
+                    Literal::Text("carry"),
+                    Literal::Text("cut"),
+                    Literal::Text("down"),
+                    Literal::Text("up"),
+                    Literal::Text("archivist"),
+                ],
+            )],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["quiet"],
+            allowed: Some(&["quiet"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["observe", "as"],
+            allowed: Some(&["observe", "as"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["leave"],
+            allowed: Some(&["leave"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["reaches", "state"],
+            allowed: Some(&["reaches", "state"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["holds", "state"],
+            allowed: Some(&["holds", "state"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["completes"],
+            allowed: Some(&["completes"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["fetch", "as"],
+            allowed: Some(&["fetch", "payload", "as"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["fetch"],
+            allowed: Some(&["fetch", "params"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["fetches"],
+            allowed: Some(&["fetches"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["scopes"],
+            allowed: Some(&["scopes"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["claimed"],
+            allowed: Some(&["claimed"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["refused"],
+            allowed: Some(&["refused"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["signalled"],
+            allowed: Some(&["signalled"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["stalled"],
+            allowed: Some(&["stalled"]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    ConformanceStep,
+    Let,
+    Driver,
+    Abandon,
+    Settles,
+    Wire,
+    Carried,
+    Closed,
+    Progress,
+    State,
+    Stays,
+    Frame,
+    Frames,
+    Error,
+    Backend,
+    Quiet,
+    Observe,
+    Leave,
+    Reaches,
+    Holds,
+    Completes,
+    ConformanceBusFetch,
+    ConformanceHttpFetch,
+    Fetches,
+    Scopes,
+    Claimed,
+    Refused,
+    Signalled,
+    Stalled,
+);
 member!(ConformanceStep::ConformanceBusFetch(ConformanceBusFetch));
 member!(ConformanceStep::ConformanceHttpFetch(ConformanceHttpFetch));
 schema!(ConformanceStep);
@@ -4165,13 +5033,38 @@ pub struct ConformanceStepFetches {
     pub fetches: Vec<ConformanceStepFetchesFetchesItem>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ConformanceStepFetchesFetchesItem {
     ConformanceBusFetch(ConformanceBusFetch),
     ConformanceHttpFetch(ConformanceHttpFetch),
 }
 
+impl ConformanceStepFetchesFetchesItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["fetch", "as"],
+            allowed: Some(&["fetch", "payload", "as"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["fetch"],
+            allowed: Some(&["fetch", "params"]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    ConformanceStepFetchesFetchesItem,
+    ConformanceBusFetch,
+    ConformanceHttpFetch,
+);
 member!(ConformanceStepFetchesFetchesItem::ConformanceBusFetch(
     ConformanceBusFetch,
 ));
@@ -4726,22 +5619,38 @@ pub enum DirectoryEntry {
     DirEntry(DirEntry),
 }
 
-impl<'de> serde::Deserialize<'de> for DirectoryEntry {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("type").and_then(serde_json::Value::as_str) {
-            Some("file") => serde_json::from_value(value).map(DirectoryEntry::FileEntry),
-            Some("dir") => serde_json::from_value(value).map(DirectoryEntry::DirEntry),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a DirectoryEntry states a `type` that is one of `file`, `dir`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl DirectoryEntry {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "name", "path", "size", "mtime", "tracked"],
+            allowed: Some(&[
+                "type",
+                "name",
+                "path",
+                "size",
+                "mtime",
+                "tracked",
+                "resourceId",
+                "entityTypes",
+                "annotationCount",
+                "creator",
+            ]),
+            fixed: &[("type", &[Literal::Text("file")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "name", "path", "mtime"],
+            allowed: Some(&["type", "name", "path", "mtime"]),
+            fixed: &[("type", &[Literal::Text("dir")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(DirectoryEntry, FileEntry, DirEntry);
 member!(DirectoryEntry::FileEntry(FileEntry));
 member!(DirectoryEntry::DirEntry(DirEntry));
 schema!(DirectoryEntry);
@@ -5106,26 +6015,31 @@ pub enum EmbeddingConfig {
     VoyageEmbeddingConfig(VoyageEmbeddingConfig),
 }
 
-impl<'de> serde::Deserialize<'de> for EmbeddingConfig {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("type").and_then(serde_json::Value::as_str) {
-            Some("ollama") => {
-                serde_json::from_value(value).map(EmbeddingConfig::OllamaEmbeddingConfig)
-            }
-            Some("voyage") => {
-                serde_json::from_value(value).map(EmbeddingConfig::VoyageEmbeddingConfig)
-            }
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a EmbeddingConfig states a `type` that is one of `ollama`, `voyage`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl EmbeddingConfig {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "model", "baseUrl"],
+            allowed: Some(&["type", "model", "baseUrl"]),
+            fixed: &[("type", &[Literal::Text("ollama")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "model", "endpoint", "apiKeyEnv"],
+            allowed: Some(&["type", "model", "endpoint", "apiKeyEnv"]),
+            fixed: &[("type", &[Literal::Text("voyage")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(
+    EmbeddingConfig,
+    OllamaEmbeddingConfig,
+    VoyageEmbeddingConfig,
+);
 member!(EmbeddingConfig::OllamaEmbeddingConfig(
     OllamaEmbeddingConfig,
 ));
@@ -5615,26 +6529,62 @@ pub enum ExtractionOutcome {
     ExtractionDeclined(ExtractionDeclined),
 }
 
-impl<'de> serde::Deserialize<'de> for ExtractionOutcome {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("kind").and_then(serde_json::Value::as_str) {
-            Some("extracted") => {
-                serde_json::from_value(value).map(ExtractionOutcome::ExtractedText)
-            }
-            Some("declined") => {
-                serde_json::from_value(value).map(ExtractionOutcome::ExtractionDeclined)
-            }
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a ExtractionOutcome states a `kind` that is one of `extracted`, `declined`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl ExtractionOutcome {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["text", "items", "kind", "method"],
+            allowed: None,
+            fixed: &[
+                ("kind", &[Literal::Text("extracted")]),
+                (
+                    "method",
+                    &[
+                        Literal::Text("text-passthrough"),
+                        Literal::Text("pdf-text-layer"),
+                        Literal::Text("table"),
+                        Literal::Text("form"),
+                        Literal::Text("ocr"),
+                    ],
+                ),
+                (
+                    "pdfClass",
+                    &[
+                        Literal::Text("A"),
+                        Literal::Text("B"),
+                        Literal::Text("C"),
+                        Literal::Text("D"),
+                        Literal::Text("E"),
+                        Literal::Text("F"),
+                        Literal::Text("G"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "declined"],
+            allowed: None,
+            fixed: &[
+                ("kind", &[Literal::Text("declined")]),
+                (
+                    "declined",
+                    &[
+                        Literal::Text("no-text-layer"),
+                        Literal::Text("encrypted"),
+                        Literal::Text("corrupt"),
+                        Literal::Text("too-large"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+    ];
 }
 
+union!(ExtractionOutcome, ExtractedText, ExtractionDeclined);
 member!(ExtractionOutcome::ExtractedText(ExtractedText));
 member!(ExtractionOutcome::ExtractionDeclined(ExtractionDeclined));
 schema!(ExtractionOutcome);
@@ -6578,12 +7528,34 @@ impl GatheredContext {
 schema!(GatheredContext);
 
 /// The gather anchor. Discriminated on `kind`.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum GatheredContextFocus {
     Annotation(GatheredContextFocusAnnotation),
     Resource(GatheredContextFocusResource),
 }
+
+impl GatheredContextFocus {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "annotation", "sourceResource"],
+            allowed: None,
+            fixed: &[("kind", &[Literal::Text("annotation")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "resource"],
+            allowed: None,
+            fixed: &[("kind", &[Literal::Text("resource")])],
+            values: None,
+        }],
+    ];
+}
+
+union!(GatheredContextFocus, Annotation, Resource);
 
 /// Annotation-anchored focus.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -7121,24 +8093,47 @@ pub enum GraphConfig {
     MemoryGraphConfig(MemoryGraphConfig),
 }
 
-impl<'de> serde::Deserialize<'de> for GraphConfig {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("type").and_then(serde_json::Value::as_str) {
-            Some("neo4j") => serde_json::from_value(value).map(GraphConfig::Neo4jGraphConfig),
-            Some("janusgraph") => serde_json::from_value(value).map(GraphConfig::JanusGraphConfig),
-            Some("neptune") => serde_json::from_value(value).map(GraphConfig::NeptuneGraphConfig),
-            Some("memory") => serde_json::from_value(value).map(GraphConfig::MemoryGraphConfig),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a GraphConfig states a `type` that is one of `neo4j`, `janusgraph`, `neptune`, `memory`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl GraphConfig {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "uri", "username", "passwordEnv", "database"],
+            allowed: Some(&["type", "uri", "username", "passwordEnv", "database"]),
+            fixed: &[("type", &[Literal::Text("neo4j")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "host", "port"],
+            allowed: Some(&["type", "host", "port"]),
+            fixed: &[("type", &[Literal::Text("janusgraph")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "endpoint", "port"],
+            allowed: Some(&["type", "endpoint", "port"]),
+            fixed: &[("type", &[Literal::Text("neptune")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type"],
+            allowed: Some(&["type"]),
+            fixed: &[("type", &[Literal::Text("memory")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(
+    GraphConfig,
+    Neo4jGraphConfig,
+    JanusGraphConfig,
+    NeptuneGraphConfig,
+    MemoryGraphConfig,
+);
 member!(GraphConfig::Neo4jGraphConfig(Neo4jGraphConfig));
 member!(GraphConfig::JanusGraphConfig(JanusGraphConfig));
 member!(GraphConfig::NeptuneGraphConfig(NeptuneGraphConfig));
@@ -7894,25 +8889,87 @@ pub enum Job {
     JobCancelled(JobCancelled),
 }
 
-impl<'de> serde::Deserialize<'de> for Job {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("status").and_then(serde_json::Value::as_str) {
-            Some("pending") => serde_json::from_value(value).map(Job::JobPending),
-            Some("running") => serde_json::from_value(value).map(Job::JobRunning),
-            Some("complete") => serde_json::from_value(value).map(Job::JobComplete),
-            Some("failed") => serde_json::from_value(value).map(Job::JobFailed),
-            Some("cancelled") => serde_json::from_value(value).map(Job::JobCancelled),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a Job states a `status` that is one of `pending`, `running`, `complete`, `failed`, `cancelled`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl Job {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["status", "metadata", "params"],
+            allowed: Some(&["status", "metadata", "params"]),
+            fixed: &[("status", &[Literal::Text("pending")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["status", "metadata", "params", "startedAt", "progress"],
+            allowed: Some(&["status", "metadata", "params", "startedAt", "progress"]),
+            fixed: &[("status", &[Literal::Text("running")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &[
+                "status",
+                "metadata",
+                "params",
+                "startedAt",
+                "completedAt",
+                "result",
+            ],
+            allowed: Some(&[
+                "status",
+                "metadata",
+                "params",
+                "startedAt",
+                "completedAt",
+                "result",
+            ]),
+            fixed: &[("status", &[Literal::Text("complete")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["status", "metadata", "params", "completedAt", "error"],
+            allowed: Some(&[
+                "status",
+                "metadata",
+                "params",
+                "startedAt",
+                "completedAt",
+                "error",
+                "failureClass",
+            ]),
+            fixed: &[
+                ("status", &[Literal::Text("failed")]),
+                (
+                    "failureClass",
+                    &[
+                        Literal::Text("transient"),
+                        Literal::Text("deterministic"),
+                        Literal::Text("withheld"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["status", "metadata", "params", "completedAt"],
+            allowed: Some(&["status", "metadata", "params", "startedAt", "completedAt"]),
+            fixed: &[("status", &[Literal::Text("cancelled")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(
+    Job,
+    JobPending,
+    JobRunning,
+    JobComplete,
+    JobFailed,
+    JobCancelled,
+);
 member!(Job::JobPending(JobPending));
 member!(Job::JobRunning(JobRunning));
 member!(Job::JobComplete(JobComplete));
@@ -8204,26 +9261,53 @@ pub enum JobCompleteCommand {
     YieldJobCompleteCommand(YieldJobCompleteCommand),
 }
 
-impl<'de> serde::Deserialize<'de> for JobCompleteCommand {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("jobType").and_then(serde_json::Value::as_str) {
-            Some("mark") => {
-                serde_json::from_value(value).map(JobCompleteCommand::MarkJobCompleteCommand)
-            }
-            Some("yield") => {
-                serde_json::from_value(value).map(JobCompleteCommand::YieldJobCompleteCommand)
-            }
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a JobCompleteCommand states a `jobType` that is one of `mark`, `yield`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl JobCompleteCommand {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["resourceId", "jobId", "jobType"],
+            allowed: None,
+            fixed: &[
+                ("jobType", &[Literal::Text("mark")]),
+                (
+                    "durability",
+                    &[
+                        Literal::Text("acknowledged"),
+                        Literal::Text("probe-confirmed"),
+                        Literal::Text("probe-refused"),
+                        Literal::Text("probe-unreachable"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["resourceId", "jobId", "jobType"],
+            allowed: None,
+            fixed: &[
+                ("jobType", &[Literal::Text("yield")]),
+                (
+                    "durability",
+                    &[
+                        Literal::Text("acknowledged"),
+                        Literal::Text("probe-confirmed"),
+                        Literal::Text("probe-refused"),
+                        Literal::Text("probe-unreachable"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+    ];
 }
 
+union!(
+    JobCompleteCommand,
+    MarkJobCompleteCommand,
+    YieldJobCompleteCommand,
+);
 member!(JobCompleteCommand::MarkJobCompleteCommand(
     MarkJobCompleteCommand,
 ));
@@ -8313,26 +9397,31 @@ pub enum JobCreateCommand {
     YieldJobCreateCommand(YieldJobCreateCommand),
 }
 
-impl<'de> serde::Deserialize<'de> for JobCreateCommand {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("jobType").and_then(serde_json::Value::as_str) {
-            Some("mark") => {
-                serde_json::from_value(value).map(JobCreateCommand::MarkJobCreateCommand)
-            }
-            Some("yield") => {
-                serde_json::from_value(value).map(JobCreateCommand::YieldJobCreateCommand)
-            }
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a JobCreateCommand states a `jobType` that is one of `mark`, `yield`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl JobCreateCommand {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["jobType", "resourceId", "params"],
+            allowed: Some(&["_userId", "_roles", "jobType", "resourceId", "params"]),
+            fixed: &[("jobType", &[Literal::Text("mark")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["jobType", "params"],
+            allowed: Some(&["_userId", "_roles", "jobType", "params"]),
+            fixed: &[("jobType", &[Literal::Text("yield")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(
+    JobCreateCommand,
+    MarkJobCreateCommand,
+    YieldJobCreateCommand,
+);
 member!(JobCreateCommand::MarkJobCreateCommand(MarkJobCreateCommand));
 member!(JobCreateCommand::YieldJobCreateCommand(
     YieldJobCreateCommand,
@@ -8592,22 +9681,27 @@ pub enum JobFilter {
     YieldJobFilter(YieldJobFilter),
 }
 
-impl<'de> serde::Deserialize<'de> for JobFilter {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("jobType").and_then(serde_json::Value::as_str) {
-            Some("mark") => serde_json::from_value(value).map(JobFilter::MarkJobFilter),
-            Some("yield") => serde_json::from_value(value).map(JobFilter::YieldJobFilter),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a JobFilter states a `jobType` that is one of `mark`, `yield`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl JobFilter {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["jobType", "params"],
+            allowed: Some(&["jobType", "params"]),
+            fixed: &[("jobType", &[Literal::Text("mark")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["jobType"],
+            allowed: Some(&["jobType"]),
+            fixed: &[("jobType", &[Literal::Text("yield")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(JobFilter, MarkJobFilter, YieldJobFilter);
 member!(JobFilter::MarkJobFilter(MarkJobFilter));
 member!(JobFilter::YieldJobFilter(YieldJobFilter));
 schema!(JobFilter);
@@ -9380,48 +10474,107 @@ pub enum JobProgressMessage {
     JobProgressCompleteCreated(JobProgressCompleteCreated),
 }
 
-impl<'de> serde::Deserialize<'de> for JobProgressMessage {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("code").and_then(serde_json::Value::as_str) {
-            Some("loading") => {
-                serde_json::from_value(value).map(JobProgressMessage::JobProgressLoading)
-            }
-            Some("analyzing") => {
-                serde_json::from_value(value).map(JobProgressMessage::JobProgressAnalyzing)
-            }
-            Some("analyzing-tags") => {
-                serde_json::from_value(value).map(JobProgressMessage::JobProgressAnalyzingTags)
-            }
-            Some("generating-resource") => {
-                serde_json::from_value(value).map(JobProgressMessage::JobProgressGeneratingResource)
-            }
-            Some("creating-resource") => {
-                serde_json::from_value(value).map(JobProgressMessage::JobProgressCreatingResource)
-            }
-            Some("complete-generated") => {
-                serde_json::from_value(value).map(JobProgressMessage::JobProgressCompleteGenerated)
-            }
-            Some("detecting-entities") => {
-                serde_json::from_value(value).map(JobProgressMessage::JobProgressDetectingEntities)
-            }
-            Some("creating-annotations") => serde_json::from_value(value)
-                .map(JobProgressMessage::JobProgressCreatingAnnotations),
-            Some("creating-tag-annotations") => serde_json::from_value(value)
-                .map(JobProgressMessage::JobProgressCreatingTagAnnotations),
-            Some("complete-created") => {
-                serde_json::from_value(value).map(JobProgressMessage::JobProgressCompleteCreated)
-            }
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a JobProgressMessage states a `code` that is one of `loading`, `analyzing`, `analyzing-tags`, `generating-resource`, `creating-resource`, `complete-generated`, `detecting-entities`, `creating-annotations`, `creating-tag-annotations`, `complete-created`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl JobProgressMessage {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code"],
+            allowed: None,
+            fixed: &[("code", &[Literal::Text("loading")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code"],
+            allowed: None,
+            fixed: &[("code", &[Literal::Text("analyzing")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code"],
+            allowed: None,
+            fixed: &[("code", &[Literal::Text("analyzing-tags")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code"],
+            allowed: None,
+            fixed: &[("code", &[Literal::Text("generating-resource")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code"],
+            allowed: None,
+            fixed: &[("code", &[Literal::Text("creating-resource")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code", "truncated"],
+            allowed: None,
+            fixed: &[("code", &[Literal::Text("complete-generated")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code", "entityType"],
+            allowed: None,
+            fixed: &[("code", &[Literal::Text("detecting-entities")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code", "count"],
+            allowed: None,
+            fixed: &[("code", &[Literal::Text("creating-annotations")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code", "count"],
+            allowed: None,
+            fixed: &[("code", &[Literal::Text("creating-tag-annotations")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code", "count", "motivation"],
+            allowed: None,
+            fixed: &[
+                ("code", &[Literal::Text("complete-created")]),
+                (
+                    "motivation",
+                    &[
+                        Literal::Text("assessing"),
+                        Literal::Text("commenting"),
+                        Literal::Text("highlighting"),
+                        Literal::Text("linking"),
+                        Literal::Text("tagging"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+    ];
 }
 
+union!(
+    JobProgressMessage,
+    JobProgressLoading,
+    JobProgressAnalyzing,
+    JobProgressAnalyzingTags,
+    JobProgressGeneratingResource,
+    JobProgressCreatingResource,
+    JobProgressCompleteGenerated,
+    JobProgressDetectingEntities,
+    JobProgressCreatingAnnotations,
+    JobProgressCreatingTagAnnotations,
+    JobProgressCompleteCreated,
+);
 member!(JobProgressMessage::JobProgressLoading(JobProgressLoading));
 member!(JobProgressMessage::JobProgressAnalyzing(
     JobProgressAnalyzing,
@@ -9495,22 +10648,27 @@ pub enum JobQueuedEvent {
     YieldJobQueuedEvent(YieldJobQueuedEvent),
 }
 
-impl<'de> serde::Deserialize<'de> for JobQueuedEvent {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("jobType").and_then(serde_json::Value::as_str) {
-            Some("mark") => serde_json::from_value(value).map(JobQueuedEvent::MarkJobQueuedEvent),
-            Some("yield") => serde_json::from_value(value).map(JobQueuedEvent::YieldJobQueuedEvent),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a JobQueuedEvent states a `jobType` that is one of `mark`, `yield`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl JobQueuedEvent {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["jobId", "jobType", "resourceId", "userId", "params"],
+            allowed: None,
+            fixed: &[("jobType", &[Literal::Text("mark")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["jobId", "jobType", "resourceId", "userId", "params"],
+            allowed: None,
+            fixed: &[("jobType", &[Literal::Text("yield")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(JobQueuedEvent, MarkJobQueuedEvent, YieldJobQueuedEvent);
 member!(JobQueuedEvent::MarkJobQueuedEvent(MarkJobQueuedEvent));
 member!(JobQueuedEvent::YieldJobQueuedEvent(YieldJobQueuedEvent));
 schema!(JobQueuedEvent);
@@ -9571,7 +10729,7 @@ impl JobReportProgressCommand {
 schema!(JobReportProgressCommand);
 
 /// What a job reports when it concludes without failing: a `mark` job's counts, the resource a `yield` job made, or a decline from either. A result has no discriminant of its own: the job description beside it says which job it answers, and the three share no member, so each is told from the others by what it alone carries.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum JobResult {
     MarkJobDone(MarkJobDone),
@@ -9579,6 +10737,53 @@ pub enum JobResult {
     JobDeclined(JobDeclined),
 }
 
+impl JobResult {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["found", "persisted"],
+            allowed: Some(&[
+                "found",
+                "persisted",
+                "errors",
+                "byCategory",
+                "underReportedPieces",
+                "uncheckedPieces",
+            ]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["resourceId", "resourceName", "truncated"],
+            allowed: Some(&["resourceId", "resourceName", "truncated"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["declined", "reason"],
+            allowed: Some(&["declined", "reason"]),
+            fixed: &[
+                ("declined", &[Literal::Boolean(true)]),
+                (
+                    "reason",
+                    &[
+                        Literal::Text("no-text-layer"),
+                        Literal::Text("encrypted"),
+                        Literal::Text("corrupt"),
+                        Literal::Text("too-large"),
+                        Literal::Text("empty"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+    ];
+}
+
+union!(JobResult, MarkJobDone, YieldJobDone, JobDeclined);
 member!(JobResult::MarkJobDone(MarkJobDone));
 member!(JobResult::YieldJobDone(YieldJobDone));
 member!(JobResult::JobDeclined(JobDeclined));
@@ -9802,24 +11007,101 @@ pub struct JobStatusResult {
 schema!(JobStatusResult);
 
 /// A running job's progress as the dispatcher stores it: the last JobProgress its worker reported with `job:report-progress`, or an empty object before the first report.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum JobStoredProgress {
     JobProgress(JobProgress),
     Empty(EmptyObject),
 }
 
+impl JobStoredProgress {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["percentage"],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &[],
+            allowed: Some(&[]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(JobStoredProgress, JobProgress, Empty);
 member!(JobStoredProgress::JobProgress(JobProgress));
 schema!(JobStoredProgress);
 
 /// A completed job's result as the dispatcher stores it: the result its worker reported with `job:complete`, or an empty object when it reported none.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum JobStoredResult {
     JobResult(JobResult),
     Empty(EmptyObject),
 }
 
+impl JobStoredResult {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[
+            Signature {
+                kind: Kind::Object,
+                required: &["found", "persisted"],
+                allowed: Some(&[
+                    "found",
+                    "persisted",
+                    "errors",
+                    "byCategory",
+                    "underReportedPieces",
+                    "uncheckedPieces",
+                ]),
+                fixed: &[],
+                values: None,
+            },
+            Signature {
+                kind: Kind::Object,
+                required: &["resourceId", "resourceName", "truncated"],
+                allowed: Some(&["resourceId", "resourceName", "truncated"]),
+                fixed: &[],
+                values: None,
+            },
+            Signature {
+                kind: Kind::Object,
+                required: &["declined", "reason"],
+                allowed: Some(&["declined", "reason"]),
+                fixed: &[
+                    ("declined", &[Literal::Boolean(true)]),
+                    (
+                        "reason",
+                        &[
+                            Literal::Text("no-text-layer"),
+                            Literal::Text("encrypted"),
+                            Literal::Text("corrupt"),
+                            Literal::Text("too-large"),
+                            Literal::Text("empty"),
+                        ],
+                    ),
+                ],
+                values: None,
+            },
+        ],
+        &[Signature {
+            kind: Kind::Object,
+            required: &[],
+            allowed: Some(&[]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(JobStoredResult, JobResult, Empty);
 member!(JobStoredResult::JobResult(JobResult));
 schema!(JobStoredResult);
 
@@ -9950,22 +11232,30 @@ pub enum KbEndpoint {
     LocalEndpoint(LocalEndpoint),
 }
 
-impl<'de> serde::Deserialize<'de> for KbEndpoint {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("kind").and_then(serde_json::Value::as_str) {
-            Some("http") => serde_json::from_value(value).map(KbEndpoint::HttpEndpoint),
-            Some("local") => serde_json::from_value(value).map(KbEndpoint::LocalEndpoint),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a KbEndpoint states a `kind` that is one of `http`, `local`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl KbEndpoint {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "host", "port", "protocol"],
+            allowed: None,
+            fixed: &[
+                ("kind", &[Literal::Text("http")]),
+                ("protocol", &[Literal::Text("http"), Literal::Text("https")]),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "kbId"],
+            allowed: None,
+            fixed: &[("kind", &[Literal::Text("local")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(KbEndpoint, HttpEndpoint, LocalEndpoint);
 member!(KbEndpoint::HttpEndpoint(HttpEndpoint));
 member!(KbEndpoint::LocalEndpoint(LocalEndpoint));
 schema!(KbEndpoint);
@@ -10054,23 +11344,34 @@ pub enum KbReadVerdict {
     NoVerdict(KbReadVerdictNoVerdict),
 }
 
-impl<'de> serde::Deserialize<'de> for KbReadVerdict {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("kind").and_then(serde_json::Value::as_str) {
-            Some("recorded") => serde_json::from_value(value).map(KbReadVerdict::Recorded),
-            Some("conflict") => serde_json::from_value(value).map(KbReadVerdict::Conflict),
-            Some("no-verdict") => serde_json::from_value(value).map(KbReadVerdict::NoVerdict),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a KbReadVerdict states a `kind` that is one of `recorded`, `conflict`, `no-verdict`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl KbReadVerdict {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind"],
+            allowed: Some(&["kind"]),
+            fixed: &[("kind", &[Literal::Text("recorded")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "observedDid", "observedName"],
+            allowed: Some(&["kind", "observedDid", "observedName"]),
+            fixed: &[("kind", &[Literal::Text("conflict")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind"],
+            allowed: Some(&["kind"]),
+            fixed: &[("kind", &[Literal::Text("no-verdict")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(KbReadVerdict, Recorded, Conflict, NoVerdict);
 schema!(KbReadVerdict);
 
 /// A different knowledge base answered. Its did and the name it gave itself are here and nowhere else: the entry is as it was.
@@ -10448,26 +11749,31 @@ pub enum KnowledgeGraphNodesItem {
     GraphAnnotationNode(GraphAnnotationNode),
 }
 
-impl<'de> serde::Deserialize<'de> for KnowledgeGraphNodesItem {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("type").and_then(serde_json::Value::as_str) {
-            Some("resource") => {
-                serde_json::from_value(value).map(KnowledgeGraphNodesItem::GraphResourceNode)
-            }
-            Some("annotation") => {
-                serde_json::from_value(value).map(KnowledgeGraphNodesItem::GraphAnnotationNode)
-            }
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a KnowledgeGraphNodesItem states a `type` that is one of `resource`, `annotation`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl KnowledgeGraphNodesItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["id", "type", "label"],
+            allowed: None,
+            fixed: &[("type", &[Literal::Text("resource")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["id", "type", "label", "annotation"],
+            allowed: None,
+            fixed: &[("type", &[Literal::Text("annotation")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(
+    KnowledgeGraphNodesItem,
+    GraphResourceNode,
+    GraphAnnotationNode,
+);
 member!(KnowledgeGraphNodesItem::GraphResourceNode(
     GraphResourceNode,
 ));
@@ -11565,30 +12871,103 @@ pub enum MarkJobParams {
     TaggingJobParams(TaggingJobParams),
 }
 
-impl<'de> serde::Deserialize<'de> for MarkJobParams {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("motivation").and_then(serde_json::Value::as_str) {
-            Some("highlighting") => {
-                serde_json::from_value(value).map(MarkJobParams::HighlightingJobParams)
-            }
-            Some("commenting") => {
-                serde_json::from_value(value).map(MarkJobParams::CommentingJobParams)
-            }
-            Some("assessing") => {
-                serde_json::from_value(value).map(MarkJobParams::AssessingJobParams)
-            }
-            Some("linking") => serde_json::from_value(value).map(MarkJobParams::LinkingJobParams),
-            Some("tagging") => serde_json::from_value(value).map(MarkJobParams::TaggingJobParams),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a MarkJobParams states a `motivation` that is one of `highlighting`, `commenting`, `assessing`, `linking`, `tagging`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl MarkJobParams {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["motivation"],
+            allowed: Some(&["motivation", "instructions", "density", "sourceLanguage"]),
+            fixed: &[("motivation", &[Literal::Text("highlighting")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["motivation"],
+            allowed: Some(&[
+                "motivation",
+                "instructions",
+                "tone",
+                "density",
+                "language",
+                "sourceLanguage",
+            ]),
+            fixed: &[
+                ("motivation", &[Literal::Text("commenting")]),
+                (
+                    "tone",
+                    &[
+                        Literal::Text("scholarly"),
+                        Literal::Text("explanatory"),
+                        Literal::Text("conversational"),
+                        Literal::Text("technical"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["motivation"],
+            allowed: Some(&[
+                "motivation",
+                "instructions",
+                "tone",
+                "density",
+                "language",
+                "sourceLanguage",
+            ]),
+            fixed: &[
+                ("motivation", &[Literal::Text("assessing")]),
+                (
+                    "tone",
+                    &[
+                        Literal::Text("analytical"),
+                        Literal::Text("critical"),
+                        Literal::Text("balanced"),
+                        Literal::Text("constructive"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["motivation", "entityTypes"],
+            allowed: Some(&[
+                "motivation",
+                "entityTypes",
+                "includeDescriptiveReferences",
+                "language",
+                "sourceLanguage",
+            ]),
+            fixed: &[("motivation", &[Literal::Text("linking")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["motivation", "schemaId", "categories"],
+            allowed: Some(&[
+                "motivation",
+                "schemaId",
+                "categories",
+                "language",
+                "sourceLanguage",
+            ]),
+            fixed: &[("motivation", &[Literal::Text("tagging")])],
+            values: None,
+        }],
+    ];
 }
+
+union!(
+    MarkJobParams,
+    HighlightingJobParams,
+    CommentingJobParams,
+    AssessingJobParams,
+    LinkingJobParams,
+    TaggingJobParams,
+);
 
 impl MarkJobParams {
     /// The `motivation` this value states: the one its member is told apart by.
@@ -11664,13 +13043,53 @@ impl MarkJobQueuedEventJobType {
 }
 
 /// What a `mark` job reports when it concludes without failing: its counts, or a decline. Neither names its kind: a decline is the one with `declined`.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum MarkJobResult {
     MarkJobDone(MarkJobDone),
     JobDeclined(JobDeclined),
 }
 
+impl MarkJobResult {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["found", "persisted"],
+            allowed: Some(&[
+                "found",
+                "persisted",
+                "errors",
+                "byCategory",
+                "underReportedPieces",
+                "uncheckedPieces",
+            ]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["declined", "reason"],
+            allowed: Some(&["declined", "reason"]),
+            fixed: &[
+                ("declined", &[Literal::Boolean(true)]),
+                (
+                    "reason",
+                    &[
+                        Literal::Text("no-text-layer"),
+                        Literal::Text("encrypted"),
+                        Literal::Text("corrupt"),
+                        Literal::Text("too-large"),
+                        Literal::Text("empty"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+    ];
+}
+
+union!(MarkJobResult, MarkJobDone, JobDeclined);
 member!(MarkJobResult::MarkJobDone(MarkJobDone));
 member!(MarkJobResult::JobDeclined(JobDeclined));
 schema!(MarkJobResult);
@@ -12348,34 +13767,113 @@ impl OllamaEmbeddingConfigType {
 }
 
 /// One Agent, or a non-empty list of them: the parties PROV-O and the Web Annotation model let a resource or an annotation name in one place, as one agent or several.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum OneOrMoreAgents {
     Agent(Agent),
     List(Vec<Agent>),
 }
 
+impl OneOrMoreAgents {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[
+            Signature {
+                kind: Kind::Object,
+                required: &["@type"],
+                allowed: None,
+                fixed: &[("@type", &[Literal::Text("Person")])],
+                values: None,
+            },
+            Signature {
+                kind: Kind::Object,
+                required: &["@type", "name"],
+                allowed: None,
+                fixed: &[("@type", &[Literal::Text("Organization")])],
+                values: None,
+            },
+            Signature {
+                kind: Kind::Object,
+                required: &["@type"],
+                allowed: None,
+                fixed: &[("@type", &[Literal::Text("Software")])],
+                values: None,
+            },
+        ],
+        &[Signature {
+            kind: Kind::List,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(OneOrMoreAgents, Agent, List);
 member!(OneOrMoreAgents::Agent(Agent));
 schema!(OneOrMoreAgents);
 
 /// One string, or a non-empty list of them: a JSON-LD term that may take one value or several.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum OneOrMoreStrings {
     Text(String),
     List(Vec<String>),
 }
 
+impl OneOrMoreStrings {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::List,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(OneOrMoreStrings, Text, List);
 schema!(OneOrMoreStrings);
 
 /// One URI, or a non-empty list of them: a JSON-LD term that may name one resource or several.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum OneOrMoreUris {
     Text(String),
     List(Vec<String>),
 }
 
+impl OneOrMoreUris {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::List,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(OneOrMoreUris, Text, List);
 schema!(OneOrMoreUris);
 
 /// A resource open in a knowledge base: which resource, the name it is shown by, when it was opened and its place among the others open there. A registry shows them by their places, and two in one place by when each was opened, first first.
@@ -12935,29 +14433,65 @@ pub enum ReconciledSpan {
     FuzzyMatch(ReconciledSpanFuzzyMatch),
 }
 
-impl<'de> serde::Deserialize<'de> for ReconciledSpan {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value
-            .get("anchorMethod")
-            .and_then(serde_json::Value::as_str)
-        {
-            Some("unique-match") => serde_json::from_value(value).map(ReconciledSpan::UniqueMatch),
-            Some("context-recovered") => {
-                serde_json::from_value(value).map(ReconciledSpan::ContextRecovered)
-            }
-            Some("first-of-many") => serde_json::from_value(value).map(ReconciledSpan::FirstOfMany),
-            Some("fuzzy-match") => serde_json::from_value(value).map(ReconciledSpan::FuzzyMatch),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a ReconciledSpan states a `anchorMethod` that is one of `unique-match`, `context-recovered`, `first-of-many`, `fuzzy-match`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl ReconciledSpan {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["start", "end", "exact", "anchorMethod"],
+            allowed: Some(&["start", "end", "exact", "prefix", "suffix", "anchorMethod"]),
+            fixed: &[("anchorMethod", &[Literal::Text("unique-match")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["start", "end", "exact", "anchorMethod"],
+            allowed: Some(&["start", "end", "exact", "prefix", "suffix", "anchorMethod"]),
+            fixed: &[("anchorMethod", &[Literal::Text("context-recovered")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["start", "end", "exact", "anchorMethod"],
+            allowed: Some(&["start", "end", "exact", "prefix", "suffix", "anchorMethod"]),
+            fixed: &[("anchorMethod", &[Literal::Text("first-of-many")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["start", "end", "exact", "anchorMethod", "matchQuality"],
+            allowed: Some(&[
+                "start",
+                "end",
+                "exact",
+                "prefix",
+                "suffix",
+                "anchorMethod",
+                "matchQuality",
+            ]),
+            fixed: &[
+                ("anchorMethod", &[Literal::Text("fuzzy-match")]),
+                (
+                    "matchQuality",
+                    &[
+                        Literal::Text("normalized"),
+                        Literal::Text("case-insensitive"),
+                        Literal::Text("fuzzy"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+    ];
 }
 
+union!(
+    ReconciledSpan,
+    UniqueMatch,
+    ContextRecovered,
+    FirstOfMany,
+    FuzzyMatch,
+);
 schema!(ReconciledSpan);
 
 /// The text has the words in more than one place, and the span is the first that fits every hint the quote gave.
@@ -13363,13 +14897,34 @@ pub struct RepresentationRemovedPayload {
 schema!(RepresentationRemovedPayload);
 
 /// The request a notification is about: the JSON-RPC id its client gave it, as the client gave it.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum RequestId {
     Text(String),
     Integer(i64),
 }
 
+impl RequestId {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Integer,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(RequestId, Text, Integer);
 schema!(RequestId);
 
 /// The annotations on one resource, as its materialized view holds them.
@@ -13680,7 +15235,7 @@ impl ResourceDescriptor {
 schema!(ResourceDescriptor);
 
 /// JSON-LD context; URI, object, or array of these.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ResourceDescriptorContext {
     Text(String),
@@ -13688,21 +15243,101 @@ pub enum ResourceDescriptorContext {
     List(Vec<ResourceDescriptorContextItem>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+impl ResourceDescriptorContext {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::List,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(ResourceDescriptorContext, Text, Object, List);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ResourceDescriptorContextItem {
     Text(String),
     Object(serde_json::Map<String, serde_json::Value>),
 }
 
+impl ResourceDescriptorContextItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(ResourceDescriptorContextItem, Text, Object);
+
 /// Persistent identifiers (e.g., DOI, URN).
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ResourceDescriptorIdentifier {
     Text(String),
     List(Vec<String>),
     Object(ResourceDescriptorIdentifierObject),
 }
+
+impl ResourceDescriptorIdentifier {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::List,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(ResourceDescriptorIdentifier, Text, List, Object);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 pub struct ResourceDescriptorIdentifierObject {
@@ -13719,24 +15354,77 @@ pub struct ResourceDescriptorIdentifierObject {
 }
 
 /// Managed or referenced byte-level renditions of this resource.
-#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum ResourceDescriptorRepresentations {
     Representation(Representation),
     List(Vec<Representation>),
 }
 
+impl ResourceDescriptorRepresentations {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["mediaType"],
+            allowed: None,
+            fixed: &[(
+                "rel",
+                &[
+                    Literal::Text("original"),
+                    Literal::Text("thumbnail"),
+                    Literal::Text("preview"),
+                    Literal::Text("optimized"),
+                    Literal::Text("derived"),
+                    Literal::Text("other"),
+                ],
+            )],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::List,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(ResourceDescriptorRepresentations, Representation, List);
 member!(ResourceDescriptorRepresentations::Representation(
     Representation,
 ));
 
 /// W3C PROV: the resource, or resources, this one was derived from, each by its id
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ResourceDescriptorWasDerivedFrom {
     ResourceId(ResourceId),
     List(Vec<ResourceId>),
 }
+
+impl ResourceDescriptorWasDerivedFrom {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::List,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(ResourceDescriptorWasDerivedFrom, ResourceId, List);
 
 /// A client-local notice that a command on a resource failed, for a UI to show: the payload of `mark:create-error`, `mark:delete-error` and `bind:body-error`. Emitted by the caller that awaited the command, which knows whose command failed on which resource. The `*-failed` wire replies are correlation plumbing and are not for this.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -14576,30 +16264,47 @@ pub enum Selector {
     FragmentSelector(FragmentSelector),
 }
 
-impl<'de> serde::Deserialize<'de> for Selector {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("type").and_then(serde_json::Value::as_str) {
-            Some("TextPositionSelector") => {
-                serde_json::from_value(value).map(Selector::TextPositionSelector)
-            }
-            Some("TextQuoteSelector") => {
-                serde_json::from_value(value).map(Selector::TextQuoteSelector)
-            }
-            Some("SvgSelector") => serde_json::from_value(value).map(Selector::SvgSelector),
-            Some("FragmentSelector") => {
-                serde_json::from_value(value).map(Selector::FragmentSelector)
-            }
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a Selector states a `type` that is one of `TextPositionSelector`, `TextQuoteSelector`, `SvgSelector`, `FragmentSelector`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl Selector {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "start", "end"],
+            allowed: None,
+            fixed: &[("type", &[Literal::Text("TextPositionSelector")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "exact"],
+            allowed: None,
+            fixed: &[("type", &[Literal::Text("TextQuoteSelector")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "value"],
+            allowed: None,
+            fixed: &[("type", &[Literal::Text("SvgSelector")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "value"],
+            allowed: None,
+            fixed: &[("type", &[Literal::Text("FragmentSelector")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(
+    Selector,
+    TextPositionSelector,
+    TextQuoteSelector,
+    SvgSelector,
+    FragmentSelector,
+);
 member!(Selector::TextPositionSelector(TextPositionSelector));
 member!(Selector::TextQuoteSelector(TextQuoteSelector));
 member!(Selector::SvgSelector(SvgSelector));
@@ -15428,12 +17133,38 @@ impl ServiceTelemetryTelemetryMetricsItemAttributesItem {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem {
     Text(String),
     Boolean(bool),
 }
+
+impl ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Boolean,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem,
+    Text,
+    Boolean,
+);
 
 /// The metric's instrument.
 #[derive(
@@ -15654,12 +17385,38 @@ impl ServiceTelemetryTelemetrySpansItemAttributesItem {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem {
     Text(String),
     Boolean(bool),
 }
+
+impl ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Boolean,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem,
+    Text,
+    Boolean,
+);
 
 /// The span's kind, in OTLP's words.
 #[derive(
@@ -17555,23 +19312,34 @@ pub enum TabCheck {
     Unknown(TabCheckUnknown),
 }
 
-impl<'de> serde::Deserialize<'de> for TabCheck {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("verdict").and_then(serde_json::Value::as_str) {
-            Some("gone") => serde_json::from_value(value).map(TabCheck::Gone),
-            Some("ready") => serde_json::from_value(value).map(TabCheck::Ready),
-            Some("unknown") => serde_json::from_value(value).map(TabCheck::Unknown),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a TabCheck states a `verdict` that is one of `gone`, `ready`, `unknown`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl TabCheck {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["verdict"],
+            allowed: Some(&["verdict"]),
+            fixed: &[("verdict", &[Literal::Text("gone")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["verdict", "name"],
+            allowed: Some(&["verdict", "name", "mediaType"]),
+            fixed: &[("verdict", &[Literal::Text("ready")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["verdict"],
+            allowed: Some(&["verdict"]),
+            fixed: &[("verdict", &[Literal::Text("unknown")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(TabCheck, Gone, Ready, Unknown);
 schema!(TabCheck);
 
 /// The knowledge base said the resource does not exist.
@@ -18068,23 +19836,34 @@ pub enum UploadProgress {
     Finished(UploadProgressFinished),
 }
 
-impl<'de> serde::Deserialize<'de> for UploadProgress {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("phase").and_then(serde_json::Value::as_str) {
-            Some("started") => serde_json::from_value(value).map(UploadProgress::Started),
-            Some("progress") => serde_json::from_value(value).map(UploadProgress::Progress),
-            Some("finished") => serde_json::from_value(value).map(UploadProgress::Finished),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a UploadProgress states a `phase` that is one of `started`, `progress`, `finished`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl UploadProgress {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["phase", "totalBytes"],
+            allowed: Some(&["phase", "totalBytes"]),
+            fixed: &[("phase", &[Literal::Text("started")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["phase", "bytesUploaded", "totalBytes"],
+            allowed: Some(&["phase", "bytesUploaded", "totalBytes"]),
+            fixed: &[("phase", &[Literal::Text("progress")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["phase", "resourceId"],
+            allowed: Some(&["phase", "resourceId"]),
+            fixed: &[("phase", &[Literal::Text("finished")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(UploadProgress, Started, Progress, Finished);
 schema!(UploadProgress);
 
 /// The upload ended, and the resource is made.
@@ -18418,22 +20197,27 @@ pub enum VectorsConfig {
     MemoryVectorsConfig(MemoryVectorsConfig),
 }
 
-impl<'de> serde::Deserialize<'de> for VectorsConfig {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <serde_json::Value as serde::Deserialize>::deserialize(deserializer)?;
-        let member = match value.get("type").and_then(serde_json::Value::as_str) {
-            Some("qdrant") => serde_json::from_value(value).map(VectorsConfig::QdrantVectorsConfig),
-            Some("memory") => serde_json::from_value(value).map(VectorsConfig::MemoryVectorsConfig),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "a VectorsConfig states a `type` that is one of `qdrant`, `memory`",
-                ));
-            }
-        };
-        member.map_err(serde::de::Error::custom)
-    }
+impl VectorsConfig {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "host", "port", "tokenEnv"],
+            allowed: Some(&["type", "host", "port", "tokenEnv"]),
+            fixed: &[("type", &[Literal::Text("qdrant")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type"],
+            allowed: Some(&["type"]),
+            fixed: &[("type", &[Literal::Text("memory")])],
+            values: None,
+        }],
+    ];
 }
 
+union!(VectorsConfig, QdrantVectorsConfig, MemoryVectorsConfig);
 member!(VectorsConfig::QdrantVectorsConfig(QdrantVectorsConfig));
 member!(VectorsConfig::MemoryVectorsConfig(MemoryVectorsConfig));
 schema!(VectorsConfig);
@@ -18910,12 +20694,34 @@ pub struct WorkerMessages {
 
 schema!(WorkerMessages);
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum WorkerMessagesBootItem {
     OwnBootRefusal(WorkerMessagesBootItemOwnBootRefusal),
     SharedBootRefusal(WorkerMessagesBootItemSharedBootRefusal),
 }
+
+impl WorkerMessagesBootItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["name", "situation", "refusal"],
+            allowed: Some(&["name", "situation", "refusal"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["name", "situation", "bootRefusal"],
+            allowed: Some(&["name", "situation", "bootRefusal"]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(WorkerMessagesBootItem, OwnBootRefusal, SharedBootRefusal);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -19572,13 +21378,46 @@ impl YieldJobQueuedEventJobType {
 }
 
 /// What a `yield` job reports when it concludes without failing: the resource it made, or a decline. Neither names its kind: a decline is the one with `declined`.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum YieldJobResult {
     YieldJobDone(YieldJobDone),
     JobDeclined(JobDeclined),
 }
 
+impl YieldJobResult {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["resourceId", "resourceName", "truncated"],
+            allowed: Some(&["resourceId", "resourceName", "truncated"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["declined", "reason"],
+            allowed: Some(&["declined", "reason"]),
+            fixed: &[
+                ("declined", &[Literal::Boolean(true)]),
+                (
+                    "reason",
+                    &[
+                        Literal::Text("no-text-layer"),
+                        Literal::Text("encrypted"),
+                        Literal::Text("corrupt"),
+                        Literal::Text("too-large"),
+                        Literal::Text("empty"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+    ];
+}
+
+union!(YieldJobResult, YieldJobDone, JobDeclined);
 member!(YieldJobResult::YieldJobDone(YieldJobDone));
 member!(YieldJobResult::JobDeclined(JobDeclined));
 schema!(YieldJobResult);

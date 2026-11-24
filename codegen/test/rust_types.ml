@@ -425,8 +425,8 @@ let cases =
         has code "member!(Holder::Target(Target));";
         Alcotest.(check int) "one" 1 (count code "member!("));
     case
-      "a union told apart by a property is decoded as the member the property \
-       names, and says which value it states" (fun () ->
+      "a union is decoded by what each member admits, and one told apart by a \
+       property says which value it states" (fun () ->
         let code =
           generated ~accessors:[ "Mark" ]
             [
@@ -448,14 +448,10 @@ let cases =
           "#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]\n\
            #[serde(untagged)]\n\
            pub enum Mark {";
-        has code
-          "            Some(\"tagging\") => \
-           serde_json::from_value(value).map(Mark::MarkTag),";
-        has code
-          "                return Err(serde::de::Error::custom(\n\
-          \                    \"a Mark states a `motivation` that is one of \
-           `highlighting`, `tagging`\",\n\
-          \                ));";
+        has code "    pub const MEMBERS: &'static [&'static [Signature]] = &[";
+        has code {|("motivation", &[Literal::Text("tagging")])|};
+        has code "union!(Mark, MarkHighlight, MarkTag);\n";
+        lacks code "serde::Deserialize<'de> for Mark";
         has code
           "    pub(crate) const fn motivation(&self) -> Motivation {\n\
           \        match self {\n\
@@ -463,6 +459,19 @@ let cases =
           \            Mark::MarkTag(_) => Motivation::Tagging,\n\
           \        }\n\
           \    }");
+    case "a union whose members only a pattern tells apart is refused"
+      (refused
+         "U: its members A and B are told apart only by a pattern, which the \
+          Rust SDK does not read" (fun () ->
+           generated
+             [
+               ("A", {|{"type": "string", "pattern": "^a$"}|});
+               ("B", {|{"type": "string", "pattern": "^b$"}|});
+               ( "U",
+                 {|{"oneOf": [{"$ref": "A.json"}, {"$ref": "B.json"}, {"type": "integer"}]}|}
+               );
+             ]
+             "U"));
     case
       "a member whose value is none of the enumeration its property names is \
        refused"

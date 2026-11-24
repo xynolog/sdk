@@ -686,6 +686,28 @@ and disjoint (a : signature) (b : signature) =
   || a.kind = Object_kind && b.kind = Object_kind
      && (excludes a b || excludes b a || fixed_apart a b)
 
+(* Two members of [u] that only a pattern tells apart, by their variants:
+   what a reader of the values a union's members admit, that reads no
+   pattern, cannot tell apart. *)
+let apart_by_pattern_only (u : union) =
+  let unpatterned (s : signature) = { s with pattern = None } in
+  let rec pairs = function
+    | [] -> []
+    | b :: rest -> List.map (fun other -> (b, other)) rest @ pairs rest
+  in
+  List.find_map
+    (fun ((a : branch), (b : branch)) ->
+      if
+        List.exists
+          (fun sa ->
+            List.exists
+              (fun sb -> not (disjoint (unpatterned sa) (unpatterned sb)))
+              b.signature)
+          a.signature
+      then Some (a.variant, b.variant)
+      else None)
+    (pairs u.branches)
+
 (* Every reference a type holds, through what it holds in place. *)
 let rec references_of_ty (ty : ty) =
   match ty with

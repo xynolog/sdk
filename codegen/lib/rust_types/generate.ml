@@ -10,13 +10,14 @@
    names that schema ([Schema::NAME]), so code that needs a type's schema
    takes it from the type, and a type with none does not compile there.
 
-   A union is written untagged. One whose schema names the property its
-   members are told apart by ([status], [jobType], [motivation]), each member
-   stating its own one value of it, is decoded as the member that value
-   names, and a value that is wrong is refused for what is wrong with it. Any
-   other is decoded as the first member that fits
-   ([Deviations.single_tags]). A member's one value of such a property is its
-   own to state: [new] sets it and takes the rest. A union told apart so that
+   A union is written untagged, and decoded by what each member admits as
+   [Typing] states it (its [MEMBERS], which types.rs's [union!] reads): a
+   value is the one member that admits it, or, none admitting it, the one its
+   kind and the values it states name, refused for what is wrong with it as
+   that member. A union whose members only a pattern tells apart is refused,
+   since nothing reads a pattern there. A member's one value of a property
+   its union is told apart by is its own to state: [new] sets it and takes
+   the rest. A union told apart so that
    a generation names ([accessors]) says which value of the string
    enumeration the property names its member states, and a member's value
    that is none of the enumeration's is refused. What the schema says that a
@@ -36,7 +37,19 @@ let empty_object = "EmptyObject"
    (rust/sdk/src/types.rs): no schema may have one. *)
 let invalid_identifier = "InvalidIdentifier"
 let schema_trait = "Schema"
-let own_names = [ invalid_identifier; schema_trait; "Rule"; "Admitted" ]
+
+let own_names =
+  [
+    invalid_identifier;
+    schema_trait;
+    "Rule";
+    "Admitted";
+    "Signature";
+    "Kind";
+    "Literal";
+    "Found";
+  ]
+
 let ty name = R.Named ([ name ], [])
 let string_ty = ty "String"
 let generic name args = R.Named ([ name ], args)
@@ -223,6 +236,46 @@ type state = {
       (** Every type written, by name, so a schema reached twice is written
           once. *)
 }
+
+(* A value a schema states, as types.rs's [Literal] holds it. *)
+let literal (l : Schema.literal) =
+  match l with
+  | Schema.String_literal s -> R.call "Literal::Text" [ R.Str s ]
+  | Schema.Int_literal n -> R.call "Literal::Integer" [ R.Int n ]
+  | Schema.Bool_literal b -> R.call "Literal::Boolean" [ R.Bool b ]
+
+let literals ls = R.Ref_of (R.Array (List.map literal ls))
+let words ws = R.Ref_of (R.Array (List.map (fun w -> R.Str w) ws))
+let stated = function Some e -> R.call "Some" [ e ] | None -> R.p "None"
+
+(* What a member of a union admits, as types.rs's [Signature] holds it. *)
+let signature (s : T.signature) =
+  let kind =
+    match s.kind with
+    | T.Text_kind -> "Text"
+    | T.Integer_kind -> "Integer"
+    | T.Number_kind -> "Number"
+    | T.Boolean_kind -> "Boolean"
+    | T.List_kind -> "List"
+    | T.Object_kind -> "Object"
+    | T.Null_kind -> "Null"
+    | T.Any_kind -> "Any"
+  in
+  R.Struct
+    ( [ "Signature" ],
+      [
+        ("kind", R.p ("Kind::" ^ kind));
+        ("required", words s.required);
+        ("allowed", stated (Option.map words s.allowed));
+        ( "fixed",
+          R.Ref_of
+            (R.Array
+               (List.map
+                  (fun (p, vs) -> R.Tuple [ R.Str p; literals vs ])
+                  s.fixed)) );
+        ("values", stated (Option.map literals s.values));
+      ],
+      None )
 
 let shape what = refuse "%s: a schema shape the generator does not know" what
 
@@ -828,17 +881,13 @@ and union_declaration st name (u : T.union) doc =
           | member -> type_of st name member ))
       u.branches
   in
-  let told_apart = Deviations.single_tags u in
   let enum =
     R.Enum
       {
         doc;
         attrs =
           [
-            derive
-              ([ "Debug"; "Clone"; "PartialEq" ]
-              @ (if told_apart = None then [ "serde::Deserialize" ] else [])
-              @ [ "serde::Serialize" ]);
+            derive [ "Debug"; "Clone"; "PartialEq"; "serde::Serialize" ];
             serde [ R.Word [ "untagged" ] ];
           ];
         vis = Pub;
@@ -846,103 +895,55 @@ and union_declaration st name (u : T.union) doc =
         variants = List.map (fun (v, t) -> R.variant ~payload:t v) variants;
       }
   in
-  let self_name = ty name in
-  (* Told apart by a property, a value is decoded as the one member its
-     property names, and what is wrong with it is said of that member.
-     Decoded as the first member that fits, it could only be said to fit
-     none. *)
+  (match T.apart_by_pattern_only u with
+  | Some (a, b) ->
+      refuse
+        "%s: its members %s and %s are told apart only by a pattern, which the \
+         Rust SDK does not read"
+        name a b
+  | None -> ());
+  let signatures =
+    let all_static t = R.Ref (Some "'static", R.Slice t) in
+    impl (ty name)
+      [
+        R.I_const
+          {
+            doc =
+              [
+                "What each of its members admits, in the order of its variants.";
+              ];
+            vis = Pub;
+            name = "MEMBERS";
+            ty = all_static (all_static (ty "Signature"));
+            value =
+              Some
+                (R.Ref_of
+                   (R.Array
+                      (List.map
+                         (fun (b : T.branch) ->
+                           R.Ref_of (R.Array (List.map signature b.signature)))
+                         u.branches)));
+          };
+      ]
+  in
   let deserialize =
-    match told_apart with
-    | None -> []
-    | Some (property, tags) ->
-        let de = R.Lifetime "'de" in
-        [
-          impl ~generics:[ R.Lifetime_param "'de" ]
-            ~trait_:(R.named ~args:[ de ] "serde::Deserialize")
-            self_name
-            [
-              R.I_fn
-                (R.fn_ "deserialize"
-                   ~generics:
-                     [
-                       R.Type_param
-                         ("D", [ R.named ~args:[ de ] "serde::Deserializer" ]);
-                     ]
-                   ~params:[ R.Param ("deserializer", ty "D") ]
-                   ~ret:
-                     (generic "Result" [ ty "Self"; R.Assoc [ "D"; "Error" ] ])
-                   [
-                     R.Let
-                       ( "value",
-                         R.Try
-                           (R.Call
-                              ( R.Qualified
-                                  ( R.named "serde_json::Value",
-                                    R.named "serde::Deserialize",
-                                    [ "deserialize" ] ),
-                                [ R.p "deserializer" ] )) );
-                     R.Let
-                       ( "member",
-                         R.Match
-                           ( R.Method
-                               ( R.Method
-                                   (R.p "value", "get", [ R.Str property ]),
-                                 "and_then",
-                                 [ R.p "serde_json::Value::as_str" ] ),
-                             List.map2
-                               (fun tag (variant, _) ->
-                                 ( R.call "Some" [ R.Str tag ],
-                                   R.Method
-                                     ( R.call "serde_json::from_value"
-                                         [ R.p "value" ],
-                                       "map",
-                                       [ path [ name; variant ] ] ) ))
-                               tags variants
-                             @ [
-                                 ( R.Wild,
-                                   R.Block
-                                     [
-                                       R.Semi
-                                         (R.Return
-                                            (R.call "Err"
-                                               [
-                                                 R.call
-                                                   "serde::de::Error::custom"
-                                                   [
-                                                     R.Str
-                                                       (Printf.sprintf
-                                                          "a %s states a `%s` \
-                                                           that is one of %s"
-                                                          name property
-                                                          (String.concat ", "
-                                                             (List.map
-                                                                (fun t ->
-                                                                  "`" ^ t ^ "`")
-                                                                tags)));
-                                                   ];
-                                               ]));
-                                     ] );
-                               ] ) );
-                     R.Tail
-                       (R.Method
-                          ( R.p "member",
-                            "map_err",
-                            [ R.p "serde::de::Error::custom" ] ));
-                   ]);
-            ];
-        ]
+    R.Macro_item ("union", R.p name :: List.map (fun (v, _) -> R.p v) variants)
   in
   let accessor =
     if not (List.mem name st.accessors) then []
     else
-      match told_apart with
-      | None ->
+      match u.tag with
+      | Some { property; values }
+        when List.for_all (fun v -> List.length v = 1) values ->
+          [
+            discriminator_accessor st name property (List.map List.hd values)
+              variants;
+          ]
+      | _ ->
           refuse
             "%s: an accessor of the property its members are told apart by is \
-             asked for, and none tells them apart"
+             asked for, and its members do not each state one value of it"
             name
-      | Some (property, tags) ->
-          [ discriminator_accessor st name property tags variants ]
   in
   (* A member that is a schema of its own is the union it belongs to,
      wherever the union is wanted. A member that is text or a list is not:
@@ -965,7 +966,7 @@ and union_declaration st name (u : T.union) doc =
            | _ -> [])
          u.branches variants)
   in
-  blank_between ((enum :: deserialize) @ accessor @ froms)
+  blank_between ([ enum; signatures; deserialize ] @ accessor @ froms)
 
 (* The method saying which value of the string enumeration [property] names
    a value of the union [name] states: its member's own. *)

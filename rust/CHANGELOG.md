@@ -66,6 +66,12 @@ the coming release's, and gathers its changes as they land.
   where it was read. Its value is the type's `VALUE`
   (`DiscoveryDocumentVersion::VALUE`), and the struct's constructor states it
   (`ConformanceDriverLineAbandoned::new(id)`).
+- A union is decoded as the one member that admits a value, by what each
+  member's schema states, where one whose members do not each state one
+  value of a property (`AnchoredTextAnswer`) was decoded as the first member
+  that fit. A value that no member admits, but that one member names by its
+  kind and the values it states, is refused for what is wrong with it as that
+  member. Each union states what its members admit (`Job::MEMBERS`).
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - The smelter's and the weaver's health name how far they have followed the
