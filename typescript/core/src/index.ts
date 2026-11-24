@@ -126,6 +126,8 @@ export type {
   KbIdentityConflict,
   SessionEndReason,
   StoredSession,
+  PendingAuthorization,
+  LastEventIds,
   AnchorMethod,
   MatchQuality,
   FrameRefusalReason,

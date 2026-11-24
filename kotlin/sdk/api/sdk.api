@@ -637,42 +637,6 @@ public final class xynolog/http/HttpTransport : xynolog/transport/GatewayOperati
 	public fun trackReply (Ljava/lang/String;Ljava/util/Collection;)Lxynolog/transport/PendingReply;
 }
 
-public final class xynolog/http/IssuerEndpoints {
-	public static final field Companion Lxynolog/http/IssuerEndpoints$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lxynolog/http/IssuerEndpoints;
-	public static synthetic fun copy$default (Lxynolog/http/IssuerEndpoints;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lxynolog/http/IssuerEndpoints;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAuthorization ()Ljava/lang/String;
-	public final fun getDevice ()Ljava/lang/String;
-	public final fun getIssuer ()Ljava/lang/String;
-	public final fun getRevocation ()Ljava/lang/String;
-	public final fun getToken ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class xynolog/http/IssuerEndpoints$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lxynolog/http/IssuerEndpoints$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxynolog/http/IssuerEndpoints;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxynolog/http/IssuerEndpoints;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class xynolog/http/IssuerEndpoints$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
 public final class xynolog/http/IssuerKt {
 	public static final fun renewKept (Lxynolog/signin/SignInKept;Ljava/lang/String;Ljava/net/http/HttpClient;Lkotlin/random/Random;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun renewKept$default (Lxynolog/signin/SignInKept;Ljava/lang/String;Ljava/net/http/HttpClient;Lkotlin/random/Random;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -708,48 +672,6 @@ public final class xynolog/http/KeyCredential : xynolog/http/Credential {
 
 public final class xynolog/http/KeyCredential$Companion {
 	public final fun fromPem (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lxynolog/http/KeyCredential;
-}
-
-public final class xynolog/http/PendingAuthorization {
-	public static final field Companion Lxynolog/http/PendingAuthorization$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/HttpEndpoint;Lxynolog/http/IssuerEndpoints;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/HttpEndpoint;Lxynolog/http/IssuerEndpoints;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Lxynolog/types/HttpEndpoint;
-	public final fun component5 ()Lxynolog/http/IssuerEndpoints;
-	public final fun component6 ()Ljava/lang/String;
-	public final fun component7 ()Ljava/lang/String;
-	public final fun component8 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/HttpEndpoint;Lxynolog/http/IssuerEndpoints;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lxynolog/http/PendingAuthorization;
-	public static synthetic fun copy$default (Lxynolog/http/PendingAuthorization;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/HttpEndpoint;Lxynolog/http/IssuerEndpoints;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lxynolog/http/PendingAuthorization;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getExpectedDid ()Ljava/lang/String;
-	public final fun getExpectedName ()Ljava/lang/String;
-	public final fun getIssuer ()Lxynolog/http/IssuerEndpoints;
-	public final fun getKbId ()Ljava/lang/String;
-	public final fun getRedirectUri ()Ljava/lang/String;
-	public final fun getState ()Ljava/lang/String;
-	public final fun getTarget ()Lxynolog/types/HttpEndpoint;
-	public final fun getVerifier ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class xynolog/http/PendingAuthorization$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lxynolog/http/PendingAuthorization$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxynolog/http/PendingAuthorization;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxynolog/http/PendingAuthorization;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class xynolog/http/PendingAuthorization$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class xynolog/http/SecretCredential : xynolog/http/Credential {

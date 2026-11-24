@@ -20,13 +20,11 @@ import (
 type Bookmarks interface {
 	// Load is the id of the last recorded event taken in on each scope, as
 	// kept.
-	Load() map[api.ResourceId]string
+	Load() api.LastEventIds
 }
 
 // CoupledBookmarks keeps a stream's places in a SessionStorage, coupled to
-// the caches kept in the same storage, as
-// protocol/specs/src/session/stored.json's `lastEventIds`: an object from a
-// resource's id to a PersistedEventId.
+// the caches kept in the same storage, as api.LastEventIds.
 //
 // The place may lag the caches and never leads them. A place kept ahead of a
 // cache would have the next client resume past an event the cache it begins
@@ -55,7 +53,7 @@ type CoupledBookmarks struct {
 
 	mu sync.Mutex
 	// pending is the places reached and not yet written.
-	pending map[api.ResourceId]string
+	pending api.LastEventIds
 	atRest  func() bool
 	// sealed is whether the client's Close has read the gate: pending is then
 	// all that is written.
@@ -66,7 +64,7 @@ var _ Bookmarks = (*CoupledBookmarks)(nil)
 
 // NewCoupledBookmarks is places kept in storage under key.
 func NewCoupledBookmarks(storage SessionStorage, key string) *CoupledBookmarks {
-	return &CoupledBookmarks{storage: storage, key: key, pending: map[api.ResourceId]string{}}
+	return &CoupledBookmarks{storage: storage, key: key, pending: api.LastEventIds{}}
 }
 
 // Storage is the storage to give the caches: what they write goes to the
@@ -79,8 +77,8 @@ const placeSchema = "PersistedEventId"
 // persisted reports whether id is a recorded event's, and so a place.
 func persisted(id string) bool { return required.Holds(placeSchema, id) }
 
-func (b *CoupledBookmarks) Load() map[api.ResourceId]string {
-	places := map[api.ResourceId]string{}
+func (b *CoupledBookmarks) Load() api.LastEventIds {
+	places := api.LastEventIds{}
 	stored, ok := b.storage.Get(b.key)
 	if !ok {
 		return places
@@ -161,7 +159,7 @@ func (b *CoupledBookmarks) flush() error {
 	}
 	places := b.Load()
 	maps.Copy(places, b.pending)
-	b.pending = map[api.ResourceId]string{}
+	b.pending = api.LastEventIds{}
 	written, err := json.Marshal(places)
 	if err != nil {
 		// Every scope was read from storage or delivered on the stream, so none is the zero id, the one a ResourceId refuses to write.

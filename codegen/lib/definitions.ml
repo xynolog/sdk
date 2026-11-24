@@ -226,6 +226,29 @@ let records spec =
   | Ok records -> records
   | Error message -> refuse "%s" message
 
+(* The type each named map's keys are, where its schema's [propertyNames] is
+   a whole schema of its own: LastEventIds is keyed by ResourceId. *)
+let map_keys (spec : Spec.t) =
+  let key_of name = function
+    | Schema.Schema
+        { property_names = Some (Schema.Schema { ref_ = Some r; _ }); _ } -> (
+        match Decode.resolve spec.ids r with
+        | file, "" -> Some (stem file)
+        | _ ->
+            refuse
+              "%s names its members' names by %s, which is no schema's file"
+              name r.target)
+    | _ -> None
+  in
+  List.filter_map
+    (fun (name, r) ->
+      let file, _ = Decode.resolve spec.ids r in
+      Option.map (fun s -> (name, s)) (List.assoc_opt file spec.schemas))
+    (Roots.all spec)
+  @ List.map (fun (_, name, s) -> (name, s)) (records spec)
+  |> List.filter_map (fun (name, s) ->
+      Option.map (fun key -> (name, key)) (key_of name s))
+
 (* What a client roots of its own: each client type, and each record a
    table states ([Table_records]). *)
 let client_roots (spec : Spec.t) =

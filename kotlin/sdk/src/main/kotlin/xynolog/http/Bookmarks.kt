@@ -1,6 +1,6 @@
 package xynolog.http
 
-import xynolog.identifiers.ResourceId
+import xynolog.types.LastEventIds
 
 /**
  * Where a stream's place in each scope is kept across a client's lives. A
@@ -10,5 +10,5 @@ import xynolog.identifiers.ResourceId
  */
 public interface Bookmarks {
     /** The id of the last recorded event delivered on each scope, as kept. */
-    public fun load(): Map<ResourceId, String>
+    public fun load(): LastEventIds
 }

@@ -7745,6 +7745,15 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "LastEventIds",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            values: Some(&reference("PersistedEventId")),
+            names: Some(&reference("ResourceId")),
+            ..NONE
+        },
+    ),
+    (
         "LibrarianConfig",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -9217,6 +9226,38 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("selector", reference("AnnotationSelector")),
             ],
             closed: Some(&["motivation", "selector"]),
+            ..NONE
+        },
+    ),
+    (
+        "PendingAuthorization",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["state", "verifier", "redirectUri", "target", "issuer"],
+            members: &[
+                ("expectedDid", of(&[Kind::String])),
+                ("expectedName", of(&[Kind::String])),
+                (
+                    "issuer",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["issuer", "authorization", "token"],
+                        members: &[
+                            ("authorization", of(&[Kind::String])),
+                            ("device", of(&[Kind::String])),
+                            ("issuer", of(&[Kind::String])),
+                            ("revocation", of(&[Kind::String])),
+                            ("token", of(&[Kind::String])),
+                        ],
+                        ..NONE
+                    },
+                ),
+                ("kbId", of(&[Kind::String])),
+                ("redirectUri", of(&[Kind::String])),
+                ("state", of(&[Kind::String])),
+                ("target", reference("HttpEndpoint")),
+                ("verifier", of(&[Kind::String])),
+            ],
             ..NONE
         },
     ),

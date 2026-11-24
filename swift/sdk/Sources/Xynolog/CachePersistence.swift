@@ -373,8 +373,9 @@ final class KeptQueries: Sendable {
       guard !writing.places.isEmpty else { return nil }
       try storage.update(lastEventIdKey(kbId, writing.person)) { text in
         let merged = storedPlaces(text).merging(writing.places) { _, heard in heard }
-        return try storedText(
-          Dictionary(uniqueKeysWithValues: merged.map { scope, id in (scope.value, id) }))
+        let kept: LastEventIds = Dictionary(
+          uniqueKeysWithValues: merged.map { scope, id in (scope.value, id) })
+        return try storedText(kept)
       }
       return nil
     } catch {

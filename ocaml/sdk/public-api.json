@@ -95,7 +95,7 @@
     "dune.lock/yojson.3.0.0.pkg": "d1536ef266187c4f3c66bbcef7998bac8497c175450463e075b552e0e99dc3a3",
     "dune.lock/zarith.1.14.pkg": "fd76eda421de026914a0de1c4d81d4140fd0d685f596dfe5aae1a5b83f06b75c",
     "lib/agent.ml": "f667bca66c8bf9022a35c5091e6b0bbcbd8fef0db25fd55991f3bb5e6998244d",
-    "lib/agent.mli": "194b536a8f4dee477d1c4ec06dfe091ea256c417fa8a979e11dee640393895ee",
+    "lib/agent.mli": "b6685f05c2c3ede4f94a2c7d55387ee451a8a8aa34a96489f2af3c0d32a37e91",
     "lib/annotation_id.ml": "5b737d261c35db2e649bc00f2ece7cda103e8c08d677be4483171ac9f8453951",
     "lib/annotations.ml": "3c47d984dc060a509d91abfca646ed1feb17fb167b483d8e6d21f9f67fcf4b06",
     "lib/annotations.mli": "ec8e645bf1b15c8a92acbe067b04384dc2caa85ebeb9ecf2fd8c49c2d326de47",
@@ -178,20 +178,20 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "1d39b856d6380f13d77d83701e7bf137205e10d18bce5dc3469cca9e26a5dc24",
-    "lib/models.mli": "35fa2c9f53789014f719199da78380507b1b70a6774a9d88e08733475c906fe5",
+    "lib/models.ml": "7b4263ace72f71c039343e9cb12a0b174932c3db4ee49571dffbd0c74e4768e6",
+    "lib/models.mli": "860158845da48b0888e6b2c5f2e6aa233fd6416fbd60a49033192903d60dd504",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
-    "lib/oauth.ml": "4e6262fd4cfbf51890766793943c3e8824ef2d144694aab1490c02fe9d967cc1",
-    "lib/oauth.mli": "33354ccc1b0ef3a73956ede5659fa9d6440160e236d801f499e29eae10f99183",
+    "lib/oauth.ml": "83e3a22603a7623efa040692be2134de278c2b08a8d1d9a74e077fcb2c039f58",
+    "lib/oauth.mli": "e553d7b097ce242bcb9309a2bf829c6c2611d1fad4a335a69ef91164668ca088",
     "lib/oauth_facts.ml": "8d318f922bc93b766445f8e0f3f0fc2deb2e9a78244e7553f717d620d69127b2",
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "a965c726fe5d0ac4527f39dd8ecf902b9ff5765fd6676b94a7b5542f91eb4963",
     "lib/record_reader.mli": "19f5172554a4e57e3c6a13ce8213ccb5e4d4c9bf6beb49234306f4c9044227e9",
-    "lib/records.ml": "0646e21d6eb5379664411e6e8b214b5317ebc402ced1ce4cc48400990d78b365",
-    "lib/redirect_sign_in.ml": "d3b7206b16548f24a4fcf3dfa6143bc7fc8fa0fe4de2e61598a460be41c2ef6f",
+    "lib/records.ml": "9d936798b03e3a1657dbe3ca079d1e6a9ec095d99c1c3d6b98fd26543dd327b7",
+    "lib/redirect_sign_in.ml": "12c7f252e2250311a07038063ab2797e97f12d048177a0d3c33735ff0f1135d4",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
-    "lib/registry.ml": "0cf4b0ccf928703ee0c0b0feab808e7a9b5047ab04867899bd1c151282ad4430",
-    "lib/registry.mli": "d6f01d96fdde551b641907b30f4132aa8a09d6464b0e289b7d234baca95ef75b",
+    "lib/registry.ml": "c0f2a5d59959339292ce480e83bb7b2a2e667557f6ef6e97d62a12da33d1fbdb",
+    "lib/registry.mli": "9b95a73c33583b9e737263db624a5fff5d441076ce74c134deaa119afdcef60d",
     "lib/registry_facts.ml": "ad2d706c130785002585a0797b2ec8a070790257bd364a85b34f51f839dfcd63",
     "lib/resources.ml": "9edc5b61f4dd7d1069e921607ae2181c1eca02fa77b1d3cef178e0766d3b3fed",
     "lib/resources.mli": "681c8d831db9af64fc28b7b91b6e913bf992f99529f2a3edb7f0d16121b10bf2",
@@ -201,7 +201,7 @@
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "f676b81d53500a27ed4c55b7b5f938be79aa5906f9aeb0e944a399e1ff40ebbe",
+    "lib/schema_shapes.ml": "778e25587a1ef44a67155fd4b04a7160d1b9bdd79ff0b708bff3526c3ff34e90",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "aa663f563557765b0b8bf77b32669fd1ab0f7b7e5b618eb8865445dd642dc8b6",
@@ -211,8 +211,8 @@
     "lib/service_environment_variables.ml": "b462fc6af1ec95baffd13f3d461e11010ac736c3a0eeaf134beeaf1157dbeb9f",
     "lib/service_telemetry_log_lines.ml": "5085a4d7b17f1418801858c14ab1cd3ae756d4c3991b7f98310a68b551c29733",
     "lib/service_telemetry_telemetry.ml": "334813031472f0949a1bc90ead76a0b60a226d423752a68e0dd388b771590a31",
-    "lib/service_token.ml": "cf53ac5de5ac0ad42f89ec7e9e7b507ea148397c308182d7acba377408984649",
-    "lib/service_token.mli": "befd1a461a905333e73b04b0c7d9b38dd4b0072f3244e2011fdd45d357dad6e2",
+    "lib/service_token.ml": "dc29461fa6098785f39958f3b73a795e1649a8b177aed200666787c4580609e0",
+    "lib/service_token.mli": "13a8e5cc144c1c8d5b1280725d3830aa55deb7ba26db37a7bdf7a582f73ef15c",
     "lib/session.ml": "9c113a57dca817eda4ef9e843ee120bf8aa489bd7c541d11cbb14ed0f85af0cf",
     "lib/session.mli": "de5dbaf4f50a8e948c17af22ce15078074b6e570440459429ffbeee93fbe0ba7",
     "lib/session_notices.ml": "cccea843423b06e5802f1675a614063b9533b8a5ea8038fa19d76db1f8eeec59",
@@ -220,8 +220,8 @@
     "lib/session_signals.mli": "75d9e803669a38f99e84aa96938790d283100139f1dc35ae9a28d642fe21db5b",
     "lib/session_state.ml": "7d3752fb039db97758080e839678beab12f5022fce698d2bd688ee2827b8b818",
     "lib/session_state.mli": "9e7179985cf0a05b166d65ddb7e6f4600eadf55361884240fe76aa18802cc13e",
-    "lib/sign_in_store.ml": "86049104dcb281f64fa1dcad148f35bcd4edb28c664c26a224f441a1bb3f4780",
-    "lib/sign_in_store.mli": "e6d3f45d44a69f6becfc3079c6055341ab5c53cb93bb74da150edbb86704f1eb",
+    "lib/sign_in_store.ml": "8393505169e0e4576de05aa971246d09c26614344a5528e69e5a0c5256ea24dd",
+    "lib/sign_in_store.mli": "e2a35e93c105d84d53ce7b6a1cf8117f4c9645a077d66d3d38d614e92e942ba6",
     "lib/sign_in_store_names.ml": "3339dba3b41d74a767840d9afeb9e41390c025c28a5e98659e518cd9b25ae514",
     "lib/smelter_messages.ml": "b8e465e5674f6aa99f3689a6a470d6aa1d3f483ae7be948ee970e9c5f9fd8ca0",
     "lib/state_task.ml": "2061a7893545d7ecf7f52b0235c21fa2a5346ef3c65334e043e63dd7dfc74c8c",
@@ -4693,6 +4693,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.last_event_ids",
+      "declaration": "val last_event_ids : [ `LastEventIds ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.librarian_config",
       "declaration": "val librarian_config : [ `LibrarianConfig ] descriptor"
     },
@@ -5005,6 +5010,11 @@
       "kind": "value",
       "path": "Xynolog.Models.pending_annotation",
       "declaration": "val pending_annotation : [ `PendingAnnotation ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.pending_authorization",
+      "declaration": "val pending_authorization : [ `PendingAuthorization ] descriptor"
     },
     {
       "kind": "value",
@@ -24610,6 +24620,34 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Pending_authorization_issuer",
+      "declaration": "module Pending_authorization_issuer :\n  sig\n    type t = {\n      issuer : string;\n      authorization : string;\n      token : string;\n      device : string option;\n      revocation : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Pending_authorization_issuer.t",
+      "declaration": "type t = {\n  issuer : string;\n  authorization : string;\n  token : string;\n  device : string option;\n  revocation : string option;\n}",
+      "representation": "record",
+      "fields": [
+        "issuer",
+        "authorization",
+        "token",
+        "device",
+        "revocation"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Pending_authorization_issuer.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Pending_authorization_issuer.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Connection_identity",
       "declaration": "module Connection_identity :\n  sig\n    type t = {\n      did : string;\n      description : [ `KbDescription ] Xynolog__.Models.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -24850,6 +24888,27 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Stored_session.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Last_event_ids",
+      "declaration": "module Last_event_ids :\n  sig\n    type t = (string * string) list\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Last_event_ids.t",
+      "declaration": "type t = (string * string) list",
+      "representation": "abstract"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Last_event_ids.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Last_event_ids.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -25375,6 +25434,37 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Sign_in_outcome.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Pending_authorization",
+      "declaration": "module Pending_authorization :\n  sig\n    type t = {\n      state : string;\n      verifier : string;\n      redirect_uri : string;\n      target : [ `HttpEndpoint ] Xynolog__.Models.t;\n      issuer : Pending_authorization_issuer.t;\n      kb_id : string option;\n      expected_did : string option;\n      expected_name : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Pending_authorization.t",
+      "declaration": "type t = {\n  state : string;\n  verifier : string;\n  redirect_uri : string;\n  target : [ `HttpEndpoint ] Xynolog__.Models.t;\n  issuer : Pending_authorization_issuer.t;\n  kb_id : string option;\n  expected_did : string option;\n  expected_name : string option;\n}",
+      "representation": "record",
+      "fields": [
+        "state",
+        "verifier",
+        "redirect_uri",
+        "target",
+        "issuer",
+        "kb_id",
+        "expected_did",
+        "expected_name"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Pending_authorization.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Pending_authorization.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -29057,18 +29147,6 @@
     },
     {
       "kind": "type",
-      "path": "Xynolog.OAuth.issuer",
-      "declaration": "type issuer",
-      "representation": "abstract"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.OAuth.redirect",
-      "declaration": "type redirect",
-      "representation": "abstract"
-    },
-    {
-      "kind": "type",
       "path": "Xynolog.OAuth.device",
       "declaration": "type device = {\n  code : Xynolog__.Records.Device_code.t;\n  device_code : string;\n  interval : int;\n}",
       "representation": "record",
@@ -29081,22 +29159,7 @@
     {
       "kind": "value",
       "path": "Xynolog.OAuth.discover",
-      "declaration": "val discover : http -> issuer:string -> (issuer, error) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.OAuth.issuer_url",
-      "declaration": "val issuer_url : issuer -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.OAuth.token_endpoint",
-      "declaration": "val token_endpoint : issuer -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.OAuth.revocation_endpoint",
-      "declaration": "val revocation_endpoint : issuer -> string option"
+      "declaration": "val discover :\n  http ->\n  issuer:string ->\n  (Xynolog__.Records.Pending_authorization_issuer.t, error) result"
     },
     {
       "kind": "value",
@@ -29106,32 +29169,32 @@
     {
       "kind": "value",
       "path": "Xynolog.OAuth.begin_redirect",
-      "declaration": "val begin_redirect :\n  issuer -> random:(int -> string) -> redirect_uri:string -> redirect"
+      "declaration": "val begin_redirect :\n  Xynolog__.Records.Pending_authorization_issuer.t ->\n  random:(int -> string) ->\n  Xynolog__.Records.Begin_authorization_options.t ->\n  Xynolog__.Records.Pending_authorization.t"
     },
     {
       "kind": "value",
       "path": "Xynolog.OAuth.url",
-      "declaration": "val url : redirect -> string"
+      "declaration": "val url : Xynolog__.Records.Pending_authorization.t -> string"
     },
     {
       "kind": "value",
       "path": "Xynolog.OAuth.finish_redirect",
-      "declaration": "val finish_redirect :\n  http ->\n  issuer -> redirect -> callback:string -> (browser tokens, error) result"
+      "declaration": "val finish_redirect :\n  http ->\n  Xynolog__.Records.Pending_authorization.t ->\n  callback:string -> (browser tokens, error) result"
     },
     {
       "kind": "value",
       "path": "Xynolog.OAuth.begin_device",
-      "declaration": "val begin_device : http -> issuer -> (device, error) result"
+      "declaration": "val begin_device :\n  http ->\n  Xynolog__.Records.Pending_authorization_issuer.t -> (device, error) result"
     },
     {
       "kind": "value",
       "path": "Xynolog.OAuth.poll_device",
-      "declaration": "val poll_device : http -> issuer -> device -> (poll, error) result"
+      "declaration": "val poll_device :\n  http ->\n  Xynolog__.Records.Pending_authorization_issuer.t ->\n  device -> (poll, error) result"
     },
     {
       "kind": "value",
       "path": "Xynolog.OAuth.await_device",
-      "declaration": "val await_device :\n  clock:Xynolog__.Clock.t ->\n  http -> issuer -> device -> (script tokens, error) result"
+      "declaration": "val await_device :\n  clock:Xynolog__.Clock.t ->\n  http ->\n  Xynolog__.Records.Pending_authorization_issuer.t ->\n  device -> (script tokens, error) result"
     },
     {
       "kind": "value",
@@ -29151,7 +29214,7 @@
     {
       "kind": "value",
       "path": "Xynolog.OAuth.service_secret",
-      "declaration": "val service_secret :\n  http ->\n  issuer ->\n  client_id:string -> client_secret:string -> (service tokens, error) result"
+      "declaration": "val service_secret :\n  http ->\n  Xynolog__.Records.Pending_authorization_issuer.t ->\n  client_id:string -> client_secret:string -> (service tokens, error) result"
     },
     {
       "kind": "type",
@@ -29172,22 +29235,12 @@
     {
       "kind": "value",
       "path": "Xynolog.OAuth.service_key",
-      "declaration": "val service_key :\n  http ->\n  issuer ->\n  clock:Xynolog__.Clock.t ->\n  jti:(unit -> string) ->\n  client_id:string -> key:rsa_key -> (service tokens, error) result"
+      "declaration": "val service_key :\n  http ->\n  Xynolog__.Records.Pending_authorization_issuer.t ->\n  clock:Xynolog__.Clock.t ->\n  jti:(unit -> string) ->\n  client_id:string -> key:rsa_key -> (service tokens, error) result"
     },
     {
       "kind": "value",
       "path": "Xynolog.OAuth.revoke_script",
       "declaration": "val revoke_script :\n  http ->\n  revocation_endpoint:string -> refresh_token:string -> (unit, error) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.OAuth.keep_redirect",
-      "declaration": "val keep_redirect : issuer -> redirect -> (string * Yojson.Safe.t) list"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.OAuth.take_redirect",
-      "declaration": "val take_redirect : Yojson.Safe.t -> (issuer * redirect) option"
     },
     {
       "kind": "module",
@@ -29268,7 +29321,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Sign_in_store.save_device",
-      "declaration": "val save_device :\n  t ->\n  key:string ->\n  issuer:Xynolog__.Oauth.issuer ->\n  Xynolog__.Oauth.script Xynolog__.Oauth.tokens ->\n  (unit, Xynolog__.Oauth.error) result"
+      "declaration": "val save_device :\n  t ->\n  key:string ->\n  issuer:Xynolog__.Records.Pending_authorization_issuer.t ->\n  Xynolog__.Oauth.script Xynolog__.Oauth.tokens ->\n  (unit, Xynolog__.Oauth.error) result"
     },
     {
       "kind": "value",
@@ -29355,7 +29408,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Agent.sign_in",
-      "declaration": "val sign_in :\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  issuer:Xynolog__.Oauth.issuer ->\n  http:Xynolog__.Oauth.http ->\n  client_id:string ->\n  proof:proof ->\n  key:(unit -> string) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  unit -> (t, error) result"
+      "declaration": "val sign_in :\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  issuer:Xynolog__.Records.Pending_authorization_issuer.t ->\n  http:Xynolog__.Oauth.http ->\n  client_id:string ->\n  proof:proof ->\n  key:(unit -> string) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  unit -> (t, error) result"
     },
     {
       "kind": "value",
@@ -31670,7 +31723,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Registry.begin_sign_in",
-      "declaration": "val begin_sign_in :\n  xynolog_browser ->\n  http:Xynolog__.Oauth.http ->\n  issuer:string ->\n  random:(int -> string) ->\n  redirect_uri:string ->\n  target:endpoint ->\n  ?kb_id:string ->\n  ?expected_did:string ->\n  ?expected_name:string -> unit -> (string, Xynolog__.Oauth.error) result"
+      "declaration": "val begin_sign_in :\n  xynolog_browser ->\n  http:Xynolog__.Oauth.http ->\n  issuer:string ->\n  random:(int -> string) ->\n  redirect_uri:string ->\n  target:[ `HttpEndpoint ] Xynolog__.Models.t ->\n  ?kb_id:string ->\n  ?expected_did:string ->\n  ?expected_name:string -> unit -> (string, Xynolog__.Oauth.error) result"
     },
     {
       "kind": "value",
@@ -33188,7 +33241,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Service_token.grant",
-      "declaration": "val grant :\n  clock:Xynolog__.Clock.t ->\n  http:Xynolog__.Oauth.http ->\n  issuer:Xynolog__.Oauth.issuer ->\n  client_id:string ->\n  proof:proof ->\n  jti:(unit -> string) ->\n  (Xynolog__.Oauth.service Xynolog__.Oauth.tokens, Xynolog__.Oauth.error)\n  result"
+      "declaration": "val grant :\n  clock:Xynolog__.Clock.t ->\n  http:Xynolog__.Oauth.http ->\n  issuer:Xynolog__.Records.Pending_authorization_issuer.t ->\n  client_id:string ->\n  proof:proof ->\n  jti:(unit -> string) ->\n  (Xynolog__.Oauth.service Xynolog__.Oauth.tokens, Xynolog__.Oauth.error)\n  result"
     },
     {
       "kind": "module",
@@ -33203,20 +33256,6 @@
       "representation": "abstract"
     },
     {
-      "kind": "type",
-      "path": "Xynolog.Redirect_sign_in.pending_authorization",
-      "declaration": "type pending_authorization = {\n  issuer : Xynolog__.Oauth.issuer;\n  redirect : Xynolog__.Oauth.redirect;\n  target : [ `HttpEndpoint ] Xynolog__.Models.t;\n  kb_id : string option;\n  expected_did : string option;\n  expected_name : string option;\n}",
-      "representation": "record",
-      "fields": [
-        "issuer",
-        "redirect",
-        "target",
-        "kb_id",
-        "expected_did",
-        "expected_name"
-      ]
-    },
-    {
       "kind": "value",
       "path": "Xynolog.Redirect_sign_in.code_challenge",
       "declaration": "val code_challenge : string -> string"
@@ -33229,12 +33268,12 @@
     {
       "kind": "value",
       "path": "Xynolog.Redirect_sign_in.begin_authorization",
-      "declaration": "val begin_authorization :\n  issuer:Xynolog__.Oauth.issuer ->\n  random:(int -> string) ->\n  Xynolog__.Records.Begin_authorization_options.t -> pending_authorization"
+      "declaration": "val begin_authorization :\n  issuer:Xynolog__.Records.Pending_authorization_issuer.t ->\n  random:(int -> string) ->\n  Xynolog__.Records.Begin_authorization_options.t ->\n  Xynolog__.Records.Pending_authorization.t"
     },
     {
       "kind": "value",
       "path": "Xynolog.Redirect_sign_in.complete_authorization",
-      "declaration": "val complete_authorization :\n  Xynolog__.Oauth.http ->\n  pending_authorization ->\n  callback:string ->\n  (Xynolog__.Oauth.browser Xynolog__.Oauth.tokens, Xynolog__.Oauth.error)\n  result"
+      "declaration": "val complete_authorization :\n  Xynolog__.Oauth.http ->\n  Xynolog__.Records.Pending_authorization.t ->\n  callback:string ->\n  (Xynolog__.Oauth.browser Xynolog__.Oauth.tokens, Xynolog__.Oauth.error)\n  result"
     },
     {
       "kind": "value",
@@ -33244,17 +33283,17 @@
     {
       "kind": "value",
       "path": "Xynolog.Redirect_sign_in.url",
-      "declaration": "val url : pending_authorization -> string"
+      "declaration": "val url : Xynolog__.Records.Pending_authorization.t -> string"
     },
     {
       "kind": "value",
       "path": "Xynolog.Redirect_sign_in.keep",
-      "declaration": "val keep : Xynolog__.Storage.t -> pending_authorization -> unit"
+      "declaration": "val keep :\n  Xynolog__.Storage.t -> Xynolog__.Records.Pending_authorization.t -> unit"
     },
     {
       "kind": "value",
       "path": "Xynolog.Redirect_sign_in.take",
-      "declaration": "val take : Xynolog__.Storage.t -> pending_authorization option"
+      "declaration": "val take :\n  Xynolog__.Storage.t -> Xynolog__.Records.Pending_authorization.t option"
     },
     {
       "kind": "module",

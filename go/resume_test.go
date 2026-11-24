@@ -26,9 +26,9 @@ var (
 	keptAnnotationsKey = CacheKey("kb-a", keptPerson, CacheQueryAnnotations)
 )
 
-func placesOf(t *testing.T, kept map[string]string) map[api.ResourceId]string {
+func placesOf(t *testing.T, kept map[string]string) api.LastEventIds {
 	t.Helper()
-	read := map[api.ResourceId]string{}
+	read := api.LastEventIds{}
 	for scope, place := range kept {
 		read[mustResource(t, scope)] = place
 	}

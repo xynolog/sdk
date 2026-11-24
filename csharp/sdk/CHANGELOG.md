@@ -66,6 +66,10 @@ the coming release's, and gathers its changes as they land.
   timing table gives them; each of `Timing`'s defaults is that table's.
   `RetryPolicy` is a record of its `Attempts`, `InitialDelayMs` and
   `MaxDelayMs`.
+- The pending sign-in is `Xynolog.Types.PendingAuthorization`, the type
+  Protocol states, in place of `Xynolog.Authorization.PendingAuthorization`,
+  and its issuer is `PendingAuthorizationIssuer` in place of
+  `AuthorizationIssuer`: both are built with an initializer.
 
 ## 0.8.1
 

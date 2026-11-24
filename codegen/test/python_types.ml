@@ -5,8 +5,8 @@ open Xynolog_codegen
 open Fixture
 
 (* The module for [schemas] beside a kind of id, K. *)
-let written schemas =
-  Python_types.module_ ~kinds:[ "K" ] ~also:[]
+let written ?(keys = []) schemas =
+  Python_types.module_ ~kinds:[ "K" ] ~keys ~also:[]
     (definitions (("K", {|{"type": "string"}|}) :: schemas))
 
 let one json = written [ ("S", json) ]
@@ -26,6 +26,17 @@ let before code first second =
 
 let cases =
   [
+    case "a map named by its keys' schema is keyed by that type" (fun () ->
+        let code =
+          written
+            ~keys:[ ("Where", "K") ]
+            [
+              ( "Where",
+                {|{"type": "object", "propertyNames": {"$ref": "./K.json"}, "additionalProperties": {"type": "integer"}}|}
+              );
+            ]
+        in
+        has code "type Where = dict[K, int]");
     case "an object is a frozen model, its optional members None unless given"
       (fun () ->
         let code =

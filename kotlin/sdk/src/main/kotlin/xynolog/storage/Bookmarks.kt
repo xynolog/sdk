@@ -9,6 +9,8 @@ import xynolog.XynologClient
 import xynolog.http.Bookmarks
 import xynolog.identifiers.ResourceId
 import xynolog.registry.isPersistedEventId
+import xynolog.types.LastEventIds
+import xynolog.types.PersistedEventId
 import xynolog.types.wireJson
 
 /**
@@ -37,7 +39,7 @@ import xynolog.types.wireJson
  * object is no places.
  */
 public class CoupledBookmarks(private val beneath: SessionStorage, private val key: String) : Bookmarks {
-    private val pending = LinkedHashMap<ResourceId, String>()
+    private val pending = LinkedHashMap<ResourceId, PersistedEventId>()
 
     /** Whether the client has begun to close: from then on no place is remembered, and whether it is settled is not read again. Guarded by `pending`. */
     private var closing = false
@@ -76,14 +78,14 @@ public class CoupledBookmarks(private val beneath: SessionStorage, private val k
         override fun subscribe(onChange: (key: String, value: String?) -> Unit): AutoCloseable? = beneath.subscribe(onChange)
     }
 
-    override fun load(): Map<ResourceId, String> {
+    override fun load(): LastEventIds {
         val kept = try {
             wireJson.parseToJsonElement(beneath.get(key) ?: return emptyMap())
         } catch (_: SerializationException) {
             return emptyMap()
         }
         if (kept !is JsonObject) return emptyMap()
-        val places = LinkedHashMap<ResourceId, String>()
+        val places = LinkedHashMap<ResourceId, PersistedEventId>()
         for ((scope, place) in kept) {
             val resource = ResourceId.parse(scope) ?: continue
             val eventId = (place as? JsonPrimitive)?.takeIf { it.isString }?.content ?: continue
@@ -117,7 +119,7 @@ public class CoupledBookmarks(private val beneath: SessionStorage, private val k
             if (pending.isEmpty() || !mayWrite()) return
             LinkedHashMap(pending).also { pending.clear() }
         }
-        beneath.set(key, wireJson.encodeToString(MapSerializer(ResourceId.serializer(), String.serializer()), load() + reached))
+        beneath.set(key, wireJson.encodeToString<LastEventIds>(MapSerializer(ResourceId.serializer(), String.serializer()), load() + reached))
     }
 
     /**

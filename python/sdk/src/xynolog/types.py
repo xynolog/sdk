@@ -470,6 +470,7 @@ __all__ = [
     "KnowledgeIndexSpecVectorsExternal",
     "KnowledgeIndexSpecVectorsShared",
     "KnowledgeIndexSpecWeaver",
+    "LastEventIds",
     "LibrarianConfig",
     "LibrarianConfigGather",
     "LibrarianConfigSearch",
@@ -541,6 +542,8 @@ __all__ = [
     "PdfCoordinate",
     "PdfTextItem",
     "PendingAnnotation",
+    "PendingAuthorization",
+    "PendingAuthorizationIssuer",
     "PermissionDenied",
     "PersistedEventId",
     "PrincipalProfileCommand",
@@ -7223,6 +7226,14 @@ class KnowledgeIndex(WireModel, frozen=True, extra="forbid"):
     spec: KnowledgeIndexSpec
 
 
+type LastEventIds = Annotated[
+    dict[ResourceId, PersistedEventId],
+    Field(
+        description="Where a knowledge base's stream was: for each scope, a resource's id, the id of the last recorded event delivered on it."
+    ),
+]
+
+
 class QdrantVectorsConfig(WireModel, frozen=True, extra="forbid"):
     """
     A vector index kept in a Qdrant server, asked over its REST API with a token.
@@ -7805,6 +7816,52 @@ class PendingAnnotation(WireModel, frozen=True, extra="forbid"):
 
     selector: AnnotationSelector
     motivation: Motivation
+
+
+class PendingAuthorizationIssuer(WireModel, frozen=True):
+    """
+    The issuer the knowledge base trusts, and the endpoints of it a client uses.
+    """
+
+    issuer: Annotated[str, Field(description="The issuer's identifier.")]
+    authorization: Annotated[str, Field(description="The issuer's authorization endpoint, where the person is sent.")]
+    token: Annotated[str, Field(description="The issuer's token endpoint, where the code is exchanged.")]
+    device: Annotated[
+        str | None, Field(description="The issuer's device authorization endpoint (RFC 8628). Absent when the issuer has none.")
+    ] = None
+    revocation: Annotated[
+        str | None, Field(description="The issuer's revocation endpoint (RFC 7009). Absent when the issuer has none.")
+    ] = None
+
+
+class PendingAuthorization(WireModel, frozen=True):
+    """
+    What a sign-in by a page redirect remembers across the trip to the issuer and back: the verifier and the state the issuer's response must match, where the person was connecting, what they believed they were connecting to, and the issuer's endpoints, so its completion asks nothing twice.
+    """
+
+    state: Annotated[str, Field(description="What the issuer's response must carry back to belong to this sign-in: random, as base64url.")]
+    verifier: Annotated[
+        str, Field(description="The PKCE code verifier (RFC 7636) the authorization code is exchanged with: random, as base64url.")
+    ]
+    redirect_uri: Annotated[
+        str, Field(alias="redirectUri", description="Where the issuer sends the person back to, named again when the code is exchanged.")
+    ]
+    target: Annotated[HttpEndpoint, Field(description="Where the person was connecting.")]
+    issuer: PendingAuthorizationIssuer
+    kb_id: Annotated[
+        str | None, Field(alias="kbId", description="The registered knowledge base being signed in to again. Absent when it is none.")
+    ] = None
+    expected_did: Annotated[
+        str | None,
+        Field(
+            alias="expectedDid",
+            description="The did of what the person believed they clicked, checked against the answer and never assumed. Absent when they named nothing.",
+        ),
+    ] = None
+    expected_name: Annotated[
+        str | None,
+        Field(alias="expectedName", description="The name of what the person believed they clicked. Absent when they named nothing."),
+    ] = None
 
 
 class PermissionDenied(WireModel, frozen=True, extra="forbid"):

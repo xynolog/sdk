@@ -63,6 +63,11 @@ the coming release's, and gathers its changes as they land.
   place of `xynolog.channels.Empty`.
 - A discovery document is read as its schema states it: its versions are
   those `DiscoveryDocument` allows.
+- A sign-in by a page redirect that is under way is
+  `xynolog.types.PendingAuthorization`, the type Protocol states, in place of
+  `xynolog.http.PendingAuthorization`, and its issuer is
+  `xynolog.types.PendingAuthorizationIssuer`, in place of
+  `xynolog.http.IssuerEndpoints`. Java makes each with its `builder`.
 
 ## 0.8.1
 

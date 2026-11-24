@@ -33,12 +33,11 @@ import secrets
 import time
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import AbstractAsyncContextManager, nullcontext
-from dataclasses import dataclass
-from typing import Annotated, Final, final
+from typing import Final
 from urllib.parse import parse_qs, urlsplit
 
 import httpx
-from pydantic import Field, JsonValue, TypeAdapter, ValidationError
+from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog._digest import base64url_sha256
 from xynolog.error_codes import SignInErrorCode
@@ -47,14 +46,20 @@ from xynolog.http._withheld import why_unanswered
 from xynolog.http.endpoint import gateway_url
 from xynolog.http.transport import HttpTransport
 from xynolog.identity import encode_uri_component
-from xynolog.model import WireModel
 from xynolog.oauth_clients import BROWSER_CLIENT_ID, SCRIPT_CLIENT_ID, SIGN_IN_SCOPE
 from xynolog.retry import REFRESH, RetryFacts, retry_with_backoff
 from xynolog.session import SignInKept, is_token_expired
 from xynolog.storage import SessionStorage
 from xynolog.stored import PENDING_AUTHORIZATION_KEY
 from xynolog.timing import DEVICE_POLL_FLOOR_MS, DEVICE_POLL_MS, DEVICE_SLOW_DOWN_MS, HTTP_REQUEST_TIMEOUT_MS, REFRESH_RETRY
-from xynolog.types import BeginAuthorizationOptions, DeviceCode, HttpEndpoint, IssuedTokens, StoredSession
+from xynolog.types import (
+    BeginAuthorizationOptions,
+    DeviceCode,
+    IssuedTokens,
+    PendingAuthorization,
+    PendingAuthorizationIssuer,
+    StoredSession,
+)
 from xynolog.watched import Variable
 
 __all__ = [
@@ -62,8 +67,6 @@ __all__ = [
     "BeginAuthorizationOptions",
     "DeviceCode",
     "IssuedTokens",
-    "IssuerEndpoints",
-    "PendingAuthorization",
     "begin_authorization",
     "code_challenge",
     "complete_authorization",
@@ -88,19 +91,7 @@ type Answer = Mapping[str, JsonValue] | None
 """What an issuer answered, when that was a JSON object."""
 
 
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class IssuerEndpoints:
-    """An issuer, and the endpoints of it a client uses."""
-
-    issuer: str
-    authorization: str
-    token: str
-    device: str | None = None
-    revocation: str | None = None
-
-
-def stored_session_of(client_id: str, issuer: IssuerEndpoints, tokens: IssuedTokens) -> StoredSession:
+def stored_session_of(client_id: str, issuer: PendingAuthorizationIssuer, tokens: IssuedTokens) -> StoredSession:
     """What is kept of a sign-in: the tokens `issuer` issued to `client_id`, and where they are renewed and revoked.
 
     The redirect grant's client is `BROWSER_CLIENT_ID`, and its issuer the
@@ -162,7 +153,7 @@ def _no_issuer() -> SignInError:
     return SignInError("no-issuer", "The knowledge base trusts no external issuer")
 
 
-async def discover_issuer(base_url: str, *, http: httpx.AsyncClient | None = None) -> IssuerEndpoints:
+async def discover_issuer(base_url: str, *, http: httpx.AsyncClient | None = None) -> PendingAuthorizationIssuer:
     """Ask the knowledge base at `base_url` which issuer it trusts, and the issuer where its endpoints are.
 
     Both are asked with `http`, when one is given (`issuer_client`).
@@ -196,7 +187,7 @@ async def discover_issuer(base_url: str, *, http: httpx.AsyncClient | None = Non
     authorization, token = text_in(document, "authorization_endpoint"), text_in(document, "token_endpoint")
     if text_in(document, "issuer") != issuer or authorization is None or token is None:
         raise SignInError("discovery", f"Issuer {issuer}: its discovery document is not an OpenID configuration for it", status=status)
-    return IssuerEndpoints(
+    return PendingAuthorizationIssuer(
         issuer=issuer,
         authorization=authorization,
         token=token,
@@ -321,27 +312,6 @@ async def revoke_at_issuer(http: httpx.AsyncClient, revocation_endpoint: str, cl
 def code_challenge(verifier: str) -> str:
     """RFC 7636 §4.2: BASE64URL(SHA-256(verifier))."""
     return base64url_sha256(verifier)
-
-
-@final
-class PendingAuthorization(WireModel, frozen=True):
-    """What a sign-in remembers across the trip to the issuer and back.
-
-    The verifier and the state the response must match, where the person was
-    connecting, what they believed they were connecting to, and the issuer's
-    endpoints, so its completion asks nothing twice.
-    """
-
-    state: str
-    verifier: str
-    redirect_uri: Annotated[str, Field(alias="redirectUri")]
-    target: HttpEndpoint
-    issuer: IssuerEndpoints
-    kb_id: Annotated[str | None, Field(alias="kbId")] = None
-    """The registered knowledge base being signed in to again; none when it is none."""
-    expected_did: Annotated[str | None, Field(alias="expectedDid")] = None
-    """What the person believed they clicked, checked afterwards and never assumed; none when they named nothing."""
-    expected_name: Annotated[str | None, Field(alias="expectedName")] = None
 
 
 def _random_url_safe(size: int) -> str:
@@ -471,7 +441,7 @@ def _expired() -> SignInError:
 
 async def sign_in_with_device_grant(
     base_url: str, on_code: Callable[[DeviceCode], None], *, http: httpx.AsyncClient | None = None
-) -> tuple[IssuerEndpoints, IssuedTokens]:
+) -> tuple[PendingAuthorizationIssuer, IssuedTokens]:
     """Sign in as a person from a process with no browser.
 
     The issuer the knowledge base at `base_url` trusts mints a code, `on_code`

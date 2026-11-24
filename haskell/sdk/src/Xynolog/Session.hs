@@ -64,7 +64,7 @@ import Xynolog.Timing (RetryBudget)
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Tokens qualified as Tokens
 import Xynolog.Transport qualified as Transport
-import Xynolog.Types (DeviceCode, HttpEndpoint, IssuedTokens (..), IssuerEndpoints (..), KbEndpoint (..), KbTarget (..), SessionEndReason (..), StoredSession (..), UserResponse (..), userIdValue)
+import Xynolog.Types (DeviceCode, HttpEndpoint, IssuedTokens (..), KbEndpoint (..), KbTarget (..), PendingAuthorizationIssuer (..), SessionEndReason (..), StoredSession (..), UserResponse (..), userIdValue)
 import Prelude hiding (id)
 import Prelude qualified
 
@@ -391,8 +391,8 @@ signInDevice http storage options onCode = do
           Issuer.scriptClientId
           Nothing
           (issuedTokensRefresh issued)
-          (issuerEndpointsRevocation issuer)
-          (issuerEndpointsToken issuer)
+          (pendingAuthorizationIssuerRevocation issuer)
+          (pendingAuthorizationIssuerToken issuer)
           mempty
   fromIssuedSession http storage options stored
 

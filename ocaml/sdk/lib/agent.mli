@@ -12,7 +12,7 @@ type t
 val sign_in :
   sw:Eio.Switch.t ->
   clock:Clock.t ->
-  issuer:Oauth.issuer ->
+  issuer:Records.Pending_authorization_issuer.t ->
   http:Oauth.http ->
   client_id:string ->
   proof:proof ->

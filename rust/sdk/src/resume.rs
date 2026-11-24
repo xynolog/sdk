@@ -31,9 +31,8 @@ use crate::client::XynologClient;
 use crate::locked;
 use crate::required::{fault_of, schema};
 use crate::storage::{SessionStorage, StorageChange, StorageSubscription};
-use crate::types::ResourceId;
+use crate::types::{LastEventIds, ResourceId};
 use serde_json::Value;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 type Gate = Box<dyn Fn() -> bool + Send + Sync>;
@@ -51,9 +50,9 @@ pub fn is_persisted_event_id(id: &str) -> bool {
 /// The places reached and not yet written.
 enum Places {
     /// Each place reached is noted, and written when the gate allows.
-    Noting(HashMap<ResourceId, String>),
+    Noting(LastEventIds),
     /// Closing has begun: what its flush may write, and no more are noted.
-    Closing(HashMap<ResourceId, String>),
+    Closing(LastEventIds),
 }
 
 struct Coupling {
@@ -64,11 +63,11 @@ struct Coupling {
 }
 
 impl Coupling {
-    fn stored(stored: Option<&str>) -> HashMap<ResourceId, String> {
+    fn stored(stored: Option<&str>) -> LastEventIds {
         let Some(Value::Object(places)) =
             stored.and_then(|stored| serde_json::from_str(stored).ok())
         else {
-            return HashMap::new();
+            return LastEventIds::new();
         };
         places
             .into_iter()
@@ -116,14 +115,14 @@ impl CoupledBookmarks {
             coupling: Arc::new(Coupling {
                 storage,
                 key: key.to_owned(),
-                places: Mutex::new(Places::Noting(HashMap::new())),
+                places: Mutex::new(Places::Noting(LastEventIds::new())),
                 gate: Mutex::new(None),
             }),
         }
     }
 
     /// The places kept, by scope.
-    pub fn load(&self) -> HashMap<ResourceId, String> {
+    pub fn load(&self) -> LastEventIds {
         Coupling::stored(self.coupling.storage.get(&self.coupling.key).as_deref())
     }
 
@@ -149,7 +148,7 @@ impl CoupledBookmarks {
             let taken = if settled() {
                 std::mem::take(pending)
             } else {
-                HashMap::new()
+                LastEventIds::new()
             };
             *places = Places::Closing(taken);
         }
@@ -221,7 +220,7 @@ mod tests {
 
     const KEY: &str = "xynolog.lastEventId.kb-a";
 
-    fn places(pairs: &[(&str, &str)]) -> HashMap<ResourceId, String> {
+    fn places(pairs: &[(&str, &str)]) -> LastEventIds {
         pairs
             .iter()
             .map(|(scope, id)| (scope.parse().unwrap(), (*id).to_owned()))

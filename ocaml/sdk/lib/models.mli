@@ -311,6 +311,7 @@ val knowledge_base : [ `KnowledgeBase ] descriptor
 val knowledge_base_status : [ `KnowledgeBaseStatus ] descriptor
 val knowledge_graph : [ `KnowledgeGraph ] descriptor
 val knowledge_index : [ `KnowledgeIndex ] descriptor
+val last_event_ids : [ `LastEventIds ] descriptor
 val librarian_config : [ `LibrarianConfig ] descriptor
 val librarian_engine_config : [ `LibrarianEngineConfig ] descriptor
 val librarian_health : [ `LibrarianHealth ] descriptor
@@ -377,6 +378,7 @@ val pdf_class : [ `PdfClass ] descriptor
 val pdf_coordinate : [ `PdfCoordinate ] descriptor
 val pdf_text_item : [ `PdfTextItem ] descriptor
 val pending_annotation : [ `PendingAnnotation ] descriptor
+val pending_authorization : [ `PendingAuthorization ] descriptor
 val permission_denied : [ `PermissionDenied ] descriptor
 val persisted_event_id : [ `PersistedEventId ] descriptor
 val principal_profile_command : [ `PrincipalProfileCommand ] descriptor

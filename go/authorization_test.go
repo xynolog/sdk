@@ -35,13 +35,13 @@ func gatewayEndpoint(t *testing.T, s *stack) api.HttpEndpoint {
 	return endpoint
 }
 
-func pendingIn(t *testing.T, storage SessionStorage) (PendingAuthorization, bool) {
+func pendingIn(t *testing.T, storage SessionStorage) (api.PendingAuthorization, bool) {
 	t.Helper()
 	stored, ok := storage.Get(PendingAuthorizationKey)
 	if !ok {
-		return PendingAuthorization{}, false
+		return api.PendingAuthorization{}, false
 	}
-	var record PendingAuthorization
+	var record api.PendingAuthorization
 	if err := json.Unmarshal([]byte(stored), &record); err != nil {
 		t.Fatalf("the pending sign-in does not read: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestBeginningASignInRemembersItAndBuildsTheURLAroundWhatItRemembered(t *tes
 	if got := queryOf(t, address); !reflect.DeepEqual(got, want) {
 		t.Errorf("the address asks %v", got)
 	}
-	if record.Target != gatewayEndpoint(t, s) || record.Issuer.Token != s.issuer.URL+"/token" || record.KbID == nil || *record.KbID != "kb-a" || record.ExpectedName == nil || *record.ExpectedName != "KB A" {
+	if record.Target != gatewayEndpoint(t, s) || record.Issuer.Token != s.issuer.URL+"/token" || record.KbId == nil || *record.KbId != "kb-a" || record.ExpectedDid == nil || *record.ExpectedDid != "did:web:example.org:kb-a" || record.ExpectedName == nil || *record.ExpectedName != "KB A" {
 		t.Errorf("the pending sign-in is %+v", record)
 	}
 	// Neither is guessable, and neither is the other.
@@ -105,7 +105,7 @@ func TestBeginningASignInRemembersItAndBuildsTheURLAroundWhatItRemembered(t *tes
 }
 
 // begun is a sign-in begun at the stand-in, as its storage remembers it.
-func begun(t *testing.T, s *stack, storage SessionStorage) PendingAuthorization {
+func begun(t *testing.T, s *stack, storage SessionStorage) api.PendingAuthorization {
 	t.Helper()
 	if _, err := BeginAuthorization(context.Background(), issuerOf(), api.BeginAuthorizationOptions{Target: gatewayEndpoint(t, s), RedirectUri: redirectURI}, storage); err != nil {
 		t.Fatal(err)
@@ -153,7 +153,7 @@ func TestCompletingASignInExchangesTheCodeWithItsVerifierOnce(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if completed != record || tokens != (api.IssuedTokens{Access: "an-access-token", Refresh: "a-refresh-token"}) {
+	if !reflect.DeepEqual(completed, record) || tokens != (api.IssuedTokens{Access: "an-access-token", Refresh: "a-refresh-token"}) {
 		t.Errorf("completed %+v with %+v", completed, tokens)
 	}
 	want := url.Values{

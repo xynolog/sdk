@@ -22,7 +22,7 @@ val issuer : entry -> string
 val save_device :
   t ->
   key:string ->
-  issuer:Oauth.issuer ->
+  issuer:Records.Pending_authorization_issuer.t ->
   Oauth.script Oauth.tokens ->
   (unit, Oauth.error) result
 (** Saves tokens issued to the script client by a device authorization grant. *)

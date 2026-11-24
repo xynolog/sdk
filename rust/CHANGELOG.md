@@ -78,6 +78,11 @@ the coming release's, and gathers its changes as they land.
 - A held yield job is anchored by its `GenerationJobParams`' focus.
 - The conformance drivers write each line as a generated
   `ConformanceDriverLine` and each failure as a `ConformanceFailure`.
+- A pending sign-in is `xynolog::types::PendingAuthorization`, the type
+  Protocol states, in place of `oauth::PendingAuthorization`, and its issuer is
+  `PendingAuthorizationIssuer` in place of `oauth::IssuerEndpoints`, which
+  `discover_issuer`, `stored_session_of` and `sign_in_with_device_grant` take
+  and give. `CoupledBookmarks::load` gives the generated `LastEventIds`.
 
 ## 0.8.1
 

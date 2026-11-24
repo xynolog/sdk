@@ -19,7 +19,6 @@ let reads : Coverage_sdk.t -> (read * string list) list = function
           ] );
         (Table "client/state-units.json", [ "ocaml/sdk/test/state_behavior.ml" ]);
         (Table "client/surface.json", [ "ocaml/sdk/test/surface_behavior.ml" ]);
-        (Table "session/stored.json", [ "ocaml/sdk/test/registry_behavior.ml" ]);
         ( Schema "client/types/SearchState.json",
           [ "ocaml/sdk/test/client_types_census.ml" ] );
         ( Schema "client/types/JobEvent.json",
@@ -55,7 +54,6 @@ let reads : Coverage_sdk.t -> (read * string list) list = function
         ( Table "session/stored.json",
           [
             "typescript/core/src/__tests__/cache-cases.test.ts";
-            "typescript/sdk/src/session/__tests__/oauth.test.ts";
             "typescript/sdk/src/session/__tests__/persisted-cases.test.ts";
             "typescript/sdk/src/session/__tests__/stored-table.test.ts";
           ] );

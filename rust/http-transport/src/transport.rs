@@ -37,7 +37,7 @@ use xynolog::types::{
     BusEmitAccepted, BusEmitRequest, ErrorResponse, HealthResponse, LimitRefusal, LimitRefusalCode,
     MediaTokenRequest, MediaTokenResponse, ProtectedResourceMetadata, StatusResponse, UserResponse,
 };
-use xynolog::types::{ResourceId, Schema};
+use xynolog::types::{LastEventIds, ResourceId, Schema};
 
 /// A key for one emit or one upload, made before its first attempt: sent as
 /// its `Idempotency-Key`, the same on every attempt at it, so a request sent
@@ -640,7 +640,7 @@ impl HttpTransport {
     /// Places kept elsewhere: each scope the stream holds no place for
     /// resumes from its place here the next time the stream opens with it.
     /// A place the stream holds already is its own, and newer.
-    pub(crate) fn restore_places(&self, places: HashMap<ResourceId, String>) {
+    pub(crate) fn restore_places(&self, places: LastEventIds) {
         let _ = self.inner.commands.send(Command::Restore(places));
     }
 }

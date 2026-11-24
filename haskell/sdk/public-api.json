@@ -226,7 +226,6 @@
     "generated/Xynolog/Internal/Generated/Models/InferenceLimitsResult.hs": "5bd521823c3203e6131dc3499a2bee8bb27419b5933de24738201f9fb948bfcb",
     "generated/Xynolog/Internal/Generated/Models/IssuedTokens.hs": "128804466d67b59c271c8a20b3f9fb7d482e902ac220c618fe8e7dafa1a56549",
     "generated/Xynolog/Internal/Generated/Models/Issuer.hs": "548492bd30fc5979901cd394854a69769dcf2f679b24044808e355b117516569",
-    "generated/Xynolog/Internal/Generated/Models/IssuerEndpoints.hs": "23e6c974e2c7687b7a0938c6d9f402d780006eec603d1a9add1d5fba9348e205",
     "generated/Xynolog/Internal/Generated/Models/JanusGraphConfig.hs": "e172f3e2062ac169108e25edd7d9d505d9ac3401c07b62b384a7660cf381da5f",
     "generated/Xynolog/Internal/Generated/Models/Job.hs": "9cc0ebc79d5feddbe16bd38dc12df7c4e0699b18323b627cf0a23d62993c3247",
     "generated/Xynolog/Internal/Generated/Models/JobAssignCommand.hs": "2fbaa1049d266737334a2e0e8c8d4f12500fdbbe95507c6650287b84735ba1ff",
@@ -296,6 +295,7 @@
     "generated/Xynolog/Internal/Generated/Models/KnowledgeBaseStatus.hs": "378c7f202afda8227d5340dafd6196406d22aa5016e8c1fe5628cdb5741f10e1",
     "generated/Xynolog/Internal/Generated/Models/KnowledgeGraph.hs": "f4e7c17bfcc53e7fbb8158749a15195cb71f6211f66925fae5a3354e3343f695",
     "generated/Xynolog/Internal/Generated/Models/KnowledgeIndex.hs": "566da27230094b16f4cee525455052fd3bbab7cb4082f3d19e9d89bbd0c9cf84",
+    "generated/Xynolog/Internal/Generated/Models/LastEventIds.hs": "80ff1efba6819a770eb87f2e92eebce95096a3600b389ee0c86ea8d2af9fbe8c",
     "generated/Xynolog/Internal/Generated/Models/LibrarianConfig.hs": "7c0d2d51209dfa482880c91178dd094546c83041aeab164579d8f5262a197831",
     "generated/Xynolog/Internal/Generated/Models/LibrarianEngineConfig.hs": "757109ce754037dc58b8aaf1eb2d392abbc8fb4f061a7c2b4c2494feb22e2370",
     "generated/Xynolog/Internal/Generated/Models/LibrarianHealth.hs": "3634eaeddd484c26cc54ab7c13a5e93ace9ca9bcec3d731c8b2ed5931701d800",
@@ -359,7 +359,7 @@
     "generated/Xynolog/Internal/Generated/Models/PdfClass.hs": "7d61deda4af76f819449eec80c0d562ad56da25e27f77d077bd0807649a24431",
     "generated/Xynolog/Internal/Generated/Models/PdfCoordinate.hs": "8920956949e6a312a356a2e33812115daf6776ba54d6ef587dfa6570cb8fe477",
     "generated/Xynolog/Internal/Generated/Models/PdfTextItem.hs": "ad2195881a9762e005a69ba9eb9506bc68a3a4909381b95e3689c54b6440c5b9",
-    "generated/Xynolog/Internal/Generated/Models/PendingAuthorization.hs": "7b2128d9842c2057ab7501696e8216d290917eb8abf546573d6884297d2c680b",
+    "generated/Xynolog/Internal/Generated/Models/PendingAuthorization.hs": "340d755323bcc988904f8cb6b5930b223cc5e9312494b80e1ae03e894028a15e",
     "generated/Xynolog/Internal/Generated/Models/PermissionDenied.hs": "25960ce011fbb5cd80608d3727ac7142c40acacf1044dc5d47fc6cea826b2f9b",
     "generated/Xynolog/Internal/Generated/Models/PersistedEventId.hs": "ab9e0b31efa3a853d9aa65af0583132ceb9fb87fe9d848620d2c61308d66b56c",
     "generated/Xynolog/Internal/Generated/Models/PrincipalProfileCommand.hs": "23d17f7ba676d7fc604b80c5e1dab563901c0b561ee776ac893775bcf7488666",
@@ -531,8 +531,8 @@
     "generated/Xynolog/Internal/Generated/OperationReports.hs": "8456e121145825e7e7b06f75e9a1baf6d5deb402218a4c854436f22378540046",
     "generated/Xynolog/Internal/Generated/PendingAnnotation.hs": "92d649918dbb3c601b8ecb95ad0f690d1d19f8bebb505734c6730bbdef89e830",
     "generated/Xynolog/Internal/Generated/Principals.hs": "02fd2fd7b956e96bcda03bb7685472bf1a029666bf21fe32c1ff3e0ab217ceb9",
-    "generated/Xynolog/Internal/Generated/Required.hs": "52876f7b3f272a0c1bdf629b571cf7b072eafca5175d2b7e2a228bb48066e175",
-    "generated/Xynolog/Internal/Generated/Schemas.hs": "7345d0a3765db15e24c7c9627abb28ee28a4795df6151c54006c84a8fde14b63",
+    "generated/Xynolog/Internal/Generated/Required.hs": "0f5445b5d6bf8e0c10898bc1ff42b0b7b87393394b3adb722ea69d4ac96338cf",
+    "generated/Xynolog/Internal/Generated/Schemas.hs": "87fd8325437870265ad1c0d51aa055c34d0bcbef3775da9e59377134b72c0b36",
     "generated/Xynolog/Internal/Generated/SearchState.hs": "d5994a174a2a535cb04661283a500feb97cf4e80783492c2cf390e712b38c0a9",
     "generated/Xynolog/Internal/Generated/ServiceProof.hs": "86e44db90b1ac4a3713f4794f4f1f2f32bdf7eeeb7ad24e12046c050f8acadaf",
     "generated/Xynolog/Internal/Generated/SessionFactoryOptions.hs": "1378c790f4a48832e1a0a938eb64c8759870e4ebf73f2445e8ba81c354334c45",
@@ -566,7 +566,7 @@
     "internal/Xynolog/Internal/Http.hs": "89d6f5bbe1c6ac0152a4761e46ac0e760b60023aa7a055b7f64d6bba34f5fcf8",
     "internal/Xynolog/Internal/HttpActor.hs": "868814bbab0ab1496b6e69a5ade2b7617807ae383337d35d527a6b5b37a87592",
     "internal/Xynolog/Internal/HttpContent.hs": "0e8e60c45fc6039b91bcd680e9efc5ad5033b1a504120a25f88441e78d2c65f6",
-    "internal/Xynolog/Internal/Issuer.hs": "d2bed276ae739930cbe5972aeeecbe72a891a9c57e934be1e5bd6aeb653086e5",
+    "internal/Xynolog/Internal/Issuer.hs": "778031def0f21ccdef4fc69041e9a4abaffea9b9f1f085cc182869a141668c0e",
     "internal/Xynolog/Internal/Kept.hs": "339bd720c2bcc56a0b9b520a64e45e9d6cf689b875b503090fec59dc2e55e274",
     "internal/Xynolog/Internal/Lifetime.hs": "7683169b7799ad3119f1c2ea849238dddc0dd832dffeacc87b9be86049eba585",
     "internal/Xynolog/Internal/Local.hs": "a5b2aeab4a2f7517fd4d33f367c6d53ee1c4d046f5cd1181aea97e4f81ba6b3d",
@@ -621,13 +621,13 @@
     "src/Xynolog/Http/Discovery.hs": "4ccbbba81f37ebb58a61a39e63fc2fdaff41d84eb19db39f86cd2008da0bb74c",
     "src/Xynolog/Http/Routes.hs": "a42083b22d2788ffb01d39864c0c61e951b43d8f624ad65c98142b14dca8a9f9",
     "src/Xynolog/Identity.hs": "6041ca5aa1e0ad1f3f6abe1a9c7349ad9ada943d315f38352adaf8538b779136",
-    "src/Xynolog/Issuer.hs": "bfc8903202cf9510fb172f96336c1476ee49baa2c6184147be52573fd8beeacd",
+    "src/Xynolog/Issuer.hs": "648b807b27ca923fd21ae5340aa8a0ed6d488cc6558b5b21a0a79475d97354e8",
     "src/Xynolog/Job.hs": "be6d31b586ecd400e06c3b2f4c17ccfddefaac72c90075f4092ea9cebbfeb063",
     "src/Xynolog/JobFilter.hs": "5af26e07532e306bbd1ef904aad12a861e8afa8f71b10e5ee005a6947a60a072",
     "src/Xynolog/Mark.hs": "f2cd4de450254a26941f02f53a240125b9af150b6272220dd3bc89f8f861270a",
     "src/Xynolog/Match.hs": "2948b5d3a433a1f529758a6f6937ced30c64ddc5aa48ee567091df69bf017bab",
     "src/Xynolog/MediaTypes.hs": "5c8d2ee7fba09ff13a885846879d12d765e10a55dee585698dab06b1da7e539a",
-    "src/Xynolog/Registry.hs": "48bd01ad094f6dcf7fd7104dcaf1f2ff1a155367efd0169926cae4c191a957c4",
+    "src/Xynolog/Registry.hs": "15c9b3865a30dd9e1c9c0903424636a20b06a4b95bfa1fa52bc7c50f9dd657f7",
     "src/Xynolog/Registry/Factory.hs": "7932ed13f448a921548d6b6140a5c63ee256ab7ea2ced087e00fd1f7ffc12270",
     "src/Xynolog/Registry/Identity.hs": "087f48b6fc7a5922cf85bbce22c427b63f29a84c5fdf7b79858e4a575427a123",
     "src/Xynolog/Registry/Resources.hs": "eee1096e95bfc37a96696c0248bb4d73500b3df76167efd2f581f7a1ba2e0d43",
@@ -637,7 +637,7 @@
     "src/Xynolog/Running.hs": "a4be3104795d2ceb80a50b15573fe99ce7227355e44a9364a5f562acf79c6bce",
     "src/Xynolog/ServiceTables.hs": "253fbcf1b33dab8746a231859478a0f3e446560bbee7823a538a35d2648dfb15",
     "src/Xynolog/ServiceToken.hs": "a75f98fa69737c6a2dafb9a152413cfef2e9b6a55da2c91a67a1cf2eb948adb4",
-    "src/Xynolog/Session.hs": "f514bfc6e5b4eb4e54b1d1c4a2e2c29d6d9c18ad96b1a979cbe3a392de5ccbe1",
+    "src/Xynolog/Session.hs": "260addb2b50d5ed3e92266fea885faf533eeb61966b0ce0edbba44485e62d3d1",
     "src/Xynolog/SessionStorage.hs": "df2c1c25c872b501a8ba43f49e4eb00e5626de3e1a9466993aa8a0f01796e404",
     "src/Xynolog/SignIn.hs": "00e99fbbf689da48a389108e82934bdb178633df0a4bb24d376e30a999e8b7e6",
     "src/Xynolog/SignInStore.hs": "dcdf9b139801100b52c0869dedd77ce5d354b0caa58b3129613c494f5337cf0b",
@@ -664,7 +664,7 @@
     "src/Xynolog/Tokens.hs": "bba264adde2b8a6c123b9e64e99aeae6fd917f9a09f10194684a8daf708bceca",
     "src/Xynolog/Transport.hs": "5f0c95953108daa834e02c580f0ffb49c3d8fb30ad4cf0424ae3b19c500de034",
     "src/Xynolog/Transport/Facts.hs": "b861a07eb1fc5319a56fec2889c08f9fe7d59c43682d5b488d14520377ff08ba",
-    "src/Xynolog/Types.hs": "8be89d21e91c67afe7456cc406fb613ab626abddb3341c1b0c77cfacfc2fc563",
+    "src/Xynolog/Types.hs": "490ef3d62523c45ef96c04e463b8ec62678e090abafe46713da207f5a5e5fda3",
     "src/Xynolog/Types/Presence.hs": "0c700ed04e5fe1fe43786d384622dbf716ea8703a1af8b8d8b894876dbe13a8f",
     "src/Xynolog/Worker.hs": "4ef864aedc7cdc602443a72d8a59c3e385fdfbf36bb352d3a5511fd125492e46",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
@@ -1769,10 +1769,6 @@
           "definition": "data Xynolog.Internal.Generated.Models.IssuedTokens.IssuedTokens = ...",
           "kind": "*"
         },
-        "IssuerEndpoints": {
-          "definition": "data Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints = ...",
-          "kind": "*"
-        },
         "IssuerOptions": {
           "definition": "data Xynolog.Internal.Issuer.IssuerOptions = ...",
           "kind": "*"
@@ -1780,15 +1776,19 @@
         "PendingAuthorization": {
           "definition": "data Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization = ...",
           "kind": "*"
+        },
+        "PendingAuthorizationIssuer": {
+          "definition": "data Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer = ...",
+          "kind": "*"
         }
       },
       "values": {
         "BeginAuthorizationOptions": "Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> Xynolog.Internal.Generated.Models.BeginAuthorizationOptions.BeginAuthorizationOptions",
         "DeviceCode": "Integer -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.DeviceCode.DeviceCode",
         "IssuedTokens": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.IssuedTokens.IssuedTokens",
-        "IssuerEndpoints": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints",
         "IssuerOptions": "Xynolog.Internal.Http.HttpClient -> Xynolog.Retry.RetryOptions -> Xynolog.Internal.Generated.TimingSettings.Settings -> Xynolog.Internal.Issuer.IssuerOptions",
-        "PendingAuthorization": "Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization",
+        "PendingAuthorization": "Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization",
+        "PendingAuthorizationIssuer": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer",
         "beginAuthorization": "Xynolog.Internal.Issuer.IssuerOptions -> Xynolog.Internal.Generated.Models.BeginAuthorizationOptions.BeginAuthorizationOptions -> Xynolog.SessionStorage.SessionStorage -> IO Data.Text.Internal.Text",
         "beginAuthorizationOptionsExpectedDid": "Xynolog.Internal.Generated.Models.BeginAuthorizationOptions.BeginAuthorizationOptions -> Maybe Data.Text.Internal.Text",
         "beginAuthorizationOptionsExpectedName": "Xynolog.Internal.Generated.Models.BeginAuthorizationOptions.BeginAuthorizationOptions -> Maybe Data.Text.Internal.Text",
@@ -1802,22 +1802,22 @@
         "deviceCodeUserCode": "Xynolog.Internal.Generated.Models.DeviceCode.DeviceCode -> Data.Text.Internal.Text",
         "deviceCodeVerificationUri": "Xynolog.Internal.Generated.Models.DeviceCode.DeviceCode -> Data.Text.Internal.Text",
         "deviceCodeVerificationUriComplete": "Xynolog.Internal.Generated.Models.DeviceCode.DeviceCode -> Maybe Data.Text.Internal.Text",
-        "discoverIssuer": "Xynolog.Internal.Issuer.IssuerOptions -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> IO Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints",
+        "discoverIssuer": "Xynolog.Internal.Issuer.IssuerOptions -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> IO Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer",
         "issuedTokensAccess": "Xynolog.Internal.Generated.Models.IssuedTokens.IssuedTokens -> Data.Text.Internal.Text",
         "issuedTokensRefresh": "Xynolog.Internal.Generated.Models.IssuedTokens.IssuedTokens -> Data.Text.Internal.Text",
-        "issuerEndpointsAdditionalProperties": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
-        "issuerEndpointsAuthorization": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Data.Text.Internal.Text",
-        "issuerEndpointsDevice": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Maybe Data.Text.Internal.Text",
-        "issuerEndpointsIssuer": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Data.Text.Internal.Text",
-        "issuerEndpointsRevocation": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Maybe Data.Text.Internal.Text",
-        "issuerEndpointsToken": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Data.Text.Internal.Text",
         "issuerHttpClient": "Xynolog.Internal.Issuer.IssuerOptions -> Xynolog.Internal.Http.HttpClient",
         "issuerTime": "Xynolog.Internal.Issuer.IssuerOptions -> Xynolog.Retry.RetryOptions",
         "issuerTiming": "Xynolog.Internal.Issuer.IssuerOptions -> Xynolog.Internal.Generated.TimingSettings.Settings",
         "pendingAuthorizationAdditionalProperties": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
         "pendingAuthorizationExpectedDid": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Maybe Data.Text.Internal.Text",
         "pendingAuthorizationExpectedName": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Maybe Data.Text.Internal.Text",
-        "pendingAuthorizationIssuer": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints",
+        "pendingAuthorizationIssuer": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer",
+        "pendingAuthorizationIssuerAdditionalProperties": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
+        "pendingAuthorizationIssuerAuthorization": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Data.Text.Internal.Text",
+        "pendingAuthorizationIssuerDevice": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Maybe Data.Text.Internal.Text",
+        "pendingAuthorizationIssuerIssuer": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Data.Text.Internal.Text",
+        "pendingAuthorizationIssuerRevocation": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Maybe Data.Text.Internal.Text",
+        "pendingAuthorizationIssuerToken": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Data.Text.Internal.Text",
         "pendingAuthorizationKbId": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Maybe Data.Text.Internal.Text",
         "pendingAuthorizationKey": "Data.Text.Internal.Text",
         "pendingAuthorizationRedirectUri": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Data.Text.Internal.Text",
@@ -1829,7 +1829,7 @@
         "revokeAtIssuer": "Xynolog.Internal.Issuer.IssuerOptions -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> IO ()",
         "scriptClientId": "Data.Text.Internal.Text",
         "signInScope": "Data.Text.Internal.Text",
-        "signInWithDeviceGrant": "Xynolog.Internal.Issuer.IssuerOptions -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> (Xynolog.Internal.Generated.Models.DeviceCode.DeviceCode -> IO ()) -> IO (Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints, Xynolog.Internal.Generated.Models.IssuedTokens.IssuedTokens)"
+        "signInWithDeviceGrant": "Xynolog.Internal.Issuer.IssuerOptions -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> (Xynolog.Internal.Generated.Models.DeviceCode.DeviceCode -> IO ()) -> IO (Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer, Xynolog.Internal.Generated.Models.IssuedTokens.IssuedTokens)"
       }
     },
     "Xynolog.Job": {
@@ -4846,10 +4846,6 @@
           "definition": "data Xynolog.Internal.Generated.Models.Issuer.Issuer = ...",
           "kind": "*"
         },
-        "IssuerEndpoints": {
-          "definition": "data Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints = ...",
-          "kind": "*"
-        },
         "IssuerKind": {
           "definition": "data Xynolog.Internal.Generated.Models.Issuer.IssuerKind = ...",
           "kind": "*"
@@ -5362,6 +5358,10 @@
           "definition": "data Xynolog.Internal.Generated.Models.KnowledgeIndex.KnowledgeIndexSpecWeaver = ...",
           "kind": "*"
         },
+        "LastEventIds": {
+          "definition": "data Xynolog.Internal.Generated.Models.LastEventIds.LastEventIds = ...",
+          "kind": "*"
+        },
         "LibrarianConfig": {
           "definition": "data Xynolog.Internal.Generated.Models.LibrarianConfig.LibrarianConfig = ...",
           "kind": "*"
@@ -5716,6 +5716,10 @@
         },
         "PendingAuthorization": {
           "definition": "data Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization = ...",
+          "kind": "*"
+        },
+        "PendingAuthorizationIssuer": {
+          "definition": "data Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer = ...",
           "kind": "*"
         },
         "PermissionDenied": {
@@ -7538,7 +7542,6 @@
         "InferenceSpecProviders": "Data.Aeson.KeyMap.KeyMap Xynolog.Internal.Generated.Models.Provider.Provider -> Xynolog.Internal.Generated.Models.Inference.InferenceSpecProviders",
         "IssuedTokens": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.IssuedTokens.IssuedTokens",
         "Issuer": "Xynolog.Internal.Generated.Models.StackApiVersion.StackApiVersion -> Xynolog.Internal.Generated.Models.Issuer.IssuerKind -> Xynolog.Internal.Generated.Models.Metadata.Metadata -> Xynolog.Internal.Generated.Models.Issuer.IssuerSpec -> Xynolog.Internal.Generated.Models.Issuer.Issuer",
-        "IssuerEndpoints": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints",
         "IssuerKindIssuer": "Xynolog.Internal.Generated.Models.Issuer.IssuerKind",
         "IssuerSpec": "Xynolog.Internal.Generated.Models.Issuer.IssuerSpecDatabase -> Xynolog.Internal.Generated.Models.Image.Image -> Integer -> Xynolog.Internal.Generated.Models.Resources.Resources -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Issuer.IssuerSpec",
         "IssuerSpecDatabase": "Maybe Xynolog.Internal.Generated.Models.Issuer.IssuerSpecDatabaseExternal -> Maybe Xynolog.Internal.Generated.Models.Image.Image -> Data.Text.Internal.Text -> Maybe Integer -> Maybe Xynolog.Internal.Generated.Models.Resources.Resources -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Issuer.IssuerSpecDatabase",
@@ -7709,6 +7712,7 @@
         "KnowledgeIndexSpecVectorsExternal": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SecretRef.SecretRef -> Integer -> Xynolog.Internal.Generated.Models.SecretRef.SecretRef -> Xynolog.Internal.Generated.Models.KnowledgeIndex.KnowledgeIndexSpecVectorsExternal",
         "KnowledgeIndexSpecVectorsShared": "Xynolog.Internal.Generated.Models.KnowledgeIndex.KnowledgeIndexSpecVectorsShared",
         "KnowledgeIndexSpecWeaver": "Xynolog.Internal.Generated.Models.Image.Image -> Xynolog.Internal.Generated.Models.Resources.Resources -> Xynolog.Internal.Generated.Models.KnowledgeIndex.KnowledgeIndexSpecWeaver",
+        "LastEventIds": "Data.Aeson.KeyMap.KeyMap Xynolog.Internal.Generated.Models.PersistedEventId.PersistedEventId -> Xynolog.Internal.Generated.Models.LastEventIds.LastEventIds",
         "LibrarianConfig": "Xynolog.Internal.Generated.Models.ServiceAddress.ServiceAddress -> Xynolog.Internal.Generated.Models.EmbeddingConfig.EmbeddingConfig -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.LibrarianConfig.LibrarianConfigGather -> Xynolog.Internal.Generated.Models.LibrarianEngineConfig.LibrarianEngineConfig -> Xynolog.Internal.Generated.Models.GraphConfig.GraphConfig -> Xynolog.Internal.Generated.Models.ServiceIdentity.ServiceIdentity -> Xynolog.Internal.Generated.Models.KbIdentity.KbIdentity -> Xynolog.Internal.Generated.Models.LogFormat.LogFormat -> Xynolog.Internal.Generated.Models.LogLevel.LogLevel -> Xynolog.Internal.Generated.Models.LibrarianEngineConfig.LibrarianEngineConfig -> Data.Text.Internal.Text -> Integer -> Xynolog.Internal.Generated.Models.LibrarianConfig.LibrarianConfigSearch -> Xynolog.Internal.Generated.Models.VectorsConfig.VectorsConfig -> Xynolog.Internal.Generated.Models.LibrarianConfig.LibrarianConfig",
         "LibrarianConfigGather": "Integer -> Xynolog.Internal.Generated.Models.LibrarianConfig.LibrarianConfigGather",
         "LibrarianConfigSearch": "Data.Scientific.Scientific -> Xynolog.Internal.Generated.Models.LibrarianConfig.LibrarianConfigSearch",
@@ -7829,7 +7833,8 @@
         "PdfClassG": "Xynolog.Internal.Generated.Models.PdfClass.PdfClass",
         "PdfCoordinate": "Data.Scientific.Scientific -> Integer -> Data.Scientific.Scientific -> Data.Scientific.Scientific -> Data.Scientific.Scientific -> Xynolog.Internal.Generated.Models.PdfCoordinate.PdfCoordinate",
         "PdfTextItem": "Integer -> Data.Scientific.Scientific -> Integer -> Integer -> Data.Scientific.Scientific -> Data.Scientific.Scientific -> Data.Scientific.Scientific -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.PdfTextItem.PdfTextItem",
-        "PendingAuthorization": "Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization",
+        "PendingAuthorization": "Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization",
+        "PendingAuthorizationIssuer": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer",
         "PermissionDenied": "Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.PermissionDenied.PermissionDenied",
         "PersistedEventId": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.PersistedEventId.PersistedEventId",
         "PrincipalProfileCommand": "Maybe Xynolog.Internal.Generated.Models.UserId.UserId -> Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.PrincipalProfileCommand.PrincipalProfileCommand",
@@ -9446,12 +9451,6 @@
         "issuedTokensAccess": "Xynolog.Internal.Generated.Models.IssuedTokens.IssuedTokens -> Data.Text.Internal.Text",
         "issuedTokensRefresh": "Xynolog.Internal.Generated.Models.IssuedTokens.IssuedTokens -> Data.Text.Internal.Text",
         "issuerApiVersion": "Xynolog.Internal.Generated.Models.Issuer.Issuer -> Xynolog.Internal.Generated.Models.StackApiVersion.StackApiVersion",
-        "issuerEndpointsAdditionalProperties": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
-        "issuerEndpointsAuthorization": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Data.Text.Internal.Text",
-        "issuerEndpointsDevice": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Maybe Data.Text.Internal.Text",
-        "issuerEndpointsIssuer": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Data.Text.Internal.Text",
-        "issuerEndpointsRevocation": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Maybe Data.Text.Internal.Text",
-        "issuerEndpointsToken": "Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints -> Data.Text.Internal.Text",
         "issuerKind": "Xynolog.Internal.Generated.Models.Issuer.Issuer -> Xynolog.Internal.Generated.Models.Issuer.IssuerKind",
         "issuerKindText": "Xynolog.Internal.Generated.Models.Issuer.IssuerKind -> Data.Text.Internal.Text",
         "issuerMetadata": "Xynolog.Internal.Generated.Models.Issuer.Issuer -> Xynolog.Internal.Generated.Models.Metadata.Metadata",
@@ -9822,6 +9821,7 @@
         "knowledgeIndexSpecWeaver": "Xynolog.Internal.Generated.Models.KnowledgeIndex.KnowledgeIndexSpec -> Xynolog.Internal.Generated.Models.KnowledgeIndex.KnowledgeIndexSpecWeaver",
         "knowledgeIndexSpecWeaverImage": "Xynolog.Internal.Generated.Models.KnowledgeIndex.KnowledgeIndexSpecWeaver -> Xynolog.Internal.Generated.Models.Image.Image",
         "knowledgeIndexSpecWeaverResources": "Xynolog.Internal.Generated.Models.KnowledgeIndex.KnowledgeIndexSpecWeaver -> Xynolog.Internal.Generated.Models.Resources.Resources",
+        "lastEventIdsAdditionalProperties": "Xynolog.Internal.Generated.Models.LastEventIds.LastEventIds -> Data.Aeson.KeyMap.KeyMap Xynolog.Internal.Generated.Models.PersistedEventId.PersistedEventId",
         "librarianConfigArchivist": "Xynolog.Internal.Generated.Models.LibrarianConfig.LibrarianConfig -> Xynolog.Internal.Generated.Models.ServiceAddress.ServiceAddress",
         "librarianConfigEmbedding": "Xynolog.Internal.Generated.Models.LibrarianConfig.LibrarianConfig -> Xynolog.Internal.Generated.Models.EmbeddingConfig.EmbeddingConfig",
         "librarianConfigGatewayUrl": "Xynolog.Internal.Generated.Models.LibrarianConfig.LibrarianConfig -> Data.Text.Internal.Text",
@@ -10079,7 +10079,13 @@
         "pendingAuthorizationAdditionalProperties": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
         "pendingAuthorizationExpectedDid": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Maybe Data.Text.Internal.Text",
         "pendingAuthorizationExpectedName": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Maybe Data.Text.Internal.Text",
-        "pendingAuthorizationIssuer": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Xynolog.Internal.Generated.Models.IssuerEndpoints.IssuerEndpoints",
+        "pendingAuthorizationIssuer": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer",
+        "pendingAuthorizationIssuerAdditionalProperties": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value",
+        "pendingAuthorizationIssuerAuthorization": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Data.Text.Internal.Text",
+        "pendingAuthorizationIssuerDevice": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Maybe Data.Text.Internal.Text",
+        "pendingAuthorizationIssuerIssuer": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Data.Text.Internal.Text",
+        "pendingAuthorizationIssuerRevocation": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Maybe Data.Text.Internal.Text",
+        "pendingAuthorizationIssuerToken": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorizationIssuer -> Data.Text.Internal.Text",
         "pendingAuthorizationKbId": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Maybe Data.Text.Internal.Text",
         "pendingAuthorizationRedirectUri": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Data.Text.Internal.Text",
         "pendingAuthorizationState": "Xynolog.Internal.Generated.Models.PendingAuthorization.PendingAuthorization -> Data.Text.Internal.Text",

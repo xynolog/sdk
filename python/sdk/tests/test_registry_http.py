@@ -19,7 +19,7 @@ from gateway_server import Asked, GatewayServer, Recording
 from issuer import ALICE, CONFIGURATION, ME, METADATA, REFUSED, REVOKE, TOKEN, issuer_of, says, trusting
 from kb import recorded
 from pydantic import JsonValue, TypeAdapter
-from spec import SPEC, JsonObject, read, strings, text
+from spec import JsonObject, text
 from tokens import expired, token
 
 from xynolog.cache import Ready
@@ -27,7 +27,6 @@ from xynolog.errors import IdentityUnverifiableError, SignInError
 from xynolog.http.oauth import (
     BeginAuthorizationOptions,
     IssuedTokens,
-    PendingAuthorization,
     begin_authorization,
     code_challenge,
     complete_authorization,
@@ -40,7 +39,7 @@ from xynolog.storage import MemoryStorage, SessionStorage
 from xynolog.storage_keys import last_event_id_key, person_key
 from xynolog.stored import PENDING_AUTHORIZATION_KEY
 from xynolog.transport import Transport
-from xynolog.types import HttpEndpoint, KnowledgeBase, LocalEndpoint, StoredSession
+from xynolog.types import HttpEndpoint, KnowledgeBase, LocalEndpoint, PendingAuthorization, StoredSession
 from xynolog.watched import reached
 
 _JSON = TypeAdapter[JsonValue](JsonValue)
@@ -521,46 +520,20 @@ def test_beginning_a_sign_in_remembers_it_and_builds_the_url_around_what_it_reme
     run(scenario())
 
 
-def _members_of(schema: JsonValue, what: str) -> tuple[set[str], set[str]]:
-    """The members `schema` names, and those of them it requires."""
-    assert isinstance(schema, dict), f"{what} is not a schema"
-    properties = schema["properties"]
-    assert isinstance(properties, dict), f"{what} names no members"
-    return set(properties), set(strings(schema["required"], f"what {what} requires"))
-
-
-def test_a_sign_in_begun_is_kept_as_the_stored_table_states_it() -> None:
-    """What is kept of a sign-in begun is `pendingAuthorization` of protocol/specs/src/session/stored.json."""
-    pending = read(SPEC / "session/stored.json")["pendingAuthorization"]
-    members, required = _members_of(pending, "pendingAuthorization")
-    assert isinstance(pending, dict)
-    properties = pending["properties"]
-    assert isinstance(properties, dict)
-    issuer_members, issuer_required = _members_of(properties["issuer"], "its issuer")
-
-    def written(storage: SessionStorage) -> JsonObject:
-        kept = storage.get(PENDING_AUTHORIZATION_KEY)
-        assert kept is not None
-        record = _JSON.validate_json(kept)
-        assert isinstance(record, dict)
-        issuer = record["issuer"]
-        assert isinstance(issuer, dict)
-        assert issuer_required <= set(issuer) <= issuer_members
-        return record
-
+def test_what_a_sign_in_begun_was_not_told_is_not_kept() -> None:
     async def scenario() -> None:
         async with GatewayServer() as gateway:
             trusting(gateway)
-            believed = MemoryStorage()
-            options = BeginAuthorizationOptions(
-                target=endpoint_of(gateway), redirect_uri=REDIRECT, kb_id="kb-a", expected_did=DID_A, expected_name="KB A"
-            )
-            await soon(begin_authorization(options, believed))
-            assert set(written(believed)) == members
-            # What the person named nothing of is not written.
-            bare = MemoryStorage()
-            await soon(begin_authorization(BeginAuthorizationOptions(target=endpoint_of(gateway), redirect_uri=REDIRECT), bare))
-            assert set(written(bare)) == required
+            storage = MemoryStorage()
+            await soon(begin_authorization(BeginAuthorizationOptions(target=endpoint_of(gateway), redirect_uri=REDIRECT), storage))
+            kept = storage.get(PENDING_AUTHORIZATION_KEY)
+            assert kept is not None
+            record = _JSON.validate_json(kept)
+            assert isinstance(record, dict)
+            issuer = record["issuer"]
+            assert isinstance(issuer, dict)
+            assert None not in record.values()
+            assert None not in issuer.values()
 
     run(scenario())
 

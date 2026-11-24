@@ -80,26 +80,6 @@ let definitions (spec : Spec.t) (bundle : Definitions.bundle) =
     },
     List.map fst tables )
 
-(* The type each named map's keys are, where its schema's [propertyNames] is
-   a whole schema of its own: LastEventIds is keyed by ResourceId. *)
-let keys (spec : Spec.t) =
-  let key_of = function
-    | Schema.Schema
-        { property_names = Some (Schema.Schema { ref_ = Some r; _ }); _ } -> (
-        match Decode.resolve spec.ids r with
-        | file, "" -> Some (Definitions.stem file)
-        | _ -> None)
-    | _ -> None
-  in
-  List.filter_map
-    (fun (name, r) ->
-      let file, _ = Decode.resolve spec.ids r in
-      Option.map (fun s -> (name, s)) (List.assoc_opt file spec.schemas))
-    (Roots.all spec)
-  @ List.map (fun (_, name, s) -> (name, s)) (Definitions.records spec)
-  |> List.filter_map (fun (name, s) ->
-      Option.map (fun key -> (name, key)) (key_of s))
-
 let generated (spec : Spec.t) =
   let bundle = Definitions.bundle spec in
   let definitions, tables = definitions spec bundle in
@@ -114,7 +94,9 @@ let generated (spec : Spec.t) =
     @ Definitions.generated_client_types spec
     @ tables
   in
-  ( Generate.generate definitions ~identifiers ~keys:(keys spec) roots,
+  ( Generate.generate definitions ~identifiers
+      ~keys:(Definitions.map_keys spec)
+      roots,
     List.map (fun name -> (name, None)) identifiers )
 
 (* Every type package api declares, and what it is an alias of, if it is
