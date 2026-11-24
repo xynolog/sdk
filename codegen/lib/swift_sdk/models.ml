@@ -620,6 +620,9 @@ and union t ~modifiers n members s =
           | _, Some tag -> Text.pascal tag
           | _ when is_type Schema.String resolved -> "Text"
           | _ when is_type Schema.Array resolved -> "List"
+          | _ when is_type Schema.Integer resolved -> "Integer"
+          | _ when is_type Schema.Number resolved -> "Number"
+          | _ when is_type Schema.Boolean resolved -> "Boolean"
           | _
             when is_type Schema.Object resolved
                  && (node_of resolved).properties = None ->
@@ -642,10 +645,12 @@ and union t ~modifiers n members s =
                     | _ -> None)
                   properties
               in
-              match constants with
-              | tag :: _ -> Text.pascal tag
-              | [] when is_type Schema.Object resolved -> "Object"
-              | [] -> refuse "%s: union member %d has no stable name" n index)
+              match (constants, resolved) with
+              | tag :: _, _ -> Text.pascal tag
+              | [], D.Node { title = Some title; _ } -> Text.pascal title
+              | [], _ when is_type Schema.Object resolved -> "Object"
+              | [], _ -> refuse "%s: union member %d has no stable name" n index
+              )
         in
         let label = String.uncapitalize_ascii part in
         if Hashtbl.mem labels label then

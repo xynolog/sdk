@@ -6286,6 +6286,1569 @@ module Representation_not_found = struct
     project (fields_of (Models.json model))
 end
 
+module Conformance_bus_fetch = struct
+  type t = {
+    fetch : string;
+    payload : Yojson.Raw.t Types.presence;
+    as_ : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        fetch = required reader string "fetch";
+        payload = optional reader raw "payload";
+        as_ = required reader string "as";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ConformanceBusFetch ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Conformance_case = struct
+  type t = {
+    about : string;
+    source : string;
+    planes : Yojson.Raw.t Types.presence;
+    tier : string Types.presence;
+    telemetry : bool Types.presence;
+    steps : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        about = required reader string "about";
+        source = required reader string "source";
+        planes = optional reader raw "planes";
+        tier = optional reader string "tier";
+        telemetry = optional reader bool "telemetry";
+        steps = required reader raw "steps";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ConformanceCase ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Conformance_failure = struct
+  type t = {
+    code : string Types.presence;
+    status : Yojson.Raw.t Types.presence;
+    failure_class : Yojson.Raw.t Types.presence;
+    detail : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        code = optional reader string "code";
+        status = optional reader raw "status";
+        failure_class = optional reader raw "failureClass";
+        detail = required reader string "detail";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ConformanceFailure ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Conformance_http_fetch = struct
+  type t = {
+    fetch : string;
+    params : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        fetch = required reader string "fetch";
+        params = optional reader raw "params";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ConformanceHttpFetch ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Conformance_implementations = struct
+  type t = {
+    launcher : Yojson.Raw.t;
+    target : Yojson.Raw.t;
+    sdks : Yojson.Raw.t;
+    model_catalogue : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        launcher = required reader raw "launcher";
+        target = required reader raw "target";
+        sdks = required reader raw "sdks";
+        model_catalogue = optional reader string "modelCatalogue";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ConformanceImplementations ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module About_params = struct
+  type t = { api_version : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      { api_version = required reader raw "apiVersion"; extra = [] }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `AboutParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module About_result = struct
+  type t = {
+    version : string Types.presence;
+    development : bool;
+    commit : string Types.presence;
+    built : string Types.presence;
+    api_versions : Yojson.Raw.t;
+    image_registry : string;
+    runtimes : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        version = optional reader string "version";
+        development = required reader bool "development";
+        commit = optional reader string "commit";
+        built = optional reader string "built";
+        api_versions = required reader raw "apiVersions";
+        image_registry = required reader string "imageRegistry";
+        runtimes = required reader raw "runtimes";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `AboutResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Auth_login_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t Types.presence;
+    runtime : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = optional reader raw "target";
+        runtime = optional reader raw "runtime";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `AuthLoginParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Auth_login_result = struct
+  type t = {
+    key : string;
+    who : string;
+    issuer : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        key = required reader string "key";
+        who = required reader string "who";
+        issuer = required reader string "issuer";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `AuthLoginResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Auth_logout_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t Types.presence;
+    runtime : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = optional reader raw "target";
+        runtime = optional reader raw "runtime";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `AuthLogoutParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Auth_logout_result = struct
+  type t = {
+    key : string Types.presence;
+    was_signed_in : bool;
+    revoked : bool;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        key = optional reader string "key";
+        was_signed_in = required reader bool "wasSignedIn";
+        revoked = required reader bool "revoked";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `AuthLogoutResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Cancelled = struct
+  type t = {
+    request_id : Yojson.Raw.t;
+    reason : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        request_id = required reader raw "requestId";
+        reason = optional reader string "reason";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Cancelled ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Error_data = struct
+  type t = {
+    code : string;
+    retryable : bool;
+    fields : Yojson.Raw.t Types.presence;
+    choices : Yojson.Raw.t Types.presence;
+    supported : Yojson.Raw.t Types.presence;
+    may_still_run : bool Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        code = required reader string "code";
+        retryable = required reader bool "retryable";
+        fields = optional reader raw "fields";
+        choices = optional reader raw "choices";
+        supported = optional reader raw "supported";
+        may_still_run = optional reader bool "mayStillRun";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ErrorData ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Field_fault = struct
+  type t = {
+    field : string;
+    message : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        field = required reader string "field";
+        message = required reader string "message";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `FieldFault ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Identity_user = struct
+  type t = {
+    email : string;
+    identity : string;
+    enabled : bool;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        email = required reader string "email";
+        identity = required reader string "identity";
+        enabled = required reader bool "enabled";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `IdentityUser ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Identity_useradd_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t;
+    email : string;
+    password : string Types.presence;
+    generate_password : bool;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = required reader raw "target";
+        email = required reader string "email";
+        password = optional reader string "password";
+        generate_password = required reader bool "generatePassword";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `IdentityUseraddParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Identity_useradd_result = struct
+  type t = {
+    email : string;
+    identity : string;
+    created : bool;
+    generated_password : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        email = required reader string "email";
+        identity = required reader string "identity";
+        created = required reader bool "created";
+        generated_password = optional reader string "generatedPassword";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `IdentityUseraddResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Identity_users_list_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = required reader raw "target";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `IdentityUsersListParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Identity_users_list_result = struct
+  type t = { users : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { users = required reader raw "users"; extra = [] } in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `IdentityUsersListResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Knowledge_base_status = struct
+  type t = {
+    name : string;
+    key : string;
+    recorded : bool;
+    placement : Yojson.Raw.t;
+    root : string Types.presence;
+    repo : Yojson.Raw.t Types.presence;
+    did : Yojson.Raw.t Types.presence;
+    site_name : Yojson.Raw.t Types.presence;
+    identity_error : string Types.presence;
+    kb : Yojson.Raw.t Types.presence;
+    runtime : Yojson.Raw.t Types.presence;
+    gateway : string Types.presence;
+    secret_store : string Types.presence;
+    lan : string Types.presence;
+    starting : bool;
+    session : Yojson.Raw.t Types.presence;
+    healthy : bool;
+    services : Yojson.Raw.t;
+    workload : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        name = required reader string "name";
+        key = required reader string "key";
+        recorded = required reader bool "recorded";
+        placement = required reader raw "placement";
+        root = optional reader string "root";
+        repo = optional reader raw "repo";
+        did = optional reader raw "did";
+        site_name = optional reader raw "siteName";
+        identity_error = optional reader string "identityError";
+        kb = optional reader raw "kb";
+        runtime = optional reader raw "runtime";
+        gateway = optional reader string "gateway";
+        secret_store = optional reader string "secretStore";
+        lan = optional reader string "lan";
+        starting = required reader bool "starting";
+        session = optional reader raw "session";
+        healthy = required reader bool "healthy";
+        services = required reader raw "services";
+        workload = optional reader raw "workload";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `KnowledgeBaseStatus ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Local_target = struct
+  type t = {
+    kind : string;
+    root : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        kind = required reader string "kind";
+        root = required reader string "root";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `LocalTarget ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Log_record = struct
+  type t = {
+    request_id : Yojson.Raw.t;
+    service : string;
+    stream : Yojson.Raw.t;
+    line : string;
+    received_at : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        request_id = required reader raw "requestId";
+        service = required reader string "service";
+        stream = required reader raw "stream";
+        line = required reader string "line";
+        received_at = required reader string "receivedAt";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `LogRecord ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Logs_follow_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t Types.presence;
+    runtime : Yojson.Raw.t Types.presence;
+    service : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = optional reader raw "target";
+        runtime = optional reader raw "runtime";
+        service = optional reader string "service";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `LogsFollowParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Logs_follow_result = struct
+  type t = { services : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { services = required reader raw "services"; extra = [] } in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `LogsFollowResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Progress = struct
+  type t = {
+    request_id : Yojson.Raw.t;
+    kind : string;
+    text : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        request_id = required reader raw "requestId";
+        kind = required reader string "kind";
+        text = required reader string "text";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Progress ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Root = struct
+  type t = {
+    placement : Yojson.Raw.t;
+    path : string Types.presence;
+    present : bool Types.presence;
+    current : string Types.presence;
+    registered : bool;
+    running : bool;
+    last_used : string Types.presence;
+    did : Yojson.Raw.t Types.presence;
+    site_name : Yojson.Raw.t Types.presence;
+    identity_error : string Types.presence;
+    config : string Types.presence;
+    configs : Yojson.Raw.t Types.presence;
+    repo : Yojson.Raw.t Types.presence;
+    codespace : string Types.presence;
+    codespace_state : string Types.presence;
+    forward_port : Yojson.Raw.t Types.presence;
+    forwarded : bool Types.presence;
+    reachable : bool Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        placement = required reader raw "placement";
+        path = optional reader string "path";
+        present = optional reader bool "present";
+        current = optional reader string "current";
+        registered = required reader bool "registered";
+        running = required reader bool "running";
+        last_used = optional reader string "lastUsed";
+        did = optional reader raw "did";
+        site_name = optional reader raw "siteName";
+        identity_error = optional reader string "identityError";
+        config = optional reader string "config";
+        configs = optional reader raw "configs";
+        repo = optional reader raw "repo";
+        codespace = optional reader string "codespace";
+        codespace_state = optional reader string "codespaceState";
+        forward_port = optional reader raw "forwardPort";
+        forwarded = optional reader bool "forwarded";
+        reachable = optional reader bool "reachable";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Root ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Roots_forget_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    root : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        root = required reader string "root";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `RootsForgetParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Roots_forget_result = struct
+  type t = {
+    path : string;
+    directory_missing : bool;
+    persistent_state : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        path = required reader string "path";
+        directory_missing = required reader bool "directoryMissing";
+        persistent_state = optional reader string "persistentState";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `RootsForgetResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Roots_init_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    path : string;
+    domain : string;
+    name : string Types.presence;
+    site_name : string Types.presence;
+    inference : string Types.presence;
+    model : string Types.presence;
+    model_light : string Types.presence;
+    embedding : string Types.presence;
+    config_name : string Types.presence;
+    anthropic_endpoint : string Types.presence;
+    ollama_base : string Types.presence;
+    ollama_registry : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        path = required reader string "path";
+        domain = required reader string "domain";
+        name = optional reader string "name";
+        site_name = optional reader string "siteName";
+        inference = optional reader string "inference";
+        model = optional reader string "model";
+        model_light = optional reader string "modelLight";
+        embedding = optional reader string "embedding";
+        config_name = optional reader string "configName";
+        anthropic_endpoint = optional reader string "anthropicEndpoint";
+        ollama_base = optional reader string "ollamaBase";
+        ollama_registry = optional reader string "ollamaRegistry";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `RootsInitParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Roots_init_result = struct
+  type t = { path : string; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { path = required reader string "path"; extra = [] } in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `RootsInitResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Roots_list_params = struct
+  type t = { api_version : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      { api_version = required reader raw "apiVersion"; extra = [] }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `RootsListParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Roots_list_result = struct
+  type t = {
+    roots : Yojson.Raw.t;
+    warnings : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        roots = required reader raw "roots";
+        warnings = optional reader raw "warnings";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `RootsListResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Runtime_state = struct
+  type t = {
+    name : Yojson.Raw.t;
+    found : bool;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        name = required reader raw "name";
+        found = required reader bool "found";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `RuntimeState ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Service_host_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    runtime : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        runtime = optional reader raw "runtime";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ServiceHostParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Service_host_result = struct
+  type t = {
+    runtime : Yojson.Raw.t;
+    address : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        runtime = required reader raw "runtime";
+        address = required reader string "address";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ServiceHostResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Service_output = struct
+  type t = {
+    request_id : Yojson.Raw.t;
+    instance : Yojson.Raw.t;
+    stream : Yojson.Raw.t;
+    line : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        request_id = required reader raw "requestId";
+        instance = required reader raw "instance";
+        stream = required reader raw "stream";
+        line = required reader string "line";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ServiceOutput ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Service_run_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t;
+    runtime : Yojson.Raw.t Types.presence;
+    service : Yojson.Raw.t;
+    instance : Yojson.Raw.t;
+    document : string Types.presence;
+    args : Yojson.Raw.t Types.presence;
+    environment : Yojson.Raw.t;
+    mounts : Yojson.Raw.t;
+    path_first : Yojson.Raw.t;
+    ports : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = required reader raw "target";
+        runtime = optional reader raw "runtime";
+        service = required reader raw "service";
+        instance = required reader raw "instance";
+        document = optional reader string "document";
+        args = optional reader raw "args";
+        environment = required reader raw "environment";
+        mounts = required reader raw "mounts";
+        path_first = required reader raw "pathFirst";
+        ports = required reader raw "ports";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ServiceRunParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Service_run_result = struct
+  type t = {
+    instance : Yojson.Raw.t;
+    exit_code : Yojson.Raw.t;
+    ran_ms : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        instance = required reader raw "instance";
+        exit_code = required reader raw "exitCode";
+        ran_ms = required reader raw "ranMs";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ServiceRunResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Service_signal_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t;
+    runtime : Yojson.Raw.t Types.presence;
+    instance : Yojson.Raw.t;
+    signal : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = required reader raw "target";
+        runtime = optional reader raw "runtime";
+        instance = required reader raw "instance";
+        signal = required reader string "signal";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ServiceSignalParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Service_signal_result = struct
+  type t = { delivered : bool; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { delivered = required reader bool "delivered"; extra = [] } in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ServiceSignalResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Service_started = struct
+  type t = {
+    request_id : Yojson.Raw.t;
+    instance : Yojson.Raw.t;
+    container : string;
+    document_path : string Types.presence;
+    address : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        request_id = required reader raw "requestId";
+        instance = required reader raw "instance";
+        container = required reader string "container";
+        document_path = optional reader string "documentPath";
+        address = required reader string "address";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ServiceStarted ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Service_status = struct
+  type t = {
+    role : string;
+    group : Yojson.Raw.t;
+    product : string Types.presence;
+    runs_on : string Types.presence;
+    state : string;
+    container_state : string Types.presence;
+    healthy : bool;
+    counted : bool;
+    probe : string Types.presence;
+    page : string Types.presence;
+    realm : string Types.presence;
+    serves : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        role = required reader string "role";
+        group = required reader raw "group";
+        product = optional reader string "product";
+        runs_on = optional reader string "runsOn";
+        state = required reader string "state";
+        container_state = optional reader string "containerState";
+        healthy = required reader bool "healthy";
+        counted = required reader bool "counted";
+        probe = optional reader string "probe";
+        page = optional reader string "page";
+        realm = optional reader string "realm";
+        serves = optional reader raw "serves";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ServiceStatus ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Session = struct
+  type t = {
+    state : string;
+    email : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        state = required reader string "state";
+        email = optional reader string "email";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Session ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Setting = struct
+  type t = {
+    name : string;
+    default : bool;
+    applies_to : string;
+    values : Yojson.Raw.t;
+    settable : bool;
+    changed_by : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        name = required reader string "name";
+        default = required reader bool "default";
+        applies_to = required reader string "appliesTo";
+        values = required reader raw "values";
+        settable = required reader bool "settable";
+        changed_by = optional reader string "changedBy";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Setting ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Setting_line = struct
+  type t = {
+    value : string;
+    source : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        value = required reader string "value";
+        source = required reader string "source";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `SettingLine ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Settings_get_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    name : string;
+    default : bool Types.presence;
+    root : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        name = required reader string "name";
+        default = optional reader bool "default";
+        root = optional reader string "root";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `SettingsGetParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Settings_list_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    root : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        root = optional reader string "root";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `SettingsListParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Settings_list_result = struct
+  type t = {
+    root : string Types.presence;
+    unresolved : string Types.presence;
+    settings : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        root = optional reader string "root";
+        unresolved = optional reader string "unresolved";
+        settings = required reader raw "settings";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `SettingsListResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Settings_path_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    document : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        document = required reader string "document";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `SettingsPathParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Settings_path_result = struct
+  type t = { path : string; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { path = required reader string "path"; extra = [] } in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `SettingsPathResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Settings_set_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    name : string;
+    default : bool Types.presence;
+    root : string Types.presence;
+    value : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        name = required reader string "name";
+        default = optional reader bool "default";
+        root = optional reader string "root";
+        value = required reader string "value";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `SettingsSetParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Settings_unset_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    name : string;
+    default : bool Types.presence;
+    root : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        name = required reader string "name";
+        default = optional reader bool "default";
+        root = optional reader string "root";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `SettingsUnsetParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Stack_start_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t Types.presence;
+    runtime : Yojson.Raw.t Types.presence;
+    config : string Types.presence;
+    service : string Types.presence;
+    group : Yojson.Raw.t Types.presence;
+    codespace_name : string Types.presence;
+    machine : string Types.presence;
+    idle_timeout : string Types.presence;
+    retention_period : string Types.presence;
+    observe : bool Types.presence;
+    ollama_cache : string Types.presence;
+    dry_run : bool Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = optional reader raw "target";
+        runtime = optional reader raw "runtime";
+        config = optional reader string "config";
+        service = optional reader string "service";
+        group = optional reader raw "group";
+        codespace_name = optional reader string "codespaceName";
+        machine = optional reader string "machine";
+        idle_timeout = optional reader string "idleTimeout";
+        retention_period = optional reader string "retentionPeriod";
+        observe = optional reader bool "observe";
+        ollama_cache = optional reader string "ollamaCache";
+        dry_run = optional reader bool "dryRun";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `StackStartParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Stack_start_result = struct
+  type t = {
+    dry_run : bool;
+    knowledge_base : Yojson.Raw.t Types.presence;
+    shared : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        dry_run = required reader bool "dryRun";
+        knowledge_base = optional reader raw "knowledgeBase";
+        shared = optional reader raw "shared";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `StackStartResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Stack_stop_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t Types.presence;
+    runtime : Yojson.Raw.t Types.presence;
+    service : string Types.presence;
+    group : Yojson.Raw.t Types.presence;
+    delete : bool Types.presence;
+    delete_confirmed : bool Types.presence;
+    dry_run : bool Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = optional reader raw "target";
+        runtime = optional reader raw "runtime";
+        service = optional reader string "service";
+        group = optional reader raw "group";
+        delete = optional reader bool "delete";
+        delete_confirmed = optional reader bool "deleteConfirmed";
+        dry_run = optional reader bool "dryRun";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `StackStopParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Stack_stop_result = struct
+  type t = {
+    dry_run : bool;
+    knowledge_bases : Yojson.Raw.t Types.presence;
+    shared : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        dry_run = required reader bool "dryRun";
+        knowledge_bases = optional reader raw "knowledgeBases";
+        shared = optional reader raw "shared";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `StackStopResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Status_snapshot_params = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    target : Yojson.Raw.t Types.presence;
+    runtime : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        target = optional reader raw "target";
+        runtime = optional reader raw "runtime";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `StatusSnapshotParams ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Status_snapshot_result = struct
+  type t = {
+    knowledge_bases : Yojson.Raw.t;
+    shared : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        knowledge_bases = required reader raw "knowledgeBases";
+        shared = required reader raw "shared";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `StatusSnapshotResult ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Target = struct
+  type t = {
+    kind : string;
+    root : string Types.presence;
+    repo : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        kind = required reader string "kind";
+        root = optional reader string "root";
+        repo = optional reader string "repo";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Target ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module User_action = struct
+  type t = {
+    request_id : Yojson.Raw.t;
+    verification_uri : string;
+    verification_uri_complete : string Types.presence;
+    user_code : string;
+    expires_in_seconds : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        request_id = required reader raw "requestId";
+        verification_uri = required reader string "verificationUri";
+        verification_uri_complete =
+          optional reader string "verificationUriComplete";
+        user_code = required reader string "userCode";
+        expires_in_seconds = required reader raw "expiresInSeconds";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `UserAction ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Workload_status = struct
+  type t = {
+    ledger : Yojson.Raw.t Types.presence;
+    queue : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        ledger = optional reader raw "ledger";
+        queue = optional reader raw "queue";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `WorkloadStatus ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
 module Dispatcher_config = struct
   type t = {
     kb : Yojson.Raw.t;
@@ -6389,6 +7952,32 @@ module Voyage_embedding_config = struct
     { record with extra = rest reader }
 
   let of_model (model : [ `VoyageEmbeddingConfig ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Follower_following = struct
+  type t = {
+    sweep : string;
+    stopped : Yojson.Raw.t;
+    refused : Yojson.Raw.t;
+    stream_drops : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        sweep = required reader string "sweep";
+        stopped = required reader raw "stopped";
+        refused = required reader raw "refused";
+        stream_drops = required reader raw "streamDrops";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `FollowerFollowing ] Models.t) =
     project (fields_of (Models.json model))
 end
 
@@ -6516,6 +8105,30 @@ module Neptune_graph_config = struct
     project (fields_of (Models.json model))
 end
 
+module Project_config = struct
+  type t = {
+    project : Yojson.Raw.t;
+    git : Yojson.Raw.t;
+    site : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        project = required reader raw "project";
+        git = required reader raw "git";
+        site = required reader raw "site";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ProjectConfig ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
 module Librarian_config = struct
   type t = {
     kb : Yojson.Raw.t;
@@ -6609,6 +8222,82 @@ module Librarian_health = struct
     { record with extra = rest reader }
 
   let of_model (model : [ `LibrarianHealth ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Librarian_prompt_score = struct
+  type t = {
+    candidate : Yojson.Raw.t;
+    score : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        candidate = required reader raw "candidate";
+        score = required reader raw "score";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `LibrarianPromptScore ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Client_secret_form = struct
+  type t = {
+    grant_type : string;
+    client_id : string;
+    client_secret : string;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        grant_type = required reader string "grant_type";
+        client_id = required reader string "client_id";
+        client_secret = required reader string "client_secret";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `ClientSecretForm ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Open_resource = struct
+  type t = {
+    id : Yojson.Raw.t;
+    name : string;
+    opened_at : Yojson.Raw.t;
+    order : Yojson.Raw.t;
+    media_type : string Types.presence;
+    storage_uri : string Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        id = required reader raw "id";
+        name = required reader string "name";
+        opened_at = required reader raw "openedAt";
+        order = required reader raw "order";
+        media_type = optional reader string "mediaType";
+        storage_uri = optional reader string "storageUri";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `OpenResource ] Models.t) =
     project (fields_of (Models.json model))
 end
 
@@ -6748,6 +8437,282 @@ module Smelter_reconcile_summary = struct
     { record with extra = rest reader }
 
   let of_model (model : [ `SmelterReconcileSummary ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Browser = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    kind : string;
+    metadata : Yojson.Raw.t;
+    spec : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        kind = required reader string "kind";
+        metadata = required reader raw "metadata";
+        spec = required reader raw "spec";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Browser ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Host_port = struct
+  type t = {
+    host : string;
+    port : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        host = required reader string "host";
+        port = required reader raw "port";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `HostPort ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Inference = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    kind : string;
+    metadata : Yojson.Raw.t;
+    spec : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        kind = required reader string "kind";
+        metadata = required reader raw "metadata";
+        spec = required reader raw "spec";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Inference ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Issuer = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    kind : string;
+    metadata : Yojson.Raw.t;
+    spec : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        kind = required reader string "kind";
+        metadata = required reader raw "metadata";
+        spec = required reader raw "spec";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Issuer ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Knowledge_index = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    kind : string;
+    metadata : Yojson.Raw.t;
+    spec : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        kind = required reader string "kind";
+        metadata = required reader raw "metadata";
+        spec = required reader raw "spec";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `KnowledgeIndex ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Metadata = struct
+  type t = {
+    name : string;
+    namespace : string Types.presence;
+    labels : Yojson.Raw.t Types.presence;
+    annotations : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        name = required reader string "name";
+        namespace = optional reader string "namespace";
+        labels = optional reader raw "labels";
+        annotations = optional reader raw "annotations";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Metadata ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Provider = struct
+  type t = {
+    base_url : string Types.presence;
+    api_key : Yojson.Raw.t Types.presence;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        base_url = optional reader string "baseURL";
+        api_key = optional reader raw "apiKey";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Provider ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Resources = struct
+  type t = { limits : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { limits = required reader raw "limits"; extra = [] } in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `Resources ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Secret_ref = struct
+  type t = { from_env : string; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { from_env = required reader string "fromEnv"; extra = [] } in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `SecretRef ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Stack_knowledge_base = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    kind : string;
+    metadata : Yojson.Raw.t;
+    spec : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        kind = required reader string "kind";
+        metadata = required reader raw "metadata";
+        spec = required reader raw "spec";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `StackKnowledgeBase ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Vector_store = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    kind : string;
+    metadata : Yojson.Raw.t;
+    spec : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        kind = required reader string "kind";
+        metadata = required reader raw "metadata";
+        spec = required reader raw "spec";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `VectorStore ] Models.t) =
+    project (fields_of (Models.json model))
+end
+
+module Worker_pool = struct
+  type t = {
+    api_version : Yojson.Raw.t;
+    kind : string;
+    metadata : Yojson.Raw.t;
+    spec : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        api_version = required reader raw "apiVersion";
+        kind = required reader string "kind";
+        metadata = required reader raw "metadata";
+        spec = required reader raw "spec";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `WorkerPool ] Models.t) =
     project (fields_of (Models.json model))
 end
 

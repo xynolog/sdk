@@ -256,7 +256,7 @@ public sealed class XynologBrowser : IAsyncDisposable
                 return tabs.Select(tab => tab.Id == resource ? tab with
                 { Name = name, MediaType = mediaType ?? tab.MediaType, StorageUri = storageUri ?? tab.StorageUri } : tab).ToArray();
             var order = tabs.Count == 0 ? 0 : tabs.Max(tab => tab.Order) + 1;
-            return [.. tabs, new OpenResource(resource, name, clock.GetUtcNow().ToUnixTimeMilliseconds(), order, mediaType, storageUri)];
+            return [.. tabs, new OpenResource { Id = resource, Name = name, OpenedAt = clock.GetUtcNow().ToUnixTimeMilliseconds(), Order = order, MediaType = mediaType, StorageUri = storageUri }];
         });
 
     /// <summary>Closes a resource's tab in the active knowledge base.</summary>

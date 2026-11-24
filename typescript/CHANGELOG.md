@@ -6,6 +6,26 @@ the coming release's, and gathers its changes as they land.
 
 ## 0.8.2
 
+### Added
+
+- A type for every schema Protocol states, not only the gateway's components:
+  the Control API's methods, notifications and errors (`AboutParams`,
+  `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
+  `KnowledgeIndex`, `Runner`, …), `ProjectConfig`, `FollowerFollowing`, the
+  conformance documents, and the rest.
+- What a value is held to before it is read takes in more of its schema: a
+  pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
+  object may not carry together, the fewest members it carries, and what its
+  members' names must be.
+
+### Changed
+
+- A knowledge base's DID in a health reply is a `KbDid`, and a follower's
+  progress a `FollowerFollowing`, where each was a plain string or an object
+  stated in place.
+- `OpenResource` is `@xynolog/core`'s, the type Protocol states, which
+  `@xynolog/sdk` exports as it did its own.
+
 ## 0.8.1
 
 ### Changed

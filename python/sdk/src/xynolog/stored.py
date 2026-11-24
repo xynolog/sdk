@@ -3,17 +3,14 @@
 # ruff: noqa: E501, I001, RUF002, RUF022, RUF100
 
 """What a registry of knowledge bases keeps in a `SessionStorage` (`protocol/specs/src/session/stored.json`):
-the key each thing it keeps is kept under, and the shape of a resource open in one.
+the key each thing it keeps is kept under.
 And what the sessions it makes keep there: which queries, and the stream's
 places. The keys made of these prefixes are `xynolog.storage_keys`'s.
 """
 
-from typing import Annotated, Final, Literal, final
-
-from pydantic import Field
+from typing import Final, Literal
 
 from xynolog.identifiers import ResourceId
-from xynolog.model import WireModel
 from xynolog.types import PersistedEventId
 
 __all__ = [
@@ -30,7 +27,6 @@ __all__ = [
     "WHOLE_KEY",
     "KeptQuery",
     "LastEventIds",
-    "OpenResource",
     "WholeKey",
 ]
 
@@ -112,33 +108,3 @@ WHOLE_KEY: Final[WholeKey] = "_"
 
 # The form of the document. A document of another version is read as none.
 CACHE_DOCUMENT_VERSION: Final = 1
-
-
-@final
-class OpenResource(WireModel, frozen=True):
-    """A resource open in a knowledge base: which resource, the name it is shown by, when it was
-    opened and its place among the others open there. A registry shows them by their places, and
-    two in one place by when each was opened, first first.
-    """
-
-    # The resource.
-    id: ResourceId
-
-    # The name the resource is shown by.
-    name: str
-
-    # When the resource was opened, in milliseconds since the Unix epoch. Opening it again while
-    # it is open changes neither this nor its place.
-    opened_at: Annotated[int, Field(alias="openedAt", ge=0)]
-
-    # The resource's place among those open in the knowledge base. One opened is given the place
-    # after the last taken, so a place freed by closing one is not given twice; a move gives
-    # each its place in the new order, counted from 0.
-    order: Annotated[int, Field(ge=0)]
-
-    # The resource's media type, which its icon is chosen by. Absent when it is not known.
-    media_type: Annotated[str | None, Field(alias="mediaType")] = None
-
-    # Where the resource is in the knowledge base's working tree, as a URI
-    # (file://docs/overview.md). Absent when it is not known.
-    storage_uri: Annotated[str | None, Field(alias="storageUri")] = None

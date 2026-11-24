@@ -18,15 +18,6 @@ let union (s : D.t) =
 
 let node (s : D.t) = match s with D.Node n -> Some n | _ -> None
 
-let refuse_const what (s : D.t) =
-  match s with
-  | D.Node { const = true; _ } ->
-      refuse
-        "%s: `const` is not OpenAPI 3.0: state the one value as an `enum` of \
-         one"
-        what
-  | _ -> ()
-
 (* The one string a schema admits, when it admits exactly one. *)
 let only_value (s : D.t) =
   match s with
@@ -56,6 +47,14 @@ let discriminant (s : D.t) =
   | D.Node { properties = Some ps; _ } ->
       List.find_map (fun (_, p) -> only_value p) ps
   | _ -> None
+
+(* What an inline member of a union is named by: the one value its
+   discriminant takes, else its title. *)
+let member_name (s : D.t) =
+  match (discriminant s, s) with
+  | Some d, _ -> Some (Text.pascal d)
+  | None, D.Node { title = Some title; _ } -> Some (Text.pascal title)
+  | None, _ -> None
 
 (* What [s] says of itself, or, when it only admits null beside another
    schema, what that schema says: never what a schema its [allOf] names says,

@@ -875,6 +875,84 @@ private struct ReadFailure: Error {}
       == Fault(member: "unitCursors.size", reason: .lacks))
 }
 
+/// The steps of a pattern that take exactly `text`'s code points, one after another.
+private func literally(_ text: String) -> [Term] {
+  text.unicodeScalars.map { Term.step(Step(of: [$0.value...$0.value], min: 1, max: 1)) }
+}
+private let lowercase = Term.step(Step(of: [97...122], min: 1, max: nil))
+private let malformedItself = Fault(member: "", reason: .malformed)
+
+@Test func aPatternsGroupIsOneOfItsAlternativesAndATextIsOfItWhenSomeReadingTakesAllOfIt() {
+  let anything = Term.step(Step(of: [0...0x10FFFF], min: 0, max: nil))
+  let method = Shape(
+    kinds: [.string],
+    pattern: [Term.group(Group(either: [literally("GET"), literally("POST")], min: 1, max: 1))]
+      + literally(" /") + [anything])
+  #expect(faultOf(method, .string("GET /")) == nil)
+  #expect(faultOf(method, .string("POST /kb/x")) == nil)
+  #expect(faultOf(method, .string("PUT /")) == malformedItself)
+  #expect(faultOf(method, .string("GET")) == malformedItself)
+
+  let kebab = Shape(
+    kinds: [.string],
+    pattern: [lowercase, .group(Group(either: [literally("-") + [lowercase]], min: 0, max: nil))])
+  #expect(faultOf(kebab, .string("a")) == nil)
+  #expect(faultOf(kebab, .string("one-two-three")) == nil)
+  #expect(faultOf(kebab, .string("one--two")) == malformedItself)
+  #expect(faultOf(kebab, .string("one-")) == malformedItself)
+
+  let letter = Term.step(Step(of: [97...122], min: 1, max: 1))
+  let twoOrThreeLetters = Shape(
+    kinds: [.string], pattern: [.group(Group(either: [[letter]], min: 2, max: 3))])
+  #expect(faultOf(twoOrThreeLetters, .string("ab")) == nil)
+  #expect(faultOf(twoOrThreeLetters, .string("abc")) == nil)
+  #expect(faultOf(twoOrThreeLetters, .string("a")) == malformedItself)
+  #expect(faultOf(twoOrThreeLetters, .string("abcd")) == malformedItself)
+
+  let anyNumberOfA = Term.step(Step(of: [97...97], min: 0, max: nil))
+  let emptyRepeated = Shape(
+    kinds: [.string],
+    pattern: [Term.group(Group(either: [[anyNumberOfA]], min: 0, max: nil))] + literally("b"))
+  #expect(faultOf(emptyRepeated, .string("aab")) == nil)
+  #expect(faultOf(emptyRepeated, .string("aac")) == malformedItself)
+}
+
+@Test func anObjectsMembersAreHeldTogetherAndNamedAsItsNamesSay() {
+  let either = Shape(kinds: [.object], notAll: [["port", "external"]])
+  #expect(faultOf(either, .object(["port": .number(1)])) == nil)
+  #expect(faultOf(either, .object(["external": .string("x")])) == nil)
+  #expect(
+    faultOf(either, .object(["port": .number(1), "external": .string("x")])) == malformedItself)
+  #expect(faultOf(either, .object(["port": .number(1), "external": .null])) == malformedItself)
+  let readAsAbsent = Shape(
+    kinds: [.object], members: ["port": Shape(recognized: ["http"])],
+    notAll: [["port", "external"]])
+  #expect(
+    faultOf(readAsAbsent, .object(["port": .string("ftp"), "external": .string("x")]))
+      == malformedItself)
+
+  let nonEmpty = Shape(kinds: [.object], minMembers: 1)
+  #expect(faultOf(nonEmpty, .object(["a": .number(1)])) == nil)
+  #expect(faultOf(nonEmpty, .object([:])) == malformedItself)
+
+  let lowerNames = Shape(kinds: [.string], pattern: [lowercase])
+  let lower = Shape(kinds: [.object], names: lowerNames)
+  #expect(faultOf(lower, .object(["ab": .number(1), "cd": .number(2)])) == nil)
+  #expect(
+    faultOf(lower, .object(["ab": .number(1), "Cd": .number(2), "X": .number(3)]))
+      == Fault(member: "Cd", reason: .malformed))
+
+  let ordered = Shape(
+    kinds: [.object], required: ["a"], notAll: [["a", "b"]], names: lowerNames)
+  #expect(faultOf(ordered, .object(["B": .number(1)])) == Fault(member: "a", reason: .lacks))
+  #expect(
+    faultOf(ordered, .object(["a": .number(1), "B": .number(1)]))
+      == Fault(member: "B", reason: .malformed))
+  #expect(faultOf(ordered, .object(["a": .number(1), "b": .number(1)])) == malformedItself)
+  let bounded = Shape(kinds: [.object], required: ["a"], minMembers: 1)
+  #expect(faultOf(bounded, .object([:])) == malformedItself)
+}
+
 @Test func localScopedReadersFilterResourcesAndFinishWithTheBus() async throws {
   let bus = EventBus()
   let resource = try ResourceId("res-1")

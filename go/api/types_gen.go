@@ -6,6 +6,44 @@ package api
 
 import "encoding/json"
 
+// AboutParams launcher.about's params.
+type AboutParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+}
+
+// AboutResult What the launcher is. A client asks this first, to learn
+// whether it speaks to the launcher it found.
+type AboutResult struct {
+	// ApiVersions Each version of the control API it speaks. A client that
+	// speaks none of them stops here.
+	ApiVersions []string `json:"apiVersions"`
+	// Built When it was built, when stamped.
+	Built *string `json:"built,omitempty"`
+	// Commit The commit it was built from, when stamped.
+	Commit *string `json:"commit,omitempty"`
+	// Development Whether this is a development build: one with no version
+	// stamped.
+	Development bool `json:"development"`
+	// ImageRegistry The registry its catalog's images come from.
+	ImageRegistry string `json:"imageRegistry"`
+	// Runtimes Each container runtime it drives, in the order it prefers them,
+	// and whether this machine has it.
+	Runtimes []RuntimeState `json:"runtimes"`
+	// Version The version stamped into the launcher at build. Absent from a
+	// development build, which states none.
+	Version *string `json:"version,omitempty"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v AboutResult) MarshalJSON() ([]byte, error) {
+	type written AboutResult
+	v.ApiVersions = listOf(v.ApiVersions)
+	v.Runtimes = listOf(v.Runtimes)
+	return json.Marshal(written(v))
+}
+
 // Agent Web Annotation / W3C PROV Agent. Discriminated by @type — Person,
 // Organization, or Software (named member schemas: AgentPerson,
 // AgentOrganization, AgentSoftware). Software peers are first-class
@@ -733,6 +771,25 @@ func (e AnnotationType) Valid() bool {
 	return false
 }
 
+// ApiVersion The group and version of the control API. Every request's params
+// state it; a launcher refuses a version it does not speak with
+// control.unsupported-api-version, and names the ones it does.
+type ApiVersion string
+
+// The values of ApiVersion.
+const (
+	ApiVersionControlXynologOrgV1alpha1 ApiVersion = "control.xynolog.org/v1alpha1"
+)
+
+// Valid is whether e is one of ApiVersion's values.
+func (e ApiVersion) Valid() bool {
+	switch e {
+	case ApiVersionControlXynologOrgV1alpha1:
+		return true
+	}
+	return false
+}
+
 // ArchivistConfig Everything the Archivist reads at boot: nothing in it is
 // defaulted by the Archivist. The launcher writes it for the Archivist it
 // starts, from the knowledge base's stack documents, and the Archivist reads
@@ -1000,6 +1057,53 @@ type AttributedEvent struct {
 	Version int `json:"version"`
 }
 
+// AuthLoginParams auth.login's params.
+type AuthLoginParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Runtime Keep to the local stacks, as --runtime does.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Target Which knowledge base's stack. Absent: the one the command line
+	// chooses, standing where the control server was started.
+	Target *Target `json:"target,omitempty"`
+}
+
+// AuthLoginResult A completed sign-in, kept in the launcher's sign-in store.
+// No token is in it.
+type AuthLoginResult struct {
+	// Issuer The issuer the knowledge base named, where the person signed in.
+	Issuer string `json:"issuer"`
+	// Key The stack's key in the sign-in store.
+	Key string `json:"key"`
+	// Who Who the gateway says is signed in: their email, else their DID.
+	Who string `json:"who"`
+}
+
+// AuthLogoutParams auth.logout's params.
+type AuthLogoutParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Runtime Keep to the local stacks, as --runtime does.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Target Which knowledge base's stack. Absent: the one the command line
+	// chooses, standing where the control server was started.
+	Target *Target `json:"target,omitempty"`
+}
+
+// AuthLogoutResult The launcher's session for a stack, ended. Desktop's own
+// session is not touched.
+type AuthLogoutResult struct {
+	// Key The stack's key in the sign-in store. Absent when no stack is
+	// recorded.
+	Key *string `json:"key,omitempty"`
+	// Revoked Whether the issuer revoked the session's refresh token. false with
+	// wasSignedIn: the local token is forgotten, and the refresh token stays
+	// valid at the issuer until it expires.
+	Revoked bool `json:"revoked"`
+	// WasSignedIn Whether a session was stored. false: nothing was done.
+	WasSignedIn bool `json:"wasSignedIn"`
+}
+
 // BeckonFocusEvent Emitted to draw attention to a resource: to one of its
 // annotations, or, with no annotation, to the resource as a whole. The
 // resource is always named. A focus on an annotation scrolls a viewer showing
@@ -1079,9 +1183,7 @@ func (e BindBodyOperationOp) Valid() bool {
 // BindBodyUpdated Void success reply emitted on the bind:body-updated channel
 // after bind:update-body has been applied, matched to the originating command
 // by correlationId.
-type (
-	BindBodyUpdated = map[string]any
-)
+type BindBodyUpdated map[string]any
 
 // BindInitiateCommand Command payload sent on the bind:initiate bus channel
 // to start a bind flow.
@@ -1360,9 +1462,7 @@ func (v BrowseDirectoryResultResponse) MarshalJSON() ([]byte, error) {
 
 // BrowseEnginesRequest Request for the knowledge base's engines: those its
 // Inference document names
-type (
-	BrowseEnginesRequest = map[string]any
-)
+type BrowseEnginesRequest map[string]any
 
 // BrowseEnginesResult The knowledge base's engines: those its Inference
 // document names, and the jobs it has each used for
@@ -1389,9 +1489,7 @@ type BrowseEntityTypeClickedEvent struct {
 }
 
 // BrowseEntityTypesRequest Request to browse available entity types
-type (
-	BrowseEntityTypesRequest = map[string]any
-)
+type BrowseEntityTypesRequest map[string]any
 
 // BrowseEntityTypesResult Result of browsing entity types
 type BrowseEntityTypesResult struct {
@@ -1433,9 +1531,7 @@ func (v BrowseFilesResponse) MarshalJSON() ([]byte, error) {
 }
 
 // BrowseKbRequest Request for the knowledge base's description of itself
-type (
-	BrowseKbRequest = map[string]any
-)
+type BrowseKbRequest map[string]any
 
 // BrowseKbResult Result of browse:kb-requested
 type BrowseKbResult struct {
@@ -1564,13 +1660,49 @@ type BrowseRouterPushEvent struct {
 }
 
 // BrowseTagSchemasRequest Request to browse registered tag schemas
-type (
-	BrowseTagSchemasRequest = map[string]any
-)
+type BrowseTagSchemasRequest map[string]any
 
 // BrowseTagSchemasResult Result of browsing tag schemas
 type BrowseTagSchemasResult struct {
 	Response GetTagSchemasResponse `json:"response"`
+}
+
+// Browser The shared Browser: one viewer for every knowledge base the machine
+// reaches. It belongs to no knowledge base, so its document is kept in the
+// launcher's state home, in `stack/browser.yaml`, not in a knowledge base's
+// repository.
+type Browser struct {
+	ApiVersion StackApiVersion `json:"apiVersion"`
+	Kind       BrowserKind     `json:"kind"`
+	Metadata   Metadata        `json:"metadata"`
+	// Spec How the Browser runs.
+	Spec BrowserSpec `json:"spec"`
+}
+
+type BrowserKind string
+
+// The values of BrowserKind.
+const (
+	BrowserKindBrowser BrowserKind = "Browser"
+)
+
+// Valid is whether e is one of BrowserKind's values.
+func (e BrowserKind) Valid() bool {
+	switch e {
+	case BrowserKindBrowser:
+		return true
+	}
+	return false
+}
+
+// BrowserSpec How the Browser runs.
+type BrowserSpec struct {
+	Image Image `json:"image"`
+	// Port The port the Browser is published on, on this machine's loopback:
+	// where a person opens it, and the origin the issuer's realm allows its
+	// sign-in from.
+	Port      int       `json:"port"`
+	Resources Resources `json:"resources"`
 }
 
 // BusEmitAccepted Result of publishing one event. `subscribers` is the number
@@ -1795,6 +1927,15 @@ func (v BusSubscribeRequestScopedItem) MarshalJSON() ([]byte, error) {
 	return json.Marshal(written(v))
 }
 
+// Cancelled The client gives up on one of its requests. The launcher answers
+// that request with control.cancelled, unless it has answered it already; a
+// cancellation of a request it does not know is ignored.
+type Cancelled struct {
+	// Reason Why, for the launcher's diagnostics.
+	Reason    *string   `json:"reason,omitempty"`
+	RequestId RequestId `json:"requestId"`
+}
+
 // ClaimOptions What a worker's claiming of jobs is told: the jobs it takes,
 // and how long it waits for what it waits on. A wait left out is
 // client/timing.json's of the same name.
@@ -1822,6 +1963,38 @@ func (v ClaimOptions) MarshalJSON() ([]byte, error) {
 	type written ClaimOptions
 	v.Accepts = listOf(v.Accepts)
 	return json.Marshal(written(v))
+}
+
+// ClientSecretForm The form a service account that holds a client secret
+// posts to its issuer's token endpoint for a client-credentials grant: its
+// client id and secret in the body (RFC 6749 §2.3.1). An account that holds a
+// key proves itself by the client assertion of client-assertion-cases.json
+// instead.
+type ClientSecretForm struct {
+	// ClientId The account's client id.
+	ClientId string `json:"client_id"`
+	// ClientSecret The account's client secret.
+	ClientSecret string `json:"client_secret"`
+	// GrantType The grant, client-assertion-cases.json's grantType.
+	GrantType ClientSecretFormGrantType `json:"grant_type"`
+}
+
+// ClientSecretFormGrantType The grant, client-assertion-cases.json's
+// grantType.
+type ClientSecretFormGrantType string
+
+// The values of ClientSecretFormGrantType.
+const (
+	ClientSecretFormGrantTypeClientCredentials ClientSecretFormGrantType = "client_credentials"
+)
+
+// Valid is whether e is one of ClientSecretFormGrantType's values.
+func (e ClientSecretFormGrantType) Valid() bool {
+	switch e {
+	case ClientSecretFormGrantTypeClientCredentials:
+		return true
+	}
+	return false
 }
 
 type CloneResourceWithTokenResponse struct {
@@ -1965,6 +2138,1034 @@ const (
 func (e CommentingJobParamsTone) Valid() bool {
 	switch e {
 	case CommentingJobParamsToneScholarly, CommentingJobParamsToneExplanatory, CommentingJobParamsToneConversational, CommentingJobParamsToneTechnical:
+		return true
+	}
+	return false
+}
+
+// ConformanceBusFetch A request on the bus a live case expects the client to
+// make, on this channel; `as` names its correlation id, for the backend to
+// answer.
+type ConformanceBusFetch struct {
+	// As The request's correlation id, for the backend's answer.
+	As string `json:"as"`
+	// Fetch The request's channel, a request of specs/src/bus/registry.json.
+	Fetch   string `json:"fetch"`
+	Payload any    `json:"payload,omitempty"`
+}
+
+func (ConformanceBusFetch) memberOfConformanceStepFetchesFetchesItem() {}
+func (ConformanceBusFetch) memberOfConformanceStep()                   {}
+
+// ConformanceCase One case of the conformance corpus: a scenario every SDK's
+// driver is put through, a JSON file of conformance/sdk/wire,
+// conformance/sdk/live or conformance/worker/cases named by the case. What
+// the client is asked to do, what the backend does around it, and the
+// transcript a conforming client produces. conformance/sdk/README.md explains
+// each step; the reader reads every file of the corpus through this schema.
+type ConformanceCase struct {
+	// About What the case holds a client to, in a sentence.
+	About string `json:"about"`
+	// Planes The signal planes the case runs on. Absent, it runs on both.
+	Planes *[]ConformanceCasePlanesItem `json:"planes,omitempty"`
+	// Source Where the protocol or the spec states it.
+	Source string `json:"source"`
+	// Steps The steps, run in order.
+	Steps []ConformanceStep `json:"steps"`
+	// Telemetry Run the client exporting to an OTLP receiver, and once it has
+	// exited hold what it exported to specs/src/sdk-telemetry/telemetry.json. A
+	// worker case also holds the worker to a trace of its own for each job it
+	// ran (conformance/worker/README.md).
+	Telemetry *ConformanceCaseTelemetry `json:"telemetry,omitempty"`
+	// Tier A live case's tier: `fleet`, what every SDK with a live layer does,
+	// or `parity`, what one that implements all of CACHE-SEMANTICS does.
+	Tier *ConformanceCaseTier `json:"tier,omitempty"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ConformanceCase) MarshalJSON() ([]byte, error) {
+	type written ConformanceCase
+	v.Steps = listOf(v.Steps)
+	return json.Marshal(written(v))
+}
+
+type ConformanceCasePlanesItem string
+
+// The values of ConformanceCasePlanesItem.
+const (
+	ConformanceCasePlanesItemInProcess ConformanceCasePlanesItem = "in-process"
+	ConformanceCasePlanesItemNats      ConformanceCasePlanesItem = "nats"
+)
+
+// Valid is whether e is one of ConformanceCasePlanesItem's values.
+func (e ConformanceCasePlanesItem) Valid() bool {
+	switch e {
+	case ConformanceCasePlanesItemInProcess, ConformanceCasePlanesItemNats:
+		return true
+	}
+	return false
+}
+
+// ConformanceCaseTelemetry Run the client exporting to an OTLP receiver, and
+// once it has exited hold what it exported to
+// specs/src/sdk-telemetry/telemetry.json. A worker case also holds the worker
+// to a trace of its own for each job it ran (conformance/worker/README.md).
+type ConformanceCaseTelemetry bool
+
+// The values of ConformanceCaseTelemetry.
+const (
+	ConformanceCaseTelemetryTrue ConformanceCaseTelemetry = true
+)
+
+// Valid is whether e is one of ConformanceCaseTelemetry's values.
+func (e ConformanceCaseTelemetry) Valid() bool {
+	switch e {
+	case ConformanceCaseTelemetryTrue:
+		return true
+	}
+	return false
+}
+
+// ConformanceCaseTier A live case's tier: `fleet`, what every SDK with a live
+// layer does, or `parity`, what one that implements all of CACHE-SEMANTICS
+// does.
+type ConformanceCaseTier string
+
+// The values of ConformanceCaseTier.
+const (
+	ConformanceCaseTierFleet  ConformanceCaseTier = "fleet"
+	ConformanceCaseTierParity ConformanceCaseTier = "parity"
+)
+
+// Valid is whether e is one of ConformanceCaseTier's values.
+func (e ConformanceCaseTier) Valid() bool {
+	switch e {
+	case ConformanceCaseTierFleet, ConformanceCaseTierParity:
+		return true
+	}
+	return false
+}
+
+// ConformanceDriverLine A line a conformance driver writes on its standard
+// output, one JSON object each (conformance/sdk/README.md, "The driver
+// protocol"; conformance/worker/README.md, "The worker driver"): that it is
+// ready, an operation's outcome, or what its client observed as it happened.
+// The suite refuses any other line.
+type ConformanceDriverLine struct {
+	union[conformanceDriverLineMember]
+}
+
+// conformanceDriverLineMember is a member of ConformanceDriverLine:
+// ConformanceDriverLineReady, ConformanceDriverLineOk,
+// ConformanceDriverLineFailed, ConformanceDriverLineAbandoned,
+// ConformanceDriverLineUnsupported, ConformanceDriverLineMisuse,
+// ConformanceDriverLineState, ConformanceDriverLineFrame,
+// ConformanceDriverLineErrorStream, ConformanceDriverLineProgress,
+// ConformanceDriverLineEmission, ConformanceDriverLineCompleted,
+// ConformanceDriverLineClaimed, ConformanceDriverLineRefused,
+// ConformanceDriverLineSignalled, ConformanceDriverLineStalled.
+type conformanceDriverLineMember interface {
+	memberOfConformanceDriverLine()
+}
+
+// ConformanceDriverLineAbandoned The suite abandoned the operation, and the
+// SDK reported nothing else.
+type ConformanceDriverLineAbandoned struct {
+	// Abandoned It was abandoned.
+	Abandoned ConformanceDriverLineAbandonedAbandoned `json:"abandoned"`
+	// Id The operation's id.
+	Id int `json:"id"`
+}
+
+func (ConformanceDriverLineAbandoned) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineAbandonedAbandoned It was abandoned.
+type ConformanceDriverLineAbandonedAbandoned bool
+
+// The values of ConformanceDriverLineAbandonedAbandoned.
+const (
+	ConformanceDriverLineAbandonedAbandonedTrue ConformanceDriverLineAbandonedAbandoned = true
+)
+
+// Valid is whether e is one of ConformanceDriverLineAbandonedAbandoned's
+// values.
+func (e ConformanceDriverLineAbandonedAbandoned) Valid() bool {
+	switch e {
+	case ConformanceDriverLineAbandonedAbandonedTrue:
+		return true
+	}
+	return false
+}
+
+// ConformanceDriverLineClaimed A worker driver: its worker claimed a job.
+type ConformanceDriverLineClaimed struct {
+	// Claimed The job, as the worker read the record.
+	Claimed map[string]any `json:"claimed"`
+}
+
+func (ConformanceDriverLineClaimed) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineCompleted The live driver: the observer's live query
+// completed.
+type ConformanceDriverLineCompleted struct {
+	// Completed The observer.
+	Completed string `json:"completed"`
+}
+
+func (ConformanceDriverLineCompleted) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineEmission The live driver: an observer was given a
+// state.
+type ConformanceDriverLineEmission struct {
+	// Emission The emission.
+	Emission ConformanceDriverLineEmissionEmission `json:"emission"`
+}
+
+func (ConformanceDriverLineEmission) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineEmissionEmission The emission.
+type ConformanceDriverLineEmissionEmission struct {
+	// Observer The observer.
+	Observer string `json:"observer"`
+	// State The state.
+	State ConformanceDriverLineEmissionEmissionState `json:"state"`
+}
+
+// ConformanceDriverLineEmissionEmissionState The state.
+type ConformanceDriverLineEmissionEmissionState struct {
+	union[conformanceDriverLineEmissionEmissionStateMember]
+}
+
+// conformanceDriverLineEmissionEmissionStateMember is a member of
+// ConformanceDriverLineEmissionEmissionState:
+// ConformanceDriverLineEmissionEmissionStatePending,
+// ConformanceDriverLineEmissionEmissionStateReady,
+// ConformanceDriverLineEmissionEmissionStateFailed.
+type conformanceDriverLineEmissionEmissionStateMember interface {
+	memberOfConformanceDriverLineEmissionEmissionState()
+}
+
+type ConformanceDriverLineEmissionEmissionStateFailed struct {
+	// Error The failure.
+	Error ConformanceFailure `json:"error"`
+	// Status The query failed.
+	Status ConformanceDriverLineEmissionEmissionStateFailedStatus `json:"status"`
+}
+
+func (ConformanceDriverLineEmissionEmissionStateFailed) memberOfConformanceDriverLineEmissionEmissionState() {
+}
+
+// ConformanceDriverLineEmissionEmissionStateFailedStatus The query failed.
+type ConformanceDriverLineEmissionEmissionStateFailedStatus string
+
+// The values of ConformanceDriverLineEmissionEmissionStateFailedStatus.
+const (
+	ConformanceDriverLineEmissionEmissionStateFailedStatusFailed ConformanceDriverLineEmissionEmissionStateFailedStatus = "failed"
+)
+
+// Valid is whether e is one of
+// ConformanceDriverLineEmissionEmissionStateFailedStatus's values.
+func (e ConformanceDriverLineEmissionEmissionStateFailedStatus) Valid() bool {
+	switch e {
+	case ConformanceDriverLineEmissionEmissionStateFailedStatusFailed:
+		return true
+	}
+	return false
+}
+
+type ConformanceDriverLineEmissionEmissionStatePending struct {
+	// Status Nothing to show yet.
+	Status ConformanceDriverLineEmissionEmissionStatePendingStatus `json:"status"`
+}
+
+func (ConformanceDriverLineEmissionEmissionStatePending) memberOfConformanceDriverLineEmissionEmissionState() {
+}
+
+// ConformanceDriverLineEmissionEmissionStatePendingStatus Nothing to show
+// yet.
+type ConformanceDriverLineEmissionEmissionStatePendingStatus string
+
+// The values of ConformanceDriverLineEmissionEmissionStatePendingStatus.
+const (
+	ConformanceDriverLineEmissionEmissionStatePendingStatusPending ConformanceDriverLineEmissionEmissionStatePendingStatus = "pending"
+)
+
+// Valid is whether e is one of
+// ConformanceDriverLineEmissionEmissionStatePendingStatus's values.
+func (e ConformanceDriverLineEmissionEmissionStatePendingStatus) Valid() bool {
+	switch e {
+	case ConformanceDriverLineEmissionEmissionStatePendingStatusPending:
+		return true
+	}
+	return false
+}
+
+type ConformanceDriverLineEmissionEmissionStateReady struct {
+	// Status A value to show.
+	Status ConformanceDriverLineEmissionEmissionStateReadyStatus `json:"status"`
+	Value  any                                                   `json:"value"`
+}
+
+func (ConformanceDriverLineEmissionEmissionStateReady) memberOfConformanceDriverLineEmissionEmissionState() {
+}
+
+// ConformanceDriverLineEmissionEmissionStateReadyStatus A value to show.
+type ConformanceDriverLineEmissionEmissionStateReadyStatus string
+
+// The values of ConformanceDriverLineEmissionEmissionStateReadyStatus.
+const (
+	ConformanceDriverLineEmissionEmissionStateReadyStatusReady ConformanceDriverLineEmissionEmissionStateReadyStatus = "ready"
+)
+
+// Valid is whether e is one of
+// ConformanceDriverLineEmissionEmissionStateReadyStatus's values.
+func (e ConformanceDriverLineEmissionEmissionStateReadyStatus) Valid() bool {
+	switch e {
+	case ConformanceDriverLineEmissionEmissionStateReadyStatusReady:
+		return true
+	}
+	return false
+}
+
+// ConformanceDriverLineErrorStream The error stream carried a failure.
+type ConformanceDriverLineErrorStream struct {
+	// Error The failure.
+	Error ConformanceFailure `json:"error"`
+}
+
+func (ConformanceDriverLineErrorStream) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineFailed The SDK failed the operation.
+type ConformanceDriverLineFailed struct {
+	// Error The failure.
+	Error ConformanceFailure `json:"error"`
+	// Id The operation's id.
+	Id int `json:"id"`
+}
+
+func (ConformanceDriverLineFailed) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineFrame A frame was delivered on a channel the driver
+// listens to.
+type ConformanceDriverLineFrame struct {
+	// Frame The frame.
+	Frame ConformanceDriverLineFrameFrame `json:"frame"`
+}
+
+func (ConformanceDriverLineFrame) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineFrameFrame The frame.
+type ConformanceDriverLineFrameFrame struct {
+	// Channel The channel.
+	Channel string `json:"channel"`
+	// CorrelationId The frame's correlation id, when it has one.
+	CorrelationId *string `json:"correlationId,omitempty"`
+	Payload       any     `json:"payload,omitempty"`
+	// Scope The frame's scope, when it has one.
+	Scope *ResourceId `json:"scope,omitempty"`
+}
+
+// ConformanceDriverLineMisuse The suite's arguments made no sense: the
+// suite's mistake, never the SDK's.
+type ConformanceDriverLineMisuse struct {
+	// Id The operation's id.
+	Id int `json:"id"`
+	// Misuse What made no sense.
+	Misuse string `json:"misuse"`
+}
+
+func (ConformanceDriverLineMisuse) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineOk The operation succeeded.
+type ConformanceDriverLineOk struct {
+	// Id The operation's id.
+	Id int `json:"id"`
+	Ok any `json:"ok"`
+}
+
+func (ConformanceDriverLineOk) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineProgress An upload reported how much of it has been
+// sent.
+type ConformanceDriverLineProgress struct {
+	// Progress The report.
+	Progress ConformanceDriverLineProgressProgress `json:"progress"`
+}
+
+func (ConformanceDriverLineProgress) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineProgressProgress The report.
+type ConformanceDriverLineProgressProgress struct {
+	// BytesUploaded How many bytes it has sent.
+	BytesUploaded int `json:"bytesUploaded"`
+	// TotalBytes How many it will send.
+	TotalBytes int `json:"totalBytes"`
+	// Upload The `upload` operation's id.
+	Upload int `json:"upload"`
+}
+
+// ConformanceDriverLineReady The driver can take operations.
+type ConformanceDriverLineReady struct {
+	// Ready Written once.
+	Ready ConformanceDriverLineReadyReady `json:"ready"`
+}
+
+func (ConformanceDriverLineReady) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineReadyReady Written once.
+type ConformanceDriverLineReadyReady bool
+
+// The values of ConformanceDriverLineReadyReady.
+const (
+	ConformanceDriverLineReadyReadyTrue ConformanceDriverLineReadyReady = true
+)
+
+// Valid is whether e is one of ConformanceDriverLineReadyReady's values.
+func (e ConformanceDriverLineReadyReady) Valid() bool {
+	switch e {
+	case ConformanceDriverLineReadyReadyTrue:
+		return true
+	}
+	return false
+}
+
+// ConformanceDriverLineRefused A worker driver: a claim was refused.
+type ConformanceDriverLineRefused struct {
+	// Refused The refusal: with a code when the bus refused it, with none when
+	// the worker did.
+	Refused ConformanceFailure `json:"refused"`
+}
+
+func (ConformanceDriverLineRefused) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineSignalled A worker driver: a held job's cancellation
+// was signalled.
+type ConformanceDriverLineSignalled struct {
+	// Signalled The job's id.
+	Signalled string `json:"signalled"`
+}
+
+func (ConformanceDriverLineSignalled) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineStalled A worker driver: a held job stalled.
+type ConformanceDriverLineStalled struct {
+	// Stalled The job's id.
+	Stalled string `json:"stalled"`
+}
+
+func (ConformanceDriverLineStalled) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineState The transport's connection state changed.
+type ConformanceDriverLineState struct {
+	// State The state it is in now: one a case's `state` step names
+	// (ConformanceStep.json), or another the case never waits for.
+	State string `json:"state"`
+}
+
+func (ConformanceDriverLineState) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineUnsupported The driver has no such operation. It says
+// so at once, before it reads its next operation.
+type ConformanceDriverLineUnsupported struct {
+	// Id The operation's id.
+	Id int `json:"id"`
+	// Unsupported It has none.
+	Unsupported ConformanceDriverLineUnsupportedUnsupported `json:"unsupported"`
+}
+
+func (ConformanceDriverLineUnsupported) memberOfConformanceDriverLine() {}
+
+// ConformanceDriverLineUnsupportedUnsupported It has none.
+type ConformanceDriverLineUnsupportedUnsupported bool
+
+// The values of ConformanceDriverLineUnsupportedUnsupported.
+const (
+	ConformanceDriverLineUnsupportedUnsupportedTrue ConformanceDriverLineUnsupportedUnsupported = true
+)
+
+// Valid is whether e is one of ConformanceDriverLineUnsupportedUnsupported's
+// values.
+func (e ConformanceDriverLineUnsupportedUnsupported) Valid() bool {
+	switch e {
+	case ConformanceDriverLineUnsupportedUnsupportedTrue:
+		return true
+	}
+	return false
+}
+
+// ConformanceFailure A failure as an SDK reports it to the suite
+// (conformance/sdk/README.md, "The driver protocol"): its code, the status
+// when a server stated one, and a job failure's class when it has one; and
+// the SDK's own words for it.
+type ConformanceFailure struct {
+	// Code The SDK's code for it, from specs/src/errors/codes.json.
+	Code *string `json:"code,omitempty"`
+	// Detail The SDK's words, for a person; nothing compares it.
+	Detail string `json:"detail"`
+	// FailureClass A job failure's class, when it has one.
+	FailureClass *FailureClass `json:"failureClass,omitempty"`
+	// Status The HTTP status, when a server stated one.
+	Status *int `json:"status,omitempty"`
+}
+
+// ConformanceHttpFetch A read over HTTP a live case expects the client to
+// make: an operation of the gateway's API by its method and path, with the
+// values its path carries. The stand-in Archivist answers it from what the
+// case seeded.
+type ConformanceHttpFetch struct {
+	// Fetch The operation, by its method and path.
+	Fetch  string `json:"fetch"`
+	Params any    `json:"params,omitempty"`
+}
+
+func (ConformanceHttpFetch) memberOfConformanceStepFetchesFetchesItem() {}
+func (ConformanceHttpFetch) memberOfConformanceStep()                   {}
+
+// ConformanceImplementations The implementations manifest: the file a run of
+// the conformance harness is given with --implementations, naming what the
+// run holds to Protocol. Every service is run by the xynolog launcher, from
+// the image the knowledge base's stack documents name
+// (contract/LAUNCHER-CONTROL.md, service.run): an implementation is a
+// knowledge base whose documents name its images, and another implementation
+// is another manifest. Each SDK's drivers are programs the harness starts
+// itself, since none is a service. There is no default manifest. The reader
+// reads this schema in the table dialect and derives its model
+// (Tables.Conformance_implementations), for the harness to decode a manifest
+// by.
+type ConformanceImplementations struct {
+	// Launcher How the launcher's control API is served: the xynolog command,
+	// run with control. A command and its arguments, as the harness starts it.
+	// An argument that starts with ./ or ../ is a path, resolved against the
+	// manifest's own directory; every other is passed as written.
+	Launcher []string `json:"launcher"`
+	// ModelCatalogue The model catalogue the implementation supplies, by its
+	// path; a relative one is resolved against the manifest's own directory. The
+	// Librarian's and the worker service's documents name one, so a run of
+	// either suite without it refuses to start.
+	ModelCatalogue *string `json:"modelCatalogue,omitempty"`
+	// Sdks Each SDK's drivers, by the SDK's name: the programs the SDK and
+	// worker suites talk to in its place (conformance/sdk/README.md, "The driver
+	// protocol").
+	Sdks map[string]ConformanceImplementationsSdksValue `json:"sdks"`
+	// Target The knowledge base whose stack documents name each service's image,
+	// and whose stack runs the record and index the suites need. A relative root
+	// is resolved against the manifest's own directory.
+	Target LocalTarget `json:"target"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ConformanceImplementations) MarshalJSON() ([]byte, error) {
+	type written ConformanceImplementations
+	v.Launcher = listOf(v.Launcher)
+	return json.Marshal(written(v))
+}
+
+// ConformanceImplementationsSdksValue One SDK's drivers.
+type ConformanceImplementationsSdksValue struct {
+	// Exempt The wire cases its driver cannot be put through, by the case's
+	// name, each with why. The suite holds an exemption as it holds a case: the
+	// driver must answer unsupported to what the case asks, or the exemption is
+	// stale.
+	Exempt *map[string]string `json:"exempt,omitempty"`
+	// Live How its live driver is started, and the tier of the live corpus the
+	// SDK is held to.
+	Live *ConformanceImplementationsSdksValueLive `json:"live,omitempty"`
+	// Wire How its wire driver is started. A command and its arguments, as the
+	// harness starts it. An argument that starts with ./ or ../ is a path,
+	// resolved against the manifest's own directory; every other is passed as
+	// written.
+	Wire *[]string `json:"wire,omitempty"`
+	// Worker How its worker driver is started, when the SDK has a worker's
+	// surface (conformance/worker/README.md). A command and its arguments, as
+	// the harness starts it. An argument that starts with ./ or ../ is a path,
+	// resolved against the manifest's own directory; every other is passed as
+	// written.
+	Worker *[]string `json:"worker,omitempty"`
+}
+
+// ConformanceImplementationsSdksValueLive How its live driver is started, and
+// the tier of the live corpus the SDK is held to.
+type ConformanceImplementationsSdksValueLive struct {
+	// Command How its live driver is started. A command and its arguments, as
+	// the harness starts it. An argument that starts with ./ or ../ is a path,
+	// resolved against the manifest's own directory; every other is passed as
+	// written.
+	Command []string `json:"command"`
+	// Tier A live case's tier: `fleet`, what every SDK with a live layer does,
+	// or `parity`, what one that implements all of CACHE-SEMANTICS does.
+	Tier ConformanceImplementationsSdksValueLiveTier `json:"tier"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ConformanceImplementationsSdksValueLive) MarshalJSON() ([]byte, error) {
+	type written ConformanceImplementationsSdksValueLive
+	v.Command = listOf(v.Command)
+	return json.Marshal(written(v))
+}
+
+// ConformanceImplementationsSdksValueLiveTier A live case's tier: `fleet`,
+// what every SDK with a live layer does, or `parity`, what one that
+// implements all of CACHE-SEMANTICS does.
+type ConformanceImplementationsSdksValueLiveTier string
+
+// The values of ConformanceImplementationsSdksValueLiveTier.
+const (
+	ConformanceImplementationsSdksValueLiveTierFleet  ConformanceImplementationsSdksValueLiveTier = "fleet"
+	ConformanceImplementationsSdksValueLiveTierParity ConformanceImplementationsSdksValueLiveTier = "parity"
+)
+
+// Valid is whether e is one of ConformanceImplementationsSdksValueLiveTier's
+// values.
+func (e ConformanceImplementationsSdksValueLiveTier) Valid() bool {
+	switch e {
+	case ConformanceImplementationsSdksValueLiveTierFleet, ConformanceImplementationsSdksValueLiveTierParity:
+		return true
+	}
+	return false
+}
+
+// ConformanceStep One step of a case of the conformance corpus
+// (ConformanceCase.json): each is told apart by the member only it requires.
+// conformance/sdk/README.md, "A case", says what each does.
+type ConformanceStep struct {
+	union[conformanceStepMember]
+}
+
+// conformanceStepMember is a member of ConformanceStep: ConformanceStepLet,
+// ConformanceStepDriver, ConformanceStepAbandon, ConformanceStepSettles,
+// ConformanceStepWire, ConformanceStepCarried, ConformanceStepClosed,
+// ConformanceStepProgress, ConformanceStepState, ConformanceStepStays,
+// ConformanceStepFrame, ConformanceStepFrames, ConformanceStepError,
+// ConformanceStepBackend, ConformanceStepQuiet, ConformanceStepObserve,
+// ConformanceStepLeave, ConformanceStepReaches, ConformanceStepHolds,
+// ConformanceStepCompletes, ConformanceBusFetch, ConformanceHttpFetch,
+// ConformanceStepFetches, ConformanceStepScopes, ConformanceStepClaimed,
+// ConformanceStepRefused, ConformanceStepSignalled, ConformanceStepStalled.
+type conformanceStepMember interface {
+	memberOfConformanceStep()
+}
+
+// ConformanceStepAbandon Abandon an operation started with `as`, as its
+// caller would.
+type ConformanceStepAbandon struct {
+	// Abandon The operation.
+	Abandon string `json:"abandon"`
+}
+
+func (ConformanceStepAbandon) memberOfConformanceStep() {}
+
+// ConformanceStepBackend The backend does something
+// (conformance/sdk/README.md, "Backend directives").
+type ConformanceStepBackend struct {
+	// Backend The directive.
+	Backend ConformanceStepBackendBackend `json:"backend"`
+	// With The directive's arguments.
+	With *map[string]any `json:"with,omitempty"`
+}
+
+func (ConformanceStepBackend) memberOfConformanceStep() {}
+
+// ConformanceStepBackendBackend The directive.
+type ConformanceStepBackendBackend string
+
+// The values of ConformanceStepBackendBackend.
+const (
+	ConformanceStepBackendBackendListen       ConformanceStepBackendBackend = "listen"
+	ConformanceStepBackendBackendEmit         ConformanceStepBackendBackend = "emit"
+	ConformanceStepBackendBackendRecord       ConformanceStepBackendBackend = "record"
+	ConformanceStepBackendBackendContent      ConformanceStepBackendBackend = "content"
+	ConformanceStepBackendBackendDescription  ConformanceStepBackendBackend = "description"
+	ConformanceStepBackendBackendAnnotations  ConformanceStepBackendBackend = "annotations"
+	ConformanceStepBackendBackendAnchoredText ConformanceStepBackendBackend = "anchored-text"
+	ConformanceStepBackendBackendUploaded     ConformanceStepBackendBackend = "uploaded"
+	ConformanceStepBackendBackendRefuse       ConformanceStepBackendBackend = "refuse"
+	ConformanceStepBackendBackendUnanswered   ConformanceStepBackendBackend = "unanswered"
+	ConformanceStepBackendBackendAnswerLost   ConformanceStepBackendBackend = "answer-lost"
+	ConformanceStepBackendBackendHold         ConformanceStepBackendBackend = "hold"
+	ConformanceStepBackendBackendRelease      ConformanceStepBackendBackend = "release"
+	ConformanceStepBackendBackendRechunk      ConformanceStepBackendBackend = "rechunk"
+	ConformanceStepBackendBackendCarry        ConformanceStepBackendBackend = "carry"
+	ConformanceStepBackendBackendCut          ConformanceStepBackendBackend = "cut"
+	ConformanceStepBackendBackendDown         ConformanceStepBackendBackend = "down"
+	ConformanceStepBackendBackendUp           ConformanceStepBackendBackend = "up"
+	ConformanceStepBackendBackendArchivist    ConformanceStepBackendBackend = "archivist"
+)
+
+// Valid is whether e is one of ConformanceStepBackendBackend's values.
+func (e ConformanceStepBackendBackend) Valid() bool {
+	switch e {
+	case ConformanceStepBackendBackendListen, ConformanceStepBackendBackendEmit, ConformanceStepBackendBackendRecord, ConformanceStepBackendBackendContent, ConformanceStepBackendBackendDescription, ConformanceStepBackendBackendAnnotations, ConformanceStepBackendBackendAnchoredText, ConformanceStepBackendBackendUploaded, ConformanceStepBackendBackendRefuse, ConformanceStepBackendBackendUnanswered, ConformanceStepBackendBackendAnswerLost, ConformanceStepBackendBackendHold, ConformanceStepBackendBackendRelease, ConformanceStepBackendBackendRechunk, ConformanceStepBackendBackendCarry, ConformanceStepBackendBackendCut, ConformanceStepBackendBackendDown, ConformanceStepBackendBackendUp, ConformanceStepBackendBackendArchivist:
+		return true
+	}
+	return false
+}
+
+// ConformanceStepCarried The stream a wire step named has carried this frame
+// to the client.
+type ConformanceStepCarried struct {
+	// Carried The stream.
+	Carried string `json:"carried"`
+	Is      any    `json:"is"`
+}
+
+func (ConformanceStepCarried) memberOfConformanceStep() {}
+
+// ConformanceStepClaimed A worker case: the next job the worker reports as
+// claimed, as it read the record.
+type ConformanceStepClaimed struct {
+	Claimed any `json:"claimed"`
+}
+
+func (ConformanceStepClaimed) memberOfConformanceStep() {}
+
+// ConformanceStepClosed The request a `wire` step named has ended with no
+// answer reaching the client: the client closed it, or the proxy kept the
+// gateway's answer from it (`answer-lost`).
+type ConformanceStepClosed struct {
+	// Closed The request.
+	Closed string `json:"closed"`
+}
+
+func (ConformanceStepClosed) memberOfConformanceStep() {}
+
+// ConformanceStepCompletes Live: the observer's live query completes.
+type ConformanceStepCompletes struct {
+	// Completes The observer.
+	Completes string `json:"completes"`
+}
+
+func (ConformanceStepCompletes) memberOfConformanceStep() {}
+
+// ConformanceStepDriver Ask the driver for an operation. It must succeed,
+// with `returns` when given, or fail with `fails`. With `as`, the step does
+// not wait: a later `settles` step does.
+type ConformanceStepDriver struct {
+	// As The operation's name, for the `settles` or `abandon` step that ends it.
+	As *string `json:"as,omitempty"`
+	// Driver The operation (conformance/sdk/README.md, "Operations").
+	Driver  string `json:"driver"`
+	Fails   any    `json:"fails,omitempty"`
+	Returns any    `json:"returns,omitempty"`
+	// With The operation's arguments.
+	With *map[string]any `json:"with,omitempty"`
+}
+
+func (ConformanceStepDriver) memberOfConformanceStep() {}
+
+// ConformanceStepError The next failure on the client's error stream is this
+// one.
+type ConformanceStepError struct {
+	Error any `json:"error"`
+}
+
+func (ConformanceStepError) memberOfConformanceStep() {}
+
+// ConformanceStepFetches Live: the next requests the client makes of a
+// service are these, in whatever order it makes them.
+type ConformanceStepFetches struct {
+	// Fetches The requests.
+	Fetches []ConformanceStepFetchesFetchesItem `json:"fetches"`
+}
+
+func (ConformanceStepFetches) memberOfConformanceStep() {}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ConformanceStepFetches) MarshalJSON() ([]byte, error) {
+	type written ConformanceStepFetches
+	v.Fetches = listOf(v.Fetches)
+	return json.Marshal(written(v))
+}
+
+type ConformanceStepFetchesFetchesItem struct {
+	union[conformanceStepFetchesFetchesItemMember]
+}
+
+// conformanceStepFetchesFetchesItemMember is a member of
+// ConformanceStepFetchesFetchesItem: ConformanceBusFetch,
+// ConformanceHttpFetch.
+type conformanceStepFetchesFetchesItemMember interface {
+	memberOfConformanceStepFetchesFetchesItem()
+}
+
+// ConformanceStepFrame The next frame the client delivers on this channel is
+// this one.
+type ConformanceStepFrame struct {
+	// Frame The channel.
+	Frame string `json:"frame"`
+	Is    any    `json:"is"`
+}
+
+func (ConformanceStepFrame) memberOfConformanceStep() {}
+
+// ConformanceStepFrames The client delivers this many more frames on this
+// channel. What they are is held, as every frame is, to what the gateway
+// sent.
+type ConformanceStepFrames struct {
+	// Count How many more.
+	Count int `json:"count"`
+	// Frames The channel.
+	Frames string `json:"frames"`
+}
+
+func (ConformanceStepFrames) memberOfConformanceStep() {}
+
+// ConformanceStepHolds Live: the state the observer holds now is this one.
+type ConformanceStepHolds struct {
+	// Holds The observer.
+	Holds string `json:"holds"`
+	State any    `json:"state"`
+}
+
+func (ConformanceStepHolds) memberOfConformanceStep() {}
+
+// ConformanceStepLeave Live: the observer stops observing.
+type ConformanceStepLeave struct {
+	// Leave The observer.
+	Leave string `json:"leave"`
+}
+
+func (ConformanceStepLeave) memberOfConformanceStep() {}
+
+// ConformanceStepLet Name values for later steps.
+type ConformanceStepLet struct {
+	// Let Each name, and the value it takes.
+	Let map[string]any `json:"let"`
+}
+
+func (ConformanceStepLet) memberOfConformanceStep() {}
+
+// ConformanceStepObserve Live: an observer, named by `as`, begins observing a
+// live query.
+type ConformanceStepObserve struct {
+	// As The observer.
+	As string `json:"as"`
+	// Observe The live query.
+	Observe ConformanceStepObserveObserve `json:"observe"`
+}
+
+func (ConformanceStepObserve) memberOfConformanceStep() {}
+
+// ConformanceStepObserveObserve The live query.
+type ConformanceStepObserveObserve struct {
+	Annotation any `json:"annotation,omitempty"`
+	Filters    any `json:"filters,omitempty"`
+	// Query The live query, by its name in specs/src/client/refresh.json.
+	Query    string `json:"query"`
+	Resource any    `json:"resource,omitempty"`
+	Search   any    `json:"search,omitempty"`
+}
+
+// ConformanceStepProgress An upload started with `as`, and not yet settled,
+// has reported all of it sent: every report states the same total, none
+// states less than the one before, and the last states the total.
+type ConformanceStepProgress struct {
+	// Progress The upload.
+	Progress string `json:"progress"`
+}
+
+func (ConformanceStepProgress) memberOfConformanceStep() {}
+
+// ConformanceStepQuiet The client puts nothing more on the wire for this many
+// milliseconds.
+type ConformanceStepQuiet struct {
+	// Quiet How long, in milliseconds.
+	Quiet int `json:"quiet"`
+}
+
+func (ConformanceStepQuiet) memberOfConformanceStep() {}
+
+// ConformanceStepReaches Live: the observer comes to hold this state.
+type ConformanceStepReaches struct {
+	// Reaches The observer.
+	Reaches string `json:"reaches"`
+	State   any    `json:"state"`
+}
+
+func (ConformanceStepReaches) memberOfConformanceStep() {}
+
+// ConformanceStepRefused A worker case: the next refusal of a claim the
+// worker reports.
+type ConformanceStepRefused struct {
+	Refused any `json:"refused"`
+}
+
+func (ConformanceStepRefused) memberOfConformanceStep() {}
+
+// ConformanceStepScopes Live: the client's stream comes to name exactly these
+// scopes.
+type ConformanceStepScopes struct {
+	// Scopes The scopes.
+	Scopes []any `json:"scopes"`
+}
+
+func (ConformanceStepScopes) memberOfConformanceStep() {}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ConformanceStepScopes) MarshalJSON() ([]byte, error) {
+	type written ConformanceStepScopes
+	v.Scopes = listOf(v.Scopes)
+	return json.Marshal(written(v))
+}
+
+// ConformanceStepSettles An operation started with `as` settles: it
+// succeeded, with `returns` when given; or failed with `fails`; or,
+// `abandoned`, it ended because the case abandoned it and reported nothing.
+type ConformanceStepSettles struct {
+	// Abandoned It ended because the case abandoned it.
+	Abandoned *ConformanceStepSettlesAbandoned `json:"abandoned,omitempty"`
+	Fails     any                              `json:"fails,omitempty"`
+	Returns   any                              `json:"returns,omitempty"`
+	// Settles The operation.
+	Settles string `json:"settles"`
+}
+
+func (ConformanceStepSettles) memberOfConformanceStep() {}
+
+// ConformanceStepSettlesAbandoned It ended because the case abandoned it.
+type ConformanceStepSettlesAbandoned bool
+
+// The values of ConformanceStepSettlesAbandoned.
+const (
+	ConformanceStepSettlesAbandonedTrue ConformanceStepSettlesAbandoned = true
+)
+
+// Valid is whether e is one of ConformanceStepSettlesAbandoned's values.
+func (e ConformanceStepSettlesAbandoned) Valid() bool {
+	switch e {
+	case ConformanceStepSettlesAbandonedTrue:
+		return true
+	}
+	return false
+}
+
+// ConformanceStepSignalled A worker case: the next held job whose
+// cancellation the worker says was signalled.
+type ConformanceStepSignalled struct {
+	Signalled any `json:"signalled"`
+}
+
+func (ConformanceStepSignalled) memberOfConformanceStep() {}
+
+// ConformanceStepStalled A worker case: the next held job the worker says has
+// stalled.
+type ConformanceStepStalled struct {
+	Stalled any `json:"stalled"`
+}
+
+func (ConformanceStepStalled) memberOfConformanceStep() {}
+
+// ConformanceStepState The transport comes to report this state.
+type ConformanceStepState struct {
+	// State The state.
+	State ConformanceStepStateState `json:"state"`
+}
+
+func (ConformanceStepState) memberOfConformanceStep() {}
+
+// ConformanceStepStateState The state.
+type ConformanceStepStateState string
+
+// The values of ConformanceStepStateState.
+const (
+	ConformanceStepStateStateInitial         ConformanceStepStateState = "initial"
+	ConformanceStepStateStateConnecting      ConformanceStepStateState = "connecting"
+	ConformanceStepStateStateOpen            ConformanceStepStateState = "open"
+	ConformanceStepStateStateReconnecting    ConformanceStepStateState = "reconnecting"
+	ConformanceStepStateStateDegraded        ConformanceStepStateState = "degraded"
+	ConformanceStepStateStateUnauthenticated ConformanceStepStateState = "unauthenticated"
+	ConformanceStepStateStateClosed          ConformanceStepStateState = "closed"
+)
+
+// Valid is whether e is one of ConformanceStepStateState's values.
+func (e ConformanceStepStateState) Valid() bool {
+	switch e {
+	case ConformanceStepStateStateInitial, ConformanceStepStateStateConnecting, ConformanceStepStateStateOpen, ConformanceStepStateStateReconnecting, ConformanceStepStateStateDegraded, ConformanceStepStateStateUnauthenticated, ConformanceStepStateStateClosed:
+		return true
+	}
+	return false
+}
+
+// ConformanceStepStays The transport is in this state and has reported no
+// other since the case last read its state.
+type ConformanceStepStays struct {
+	// Stays The state.
+	Stays ConformanceStepStaysStays `json:"stays"`
+}
+
+func (ConformanceStepStays) memberOfConformanceStep() {}
+
+// ConformanceStepStaysStays The state.
+type ConformanceStepStaysStays string
+
+// The values of ConformanceStepStaysStays.
+const (
+	ConformanceStepStaysStaysInitial         ConformanceStepStaysStays = "initial"
+	ConformanceStepStaysStaysConnecting      ConformanceStepStaysStays = "connecting"
+	ConformanceStepStaysStaysOpen            ConformanceStepStaysStays = "open"
+	ConformanceStepStaysStaysReconnecting    ConformanceStepStaysStays = "reconnecting"
+	ConformanceStepStaysStaysDegraded        ConformanceStepStaysStays = "degraded"
+	ConformanceStepStaysStaysUnauthenticated ConformanceStepStaysStays = "unauthenticated"
+	ConformanceStepStaysStaysClosed          ConformanceStepStaysStays = "closed"
+)
+
+// Valid is whether e is one of ConformanceStepStaysStays's values.
+func (e ConformanceStepStaysStays) Valid() bool {
+	switch e {
+	case ConformanceStepStaysStaysInitial, ConformanceStepStaysStaysConnecting, ConformanceStepStaysStaysOpen, ConformanceStepStaysStaysReconnecting, ConformanceStepStaysStaysDegraded, ConformanceStepStaysStaysUnauthenticated, ConformanceStepStaysStaysClosed:
+		return true
+	}
+	return false
+}
+
+// ConformanceStepWire The next request the client put on the wire is this
+// operation, with each field given.
+type ConformanceStepWire struct {
+	Answer any `json:"answer,omitempty"`
+	// As The request's name, for a later step.
+	As *string `json:"as,omitempty"`
+	// At When it is read: on arrival, once answered (the default), or once its
+	// stream has caught up.
+	At   *ConformanceStepWireAt `json:"at,omitempty"`
+	Body any                    `json:"body,omitempty"`
+	// Follows A request named earlier, which was answered before this one
+	// arrived.
+	Follows *string `json:"follows,omitempty"`
+	// Headers The request's headers named here, each as a pattern; headers not
+	// named are not compared.
+	Headers *map[string]any `json:"headers,omitempty"`
+	Params  any             `json:"params,omitempty"`
+	// Status The status it was answered with.
+	Status *int `json:"status,omitempty"`
+	Token  any  `json:"token,omitempty"`
+	// Waited A request named earlier, answered with a Retry-After, which this
+	// one waited out.
+	Waited *string `json:"waited,omitempty"`
+	// Wire The operation of the gateway's API, by its method and path.
+	Wire string `json:"wire"`
+}
+
+func (ConformanceStepWire) memberOfConformanceStep() {}
+
+// ConformanceStepWireAt When it is read: on arrival, once answered (the
+// default), or once its stream has caught up.
+type ConformanceStepWireAt string
+
+// The values of ConformanceStepWireAt.
+const (
+	ConformanceStepWireAtArrival ConformanceStepWireAt = "arrival"
+	ConformanceStepWireAtAnswer  ConformanceStepWireAt = "answer"
+	ConformanceStepWireAtLive    ConformanceStepWireAt = "live"
+)
+
+// Valid is whether e is one of ConformanceStepWireAt's values.
+func (e ConformanceStepWireAt) Valid() bool {
+	switch e {
+	case ConformanceStepWireAtArrival, ConformanceStepWireAtAnswer, ConformanceStepWireAtLive:
 		return true
 	}
 	return false
@@ -2543,6 +3744,31 @@ type (
 	EphemeralEventId = string
 )
 
+// ErrorData The data of a control error: the launcher's code for the failure,
+// one of specs/src/errors/codes.json's control group, and what a client can
+// act on. A request's failure is never only a message.
+type ErrorData struct {
+	// Choices For control.target-required and control.target-ambiguous: each
+	// target the request could have meant, to send again with one.
+	Choices *[]Target `json:"choices,omitempty"`
+	// Code Why the request failed: a code of the control group of
+	// specs/src/errors/codes.json.
+	Code string `json:"code"`
+	// Fields For params the contract refuses: each fault, where it is.
+	Fields *[]FieldFault `json:"fields,omitempty"`
+	// MayStillRun For a cancelled stack.start: whether services the start
+	// launched may still be running. The launcher stops waiting, and stops
+	// nothing.
+	MayStillRun *bool `json:"mayStillRun,omitempty"`
+	// Retryable Whether the same request can succeed sent again unchanged, once
+	// something outside it changes: a start finishes, a runtime is installed, a
+	// stack comes up.
+	Retryable bool `json:"retryable"`
+	// Supported For control.unsupported-api-version: each version this launcher
+	// speaks.
+	Supported *[]string `json:"supported,omitempty"`
+}
+
 // ErrorResponse The body of every error the gateway answers, whatever the
 // status and whatever the route — including a path it does not serve.
 type ErrorResponse struct {
@@ -2768,6 +3994,15 @@ func (e FailureClass) Valid() bool {
 	return false
 }
 
+// FieldFault One fault in a request's params, named where it is.
+type FieldFault struct {
+	// Field Where in the params the fault is, as a JSON pointer (RFC 6901);
+	// empty for the params as a whole.
+	Field string `json:"field"`
+	// Message What is wrong there.
+	Message string `json:"message"`
+}
+
 type FileEntry struct {
 	// AnnotationCount Number of annotations on this resource (only when tracked
 	// is true)
@@ -2808,6 +4043,45 @@ const (
 func (e FileEntryType) Valid() bool {
 	switch e {
 	case FileEntryTypeFile:
+		return true
+	}
+	return false
+}
+
+// FollowerFollowing How far a follower of the record has followed it, as
+// every follower says it at its health port (WEAVER.md § Health, SMELTER.md §
+// Health).
+type FollowerFollowing struct {
+	// Refused How many events it refused as recorded since it started.
+	Refused int `json:"refused"`
+	// Stopped How many resources' logs a failed taking has stopped until the
+	// next sweep.
+	Stopped int `json:"stopped"`
+	// StreamDrops How many times its stream has dropped since it started.
+	StreamDrops int `json:"streamDrops"`
+	// Sweep The latest sweep's phase: `pending` before its stream first opens,
+	// `running`, `done`, or `due` where the record could not be listed and the
+	// sweep is tried again.
+	Sweep FollowerFollowingSweep `json:"sweep"`
+}
+
+// FollowerFollowingSweep The latest sweep's phase: `pending` before its
+// stream first opens, `running`, `done`, or `due` where the record could not
+// be listed and the sweep is tried again.
+type FollowerFollowingSweep string
+
+// The values of FollowerFollowingSweep.
+const (
+	FollowerFollowingSweepPending FollowerFollowingSweep = "pending"
+	FollowerFollowingSweepRunning FollowerFollowingSweep = "running"
+	FollowerFollowingSweepDone    FollowerFollowingSweep = "done"
+	FollowerFollowingSweepDue     FollowerFollowingSweep = "due"
+)
+
+// Valid is whether e is one of FollowerFollowingSweep's values.
+func (e FollowerFollowingSweep) Valid() bool {
+	switch e {
+	case FollowerFollowingSweepPending, FollowerFollowingSweepRunning, FollowerFollowingSweepDone, FollowerFollowingSweepDue:
 		return true
 	}
 	return false
@@ -3743,6 +5017,14 @@ func (e HighlightingJobParamsMotivation) Valid() bool {
 	return false
 }
 
+// HostPort Where somebody else's daemon listens.
+type HostPort struct {
+	// Host A host name or address the stack's containers can reach.
+	Host string `json:"host"`
+	// Port The port it listens on.
+	Port int `json:"port"`
+}
+
 // HttpEndpoint A knowledge base reached through its gateway, over HTTP. The
 // gateway's origin is the protocol, the host in lowercase and the port; a
 // host that is not a host's name is refused before it is put into a URL
@@ -3796,6 +5078,111 @@ func (e HttpEndpointProtocol) Valid() bool {
 	return false
 }
 
+// HttpStatus An HTTP response's status code, as the tables state one. No API
+// states it, so it is no component.
+type (
+	HttpStatus = int
+)
+
+// IdentityUser An account in a knowledge base's launcher-managed identity
+// realm. Passwords and tokens are never included.
+type IdentityUser struct {
+	// Email The account's sign-in name, normally its email address.
+	Email string `json:"email"`
+	// Enabled Whether the identity provider currently allows this account to
+	// sign in.
+	Enabled bool `json:"enabled"`
+	// Identity The identity the account acts under in Xynolog.
+	Identity string `json:"identity"`
+}
+
+// IdentityUseraddParams Create one account in the launcher-managed Keycloak
+// realm for a specific local knowledge base.
+type IdentityUseraddParams struct {
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Email The email address that will sign in to this knowledge base.
+	Email string `json:"email"`
+	// GeneratePassword Generate a random password in the launcher and return it
+	// once in the result.
+	GeneratePassword bool `json:"generatePassword"`
+	// Password The user's password. Secret: carried only in this local control
+	// request, never in progress, diagnostics, or persistent state.
+	Password *string     `json:"password,omitempty"`
+	Target   LocalTarget `json:"target"`
+}
+
+// IdentityUseraddResult The created account's sign-in identity. A generated
+// password is present only in this one answer and is not stored by the
+// launcher.
+type IdentityUseraddResult struct {
+	// Created Whether a new account was created.
+	Created bool `json:"created"`
+	// Email The account's email address.
+	Email string `json:"email"`
+	// GeneratedPassword The generated password, returned once so the operator
+	// can share it with the user. Absent when the operator supplied the
+	// password.
+	GeneratedPassword *string `json:"generatedPassword,omitempty"`
+	// Identity The identity the account acts under in Xynolog.
+	Identity string `json:"identity"`
+}
+
+// IdentityUsersListParams List accounts in one local knowledge base's
+// launcher-managed Keycloak realm.
+type IdentityUsersListParams struct {
+	ApiVersion ApiVersion  `json:"apiVersion"`
+	Target     LocalTarget `json:"target"`
+}
+
+// IdentityUsersListResult Accounts in the selected knowledge base's
+// launcher-managed identity realm.
+type IdentityUsersListResult struct {
+	// Users Accounts, sorted by sign-in name.
+	Users []IdentityUser `json:"users"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v IdentityUsersListResult) MarshalJSON() ([]byte, error) {
+	type written IdentityUsersListResult
+	v.Users = listOf(v.Users)
+	return json.Marshal(written(v))
+}
+
+// Image The container image a service runs, as a registry names it:
+// `ghcr.io/xynolog/xynolog-gateway:latest`.
+type (
+	Image = string
+)
+
+// Inference The engines a machine uses for a knowledge base: the providers it
+// reaches, and the provider and model each job and each Librarian actor is
+// done with. A knowledge base's repository may carry several, one for each
+// provider, and a machine chooses one.
+type Inference struct {
+	ApiVersion StackApiVersion `json:"apiVersion"`
+	Kind       InferenceKind   `json:"kind"`
+	Metadata   Metadata        `json:"metadata"`
+	// Spec The providers, and the engine for each job and each Librarian actor.
+	Spec InferenceSpec `json:"spec"`
+}
+
+type InferenceKind string
+
+// The values of InferenceKind.
+const (
+	InferenceKindInference InferenceKind = "Inference"
+)
+
+// Valid is whether e is one of InferenceKind's values.
+func (e InferenceKind) Valid() bool {
+	switch e {
+	case InferenceKindInference:
+		return true
+	}
+	return false
+}
+
 // InferenceLimits A provider's actual ceilings for a model, discovered from
 // the provider itself (Anthropic Models API; Ollama /api/show) — never
 // hand-maintained constants. Semantics differ by provider shape: Anthropic
@@ -3824,9 +5211,7 @@ type InferenceLimits struct {
 // and on gather:limits-requested and match:limits-requested by the librarian:
 // each service that holds an inference credential reports for its own
 // engines, so no other service needs one.
-type (
-	InferenceLimitsRequest = map[string]any
-)
+type InferenceLimitsRequest map[string]any
 
 // InferenceLimitsResult The inference limits one service discovered for the
 // engines it holds a client for. An engine whose discovery is currently
@@ -3847,6 +5232,16 @@ func (v InferenceLimitsResultResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(written(v))
 }
 
+// InferenceSpec The providers, and the engine for each job and each Librarian
+// actor.
+type InferenceSpec struct {
+	// Engines The engine each job is done with when software does it, and the
+	// engine each Librarian actor asks.
+	Engines ArchivistEngines `json:"engines"`
+	// Providers Each provider an engine names, and how it is reached.
+	Providers map[string]Provider `json:"providers"`
+}
+
 // IssuedTokens The tokens an issuer issued at the end of a sign-in.
 type IssuedTokens struct {
 	// Access The access token: short-lived, sent as a Bearer token.
@@ -3854,6 +5249,81 @@ type IssuedTokens struct {
 	// Refresh The refresh token: what renews the access token without another
 	// sign-in.
 	Refresh string `json:"refresh"`
+}
+
+// Issuer The issuer the launcher runs for the knowledge bases on a machine,
+// with a realm for each, and the database it keeps their realms in. It
+// belongs to no knowledge base, so its document is kept in the launcher's
+// state home, in `stack/issuer.yaml`, not in a knowledge base's repository. A
+// knowledge base trusts it by naming `shared`; one trusting somebody else's
+// issuer names it at `external`.
+type Issuer struct {
+	ApiVersion StackApiVersion `json:"apiVersion"`
+	Kind       IssuerKind      `json:"kind"`
+	Metadata   Metadata        `json:"metadata"`
+	// Spec The issuer, where it is published, and the database it keeps its
+	// realms in.
+	Spec IssuerSpec `json:"spec"`
+}
+
+type IssuerKind string
+
+// The values of IssuerKind.
+const (
+	IssuerKindIssuer IssuerKind = "Issuer"
+)
+
+// Valid is whether e is one of IssuerKind's values.
+func (e IssuerKind) Valid() bool {
+	switch e {
+	case IssuerKindIssuer:
+		return true
+	}
+	return false
+}
+
+// IssuerSpec The issuer, where it is published, and the database it keeps its
+// realms in.
+type IssuerSpec struct {
+	// Database The database the issuer keeps its realms in.
+	Database IssuerSpecDatabase `json:"database"`
+	Image    Image              `json:"image"`
+	// Port The port the issuer is published on, on this machine: the origin of
+	// every realm's `iss`, so the one number wherever the issuer is reached.
+	Port      int       `json:"port"`
+	Resources Resources `json:"resources"`
+	// Type The issuer's driver: `keycloak`.
+	Type string `json:"type"`
+}
+
+// IssuerSpecDatabase The database the issuer keeps its realms in.
+type IssuerSpecDatabase struct {
+	// External A database somebody else runs.
+	External *IssuerSpecDatabaseExternal `json:"external,omitempty"`
+	Image    *Image                      `json:"image,omitempty"`
+	// Name The database the issuer keeps its realms in: a lowercase PostgreSQL
+	// identifier, as PostgreSQL itself names an unquoted one. On a PostgreSQL
+	// the launcher runs, the launcher creates it; on one somebody else runs
+	// (`external`), it must already exist there.
+	Name string `json:"name"`
+	// Port The port a PostgreSQL the launcher runs is published on, on this
+	// machine, where the issuer reaches it. One somebody else runs is reached at
+	// `external`.
+	Port      *int       `json:"port,omitempty"`
+	Resources *Resources `json:"resources,omitempty"`
+	// Type The database's driver: `postgres`.
+	Type string `json:"type"`
+	// User The user the issuer signs in as.
+	User string `json:"user"`
+}
+
+// IssuerSpecDatabaseExternal A database somebody else runs.
+type IssuerSpecDatabaseExternal struct {
+	// Host A host name or address the issuer can reach.
+	Host     string    `json:"host"`
+	Password SecretRef `json:"password"`
+	// Port The port it listens on.
+	Port int `json:"port"`
 }
 
 // JanusGraphConfig A graph kept in a JanusGraph server, asked in Gremlin. No
@@ -5273,6 +6743,12 @@ type KbDescription struct {
 	Name string `json:"name"`
 }
 
+// KbDid A knowledge base's DID: `did:web:` and its domain. No API states one
+// as such, so it is no component.
+type (
+	KbDid = string
+)
+
 // KbEndpoint How a knowledge base is reached: a gateway over HTTP, or a
 // knowledge base the host process has loaded. Told apart by `kind`. Only what
 // builds a transport, or signs in at an issuer, reads it.
@@ -5540,6 +7016,101 @@ type KnowledgeBase struct {
 	LastRead *KbRead `json:"lastRead,omitempty"`
 }
 
+// KnowledgeBaseStatus One knowledge base's stack as xynolog status reads it:
+// what it is, where it runs, and each of its own services. The services every
+// knowledge base shares are reported once, in the snapshot's shared list.
+type KnowledgeBaseStatus struct {
+	// Did The KB's did:web identifier, from its committed .xynolog/config.yaml —
+	// "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no
+	// domain has no identity to publish, and the launcher refuses to start it
+	// rather than inventing or defaulting one. NOT unique within a document: a
+	// did names the knowledge base, not a running copy of it, so a local clone
+	// and a codespace of the same repo legitimately share one and both are
+	// published. host:port is the unique field (at most one entry per address),
+	// so consumers look up by ADDRESS and use the did to VERIFY that the copy
+	// they reached is the KB they meant — an address alone cannot say which KB
+	// is which, and an identity alone cannot say which copy.
+	Did *string `json:"did,omitempty"`
+	// Gateway The base URL of its gateway, from its record.
+	Gateway *string `json:"gateway,omitempty"`
+	// Healthy Whether each of its counted services, and the issuer it signs in
+	// at, answers.
+	Healthy bool `json:"healthy"`
+	// IdentityError Why its identity could not be read from its clone, when it
+	// could not.
+	IdentityError *string `json:"identityError,omitempty"`
+	// Kb The knowledge base as the discovery document publishes it, when it
+	// does.
+	Kb *DiscoveredKB `json:"kb,omitempty"`
+	// Key The knowledge base's key on this machine, which names its containers
+	// and its state.
+	Key string `json:"key"`
+	// Lan This machine's address on the network, when the stack is started with
+	// network lan.
+	Lan *string `json:"lan,omitempty"`
+	// Name What the snapshot calls the knowledge base: the last segment of its
+	// DID, or the whole DID where two would share one, or its key.
+	Name string `json:"name"`
+	// Placement Where the stack actually runs. "local": containers on this
+	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+	Placement KnowledgeBaseStatusPlacement `json:"placement"`
+	// Recorded Whether a stack of it is recorded. When none is, its services are
+	// found by name.
+	Recorded bool `json:"recorded"`
+	// Repo owner/name GitHub slug — present for codespace placements, where the
+	// repo is the stack's identity
+	Repo *string `json:"repo,omitempty"`
+	// Root Its clone, for a local stack.
+	Root *string `json:"root,omitempty"`
+	// Runtime The runtime its record names.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// SecretStore Where the values the launcher generates for it are kept, as
+	// xynolog settings secret-store describes it.
+	SecretStore *string `json:"secretStore,omitempty"`
+	// Services Its own services, group by group, then the issuer it signs in at.
+	// Empty for a codespace's, whose services its own launcher reports.
+	Services []ServiceStatus `json:"services"`
+	Session  *Session        `json:"session,omitempty"`
+	// SiteName Human-readable site name from the KB's .xynolog/config.yaml
+	// (site.siteName), for display
+	SiteName *string `json:"siteName,omitempty"`
+	// Starting Whether a xynolog start of it holds its start lock: its services
+	// are not ready, whatever they report.
+	Starting bool `json:"starting"`
+	// Workload The ledger and job queue readings the launcher can attribute to
+	// this knowledge base. A missing reading means the Collector has not
+	// reported that metric, not that its value is zero.
+	Workload *WorkloadStatus `json:"workload,omitempty"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v KnowledgeBaseStatus) MarshalJSON() ([]byte, error) {
+	type written KnowledgeBaseStatus
+	v.Services = listOf(v.Services)
+	return json.Marshal(written(v))
+}
+
+// KnowledgeBaseStatusPlacement Where the stack actually runs. "local":
+// containers on this machine. "codespace": a GitHub-hosted VM whose KB is
+// port-forwarded here.
+type KnowledgeBaseStatusPlacement string
+
+// The values of KnowledgeBaseStatusPlacement.
+const (
+	KnowledgeBaseStatusPlacementLocal     KnowledgeBaseStatusPlacement = "local"
+	KnowledgeBaseStatusPlacementCodespace KnowledgeBaseStatusPlacement = "codespace"
+)
+
+// Valid is whether e is one of KnowledgeBaseStatusPlacement's values.
+func (e KnowledgeBaseStatusPlacement) Valid() bool {
+	switch e {
+	case KnowledgeBaseStatusPlacementLocal, KnowledgeBaseStatusPlacementCodespace:
+		return true
+	}
+	return false
+}
+
 // KnowledgeGraph Knowledge graph gathered for an LLM context — a shared
 // backbone in which resources AND annotations are typed nodes, connected by
 // typed (optionally bidirectional) edges. Flattened views the
@@ -5603,6 +7174,183 @@ func (u KnowledgeGraphNodesItem) ValueByDiscriminator() (any, error) {
 		return as[GraphAnnotationNode](u.union)
 	}
 	return nil, unnamedMember("KnowledgeGraphNodesItem", "type", tag)
+}
+
+// KnowledgeIndex What a knowledge base's record is indexed into, and the
+// services that keep and read the indexes: the Weaver's graph, the Smelter's
+// vectors and anchored text, and the Librarian that answers from them. Each
+// can be rebuilt from the record.
+type KnowledgeIndex struct {
+	ApiVersion StackApiVersion    `json:"apiVersion"`
+	Kind       KnowledgeIndexKind `json:"kind"`
+	Metadata   Metadata           `json:"metadata"`
+	// Spec The indexes, the services that keep and read them, and the knowledge
+	// base they index.
+	Spec KnowledgeIndexSpec `json:"spec"`
+}
+
+type KnowledgeIndexKind string
+
+// The values of KnowledgeIndexKind.
+const (
+	KnowledgeIndexKindKnowledgeIndex KnowledgeIndexKind = "KnowledgeIndex"
+)
+
+// Valid is whether e is one of KnowledgeIndexKind's values.
+func (e KnowledgeIndexKind) Valid() bool {
+	switch e {
+	case KnowledgeIndexKindKnowledgeIndex:
+		return true
+	}
+	return false
+}
+
+// KnowledgeIndexSpec The indexes, the services that keep and read them, and
+// the knowledge base they index.
+type KnowledgeIndexSpec struct {
+	// Embedding The model that turns text into vectors. Vectors made by one
+	// model are not comparable with another's, so the model is the index's.
+	Embedding KnowledgeIndexSpecEmbedding `json:"embedding"`
+	// Graph The graph store the Weaver writes and the Librarian reads. The
+	// knowledge base's graph is in the database its DID names
+	// (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it
+	// when it first starts, and one somebody else runs must already hold it.
+	Graph KnowledgeIndexSpecGraph `json:"graph"`
+	// KnowledgeBase The name of the KnowledgeBase document whose record this
+	// indexes.
+	KnowledgeBase string `json:"knowledgeBase"`
+	// Librarian The Librarian: it answers gathers and searches from the indexes.
+	Librarian KnowledgeIndexSpecLibrarian `json:"librarian"`
+	LogLevel  LogLevel                    `json:"logLevel"`
+	// Smelter The Smelter: it writes the vectors and the anchored text.
+	Smelter KnowledgeIndexSpecSmelter `json:"smelter"`
+	// Vectors The vector store the Smelter writes and the Librarian reads: the
+	// one the launcher runs for the knowledge bases on a machine, at `shared`;
+	// one of the knowledge base's own the launcher runs, from `image` with
+	// `resources`; or somebody else's, at `external`. Exactly one of the three.
+	Vectors KnowledgeIndexSpecVectors `json:"vectors"`
+	// Weaver The Weaver: it writes the graph.
+	Weaver KnowledgeIndexSpecWeaver `json:"weaver"`
+}
+
+// KnowledgeIndexSpecEmbedding The model that turns text into vectors. Vectors
+// made by one model are not comparable with another's, so the model is the
+// index's.
+type KnowledgeIndexSpecEmbedding struct {
+	ApiKey *SecretRef `json:"apiKey,omitempty"`
+	// Chunking How a text is cut before it is embedded.
+	Chunking KnowledgeIndexSpecEmbeddingChunking `json:"chunking"`
+	// Endpoint Where the provider's API is reached. The shared Ollama is stated
+	// by no endpoint.
+	Endpoint *string `json:"endpoint,omitempty"`
+	// Model The model, as its provider names it.
+	Model string `json:"model"`
+	// Type Who serves the model: `ollama`, or `voyage`.
+	Type string `json:"type"`
+}
+
+// KnowledgeIndexSpecEmbeddingChunking How a text is cut before it is
+// embedded.
+type KnowledgeIndexSpecEmbeddingChunking struct {
+	// ChunkSize The size of a piece.
+	ChunkSize int `json:"chunkSize"`
+	// Overlap How much of one piece the next repeats.
+	Overlap int `json:"overlap"`
+}
+
+// KnowledgeIndexSpecGraph The graph store the Weaver writes and the Librarian
+// reads. The knowledge base's graph is in the database its DID names
+// (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it
+// when it first starts, and one somebody else runs must already hold it.
+type KnowledgeIndexSpecGraph struct {
+	// External A graph store somebody else runs.
+	External  *KnowledgeIndexSpecGraphExternal `json:"external,omitempty"`
+	Image     *Image                           `json:"image,omitempty"`
+	Resources *Resources                       `json:"resources,omitempty"`
+	// Type The graph store's driver: `neo4j`.
+	Type string `json:"type"`
+	// Username The user the services sign in to the store as.
+	Username string `json:"username"`
+}
+
+// KnowledgeIndexSpecGraphExternal A graph store somebody else runs.
+type KnowledgeIndexSpecGraphExternal struct {
+	Password SecretRef `json:"password"`
+	// Uri Where it listens: `bolt://host:port`.
+	Uri string `json:"uri"`
+}
+
+// KnowledgeIndexSpecLibrarian The Librarian: it answers gathers and searches
+// from the indexes.
+type KnowledgeIndexSpecLibrarian struct {
+	// Gather How a gather waits.
+	Gather    KnowledgeIndexSpecLibrarianGather `json:"gather"`
+	Image     Image                             `json:"image"`
+	Resources Resources                         `json:"resources"`
+	// Search What a search by meaning keeps.
+	Search KnowledgeIndexSpecLibrarianSearch `json:"search"`
+}
+
+// KnowledgeIndexSpecLibrarianGather How a gather waits.
+type KnowledgeIndexSpecLibrarianGather struct {
+	// SettleTimeoutMs How long a gather waits for the Smelter to settle a
+	// resource, in milliseconds.
+	SettleTimeoutMs int `json:"settleTimeoutMs"`
+}
+
+// KnowledgeIndexSpecLibrarianSearch What a search by meaning keeps.
+type KnowledgeIndexSpecLibrarianSearch struct {
+	// SemanticFloor The least similarity a hit by meaning must have.
+	SemanticFloor float64 `json:"semanticFloor"`
+}
+
+// KnowledgeIndexSpecSmelter The Smelter: it writes the vectors and the
+// anchored text.
+type KnowledgeIndexSpecSmelter struct {
+	Image Image `json:"image"`
+	// PdfsAtOnce How many PDFs it works on at once. A page of a scan held for
+	// OCR is large; one for each 2G of its memory is a reading of what fits.
+	PdfsAtOnce int       `json:"pdfsAtOnce"`
+	Resources  Resources `json:"resources"`
+}
+
+// KnowledgeIndexSpecVectors The vector store the Smelter writes and the
+// Librarian reads: the one the launcher runs for the knowledge bases on a
+// machine, at `shared`; one of the knowledge base's own the launcher runs,
+// from `image` with `resources`; or somebody else's, at `external`. Exactly
+// one of the three.
+type KnowledgeIndexSpecVectors struct {
+	// External A vector store somebody else runs, with the token each service
+	// presents to it: the Smelter's may make, write and delete this knowledge
+	// base's collections, and the Librarian's may read them.
+	External  *KnowledgeIndexSpecVectorsExternal `json:"external,omitempty"`
+	Image     *Image                             `json:"image,omitempty"`
+	Resources *Resources                         `json:"resources,omitempty"`
+	// Shared The vector store the launcher runs for the knowledge bases on a
+	// machine (the state home's VectorStore document). Each knowledge base keeps
+	// its index in collections of its own there, so nothing is said of it here.
+	Shared *EmptyObject `json:"shared,omitempty"`
+	// Type The vector store's driver: `qdrant`.
+	Type string `json:"type"`
+}
+
+// KnowledgeIndexSpecVectorsExternal A vector store somebody else runs, with
+// the token each service presents to it: the Smelter's may make, write and
+// delete this knowledge base's collections, and the Librarian's may read
+// them.
+type KnowledgeIndexSpecVectorsExternal struct {
+	// Host A host name or address the stack's containers can reach.
+	Host           string    `json:"host"`
+	LibrarianToken SecretRef `json:"librarianToken"`
+	// Port The port its REST API listens on.
+	Port         int       `json:"port"`
+	SmelterToken SecretRef `json:"smelterToken"`
+}
+
+// KnowledgeIndexSpecWeaver The Weaver: it writes the graph.
+type KnowledgeIndexSpecWeaver struct {
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
 }
 
 // LibrarianConfig Everything a Librarian reads at boot: nothing in it is
@@ -5682,7 +7430,7 @@ type LibrarianHealth struct {
 	// Kb The DID of the knowledge base it serves: the one its document names,
 	// which that knowledge base said it is before the Librarian reached its
 	// stores.
-	Kb     string                `json:"kb"`
+	Kb     KbDid                 `json:"kb"`
 	Status LibrarianHealthStatus `json:"status"`
 }
 
@@ -5725,6 +7473,11 @@ func (e LibrarianHealthStatus) Valid() bool {
 		return true
 	}
 	return false
+}
+
+type LibrarianPromptScore struct {
+	Candidate float64 `json:"candidate"`
+	Score     float64 `json:"score"`
 }
 
 // LimitRefusal An ErrorResponse that names, in `code`, the limit the request
@@ -5871,6 +7624,33 @@ func (e LocalEndpointKind) Valid() bool {
 	return false
 }
 
+// LocalTarget A local knowledge base, named explicitly: the operations that
+// act on one local stack and never resolve one for the caller (identity
+// administration, a service's run).
+type LocalTarget struct {
+	// Kind Only a local stack.
+	Kind LocalTargetKind `json:"kind"`
+	// Root The knowledge base's clone, by its path.
+	Root string `json:"root"`
+}
+
+// LocalTargetKind Only a local stack.
+type LocalTargetKind string
+
+// The values of LocalTargetKind.
+const (
+	LocalTargetKindLocal LocalTargetKind = "local"
+)
+
+// Valid is whether e is one of LocalTargetKind's values.
+func (e LocalTargetKind) Valid() bool {
+	switch e {
+	case LocalTargetKindLocal:
+		return true
+	}
+	return false
+}
+
 // LogFormat How each log line is written to stdout
 // (service-telemetry/log-lines.json): `json`, one JSON object per line; or
 // `simple`, a line of words followed by any metadata as JSON.
@@ -5911,6 +7691,52 @@ func (e LogLevel) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// LogRecord One line one of a stack's services wrote. The launcher removes
+// from it each secret value the launcher generated or read; anything else the
+// service wrote is the client's to handle. The launcher keeps no copy.
+type LogRecord struct {
+	// Line The line, without its newline.
+	Line string `json:"line"`
+	// ReceivedAt When the launcher read the line, in RFC 3339 with its fraction:
+	// a container's own lines carry the time it wrote them, if any.
+	ReceivedAt string    `json:"receivedAt"`
+	RequestId  RequestId `json:"requestId"`
+	// Service The role whose container wrote the line, as xynolog status names
+	// it.
+	Service string `json:"service"`
+	// Stream Which of the container's streams the line was on.
+	Stream OutputStream `json:"stream"`
+}
+
+// LogsFollowParams logs.follow's params.
+type LogsFollowParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Runtime Keep to the local stacks, as --runtime does.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Service Just this service's container, as --service names it. Absent: each
+	// Xynolog service the stack runs.
+	Service *string `json:"service,omitempty"`
+	// Target Which knowledge base's stack. Absent: the one the command line
+	// chooses, standing where the control server was started.
+	Target *Target `json:"target,omitempty"`
+}
+
+// LogsFollowResult A follow whose every source ended on its own. A follow the
+// client cancels is answered with control.cancelled.
+type LogsFollowResult struct {
+	// Services The services that were followed.
+	Services []string `json:"services"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v LogsFollowResult) MarshalJSON() ([]byte, error) {
+	type written LogsFollowResult
+	v.Services = listOf(v.Services)
+	return json.Marshal(written(v))
 }
 
 // MarkArchiveCommand Bus command to archive a resource and optionally remove
@@ -6581,6 +8407,22 @@ func (e MemoryVectorsConfigType) Valid() bool {
 	return false
 }
 
+// Metadata What names a document, as Kubernetes names an object. Documents
+// refer to one another by `name`.
+type Metadata struct {
+	// Annotations Kubernetes annotations. The launcher reads none.
+	Annotations *map[string]string `json:"annotations,omitempty"`
+	// Labels Kubernetes labels. The launcher reads none.
+	Labels *map[string]string `json:"labels,omitempty"`
+	// Name The document's name: lower-case letters, digits and `-`, beginning
+	// and ending with a letter or digit. It names the document, never the
+	// knowledge base.
+	Name string `json:"name"`
+	// Namespace The Kubernetes namespace the document belongs in. The launcher
+	// reads none.
+	Namespace *string `json:"namespace,omitempty"`
+}
+
 // Motivation Xynolog-supported W3C Web Annotation motivations -
 // https://www.w3.org/TR/annotation-vocab/#motivation
 type Motivation string
@@ -6780,6 +8622,50 @@ type OneOrMoreUrisText string
 
 func (OneOrMoreUrisText) memberOfOneOrMoreUris() {}
 
+// OpenResource A resource open in a knowledge base: which resource, the name
+// it is shown by, when it was opened and its place among the others open
+// there. A registry shows them by their places, and two in one place by when
+// each was opened, first first.
+type OpenResource struct {
+	// Id The resource.
+	Id ResourceId `json:"id"`
+	// MediaType The resource's media type, which its icon is chosen by. Absent
+	// when it is not known.
+	MediaType *string `json:"mediaType,omitempty"`
+	// Name The name the resource is shown by.
+	Name string `json:"name"`
+	// OpenedAt When the resource was opened, in milliseconds since the Unix
+	// epoch. Opening it again while it is open changes neither this nor its
+	// place.
+	OpenedAt int `json:"openedAt"`
+	// Order The resource's place among those open in the knowledge base. One
+	// opened is given the place after the last taken, so a place freed by
+	// closing one is not given twice; a move gives each its place in the new
+	// order, counted from 0.
+	Order int `json:"order"`
+	// StorageUri Where the resource is in the knowledge base's working tree, as
+	// a URI (file://docs/overview.md). Absent when it is not known.
+	StorageUri *string `json:"storageUri,omitempty"`
+}
+
+// OutputStream Which of a container's streams a line was on.
+type OutputStream string
+
+// The values of OutputStream.
+const (
+	OutputStreamStdout OutputStream = "stdout"
+	OutputStreamStderr OutputStream = "stderr"
+)
+
+// Valid is whether e is one of OutputStream's values.
+func (e OutputStream) Valid() bool {
+	switch e {
+	case OutputStreamStdout, OutputStreamStderr:
+		return true
+	}
+	return false
+}
+
 // PdfClass The class a PDF is sorted into, which decides how its text is
 // read. smelter/extraction-cases.json states what each class is.
 type PdfClass string
@@ -6914,6 +8800,86 @@ type ProfilesProjection struct {
 	Profiles map[string]Profile `json:"profiles"`
 }
 
+// Progress One line of what an operation is doing, as the command line would
+// tell a person, without colour. A secret value the launcher generated or
+// read never appears in one.
+type Progress struct {
+	// Kind What the line is: narration (log, note), an outcome (ok, warn, fail),
+	// a heading (banner, section), a timestamp (stamp), a runtime command about
+	// to run (command), or text the operation printed (output).
+	Kind      ProgressKind `json:"kind"`
+	RequestId RequestId    `json:"requestId"`
+	// Text The line.
+	Text string `json:"text"`
+}
+
+// ProgressKind What the line is: narration (log, note), an outcome (ok, warn,
+// fail), a heading (banner, section), a timestamp (stamp), a runtime command
+// about to run (command), or text the operation printed (output).
+type ProgressKind string
+
+// The values of ProgressKind.
+const (
+	ProgressKindLog     ProgressKind = "log"
+	ProgressKindNote    ProgressKind = "note"
+	ProgressKindOk      ProgressKind = "ok"
+	ProgressKindWarn    ProgressKind = "warn"
+	ProgressKindFail    ProgressKind = "fail"
+	ProgressKindBanner  ProgressKind = "banner"
+	ProgressKindSection ProgressKind = "section"
+	ProgressKindStamp   ProgressKind = "stamp"
+	ProgressKindCommand ProgressKind = "command"
+	ProgressKindOutput  ProgressKind = "output"
+)
+
+// Valid is whether e is one of ProgressKind's values.
+func (e ProgressKind) Valid() bool {
+	switch e {
+	case ProgressKindLog, ProgressKindNote, ProgressKindOk, ProgressKindWarn, ProgressKindFail, ProgressKindBanner, ProgressKindSection, ProgressKindStamp, ProgressKindCommand, ProgressKindOutput:
+		return true
+	}
+	return false
+}
+
+// ProjectConfig A knowledge base's committed `.xynolog/config.yaml`: its
+// name, whether its changes are staged in git, and its permanent identity. A
+// deployment's documents never restate any of it.
+type ProjectConfig struct {
+	// Git How the knowledge base's changes reach git.
+	Git ProjectConfigGit `json:"git"`
+	// Project The knowledge base's name.
+	Project ProjectConfigProject `json:"project"`
+	// Site The knowledge base's identity.
+	Site ProjectConfigSite `json:"site"`
+}
+
+// ProjectConfigGit How the knowledge base's changes reach git.
+type ProjectConfigGit struct {
+	// Sync Whether changes to the working tree and the event log are staged in
+	// git as they are made.
+	Sync bool `json:"sync"`
+}
+
+// ProjectConfigProject The knowledge base's name.
+type ProjectConfigProject struct {
+	// Name The knowledge base's name, which decides where its state is kept.
+	Name string `json:"name"`
+	// Version A version the knowledge base's author gives it. Nothing changes
+	// it.
+	Version *string `json:"version,omitempty"`
+}
+
+// ProjectConfigSite The knowledge base's identity.
+type ProjectConfigSite struct {
+	// Domain The knowledge base's permanent identity, in did:web's colon-path
+	// form (`owner.github.io:repo`): stamped into every event it records, so
+	// never a machine's address and never changed. With no white space in it,
+	// which no DID holds (UserId.json).
+	Domain string `json:"domain"`
+	// SiteName The name people see for the knowledge base.
+	SiteName string `json:"siteName"`
+}
+
 // ProtectedResourceMetadata OAuth 2.0 Protected Resource Metadata (RFC 9728):
 // which authorization server this knowledge base trusts, served at
 // /.well-known/oauth-protected-resource so a client — the Browser, an MCP
@@ -6962,6 +8928,14 @@ func (e ProtectedResourceMetadataBearerMethodsSupportedItem) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// Provider How an inference provider is reached.
+type Provider struct {
+	ApiKey *SecretRef `json:"apiKey,omitempty"`
+	// BaseURL Where the provider's API is reached. Anthropic's own API, and the
+	// shared Ollama, are stated by no baseURL.
+	BaseURL *string `json:"baseURL,omitempty"`
 }
 
 // QdrantVectorsConfig A vector index kept in a Qdrant server, asked over its
@@ -7336,6 +9310,27 @@ type RepresentationRemovedPayload struct {
 	Checksum string `json:"checksum"`
 }
 
+// RequestId The request a notification is about: the JSON-RPC id its client
+// gave it, as the client gave it.
+type RequestId struct {
+	union[requestIdMember]
+}
+
+// requestIdMember is a member of RequestId: RequestIdText, RequestIdInteger.
+type requestIdMember interface {
+	memberOfRequestId()
+}
+
+// RequestIdInteger is a RequestId that is integer.
+type RequestIdInteger int
+
+func (RequestIdInteger) memberOfRequestId() {}
+
+// RequestIdText is a RequestId that is text.
+type RequestIdText string
+
+func (RequestIdText) memberOfRequestId() {}
+
 // ResourceAnnotations The annotations on one resource, as its materialized
 // view holds them.
 type ResourceAnnotations struct {
@@ -7685,9 +9680,7 @@ type ResourceSearchFilters struct {
 
 // ResourceUnarchivedPayload Payload for mark:unarchived domain event (empty
 // payload)
-type (
-	ResourceUnarchivedPayload = map[string]any
-)
+type ResourceUnarchivedPayload map[string]any
 
 // ResourceUpdatedPayload Payload for yield:updated domain event
 type ResourceUpdatedPayload struct {
@@ -7771,6 +9764,287 @@ type ResourceView struct {
 	Resource     ResourceDescriptor `json:"resource"`
 }
 
+// Resources What a container is given, in Kubernetes' spelling.
+type Resources struct {
+	// Limits The most a container may use.
+	Limits ResourcesLimits `json:"limits"`
+}
+
+// ResourcesLimits The most a container may use.
+type ResourcesLimits struct {
+	// Memory The memory ceiling: a whole number of gigabytes or megabytes, `8G`
+	// or `512M`.
+	Memory string `json:"memory"`
+}
+
+// Root One knowledge base this machine knows: a registered or running local
+// clone, or a codespace stack recorded here. Registration, the directory, the
+// stack and the forward are separate facts, each stated as it is.
+type Root struct {
+	// Codespace For a codespace root: the codespace's name.
+	Codespace *string `json:"codespace,omitempty"`
+	// CodespaceState For a codespace root: GitHub's word for the codespace's
+	// state (Available, Shutdown), when gh answered.
+	CodespaceState *string `json:"codespaceState,omitempty"`
+	// Config The Inference document a start of it runs, as the registry records
+	// it.
+	Config *string `json:"config,omitempty"`
+	// Configs For a present local root: the Inference documents its clone has,
+	// as start --config names them.
+	Configs *[]string `json:"configs,omitempty"`
+	// Current For a local root: how the control server's own directory selects
+	// it, when it does — standing in it (cwd), or XYNOLOG_ROOT.
+	Current *RootCurrent `json:"current,omitempty"`
+	// Did The KB's did:web identifier, from its committed .xynolog/config.yaml —
+	// "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no
+	// domain has no identity to publish, and the launcher refuses to start it
+	// rather than inventing or defaulting one. NOT unique within a document: a
+	// did names the knowledge base, not a running copy of it, so a local clone
+	// and a codespace of the same repo legitimately share one and both are
+	// published. host:port is the unique field (at most one entry per address),
+	// so consumers look up by ADDRESS and use the did to VERIFY that the copy
+	// they reached is the KB they meant — an address alone cannot say which KB
+	// is which, and an identity alone cannot say which copy.
+	Did *string `json:"did,omitempty"`
+	// ForwardPort For a codespace root: the port on this machine its knowledge
+	// base is forwarded to, when one is recorded.
+	ForwardPort *int `json:"forwardPort,omitempty"`
+	// Forwarded For a codespace root: whether the recorded forward is alive.
+	Forwarded *bool `json:"forwarded,omitempty"`
+	// IdentityError Why its identity could not be read from its clone, when it
+	// could not.
+	IdentityError *string `json:"identityError,omitempty"`
+	// LastUsed When a command last used it, in RFC 3339, as the registry records
+	// it.
+	LastUsed *string `json:"lastUsed,omitempty"`
+	// Path For a local root: the clone's path.
+	Path *string `json:"path,omitempty"`
+	// Placement Where the stack actually runs. "local": containers on this
+	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+	Placement RootPlacement `json:"placement"`
+	// Present For a local root: whether the directory exists. A registered root
+	// whose directory is gone is kept, and says so.
+	Present *bool `json:"present,omitempty"`
+	// Reachable For a codespace root: whether its knowledge base answers through
+	// the forward.
+	Reachable *bool `json:"reachable,omitempty"`
+	// Registered Whether the registry (roots.json) records it.
+	Registered bool `json:"registered"`
+	// Repo owner/name GitHub slug — present for codespace placements, where the
+	// repo is the stack's identity
+	Repo *string `json:"repo,omitempty"`
+	// Running Whether a stack of it is recorded on this machine.
+	Running bool `json:"running"`
+	// SiteName Human-readable site name from the KB's .xynolog/config.yaml
+	// (site.siteName), for display
+	SiteName *string `json:"siteName,omitempty"`
+}
+
+// RootCurrent For a local root: how the control server's own directory
+// selects it, when it does — standing in it (cwd), or XYNOLOG_ROOT.
+type RootCurrent string
+
+// The values of RootCurrent.
+const (
+	RootCurrentCwd         RootCurrent = "cwd"
+	RootCurrentXynologRoot RootCurrent = "xynolog-root"
+)
+
+// Valid is whether e is one of RootCurrent's values.
+func (e RootCurrent) Valid() bool {
+	switch e {
+	case RootCurrentCwd, RootCurrentXynologRoot:
+		return true
+	}
+	return false
+}
+
+// RootPlacement Where the stack actually runs. "local": containers on this
+// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+type RootPlacement string
+
+// The values of RootPlacement.
+const (
+	RootPlacementLocal     RootPlacement = "local"
+	RootPlacementCodespace RootPlacement = "codespace"
+)
+
+// Valid is whether e is one of RootPlacement's values.
+func (e RootPlacement) Valid() bool {
+	switch e {
+	case RootPlacementLocal, RootPlacementCodespace:
+		return true
+	}
+	return false
+}
+
+// RootsForgetParams roots.forget's params.
+type RootsForgetParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Root The registered root to forget: its path, or its basename when only
+	// one registered root has it.
+	Root string `json:"root"`
+}
+
+// RootsForgetResult A forgotten registry row. Only the row is removed: no
+// file of the clone, and none of its persistent stack state.
+type RootsForgetResult struct {
+	// DirectoryMissing Whether its directory was already gone.
+	DirectoryMissing bool `json:"directoryMissing"`
+	// Path The forgotten root's path.
+	Path string `json:"path"`
+	// PersistentState The key whose persistent stack state remains, when some
+	// does and no surviving root shares its DID: xynolog clean --root <key>
+	// removes it.
+	PersistentState *string `json:"persistentState,omitempty"`
+}
+
+// RootsInitParams roots.init's params: the local directory, permanent
+// identity, and optional configuration inputs xynolog init takes.
+type RootsInitParams struct {
+	// AnthropicEndpoint Anthropic API base URL.
+	AnthropicEndpoint *string    `json:"anthropicEndpoint,omitempty"`
+	ApiVersion        ApiVersion `json:"apiVersion"`
+	// ConfigName Inference document name. Absent: the provider name.
+	ConfigName *string `json:"configName,omitempty"`
+	// Domain The permanent did:web domain, in colon-path form, such as
+	// owner.github.io:repo.
+	Domain string `json:"domain"`
+	// Embedding Ollama embedding model name, without the ollama: prefix.
+	Embedding *string `json:"embedding,omitempty"`
+	// Inference Inference provider for the generated local stack documents.
+	Inference *RootsInitParamsInference `json:"inference,omitempty"`
+	// Model The primary model bound to roles and jobs.
+	Model *string `json:"model,omitempty"`
+	// ModelLight A light model example emitted in the generated config.
+	ModelLight *string `json:"modelLight,omitempty"`
+	// Name Project name. Absent: the directory basename.
+	Name *string `json:"name,omitempty"`
+	// OllamaBase Local Ollama API base URL.
+	OllamaBase *string `json:"ollamaBase,omitempty"`
+	// OllamaRegistry Ollama registry base URL.
+	OllamaRegistry *string `json:"ollamaRegistry,omitempty"`
+	// Path Existing local directory in which to create the knowledge base.
+	Path string `json:"path"`
+	// SiteName Human-readable site name. Absent: the project name.
+	SiteName *string `json:"siteName,omitempty"`
+}
+
+// RootsInitParamsInference Inference provider for the generated local stack
+// documents.
+type RootsInitParamsInference string
+
+// The values of RootsInitParamsInference.
+const (
+	RootsInitParamsInferenceAnthropic RootsInitParamsInference = "anthropic"
+	RootsInitParamsInferenceOllama    RootsInitParamsInference = "ollama"
+)
+
+// Valid is whether e is one of RootsInitParamsInference's values.
+func (e RootsInitParamsInference) Valid() bool {
+	switch e {
+	case RootsInitParamsInferenceAnthropic, RootsInitParamsInferenceOllama:
+		return true
+	}
+	return false
+}
+
+// RootsInitResult The local directory where xynolog init created and
+// registered the knowledge base.
+type RootsInitResult struct {
+	Path string `json:"path"`
+}
+
+// RootsListParams roots.list's params.
+type RootsListParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+}
+
+// RootsListResult Every knowledge base this machine knows, as xynolog roots
+// lists them: the local roots first, then the codespace stacks.
+type RootsListResult struct {
+	// Roots Each root.
+	Roots []Root `json:"roots"`
+	// Warnings What xynolog roots warns of without failing: an invalid
+	// XYNOLOG_ROOT, a clone whose project file is refused.
+	Warnings *[]string `json:"warnings,omitempty"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v RootsListResult) MarshalJSON() ([]byte, error) {
+	type written RootsListResult
+	v.Roots = listOf(v.Roots)
+	return json.Marshal(written(v))
+}
+
+// RunInstance A run's instance, by the name its caller gave it: unique among
+// the target's instances that run on this machine. A second dispatcher beside
+// the first is another instance. The launcher names the instance's container
+// from the target's key and this name.
+type (
+	RunInstance = string
+)
+
+// RunService One of a knowledge base's own services, which service.run runs:
+// the seven Xynolog services, as service-telemetry/telemetry.json names them.
+// The reader holds the two lists to each other.
+type RunService string
+
+// The values of RunService.
+const (
+	RunServiceArchivist  RunService = "archivist"
+	RunServiceDispatcher RunService = "dispatcher"
+	RunServiceGateway    RunService = "gateway"
+	RunServiceLibrarian  RunService = "librarian"
+	RunServiceSmelter    RunService = "smelter"
+	RunServiceWeaver     RunService = "weaver"
+	RunServiceWorker     RunService = "worker"
+)
+
+// Valid is whether e is one of RunService's values.
+func (e RunService) Valid() bool {
+	switch e {
+	case RunServiceArchivist, RunServiceDispatcher, RunServiceGateway, RunServiceLibrarian, RunServiceSmelter, RunServiceWeaver, RunServiceWorker:
+		return true
+	}
+	return false
+}
+
+// Runner Who runs a daemon: the launcher, from `image` with `resources`, or
+// somebody else, reached at `external`. Exactly one of the two.
+type Runner map[string]any
+
+// Runtime A container runtime the launcher drives, as --runtime names it:
+// Apple container, Docker or Podman.
+type Runtime string
+
+// The values of Runtime.
+const (
+	RuntimeContainer Runtime = "container"
+	RuntimeDocker    Runtime = "docker"
+	RuntimePodman    Runtime = "podman"
+)
+
+// Valid is whether e is one of Runtime's values.
+func (e Runtime) Valid() bool {
+	switch e {
+	case RuntimeContainer, RuntimeDocker, RuntimePodman:
+		return true
+	}
+	return false
+}
+
+// RuntimeState One container runtime the launcher drives, and whether this
+// machine has it.
+type RuntimeState struct {
+	// Found Whether it is on the launcher's PATH.
+	Found bool    `json:"found"`
+	Name  Runtime `json:"name"`
+}
+
 // ScoredResource A resource returned by a search, carrying its relevance
 // score and the reason it matched.
 type ScoredResource struct {
@@ -7852,6 +10126,14 @@ func (v *ScoredResource) UnmarshalJSON(raw []byte) error {
 	return readOpen(raw, (*read)(v), &v.AdditionalProperties)
 }
 
+// SecretRef A secret the document names and does not hold. The launcher hands
+// it to the service that needs it, from where the reference says it is.
+type SecretRef struct {
+	// FromEnv The environment variable that holds the secret where the launcher
+	// runs. Unset, the start that needs it is refused.
+	FromEnv string `json:"fromEnv"`
+}
+
 // Selector One W3C selector: a way of finding a segment of a resource. Tell
 // them apart by `type`, which is required on each and single-valued.
 type Selector struct {
@@ -7920,11 +10202,271 @@ type ServiceAddress struct {
 	Port int    `json:"port"`
 }
 
+// ServiceGroup A group of services, as xynolog status reports them and
+// --group names them: a knowledge base's record and its index, the issuer
+// that signs its accounts in, the knowledge workers where people and agents
+// work on it, the providers of its models, and the telemetry that watches
+// them all.
+type ServiceGroup string
+
+// The values of ServiceGroup.
+const (
+	ServiceGroupRecord           ServiceGroup = "record"
+	ServiceGroupIndex            ServiceGroup = "index"
+	ServiceGroupIssuer           ServiceGroup = "issuer"
+	ServiceGroupKnowledgeWorkers ServiceGroup = "knowledge-workers"
+	ServiceGroupProviders        ServiceGroup = "providers"
+	ServiceGroupTelemetry        ServiceGroup = "telemetry"
+)
+
+// Valid is whether e is one of ServiceGroup's values.
+func (e ServiceGroup) Valid() bool {
+	switch e {
+	case ServiceGroupRecord, ServiceGroupIndex, ServiceGroupIssuer, ServiceGroupKnowledgeWorkers, ServiceGroupProviders, ServiceGroupTelemetry:
+		return true
+	}
+	return false
+}
+
+// ServiceHostParams service.host's params.
+type ServiceHostParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else the first installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
+}
+
+// ServiceHostResult Where this machine and a run's instance meet, under a
+// runtime: the address the launcher publishes an instance's ports on, and the
+// address the instance reaches this machine's listeners at. A caller writes
+// it into a document before the run.
+type ServiceHostResult struct {
+	// Address The host address: an IP address or a host name, as the launcher's
+	// own stack dials it under this runtime.
+	Address string  `json:"address"`
+	Runtime Runtime `json:"runtime"`
+}
+
 // ServiceIdentity The identity provider a service's account signs in at, by
 // its issuer.
 type ServiceIdentity struct {
 	// Issuer The issuer URL, exactly as tokens carry it in `iss`.
 	Issuer string `json:"issuer"`
+}
+
+// ServiceOutput notifications/serviceOutput: one line a run's instance wrote,
+// from its start, every line, in the order of its stream, as the instance
+// wrote it. The launcher gives an instance none of its own secrets (R2), and
+// keeps no copy.
+type ServiceOutput struct {
+	Instance RunInstance `json:"instance"`
+	// Line The line, without its newline.
+	Line      string       `json:"line"`
+	RequestId RequestId    `json:"requestId"`
+	Stream    OutputStream `json:"stream"`
+}
+
+// ServiceRunParams service.run's params: one instance of one of a knowledge
+// base's own services, run once from the image the target's stack documents
+// name, unsupervised, on the caller's document, arguments and environment.
+// contract/LAUNCHER-CONTROL.md, R1-R8.
+type ServiceRunParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Args The arguments the image's program is given in place of the image's
+	// own (--config and the document's path). Absent: the image's own.
+	Args *[]string `json:"args,omitempty"`
+	// Document The configuration document's text, written as it is, at the path
+	// the image's own arguments name: it need not be JSON. Absent: no file is at
+	// that path.
+	Document *string `json:"document,omitempty"`
+	// Environment Every variable the instance is given beside the image's own,
+	// by name: nothing of the launcher's is added (R2). Empty: none.
+	Environment map[string]string `json:"environment"`
+	Instance    RunInstance       `json:"instance"`
+	// Mounts Directories of this machine, each mounted read-write at its own
+	// path, so that a path the document names is the same inside the instance
+	// and out (R4). Empty: none.
+	Mounts []string `json:"mounts"`
+	// PathFirst Directories put before the image's PATH, in order, each mounted
+	// at its own path. Empty: the image's PATH as it is.
+	PathFirst []string `json:"pathFirst"`
+	// Ports The ports the instance listens on, each published at the same number
+	// on the host address (R3). Empty: none.
+	Ports []int `json:"ports"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else the first installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Service The service whose image runs.
+	Service RunService `json:"service"`
+	// Target The knowledge base whose stack documents name the service's image,
+	// and whose stack the instance belongs to: stack.stop of it removes the
+	// instance too.
+	Target LocalTarget `json:"target"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ServiceRunParams) MarshalJSON() ([]byte, error) {
+	type written ServiceRunParams
+	v.Mounts = listOf(v.Mounts)
+	v.PathFirst = listOf(v.PathFirst)
+	v.Ports = listOf(v.Ports)
+	return json.Marshal(written(v))
+}
+
+// ServiceRunResult A run that ended: its instance exited. Sent once the
+// instance's container has exited, after all of its output.
+type ServiceRunResult struct {
+	// ExitCode The instance's exit status: the service's own, since nothing
+	// supervises it (R1). An instance a signal ended exits with 128 and the
+	// signal's number: 143 for SIGTERM, 137 for SIGKILL.
+	ExitCode int         `json:"exitCode"`
+	Instance RunInstance `json:"instance"`
+	// RanMs Milliseconds from its container's start to its exit.
+	RanMs int `json:"ranMs"`
+}
+
+// ServiceSignalParams service.signal's params: a signal for a run's instance.
+type ServiceSignalParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion  `json:"apiVersion"`
+	Instance   RunInstance `json:"instance"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else the first installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Signal term: SIGTERM, and SIGKILL 15 seconds later if it has not exited.
+	// kill: SIGKILL, so nothing it would settle on the way out is settled.
+	Signal ServiceSignalParamsSignal `json:"signal"`
+	// Target The knowledge base whose stack documents name the service's image,
+	// and whose stack the instance belongs to: stack.stop of it removes the
+	// instance too.
+	Target LocalTarget `json:"target"`
+}
+
+// ServiceSignalParamsSignal term: SIGTERM, and SIGKILL 15 seconds later if it
+// has not exited. kill: SIGKILL, so nothing it would settle on the way out is
+// settled.
+type ServiceSignalParamsSignal string
+
+// The values of ServiceSignalParamsSignal.
+const (
+	ServiceSignalParamsSignalTerm ServiceSignalParamsSignal = "term"
+	ServiceSignalParamsSignalKill ServiceSignalParamsSignal = "kill"
+)
+
+// Valid is whether e is one of ServiceSignalParamsSignal's values.
+func (e ServiceSignalParamsSignal) Valid() bool {
+	switch e {
+	case ServiceSignalParamsSignalTerm, ServiceSignalParamsSignalKill:
+		return true
+	}
+	return false
+}
+
+// ServiceSignalResult A signal sent, or not needed. The instance's exit is
+// its run's answer, not this one.
+type ServiceSignalResult struct {
+	// Delivered Whether the instance still ran when the signal came. false: it
+	// has exited, and its run's answer is on its way; nothing was sent.
+	Delivered bool `json:"delivered"`
+}
+
+// ServiceStarted notifications/serviceStarted: a run's instance is running.
+// Sent once, before any of its output.
+type ServiceStarted struct {
+	// Address The host address the instance's ports are published on, as
+	// service.host names it for the run's runtime.
+	Address string `json:"address"`
+	// Container The runtime's name for the instance's container.
+	Container string `json:"container"`
+	// DocumentPath Where the instance reads its document: the path the image's
+	// own arguments name. Present when the run gave a document.
+	DocumentPath *string     `json:"documentPath,omitempty"`
+	Instance     RunInstance `json:"instance"`
+	RequestId    RequestId   `json:"requestId"`
+}
+
+// ServiceStatus One service, as xynolog status reads it: where it runs, its
+// state, and whether it answers. Nothing is reported that the launcher did
+// not observe: an endpoint is named only when the stack's record or the
+// descriptor names one, and a page to open only when the service answers.
+type ServiceStatus struct {
+	// ContainerState The runtime's own word for a container that is not running
+	// (exited, created).
+	ContainerState *string `json:"containerState,omitempty"`
+	// Counted Whether its health counts toward its knowledge base's: a service
+	// the documents ask for none of, and a telemetry backend --no-observe leaves
+	// out, do not.
+	Counted bool `json:"counted"`
+	// Group The group it belongs to.
+	Group ServiceGroup `json:"group"`
+	// Healthy Whether its health endpoint answers.
+	Healthy bool `json:"healthy"`
+	// Page The page a person opens: the Browser, Jaeger's and Prometheus's
+	// interfaces, the collector's metrics readout. Present only when the service
+	// answers. The collector's OTLP receiver is never one.
+	Page *string `json:"page,omitempty"`
+	// Probe The endpoint the launcher asks its health of: an http URL, or
+	// tcp://host:port.
+	Probe *string `json:"probe,omitempty"`
+	// Product The product its driver names (Neo4j, Keycloak), when its record
+	// names a driver.
+	Product *string `json:"product,omitempty"`
+	// Realm For the issuer the knowledge base signs in at, when it is the
+	// machine's: its realm there.
+	Realm *string `json:"realm,omitempty"`
+	// Role The service, as xynolog status names it.
+	Role string `json:"role"`
+	// RunsOn Where it runs: the runtime its container runs under, external
+	// (somebody else runs it), or host (a process on this machine). Absent when
+	// nothing runs it.
+	RunsOn *string `json:"runsOn,omitempty"`
+	// Serves For a service several knowledge bases share: the name of each it
+	// serves, as knowledgeBases names them.
+	Serves *[]string `json:"serves,omitempty"`
+	// State running: its container runs. stopped: its container exists and does
+	// not run (containerState says how). reachable, unreachable: somebody else
+	// runs it, and its endpoint answers or does not. absent: there is no
+	// container of it. not-configured: the stack's documents ask for none.
+	State ServiceStatusState `json:"state"`
+}
+
+// ServiceStatusState running: its container runs. stopped: its container
+// exists and does not run (containerState says how). reachable, unreachable:
+// somebody else runs it, and its endpoint answers or does not. absent: there
+// is no container of it. not-configured: the stack's documents ask for none.
+type ServiceStatusState string
+
+// The values of ServiceStatusState.
+const (
+	ServiceStatusStateRunning       ServiceStatusState = "running"
+	ServiceStatusStateStopped       ServiceStatusState = "stopped"
+	ServiceStatusStateReachable     ServiceStatusState = "reachable"
+	ServiceStatusStateUnreachable   ServiceStatusState = "unreachable"
+	ServiceStatusStateAbsent        ServiceStatusState = "absent"
+	ServiceStatusStateNotConfigured ServiceStatusState = "not-configured"
+)
+
+// Valid is whether e is one of ServiceStatusState's values.
+func (e ServiceStatusState) Valid() bool {
+	switch e {
+	case ServiceStatusStateRunning, ServiceStatusStateStopped, ServiceStatusStateReachable, ServiceStatusStateUnreachable, ServiceStatusStateAbsent, ServiceStatusStateNotConfigured:
+		return true
+	}
+	return false
+}
+
+// Session The launcher's own stored sign-in for a stack (xynolog login),
+// never Desktop's. No token is in it.
+type Session struct {
+	// Email The email the session was signed in as, when the store records one.
+	Email *string `json:"email,omitempty"`
+	// State valid: the stack's gateway accepts the stored token. expired: it
+	// refuses it (a refresh, or xynolog login, renews it). unverified: the stack
+	// did not answer. none: nothing is stored.
+	State SessionState `json:"state"`
 }
 
 // SessionEndReason Why a session ended: `expired`, the issuer refused to
@@ -7979,14 +10521,189 @@ type SessionLeftEvent struct {
 	Participant UserId `json:"participant"`
 }
 
+// SessionState valid: the stack's gateway accepts the stored token. expired:
+// it refuses it (a refresh, or xynolog login, renews it). unverified: the
+// stack did not answer. none: nothing is stored.
+type SessionState string
+
+// The values of SessionState.
+const (
+	SessionStateValid      SessionState = "valid"
+	SessionStateExpired    SessionState = "expired"
+	SessionStateUnverified SessionState = "unverified"
+	SessionStateNone       SessionState = "none"
+)
+
+// Valid is whether e is one of SessionState's values.
+func (e SessionState) Valid() bool {
+	switch e {
+	case SessionStateValid, SessionStateExpired, SessionStateUnverified, SessionStateNone:
+		return true
+	}
+	return false
+}
+
+// Setting One setting the launcher keeps, as xynolog settings shows it.
+type Setting struct {
+	// AppliesTo What it applies to: every knowledge base on this machine, or
+	// one.
+	AppliesTo SettingAppliesTo `json:"appliesTo"`
+	// ChangedBy For one they do not: how it is changed instead.
+	ChangedBy *string `json:"changedBy,omitempty"`
+	// Default Whether this is the machine-wide form of a knowledge-base setting
+	// (secret-store --default).
+	Default bool `json:"default"`
+	// Name Its name, as xynolog settings takes it.
+	Name string `json:"name"`
+	// Settable Whether settings.set and settings.unset change it.
+	Settable bool `json:"settable"`
+	// Values The values in effect, one per line xynolog settings shows.
+	Values []SettingLine `json:"values"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v Setting) MarshalJSON() ([]byte, error) {
+	type written Setting
+	v.Values = listOf(v.Values)
+	return json.Marshal(written(v))
+}
+
+// SettingAppliesTo What it applies to: every knowledge base on this machine,
+// or one.
+type SettingAppliesTo string
+
+// The values of SettingAppliesTo.
+const (
+	SettingAppliesToMachine       SettingAppliesTo = "machine"
+	SettingAppliesToKnowledgeBase SettingAppliesTo = "knowledge-base"
+)
+
+// Valid is whether e is one of SettingAppliesTo's values.
+func (e SettingAppliesTo) Valid() bool {
+	switch e {
+	case SettingAppliesToMachine, SettingAppliesToKnowledgeBase:
+		return true
+	}
+	return false
+}
+
+// SettingLine One value of a setting, and where it came from, as xynolog
+// settings shows it. A secret's value is never one: a secret setting shows
+// where the value is kept.
+type SettingLine struct {
+	// Source Where it came from: a record, a document, the default.
+	Source string `json:"source"`
+	// Value The value in effect.
+	Value string `json:"value"`
+}
+
+// SettingsGetParams settings.get's params.
+type SettingsGetParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Default The machine-wide form of a knowledge-base setting: --default.
+	Default *bool `json:"default,omitempty"`
+	// Name The setting, as xynolog settings names it.
+	Name string `json:"name"`
+	// Root A knowledge base's clone, by path or by the basename of a registered
+	// root, as --root takes it. Absent: the clone the control server was started
+	// in.
+	Root *string `json:"root,omitempty"`
+}
+
 // SettingsHoverDelayChangedEvent Emitted when the hover delay setting changes
 type SettingsHoverDelayChangedEvent struct {
 	HoverDelayMs int `json:"hoverDelayMs"`
 }
 
+// SettingsListParams settings.list's params.
+type SettingsListParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Root A knowledge base's clone, by path or by the basename of a registered
+	// root, as --root takes it. Absent: the clone the control server was started
+	// in.
+	Root *string `json:"root,omitempty"`
+}
+
+// SettingsListResult Every setting the launcher keeps: the machine's, then
+// the knowledge base's.
+type SettingsListResult struct {
+	// Root The knowledge base whose settings are listed, when one resolved.
+	Root *string `json:"root,omitempty"`
+	// Settings Each setting.
+	Settings []Setting `json:"settings"`
+	// Unresolved Why no knowledge base resolved, when none did: its settings are
+	// not listed.
+	Unresolved *string `json:"unresolved,omitempty"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v SettingsListResult) MarshalJSON() ([]byte, error) {
+	type written SettingsListResult
+	v.Settings = listOf(v.Settings)
+	return json.Marshal(written(v))
+}
+
 // SettingsLocaleChangedEvent Emitted when the UI locale setting changes
 type SettingsLocaleChangedEvent struct {
 	Locale string `json:"locale"`
+}
+
+// SettingsPathParams settings.path's params.
+type SettingsPathParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Document Whose document: the Browser's, the worker's, the issuer's or the
+	// vector store's.
+	Document SettingsPathParamsDocument `json:"document"`
+}
+
+// SettingsPathParamsDocument Whose document: the Browser's, the worker's, the
+// issuer's or the vector store's.
+type SettingsPathParamsDocument string
+
+// The values of SettingsPathParamsDocument.
+const (
+	SettingsPathParamsDocumentBrowser SettingsPathParamsDocument = "browser"
+	SettingsPathParamsDocumentWorker  SettingsPathParamsDocument = "worker"
+	SettingsPathParamsDocumentIssuer  SettingsPathParamsDocument = "issuer"
+	SettingsPathParamsDocumentVectors SettingsPathParamsDocument = "vectors"
+)
+
+// Valid is whether e is one of SettingsPathParamsDocument's values.
+func (e SettingsPathParamsDocument) Valid() bool {
+	switch e {
+	case SettingsPathParamsDocumentBrowser, SettingsPathParamsDocumentWorker, SettingsPathParamsDocumentIssuer, SettingsPathParamsDocumentVectors:
+		return true
+	}
+	return false
+}
+
+// SettingsPathResult Where a machine document is. When there is none, it is
+// written from the launcher's catalog first, as a start writes it; one that
+// does not hold is refused, as a start refuses it.
+type SettingsPathResult struct {
+	// Path The document's path.
+	Path string `json:"path"`
+}
+
+// SettingsSetParams settings.set's params.
+type SettingsSetParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Default The machine-wide form of a knowledge-base setting: --default.
+	Default *bool `json:"default,omitempty"`
+	// Name The setting, as xynolog settings names it.
+	Name string `json:"name"`
+	// Root A knowledge base's clone, by path or by the basename of a registered
+	// root, as --root takes it. Absent: the clone the control server was started
+	// in.
+	Root *string `json:"root,omitempty"`
+	// Value The value, checked as a start would check it.
+	Value string `json:"value"`
 }
 
 // SettingsThemeChangedEvent Emitted when the UI theme setting changes
@@ -8010,6 +10727,20 @@ func (e SettingsThemeChangedEventTheme) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// SettingsUnsetParams settings.unset's params.
+type SettingsUnsetParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Default The machine-wide form of a knowledge-base setting: --default.
+	Default *bool `json:"default,omitempty"`
+	// Name The setting, as xynolog settings names it.
+	Name string `json:"name"`
+	// Root A knowledge base's clone, by path or by the basename of a registered
+	// root, as --root takes it. Absent: the clone the control server was started
+	// in.
+	Root *string `json:"root,omitempty"`
 }
 
 // SignInOutcome The entry a sign-in landed on, and what the person believed,
@@ -8174,13 +10905,13 @@ type SmelterHealth struct {
 	EventsProcessed int `json:"eventsProcessed"`
 	// Following How far it has followed the record. Its sweep is also `due`
 	// where its start's reconcile failed.
-	Following SmelterHealthFollowing `json:"following"`
+	Following FollowerFollowing `json:"following"`
 	// Index What the Smelter holds its index to, and what this start did for
 	// that.
 	Index SmelterHealthIndex `json:"index"`
 	// Kb The DID of the knowledge base it serves: the one its settings name,
 	// which that knowledge base said it is before the Smelter reached its index.
-	Kb string `json:"kb"`
+	Kb KbDid `json:"kb"`
 	// Reconcile How far the latest reconcile has got: the pass's `summary` when
 	// it is done, or its `error` when it failed.
 	Reconcile SmelterHealthReconcile `json:"reconcile"`
@@ -8189,44 +10920,6 @@ type SmelterHealth struct {
 	// TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while
 	// it is `open`.
 	Stream SmelterHealthStream `json:"stream"`
-}
-
-// SmelterHealthFollowing How far it has followed the record. Its sweep is
-// also `due` where its start's reconcile failed.
-type SmelterHealthFollowing struct {
-	// Refused How many events it refused as recorded since it started.
-	Refused int `json:"refused"`
-	// Stopped How many resources' logs a failed taking has stopped until the
-	// next sweep.
-	Stopped int `json:"stopped"`
-	// StreamDrops How many times its stream has dropped since it started.
-	StreamDrops int `json:"streamDrops"`
-	// Sweep The latest sweep's phase: `pending` before its stream first opens,
-	// `running`, `done`, or `due` where the record could not be listed and the
-	// sweep is tried again.
-	Sweep SmelterHealthFollowingSweep `json:"sweep"`
-}
-
-// SmelterHealthFollowingSweep The latest sweep's phase: `pending` before its
-// stream first opens, `running`, `done`, or `due` where the record could not
-// be listed and the sweep is tried again.
-type SmelterHealthFollowingSweep string
-
-// The values of SmelterHealthFollowingSweep.
-const (
-	SmelterHealthFollowingSweepPending SmelterHealthFollowingSweep = "pending"
-	SmelterHealthFollowingSweepRunning SmelterHealthFollowingSweep = "running"
-	SmelterHealthFollowingSweepDone    SmelterHealthFollowingSweep = "done"
-	SmelterHealthFollowingSweepDue     SmelterHealthFollowingSweep = "due"
-)
-
-// Valid is whether e is one of SmelterHealthFollowingSweep's values.
-func (e SmelterHealthFollowingSweep) Valid() bool {
-	switch e {
-	case SmelterHealthFollowingSweepPending, SmelterHealthFollowingSweepRunning, SmelterHealthFollowingSweepDone, SmelterHealthFollowingSweepDue:
-		return true
-	}
-	return false
 }
 
 // SmelterHealthIndex What the Smelter holds its index to, and what this start
@@ -8387,6 +11080,295 @@ func (e SpecificResourceType) Valid() bool {
 	return false
 }
 
+// StackApiVersion The group and version of Xynolog's kinds. The group names
+// who defines a kind, under the domain the knowledge bases' DIDs use; which
+// knowledge base a document is about is said inside it.
+type StackApiVersion string
+
+// The values of StackApiVersion.
+const (
+	StackApiVersionXynologOrgV1alpha1 StackApiVersion = "xynolog.org/v1alpha1"
+)
+
+// Valid is whether e is one of StackApiVersion's values.
+func (e StackApiVersion) Valid() bool {
+	switch e {
+	case StackApiVersionXynologOrgV1alpha1:
+		return true
+	}
+	return false
+}
+
+// StackKnowledgeBase A knowledge base's record and the services that keep it:
+// the Gateway, the Dispatcher, the Archivist, and the broker between them.
+// They live and die with the knowledge base.
+type StackKnowledgeBase struct {
+	ApiVersion StackApiVersion        `json:"apiVersion"`
+	Kind       StackKnowledgeBaseKind `json:"kind"`
+	Metadata   Metadata               `json:"metadata"`
+	// Spec The knowledge base's services, and how each runs.
+	Spec StackKnowledgeBaseSpec `json:"spec"`
+}
+
+type StackKnowledgeBaseKind string
+
+// The values of StackKnowledgeBaseKind.
+const (
+	StackKnowledgeBaseKindKnowledgeBase StackKnowledgeBaseKind = "KnowledgeBase"
+)
+
+// Valid is whether e is one of StackKnowledgeBaseKind's values.
+func (e StackKnowledgeBaseKind) Valid() bool {
+	switch e {
+	case StackKnowledgeBaseKindKnowledgeBase:
+		return true
+	}
+	return false
+}
+
+// StackKnowledgeBaseSpec The knowledge base's services, and how each runs.
+type StackKnowledgeBaseSpec struct {
+	// Archivist The Archivist: it keeps the knowledge base's record in its
+	// working tree.
+	Archivist StackKnowledgeBaseSpecArchivist `json:"archivist"`
+	// Dispatcher The Dispatcher: it hands queued jobs to workers.
+	Dispatcher StackKnowledgeBaseSpecDispatcher `json:"dispatcher"`
+	// Gateway The Gateway: where every client and every service reaches the
+	// knowledge base.
+	Gateway StackKnowledgeBaseSpecGateway `json:"gateway"`
+	// Issuer The issuer the knowledge base trusts: the one the launcher runs for
+	// the knowledge bases on a machine, at `shared`, with the knowledge base's
+	// own realm in it, or somebody else's, at `external`.
+	Issuer   StackKnowledgeBaseSpecIssuer `json:"issuer"`
+	LogLevel LogLevel                     `json:"logLevel"`
+	// Messaging The broker the job queue and the signal plane share: the
+	// launcher's, run from `image`, or somebody else's, at `external`.
+	Messaging StackKnowledgeBaseSpecMessaging `json:"messaging"`
+}
+
+// StackKnowledgeBaseSpecArchivist The Archivist: it keeps the knowledge
+// base's record in its working tree.
+type StackKnowledgeBaseSpecArchivist struct {
+	// Address Where the stack's services reach the Archivist, when that is
+	// somewhere the launcher cannot see. Absent, they reach it where the
+	// launcher places it.
+	Address   *HostPort `json:"address,omitempty"`
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
+}
+
+// StackKnowledgeBaseSpecDispatcher The Dispatcher: it hands queued jobs to
+// workers.
+type StackKnowledgeBaseSpecDispatcher struct {
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
+}
+
+// StackKnowledgeBaseSpecGateway The Gateway: where every client and every
+// service reaches the knowledge base.
+type StackKnowledgeBaseSpecGateway struct {
+	Image Image `json:"image"`
+	// Port The port the Gateway is published on.
+	Port int `json:"port"`
+	// PublicURL Where clients reach the Gateway: the server its API document
+	// names. A service of the stack reaches it where the launcher places it, on
+	// `port`.
+	PublicURL string    `json:"publicURL"`
+	Resources Resources `json:"resources"`
+}
+
+// StackKnowledgeBaseSpecIssuer The issuer the knowledge base trusts: the one
+// the launcher runs for the knowledge bases on a machine, at `shared`, with
+// the knowledge base's own realm in it, or somebody else's, at `external`.
+type StackKnowledgeBaseSpecIssuer struct {
+	// External An issuer somebody else runs.
+	External *StackKnowledgeBaseSpecIssuerExternal `json:"external,omitempty"`
+	// Shared The issuer the launcher runs for the knowledge bases on a machine
+	// (the state home's Issuer document). The launcher creates the knowledge
+	// base's realm in it.
+	Shared *StackKnowledgeBaseSpecIssuerShared `json:"shared,omitempty"`
+	// SubjectClaim The claim a person's DID is built from: did:web:<site
+	// domain>:users:<its value>.
+	SubjectClaim string `json:"subjectClaim"`
+}
+
+// StackKnowledgeBaseSpecIssuerExternal An issuer somebody else runs.
+type StackKnowledgeBaseSpecIssuerExternal struct {
+	// Type `oidc`, or `keycloak`.
+	Type string `json:"type"`
+	// Url The URL in its tokens' `iss` claim.
+	Url string `json:"url"`
+}
+
+// StackKnowledgeBaseSpecIssuerShared The issuer the launcher runs for the
+// knowledge bases on a machine (the state home's Issuer document). The
+// launcher creates the knowledge base's realm in it.
+type StackKnowledgeBaseSpecIssuerShared struct {
+	// AccessTokenLifespan How long a token the realm mints stays valid, in
+	// seconds: the window in which a disabled account can still act.
+	AccessTokenLifespan int `json:"accessTokenLifespan"`
+}
+
+// StackKnowledgeBaseSpecMessaging The broker the job queue and the signal
+// plane share: the launcher's, run from `image`, or somebody else's, at
+// `external`.
+type StackKnowledgeBaseSpecMessaging struct {
+	// External A broker somebody else runs, serving this knowledge base alone: a
+	// second knowledge base on it would share the job queue and, on a `nats`
+	// signal plane, the frames and the gateway's record of pending replies. The
+	// launcher refuses to start a knowledge base whose `servers` another
+	// knowledge base on its machine names.
+	External *StackKnowledgeBaseSpecMessagingExternal `json:"external,omitempty"`
+	Image    *Image                                   `json:"image,omitempty"`
+	// Jobs The Dispatcher's queue.
+	Jobs      StackKnowledgeBaseSpecMessagingJobs `json:"jobs"`
+	Resources *Resources                          `json:"resources,omitempty"`
+	// Signal The Gateway's signal plane.
+	Signal StackKnowledgeBaseSpecMessagingSignal `json:"signal"`
+}
+
+// StackKnowledgeBaseSpecMessagingExternal A broker somebody else runs,
+// serving this knowledge base alone: a second knowledge base on it would
+// share the job queue and, on a `nats` signal plane, the frames and the
+// gateway's record of pending replies. The launcher refuses to start a
+// knowledge base whose `servers` another knowledge base on its machine names.
+type StackKnowledgeBaseSpecMessagingExternal struct {
+	Password SecretRef `json:"password"`
+	// Servers Where it listens: `host:port`.
+	Servers string    `json:"servers"`
+	User    SecretRef `json:"user"`
+}
+
+// StackKnowledgeBaseSpecMessagingJobs The Dispatcher's queue.
+type StackKnowledgeBaseSpecMessagingJobs struct {
+	// Type The queue's driver: `jetstream`.
+	Type string `json:"type"`
+}
+
+// StackKnowledgeBaseSpecMessagingSignal The Gateway's signal plane.
+type StackKnowledgeBaseSpecMessagingSignal struct {
+	// Type `in-process`, one Gateway on its own fabric, or `nats`, on the
+	// broker.
+	Type string `json:"type"`
+}
+
+// StackStartParams stack.start's params: what xynolog start takes, but its
+// help and its narration switches.
+type StackStartParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// CodespaceName For a codespace target: which of the repository's
+	// codespaces, as --codespace names it.
+	CodespaceName *string `json:"codespaceName,omitempty"`
+	// Config The Inference document to run, as --config names it. Absent: the
+	// knowledge base's recorded preference, else the default.
+	Config *string `json:"config,omitempty"`
+	// DryRun Whether to run nothing, and report each runtime command a start
+	// would run as a command progress line.
+	DryRun *bool `json:"dryRun,omitempty"`
+	// Group Just this one group of services, as --group names it.
+	Group *ServiceGroup `json:"group,omitempty"`
+	// IdleTimeout For a codespace target being created: inactivity before it
+	// stops, as --idle-timeout takes it.
+	IdleTimeout *string `json:"idleTimeout,omitempty"`
+	// Machine For a codespace target being created: its VM class, as --machine
+	// names it.
+	Machine *string `json:"machine,omitempty"`
+	// Observe Whether to start the telemetry backends, Jaeger and Prometheus.
+	// false is --no-observe. Absent: true.
+	Observe *bool `json:"observe,omitempty"`
+	// OllamaCache Where a started Ollama keeps its models, as --ollama-cache
+	// names it. Absent: the host's ~/.ollama when there is one, else the named
+	// volume — what the command line's prompt does when nobody answers it.
+	OllamaCache *StackStartParamsOllamaCache `json:"ollamaCache,omitempty"`
+	// RetentionPeriod For a codespace target being created: how long a stopped
+	// codespace is kept, as --retention-period takes it.
+	RetentionPeriod *string `json:"retentionPeriod,omitempty"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else every installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Service Just this one service, as --service names it.
+	Service *string `json:"service,omitempty"`
+	// Target Which knowledge base's stack. Absent: the one the command line
+	// chooses, standing where the control server was started.
+	Target *Target `json:"target,omitempty"`
+}
+
+// StackStartParamsOllamaCache Where a started Ollama keeps its models, as
+// --ollama-cache names it. Absent: the host's ~/.ollama when there is one,
+// else the named volume — what the command line's prompt does when nobody
+// answers it.
+type StackStartParamsOllamaCache string
+
+// The values of StackStartParamsOllamaCache.
+const (
+	StackStartParamsOllamaCacheHost   StackStartParamsOllamaCache = "host"
+	StackStartParamsOllamaCacheVolume StackStartParamsOllamaCache = "volume"
+)
+
+// Valid is whether e is one of StackStartParamsOllamaCache's values.
+func (e StackStartParamsOllamaCache) Valid() bool {
+	switch e {
+	case StackStartParamsOllamaCacheHost, StackStartParamsOllamaCacheVolume:
+		return true
+	}
+	return false
+}
+
+// StackStartResult A start that ran to its end: the stack as status reads it
+// afterwards. A start that failed is an error, whatever it started before it
+// did; its progress lines say what it did.
+type StackStartResult struct {
+	// DryRun Whether the start ran nothing.
+	DryRun bool `json:"dryRun"`
+	// KnowledgeBase The started knowledge base's stack, as status reads it after
+	// the start. Absent from a dry run, and from a start of services no
+	// knowledge base owns.
+	KnowledgeBase *KnowledgeBaseStatus `json:"knowledgeBase,omitempty"`
+	// Shared The shared services, as status reads them after the start. Absent
+	// from a dry run.
+	Shared *[]ServiceStatus `json:"shared,omitempty"`
+}
+
+// StackStopParams stack.stop's params: what xynolog stop takes, but its help.
+type StackStopParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Delete For a codespace target: destroy the codespace, state and all, and
+	// forget its record. The command line's --delete. Refused without
+	// deleteConfirmed.
+	Delete *bool `json:"delete,omitempty"`
+	// DeleteConfirmed That the person confirmed the deletion: delete is refused
+	// with control.confirmation-required without it.
+	DeleteConfirmed *bool `json:"deleteConfirmed,omitempty"`
+	// DryRun Whether to stop nothing, and report each runtime command a stop
+	// would run as a command progress line.
+	DryRun *bool `json:"dryRun,omitempty"`
+	// Group Just this one group of services, as --group names it.
+	Group *ServiceGroup `json:"group,omitempty"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else every installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Service Just this one service, as --service names it.
+	Service *string `json:"service,omitempty"`
+	// Target Which knowledge base's stack. Absent: the one the command line
+	// chooses, standing where the control server was started.
+	Target *Target `json:"target,omitempty"`
+}
+
+// StackStopResult A stop that ran to its end: what status reads afterwards. A
+// stop that failed is an error.
+type StackStopResult struct {
+	// DryRun Whether the stop stopped nothing.
+	DryRun bool `json:"dryRun"`
+	// KnowledgeBases The knowledge bases still recorded, as status reads them
+	// after the stop. Absent from a dry run.
+	KnowledgeBases *[]KnowledgeBaseStatus `json:"knowledgeBases,omitempty"`
+	// Shared The shared services, as status reads them after the stop. Absent
+	// from a dry run.
+	Shared *[]ServiceStatus `json:"shared,omitempty"`
+}
+
 type StatusResponse struct {
 	AuthenticatedAs *string                `json:"authenticatedAs,omitempty"`
 	Features        StatusResponseFeatures `json:"features"`
@@ -8398,6 +11380,39 @@ type StatusResponse struct {
 type StatusResponseFeatures struct {
 	Collaboration   string `json:"collaboration"`
 	SemanticContent string `json:"semanticContent"`
+}
+
+// StatusSnapshotParams status.snapshot's params.
+type StatusSnapshotParams struct {
+	// ApiVersion The version of the control API the request is written to.
+	ApiVersion ApiVersion `json:"apiVersion"`
+	// Runtime The container runtime to ask, as --runtime names it. Absent: the
+	// one the stack's record names, else every installed one.
+	Runtime *Runtime `json:"runtime,omitempty"`
+	// Target Which knowledge base's stack. Absent: the one the command line
+	// chooses, standing where the control server was started.
+	Target *Target `json:"target,omitempty"`
+}
+
+// StatusSnapshotResult What xynolog status reports: each knowledge base with
+// its own services, and each service the knowledge bases share, once, with
+// the knowledge bases it serves.
+type StatusSnapshotResult struct {
+	// KnowledgeBases The target's stack; with no target, the stack of the
+	// knowledge base the control server stands in, else every recorded one.
+	KnowledgeBases []KnowledgeBaseStatus `json:"knowledgeBases"`
+	// Shared The services every knowledge base shares, group by group, and those
+	// the machine serves for the knowledge bases that name them.
+	Shared []ServiceStatus `json:"shared"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v StatusSnapshotResult) MarshalJSON() ([]byte, error) {
+	type written StatusSnapshotResult
+	v.KnowledgeBases = listOf(v.KnowledgeBases)
+	v.Shared = listOf(v.Shared)
+	return json.Marshal(written(v))
 }
 
 // StorageUriEntry One entry of the storage-uri index: the file
@@ -8821,6 +11836,41 @@ func (e TaggingJobParamsMotivation) Valid() bool {
 	return false
 }
 
+// Target Which knowledge base an operation acts on: a local clone's stack, or
+// a codespace's. The launcher resolves it as the command line resolves --root
+// and --repo, and refuses a choice it would have to guess.
+type Target struct {
+	// Kind Where the stack runs: on this machine (local), or on a GitHub
+	// codespace whose knowledge base is forwarded here (codespace).
+	Kind TargetKind `json:"kind"`
+	// Repo For a codespace target: the GitHub repository, as --repo takes it.
+	Repo *string `json:"repo,omitempty"`
+	// Root For a local target: the knowledge base's clone, by path or by the
+	// basename of a registered root, as --root takes it. Absent: the local stack
+	// the command line chooses with --runtime, standing where the control server
+	// was started.
+	Root *string `json:"root,omitempty"`
+}
+
+// TargetKind Where the stack runs: on this machine (local), or on a GitHub
+// codespace whose knowledge base is forwarded here (codespace).
+type TargetKind string
+
+// The values of TargetKind.
+const (
+	TargetKindLocal     TargetKind = "local"
+	TargetKindCodespace TargetKind = "codespace"
+)
+
+// Valid is whether e is one of TargetKind's values.
+func (e TargetKind) Valid() bool {
+	switch e {
+	case TargetKindLocal, TargetKindCodespace:
+		return true
+	}
+	return false
+}
+
 type TextPositionSelector struct {
 	// End Offset into the resource's decoded text, exactly as decoded, in
 	// Unicode code points from its start: just past where the selected text
@@ -9102,6 +12152,22 @@ func (e UploadProgressStartedPhase) Valid() bool {
 	return false
 }
 
+// UserAction A sign-in waits for a person: open the verification page and
+// enter the code. The code is sent here and nowhere else — in no progress
+// line, no log record and no diagnostic.
+type UserAction struct {
+	// ExpiresInSeconds How long the code is good for, from when it was issued.
+	ExpiresInSeconds int       `json:"expiresInSeconds"`
+	RequestId        RequestId `json:"requestId"`
+	// UserCode The code the person enters.
+	UserCode string `json:"userCode"`
+	// VerificationUri The page where the person enters the code.
+	VerificationUri string `json:"verificationUri"`
+	// VerificationUriComplete The page with the code already in it, when the
+	// issuer offers one.
+	VerificationUriComplete *string `json:"verificationUriComplete,omitempty"`
+}
+
 // UserResponse The authenticated principal, as this knowledge base names it.
 // The `did` is the identity: it is what the bus stamps on every event, what
 // resource creation is attributed to, and what a client must compare against
@@ -9124,6 +12190,46 @@ type UserResponse struct {
 	Email *string `json:"email"`
 	Image *string `json:"image"`
 	Name  *string `json:"name"`
+}
+
+// VectorStore The vector store the launcher runs for the knowledge bases on a
+// machine, each knowledge base's index in collections of its own. It belongs
+// to no knowledge base, so its document is kept in the launcher's state home,
+// in `stack/vectors.yaml`, not in a knowledge base's repository. A knowledge
+// base keeps its index in it by naming `shared` at `spec.vectors`.
+type VectorStore struct {
+	ApiVersion StackApiVersion `json:"apiVersion"`
+	Kind       VectorStoreKind `json:"kind"`
+	Metadata   Metadata        `json:"metadata"`
+	// Spec The vector store, and where it is published.
+	Spec VectorStoreSpec `json:"spec"`
+}
+
+type VectorStoreKind string
+
+// The values of VectorStoreKind.
+const (
+	VectorStoreKindVectorStore VectorStoreKind = "VectorStore"
+)
+
+// Valid is whether e is one of VectorStoreKind's values.
+func (e VectorStoreKind) Valid() bool {
+	switch e {
+	case VectorStoreKindVectorStore:
+		return true
+	}
+	return false
+}
+
+// VectorStoreSpec The vector store, and where it is published.
+type VectorStoreSpec struct {
+	Image Image `json:"image"`
+	// Port The port the vector store is published on, on this machine, where
+	// every knowledge base's Smelter and Librarian reach it.
+	Port      int       `json:"port"`
+	Resources Resources `json:"resources"`
+	// Type The vector store's driver: `qdrant`.
+	Type string `json:"type"`
 }
 
 // VectorsConfig The vector index a service writes or searches, and what that
@@ -9247,58 +12353,16 @@ type WeaverConfig struct {
 // `ok` whenever the Weaver answers: it says nothing of whether the Weaver can
 // reach the gateway or the graph.
 type WeaverHealth struct {
-	// Following How far a follower of the record has followed it, as every
-	// follower says it at its health port (WEAVER.md § Health, SMELTER.md §
-	// Health).
-	Following WeaverHealthFollowing `json:"following"`
+	Following FollowerFollowing `json:"following"`
 	// Kb The DID of the knowledge base it serves: the one its settings name,
 	// which that knowledge base said it is before the Weaver connected to the
 	// graph database.
-	Kb string `json:"kb"`
+	Kb KbDid `json:"kb"`
 	// Reconcile How far the reconcile its first sweep is followed by has got
 	// (WEAVER.md § Reconcile): the pass's `summary` when it is done, or its
 	// `error` when it failed.
 	Reconcile WeaverHealthReconcile `json:"reconcile"`
 	Status    WeaverHealthStatus    `json:"status"`
-}
-
-// WeaverHealthFollowing How far a follower of the record has followed it, as
-// every follower says it at its health port (WEAVER.md § Health, SMELTER.md §
-// Health).
-type WeaverHealthFollowing struct {
-	// Refused How many events it refused as recorded since it started.
-	Refused int `json:"refused"`
-	// Stopped How many resources' logs a failed taking has stopped until the
-	// next sweep.
-	Stopped int `json:"stopped"`
-	// StreamDrops How many times its stream has dropped since it started.
-	StreamDrops int `json:"streamDrops"`
-	// Sweep The latest sweep's phase: `pending` before its stream first opens,
-	// `running`, `done`, or `due` where the record could not be listed and the
-	// sweep is tried again.
-	Sweep WeaverHealthFollowingSweep `json:"sweep"`
-}
-
-// WeaverHealthFollowingSweep The latest sweep's phase: `pending` before its
-// stream first opens, `running`, `done`, or `due` where the record could not
-// be listed and the sweep is tried again.
-type WeaverHealthFollowingSweep string
-
-// The values of WeaverHealthFollowingSweep.
-const (
-	WeaverHealthFollowingSweepPending WeaverHealthFollowingSweep = "pending"
-	WeaverHealthFollowingSweepRunning WeaverHealthFollowingSweep = "running"
-	WeaverHealthFollowingSweepDone    WeaverHealthFollowingSweep = "done"
-	WeaverHealthFollowingSweepDue     WeaverHealthFollowingSweep = "due"
-)
-
-// Valid is whether e is one of WeaverHealthFollowingSweep's values.
-func (e WeaverHealthFollowingSweep) Valid() bool {
-	switch e {
-	case WeaverHealthFollowingSweepPending, WeaverHealthFollowingSweepRunning, WeaverHealthFollowingSweepDone, WeaverHealthFollowingSweepDue:
-		return true
-	}
-	return false
 }
 
 // WeaverHealthReconcile How far the reconcile its first sweep is followed by
@@ -9578,6 +12642,91 @@ func (e WorkerKnowledgeBaseHealthState) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// WorkerPool The shared worker that does knowledge bases' jobs: its image,
+// its memory and its log level. They are shared, not any knowledge base's, so
+// its document is kept in the launcher's state home, in `stack/workers.yaml`,
+// not in a knowledge base's repository. A knowledge base's jobs are done when
+// its Inference document gives a job an engine. A worker needs only the
+// Gateway, and an issuer's token with the worker's role.
+type WorkerPool struct {
+	ApiVersion StackApiVersion `json:"apiVersion"`
+	Kind       WorkerPoolKind  `json:"kind"`
+	Metadata   Metadata        `json:"metadata"`
+	// Spec How the worker runs.
+	Spec WorkerPoolSpec `json:"spec"`
+}
+
+type WorkerPoolKind string
+
+// The values of WorkerPoolKind.
+const (
+	WorkerPoolKindWorkerPool WorkerPoolKind = "WorkerPool"
+)
+
+// Valid is whether e is one of WorkerPoolKind's values.
+func (e WorkerPoolKind) Valid() bool {
+	switch e {
+	case WorkerPoolKindWorkerPool:
+		return true
+	}
+	return false
+}
+
+// WorkerPoolSpec How the worker runs.
+type WorkerPoolSpec struct {
+	LogLevel LogLevel `json:"logLevel"`
+	// Worker The Worker.
+	Worker WorkerPoolSpecWorker `json:"worker"`
+}
+
+// WorkerPoolSpecWorker The Worker.
+type WorkerPoolSpecWorker struct {
+	Image     Image     `json:"image"`
+	Resources Resources `json:"resources"`
+}
+
+// WorkloadStatus A knowledge base's operational readings from Collector
+// metrics. Request-tracking occupancy and queue depth are current gauges;
+// completed and failed are worker counters since that worker process started.
+// Missing readings are unknown, never zero.
+type WorkloadStatus struct {
+	// Ledger The Gateway's request tracking: correlation IDs it currently holds
+	// so replies can be routed to the app client that sent each request, and the
+	// tracking capacity.
+	Ledger *WorkloadStatusLedger `json:"ledger,omitempty"`
+	// Queue Current Dispatcher depth and, when the worker has emitted counters,
+	// completed and failed work since worker start. These are different
+	// measurements and time windows.
+	Queue *WorkloadStatusQueue `json:"queue,omitempty"`
+}
+
+// WorkloadStatusLedger The Gateway's request tracking: correlation IDs it
+// currently holds so replies can be routed to the app client that sent each
+// request, and the tracking capacity.
+type WorkloadStatusLedger struct {
+	// Capacity The maximum number of IDs held in this Gateway's local tracking
+	// projection.
+	Capacity int `json:"capacity"`
+	// Claims Number of request IDs currently held to route replies to their
+	// requesting app clients. Includes requests still waiting for a reply and
+	// recently answered requests still within the tracking window.
+	Claims int `json:"claims"`
+}
+
+// WorkloadStatusQueue Current Dispatcher depth and, when the worker has
+// emitted counters, completed and failed work since worker start. These are
+// different measurements and time windows.
+type WorkloadStatusQueue struct {
+	// Completed Jobs completed since worker start.
+	Completed *int `json:"completed,omitempty"`
+	// Failed Jobs finally failed since worker start.
+	Failed *int `json:"failed,omitempty"`
+	// Pending Jobs currently waiting for a worker.
+	Pending int `json:"pending"`
+	// Running Jobs currently claimed by workers.
+	Running int `json:"running"`
 }
 
 // YieldCloneCreateCommand Bus command to create a cloned resource from a

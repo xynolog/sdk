@@ -277,7 +277,7 @@ public sealed class SessionTests
         Assert.True(await errors.MoveNextAsync(), "the session's end was not said");
         Assert.Equal("session.refresh-exhausted", errors.Current.Code);
         Assert.Equal([SessionEndReason.Expired], ended.ToArray());
-        Assert.Equal(new SessionState(null, null), session.State);
+        Assert.Equal(new Session.SessionState(null, null), session.State);
         Assert.Null(await kept.HeldAsync(deadline.Token));
     }
 
@@ -303,7 +303,7 @@ public sealed class SessionTests
         await session.ReadyAsync(deadline.Token);
         Assert.Null(await kept.HeldAsync(deadline.Token));
         Assert.Empty(ended);
-        Assert.Equal(new SessionState(null, null), session.State);
+        Assert.Equal(new Session.SessionState(null, null), session.State);
         Assert.False(said.IsCompleted, "the start said something");
     }
 
@@ -323,7 +323,7 @@ public sealed class SessionTests
         };
         var signIn = new MemorySignIn(stored);
         var kept = new SignInUnreadableAfter(signIn, reads: 1);
-        using var issuer = new Issuer(timeProvider: clock, random: new ZeroRandom());
+        using var issuer = new SignIn.Issuer(timeProvider: clock, random: new ZeroRandom());
         using var session = new KeptSession(kept, (holding, cancellation) => issuer.RenewAsync(kept, holding, cancellation),
             (_, _) => Task.FromResult(User()), clock, new ZeroRandom(), onAuthFailed: null);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -354,7 +354,7 @@ public sealed class SessionTests
         var signIn = Stored(clock);
         var stored = await signIn.HeldAsync();
         var kept = new SignInUnreadableAfter(signIn, reads: 1);
-        using var issuer = new Issuer(timeProvider: clock, random: new ZeroRandom());
+        using var issuer = new SignIn.Issuer(timeProvider: clock, random: new ZeroRandom());
         using var session = new KeptSession(kept, (holding, cancellation) => issuer.RenewAsync(kept, holding, cancellation),
             (_, _) => Task.FromResult(User()), clock, new ZeroRandom(), onAuthFailed: null);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));

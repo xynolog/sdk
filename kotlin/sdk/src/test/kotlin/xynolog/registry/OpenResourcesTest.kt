@@ -23,6 +23,7 @@ import xynolog.types.KbIdentityConflict
 import xynolog.types.KbReadVerdictConflict
 import xynolog.types.KbReadVerdictNoVerdict
 import xynolog.types.KbReadVerdictRecorded
+import xynolog.types.OpenResource
 import xynolog.types.TabCheckGone
 import xynolog.types.TabCheckReady
 import xynolog.types.TabCheckUnknown
@@ -35,7 +36,7 @@ private fun JsonObject.idsAt(member: String): Set<String> = getValue(member).jso
 
 private fun conflict(browser: XynologBrowser): KbIdentityConflict? = browser.activeSignals.value?.kbIdentityConflict?.value
 
-private fun tab(named: String, openedAt: Long, order: Int) = OpenResource(ResourceId(named), "name of $named", openedAt, order, "text/plain")
+private fun tab(named: String, openedAt: Long, order: Long) = OpenResource(ResourceId(named), "name of $named", openedAt, order, "text/plain")
 
 /** A storage that takes no `update`: it is told what to store, and refuses to store it. Every other read and write is the storage's own. */
 private class RefusingUpdates(private val beneath: SessionStorage) : SessionStorage by beneath {
@@ -116,7 +117,7 @@ class OpenResourcesTest {
             browser.removeOpenResource(ResourceId("r2"))
             browser.addOpenResource(ResourceId("r4"), "r4")
             assertEquals(listOf("r1", "r3", "r4"), shown(browser))
-            assertEquals(listOf(0, 2, 3), browser.openResources.value.map { it.order })
+            assertEquals(listOf(0L, 2L, 3L), browser.openResources.value.map { it.order })
         }
     }
 

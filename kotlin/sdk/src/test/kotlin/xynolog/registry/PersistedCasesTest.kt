@@ -40,7 +40,6 @@ import xynolog.identifiers.ResourceId
 import xynolog.live.recorded
 import xynolog.session.OpenedSession
 import xynolog.session.SessionSignals
-import xynolog.signin.HeldSignIn
 import xynolog.signin.MemorySignIn
 import xynolog.signin.SCRIPT_CLIENT_ID
 import xynolog.storage.MemoryStorage
@@ -132,8 +131,8 @@ private fun Realm.signIn(personKey: String?, access: String = tokenFor("access")
 private fun Realm.targetA(): KbTarget = kbA().let { KbTarget(it.id, it.label, it.endpoint) }
 
 /** A script's sign-in, renewed at the realm's issuer, naming `personKey`, or nobody for null. */
-private fun Realm.held(personKey: String?, access: String = tokenFor("access"), refresh: String = "r1"): HeldSignIn =
-    HeldSignIn(access, refresh, SCRIPT_CLIENT_ID, "$origin/token", null, personKey)
+private fun Realm.held(personKey: String?, access: String = tokenFor("access"), refresh: String = "r1"): StoredSession =
+    StoredSession(access, refresh, SCRIPT_CLIENT_ID, "$origin/token", null, personKey)
 
 /** kb-a's stored sign-in as the row's `signedIn` says, made by `signIn` for the person it names (null for nobody); null when nothing is stored. */
 private fun signInOf(row: JsonObject, signIn: (String?) -> StoredSession): StoredSession? = when (val signedIn = row.text("signedIn")) {

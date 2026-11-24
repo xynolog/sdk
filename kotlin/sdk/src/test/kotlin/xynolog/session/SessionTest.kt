@@ -35,11 +35,11 @@ import xynolog.errors.SignInError
 import xynolog.errors.SignInErrorCode
 import xynolog.errors.TransportError
 import xynolog.errors.XynologError
-import xynolog.signin.HeldSignIn
 import xynolog.signin.MemorySignIn
 import xynolog.signin.SCRIPT_CLIENT_ID
 import xynolog.testing.TestClient
 import xynolog.types.SessionEndReason
+import xynolog.types.StoredSession
 import xynolog.types.UserResponse
 import kotlin.random.Random
 
@@ -514,7 +514,7 @@ class SessionTest {
     @Test
     fun aSessionsErrorsAreItsOwnAndItsTransportsEachSaidOnce() = runTest {
         val made = TestClient(currentCoroutineContext().minusKey(Job), testScheduler.timeSource)
-        val kept = MemorySignIn(HeldSignIn(token(3600, 1), "a-refresh-token", SCRIPT_CLIENT_ID, "https://issuer.test/token", null, null))
+        val kept = MemorySignIn(StoredSession(token(3600, 1), "a-refresh-token", SCRIPT_CLIENT_ID, "https://issuer.test/token", null, null))
         val session = XynologSession(TARGET, made.client, MutableStateFlow(null), kept, { throw unansweredByTheIssuer() }, { alice }, null, Random(0))
         val said = mutableListOf<XynologError>()
         val errors = session.errors()

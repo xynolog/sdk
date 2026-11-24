@@ -22,6 +22,7 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/optional"
 )
 
 // renewing is a kept sign-in's renewals, one at a time: a renewal asked for
@@ -209,7 +210,7 @@ func SessionFromKept(ctx context.Context, config SessionFromKeptConfig) (session
 	if err != nil {
 		return nil, nil, err
 	}
-	var held HeldSignIn
+	var held api.StoredSession
 	var has bool
 	keepsForAPerson := config.Storage != nil
 	if keepsForAPerson {
@@ -356,7 +357,7 @@ func (k *keptFor) stop() {
 }
 
 // whileNamed is the storage a session keeps one person's things in, written
-// only while its kept sign-in names that person (HeldSignIn.PersonKey). Each
+// only while its kept sign-in names that person (api.StoredSession.PersonKey). Each
 // write is checked and made as one step. Once a write finds the sign-in
 // forgotten, or naming nobody or another person, or cannot read it, or the
 // session has dropped it, that write and every one after it are dropped: what
@@ -495,12 +496,12 @@ func SignInWithDevice(ctx context.Context, issuer Issuer, baseURL string, kept S
 	if err != nil {
 		return IssuerEndpoints{}, err
 	}
-	return endpoints, kept.Keep(ctx, HeldSignIn{
+	return endpoints, kept.Keep(ctx, api.StoredSession{
 		Access:             tokens.Access,
 		Refresh:            tokens.Refresh,
-		ClientID:           ScriptClientID,
+		ClientId:           ScriptClientID,
 		TokenEndpoint:      endpoints.Token,
-		RevocationEndpoint: endpoints.Revocation,
+		RevocationEndpoint: optional.Text(endpoints.Revocation),
 	})
 }
 
@@ -517,8 +518,8 @@ func SignOut(ctx context.Context, issuer Issuer, kept SignInKept) (revoked bool,
 	if !ok {
 		return false, kept.Forget(ctx)
 	}
-	if held.RevocationEndpoint != "" {
-		revoked = issuer.Revoke(ctx, held.RevocationEndpoint, held.ClientID, held.Refresh) == nil
+	if held.RevocationEndpoint != nil {
+		revoked = issuer.Revoke(ctx, *held.RevocationEndpoint, held.ClientId, held.Refresh) == nil
 	}
 	return revoked, kept.Forget(ctx)
 }

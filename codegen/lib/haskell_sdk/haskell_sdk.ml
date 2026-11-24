@@ -116,27 +116,11 @@ let files ~root (spec : Spec.t) =
     within "bus/registry.json" (Channels.derive spec.tables.bus_registry)
   in
   let* adapters = adapters spec in
-  let* definitions =
+  let* definitions, validated_roots =
     within "openapi.json"
       (Definitions.derive ~root spec ~adapters
          ~carrier:(Transport.carrier_schema transport)
          ~http:http.schemas ~envelopes:bus.envelopes)
-  in
-  let* () =
-    within "openapi.json"
-      (match
-         List.find_map
-           (fun (name, schema) ->
-             match Schema.unread_anywhere schema with
-             | [] -> None
-             | keyword :: _ ->
-                 Some
-                   (name ^ " states " ^ keyword
-                  ^ ", which the SDK does not read"))
-           definitions
-       with
-      | Some refusal -> Error refusal
-      | None -> Ok ())
   in
   let identifiers =
     List.map
@@ -205,10 +189,15 @@ let files ~root (spec : Spec.t) =
     within "haskell/sdk/xynolog.cabal.in" (manifest ~root models.module_names)
   in
   let* validated =
+    (* A root is validated as Protocol states it; what the models mint
+       beside the roots, as they type it. *)
     let find name =
-      match List.assoc_opt name models.definitions with
-      | Some s -> Ok s
-      | None -> Error ("unknown schema reference: " ^ name)
+      match
+        ( List.assoc_opt name validated_roots,
+          List.assoc_opt name models.definitions )
+      with
+      | Some s, _ | None, Some s -> Ok s
+      | None, None -> Error ("unknown schema reference: " ^ name)
     in
     let merged =
       Normalize.everywhere spec.Spec.ids ~referenced:Definitions.referenced

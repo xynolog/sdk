@@ -26,11 +26,11 @@ type t =
 
 and node = {
   keys : string list;  (** The keywords it states, by their names. *)
+  title : string option;
   description : string option;
   type_ : types option;
   format : Schema.format option;
   enum : Schema.literal list option;
-  const : bool;
   properties : (string * t) list option;
   required : string list option;
   additional_properties : t option;
@@ -49,11 +49,11 @@ and node = {
 let node keys =
   {
     keys;
+    title = None;
     description = None;
     type_ = None;
     format = None;
     enum = None;
-    const = false;
     properties = None;
     required = None;
     additional_properties = None;
@@ -178,6 +178,12 @@ let whole (spec : Spec.t) =
           (Normalize.closed_within ids ~find:(schema_of ~ids ~schemas))
     | exception Refused message -> Error message
 
+(* A schema read whole ([whole]), as a writer of types reads it
+   ([Normalize.shape_only]). *)
+let typed (spec : Spec.t) =
+  let whole = whole spec in
+  fun s -> Result.map Normalize.shape_only (whole s)
+
 (* The client types each SDK writes by hand: SearchState and JobEvent, each
    held to its schema by a census in every SDK; PutBinaryRequest, whose file
    is bytes, which the Swift, Kotlin and Haskell writers state as text; and
@@ -201,7 +207,7 @@ let generated_client_types (spec : Spec.t) =
   let names =
     List.filter_map
       (fun (key, _) ->
-        if String.starts_with ~prefix:Schema_names.client_types key then
+        if String.starts_with ~prefix:Roots.client_types key then
           Some (Filename.remove_extension (Filename.basename key))
         else None)
       spec.schemas
@@ -210,7 +216,7 @@ let generated_client_types (spec : Spec.t) =
     (fun name ->
       if not (List.mem name names) then
         refuse "%s%s.json, which an SDK writes by hand, is gone"
-          Schema_names.client_types name)
+          Roots.client_types name)
     hand_written_client_types;
   List.sort String.compare
     (List.filter (fun n -> not (List.mem n hand_written_client_types)) names)
@@ -222,7 +228,7 @@ let records spec =
 
 let client_roots (spec : Spec.t) =
   List.filter
-    (String.starts_with ~prefix:Schema_names.client_types)
+    (String.starts_with ~prefix:Roots.client_types)
     (List.map fst spec.schemas)
   @ List.filter_map
       (fun (key, _, _) ->
@@ -296,6 +302,7 @@ let view ~ids ~named ~schemas =
           let own =
             {
               keys;
+              title = s.title;
               description =
                 (match merged with
                 | Some (Node m) -> m.description
@@ -303,7 +310,6 @@ let view ~ids ~named ~schemas =
               type_ = types;
               format = s.format;
               enum = s.enum;
-              const = Option.is_some s.const;
               properties =
                 Option.map (List.map (fun (k, v) -> (k, sub v))) s.properties;
               required = s.required;
@@ -376,8 +382,12 @@ type bundle = {
 let bundle (spec : Spec.t) =
   let ids = spec.ids in
   let schemas = Hashtbl.create 1024 in
-  List.iter (fun (file, s) -> Hashtbl.replace schemas file s) spec.schemas;
-  List.iter (fun (key, _, s) -> Hashtbl.replace schemas key s) (records spec);
+  List.iter
+    (fun (file, s) -> Hashtbl.replace schemas file (Normalize.shape_only s))
+    spec.schemas;
+  List.iter
+    (fun (key, _, s) -> Hashtbl.replace schemas key (Normalize.shape_only s))
+    (records spec);
   let declared =
     List.map
       (fun (name, r) -> (fst (Decode.resolve spec.Spec.ids r), name))
@@ -540,19 +550,20 @@ let alone ~ids ~name (s : Schema.t) =
   }
 
 (* The schema that states each property of [name]'s schema [s], as
-   [Inherited.owners] decides it: an [allOf]'s members are its parts, and any
-   other schema is one part stating its own properties. *)
+   [Inherited.owners] decides it: a schema's parts are its [allOf]'s members
+   and then its own properties. *)
 let owners definitions name s =
   let stated = function
     | Node { properties = Some ps; _ } -> Inherited.Stated (List.map fst ps)
     | _ -> Inherited.Stated []
   in
   let parts = function
-    | Node { all_of = Some members; _ } ->
+    | Node { all_of = Some members; _ } as s ->
         List.map
           (function
             | Ref { name; _ } -> Inherited.Component name | m -> stated m)
           members
+        @ [ stated s ]
     | s -> [ stated s ]
   in
   Inherited.owners ~parts:(fun n -> parts (definitions.schema n)) name (parts s)

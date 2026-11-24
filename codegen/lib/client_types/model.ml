@@ -166,7 +166,7 @@ let derive (spec : Spec.t) =
     | Some s -> Ok s
     | None -> Error ("refers to " ^ r.target ^ ", which is no schema")
   in
-  let whole = Definitions.whole spec in
+  let whole = Definitions.typed spec in
   (* An object's members: one that is all of some schemas, those of what they
      merge to ([Normalize]), in the order they state them. *)
   let object_ file pointer : Schema.t -> member list option = function

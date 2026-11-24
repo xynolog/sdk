@@ -25,12 +25,13 @@ private fun serialNameOf(type: KClass<*>): String = type.qualifiedName ?: throw 
 
 /**
  * A union whose members are told apart by the kind of JSON each is read from:
- * the first member, in the schema's order, of those read from a string, an
- * array or an object, that the element decodes as.
+ * the first member, in the schema's order, of those read from a string, a
+ * number or boolean, an array or an object, that the element decodes as.
  */
 internal open class KindsUnionSerializer<T : Any>(
     union: KClass<T>,
     private val strings: () -> List<DeserializationStrategy<T>>,
+    private val scalars: () -> List<DeserializationStrategy<T>>,
     private val arrays: () -> List<DeserializationStrategy<T>>,
     private val objects: () -> List<DeserializationStrategy<T>>,
 ) : JsonContentPolymorphicSerializer<T>(union) {
@@ -42,7 +43,7 @@ internal open class KindsUnionSerializer<T : Any>(
         firstThatFits(
             element,
             when (element) {
-                is JsonPrimitive -> if (element.isString) strings() else emptyList()
+                is JsonPrimitive -> if (element.isString) strings() else scalars()
                 is JsonArray -> arrays()
                 is JsonObject -> objects()
             },

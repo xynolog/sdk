@@ -57,23 +57,6 @@ func writtenSession(s api.StoredSession) string {
 	return string(written)
 }
 
-// heldOf is a stored session as a session holds it.
-func heldOf(s api.StoredSession) xynolog.HeldSignIn {
-	var revocation string
-	if s.RevocationEndpoint != nil {
-		revocation = *s.RevocationEndpoint
-	}
-	return xynolog.HeldSignIn{Access: s.Access, Refresh: s.Refresh, ClientID: s.ClientId, TokenEndpoint: s.TokenEndpoint, RevocationEndpoint: revocation, PersonKey: s.PersonKey}
-}
-
-func storedOf(held xynolog.HeldSignIn) api.StoredSession {
-	var revocation *string
-	if held.RevocationEndpoint != "" {
-		revocation = &held.RevocationEndpoint
-	}
-	return api.StoredSession{Access: held.Access, Refresh: held.Refresh, ClientId: held.ClientID, TokenEndpoint: held.TokenEndpoint, RevocationEndpoint: revocation, PersonKey: held.PersonKey}
-}
-
 // StoredSessionOf is the session stored for a knowledge base; false when
 // none is.
 func StoredSessionOf(storage xynolog.SessionStorage, kbID string) (api.StoredSession, bool) {
@@ -181,16 +164,16 @@ type keptIn struct {
 	kbID    string
 }
 
-func (k keptIn) Held(context.Context) (xynolog.HeldSignIn, bool, error) {
+func (k keptIn) Held(context.Context) (api.StoredSession, bool, error) {
 	stored, ok := StoredSessionOf(k.storage, k.kbID)
-	return heldOf(stored), ok, nil
+	return stored, ok, nil
 }
 
-func (k keptIn) Keep(_ context.Context, signIn xynolog.HeldSignIn) error {
-	return StoreSession(k.storage, k.kbID, storedOf(signIn))
+func (k keptIn) Keep(_ context.Context, signIn api.StoredSession) error {
+	return StoreSession(k.storage, k.kbID, signIn)
 }
 
-func (k keptIn) Renewed(_ context.Context, read xynolog.HeldSignIn, access, refresh string) (string, bool, error) {
+func (k keptIn) Renewed(_ context.Context, read api.StoredSession, access, refresh string) (string, bool, error) {
 	var current string
 	var kept bool
 	err := k.storage.Update(SessionKey(k.kbID), func(stored string, has bool) (string, bool) {

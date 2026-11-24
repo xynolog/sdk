@@ -9,6 +9,40 @@
 
 export interface components {
   schemas: {
+    /** launcher.about's params. */
+    AboutParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+    };
+    /**
+     * What the launcher is. A client asks this first, to learn whether it
+     * speaks to the launcher it found.
+     */
+    AboutResult: {
+      /**
+       * The version stamped into the launcher at build. Absent from a
+       * development build, which states none.
+       */
+      version?: string;
+      /** Whether this is a development build: one with no version stamped. */
+      development: boolean;
+      /** The commit it was built from, when stamped. */
+      commit?: string;
+      /** When it was built, when stamped. */
+      built?: string;
+      /**
+       * Each version of the control API it speaks. A client that speaks none of
+       * them stops here.
+       */
+      apiVersions: string[];
+      /** The registry its catalog's images come from. */
+      imageRegistry: string;
+      /**
+       * Each container runtime it drives, in the order it prefers them, and
+       * whether this machine has it.
+       */
+      runtimes: components['schemas']['RuntimeState'][];
+    };
     /**
      * Web Annotation / W3C PROV Agent. Discriminated by @type — Person,
      * Organization, or Software (named member schemas: AgentPerson,
@@ -390,6 +424,12 @@ export interface components {
       selector?: components['schemas']['AnnotationSelector'];
     };
     /**
+     * The group and version of the control API. Every request's params state
+     * it; a launcher refuses a version it does not speak with
+     * control.unsupported-api-version, and names the ones it does.
+     */
+    ApiVersion: 'control.xynolog.org/v1alpha1';
+    /**
      * Everything the Archivist reads at boot: nothing in it is defaulted by the
      * Archivist. The launcher writes it for the Archivist it starts, from the
      * knowledge base's stack documents, and the Archivist reads it from the
@@ -558,6 +598,60 @@ export interface components {
     AttributedEvent: components['schemas']['StoredEventResponse'] & {
       /** Who `userId` is. */
       agent: components['schemas']['Agent'];
+    };
+    /** auth.login's params. */
+    AuthLoginParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * Which knowledge base's stack. Absent: the one the command line chooses,
+       * standing where the control server was started.
+       */
+      target?: components['schemas']['Target'];
+      /** Keep to the local stacks, as --runtime does. */
+      runtime?: components['schemas']['Runtime'];
+    };
+    /**
+     * A completed sign-in, kept in the launcher's sign-in store. No token is in
+     * it.
+     */
+    AuthLoginResult: {
+      /** The stack's key in the sign-in store. */
+      key: string;
+      /** Who the gateway says is signed in: their email, else their DID. */
+      who: string;
+      /** The issuer the knowledge base named, where the person signed in. */
+      issuer: string;
+    };
+    /** auth.logout's params. */
+    AuthLogoutParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * Which knowledge base's stack. Absent: the one the command line chooses,
+       * standing where the control server was started.
+       */
+      target?: components['schemas']['Target'];
+      /** Keep to the local stacks, as --runtime does. */
+      runtime?: components['schemas']['Runtime'];
+    };
+    /**
+     * The launcher's session for a stack, ended. Desktop's own session is not
+     * touched.
+     */
+    AuthLogoutResult: {
+      /**
+       * The stack's key in the sign-in store. Absent when no stack is recorded.
+       */
+      key?: string;
+      /** Whether a session was stored. false: nothing was done. */
+      wasSignedIn: boolean;
+      /**
+       * Whether the issuer revoked the session's refresh token. false with
+       * wasSignedIn: the local token is forgotten, and the refresh token stays
+       * valid at the issuer until it expires.
+       */
+      revoked: boolean;
     };
     /**
      * Emitted to draw attention to a resource: to one of its annotations, or,
@@ -890,6 +984,28 @@ export interface components {
       response: components['schemas']['GetTagSchemasResponse'];
     };
     /**
+     * The shared Browser: one viewer for every knowledge base the machine
+     * reaches. It belongs to no knowledge base, so its document is kept in the
+     * launcher's state home, in `stack/browser.yaml`, not in a knowledge base's
+     * repository.
+     */
+    Browser: {
+      apiVersion: components['schemas']['StackApiVersion'];
+      kind: 'Browser';
+      metadata: components['schemas']['Metadata'];
+      /** How the Browser runs. */
+      spec: {
+        image: components['schemas']['Image'];
+        resources: components['schemas']['Resources'];
+        /**
+         * The port the Browser is published on, on this machine's loopback:
+         * where a person opens it, and the origin the issuer's realm allows its
+         * sign-in from.
+         */
+        port: number;
+      };
+    };
+    /**
      * Result of publishing one event. `subscribers` is the number of observers
      * attached to the target subject at dispatch — the GLOBAL subject for an
      * unscoped emit, the scoped one when `scope` is set. Zero means the signal
@@ -1076,6 +1192,30 @@ export interface components {
        */
       clientId: string;
     };
+    /**
+     * The client gives up on one of its requests. The launcher answers that
+     * request with control.cancelled, unless it has answered it already; a
+     * cancellation of a request it does not know is ignored.
+     */
+    Cancelled: {
+      requestId: components['schemas']['RequestId'];
+      /** Why, for the launcher's diagnostics. */
+      reason?: string;
+    };
+    /**
+     * The form a service account that holds a client secret posts to its
+     * issuer's token endpoint for a client-credentials grant: its client id and
+     * secret in the body (RFC 6749 §2.3.1). An account that holds a key proves
+     * itself by the client assertion of client-assertion-cases.json instead.
+     */
+    ClientSecretForm: {
+      /** The grant, client-assertion-cases.json's grantType. */
+      grant_type: 'client_credentials';
+      /** The account's client id. */
+      client_id: string;
+      /** The account's client secret. */
+      client_secret: string;
+    };
     CloneResourceWithTokenResponse: {
       /** Generated clone token */
       token: string;
@@ -1141,6 +1281,477 @@ export interface components {
       /** The language of the resource being read. BCP 47. */
       sourceLanguage?: string;
     };
+    /**
+     * A request on the bus a live case expects the client to make, on this
+     * channel; `as` names its correlation id, for the backend to answer.
+     */
+    ConformanceBusFetch: {
+      /** The request's channel, a request of specs/src/bus/registry.json. */
+      fetch: string;
+      payload?: unknown;
+      /** The request's correlation id, for the backend's answer. */
+      as: string;
+    };
+    /**
+     * One case of the conformance corpus: a scenario every SDK's driver is put
+     * through, a JSON file of conformance/sdk/wire, conformance/sdk/live or
+     * conformance/worker/cases named by the case. What the client is asked to
+     * do, what the backend does around it, and the transcript a conforming
+     * client produces. conformance/sdk/README.md explains each step; the reader
+     * reads every file of the corpus through this schema.
+     */
+    ConformanceCase: {
+      /** What the case holds a client to, in a sentence. */
+      about: string;
+      /** Where the protocol or the spec states it. */
+      source: string;
+      /** The signal planes the case runs on. Absent, it runs on both. */
+      planes?: ('in-process' | 'nats')[];
+      /**
+       * A live case's tier: `fleet`, what every SDK with a live layer does, or
+       * `parity`, what one that implements all of CACHE-SEMANTICS does.
+       */
+      tier?: 'fleet' | 'parity';
+      /**
+       * Run the client exporting to an OTLP receiver, and once it has exited
+       * hold what it exported to specs/src/sdk-telemetry/telemetry.json. A
+       * worker case also holds the worker to a trace of its own for each job it
+       * ran (conformance/worker/README.md).
+       */
+      telemetry?: true;
+      /** The steps, run in order. */
+      steps: components['schemas']['ConformanceStep'][];
+    };
+    /**
+     * A line a conformance driver writes on its standard output, one JSON
+     * object each (conformance/sdk/README.md, "The driver protocol";
+     * conformance/worker/README.md, "The worker driver"): that it is ready, an
+     * operation's outcome, or what its client observed as it happened. The
+     * suite refuses any other line.
+     */
+    ConformanceDriverLine:
+      | {
+          /** Written once. */
+          ready: true;
+        }
+      | {
+          /** The operation's id. */
+          id: number;
+          ok: unknown;
+        }
+      | {
+          /** The operation's id. */
+          id: number;
+          /** The failure. */
+          error: components['schemas']['ConformanceFailure'];
+        }
+      | {
+          /** The operation's id. */
+          id: number;
+          /** It was abandoned. */
+          abandoned: true;
+        }
+      | {
+          /** The operation's id. */
+          id: number;
+          /** It has none. */
+          unsupported: true;
+        }
+      | {
+          /** The operation's id. */
+          id: number;
+          /** What made no sense. */
+          misuse: string;
+        }
+      | {
+          /**
+           * The state it is in now: one a case's `state` step names
+           * (ConformanceStep.json), or another the case never waits for.
+           */
+          state: string;
+        }
+      | {
+          /** The frame. */
+          frame: {
+            /** The channel. */
+            channel: string;
+            payload?: unknown;
+            /** The frame's correlation id, when it has one. */
+            correlationId?: string;
+            /** The frame's scope, when it has one. */
+            scope?: components['schemas']['ResourceId'];
+          };
+        }
+      | {
+          /** The failure. */
+          error: components['schemas']['ConformanceFailure'];
+        }
+      | {
+          /** The report. */
+          progress: {
+            /** The `upload` operation's id. */
+            upload: number;
+            /** How many bytes it has sent. */
+            bytesUploaded: number;
+            /** How many it will send. */
+            totalBytes: number;
+          };
+        }
+      | {
+          /** The emission. */
+          emission: {
+            /** The observer. */
+            observer: string;
+            /** The state. */
+            state:
+              | {
+                  /** Nothing to show yet. */
+                  status: 'pending';
+                }
+              | {
+                  /** A value to show. */
+                  status: 'ready';
+                  value: unknown;
+                }
+              | {
+                  /** The query failed. */
+                  status: 'failed';
+                  /** The failure. */
+                  error: components['schemas']['ConformanceFailure'];
+                };
+          };
+        }
+      | {
+          /** The observer. */
+          completed: string;
+        }
+      | {
+          /** The job, as the worker read the record. */
+          claimed: { [key: string]: unknown };
+        }
+      | {
+          /**
+           * The refusal: with a code when the bus refused it, with none when the
+           * worker did.
+           */
+          refused: components['schemas']['ConformanceFailure'];
+        }
+      | {
+          /** The job's id. */
+          signalled: string;
+        }
+      | {
+          /** The job's id. */
+          stalled: string;
+        };
+    /**
+     * A failure as an SDK reports it to the suite (conformance/sdk/README.md,
+     * "The driver protocol"): its code, the status when a server stated one,
+     * and a job failure's class when it has one; and the SDK's own words for
+     * it.
+     */
+    ConformanceFailure: {
+      /** The SDK's code for it, from specs/src/errors/codes.json. */
+      code?: string;
+      /** The HTTP status, when a server stated one. */
+      status?: number;
+      /** A job failure's class, when it has one. */
+      failureClass?: components['schemas']['FailureClass'];
+      /** The SDK's words, for a person; nothing compares it. */
+      detail: string;
+    };
+    /**
+     * A read over HTTP a live case expects the client to make: an operation of
+     * the gateway's API by its method and path, with the values its path
+     * carries. The stand-in Archivist answers it from what the case seeded.
+     */
+    ConformanceHttpFetch: {
+      /** The operation, by its method and path. */
+      fetch: string;
+      params?: unknown;
+    };
+    /**
+     * The implementations manifest: the file a run of the conformance harness
+     * is given with --implementations, naming what the run holds to Protocol.
+     * Every service is run by the xynolog launcher, from the image the
+     * knowledge base's stack documents name (contract/LAUNCHER-CONTROL.md,
+     * service.run): an implementation is a knowledge base whose documents name
+     * its images, and another implementation is another manifest. Each SDK's
+     * drivers are programs the harness starts itself, since none is a service.
+     * There is no default manifest. The reader reads this schema in the table
+     * dialect and derives its model (Tables.Conformance_implementations), for
+     * the harness to decode a manifest by.
+     */
+    ConformanceImplementations: {
+      /**
+       * How the launcher's control API is served: the xynolog command, run with
+       * control. A command and its arguments, as the harness starts it. An
+       * argument that starts with ./ or ../ is a path, resolved against the
+       * manifest's own directory; every other is passed as written.
+       */
+      launcher: string[];
+      /**
+       * The knowledge base whose stack documents name each service's image, and
+       * whose stack runs the record and index the suites need. A relative root
+       * is resolved against the manifest's own directory.
+       */
+      target: components['schemas']['LocalTarget'];
+      /**
+       * Each SDK's drivers, by the SDK's name: the programs the SDK and worker
+       * suites talk to in its place (conformance/sdk/README.md, "The driver
+       * protocol").
+       */
+      sdks: {
+        [key: string]: {
+          /**
+           * How its wire driver is started. A command and its arguments, as the
+           * harness starts it. An argument that starts with ./ or ../ is a path,
+           * resolved against the manifest's own directory; every other is passed
+           * as written.
+           */
+          wire?: string[];
+          /**
+           * How its live driver is started, and the tier of the live corpus the
+           * SDK is held to.
+           */
+          live?: {
+            /**
+             * How its live driver is started. A command and its arguments, as the
+             * harness starts it. An argument that starts with ./ or ../ is a
+             * path, resolved against the manifest's own directory; every other is
+             * passed as written.
+             */
+            command: string[];
+            /**
+             * A live case's tier: `fleet`, what every SDK with a live layer does,
+             * or `parity`, what one that implements all of CACHE-SEMANTICS does.
+             */
+            tier: 'fleet' | 'parity';
+          };
+          /**
+           * How its worker driver is started, when the SDK has a worker's surface
+           * (conformance/worker/README.md). A command and its arguments, as the
+           * harness starts it. An argument that starts with ./ or ../ is a path,
+           * resolved against the manifest's own directory; every other is passed
+           * as written.
+           */
+          worker?: string[];
+          /**
+           * The wire cases its driver cannot be put through, by the case's name,
+           * each with why. The suite holds an exemption as it holds a case: the
+           * driver must answer unsupported to what the case asks, or the
+           * exemption is stale.
+           */
+          exempt?: { [key: string]: string };
+        };
+      };
+      /**
+       * The model catalogue the implementation supplies, by its path; a
+       * relative one is resolved against the manifest's own directory. The
+       * Librarian's and the worker service's documents name one, so a run of
+       * either suite without it refuses to start.
+       */
+      modelCatalogue?: string;
+    };
+    /**
+     * One step of a case of the conformance corpus (ConformanceCase.json): each
+     * is told apart by the member only it requires. conformance/sdk/README.md,
+     * "A case", says what each does.
+     */
+    ConformanceStep:
+      | {
+          /** Each name, and the value it takes. */
+          let: { [key: string]: unknown };
+        }
+      | {
+          /** The operation (conformance/sdk/README.md, "Operations"). */
+          driver: string;
+          /** The operation's arguments. */
+          with?: { [key: string]: unknown };
+          returns?: unknown;
+          fails?: unknown;
+          /**
+           * The operation's name, for the `settles` or `abandon` step that ends it.
+           */
+          as?: string;
+        }
+      | {
+          /** The operation. */
+          abandon: string;
+        }
+      | {
+          /** The operation. */
+          settles: string;
+          returns?: unknown;
+          fails?: unknown;
+          /** It ended because the case abandoned it. */
+          abandoned?: true;
+        }
+      | {
+          /** The operation of the gateway's API, by its method and path. */
+          wire: string;
+          /**
+           * When it is read: on arrival, once answered (the default), or once its
+           * stream has caught up.
+           */
+          at?: 'arrival' | 'answer' | 'live';
+          /** The status it was answered with. */
+          status?: number;
+          params?: unknown;
+          body?: unknown;
+          token?: unknown;
+          /**
+           * The request's headers named here, each as a pattern; headers not named
+           * are not compared.
+           */
+          headers?: { [key: string]: unknown };
+          answer?: unknown;
+          /** The request's name, for a later step. */
+          as?: string;
+          /**
+           * A request named earlier, which was answered before this one arrived.
+           */
+          follows?: string;
+          /**
+           * A request named earlier, answered with a Retry-After, which this one
+           * waited out.
+           */
+          waited?: string;
+        }
+      | {
+          /** The stream. */
+          carried: string;
+          is: unknown;
+        }
+      | {
+          /** The request. */
+          closed: string;
+        }
+      | {
+          /** The upload. */
+          progress: string;
+        }
+      | {
+          /** The state. */
+          state:
+            | 'initial'
+            | 'connecting'
+            | 'open'
+            | 'reconnecting'
+            | 'degraded'
+            | 'unauthenticated'
+            | 'closed';
+        }
+      | {
+          /** The state. */
+          stays:
+            | 'initial'
+            | 'connecting'
+            | 'open'
+            | 'reconnecting'
+            | 'degraded'
+            | 'unauthenticated'
+            | 'closed';
+        }
+      | {
+          /** The channel. */
+          frame: string;
+          is: unknown;
+        }
+      | {
+          /** The channel. */
+          frames: string;
+          /** How many more. */
+          count: number;
+        }
+      | {
+          error: unknown;
+        }
+      | {
+          /** The directive. */
+          backend:
+            | 'listen'
+            | 'emit'
+            | 'record'
+            | 'content'
+            | 'description'
+            | 'annotations'
+            | 'anchored-text'
+            | 'uploaded'
+            | 'refuse'
+            | 'unanswered'
+            | 'answer-lost'
+            | 'hold'
+            | 'release'
+            | 'rechunk'
+            | 'carry'
+            | 'cut'
+            | 'down'
+            | 'up'
+            | 'archivist';
+          /** The directive's arguments. */
+          with?: { [key: string]: unknown };
+        }
+      | {
+          /** How long, in milliseconds. */
+          quiet: number;
+        }
+      | {
+          /** The live query. */
+          observe: {
+            /** The live query, by its name in specs/src/client/refresh.json. */
+            query: string;
+            resource?: unknown;
+            annotation?: unknown;
+            search?: unknown;
+            filters?: unknown;
+          };
+          /** The observer. */
+          as: string;
+        }
+      | {
+          /** The observer. */
+          leave: string;
+        }
+      | {
+          /** The observer. */
+          reaches: string;
+          state: unknown;
+        }
+      | {
+          /** The observer. */
+          holds: string;
+          state: unknown;
+        }
+      | {
+          /** The observer. */
+          completes: string;
+        }
+      | components['schemas']['ConformanceBusFetch']
+      | components['schemas']['ConformanceHttpFetch']
+      | {
+          /** The requests. */
+          fetches: (
+            | components['schemas']['ConformanceBusFetch']
+            | components['schemas']['ConformanceHttpFetch']
+          )[];
+        }
+      | {
+          /** The scopes. */
+          scopes: unknown[];
+        }
+      | {
+          claimed: unknown;
+        }
+      | {
+          refused: unknown;
+        }
+      | {
+          signalled: unknown;
+        }
+      | {
+          stalled: unknown;
+        };
     /**
      * Content format as a MIME type, optionally with parameters. The base type
      * (everything before the first ';') MUST be a SupportedMediaType;
@@ -1504,6 +2115,40 @@ export interface components {
      */
     EphemeralEventId: string;
     /**
+     * The data of a control error: the launcher's code for the failure, one of
+     * specs/src/errors/codes.json's control group, and what a client can act
+     * on. A request's failure is never only a message.
+     */
+    ErrorData: {
+      /**
+       * Why the request failed: a code of the control group of
+       * specs/src/errors/codes.json.
+       */
+      code: string;
+      /**
+       * Whether the same request can succeed sent again unchanged, once
+       * something outside it changes: a start finishes, a runtime is installed,
+       * a stack comes up.
+       */
+      retryable: boolean;
+      /** For params the contract refuses: each fault, where it is. */
+      fields?: components['schemas']['FieldFault'][];
+      /**
+       * For control.target-required and control.target-ambiguous: each target
+       * the request could have meant, to send again with one.
+       */
+      choices?: components['schemas']['Target'][];
+      /**
+       * For control.unsupported-api-version: each version this launcher speaks.
+       */
+      supported?: string[];
+      /**
+       * For a cancelled stack.start: whether services the start launched may
+       * still be running. The launcher stops waiting, and stops nothing.
+       */
+      mayStillRun?: boolean;
+    };
+    /**
      * The body of every error the gateway answers, whatever the status and
      * whatever the route — including a path it does not serve.
      */
@@ -1604,6 +2249,16 @@ export interface components {
      * attempt.
      */
     FailureClass: 'transient' | 'deterministic' | 'withheld';
+    /** One fault in a request's params, named where it is. */
+    FieldFault: {
+      /**
+       * Where in the params the fault is, as a JSON pointer (RFC 6901); empty
+       * for the params as a whole.
+       */
+      field: string;
+      /** What is wrong there. */
+      message: string;
+    };
     FileEntry: {
       type: 'file';
       /** Entry name (basename) */
@@ -1628,6 +2283,27 @@ export interface components {
        * (only when tracked is true)
        */
       creator?: string;
+    };
+    /**
+     * How far a follower of the record has followed it, as every follower says
+     * it at its health port (WEAVER.md § Health, SMELTER.md § Health).
+     */
+    FollowerFollowing: {
+      /**
+       * The latest sweep's phase: `pending` before its stream first opens,
+       * `running`, `done`, or `due` where the record could not be listed and
+       * the sweep is tried again.
+       */
+      sweep: 'pending' | 'running' | 'done' | 'due';
+      /**
+       * How many resources' logs a failed taking has stopped until the next
+       * sweep.
+       */
+      stopped: number;
+      /** How many events it refused as recorded since it started. */
+      refused: number;
+      /** How many times its stream has dropped since it started. */
+      streamDrops: number;
     };
     /**
      * W3C Web Annotation FragmentSelector for media fragment identifiers (RFC
@@ -2201,6 +2877,13 @@ export interface components {
       /** The language of the resource being read. BCP 47. */
       sourceLanguage?: string;
     };
+    /** Where somebody else's daemon listens. */
+    HostPort: {
+      /** A host name or address the stack's containers can reach. */
+      host: string;
+      /** The port it listens on. */
+      port: number;
+    };
     /**
      * A knowledge base reached through its gateway, over HTTP. The gateway's
      * origin is the protocol, the host in lowercase and the port; a host that
@@ -2216,6 +2899,106 @@ export interface components {
       port: number;
       /** What the gateway is reached over. */
       protocol: 'http' | 'https';
+    };
+    /**
+     * An HTTP response's status code, as the tables state one. No API states
+     * it, so it is no component.
+     */
+    HttpStatus: number;
+    /**
+     * An account in a knowledge base's launcher-managed identity realm.
+     * Passwords and tokens are never included.
+     */
+    IdentityUser: {
+      /** The account's sign-in name, normally its email address. */
+      email: string;
+      /** The identity the account acts under in Xynolog. */
+      identity: string;
+      /**
+       * Whether the identity provider currently allows this account to sign in.
+       */
+      enabled: boolean;
+    };
+    /**
+     * Create one account in the launcher-managed Keycloak realm for a specific
+     * local knowledge base.
+     */
+    IdentityUseraddParams: {
+      apiVersion: components['schemas']['ApiVersion'];
+      target: components['schemas']['LocalTarget'];
+      /** The email address that will sign in to this knowledge base. */
+      email: string;
+      /**
+       * The user's password. Secret: carried only in this local control
+       * request, never in progress, diagnostics, or persistent state.
+       */
+      password?: string;
+      /**
+       * Generate a random password in the launcher and return it once in the
+       * result.
+       */
+      generatePassword: boolean;
+    };
+    /**
+     * The created account's sign-in identity. A generated password is present
+     * only in this one answer and is not stored by the launcher.
+     */
+    IdentityUseraddResult: {
+      /** The account's email address. */
+      email: string;
+      /** The identity the account acts under in Xynolog. */
+      identity: string;
+      /** Whether a new account was created. */
+      created: boolean;
+      /**
+       * The generated password, returned once so the operator can share it with
+       * the user. Absent when the operator supplied the password.
+       */
+      generatedPassword?: string;
+    };
+    /**
+     * List accounts in one local knowledge base's launcher-managed Keycloak
+     * realm.
+     */
+    IdentityUsersListParams: {
+      apiVersion: components['schemas']['ApiVersion'];
+      target: components['schemas']['LocalTarget'];
+    };
+    /**
+     * Accounts in the selected knowledge base's launcher-managed identity
+     * realm.
+     */
+    IdentityUsersListResult: {
+      /** Accounts, sorted by sign-in name. */
+      users: components['schemas']['IdentityUser'][];
+    };
+    /**
+     * The container image a service runs, as a registry names it:
+     * `ghcr.io/xynolog/xynolog-gateway:latest`.
+     */
+    Image: string;
+    /**
+     * The engines a machine uses for a knowledge base: the providers it
+     * reaches, and the provider and model each job and each Librarian actor is
+     * done with. A knowledge base's repository may carry several, one for each
+     * provider, and a machine chooses one.
+     */
+    Inference: {
+      apiVersion: components['schemas']['StackApiVersion'];
+      kind: 'Inference';
+      metadata: components['schemas']['Metadata'];
+      /**
+       * The providers, and the engine for each job and each Librarian actor.
+       */
+      spec: {
+        /** Each provider an engine names, and how it is reached. */
+        providers: { [key: string]: components['schemas']['Provider'] };
+        /**
+         * The engine each job is done with when software does it, and the
+         * engine each Librarian actor asks.
+         */
+        engines: components['schemas']['ArchivistEngines'];
+      };
     };
     /**
      * A provider's actual ceilings for a model, discovered from the provider
@@ -2261,6 +3044,66 @@ export interface components {
     InferenceLimitsResult: {
       response: {
         limits: components['schemas']['EngineLimits'][];
+      };
+    };
+    /**
+     * The issuer the launcher runs for the knowledge bases on a machine, with a
+     * realm for each, and the database it keeps their realms in. It belongs to
+     * no knowledge base, so its document is kept in the launcher's state home,
+     * in `stack/issuer.yaml`, not in a knowledge base's repository. A knowledge
+     * base trusts it by naming `shared`; one trusting somebody else's issuer
+     * names it at `external`.
+     */
+    Issuer: {
+      apiVersion: components['schemas']['StackApiVersion'];
+      kind: 'Issuer';
+      metadata: components['schemas']['Metadata'];
+      /**
+       * The issuer, where it is published, and the database it keeps its realms
+       * in.
+       */
+      spec: {
+        /** The issuer's driver: `keycloak`. */
+        type: string;
+        image: components['schemas']['Image'];
+        resources: components['schemas']['Resources'];
+        /**
+         * The port the issuer is published on, on this machine: the origin of
+         * every realm's `iss`, so the one number wherever the issuer is
+         * reached.
+         */
+        port: number;
+        /** The database the issuer keeps its realms in. */
+        database: components['schemas']['Runner'] &
+          unknown & {
+            /** The database's driver: `postgres`. */
+            type: string;
+            /**
+             * The database the issuer keeps its realms in: a lowercase PostgreSQL
+             * identifier, as PostgreSQL itself names an unquoted one. On a
+             * PostgreSQL the launcher runs, the launcher creates it; on one
+             * somebody else runs (`external`), it must already exist there.
+             */
+            name: string;
+            /** The user the issuer signs in as. */
+            user: string;
+            image?: components['schemas']['Image'];
+            resources?: components['schemas']['Resources'];
+            /**
+             * The port a PostgreSQL the launcher runs is published on, on this
+             * machine, where the issuer reaches it. One somebody else runs is
+             * reached at `external`.
+             */
+            port?: number;
+            /** A database somebody else runs. */
+            external?: {
+              /** A host name or address the issuer can reach. */
+              host: string;
+              /** The port it listens on. */
+              port: number;
+              password: components['schemas']['SecretRef'];
+            };
+          };
       };
     };
     /**
@@ -3137,6 +3980,11 @@ export interface components {
       gitBranch?: string;
     };
     /**
+     * A knowledge base's DID: `did:web:` and its domain. No API states one as
+     * such, so it is no component.
+     */
+    KbDid: string;
+    /**
      * How a knowledge base is reached: a gateway over HTTP, or a knowledge base
      * the host process has loaded. Told apart by `kind`. Only what builds a
      * transport, or signs in at an issuer, reads it.
@@ -3211,6 +4059,104 @@ export interface components {
     KnowledgeBase: components['schemas']['KbTarget'] &
       components['schemas']['NewKnowledgeBase'];
     /**
+     * One knowledge base's stack as xynolog status reads it: what it is, where
+     * it runs, and each of its own services. The services every knowledge base
+     * shares are reported once, in the snapshot's shared list.
+     */
+    KnowledgeBaseStatus: {
+      /**
+       * What the snapshot calls the knowledge base: the last segment of its
+       * DID, or the whole DID where two would share one, or its key.
+       */
+      name: string;
+      /**
+       * The knowledge base's key on this machine, which names its containers
+       * and its state.
+       */
+      key: string;
+      /**
+       * Whether a stack of it is recorded. When none is, its services are found
+       * by name.
+       */
+      recorded: boolean;
+      /**
+       * Where the stack actually runs. "local": containers on this machine.
+       * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+       */
+      placement: 'local' | 'codespace';
+      /** Its clone, for a local stack. */
+      root?: string;
+      /**
+       * owner/name GitHub slug — present for codespace placements, where the
+       * repo is the stack's identity
+       */
+      repo?: string;
+      /**
+       * The KB's did:web identifier, from its committed .xynolog/config.yaml —
+       * "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no
+       * domain has no identity to publish, and the launcher refuses to start it
+       * rather than inventing or defaulting one. NOT unique within a document:
+       * a did names the knowledge base, not a running copy of it, so a local
+       * clone and a codespace of the same repo legitimately share one and both
+       * are published. host:port is the unique field (at most one entry per
+       * address), so consumers look up by ADDRESS and use the did to VERIFY
+       * that the copy they reached is the KB they meant — an address alone
+       * cannot say which KB is which, and an identity alone cannot say which
+       * copy.
+       */
+      did?: string;
+      /**
+       * Human-readable site name from the KB's .xynolog/config.yaml
+       * (site.siteName), for display
+       */
+      siteName?: string;
+      /**
+       * Why its identity could not be read from its clone, when it could not.
+       */
+      identityError?: string;
+      /**
+       * The knowledge base as the discovery document publishes it, when it
+       * does.
+       */
+      kb?: components['schemas']['DiscoveredKB'];
+      /** The runtime its record names. */
+      runtime?: components['schemas']['Runtime'];
+      /** The base URL of its gateway, from its record. */
+      gateway?: string;
+      /**
+       * Where the values the launcher generates for it are kept, as xynolog
+       * settings secret-store describes it.
+       */
+      secretStore?: string;
+      /**
+       * This machine's address on the network, when the stack is started with
+       * network lan.
+       */
+      lan?: string;
+      /**
+       * Whether a xynolog start of it holds its start lock: its services are
+       * not ready, whatever they report.
+       */
+      starting: boolean;
+      session?: components['schemas']['Session'];
+      /**
+       * Whether each of its counted services, and the issuer it signs in at,
+       * answers.
+       */
+      healthy: boolean;
+      /**
+       * Its own services, group by group, then the issuer it signs in at. Empty
+       * for a codespace's, whose services its own launcher reports.
+       */
+      services: components['schemas']['ServiceStatus'][];
+      /**
+       * The ledger and job queue readings the launcher can attribute to this
+       * knowledge base. A missing reading means the Collector has not reported
+       * that metric, not that its value is zero.
+       */
+      workload?: components['schemas']['WorkloadStatus'];
+    };
+    /**
      * Knowledge graph gathered for an LLM context — a shared backbone in which
      * resources AND annotations are typed nodes, connected by typed (optionally
      * bidirectional) edges. Flattened views the matcher/generation read
@@ -3243,6 +4189,136 @@ export interface components {
        * it. Present, and true, only then
        */
       truncated?: boolean;
+    };
+    /**
+     * What a knowledge base's record is indexed into, and the services that
+     * keep and read the indexes: the Weaver's graph, the Smelter's vectors and
+     * anchored text, and the Librarian that answers from them. Each can be
+     * rebuilt from the record.
+     */
+    KnowledgeIndex: {
+      apiVersion: components['schemas']['StackApiVersion'];
+      kind: 'KnowledgeIndex';
+      metadata: components['schemas']['Metadata'];
+      /**
+       * The indexes, the services that keep and read them, and the knowledge
+       * base they index.
+       */
+      spec: {
+        /** The name of the KnowledgeBase document whose record this indexes. */
+        knowledgeBase: string;
+        logLevel: components['schemas']['LogLevel'];
+        /**
+         * The graph store the Weaver writes and the Librarian reads. The
+         * knowledge base's graph is in the database its DID names
+         * (specs/src/graph/database-cases.json): a Neo4j the launcher runs
+         * makes it when it first starts, and one somebody else runs must
+         * already hold it.
+         */
+        graph: components['schemas']['Runner'] & {
+          /** The graph store's driver: `neo4j`. */
+          type: string;
+          /** The user the services sign in to the store as. */
+          username: string;
+          image?: components['schemas']['Image'];
+          resources?: components['schemas']['Resources'];
+          /** A graph store somebody else runs. */
+          external?: {
+            /** Where it listens: `bolt://host:port`. */
+            uri: string;
+            password: components['schemas']['SecretRef'];
+          };
+        };
+        /**
+         * The vector store the Smelter writes and the Librarian reads: the one
+         * the launcher runs for the knowledge bases on a machine, at `shared`;
+         * one of the knowledge base's own the launcher runs, from `image` with
+         * `resources`; or somebody else's, at `external`. Exactly one of the
+         * three.
+         */
+        vectors: {
+          /** The vector store's driver: `qdrant`. */
+          type: string;
+          /**
+           * The vector store the launcher runs for the knowledge bases on a
+           * machine (the state home's VectorStore document). Each knowledge
+           * base keeps its index in collections of its own there, so nothing is
+           * said of it here.
+           */
+          shared?: Record<string, never>;
+          image?: components['schemas']['Image'];
+          resources?: components['schemas']['Resources'];
+          /**
+           * A vector store somebody else runs, with the token each service
+           * presents to it: the Smelter's may make, write and delete this
+           * knowledge base's collections, and the Librarian's may read them.
+           */
+          external?: {
+            /** A host name or address the stack's containers can reach. */
+            host: string;
+            /** The port its REST API listens on. */
+            port: number;
+            smelterToken: components['schemas']['SecretRef'];
+            librarianToken: components['schemas']['SecretRef'];
+          };
+        };
+        /**
+         * The model that turns text into vectors. Vectors made by one model are
+         * not comparable with another's, so the model is the index's.
+         */
+        embedding: {
+          /** Who serves the model: `ollama`, or `voyage`. */
+          type: string;
+          /** The model, as its provider names it. */
+          model: string;
+          /** How a text is cut before it is embedded. */
+          chunking: {
+            /** The size of a piece. */
+            chunkSize: number;
+            /** How much of one piece the next repeats. */
+            overlap: number;
+          };
+          /**
+           * Where the provider's API is reached. The shared Ollama is stated by
+           * no endpoint.
+           */
+          endpoint?: string;
+          apiKey?: components['schemas']['SecretRef'];
+        };
+        /** The Librarian: it answers gathers and searches from the indexes. */
+        librarian: {
+          image: components['schemas']['Image'];
+          resources: components['schemas']['Resources'];
+          /** How a gather waits. */
+          gather: {
+            /**
+             * How long a gather waits for the Smelter to settle a resource, in
+             * milliseconds.
+             */
+            settleTimeoutMs: number;
+          };
+          /** What a search by meaning keeps. */
+          search: {
+            /** The least similarity a hit by meaning must have. */
+            semanticFloor: number;
+          };
+        };
+        /** The Smelter: it writes the vectors and the anchored text. */
+        smelter: {
+          image: components['schemas']['Image'];
+          resources: components['schemas']['Resources'];
+          /**
+           * How many PDFs it works on at once. A page of a scan held for OCR is
+           * large; one for each 2G of its memory is a reading of what fits.
+           */
+          pdfsAtOnce: number;
+        };
+        /** The Weaver: it writes the graph. */
+        weaver: {
+          image: components['schemas']['Image'];
+          resources: components['schemas']['Resources'];
+        };
+      };
     };
     /**
      * Everything a Librarian reads at boot: nothing in it is defaulted by the
@@ -3327,9 +4403,13 @@ export interface components {
        * which that knowledge base said it is before the Librarian reached its
        * stores.
        */
-      kb: string;
+      kb: components['schemas']['KbDid'];
       /** The two actors it runs, `matcher` and `gatherer`. */
       actors: ('matcher' | 'gatherer')[];
+    };
+    LibrarianPromptScore: {
+      candidate: number;
+      score: number;
     };
     /** An ErrorResponse that names, in `code`, the limit the request met. */
     LimitRefusal: components['schemas']['ErrorResponse'] & {
@@ -3396,6 +4476,17 @@ export interface components {
       kbId: string;
     };
     /**
+     * A local knowledge base, named explicitly: the operations that act on one
+     * local stack and never resolve one for the caller (identity
+     * administration, a service's run).
+     */
+    LocalTarget: {
+      /** Only a local stack. */
+      kind: 'local';
+      /** The knowledge base's clone, by its path. */
+      root: string;
+    };
+    /**
      * How each log line is written to stdout
      * (service-telemetry/log-lines.json): `json`, one JSON object per line; or
      * `simple`, a line of words followed by any metadata as JSON.
@@ -3406,6 +4497,52 @@ export interface components {
      * the most severe, to debug.
      */
     LogLevel: 'error' | 'warn' | 'info' | 'http' | 'debug';
+    /**
+     * One line one of a stack's services wrote. The launcher removes from it
+     * each secret value the launcher generated or read; anything else the
+     * service wrote is the client's to handle. The launcher keeps no copy.
+     */
+    LogRecord: {
+      requestId: components['schemas']['RequestId'];
+      /**
+       * The role whose container wrote the line, as xynolog status names it.
+       */
+      service: string;
+      /** Which of the container's streams the line was on. */
+      stream: components['schemas']['OutputStream'];
+      /** The line, without its newline. */
+      line: string;
+      /**
+       * When the launcher read the line, in RFC 3339 with its fraction: a
+       * container's own lines carry the time it wrote them, if any.
+       */
+      receivedAt: string;
+    };
+    /** logs.follow's params. */
+    LogsFollowParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * Which knowledge base's stack. Absent: the one the command line chooses,
+       * standing where the control server was started.
+       */
+      target?: components['schemas']['Target'];
+      /** Keep to the local stacks, as --runtime does. */
+      runtime?: components['schemas']['Runtime'];
+      /**
+       * Just this service's container, as --service names it. Absent: each
+       * Xynolog service the stack runs.
+       */
+      service?: string;
+    };
+    /**
+     * A follow whose every source ended on its own. A follow the client cancels
+     * is answered with control.cancelled.
+     */
+    LogsFollowResult: {
+      /** The services that were followed. */
+      services: string[];
+    };
     /** Bus command to archive a resource and optionally remove its file. */
     MarkArchiveCommand: {
       /**
@@ -3831,6 +4968,27 @@ export interface components {
       type: 'memory';
     };
     /**
+     * What names a document, as Kubernetes names an object. Documents refer to
+     * one another by `name`.
+     */
+    Metadata: {
+      /**
+       * The document's name: lower-case letters, digits and `-`, beginning and
+       * ending with a letter or digit. It names the document, never the
+       * knowledge base.
+       */
+      name: string;
+      /**
+       * The Kubernetes namespace the document belongs in. The launcher reads
+       * none.
+       */
+      namespace?: string;
+      /** Kubernetes labels. The launcher reads none. */
+      labels?: { [key: string]: string };
+      /** Kubernetes annotations. The launcher reads none. */
+      annotations?: { [key: string]: string };
+    };
+    /**
      * Xynolog-supported W3C Web Annotation motivations -
      * https://www.w3.org/TR/annotation-vocab/#motivation
      */
@@ -3916,6 +5074,42 @@ export interface components {
      * resource or several.
      */
     OneOrMoreUris: string | string[];
+    /**
+     * A resource open in a knowledge base: which resource, the name it is shown
+     * by, when it was opened and its place among the others open there. A
+     * registry shows them by their places, and two in one place by when each
+     * was opened, first first.
+     */
+    OpenResource: {
+      /** The resource. */
+      id: components['schemas']['ResourceId'];
+      /** The name the resource is shown by. */
+      name: string;
+      /**
+       * When the resource was opened, in milliseconds since the Unix epoch.
+       * Opening it again while it is open changes neither this nor its place.
+       */
+      openedAt: number;
+      /**
+       * The resource's place among those open in the knowledge base. One opened
+       * is given the place after the last taken, so a place freed by closing
+       * one is not given twice; a move gives each its place in the new order,
+       * counted from 0.
+       */
+      order: number;
+      /**
+       * The resource's media type, which its icon is chosen by. Absent when it
+       * is not known.
+       */
+      mediaType?: string;
+      /**
+       * Where the resource is in the knowledge base's working tree, as a URI
+       * (file://docs/overview.md). Absent when it is not known.
+       */
+      storageUri?: string;
+    };
+    /** Which of a container's streams a line was on. */
+    OutputStream: 'stdout' | 'stderr';
     /**
      * The class a PDF is sorted into, which decides how its text is read.
      * smelter/extraction-cases.json states what each class is.
@@ -4017,6 +5211,68 @@ export interface components {
       profiles: { [key: string]: components['schemas']['Profile'] };
     };
     /**
+     * One line of what an operation is doing, as the command line would tell a
+     * person, without colour. A secret value the launcher generated or read
+     * never appears in one.
+     */
+    Progress: {
+      requestId: components['schemas']['RequestId'];
+      /**
+       * What the line is: narration (log, note), an outcome (ok, warn, fail), a
+       * heading (banner, section), a timestamp (stamp), a runtime command about
+       * to run (command), or text the operation printed (output).
+       */
+      kind:
+        | 'log'
+        | 'note'
+        | 'ok'
+        | 'warn'
+        | 'fail'
+        | 'banner'
+        | 'section'
+        | 'stamp'
+        | 'command'
+        | 'output';
+      /** The line. */
+      text: string;
+    };
+    /**
+     * A knowledge base's committed `.xynolog/config.yaml`: its name, whether
+     * its changes are staged in git, and its permanent identity. A deployment's
+     * documents never restate any of it.
+     */
+    ProjectConfig: {
+      /** The knowledge base's name. */
+      project: {
+        /** The knowledge base's name, which decides where its state is kept. */
+        name: string;
+        /**
+         * A version the knowledge base's author gives it. Nothing changes it.
+         */
+        version?: string;
+      };
+      /** How the knowledge base's changes reach git. */
+      git: {
+        /**
+         * Whether changes to the working tree and the event log are staged in
+         * git as they are made.
+         */
+        sync: boolean;
+      };
+      /** The knowledge base's identity. */
+      site: {
+        /**
+         * The knowledge base's permanent identity, in did:web's colon-path form
+         * (`owner.github.io:repo`): stamped into every event it records, so
+         * never a machine's address and never changed. With no white space in
+         * it, which no DID holds (UserId.json).
+         */
+        domain: string;
+        /** The name people see for the knowledge base. */
+        siteName: string;
+      };
+    };
+    /**
      * OAuth 2.0 Protected Resource Metadata (RFC 9728): which authorization
      * server this knowledge base trusts, served at
      * /.well-known/oauth-protected-resource so a client — the Browser, an MCP
@@ -4048,6 +5304,15 @@ export interface components {
       bearer_methods_supported: 'header'[];
       /** The knowledge base's name, for a client's sign-in prompt. */
       resource_name?: string;
+    };
+    /** How an inference provider is reached. */
+    Provider: {
+      /**
+       * Where the provider's API is reached. Anthropic's own API, and the
+       * shared Ollama, are stated by no baseURL.
+       */
+      baseURL?: string;
+      apiKey?: components['schemas']['SecretRef'];
     };
     /**
      * A vector index kept in a Qdrant server, asked over its REST API with a
@@ -4148,6 +5413,11 @@ export interface components {
       /** Checksum of the representation to remove */
       checksum: string;
     };
+    /**
+     * The request a notification is about: the JSON-RPC id its client gave it,
+     * as the client gave it.
+     */
+    RequestId: string | number;
     /** The annotations on one resource, as its materialized view holds them. */
     ResourceAnnotations: {
       resourceId: components['schemas']['ResourceId'];
@@ -4446,6 +5716,228 @@ export interface components {
        */
       lastSequence: number;
     };
+    /** What a container is given, in Kubernetes' spelling. */
+    Resources: {
+      /** The most a container may use. */
+      limits: {
+        /**
+         * The memory ceiling: a whole number of gigabytes or megabytes, `8G` or
+         * `512M`.
+         */
+        memory: string;
+      };
+    };
+    /**
+     * One knowledge base this machine knows: a registered or running local
+     * clone, or a codespace stack recorded here. Registration, the directory,
+     * the stack and the forward are separate facts, each stated as it is.
+     */
+    Root: {
+      /**
+       * Where the stack actually runs. "local": containers on this machine.
+       * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
+       */
+      placement: 'local' | 'codespace';
+      /** For a local root: the clone's path. */
+      path?: string;
+      /**
+       * For a local root: whether the directory exists. A registered root whose
+       * directory is gone is kept, and says so.
+       */
+      present?: boolean;
+      /**
+       * For a local root: how the control server's own directory selects it,
+       * when it does — standing in it (cwd), or XYNOLOG_ROOT.
+       */
+      current?: 'cwd' | 'xynolog-root';
+      /** Whether the registry (roots.json) records it. */
+      registered: boolean;
+      /** Whether a stack of it is recorded on this machine. */
+      running: boolean;
+      /**
+       * When a command last used it, in RFC 3339, as the registry records it.
+       */
+      lastUsed?: string;
+      /**
+       * The KB's did:web identifier, from its committed .xynolog/config.yaml —
+       * "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no
+       * domain has no identity to publish, and the launcher refuses to start it
+       * rather than inventing or defaulting one. NOT unique within a document:
+       * a did names the knowledge base, not a running copy of it, so a local
+       * clone and a codespace of the same repo legitimately share one and both
+       * are published. host:port is the unique field (at most one entry per
+       * address), so consumers look up by ADDRESS and use the did to VERIFY
+       * that the copy they reached is the KB they meant — an address alone
+       * cannot say which KB is which, and an identity alone cannot say which
+       * copy.
+       */
+      did?: string;
+      /**
+       * Human-readable site name from the KB's .xynolog/config.yaml
+       * (site.siteName), for display
+       */
+      siteName?: string;
+      /**
+       * Why its identity could not be read from its clone, when it could not.
+       */
+      identityError?: string;
+      /**
+       * The Inference document a start of it runs, as the registry records it.
+       */
+      config?: string;
+      /**
+       * For a present local root: the Inference documents its clone has, as
+       * start --config names them.
+       */
+      configs?: string[];
+      /**
+       * owner/name GitHub slug — present for codespace placements, where the
+       * repo is the stack's identity
+       */
+      repo?: string;
+      /** For a codespace root: the codespace's name. */
+      codespace?: string;
+      /**
+       * For a codespace root: GitHub's word for the codespace's state
+       * (Available, Shutdown), when gh answered.
+       */
+      codespaceState?: string;
+      /**
+       * For a codespace root: the port on this machine its knowledge base is
+       * forwarded to, when one is recorded.
+       */
+      forwardPort?: number;
+      /** For a codespace root: whether the recorded forward is alive. */
+      forwarded?: boolean;
+      /**
+       * For a codespace root: whether its knowledge base answers through the
+       * forward.
+       */
+      reachable?: boolean;
+    };
+    /** roots.forget's params. */
+    RootsForgetParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * The registered root to forget: its path, or its basename when only one
+       * registered root has it.
+       */
+      root: string;
+    };
+    /**
+     * A forgotten registry row. Only the row is removed: no file of the clone,
+     * and none of its persistent stack state.
+     */
+    RootsForgetResult: {
+      /** The forgotten root's path. */
+      path: string;
+      /** Whether its directory was already gone. */
+      directoryMissing: boolean;
+      /**
+       * The key whose persistent stack state remains, when some does and no
+       * surviving root shares its DID: xynolog clean --root <key> removes it.
+       */
+      persistentState?: string;
+    };
+    /**
+     * roots.init's params: the local directory, permanent identity, and
+     * optional configuration inputs xynolog init takes.
+     */
+    RootsInitParams: {
+      apiVersion: components['schemas']['ApiVersion'];
+      /** Existing local directory in which to create the knowledge base. */
+      path: string;
+      /**
+       * The permanent did:web domain, in colon-path form, such as
+       * owner.github.io:repo.
+       */
+      domain: string;
+      /** Project name. Absent: the directory basename. */
+      name?: string;
+      /** Human-readable site name. Absent: the project name. */
+      siteName?: string;
+      /** Inference provider for the generated local stack documents. */
+      inference?: 'anthropic' | 'ollama';
+      /** The primary model bound to roles and jobs. */
+      model?: string;
+      /** A light model example emitted in the generated config. */
+      modelLight?: string;
+      /** Ollama embedding model name, without the ollama: prefix. */
+      embedding?: string;
+      /** Inference document name. Absent: the provider name. */
+      configName?: string;
+      /** Anthropic API base URL. */
+      anthropicEndpoint?: string;
+      /** Local Ollama API base URL. */
+      ollamaBase?: string;
+      /** Ollama registry base URL. */
+      ollamaRegistry?: string;
+    };
+    /**
+     * The local directory where xynolog init created and registered the
+     * knowledge base.
+     */
+    RootsInitResult: {
+      path: string;
+    };
+    /** roots.list's params. */
+    RootsListParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+    };
+    /**
+     * Every knowledge base this machine knows, as xynolog roots lists them: the
+     * local roots first, then the codespace stacks.
+     */
+    RootsListResult: {
+      /** Each root. */
+      roots: components['schemas']['Root'][];
+      /**
+       * What xynolog roots warns of without failing: an invalid XYNOLOG_ROOT, a
+       * clone whose project file is refused.
+       */
+      warnings?: string[];
+    };
+    /**
+     * A run's instance, by the name its caller gave it: unique among the
+     * target's instances that run on this machine. A second dispatcher beside
+     * the first is another instance. The launcher names the instance's
+     * container from the target's key and this name.
+     */
+    RunInstance: string;
+    /**
+     * One of a knowledge base's own services, which service.run runs: the seven
+     * Xynolog services, as service-telemetry/telemetry.json names them. The
+     * reader holds the two lists to each other.
+     */
+    RunService:
+      | 'archivist'
+      | 'dispatcher'
+      | 'gateway'
+      | 'librarian'
+      | 'smelter'
+      | 'weaver'
+      | 'worker';
+    /**
+     * Who runs a daemon: the launcher, from `image` with `resources`, or
+     * somebody else, reached at `external`. Exactly one of the two.
+     */
+    Runner: Record<string, never>;
+    /**
+     * A container runtime the launcher drives, as --runtime names it: Apple
+     * container, Docker or Podman.
+     */
+    Runtime: 'container' | 'docker' | 'podman';
+    /**
+     * One container runtime the launcher drives, and whether this machine has
+     * it.
+     */
+    RuntimeState: {
+      name: components['schemas']['Runtime'];
+      /** Whether it is on the launcher's PATH. */
+      found: boolean;
+    };
     /**
      * A resource returned by a search, carrying its relevance score and the
      * reason it matched.
@@ -4457,6 +5949,17 @@ export interface components {
       score?: number;
       /** Human-readable reason for the match. */
       matchReason?: string;
+    };
+    /**
+     * A secret the document names and does not hold. The launcher hands it to
+     * the service that needs it, from where the reference says it is.
+     */
+    SecretRef: {
+      /**
+       * The environment variable that holds the secret where the launcher runs.
+       * Unset, the start that needs it is refused.
+       */
+      fromEnv: string;
     };
     /**
      * One W3C selector: a way of finding a segment of a resource. Tell them
@@ -4501,10 +6004,268 @@ export interface components {
       host: string;
       port: number;
     };
+    /**
+     * A group of services, as xynolog status reports them and --group names
+     * them: a knowledge base's record and its index, the issuer that signs its
+     * accounts in, the knowledge workers where people and agents work on it,
+     * the providers of its models, and the telemetry that watches them all.
+     */
+    ServiceGroup:
+      | 'record'
+      | 'index'
+      | 'issuer'
+      | 'knowledge-workers'
+      | 'providers'
+      | 'telemetry';
+    /** service.host's params. */
+    ServiceHostParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * The container runtime to ask, as --runtime names it. Absent: the one
+       * the stack's record names, else the first installed one.
+       */
+      runtime?: components['schemas']['Runtime'];
+    };
+    /**
+     * Where this machine and a run's instance meet, under a runtime: the
+     * address the launcher publishes an instance's ports on, and the address
+     * the instance reaches this machine's listeners at. A caller writes it into
+     * a document before the run.
+     */
+    ServiceHostResult: {
+      runtime: components['schemas']['Runtime'];
+      /**
+       * The host address: an IP address or a host name, as the launcher's own
+       * stack dials it under this runtime.
+       */
+      address: string;
+    };
     /** The identity provider a service's account signs in at, by its issuer. */
     ServiceIdentity: {
       /** The issuer URL, exactly as tokens carry it in `iss`. */
       issuer: string;
+    };
+    /**
+     * notifications/serviceOutput: one line a run's instance wrote, from its
+     * start, every line, in the order of its stream, as the instance wrote it.
+     * The launcher gives an instance none of its own secrets (R2), and keeps no
+     * copy.
+     */
+    ServiceOutput: {
+      requestId: components['schemas']['RequestId'];
+      instance: components['schemas']['RunInstance'];
+      stream: components['schemas']['OutputStream'];
+      /** The line, without its newline. */
+      line: string;
+    };
+    /**
+     * service.run's params: one instance of one of a knowledge base's own
+     * services, run once from the image the target's stack documents name,
+     * unsupervised, on the caller's document, arguments and environment.
+     * contract/LAUNCHER-CONTROL.md, R1-R8.
+     */
+    ServiceRunParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * The knowledge base whose stack documents name the service's image, and
+       * whose stack the instance belongs to: stack.stop of it removes the
+       * instance too.
+       */
+      target: components['schemas']['LocalTarget'];
+      /**
+       * The container runtime to ask, as --runtime names it. Absent: the one
+       * the stack's record names, else the first installed one.
+       */
+      runtime?: components['schemas']['Runtime'];
+      /** The service whose image runs. */
+      service: components['schemas']['RunService'];
+      instance: components['schemas']['RunInstance'];
+      /**
+       * The configuration document's text, written as it is, at the path the
+       * image's own arguments name: it need not be JSON. Absent: no file is at
+       * that path.
+       */
+      document?: string;
+      /**
+       * The arguments the image's program is given in place of the image's own
+       * (--config and the document's path). Absent: the image's own.
+       */
+      args?: string[];
+      /**
+       * Every variable the instance is given beside the image's own, by name:
+       * nothing of the launcher's is added (R2). Empty: none.
+       */
+      environment: { [key: string]: string };
+      /**
+       * Directories of this machine, each mounted read-write at its own path,
+       * so that a path the document names is the same inside the instance and
+       * out (R4). Empty: none.
+       */
+      mounts: string[];
+      /**
+       * Directories put before the image's PATH, in order, each mounted at its
+       * own path. Empty: the image's PATH as it is.
+       */
+      pathFirst: string[];
+      /**
+       * The ports the instance listens on, each published at the same number on
+       * the host address (R3). Empty: none.
+       */
+      ports: number[];
+    };
+    /**
+     * A run that ended: its instance exited. Sent once the instance's container
+     * has exited, after all of its output.
+     */
+    ServiceRunResult: {
+      instance: components['schemas']['RunInstance'];
+      /**
+       * The instance's exit status: the service's own, since nothing supervises
+       * it (R1). An instance a signal ended exits with 128 and the signal's
+       * number: 143 for SIGTERM, 137 for SIGKILL.
+       */
+      exitCode: number;
+      /** Milliseconds from its container's start to its exit. */
+      ranMs: number;
+    };
+    /** service.signal's params: a signal for a run's instance. */
+    ServiceSignalParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * The knowledge base whose stack documents name the service's image, and
+       * whose stack the instance belongs to: stack.stop of it removes the
+       * instance too.
+       */
+      target: components['schemas']['LocalTarget'];
+      /**
+       * The container runtime to ask, as --runtime names it. Absent: the one
+       * the stack's record names, else the first installed one.
+       */
+      runtime?: components['schemas']['Runtime'];
+      instance: components['schemas']['RunInstance'];
+      /**
+       * term: SIGTERM, and SIGKILL 15 seconds later if it has not exited. kill:
+       * SIGKILL, so nothing it would settle on the way out is settled.
+       */
+      signal: 'term' | 'kill';
+    };
+    /**
+     * A signal sent, or not needed. The instance's exit is its run's answer,
+     * not this one.
+     */
+    ServiceSignalResult: {
+      /**
+       * Whether the instance still ran when the signal came. false: it has
+       * exited, and its run's answer is on its way; nothing was sent.
+       */
+      delivered: boolean;
+    };
+    /**
+     * notifications/serviceStarted: a run's instance is running. Sent once,
+     * before any of its output.
+     */
+    ServiceStarted: {
+      requestId: components['schemas']['RequestId'];
+      instance: components['schemas']['RunInstance'];
+      /** The runtime's name for the instance's container. */
+      container: string;
+      /**
+       * Where the instance reads its document: the path the image's own
+       * arguments name. Present when the run gave a document.
+       */
+      documentPath?: string;
+      /**
+       * The host address the instance's ports are published on, as service.host
+       * names it for the run's runtime.
+       */
+      address: string;
+    };
+    /**
+     * One service, as xynolog status reads it: where it runs, its state, and
+     * whether it answers. Nothing is reported that the launcher did not
+     * observe: an endpoint is named only when the stack's record or the
+     * descriptor names one, and a page to open only when the service answers.
+     */
+    ServiceStatus: {
+      /** The service, as xynolog status names it. */
+      role: string;
+      /** The group it belongs to. */
+      group: components['schemas']['ServiceGroup'];
+      /**
+       * The product its driver names (Neo4j, Keycloak), when its record names a
+       * driver.
+       */
+      product?: string;
+      /**
+       * Where it runs: the runtime its container runs under, external (somebody
+       * else runs it), or host (a process on this machine). Absent when nothing
+       * runs it.
+       */
+      runsOn?: string;
+      /**
+       * running: its container runs. stopped: its container exists and does not
+       * run (containerState says how). reachable, unreachable: somebody else
+       * runs it, and its endpoint answers or does not. absent: there is no
+       * container of it. not-configured: the stack's documents ask for none.
+       */
+      state:
+        | 'running'
+        | 'stopped'
+        | 'reachable'
+        | 'unreachable'
+        | 'absent'
+        | 'not-configured';
+      /**
+       * The runtime's own word for a container that is not running (exited,
+       * created).
+       */
+      containerState?: string;
+      /** Whether its health endpoint answers. */
+      healthy: boolean;
+      /**
+       * Whether its health counts toward its knowledge base's: a service the
+       * documents ask for none of, and a telemetry backend --no-observe leaves
+       * out, do not.
+       */
+      counted: boolean;
+      /**
+       * The endpoint the launcher asks its health of: an http URL, or
+       * tcp://host:port.
+       */
+      probe?: string;
+      /**
+       * The page a person opens: the Browser, Jaeger's and Prometheus's
+       * interfaces, the collector's metrics readout. Present only when the
+       * service answers. The collector's OTLP receiver is never one.
+       */
+      page?: string;
+      /**
+       * For the issuer the knowledge base signs in at, when it is the
+       * machine's: its realm there.
+       */
+      realm?: string;
+      /**
+       * For a service several knowledge bases share: the name of each it
+       * serves, as knowledgeBases names them.
+       */
+      serves?: string[];
+    };
+    /**
+     * The launcher's own stored sign-in for a stack (xynolog login), never
+     * Desktop's. No token is in it.
+     */
+    Session: {
+      /**
+       * valid: the stack's gateway accepts the stored token. expired: it
+       * refuses it (a refresh, or xynolog login, renews it). unverified: the
+       * stack did not answer. none: nothing is stored.
+       */
+      state: 'valid' | 'expired' | 'unverified' | 'none';
+      /** The email the session was signed in as, when the store records one. */
+      email?: string;
     };
     /**
      * A participant opened a live connection to this KB — an SSE stream on
@@ -4538,17 +6299,138 @@ export interface components {
       /** The connectionId announced by the matching session:joined. */
       connectionId: string;
     };
+    /** One setting the launcher keeps, as xynolog settings shows it. */
+    Setting: {
+      /** Its name, as xynolog settings takes it. */
+      name: string;
+      /**
+       * Whether this is the machine-wide form of a knowledge-base setting
+       * (secret-store --default).
+       */
+      default: boolean;
+      /** What it applies to: every knowledge base on this machine, or one. */
+      appliesTo: 'machine' | 'knowledge-base';
+      /** The values in effect, one per line xynolog settings shows. */
+      values: components['schemas']['SettingLine'][];
+      /** Whether settings.set and settings.unset change it. */
+      settable: boolean;
+      /** For one they do not: how it is changed instead. */
+      changedBy?: string;
+    };
+    /**
+     * One value of a setting, and where it came from, as xynolog settings shows
+     * it. A secret's value is never one: a secret setting shows where the value
+     * is kept.
+     */
+    SettingLine: {
+      /** The value in effect. */
+      value: string;
+      /** Where it came from: a record, a document, the default. */
+      source: string;
+    };
+    /** settings.get's params. */
+    SettingsGetParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /** The setting, as xynolog settings names it. */
+      name: string;
+      /** The machine-wide form of a knowledge-base setting: --default. */
+      default?: boolean;
+      /**
+       * A knowledge base's clone, by path or by the basename of a registered
+       * root, as --root takes it. Absent: the clone the control server was
+       * started in.
+       */
+      root?: string;
+    };
     /** Emitted when the hover delay setting changes */
     SettingsHoverDelayChangedEvent: {
       hoverDelayMs: number;
+    };
+    /** settings.list's params. */
+    SettingsListParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * A knowledge base's clone, by path or by the basename of a registered
+       * root, as --root takes it. Absent: the clone the control server was
+       * started in.
+       */
+      root?: string;
+    };
+    /**
+     * Every setting the launcher keeps: the machine's, then the knowledge
+     * base's.
+     */
+    SettingsListResult: {
+      /** The knowledge base whose settings are listed, when one resolved. */
+      root?: string;
+      /**
+       * Why no knowledge base resolved, when none did: its settings are not
+       * listed.
+       */
+      unresolved?: string;
+      /** Each setting. */
+      settings: components['schemas']['Setting'][];
     };
     /** Emitted when the UI locale setting changes */
     SettingsLocaleChangedEvent: {
       locale: string;
     };
+    /** settings.path's params. */
+    SettingsPathParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * Whose document: the Browser's, the worker's, the issuer's or the vector
+       * store's.
+       */
+      document: 'browser' | 'worker' | 'issuer' | 'vectors';
+    };
+    /**
+     * Where a machine document is. When there is none, it is written from the
+     * launcher's catalog first, as a start writes it; one that does not hold is
+     * refused, as a start refuses it.
+     */
+    SettingsPathResult: {
+      /** The document's path. */
+      path: string;
+    };
+    /** settings.set's params. */
+    SettingsSetParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /** The setting, as xynolog settings names it. */
+      name: string;
+      /** The machine-wide form of a knowledge-base setting: --default. */
+      default?: boolean;
+      /**
+       * A knowledge base's clone, by path or by the basename of a registered
+       * root, as --root takes it. Absent: the clone the control server was
+       * started in.
+       */
+      root?: string;
+      /** The value, checked as a start would check it. */
+      value: string;
+    };
     /** Emitted when the UI theme setting changes */
     SettingsThemeChangedEvent: {
       theme: 'light' | 'dark' | 'system';
+    };
+    /** settings.unset's params. */
+    SettingsUnsetParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /** The setting, as xynolog settings names it. */
+      name: string;
+      /** The machine-wide form of a knowledge-base setting: --default. */
+      default?: boolean;
+      /**
+       * A knowledge base's clone, by path or by the basename of a registered
+       * root, as --root takes it. Absent: the clone the control server was
+       * started in.
+       */
+      root?: string;
     };
     /**
      * Bus command to rebuild anchored-text artifacts by re-running extraction —
@@ -4656,7 +6538,7 @@ export interface components {
        * which that knowledge base said it is before the Smelter reached its
        * index.
        */
-      kb: string;
+      kb: components['schemas']['KbDid'];
       /**
        * The state of its own stream of the record, one of the seven of
        * TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it
@@ -4674,23 +6556,7 @@ export interface components {
        * How far it has followed the record. Its sweep is also `due` where its
        * start's reconcile failed.
        */
-      following: {
-        /**
-         * The latest sweep's phase: `pending` before its stream first opens,
-         * `running`, `done`, or `due` where the record could not be listed and
-         * the sweep is tried again.
-         */
-        sweep: 'pending' | 'running' | 'done' | 'due';
-        /**
-         * How many resources' logs a failed taking has stopped until the next
-         * sweep.
-         */
-        stopped: number;
-        /** How many events it refused as recorded since it started. */
-        refused: number;
-        /** How many times its stream has dropped since it started. */
-        streamDrops: number;
-      };
+      following: components['schemas']['FollowerFollowing'];
       /**
        * How many events it has applied since it started: events of the kinds
        * that do something, and not refused. Neither an event taken as nothing
@@ -4770,6 +6636,262 @@ export interface components {
       /** Why this body is included */
       purpose?: components['schemas']['BodyPurpose'];
     };
+    /**
+     * The group and version of Xynolog's kinds. The group names who defines a
+     * kind, under the domain the knowledge bases' DIDs use; which knowledge
+     * base a document is about is said inside it.
+     */
+    StackApiVersion: 'xynolog.org/v1alpha1';
+    /**
+     * A knowledge base's record and the services that keep it: the Gateway, the
+     * Dispatcher, the Archivist, and the broker between them. They live and die
+     * with the knowledge base.
+     */
+    StackKnowledgeBase: {
+      apiVersion: components['schemas']['StackApiVersion'];
+      kind: 'KnowledgeBase';
+      metadata: components['schemas']['Metadata'];
+      /** The knowledge base's services, and how each runs. */
+      spec: {
+        logLevel: components['schemas']['LogLevel'];
+        /**
+         * The Gateway: where every client and every service reaches the
+         * knowledge base.
+         */
+        gateway: {
+          image: components['schemas']['Image'];
+          resources: components['schemas']['Resources'];
+          /** The port the Gateway is published on. */
+          port: number;
+          /**
+           * Where clients reach the Gateway: the server its API document names.
+           * A service of the stack reaches it where the launcher places it, on
+           * `port`.
+           */
+          publicURL: string;
+        };
+        /** The Dispatcher: it hands queued jobs to workers. */
+        dispatcher: {
+          image: components['schemas']['Image'];
+          resources: components['schemas']['Resources'];
+        };
+        /**
+         * The Archivist: it keeps the knowledge base's record in its working
+         * tree.
+         */
+        archivist: {
+          image: components['schemas']['Image'];
+          resources: components['schemas']['Resources'];
+          /**
+           * Where the stack's services reach the Archivist, when that is
+           * somewhere the launcher cannot see. Absent, they reach it where the
+           * launcher places it.
+           */
+          address?: components['schemas']['HostPort'];
+        };
+        /**
+         * The broker the job queue and the signal plane share: the launcher's,
+         * run from `image`, or somebody else's, at `external`.
+         */
+        messaging: components['schemas']['Runner'] & {
+          /** The Dispatcher's queue. */
+          jobs: {
+            /** The queue's driver: `jetstream`. */
+            type: string;
+          };
+          /** The Gateway's signal plane. */
+          signal: {
+            /**
+             * `in-process`, one Gateway on its own fabric, or `nats`, on the
+             * broker.
+             */
+            type: string;
+          };
+          image?: components['schemas']['Image'];
+          resources?: components['schemas']['Resources'];
+          /**
+           * A broker somebody else runs, serving this knowledge base alone: a
+           * second knowledge base on it would share the job queue and, on a
+           * `nats` signal plane, the frames and the gateway's record of pending
+           * replies. The launcher refuses to start a knowledge base whose
+           * `servers` another knowledge base on its machine names.
+           */
+          external?: {
+            /** Where it listens: `host:port`. */
+            servers: string;
+            user: components['schemas']['SecretRef'];
+            password: components['schemas']['SecretRef'];
+          };
+        };
+        /**
+         * The issuer the knowledge base trusts: the one the launcher runs for
+         * the knowledge bases on a machine, at `shared`, with the knowledge
+         * base's own realm in it, or somebody else's, at `external`.
+         */
+        issuer: {
+          /**
+           * The issuer the launcher runs for the knowledge bases on a machine
+           * (the state home's Issuer document). The launcher creates the
+           * knowledge base's realm in it.
+           */
+          shared?: {
+            /**
+             * How long a token the realm mints stays valid, in seconds: the
+             * window in which a disabled account can still act.
+             */
+            accessTokenLifespan: number;
+          };
+          /** An issuer somebody else runs. */
+          external?: {
+            /** `oidc`, or `keycloak`. */
+            type: string;
+            /** The URL in its tokens' `iss` claim. */
+            url: string;
+          };
+          /**
+           * The claim a person's DID is built from: did:web:<site
+           * domain>:users:<its value>.
+           */
+          subjectClaim: string;
+        };
+      };
+    };
+    /**
+     * stack.start's params: what xynolog start takes, but its help and its
+     * narration switches.
+     */
+    StackStartParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * Which knowledge base's stack. Absent: the one the command line chooses,
+       * standing where the control server was started.
+       */
+      target?: components['schemas']['Target'];
+      /**
+       * The container runtime to ask, as --runtime names it. Absent: the one
+       * the stack's record names, else every installed one.
+       */
+      runtime?: components['schemas']['Runtime'];
+      /**
+       * The Inference document to run, as --config names it. Absent: the
+       * knowledge base's recorded preference, else the default.
+       */
+      config?: string;
+      /** Just this one service, as --service names it. */
+      service?: string;
+      /** Just this one group of services, as --group names it. */
+      group?: components['schemas']['ServiceGroup'];
+      /**
+       * For a codespace target: which of the repository's codespaces, as
+       * --codespace names it.
+       */
+      codespaceName?: string;
+      /**
+       * For a codespace target being created: its VM class, as --machine names
+       * it.
+       */
+      machine?: string;
+      /**
+       * For a codespace target being created: inactivity before it stops, as
+       * --idle-timeout takes it.
+       */
+      idleTimeout?: string;
+      /**
+       * For a codespace target being created: how long a stopped codespace is
+       * kept, as --retention-period takes it.
+       */
+      retentionPeriod?: string;
+      /**
+       * Whether to start the telemetry backends, Jaeger and Prometheus. false
+       * is --no-observe. Absent: true.
+       */
+      observe?: boolean;
+      /**
+       * Where a started Ollama keeps its models, as --ollama-cache names it.
+       * Absent: the host's ~/.ollama when there is one, else the named volume —
+       * what the command line's prompt does when nobody answers it.
+       */
+      ollamaCache?: 'host' | 'volume';
+      /**
+       * Whether to run nothing, and report each runtime command a start would
+       * run as a command progress line.
+       */
+      dryRun?: boolean;
+    };
+    /**
+     * A start that ran to its end: the stack as status reads it afterwards. A
+     * start that failed is an error, whatever it started before it did; its
+     * progress lines say what it did.
+     */
+    StackStartResult: {
+      /** Whether the start ran nothing. */
+      dryRun: boolean;
+      /**
+       * The started knowledge base's stack, as status reads it after the start.
+       * Absent from a dry run, and from a start of services no knowledge base
+       * owns.
+       */
+      knowledgeBase?: components['schemas']['KnowledgeBaseStatus'];
+      /**
+       * The shared services, as status reads them after the start. Absent from
+       * a dry run.
+       */
+      shared?: components['schemas']['ServiceStatus'][];
+    };
+    /** stack.stop's params: what xynolog stop takes, but its help. */
+    StackStopParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * Which knowledge base's stack. Absent: the one the command line chooses,
+       * standing where the control server was started.
+       */
+      target?: components['schemas']['Target'];
+      /**
+       * The container runtime to ask, as --runtime names it. Absent: the one
+       * the stack's record names, else every installed one.
+       */
+      runtime?: components['schemas']['Runtime'];
+      /** Just this one service, as --service names it. */
+      service?: string;
+      /** Just this one group of services, as --group names it. */
+      group?: components['schemas']['ServiceGroup'];
+      /**
+       * For a codespace target: destroy the codespace, state and all, and
+       * forget its record. The command line's --delete. Refused without
+       * deleteConfirmed.
+       */
+      delete?: boolean;
+      /**
+       * That the person confirmed the deletion: delete is refused with
+       * control.confirmation-required without it.
+       */
+      deleteConfirmed?: boolean;
+      /**
+       * Whether to stop nothing, and report each runtime command a stop would
+       * run as a command progress line.
+       */
+      dryRun?: boolean;
+    };
+    /**
+     * A stop that ran to its end: what status reads afterwards. A stop that
+     * failed is an error.
+     */
+    StackStopResult: {
+      /** Whether the stop stopped nothing. */
+      dryRun: boolean;
+      /**
+       * The knowledge bases still recorded, as status reads them after the
+       * stop. Absent from a dry run.
+       */
+      knowledgeBases?: components['schemas']['KnowledgeBaseStatus'][];
+      /**
+       * The shared services, as status reads them after the stop. Absent from a
+       * dry run.
+       */
+      shared?: components['schemas']['ServiceStatus'][];
+    };
     StatusResponse: {
       status: string;
       version: string;
@@ -4779,6 +6901,38 @@ export interface components {
       };
       message: string;
       authenticatedAs?: string;
+    };
+    /** status.snapshot's params. */
+    StatusSnapshotParams: {
+      /** The version of the control API the request is written to. */
+      apiVersion: components['schemas']['ApiVersion'];
+      /**
+       * Which knowledge base's stack. Absent: the one the command line chooses,
+       * standing where the control server was started.
+       */
+      target?: components['schemas']['Target'];
+      /**
+       * The container runtime to ask, as --runtime names it. Absent: the one
+       * the stack's record names, else every installed one.
+       */
+      runtime?: components['schemas']['Runtime'];
+    };
+    /**
+     * What xynolog status reports: each knowledge base with its own services,
+     * and each service the knowledge bases share, once, with the knowledge
+     * bases it serves.
+     */
+    StatusSnapshotResult: {
+      /**
+       * The target's stack; with no target, the stack of the knowledge base the
+       * control server stands in, else every recorded one.
+       */
+      knowledgeBases: components['schemas']['KnowledgeBaseStatus'][];
+      /**
+       * The services every knowledge base shares, group by group, and those the
+       * machine serves for the knowledge bases that name them.
+       */
+      shared: components['schemas']['ServiceStatus'][];
     };
     /**
      * One entry of the storage-uri index: the file
@@ -4955,6 +7109,27 @@ export interface components {
       /** The language of the resource being read. BCP 47. */
       sourceLanguage?: string;
     };
+    /**
+     * Which knowledge base an operation acts on: a local clone's stack, or a
+     * codespace's. The launcher resolves it as the command line resolves --root
+     * and --repo, and refuses a choice it would have to guess.
+     */
+    Target: {
+      /**
+       * Where the stack runs: on this machine (local), or on a GitHub codespace
+       * whose knowledge base is forwarded here (codespace).
+       */
+      kind: 'local' | 'codespace';
+      /**
+       * For a local target: the knowledge base's clone, by path or by the
+       * basename of a registered root, as --root takes it. Absent: the local
+       * stack the command line chooses with --runtime, standing where the
+       * control server was started.
+       */
+      root?: string;
+      /** For a codespace target: the GitHub repository, as --repo takes it. */
+      repo?: string;
+    };
     TextPositionSelector: {
       type: 'TextPositionSelector';
       /**
@@ -5061,6 +7236,22 @@ export interface components {
       operations: components['schemas']['BodyOperation'][];
     };
     /**
+     * A sign-in waits for a person: open the verification page and enter the
+     * code. The code is sent here and nowhere else — in no progress line, no
+     * log record and no diagnostic.
+     */
+    UserAction: {
+      requestId: components['schemas']['RequestId'];
+      /** The page where the person enters the code. */
+      verificationUri: string;
+      /** The page with the code already in it, when the issuer offers one. */
+      verificationUriComplete?: string;
+      /** The code the person enters. */
+      userCode: string;
+      /** How long the code is good for, from when it was issued. */
+      expiresInSeconds: number;
+    };
+    /**
      * The identity of whoever did something, a person or a software agent
      * alike: a DID (`did:web:<domain>:users:<subject>`,
      * `did:web:<domain>:agents:<subject>`), with no whitespace in it. Never a
@@ -5102,6 +7293,30 @@ export interface components {
        * under.
        */
       domain: string;
+    };
+    /**
+     * The vector store the launcher runs for the knowledge bases on a machine,
+     * each knowledge base's index in collections of its own. It belongs to no
+     * knowledge base, so its document is kept in the launcher's state home, in
+     * `stack/vectors.yaml`, not in a knowledge base's repository. A knowledge
+     * base keeps its index in it by naming `shared` at `spec.vectors`.
+     */
+    VectorStore: {
+      apiVersion: components['schemas']['StackApiVersion'];
+      kind: 'VectorStore';
+      metadata: components['schemas']['Metadata'];
+      /** The vector store, and where it is published. */
+      spec: {
+        /** The vector store's driver: `qdrant`. */
+        type: string;
+        image: components['schemas']['Image'];
+        resources: components['schemas']['Resources'];
+        /**
+         * The port the vector store is published on, on this machine, where
+         * every knowledge base's Smelter and Librarian reach it.
+         */
+        port: number;
+      };
     };
     /**
      * The vector index a service writes or searches, and what that kind of
@@ -5203,28 +7418,8 @@ export interface components {
        * which that knowledge base said it is before the Weaver connected to the
        * graph database.
        */
-      kb: string;
-      /**
-       * How far a follower of the record has followed it, as every follower
-       * says it at its health port (WEAVER.md § Health, SMELTER.md § Health).
-       */
-      following: {
-        /**
-         * The latest sweep's phase: `pending` before its stream first opens,
-         * `running`, `done`, or `due` where the record could not be listed and
-         * the sweep is tried again.
-         */
-        sweep: 'pending' | 'running' | 'done' | 'due';
-        /**
-         * How many resources' logs a failed taking has stopped until the next
-         * sweep.
-         */
-        stopped: number;
-        /** How many events it refused as recorded since it started. */
-        refused: number;
-        /** How many times its stream has dropped since it started. */
-        streamDrops: number;
-      };
+      kb: components['schemas']['KbDid'];
+      following: components['schemas']['FollowerFollowing'];
       /**
        * How far the reconcile its first sweep is followed by has got (WEAVER.md
        * § Reconcile): the pass's `summary` when it is done, or its `error` when
@@ -5417,6 +7612,69 @@ export interface components {
       did?: string;
       /** One entry for each of the entry's engines, in its order. */
       engines?: components['schemas']['WorkerEngineHealth'][];
+    };
+    /**
+     * The shared worker that does knowledge bases' jobs: its image, its memory
+     * and its log level. They are shared, not any knowledge base's, so its
+     * document is kept in the launcher's state home, in `stack/workers.yaml`,
+     * not in a knowledge base's repository. A knowledge base's jobs are done
+     * when its Inference document gives a job an engine. A worker needs only
+     * the Gateway, and an issuer's token with the worker's role.
+     */
+    WorkerPool: {
+      apiVersion: components['schemas']['StackApiVersion'];
+      kind: 'WorkerPool';
+      metadata: components['schemas']['Metadata'];
+      /** How the worker runs. */
+      spec: {
+        logLevel: components['schemas']['LogLevel'];
+        /** The Worker. */
+        worker: {
+          image: components['schemas']['Image'];
+          resources: components['schemas']['Resources'];
+        };
+      };
+    };
+    /**
+     * A knowledge base's operational readings from Collector metrics.
+     * Request-tracking occupancy and queue depth are current gauges; completed
+     * and failed are worker counters since that worker process started. Missing
+     * readings are unknown, never zero.
+     */
+    WorkloadStatus: {
+      /**
+       * The Gateway's request tracking: correlation IDs it currently holds so
+       * replies can be routed to the app client that sent each request, and the
+       * tracking capacity.
+       */
+      ledger?: {
+        /**
+         * Number of request IDs currently held to route replies to their
+         * requesting app clients. Includes requests still waiting for a reply
+         * and recently answered requests still within the tracking window.
+         */
+        claims: number;
+        /**
+         * The maximum number of IDs held in this Gateway's local tracking
+         * projection.
+         */
+        capacity: number;
+      };
+      /**
+       * Current Dispatcher depth and, when the worker has emitted counters,
+       * completed and failed work since worker start. These are different
+       * measurements and time windows.
+       */
+      queue?: {
+        /** Jobs currently waiting for a worker. */
+        pending: number;
+        /** Jobs currently claimed by workers. */
+        running: number;
+        /** Jobs completed since worker start. */
+        completed?: number;
+        /** Jobs finally failed since worker start. */
+        failed?: number;
+      };
     };
     /**
      * Bus command to create a cloned resource from a clone token. Bytes are

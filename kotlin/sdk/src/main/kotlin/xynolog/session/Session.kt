@@ -27,7 +27,6 @@ import xynolog.errors.XynologError
 import xynolog.retry.REFRESH
 import xynolog.retry.RetryFacts
 import xynolog.retry.equalJitter
-import xynolog.signin.HeldSignIn
 import xynolog.signin.SignInKept
 import xynolog.telemetry.futureOf
 import xynolog.transport.Broadcast
@@ -37,6 +36,7 @@ import xynolog.transport.Variable
 import xynolog.transport.Watched
 import xynolog.types.KbTarget
 import xynolog.types.SessionEndReason
+import xynolog.types.StoredSession
 import xynolog.types.UserResponse
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
@@ -351,7 +351,7 @@ public class XynologSession internal constructor(
      * What a session does at its start, with the sign-in it found kept: renew
      * it if it has expired, then ask the gateway who it is.
      */
-    private suspend fun begin(found: HeldSignIn?) {
+    private suspend fun begin(found: StoredSession?) {
         if (found == null) return
         var justIssued = isTokenExpired(found.access, now())
         var token = found.access

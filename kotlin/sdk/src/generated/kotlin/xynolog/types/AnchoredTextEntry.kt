@@ -12,6 +12,7 @@ public sealed interface AnchoredTextEntry
 internal object AnchoredTextEntrySerializer : KindsUnionSerializer<AnchoredTextEntry>(
     AnchoredTextEntry::class,
     strings = { emptyList() },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(AnchoredTextExtractedEntry.serializer(), AnchoredTextDeclinedEntry.serializer()) },
 )

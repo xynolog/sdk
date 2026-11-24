@@ -50,28 +50,29 @@ let constant type_ name value =
       value = Some value;
     }
 
-let json ~root path =
-  Result.map_error (fun e -> [ e ]) (Decode.parse_file ~root (specs ^ path))
-
-(* [json], a schema read from [file], each [$ref] into a table naming the
+(* [schema] as WireSchemas states it, each [$ref] into a table naming the
    record there by its title: WireJson finds the schema a reference names by
    the name of the file it names. *)
-let rec titled ids ~file records = function
-  | `Assoc members ->
-      `Assoc
-        (List.map
-           (function
-             | ("$ref", `String target) as reference -> (
-                 let key =
-                   Table_records.key ids { Decode.target; file; pointer = "" }
-                 in
-                 match List.find_opt (fun (k, _, _) -> k = key) records with
-                 | Some (_, title, _) -> ("$ref", `String (title ^ ".json"))
-                 | None -> reference)
-             | key, value -> (key, titled ids ~file records value))
-           members)
-  | `List items -> `List (List.map (titled ids ~file records) items)
-  | json -> json
+let titled ids records =
+  Schema.cata
+    ~boolean:(fun b -> Schema.Boolean_schema b)
+    ~schema:(fun l ->
+      Schema.Schema
+        {
+          l with
+          ref_ =
+            Option.map
+              (fun (r : Decode.reference) ->
+                match
+                  List.find_opt
+                    (fun (k, _, _) -> k = Table_records.key ids r)
+                    records
+                with
+                | Some (_, title, _) ->
+                    { Decode.target = title ^ ".json"; file = ""; pointer = "" }
+                | None -> r)
+              l.ref_;
+        })
 
 let schema_of (spec : Spec.t) path =
   match List.assoc_opt path spec.schemas with
@@ -91,44 +92,25 @@ let schema_of (spec : Spec.t) path =
    entry, the client types it generates ([Definitions.generated_client_types]), and the records Protocol states in its
    tables ([Table_records]);
    each with the file, or the place in a file, it is read from. *)
-let roots ~root (spec : Spec.t) =
+let roots (spec : Spec.t) =
   let* records =
     Result.map_error
       (fun message -> [ { Decode.file = specs; pointer = ""; message } ])
       (Table_records.all spec)
   in
-  let read ~file name path schema json =
-    ((name, path, { Models.schema; json = titled spec.ids ~file records json })
-      : _)
+  (* A schema is validated as a writer reads it whole ([Definitions.whole]),
+     each place of several types the [anyOf] of each
+     ([Normalize.several_types_throughout]): the union a model of it reads. *)
+  let read name path schema =
+    let validated = Normalize.several_types_throughout schema in
+    (name, path, { Models.schema = Normalize.shape_only validated; validated })
   in
   let written = Definitions.whole spec in
-  (* A schema is read as a writer reads one whole ([Definitions.whole]), and
-     validated as what it is then. *)
   let whole name path =
     let* stated = schema_of spec path in
-    let* schema =
-      Result.map_error
-        (fun message -> [ { Decode.file = path; pointer = ""; message } ])
-        (written stated)
-    in
-    let* json =
-      if schema = stated then json ~root path else Ok (Schema.runtime schema)
-    in
-    Ok (read ~file:path name path schema json)
-  in
-  let record (key, name, schema) =
-    let file, pointer =
-      match String.index_opt key '#' with
-      | Some i ->
-          ( String.sub key 0 i,
-            String.sub key (i + 1) (String.length key - i - 1) )
-      | None -> (key, "")
-    in
-    let* table = json ~root file in
-    match Decode.at_pointer pointer table with
-    | Some json -> Ok (read ~file name key schema json)
-    | None ->
-        Error [ { Decode.file; pointer; message = "states no record there" } ]
+    Result.map_error
+      (fun message -> [ { Decode.file = path; pointer = ""; message } ])
+      (Result.map (read name path) (written stated))
   in
   let components =
     List.map
@@ -136,13 +118,17 @@ let roots ~root (spec : Spec.t) =
         whole name (fst (Decode.resolve spec.Spec.ids reference)))
       (Roots.all spec)
   in
-  Spec.all
-    (components
-    @ [ whole "SignIn" Sign_in.schema_file ]
-    @ List.map
-        (fun name -> whole name ("client/types/" ^ name ^ ".json"))
-        (Definitions.generated_client_types spec)
-    @ List.map record records)
+  let* roots =
+    Spec.all
+      (components
+      @ [ whole "SignIn" Roots.sign_in_entry ]
+      @ List.map
+          (fun name -> whole name (Roots.client_types ^ name ^ ".json"))
+          (Definitions.generated_client_types spec))
+  in
+  Ok
+    ( roots @ List.map (fun (key, name, schema) -> read name key schema) records,
+      records )
 
 let refused message =
   [ { Decode.file = "components/schemas"; pointer = ""; message } ]
@@ -193,7 +179,14 @@ let discovery_absent (spec : Spec.t) =
         };
     ]
 
-let wire_schemas (models : Models.t) =
+let wire_schemas ids records (models : Models.t) =
+  let source =
+    `Assoc
+      (List.map
+         (fun (name, schema) ->
+           (name, Schema.runtime (titled ids records schema)))
+         models.schemas)
+  in
   file ~namespace:"Xynolog.Serialization"
     ~from_:"the schemas of protocol/specs/src the C# SDK models"
     (generated ^ "WireSchemas.g.cs")
@@ -207,7 +200,7 @@ let wire_schemas (models : Models.t) =
               modifiers = [ Private; Const ];
               type_ = T "string";
               name = "SchemaSource";
-              value = Some (Str (Yojson.Safe.to_string (`Assoc models.schemas)));
+              value = Some (Str (Yojson.Safe.to_string source));
             };
         ];
     ]
@@ -330,7 +323,7 @@ let failure_codes (spec : Spec.t) (models : Models.t) =
 
 let files ~root (spec : Spec.t) =
   let* kinds = Identifiers.Table.derive spec in
-  let* roots = roots ~root spec in
+  let* roots, records = roots spec in
   let* made =
     Spec.all
       (Bus.Csharp.payloads spec.tables.bus_registry
@@ -344,12 +337,17 @@ let files ~root (spec : Spec.t) =
          ~roots
          ~made:
            (List.map
-              (fun (name, json, schema) -> (name, { Models.schema; json }))
+              (fun (name, _, schema) ->
+                let validated = Normalize.several_types_throughout schema in
+                ( name,
+                  { Models.schema = Normalize.shape_only validated; validated }
+                ))
               made))
   in
   let* failures = failure_codes spec models in
   let* tables = protocol_tables ~root in
   let written = List.map model_file models.models @ [ discovery_absent spec ] in
   match Output.stale ~root ~directory:types written with
-  | [] -> Ok (written @ [ wire_schemas models; failures; tables ])
+  | [] ->
+      Ok (written @ [ wire_schemas spec.ids records models; failures; tables ])
   | stale -> Error stale

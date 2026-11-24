@@ -48,7 +48,7 @@ from xynolog.registry import (
     store_session,
     stored_session,
 )
-from xynolog.session import HeldSignIn, MemorySignIn, XynologSession
+from xynolog.session import MemorySignIn, XynologSession
 from xynolog.session_signals import SessionSignals
 from xynolog.storage import MemoryStorage, SessionStorage
 from xynolog.storage_keys import cache_key, last_event_id_key, person_key, session_key
@@ -524,9 +524,9 @@ def test_a_session_whose_stored_sign_in_another_context_changes_writes_what_the_
 # ── inProcess ───────────────────────────────────────────────────────────
 
 
-def held_by(gateway: GatewayServer, person: str | None, n: int) -> HeldSignIn:
+def held_by(gateway: GatewayServer, person: str | None, n: int) -> StoredSession:
     """A sign-in whose token is good for an hour, told from another by `n`, naming `person`, or nobody."""
-    return HeldSignIn(
+    return StoredSession(
         access=token(3600, n),
         refresh=f"refresh-{n}",
         client_id="xynolog-browser",

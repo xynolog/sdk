@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WeaverHealth
 {
-    [global::Xynolog.Serialization.Wire("following")] public required global::Xynolog.Types.WeaverHealthFollowing Following { get; init; }
+    [global::Xynolog.Serialization.Wire("following")] public required global::Xynolog.Types.FollowerFollowing Following { get; init; }
     [global::Xynolog.Serialization.Wire("kb")] public required string Kb { get; init; }
     [global::Xynolog.Serialization.Wire("reconcile")] public required global::Xynolog.Types.WeaverHealthReconcile Reconcile { get; init; }
     public const string StatusValue = "ok";

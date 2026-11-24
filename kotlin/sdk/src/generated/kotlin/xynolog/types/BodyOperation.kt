@@ -12,6 +12,7 @@ public sealed interface BodyOperation
 internal object BodyOperationSerializer : KindsUnionSerializer<BodyOperation>(
     BodyOperation::class,
     strings = { emptyList() },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(BodyOperationAdd.serializer(), BodyOperationRemove.serializer(), BodyOperationReplace.serializer()) },
 )

@@ -55,7 +55,6 @@ let images =
   [
     { name = "bundles"; files = Images.Bundles.files };
     { name = "archivist-waits"; files = Images.Archivist_waits.files };
-    { name = "service-types"; files = Images.Service_types.files };
   ]
 
 type target = Sdk | Cli | Images

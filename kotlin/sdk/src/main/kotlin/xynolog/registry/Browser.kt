@@ -59,6 +59,7 @@ import xynolog.types.KbSessionStatus
 import xynolog.types.KnowledgeBase
 import xynolog.types.LocalEndpoint
 import xynolog.types.NewKnowledgeBase
+import xynolog.types.OpenResource
 import xynolog.types.SignInOutcome
 import xynolog.types.SignedIn
 import xynolog.types.StoredSession
@@ -401,7 +402,7 @@ public class XynologBrowser(config: XynologBrowserConfig) : AutoCloseable {
             tabs.toMutableList().also { it[at] = it[at].copy(name = name, mediaType = mediaType ?: it[at].mediaType, storageUri = storageUri ?: it[at].storageUri) }
         } else {
             // After the last place taken, not the count: a place freed by a removal is not handed out twice.
-            tabs + OpenResource(resourceId, name, System.currentTimeMillis(), tabs.maxOfOrNull { it.order + 1 } ?: 0, mediaType, storageUri)
+            tabs + OpenResource(resourceId, name, System.currentTimeMillis(), tabs.maxOfOrNull { it.order + 1 } ?: 0L, mediaType, storageUri)
         }
     }
 
@@ -418,7 +419,7 @@ public class XynologBrowser(config: XynologBrowserConfig) : AutoCloseable {
         if (from !in tabs.indices || to !in tabs.indices) {
             tabs
         } else {
-            sortOpenResources(tabs).toMutableList().apply { add(to, removeAt(from)) }.mapIndexed { place, tab -> tab.copy(order = place) }
+            sortOpenResources(tabs).toMutableList().apply { add(to, removeAt(from)) }.mapIndexed { place, tab -> tab.copy(order = place.toLong()) }
         }
     }
 

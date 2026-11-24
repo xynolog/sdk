@@ -8,8 +8,7 @@ open Fixture
 
 let generated ?(identifiers = []) ?(accessors = []) schemas root =
   Rust_syntax.text ~header:[]
-    (G.items (definitions schemas)
-       { roots = [ root ]; identifiers; accessors; elsewhere = [] })
+    (G.items (definitions schemas) { roots = [ root ]; identifiers; accessors })
 
 let thing pattern =
   [
@@ -344,15 +343,17 @@ let cases =
           \        }\n\
           \    }\n\
            }\n");
-    case "a value stated as a const is refused"
-      (refused "Yielding.jobType: `const` is not OpenAPI 3.0" (fun () ->
-           generated
+    case "a value stated as a const is the enumeration of its one value"
+      (fun () ->
+        has
+          (generated
              [
                ( "Yielding",
                  {|{"type": "object", "required": ["jobType"], "additionalProperties": false, "properties": {"jobType": {"const": "yield", "type": "string"}}}|}
                );
              ]
-             "Yielding"));
+             "Yielding")
+          {|"yield"|});
     case
       "a member that is a schema of its own is its union wherever the union is \
        wanted" (fun () ->

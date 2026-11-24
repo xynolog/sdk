@@ -5,10 +5,6 @@
    place of each [$ref] to it, before any writer reads the schema that
    refers to it. *)
 
-(* What a client hands its callers that no wire message carries: each file of
-   protocol/specs/src/client/types, and the records of the registry and of the
-   state units' notices. *)
-let client_types = "client/types/"
 let stem file = Filename.remove_extension (Filename.basename file)
 
 (* What a schema that states a [$ref] says of the schema it names: a
@@ -44,7 +40,7 @@ let named (spec : Spec.t) =
             if
               (not (String.contains key '#'))
               && (Filename.basename (Filename.dirname key) = "schemas"
-                 || String.starts_with ~prefix:client_types key)
+                 || String.starts_with ~prefix:Roots.client_types key)
             then Some (stem key)
             else None)
     (Table_records.all spec)
@@ -53,8 +49,8 @@ exception Refused of string
 
 let refuse fmt = Printf.ksprintf (fun message -> raise (Refused message)) fmt
 
-(* [s] with each [$ref] to a file [named] names none of written in its
-   place, from [schemas]. What is said beside such a [$ref] is said of what
+(* [s] with each [$ref] to a file, or to a place within one, that [named]
+   names none of written in its place, from [schemas]. What is said beside such a [$ref] is said of what
    is written there, in place of what that says of itself. A file written in
    place that reaches itself would be written in place without end. *)
 let files_in_place ~ids ~schemas ~named s =
@@ -64,22 +60,33 @@ let files_in_place ~ids ~schemas ~named s =
         match l.ref_ with
         | None -> Schema.Schema (Schema.map (files trail) l)
         | Some r -> (
+            let key = function
+              | file, "" -> file
+              | file, pointer -> file ^ "#" ^ pointer
+            in
             match Decode.resolve ids r with
-            | file, "" when Option.is_none (named file) -> (
-                if List.mem file trail then
+            | (file, pointer) as place
+              when Option.is_none (named (key place))
+                   && not (String.starts_with ~prefix:"/$defs/" pointer) -> (
+                let at = key place in
+                if List.mem at trail then
                   refuse
                     "%s reaches itself through the files written in its place"
-                    file;
+                    at;
                 let description =
                   match said_of_reference l r with
                   | Ok d -> d
                   | Error message -> refuse "%s" message
                 in
+                (* A place within a file is the schema there; one of its own
+                   [$defs] is the writers' to name. *)
+                let target =
+                  Option.bind (Hashtbl.find_opt schemas file) (fun whole ->
+                      if pointer = "" then Some whole
+                      else Pointer.schema whole pointer)
+                in
                 match
-                  ( Option.map
-                      (files (file :: trail))
-                      (Hashtbl.find_opt schemas file),
-                    description )
+                  (Option.map (files (at :: trail)) target, description)
                 with
                 | None, _ -> refuse "$ref %s names no schema" r.target
                 | Some written, None -> written

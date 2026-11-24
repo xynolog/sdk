@@ -43,9 +43,6 @@ type generation = {
           given a [pub(crate)] method, named as the property is, saying which
           value of the string enumeration the property names its member states.
       *)
-  elsewhere : string list;
-      (** The schemas the Rust SDK declares, for a crate beside it: each is
-          named in [xynolog::types] rather than written again. *)
 }
 
 let empty_object = "EmptyObject"
@@ -110,6 +107,19 @@ let common_prefix names =
         first;
       !prefix
   | _ -> ""
+
+(* An integer's type: the narrowest its bounds allow of [u16], [u64] and
+   [i64]. *)
+let integer_ty (n : D.node) =
+  let int = function
+    | Some f when Float.is_integer f -> Some (int_of_float f)
+    | _ -> None
+  in
+  ty
+    (match (int n.minimum, int n.maximum) with
+    | Some min, Some max when min >= 0 && max <= 65535 -> "u16"
+    | Some min, _ when min >= 0 -> "u64"
+    | _ -> "i64")
 
 let derive paths =
   R.List
@@ -259,30 +269,27 @@ let schema st name = st.definitions.schema name
 let defined st name = List.mem name st.definitions.names
 
 let rec named st name =
-  if List.mem name st.generation.elsewhere then
-    R.Named ([ "xynolog"; "types"; name ], [])
-  else (
-    if not (Hashtbl.mem st.written name) then (
-      let s = schema st name in
-      Hashtbl.replace st.written name [];
-      let items = declaration st name s in
-      let alias =
-        List.exists
-          (function R.Type_alias { name = n; _ } -> n = name | _ -> false)
-          items
-      in
-      let items =
-        if alias then items
-        else
-          let calls_before =
-            match List.rev items with
-            | R.Blank :: (R.Macro_item _ :: _ as before) -> List.rev before
-            | _ -> items
-          in
-          calls_before @ [ R.Macro_item ("schema", [ R.p name ]) ]
-      in
-      Hashtbl.replace st.written name items);
-    ty name)
+  if not (Hashtbl.mem st.written name) then (
+    let s = schema st name in
+    Hashtbl.replace st.written name [];
+    let items = declaration st name s in
+    let alias =
+      List.exists
+        (function R.Type_alias { name = n; _ } -> n = name | _ -> false)
+        items
+    in
+    let items =
+      if alias then items
+      else
+        let calls_before =
+          match List.rev items with
+          | R.Blank :: (R.Macro_item _ :: _ as before) -> List.rev before
+          | _ -> items
+        in
+        calls_before @ [ R.Macro_item ("schema", [ R.p name ]) ]
+    in
+    Hashtbl.replace st.written name items);
+  ty name
 
 and inline_name st owner property =
   Naming.inline ~defined:(defined st) owner property
@@ -328,7 +335,6 @@ and type_of st owner property (s : D.t) =
   | D.Ref { name; _ } -> named st name
   | D.Node { keys = []; _ } -> R.named "serde_json::Value"
   | _ -> (
-      View.refuse_const what s;
       match View.without_null s with
       | Some inner -> type_of st owner property inner
       | None -> (
@@ -338,7 +344,6 @@ and type_of st owner property (s : D.t) =
           | _ -> (
               match View.union s with
               | Some members ->
-                  List.iter (View.refuse_const what) members;
                   if List.for_all (View.is_string st.definitions) members then
                     string_ty
                   else inline st (inline_name st owner property) s
@@ -352,19 +357,7 @@ and type_of st owner property (s : D.t) =
                       | Boolean -> ty "bool"
                       | Number -> ty "f64"
                       | Null -> refuse "%s: null alone" what
-                      | Integer ->
-                          let int = function
-                            | Some f when Float.is_integer f ->
-                                Some (int_of_float f)
-                            | _ -> None
-                          in
-                          ty
-                            (match (int n.minimum, int n.maximum) with
-                            | Some min, Some max when min >= 0 && max <= 65535
-                              ->
-                                "u16"
-                            | Some min, _ when min >= 0 -> "u64"
-                            | _ -> "i64")
+                      | Integer -> integer_ty n
                       | Array -> (
                           match n.items with
                           | Some items ->
@@ -421,7 +414,6 @@ and declaration st name (s : D.t) =
   | None ->
       let owner = D.owners st.definitions name s in
       let s = D.meant s in
-      View.refuse_const name s;
       let n =
         match s with
         | D.Node n -> n
@@ -431,6 +423,12 @@ and declaration st name (s : D.t) =
       else if List.mem name st.generation.identifiers then identifier name n doc
       else if View.is_string st.definitions s then
         [ R.Type_alias { doc; vis = Pub; name; ty = string_ty } ]
+      else if n.type_ = Some (D.One Integer) then
+        [ R.Type_alias { doc; vis = Pub; name; ty = integer_ty n } ]
+      else if n.type_ = Some (D.One Number) then
+        [ R.Type_alias { doc; vis = Pub; name; ty = ty "f64" } ]
+      else if n.type_ = Some (D.One Boolean) then
+        [ R.Type_alias { doc; vis = Pub; name; ty = ty "bool" } ]
       else if n.type_ <> Some (D.One Object) then
         refuse "%s: a schema shape the generator does not know" name
       else structure st name ~owner n doc
@@ -901,11 +899,14 @@ and union_declaration st name members told_apart doc =
               (* An inline member is named by the one value its discriminant
                  takes, when it has one. *)
               let variant =
-                match View.discriminant member with
-                | Some d -> Text.pascal d
+                match View.member_name member with
+                | Some named -> named
                 | None -> "Object"
               in
               (variant, type_of st name variant member)
+          | D.Node { type_ = Some (D.One Integer); _ } -> ("Integer", ty "i64")
+          | D.Node { type_ = Some (D.One Number); _ } -> ("Number", ty "f64")
+          | D.Node { type_ = Some (D.One Boolean); _ } -> ("Boolean", ty "bool")
           | _ -> refuse "%s: a union member the generator does not know" name
         in
         if List.mem_assoc variant acc then
@@ -1102,11 +1103,6 @@ let run definitions generation =
       if List.mem own definitions.D.names then
         refuse "%s is a schema's name, and the SDK's own" own)
     own_names;
-  List.iter
-    (fun root ->
-      if List.mem root generation.elsewhere then
-        refuse "%s is a root, and the Rust SDK declares it" root)
-    generation.roots;
   let st = { definitions; generation; written = Hashtbl.create 512 } in
   List.iter (fun root -> ignore (named st root)) generation.roots;
   let names =
@@ -1114,9 +1110,6 @@ let run definitions generation =
       (Hashtbl.fold (fun n _ acc -> n :: acc) st.written [])
   in
   (st, names)
-
-(* The types a generation declares, by name. *)
-let declared definitions generation = snd (run definitions generation)
 
 let items definitions generation =
   let st, names = run definitions generation in

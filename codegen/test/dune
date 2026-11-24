@@ -62,7 +62,7 @@
 (executable
  (name images_groups)
  (modules images_groups)
- (libraries xynolog_codegen yojson unix))
+ (libraries xynolog_codegen))
 
 ; Run with the checkout's root, which is outside this project:
 ; dune exec test/coverage_census.exe -- ..
@@ -211,3 +211,9 @@
  (name surface)
  (modules surface)
  (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema yojson alcotest))
+
+; dune exec test/types_census.exe -- ..
+(executable
+ (name types_census)
+ (modules types_census)
+ (libraries xynolog_codegen))

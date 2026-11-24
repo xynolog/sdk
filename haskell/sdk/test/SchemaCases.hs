@@ -26,7 +26,12 @@ schemaCases = do
   malformed "unknown reference accepted" (ref "Missing")
   accepted "reference refused" (ref "Text")
   malformed "non-string reference accepted" (object ["$ref" .= True])
-  malformed "unknown keyword accepted" (object ["not" .= text])
+  malformed "unknown keyword accepted" (object ["patternProperties" .= object ["x" .= text]])
+  forM_ ["not", "propertyNames"] $ \key -> do
+    accepted "a keyword of a schema refused" (object [key .= text])
+    malformed "a keyword of no schema accepted" (object [key .= Number 1])
+  accepted "const refused" (object ["const" .= String "a"])
+  accepted "minProperties refused" (object ["minProperties" .= (1 :: Int)])
   malformed "unknown type accepted" (object ["type" .= String "unknown"])
   malformed "non-string type accepted" (object ["type" .= True])
   forM_ ["string", "integer", "number", "boolean", "object", "array", "null"] $ \kind ->
@@ -34,9 +39,9 @@ schemaCases = do
   forM_ ["uri", "date-time", "binary"] $ \format -> accepted "known format refused" (object ["format" .= String format])
   malformed "unknown format accepted" (object ["format" .= String "unknown"])
   malformed "non-string format accepted" (object ["format" .= True])
-  forM_ ["^x+$", "^[a-z\\-]+$", "^\\S+$", "^x.z$"] $ \pattern ->
+  forM_ ["^x+$", "^[a-z\\-]+$", "^\\S+$", "^x.z$", "^[^/\\s]+/\\d\\w$"] $ \pattern ->
     accepted "supported pattern refused" (object ["pattern" .= String pattern])
-  forM_ ["\\d", "\\", "["] $ \pattern -> malformed "unsupported pattern accepted" (object ["pattern" .= String pattern])
+  forM_ ["\\p", "[\\S]", "\\", "["] $ \pattern -> malformed "unsupported pattern accepted" (object ["pattern" .= String pattern])
   malformed "non-string pattern accepted" (object ["pattern" .= False])
   forM_ ["minimum", "maximum"] $ \key -> do
     accepted "numeric bound refused" (object [key .= (1.5 :: Double)])
@@ -112,6 +117,17 @@ schemaCases = do
   holds (object ["type" .= String "string", "pattern" .= String "^a+$"]) (String "a")
   refuses (object ["type" .= String "string", "pattern" .= String "^a+$"]) (String "b")
   refuses (object ["enum" .= [String "a"]]) (String "b")
+  holds (object ["const" .= String "a"]) (String "a")
+  refuses (object ["const" .= String "a"]) (String "b")
+  let notBoth = object ["not" .= object ["required" .= [String "a", String "b"]]]
+  holds notBoth (object ["a" .= True])
+  refuses notBoth (object ["a" .= True, "b" .= Null])
+  let named = object ["type" .= String "object", "propertyNames" .= object ["pattern" .= String "^x+$"]]
+  holds named (object ["xx" .= True])
+  refuses named (object ["y" .= True])
+  let nonEmpty = object ["type" .= String "object", "minProperties" .= (1 :: Int)]
+  holds nonEmpty (object ["a" .= True])
+  refuses nonEmpty (object [])
 
   require "unknown named schema accepted" (isLeft (validateNamed definitions "Missing" Null))
   let enclosing = Map.insert "Enclosing" record definitions

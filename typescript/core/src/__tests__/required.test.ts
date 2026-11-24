@@ -16,6 +16,16 @@ import {
 const lacks = (member: string): Fault => ({ member, reason: 'lacks' });
 const malformed = (member: string): Fault => ({ member, reason: 'malformed' });
 
+type Term = NonNullable<Shape['pattern']>[number];
+
+/** The steps that take `text`: each of its code points, once. */
+function spelled(text: string): Term[] {
+  return Array.from(text, (point): Term => {
+    const code = point.codePointAt(0)!;
+    return { of: [[code, code]], min: 1, max: 1 };
+  });
+}
+
 describe('faultOf', () => {
   it('is the first member a value lacks, or the first of a kind its schema does not allow, wherever it is', () => {
     for (const [text, fault] of [
@@ -171,6 +181,147 @@ describe('readOfShape', () => {
       ['[]', malformed('')],
       ['[1,2,3]', malformed('')],
     ]);
+  });
+
+  it('reads a text as of a pattern when some way of reading its groups takes all of it', () => {
+    const verb: Term = {
+      either: [spelled('GET'), spelled('POST')],
+      min: 1,
+      max: 1,
+    };
+    faultsAs(
+      {
+        kinds: ['string'],
+        pattern: [verb, ...spelled(' /'), { of: [[0, 1114111]], min: 0 }],
+      },
+      [
+        ['"GET /"', undefined],
+        ['"POST /runs"', undefined],
+        ['"PUT /"', malformed('')],
+        ['"GET"', malformed('')],
+        ['"xGET /"', malformed('')],
+      ],
+    );
+    faultsAs({ kinds: ['string'], pattern: [verb, ...spelled(' /')] }, [
+      ['"GET /"', undefined],
+      ['"GET /runs"', malformed('')],
+    ]);
+    faultsAs(
+      {
+        kinds: ['string'],
+        pattern: [
+          { either: [spelled('a'), spelled('ab')], min: 1, max: 1 },
+          ...spelled('c'),
+        ],
+      },
+      [
+        ['"ac"', undefined],
+        ['"abc"', undefined],
+        ['"abbc"', malformed('')],
+      ],
+    );
+  });
+
+  it('repeats a group as often as it may, and gives repetitions back', () => {
+    faultsAs(
+      {
+        kinds: ['string'],
+        pattern: [{ either: [spelled('ab')], min: 0 }, ...spelled('ab')],
+      },
+      [
+        ['"ab"', undefined],
+        ['"ababab"', undefined],
+        ['""', malformed('')],
+        ['"aba"', malformed('')],
+      ],
+    );
+    faultsAs(
+      {
+        kinds: ['string'],
+        pattern: [{ either: [spelled('ab')], min: 1, max: 2 }],
+      },
+      [
+        ['"ab"', undefined],
+        ['"abab"', undefined],
+        ['""', malformed('')],
+        ['"ababab"', malformed('')],
+      ],
+    );
+    faultsAs(
+      {
+        kinds: ['string'],
+        pattern: [
+          { either: [[{ of: [[97, 97]], min: 0 }]], min: 0 },
+          ...spelled('b'),
+        ],
+      },
+      [
+        ['"b"', undefined],
+        ['"aaab"', undefined],
+        ['"aaa"', malformed('')],
+        ['"aac"', malformed('')],
+      ],
+    );
+  });
+
+  it('refuses an object that carries every member of a set it may not carry all of, whatever each holds', () => {
+    const spec: Shape = {
+      kinds: ['object'],
+      notAll: [['image', 'external'], ['shared']],
+    };
+    faultsAs({ kinds: ['object'], members: { spec } }, [
+      ['{"spec":{}}', undefined],
+      ['{"spec":{"image":"i","resources":{}}}', undefined],
+      ['{"spec":{"image":"i","external":true}}', malformed('spec')],
+      ['{"spec":{"image":null,"external":null}}', malformed('spec')],
+      ['{"spec":{"shared":null}}', malformed('spec')],
+    ]);
+  });
+
+  it('refuses an object with fewer members than it may carry', () => {
+    faultsAs({ kinds: ['object'], minMembers: 1 }, [
+      ['{"a":null}', undefined],
+      ['{}', malformed('')],
+    ]);
+  });
+
+  it("refuses a member whose name is not of the object's names, the first by code point", () => {
+    faultsAs(
+      {
+        kinds: ['object'],
+        members: {
+          providers: {
+            kinds: ['object'],
+            values: { kinds: ['object'] },
+            names: { kinds: ['string'], enum: ['anthropic', 'openai'] },
+          },
+        },
+      },
+      [
+        ['{"providers":{"openai":{}}}', undefined],
+        ['{"providers":{"zeta":{},"bogus":{}}}', malformed('providers.bogus')],
+        ['{"providers":{"bogus":1}}', malformed('providers.bogus')],
+        ['{"providers":{"openai":1}}', malformed('providers')],
+      ],
+    );
+  });
+
+  it("finds an object's bounds before the members it requires, and its members' names before the sets it may not carry all of", () => {
+    faultsAs({ kinds: ['object'], required: ['a'], minMembers: 2 }, [
+      ['{"b":1}', malformed('')],
+      ['{"b":1,"c":1}', lacks('a')],
+    ]);
+    faultsAs(
+      {
+        kinds: ['object'],
+        notAll: [['a', 'b']],
+        names: { kinds: ['string'], pattern: [{ of: [[97, 122]], min: 1 }] },
+      },
+      [
+        ['{"a":1,"b":1,"C":1}', malformed('C')],
+        ['{"a":1,"b":1}', malformed('')],
+      ],
+    );
   });
 
   it('refuses a member a closed object does not name, after the members it describes, the first by code point', () => {

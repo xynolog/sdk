@@ -12,6 +12,7 @@ public sealed interface YieldJobResult
 internal object YieldJobResultSerializer : KindsUnionSerializer<YieldJobResult>(
     YieldJobResult::class,
     strings = { emptyList() },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(YieldJobDone.serializer(), JobDeclined.serializer()) },
 )

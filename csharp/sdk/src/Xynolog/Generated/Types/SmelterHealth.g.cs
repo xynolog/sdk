@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record SmelterHealth
 {
     [global::Xynolog.Serialization.Wire("eventsProcessed")] public required long EventsProcessed { get; init; }
-    [global::Xynolog.Serialization.Wire("following")] public required global::Xynolog.Types.SmelterHealthFollowing Following { get; init; }
+    [global::Xynolog.Serialization.Wire("following")] public required global::Xynolog.Types.FollowerFollowing Following { get; init; }
     [global::Xynolog.Serialization.Wire("index")] public required global::Xynolog.Types.SmelterHealthIndex Index { get; init; }
     [global::Xynolog.Serialization.Wire("kb")] public required string Kb { get; init; }
     [global::Xynolog.Serialization.Wire("reconcile")] public required global::Xynolog.Types.SmelterHealthReconcile Reconcile { get; init; }

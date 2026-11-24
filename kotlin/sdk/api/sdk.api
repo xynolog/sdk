@@ -1173,46 +1173,6 @@ public final class xynolog/registry/OpenKt {
 	public static final fun sortOpenResources (Ljava/util/List;)Ljava/util/List;
 }
 
-public final class xynolog/registry/OpenResource {
-	public static final field Companion Lxynolog/registry/OpenResource$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/BoxingConstructorMarker;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/BoxingConstructorMarker;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Lxynolog/identifiers/ResourceId;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;)V
-	public final fun component1-mMrHYc8 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()J
-	public final fun component4 ()I
-	public final fun component5 ()Ljava/lang/String;
-	public final fun component6 ()Ljava/lang/String;
-	public final fun copy-2a5fTYc (Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;)Lxynolog/registry/OpenResource;
-	public static synthetic fun copy-2a5fTYc$default (Lxynolog/registry/OpenResource;Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lxynolog/registry/OpenResource;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getId ()Lxynolog/identifiers/ResourceId;
-	public final fun getId-mMrHYc8 ()Ljava/lang/String;
-	public final fun getMediaType ()Ljava/lang/String;
-	public final fun getName ()Ljava/lang/String;
-	public final fun getOpenedAt ()J
-	public final fun getOrder ()I
-	public final fun getStorageUri ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class xynolog/registry/OpenResource$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lxynolog/registry/OpenResource$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxynolog/registry/OpenResource;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxynolog/registry/OpenResource;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class xynolog/registry/OpenResource$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
 public abstract interface class xynolog/registry/SessionFactory {
 	public abstract fun revoke (Lxynolog/types/StoredSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun revokeFuture (Lxynolog/types/StoredSession;)Ljava/util/concurrent/CompletableFuture;
@@ -1414,41 +1374,20 @@ public final class xynolog/session/XynologSession : xynolog/StateUnit {
 	public final fun refreshFuture (Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 }
 
-public final class xynolog/signin/HeldSignIn {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()Ljava/lang/String;
-	public final fun component6 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lxynolog/signin/HeldSignIn;
-	public static synthetic fun copy$default (Lxynolog/signin/HeldSignIn;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lxynolog/signin/HeldSignIn;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAccess ()Ljava/lang/String;
-	public final fun getClientId ()Ljava/lang/String;
-	public final fun getPersonKey ()Ljava/lang/String;
-	public final fun getRefresh ()Ljava/lang/String;
-	public final fun getRevocationEndpoint ()Ljava/lang/String;
-	public final fun getTokenEndpoint ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class xynolog/signin/MemorySignIn : xynolog/signin/SignInKept {
 	public fun <init> ()V
-	public fun <init> (Lxynolog/signin/HeldSignIn;)V
-	public synthetic fun <init> (Lxynolog/signin/HeldSignIn;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lxynolog/types/StoredSession;)V
+	public synthetic fun <init> (Lxynolog/types/StoredSession;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun forget (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun forgetFuture ()Ljava/util/concurrent/CompletableFuture;
 	public fun held (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun heldFuture ()Ljava/util/concurrent/CompletableFuture;
-	public fun keep (Lxynolog/signin/HeldSignIn;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun keepFuture (Lxynolog/signin/HeldSignIn;)Ljava/util/concurrent/CompletableFuture;
+	public fun keep (Lxynolog/types/StoredSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun keepFuture (Lxynolog/types/StoredSession;)Ljava/util/concurrent/CompletableFuture;
 	public fun recordPersonKey (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recordPersonKeyFuture (Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
-	public fun renewed (Lxynolog/signin/HeldSignIn;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun renewedFuture (Lxynolog/signin/HeldSignIn;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public fun renewed (Lxynolog/types/StoredSession;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun renewedFuture (Lxynolog/types/StoredSession;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 }
 
 public final class xynolog/signin/Platform : java/lang/Enum {
@@ -1465,20 +1404,20 @@ public abstract interface class xynolog/signin/SignInKept {
 	public fun forgetFuture ()Ljava/util/concurrent/CompletableFuture;
 	public abstract fun held (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun heldFuture ()Ljava/util/concurrent/CompletableFuture;
-	public abstract fun keep (Lxynolog/signin/HeldSignIn;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun keepFuture (Lxynolog/signin/HeldSignIn;)Ljava/util/concurrent/CompletableFuture;
+	public abstract fun keep (Lxynolog/types/StoredSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun keepFuture (Lxynolog/types/StoredSession;)Ljava/util/concurrent/CompletableFuture;
 	public abstract fun recordPersonKey (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recordPersonKeyFuture (Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
-	public abstract fun renewed (Lxynolog/signin/HeldSignIn;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun renewedFuture (Lxynolog/signin/HeldSignIn;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public abstract fun renewed (Lxynolog/types/StoredSession;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun renewedFuture (Lxynolog/types/StoredSession;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 }
 
 public final class xynolog/signin/SignInKept$DefaultImpls {
 	public static fun forgetFuture (Lxynolog/signin/SignInKept;)Ljava/util/concurrent/CompletableFuture;
 	public static fun heldFuture (Lxynolog/signin/SignInKept;)Ljava/util/concurrent/CompletableFuture;
-	public static fun keepFuture (Lxynolog/signin/SignInKept;Lxynolog/signin/HeldSignIn;)Ljava/util/concurrent/CompletableFuture;
+	public static fun keepFuture (Lxynolog/signin/SignInKept;Lxynolog/types/StoredSession;)Ljava/util/concurrent/CompletableFuture;
 	public static fun recordPersonKeyFuture (Lxynolog/signin/SignInKept;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
-	public static fun renewedFuture (Lxynolog/signin/SignInKept;Lxynolog/signin/HeldSignIn;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
+	public static fun renewedFuture (Lxynolog/signin/SignInKept;Lxynolog/types/StoredSession;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 }
 
 public final class xynolog/signin/SignInStore {

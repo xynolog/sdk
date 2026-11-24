@@ -19,6 +19,7 @@ public sealed interface AnnotationTargetValue {
 internal object AnnotationTargetValueSerializer : KindsUnionSerializer<AnnotationTargetValue>(
     AnnotationTargetValue::class,
     strings = { listOf(AnnotationTargetValue.ResourceId.serializer()) },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(AnnotationTarget.serializer()) },
 )

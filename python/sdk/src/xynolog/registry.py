@@ -70,8 +70,9 @@ from xynolog.events import Events
 from xynolog.identifiers import ResourceId
 from xynolog.identity import kb_did
 from xynolog.model import written
+from xynolog.required import fault_of
 from xynolog.resources import primary_media_type
-from xynolog.session import HeldSignIn, SignInKept, XynologSession, is_token_expired
+from xynolog.session import SignInKept, XynologSession, is_token_expired
 from xynolog.session_signals import SessionSignals
 from xynolog.storage import SessionStorage
 from xynolog.storage_keys import cache_key, last_event_id_key, session_key
@@ -81,7 +82,6 @@ from xynolog.stored import (
     KNOWLEDGE_BASES_KEY,
     LAST_VIEWED_RESOURCE_BY_KB_KEY,
     OPEN_RESOURCES_BY_KB_KEY,
-    OpenResource,
 )
 from xynolog.timing import CHECKS_AT_ONCE_COUNT
 from xynolog.transport import Transport
@@ -97,6 +97,7 @@ from xynolog.types import (
     KbSessionStatus,
     KnowledgeBase,
     NewKnowledgeBase,
+    OpenResource,
     SignedIn,
     SignInOutcome,
     StoredSession,
@@ -224,16 +225,15 @@ class _KeptIn(SignInKept):
         self._kb_id: Final = kb_id
 
     @override
-    async def held(self) -> HeldSignIn | None:
-        stored = stored_session(self._storage, self._kb_id)
-        return None if stored is None else _held(stored)
+    async def held(self) -> StoredSession | None:
+        return stored_session(self._storage, self._kb_id)
 
     @override
-    async def keep(self, sign_in: HeldSignIn) -> None:
-        store_session(self._storage, self._kb_id, _stored(sign_in))
+    async def keep(self, sign_in: StoredSession) -> None:
+        store_session(self._storage, self._kb_id, sign_in)
 
     @override
-    async def renewed(self, read: HeldSignIn, access: str, refresh: str) -> str | None:
+    async def renewed(self, read: StoredSession, access: str, refresh: str) -> str | None:
         current: list[str] = []
 
         def renew(stored: str | None) -> str | None:
@@ -274,28 +274,6 @@ def _session_in(stored: str) -> StoredSession | None:
         return StoredSession.model_validate_json(stored)
     except ValidationError:
         return None
-
-
-def _held(stored: StoredSession) -> HeldSignIn:
-    return HeldSignIn(
-        access=stored.access,
-        refresh=stored.refresh,
-        client_id=stored.client_id,
-        token_endpoint=stored.token_endpoint,
-        revocation_endpoint=stored.revocation_endpoint,
-        person_key=stored.person_key,
-    )
-
-
-def _stored(held: HeldSignIn) -> StoredSession:
-    return StoredSession(
-        access=held.access,
-        refresh=held.refresh,
-        client_id=held.client_id,
-        token_endpoint=held.token_endpoint,
-        revocation_endpoint=held.revocation_endpoint,
-        person_key=held.person_key,
-    )
 
 
 def kept_in(storage: SessionStorage, kb_id: str) -> SignInKept:
@@ -341,6 +319,7 @@ def sort_open_resources(resources: Iterable[OpenResource]) -> list[OpenResource]
     return sorted(resources, key=lambda resource: (resource.order, resource.opened_at))
 
 
+_KEPT_BY_KB: Final = TypeAdapter[dict[str, list[JsonValue]]](dict[str, list[JsonValue]])
 _OPEN_BY_KB: Final = TypeAdapter[dict[str, list[OpenResource]]](dict[str, list[OpenResource]])
 _VIEWED_BY_KB: Final = TypeAdapter[dict[str, ResourceId]](dict[str, ResourceId])
 
@@ -350,9 +329,12 @@ def _open_by_kb_of(stored: str | None) -> dict[str, list[OpenResource]]:
     if stored is None:
         return {}
     try:
-        return _OPEN_BY_KB.validate_json(stored)
+        kept = _KEPT_BY_KB.validate_json(stored)
     except ValidationError:
         return {}
+    if any(fault_of(OpenResource, entry) is not None for entries in kept.values() for entry in entries):
+        return {}
+    return _OPEN_BY_KB.validate_python(kept)
 
 
 def _viewed_by_kb_of(stored: str | None) -> dict[str, ResourceId]:

@@ -35,6 +35,10 @@ def main() -> None:
     if args.protocol_commit and manifest["protocol"]["commit"] != args.protocol_commit:
         sys.exit(f"Protocol commit mismatch: expected {args.protocol_commit}, got {manifest['protocol']['commit']}")
     selected = set(args.language)
+    carried = {Path(artifact["path"]).parts[0] for artifact in manifest["artifacts"] if artifact["ecosystem"] != "bundle-tool"}
+    absent = sorted(selected - carried)
+    if absent:
+        sys.exit(f"SDK artifact bundle carries no artifacts for: {', '.join(absent)}")
     for artifact in manifest["artifacts"]:
         relative = Path(artifact["path"])
         if relative.is_absolute() or ".." in relative.parts:

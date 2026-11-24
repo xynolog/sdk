@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/optional"
 )
 
 // stack is a stand-in gateway and the issuer it trusts. Each handler of the
@@ -265,7 +266,7 @@ func keptAt(t *testing.T, s *stack, n int) (*SignInStore, SignInKept) {
 	store := NewSignInStore(filepath.Join(t.TempDir(), SignInFile))
 	entry := store.Entry("local")
 	held := heldFor(n)
-	held.TokenEndpoint, held.RevocationEndpoint = s.issuer.URL+"/token", s.issuer.URL+"/revoke"
+	held.TokenEndpoint, held.RevocationEndpoint = s.issuer.URL+"/token", optional.Text(s.issuer.URL+"/revoke")
 	if err := entry.Keep(context.Background(), held); err != nil {
 		t.Fatal(err)
 	}

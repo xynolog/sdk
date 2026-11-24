@@ -24,13 +24,13 @@ import org.junit.jupiter.api.Test
 import xynolog.errors.SignInError
 import xynolog.errors.SignInErrorCode
 import xynolog.identifiers.UserId
-import xynolog.signin.HeldSignIn
 import xynolog.signin.MemorySignIn
 import xynolog.signin.SCRIPT_CLIENT_ID
 import xynolog.types.DeviceCode
 import xynolog.types.HttpEndpoint
 import xynolog.types.HttpEndpointProtocol
 import xynolog.types.KbTarget
+import xynolog.types.StoredSession
 import java.io.OutputStream
 import java.net.Authenticator
 import java.net.CookieHandler
@@ -310,7 +310,7 @@ class SignInTest {
         val shown = mutableListOf<DeviceCode>()
         signInDevice(kb(realm), kept) { shown += it }
         assertEquals(listOf(DeviceCode(userCode = "ABCD-EFGH", verificationUri = "https://issuer.example/device", expiresIn = 600)), shown)
-        assertEquals(HeldSignIn(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", "${realm.origin}/revoke", null), kept.held())
+        assertEquals(StoredSession(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", "${realm.origin}/revoke", null), kept.held())
         assertEquals(listOf("device-1", "device-1", "device-1"), realm.of("/token").map { it.form.getValue("device_code") })
     }
 
@@ -365,7 +365,7 @@ class SignInTest {
     fun signingOutRevokesAtTheIssuerAndForgets() = runBlocking {
         val realm = realm()
         realm.script("/revoke", Said(200, JsonObject(emptyMap())))
-        val kept = MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", "${realm.origin}/revoke", null))
+        val kept = MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", "${realm.origin}/revoke", null))
         signOut(kept)
         assertEquals("refresh-1", realm.of("/revoke").single().form["token"])
         assertNull(kept.held())
@@ -375,7 +375,7 @@ class SignInTest {
     fun aSignOutTheIssuerRefusesStillForgets() = runBlocking {
         val realm = realm()
         realm.script("/revoke", error("server_error", 500))
-        val kept = MemorySignIn(HeldSignIn(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", "${realm.origin}/revoke", null))
+        val kept = MemorySignIn(StoredSession(tokenFor("access-1"), "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", "${realm.origin}/revoke", null))
         signOut(kept)
         assertNull(kept.held())
     }
@@ -579,7 +579,7 @@ class SignInTest {
         assertTrue(failed.message.contains("no refresh token"), failed.message)
     }
 
-    private fun kept(realm: Realm, access: String) = MemorySignIn(HeldSignIn(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
+    private fun kept(realm: Realm, access: String) = MemorySignIn(StoredSession(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
 
     @Test
     fun aRenewalTheIssuerRefusesOutrightSaysSoInItsWords() = runBlocking {
@@ -723,7 +723,7 @@ class SignInTest {
         realm.script("/token", issued(tokenFor("access-2"), "refresh-2"))
         realm.script("/revoke", Said(200, JsonObject(emptyMap())))
         val access = tokenFor("access-1")
-        val kept = MemorySignIn(HeldSignIn(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", "${realm.origin}/revoke", null))
+        val kept = MemorySignIn(StoredSession(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", "${realm.origin}/revoke", null))
         val http = CallersHttp()
         renewKept(kept, access, http)
         signOut(kept, http)
@@ -745,7 +745,7 @@ class SignInTest {
     @Test
     fun aKeptSignInIsReachedFromJavaThroughFutures() {
         val kept = MemorySignIn()
-        val held = HeldSignIn("access-1", "refresh-1", SCRIPT_CLIENT_ID, "https://issuer.example/token", null, null)
+        val held = StoredSession("access-1", "refresh-1", SCRIPT_CLIENT_ID, "https://issuer.example/token", null, null)
         kept.keepFuture(held).get()
         assertEquals(held, kept.heldFuture().get())
         assertEquals("access-2", kept.renewedFuture(held, "access-2", "refresh-2").get())

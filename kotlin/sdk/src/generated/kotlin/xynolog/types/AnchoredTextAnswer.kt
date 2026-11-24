@@ -18,6 +18,7 @@ public sealed interface AnchoredTextAnswer
 internal object AnchoredTextAnswerSerializer : KindsUnionSerializer<AnchoredTextAnswer>(
     AnchoredTextAnswer::class,
     strings = { emptyList() },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(ExtractedText.serializer(), ExtractionDeclined.serializer(), AnchoredTextAbsent.serializer()) },
 )

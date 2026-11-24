@@ -20,7 +20,6 @@ import xynolog.retry.REFRESH
 import xynolog.retry.RetryFacts
 import xynolog.retry.retryWithBackoff
 import xynolog.session.isTokenExpired
-import xynolog.signin.HeldSignIn
 import xynolog.signin.SCRIPT_CLIENT_ID
 import xynolog.signin.SIGN_IN_SCOPE
 import xynolog.signin.SignInKept
@@ -32,6 +31,7 @@ import xynolog.types.IssuedTokens
 import xynolog.types.KbTarget
 import xynolog.types.LocalEndpoint
 import xynolog.types.ProtectedResourceMetadata
+import xynolog.types.StoredSession
 import java.io.IOException
 import java.net.URI
 import java.net.http.HttpClient
@@ -276,7 +276,7 @@ public suspend fun signInDevice(kb: KbTarget, kept: SignInKept, http: HttpClient
         throw SignInError(SignInErrorCode.Discovery, invalid.message ?: "Invalid KB hostname")
     }
     val (issuer, tokens) = signInWithDeviceGrant(baseUrl, http, clock, onCode)
-    kept.keep(HeldSignIn(tokens.access, tokens.refresh, SCRIPT_CLIENT_ID, issuer.token, issuer.revocation, null))
+    kept.keep(StoredSession(tokens.access, tokens.refresh, SCRIPT_CLIENT_ID, issuer.token, issuer.revocation, null))
 }
 
 /** `signInDevice`, for Java, on `context`. */

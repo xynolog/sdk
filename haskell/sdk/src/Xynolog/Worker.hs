@@ -47,7 +47,7 @@ import Control.Concurrent.STM
 import Control.Exception
 import Control.Monad (forM_, forever, unless, void, when)
 import Control.Monad.IO.Class (liftIO)
-import Data.Aeson (Result (..), Value (..), fromJSON, toJSON)
+import Data.Aeson (Result (..), Value (..), fromJSON)
 import Data.Aeson.KeyMap qualified as KM
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NE
@@ -69,7 +69,7 @@ import Xynolog.JobFilter (jobMatchesFilter)
 import Xynolog.StateValue qualified as State
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
-import Xynolog.Types hiding (JobComplete, annotationId)
+import Xynolog.Types hiding (JobComplete, Runtime, annotationId)
 import Xynolog.Types qualified as Types
 import Xynolog.Worker.Types
 import Prelude hiding (fail)
@@ -320,12 +320,14 @@ announced claims payload = do
       Right _ -> when (any (\filterValue -> jobMatchesFilter filterValue (Object payload)) (workerAccepts (options claims))) (wakeIdle claims)
 
 cancellation :: Claims -> KM.KeyMap Value -> IO ()
-cancellation claims payload = atomically $ do
-  current <- readTVar (runtime claims)
-  forM_ (held current) $ \job -> withSome job $ \value ->
-    when (KM.lookup "jobId" payload == Just (toJSON (jobId value))) $ do
-      over <- settled value
-      unless over (writeTVar (heldCancelled value) True)
+cancellation claims payload = case fromJSON (Object payload) of
+  Error _ -> pure ()
+  Success named -> atomically $ do
+    current <- readTVar (runtime claims)
+    forM_ (held current) $ \job -> withSome job $ \value ->
+      when (jobCancelRequestJobId named == jobId value) $ do
+        over <- settled value
+        unless over (writeTVar (heldCancelled value) True)
 
 trySync :: IO value -> IO (Either SomeException value)
 trySync action =

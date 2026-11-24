@@ -112,11 +112,11 @@ let tabled (spec : Spec.t) table =
     raise (Refused { Decode.file; pointer = pointer ^ at; message })
   in
   let enums = Enums.tabled spec.ids table in
-  let whole = Definitions.whole spec in
+  let whole = Definitions.typed spec in
   let clients =
     List.filter_map
       (fun name ->
-        let key = Schema_names.client_types ^ name ^ ".json" in
+        let key = Roots.client_types ^ name ^ ".json" in
         match whole (List.assoc key spec.schemas) with
         | Ok schema when Enums.is_enum schema -> None
         | Ok schema -> Some (key, name, schema)
@@ -141,7 +141,7 @@ let tabled (spec : Spec.t) table =
     | None ->
         List.find_map
           (fun name ->
-            if key = Schema_names.client_types ^ name ^ ".json" then
+            if key = Roots.client_types ^ name ^ ".json" then
               Some (Enums.module_name name)
             else None)
           (Enums.client_types spec)

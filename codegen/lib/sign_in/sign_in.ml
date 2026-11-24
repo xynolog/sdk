@@ -12,7 +12,6 @@ module Kotlin = Kotlin
 module Rust = Rust
 module Store_names = Store_names
 
-let schema_file = "sign-in-store/SignIn.json"
 let snake name = String.lowercase_ascii (Text.upper_snake name)
 let regenerate = "make generate (" ^ Banner.writer __FILE__ ^ ")"
 
@@ -44,7 +43,7 @@ let go_entry (entry : Flat.t) =
       G.text
         {
           header =
-            go_header ~from_:schema_file
+            go_header ~from_:Roots.sign_in_entry
               ~also:
                 "The Rust (xynolog::sign_in_store) and Python \
                  (xynolog.sign_in) SDKs generate\n\
@@ -162,7 +161,7 @@ let python_entry (entry : Flat.t) =
         {
           header =
             Banner.python_lines
-              ~from_:("protocol/specs/src/" ^ schema_file)
+              ~from_:("protocol/specs/src/" ^ Roots.sign_in_entry)
               __FILE__;
           doc =
             As_is
@@ -459,13 +458,13 @@ let haskell (o : Owner_only.t) (names : Contract.t) =
 
 let files ~root (spec : Spec.t) =
   let entry =
-    match List.assoc_opt schema_file spec.schemas with
-    | Some schema -> Flat.read ~file:schema_file schema
+    match List.assoc_opt Roots.sign_in_entry spec.schemas with
+    | Some schema -> Flat.read ~file:Roots.sign_in_entry schema
     | None ->
         Error
           [
             {
-              Decode.file = schema_file;
+              Decode.file = Roots.sign_in_entry;
               pointer = "";
               message = "is not in the spec";
             };

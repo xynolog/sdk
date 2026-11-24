@@ -225,7 +225,7 @@ func TestThePersonIsRecordedOnTheStoredSignInOfTheTokenAskedAbout(t *testing.T) 
 	storage := xynolog.NewMemoryStorage()
 	kept := registry.KeptIn(storage, "kb-a")
 	jo, ann := xynolog.PersonKey("did:web:example.org:users:jo"), xynolog.PersonKey("did:web:example.org:users:ann")
-	read := xynolog.HeldSignIn{Access: "a1", Refresh: "r1", ClientID: "xynolog-browser", TokenEndpoint: "https://issuer.test/token"}
+	read := api.StoredSession{Access: "a1", Refresh: "r1", ClientId: "xynolog-browser", TokenEndpoint: "https://issuer.test/token"}
 
 	if recorded, err := kept.RecordPersonKey(ctx, "a1", jo); err != nil || recorded {
 		t.Fatalf("a person recorded on nothing stored: %v, %v", recorded, err)
@@ -263,7 +263,7 @@ func TestThePersonIsRecordedOnTheStoredSignInOfTheTokenAskedAbout(t *testing.T) 
 	if stored, _ := registry.StoredSessionOf(storage, "kb-a"); stored.Access != "a2" || stored.PersonKey == nil || *stored.PersonKey != jo {
 		t.Fatalf("stored after a renewal: %+v", stored)
 	}
-	must(t, kept.Keep(ctx, xynolog.HeldSignIn{Access: "a3", Refresh: "r3", ClientID: "xynolog-browser", TokenEndpoint: "https://issuer.test/token"}))
+	must(t, kept.Keep(ctx, api.StoredSession{Access: "a3", Refresh: "r3", ClientId: "xynolog-browser", TokenEndpoint: "https://issuer.test/token"}))
 	if stored, _ := registry.StoredSessionOf(storage, "kb-a"); stored.PersonKey != nil {
 		t.Fatalf("a new sign-in names %s", *stored.PersonKey)
 	}
@@ -286,7 +286,7 @@ func TestANewSignInKeptOverOneNamingItsPersonDeletesWhatWasKeptOfThem(t *testing
 	}
 	josOnA := entriesOf("kb-a", jo)
 	others := slices.Concat(entriesOf("kb-a", ann), entriesOf("kb-b", jo))
-	signIn := xynolog.HeldSignIn{Access: "a2", Refresh: "r2", ClientID: "xynolog-browser", TokenEndpoint: "https://issuer.test/token"}
+	signIn := api.StoredSession{Access: "a2", Refresh: "r2", ClientId: "xynolog-browser", TokenEndpoint: "https://issuer.test/token"}
 	for _, over := range []struct {
 		name      string
 		stored    bool
@@ -345,7 +345,7 @@ func TestARenewalIsKeptAgainstWhatIsStoredThen(t *testing.T) {
 	ctx := context.Background()
 	storage := xynolog.NewMemoryStorage()
 	kept := registry.KeptIn(storage, "kb-a")
-	read := xynolog.HeldSignIn{Access: "a1", Refresh: "r1", ClientID: "xynolog-browser", TokenEndpoint: "https://issuer.test/token"}
+	read := api.StoredSession{Access: "a1", Refresh: "r1", ClientId: "xynolog-browser", TokenEndpoint: "https://issuer.test/token"}
 
 	if _, ok, err := kept.Renewed(ctx, read, "a2", "r2"); err != nil || ok {
 		t.Fatalf("a renewal of nothing stored is kept: %v, %v", ok, err)

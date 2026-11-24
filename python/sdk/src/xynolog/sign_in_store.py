@@ -41,8 +41,9 @@ from xynolog import _owner_only_table
 from xynolog._sign_in_store_names import FILE_NAME, LOCK_NAME, LOCK_OFFSET_HIGH
 from xynolog.errors import SignInError
 from xynolog.oauth_clients import SCRIPT_CLIENT_ID
-from xynolog.session import HeldSignIn, SignInKept, text_claim, token_expiry
+from xynolog.session import SignInKept, text_claim, token_expiry
 from xynolog.sign_in import SignIn
+from xynolog.types import StoredSession
 
 __all__ = ["FILE_NAME", "SignInStore", "System", "state_dir", "this_system"]
 
@@ -360,13 +361,13 @@ class _Entry(SignInKept):
         self._store = store
         self._key = key
 
-    def _held(self) -> HeldSignIn | None:
+    def _held(self) -> StoredSession | None:
         entry = _sign_in_of(self._store.read().get(self._key))
         # A sign-in with no refresh token is none: a session that cannot be
         # renewed does not outlive its first access token.
         if entry is None or not entry.refresh_token:
             return None
-        return HeldSignIn(
+        return StoredSession(
             access=entry.token,
             refresh=entry.refresh_token,
             client_id=SCRIPT_CLIENT_ID,
@@ -389,7 +390,7 @@ class _Entry(SignInKept):
         )
         return entry.model_dump(mode="json", exclude_none=True)
 
-    def _keep(self, sign_in: HeldSignIn) -> None:
+    def _keep(self, sign_in: StoredSession) -> None:
         if sign_in.client_id != SCRIPT_CLIENT_ID:
             raise ValueError(
                 f"the sign-in store keeps what the client {SCRIPT_CLIENT_ID} was issued, and this was issued to {sign_in.client_id}"
@@ -414,7 +415,7 @@ class _Entry(SignInKept):
 
         self._store.change(change)
 
-    def _renewed(self, read: HeldSignIn, access: str, refresh: str) -> str | None:
+    def _renewed(self, read: StoredSession, access: str, refresh: str) -> str | None:
         given: str | None = None
 
         def change(document: dict[str, JsonValue]) -> bool:
@@ -439,15 +440,15 @@ class _Entry(SignInKept):
         self._store.change(lambda document: document.pop(self._key, None) is not None)
 
     @override
-    async def held(self) -> HeldSignIn | None:
+    async def held(self) -> StoredSession | None:
         return await asyncio.to_thread(self._held)
 
     @override
-    async def keep(self, sign_in: HeldSignIn) -> None:
+    async def keep(self, sign_in: StoredSession) -> None:
         await asyncio.to_thread(self._keep, sign_in)
 
     @override
-    async def renewed(self, read: HeldSignIn, access: str, refresh: str) -> str | None:
+    async def renewed(self, read: StoredSession, access: str, refresh: str) -> str | None:
         return await asyncio.to_thread(self._renewed, read, access, refresh)
 
     @override

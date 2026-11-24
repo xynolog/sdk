@@ -210,7 +210,7 @@ public sealed partial class TransportTests
         RegistryStorage.SaveKnowledgeBases(store, [kb]);
         store.Set(RegistryStorage.OpenResourcesByKbKey, RegistryStorage.Write(new Dictionary<string, OpenResource[]>
         {
-            [kb.Id] = Ids(row.GetProperty("open")).Select((id, order) => new OpenResource(ResourceId.Parse(id), id, 0, order)).ToArray(),
+            [kb.Id] = Ids(row.GetProperty("open")).Select((id, order) => new OpenResource { Id = ResourceId.Parse(id), Name = id, OpenedAt = 0, Order = order }).ToArray(),
         }));
         var asked = new ConcurrentDictionary<string, bool>(StringComparer.Ordinal);
         var factory = new RegistryFactory((options, _) => Task.FromResult(OpenCaseSession(options.Kb, row, asked)));
@@ -372,7 +372,7 @@ public sealed partial class TransportTests
         var one = RegistryKb("one", "one.test");
         var two = RegistryKb("two", "two.test");
         RegistryStorage.SaveKnowledgeBases(store, [one, two]);
-        var tab = new OpenResource(ResourceId.Parse("res-1"), "Old tab", 0, 0);
+        var tab = new OpenResource { Id = ResourceId.Parse("res-1"), Name = "Old tab", OpenedAt = 0, Order = 0 };
         store.Set(RegistryStorage.OpenResourcesByKbKey, RegistryStorage.Write(new Dictionary<string, OpenResource[]>
         {
             [one.Id] = [tab],
@@ -409,7 +409,7 @@ public sealed partial class TransportTests
         // A stored token with no expiry is renewed before its session starts, and these sessions script no renewal.
         RegistryStorage.StoreSession(store, kb.Id, RegistryTokens() with { Access = TokenTests.Jwt(new { exp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 3600 }) });
         var resource = SourceResource();
-        var tab = new OpenResource(resource.Id, "Old tab", 0, 0);
+        var tab = new OpenResource { Id = resource.Id, Name = "Old tab", OpenedAt = 0, Order = 0 };
         store.Set(RegistryStorage.OpenResourcesByKbKey, RegistryStorage.Write(new Dictionary<string, OpenResource[]> { [kb.Id] = [tab] }));
         var factory = new ScriptedSessions((_, operation, _) => operation == BusOperations.BrowseResourceRequested.Request.Name
             ? JsonSerializer.SerializeToElement(new { resource, lastSequence = 1 })
@@ -495,7 +495,7 @@ public sealed partial class TransportTests
         await browser.SetActiveKbAsync(kb.Id, deadline.Token);
         await foreach (var state in browser.States(deadline.Token))
             if (state.Kbs.Single().LastRead is not null) break;
-        var tab = new OpenResource(ResourceId.Parse("res-1"), "Opened in another context", 0, 0);
+        var tab = new OpenResource { Id = ResourceId.Parse("res-1"), Name = "Opened in another context", OpenedAt = 0, Order = 0 };
         store.WriteFromElsewhere(RegistryStorage.OpenResourcesByKbKey,
             RegistryStorage.Write(new Dictionary<string, OpenResource[]> { [kb.Id] = [tab] }));
         await foreach (var state in browser.States(deadline.Token))

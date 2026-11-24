@@ -66,7 +66,7 @@ public static class RedirectSignIn
         HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null, CancellationToken cancellation = default)
     {
         RequireHttpAddress(options.RedirectUri);
-        using var issuer = new Issuer(httpClient, timeProvider, random);
+        using var issuer = new SignIn.Issuer(httpClient, timeProvider, random);
         var found = await issuer.DiscoverAsync(options.Target, cancellation).ConfigureAwait(Spawning.Captures);
         var record = new PendingAuthorization(Base64Url(RandomNumberGenerator.GetBytes(24)), Base64Url(RandomNumberGenerator.GetBytes(48)),
             options.RedirectUri, options.Target, new AuthorizationIssuer(found.Issuer, found.Authorization, found.Token, found.Device, found.Revocation),
@@ -116,7 +116,7 @@ public static class RedirectSignIn
         if (One("code") is not { Length: > 0 } code) throw Refused("exchange", "The response has no authorization code.");
         RequireHttpAddress(record.Issuer.Token);
 
-        using var issuer = new Issuer(httpClient, timeProvider, random);
+        using var issuer = new SignIn.Issuer(httpClient, timeProvider, random);
         var answer = await issuer.AnswerAsync(record.Issuer.Token, new Dictionary<string, string>
         {
             ["grant_type"] = "authorization_code",

@@ -105,6 +105,9 @@ export type KbEndpoint = components['schemas']['KbEndpoint'];
 export type HttpEndpoint = components['schemas']['HttpEndpoint'];
 export type LocalEndpoint = components['schemas']['LocalEndpoint'];
 
+/** A resource open in a knowledge base (session/OpenResource.json): a registry keeps a list of them per knowledge base. */
+export type OpenResource = components['schemas']['OpenResource'];
+
 /**
  * What a registry of knowledge bases hands its caller, and what the state
  * units' signals say: records Protocol states in its tables

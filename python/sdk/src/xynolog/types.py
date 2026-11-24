@@ -12,6 +12,8 @@ from xynolog.model import WireModel
 from xynolog.identifiers import AnnotationId, JobId, ResourceId, UserId
 
 __all__ = [
+    "AboutParams",
+    "AboutResult",
     "Agent",
     "AgentOrganization",
     "AgentPerson",
@@ -36,6 +38,7 @@ __all__ = [
     "AnnotationRemovedPayload",
     "AnnotationSelector",
     "AnnotationTarget",
+    "ApiVersion",
     "ArchivistConfig",
     "ArchivistConfigStaging",
     "ArchivistEngines",
@@ -50,6 +53,10 @@ __all__ = [
     "AssessingJobParams",
     "AssessingJobParamsTone",
     "AttributedEvent",
+    "AuthLoginParams",
+    "AuthLoginResult",
+    "AuthLogoutParams",
+    "AuthLogoutResult",
     "BeckonFocusEvent",
     "BeckonHoverEvent",
     "BeckonSparkleEvent",
@@ -104,6 +111,8 @@ __all__ = [
     "BrowseRouterPushEvent",
     "BrowseTagSchemasRequest",
     "BrowseTagSchemasResult",
+    "Browser",
+    "BrowserSpec",
     "BusEmitAccepted",
     "BusEmitRequest",
     "BusEventMessage",
@@ -114,12 +123,80 @@ __all__ = [
     "BusStreamMessage",
     "BusSubscribeRequest",
     "BusSubscribeRequestScopedItem",
+    "Cancelled",
     "ClaimOptions",
+    "ClientSecretForm",
     "CloneResourceWithTokenResponse",
     "CommandError",
     "CommandErrorCode",
     "CommentingJobParams",
     "CommentingJobParamsTone",
+    "ConformanceBusFetch",
+    "ConformanceCase",
+    "ConformanceCasePlanesItem",
+    "ConformanceCaseTier",
+    "ConformanceDriverLine",
+    "ConformanceDriverLineAbandoned",
+    "ConformanceDriverLineClaimed",
+    "ConformanceDriverLineCompleted",
+    "ConformanceDriverLineEmission",
+    "ConformanceDriverLineEmissionEmission",
+    "ConformanceDriverLineEmissionEmissionStateFailed",
+    "ConformanceDriverLineEmissionEmissionStatePending",
+    "ConformanceDriverLineEmissionEmissionStateReady",
+    "ConformanceDriverLineErrorStream",
+    "ConformanceDriverLineFailed",
+    "ConformanceDriverLineFrame",
+    "ConformanceDriverLineFrameFrame",
+    "ConformanceDriverLineMisuse",
+    "ConformanceDriverLineOk",
+    "ConformanceDriverLineProgress",
+    "ConformanceDriverLineProgressProgress",
+    "ConformanceDriverLineReady",
+    "ConformanceDriverLineRefused",
+    "ConformanceDriverLineSignalled",
+    "ConformanceDriverLineStalled",
+    "ConformanceDriverLineState",
+    "ConformanceDriverLineUnsupported",
+    "ConformanceFailure",
+    "ConformanceHttpFetch",
+    "ConformanceImplementations",
+    "ConformanceImplementationsSdksValue",
+    "ConformanceImplementationsSdksValueLive",
+    "ConformanceImplementationsSdksValueLiveTier",
+    "ConformanceStep",
+    "ConformanceStepAbandon",
+    "ConformanceStepBackend",
+    "ConformanceStepBackendBackend",
+    "ConformanceStepCarried",
+    "ConformanceStepClaimed",
+    "ConformanceStepClosed",
+    "ConformanceStepCompletes",
+    "ConformanceStepDriver",
+    "ConformanceStepError",
+    "ConformanceStepFetches",
+    "ConformanceStepFetchesFetchesItem",
+    "ConformanceStepFrame",
+    "ConformanceStepFrames",
+    "ConformanceStepHolds",
+    "ConformanceStepLeave",
+    "ConformanceStepLet",
+    "ConformanceStepObserve",
+    "ConformanceStepObserveObserve",
+    "ConformanceStepProgress",
+    "ConformanceStepQuiet",
+    "ConformanceStepReaches",
+    "ConformanceStepRefused",
+    "ConformanceStepScopes",
+    "ConformanceStepSettles",
+    "ConformanceStepSignalled",
+    "ConformanceStepStalled",
+    "ConformanceStepState",
+    "ConformanceStepStateState",
+    "ConformanceStepStays",
+    "ConformanceStepStaysStays",
+    "ConformanceStepWire",
+    "ConformanceStepWireAt",
     "ConnectionIdentity",
     "ContentFormat",
     "ContextualSummaryResponse",
@@ -151,6 +228,7 @@ __all__ = [
     "EntityTypeAddedPayload",
     "EntityTypesProjection",
     "EphemeralEventId",
+    "ErrorData",
     "ErrorResponse",
     "EventMetadata",
     "Expected",
@@ -160,7 +238,10 @@ __all__ = [
     "ExtractionMethod",
     "ExtractionOutcome",
     "FailureClass",
+    "FieldFault",
     "FileEntry",
+    "FollowerFollowing",
+    "FollowerFollowingSweep",
     "FragmentSelector",
     "FrameAddEntityTypeCommand",
     "FrameAddTagSchemaCommand",
@@ -209,13 +290,27 @@ __all__ = [
     "GraphResourceNode",
     "HealthResponse",
     "HighlightingJobParams",
+    "HostPort",
     "HttpEndpoint",
     "HttpEndpointProtocol",
+    "HttpStatus",
+    "IdentityUser",
+    "IdentityUseraddParams",
+    "IdentityUseraddResult",
+    "IdentityUsersListParams",
+    "IdentityUsersListResult",
+    "Image",
+    "Inference",
     "InferenceLimits",
     "InferenceLimitsRequest",
     "InferenceLimitsResult",
     "InferenceLimitsResultResponse",
+    "InferenceSpec",
     "IssuedTokens",
+    "Issuer",
+    "IssuerSpec",
+    "IssuerSpecDatabase",
+    "IssuerSpecDatabaseExternal",
     "JanusGraphConfig",
     "Job",
     "JobAssignCommand",
@@ -278,6 +373,7 @@ __all__ = [
     "JobStoredResultEmpty",
     "JobType",
     "KbDescription",
+    "KbDid",
     "KbEndpoint",
     "KbIdentity",
     "KbIdentityConflict",
@@ -290,22 +386,43 @@ __all__ = [
     "KbSessionStatus",
     "KbTarget",
     "KnowledgeBase",
+    "KnowledgeBaseStatus",
+    "KnowledgeBaseStatusPlacement",
     "KnowledgeGraph",
     "KnowledgeGraphEdgesItem",
     "KnowledgeGraphNodesItem",
+    "KnowledgeIndex",
+    "KnowledgeIndexSpec",
+    "KnowledgeIndexSpecEmbedding",
+    "KnowledgeIndexSpecEmbeddingChunking",
+    "KnowledgeIndexSpecGraph",
+    "KnowledgeIndexSpecGraphExternal",
+    "KnowledgeIndexSpecLibrarian",
+    "KnowledgeIndexSpecLibrarianGather",
+    "KnowledgeIndexSpecLibrarianSearch",
+    "KnowledgeIndexSpecSmelter",
+    "KnowledgeIndexSpecVectors",
+    "KnowledgeIndexSpecVectorsExternal",
+    "KnowledgeIndexSpecVectorsShared",
+    "KnowledgeIndexSpecWeaver",
     "LibrarianConfig",
     "LibrarianConfigGather",
     "LibrarianConfigSearch",
     "LibrarianEngineConfig",
     "LibrarianHealth",
     "LibrarianHealthActorsItem",
+    "LibrarianPromptScore",
     "LimitRefusal",
     "LimitRefusalCode",
     "LinkingJobParams",
     "ListResourcesResponse",
     "LocalEndpoint",
+    "LocalTarget",
     "LogFormat",
     "LogLevel",
+    "LogRecord",
+    "LogsFollowParams",
+    "LogsFollowResult",
     "MarkArchiveCommand",
     "MarkCommitCommand",
     "MarkCommitOk",
@@ -343,6 +460,7 @@ __all__ = [
     "MediaTokenResponse",
     "MemoryGraphConfig",
     "MemoryVectorsConfig",
+    "Metadata",
     "Motivation",
     "Neo4jGraphConfig",
     "NeptuneGraphConfig",
@@ -352,6 +470,8 @@ __all__ = [
     "OneOrMoreAgents",
     "OneOrMoreStrings",
     "OneOrMoreUris",
+    "OpenResource",
+    "OutputStream",
     "PdfClass",
     "PdfCoordinate",
     "PdfTextItem",
@@ -362,7 +482,14 @@ __all__ = [
     "PrincipalProfiledPayload",
     "Profile",
     "ProfilesProjection",
+    "Progress",
+    "ProgressKind",
+    "ProjectConfig",
+    "ProjectConfigGit",
+    "ProjectConfigProject",
+    "ProjectConfigSite",
     "ProtectedResourceMetadata",
+    "Provider",
     "QdrantVectorsConfig",
     "QuotedText",
     "ReconciledSpan",
@@ -377,6 +504,7 @@ __all__ = [
     "RepresentationNotFoundCode",
     "RepresentationRel",
     "RepresentationRemovedPayload",
+    "RequestId",
     "ResourceAnnotations",
     "ResourceArchivedPayload",
     "ResourceClonedPayload",
@@ -392,19 +520,62 @@ __all__ = [
     "ResourceUpdatedPayload",
     "ResourceUpload",
     "ResourceView",
+    "Resources",
+    "ResourcesLimits",
+    "Root",
+    "RootCurrent",
+    "RootPlacement",
+    "RootsForgetParams",
+    "RootsForgetResult",
+    "RootsInitParams",
+    "RootsInitParamsInference",
+    "RootsInitResult",
+    "RootsListParams",
+    "RootsListResult",
+    "RunInstance",
+    "RunService",
+    "Runner",
+    "Runtime",
+    "RuntimeState",
     "ScoredResource",
+    "SecretRef",
     "Selector",
     "SemanticMatch",
     "ServiceAddress",
+    "ServiceGroup",
+    "ServiceHostParams",
+    "ServiceHostResult",
     "ServiceIdentity",
+    "ServiceOutput",
+    "ServiceRunParams",
+    "ServiceRunResult",
+    "ServiceSignalParams",
+    "ServiceSignalParamsSignal",
+    "ServiceSignalResult",
+    "ServiceStarted",
+    "ServiceStatus",
+    "ServiceStatusState",
+    "Session",
     "SessionEndReason",
     "SessionEnded",
     "SessionJoinedEvent",
     "SessionLeftEvent",
+    "SessionState",
+    "Setting",
+    "SettingAppliesTo",
+    "SettingLine",
+    "SettingsGetParams",
     "SettingsHoverDelayChangedEvent",
+    "SettingsListParams",
+    "SettingsListResult",
     "SettingsLocaleChangedEvent",
+    "SettingsPathParams",
+    "SettingsPathParamsDocument",
+    "SettingsPathResult",
+    "SettingsSetParams",
     "SettingsThemeChangedEvent",
     "SettingsThemeChangedEventTheme",
+    "SettingsUnsetParams",
     "SignInOutcome",
     "SignedIn",
     "SmeltRebuildAnchorsCommand",
@@ -414,8 +585,6 @@ __all__ = [
     "SmelterChunking",
     "SmelterConfig",
     "SmelterHealth",
-    "SmelterHealthFollowing",
-    "SmelterHealthFollowingSweep",
     "SmelterHealthIndex",
     "SmelterHealthIndexStamp",
     "SmelterHealthIndexStampEmbedding",
@@ -424,8 +593,28 @@ __all__ = [
     "SmelterHealthStream",
     "SmelterReconcileSummary",
     "SpecificResource",
+    "StackApiVersion",
+    "StackKnowledgeBase",
+    "StackKnowledgeBaseSpec",
+    "StackKnowledgeBaseSpecArchivist",
+    "StackKnowledgeBaseSpecDispatcher",
+    "StackKnowledgeBaseSpecGateway",
+    "StackKnowledgeBaseSpecIssuer",
+    "StackKnowledgeBaseSpecIssuerExternal",
+    "StackKnowledgeBaseSpecIssuerShared",
+    "StackKnowledgeBaseSpecMessaging",
+    "StackKnowledgeBaseSpecMessagingExternal",
+    "StackKnowledgeBaseSpecMessagingJobs",
+    "StackKnowledgeBaseSpecMessagingSignal",
+    "StackStartParams",
+    "StackStartParamsOllamaCache",
+    "StackStartResult",
+    "StackStopParams",
+    "StackStopResult",
     "StatusResponse",
     "StatusResponseFeatures",
+    "StatusSnapshotParams",
+    "StatusSnapshotResult",
     "StorageUriEntry",
     "StoredEventResponse",
     "StoredSession",
@@ -441,6 +630,8 @@ __all__ = [
     "TagSchemaAddedPayload",
     "TagSchemasProjection",
     "TaggingJobParams",
+    "Target",
+    "TargetKind",
     "TextPositionSelector",
     "TextQuoteSelector",
     "TextSpan",
@@ -451,15 +642,16 @@ __all__ = [
     "UploadProgressFinished",
     "UploadProgressProgress",
     "UploadProgressStarted",
+    "UserAction",
     "UserResponse",
+    "VectorStore",
+    "VectorStoreSpec",
     "VectorsConfig",
     "VoyageEmbeddingConfig",
     "WeaveApplied",
     "WeaveRebuildCommand",
     "WeaverConfig",
     "WeaverHealth",
-    "WeaverHealthFollowing",
-    "WeaverHealthFollowingSweep",
     "WeaverHealthReconcile",
     "WeaverHealthReconcilePhase",
     "WeaverHealthReconcileSummary",
@@ -472,6 +664,12 @@ __all__ = [
     "WorkerKnowledgeBaseConfigIdentity",
     "WorkerKnowledgeBaseHealth",
     "WorkerKnowledgeBaseHealthState",
+    "WorkerPool",
+    "WorkerPoolSpec",
+    "WorkerPoolSpecWorker",
+    "WorkloadStatus",
+    "WorkloadStatusLedger",
+    "WorkloadStatusQueue",
     "YieldCloneCreateCommand",
     "YieldCloneCreated",
     "YieldClonePersistCommand",
@@ -491,6 +689,58 @@ __all__ = [
     "YieldUpdateOk",
     "YieldedResource",
 ]
+
+type ApiVersion = Annotated[
+    Literal["control.xynolog.org/v1alpha1"],
+    Field(
+        description="The group and version of the control API. Every request's params state it; a launcher refuses a version it does not speak with control.unsupported-api-version, and names the ones it does."
+    ),
+]
+
+
+class AboutParams(WireModel, frozen=True, extra="forbid"):
+    """
+    launcher.about's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+
+
+type Runtime = Annotated[
+    Literal["container", "docker", "podman"],
+    Field(description="A container runtime the launcher drives, as --runtime names it: Apple container, Docker or Podman."),
+]
+
+
+class RuntimeState(WireModel, frozen=True, extra="forbid"):
+    """
+    One container runtime the launcher drives, and whether this machine has it.
+    """
+
+    name: Runtime
+    found: Annotated[bool, Field(description="Whether it is on the launcher's PATH.")]
+
+
+class AboutResult(WireModel, frozen=True, extra="forbid"):
+    """
+    What the launcher is. A client asks this first, to learn whether it speaks to the launcher it found.
+    """
+
+    version: Annotated[
+        str | None, Field(description="The version stamped into the launcher at build. Absent from a development build, which states none.")
+    ] = None
+    development: Annotated[bool, Field(description="Whether this is a development build: one with no version stamped.")]
+    commit: Annotated[str | None, Field(description="The commit it was built from, when stamped.")] = None
+    built: Annotated[str | None, Field(description="When it was built, when stamped.")] = None
+    api_versions: Annotated[
+        list[str],
+        Field(alias="apiVersions", description="Each version of the control API it speaks. A client that speaks none of them stops here."),
+    ]
+    image_registry: Annotated[str, Field(alias="imageRegistry", description="The registry its catalog's images come from.")]
+    runtimes: Annotated[
+        list[RuntimeState],
+        Field(description="Each container runtime it drives, in the order it prefers them, and whether this machine has it."),
+    ]
 
 
 class AgentPerson(WireModel, frozen=True, extra="allow"):
@@ -1271,6 +1521,84 @@ class AttributedEvent(StoredEventResponse, frozen=True):
     agent: Annotated[Agent, Field(description="Who `userId` is.")]
 
 
+type TargetKind = Annotated[
+    Literal["local", "codespace"],
+    Field(
+        description="Where the stack runs: on this machine (local), or on a GitHub codespace whose knowledge base is forwarded here (codespace)."
+    ),
+]
+
+
+class Target(WireModel, frozen=True, extra="forbid"):
+    """
+    Which knowledge base an operation acts on: a local clone's stack, or a codespace's. The launcher resolves it as the command line resolves --root and --repo, and refuses a choice it would have to guess.
+    """
+
+    kind: TargetKind
+    root: Annotated[
+        str | None,
+        Field(
+            description="For a local target: the knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the local stack the command line chooses with --runtime, standing where the control server was started."
+        ),
+    ] = None
+    repo: Annotated[str | None, Field(description="For a codespace target: the GitHub repository, as --repo takes it.")] = None
+
+
+class AuthLoginParams(WireModel, frozen=True, extra="forbid"):
+    """
+    auth.login's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    target: Annotated[
+        Target | None,
+        Field(
+            description="Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started."
+        ),
+    ] = None
+    runtime: Annotated[Runtime | None, Field(description="Keep to the local stacks, as --runtime does.")] = None
+
+
+class AuthLoginResult(WireModel, frozen=True, extra="forbid"):
+    """
+    A completed sign-in, kept in the launcher's sign-in store. No token is in it.
+    """
+
+    key: Annotated[str, Field(description="The stack's key in the sign-in store.")]
+    who: Annotated[str, Field(description="Who the gateway says is signed in: their email, else their DID.")]
+    issuer: Annotated[str, Field(description="The issuer the knowledge base named, where the person signed in.")]
+
+
+class AuthLogoutParams(WireModel, frozen=True, extra="forbid"):
+    """
+    auth.logout's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    target: Annotated[
+        Target | None,
+        Field(
+            description="Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started."
+        ),
+    ] = None
+    runtime: Annotated[Runtime | None, Field(description="Keep to the local stacks, as --runtime does.")] = None
+
+
+class AuthLogoutResult(WireModel, frozen=True, extra="forbid"):
+    """
+    The launcher's session for a stack, ended. Desktop's own session is not touched.
+    """
+
+    key: Annotated[str | None, Field(description="The stack's key in the sign-in store. Absent when no stack is recorded.")] = None
+    was_signed_in: Annotated[bool, Field(alias="wasSignedIn", description="Whether a session was stored. false: nothing was done.")]
+    revoked: Annotated[
+        bool,
+        Field(
+            description="Whether the issuer revoked the session's refresh token. false with wasSignedIn: the local token is forgotten, and the refresh token stays valid at the issuer until it expires."
+        ),
+    ]
+
+
 class BeckonFocusEvent(WireModel, frozen=True):
     """
     Emitted to draw attention to a resource: to one of its annotations, or, with no annotation, to the resource as a whole. The resource is always named. A focus on an annotation scrolls a viewer showing that resource to it, and a viewer showing a different resource ignores it — a deliberate ignore rather than a silent no-op. A focus on the resource as a whole brings that resource forward, opened if it is not open, at its top.
@@ -2022,6 +2350,77 @@ class BrowseTagSchemasResult(WireModel, frozen=True):
     response: GetTagSchemasResponse
 
 
+type StackApiVersion = Annotated[
+    Literal["xynolog.org/v1alpha1"],
+    Field(
+        description="The group and version of Xynolog's kinds. The group names who defines a kind, under the domain the knowledge bases' DIDs use; which knowledge base a document is about is said inside it."
+    ),
+]
+
+
+class Metadata(WireModel, frozen=True, extra="forbid"):
+    """
+    What names a document, as Kubernetes names an object. Documents refer to one another by `name`.
+    """
+
+    name: Annotated[
+        str,
+        Field(
+            description="The document's name: lower-case letters, digits and `-`, beginning and ending with a letter or digit. It names the document, never the knowledge base."
+        ),
+    ]
+    namespace: Annotated[str | None, Field(description="The Kubernetes namespace the document belongs in. The launcher reads none.")] = None
+    labels: Annotated[dict[str, str] | None, Field(description="Kubernetes labels. The launcher reads none.")] = None
+    annotations: Annotated[dict[str, str] | None, Field(description="Kubernetes annotations. The launcher reads none.")] = None
+
+
+type Image = Annotated[
+    str, Field(description="The container image a service runs, as a registry names it: `ghcr.io/xynolog/xynolog-gateway:latest`.")
+]
+
+
+class ResourcesLimits(WireModel, frozen=True, extra="forbid"):
+    """
+    The most a container may use.
+    """
+
+    memory: Annotated[str, Field(description="The memory ceiling: a whole number of gigabytes or megabytes, `8G` or `512M`.")]
+
+
+class Resources(WireModel, frozen=True, extra="forbid"):
+    """
+    What a container is given, in Kubernetes' spelling.
+    """
+
+    limits: ResourcesLimits
+
+
+class BrowserSpec(WireModel, frozen=True, extra="forbid"):
+    """
+    How the Browser runs.
+    """
+
+    image: Image
+    resources: Resources
+    port: Annotated[
+        int,
+        Field(
+            description="The port the Browser is published on, on this machine's loopback: where a person opens it, and the origin the issuer's realm allows its sign-in from."
+        ),
+    ]
+
+
+class Browser(WireModel, frozen=True, extra="forbid"):
+    """
+    The shared Browser: one viewer for every knowledge base the machine reaches. It belongs to no knowledge base, so its document is kept in the launcher's state home, in `stack/browser.yaml`, not in a knowledge base's repository.
+    """
+
+    api_version: Annotated[StackApiVersion, Field(alias="apiVersion")]
+    kind: Literal["Browser"]
+    metadata: Metadata
+    spec: BrowserSpec
+
+
 class BusEmitAccepted(WireModel, frozen=True):
     """
     Result of publishing one event. `subscribers` is the number of observers attached to the target subject at dispatch — the GLOBAL subject for an unscoped emit, the scoped one when `scope` is set. Zero means the signal reached nobody: /bus/subscribe enforces no channel allowlist and the emit handler publishes unconditionally, so a client can emit a channel no participant subscribes to and otherwise receive a clean 202 with no way to tell. Deliberately NOT named `delivered`: this is the count at dispatch, and a subscriber may still drop the frame downstream, so the field is named after what the server can actually observe.
@@ -2196,6 +2595,20 @@ class BusSubscribeRequest(WireModel, frozen=True, extra="forbid"):
     ]
 
 
+type RequestId = Annotated[
+    str | int, Field(description="The request a notification is about: the JSON-RPC id its client gave it, as the client gave it.")
+]
+
+
+class Cancelled(WireModel, frozen=True, extra="forbid"):
+    """
+    The client gives up on one of its requests. The launcher answers that request with control.cancelled, unless it has answered it already; a cancellation of a request it does not know is ignored.
+    """
+
+    request_id: Annotated[RequestId, Field(alias="requestId")]
+    reason: Annotated[str | None, Field(description="Why, for the launcher's diagnostics.")] = None
+
+
 class ClaimOptions(WireModel, frozen=True, extra="forbid"):
     """
     What a worker's claiming of jobs is told: the jobs it takes, and how long it waits for what it waits on. A wait left out is client/timing.json's of the same name.
@@ -2224,6 +2637,16 @@ class ClaimOptions(WireModel, frozen=True, extra="forbid"):
     ] = None
 
 
+class ClientSecretForm(WireModel, frozen=True):
+    """
+    The form a service account that holds a client secret posts to its issuer's token endpoint for a client-credentials grant: its client id and secret in the body (RFC 6749 §2.3.1). An account that holds a key proves itself by the client assertion of client-assertion-cases.json instead.
+    """
+
+    grant_type: Annotated[Literal["client_credentials"], Field(description="The grant, client-assertion-cases.json's grantType.")]
+    client_id: Annotated[str, Field(description="The account's client id.")]
+    client_secret: Annotated[str, Field(description="The account's client secret.")]
+
+
 class CloneResourceWithTokenResponse(WireModel, frozen=True):
     token: Annotated[str, Field(description="Generated clone token")]
     expires_at: Annotated[str, Field(alias="expiresAt", description="ISO 8601 timestamp when token expires")]
@@ -2247,6 +2670,706 @@ class CommentingJobParams(WireModel, frozen=True, extra="forbid"):
     language: Annotated[str | None, Field(description="The language the annotations' own text is written in. BCP 47.")] = None
     source_language: Annotated[
         str | None, Field(alias="sourceLanguage", description="The language of the resource being read. BCP 47.")
+    ] = None
+
+
+class ConformanceBusFetch(WireModel, frozen=True, extra="forbid"):
+    """
+    A request on the bus a live case expects the client to make, on this channel; `as` names its correlation id, for the backend to answer.
+    """
+
+    fetch: Annotated[str, Field(description="The request's channel, a request of specs/src/bus/registry.json.")]
+    payload: JsonValue | None = None
+    as_: Annotated[str, Field(alias="as", description="The request's correlation id, for the backend's answer.")]
+
+
+type ConformanceCasePlanesItem = Literal["in-process", "nats"]
+
+type ConformanceCaseTier = Annotated[
+    Literal["fleet", "parity"],
+    Field(
+        description="A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does."
+    ),
+]
+
+
+class ConformanceStepLet(WireModel, frozen=True, extra="forbid"):
+    """
+    Name values for later steps.
+    """
+
+    let: Annotated[dict[str, JsonValue], Field(description="Each name, and the value it takes.")]
+
+
+class ConformanceStepDriver(WireModel, frozen=True, extra="forbid"):
+    """
+    Ask the driver for an operation. It must succeed, with `returns` when given, or fail with `fails`. With `as`, the step does not wait: a later `settles` step does.
+    """
+
+    driver: Annotated[str, Field(description='The operation (conformance/sdk/README.md, "Operations").')]
+    with_: Annotated[dict[str, JsonValue] | None, Field(alias="with", description="The operation's arguments.")] = None
+    returns: JsonValue | None = None
+    fails: JsonValue | None = None
+    as_: Annotated[str | None, Field(alias="as", description="The operation's name, for the `settles` or `abandon` step that ends it.")] = (
+        None
+    )
+
+
+class ConformanceStepAbandon(WireModel, frozen=True, extra="forbid"):
+    """
+    Abandon an operation started with `as`, as its caller would.
+    """
+
+    abandon: Annotated[str, Field(description="The operation.")]
+
+
+class ConformanceStepSettles(WireModel, frozen=True, extra="forbid"):
+    """
+    An operation started with `as` settles: it succeeded, with `returns` when given; or failed with `fails`; or, `abandoned`, it ended because the case abandoned it and reported nothing.
+    """
+
+    settles: Annotated[str, Field(description="The operation.")]
+    returns: JsonValue | None = None
+    fails: JsonValue | None = None
+    abandoned: Annotated[Literal[True] | None, Field(description="It ended because the case abandoned it.")] = None
+
+
+type ConformanceStepWireAt = Annotated[
+    Literal["arrival", "answer", "live"],
+    Field(description="When it is read: on arrival, once answered (the default), or once its stream has caught up."),
+]
+
+
+class ConformanceStepWire(WireModel, frozen=True, extra="forbid"):
+    """
+    The next request the client put on the wire is this operation, with each field given.
+    """
+
+    wire: Annotated[str, Field(description="The operation of the gateway's API, by its method and path.")]
+    at: ConformanceStepWireAt | None = None
+    status: Annotated[int | None, Field(description="The status it was answered with.")] = None
+    params: JsonValue | None = None
+    body: JsonValue | None = None
+    token: JsonValue | None = None
+    headers: Annotated[
+        dict[str, JsonValue] | None,
+        Field(description="The request's headers named here, each as a pattern; headers not named are not compared."),
+    ] = None
+    answer: JsonValue | None = None
+    as_: Annotated[str | None, Field(alias="as", description="The request's name, for a later step.")] = None
+    follows: Annotated[str | None, Field(description="A request named earlier, which was answered before this one arrived.")] = None
+    waited: Annotated[str | None, Field(description="A request named earlier, answered with a Retry-After, which this one waited out.")] = (
+        None
+    )
+
+
+class ConformanceStepCarried(WireModel, frozen=True, extra="forbid"):
+    """
+    The stream a wire step named has carried this frame to the client.
+    """
+
+    carried: Annotated[str, Field(description="The stream.")]
+    is_: Annotated[JsonValue, Field(alias="is")]
+
+
+class ConformanceStepClosed(WireModel, frozen=True, extra="forbid"):
+    """
+    The request a `wire` step named has ended with no answer reaching the client: the client closed it, or the proxy kept the gateway's answer from it (`answer-lost`).
+    """
+
+    closed: Annotated[str, Field(description="The request.")]
+
+
+class ConformanceStepProgress(WireModel, frozen=True, extra="forbid"):
+    """
+    An upload started with `as`, and not yet settled, has reported all of it sent: every report states the same total, none states less than the one before, and the last states the total.
+    """
+
+    progress: Annotated[str, Field(description="The upload.")]
+
+
+type ConformanceStepStateState = Annotated[
+    Literal["initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"], Field(description="The state.")
+]
+
+
+class ConformanceStepState(WireModel, frozen=True, extra="forbid"):
+    """
+    The transport comes to report this state.
+    """
+
+    state: ConformanceStepStateState
+
+
+type ConformanceStepStaysStays = Annotated[
+    Literal["initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"], Field(description="The state.")
+]
+
+
+class ConformanceStepStays(WireModel, frozen=True, extra="forbid"):
+    """
+    The transport is in this state and has reported no other since the case last read its state.
+    """
+
+    stays: ConformanceStepStaysStays
+
+
+class ConformanceStepFrame(WireModel, frozen=True, extra="forbid"):
+    """
+    The next frame the client delivers on this channel is this one.
+    """
+
+    frame: Annotated[str, Field(description="The channel.")]
+    is_: Annotated[JsonValue, Field(alias="is")]
+
+
+class ConformanceStepFrames(WireModel, frozen=True, extra="forbid"):
+    """
+    The client delivers this many more frames on this channel. What they are is held, as every frame is, to what the gateway sent.
+    """
+
+    frames: Annotated[str, Field(description="The channel.")]
+    count: Annotated[int, Field(description="How many more.")]
+
+
+class ConformanceStepError(WireModel, frozen=True, extra="forbid"):
+    """
+    The next failure on the client's error stream is this one.
+    """
+
+    error: JsonValue
+
+
+type ConformanceStepBackendBackend = Annotated[
+    Literal[
+        "listen",
+        "emit",
+        "record",
+        "content",
+        "description",
+        "annotations",
+        "anchored-text",
+        "uploaded",
+        "refuse",
+        "unanswered",
+        "answer-lost",
+        "hold",
+        "release",
+        "rechunk",
+        "carry",
+        "cut",
+        "down",
+        "up",
+        "archivist",
+    ],
+    Field(description="The directive."),
+]
+
+
+class ConformanceStepBackend(WireModel, frozen=True, extra="forbid"):
+    """
+    The backend does something (conformance/sdk/README.md, "Backend directives").
+    """
+
+    backend: ConformanceStepBackendBackend
+    with_: Annotated[dict[str, JsonValue] | None, Field(alias="with", description="The directive's arguments.")] = None
+
+
+class ConformanceStepQuiet(WireModel, frozen=True, extra="forbid"):
+    """
+    The client puts nothing more on the wire for this many milliseconds.
+    """
+
+    quiet: Annotated[int, Field(description="How long, in milliseconds.")]
+
+
+class ConformanceStepObserveObserve(WireModel, frozen=True, extra="forbid"):
+    """
+    The live query.
+    """
+
+    query: Annotated[str, Field(description="The live query, by its name in specs/src/client/refresh.json.")]
+    resource: JsonValue | None = None
+    annotation: JsonValue | None = None
+    search: JsonValue | None = None
+    filters: JsonValue | None = None
+
+
+class ConformanceStepObserve(WireModel, frozen=True, extra="forbid"):
+    """
+    Live: an observer, named by `as`, begins observing a live query.
+    """
+
+    observe: ConformanceStepObserveObserve
+    as_: Annotated[str, Field(alias="as", description="The observer.")]
+
+
+class ConformanceStepLeave(WireModel, frozen=True, extra="forbid"):
+    """
+    Live: the observer stops observing.
+    """
+
+    leave: Annotated[str, Field(description="The observer.")]
+
+
+class ConformanceStepReaches(WireModel, frozen=True, extra="forbid"):
+    """
+    Live: the observer comes to hold this state.
+    """
+
+    reaches: Annotated[str, Field(description="The observer.")]
+    state: JsonValue
+
+
+class ConformanceStepHolds(WireModel, frozen=True, extra="forbid"):
+    """
+    Live: the state the observer holds now is this one.
+    """
+
+    holds: Annotated[str, Field(description="The observer.")]
+    state: JsonValue
+
+
+class ConformanceStepCompletes(WireModel, frozen=True, extra="forbid"):
+    """
+    Live: the observer's live query completes.
+    """
+
+    completes: Annotated[str, Field(description="The observer.")]
+
+
+class ConformanceHttpFetch(WireModel, frozen=True, extra="forbid"):
+    """
+    A read over HTTP a live case expects the client to make: an operation of the gateway's API by its method and path, with the values its path carries. The stand-in Archivist answers it from what the case seeded.
+    """
+
+    fetch: Annotated[str, Field(description="The operation, by its method and path.")]
+    params: JsonValue | None = None
+
+
+type ConformanceStepFetchesFetchesItem = ConformanceBusFetch | ConformanceHttpFetch
+
+
+class ConformanceStepFetches(WireModel, frozen=True, extra="forbid"):
+    """
+    Live: the next requests the client makes of a service are these, in whatever order it makes them.
+    """
+
+    fetches: Annotated[list[ConformanceStepFetchesFetchesItem], Field(description="The requests.")]
+
+
+class ConformanceStepScopes(WireModel, frozen=True, extra="forbid"):
+    """
+    Live: the client's stream comes to name exactly these scopes.
+    """
+
+    scopes: Annotated[list[JsonValue], Field(description="The scopes.")]
+
+
+class ConformanceStepClaimed(WireModel, frozen=True, extra="forbid"):
+    """
+    A worker case: the next job the worker reports as claimed, as it read the record.
+    """
+
+    claimed: JsonValue
+
+
+class ConformanceStepRefused(WireModel, frozen=True, extra="forbid"):
+    """
+    A worker case: the next refusal of a claim the worker reports.
+    """
+
+    refused: JsonValue
+
+
+class ConformanceStepSignalled(WireModel, frozen=True, extra="forbid"):
+    """
+    A worker case: the next held job whose cancellation the worker says was signalled.
+    """
+
+    signalled: JsonValue
+
+
+class ConformanceStepStalled(WireModel, frozen=True, extra="forbid"):
+    """
+    A worker case: the next held job the worker says has stalled.
+    """
+
+    stalled: JsonValue
+
+
+type ConformanceStep = Annotated[
+    ConformanceStepLet
+    | ConformanceStepDriver
+    | ConformanceStepAbandon
+    | ConformanceStepSettles
+    | ConformanceStepWire
+    | ConformanceStepCarried
+    | ConformanceStepClosed
+    | ConformanceStepProgress
+    | ConformanceStepState
+    | ConformanceStepStays
+    | ConformanceStepFrame
+    | ConformanceStepFrames
+    | ConformanceStepError
+    | ConformanceStepBackend
+    | ConformanceStepQuiet
+    | ConformanceStepObserve
+    | ConformanceStepLeave
+    | ConformanceStepReaches
+    | ConformanceStepHolds
+    | ConformanceStepCompletes
+    | ConformanceBusFetch
+    | ConformanceHttpFetch
+    | ConformanceStepFetches
+    | ConformanceStepScopes
+    | ConformanceStepClaimed
+    | ConformanceStepRefused
+    | ConformanceStepSignalled
+    | ConformanceStepStalled,
+    Field(
+        description='One step of a case of the conformance corpus (ConformanceCase.json): each is told apart by the member only it requires. conformance/sdk/README.md, "A case", says what each does.'
+    ),
+]
+
+
+class ConformanceCase(WireModel, frozen=True, extra="forbid"):
+    """
+    One case of the conformance corpus: a scenario every SDK's driver is put through, a JSON file of conformance/sdk/wire, conformance/sdk/live or conformance/worker/cases named by the case. What the client is asked to do, what the backend does around it, and the transcript a conforming client produces. conformance/sdk/README.md explains each step; the reader reads every file of the corpus through this schema.
+    """
+
+    about: Annotated[str, Field(description="What the case holds a client to, in a sentence.")]
+    source: Annotated[str, Field(description="Where the protocol or the spec states it.")]
+    planes: Annotated[
+        list[ConformanceCasePlanesItem] | None, Field(description="The signal planes the case runs on. Absent, it runs on both.")
+    ] = None
+    tier: ConformanceCaseTier | None = None
+    telemetry: Annotated[
+        Literal[True] | None,
+        Field(
+            description="Run the client exporting to an OTLP receiver, and once it has exited hold what it exported to specs/src/sdk-telemetry/telemetry.json. A worker case also holds the worker to a trace of its own for each job it ran (conformance/worker/README.md)."
+        ),
+    ] = None
+    steps: Annotated[list[ConformanceStep], Field(description="The steps, run in order.")]
+
+
+class ConformanceDriverLineReady(WireModel, frozen=True, extra="forbid"):
+    """
+    The driver can take operations.
+    """
+
+    ready: Annotated[Literal[True], Field(description="Written once.")]
+
+
+class ConformanceDriverLineOk(WireModel, frozen=True, extra="forbid"):
+    """
+    The operation succeeded.
+    """
+
+    id: Annotated[int, Field(description="The operation's id.")]
+    ok: JsonValue
+
+
+type FailureClass = Annotated[
+    Literal["transient", "deterministic", "withheld"],
+    Field(
+        description="The class of a job's failure, stated by the worker, where the failure is still typed: at the gateway it is already text, and classing a failure by its text is what this exists to avoid. A job no worker concluded, because its worker stopped reporting, is classed by the dispatcher, as 'transient'. Each value is a claim. 'transient': nothing about the request was judged (the worker's own bound ran out, the provider said not now), so another attempt may succeed. 'deterministic': the same request cannot succeed on a second attempt. 'withheld': the model's provider had the request and withheld its answer, by a refusal or a content filter, and the same request is withheld again; nothing broke. A 'deterministic' or a 'withheld' failure is not retried, whatever retry budget is left. ABSENT means the failure was not classified, which is not the claim 'transient' makes; it is retried as a transient one is. Only a failure known to be deterministic or withheld is called so: calling a transient failure either one halves reliability, where the reverse costs one wasted attempt."
+    ),
+]
+
+
+class ConformanceFailure(WireModel, frozen=True, extra="forbid"):
+    """
+    A failure as an SDK reports it to the suite (conformance/sdk/README.md, "The driver protocol"): its code, the status when a server stated one, and a job failure's class when it has one; and the SDK's own words for it.
+    """
+
+    code: Annotated[str | None, Field(description="The SDK's code for it, from specs/src/errors/codes.json.")] = None
+    status: Annotated[int | None, Field(description="The HTTP status, when a server stated one.")] = None
+    failure_class: Annotated[FailureClass | None, Field(alias="failureClass", description="A job failure's class, when it has one.")] = None
+    detail: Annotated[str, Field(description="The SDK's words, for a person; nothing compares it.")]
+
+
+class ConformanceDriverLineFailed(WireModel, frozen=True, extra="forbid"):
+    """
+    The SDK failed the operation.
+    """
+
+    id: Annotated[int, Field(description="The operation's id.")]
+    error: Annotated[ConformanceFailure, Field(description="The failure.")]
+
+
+class ConformanceDriverLineAbandoned(WireModel, frozen=True, extra="forbid"):
+    """
+    The suite abandoned the operation, and the SDK reported nothing else.
+    """
+
+    id: Annotated[int, Field(description="The operation's id.")]
+    abandoned: Annotated[Literal[True], Field(description="It was abandoned.")]
+
+
+class ConformanceDriverLineUnsupported(WireModel, frozen=True, extra="forbid"):
+    """
+    The driver has no such operation. It says so at once, before it reads its next operation.
+    """
+
+    id: Annotated[int, Field(description="The operation's id.")]
+    unsupported: Annotated[Literal[True], Field(description="It has none.")]
+
+
+class ConformanceDriverLineMisuse(WireModel, frozen=True, extra="forbid"):
+    """
+    The suite's arguments made no sense: the suite's mistake, never the SDK's.
+    """
+
+    id: Annotated[int, Field(description="The operation's id.")]
+    misuse: Annotated[str, Field(description="What made no sense.")]
+
+
+class ConformanceDriverLineState(WireModel, frozen=True, extra="forbid"):
+    """
+    The transport's connection state changed.
+    """
+
+    state: Annotated[
+        str,
+        Field(
+            description="The state it is in now: one a case's `state` step names (ConformanceStep.json), or another the case never waits for."
+        ),
+    ]
+
+
+class ConformanceDriverLineFrameFrame(WireModel, frozen=True, extra="forbid"):
+    """
+    The frame.
+    """
+
+    channel: Annotated[str, Field(description="The channel.")]
+    payload: JsonValue | None = None
+    correlation_id: Annotated[str | None, Field(alias="correlationId", description="The frame's correlation id, when it has one.")] = None
+    scope: Annotated[ResourceId | None, Field(description="The frame's scope, when it has one.")] = None
+
+
+class ConformanceDriverLineFrame(WireModel, frozen=True, extra="forbid"):
+    """
+    A frame was delivered on a channel the driver listens to.
+    """
+
+    frame: ConformanceDriverLineFrameFrame
+
+
+class ConformanceDriverLineErrorStream(WireModel, frozen=True, extra="forbid"):
+    """
+    The error stream carried a failure.
+    """
+
+    error: Annotated[ConformanceFailure, Field(description="The failure.")]
+
+
+class ConformanceDriverLineProgressProgress(WireModel, frozen=True, extra="forbid"):
+    """
+    The report.
+    """
+
+    upload: Annotated[int, Field(description="The `upload` operation's id.")]
+    bytes_uploaded: Annotated[int, Field(alias="bytesUploaded", description="How many bytes it has sent.")]
+    total_bytes: Annotated[int, Field(alias="totalBytes", description="How many it will send.")]
+
+
+class ConformanceDriverLineProgress(WireModel, frozen=True, extra="forbid"):
+    """
+    An upload reported how much of it has been sent.
+    """
+
+    progress: ConformanceDriverLineProgressProgress
+
+
+class ConformanceDriverLineEmissionEmissionStatePending(WireModel, frozen=True, extra="forbid"):
+    status: Annotated[Literal["pending"], Field(description="Nothing to show yet.")]
+
+
+class ConformanceDriverLineEmissionEmissionStateReady(WireModel, frozen=True, extra="forbid"):
+    status: Annotated[Literal["ready"], Field(description="A value to show.")]
+    value: JsonValue
+
+
+class ConformanceDriverLineEmissionEmissionStateFailed(WireModel, frozen=True, extra="forbid"):
+    status: Annotated[Literal["failed"], Field(description="The query failed.")]
+    error: Annotated[ConformanceFailure, Field(description="The failure.")]
+
+
+class ConformanceDriverLineEmissionEmission(WireModel, frozen=True, extra="forbid"):
+    """
+    The emission.
+    """
+
+    observer: Annotated[str, Field(description="The observer.")]
+    state: Annotated[
+        ConformanceDriverLineEmissionEmissionStatePending
+        | ConformanceDriverLineEmissionEmissionStateReady
+        | ConformanceDriverLineEmissionEmissionStateFailed,
+        Field(description="The state."),
+    ]
+
+
+class ConformanceDriverLineEmission(WireModel, frozen=True, extra="forbid"):
+    """
+    The live driver: an observer was given a state.
+    """
+
+    emission: ConformanceDriverLineEmissionEmission
+
+
+class ConformanceDriverLineCompleted(WireModel, frozen=True, extra="forbid"):
+    """
+    The live driver: the observer's live query completed.
+    """
+
+    completed: Annotated[str, Field(description="The observer.")]
+
+
+class ConformanceDriverLineClaimed(WireModel, frozen=True, extra="forbid"):
+    """
+    A worker driver: its worker claimed a job.
+    """
+
+    claimed: Annotated[dict[str, JsonValue], Field(description="The job, as the worker read the record.")]
+
+
+class ConformanceDriverLineRefused(WireModel, frozen=True, extra="forbid"):
+    """
+    A worker driver: a claim was refused.
+    """
+
+    refused: Annotated[
+        ConformanceFailure, Field(description="The refusal: with a code when the bus refused it, with none when the worker did.")
+    ]
+
+
+class ConformanceDriverLineSignalled(WireModel, frozen=True, extra="forbid"):
+    """
+    A worker driver: a held job's cancellation was signalled.
+    """
+
+    signalled: Annotated[str, Field(description="The job's id.")]
+
+
+class ConformanceDriverLineStalled(WireModel, frozen=True, extra="forbid"):
+    """
+    A worker driver: a held job stalled.
+    """
+
+    stalled: Annotated[str, Field(description="The job's id.")]
+
+
+type ConformanceDriverLine = Annotated[
+    ConformanceDriverLineReady
+    | ConformanceDriverLineOk
+    | ConformanceDriverLineFailed
+    | ConformanceDriverLineAbandoned
+    | ConformanceDriverLineUnsupported
+    | ConformanceDriverLineMisuse
+    | ConformanceDriverLineState
+    | ConformanceDriverLineFrame
+    | ConformanceDriverLineErrorStream
+    | ConformanceDriverLineProgress
+    | ConformanceDriverLineEmission
+    | ConformanceDriverLineCompleted
+    | ConformanceDriverLineClaimed
+    | ConformanceDriverLineRefused
+    | ConformanceDriverLineSignalled
+    | ConformanceDriverLineStalled,
+    Field(
+        description='A line a conformance driver writes on its standard output, one JSON object each (conformance/sdk/README.md, "The driver protocol"; conformance/worker/README.md, "The worker driver"): that it is ready, an operation\'s outcome, or what its client observed as it happened. The suite refuses any other line.'
+    ),
+]
+
+
+class LocalTarget(WireModel, frozen=True, extra="forbid"):
+    """
+    A local knowledge base, named explicitly: the operations that act on one local stack and never resolve one for the caller (identity administration, a service's run).
+    """
+
+    kind: Annotated[Literal["local"], Field(description="Only a local stack.")]
+    root: Annotated[str, Field(description="The knowledge base's clone, by its path.")]
+
+
+type ConformanceImplementationsSdksValueLiveTier = Annotated[
+    Literal["fleet", "parity"],
+    Field(
+        description="A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does."
+    ),
+]
+
+
+class ConformanceImplementationsSdksValueLive(WireModel, frozen=True, extra="forbid"):
+    """
+    How its live driver is started, and the tier of the live corpus the SDK is held to.
+    """
+
+    command: Annotated[
+        list[str],
+        Field(
+            description="How its live driver is started. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written."
+        ),
+    ]
+    tier: ConformanceImplementationsSdksValueLiveTier
+
+
+class ConformanceImplementationsSdksValue(WireModel, frozen=True, extra="forbid"):
+    """
+    One SDK's drivers.
+    """
+
+    wire: Annotated[
+        list[str] | None,
+        Field(
+            description="How its wire driver is started. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written."
+        ),
+    ] = None
+    live: ConformanceImplementationsSdksValueLive | None = None
+    worker: Annotated[
+        list[str] | None,
+        Field(
+            description="How its worker driver is started, when the SDK has a worker's surface (conformance/worker/README.md). A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written."
+        ),
+    ] = None
+    exempt: Annotated[
+        dict[str, str] | None,
+        Field(
+            description="The wire cases its driver cannot be put through, by the case's name, each with why. The suite holds an exemption as it holds a case: the driver must answer unsupported to what the case asks, or the exemption is stale."
+        ),
+    ] = None
+
+
+class ConformanceImplementations(WireModel, frozen=True, extra="forbid"):
+    """
+    The implementations manifest: the file a run of the conformance harness is given with --implementations, naming what the run holds to Protocol. Every service is run by the xynolog launcher, from the image the knowledge base's stack documents name (contract/LAUNCHER-CONTROL.md, service.run): an implementation is a knowledge base whose documents name its images, and another implementation is another manifest. Each SDK's drivers are programs the harness starts itself, since none is a service. There is no default manifest. The reader reads this schema in the table dialect and derives its model (Tables.Conformance_implementations), for the harness to decode a manifest by.
+    """
+
+    launcher: Annotated[
+        list[str],
+        Field(
+            description="How the launcher's control API is served: the xynolog command, run with control. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written."
+        ),
+    ]
+    target: Annotated[
+        LocalTarget,
+        Field(
+            description="The knowledge base whose stack documents name each service's image, and whose stack runs the record and index the suites need. A relative root is resolved against the manifest's own directory."
+        ),
+    ]
+    sdks: Annotated[
+        dict[str, ConformanceImplementationsSdksValue],
+        Field(
+            description="Each SDK's drivers, by the SDK's name: the programs the SDK and worker suites talk to in its place (conformance/sdk/README.md, \"The driver protocol\")."
+        ),
+    ]
+    model_catalogue: Annotated[
+        str | None,
+        Field(
+            alias="modelCatalogue",
+            description="The model catalogue the implementation supplies, by its path; a relative one is resolved against the manifest's own directory. The Librarian's and the worker service's documents name one, so a run of either suite without it refuses to start.",
+        ),
     ] = None
 
 
@@ -2620,6 +3743,48 @@ class EntityTypesProjection(WireModel, frozen=True, extra="forbid"):
     entity_types: Annotated[list[str], Field(alias="entityTypes", description="Every entity type added, each once, sorted.")]
 
 
+class FieldFault(WireModel, frozen=True, extra="forbid"):
+    """
+    One fault in a request's params, named where it is.
+    """
+
+    field: Annotated[
+        str, Field(description="Where in the params the fault is, as a JSON pointer (RFC 6901); empty for the params as a whole.")
+    ]
+    message: Annotated[str, Field(description="What is wrong there.")]
+
+
+class ErrorData(WireModel, frozen=True, extra="forbid"):
+    """
+    The data of a control error: the launcher's code for the failure, one of specs/src/errors/codes.json's control group, and what a client can act on. A request's failure is never only a message.
+    """
+
+    code: Annotated[str, Field(description="Why the request failed: a code of the control group of specs/src/errors/codes.json.")]
+    retryable: Annotated[
+        bool,
+        Field(
+            description="Whether the same request can succeed sent again unchanged, once something outside it changes: a start finishes, a runtime is installed, a stack comes up."
+        ),
+    ]
+    fields: Annotated[list[FieldFault] | None, Field(description="For params the contract refuses: each fault, where it is.")] = None
+    choices: Annotated[
+        list[Target] | None,
+        Field(
+            description="For control.target-required and control.target-ambiguous: each target the request could have meant, to send again with one."
+        ),
+    ] = None
+    supported: Annotated[list[str] | None, Field(description="For control.unsupported-api-version: each version this launcher speaks.")] = (
+        None
+    )
+    may_still_run: Annotated[
+        bool | None,
+        Field(
+            alias="mayStillRun",
+            description="For a cancelled stack.start: whether services the start launched may still be running. The launcher stops waiting, and stops nothing.",
+        ),
+    ] = None
+
+
 class ErrorResponse(WireModel, frozen=True):
     """
     The body of every error the gateway answers, whatever the status and whatever the route — including a path it does not serve.
@@ -2648,12 +3813,23 @@ type ExtractionOutcome = Annotated[
     ),
 ]
 
-type FailureClass = Annotated[
-    Literal["transient", "deterministic", "withheld"],
+type FollowerFollowingSweep = Annotated[
+    Literal["pending", "running", "done", "due"],
     Field(
-        description="The class of a job's failure, stated by the worker, where the failure is still typed: at the gateway it is already text, and classing a failure by its text is what this exists to avoid. A job no worker concluded, because its worker stopped reporting, is classed by the dispatcher, as 'transient'. Each value is a claim. 'transient': nothing about the request was judged (the worker's own bound ran out, the provider said not now), so another attempt may succeed. 'deterministic': the same request cannot succeed on a second attempt. 'withheld': the model's provider had the request and withheld its answer, by a refusal or a content filter, and the same request is withheld again; nothing broke. A 'deterministic' or a 'withheld' failure is not retried, whatever retry budget is left. ABSENT means the failure was not classified, which is not the claim 'transient' makes; it is retried as a transient one is. Only a failure known to be deterministic or withheld is called so: calling a transient failure either one halves reliability, where the reverse costs one wasted attempt."
+        description="The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again."
     ),
 ]
+
+
+class FollowerFollowing(WireModel, frozen=True, extra="forbid"):
+    """
+    How far a follower of the record has followed it, as every follower says it at its health port (WEAVER.md § Health, SMELTER.md § Health).
+    """
+
+    sweep: FollowerFollowingSweep
+    stopped: Annotated[int, Field(description="How many resources' logs a failed taking has stopped until the next sweep.")]
+    refused: Annotated[int, Field(description="How many events it refused as recorded since it started.")]
+    stream_drops: Annotated[int, Field(alias="streamDrops", description="How many times its stream has dropped since it started.")]
 
 
 class FrameAddEntityTypeCommand(WireModel, frozen=True):
@@ -3411,6 +4587,135 @@ class HighlightingJobParams(WireModel, frozen=True, extra="forbid"):
     ] = None
 
 
+class HostPort(WireModel, frozen=True, extra="forbid"):
+    """
+    Where somebody else's daemon listens.
+    """
+
+    host: Annotated[str, Field(description="A host name or address the stack's containers can reach.")]
+    port: Annotated[int, Field(description="The port it listens on.")]
+
+
+type HttpStatus = Annotated[
+    int, Field(description="An HTTP response's status code, as the tables state one. No API states it, so it is no component.")
+]
+
+
+class IdentityUser(WireModel, frozen=True, extra="forbid"):
+    """
+    An account in a knowledge base's launcher-managed identity realm. Passwords and tokens are never included.
+    """
+
+    email: Annotated[str, Field(description="The account's sign-in name, normally its email address.")]
+    identity: Annotated[str, Field(description="The identity the account acts under in Xynolog.")]
+    enabled: Annotated[bool, Field(description="Whether the identity provider currently allows this account to sign in.")]
+
+
+class IdentityUseraddParams(WireModel, frozen=True, extra="forbid"):
+    """
+    Create one account in the launcher-managed Keycloak realm for a specific local knowledge base.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion")]
+    target: LocalTarget
+    email: Annotated[str, Field(description="The email address that will sign in to this knowledge base.")]
+    password: Annotated[
+        str | None,
+        Field(
+            description="The user's password. Secret: carried only in this local control request, never in progress, diagnostics, or persistent state."
+        ),
+    ] = None
+    generate_password: Annotated[
+        bool, Field(alias="generatePassword", description="Generate a random password in the launcher and return it once in the result.")
+    ]
+
+
+class IdentityUseraddResult(WireModel, frozen=True, extra="forbid"):
+    """
+    The created account's sign-in identity. A generated password is present only in this one answer and is not stored by the launcher.
+    """
+
+    email: Annotated[str, Field(description="The account's email address.")]
+    identity: Annotated[str, Field(description="The identity the account acts under in Xynolog.")]
+    created: Annotated[bool, Field(description="Whether a new account was created.")]
+    generated_password: Annotated[
+        str | None,
+        Field(
+            alias="generatedPassword",
+            description="The generated password, returned once so the operator can share it with the user. Absent when the operator supplied the password.",
+        ),
+    ] = None
+
+
+class IdentityUsersListParams(WireModel, frozen=True, extra="forbid"):
+    """
+    List accounts in one local knowledge base's launcher-managed Keycloak realm.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion")]
+    target: LocalTarget
+
+
+class IdentityUsersListResult(WireModel, frozen=True, extra="forbid"):
+    """
+    Accounts in the selected knowledge base's launcher-managed identity realm.
+    """
+
+    users: Annotated[list[IdentityUser], Field(description="Accounts, sorted by sign-in name.")]
+
+
+class SecretRef(WireModel, frozen=True, extra="forbid"):
+    """
+    A secret the document names and does not hold. The launcher hands it to the service that needs it, from where the reference says it is.
+    """
+
+    from_env: Annotated[
+        str,
+        Field(
+            alias="fromEnv",
+            description="The environment variable that holds the secret where the launcher runs. Unset, the start that needs it is refused.",
+        ),
+    ]
+
+
+class Provider(WireModel, frozen=True, extra="forbid"):
+    """
+    How an inference provider is reached.
+    """
+
+    base_url: Annotated[
+        str | None,
+        Field(
+            alias="baseURL",
+            description="Where the provider's API is reached. Anthropic's own API, and the shared Ollama, are stated by no baseURL.",
+        ),
+    ] = None
+    api_key: Annotated[SecretRef | None, Field(alias="apiKey")] = None
+
+
+class InferenceSpec(WireModel, frozen=True, extra="forbid"):
+    """
+    The providers, and the engine for each job and each Librarian actor.
+    """
+
+    providers: Annotated[dict[str, Provider], Field(description="Each provider an engine names, and how it is reached.")]
+    engines: Annotated[
+        ArchivistEngines,
+        Field(description="The engine each job is done with when software does it, and the engine each Librarian actor asks."),
+    ]
+
+
+class Inference(WireModel, frozen=True, extra="forbid"):
+    """
+    The engines a machine uses for a knowledge base: the providers it reaches, and the provider and model each job and each Librarian actor is done with. A knowledge base's repository may carry several, one for each provider, and a machine chooses one.
+    """
+
+    api_version: Annotated[StackApiVersion, Field(alias="apiVersion")]
+    kind: Literal["Inference"]
+    metadata: Metadata
+    spec: InferenceSpec
+
+
 class InferenceLimitsRequest(WireModel, frozen=True):
     """
     Request for the inference limits of the engines one service holds a client for. Answered on job:limits-requested by the worker, and on gather:limits-requested and match:limits-requested by the librarian: each service that holds an inference credential reports for its own engines, so no other service needs one.
@@ -3436,6 +4741,74 @@ class IssuedTokens(WireModel, frozen=True, extra="forbid"):
 
     access: Annotated[str, Field(description="The access token: short-lived, sent as a Bearer token.")]
     refresh: Annotated[str, Field(description="The refresh token: what renews the access token without another sign-in.")]
+
+
+class Runner(WireModel, frozen=True):
+    """
+    Who runs a daemon: the launcher, from `image` with `resources`, or somebody else, reached at `external`. Exactly one of the two.
+    """
+
+
+class IssuerSpecDatabaseExternal(WireModel, frozen=True, extra="forbid"):
+    """
+    A database somebody else runs.
+    """
+
+    host: Annotated[str, Field(description="A host name or address the issuer can reach.")]
+    port: Annotated[int, Field(description="The port it listens on.")]
+    password: SecretRef
+
+
+class IssuerSpecDatabase(Runner, frozen=True):
+    """
+    The database the issuer keeps its realms in.
+    """
+
+    type: Annotated[str, Field(description="The database's driver: `postgres`.")]
+    name: Annotated[
+        str,
+        Field(
+            description="The database the issuer keeps its realms in: a lowercase PostgreSQL identifier, as PostgreSQL itself names an unquoted one. On a PostgreSQL the launcher runs, the launcher creates it; on one somebody else runs (`external`), it must already exist there."
+        ),
+    ]
+    user: Annotated[str, Field(description="The user the issuer signs in as.")]
+    image: Image | None = None
+    resources: Resources | None = None
+    port: Annotated[
+        int | None,
+        Field(
+            description="The port a PostgreSQL the launcher runs is published on, on this machine, where the issuer reaches it. One somebody else runs is reached at `external`."
+        ),
+    ] = None
+    external: IssuerSpecDatabaseExternal | None = None
+
+
+class IssuerSpec(WireModel, frozen=True, extra="forbid"):
+    """
+    The issuer, where it is published, and the database it keeps its realms in.
+    """
+
+    type: Annotated[str, Field(description="The issuer's driver: `keycloak`.")]
+    image: Image
+    resources: Resources
+    port: Annotated[
+        int,
+        Field(
+            description="The port the issuer is published on, on this machine: the origin of every realm's `iss`, so the one number wherever the issuer is reached."
+        ),
+    ]
+    database: IssuerSpecDatabase
+
+
+class Issuer(WireModel, frozen=True, extra="forbid"):
+    """
+    The issuer the launcher runs for the knowledge bases on a machine, with a realm for each, and the database it keeps their realms in. It belongs to no knowledge base, so its document is kept in the launcher's state home, in `stack/issuer.yaml`, not in a knowledge base's repository. A knowledge base trusts it by naming `shared`; one trusting somebody else's issuer names it at `external`.
+    """
+
+    api_version: Annotated[StackApiVersion, Field(alias="apiVersion")]
+    kind: Literal["Issuer"]
+    metadata: Metadata
+    spec: IssuerSpec
 
 
 type JobType = Annotated[
@@ -4539,6 +5912,11 @@ class JobStatusResult(WireModel, frozen=True):
     response: JobStatusResponse
 
 
+type KbDid = Annotated[
+    str, Field(description="A knowledge base's DID: `did:web:` and its domain. No API states one as such, so it is no component.")
+]
+
+
 class LocalEndpoint(WireModel, frozen=True):
     """
     A knowledge base the host process has loaded and reaches through a transport with no wire.
@@ -4672,6 +6050,342 @@ class KnowledgeBase(KbTarget, NewKnowledgeBase, frozen=True):
     """
 
 
+type KnowledgeBaseStatusPlacement = Annotated[
+    Literal["local", "codespace"],
+    Field(
+        description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
+    ),
+]
+
+type SessionState = Annotated[
+    Literal["valid", "expired", "unverified", "none"],
+    Field(
+        description="valid: the stack's gateway accepts the stored token. expired: it refuses it (a refresh, or xynolog login, renews it). unverified: the stack did not answer. none: nothing is stored."
+    ),
+]
+
+
+class Session(WireModel, frozen=True, extra="forbid"):
+    """
+    The launcher's own stored sign-in for a stack (xynolog login), never Desktop's. No token is in it.
+    """
+
+    state: SessionState
+    email: Annotated[str | None, Field(description="The email the session was signed in as, when the store records one.")] = None
+
+
+type ServiceGroup = Annotated[
+    Literal["record", "index", "issuer", "knowledge-workers", "providers", "telemetry"],
+    Field(
+        description="A group of services, as xynolog status reports them and --group names them: a knowledge base's record and its index, the issuer that signs its accounts in, the knowledge workers where people and agents work on it, the providers of its models, and the telemetry that watches them all."
+    ),
+]
+
+type ServiceStatusState = Annotated[
+    Literal["running", "stopped", "reachable", "unreachable", "absent", "not-configured"],
+    Field(
+        description="running: its container runs. stopped: its container exists and does not run (containerState says how). reachable, unreachable: somebody else runs it, and its endpoint answers or does not. absent: there is no container of it. not-configured: the stack's documents ask for none."
+    ),
+]
+
+
+class ServiceStatus(WireModel, frozen=True, extra="forbid"):
+    """
+    One service, as xynolog status reads it: where it runs, its state, and whether it answers. Nothing is reported that the launcher did not observe: an endpoint is named only when the stack's record or the descriptor names one, and a page to open only when the service answers.
+    """
+
+    role: Annotated[str, Field(description="The service, as xynolog status names it.")]
+    group: Annotated[ServiceGroup, Field(description="The group it belongs to.")]
+    product: Annotated[str | None, Field(description="The product its driver names (Neo4j, Keycloak), when its record names a driver.")] = (
+        None
+    )
+    runs_on: Annotated[
+        str | None,
+        Field(
+            alias="runsOn",
+            description="Where it runs: the runtime its container runs under, external (somebody else runs it), or host (a process on this machine). Absent when nothing runs it.",
+        ),
+    ] = None
+    state: ServiceStatusState
+    container_state: Annotated[
+        str | None,
+        Field(alias="containerState", description="The runtime's own word for a container that is not running (exited, created)."),
+    ] = None
+    healthy: Annotated[bool, Field(description="Whether its health endpoint answers.")]
+    counted: Annotated[
+        bool,
+        Field(
+            description="Whether its health counts toward its knowledge base's: a service the documents ask for none of, and a telemetry backend --no-observe leaves out, do not."
+        ),
+    ]
+    probe: Annotated[str | None, Field(description="The endpoint the launcher asks its health of: an http URL, or tcp://host:port.")] = None
+    page: Annotated[
+        str | None,
+        Field(
+            description="The page a person opens: the Browser, Jaeger's and Prometheus's interfaces, the collector's metrics readout. Present only when the service answers. The collector's OTLP receiver is never one."
+        ),
+    ] = None
+    realm: Annotated[
+        str | None, Field(description="For the issuer the knowledge base signs in at, when it is the machine's: its realm there.")
+    ] = None
+    serves: Annotated[
+        list[str] | None,
+        Field(description="For a service several knowledge bases share: the name of each it serves, as knowledgeBases names them."),
+    ] = None
+
+
+class WorkloadStatusLedger(WireModel, frozen=True, extra="forbid"):
+    """
+    The Gateway's request tracking: correlation IDs it currently holds so replies can be routed to the app client that sent each request, and the tracking capacity.
+    """
+
+    claims: Annotated[
+        int,
+        Field(
+            description="Number of request IDs currently held to route replies to their requesting app clients. Includes requests still waiting for a reply and recently answered requests still within the tracking window."
+        ),
+    ]
+    capacity: Annotated[int, Field(description="The maximum number of IDs held in this Gateway's local tracking projection.")]
+
+
+class WorkloadStatusQueue(WireModel, frozen=True, extra="forbid"):
+    """
+    Current Dispatcher depth and, when the worker has emitted counters, completed and failed work since worker start. These are different measurements and time windows.
+    """
+
+    pending: Annotated[int, Field(description="Jobs currently waiting for a worker.")]
+    running: Annotated[int, Field(description="Jobs currently claimed by workers.")]
+    completed: Annotated[int | None, Field(description="Jobs completed since worker start.")] = None
+    failed: Annotated[int | None, Field(description="Jobs finally failed since worker start.")] = None
+
+
+class WorkloadStatus(WireModel, frozen=True, extra="forbid"):
+    """
+    A knowledge base's operational readings from Collector metrics. Request-tracking occupancy and queue depth are current gauges; completed and failed are worker counters since that worker process started. Missing readings are unknown, never zero.
+    """
+
+    ledger: WorkloadStatusLedger | None = None
+    queue: WorkloadStatusQueue | None = None
+
+
+class KnowledgeBaseStatus(WireModel, frozen=True, extra="forbid"):
+    """
+    One knowledge base's stack as xynolog status reads it: what it is, where it runs, and each of its own services. The services every knowledge base shares are reported once, in the snapshot's shared list.
+    """
+
+    name: Annotated[
+        str,
+        Field(
+            description="What the snapshot calls the knowledge base: the last segment of its DID, or the whole DID where two would share one, or its key."
+        ),
+    ]
+    key: Annotated[str, Field(description="The knowledge base's key on this machine, which names its containers and its state.")]
+    recorded: Annotated[bool, Field(description="Whether a stack of it is recorded. When none is, its services are found by name.")]
+    placement: KnowledgeBaseStatusPlacement
+    root: Annotated[str | None, Field(description="Its clone, for a local stack.")] = None
+    repo: Annotated[
+        str | None, Field(description="owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity")
+    ] = None
+    did: Annotated[
+        str | None,
+        Field(
+            description='The KB\'s did:web identifier, from its committed .xynolog/config.yaml — "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no domain has no identity to publish, and the launcher refuses to start it rather than inventing or defaulting one. NOT unique within a document: a did names the knowledge base, not a running copy of it, so a local clone and a codespace of the same repo legitimately share one and both are published. host:port is the unique field (at most one entry per address), so consumers look up by ADDRESS and use the did to VERIFY that the copy they reached is the KB they meant — an address alone cannot say which KB is which, and an identity alone cannot say which copy.'
+        ),
+    ] = None
+    site_name: Annotated[
+        str | None,
+        Field(alias="siteName", description="Human-readable site name from the KB's .xynolog/config.yaml (site.siteName), for display"),
+    ] = None
+    identity_error: Annotated[
+        str | None, Field(alias="identityError", description="Why its identity could not be read from its clone, when it could not.")
+    ] = None
+    kb: Annotated[DiscoveredKB | None, Field(description="The knowledge base as the discovery document publishes it, when it does.")] = None
+    runtime: Annotated[Runtime | None, Field(description="The runtime its record names.")] = None
+    gateway: Annotated[str | None, Field(description="The base URL of its gateway, from its record.")] = None
+    secret_store: Annotated[
+        str | None,
+        Field(
+            alias="secretStore",
+            description="Where the values the launcher generates for it are kept, as xynolog settings secret-store describes it.",
+        ),
+    ] = None
+    lan: Annotated[str | None, Field(description="This machine's address on the network, when the stack is started with network lan.")] = (
+        None
+    )
+    starting: Annotated[
+        bool, Field(description="Whether a xynolog start of it holds its start lock: its services are not ready, whatever they report.")
+    ]
+    session: Session | None = None
+    healthy: Annotated[bool, Field(description="Whether each of its counted services, and the issuer it signs in at, answers.")]
+    services: Annotated[
+        list[ServiceStatus],
+        Field(
+            description="Its own services, group by group, then the issuer it signs in at. Empty for a codespace's, whose services its own launcher reports."
+        ),
+    ]
+    workload: Annotated[
+        WorkloadStatus | None,
+        Field(
+            description="The ledger and job queue readings the launcher can attribute to this knowledge base. A missing reading means the Collector has not reported that metric, not that its value is zero."
+        ),
+    ] = None
+
+
+class KnowledgeIndexSpecGraphExternal(WireModel, frozen=True, extra="forbid"):
+    """
+    A graph store somebody else runs.
+    """
+
+    uri: Annotated[str, Field(description="Where it listens: `bolt://host:port`.")]
+    password: SecretRef
+
+
+class KnowledgeIndexSpecGraph(Runner, frozen=True):
+    """
+    The graph store the Weaver writes and the Librarian reads. The knowledge base's graph is in the database its DID names (specs/src/graph/database-cases.json): a Neo4j the launcher runs makes it when it first starts, and one somebody else runs must already hold it.
+    """
+
+    type: Annotated[str, Field(description="The graph store's driver: `neo4j`.")]
+    username: Annotated[str, Field(description="The user the services sign in to the store as.")]
+    image: Image | None = None
+    resources: Resources | None = None
+    external: KnowledgeIndexSpecGraphExternal | None = None
+
+
+class KnowledgeIndexSpecVectorsShared(WireModel, frozen=True, extra="forbid"):
+    """
+    The vector store the launcher runs for the knowledge bases on a machine (the state home's VectorStore document). Each knowledge base keeps its index in collections of its own there, so nothing is said of it here.
+    """
+
+
+class KnowledgeIndexSpecVectorsExternal(WireModel, frozen=True, extra="forbid"):
+    """
+    A vector store somebody else runs, with the token each service presents to it: the Smelter's may make, write and delete this knowledge base's collections, and the Librarian's may read them.
+    """
+
+    host: Annotated[str, Field(description="A host name or address the stack's containers can reach.")]
+    port: Annotated[int, Field(description="The port its REST API listens on.")]
+    smelter_token: Annotated[SecretRef, Field(alias="smelterToken")]
+    librarian_token: Annotated[SecretRef, Field(alias="librarianToken")]
+
+
+class KnowledgeIndexSpecVectors(WireModel, frozen=True, extra="forbid"):
+    """
+    The vector store the Smelter writes and the Librarian reads: the one the launcher runs for the knowledge bases on a machine, at `shared`; one of the knowledge base's own the launcher runs, from `image` with `resources`; or somebody else's, at `external`. Exactly one of the three.
+    """
+
+    type: Annotated[str, Field(description="The vector store's driver: `qdrant`.")]
+    shared: KnowledgeIndexSpecVectorsShared | None = None
+    image: Image | None = None
+    resources: Resources | None = None
+    external: KnowledgeIndexSpecVectorsExternal | None = None
+
+
+class KnowledgeIndexSpecEmbeddingChunking(WireModel, frozen=True, extra="forbid"):
+    """
+    How a text is cut before it is embedded.
+    """
+
+    chunk_size: Annotated[int, Field(alias="chunkSize", description="The size of a piece.")]
+    overlap: Annotated[int, Field(description="How much of one piece the next repeats.")]
+
+
+class KnowledgeIndexSpecEmbedding(WireModel, frozen=True, extra="forbid"):
+    """
+    The model that turns text into vectors. Vectors made by one model are not comparable with another's, so the model is the index's.
+    """
+
+    type: Annotated[str, Field(description="Who serves the model: `ollama`, or `voyage`.")]
+    model: Annotated[str, Field(description="The model, as its provider names it.")]
+    chunking: KnowledgeIndexSpecEmbeddingChunking
+    endpoint: Annotated[
+        str | None, Field(description="Where the provider's API is reached. The shared Ollama is stated by no endpoint.")
+    ] = None
+    api_key: Annotated[SecretRef | None, Field(alias="apiKey")] = None
+
+
+class KnowledgeIndexSpecLibrarianGather(WireModel, frozen=True, extra="forbid"):
+    """
+    How a gather waits.
+    """
+
+    settle_timeout_ms: Annotated[
+        int, Field(alias="settleTimeoutMs", description="How long a gather waits for the Smelter to settle a resource, in milliseconds.")
+    ]
+
+
+class KnowledgeIndexSpecLibrarianSearch(WireModel, frozen=True, extra="forbid"):
+    """
+    What a search by meaning keeps.
+    """
+
+    semantic_floor: Annotated[float, Field(alias="semanticFloor", description="The least similarity a hit by meaning must have.")]
+
+
+class KnowledgeIndexSpecLibrarian(WireModel, frozen=True, extra="forbid"):
+    """
+    The Librarian: it answers gathers and searches from the indexes.
+    """
+
+    image: Image
+    resources: Resources
+    gather: KnowledgeIndexSpecLibrarianGather
+    search: KnowledgeIndexSpecLibrarianSearch
+
+
+class KnowledgeIndexSpecSmelter(WireModel, frozen=True, extra="forbid"):
+    """
+    The Smelter: it writes the vectors and the anchored text.
+    """
+
+    image: Image
+    resources: Resources
+    pdfs_at_once: Annotated[
+        int,
+        Field(
+            alias="pdfsAtOnce",
+            description="How many PDFs it works on at once. A page of a scan held for OCR is large; one for each 2G of its memory is a reading of what fits.",
+        ),
+    ]
+
+
+class KnowledgeIndexSpecWeaver(WireModel, frozen=True, extra="forbid"):
+    """
+    The Weaver: it writes the graph.
+    """
+
+    image: Image
+    resources: Resources
+
+
+class KnowledgeIndexSpec(WireModel, frozen=True, extra="forbid"):
+    """
+    The indexes, the services that keep and read them, and the knowledge base they index.
+    """
+
+    knowledge_base: Annotated[
+        str, Field(alias="knowledgeBase", description="The name of the KnowledgeBase document whose record this indexes.")
+    ]
+    log_level: Annotated[LogLevel, Field(alias="logLevel")]
+    graph: KnowledgeIndexSpecGraph
+    vectors: KnowledgeIndexSpecVectors
+    embedding: KnowledgeIndexSpecEmbedding
+    librarian: KnowledgeIndexSpecLibrarian
+    smelter: KnowledgeIndexSpecSmelter
+    weaver: KnowledgeIndexSpecWeaver
+
+
+class KnowledgeIndex(WireModel, frozen=True, extra="forbid"):
+    """
+    What a knowledge base's record is indexed into, and the services that keep and read the indexes: the Weaver's graph, the Smelter's vectors and anchored text, and the Librarian that answers from them. Each can be rebuilt from the record.
+    """
+
+    api_version: Annotated[StackApiVersion, Field(alias="apiVersion")]
+    kind: Literal["KnowledgeIndex"]
+    metadata: Metadata
+    spec: KnowledgeIndexSpec
+
+
 class QdrantVectorsConfig(WireModel, frozen=True, extra="forbid"):
     """
     A vector index kept in a Qdrant server, asked over its REST API with a token.
@@ -4784,12 +6498,17 @@ class LibrarianHealth(WireModel, frozen=True, extra="forbid"):
 
     status: Literal["ok"]
     kb: Annotated[
-        str,
+        KbDid,
         Field(
             description="The DID of the knowledge base it serves: the one its document names, which that knowledge base said it is before the Librarian reached its stores."
         ),
     ]
     actors: Annotated[list[LibrarianHealthActorsItem], Field(description="The two actors it runs, `matcher` and `gatherer`.")]
+
+
+class LibrarianPromptScore(WireModel, frozen=True, extra="forbid"):
+    candidate: float
+    score: float
 
 
 type LimitRefusalCode = Annotated[
@@ -4809,6 +6528,53 @@ class LimitRefusal(WireModel, frozen=True):
     code: LimitRefusalCode
     hint: Annotated[str | None, Field(description="What the caller can do about it, when there is something to say.")] = None
     details: JsonValue | None = None
+
+
+type OutputStream = Annotated[Literal["stdout", "stderr"], Field(description="Which of a container's streams a line was on.")]
+
+
+class LogRecord(WireModel, frozen=True, extra="forbid"):
+    """
+    One line one of a stack's services wrote. The launcher removes from it each secret value the launcher generated or read; anything else the service wrote is the client's to handle. The launcher keeps no copy.
+    """
+
+    request_id: Annotated[RequestId, Field(alias="requestId")]
+    service: Annotated[str, Field(description="The role whose container wrote the line, as xynolog status names it.")]
+    stream: Annotated[OutputStream, Field(description="Which of the container's streams the line was on.")]
+    line: Annotated[str, Field(description="The line, without its newline.")]
+    received_at: Annotated[
+        str,
+        Field(
+            alias="receivedAt",
+            description="When the launcher read the line, in RFC 3339 with its fraction: a container's own lines carry the time it wrote them, if any.",
+        ),
+    ]
+
+
+class LogsFollowParams(WireModel, frozen=True, extra="forbid"):
+    """
+    logs.follow's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    target: Annotated[
+        Target | None,
+        Field(
+            description="Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started."
+        ),
+    ] = None
+    runtime: Annotated[Runtime | None, Field(description="Keep to the local stacks, as --runtime does.")] = None
+    service: Annotated[
+        str | None, Field(description="Just this service's container, as --service names it. Absent: each Xynolog service the stack runs.")
+    ] = None
+
+
+class LogsFollowResult(WireModel, frozen=True, extra="forbid"):
+    """
+    A follow whose every source ended on its own. A follow the client cancels is answered with control.cancelled.
+    """
+
+    services: Annotated[list[str], Field(description="The services that were followed.")]
 
 
 class MarkArchiveCommand(WireModel, frozen=True):
@@ -5150,6 +6916,39 @@ class MediaTokenResponse(WireModel, frozen=True):
     token: Annotated[str, Field(description="Short-lived media token for use as ?token= query parameter on resource URLs")]
 
 
+class OpenResource(WireModel, frozen=True):
+    """
+    A resource open in a knowledge base: which resource, the name it is shown by, when it was opened and its place among the others open there. A registry shows them by their places, and two in one place by when each was opened, first first.
+    """
+
+    id: Annotated[ResourceId, Field(description="The resource.")]
+    name: Annotated[str, Field(description="The name the resource is shown by.")]
+    opened_at: Annotated[
+        int,
+        Field(
+            alias="openedAt",
+            description="When the resource was opened, in milliseconds since the Unix epoch. Opening it again while it is open changes neither this nor its place.",
+        ),
+    ]
+    order: Annotated[
+        int,
+        Field(
+            description="The resource's place among those open in the knowledge base. One opened is given the place after the last taken, so a place freed by closing one is not given twice; a move gives each its place in the new order, counted from 0."
+        ),
+    ]
+    media_type: Annotated[
+        str | None,
+        Field(alias="mediaType", description="The resource's media type, which its icon is chosen by. Absent when it is not known."),
+    ] = None
+    storage_uri: Annotated[
+        str | None,
+        Field(
+            alias="storageUri",
+            description="Where the resource is in the knowledge base's working tree, as a URI (file://docs/overview.md). Absent when it is not known.",
+        ),
+    ] = None
+
+
 class PdfCoordinate(WireModel, frozen=True, extra="forbid"):
     """
     A rectangle on a page of a PDF, in PDF points, from the page's bottom-left corner with y increasing upward: what an RFC 3778 fragment selector names.
@@ -5218,6 +7017,65 @@ class ProfilesProjection(WireModel, frozen=True, extra="forbid"):
     """
 
     profiles: Annotated[dict[str, Profile], Field(description="Each principal's current profile, keyed by its DID.")]
+
+
+type ProgressKind = Annotated[
+    Literal["log", "note", "ok", "warn", "fail", "banner", "section", "stamp", "command", "output"],
+    Field(
+        description="What the line is: narration (log, note), an outcome (ok, warn, fail), a heading (banner, section), a timestamp (stamp), a runtime command about to run (command), or text the operation printed (output)."
+    ),
+]
+
+
+class Progress(WireModel, frozen=True, extra="forbid"):
+    """
+    One line of what an operation is doing, as the command line would tell a person, without colour. A secret value the launcher generated or read never appears in one.
+    """
+
+    request_id: Annotated[RequestId, Field(alias="requestId")]
+    kind: ProgressKind
+    text: Annotated[str, Field(description="The line.")]
+
+
+class ProjectConfigProject(WireModel, frozen=True, extra="forbid"):
+    """
+    The knowledge base's name.
+    """
+
+    name: Annotated[str, Field(description="The knowledge base's name, which decides where its state is kept.")]
+    version: Annotated[str | None, Field(description="A version the knowledge base's author gives it. Nothing changes it.")] = None
+
+
+class ProjectConfigGit(WireModel, frozen=True, extra="forbid"):
+    """
+    How the knowledge base's changes reach git.
+    """
+
+    sync: Annotated[bool, Field(description="Whether changes to the working tree and the event log are staged in git as they are made.")]
+
+
+class ProjectConfigSite(WireModel, frozen=True, extra="forbid"):
+    """
+    The knowledge base's identity.
+    """
+
+    domain: Annotated[
+        str,
+        Field(
+            description="The knowledge base's permanent identity, in did:web's colon-path form (`owner.github.io:repo`): stamped into every event it records, so never a machine's address and never changed. With no white space in it, which no DID holds (UserId.json)."
+        ),
+    ]
+    site_name: Annotated[str, Field(alias="siteName", description="The name people see for the knowledge base.")]
+
+
+class ProjectConfig(WireModel, frozen=True, extra="forbid"):
+    """
+    A knowledge base's committed `.xynolog/config.yaml`: its name, whether its changes are staged in git, and its permanent identity. A deployment's documents never restate any of it.
+    """
+
+    project: ProjectConfigProject
+    git: ProjectConfigGit
+    site: ProjectConfigSite
 
 
 class ProtectedResourceMetadata(WireModel, frozen=True, extra="forbid"):
@@ -5579,6 +7437,351 @@ class ResourceView(WireModel, frozen=True, extra="forbid"):
     ]
 
 
+type RootPlacement = Annotated[
+    Literal["local", "codespace"],
+    Field(
+        description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
+    ),
+]
+
+type RootCurrent = Annotated[
+    Literal["cwd", "xynolog-root"],
+    Field(
+        description="For a local root: how the control server's own directory selects it, when it does — standing in it (cwd), or XYNOLOG_ROOT."
+    ),
+]
+
+
+class Root(WireModel, frozen=True, extra="forbid"):
+    """
+    One knowledge base this machine knows: a registered or running local clone, or a codespace stack recorded here. Registration, the directory, the stack and the forward are separate facts, each stated as it is.
+    """
+
+    placement: RootPlacement
+    path: Annotated[str | None, Field(description="For a local root: the clone's path.")] = None
+    present: Annotated[
+        bool | None,
+        Field(
+            description="For a local root: whether the directory exists. A registered root whose directory is gone is kept, and says so."
+        ),
+    ] = None
+    current: RootCurrent | None = None
+    registered: Annotated[bool, Field(description="Whether the registry (roots.json) records it.")]
+    running: Annotated[bool, Field(description="Whether a stack of it is recorded on this machine.")]
+    last_used: Annotated[
+        str | None, Field(alias="lastUsed", description="When a command last used it, in RFC 3339, as the registry records it.")
+    ] = None
+    did: Annotated[
+        str | None,
+        Field(
+            description='The KB\'s did:web identifier, from its committed .xynolog/config.yaml — "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no domain has no identity to publish, and the launcher refuses to start it rather than inventing or defaulting one. NOT unique within a document: a did names the knowledge base, not a running copy of it, so a local clone and a codespace of the same repo legitimately share one and both are published. host:port is the unique field (at most one entry per address), so consumers look up by ADDRESS and use the did to VERIFY that the copy they reached is the KB they meant — an address alone cannot say which KB is which, and an identity alone cannot say which copy.'
+        ),
+    ] = None
+    site_name: Annotated[
+        str | None,
+        Field(alias="siteName", description="Human-readable site name from the KB's .xynolog/config.yaml (site.siteName), for display"),
+    ] = None
+    identity_error: Annotated[
+        str | None, Field(alias="identityError", description="Why its identity could not be read from its clone, when it could not.")
+    ] = None
+    config: Annotated[str | None, Field(description="The Inference document a start of it runs, as the registry records it.")] = None
+    configs: Annotated[
+        list[str] | None,
+        Field(description="For a present local root: the Inference documents its clone has, as start --config names them."),
+    ] = None
+    repo: Annotated[
+        str | None, Field(description="owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity")
+    ] = None
+    codespace: Annotated[str | None, Field(description="For a codespace root: the codespace's name.")] = None
+    codespace_state: Annotated[
+        str | None,
+        Field(
+            alias="codespaceState",
+            description="For a codespace root: GitHub's word for the codespace's state (Available, Shutdown), when gh answered.",
+        ),
+    ] = None
+    forward_port: Annotated[
+        int | None,
+        Field(
+            alias="forwardPort",
+            description="For a codespace root: the port on this machine its knowledge base is forwarded to, when one is recorded.",
+        ),
+    ] = None
+    forwarded: Annotated[bool | None, Field(description="For a codespace root: whether the recorded forward is alive.")] = None
+    reachable: Annotated[
+        bool | None, Field(description="For a codespace root: whether its knowledge base answers through the forward.")
+    ] = None
+
+
+class RootsForgetParams(WireModel, frozen=True, extra="forbid"):
+    """
+    roots.forget's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    root: Annotated[
+        str, Field(description="The registered root to forget: its path, or its basename when only one registered root has it.")
+    ]
+
+
+class RootsForgetResult(WireModel, frozen=True, extra="forbid"):
+    """
+    A forgotten registry row. Only the row is removed: no file of the clone, and none of its persistent stack state.
+    """
+
+    path: Annotated[str, Field(description="The forgotten root's path.")]
+    directory_missing: Annotated[bool, Field(alias="directoryMissing", description="Whether its directory was already gone.")]
+    persistent_state: Annotated[
+        str | None,
+        Field(
+            alias="persistentState",
+            description="The key whose persistent stack state remains, when some does and no surviving root shares its DID: xynolog clean --root <key> removes it.",
+        ),
+    ] = None
+
+
+type RootsInitParamsInference = Annotated[
+    Literal["anthropic", "ollama"], Field(description="Inference provider for the generated local stack documents.")
+]
+
+
+class RootsInitParams(WireModel, frozen=True, extra="forbid"):
+    """
+    roots.init's params: the local directory, permanent identity, and optional configuration inputs xynolog init takes.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion")]
+    path: Annotated[str, Field(description="Existing local directory in which to create the knowledge base.")]
+    domain: Annotated[str, Field(description="The permanent did:web domain, in colon-path form, such as owner.github.io:repo.")]
+    name: Annotated[str | None, Field(description="Project name. Absent: the directory basename.")] = None
+    site_name: Annotated[str | None, Field(alias="siteName", description="Human-readable site name. Absent: the project name.")] = None
+    inference: RootsInitParamsInference | None = None
+    model: Annotated[str | None, Field(description="The primary model bound to roles and jobs.")] = None
+    model_light: Annotated[str | None, Field(alias="modelLight", description="A light model example emitted in the generated config.")] = (
+        None
+    )
+    embedding: Annotated[str | None, Field(description="Ollama embedding model name, without the ollama: prefix.")] = None
+    config_name: Annotated[str | None, Field(alias="configName", description="Inference document name. Absent: the provider name.")] = None
+    anthropic_endpoint: Annotated[str | None, Field(alias="anthropicEndpoint", description="Anthropic API base URL.")] = None
+    ollama_base: Annotated[str | None, Field(alias="ollamaBase", description="Local Ollama API base URL.")] = None
+    ollama_registry: Annotated[str | None, Field(alias="ollamaRegistry", description="Ollama registry base URL.")] = None
+
+
+class RootsInitResult(WireModel, frozen=True, extra="forbid"):
+    """
+    The local directory where xynolog init created and registered the knowledge base.
+    """
+
+    path: str
+
+
+class RootsListParams(WireModel, frozen=True, extra="forbid"):
+    """
+    roots.list's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+
+
+class RootsListResult(WireModel, frozen=True, extra="forbid"):
+    """
+    Every knowledge base this machine knows, as xynolog roots lists them: the local roots first, then the codespace stacks.
+    """
+
+    roots: Annotated[list[Root], Field(description="Each root.")]
+    warnings: Annotated[
+        list[str] | None,
+        Field(description="What xynolog roots warns of without failing: an invalid XYNOLOG_ROOT, a clone whose project file is refused."),
+    ] = None
+
+
+type RunInstance = Annotated[
+    str,
+    Field(
+        description="A run's instance, by the name its caller gave it: unique among the target's instances that run on this machine. A second dispatcher beside the first is another instance. The launcher names the instance's container from the target's key and this name."
+    ),
+]
+
+type RunService = Annotated[
+    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
+    Field(
+        description="One of a knowledge base's own services, which service.run runs: the seven Xynolog services, as service-telemetry/telemetry.json names them. The reader holds the two lists to each other."
+    ),
+]
+
+
+class ServiceHostParams(WireModel, frozen=True, extra="forbid"):
+    """
+    service.host's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    runtime: Annotated[
+        Runtime | None,
+        Field(
+            description="The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else the first installed one."
+        ),
+    ] = None
+
+
+class ServiceHostResult(WireModel, frozen=True, extra="forbid"):
+    """
+    Where this machine and a run's instance meet, under a runtime: the address the launcher publishes an instance's ports on, and the address the instance reaches this machine's listeners at. A caller writes it into a document before the run.
+    """
+
+    runtime: Runtime
+    address: Annotated[
+        str, Field(description="The host address: an IP address or a host name, as the launcher's own stack dials it under this runtime.")
+    ]
+
+
+class ServiceOutput(WireModel, frozen=True, extra="forbid"):
+    """
+    notifications/serviceOutput: one line a run's instance wrote, from its start, every line, in the order of its stream, as the instance wrote it. The launcher gives an instance none of its own secrets (R2), and keeps no copy.
+    """
+
+    request_id: Annotated[RequestId, Field(alias="requestId")]
+    instance: RunInstance
+    stream: OutputStream
+    line: Annotated[str, Field(description="The line, without its newline.")]
+
+
+class ServiceRunParams(WireModel, frozen=True, extra="forbid"):
+    """
+    service.run's params: one instance of one of a knowledge base's own services, run once from the image the target's stack documents name, unsupervised, on the caller's document, arguments and environment. contract/LAUNCHER-CONTROL.md, R1-R8.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    target: Annotated[
+        LocalTarget,
+        Field(
+            description="The knowledge base whose stack documents name the service's image, and whose stack the instance belongs to: stack.stop of it removes the instance too."
+        ),
+    ]
+    runtime: Annotated[
+        Runtime | None,
+        Field(
+            description="The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else the first installed one."
+        ),
+    ] = None
+    service: Annotated[RunService, Field(description="The service whose image runs.")]
+    instance: RunInstance
+    document: Annotated[
+        str | None,
+        Field(
+            description="The configuration document's text, written as it is, at the path the image's own arguments name: it need not be JSON. Absent: no file is at that path."
+        ),
+    ] = None
+    args: Annotated[
+        list[str] | None,
+        Field(
+            description="The arguments the image's program is given in place of the image's own (--config and the document's path). Absent: the image's own."
+        ),
+    ] = None
+    environment: Annotated[
+        dict[str, str],
+        Field(
+            description="Every variable the instance is given beside the image's own, by name: nothing of the launcher's is added (R2). Empty: none."
+        ),
+    ]
+    mounts: Annotated[
+        list[str],
+        Field(
+            description="Directories of this machine, each mounted read-write at its own path, so that a path the document names is the same inside the instance and out (R4). Empty: none."
+        ),
+    ]
+    path_first: Annotated[
+        list[str],
+        Field(
+            alias="pathFirst",
+            description="Directories put before the image's PATH, in order, each mounted at its own path. Empty: the image's PATH as it is.",
+        ),
+    ]
+    ports: Annotated[
+        list[int],
+        Field(description="The ports the instance listens on, each published at the same number on the host address (R3). Empty: none."),
+    ]
+
+
+class ServiceRunResult(WireModel, frozen=True, extra="forbid"):
+    """
+    A run that ended: its instance exited. Sent once the instance's container has exited, after all of its output.
+    """
+
+    instance: RunInstance
+    exit_code: Annotated[
+        int,
+        Field(
+            alias="exitCode",
+            description="The instance's exit status: the service's own, since nothing supervises it (R1). An instance a signal ended exits with 128 and the signal's number: 143 for SIGTERM, 137 for SIGKILL.",
+        ),
+    ]
+    ran_ms: Annotated[int, Field(alias="ranMs", description="Milliseconds from its container's start to its exit.")]
+
+
+type ServiceSignalParamsSignal = Annotated[
+    Literal["term", "kill"],
+    Field(
+        description="term: SIGTERM, and SIGKILL 15 seconds later if it has not exited. kill: SIGKILL, so nothing it would settle on the way out is settled."
+    ),
+]
+
+
+class ServiceSignalParams(WireModel, frozen=True, extra="forbid"):
+    """
+    service.signal's params: a signal for a run's instance.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    target: Annotated[
+        LocalTarget,
+        Field(
+            description="The knowledge base whose stack documents name the service's image, and whose stack the instance belongs to: stack.stop of it removes the instance too."
+        ),
+    ]
+    runtime: Annotated[
+        Runtime | None,
+        Field(
+            description="The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else the first installed one."
+        ),
+    ] = None
+    instance: RunInstance
+    signal: ServiceSignalParamsSignal
+
+
+class ServiceSignalResult(WireModel, frozen=True, extra="forbid"):
+    """
+    A signal sent, or not needed. The instance's exit is its run's answer, not this one.
+    """
+
+    delivered: Annotated[
+        bool,
+        Field(
+            description="Whether the instance still ran when the signal came. false: it has exited, and its run's answer is on its way; nothing was sent."
+        ),
+    ]
+
+
+class ServiceStarted(WireModel, frozen=True, extra="forbid"):
+    """
+    notifications/serviceStarted: a run's instance is running. Sent once, before any of its output.
+    """
+
+    request_id: Annotated[RequestId, Field(alias="requestId")]
+    instance: RunInstance
+    container: Annotated[str, Field(description="The runtime's name for the instance's container.")]
+    document_path: Annotated[
+        str | None,
+        Field(
+            alias="documentPath",
+            description="Where the instance reads its document: the path the image's own arguments name. Present when the run gave a document.",
+        ),
+    ] = None
+    address: Annotated[
+        str, Field(description="The host address the instance's ports are published on, as service.host names it for the run's runtime.")
+    ]
+
+
 type SessionEndReason = Annotated[
     Literal["expired", "refused"],
     Field(
@@ -5624,6 +7827,51 @@ class SessionLeftEvent(WireModel, frozen=True):
     connection_id: Annotated[str, Field(alias="connectionId", description="The connectionId announced by the matching session:joined.")]
 
 
+type SettingAppliesTo = Annotated[
+    Literal["machine", "knowledge-base"], Field(description="What it applies to: every knowledge base on this machine, or one.")
+]
+
+
+class SettingLine(WireModel, frozen=True, extra="forbid"):
+    """
+    One value of a setting, and where it came from, as xynolog settings shows it. A secret's value is never one: a secret setting shows where the value is kept.
+    """
+
+    value: Annotated[str, Field(description="The value in effect.")]
+    source: Annotated[str, Field(description="Where it came from: a record, a document, the default.")]
+
+
+class Setting(WireModel, frozen=True, extra="forbid"):
+    """
+    One setting the launcher keeps, as xynolog settings shows it.
+    """
+
+    name: Annotated[str, Field(description="Its name, as xynolog settings takes it.")]
+    default: Annotated[
+        bool, Field(description="Whether this is the machine-wide form of a knowledge-base setting (secret-store --default).")
+    ]
+    applies_to: Annotated[SettingAppliesTo, Field(alias="appliesTo")]
+    values: Annotated[list[SettingLine], Field(description="The values in effect, one per line xynolog settings shows.")]
+    settable: Annotated[bool, Field(description="Whether settings.set and settings.unset change it.")]
+    changed_by: Annotated[str | None, Field(alias="changedBy", description="For one they do not: how it is changed instead.")] = None
+
+
+class SettingsGetParams(WireModel, frozen=True, extra="forbid"):
+    """
+    settings.get's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    name: Annotated[str, Field(description="The setting, as xynolog settings names it.")]
+    default: Annotated[bool | None, Field(description="The machine-wide form of a knowledge-base setting: --default.")] = None
+    root: Annotated[
+        str | None,
+        Field(
+            description="A knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the clone the control server was started in."
+        ),
+    ] = None
+
+
 class SettingsHoverDelayChangedEvent(WireModel, frozen=True):
     """
     Emitted when the hover delay setting changes
@@ -5632,12 +7880,78 @@ class SettingsHoverDelayChangedEvent(WireModel, frozen=True):
     hover_delay_ms: Annotated[int, Field(alias="hoverDelayMs")]
 
 
+class SettingsListParams(WireModel, frozen=True, extra="forbid"):
+    """
+    settings.list's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    root: Annotated[
+        str | None,
+        Field(
+            description="A knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the clone the control server was started in."
+        ),
+    ] = None
+
+
+class SettingsListResult(WireModel, frozen=True, extra="forbid"):
+    """
+    Every setting the launcher keeps: the machine's, then the knowledge base's.
+    """
+
+    root: Annotated[str | None, Field(description="The knowledge base whose settings are listed, when one resolved.")] = None
+    unresolved: Annotated[str | None, Field(description="Why no knowledge base resolved, when none did: its settings are not listed.")] = (
+        None
+    )
+    settings: Annotated[list[Setting], Field(description="Each setting.")]
+
+
 class SettingsLocaleChangedEvent(WireModel, frozen=True):
     """
     Emitted when the UI locale setting changes
     """
 
     locale: str
+
+
+type SettingsPathParamsDocument = Annotated[
+    Literal["browser", "worker", "issuer", "vectors"],
+    Field(description="Whose document: the Browser's, the worker's, the issuer's or the vector store's."),
+]
+
+
+class SettingsPathParams(WireModel, frozen=True, extra="forbid"):
+    """
+    settings.path's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    document: SettingsPathParamsDocument
+
+
+class SettingsPathResult(WireModel, frozen=True, extra="forbid"):
+    """
+    Where a machine document is. When there is none, it is written from the launcher's catalog first, as a start writes it; one that does not hold is refused, as a start refuses it.
+    """
+
+    path: Annotated[str, Field(description="The document's path.")]
+
+
+class SettingsSetParams(WireModel, frozen=True, extra="forbid"):
+    """
+    settings.set's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    name: Annotated[str, Field(description="The setting, as xynolog settings names it.")]
+    default: Annotated[bool | None, Field(description="The machine-wide form of a knowledge-base setting: --default.")] = None
+    root: Annotated[
+        str | None,
+        Field(
+            description="A knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the clone the control server was started in."
+        ),
+    ] = None
+    value: Annotated[str, Field(description="The value, checked as a start would check it.")]
 
 
 type SettingsThemeChangedEventTheme = Literal["light", "dark", "system"]
@@ -5649,6 +7963,22 @@ class SettingsThemeChangedEvent(WireModel, frozen=True):
     """
 
     theme: SettingsThemeChangedEventTheme
+
+
+class SettingsUnsetParams(WireModel, frozen=True, extra="forbid"):
+    """
+    settings.unset's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    name: Annotated[str, Field(description="The setting, as xynolog settings names it.")]
+    default: Annotated[bool | None, Field(description="The machine-wide form of a knowledge-base setting: --default.")] = None
+    root: Annotated[
+        str | None,
+        Field(
+            description="A knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the clone the control server was started in."
+        ),
+    ] = None
 
 
 class SignInOutcome(WireModel, frozen=True, extra="forbid"):
@@ -5795,25 +8125,6 @@ type SmelterHealthStream = Annotated[
     ),
 ]
 
-type SmelterHealthFollowingSweep = Annotated[
-    Literal["pending", "running", "done", "due"],
-    Field(
-        description="The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again."
-    ),
-]
-
-
-class SmelterHealthFollowing(WireModel, frozen=True, extra="forbid"):
-    """
-    How far it has followed the record. Its sweep is also `due` where its start's reconcile failed.
-    """
-
-    sweep: SmelterHealthFollowingSweep
-    stopped: Annotated[int, Field(description="How many resources' logs a failed taking has stopped until the next sweep.")]
-    refused: Annotated[int, Field(description="How many events it refused as recorded since it started.")]
-    stream_drops: Annotated[int, Field(alias="streamDrops", description="How many times its stream has dropped since it started.")]
-
-
 type SmelterHealthReconcilePhase = Literal["pending", "running", "done", "failed"]
 
 
@@ -5902,13 +8213,16 @@ class SmelterHealth(WireModel, frozen=True, extra="forbid"):
 
     status: Literal["ok"]
     kb: Annotated[
-        str,
+        KbDid,
         Field(
             description="The DID of the knowledge base it serves: the one its settings name, which that knowledge base said it is before the Smelter reached its index."
         ),
     ]
     stream: SmelterHealthStream
-    following: SmelterHealthFollowing
+    following: Annotated[
+        FollowerFollowing,
+        Field(description="How far it has followed the record. Its sweep is also `due` where its start's reconcile failed."),
+    ]
     events_processed: Annotated[
         int,
         Field(
@@ -5918,6 +8232,288 @@ class SmelterHealth(WireModel, frozen=True, extra="forbid"):
     ]
     reconcile: SmelterHealthReconcile
     index: SmelterHealthIndex
+
+
+class StackKnowledgeBaseSpecGateway(WireModel, frozen=True, extra="forbid"):
+    """
+    The Gateway: where every client and every service reaches the knowledge base.
+    """
+
+    image: Image
+    resources: Resources
+    port: Annotated[int, Field(description="The port the Gateway is published on.")]
+    public_url: Annotated[
+        str,
+        Field(
+            alias="publicURL",
+            description="Where clients reach the Gateway: the server its API document names. A service of the stack reaches it where the launcher places it, on `port`.",
+        ),
+    ]
+
+
+class StackKnowledgeBaseSpecDispatcher(WireModel, frozen=True, extra="forbid"):
+    """
+    The Dispatcher: it hands queued jobs to workers.
+    """
+
+    image: Image
+    resources: Resources
+
+
+class StackKnowledgeBaseSpecArchivist(WireModel, frozen=True, extra="forbid"):
+    """
+    The Archivist: it keeps the knowledge base's record in its working tree.
+    """
+
+    image: Image
+    resources: Resources
+    address: Annotated[
+        HostPort | None,
+        Field(
+            description="Where the stack's services reach the Archivist, when that is somewhere the launcher cannot see. Absent, they reach it where the launcher places it."
+        ),
+    ] = None
+
+
+class StackKnowledgeBaseSpecMessagingJobs(WireModel, frozen=True, extra="forbid"):
+    """
+    The Dispatcher's queue.
+    """
+
+    type: Annotated[str, Field(description="The queue's driver: `jetstream`.")]
+
+
+class StackKnowledgeBaseSpecMessagingSignal(WireModel, frozen=True, extra="forbid"):
+    """
+    The Gateway's signal plane.
+    """
+
+    type: Annotated[str, Field(description="`in-process`, one Gateway on its own fabric, or `nats`, on the broker.")]
+
+
+class StackKnowledgeBaseSpecMessagingExternal(WireModel, frozen=True, extra="forbid"):
+    """
+    A broker somebody else runs, serving this knowledge base alone: a second knowledge base on it would share the job queue and, on a `nats` signal plane, the frames and the gateway's record of pending replies. The launcher refuses to start a knowledge base whose `servers` another knowledge base on its machine names.
+    """
+
+    servers: Annotated[str, Field(description="Where it listens: `host:port`.")]
+    user: SecretRef
+    password: SecretRef
+
+
+class StackKnowledgeBaseSpecMessaging(Runner, frozen=True):
+    """
+    The broker the job queue and the signal plane share: the launcher's, run from `image`, or somebody else's, at `external`.
+    """
+
+    jobs: StackKnowledgeBaseSpecMessagingJobs
+    signal: StackKnowledgeBaseSpecMessagingSignal
+    image: Image | None = None
+    resources: Resources | None = None
+    external: StackKnowledgeBaseSpecMessagingExternal | None = None
+
+
+class StackKnowledgeBaseSpecIssuerShared(WireModel, frozen=True, extra="forbid"):
+    """
+    The issuer the launcher runs for the knowledge bases on a machine (the state home's Issuer document). The launcher creates the knowledge base's realm in it.
+    """
+
+    access_token_lifespan: Annotated[
+        int,
+        Field(
+            alias="accessTokenLifespan",
+            description="How long a token the realm mints stays valid, in seconds: the window in which a disabled account can still act.",
+        ),
+    ]
+
+
+class StackKnowledgeBaseSpecIssuerExternal(WireModel, frozen=True, extra="forbid"):
+    """
+    An issuer somebody else runs.
+    """
+
+    type: Annotated[str, Field(description="`oidc`, or `keycloak`.")]
+    url: Annotated[str, Field(description="The URL in its tokens' `iss` claim.")]
+
+
+class StackKnowledgeBaseSpecIssuer(WireModel, frozen=True, extra="forbid"):
+    """
+    The issuer the knowledge base trusts: the one the launcher runs for the knowledge bases on a machine, at `shared`, with the knowledge base's own realm in it, or somebody else's, at `external`.
+    """
+
+    shared: StackKnowledgeBaseSpecIssuerShared | None = None
+    external: StackKnowledgeBaseSpecIssuerExternal | None = None
+    subject_claim: Annotated[
+        str, Field(alias="subjectClaim", description="The claim a person's DID is built from: did:web:<site domain>:users:<its value>.")
+    ]
+
+
+class StackKnowledgeBaseSpec(WireModel, frozen=True, extra="forbid"):
+    """
+    The knowledge base's services, and how each runs.
+    """
+
+    log_level: Annotated[LogLevel, Field(alias="logLevel")]
+    gateway: StackKnowledgeBaseSpecGateway
+    dispatcher: StackKnowledgeBaseSpecDispatcher
+    archivist: StackKnowledgeBaseSpecArchivist
+    messaging: StackKnowledgeBaseSpecMessaging
+    issuer: StackKnowledgeBaseSpecIssuer
+
+
+class StackKnowledgeBase(WireModel, frozen=True, extra="forbid"):
+    """
+    A knowledge base's record and the services that keep it: the Gateway, the Dispatcher, the Archivist, and the broker between them. They live and die with the knowledge base.
+    """
+
+    api_version: Annotated[StackApiVersion, Field(alias="apiVersion")]
+    kind: Literal["KnowledgeBase"]
+    metadata: Metadata
+    spec: StackKnowledgeBaseSpec
+
+
+type StackStartParamsOllamaCache = Annotated[
+    Literal["host", "volume"],
+    Field(
+        description="Where a started Ollama keeps its models, as --ollama-cache names it. Absent: the host's ~/.ollama when there is one, else the named volume — what the command line's prompt does when nobody answers it."
+    ),
+]
+
+
+class StackStartParams(WireModel, frozen=True, extra="forbid"):
+    """
+    stack.start's params: what xynolog start takes, but its help and its narration switches.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    target: Annotated[
+        Target | None,
+        Field(
+            description="Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started."
+        ),
+    ] = None
+    runtime: Annotated[
+        Runtime | None,
+        Field(
+            description="The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else every installed one."
+        ),
+    ] = None
+    config: Annotated[
+        str | None,
+        Field(
+            description="The Inference document to run, as --config names it. Absent: the knowledge base's recorded preference, else the default."
+        ),
+    ] = None
+    service: Annotated[str | None, Field(description="Just this one service, as --service names it.")] = None
+    group: Annotated[ServiceGroup | None, Field(description="Just this one group of services, as --group names it.")] = None
+    codespace_name: Annotated[
+        str | None,
+        Field(alias="codespaceName", description="For a codespace target: which of the repository's codespaces, as --codespace names it."),
+    ] = None
+    machine: Annotated[str | None, Field(description="For a codespace target being created: its VM class, as --machine names it.")] = None
+    idle_timeout: Annotated[
+        str | None,
+        Field(
+            alias="idleTimeout", description="For a codespace target being created: inactivity before it stops, as --idle-timeout takes it."
+        ),
+    ] = None
+    retention_period: Annotated[
+        str | None,
+        Field(
+            alias="retentionPeriod",
+            description="For a codespace target being created: how long a stopped codespace is kept, as --retention-period takes it.",
+        ),
+    ] = None
+    observe: Annotated[
+        bool | None,
+        Field(description="Whether to start the telemetry backends, Jaeger and Prometheus. false is --no-observe. Absent: true."),
+    ] = None
+    ollama_cache: Annotated[StackStartParamsOllamaCache | None, Field(alias="ollamaCache")] = None
+    dry_run: Annotated[
+        bool | None,
+        Field(
+            alias="dryRun",
+            description="Whether to run nothing, and report each runtime command a start would run as a command progress line.",
+        ),
+    ] = None
+
+
+class StackStartResult(WireModel, frozen=True, extra="forbid"):
+    """
+    A start that ran to its end: the stack as status reads it afterwards. A start that failed is an error, whatever it started before it did; its progress lines say what it did.
+    """
+
+    dry_run: Annotated[bool, Field(alias="dryRun", description="Whether the start ran nothing.")]
+    knowledge_base: Annotated[
+        KnowledgeBaseStatus | None,
+        Field(
+            alias="knowledgeBase",
+            description="The started knowledge base's stack, as status reads it after the start. Absent from a dry run, and from a start of services no knowledge base owns.",
+        ),
+    ] = None
+    shared: Annotated[
+        list[ServiceStatus] | None, Field(description="The shared services, as status reads them after the start. Absent from a dry run.")
+    ] = None
+
+
+class StackStopParams(WireModel, frozen=True, extra="forbid"):
+    """
+    stack.stop's params: what xynolog stop takes, but its help.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    target: Annotated[
+        Target | None,
+        Field(
+            description="Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started."
+        ),
+    ] = None
+    runtime: Annotated[
+        Runtime | None,
+        Field(
+            description="The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else every installed one."
+        ),
+    ] = None
+    service: Annotated[str | None, Field(description="Just this one service, as --service names it.")] = None
+    group: Annotated[ServiceGroup | None, Field(description="Just this one group of services, as --group names it.")] = None
+    delete: Annotated[
+        bool | None,
+        Field(
+            description="For a codespace target: destroy the codespace, state and all, and forget its record. The command line's --delete. Refused without deleteConfirmed."
+        ),
+    ] = None
+    delete_confirmed: Annotated[
+        bool | None,
+        Field(
+            alias="deleteConfirmed",
+            description="That the person confirmed the deletion: delete is refused with control.confirmation-required without it.",
+        ),
+    ] = None
+    dry_run: Annotated[
+        bool | None,
+        Field(
+            alias="dryRun",
+            description="Whether to stop nothing, and report each runtime command a stop would run as a command progress line.",
+        ),
+    ] = None
+
+
+class StackStopResult(WireModel, frozen=True, extra="forbid"):
+    """
+    A stop that ran to its end: what status reads afterwards. A stop that failed is an error.
+    """
+
+    dry_run: Annotated[bool, Field(alias="dryRun", description="Whether the stop stopped nothing.")]
+    knowledge_bases: Annotated[
+        list[KnowledgeBaseStatus] | None,
+        Field(
+            alias="knowledgeBases",
+            description="The knowledge bases still recorded, as status reads them after the stop. Absent from a dry run.",
+        ),
+    ] = None
+    shared: Annotated[
+        list[ServiceStatus] | None, Field(description="The shared services, as status reads them after the stop. Absent from a dry run.")
+    ] = None
 
 
 class StatusResponseFeatures(WireModel, frozen=True):
@@ -5931,6 +8527,46 @@ class StatusResponse(WireModel, frozen=True):
     features: StatusResponseFeatures
     message: str
     authenticated_as: Annotated[str | None, Field(alias="authenticatedAs")] = None
+
+
+class StatusSnapshotParams(WireModel, frozen=True, extra="forbid"):
+    """
+    status.snapshot's params.
+    """
+
+    api_version: Annotated[ApiVersion, Field(alias="apiVersion", description="The version of the control API the request is written to.")]
+    target: Annotated[
+        Target | None,
+        Field(
+            description="Which knowledge base's stack. Absent: the one the command line chooses, standing where the control server was started."
+        ),
+    ] = None
+    runtime: Annotated[
+        Runtime | None,
+        Field(
+            description="The container runtime to ask, as --runtime names it. Absent: the one the stack's record names, else every installed one."
+        ),
+    ] = None
+
+
+class StatusSnapshotResult(WireModel, frozen=True, extra="forbid"):
+    """
+    What xynolog status reports: each knowledge base with its own services, and each service the knowledge bases share, once, with the knowledge bases it serves.
+    """
+
+    knowledge_bases: Annotated[
+        list[KnowledgeBaseStatus],
+        Field(
+            alias="knowledgeBases",
+            description="The target's stack; with no target, the stack of the knowledge base the control server stands in, else every recorded one.",
+        ),
+    ]
+    shared: Annotated[
+        list[ServiceStatus],
+        Field(
+            description="The services every knowledge base shares, group by group, and those the machine serves for the knowledge bases that name them."
+        ),
+    ]
 
 
 class StorageUriEntry(WireModel, frozen=True, extra="forbid"):
@@ -6061,6 +8697,22 @@ type UploadProgress = Annotated[
 ]
 
 
+class UserAction(WireModel, frozen=True, extra="forbid"):
+    """
+    A sign-in waits for a person: open the verification page and enter the code. The code is sent here and nowhere else — in no progress line, no log record and no diagnostic.
+    """
+
+    request_id: Annotated[RequestId, Field(alias="requestId")]
+    verification_uri: Annotated[str, Field(alias="verificationUri", description="The page where the person enters the code.")]
+    verification_uri_complete: Annotated[
+        str | None, Field(alias="verificationUriComplete", description="The page with the code already in it, when the issuer offers one.")
+    ] = None
+    user_code: Annotated[str, Field(alias="userCode", description="The code the person enters.")]
+    expires_in_seconds: Annotated[
+        int, Field(alias="expiresInSeconds", description="How long the code is good for, from when it was issued.")
+    ]
+
+
 class UserResponse(WireModel, frozen=True):
     """
     The authenticated principal, as this knowledge base names it.
@@ -6082,6 +8734,33 @@ class UserResponse(WireModel, frozen=True):
     name: str | None
     image: str | None
     domain: Annotated[str, Field(description="The knowledge base's domain: the authority the principal is named under.")]
+
+
+class VectorStoreSpec(WireModel, frozen=True, extra="forbid"):
+    """
+    The vector store, and where it is published.
+    """
+
+    type: Annotated[str, Field(description="The vector store's driver: `qdrant`.")]
+    image: Image
+    resources: Resources
+    port: Annotated[
+        int,
+        Field(
+            description="The port the vector store is published on, on this machine, where every knowledge base's Smelter and Librarian reach it."
+        ),
+    ]
+
+
+class VectorStore(WireModel, frozen=True, extra="forbid"):
+    """
+    The vector store the launcher runs for the knowledge bases on a machine, each knowledge base's index in collections of its own. It belongs to no knowledge base, so its document is kept in the launcher's state home, in `stack/vectors.yaml`, not in a knowledge base's repository. A knowledge base keeps its index in it by naming `shared` at `spec.vectors`.
+    """
+
+    api_version: Annotated[StackApiVersion, Field(alias="apiVersion")]
+    kind: Literal["VectorStore"]
+    metadata: Metadata
+    spec: VectorStoreSpec
 
 
 class WeaveApplied(WireModel, frozen=True):
@@ -6129,25 +8808,6 @@ class WeaverConfig(WireModel, frozen=True, extra="forbid"):
     log_format: Annotated[LogFormat, Field(alias="logFormat")]
 
 
-type WeaverHealthFollowingSweep = Annotated[
-    Literal["pending", "running", "done", "due"],
-    Field(
-        description="The latest sweep's phase: `pending` before its stream first opens, `running`, `done`, or `due` where the record could not be listed and the sweep is tried again."
-    ),
-]
-
-
-class WeaverHealthFollowing(WireModel, frozen=True, extra="forbid"):
-    """
-    How far a follower of the record has followed it, as every follower says it at its health port (WEAVER.md § Health, SMELTER.md § Health).
-    """
-
-    sweep: WeaverHealthFollowingSweep
-    stopped: Annotated[int, Field(description="How many resources' logs a failed taking has stopped until the next sweep.")]
-    refused: Annotated[int, Field(description="How many events it refused as recorded since it started.")]
-    stream_drops: Annotated[int, Field(alias="streamDrops", description="How many times its stream has dropped since it started.")]
-
-
 type WeaverHealthReconcilePhase = Literal["pending", "running", "done", "failed"]
 
 
@@ -6188,12 +8848,12 @@ class WeaverHealth(WireModel, frozen=True, extra="forbid"):
 
     status: Literal["ok"]
     kb: Annotated[
-        str,
+        KbDid,
         Field(
             description="The DID of the knowledge base it serves: the one its settings name, which that knowledge base said it is before the Weaver connected to the graph database."
         ),
     ]
-    following: WeaverHealthFollowing
+    following: FollowerFollowing
     reconcile: WeaverHealthReconcile
 
 
@@ -6343,6 +9003,35 @@ class WorkerHealth(WireModel, frozen=True, extra="forbid"):
         list[WorkerKnowledgeBaseHealth],
         Field(alias="knowledgeBases", description="One entry for each of the document's `knowledgeBases`, in its order."),
     ]
+
+
+class WorkerPoolSpecWorker(WireModel, frozen=True, extra="forbid"):
+    """
+    The Worker.
+    """
+
+    image: Image
+    resources: Resources
+
+
+class WorkerPoolSpec(WireModel, frozen=True, extra="forbid"):
+    """
+    How the worker runs.
+    """
+
+    log_level: Annotated[LogLevel, Field(alias="logLevel")]
+    worker: WorkerPoolSpecWorker
+
+
+class WorkerPool(WireModel, frozen=True, extra="forbid"):
+    """
+    The shared worker that does knowledge bases' jobs: its image, its memory and its log level. They are shared, not any knowledge base's, so its document is kept in the launcher's state home, in `stack/workers.yaml`, not in a knowledge base's repository. A knowledge base's jobs are done when its Inference document gives a job an engine. A worker needs only the Gateway, and an issuer's token with the worker's role.
+    """
+
+    api_version: Annotated[StackApiVersion, Field(alias="apiVersion")]
+    kind: Literal["WorkerPool"]
+    metadata: Metadata
+    spec: WorkerPoolSpec
 
 
 class YieldCloneCreateCommand(WireModel, frozen=True):

@@ -24,21 +24,40 @@ let rec shape : Shape.shape -> R.expr = function
         | [] -> None
         | items -> Some (name, write items)
       in
-      let step (s : Shape.step) =
-        R.Struct
-          ( [ "Step" ],
-            [
-              ( "of",
-                slice
-                  (List.map
-                     (fun (lo, hi) -> R.Tuple [ R.Int lo; R.Int hi ])
-                     s.of_) );
-              ("min", R.Int s.min);
-              ( "max",
-                match s.max with Some m -> some (R.Int m) | None -> R.p "None"
-              );
-            ],
-            None )
+      let max = function Some m -> some (R.Int m) | None -> R.p "None" in
+      let rec term : Shape.term -> R.expr = function
+        | Step s ->
+            R.call "Term::Step"
+              [
+                R.Struct
+                  ( [ "Step" ],
+                    [
+                      ( "of",
+                        slice
+                          (List.map
+                             (fun (lo, hi) -> R.Tuple [ R.Int lo; R.Int hi ])
+                             s.of_) );
+                      ("min", R.Int s.min);
+                      ("max", max s.max);
+                    ],
+                    None );
+              ]
+        | Group g ->
+            R.call "Term::Group"
+              [
+                R.Struct
+                  ( [ "Group" ],
+                    [
+                      ( "either",
+                        slice
+                          (List.map
+                             (fun terms -> slice (List.map term terms))
+                             g.either) );
+                      ("min", R.Int g.min);
+                      ("max", max g.max);
+                    ],
+                    None );
+              ]
       in
       let fields =
         List.filter_map Fun.id
@@ -61,7 +80,7 @@ let rec shape : Shape.shape -> R.expr = function
               (fun vs -> some (slice (List.map literal vs)))
               b.enum;
             part "pattern"
-              (fun steps -> some (slice (List.map step steps)))
+              (fun terms -> some (slice (List.map term terms)))
               b.pattern;
             part "min_length" (fun n -> some (R.Int n)) b.min_length;
             part "max_length" (fun n -> some (R.Int n)) b.max_length;
@@ -101,6 +120,11 @@ let rec shape : Shape.shape -> R.expr = function
             nonempty "all_of"
               (fun shapes -> slice (List.map shape shapes))
               b.all_of;
+            nonempty "not_all"
+              (fun sets -> slice (List.map strings sets))
+              b.not_all;
+            part "min_members" (fun n -> some (R.Int n)) b.min_members;
+            part "names" (fun s -> some (R.Ref_of (shape s))) b.names;
           ]
       in
       match fields with

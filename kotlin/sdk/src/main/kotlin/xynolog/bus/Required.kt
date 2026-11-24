@@ -1,14 +1,17 @@
 package xynolog.bus
 
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonObject
 import xynolog.annotations.BY_CODE_POINT
 import xynolog.annotations.codePointsOf
 import xynolog.channels.Empty
@@ -37,7 +40,7 @@ internal data class Shape(
     /** Of an object's member, the texts it is read as: one that holds a text none of these is read as absent. */
     val recognized: List<String>? = null,
     val enum: List<JsonPrimitive>? = null,
-    val pattern: List<Step>? = null,
+    val pattern: List<Term>? = null,
     val minLength: Int? = null,
     val maxLength: Int? = null,
     val minimum: Double? = null,
@@ -53,11 +56,33 @@ internal data class Shape(
     val oneOf: List<Shape>? = null,
     val discriminator: Discriminator? = null,
     val allOf: List<Shape>? = null,
+    /** Sets of members an object does not carry all of. */
+    val notAll: List<List<String>>? = null,
+    val minMembers: Int? = null,
+    /** What each of an object's members' names must be. */
+    val names: Shape? = null,
 )
 
-/** One step of a pattern: at least `min` of a text's next code points, and at most `max` (null: any number), each in one of the ranges `of`. */
+/** One term of a pattern, repeated at least `min` times and at most `max` (null: any number): a step or a group. */
+@Serializable(with = TermSerializer::class)
+internal sealed interface Term {
+    val min: Int
+    val max: Int?
+}
+
+/** A step of a pattern: a text's next code point, in one of the ranges `of`. */
 @Serializable
-internal data class Step(val of: List<List<Int>>, val min: Int, val max: Int? = null)
+internal data class Step(val of: List<List<Int>>, override val min: Int, override val max: Int? = null) : Term
+
+/** A group of a pattern: the text's next code points, one of the series `either`. */
+@Serializable
+internal data class Group(val either: List<List<Term>>, override val min: Int, override val max: Int? = null) : Term
+
+/** A term as codegen/lib/required writes it: a group where it states `either`, and a step where it does not. */
+internal object TermSerializer : JsonContentPolymorphicSerializer<Term>(Term::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Term> =
+        if ("either" in element.jsonObject) Group.serializer() else Step.serializer()
+}
 
 /** The member whose value names the variant a union is. */
 @Serializable
@@ -130,34 +155,57 @@ private fun isValue(one: JsonPrimitive, value: JsonElement): Boolean = when {
 }
 
 /**
- * Whether the code points from `at` are of `steps`: the first step takes as
- * many of them as it may, and gives them back one by one until the steps
- * after it take the rest.
+ * Whether the code points from `at` are of `terms`, with `rest` taking what is
+ * left after them: a step takes as many code points as it may and gives them
+ * back one by one, and a group repeats as often as it may and gives
+ * repetitions back the same way, until `rest` takes what is left.
  */
-private fun matches(steps: List<Step>, points: IntArray, at: Int): Boolean {
-    val first = steps.firstOrNull() ?: return at == points.size
-    var taken = 0
-    while (at + taken < points.size && (first.max == null || taken < first.max) && first.of.any { (from, to) -> points[at + taken] in from..to }) taken++
-    while (taken >= first.min) {
-        if (matches(steps.subList(1, steps.size), points, at + taken)) return true
-        taken--
+private fun series(terms: List<Term>, points: IntArray, at: Int, rest: (Int) -> Boolean): Boolean {
+    val first = terms.firstOrNull() ?: return rest(at)
+    val next = { after: Int -> series(terms.subList(1, terms.size), points, after, rest) }
+    return when (first) {
+        is Group -> repeated(first, points, at, 0, next)
+        is Step -> {
+            var taken = 0
+            while (at + taken < points.size && (first.max == null || taken < first.max) && first.of.any { (from, to) -> points[at + taken] in from..to }) taken++
+            while (taken >= first.min) {
+                if (next(at + taken)) return true
+                taken--
+            }
+            false
+        }
     }
-    return false
+}
+
+/**
+ * Whether the code points from `at` are of `group` repeated once more than
+ * `count` times or more, then of `next`: a repetition past the group's `min`
+ * takes at least one code point.
+ */
+private fun repeated(group: Group, points: IntArray, at: Int, count: Int, next: (Int) -> Boolean): Boolean {
+    if (group.max == null || count < group.max) {
+        for (alternative in group.either) {
+            val again = { after: Int -> (count < group.min || after > at) && repeated(group, points, after, count + 1, next) }
+            if (series(alternative, points, at, again)) return true
+        }
+    }
+    return count >= group.min && next(at)
 }
 
 /**
  * Whether `value` is one of `shape`'s values, a text is of its pattern and has
  * as many code points as it allows, a number is within its bounds, and an
- * array has as many items as it allows.
+ * array has as many items and an object as many members as it allows.
  */
 private fun isAsStated(shape: Shape, value: JsonElement): Boolean {
     if (shape.enum != null && shape.enum.none { isValue(it, value) }) return false
     return when {
         value is JsonArray -> counted(shape.minItems, value.size, shape.maxItems)
+        value is JsonObject -> counted(shape.minMembers, value.size, null)
         value !is JsonPrimitive || value is JsonNull -> true
         value.isString -> {
             val points = codePointsOf(value.content)
-            counted(shape.minLength, points.size, shape.maxLength) && (shape.pattern == null || matches(shape.pattern, points, 0))
+            counted(shape.minLength, points.size, shape.maxLength) && (shape.pattern == null || series(shape.pattern, points, 0) { it == points.size })
         }
         value.booleanOrNull != null -> true
         else -> value.content.toDouble().let { (shape.minimum == null || it >= shape.minimum) && (shape.maximum == null || it <= shape.maximum) }
@@ -173,7 +221,7 @@ private fun isAsStated(shape: Shape, value: JsonElement): Boolean {
 internal class Read(val value: JsonElement, val fault: Fault?)
 
 /** `value` read as a value of `shape`, from `way`. */
-private fun readAt(shape: Shape, value: JsonElement, way: String): Read {
+internal fun readAt(shape: Shape, value: JsonElement, way: String): Read {
     val own = resolved(shape)
     if (!allows(own.kinds, value) || !isAsStated(own, value)) return Read(value, Fault(way, FrameRefusalReason.Malformed))
     var read = value
@@ -206,7 +254,8 @@ private fun readAt(shape: Shape, value: JsonElement, way: String): Read {
 
 /**
  * An object read by the members `shape` requires, by what its members are, by
- * the members it may not carry, and by its values. A member that holds a text
+ * the members it may not carry, by its members' names, by the sets of members
+ * it may not carry all of, and by its values. A member that holds a text
  * none of the texts its shape recognizes is no fault, and is left out.
  */
 private fun readMembers(shape: Shape, value: JsonObject, way: String): Read {
@@ -229,6 +278,8 @@ private fun readMembers(shape: Shape, value: JsonObject, way: String): Read {
         read[name] = memberRead.value
     }
     shape.closed?.let { closed -> value.keys.filter { it !in closed }.minWithOrNull(BY_CODE_POINT)?.let { return Read(value, Fault(within(way, it), FrameRefusalReason.Malformed)) } }
+    shape.names?.let { names -> value.keys.sortedWith(BY_CODE_POINT).firstOrNull { readAt(names, JsonPrimitive(it), "").fault != null }?.let { return Read(value, Fault(within(way, it), FrameRefusalReason.Malformed)) } }
+    shape.notAll?.let { sets -> if (sets.any { set -> set.all { it in value } }) return Read(value, Fault(way, FrameRefusalReason.Malformed)) }
     shape.values?.let { values ->
         for (key in read.keys.sortedWith(BY_CODE_POINT)) {
             val valueRead = readAt(values, read.getValue(key), way)

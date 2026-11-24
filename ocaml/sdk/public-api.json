@@ -127,7 +127,7 @@
     "lib/delegation.mli": "36f45f6d1caa39e7eda0024d666bb32e2cd21346343e1dc9946bf5789ec67e23",
     "lib/discovery.ml": "227189065a91113da86f0395e43bf1d96ad63d53113b227cb42dba4ec5404d9e",
     "lib/discovery.mli": "6c0dfb2d59167619ced226e06d53cc05f0e2d83e0c9bf0ef6ec1ed7715d2a28d",
-    "lib/dune": "b22a916f81c231d714ce088c3da1c88d0f621e6a765fc5b9537c088c27ee1489",
+    "lib/dune": "26fbb89581760a4457856a360804c2bf222eca246f68a3d34e8939b27c039361",
     "lib/encoding_facts.ml": "dc9602d08894d9a3bd5334cb3254218f7a74dad0528d552acb00cec4061bb9bb",
     "lib/enums.ml": "353821c220ee7d5f561b0c16819ac358a27de580637302fc7a395c94bda39c6f",
     "lib/error_codes.ml": "041a91c845d81e0186ab20c62e078491f9616340c38a235411b7e51d0aa64c8f",
@@ -143,7 +143,7 @@
     "lib/http_facts.ml": "fa5774ea443d7d01c8a1186238031bc3b90d65e77cf419ecee487eb3dc65fce8",
     "lib/http_wire.ml": "bc293440f3a3c77201e4ad76851731d14c1c0ffe6ed4403741abb15f86faf2d5",
     "lib/http_wire.mli": "551237395fa11501ae2d4a79502af202913054c6ab49a0408dd25ad8b9ca45e9",
-    "lib/identifiers.ml": "bb2e5891eb6174b1655728c2aee5832b0bb959afc6776ad5d6623f193ba0ef02",
+    "lib/identifiers.ml": "1ee61e8298715512590d2e8045869efb0687ace6df642970da0d54baffe26448",
     "lib/identifiers.mli": "d344831d9323c9ab0934e9027f4e8269b5d3554ef347c1d71b04cedc65d6a92b",
     "lib/identity.ml": "926a5ae2b89b08a294af2bbee6975347194bdaea78109f82a777b9fcff388e58",
     "lib/job.ml": "583809224cd23d98628e42793857f6877951d14ca1984bafd820aa56ec71b788",
@@ -166,16 +166,16 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "b62645c05999a85cfebb3cbf96ecbd327ab003273037363af86ee98869b275f7",
-    "lib/models.mli": "db214e415b9cd4ab92e0edbc54fd0c972f5efaa9e4712643f0efa5b01d8ddcb5",
+    "lib/models.ml": "ae37bd209aee4773c8a6989d7b9bd681dda4d9affffb5152fb9b045408aad30b",
+    "lib/models.mli": "293dedf450b40a8000e4d33e329b09ab1769c4ae2df1ce5ec77bc7b3a5fc4ea6",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
     "lib/oauth.ml": "b62c51759ebb98f90ed1bf2793eace04878198f2c4705724f72776f028091dc0",
     "lib/oauth.mli": "6f1104c9fa330b6f9fb7cec7f8e173d6a7f05c66cb18fd20d1895a6b3288b460",
     "lib/oauth_facts.ml": "8d318f922bc93b766445f8e0f3f0fc2deb2e9a78244e7553f717d620d69127b2",
-    "lib/pattern.ml": "a41d5ebb9ebc0eee59522a4d883e2a5281202c4fbebb0a2040b267961bf677ad",
+    "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "053aa7e17c38b3cedb840b7623fd666e17717a5bbe8e1087b56aaf05d8ac3d89",
     "lib/record_reader.mli": "8f988856668a1d426cb6384fa2bf2703d6d791be33f82c8db87c2e1fd1919ce5",
-    "lib/records.ml": "461eeb9ff2a11c2071e664916103456e216336ec223b7056081017ea760e4d73",
+    "lib/records.ml": "c49f166c557d4e7b2a199db1f45aef01599eb02db601862b1ff0edf336e2ec2e",
     "lib/redirect_sign_in.ml": "d3b7206b16548f24a4fcf3dfa6143bc7fc8fa0fe4de2e61598a460be41c2ef6f",
     "lib/refusals.ml": "53b42a4d41b53e88968f5010a843038ffa0ddbcd842f390ce88acba818ad15d1",
     "lib/registry.ml": "b7d3d0a4bb36ac212add5c60d050b7e64e0047722f5a7a542bc2daea3bc83f6a",
@@ -183,13 +183,13 @@
     "lib/registry_facts.ml": "ad2d706c130785002585a0797b2ec8a070790257bd364a85b34f51f839dfcd63",
     "lib/resources.ml": "99f49caf9937bf6754e62b0011196873fdfbc1488ed90817a49fcd292d6a9fd4",
     "lib/resources.mli": "681c8d831db9af64fc28b7b91b6e913bf992f99529f2a3edb7f0d16121b10bf2",
-    "lib/retry.ml": "0dfc63df473a609eba0ee7c4a87939632b3199038905c514a637cc93c1e6621b",
-    "lib/retry.mli": "f1ce129d8c0f5585f03f3ee57b8eecb1da50774a9bccb93bd8d40511f6fcab72",
+    "lib/retry.ml": "c1d938db21bb4c1a99b5e103f0d552af5299b9f8c09ad6e299857bb4fa64ca11",
+    "lib/retry.mli": "dc9e910cc0c0ac2904e00416c4259b80deebf0fe296852bc3f0ff1adcbe3387b",
     "lib/running.ml": "d1e491aa088ca534f4668aa784ce843b98aea9c83b0dfe42c8f679dbb8c0cb03",
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
-    "lib/schema_codec.ml": "6180a43f50c61f69f205cd16372013e9d597cceaceb72c2d241873b2e3d6031b",
-    "lib/schema_shape.ml": "fe4e72c044905dad381dff38a06ee4809e2411698b6c9096926b17f077eb3cc3",
-    "lib/schema_shapes.ml": "a25c28d54ef8e4040b9a43c667f029430cdc3c710c382125398c15e494410508",
+    "lib/schema_codec.ml": "13016b0b60b2d81eeca6ae4e0998bba40195a1ae2b05f7709f98b998ad048423",
+    "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
+    "lib/schema_shapes.ml": "695ac2d6f1a201c4108b7435c8412c1cf787e07b617501fe175f762f9044420c",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "b24657f0d60a45a7deefaa23ae4f8d6800ec007f3c13cdbb004944cfa014b432",
@@ -241,8 +241,8 @@
     "lib/wire_stream.mli": "d145d5064298080786a7d80eb55a4936a8dbe89cd0e0ccf4fa81b6e82fc799a5",
     "lib/worker.ml": "4da58d8cca59bf6bfbdd92cf732a0c990c4ef65b083a44161ae1a70d51aae5e2",
     "lib/worker.mli": "d5c6c60e407f915b03a1a65f578a2663b8e6d26aaae77f9db5455656e20db49e",
-    "lib/xynolog.ml": "5905c4650d1fd442f290b0364072740595dcdc781c75b114f9ad0f9f92110bf6",
-    "lib/xynolog.mli": "02e4d8b6ce04271eefd8c710eab15a7388cd4582f65623d16f0ea4bb29c1461c",
+    "lib/xynolog.ml": "87c828b9f4a571c279f7d99c6e26ceb876627ee325affa9502e8675527adad97",
+    "lib/xynolog.mli": "86c34f2b80eea15f732f65a6d85c37a8552374221d89e55225c4bb5418d0a17f",
     "lib/yield.ml": "eb895203554d9af88f6aa464d397757aba04eab611d69a2429c3ddd83b5b0ca1",
     "lib/yield.mli": "da4db7e1cc2177b532bf7e95c864e3e636e911d31fe86763235a25373930a744",
     "lib/yield_state.ml": "964626f32956299da2c452708bd8be0e9c69017c7c98b8cef2a96cbfae777cf0",
@@ -3316,6 +3316,16 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.about_params",
+      "declaration": "val about_params : [ `AboutParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.about_result",
+      "declaration": "val about_result : [ `AboutResult ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.agent",
       "declaration": "val agent : [ `Agent ] descriptor"
     },
@@ -3431,6 +3441,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.api_version",
+      "declaration": "val api_version : [ `ApiVersion ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.archivist_config",
       "declaration": "val archivist_config : [ `ArchivistConfig ] descriptor"
     },
@@ -3468,6 +3483,26 @@
       "kind": "value",
       "path": "Xynolog.Models.attributed_event",
       "declaration": "val attributed_event : [ `AttributedEvent ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.auth_login_params",
+      "declaration": "val auth_login_params : [ `AuthLoginParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.auth_login_result",
+      "declaration": "val auth_login_result : [ `AuthLoginResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.auth_logout_params",
+      "declaration": "val auth_logout_params : [ `AuthLogoutParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.auth_logout_result",
+      "declaration": "val auth_logout_result : [ `AuthLogoutResult ] descriptor"
     },
     {
       "kind": "value",
@@ -3711,6 +3746,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.browser",
+      "declaration": "val browser : [ `Browser ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.bus_emit_accepted",
       "declaration": "val bus_emit_accepted : [ `BusEmitAccepted ] descriptor"
     },
@@ -3751,6 +3791,16 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.cancelled",
+      "declaration": "val cancelled : [ `Cancelled ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.client_secret_form",
+      "declaration": "val client_secret_form : [ `ClientSecretForm ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.clone_resource_with_token_response",
       "declaration": "val clone_resource_with_token_response :\n  [ `CloneResourceWithTokenResponse ] descriptor"
     },
@@ -3763,6 +3813,41 @@
       "kind": "value",
       "path": "Xynolog.Models.commenting_job_params",
       "declaration": "val commenting_job_params : [ `CommentingJobParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.conformance_bus_fetch",
+      "declaration": "val conformance_bus_fetch : [ `ConformanceBusFetch ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.conformance_case",
+      "declaration": "val conformance_case : [ `ConformanceCase ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.conformance_driver_line",
+      "declaration": "val conformance_driver_line : [ `ConformanceDriverLine ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.conformance_failure",
+      "declaration": "val conformance_failure : [ `ConformanceFailure ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.conformance_http_fetch",
+      "declaration": "val conformance_http_fetch : [ `ConformanceHttpFetch ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.conformance_implementations",
+      "declaration": "val conformance_implementations : [ `ConformanceImplementations ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.conformance_step",
+      "declaration": "val conformance_step : [ `ConformanceStep ] descriptor"
     },
     {
       "kind": "value",
@@ -3871,6 +3956,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.error_data",
+      "declaration": "val error_data : [ `ErrorData ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.error_response",
       "declaration": "val error_response : [ `ErrorResponse ] descriptor"
     },
@@ -3911,8 +4001,18 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.field_fault",
+      "declaration": "val field_fault : [ `FieldFault ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.file_entry",
       "declaration": "val file_entry : [ `FileEntry ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.follower_following",
+      "declaration": "val follower_following : [ `FollowerFollowing ] descriptor"
     },
     {
       "kind": "value",
@@ -4081,8 +4181,53 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.host_port",
+      "declaration": "val host_port : [ `HostPort ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.http_endpoint",
       "declaration": "val http_endpoint : [ `HttpEndpoint ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.http_status",
+      "declaration": "val http_status : [ `HttpStatus ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.identity_user",
+      "declaration": "val identity_user : [ `IdentityUser ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.identity_useradd_params",
+      "declaration": "val identity_useradd_params : [ `IdentityUseraddParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.identity_useradd_result",
+      "declaration": "val identity_useradd_result : [ `IdentityUseraddResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.identity_users_list_params",
+      "declaration": "val identity_users_list_params : [ `IdentityUsersListParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.identity_users_list_result",
+      "declaration": "val identity_users_list_result : [ `IdentityUsersListResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.image",
+      "declaration": "val image : [ `Image ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.inference",
+      "declaration": "val inference : [ `Inference ] descriptor"
     },
     {
       "kind": "value",
@@ -4098,6 +4243,11 @@
       "kind": "value",
       "path": "Xynolog.Models.inference_limits_result",
       "declaration": "val inference_limits_result : [ `InferenceLimitsResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.issuer",
+      "declaration": "val issuer : [ `Issuer ] descriptor"
     },
     {
       "kind": "value",
@@ -4361,6 +4511,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.kb_did",
+      "declaration": "val kb_did : [ `KbDid ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.kb_endpoint",
       "declaration": "val kb_endpoint : [ `KbEndpoint ] descriptor"
     },
@@ -4386,8 +4541,18 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.knowledge_base_status",
+      "declaration": "val knowledge_base_status : [ `KnowledgeBaseStatus ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.knowledge_graph",
       "declaration": "val knowledge_graph : [ `KnowledgeGraph ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.knowledge_index",
+      "declaration": "val knowledge_index : [ `KnowledgeIndex ] descriptor"
     },
     {
       "kind": "value",
@@ -4403,6 +4568,11 @@
       "kind": "value",
       "path": "Xynolog.Models.librarian_health",
       "declaration": "val librarian_health : [ `LibrarianHealth ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.librarian_prompt_score",
+      "declaration": "val librarian_prompt_score : [ `LibrarianPromptScore ] descriptor"
     },
     {
       "kind": "value",
@@ -4426,6 +4596,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.local_target",
+      "declaration": "val local_target : [ `LocalTarget ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.log_format",
       "declaration": "val log_format : [ `LogFormat ] descriptor"
     },
@@ -4433,6 +4608,21 @@
       "kind": "value",
       "path": "Xynolog.Models.log_level",
       "declaration": "val log_level : [ `LogLevel ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.log_record",
+      "declaration": "val log_record : [ `LogRecord ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.logs_follow_params",
+      "declaration": "val logs_follow_params : [ `LogsFollowParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.logs_follow_result",
+      "declaration": "val logs_follow_result : [ `LogsFollowResult ] descriptor"
     },
     {
       "kind": "value",
@@ -4591,6 +4781,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.metadata",
+      "declaration": "val metadata : [ `Metadata ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.motivation",
       "declaration": "val motivation : [ `Motivation ] descriptor"
     },
@@ -4636,6 +4831,16 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.open_resource",
+      "declaration": "val open_resource : [ `OpenResource ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.output_stream",
+      "declaration": "val output_stream : [ `OutputStream ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.pdf_class",
       "declaration": "val pdf_class : [ `PdfClass ] descriptor"
     },
@@ -4671,8 +4876,23 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.progress",
+      "declaration": "val progress : [ `Progress ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.project_config",
+      "declaration": "val project_config : [ `ProjectConfig ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.protected_resource_metadata",
       "declaration": "val protected_resource_metadata : [ `ProtectedResourceMetadata ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.provider",
+      "declaration": "val provider : [ `Provider ] descriptor"
     },
     {
       "kind": "value",
@@ -4703,6 +4923,11 @@
       "kind": "value",
       "path": "Xynolog.Models.representation_removed_payload",
       "declaration": "val representation_removed_payload :\n  [ `RepresentationRemovedPayload ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.request_id",
+      "declaration": "val request_id : [ `RequestId ] descriptor"
     },
     {
       "kind": "value",
@@ -4766,8 +4991,78 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.resources",
+      "declaration": "val resources : [ `Resources ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.root",
+      "declaration": "val root : [ `Root ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.roots_forget_params",
+      "declaration": "val roots_forget_params : [ `RootsForgetParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.roots_forget_result",
+      "declaration": "val roots_forget_result : [ `RootsForgetResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.roots_init_params",
+      "declaration": "val roots_init_params : [ `RootsInitParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.roots_init_result",
+      "declaration": "val roots_init_result : [ `RootsInitResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.roots_list_params",
+      "declaration": "val roots_list_params : [ `RootsListParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.roots_list_result",
+      "declaration": "val roots_list_result : [ `RootsListResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.run_instance",
+      "declaration": "val run_instance : [ `RunInstance ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.run_service",
+      "declaration": "val run_service : [ `RunService ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.runner",
+      "declaration": "val runner : [ `Runner ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.runtime",
+      "declaration": "val runtime : [ `Runtime ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.runtime_state",
+      "declaration": "val runtime_state : [ `RuntimeState ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.scored_resource",
       "declaration": "val scored_resource : [ `ScoredResource ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.secret_ref",
+      "declaration": "val secret_ref : [ `SecretRef ] descriptor"
     },
     {
       "kind": "value",
@@ -4786,8 +5081,63 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.service_group",
+      "declaration": "val service_group : [ `ServiceGroup ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.service_host_params",
+      "declaration": "val service_host_params : [ `ServiceHostParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.service_host_result",
+      "declaration": "val service_host_result : [ `ServiceHostResult ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.service_identity",
       "declaration": "val service_identity : [ `ServiceIdentity ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.service_output",
+      "declaration": "val service_output : [ `ServiceOutput ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.service_run_params",
+      "declaration": "val service_run_params : [ `ServiceRunParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.service_run_result",
+      "declaration": "val service_run_result : [ `ServiceRunResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.service_signal_params",
+      "declaration": "val service_signal_params : [ `ServiceSignalParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.service_signal_result",
+      "declaration": "val service_signal_result : [ `ServiceSignalResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.service_started",
+      "declaration": "val service_started : [ `ServiceStarted ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.service_status",
+      "declaration": "val service_status : [ `ServiceStatus ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.session",
+      "declaration": "val session : [ `Session ] descriptor"
     },
     {
       "kind": "value",
@@ -4801,8 +5151,33 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.setting",
+      "declaration": "val setting : [ `Setting ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.setting_line",
+      "declaration": "val setting_line : [ `SettingLine ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.settings_get_params",
+      "declaration": "val settings_get_params : [ `SettingsGetParams ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.settings_hover_delay_changed_event",
       "declaration": "val settings_hover_delay_changed_event :\n  [ `SettingsHoverDelayChangedEvent ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.settings_list_params",
+      "declaration": "val settings_list_params : [ `SettingsListParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.settings_list_result",
+      "declaration": "val settings_list_result : [ `SettingsListResult ] descriptor"
     },
     {
       "kind": "value",
@@ -4811,8 +5186,28 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.settings_path_params",
+      "declaration": "val settings_path_params : [ `SettingsPathParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.settings_path_result",
+      "declaration": "val settings_path_result : [ `SettingsPathResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.settings_set_params",
+      "declaration": "val settings_set_params : [ `SettingsSetParams ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.settings_theme_changed_event",
       "declaration": "val settings_theme_changed_event : [ `SettingsThemeChangedEvent ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.settings_unset_params",
+      "declaration": "val settings_unset_params : [ `SettingsUnsetParams ] descriptor"
     },
     {
       "kind": "value",
@@ -4851,8 +5246,48 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.stack_api_version",
+      "declaration": "val stack_api_version : [ `StackApiVersion ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.stack_knowledge_base",
+      "declaration": "val stack_knowledge_base : [ `StackKnowledgeBase ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.stack_start_params",
+      "declaration": "val stack_start_params : [ `StackStartParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.stack_start_result",
+      "declaration": "val stack_start_result : [ `StackStartResult ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.stack_stop_params",
+      "declaration": "val stack_stop_params : [ `StackStopParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.stack_stop_result",
+      "declaration": "val stack_stop_result : [ `StackStopResult ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.status_response",
       "declaration": "val status_response : [ `StatusResponse ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.status_snapshot_params",
+      "declaration": "val status_snapshot_params : [ `StatusSnapshotParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.status_snapshot_result",
+      "declaration": "val status_snapshot_result : [ `StatusSnapshotResult ] descriptor"
     },
     {
       "kind": "value",
@@ -4901,6 +5336,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.target",
+      "declaration": "val target : [ `Target ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.text_position_selector",
       "declaration": "val text_position_selector : [ `TextPositionSelector ] descriptor"
     },
@@ -4926,6 +5366,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.user_action",
+      "declaration": "val user_action : [ `UserAction ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.user_id",
       "declaration": "val user_id : [ `UserId ] descriptor"
     },
@@ -4933,6 +5378,11 @@
       "kind": "value",
       "path": "Xynolog.Models.user_response",
       "declaration": "val user_response : [ `UserResponse ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.vector_store",
+      "declaration": "val vector_store : [ `VectorStore ] descriptor"
     },
     {
       "kind": "value",
@@ -4993,6 +5443,16 @@
       "kind": "value",
       "path": "Xynolog.Models.worker_knowledge_base_health",
       "declaration": "val worker_knowledge_base_health : [ `WorkerKnowledgeBaseHealth ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.worker_pool",
+      "declaration": "val worker_pool : [ `WorkerPool ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.workload_status",
+      "declaration": "val workload_status : [ `WorkloadStatus ] descriptor"
     },
     {
       "kind": "value",
@@ -12534,6 +12994,1728 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Conformance_bus_fetch",
+      "declaration": "module Conformance_bus_fetch :\n  sig\n    type t = {\n      fetch : string;\n      payload : Yojson.Raw.t Xynolog__.Types.presence;\n      as_ : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ConformanceBusFetch ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_bus_fetch.t",
+      "declaration": "type t = {\n  fetch : string;\n  payload : Yojson.Raw.t Xynolog__.Types.presence;\n  as_ : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "fetch",
+        "payload",
+        "as_",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_bus_fetch.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_bus_fetch.of_model",
+      "declaration": "val of_model : [ `ConformanceBusFetch ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_case",
+      "declaration": "module Conformance_case :\n  sig\n    type t = {\n      about : string;\n      source : string;\n      planes : Yojson.Raw.t Xynolog__.Types.presence;\n      tier : string Xynolog__.Types.presence;\n      telemetry : bool Xynolog__.Types.presence;\n      steps : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ConformanceCase ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_case.t",
+      "declaration": "type t = {\n  about : string;\n  source : string;\n  planes : Yojson.Raw.t Xynolog__.Types.presence;\n  tier : string Xynolog__.Types.presence;\n  telemetry : bool Xynolog__.Types.presence;\n  steps : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "about",
+        "source",
+        "planes",
+        "tier",
+        "telemetry",
+        "steps",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_case.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_case.of_model",
+      "declaration": "val of_model : [ `ConformanceCase ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_failure",
+      "declaration": "module Conformance_failure :\n  sig\n    type t = {\n      code : string Xynolog__.Types.presence;\n      status : Yojson.Raw.t Xynolog__.Types.presence;\n      failure_class : Yojson.Raw.t Xynolog__.Types.presence;\n      detail : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ConformanceFailure ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_failure.t",
+      "declaration": "type t = {\n  code : string Xynolog__.Types.presence;\n  status : Yojson.Raw.t Xynolog__.Types.presence;\n  failure_class : Yojson.Raw.t Xynolog__.Types.presence;\n  detail : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "code",
+        "status",
+        "failure_class",
+        "detail",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_failure.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_failure.of_model",
+      "declaration": "val of_model : [ `ConformanceFailure ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_http_fetch",
+      "declaration": "module Conformance_http_fetch :\n  sig\n    type t = {\n      fetch : string;\n      params : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ConformanceHttpFetch ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_http_fetch.t",
+      "declaration": "type t = {\n  fetch : string;\n  params : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "fetch",
+        "params",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_http_fetch.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_http_fetch.of_model",
+      "declaration": "val of_model : [ `ConformanceHttpFetch ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_implementations",
+      "declaration": "module Conformance_implementations :\n  sig\n    type t = {\n      launcher : Yojson.Raw.t;\n      target : Yojson.Raw.t;\n      sdks : Yojson.Raw.t;\n      model_catalogue : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ConformanceImplementations ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_implementations.t",
+      "declaration": "type t = {\n  launcher : Yojson.Raw.t;\n  target : Yojson.Raw.t;\n  sdks : Yojson.Raw.t;\n  model_catalogue : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "launcher",
+        "target",
+        "sdks",
+        "model_catalogue",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_implementations.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_implementations.of_model",
+      "declaration": "val of_model : [ `ConformanceImplementations ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.About_params",
+      "declaration": "module About_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AboutParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.About_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.About_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.About_params.of_model",
+      "declaration": "val of_model : [ `AboutParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.About_result",
+      "declaration": "module About_result :\n  sig\n    type t = {\n      version : string Xynolog__.Types.presence;\n      development : bool;\n      commit : string Xynolog__.Types.presence;\n      built : string Xynolog__.Types.presence;\n      api_versions : Yojson.Raw.t;\n      image_registry : string;\n      runtimes : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AboutResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.About_result.t",
+      "declaration": "type t = {\n  version : string Xynolog__.Types.presence;\n  development : bool;\n  commit : string Xynolog__.Types.presence;\n  built : string Xynolog__.Types.presence;\n  api_versions : Yojson.Raw.t;\n  image_registry : string;\n  runtimes : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "version",
+        "development",
+        "commit",
+        "built",
+        "api_versions",
+        "image_registry",
+        "runtimes",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.About_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.About_result.of_model",
+      "declaration": "val of_model : [ `AboutResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Auth_login_params",
+      "declaration": "module Auth_login_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t Xynolog__.Types.presence;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AuthLoginParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Auth_login_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t Xynolog__.Types.presence;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "runtime",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Auth_login_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Auth_login_params.of_model",
+      "declaration": "val of_model : [ `AuthLoginParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Auth_login_result",
+      "declaration": "module Auth_login_result :\n  sig\n    type t = {\n      key : string;\n      who : string;\n      issuer : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AuthLoginResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Auth_login_result.t",
+      "declaration": "type t = {\n  key : string;\n  who : string;\n  issuer : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "key",
+        "who",
+        "issuer",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Auth_login_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Auth_login_result.of_model",
+      "declaration": "val of_model : [ `AuthLoginResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Auth_logout_params",
+      "declaration": "module Auth_logout_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t Xynolog__.Types.presence;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AuthLogoutParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Auth_logout_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t Xynolog__.Types.presence;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "runtime",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Auth_logout_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Auth_logout_params.of_model",
+      "declaration": "val of_model : [ `AuthLogoutParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Auth_logout_result",
+      "declaration": "module Auth_logout_result :\n  sig\n    type t = {\n      key : string Xynolog__.Types.presence;\n      was_signed_in : bool;\n      revoked : bool;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AuthLogoutResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Auth_logout_result.t",
+      "declaration": "type t = {\n  key : string Xynolog__.Types.presence;\n  was_signed_in : bool;\n  revoked : bool;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "key",
+        "was_signed_in",
+        "revoked",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Auth_logout_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Auth_logout_result.of_model",
+      "declaration": "val of_model : [ `AuthLogoutResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Cancelled",
+      "declaration": "module Cancelled :\n  sig\n    type t = {\n      request_id : Yojson.Raw.t;\n      reason : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Cancelled ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Cancelled.t",
+      "declaration": "type t = {\n  request_id : Yojson.Raw.t;\n  reason : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "request_id",
+        "reason",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Cancelled.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Cancelled.of_model",
+      "declaration": "val of_model : [ `Cancelled ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Error_data",
+      "declaration": "module Error_data :\n  sig\n    type t = {\n      code : string;\n      retryable : bool;\n      fields : Yojson.Raw.t Xynolog__.Types.presence;\n      choices : Yojson.Raw.t Xynolog__.Types.presence;\n      supported : Yojson.Raw.t Xynolog__.Types.presence;\n      may_still_run : bool Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ErrorData ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Error_data.t",
+      "declaration": "type t = {\n  code : string;\n  retryable : bool;\n  fields : Yojson.Raw.t Xynolog__.Types.presence;\n  choices : Yojson.Raw.t Xynolog__.Types.presence;\n  supported : Yojson.Raw.t Xynolog__.Types.presence;\n  may_still_run : bool Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "code",
+        "retryable",
+        "fields",
+        "choices",
+        "supported",
+        "may_still_run",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Error_data.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Error_data.of_model",
+      "declaration": "val of_model : [ `ErrorData ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Field_fault",
+      "declaration": "module Field_fault :\n  sig\n    type t = {\n      field : string;\n      message : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `FieldFault ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Field_fault.t",
+      "declaration": "type t = {\n  field : string;\n  message : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "field",
+        "message",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Field_fault.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Field_fault.of_model",
+      "declaration": "val of_model : [ `FieldFault ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Identity_user",
+      "declaration": "module Identity_user :\n  sig\n    type t = {\n      email : string;\n      identity : string;\n      enabled : bool;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `IdentityUser ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Identity_user.t",
+      "declaration": "type t = {\n  email : string;\n  identity : string;\n  enabled : bool;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "email",
+        "identity",
+        "enabled",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_user.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_user.of_model",
+      "declaration": "val of_model : [ `IdentityUser ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Identity_useradd_params",
+      "declaration": "module Identity_useradd_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t;\n      email : string;\n      password : string Xynolog__.Types.presence;\n      generate_password : bool;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `IdentityUseraddParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Identity_useradd_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t;\n  email : string;\n  password : string Xynolog__.Types.presence;\n  generate_password : bool;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "email",
+        "password",
+        "generate_password",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_useradd_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_useradd_params.of_model",
+      "declaration": "val of_model : [ `IdentityUseraddParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Identity_useradd_result",
+      "declaration": "module Identity_useradd_result :\n  sig\n    type t = {\n      email : string;\n      identity : string;\n      created : bool;\n      generated_password : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `IdentityUseraddResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Identity_useradd_result.t",
+      "declaration": "type t = {\n  email : string;\n  identity : string;\n  created : bool;\n  generated_password : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "email",
+        "identity",
+        "created",
+        "generated_password",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_useradd_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_useradd_result.of_model",
+      "declaration": "val of_model : [ `IdentityUseraddResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Identity_users_list_params",
+      "declaration": "module Identity_users_list_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `IdentityUsersListParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Identity_users_list_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_users_list_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_users_list_params.of_model",
+      "declaration": "val of_model : [ `IdentityUsersListParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Identity_users_list_result",
+      "declaration": "module Identity_users_list_result :\n  sig\n    type t = { users : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `IdentityUsersListResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Identity_users_list_result.t",
+      "declaration": "type t = { users : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "users",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_users_list_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Identity_users_list_result.of_model",
+      "declaration": "val of_model : [ `IdentityUsersListResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Knowledge_base_status",
+      "declaration": "module Knowledge_base_status :\n  sig\n    type t = {\n      name : string;\n      key : string;\n      recorded : bool;\n      placement : Yojson.Raw.t;\n      root : string Xynolog__.Types.presence;\n      repo : Yojson.Raw.t Xynolog__.Types.presence;\n      did : Yojson.Raw.t Xynolog__.Types.presence;\n      site_name : Yojson.Raw.t Xynolog__.Types.presence;\n      identity_error : string Xynolog__.Types.presence;\n      kb : Yojson.Raw.t Xynolog__.Types.presence;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      gateway : string Xynolog__.Types.presence;\n      secret_store : string Xynolog__.Types.presence;\n      lan : string Xynolog__.Types.presence;\n      starting : bool;\n      session : Yojson.Raw.t Xynolog__.Types.presence;\n      healthy : bool;\n      services : Yojson.Raw.t;\n      workload : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `KnowledgeBaseStatus ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Knowledge_base_status.t",
+      "declaration": "type t = {\n  name : string;\n  key : string;\n  recorded : bool;\n  placement : Yojson.Raw.t;\n  root : string Xynolog__.Types.presence;\n  repo : Yojson.Raw.t Xynolog__.Types.presence;\n  did : Yojson.Raw.t Xynolog__.Types.presence;\n  site_name : Yojson.Raw.t Xynolog__.Types.presence;\n  identity_error : string Xynolog__.Types.presence;\n  kb : Yojson.Raw.t Xynolog__.Types.presence;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  gateway : string Xynolog__.Types.presence;\n  secret_store : string Xynolog__.Types.presence;\n  lan : string Xynolog__.Types.presence;\n  starting : bool;\n  session : Yojson.Raw.t Xynolog__.Types.presence;\n  healthy : bool;\n  services : Yojson.Raw.t;\n  workload : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "name",
+        "key",
+        "recorded",
+        "placement",
+        "root",
+        "repo",
+        "did",
+        "site_name",
+        "identity_error",
+        "kb",
+        "runtime",
+        "gateway",
+        "secret_store",
+        "lan",
+        "starting",
+        "session",
+        "healthy",
+        "services",
+        "workload",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Knowledge_base_status.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Knowledge_base_status.of_model",
+      "declaration": "val of_model : [ `KnowledgeBaseStatus ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Local_target",
+      "declaration": "module Local_target :\n  sig\n    type t = {\n      kind : string;\n      root : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LocalTarget ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Local_target.t",
+      "declaration": "type t = {\n  kind : string;\n  root : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "kind",
+        "root",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Local_target.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Local_target.of_model",
+      "declaration": "val of_model : [ `LocalTarget ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Log_record",
+      "declaration": "module Log_record :\n  sig\n    type t = {\n      request_id : Yojson.Raw.t;\n      service : string;\n      stream : Yojson.Raw.t;\n      line : string;\n      received_at : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LogRecord ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Log_record.t",
+      "declaration": "type t = {\n  request_id : Yojson.Raw.t;\n  service : string;\n  stream : Yojson.Raw.t;\n  line : string;\n  received_at : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "request_id",
+        "service",
+        "stream",
+        "line",
+        "received_at",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Log_record.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Log_record.of_model",
+      "declaration": "val of_model : [ `LogRecord ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Logs_follow_params",
+      "declaration": "module Logs_follow_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t Xynolog__.Types.presence;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      service : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LogsFollowParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Logs_follow_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t Xynolog__.Types.presence;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  service : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "runtime",
+        "service",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Logs_follow_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Logs_follow_params.of_model",
+      "declaration": "val of_model : [ `LogsFollowParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Logs_follow_result",
+      "declaration": "module Logs_follow_result :\n  sig\n    type t = {\n      services : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LogsFollowResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Logs_follow_result.t",
+      "declaration": "type t = { services : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "services",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Logs_follow_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Logs_follow_result.of_model",
+      "declaration": "val of_model : [ `LogsFollowResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Progress",
+      "declaration": "module Progress :\n  sig\n    type t = {\n      request_id : Yojson.Raw.t;\n      kind : string;\n      text : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Progress ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Progress.t",
+      "declaration": "type t = {\n  request_id : Yojson.Raw.t;\n  kind : string;\n  text : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "request_id",
+        "kind",
+        "text",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Progress.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Progress.of_model",
+      "declaration": "val of_model : [ `Progress ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Root",
+      "declaration": "module Root :\n  sig\n    type t = {\n      placement : Yojson.Raw.t;\n      path : string Xynolog__.Types.presence;\n      present : bool Xynolog__.Types.presence;\n      current : string Xynolog__.Types.presence;\n      registered : bool;\n      running : bool;\n      last_used : string Xynolog__.Types.presence;\n      did : Yojson.Raw.t Xynolog__.Types.presence;\n      site_name : Yojson.Raw.t Xynolog__.Types.presence;\n      identity_error : string Xynolog__.Types.presence;\n      config : string Xynolog__.Types.presence;\n      configs : Yojson.Raw.t Xynolog__.Types.presence;\n      repo : Yojson.Raw.t Xynolog__.Types.presence;\n      codespace : string Xynolog__.Types.presence;\n      codespace_state : string Xynolog__.Types.presence;\n      forward_port : Yojson.Raw.t Xynolog__.Types.presence;\n      forwarded : bool Xynolog__.Types.presence;\n      reachable : bool Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Root ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Root.t",
+      "declaration": "type t = {\n  placement : Yojson.Raw.t;\n  path : string Xynolog__.Types.presence;\n  present : bool Xynolog__.Types.presence;\n  current : string Xynolog__.Types.presence;\n  registered : bool;\n  running : bool;\n  last_used : string Xynolog__.Types.presence;\n  did : Yojson.Raw.t Xynolog__.Types.presence;\n  site_name : Yojson.Raw.t Xynolog__.Types.presence;\n  identity_error : string Xynolog__.Types.presence;\n  config : string Xynolog__.Types.presence;\n  configs : Yojson.Raw.t Xynolog__.Types.presence;\n  repo : Yojson.Raw.t Xynolog__.Types.presence;\n  codespace : string Xynolog__.Types.presence;\n  codespace_state : string Xynolog__.Types.presence;\n  forward_port : Yojson.Raw.t Xynolog__.Types.presence;\n  forwarded : bool Xynolog__.Types.presence;\n  reachable : bool Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "placement",
+        "path",
+        "present",
+        "current",
+        "registered",
+        "running",
+        "last_used",
+        "did",
+        "site_name",
+        "identity_error",
+        "config",
+        "configs",
+        "repo",
+        "codespace",
+        "codespace_state",
+        "forward_port",
+        "forwarded",
+        "reachable",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Root.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Root.of_model",
+      "declaration": "val of_model : [ `Root ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Roots_forget_params",
+      "declaration": "module Roots_forget_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      root : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsForgetParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Roots_forget_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  root : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "root",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_forget_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_forget_params.of_model",
+      "declaration": "val of_model : [ `RootsForgetParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Roots_forget_result",
+      "declaration": "module Roots_forget_result :\n  sig\n    type t = {\n      path : string;\n      directory_missing : bool;\n      persistent_state : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsForgetResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Roots_forget_result.t",
+      "declaration": "type t = {\n  path : string;\n  directory_missing : bool;\n  persistent_state : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "path",
+        "directory_missing",
+        "persistent_state",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_forget_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_forget_result.of_model",
+      "declaration": "val of_model : [ `RootsForgetResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Roots_init_params",
+      "declaration": "module Roots_init_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      path : string;\n      domain : string;\n      name : string Xynolog__.Types.presence;\n      site_name : string Xynolog__.Types.presence;\n      inference : string Xynolog__.Types.presence;\n      model : string Xynolog__.Types.presence;\n      model_light : string Xynolog__.Types.presence;\n      embedding : string Xynolog__.Types.presence;\n      config_name : string Xynolog__.Types.presence;\n      anthropic_endpoint : string Xynolog__.Types.presence;\n      ollama_base : string Xynolog__.Types.presence;\n      ollama_registry : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsInitParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Roots_init_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  path : string;\n  domain : string;\n  name : string Xynolog__.Types.presence;\n  site_name : string Xynolog__.Types.presence;\n  inference : string Xynolog__.Types.presence;\n  model : string Xynolog__.Types.presence;\n  model_light : string Xynolog__.Types.presence;\n  embedding : string Xynolog__.Types.presence;\n  config_name : string Xynolog__.Types.presence;\n  anthropic_endpoint : string Xynolog__.Types.presence;\n  ollama_base : string Xynolog__.Types.presence;\n  ollama_registry : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "path",
+        "domain",
+        "name",
+        "site_name",
+        "inference",
+        "model",
+        "model_light",
+        "embedding",
+        "config_name",
+        "anthropic_endpoint",
+        "ollama_base",
+        "ollama_registry",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_init_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_init_params.of_model",
+      "declaration": "val of_model : [ `RootsInitParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Roots_init_result",
+      "declaration": "module Roots_init_result :\n  sig\n    type t = { path : string; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsInitResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Roots_init_result.t",
+      "declaration": "type t = { path : string; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "path",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_init_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_init_result.of_model",
+      "declaration": "val of_model : [ `RootsInitResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Roots_list_params",
+      "declaration": "module Roots_list_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsListParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Roots_list_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_list_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_list_params.of_model",
+      "declaration": "val of_model : [ `RootsListParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Roots_list_result",
+      "declaration": "module Roots_list_result :\n  sig\n    type t = {\n      roots : Yojson.Raw.t;\n      warnings : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsListResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Roots_list_result.t",
+      "declaration": "type t = {\n  roots : Yojson.Raw.t;\n  warnings : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "roots",
+        "warnings",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_list_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Roots_list_result.of_model",
+      "declaration": "val of_model : [ `RootsListResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Runtime_state",
+      "declaration": "module Runtime_state :\n  sig\n    type t = {\n      name : Yojson.Raw.t;\n      found : bool;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RuntimeState ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Runtime_state.t",
+      "declaration": "type t = {\n  name : Yojson.Raw.t;\n  found : bool;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "name",
+        "found",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Runtime_state.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Runtime_state.of_model",
+      "declaration": "val of_model : [ `RuntimeState ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Service_host_params",
+      "declaration": "module Service_host_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceHostParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Service_host_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "runtime",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_host_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_host_params.of_model",
+      "declaration": "val of_model : [ `ServiceHostParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Service_host_result",
+      "declaration": "module Service_host_result :\n  sig\n    type t = {\n      runtime : Yojson.Raw.t;\n      address : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceHostResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Service_host_result.t",
+      "declaration": "type t = {\n  runtime : Yojson.Raw.t;\n  address : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "runtime",
+        "address",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_host_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_host_result.of_model",
+      "declaration": "val of_model : [ `ServiceHostResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Service_output",
+      "declaration": "module Service_output :\n  sig\n    type t = {\n      request_id : Yojson.Raw.t;\n      instance : Yojson.Raw.t;\n      stream : Yojson.Raw.t;\n      line : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceOutput ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Service_output.t",
+      "declaration": "type t = {\n  request_id : Yojson.Raw.t;\n  instance : Yojson.Raw.t;\n  stream : Yojson.Raw.t;\n  line : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "request_id",
+        "instance",
+        "stream",
+        "line",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_output.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_output.of_model",
+      "declaration": "val of_model : [ `ServiceOutput ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Service_run_params",
+      "declaration": "module Service_run_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      service : Yojson.Raw.t;\n      instance : Yojson.Raw.t;\n      document : string Xynolog__.Types.presence;\n      args : Yojson.Raw.t Xynolog__.Types.presence;\n      environment : Yojson.Raw.t;\n      mounts : Yojson.Raw.t;\n      path_first : Yojson.Raw.t;\n      ports : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceRunParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Service_run_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  service : Yojson.Raw.t;\n  instance : Yojson.Raw.t;\n  document : string Xynolog__.Types.presence;\n  args : Yojson.Raw.t Xynolog__.Types.presence;\n  environment : Yojson.Raw.t;\n  mounts : Yojson.Raw.t;\n  path_first : Yojson.Raw.t;\n  ports : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "runtime",
+        "service",
+        "instance",
+        "document",
+        "args",
+        "environment",
+        "mounts",
+        "path_first",
+        "ports",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_run_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_run_params.of_model",
+      "declaration": "val of_model : [ `ServiceRunParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Service_run_result",
+      "declaration": "module Service_run_result :\n  sig\n    type t = {\n      instance : Yojson.Raw.t;\n      exit_code : Yojson.Raw.t;\n      ran_ms : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceRunResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Service_run_result.t",
+      "declaration": "type t = {\n  instance : Yojson.Raw.t;\n  exit_code : Yojson.Raw.t;\n  ran_ms : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "instance",
+        "exit_code",
+        "ran_ms",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_run_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_run_result.of_model",
+      "declaration": "val of_model : [ `ServiceRunResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Service_signal_params",
+      "declaration": "module Service_signal_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      instance : Yojson.Raw.t;\n      signal : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceSignalParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Service_signal_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  instance : Yojson.Raw.t;\n  signal : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "runtime",
+        "instance",
+        "signal",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_signal_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_signal_params.of_model",
+      "declaration": "val of_model : [ `ServiceSignalParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Service_signal_result",
+      "declaration": "module Service_signal_result :\n  sig\n    type t = { delivered : bool; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceSignalResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Service_signal_result.t",
+      "declaration": "type t = { delivered : bool; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "delivered",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_signal_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_signal_result.of_model",
+      "declaration": "val of_model : [ `ServiceSignalResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Service_started",
+      "declaration": "module Service_started :\n  sig\n    type t = {\n      request_id : Yojson.Raw.t;\n      instance : Yojson.Raw.t;\n      container : string;\n      document_path : string Xynolog__.Types.presence;\n      address : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceStarted ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Service_started.t",
+      "declaration": "type t = {\n  request_id : Yojson.Raw.t;\n  instance : Yojson.Raw.t;\n  container : string;\n  document_path : string Xynolog__.Types.presence;\n  address : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "request_id",
+        "instance",
+        "container",
+        "document_path",
+        "address",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_started.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_started.of_model",
+      "declaration": "val of_model : [ `ServiceStarted ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Service_status",
+      "declaration": "module Service_status :\n  sig\n    type t = {\n      role : string;\n      group : Yojson.Raw.t;\n      product : string Xynolog__.Types.presence;\n      runs_on : string Xynolog__.Types.presence;\n      state : string;\n      container_state : string Xynolog__.Types.presence;\n      healthy : bool;\n      counted : bool;\n      probe : string Xynolog__.Types.presence;\n      page : string Xynolog__.Types.presence;\n      realm : string Xynolog__.Types.presence;\n      serves : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceStatus ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Service_status.t",
+      "declaration": "type t = {\n  role : string;\n  group : Yojson.Raw.t;\n  product : string Xynolog__.Types.presence;\n  runs_on : string Xynolog__.Types.presence;\n  state : string;\n  container_state : string Xynolog__.Types.presence;\n  healthy : bool;\n  counted : bool;\n  probe : string Xynolog__.Types.presence;\n  page : string Xynolog__.Types.presence;\n  realm : string Xynolog__.Types.presence;\n  serves : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "role",
+        "group",
+        "product",
+        "runs_on",
+        "state",
+        "container_state",
+        "healthy",
+        "counted",
+        "probe",
+        "page",
+        "realm",
+        "serves",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_status.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Service_status.of_model",
+      "declaration": "val of_model : [ `ServiceStatus ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Session",
+      "declaration": "module Session :\n  sig\n    type t = {\n      state : string;\n      email : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Session ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Session.t",
+      "declaration": "type t = {\n  state : string;\n  email : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "state",
+        "email",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Session.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Session.of_model",
+      "declaration": "val of_model : [ `Session ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Setting",
+      "declaration": "module Setting :\n  sig\n    type t = {\n      name : string;\n      default : bool;\n      applies_to : string;\n      values : Yojson.Raw.t;\n      settable : bool;\n      changed_by : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Setting ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Setting.t",
+      "declaration": "type t = {\n  name : string;\n  default : bool;\n  applies_to : string;\n  values : Yojson.Raw.t;\n  settable : bool;\n  changed_by : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "name",
+        "default",
+        "applies_to",
+        "values",
+        "settable",
+        "changed_by",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Setting.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Setting.of_model",
+      "declaration": "val of_model : [ `Setting ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Setting_line",
+      "declaration": "module Setting_line :\n  sig\n    type t = {\n      value : string;\n      source : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingLine ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Setting_line.t",
+      "declaration": "type t = {\n  value : string;\n  source : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "value",
+        "source",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Setting_line.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Setting_line.of_model",
+      "declaration": "val of_model : [ `SettingLine ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Settings_get_params",
+      "declaration": "module Settings_get_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      name : string;\n      default : bool Xynolog__.Types.presence;\n      root : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsGetParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Settings_get_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  name : string;\n  default : bool Xynolog__.Types.presence;\n  root : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "name",
+        "default",
+        "root",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_get_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_get_params.of_model",
+      "declaration": "val of_model : [ `SettingsGetParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Settings_list_params",
+      "declaration": "module Settings_list_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      root : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsListParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Settings_list_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  root : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "root",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_list_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_list_params.of_model",
+      "declaration": "val of_model : [ `SettingsListParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Settings_list_result",
+      "declaration": "module Settings_list_result :\n  sig\n    type t = {\n      root : string Xynolog__.Types.presence;\n      unresolved : string Xynolog__.Types.presence;\n      settings : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsListResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Settings_list_result.t",
+      "declaration": "type t = {\n  root : string Xynolog__.Types.presence;\n  unresolved : string Xynolog__.Types.presence;\n  settings : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "root",
+        "unresolved",
+        "settings",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_list_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_list_result.of_model",
+      "declaration": "val of_model : [ `SettingsListResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Settings_path_params",
+      "declaration": "module Settings_path_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      document : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsPathParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Settings_path_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  document : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "document",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_path_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_path_params.of_model",
+      "declaration": "val of_model : [ `SettingsPathParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Settings_path_result",
+      "declaration": "module Settings_path_result :\n  sig\n    type t = { path : string; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsPathResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Settings_path_result.t",
+      "declaration": "type t = { path : string; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "path",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_path_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_path_result.of_model",
+      "declaration": "val of_model : [ `SettingsPathResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Settings_set_params",
+      "declaration": "module Settings_set_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      name : string;\n      default : bool Xynolog__.Types.presence;\n      root : string Xynolog__.Types.presence;\n      value : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsSetParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Settings_set_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  name : string;\n  default : bool Xynolog__.Types.presence;\n  root : string Xynolog__.Types.presence;\n  value : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "name",
+        "default",
+        "root",
+        "value",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_set_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_set_params.of_model",
+      "declaration": "val of_model : [ `SettingsSetParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Settings_unset_params",
+      "declaration": "module Settings_unset_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      name : string;\n      default : bool Xynolog__.Types.presence;\n      root : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsUnsetParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Settings_unset_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  name : string;\n  default : bool Xynolog__.Types.presence;\n  root : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "name",
+        "default",
+        "root",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_unset_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Settings_unset_params.of_model",
+      "declaration": "val of_model : [ `SettingsUnsetParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Stack_start_params",
+      "declaration": "module Stack_start_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t Xynolog__.Types.presence;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      config : string Xynolog__.Types.presence;\n      service : string Xynolog__.Types.presence;\n      group : Yojson.Raw.t Xynolog__.Types.presence;\n      codespace_name : string Xynolog__.Types.presence;\n      machine : string Xynolog__.Types.presence;\n      idle_timeout : string Xynolog__.Types.presence;\n      retention_period : string Xynolog__.Types.presence;\n      observe : bool Xynolog__.Types.presence;\n      ollama_cache : string Xynolog__.Types.presence;\n      dry_run : bool Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackStartParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Stack_start_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t Xynolog__.Types.presence;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  config : string Xynolog__.Types.presence;\n  service : string Xynolog__.Types.presence;\n  group : Yojson.Raw.t Xynolog__.Types.presence;\n  codespace_name : string Xynolog__.Types.presence;\n  machine : string Xynolog__.Types.presence;\n  idle_timeout : string Xynolog__.Types.presence;\n  retention_period : string Xynolog__.Types.presence;\n  observe : bool Xynolog__.Types.presence;\n  ollama_cache : string Xynolog__.Types.presence;\n  dry_run : bool Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "runtime",
+        "config",
+        "service",
+        "group",
+        "codespace_name",
+        "machine",
+        "idle_timeout",
+        "retention_period",
+        "observe",
+        "ollama_cache",
+        "dry_run",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_start_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_start_params.of_model",
+      "declaration": "val of_model : [ `StackStartParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Stack_start_result",
+      "declaration": "module Stack_start_result :\n  sig\n    type t = {\n      dry_run : bool;\n      knowledge_base : Yojson.Raw.t Xynolog__.Types.presence;\n      shared : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackStartResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Stack_start_result.t",
+      "declaration": "type t = {\n  dry_run : bool;\n  knowledge_base : Yojson.Raw.t Xynolog__.Types.presence;\n  shared : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "dry_run",
+        "knowledge_base",
+        "shared",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_start_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_start_result.of_model",
+      "declaration": "val of_model : [ `StackStartResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Stack_stop_params",
+      "declaration": "module Stack_stop_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t Xynolog__.Types.presence;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      service : string Xynolog__.Types.presence;\n      group : Yojson.Raw.t Xynolog__.Types.presence;\n      delete : bool Xynolog__.Types.presence;\n      delete_confirmed : bool Xynolog__.Types.presence;\n      dry_run : bool Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackStopParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Stack_stop_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t Xynolog__.Types.presence;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  service : string Xynolog__.Types.presence;\n  group : Yojson.Raw.t Xynolog__.Types.presence;\n  delete : bool Xynolog__.Types.presence;\n  delete_confirmed : bool Xynolog__.Types.presence;\n  dry_run : bool Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "runtime",
+        "service",
+        "group",
+        "delete",
+        "delete_confirmed",
+        "dry_run",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_stop_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_stop_params.of_model",
+      "declaration": "val of_model : [ `StackStopParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Stack_stop_result",
+      "declaration": "module Stack_stop_result :\n  sig\n    type t = {\n      dry_run : bool;\n      knowledge_bases : Yojson.Raw.t Xynolog__.Types.presence;\n      shared : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackStopResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Stack_stop_result.t",
+      "declaration": "type t = {\n  dry_run : bool;\n  knowledge_bases : Yojson.Raw.t Xynolog__.Types.presence;\n  shared : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "dry_run",
+        "knowledge_bases",
+        "shared",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_stop_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_stop_result.of_model",
+      "declaration": "val of_model : [ `StackStopResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Status_snapshot_params",
+      "declaration": "module Status_snapshot_params :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      target : Yojson.Raw.t Xynolog__.Types.presence;\n      runtime : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StatusSnapshotParams ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Status_snapshot_params.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  target : Yojson.Raw.t Xynolog__.Types.presence;\n  runtime : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "target",
+        "runtime",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Status_snapshot_params.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Status_snapshot_params.of_model",
+      "declaration": "val of_model : [ `StatusSnapshotParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Status_snapshot_result",
+      "declaration": "module Status_snapshot_result :\n  sig\n    type t = {\n      knowledge_bases : Yojson.Raw.t;\n      shared : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StatusSnapshotResult ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Status_snapshot_result.t",
+      "declaration": "type t = {\n  knowledge_bases : Yojson.Raw.t;\n  shared : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "knowledge_bases",
+        "shared",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Status_snapshot_result.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Status_snapshot_result.of_model",
+      "declaration": "val of_model : [ `StatusSnapshotResult ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Target",
+      "declaration": "module Target :\n  sig\n    type t = {\n      kind : string;\n      root : string Xynolog__.Types.presence;\n      repo : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Target ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Target.t",
+      "declaration": "type t = {\n  kind : string;\n  root : string Xynolog__.Types.presence;\n  repo : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "kind",
+        "root",
+        "repo",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Target.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Target.of_model",
+      "declaration": "val of_model : [ `Target ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.User_action",
+      "declaration": "module User_action :\n  sig\n    type t = {\n      request_id : Yojson.Raw.t;\n      verification_uri : string;\n      verification_uri_complete : string Xynolog__.Types.presence;\n      user_code : string;\n      expires_in_seconds : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `UserAction ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.User_action.t",
+      "declaration": "type t = {\n  request_id : Yojson.Raw.t;\n  verification_uri : string;\n  verification_uri_complete : string Xynolog__.Types.presence;\n  user_code : string;\n  expires_in_seconds : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "request_id",
+        "verification_uri",
+        "verification_uri_complete",
+        "user_code",
+        "expires_in_seconds",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.User_action.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.User_action.of_model",
+      "declaration": "val of_model : [ `UserAction ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Workload_status",
+      "declaration": "module Workload_status :\n  sig\n    type t = {\n      ledger : Yojson.Raw.t Xynolog__.Types.presence;\n      queue : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `WorkloadStatus ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Workload_status.t",
+      "declaration": "type t = {\n  ledger : Yojson.Raw.t Xynolog__.Types.presence;\n  queue : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "ledger",
+        "queue",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Workload_status.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Workload_status.of_model",
+      "declaration": "val of_model : [ `WorkloadStatus ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Dispatcher_config",
       "declaration": "module Dispatcher_config :\n  sig\n    type t = {\n      kb : Yojson.Raw.t;\n      gateway_url : string;\n      identity : Yojson.Raw.t;\n      queue : Yojson.Raw.t;\n      port : Yojson.Raw.t;\n      timing : Yojson.Raw.t;\n      log_level : Yojson.Raw.t;\n      log_format : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `DispatcherConfig ] Xynolog__.Models.t -> t\n  end"
     },
@@ -12644,6 +14826,34 @@
       "kind": "value",
       "path": "Xynolog.Records.Voyage_embedding_config.of_model",
       "declaration": "val of_model : [ `VoyageEmbeddingConfig ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Follower_following",
+      "declaration": "module Follower_following :\n  sig\n    type t = {\n      sweep : string;\n      stopped : Yojson.Raw.t;\n      refused : Yojson.Raw.t;\n      stream_drops : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `FollowerFollowing ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Follower_following.t",
+      "declaration": "type t = {\n  sweep : string;\n  stopped : Yojson.Raw.t;\n  refused : Yojson.Raw.t;\n  stream_drops : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "sweep",
+        "stopped",
+        "refused",
+        "stream_drops",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Follower_following.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Follower_following.of_model",
+      "declaration": "val of_model : [ `FollowerFollowing ] Xynolog__.Models.t -> t"
     },
     {
       "kind": "module",
@@ -12788,6 +14998,33 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Project_config",
+      "declaration": "module Project_config :\n  sig\n    type t = {\n      project : Yojson.Raw.t;\n      git : Yojson.Raw.t;\n      site : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ProjectConfig ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Project_config.t",
+      "declaration": "type t = {\n  project : Yojson.Raw.t;\n  git : Yojson.Raw.t;\n  site : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "project",
+        "git",
+        "site",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Project_config.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Project_config.of_model",
+      "declaration": "val of_model : [ `ProjectConfig ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Librarian_config",
       "declaration": "module Librarian_config :\n  sig\n    type t = {\n      kb : Yojson.Raw.t;\n      gateway_url : string;\n      identity : Yojson.Raw.t;\n      archivist : Yojson.Raw.t;\n      graph : Yojson.Raw.t;\n      vectors : Yojson.Raw.t;\n      embedding : Yojson.Raw.t;\n      matcher : Yojson.Raw.t;\n      gatherer : Yojson.Raw.t;\n      model_catalogue : string;\n      gather : Yojson.Raw.t;\n      search : Yojson.Raw.t;\n      port : Yojson.Raw.t;\n      log_level : Yojson.Raw.t;\n      log_format : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LibrarianConfig ] Xynolog__.Models.t -> t\n  end"
     },
@@ -12878,6 +15115,89 @@
       "kind": "value",
       "path": "Xynolog.Records.Librarian_health.of_model",
       "declaration": "val of_model : [ `LibrarianHealth ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Librarian_prompt_score",
+      "declaration": "module Librarian_prompt_score :\n  sig\n    type t = {\n      candidate : Yojson.Raw.t;\n      score : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LibrarianPromptScore ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Librarian_prompt_score.t",
+      "declaration": "type t = {\n  candidate : Yojson.Raw.t;\n  score : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "candidate",
+        "score",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Librarian_prompt_score.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Librarian_prompt_score.of_model",
+      "declaration": "val of_model : [ `LibrarianPromptScore ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_secret_form",
+      "declaration": "module Client_secret_form :\n  sig\n    type t = {\n      grant_type : string;\n      client_id : string;\n      client_secret : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ClientSecretForm ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_secret_form.t",
+      "declaration": "type t = {\n  grant_type : string;\n  client_id : string;\n  client_secret : string;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "grant_type",
+        "client_id",
+        "client_secret",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_secret_form.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_secret_form.of_model",
+      "declaration": "val of_model : [ `ClientSecretForm ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Open_resource",
+      "declaration": "module Open_resource :\n  sig\n    type t = {\n      id : Yojson.Raw.t;\n      name : string;\n      opened_at : Yojson.Raw.t;\n      order : Yojson.Raw.t;\n      media_type : string Xynolog__.Types.presence;\n      storage_uri : string Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `OpenResource ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Open_resource.t",
+      "declaration": "type t = {\n  id : Yojson.Raw.t;\n  name : string;\n  opened_at : Yojson.Raw.t;\n  order : Yojson.Raw.t;\n  media_type : string Xynolog__.Types.presence;\n  storage_uri : string Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "id",
+        "name",
+        "opened_at",
+        "order",
+        "media_type",
+        "storage_uri",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Open_resource.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Open_resource.of_model",
+      "declaration": "val of_model : [ `OpenResource ] Xynolog__.Models.t -> t"
     },
     {
       "kind": "module",
@@ -13007,6 +15327,332 @@
       "kind": "value",
       "path": "Xynolog.Records.Smelter_reconcile_summary.of_model",
       "declaration": "val of_model : [ `SmelterReconcileSummary ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Browser",
+      "declaration": "module Browser :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      kind : string;\n      metadata : Yojson.Raw.t;\n      spec : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Browser ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Browser.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  kind : string;\n  metadata : Yojson.Raw.t;\n  spec : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "kind",
+        "metadata",
+        "spec",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Browser.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Browser.of_model",
+      "declaration": "val of_model : [ `Browser ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Host_port",
+      "declaration": "module Host_port :\n  sig\n    type t = {\n      host : string;\n      port : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `HostPort ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Host_port.t",
+      "declaration": "type t = {\n  host : string;\n  port : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "host",
+        "port",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Host_port.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Host_port.of_model",
+      "declaration": "val of_model : [ `HostPort ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Inference",
+      "declaration": "module Inference :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      kind : string;\n      metadata : Yojson.Raw.t;\n      spec : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Inference ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Inference.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  kind : string;\n  metadata : Yojson.Raw.t;\n  spec : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "kind",
+        "metadata",
+        "spec",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Inference.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Inference.of_model",
+      "declaration": "val of_model : [ `Inference ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Issuer",
+      "declaration": "module Issuer :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      kind : string;\n      metadata : Yojson.Raw.t;\n      spec : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Issuer ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Issuer.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  kind : string;\n  metadata : Yojson.Raw.t;\n  spec : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "kind",
+        "metadata",
+        "spec",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Issuer.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Issuer.of_model",
+      "declaration": "val of_model : [ `Issuer ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Knowledge_index",
+      "declaration": "module Knowledge_index :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      kind : string;\n      metadata : Yojson.Raw.t;\n      spec : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `KnowledgeIndex ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Knowledge_index.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  kind : string;\n  metadata : Yojson.Raw.t;\n  spec : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "kind",
+        "metadata",
+        "spec",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Knowledge_index.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Knowledge_index.of_model",
+      "declaration": "val of_model : [ `KnowledgeIndex ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Metadata",
+      "declaration": "module Metadata :\n  sig\n    type t = {\n      name : string;\n      namespace : string Xynolog__.Types.presence;\n      labels : Yojson.Raw.t Xynolog__.Types.presence;\n      annotations : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Metadata ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Metadata.t",
+      "declaration": "type t = {\n  name : string;\n  namespace : string Xynolog__.Types.presence;\n  labels : Yojson.Raw.t Xynolog__.Types.presence;\n  annotations : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "name",
+        "namespace",
+        "labels",
+        "annotations",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Metadata.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Metadata.of_model",
+      "declaration": "val of_model : [ `Metadata ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Provider",
+      "declaration": "module Provider :\n  sig\n    type t = {\n      base_url : string Xynolog__.Types.presence;\n      api_key : Yojson.Raw.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Provider ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Provider.t",
+      "declaration": "type t = {\n  base_url : string Xynolog__.Types.presence;\n  api_key : Yojson.Raw.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "base_url",
+        "api_key",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Provider.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Provider.of_model",
+      "declaration": "val of_model : [ `Provider ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Resources",
+      "declaration": "module Resources :\n  sig\n    type t = { limits : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Resources ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Resources.t",
+      "declaration": "type t = { limits : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "limits",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Resources.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Resources.of_model",
+      "declaration": "val of_model : [ `Resources ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Secret_ref",
+      "declaration": "module Secret_ref :\n  sig\n    type t = { from_env : string; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SecretRef ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Secret_ref.t",
+      "declaration": "type t = { from_env : string; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "from_env",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Secret_ref.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Secret_ref.of_model",
+      "declaration": "val of_model : [ `SecretRef ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Stack_knowledge_base",
+      "declaration": "module Stack_knowledge_base :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      kind : string;\n      metadata : Yojson.Raw.t;\n      spec : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackKnowledgeBase ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Stack_knowledge_base.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  kind : string;\n  metadata : Yojson.Raw.t;\n  spec : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "kind",
+        "metadata",
+        "spec",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_knowledge_base.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_knowledge_base.of_model",
+      "declaration": "val of_model : [ `StackKnowledgeBase ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Vector_store",
+      "declaration": "module Vector_store :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      kind : string;\n      metadata : Yojson.Raw.t;\n      spec : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `VectorStore ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Vector_store.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  kind : string;\n  metadata : Yojson.Raw.t;\n  spec : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "kind",
+        "metadata",
+        "spec",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Vector_store.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Vector_store.of_model",
+      "declaration": "val of_model : [ `VectorStore ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Worker_pool",
+      "declaration": "module Worker_pool :\n  sig\n    type t = {\n      api_version : Yojson.Raw.t;\n      kind : string;\n      metadata : Yojson.Raw.t;\n      spec : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `WorkerPool ] Xynolog__.Models.t -> t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Worker_pool.t",
+      "declaration": "type t = {\n  api_version : Yojson.Raw.t;\n  kind : string;\n  metadata : Yojson.Raw.t;\n  spec : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "api_version",
+        "kind",
+        "metadata",
+        "spec",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Worker_pool.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Worker_pool.of_model",
+      "declaration": "val of_model : [ `WorkerPool ] Xynolog__.Models.t -> t"
     },
     {
       "kind": "module",
@@ -21985,17 +24631,6 @@
       ]
     },
     {
-      "kind": "type",
-      "path": "Xynolog.Retry.budget",
-      "declaration": "type budget = { attempts : int; initial_delay_ms : int; max_delay_ms : int; }",
-      "representation": "record",
-      "fields": [
-        "attempts",
-        "initial_delay_ms",
-        "max_delay_ms"
-      ]
-    },
-    {
       "kind": "value",
       "path": "Xynolog.Retry.retryable",
       "declaration": "val retryable :\n  rule -> ?status:int -> ?meth:string -> ?keyed:bool -> unit -> bool"
@@ -22013,7 +24648,229 @@
     {
       "kind": "value",
       "path": "Xynolog.Retry.retry_with_backoff",
-      "declaration": "val retry_with_backoff :\n  clock:Xynolog__.Clock.t ->\n  budget:budget ->\n  accepts:('error -> bool) ->\n  retry_after:('error -> int option) ->\n  (unit -> ('value, 'error) result) -> ('value, 'error) result"
+      "declaration": "val retry_with_backoff :\n  clock:Xynolog__.Clock.t ->\n  budget:Xynolog__.Client_timing.retry ->\n  accepts:('error -> bool) ->\n  retry_after:('error -> int option) ->\n  (unit -> ('value, 'error) result) -> ('value, 'error) result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Client_timing",
+      "declaration": "module Client_timing = Xynolog__.Client_timing",
+      "alias": "Xynolog__.Client_timing"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Client_timing.retry",
+      "declaration": "type retry = { attempts : int; initial_delay_ms : int; max_delay_ms : int; }",
+      "representation": "record",
+      "fields": [
+        "attempts",
+        "initial_delay_ms",
+        "max_delay_ms"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.bus_request_timeout_ms",
+      "declaration": "val bus_request_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.emit_timeout_ms",
+      "declaration": "val emit_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.emit_retry",
+      "declaration": "val emit_retry : retry"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.http_request_timeout_ms",
+      "declaration": "val http_request_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.request_retry_pause_ms",
+      "declaration": "val request_retry_pause_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.stream_open_timeout_ms",
+      "declaration": "val stream_open_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.reconnect_ms",
+      "declaration": "val reconnect_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.max_reconnect_ms",
+      "declaration": "val max_reconnect_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.degraded_threshold_ms",
+      "declaration": "val degraded_threshold_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.linger_ms",
+      "declaration": "val linger_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.seen_event_ids_count",
+      "declaration": "val seen_event_ids_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.reconnect_debounce_ms",
+      "declaration": "val reconnect_debounce_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.lazy_remove_ms",
+      "declaration": "val lazy_remove_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.refresh_retry",
+      "declaration": "val refresh_retry : retry"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.refresh_before_exp_ms",
+      "declaration": "val refresh_before_exp_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.min_refresh_delay_ms",
+      "declaration": "val min_refresh_delay_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.device_poll_ms",
+      "declaration": "val device_poll_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.device_slow_down_ms",
+      "declaration": "val device_slow_down_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.device_poll_floor_ms",
+      "declaration": "val device_poll_floor_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.invalidation_window_ms",
+      "declaration": "val invalidation_window_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.save_debounce_ms",
+      "declaration": "val save_debounce_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.max_stored_bytes_count",
+      "declaration": "val max_stored_bytes_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.errors_kept_for_first_reader_count",
+      "declaration": "val errors_kept_for_first_reader_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_silence_ms",
+      "declaration": "val job_silence_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_status_poll_ms",
+      "declaration": "val job_status_poll_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_poll_ms",
+      "declaration": "val job_poll_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_poll_timeout_ms",
+      "declaration": "val job_poll_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.generation_stall_floor_ms",
+      "declaration": "val generation_stall_floor_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.generation_stall_per_token_ms",
+      "declaration": "val generation_stall_per_token_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.generation_stall_assumed_tokens_count",
+      "declaration": "val generation_stall_assumed_tokens_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.delegate_silence_ms",
+      "declaration": "val delegate_silence_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.job_claim_timeout_ms",
+      "declaration": "val job_claim_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.held_job_stall_ms",
+      "declaration": "val held_job_stall_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.held_job_stall_check_ms",
+      "declaration": "val held_job_stall_check_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.mark_commit_timeout_ms",
+      "declaration": "val mark_commit_timeout_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.generated_text_asks_count",
+      "declaration": "val generated_text_asks_count : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.anchored_text_reask_ms",
+      "declaration": "val anchored_text_reask_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.hover_delay_ms",
+      "declaration": "val hover_delay_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.search_debounce_ms",
+      "declaration": "val search_debounce_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.discovery_interval_ms",
+      "declaration": "val discovery_interval_ms : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.checks_at_once_count",
+      "declaration": "val checks_at_once_count : int"
     },
     {
       "kind": "module",

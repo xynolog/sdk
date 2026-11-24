@@ -86,7 +86,7 @@ func (c KeyCredential) GrantForm(tokenEndpoint string) (url.Values, error) {
 	if err != nil {
 		return nil, err
 	}
-	return url.Values{"grant_type": {"client_credentials"}, "client_assertion_type": {JWTBearer}, "client_assertion": {assertion}}, nil
+	return url.Values{"grant_type": {string(api.ClientSecretFormGrantTypeClientCredentials)}, "client_assertion_type": {JWTBearer}, "client_assertion": {assertion}}, nil
 }
 
 func (c SecretCredential) account() (string, string) { return c.Issuer, c.ClientID }

@@ -24,6 +24,7 @@ public sealed interface ResourceDescriptorContextItem {
 internal object ResourceDescriptorContextItemSerializer : KindsUnionSerializer<ResourceDescriptorContextItem>(
     ResourceDescriptorContextItem::class,
     strings = { listOf(ResourceDescriptorContextItem.Text.serializer()) },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(ResourceDescriptorContextItem.Object.serializer()) },
 )

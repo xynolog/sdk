@@ -2,6 +2,67 @@
 // Regenerate: make generate (codegen/lib/swift_sdk/swift_sdk.ml)
 import Foundation
 
+public struct AboutParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public init(apiVersion: ApiVersion) {
+    self.apiVersion = apiVersion
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion"], in: "AboutParams")
+    self.apiVersion = try c.value("apiVersion")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+  }
+}
+
+public struct AboutResult: Codable, Sendable {
+  public var apiVersions: [String]
+  public var built: String?
+  public var commit: String?
+  public var development: Bool
+  public var imageRegistry: String
+  public var runtimes: [RuntimeState]
+  public var version: String?
+  public init(
+    apiVersions: [String], built: String? = nil, commit: String? = nil, development: Bool,
+    imageRegistry: String, runtimes: [RuntimeState], version: String? = nil
+  ) {
+    self.apiVersions = apiVersions
+    self.built = built
+    self.commit = commit
+    self.development = development
+    self.imageRegistry = imageRegistry
+    self.runtimes = runtimes
+    self.version = version
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["apiVersions", "built", "commit", "development", "imageRegistry", "runtimes", "version"],
+      in: "AboutResult")
+    self.apiVersions = try c.value("apiVersions")
+    self.built = try c.ifPresent("built")
+    self.commit = try c.ifPresent("commit")
+    self.development = try c.value("development")
+    self.imageRegistry = try c.value("imageRegistry")
+    self.runtimes = try c.value("runtimes")
+    self.version = try c.ifPresent("version")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersions, as: "apiVersions")
+    try c.encodeIfPresent(self.built, as: "built")
+    try c.encodeIfPresent(self.commit, as: "commit")
+    try c.encode(self.development, as: "development")
+    try c.encode(self.imageRegistry, as: "imageRegistry")
+    try c.encode(self.runtimes, as: "runtimes")
+    try c.encodeIfPresent(self.version, as: "version")
+  }
+}
+
 public indirect enum Agent: Codable, Sendable {
   case agentPerson(AgentPerson)
   case agentOrganization(AgentOrganization)
@@ -775,6 +836,10 @@ public enum AnnotationType: String, Codable, Sendable, CaseIterable {
   case annotation = "Annotation"
 }
 
+public enum ApiVersion: String, Codable, Sendable, CaseIterable {
+  case controlXynologOrgV1alpha1 = "control.xynolog.org/v1alpha1"
+}
+
 public struct ArchivistConfig: Codable, Sendable {
   public var anchoredTextDir: String
   public var engines: ArchivistEngines
@@ -1139,6 +1204,102 @@ public struct AttributedEvent: Codable, Sendable {
     try c.encode(self.type, as: "type")
     try c.encode(self.userId, as: "userId")
     try c.encode(self.version, as: "version")
+  }
+}
+
+public struct AuthLoginParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var runtime: Runtime?
+  public var target: Target?
+  public init(apiVersion: ApiVersion, runtime: Runtime? = nil, target: Target? = nil) {
+    self.apiVersion = apiVersion
+    self.runtime = runtime
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "runtime", "target"], in: "AuthLoginParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.runtime = try c.ifPresent("runtime")
+    self.target = try c.ifPresent("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encodeIfPresent(self.target, as: "target")
+  }
+}
+
+public struct AuthLoginResult: Codable, Sendable {
+  public var issuer: String
+  public var key: String
+  public var who: String
+  public init(issuer: String, key: String, who: String) {
+    self.issuer = issuer
+    self.key = key
+    self.who = who
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["issuer", "key", "who"], in: "AuthLoginResult")
+    self.issuer = try c.value("issuer")
+    self.key = try c.value("key")
+    self.who = try c.value("who")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.issuer, as: "issuer")
+    try c.encode(self.key, as: "key")
+    try c.encode(self.who, as: "who")
+  }
+}
+
+public struct AuthLogoutParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var runtime: Runtime?
+  public var target: Target?
+  public init(apiVersion: ApiVersion, runtime: Runtime? = nil, target: Target? = nil) {
+    self.apiVersion = apiVersion
+    self.runtime = runtime
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "runtime", "target"], in: "AuthLogoutParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.runtime = try c.ifPresent("runtime")
+    self.target = try c.ifPresent("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encodeIfPresent(self.target, as: "target")
+  }
+}
+
+public struct AuthLogoutResult: Codable, Sendable {
+  public var key: String?
+  public var revoked: Bool
+  public var wasSignedIn: Bool
+  public init(key: String? = nil, revoked: Bool, wasSignedIn: Bool) {
+    self.key = key
+    self.revoked = revoked
+    self.wasSignedIn = wasSignedIn
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["key", "revoked", "wasSignedIn"], in: "AuthLogoutResult")
+    self.key = try c.ifPresent("key")
+    self.revoked = try c.value("revoked")
+    self.wasSignedIn = try c.value("wasSignedIn")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.key, as: "key")
+    try c.encode(self.revoked, as: "revoked")
+    try c.encode(self.wasSignedIn, as: "wasSignedIn")
   }
 }
 
@@ -2125,6 +2286,62 @@ public struct BrowseTagSchemasResult: Codable, Sendable {
   }
 }
 
+public struct Browser: Codable, Sendable {
+  public var apiVersion: StackApiVersion
+  public let kind: BrowserKind
+  public var metadata: Metadata
+  public var spec: BrowserSpec
+  public init(apiVersion: StackApiVersion, metadata: Metadata, spec: BrowserSpec) {
+    self.apiVersion = apiVersion
+    self.kind = .browser
+    self.metadata = metadata
+    self.spec = spec
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "kind", "metadata", "spec"], in: "Browser")
+    self.apiVersion = try c.value("apiVersion")
+    self.kind = try c.value("kind")
+    self.metadata = try c.value("metadata")
+    self.spec = try c.value("spec")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encode(self.spec, as: "spec")
+  }
+}
+
+public enum BrowserKind: String, Codable, Sendable, CaseIterable {
+  case browser = "Browser"
+}
+
+public struct BrowserSpec: Codable, Sendable {
+  public var image: Image
+  public var port: Int
+  public var resources: Resources
+  public init(image: Image, port: Int, resources: Resources) {
+    self.image = image
+    self.port = port
+    self.resources = resources
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["image", "port", "resources"], in: "BrowserSpec")
+    self.image = try c.value("image")
+    self.port = try c.value("port")
+    self.resources = try c.value("resources")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.image, as: "image")
+    try c.encode(self.port, as: "port")
+    try c.encode(self.resources, as: "resources")
+  }
+}
+
 public struct BusEmitAccepted: Codable, Sendable {
   public var subscribers: Int?
   public init(subscribers: Int? = nil) {
@@ -2409,6 +2626,26 @@ public struct BusSubscribeRequestScopedItem: Codable, Sendable {
   }
 }
 
+public struct Cancelled: Codable, Sendable {
+  public var reason: String?
+  public var requestId: RequestId
+  public init(reason: String? = nil, requestId: RequestId) {
+    self.reason = reason
+    self.requestId = requestId
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["reason", "requestId"], in: "Cancelled")
+    self.reason = try c.ifPresent("reason")
+    self.requestId = try c.value("requestId")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.reason, as: "reason")
+    try c.encode(self.requestId, as: "requestId")
+  }
+}
+
 public struct ClaimOptions: Codable, Sendable {
   public var accepts: [JobFilter]
   public var heldJobStallCheckMs: Int?
@@ -2446,6 +2683,33 @@ public struct ClaimOptions: Codable, Sendable {
     try c.encodeIfPresent(self.jobClaimTimeoutMs, as: "jobClaimTimeoutMs")
     try c.encodeIfPresent(self.markCommitTimeoutMs, as: "markCommitTimeoutMs")
   }
+}
+
+public struct ClientSecretForm: Codable, Sendable {
+  public var clientId: String
+  public var clientSecret: String
+  public let grantType: ClientSecretFormGrantType
+  public init(clientId: String, clientSecret: String) {
+    self.clientId = clientId
+    self.clientSecret = clientSecret
+    self.grantType = .clientCredentials
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    self.clientId = try c.value("client_id")
+    self.clientSecret = try c.value("client_secret")
+    self.grantType = try c.value("grant_type")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.clientId, as: "client_id")
+    try c.encode(self.clientSecret, as: "client_secret")
+    try c.encode(self.grantType, as: "grant_type")
+  }
+}
+
+public enum ClientSecretFormGrantType: String, Codable, Sendable, CaseIterable {
+  case clientCredentials = "client_credentials"
 }
 
 public struct CloneResourceWithTokenResponse: Codable, Sendable {
@@ -2551,6 +2815,1682 @@ public enum CommentingJobParamsTone: String, Codable, Sendable, CaseIterable {
   case explanatory = "explanatory"
   case conversational = "conversational"
   case technical = "technical"
+}
+
+public struct ConformanceBusFetch: Codable, Sendable {
+  public var `as`: String
+  public var fetch: String
+  public var payload: JSONValue?
+  public init(`as`: String, fetch: String, payload: JSONValue? = nil) {
+    self.`as` = `as`
+    self.fetch = fetch
+    self.payload = payload
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["as", "fetch", "payload"], in: "ConformanceBusFetch")
+    self.`as` = try c.value("as")
+    self.fetch = try c.value("fetch")
+    self.payload = try c.ifPresent("payload")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.`as`, as: "as")
+    try c.encode(self.fetch, as: "fetch")
+    try c.encodeIfPresent(self.payload, as: "payload")
+  }
+}
+
+public struct ConformanceCase: Codable, Sendable {
+  public var about: String
+  public var planes: [ConformanceCasePlanesItem]?
+  public var source: String
+  public var steps: [ConformanceStep]
+  public var telemetry: ConformanceCaseTelemetry?
+  public var tier: ConformanceCaseTier?
+  public init(
+    about: String, planes: [ConformanceCasePlanesItem]? = nil, source: String,
+    steps: [ConformanceStep], telemetry: ConformanceCaseTelemetry? = nil,
+    tier: ConformanceCaseTier? = nil
+  ) {
+    self.about = about
+    self.planes = planes
+    self.source = source
+    self.steps = steps
+    self.telemetry = telemetry
+    self.tier = tier
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["about", "planes", "source", "steps", "telemetry", "tier"], in: "ConformanceCase")
+    self.about = try c.value("about")
+    self.planes = try c.ifPresent("planes")
+    self.source = try c.value("source")
+    self.steps = try c.value("steps")
+    self.telemetry = try c.ifPresent("telemetry")
+    self.tier = try c.ifPresent("tier")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.about, as: "about")
+    try c.encodeIfPresent(self.planes, as: "planes")
+    try c.encode(self.source, as: "source")
+    try c.encode(self.steps, as: "steps")
+    try c.encodeIfPresent(self.telemetry, as: "telemetry")
+    try c.encodeIfPresent(self.tier, as: "tier")
+  }
+}
+
+public enum ConformanceCasePlanesItem: String, Codable, Sendable, CaseIterable {
+  case inProcess = "in-process"
+  case nats = "nats"
+}
+
+public enum ConformanceCaseTelemetry: Codable, Sendable {
+  case value
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.singleValueContainer()
+    guard try c.decode(Bool.self) == true else {
+      throw DecodingError.dataCorruptedError(in: c, debugDescription: "ConformanceCaseTelemetry")
+    }
+    self = .value
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.singleValueContainer()
+    try c.encode(true)
+  }
+}
+
+public enum ConformanceCaseTier: String, Codable, Sendable, CaseIterable {
+  case fleet = "fleet"
+  case parity = "parity"
+}
+
+public indirect enum ConformanceDriverLine: Codable, Sendable {
+  case ready(ConformanceDriverLineReady)
+  case ok(ConformanceDriverLineOk)
+  case failed(ConformanceDriverLineFailed)
+  case abandoned(ConformanceDriverLineAbandoned)
+  case unsupported(ConformanceDriverLineUnsupported)
+  case misuse(ConformanceDriverLineMisuse)
+  case state(ConformanceDriverLineState)
+  case frame(ConformanceDriverLineFrame)
+  case errorStream(ConformanceDriverLineErrorStream)
+  case progress(ConformanceDriverLineProgress)
+  case emission(ConformanceDriverLineEmission)
+  case completed(ConformanceDriverLineCompleted)
+  case claimed(ConformanceDriverLineClaimed)
+  case refused(ConformanceDriverLineRefused)
+  case signalled(ConformanceDriverLineSignalled)
+  case stalled(ConformanceDriverLineStalled)
+  public init(from decoder: any Decoder) throws {
+    if let value = try? ConformanceDriverLineReady(from: decoder) {
+      self = .ready(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineOk(from: decoder) {
+      self = .ok(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineFailed(from: decoder) {
+      self = .failed(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineAbandoned(from: decoder) {
+      self = .abandoned(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineUnsupported(from: decoder) {
+      self = .unsupported(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineMisuse(from: decoder) {
+      self = .misuse(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineState(from: decoder) {
+      self = .state(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineFrame(from: decoder) {
+      self = .frame(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineErrorStream(from: decoder) {
+      self = .errorStream(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineProgress(from: decoder) {
+      self = .progress(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineEmission(from: decoder) {
+      self = .emission(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineCompleted(from: decoder) {
+      self = .completed(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineClaimed(from: decoder) {
+      self = .claimed(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineRefused(from: decoder) {
+      self = .refused(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineSignalled(from: decoder) {
+      self = .signalled(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineStalled(from: decoder) {
+      self = .stalled(value)
+      return
+    }
+    throw DecodingError.dataCorrupted(
+      .init(
+        codingPath: decoder.codingPath, debugDescription: "no member of ConformanceDriverLine fits")
+    )
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .ready(let value): try value.encode(to: encoder)
+    case .ok(let value): try value.encode(to: encoder)
+    case .failed(let value): try value.encode(to: encoder)
+    case .abandoned(let value): try value.encode(to: encoder)
+    case .unsupported(let value): try value.encode(to: encoder)
+    case .misuse(let value): try value.encode(to: encoder)
+    case .state(let value): try value.encode(to: encoder)
+    case .frame(let value): try value.encode(to: encoder)
+    case .errorStream(let value): try value.encode(to: encoder)
+    case .progress(let value): try value.encode(to: encoder)
+    case .emission(let value): try value.encode(to: encoder)
+    case .completed(let value): try value.encode(to: encoder)
+    case .claimed(let value): try value.encode(to: encoder)
+    case .refused(let value): try value.encode(to: encoder)
+    case .signalled(let value): try value.encode(to: encoder)
+    case .stalled(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ConformanceDriverLineAbandoned: Codable, Sendable {
+  public let abandoned: ConformanceDriverLineAbandonedAbandoned
+  public var id: Int
+  public init(id: Int) {
+    self.abandoned = .value
+    self.id = id
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["abandoned", "id"], in: "ConformanceDriverLineAbandoned")
+    self.abandoned = try c.value("abandoned")
+    self.id = try c.value("id")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.abandoned, as: "abandoned")
+    try c.encode(self.id, as: "id")
+  }
+}
+
+public enum ConformanceDriverLineAbandonedAbandoned: Codable, Sendable {
+  case value
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.singleValueContainer()
+    guard try c.decode(Bool.self) == true else {
+      throw DecodingError.dataCorruptedError(
+        in: c, debugDescription: "ConformanceDriverLineAbandonedAbandoned")
+    }
+    self = .value
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.singleValueContainer()
+    try c.encode(true)
+  }
+}
+
+public struct ConformanceDriverLineClaimed: Codable, Sendable {
+  public var claimed: [String: JSONValue]
+  public init(claimed: [String: JSONValue]) {
+    self.claimed = claimed
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["claimed"], in: "ConformanceDriverLineClaimed")
+    self.claimed = try c.value("claimed")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.claimed, as: "claimed")
+  }
+}
+
+public struct ConformanceDriverLineCompleted: Codable, Sendable {
+  public var completed: String
+  public init(completed: String) {
+    self.completed = completed
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["completed"], in: "ConformanceDriverLineCompleted")
+    self.completed = try c.value("completed")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.completed, as: "completed")
+  }
+}
+
+public struct ConformanceDriverLineEmission: Codable, Sendable {
+  public var emission: ConformanceDriverLineEmissionEmission
+  public init(emission: ConformanceDriverLineEmissionEmission) {
+    self.emission = emission
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["emission"], in: "ConformanceDriverLineEmission")
+    self.emission = try c.value("emission")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.emission, as: "emission")
+  }
+}
+
+public struct ConformanceDriverLineEmissionEmission: Codable, Sendable {
+  public var observer: String
+  public var state: ConformanceDriverLineEmissionEmissionState
+  public init(observer: String, state: ConformanceDriverLineEmissionEmissionState) {
+    self.observer = observer
+    self.state = state
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["observer", "state"], in: "ConformanceDriverLineEmissionEmission")
+    self.observer = try c.value("observer")
+    self.state = try c.value("state")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.observer, as: "observer")
+    try c.encode(self.state, as: "state")
+  }
+}
+
+public indirect enum ConformanceDriverLineEmissionEmissionState: Codable, Sendable {
+  case pending(ConformanceDriverLineEmissionEmissionStatePending)
+  case ready(ConformanceDriverLineEmissionEmissionStateReady)
+  case failed(ConformanceDriverLineEmissionEmissionStateFailed)
+  public init(from decoder: any Decoder) throws {
+    if let value = try? ConformanceDriverLineEmissionEmissionStatePending(from: decoder) {
+      self = .pending(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineEmissionEmissionStateReady(from: decoder) {
+      self = .ready(value)
+      return
+    }
+    if let value = try? ConformanceDriverLineEmissionEmissionStateFailed(from: decoder) {
+      self = .failed(value)
+      return
+    }
+    throw DecodingError.dataCorrupted(
+      .init(
+        codingPath: decoder.codingPath,
+        debugDescription: "no member of ConformanceDriverLineEmissionEmissionState fits"))
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .pending(let value): try value.encode(to: encoder)
+    case .ready(let value): try value.encode(to: encoder)
+    case .failed(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ConformanceDriverLineEmissionEmissionStateFailed: Codable, Sendable {
+  public var error: ConformanceFailure
+  public let status: ConformanceDriverLineEmissionEmissionStateFailedStatus
+  public init(error: ConformanceFailure) {
+    self.error = error
+    self.status = .failed
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["error", "status"], in: "ConformanceDriverLineEmissionEmissionStateFailed")
+    self.error = try c.value("error")
+    self.status = try c.value("status")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.error, as: "error")
+    try c.encode(self.status, as: "status")
+  }
+}
+
+public enum ConformanceDriverLineEmissionEmissionStateFailedStatus: String, Codable, Sendable,
+  CaseIterable
+{
+  case failed = "failed"
+}
+
+public struct ConformanceDriverLineEmissionEmissionStatePending: Codable, Sendable {
+  public let status: ConformanceDriverLineEmissionEmissionStatePendingStatus
+  public init() {
+    self.status = .pending
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["status"], in: "ConformanceDriverLineEmissionEmissionStatePending")
+    self.status = try c.value("status")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.status, as: "status")
+  }
+}
+
+public enum ConformanceDriverLineEmissionEmissionStatePendingStatus: String, Codable, Sendable,
+  CaseIterable
+{
+  case pending = "pending"
+}
+
+public struct ConformanceDriverLineEmissionEmissionStateReady: Codable, Sendable {
+  public let status: ConformanceDriverLineEmissionEmissionStateReadyStatus
+  public var value: JSONValue
+  public init(value: JSONValue) {
+    self.status = .ready
+    self.value = value
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["status", "value"], in: "ConformanceDriverLineEmissionEmissionStateReady")
+    self.status = try c.value("status")
+    self.value = try c.value("value")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.status, as: "status")
+    try c.encode(self.value, as: "value")
+  }
+}
+
+public enum ConformanceDriverLineEmissionEmissionStateReadyStatus: String, Codable, Sendable,
+  CaseIterable
+{
+  case ready = "ready"
+}
+
+public struct ConformanceDriverLineErrorStream: Codable, Sendable {
+  public var error: ConformanceFailure
+  public init(error: ConformanceFailure) {
+    self.error = error
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["error"], in: "ConformanceDriverLineErrorStream")
+    self.error = try c.value("error")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.error, as: "error")
+  }
+}
+
+public struct ConformanceDriverLineFailed: Codable, Sendable {
+  public var error: ConformanceFailure
+  public var id: Int
+  public init(error: ConformanceFailure, id: Int) {
+    self.error = error
+    self.id = id
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["error", "id"], in: "ConformanceDriverLineFailed")
+    self.error = try c.value("error")
+    self.id = try c.value("id")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.error, as: "error")
+    try c.encode(self.id, as: "id")
+  }
+}
+
+public struct ConformanceDriverLineFrame: Codable, Sendable {
+  public var frame: ConformanceDriverLineFrameFrame
+  public init(frame: ConformanceDriverLineFrameFrame) {
+    self.frame = frame
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["frame"], in: "ConformanceDriverLineFrame")
+    self.frame = try c.value("frame")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.frame, as: "frame")
+  }
+}
+
+public struct ConformanceDriverLineFrameFrame: Codable, Sendable {
+  public var channel: String
+  public var correlationId: String?
+  public var payload: JSONValue?
+  public var scope: ResourceId?
+  public init(
+    channel: String, correlationId: String? = nil, payload: JSONValue? = nil,
+    scope: ResourceId? = nil
+  ) {
+    self.channel = channel
+    self.correlationId = correlationId
+    self.payload = payload
+    self.scope = scope
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["channel", "correlationId", "payload", "scope"], in: "ConformanceDriverLineFrameFrame")
+    self.channel = try c.value("channel")
+    self.correlationId = try c.ifPresent("correlationId")
+    self.payload = try c.ifPresent("payload")
+    self.scope = try c.ifPresent("scope")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.channel, as: "channel")
+    try c.encodeIfPresent(self.correlationId, as: "correlationId")
+    try c.encodeIfPresent(self.payload, as: "payload")
+    try c.encodeIfPresent(self.scope, as: "scope")
+  }
+}
+
+public struct ConformanceDriverLineMisuse: Codable, Sendable {
+  public var id: Int
+  public var misuse: String
+  public init(id: Int, misuse: String) {
+    self.id = id
+    self.misuse = misuse
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["id", "misuse"], in: "ConformanceDriverLineMisuse")
+    self.id = try c.value("id")
+    self.misuse = try c.value("misuse")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.id, as: "id")
+    try c.encode(self.misuse, as: "misuse")
+  }
+}
+
+public struct ConformanceDriverLineOk: Codable, Sendable {
+  public var id: Int
+  public var ok: JSONValue
+  public init(id: Int, ok: JSONValue) {
+    self.id = id
+    self.ok = ok
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["id", "ok"], in: "ConformanceDriverLineOk")
+    self.id = try c.value("id")
+    self.ok = try c.value("ok")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.id, as: "id")
+    try c.encode(self.ok, as: "ok")
+  }
+}
+
+public struct ConformanceDriverLineProgress: Codable, Sendable {
+  public var progress: ConformanceDriverLineProgressProgress
+  public init(progress: ConformanceDriverLineProgressProgress) {
+    self.progress = progress
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["progress"], in: "ConformanceDriverLineProgress")
+    self.progress = try c.value("progress")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.progress, as: "progress")
+  }
+}
+
+public struct ConformanceDriverLineProgressProgress: Codable, Sendable {
+  public var bytesUploaded: Int
+  public var totalBytes: Int
+  public var upload: Int
+  public init(bytesUploaded: Int, totalBytes: Int, upload: Int) {
+    self.bytesUploaded = bytesUploaded
+    self.totalBytes = totalBytes
+    self.upload = upload
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["bytesUploaded", "totalBytes", "upload"], in: "ConformanceDriverLineProgressProgress")
+    self.bytesUploaded = try c.value("bytesUploaded")
+    self.totalBytes = try c.value("totalBytes")
+    self.upload = try c.value("upload")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.bytesUploaded, as: "bytesUploaded")
+    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encode(self.upload, as: "upload")
+  }
+}
+
+public struct ConformanceDriverLineReady: Codable, Sendable {
+  public let ready: ConformanceDriverLineReadyReady
+  public init() {
+    self.ready = .value
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["ready"], in: "ConformanceDriverLineReady")
+    self.ready = try c.value("ready")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.ready, as: "ready")
+  }
+}
+
+public enum ConformanceDriverLineReadyReady: Codable, Sendable {
+  case value
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.singleValueContainer()
+    guard try c.decode(Bool.self) == true else {
+      throw DecodingError.dataCorruptedError(
+        in: c, debugDescription: "ConformanceDriverLineReadyReady")
+    }
+    self = .value
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.singleValueContainer()
+    try c.encode(true)
+  }
+}
+
+public struct ConformanceDriverLineRefused: Codable, Sendable {
+  public var refused: ConformanceFailure
+  public init(refused: ConformanceFailure) {
+    self.refused = refused
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["refused"], in: "ConformanceDriverLineRefused")
+    self.refused = try c.value("refused")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.refused, as: "refused")
+  }
+}
+
+public struct ConformanceDriverLineSignalled: Codable, Sendable {
+  public var signalled: String
+  public init(signalled: String) {
+    self.signalled = signalled
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["signalled"], in: "ConformanceDriverLineSignalled")
+    self.signalled = try c.value("signalled")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.signalled, as: "signalled")
+  }
+}
+
+public struct ConformanceDriverLineStalled: Codable, Sendable {
+  public var stalled: String
+  public init(stalled: String) {
+    self.stalled = stalled
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["stalled"], in: "ConformanceDriverLineStalled")
+    self.stalled = try c.value("stalled")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.stalled, as: "stalled")
+  }
+}
+
+public struct ConformanceDriverLineState: Codable, Sendable {
+  public var state: String
+  public init(state: String) {
+    self.state = state
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["state"], in: "ConformanceDriverLineState")
+    self.state = try c.value("state")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.state, as: "state")
+  }
+}
+
+public struct ConformanceDriverLineUnsupported: Codable, Sendable {
+  public var id: Int
+  public let unsupported: ConformanceDriverLineUnsupportedUnsupported
+  public init(id: Int) {
+    self.id = id
+    self.unsupported = .value
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["id", "unsupported"], in: "ConformanceDriverLineUnsupported")
+    self.id = try c.value("id")
+    self.unsupported = try c.value("unsupported")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.id, as: "id")
+    try c.encode(self.unsupported, as: "unsupported")
+  }
+}
+
+public enum ConformanceDriverLineUnsupportedUnsupported: Codable, Sendable {
+  case value
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.singleValueContainer()
+    guard try c.decode(Bool.self) == true else {
+      throw DecodingError.dataCorruptedError(
+        in: c, debugDescription: "ConformanceDriverLineUnsupportedUnsupported")
+    }
+    self = .value
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.singleValueContainer()
+    try c.encode(true)
+  }
+}
+
+public struct ConformanceFailure: Codable, Sendable {
+  public var code: String?
+  public var detail: String
+  public var failureClass: FailureClass?
+  public var status: Int?
+  public init(
+    code: String? = nil, detail: String, failureClass: FailureClass? = nil, status: Int? = nil
+  ) {
+    self.code = code
+    self.detail = detail
+    self.failureClass = failureClass
+    self.status = status
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "detail", "failureClass", "status"], in: "ConformanceFailure")
+    self.code = try c.ifPresent("code")
+    self.detail = try c.value("detail")
+    self.failureClass = try c.ifPresent("failureClass")
+    self.status = try c.ifPresent("status")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.code, as: "code")
+    try c.encode(self.detail, as: "detail")
+    try c.encodeIfPresent(self.failureClass, as: "failureClass")
+    try c.encodeIfPresent(self.status, as: "status")
+  }
+}
+
+public struct ConformanceHttpFetch: Codable, Sendable {
+  public var fetch: String
+  public var params: JSONValue?
+  public init(fetch: String, params: JSONValue? = nil) {
+    self.fetch = fetch
+    self.params = params
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["fetch", "params"], in: "ConformanceHttpFetch")
+    self.fetch = try c.value("fetch")
+    self.params = try c.ifPresent("params")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.fetch, as: "fetch")
+    try c.encodeIfPresent(self.params, as: "params")
+  }
+}
+
+public struct ConformanceImplementations: Codable, Sendable {
+  public var launcher: [String]
+  public var modelCatalogue: String?
+  public var sdks: [String: ConformanceImplementationsSdksValue]
+  public var target: LocalTarget
+  public init(
+    launcher: [String], modelCatalogue: String? = nil,
+    sdks: [String: ConformanceImplementationsSdksValue], target: LocalTarget
+  ) {
+    self.launcher = launcher
+    self.modelCatalogue = modelCatalogue
+    self.sdks = sdks
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["launcher", "modelCatalogue", "sdks", "target"], in: "ConformanceImplementations")
+    self.launcher = try c.value("launcher")
+    self.modelCatalogue = try c.ifPresent("modelCatalogue")
+    self.sdks = try c.value("sdks")
+    self.target = try c.value("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.launcher, as: "launcher")
+    try c.encodeIfPresent(self.modelCatalogue, as: "modelCatalogue")
+    try c.encode(self.sdks, as: "sdks")
+    try c.encode(self.target, as: "target")
+  }
+}
+
+public struct ConformanceImplementationsSdksValue: Codable, Sendable {
+  public var exempt: [String: String]?
+  public var live: ConformanceImplementationsSdksValueLive?
+  public var wire: [String]?
+  public var worker: [String]?
+  public init(
+    exempt: [String: String]? = nil, live: ConformanceImplementationsSdksValueLive? = nil,
+    wire: [String]? = nil, worker: [String]? = nil
+  ) {
+    self.exempt = exempt
+    self.live = live
+    self.wire = wire
+    self.worker = worker
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["exempt", "live", "wire", "worker"], in: "ConformanceImplementationsSdksValue")
+    self.exempt = try c.ifPresent("exempt")
+    self.live = try c.ifPresent("live")
+    self.wire = try c.ifPresent("wire")
+    self.worker = try c.ifPresent("worker")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.exempt, as: "exempt")
+    try c.encodeIfPresent(self.live, as: "live")
+    try c.encodeIfPresent(self.wire, as: "wire")
+    try c.encodeIfPresent(self.worker, as: "worker")
+  }
+}
+
+public struct ConformanceImplementationsSdksValueLive: Codable, Sendable {
+  public var command: [String]
+  public var tier: ConformanceImplementationsSdksValueLiveTier
+  public init(command: [String], tier: ConformanceImplementationsSdksValueLiveTier) {
+    self.command = command
+    self.tier = tier
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["command", "tier"], in: "ConformanceImplementationsSdksValueLive")
+    self.command = try c.value("command")
+    self.tier = try c.value("tier")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.command, as: "command")
+    try c.encode(self.tier, as: "tier")
+  }
+}
+
+public enum ConformanceImplementationsSdksValueLiveTier: String, Codable, Sendable, CaseIterable {
+  case fleet = "fleet"
+  case parity = "parity"
+}
+
+public indirect enum ConformanceStep: Codable, Sendable {
+  case `let`(ConformanceStepLet)
+  case driver(ConformanceStepDriver)
+  case abandon(ConformanceStepAbandon)
+  case settles(ConformanceStepSettles)
+  case wire(ConformanceStepWire)
+  case carried(ConformanceStepCarried)
+  case closed(ConformanceStepClosed)
+  case progress(ConformanceStepProgress)
+  case state(ConformanceStepState)
+  case stays(ConformanceStepStays)
+  case frame(ConformanceStepFrame)
+  case frames(ConformanceStepFrames)
+  case error(ConformanceStepError)
+  case backend(ConformanceStepBackend)
+  case quiet(ConformanceStepQuiet)
+  case observe(ConformanceStepObserve)
+  case leave(ConformanceStepLeave)
+  case reaches(ConformanceStepReaches)
+  case holds(ConformanceStepHolds)
+  case completes(ConformanceStepCompletes)
+  case conformanceBusFetch(ConformanceBusFetch)
+  case conformanceHttpFetch(ConformanceHttpFetch)
+  case fetches(ConformanceStepFetches)
+  case scopes(ConformanceStepScopes)
+  case claimed(ConformanceStepClaimed)
+  case refused(ConformanceStepRefused)
+  case signalled(ConformanceStepSignalled)
+  case stalled(ConformanceStepStalled)
+  public init(from decoder: any Decoder) throws {
+    if let value = try? ConformanceStepLet(from: decoder) {
+      self = .`let`(value)
+      return
+    }
+    if let value = try? ConformanceStepDriver(from: decoder) {
+      self = .driver(value)
+      return
+    }
+    if let value = try? ConformanceStepAbandon(from: decoder) {
+      self = .abandon(value)
+      return
+    }
+    if let value = try? ConformanceStepSettles(from: decoder) {
+      self = .settles(value)
+      return
+    }
+    if let value = try? ConformanceStepWire(from: decoder) {
+      self = .wire(value)
+      return
+    }
+    if let value = try? ConformanceStepCarried(from: decoder) {
+      self = .carried(value)
+      return
+    }
+    if let value = try? ConformanceStepClosed(from: decoder) {
+      self = .closed(value)
+      return
+    }
+    if let value = try? ConformanceStepProgress(from: decoder) {
+      self = .progress(value)
+      return
+    }
+    if let value = try? ConformanceStepState(from: decoder) {
+      self = .state(value)
+      return
+    }
+    if let value = try? ConformanceStepStays(from: decoder) {
+      self = .stays(value)
+      return
+    }
+    if let value = try? ConformanceStepFrame(from: decoder) {
+      self = .frame(value)
+      return
+    }
+    if let value = try? ConformanceStepFrames(from: decoder) {
+      self = .frames(value)
+      return
+    }
+    if let value = try? ConformanceStepError(from: decoder) {
+      self = .error(value)
+      return
+    }
+    if let value = try? ConformanceStepBackend(from: decoder) {
+      self = .backend(value)
+      return
+    }
+    if let value = try? ConformanceStepQuiet(from: decoder) {
+      self = .quiet(value)
+      return
+    }
+    if let value = try? ConformanceStepObserve(from: decoder) {
+      self = .observe(value)
+      return
+    }
+    if let value = try? ConformanceStepLeave(from: decoder) {
+      self = .leave(value)
+      return
+    }
+    if let value = try? ConformanceStepReaches(from: decoder) {
+      self = .reaches(value)
+      return
+    }
+    if let value = try? ConformanceStepHolds(from: decoder) {
+      self = .holds(value)
+      return
+    }
+    if let value = try? ConformanceStepCompletes(from: decoder) {
+      self = .completes(value)
+      return
+    }
+    if let value = try? ConformanceBusFetch(from: decoder) {
+      self = .conformanceBusFetch(value)
+      return
+    }
+    if let value = try? ConformanceHttpFetch(from: decoder) {
+      self = .conformanceHttpFetch(value)
+      return
+    }
+    if let value = try? ConformanceStepFetches(from: decoder) {
+      self = .fetches(value)
+      return
+    }
+    if let value = try? ConformanceStepScopes(from: decoder) {
+      self = .scopes(value)
+      return
+    }
+    if let value = try? ConformanceStepClaimed(from: decoder) {
+      self = .claimed(value)
+      return
+    }
+    if let value = try? ConformanceStepRefused(from: decoder) {
+      self = .refused(value)
+      return
+    }
+    if let value = try? ConformanceStepSignalled(from: decoder) {
+      self = .signalled(value)
+      return
+    }
+    if let value = try? ConformanceStepStalled(from: decoder) {
+      self = .stalled(value)
+      return
+    }
+    throw DecodingError.dataCorrupted(
+      .init(codingPath: decoder.codingPath, debugDescription: "no member of ConformanceStep fits"))
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .`let`(let value): try value.encode(to: encoder)
+    case .driver(let value): try value.encode(to: encoder)
+    case .abandon(let value): try value.encode(to: encoder)
+    case .settles(let value): try value.encode(to: encoder)
+    case .wire(let value): try value.encode(to: encoder)
+    case .carried(let value): try value.encode(to: encoder)
+    case .closed(let value): try value.encode(to: encoder)
+    case .progress(let value): try value.encode(to: encoder)
+    case .state(let value): try value.encode(to: encoder)
+    case .stays(let value): try value.encode(to: encoder)
+    case .frame(let value): try value.encode(to: encoder)
+    case .frames(let value): try value.encode(to: encoder)
+    case .error(let value): try value.encode(to: encoder)
+    case .backend(let value): try value.encode(to: encoder)
+    case .quiet(let value): try value.encode(to: encoder)
+    case .observe(let value): try value.encode(to: encoder)
+    case .leave(let value): try value.encode(to: encoder)
+    case .reaches(let value): try value.encode(to: encoder)
+    case .holds(let value): try value.encode(to: encoder)
+    case .completes(let value): try value.encode(to: encoder)
+    case .conformanceBusFetch(let value): try value.encode(to: encoder)
+    case .conformanceHttpFetch(let value): try value.encode(to: encoder)
+    case .fetches(let value): try value.encode(to: encoder)
+    case .scopes(let value): try value.encode(to: encoder)
+    case .claimed(let value): try value.encode(to: encoder)
+    case .refused(let value): try value.encode(to: encoder)
+    case .signalled(let value): try value.encode(to: encoder)
+    case .stalled(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ConformanceStepAbandon: Codable, Sendable {
+  public var abandon: String
+  public init(abandon: String) {
+    self.abandon = abandon
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["abandon"], in: "ConformanceStepAbandon")
+    self.abandon = try c.value("abandon")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.abandon, as: "abandon")
+  }
+}
+
+public struct ConformanceStepBackend: Codable, Sendable {
+  public var backend: ConformanceStepBackendBackend
+  public var with: [String: JSONValue]?
+  public init(backend: ConformanceStepBackendBackend, with: [String: JSONValue]? = nil) {
+    self.backend = backend
+    self.with = with
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["backend", "with"], in: "ConformanceStepBackend")
+    self.backend = try c.value("backend")
+    self.with = try c.ifPresent("with")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.backend, as: "backend")
+    try c.encodeIfPresent(self.with, as: "with")
+  }
+}
+
+public enum ConformanceStepBackendBackend: String, Codable, Sendable, CaseIterable {
+  case listen = "listen"
+  case emit = "emit"
+  case record = "record"
+  case content = "content"
+  case description = "description"
+  case annotations = "annotations"
+  case anchoredText = "anchored-text"
+  case uploaded = "uploaded"
+  case refuse = "refuse"
+  case unanswered = "unanswered"
+  case answerLost = "answer-lost"
+  case hold = "hold"
+  case release = "release"
+  case rechunk = "rechunk"
+  case carry = "carry"
+  case cut = "cut"
+  case down = "down"
+  case up = "up"
+  case archivist = "archivist"
+}
+
+public struct ConformanceStepCarried: Codable, Sendable {
+  public var carried: String
+  public var `is`: JSONValue
+  public init(carried: String, `is`: JSONValue) {
+    self.carried = carried
+    self.`is` = `is`
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["carried", "is"], in: "ConformanceStepCarried")
+    self.carried = try c.value("carried")
+    self.`is` = try c.value("is")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.carried, as: "carried")
+    try c.encode(self.`is`, as: "is")
+  }
+}
+
+public struct ConformanceStepClaimed: Codable, Sendable {
+  public var claimed: JSONValue
+  public init(claimed: JSONValue) {
+    self.claimed = claimed
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["claimed"], in: "ConformanceStepClaimed")
+    self.claimed = try c.value("claimed")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.claimed, as: "claimed")
+  }
+}
+
+public struct ConformanceStepClosed: Codable, Sendable {
+  public var closed: String
+  public init(closed: String) {
+    self.closed = closed
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["closed"], in: "ConformanceStepClosed")
+    self.closed = try c.value("closed")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.closed, as: "closed")
+  }
+}
+
+public struct ConformanceStepCompletes: Codable, Sendable {
+  public var completes: String
+  public init(completes: String) {
+    self.completes = completes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["completes"], in: "ConformanceStepCompletes")
+    self.completes = try c.value("completes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.completes, as: "completes")
+  }
+}
+
+public struct ConformanceStepDriver: Codable, Sendable {
+  public var `as`: String?
+  public var driver: String
+  public var fails: JSONValue?
+  public var returns: JSONValue?
+  public var with: [String: JSONValue]?
+  public init(
+    `as`: String? = nil, driver: String, fails: JSONValue? = nil, returns: JSONValue? = nil,
+    with: [String: JSONValue]? = nil
+  ) {
+    self.`as` = `as`
+    self.driver = driver
+    self.fails = fails
+    self.returns = returns
+    self.with = with
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["as", "driver", "fails", "returns", "with"], in: "ConformanceStepDriver")
+    self.`as` = try c.ifPresent("as")
+    self.driver = try c.value("driver")
+    self.fails = try c.ifPresent("fails")
+    self.returns = try c.ifPresent("returns")
+    self.with = try c.ifPresent("with")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.`as`, as: "as")
+    try c.encode(self.driver, as: "driver")
+    try c.encodeIfPresent(self.fails, as: "fails")
+    try c.encodeIfPresent(self.returns, as: "returns")
+    try c.encodeIfPresent(self.with, as: "with")
+  }
+}
+
+public struct ConformanceStepError: Codable, Sendable {
+  public var error: JSONValue
+  public init(error: JSONValue) {
+    self.error = error
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["error"], in: "ConformanceStepError")
+    self.error = try c.value("error")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.error, as: "error")
+  }
+}
+
+public struct ConformanceStepFetches: Codable, Sendable {
+  public var fetches: [ConformanceStepFetchesFetchesItem]
+  public init(fetches: [ConformanceStepFetchesFetchesItem]) {
+    self.fetches = fetches
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["fetches"], in: "ConformanceStepFetches")
+    self.fetches = try c.value("fetches")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.fetches, as: "fetches")
+  }
+}
+
+public indirect enum ConformanceStepFetchesFetchesItem: Codable, Sendable {
+  case conformanceBusFetch(ConformanceBusFetch)
+  case conformanceHttpFetch(ConformanceHttpFetch)
+  public init(from decoder: any Decoder) throws {
+    if let value = try? ConformanceBusFetch(from: decoder) {
+      self = .conformanceBusFetch(value)
+      return
+    }
+    if let value = try? ConformanceHttpFetch(from: decoder) {
+      self = .conformanceHttpFetch(value)
+      return
+    }
+    throw DecodingError.dataCorrupted(
+      .init(
+        codingPath: decoder.codingPath,
+        debugDescription: "no member of ConformanceStepFetchesFetchesItem fits"))
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .conformanceBusFetch(let value): try value.encode(to: encoder)
+    case .conformanceHttpFetch(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ConformanceStepFrame: Codable, Sendable {
+  public var frame: String
+  public var `is`: JSONValue
+  public init(frame: String, `is`: JSONValue) {
+    self.frame = frame
+    self.`is` = `is`
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["frame", "is"], in: "ConformanceStepFrame")
+    self.frame = try c.value("frame")
+    self.`is` = try c.value("is")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.frame, as: "frame")
+    try c.encode(self.`is`, as: "is")
+  }
+}
+
+public struct ConformanceStepFrames: Codable, Sendable {
+  public var count: Int
+  public var frames: String
+  public init(count: Int, frames: String) {
+    self.count = count
+    self.frames = frames
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["count", "frames"], in: "ConformanceStepFrames")
+    self.count = try c.value("count")
+    self.frames = try c.value("frames")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.count, as: "count")
+    try c.encode(self.frames, as: "frames")
+  }
+}
+
+public struct ConformanceStepHolds: Codable, Sendable {
+  public var holds: String
+  public var state: JSONValue
+  public init(holds: String, state: JSONValue) {
+    self.holds = holds
+    self.state = state
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["holds", "state"], in: "ConformanceStepHolds")
+    self.holds = try c.value("holds")
+    self.state = try c.value("state")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.holds, as: "holds")
+    try c.encode(self.state, as: "state")
+  }
+}
+
+public struct ConformanceStepLeave: Codable, Sendable {
+  public var leave: String
+  public init(leave: String) {
+    self.leave = leave
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["leave"], in: "ConformanceStepLeave")
+    self.leave = try c.value("leave")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.leave, as: "leave")
+  }
+}
+
+public struct ConformanceStepLet: Codable, Sendable {
+  public var `let`: [String: JSONValue]
+  public init(`let`: [String: JSONValue]) {
+    self.`let` = `let`
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["let"], in: "ConformanceStepLet")
+    self.`let` = try c.value("let")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.`let`, as: "let")
+  }
+}
+
+public struct ConformanceStepObserve: Codable, Sendable {
+  public var `as`: String
+  public var observe: ConformanceStepObserveObserve
+  public init(`as`: String, observe: ConformanceStepObserveObserve) {
+    self.`as` = `as`
+    self.observe = observe
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["as", "observe"], in: "ConformanceStepObserve")
+    self.`as` = try c.value("as")
+    self.observe = try c.value("observe")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.`as`, as: "as")
+    try c.encode(self.observe, as: "observe")
+  }
+}
+
+public struct ConformanceStepObserveObserve: Codable, Sendable {
+  public var annotation: JSONValue?
+  public var filters: JSONValue?
+  public var query: String
+  public var resource: JSONValue?
+  public var search: JSONValue?
+  public init(
+    annotation: JSONValue? = nil, filters: JSONValue? = nil, query: String,
+    resource: JSONValue? = nil, search: JSONValue? = nil
+  ) {
+    self.annotation = annotation
+    self.filters = filters
+    self.query = query
+    self.resource = resource
+    self.search = search
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["annotation", "filters", "query", "resource", "search"], in: "ConformanceStepObserveObserve")
+    self.annotation = try c.ifPresent("annotation")
+    self.filters = try c.ifPresent("filters")
+    self.query = try c.value("query")
+    self.resource = try c.ifPresent("resource")
+    self.search = try c.ifPresent("search")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.annotation, as: "annotation")
+    try c.encodeIfPresent(self.filters, as: "filters")
+    try c.encode(self.query, as: "query")
+    try c.encodeIfPresent(self.resource, as: "resource")
+    try c.encodeIfPresent(self.search, as: "search")
+  }
+}
+
+public struct ConformanceStepProgress: Codable, Sendable {
+  public var progress: String
+  public init(progress: String) {
+    self.progress = progress
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["progress"], in: "ConformanceStepProgress")
+    self.progress = try c.value("progress")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.progress, as: "progress")
+  }
+}
+
+public struct ConformanceStepQuiet: Codable, Sendable {
+  public var quiet: Int
+  public init(quiet: Int) {
+    self.quiet = quiet
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["quiet"], in: "ConformanceStepQuiet")
+    self.quiet = try c.value("quiet")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.quiet, as: "quiet")
+  }
+}
+
+public struct ConformanceStepReaches: Codable, Sendable {
+  public var reaches: String
+  public var state: JSONValue
+  public init(reaches: String, state: JSONValue) {
+    self.reaches = reaches
+    self.state = state
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["reaches", "state"], in: "ConformanceStepReaches")
+    self.reaches = try c.value("reaches")
+    self.state = try c.value("state")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.reaches, as: "reaches")
+    try c.encode(self.state, as: "state")
+  }
+}
+
+public struct ConformanceStepRefused: Codable, Sendable {
+  public var refused: JSONValue
+  public init(refused: JSONValue) {
+    self.refused = refused
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["refused"], in: "ConformanceStepRefused")
+    self.refused = try c.value("refused")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.refused, as: "refused")
+  }
+}
+
+public struct ConformanceStepScopes: Codable, Sendable {
+  public var scopes: [JSONValue]
+  public init(scopes: [JSONValue]) {
+    self.scopes = scopes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["scopes"], in: "ConformanceStepScopes")
+    self.scopes = try c.value("scopes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.scopes, as: "scopes")
+  }
+}
+
+public struct ConformanceStepSettles: Codable, Sendable {
+  public var abandoned: ConformanceStepSettlesAbandoned?
+  public var fails: JSONValue?
+  public var returns: JSONValue?
+  public var settles: String
+  public init(
+    abandoned: ConformanceStepSettlesAbandoned? = nil, fails: JSONValue? = nil,
+    returns: JSONValue? = nil, settles: String
+  ) {
+    self.abandoned = abandoned
+    self.fails = fails
+    self.returns = returns
+    self.settles = settles
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["abandoned", "fails", "returns", "settles"], in: "ConformanceStepSettles")
+    self.abandoned = try c.ifPresent("abandoned")
+    self.fails = try c.ifPresent("fails")
+    self.returns = try c.ifPresent("returns")
+    self.settles = try c.value("settles")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.abandoned, as: "abandoned")
+    try c.encodeIfPresent(self.fails, as: "fails")
+    try c.encodeIfPresent(self.returns, as: "returns")
+    try c.encode(self.settles, as: "settles")
+  }
+}
+
+public enum ConformanceStepSettlesAbandoned: Codable, Sendable {
+  case value
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.singleValueContainer()
+    guard try c.decode(Bool.self) == true else {
+      throw DecodingError.dataCorruptedError(
+        in: c, debugDescription: "ConformanceStepSettlesAbandoned")
+    }
+    self = .value
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.singleValueContainer()
+    try c.encode(true)
+  }
+}
+
+public struct ConformanceStepSignalled: Codable, Sendable {
+  public var signalled: JSONValue
+  public init(signalled: JSONValue) {
+    self.signalled = signalled
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["signalled"], in: "ConformanceStepSignalled")
+    self.signalled = try c.value("signalled")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.signalled, as: "signalled")
+  }
+}
+
+public struct ConformanceStepStalled: Codable, Sendable {
+  public var stalled: JSONValue
+  public init(stalled: JSONValue) {
+    self.stalled = stalled
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["stalled"], in: "ConformanceStepStalled")
+    self.stalled = try c.value("stalled")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.stalled, as: "stalled")
+  }
+}
+
+public struct ConformanceStepState: Codable, Sendable {
+  public var state: ConformanceStepStateState
+  public init(state: ConformanceStepStateState) {
+    self.state = state
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["state"], in: "ConformanceStepState")
+    self.state = try c.value("state")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.state, as: "state")
+  }
+}
+
+public enum ConformanceStepStateState: String, Codable, Sendable, CaseIterable {
+  case initial = "initial"
+  case connecting = "connecting"
+  case `open` = "open"
+  case reconnecting = "reconnecting"
+  case degraded = "degraded"
+  case unauthenticated = "unauthenticated"
+  case closed = "closed"
+}
+
+public struct ConformanceStepStays: Codable, Sendable {
+  public var stays: ConformanceStepStaysStays
+  public init(stays: ConformanceStepStaysStays) {
+    self.stays = stays
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["stays"], in: "ConformanceStepStays")
+    self.stays = try c.value("stays")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.stays, as: "stays")
+  }
+}
+
+public enum ConformanceStepStaysStays: String, Codable, Sendable, CaseIterable {
+  case initial = "initial"
+  case connecting = "connecting"
+  case `open` = "open"
+  case reconnecting = "reconnecting"
+  case degraded = "degraded"
+  case unauthenticated = "unauthenticated"
+  case closed = "closed"
+}
+
+public struct ConformanceStepWire: Codable, Sendable {
+  public var answer: JSONValue?
+  public var `as`: String?
+  public var at: ConformanceStepWireAt?
+  public var body: JSONValue?
+  public var follows: String?
+  public var headers: [String: JSONValue]?
+  public var params: JSONValue?
+  public var status: Int?
+  public var token: JSONValue?
+  public var waited: String?
+  public var wire: String
+  public init(
+    answer: JSONValue? = nil, `as`: String? = nil, at: ConformanceStepWireAt? = nil,
+    body: JSONValue? = nil, follows: String? = nil, headers: [String: JSONValue]? = nil,
+    params: JSONValue? = nil, status: Int? = nil, token: JSONValue? = nil, waited: String? = nil,
+    wire: String
+  ) {
+    self.answer = answer
+    self.`as` = `as`
+    self.at = at
+    self.body = body
+    self.follows = follows
+    self.headers = headers
+    self.params = params
+    self.status = status
+    self.token = token
+    self.waited = waited
+    self.wire = wire
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "answer", "as", "at", "body", "follows", "headers", "params", "status", "token", "waited",
+        "wire",
+      ], in: "ConformanceStepWire")
+    self.answer = try c.ifPresent("answer")
+    self.`as` = try c.ifPresent("as")
+    self.at = try c.ifPresent("at")
+    self.body = try c.ifPresent("body")
+    self.follows = try c.ifPresent("follows")
+    self.headers = try c.ifPresent("headers")
+    self.params = try c.ifPresent("params")
+    self.status = try c.ifPresent("status")
+    self.token = try c.ifPresent("token")
+    self.waited = try c.ifPresent("waited")
+    self.wire = try c.value("wire")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.answer, as: "answer")
+    try c.encodeIfPresent(self.`as`, as: "as")
+    try c.encodeIfPresent(self.at, as: "at")
+    try c.encodeIfPresent(self.body, as: "body")
+    try c.encodeIfPresent(self.follows, as: "follows")
+    try c.encodeIfPresent(self.headers, as: "headers")
+    try c.encodeIfPresent(self.params, as: "params")
+    try c.encodeIfPresent(self.status, as: "status")
+    try c.encodeIfPresent(self.token, as: "token")
+    try c.encodeIfPresent(self.waited, as: "waited")
+    try c.encode(self.wire, as: "wire")
+  }
+}
+
+public enum ConformanceStepWireAt: String, Codable, Sendable, CaseIterable {
+  case arrival = "arrival"
+  case answer = "answer"
+  case live = "live"
 }
 
 public struct ConnectionIdentity: Codable, Sendable {
@@ -3231,6 +5171,46 @@ public struct EntityTypesProjection: Codable, Sendable {
 
 public typealias EphemeralEventId = String
 
+public struct ErrorData: Codable, Sendable {
+  public var choices: [Target]?
+  public var code: String
+  public var fields: [FieldFault]?
+  public var mayStillRun: Bool?
+  public var retryable: Bool
+  public var supported: [String]?
+  public init(
+    choices: [Target]? = nil, code: String, fields: [FieldFault]? = nil, mayStillRun: Bool? = nil,
+    retryable: Bool, supported: [String]? = nil
+  ) {
+    self.choices = choices
+    self.code = code
+    self.fields = fields
+    self.mayStillRun = mayStillRun
+    self.retryable = retryable
+    self.supported = supported
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["choices", "code", "fields", "mayStillRun", "retryable", "supported"], in: "ErrorData")
+    self.choices = try c.ifPresent("choices")
+    self.code = try c.value("code")
+    self.fields = try c.ifPresent("fields")
+    self.mayStillRun = try c.ifPresent("mayStillRun")
+    self.retryable = try c.value("retryable")
+    self.supported = try c.ifPresent("supported")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.choices, as: "choices")
+    try c.encode(self.code, as: "code")
+    try c.encodeIfPresent(self.fields, as: "fields")
+    try c.encodeIfPresent(self.mayStillRun, as: "mayStillRun")
+    try c.encode(self.retryable, as: "retryable")
+    try c.encodeIfPresent(self.supported, as: "supported")
+  }
+}
+
 public struct ErrorResponse: Codable, Sendable {
   public var code: String?
   public var details: JSONValue?
@@ -3405,6 +5385,26 @@ public enum FailureClass: String, Codable, Sendable, CaseIterable {
   case withheld = "withheld"
 }
 
+public struct FieldFault: Codable, Sendable {
+  public var field: String
+  public var message: String
+  public init(field: String, message: String) {
+    self.field = field
+    self.message = message
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["field", "message"], in: "FieldFault")
+    self.field = try c.value("field")
+    self.message = try c.value("message")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.field, as: "field")
+    try c.encode(self.message, as: "message")
+  }
+}
+
 public struct FileEntry: Codable, Sendable {
   public var annotationCount: Int?
   public var creator: String?
@@ -3467,6 +5467,41 @@ public struct FileEntry: Codable, Sendable {
 
 public enum FileEntryType: String, Codable, Sendable, CaseIterable {
   case file = "file"
+}
+
+public struct FollowerFollowing: Codable, Sendable {
+  public var refused: Int
+  public var stopped: Int
+  public var streamDrops: Int
+  public var sweep: FollowerFollowingSweep
+  public init(refused: Int, stopped: Int, streamDrops: Int, sweep: FollowerFollowingSweep) {
+    self.refused = refused
+    self.stopped = stopped
+    self.streamDrops = streamDrops
+    self.sweep = sweep
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["refused", "stopped", "streamDrops", "sweep"], in: "FollowerFollowing")
+    self.refused = try c.value("refused")
+    self.stopped = try c.value("stopped")
+    self.streamDrops = try c.value("streamDrops")
+    self.sweep = try c.value("sweep")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.refused, as: "refused")
+    try c.encode(self.stopped, as: "stopped")
+    try c.encode(self.streamDrops, as: "streamDrops")
+    try c.encode(self.sweep, as: "sweep")
+  }
+}
+
+public enum FollowerFollowingSweep: String, Codable, Sendable, CaseIterable {
+  case pending = "pending"
+  case running = "running"
+  case done = "done"
+  case due = "due"
 }
 
 public struct FragmentSelector: Codable, Sendable {
@@ -4795,6 +6830,26 @@ public enum HighlightingJobParamsMotivation: String, Codable, Sendable, CaseIter
   case highlighting = "highlighting"
 }
 
+public struct HostPort: Codable, Sendable {
+  public var host: String
+  public var port: Int
+  public init(host: String, port: Int) {
+    self.host = host
+    self.port = port
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["host", "port"], in: "HostPort")
+    self.host = try c.value("host")
+    self.port = try c.value("port")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.host, as: "host")
+    try c.encode(self.port, as: "port")
+  }
+}
+
 public struct HttpEndpoint: Codable, Sendable {
   public var host: String
   public let kind: HttpEndpointKind
@@ -4829,6 +6884,168 @@ public enum HttpEndpointKind: String, Codable, Sendable, CaseIterable {
 public enum HttpEndpointProtocol: String, Codable, Sendable, CaseIterable {
   case http = "http"
   case https = "https"
+}
+
+public typealias HttpStatus = Int
+
+public struct IdentityUser: Codable, Sendable {
+  public var email: String
+  public var enabled: Bool
+  public var identity: String
+  public init(email: String, enabled: Bool, identity: String) {
+    self.email = email
+    self.enabled = enabled
+    self.identity = identity
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["email", "enabled", "identity"], in: "IdentityUser")
+    self.email = try c.value("email")
+    self.enabled = try c.value("enabled")
+    self.identity = try c.value("identity")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.email, as: "email")
+    try c.encode(self.enabled, as: "enabled")
+    try c.encode(self.identity, as: "identity")
+  }
+}
+
+public struct IdentityUseraddParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var email: String
+  public var generatePassword: Bool
+  public var password: String?
+  public var target: LocalTarget
+  public init(
+    apiVersion: ApiVersion, email: String, generatePassword: Bool, password: String? = nil,
+    target: LocalTarget
+  ) {
+    self.apiVersion = apiVersion
+    self.email = email
+    self.generatePassword = generatePassword
+    self.password = password
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["apiVersion", "email", "generatePassword", "password", "target"], in: "IdentityUseraddParams"
+    )
+    self.apiVersion = try c.value("apiVersion")
+    self.email = try c.value("email")
+    self.generatePassword = try c.value("generatePassword")
+    self.password = try c.ifPresent("password")
+    self.target = try c.value("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.email, as: "email")
+    try c.encode(self.generatePassword, as: "generatePassword")
+    try c.encodeIfPresent(self.password, as: "password")
+    try c.encode(self.target, as: "target")
+  }
+}
+
+public struct IdentityUseraddResult: Codable, Sendable {
+  public var created: Bool
+  public var email: String
+  public var generatedPassword: String?
+  public var identity: String
+  public init(created: Bool, email: String, generatedPassword: String? = nil, identity: String) {
+    self.created = created
+    self.email = email
+    self.generatedPassword = generatedPassword
+    self.identity = identity
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["created", "email", "generatedPassword", "identity"], in: "IdentityUseraddResult")
+    self.created = try c.value("created")
+    self.email = try c.value("email")
+    self.generatedPassword = try c.ifPresent("generatedPassword")
+    self.identity = try c.value("identity")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.created, as: "created")
+    try c.encode(self.email, as: "email")
+    try c.encodeIfPresent(self.generatedPassword, as: "generatedPassword")
+    try c.encode(self.identity, as: "identity")
+  }
+}
+
+public struct IdentityUsersListParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var target: LocalTarget
+  public init(apiVersion: ApiVersion, target: LocalTarget) {
+    self.apiVersion = apiVersion
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "target"], in: "IdentityUsersListParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.target = try c.value("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.target, as: "target")
+  }
+}
+
+public struct IdentityUsersListResult: Codable, Sendable {
+  public var users: [IdentityUser]
+  public init(users: [IdentityUser]) {
+    self.users = users
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["users"], in: "IdentityUsersListResult")
+    self.users = try c.value("users")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.users, as: "users")
+  }
+}
+
+public typealias Image = String
+
+public struct Inference: Codable, Sendable {
+  public var apiVersion: StackApiVersion
+  public let kind: InferenceKind
+  public var metadata: Metadata
+  public var spec: InferenceSpec
+  public init(apiVersion: StackApiVersion, metadata: Metadata, spec: InferenceSpec) {
+    self.apiVersion = apiVersion
+    self.kind = .inference
+    self.metadata = metadata
+    self.spec = spec
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "kind", "metadata", "spec"], in: "Inference")
+    self.apiVersion = try c.value("apiVersion")
+    self.kind = try c.value("kind")
+    self.metadata = try c.value("metadata")
+    self.spec = try c.value("spec")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encode(self.spec, as: "spec")
+  }
+}
+
+public enum InferenceKind: String, Codable, Sendable, CaseIterable {
+  case inference = "Inference"
 }
 
 public struct InferenceLimits: Codable, Sendable {
@@ -4895,6 +7112,26 @@ public struct InferenceLimitsResultResponse: Codable, Sendable {
   }
 }
 
+public struct InferenceSpec: Codable, Sendable {
+  public var engines: ArchivistEngines
+  public var providers: [String: Provider]
+  public init(engines: ArchivistEngines, providers: [String: Provider]) {
+    self.engines = engines
+    self.providers = providers
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["engines", "providers"], in: "InferenceSpec")
+    self.engines = try c.value("engines")
+    self.providers = try c.value("providers")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.engines, as: "engines")
+    try c.encode(self.providers, as: "providers")
+  }
+}
+
 public struct IssuedTokens: Codable, Sendable {
   public var access: String
   public var refresh: String
@@ -4912,6 +7149,140 @@ public struct IssuedTokens: Codable, Sendable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.access, as: "access")
     try c.encode(self.refresh, as: "refresh")
+  }
+}
+
+public struct Issuer: Codable, Sendable {
+  public var apiVersion: StackApiVersion
+  public let kind: IssuerKind
+  public var metadata: Metadata
+  public var spec: IssuerSpec
+  public init(apiVersion: StackApiVersion, metadata: Metadata, spec: IssuerSpec) {
+    self.apiVersion = apiVersion
+    self.kind = .issuer
+    self.metadata = metadata
+    self.spec = spec
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "kind", "metadata", "spec"], in: "Issuer")
+    self.apiVersion = try c.value("apiVersion")
+    self.kind = try c.value("kind")
+    self.metadata = try c.value("metadata")
+    self.spec = try c.value("spec")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encode(self.spec, as: "spec")
+  }
+}
+
+public enum IssuerKind: String, Codable, Sendable, CaseIterable {
+  case issuer = "Issuer"
+}
+
+public struct IssuerSpec: Codable, Sendable {
+  public var database: IssuerSpecDatabase
+  public var image: Image
+  public var port: Int
+  public var resources: Resources
+  public var type: String
+  public init(
+    database: IssuerSpecDatabase, image: Image, port: Int, resources: Resources, type: String
+  ) {
+    self.database = database
+    self.image = image
+    self.port = port
+    self.resources = resources
+    self.type = type
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["database", "image", "port", "resources", "type"], in: "IssuerSpec")
+    self.database = try c.value("database")
+    self.image = try c.value("image")
+    self.port = try c.value("port")
+    self.resources = try c.value("resources")
+    self.type = try c.value("type")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.database, as: "database")
+    try c.encode(self.image, as: "image")
+    try c.encode(self.port, as: "port")
+    try c.encode(self.resources, as: "resources")
+    try c.encode(self.type, as: "type")
+  }
+}
+
+public struct IssuerSpecDatabase: Codable, Sendable {
+  public var external: IssuerSpecDatabaseExternal?
+  public var image: Image?
+  public var name: String
+  public var port: Int?
+  public var resources: Resources?
+  public var type: String
+  public var user: String
+  public init(
+    external: IssuerSpecDatabaseExternal? = nil, image: Image? = nil, name: String,
+    port: Int? = nil, resources: Resources? = nil, type: String, user: String
+  ) {
+    self.external = external
+    self.image = image
+    self.name = name
+    self.port = port
+    self.resources = resources
+    self.type = type
+    self.user = user
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["external", "image", "name", "port", "resources", "type", "user"], in: "IssuerSpecDatabase")
+    self.external = try c.ifPresent("external")
+    self.image = try c.ifPresent("image")
+    self.name = try c.value("name")
+    self.port = try c.ifPresent("port")
+    self.resources = try c.ifPresent("resources")
+    self.type = try c.value("type")
+    self.user = try c.value("user")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.external, as: "external")
+    try c.encodeIfPresent(self.image, as: "image")
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.port, as: "port")
+    try c.encodeIfPresent(self.resources, as: "resources")
+    try c.encode(self.type, as: "type")
+    try c.encode(self.user, as: "user")
+  }
+}
+
+public struct IssuerSpecDatabaseExternal: Codable, Sendable {
+  public var host: String
+  public var password: SecretRef
+  public var port: Int
+  public init(host: String, password: SecretRef, port: Int) {
+    self.host = host
+    self.password = password
+    self.port = port
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["host", "password", "port"], in: "IssuerSpecDatabaseExternal")
+    self.host = try c.value("host")
+    self.password = try c.value("password")
+    self.port = try c.value("port")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.host, as: "host")
+    try c.encode(self.password, as: "password")
+    try c.encode(self.port, as: "port")
   }
 }
 
@@ -6634,6 +9005,8 @@ public struct KbDescription: Codable, Sendable {
   }
 }
 
+public typealias KbDid = String
+
 public indirect enum KbEndpoint: Codable, Sendable {
   case httpEndpoint(HttpEndpoint)
   case localEndpoint(LocalEndpoint)
@@ -6863,6 +9236,111 @@ public struct KnowledgeBase: Codable, Sendable {
   }
 }
 
+public struct KnowledgeBaseStatus: Codable, Sendable {
+  public var did: String?
+  public var gateway: String?
+  public var healthy: Bool
+  public var identityError: String?
+  public var kb: DiscoveredKB?
+  public var key: String
+  public var lan: String?
+  public var name: String
+  public var placement: KnowledgeBaseStatusPlacement
+  public var recorded: Bool
+  public var repo: String?
+  public var root: String?
+  public var runtime: Runtime?
+  public var secretStore: String?
+  public var services: [ServiceStatus]
+  public var session: Session?
+  public var siteName: String?
+  public var starting: Bool
+  public var workload: WorkloadStatus?
+  public init(
+    did: String? = nil, gateway: String? = nil, healthy: Bool, identityError: String? = nil,
+    kb: DiscoveredKB? = nil, key: String, lan: String? = nil, name: String,
+    placement: KnowledgeBaseStatusPlacement, recorded: Bool, repo: String? = nil,
+    root: String? = nil, runtime: Runtime? = nil, secretStore: String? = nil,
+    services: [ServiceStatus], session: Session? = nil, siteName: String? = nil, starting: Bool,
+    workload: WorkloadStatus? = nil
+  ) {
+    self.did = did
+    self.gateway = gateway
+    self.healthy = healthy
+    self.identityError = identityError
+    self.kb = kb
+    self.key = key
+    self.lan = lan
+    self.name = name
+    self.placement = placement
+    self.recorded = recorded
+    self.repo = repo
+    self.root = root
+    self.runtime = runtime
+    self.secretStore = secretStore
+    self.services = services
+    self.session = session
+    self.siteName = siteName
+    self.starting = starting
+    self.workload = workload
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "did", "gateway", "healthy", "identityError", "kb", "key", "lan", "name", "placement",
+        "recorded", "repo", "root", "runtime", "secretStore", "services", "session", "siteName",
+        "starting", "workload",
+      ], in: "KnowledgeBaseStatus")
+    self.did = try c.ifPresent("did")
+    self.gateway = try c.ifPresent("gateway")
+    self.healthy = try c.value("healthy")
+    self.identityError = try c.ifPresent("identityError")
+    self.kb = try c.ifPresent("kb")
+    self.key = try c.value("key")
+    self.lan = try c.ifPresent("lan")
+    self.name = try c.value("name")
+    self.placement = try c.value("placement")
+    self.recorded = try c.value("recorded")
+    self.repo = try c.ifPresent("repo")
+    self.root = try c.ifPresent("root")
+    self.runtime = try c.ifPresent("runtime")
+    self.secretStore = try c.ifPresent("secretStore")
+    self.services = try c.value("services")
+    self.session = try c.ifPresent("session")
+    self.siteName = try c.ifPresent("siteName")
+    self.starting = try c.value("starting")
+    self.workload = try c.ifPresent("workload")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.did, as: "did")
+    try c.encodeIfPresent(self.gateway, as: "gateway")
+    try c.encode(self.healthy, as: "healthy")
+    try c.encodeIfPresent(self.identityError, as: "identityError")
+    try c.encodeIfPresent(self.kb, as: "kb")
+    try c.encode(self.key, as: "key")
+    try c.encodeIfPresent(self.lan, as: "lan")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.placement, as: "placement")
+    try c.encode(self.recorded, as: "recorded")
+    try c.encodeIfPresent(self.repo, as: "repo")
+    try c.encodeIfPresent(self.root, as: "root")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encodeIfPresent(self.secretStore, as: "secretStore")
+    try c.encode(self.services, as: "services")
+    try c.encodeIfPresent(self.session, as: "session")
+    try c.encodeIfPresent(self.siteName, as: "siteName")
+    try c.encode(self.starting, as: "starting")
+    try c.encodeIfPresent(self.workload, as: "workload")
+  }
+}
+
+public enum KnowledgeBaseStatusPlacement: String, Codable, Sendable, CaseIterable {
+  case local = "local"
+  case codespace = "codespace"
+}
+
 public struct KnowledgeGraph: Codable, Sendable {
   public var edges: [KnowledgeGraphEdgesItem]
   public var nodes: [KnowledgeGraphNodesItem]
@@ -6942,6 +9420,331 @@ public indirect enum KnowledgeGraphNodesItem: Codable, Sendable {
     case .graphResourceNode(let value): try value.encode(to: encoder)
     case .graphAnnotationNode(let value): try value.encode(to: encoder)
     }
+  }
+}
+
+public struct KnowledgeIndex: Codable, Sendable {
+  public var apiVersion: StackApiVersion
+  public let kind: KnowledgeIndexKind
+  public var metadata: Metadata
+  public var spec: KnowledgeIndexSpec
+  public init(apiVersion: StackApiVersion, metadata: Metadata, spec: KnowledgeIndexSpec) {
+    self.apiVersion = apiVersion
+    self.kind = .knowledgeIndex
+    self.metadata = metadata
+    self.spec = spec
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "kind", "metadata", "spec"], in: "KnowledgeIndex")
+    self.apiVersion = try c.value("apiVersion")
+    self.kind = try c.value("kind")
+    self.metadata = try c.value("metadata")
+    self.spec = try c.value("spec")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encode(self.spec, as: "spec")
+  }
+}
+
+public enum KnowledgeIndexKind: String, Codable, Sendable, CaseIterable {
+  case knowledgeIndex = "KnowledgeIndex"
+}
+
+public struct KnowledgeIndexSpec: Codable, Sendable {
+  public var embedding: KnowledgeIndexSpecEmbedding
+  public var graph: Runner
+  public var knowledgeBase: String
+  public var librarian: KnowledgeIndexSpecLibrarian
+  public var logLevel: LogLevel
+  public var smelter: KnowledgeIndexSpecSmelter
+  public var vectors: KnowledgeIndexSpecVectors
+  public var weaver: KnowledgeIndexSpecWeaver
+  public init(
+    embedding: KnowledgeIndexSpecEmbedding, graph: Runner, knowledgeBase: String,
+    librarian: KnowledgeIndexSpecLibrarian, logLevel: LogLevel, smelter: KnowledgeIndexSpecSmelter,
+    vectors: KnowledgeIndexSpecVectors, weaver: KnowledgeIndexSpecWeaver
+  ) {
+    self.embedding = embedding
+    self.graph = graph
+    self.knowledgeBase = knowledgeBase
+    self.librarian = librarian
+    self.logLevel = logLevel
+    self.smelter = smelter
+    self.vectors = vectors
+    self.weaver = weaver
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "embedding", "graph", "knowledgeBase", "librarian", "logLevel", "smelter", "vectors",
+        "weaver",
+      ], in: "KnowledgeIndexSpec")
+    self.embedding = try c.value("embedding")
+    self.graph = try c.value("graph")
+    self.knowledgeBase = try c.value("knowledgeBase")
+    self.librarian = try c.value("librarian")
+    self.logLevel = try c.value("logLevel")
+    self.smelter = try c.value("smelter")
+    self.vectors = try c.value("vectors")
+    self.weaver = try c.value("weaver")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.embedding, as: "embedding")
+    try c.encode(self.graph, as: "graph")
+    try c.encode(self.knowledgeBase, as: "knowledgeBase")
+    try c.encode(self.librarian, as: "librarian")
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.smelter, as: "smelter")
+    try c.encode(self.vectors, as: "vectors")
+    try c.encode(self.weaver, as: "weaver")
+  }
+}
+
+public struct KnowledgeIndexSpecEmbedding: Codable, Sendable {
+  public var apiKey: SecretRef?
+  public var chunking: KnowledgeIndexSpecEmbeddingChunking
+  public var endpoint: String?
+  public var model: String
+  public var type: String
+  public init(
+    apiKey: SecretRef? = nil, chunking: KnowledgeIndexSpecEmbeddingChunking,
+    endpoint: String? = nil, model: String, type: String
+  ) {
+    self.apiKey = apiKey
+    self.chunking = chunking
+    self.endpoint = endpoint
+    self.model = model
+    self.type = type
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["apiKey", "chunking", "endpoint", "model", "type"], in: "KnowledgeIndexSpecEmbedding")
+    self.apiKey = try c.ifPresent("apiKey")
+    self.chunking = try c.value("chunking")
+    self.endpoint = try c.ifPresent("endpoint")
+    self.model = try c.value("model")
+    self.type = try c.value("type")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.apiKey, as: "apiKey")
+    try c.encode(self.chunking, as: "chunking")
+    try c.encodeIfPresent(self.endpoint, as: "endpoint")
+    try c.encode(self.model, as: "model")
+    try c.encode(self.type, as: "type")
+  }
+}
+
+public struct KnowledgeIndexSpecEmbeddingChunking: Codable, Sendable {
+  public var chunkSize: Int
+  public var overlap: Int
+  public init(chunkSize: Int, overlap: Int) {
+    self.chunkSize = chunkSize
+    self.overlap = overlap
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["chunkSize", "overlap"], in: "KnowledgeIndexSpecEmbeddingChunking")
+    self.chunkSize = try c.value("chunkSize")
+    self.overlap = try c.value("overlap")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.chunkSize, as: "chunkSize")
+    try c.encode(self.overlap, as: "overlap")
+  }
+}
+
+public struct KnowledgeIndexSpecLibrarian: Codable, Sendable {
+  public var gather: KnowledgeIndexSpecLibrarianGather
+  public var image: Image
+  public var resources: Resources
+  public var search: KnowledgeIndexSpecLibrarianSearch
+  public init(
+    gather: KnowledgeIndexSpecLibrarianGather, image: Image, resources: Resources,
+    search: KnowledgeIndexSpecLibrarianSearch
+  ) {
+    self.gather = gather
+    self.image = image
+    self.resources = resources
+    self.search = search
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["gather", "image", "resources", "search"], in: "KnowledgeIndexSpecLibrarian")
+    self.gather = try c.value("gather")
+    self.image = try c.value("image")
+    self.resources = try c.value("resources")
+    self.search = try c.value("search")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.gather, as: "gather")
+    try c.encode(self.image, as: "image")
+    try c.encode(self.resources, as: "resources")
+    try c.encode(self.search, as: "search")
+  }
+}
+
+public struct KnowledgeIndexSpecLibrarianGather: Codable, Sendable {
+  public var settleTimeoutMs: Int
+  public init(settleTimeoutMs: Int) {
+    self.settleTimeoutMs = settleTimeoutMs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["settleTimeoutMs"], in: "KnowledgeIndexSpecLibrarianGather")
+    self.settleTimeoutMs = try c.value("settleTimeoutMs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.settleTimeoutMs, as: "settleTimeoutMs")
+  }
+}
+
+public struct KnowledgeIndexSpecLibrarianSearch: Codable, Sendable {
+  public var semanticFloor: Double
+  public init(semanticFloor: Double) {
+    self.semanticFloor = semanticFloor
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["semanticFloor"], in: "KnowledgeIndexSpecLibrarianSearch")
+    self.semanticFloor = try c.value("semanticFloor")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.semanticFloor, as: "semanticFloor")
+  }
+}
+
+public struct KnowledgeIndexSpecSmelter: Codable, Sendable {
+  public var image: Image
+  public var pdfsAtOnce: Int
+  public var resources: Resources
+  public init(image: Image, pdfsAtOnce: Int, resources: Resources) {
+    self.image = image
+    self.pdfsAtOnce = pdfsAtOnce
+    self.resources = resources
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["image", "pdfsAtOnce", "resources"], in: "KnowledgeIndexSpecSmelter")
+    self.image = try c.value("image")
+    self.pdfsAtOnce = try c.value("pdfsAtOnce")
+    self.resources = try c.value("resources")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.image, as: "image")
+    try c.encode(self.pdfsAtOnce, as: "pdfsAtOnce")
+    try c.encode(self.resources, as: "resources")
+  }
+}
+
+public struct KnowledgeIndexSpecVectors: Codable, Sendable {
+  public var external: KnowledgeIndexSpecVectorsExternal?
+  public var image: Image?
+  public var resources: Resources?
+  public var shared: KnowledgeIndexSpecVectorsShared?
+  public var type: String
+  public init(
+    external: KnowledgeIndexSpecVectorsExternal? = nil, image: Image? = nil,
+    resources: Resources? = nil, shared: KnowledgeIndexSpecVectorsShared? = nil, type: String
+  ) {
+    self.external = external
+    self.image = image
+    self.resources = resources
+    self.shared = shared
+    self.type = type
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["external", "image", "resources", "shared", "type"], in: "KnowledgeIndexSpecVectors")
+    self.external = try c.ifPresent("external")
+    self.image = try c.ifPresent("image")
+    self.resources = try c.ifPresent("resources")
+    self.shared = try c.ifPresent("shared")
+    self.type = try c.value("type")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.external, as: "external")
+    try c.encodeIfPresent(self.image, as: "image")
+    try c.encodeIfPresent(self.resources, as: "resources")
+    try c.encodeIfPresent(self.shared, as: "shared")
+    try c.encode(self.type, as: "type")
+  }
+}
+
+public struct KnowledgeIndexSpecVectorsExternal: Codable, Sendable {
+  public var host: String
+  public var librarianToken: SecretRef
+  public var port: Int
+  public var smelterToken: SecretRef
+  public init(host: String, librarianToken: SecretRef, port: Int, smelterToken: SecretRef) {
+    self.host = host
+    self.librarianToken = librarianToken
+    self.port = port
+    self.smelterToken = smelterToken
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["host", "librarianToken", "port", "smelterToken"], in: "KnowledgeIndexSpecVectorsExternal")
+    self.host = try c.value("host")
+    self.librarianToken = try c.value("librarianToken")
+    self.port = try c.value("port")
+    self.smelterToken = try c.value("smelterToken")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.host, as: "host")
+    try c.encode(self.librarianToken, as: "librarianToken")
+    try c.encode(self.port, as: "port")
+    try c.encode(self.smelterToken, as: "smelterToken")
+  }
+}
+
+public struct KnowledgeIndexSpecVectorsShared: Codable, Sendable {
+  public init() {
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown([], in: "KnowledgeIndexSpecVectorsShared")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    _ = encoder.container(keyedBy: WireKey.self)
+  }
+}
+
+public struct KnowledgeIndexSpecWeaver: Codable, Sendable {
+  public var image: Image
+  public var resources: Resources
+  public init(image: Image, resources: Resources) {
+    self.image = image
+    self.resources = resources
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["image", "resources"], in: "KnowledgeIndexSpecWeaver")
+    self.image = try c.value("image")
+    self.resources = try c.value("resources")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.image, as: "image")
+    try c.encode(self.resources, as: "resources")
   }
 }
 
@@ -7085,9 +9888,9 @@ public struct LibrarianEngineConfig: Codable, Sendable {
 
 public struct LibrarianHealth: Codable, Sendable {
   public var actors: [LibrarianHealthActorsItem]
-  public var kb: String
+  public var kb: KbDid
   public let status: LibrarianHealthStatus
-  public init(actors: [LibrarianHealthActorsItem], kb: String) {
+  public init(actors: [LibrarianHealthActorsItem], kb: KbDid) {
     self.actors = actors
     self.kb = kb
     self.status = .ok
@@ -7114,6 +9917,26 @@ public enum LibrarianHealthActorsItem: String, Codable, Sendable, CaseIterable {
 
 public enum LibrarianHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
+}
+
+public struct LibrarianPromptScore: Codable, Sendable {
+  public var candidate: Double
+  public var score: Double
+  public init(candidate: Double, score: Double) {
+    self.candidate = candidate
+    self.score = score
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["candidate", "score"], in: "LibrarianPromptScore")
+    self.candidate = try c.value("candidate")
+    self.score = try c.value("score")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.candidate, as: "candidate")
+    try c.encode(self.score, as: "score")
+  }
 }
 
 public struct LimitRefusal: Codable, Sendable {
@@ -7243,6 +10066,30 @@ public enum LocalEndpointKind: String, Codable, Sendable, CaseIterable {
   case local = "local"
 }
 
+public struct LocalTarget: Codable, Sendable {
+  public let kind: LocalTargetKind
+  public var root: String
+  public init(root: String) {
+    self.kind = .local
+    self.root = root
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind", "root"], in: "LocalTarget")
+    self.kind = try c.value("kind")
+    self.root = try c.value("root")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.root, as: "root")
+  }
+}
+
+public enum LocalTargetKind: String, Codable, Sendable, CaseIterable {
+  case local = "local"
+}
+
 public enum LogFormat: String, Codable, Sendable, CaseIterable {
   case json = "json"
   case simple = "simple"
@@ -7254,6 +10101,86 @@ public enum LogLevel: String, Codable, Sendable, CaseIterable {
   case info = "info"
   case http = "http"
   case debug = "debug"
+}
+
+public struct LogRecord: Codable, Sendable {
+  public var line: String
+  public var receivedAt: String
+  public var requestId: RequestId
+  public var service: String
+  public var stream: OutputStream
+  public init(
+    line: String, receivedAt: String, requestId: RequestId, service: String, stream: OutputStream
+  ) {
+    self.line = line
+    self.receivedAt = receivedAt
+    self.requestId = requestId
+    self.service = service
+    self.stream = stream
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["line", "receivedAt", "requestId", "service", "stream"], in: "LogRecord")
+    self.line = try c.value("line")
+    self.receivedAt = try c.value("receivedAt")
+    self.requestId = try c.value("requestId")
+    self.service = try c.value("service")
+    self.stream = try c.value("stream")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.line, as: "line")
+    try c.encode(self.receivedAt, as: "receivedAt")
+    try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.service, as: "service")
+    try c.encode(self.stream, as: "stream")
+  }
+}
+
+public struct LogsFollowParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var runtime: Runtime?
+  public var service: String?
+  public var target: Target?
+  public init(
+    apiVersion: ApiVersion, runtime: Runtime? = nil, service: String? = nil, target: Target? = nil
+  ) {
+    self.apiVersion = apiVersion
+    self.runtime = runtime
+    self.service = service
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "runtime", "service", "target"], in: "LogsFollowParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.runtime = try c.ifPresent("runtime")
+    self.service = try c.ifPresent("service")
+    self.target = try c.ifPresent("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encodeIfPresent(self.service, as: "service")
+    try c.encodeIfPresent(self.target, as: "target")
+  }
+}
+
+public struct LogsFollowResult: Codable, Sendable {
+  public var services: [String]
+  public init(services: [String]) {
+    self.services = services
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["services"], in: "LogsFollowResult")
+    self.services = try c.value("services")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.services, as: "services")
+  }
 }
 
 public struct MarkArchiveCommand: Codable, Sendable {
@@ -8133,6 +11060,37 @@ public enum MemoryVectorsConfigType: String, Codable, Sendable, CaseIterable {
   case memory = "memory"
 }
 
+public struct Metadata: Codable, Sendable {
+  public var annotations: [String: String]?
+  public var labels: [String: String]?
+  public var name: String
+  public var namespace: String?
+  public init(
+    annotations: [String: String]? = nil, labels: [String: String]? = nil, name: String,
+    namespace: String? = nil
+  ) {
+    self.annotations = annotations
+    self.labels = labels
+    self.name = name
+    self.namespace = namespace
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["annotations", "labels", "name", "namespace"], in: "Metadata")
+    self.annotations = try c.ifPresent("annotations")
+    self.labels = try c.ifPresent("labels")
+    self.name = try c.value("name")
+    self.namespace = try c.ifPresent("namespace")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.annotations, as: "annotations")
+    try c.encodeIfPresent(self.labels, as: "labels")
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.namespace, as: "namespace")
+  }
+}
+
 public enum Motivation: String, Codable, Sendable, CaseIterable {
   case assessing = "assessing"
   case commenting = "commenting"
@@ -8353,6 +11311,49 @@ public indirect enum OneOrMoreUris: Codable, Sendable {
   }
 }
 
+public struct OpenResource: Codable, Sendable {
+  public var id: ResourceId
+  public var mediaType: String?
+  public var name: String
+  public var openedAt: Int
+  public var order: Int
+  public var storageUri: String?
+  public init(
+    id: ResourceId, mediaType: String? = nil, name: String, openedAt: Int, order: Int,
+    storageUri: String? = nil
+  ) {
+    self.id = id
+    self.mediaType = mediaType
+    self.name = name
+    self.openedAt = openedAt
+    self.order = order
+    self.storageUri = storageUri
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    self.id = try c.value("id")
+    self.mediaType = try c.ifPresent("mediaType")
+    self.name = try c.value("name")
+    self.openedAt = try c.value("openedAt")
+    self.order = try c.value("order")
+    self.storageUri = try c.ifPresent("storageUri")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.id, as: "id")
+    try c.encodeIfPresent(self.mediaType, as: "mediaType")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.openedAt, as: "openedAt")
+    try c.encode(self.order, as: "order")
+    try c.encodeIfPresent(self.storageUri, as: "storageUri")
+  }
+}
+
+public enum OutputStream: String, Codable, Sendable, CaseIterable {
+  case stdout = "stdout"
+  case stderr = "stderr"
+}
+
 public enum PdfClass: String, Codable, Sendable, CaseIterable {
   case a = "A"
   case b = "B"
@@ -8543,6 +11544,123 @@ public struct ProfilesProjection: Codable, Sendable {
   }
 }
 
+public struct Progress: Codable, Sendable {
+  public var kind: ProgressKind
+  public var requestId: RequestId
+  public var text: String
+  public init(kind: ProgressKind, requestId: RequestId, text: String) {
+    self.kind = kind
+    self.requestId = requestId
+    self.text = text
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind", "requestId", "text"], in: "Progress")
+    self.kind = try c.value("kind")
+    self.requestId = try c.value("requestId")
+    self.text = try c.value("text")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.text, as: "text")
+  }
+}
+
+public enum ProgressKind: String, Codable, Sendable, CaseIterable {
+  case log = "log"
+  case note = "note"
+  case ok = "ok"
+  case warn = "warn"
+  case fail = "fail"
+  case banner = "banner"
+  case section = "section"
+  case stamp = "stamp"
+  case command = "command"
+  case output = "output"
+}
+
+public struct ProjectConfig: Codable, Sendable {
+  public var git: ProjectConfigGit
+  public var project: ProjectConfigProject
+  public var site: ProjectConfigSite
+  public init(git: ProjectConfigGit, project: ProjectConfigProject, site: ProjectConfigSite) {
+    self.git = git
+    self.project = project
+    self.site = site
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["git", "project", "site"], in: "ProjectConfig")
+    self.git = try c.value("git")
+    self.project = try c.value("project")
+    self.site = try c.value("site")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.git, as: "git")
+    try c.encode(self.project, as: "project")
+    try c.encode(self.site, as: "site")
+  }
+}
+
+public struct ProjectConfigGit: Codable, Sendable {
+  public var sync: Bool
+  public init(sync: Bool) {
+    self.sync = sync
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["sync"], in: "ProjectConfigGit")
+    self.sync = try c.value("sync")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.sync, as: "sync")
+  }
+}
+
+public struct ProjectConfigProject: Codable, Sendable {
+  public var name: String
+  public var version: String?
+  public init(name: String, version: String? = nil) {
+    self.name = name
+    self.version = version
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "version"], in: "ProjectConfigProject")
+    self.name = try c.value("name")
+    self.version = try c.ifPresent("version")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.version, as: "version")
+  }
+}
+
+public struct ProjectConfigSite: Codable, Sendable {
+  public var domain: String
+  public var siteName: String
+  public init(domain: String, siteName: String) {
+    self.domain = domain
+    self.siteName = siteName
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["domain", "siteName"], in: "ProjectConfigSite")
+    self.domain = try c.value("domain")
+    self.siteName = try c.value("siteName")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.domain, as: "domain")
+    try c.encode(self.siteName, as: "siteName")
+  }
+}
+
 public struct ProtectedResourceMetadata: Codable, Sendable {
   public var authorizationServers: [String]
   public var bearerMethodsSupported: [ProtectedResourceMetadataBearerMethodsSupportedItem]
@@ -8581,6 +11699,26 @@ public enum ProtectedResourceMetadataBearerMethodsSupportedItem: String, Codable
   CaseIterable
 {
   case header = "header"
+}
+
+public struct Provider: Codable, Sendable {
+  public var apiKey: SecretRef?
+  public var baseURL: String?
+  public init(apiKey: SecretRef? = nil, baseURL: String? = nil) {
+    self.apiKey = apiKey
+    self.baseURL = baseURL
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiKey", "baseURL"], in: "Provider")
+    self.apiKey = try c.ifPresent("apiKey")
+    self.baseURL = try c.ifPresent("baseURL")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.apiKey, as: "apiKey")
+    try c.encodeIfPresent(self.baseURL, as: "baseURL")
+  }
 }
 
 public struct QdrantVectorsConfig: Codable, Sendable {
@@ -9056,6 +12194,29 @@ public struct RepresentationRemovedPayload: Codable, Sendable {
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.checksum, as: "checksum")
+  }
+}
+
+public indirect enum RequestId: Codable, Sendable {
+  case text(String)
+  case integer(Int)
+  public init(from decoder: any Decoder) throws {
+    if let value = try? String(from: decoder) {
+      self = .text(value)
+      return
+    }
+    if let value = try? Int(from: decoder) {
+      self = .integer(value)
+      return
+    }
+    throw DecodingError.dataCorrupted(
+      .init(codingPath: decoder.codingPath, debugDescription: "no member of RequestId fits"))
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .text(let value): try value.encode(to: encoder)
+    case .integer(let value): try value.encode(to: encoder)
+    }
   }
 }
 
@@ -9792,6 +12953,367 @@ public struct ResourceView: Codable, Sendable {
   }
 }
 
+public struct Resources: Codable, Sendable {
+  public var limits: ResourcesLimits
+  public init(limits: ResourcesLimits) {
+    self.limits = limits
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["limits"], in: "Resources")
+    self.limits = try c.value("limits")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.limits, as: "limits")
+  }
+}
+
+public struct ResourcesLimits: Codable, Sendable {
+  public var memory: String
+  public init(memory: String) {
+    self.memory = memory
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["memory"], in: "ResourcesLimits")
+    self.memory = try c.value("memory")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.memory, as: "memory")
+  }
+}
+
+public struct Root: Codable, Sendable {
+  public var codespace: String?
+  public var codespaceState: String?
+  public var config: String?
+  public var configs: [String]?
+  public var current: RootCurrent?
+  public var did: String?
+  public var forwardPort: Int?
+  public var forwarded: Bool?
+  public var identityError: String?
+  public var lastUsed: String?
+  public var path: String?
+  public var placement: RootPlacement
+  public var present: Bool?
+  public var reachable: Bool?
+  public var registered: Bool
+  public var repo: String?
+  public var running: Bool
+  public var siteName: String?
+  public init(
+    codespace: String? = nil, codespaceState: String? = nil, config: String? = nil,
+    configs: [String]? = nil, current: RootCurrent? = nil, did: String? = nil,
+    forwardPort: Int? = nil, forwarded: Bool? = nil, identityError: String? = nil,
+    lastUsed: String? = nil, path: String? = nil, placement: RootPlacement, present: Bool? = nil,
+    reachable: Bool? = nil, registered: Bool, repo: String? = nil, running: Bool,
+    siteName: String? = nil
+  ) {
+    self.codespace = codespace
+    self.codespaceState = codespaceState
+    self.config = config
+    self.configs = configs
+    self.current = current
+    self.did = did
+    self.forwardPort = forwardPort
+    self.forwarded = forwarded
+    self.identityError = identityError
+    self.lastUsed = lastUsed
+    self.path = path
+    self.placement = placement
+    self.present = present
+    self.reachable = reachable
+    self.registered = registered
+    self.repo = repo
+    self.running = running
+    self.siteName = siteName
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "codespace", "codespaceState", "config", "configs", "current", "did", "forwardPort",
+        "forwarded", "identityError", "lastUsed", "path", "placement", "present", "reachable",
+        "registered", "repo", "running", "siteName",
+      ], in: "Root")
+    self.codespace = try c.ifPresent("codespace")
+    self.codespaceState = try c.ifPresent("codespaceState")
+    self.config = try c.ifPresent("config")
+    self.configs = try c.ifPresent("configs")
+    self.current = try c.ifPresent("current")
+    self.did = try c.ifPresent("did")
+    self.forwardPort = try c.ifPresent("forwardPort")
+    self.forwarded = try c.ifPresent("forwarded")
+    self.identityError = try c.ifPresent("identityError")
+    self.lastUsed = try c.ifPresent("lastUsed")
+    self.path = try c.ifPresent("path")
+    self.placement = try c.value("placement")
+    self.present = try c.ifPresent("present")
+    self.reachable = try c.ifPresent("reachable")
+    self.registered = try c.value("registered")
+    self.repo = try c.ifPresent("repo")
+    self.running = try c.value("running")
+    self.siteName = try c.ifPresent("siteName")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.codespace, as: "codespace")
+    try c.encodeIfPresent(self.codespaceState, as: "codespaceState")
+    try c.encodeIfPresent(self.config, as: "config")
+    try c.encodeIfPresent(self.configs, as: "configs")
+    try c.encodeIfPresent(self.current, as: "current")
+    try c.encodeIfPresent(self.did, as: "did")
+    try c.encodeIfPresent(self.forwardPort, as: "forwardPort")
+    try c.encodeIfPresent(self.forwarded, as: "forwarded")
+    try c.encodeIfPresent(self.identityError, as: "identityError")
+    try c.encodeIfPresent(self.lastUsed, as: "lastUsed")
+    try c.encodeIfPresent(self.path, as: "path")
+    try c.encode(self.placement, as: "placement")
+    try c.encodeIfPresent(self.present, as: "present")
+    try c.encodeIfPresent(self.reachable, as: "reachable")
+    try c.encode(self.registered, as: "registered")
+    try c.encodeIfPresent(self.repo, as: "repo")
+    try c.encode(self.running, as: "running")
+    try c.encodeIfPresent(self.siteName, as: "siteName")
+  }
+}
+
+public enum RootCurrent: String, Codable, Sendable, CaseIterable {
+  case cwd = "cwd"
+  case xynologRoot = "xynolog-root"
+}
+
+public enum RootPlacement: String, Codable, Sendable, CaseIterable {
+  case local = "local"
+  case codespace = "codespace"
+}
+
+public struct RootsForgetParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var root: String
+  public init(apiVersion: ApiVersion, root: String) {
+    self.apiVersion = apiVersion
+    self.root = root
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "root"], in: "RootsForgetParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.root = try c.value("root")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.root, as: "root")
+  }
+}
+
+public struct RootsForgetResult: Codable, Sendable {
+  public var directoryMissing: Bool
+  public var path: String
+  public var persistentState: String?
+  public init(directoryMissing: Bool, path: String, persistentState: String? = nil) {
+    self.directoryMissing = directoryMissing
+    self.path = path
+    self.persistentState = persistentState
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["directoryMissing", "path", "persistentState"], in: "RootsForgetResult")
+    self.directoryMissing = try c.value("directoryMissing")
+    self.path = try c.value("path")
+    self.persistentState = try c.ifPresent("persistentState")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.directoryMissing, as: "directoryMissing")
+    try c.encode(self.path, as: "path")
+    try c.encodeIfPresent(self.persistentState, as: "persistentState")
+  }
+}
+
+public struct RootsInitParams: Codable, Sendable {
+  public var anthropicEndpoint: String?
+  public var apiVersion: ApiVersion
+  public var configName: String?
+  public var domain: String
+  public var embedding: String?
+  public var inference: RootsInitParamsInference?
+  public var model: String?
+  public var modelLight: String?
+  public var name: String?
+  public var ollamaBase: String?
+  public var ollamaRegistry: String?
+  public var path: String
+  public var siteName: String?
+  public init(
+    anthropicEndpoint: String? = nil, apiVersion: ApiVersion, configName: String? = nil,
+    domain: String, embedding: String? = nil, inference: RootsInitParamsInference? = nil,
+    model: String? = nil, modelLight: String? = nil, name: String? = nil, ollamaBase: String? = nil,
+    ollamaRegistry: String? = nil, path: String, siteName: String? = nil
+  ) {
+    self.anthropicEndpoint = anthropicEndpoint
+    self.apiVersion = apiVersion
+    self.configName = configName
+    self.domain = domain
+    self.embedding = embedding
+    self.inference = inference
+    self.model = model
+    self.modelLight = modelLight
+    self.name = name
+    self.ollamaBase = ollamaBase
+    self.ollamaRegistry = ollamaRegistry
+    self.path = path
+    self.siteName = siteName
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "anthropicEndpoint", "apiVersion", "configName", "domain", "embedding", "inference",
+        "model", "modelLight", "name", "ollamaBase", "ollamaRegistry", "path", "siteName",
+      ], in: "RootsInitParams")
+    self.anthropicEndpoint = try c.ifPresent("anthropicEndpoint")
+    self.apiVersion = try c.value("apiVersion")
+    self.configName = try c.ifPresent("configName")
+    self.domain = try c.value("domain")
+    self.embedding = try c.ifPresent("embedding")
+    self.inference = try c.ifPresent("inference")
+    self.model = try c.ifPresent("model")
+    self.modelLight = try c.ifPresent("modelLight")
+    self.name = try c.ifPresent("name")
+    self.ollamaBase = try c.ifPresent("ollamaBase")
+    self.ollamaRegistry = try c.ifPresent("ollamaRegistry")
+    self.path = try c.value("path")
+    self.siteName = try c.ifPresent("siteName")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.anthropicEndpoint, as: "anthropicEndpoint")
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.configName, as: "configName")
+    try c.encode(self.domain, as: "domain")
+    try c.encodeIfPresent(self.embedding, as: "embedding")
+    try c.encodeIfPresent(self.inference, as: "inference")
+    try c.encodeIfPresent(self.model, as: "model")
+    try c.encodeIfPresent(self.modelLight, as: "modelLight")
+    try c.encodeIfPresent(self.name, as: "name")
+    try c.encodeIfPresent(self.ollamaBase, as: "ollamaBase")
+    try c.encodeIfPresent(self.ollamaRegistry, as: "ollamaRegistry")
+    try c.encode(self.path, as: "path")
+    try c.encodeIfPresent(self.siteName, as: "siteName")
+  }
+}
+
+public enum RootsInitParamsInference: String, Codable, Sendable, CaseIterable {
+  case anthropic = "anthropic"
+  case ollama = "ollama"
+}
+
+public struct RootsInitResult: Codable, Sendable {
+  public var path: String
+  public init(path: String) {
+    self.path = path
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["path"], in: "RootsInitResult")
+    self.path = try c.value("path")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.path, as: "path")
+  }
+}
+
+public struct RootsListParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public init(apiVersion: ApiVersion) {
+    self.apiVersion = apiVersion
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion"], in: "RootsListParams")
+    self.apiVersion = try c.value("apiVersion")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+  }
+}
+
+public struct RootsListResult: Codable, Sendable {
+  public var roots: [Root]
+  public var warnings: [String]?
+  public init(roots: [Root], warnings: [String]? = nil) {
+    self.roots = roots
+    self.warnings = warnings
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["roots", "warnings"], in: "RootsListResult")
+    self.roots = try c.value("roots")
+    self.warnings = try c.ifPresent("warnings")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.roots, as: "roots")
+    try c.encodeIfPresent(self.warnings, as: "warnings")
+  }
+}
+
+public typealias RunInstance = String
+
+public enum RunService: String, Codable, Sendable, CaseIterable {
+  case archivist = "archivist"
+  case dispatcher = "dispatcher"
+  case gateway = "gateway"
+  case librarian = "librarian"
+  case smelter = "smelter"
+  case weaver = "weaver"
+  case worker = "worker"
+}
+
+public struct Runner: Codable, Sendable {
+  public init() {
+  }
+  public init(from decoder: any Decoder) throws {
+    _ = try decoder.container(keyedBy: WireKey.self)
+  }
+  public func encode(to encoder: any Encoder) throws {
+    _ = encoder.container(keyedBy: WireKey.self)
+  }
+}
+
+public enum Runtime: String, Codable, Sendable, CaseIterable {
+  case container = "container"
+  case docker = "docker"
+  case podman = "podman"
+}
+
+public struct RuntimeState: Codable, Sendable {
+  public var found: Bool
+  public var name: Runtime
+  public init(found: Bool, name: Runtime) {
+    self.found = found
+    self.name = name
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["found", "name"], in: "RuntimeState")
+    self.found = try c.value("found")
+    self.name = try c.value("name")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.found, as: "found")
+    try c.encode(self.name, as: "name")
+  }
+}
+
 public struct ScoredResource: Codable, Sendable {
   public var context: ResourceDescriptorContext
   public var id: ResourceId
@@ -9945,6 +13467,22 @@ public struct ScoredResource: Codable, Sendable {
   }
 }
 
+public struct SecretRef: Codable, Sendable {
+  public var fromEnv: String
+  public init(fromEnv: String) {
+    self.fromEnv = fromEnv
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["fromEnv"], in: "SecretRef")
+    self.fromEnv = try c.value("fromEnv")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.fromEnv, as: "fromEnv")
+  }
+}
+
 public indirect enum Selector: Codable, Sendable {
   case textPositionSelector(TextPositionSelector)
   case textQuoteSelector(TextQuoteSelector)
@@ -10036,6 +13574,55 @@ public struct ServiceAddress: Codable, Sendable {
   }
 }
 
+public enum ServiceGroup: String, Codable, Sendable, CaseIterable {
+  case record = "record"
+  case index = "index"
+  case issuer = "issuer"
+  case knowledgeWorkers = "knowledge-workers"
+  case providers = "providers"
+  case telemetry = "telemetry"
+}
+
+public struct ServiceHostParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var runtime: Runtime?
+  public init(apiVersion: ApiVersion, runtime: Runtime? = nil) {
+    self.apiVersion = apiVersion
+    self.runtime = runtime
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "runtime"], in: "ServiceHostParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.runtime = try c.ifPresent("runtime")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+  }
+}
+
+public struct ServiceHostResult: Codable, Sendable {
+  public var address: String
+  public var runtime: Runtime
+  public init(address: String, runtime: Runtime) {
+    self.address = address
+    self.runtime = runtime
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["address", "runtime"], in: "ServiceHostResult")
+    self.address = try c.value("address")
+    self.runtime = try c.value("runtime")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.address, as: "address")
+    try c.encode(self.runtime, as: "runtime")
+  }
+}
+
 public struct ServiceIdentity: Codable, Sendable {
   public var issuer: String
   public init(issuer: String) {
@@ -10049,6 +13636,312 @@ public struct ServiceIdentity: Codable, Sendable {
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.issuer, as: "issuer")
+  }
+}
+
+public struct ServiceOutput: Codable, Sendable {
+  public var instance: RunInstance
+  public var line: String
+  public var requestId: RequestId
+  public var stream: OutputStream
+  public init(instance: RunInstance, line: String, requestId: RequestId, stream: OutputStream) {
+    self.instance = instance
+    self.line = line
+    self.requestId = requestId
+    self.stream = stream
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["instance", "line", "requestId", "stream"], in: "ServiceOutput")
+    self.instance = try c.value("instance")
+    self.line = try c.value("line")
+    self.requestId = try c.value("requestId")
+    self.stream = try c.value("stream")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.instance, as: "instance")
+    try c.encode(self.line, as: "line")
+    try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.stream, as: "stream")
+  }
+}
+
+public struct ServiceRunParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var args: [String]?
+  public var document: String?
+  public var environment: [String: String]
+  public var instance: RunInstance
+  public var mounts: [String]
+  public var pathFirst: [String]
+  public var ports: [Int]
+  public var runtime: Runtime?
+  public var service: RunService
+  public var target: LocalTarget
+  public init(
+    apiVersion: ApiVersion, args: [String]? = nil, document: String? = nil,
+    environment: [String: String], instance: RunInstance, mounts: [String], pathFirst: [String],
+    ports: [Int], runtime: Runtime? = nil, service: RunService, target: LocalTarget
+  ) {
+    self.apiVersion = apiVersion
+    self.args = args
+    self.document = document
+    self.environment = environment
+    self.instance = instance
+    self.mounts = mounts
+    self.pathFirst = pathFirst
+    self.ports = ports
+    self.runtime = runtime
+    self.service = service
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "apiVersion", "args", "document", "environment", "instance", "mounts", "pathFirst", "ports",
+        "runtime", "service", "target",
+      ], in: "ServiceRunParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.args = try c.ifPresent("args")
+    self.document = try c.ifPresent("document")
+    self.environment = try c.value("environment")
+    self.instance = try c.value("instance")
+    self.mounts = try c.value("mounts")
+    self.pathFirst = try c.value("pathFirst")
+    self.ports = try c.value("ports")
+    self.runtime = try c.ifPresent("runtime")
+    self.service = try c.value("service")
+    self.target = try c.value("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.args, as: "args")
+    try c.encodeIfPresent(self.document, as: "document")
+    try c.encode(self.environment, as: "environment")
+    try c.encode(self.instance, as: "instance")
+    try c.encode(self.mounts, as: "mounts")
+    try c.encode(self.pathFirst, as: "pathFirst")
+    try c.encode(self.ports, as: "ports")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encode(self.service, as: "service")
+    try c.encode(self.target, as: "target")
+  }
+}
+
+public struct ServiceRunResult: Codable, Sendable {
+  public var exitCode: Int
+  public var instance: RunInstance
+  public var ranMs: Int
+  public init(exitCode: Int, instance: RunInstance, ranMs: Int) {
+    self.exitCode = exitCode
+    self.instance = instance
+    self.ranMs = ranMs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["exitCode", "instance", "ranMs"], in: "ServiceRunResult")
+    self.exitCode = try c.value("exitCode")
+    self.instance = try c.value("instance")
+    self.ranMs = try c.value("ranMs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.exitCode, as: "exitCode")
+    try c.encode(self.instance, as: "instance")
+    try c.encode(self.ranMs, as: "ranMs")
+  }
+}
+
+public struct ServiceSignalParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var instance: RunInstance
+  public var runtime: Runtime?
+  public var signal: ServiceSignalParamsSignal
+  public var target: LocalTarget
+  public init(
+    apiVersion: ApiVersion, instance: RunInstance, runtime: Runtime? = nil,
+    signal: ServiceSignalParamsSignal, target: LocalTarget
+  ) {
+    self.apiVersion = apiVersion
+    self.instance = instance
+    self.runtime = runtime
+    self.signal = signal
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["apiVersion", "instance", "runtime", "signal", "target"], in: "ServiceSignalParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.instance = try c.value("instance")
+    self.runtime = try c.ifPresent("runtime")
+    self.signal = try c.value("signal")
+    self.target = try c.value("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.instance, as: "instance")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encode(self.signal, as: "signal")
+    try c.encode(self.target, as: "target")
+  }
+}
+
+public enum ServiceSignalParamsSignal: String, Codable, Sendable, CaseIterable {
+  case term = "term"
+  case kill = "kill"
+}
+
+public struct ServiceSignalResult: Codable, Sendable {
+  public var delivered: Bool
+  public init(delivered: Bool) {
+    self.delivered = delivered
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["delivered"], in: "ServiceSignalResult")
+    self.delivered = try c.value("delivered")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.delivered, as: "delivered")
+  }
+}
+
+public struct ServiceStarted: Codable, Sendable {
+  public var address: String
+  public var container: String
+  public var documentPath: String?
+  public var instance: RunInstance
+  public var requestId: RequestId
+  public init(
+    address: String, container: String, documentPath: String? = nil, instance: RunInstance,
+    requestId: RequestId
+  ) {
+    self.address = address
+    self.container = container
+    self.documentPath = documentPath
+    self.instance = instance
+    self.requestId = requestId
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["address", "container", "documentPath", "instance", "requestId"], in: "ServiceStarted")
+    self.address = try c.value("address")
+    self.container = try c.value("container")
+    self.documentPath = try c.ifPresent("documentPath")
+    self.instance = try c.value("instance")
+    self.requestId = try c.value("requestId")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.address, as: "address")
+    try c.encode(self.container, as: "container")
+    try c.encodeIfPresent(self.documentPath, as: "documentPath")
+    try c.encode(self.instance, as: "instance")
+    try c.encode(self.requestId, as: "requestId")
+  }
+}
+
+public struct ServiceStatus: Codable, Sendable {
+  public var containerState: String?
+  public var counted: Bool
+  public var group: ServiceGroup
+  public var healthy: Bool
+  public var page: String?
+  public var probe: String?
+  public var product: String?
+  public var realm: String?
+  public var role: String
+  public var runsOn: String?
+  public var serves: [String]?
+  public var state: ServiceStatusState
+  public init(
+    containerState: String? = nil, counted: Bool, group: ServiceGroup, healthy: Bool,
+    page: String? = nil, probe: String? = nil, product: String? = nil, realm: String? = nil,
+    role: String, runsOn: String? = nil, serves: [String]? = nil, state: ServiceStatusState
+  ) {
+    self.containerState = containerState
+    self.counted = counted
+    self.group = group
+    self.healthy = healthy
+    self.page = page
+    self.probe = probe
+    self.product = product
+    self.realm = realm
+    self.role = role
+    self.runsOn = runsOn
+    self.serves = serves
+    self.state = state
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "containerState", "counted", "group", "healthy", "page", "probe", "product", "realm",
+        "role", "runsOn", "serves", "state",
+      ], in: "ServiceStatus")
+    self.containerState = try c.ifPresent("containerState")
+    self.counted = try c.value("counted")
+    self.group = try c.value("group")
+    self.healthy = try c.value("healthy")
+    self.page = try c.ifPresent("page")
+    self.probe = try c.ifPresent("probe")
+    self.product = try c.ifPresent("product")
+    self.realm = try c.ifPresent("realm")
+    self.role = try c.value("role")
+    self.runsOn = try c.ifPresent("runsOn")
+    self.serves = try c.ifPresent("serves")
+    self.state = try c.value("state")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.containerState, as: "containerState")
+    try c.encode(self.counted, as: "counted")
+    try c.encode(self.group, as: "group")
+    try c.encode(self.healthy, as: "healthy")
+    try c.encodeIfPresent(self.page, as: "page")
+    try c.encodeIfPresent(self.probe, as: "probe")
+    try c.encodeIfPresent(self.product, as: "product")
+    try c.encodeIfPresent(self.realm, as: "realm")
+    try c.encode(self.role, as: "role")
+    try c.encodeIfPresent(self.runsOn, as: "runsOn")
+    try c.encodeIfPresent(self.serves, as: "serves")
+    try c.encode(self.state, as: "state")
+  }
+}
+
+public enum ServiceStatusState: String, Codable, Sendable, CaseIterable {
+  case running = "running"
+  case stopped = "stopped"
+  case reachable = "reachable"
+  case unreachable = "unreachable"
+  case absent = "absent"
+  case notConfigured = "not-configured"
+}
+
+public struct Session: Codable, Sendable {
+  public var email: String?
+  public var state: SessionState
+  public init(email: String? = nil, state: SessionState) {
+    self.email = email
+    self.state = state
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["email", "state"], in: "Session")
+    self.email = try c.ifPresent("email")
+    self.state = try c.value("state")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.email, as: "email")
+    try c.encode(self.state, as: "state")
   }
 }
 
@@ -10111,6 +14004,106 @@ public struct SessionLeftEvent: Codable, Sendable {
   }
 }
 
+public enum SessionState: String, Codable, Sendable, CaseIterable {
+  case valid = "valid"
+  case expired = "expired"
+  case unverified = "unverified"
+  case none = "none"
+}
+
+public struct Setting: Codable, Sendable {
+  public var appliesTo: SettingAppliesTo
+  public var changedBy: String?
+  public var `default`: Bool
+  public var name: String
+  public var settable: Bool
+  public var values: [SettingLine]
+  public init(
+    appliesTo: SettingAppliesTo, changedBy: String? = nil, `default`: Bool, name: String,
+    settable: Bool, values: [SettingLine]
+  ) {
+    self.appliesTo = appliesTo
+    self.changedBy = changedBy
+    self.`default` = `default`
+    self.name = name
+    self.settable = settable
+    self.values = values
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["appliesTo", "changedBy", "default", "name", "settable", "values"], in: "Setting")
+    self.appliesTo = try c.value("appliesTo")
+    self.changedBy = try c.ifPresent("changedBy")
+    self.`default` = try c.value("default")
+    self.name = try c.value("name")
+    self.settable = try c.value("settable")
+    self.values = try c.value("values")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.appliesTo, as: "appliesTo")
+    try c.encodeIfPresent(self.changedBy, as: "changedBy")
+    try c.encode(self.`default`, as: "default")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.settable, as: "settable")
+    try c.encode(self.values, as: "values")
+  }
+}
+
+public enum SettingAppliesTo: String, Codable, Sendable, CaseIterable {
+  case machine = "machine"
+  case knowledgeBase = "knowledge-base"
+}
+
+public struct SettingLine: Codable, Sendable {
+  public var source: String
+  public var value: String
+  public init(source: String, value: String) {
+    self.source = source
+    self.value = value
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["source", "value"], in: "SettingLine")
+    self.source = try c.value("source")
+    self.value = try c.value("value")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.source, as: "source")
+    try c.encode(self.value, as: "value")
+  }
+}
+
+public struct SettingsGetParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var `default`: Bool?
+  public var name: String
+  public var root: String?
+  public init(apiVersion: ApiVersion, `default`: Bool? = nil, name: String, root: String? = nil) {
+    self.apiVersion = apiVersion
+    self.`default` = `default`
+    self.name = name
+    self.root = root
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "default", "name", "root"], in: "SettingsGetParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.`default` = try c.ifPresent("default")
+    self.name = try c.value("name")
+    self.root = try c.ifPresent("root")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.`default`, as: "default")
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.root, as: "root")
+  }
+}
+
 public struct SettingsHoverDelayChangedEvent: Codable, Sendable {
   public var hoverDelayMs: Int
   public init(hoverDelayMs: Int) {
@@ -10126,6 +14119,50 @@ public struct SettingsHoverDelayChangedEvent: Codable, Sendable {
   }
 }
 
+public struct SettingsListParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var root: String?
+  public init(apiVersion: ApiVersion, root: String? = nil) {
+    self.apiVersion = apiVersion
+    self.root = root
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "root"], in: "SettingsListParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.root = try c.ifPresent("root")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.root, as: "root")
+  }
+}
+
+public struct SettingsListResult: Codable, Sendable {
+  public var root: String?
+  public var settings: [Setting]
+  public var unresolved: String?
+  public init(root: String? = nil, settings: [Setting], unresolved: String? = nil) {
+    self.root = root
+    self.settings = settings
+    self.unresolved = unresolved
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["root", "settings", "unresolved"], in: "SettingsListResult")
+    self.root = try c.ifPresent("root")
+    self.settings = try c.value("settings")
+    self.unresolved = try c.ifPresent("unresolved")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.root, as: "root")
+    try c.encode(self.settings, as: "settings")
+    try c.encodeIfPresent(self.unresolved, as: "unresolved")
+  }
+}
+
 public struct SettingsLocaleChangedEvent: Codable, Sendable {
   public var locale: String
   public init(locale: String) {
@@ -10138,6 +14175,84 @@ public struct SettingsLocaleChangedEvent: Codable, Sendable {
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.locale, as: "locale")
+  }
+}
+
+public struct SettingsPathParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var document: SettingsPathParamsDocument
+  public init(apiVersion: ApiVersion, document: SettingsPathParamsDocument) {
+    self.apiVersion = apiVersion
+    self.document = document
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "document"], in: "SettingsPathParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.document = try c.value("document")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.document, as: "document")
+  }
+}
+
+public enum SettingsPathParamsDocument: String, Codable, Sendable, CaseIterable {
+  case browser = "browser"
+  case worker = "worker"
+  case issuer = "issuer"
+  case vectors = "vectors"
+}
+
+public struct SettingsPathResult: Codable, Sendable {
+  public var path: String
+  public init(path: String) {
+    self.path = path
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["path"], in: "SettingsPathResult")
+    self.path = try c.value("path")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.path, as: "path")
+  }
+}
+
+public struct SettingsSetParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var `default`: Bool?
+  public var name: String
+  public var root: String?
+  public var value: String
+  public init(
+    apiVersion: ApiVersion, `default`: Bool? = nil, name: String, root: String? = nil, value: String
+  ) {
+    self.apiVersion = apiVersion
+    self.`default` = `default`
+    self.name = name
+    self.root = root
+    self.value = value
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["apiVersion", "default", "name", "root", "value"], in: "SettingsSetParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.`default` = try c.ifPresent("default")
+    self.name = try c.value("name")
+    self.root = try c.ifPresent("root")
+    self.value = try c.value("value")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.`default`, as: "default")
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.root, as: "root")
+    try c.encode(self.value, as: "value")
   }
 }
 
@@ -10160,6 +14275,34 @@ public enum SettingsThemeChangedEventTheme: String, Codable, Sendable, CaseItera
   case light = "light"
   case dark = "dark"
   case system = "system"
+}
+
+public struct SettingsUnsetParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var `default`: Bool?
+  public var name: String
+  public var root: String?
+  public init(apiVersion: ApiVersion, `default`: Bool? = nil, name: String, root: String? = nil) {
+    self.apiVersion = apiVersion
+    self.`default` = `default`
+    self.name = name
+    self.root = root
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "default", "name", "root"], in: "SettingsUnsetParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.`default` = try c.ifPresent("default")
+    self.name = try c.value("name")
+    self.root = try c.ifPresent("root")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.`default`, as: "default")
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.root, as: "root")
+  }
 }
 
 public struct SignIn: Codable, Sendable {
@@ -10422,14 +14565,14 @@ public struct SmelterConfig: Codable, Sendable {
 
 public struct SmelterHealth: Codable, Sendable {
   public var eventsProcessed: Int
-  public var following: SmelterHealthFollowing
+  public var following: FollowerFollowing
   public var index: SmelterHealthIndex
-  public var kb: String
+  public var kb: KbDid
   public var reconcile: SmelterHealthReconcile
   public let status: SmelterHealthStatus
   public var stream: SmelterHealthStream
   public init(
-    eventsProcessed: Int, following: SmelterHealthFollowing, index: SmelterHealthIndex, kb: String,
+    eventsProcessed: Int, following: FollowerFollowing, index: SmelterHealthIndex, kb: KbDid,
     reconcile: SmelterHealthReconcile, stream: SmelterHealthStream
   ) {
     self.eventsProcessed = eventsProcessed
@@ -10463,42 +14606,6 @@ public struct SmelterHealth: Codable, Sendable {
     try c.encode(self.status, as: "status")
     try c.encode(self.stream, as: "stream")
   }
-}
-
-public struct SmelterHealthFollowing: Codable, Sendable {
-  public var refused: Int
-  public var stopped: Int
-  public var streamDrops: Int
-  public var sweep: SmelterHealthFollowingSweep
-  public init(refused: Int, stopped: Int, streamDrops: Int, sweep: SmelterHealthFollowingSweep) {
-    self.refused = refused
-    self.stopped = stopped
-    self.streamDrops = streamDrops
-    self.sweep = sweep
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(
-      ["refused", "stopped", "streamDrops", "sweep"], in: "SmelterHealthFollowing")
-    self.refused = try c.value("refused")
-    self.stopped = try c.value("stopped")
-    self.streamDrops = try c.value("streamDrops")
-    self.sweep = try c.value("sweep")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.refused, as: "refused")
-    try c.encode(self.stopped, as: "stopped")
-    try c.encode(self.streamDrops, as: "streamDrops")
-    try c.encode(self.sweep, as: "sweep")
-  }
-}
-
-public enum SmelterHealthFollowingSweep: String, Codable, Sendable, CaseIterable {
-  case pending = "pending"
-  case running = "running"
-  case done = "done"
-  case due = "due"
 }
 
 public struct SmelterHealthIndex: Codable, Sendable {
@@ -11042,6 +15149,403 @@ public enum SpecificResourceType: String, Codable, Sendable, CaseIterable {
   case specificResource = "SpecificResource"
 }
 
+public enum StackApiVersion: String, Codable, Sendable, CaseIterable {
+  case xynologOrgV1alpha1 = "xynolog.org/v1alpha1"
+}
+
+public struct StackKnowledgeBase: Codable, Sendable {
+  public var apiVersion: StackApiVersion
+  public let kind: StackKnowledgeBaseKind
+  public var metadata: Metadata
+  public var spec: StackKnowledgeBaseSpec
+  public init(apiVersion: StackApiVersion, metadata: Metadata, spec: StackKnowledgeBaseSpec) {
+    self.apiVersion = apiVersion
+    self.kind = .knowledgeBase
+    self.metadata = metadata
+    self.spec = spec
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "kind", "metadata", "spec"], in: "StackKnowledgeBase")
+    self.apiVersion = try c.value("apiVersion")
+    self.kind = try c.value("kind")
+    self.metadata = try c.value("metadata")
+    self.spec = try c.value("spec")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encode(self.spec, as: "spec")
+  }
+}
+
+public enum StackKnowledgeBaseKind: String, Codable, Sendable, CaseIterable {
+  case knowledgeBase = "KnowledgeBase"
+}
+
+public struct StackKnowledgeBaseSpec: Codable, Sendable {
+  public var archivist: StackKnowledgeBaseSpecArchivist
+  public var dispatcher: StackKnowledgeBaseSpecDispatcher
+  public var gateway: StackKnowledgeBaseSpecGateway
+  public var issuer: StackKnowledgeBaseSpecIssuer
+  public var logLevel: LogLevel
+  public var messaging: Runner
+  public init(
+    archivist: StackKnowledgeBaseSpecArchivist, dispatcher: StackKnowledgeBaseSpecDispatcher,
+    gateway: StackKnowledgeBaseSpecGateway, issuer: StackKnowledgeBaseSpecIssuer,
+    logLevel: LogLevel, messaging: Runner
+  ) {
+    self.archivist = archivist
+    self.dispatcher = dispatcher
+    self.gateway = gateway
+    self.issuer = issuer
+    self.logLevel = logLevel
+    self.messaging = messaging
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["archivist", "dispatcher", "gateway", "issuer", "logLevel", "messaging"],
+      in: "StackKnowledgeBaseSpec")
+    self.archivist = try c.value("archivist")
+    self.dispatcher = try c.value("dispatcher")
+    self.gateway = try c.value("gateway")
+    self.issuer = try c.value("issuer")
+    self.logLevel = try c.value("logLevel")
+    self.messaging = try c.value("messaging")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.archivist, as: "archivist")
+    try c.encode(self.dispatcher, as: "dispatcher")
+    try c.encode(self.gateway, as: "gateway")
+    try c.encode(self.issuer, as: "issuer")
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.messaging, as: "messaging")
+  }
+}
+
+public struct StackKnowledgeBaseSpecArchivist: Codable, Sendable {
+  public var address: HostPort?
+  public var image: Image
+  public var resources: Resources
+  public init(address: HostPort? = nil, image: Image, resources: Resources) {
+    self.address = address
+    self.image = image
+    self.resources = resources
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["address", "image", "resources"], in: "StackKnowledgeBaseSpecArchivist")
+    self.address = try c.ifPresent("address")
+    self.image = try c.value("image")
+    self.resources = try c.value("resources")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.address, as: "address")
+    try c.encode(self.image, as: "image")
+    try c.encode(self.resources, as: "resources")
+  }
+}
+
+public struct StackKnowledgeBaseSpecDispatcher: Codable, Sendable {
+  public var image: Image
+  public var resources: Resources
+  public init(image: Image, resources: Resources) {
+    self.image = image
+    self.resources = resources
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["image", "resources"], in: "StackKnowledgeBaseSpecDispatcher")
+    self.image = try c.value("image")
+    self.resources = try c.value("resources")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.image, as: "image")
+    try c.encode(self.resources, as: "resources")
+  }
+}
+
+public struct StackKnowledgeBaseSpecGateway: Codable, Sendable {
+  public var image: Image
+  public var port: Int
+  public var publicURL: String
+  public var resources: Resources
+  public init(image: Image, port: Int, publicURL: String, resources: Resources) {
+    self.image = image
+    self.port = port
+    self.publicURL = publicURL
+    self.resources = resources
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["image", "port", "publicURL", "resources"], in: "StackKnowledgeBaseSpecGateway")
+    self.image = try c.value("image")
+    self.port = try c.value("port")
+    self.publicURL = try c.value("publicURL")
+    self.resources = try c.value("resources")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.image, as: "image")
+    try c.encode(self.port, as: "port")
+    try c.encode(self.publicURL, as: "publicURL")
+    try c.encode(self.resources, as: "resources")
+  }
+}
+
+public struct StackKnowledgeBaseSpecIssuer: Codable, Sendable {
+  public var external: StackKnowledgeBaseSpecIssuerExternal?
+  public var shared: StackKnowledgeBaseSpecIssuerShared?
+  public var subjectClaim: String
+  public init(
+    external: StackKnowledgeBaseSpecIssuerExternal? = nil,
+    shared: StackKnowledgeBaseSpecIssuerShared? = nil, subjectClaim: String
+  ) {
+    self.external = external
+    self.shared = shared
+    self.subjectClaim = subjectClaim
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["external", "shared", "subjectClaim"], in: "StackKnowledgeBaseSpecIssuer")
+    self.external = try c.ifPresent("external")
+    self.shared = try c.ifPresent("shared")
+    self.subjectClaim = try c.value("subjectClaim")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.external, as: "external")
+    try c.encodeIfPresent(self.shared, as: "shared")
+    try c.encode(self.subjectClaim, as: "subjectClaim")
+  }
+}
+
+public struct StackKnowledgeBaseSpecIssuerExternal: Codable, Sendable {
+  public var type: String
+  public var url: String
+  public init(type: String, url: String) {
+    self.type = type
+    self.url = url
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["type", "url"], in: "StackKnowledgeBaseSpecIssuerExternal")
+    self.type = try c.value("type")
+    self.url = try c.value("url")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.type, as: "type")
+    try c.encode(self.url, as: "url")
+  }
+}
+
+public struct StackKnowledgeBaseSpecIssuerShared: Codable, Sendable {
+  public var accessTokenLifespan: Int
+  public init(accessTokenLifespan: Int) {
+    self.accessTokenLifespan = accessTokenLifespan
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["accessTokenLifespan"], in: "StackKnowledgeBaseSpecIssuerShared")
+    self.accessTokenLifespan = try c.value("accessTokenLifespan")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.accessTokenLifespan, as: "accessTokenLifespan")
+  }
+}
+
+public struct StackStartParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var codespaceName: String?
+  public var config: String?
+  public var dryRun: Bool?
+  public var group: ServiceGroup?
+  public var idleTimeout: String?
+  public var machine: String?
+  public var observe: Bool?
+  public var ollamaCache: StackStartParamsOllamaCache?
+  public var retentionPeriod: String?
+  public var runtime: Runtime?
+  public var service: String?
+  public var target: Target?
+  public init(
+    apiVersion: ApiVersion, codespaceName: String? = nil, config: String? = nil,
+    dryRun: Bool? = nil, group: ServiceGroup? = nil, idleTimeout: String? = nil,
+    machine: String? = nil, observe: Bool? = nil, ollamaCache: StackStartParamsOllamaCache? = nil,
+    retentionPeriod: String? = nil, runtime: Runtime? = nil, service: String? = nil,
+    target: Target? = nil
+  ) {
+    self.apiVersion = apiVersion
+    self.codespaceName = codespaceName
+    self.config = config
+    self.dryRun = dryRun
+    self.group = group
+    self.idleTimeout = idleTimeout
+    self.machine = machine
+    self.observe = observe
+    self.ollamaCache = ollamaCache
+    self.retentionPeriod = retentionPeriod
+    self.runtime = runtime
+    self.service = service
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "apiVersion", "codespaceName", "config", "dryRun", "group", "idleTimeout", "machine",
+        "observe", "ollamaCache", "retentionPeriod", "runtime", "service", "target",
+      ], in: "StackStartParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.codespaceName = try c.ifPresent("codespaceName")
+    self.config = try c.ifPresent("config")
+    self.dryRun = try c.ifPresent("dryRun")
+    self.group = try c.ifPresent("group")
+    self.idleTimeout = try c.ifPresent("idleTimeout")
+    self.machine = try c.ifPresent("machine")
+    self.observe = try c.ifPresent("observe")
+    self.ollamaCache = try c.ifPresent("ollamaCache")
+    self.retentionPeriod = try c.ifPresent("retentionPeriod")
+    self.runtime = try c.ifPresent("runtime")
+    self.service = try c.ifPresent("service")
+    self.target = try c.ifPresent("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.codespaceName, as: "codespaceName")
+    try c.encodeIfPresent(self.config, as: "config")
+    try c.encodeIfPresent(self.dryRun, as: "dryRun")
+    try c.encodeIfPresent(self.group, as: "group")
+    try c.encodeIfPresent(self.idleTimeout, as: "idleTimeout")
+    try c.encodeIfPresent(self.machine, as: "machine")
+    try c.encodeIfPresent(self.observe, as: "observe")
+    try c.encodeIfPresent(self.ollamaCache, as: "ollamaCache")
+    try c.encodeIfPresent(self.retentionPeriod, as: "retentionPeriod")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encodeIfPresent(self.service, as: "service")
+    try c.encodeIfPresent(self.target, as: "target")
+  }
+}
+
+public enum StackStartParamsOllamaCache: String, Codable, Sendable, CaseIterable {
+  case host = "host"
+  case volume = "volume"
+}
+
+public struct StackStartResult: Codable, Sendable {
+  public var dryRun: Bool
+  public var knowledgeBase: KnowledgeBaseStatus?
+  public var shared: [ServiceStatus]?
+  public init(
+    dryRun: Bool, knowledgeBase: KnowledgeBaseStatus? = nil, shared: [ServiceStatus]? = nil
+  ) {
+    self.dryRun = dryRun
+    self.knowledgeBase = knowledgeBase
+    self.shared = shared
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["dryRun", "knowledgeBase", "shared"], in: "StackStartResult")
+    self.dryRun = try c.value("dryRun")
+    self.knowledgeBase = try c.ifPresent("knowledgeBase")
+    self.shared = try c.ifPresent("shared")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.dryRun, as: "dryRun")
+    try c.encodeIfPresent(self.knowledgeBase, as: "knowledgeBase")
+    try c.encodeIfPresent(self.shared, as: "shared")
+  }
+}
+
+public struct StackStopParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var delete: Bool?
+  public var deleteConfirmed: Bool?
+  public var dryRun: Bool?
+  public var group: ServiceGroup?
+  public var runtime: Runtime?
+  public var service: String?
+  public var target: Target?
+  public init(
+    apiVersion: ApiVersion, delete: Bool? = nil, deleteConfirmed: Bool? = nil, dryRun: Bool? = nil,
+    group: ServiceGroup? = nil, runtime: Runtime? = nil, service: String? = nil,
+    target: Target? = nil
+  ) {
+    self.apiVersion = apiVersion
+    self.delete = delete
+    self.deleteConfirmed = deleteConfirmed
+    self.dryRun = dryRun
+    self.group = group
+    self.runtime = runtime
+    self.service = service
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "apiVersion", "delete", "deleteConfirmed", "dryRun", "group", "runtime", "service",
+        "target",
+      ], in: "StackStopParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.delete = try c.ifPresent("delete")
+    self.deleteConfirmed = try c.ifPresent("deleteConfirmed")
+    self.dryRun = try c.ifPresent("dryRun")
+    self.group = try c.ifPresent("group")
+    self.runtime = try c.ifPresent("runtime")
+    self.service = try c.ifPresent("service")
+    self.target = try c.ifPresent("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.delete, as: "delete")
+    try c.encodeIfPresent(self.deleteConfirmed, as: "deleteConfirmed")
+    try c.encodeIfPresent(self.dryRun, as: "dryRun")
+    try c.encodeIfPresent(self.group, as: "group")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encodeIfPresent(self.service, as: "service")
+    try c.encodeIfPresent(self.target, as: "target")
+  }
+}
+
+public struct StackStopResult: Codable, Sendable {
+  public var dryRun: Bool
+  public var knowledgeBases: [KnowledgeBaseStatus]?
+  public var shared: [ServiceStatus]?
+  public init(
+    dryRun: Bool, knowledgeBases: [KnowledgeBaseStatus]? = nil, shared: [ServiceStatus]? = nil
+  ) {
+    self.dryRun = dryRun
+    self.knowledgeBases = knowledgeBases
+    self.shared = shared
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["dryRun", "knowledgeBases", "shared"], in: "StackStopResult")
+    self.dryRun = try c.value("dryRun")
+    self.knowledgeBases = try c.ifPresent("knowledgeBases")
+    self.shared = try c.ifPresent("shared")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.dryRun, as: "dryRun")
+    try c.encodeIfPresent(self.knowledgeBases, as: "knowledgeBases")
+    try c.encodeIfPresent(self.shared, as: "shared")
+  }
+}
+
 public struct StatusResponse: Codable, Sendable {
   public var authenticatedAs: String?
   public var features: StatusResponseFeatures
@@ -11092,6 +15596,50 @@ public struct StatusResponseFeatures: Codable, Sendable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.collaboration, as: "collaboration")
     try c.encode(self.semanticContent, as: "semanticContent")
+  }
+}
+
+public struct StatusSnapshotParams: Codable, Sendable {
+  public var apiVersion: ApiVersion
+  public var runtime: Runtime?
+  public var target: Target?
+  public init(apiVersion: ApiVersion, runtime: Runtime? = nil, target: Target? = nil) {
+    self.apiVersion = apiVersion
+    self.runtime = runtime
+    self.target = target
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "runtime", "target"], in: "StatusSnapshotParams")
+    self.apiVersion = try c.value("apiVersion")
+    self.runtime = try c.ifPresent("runtime")
+    self.target = try c.ifPresent("target")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encodeIfPresent(self.target, as: "target")
+  }
+}
+
+public struct StatusSnapshotResult: Codable, Sendable {
+  public var knowledgeBases: [KnowledgeBaseStatus]
+  public var shared: [ServiceStatus]
+  public init(knowledgeBases: [KnowledgeBaseStatus], shared: [ServiceStatus]) {
+    self.knowledgeBases = knowledgeBases
+    self.shared = shared
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["knowledgeBases", "shared"], in: "StatusSnapshotResult")
+    self.knowledgeBases = try c.value("knowledgeBases")
+    self.shared = try c.value("shared")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.knowledgeBases, as: "knowledgeBases")
+    try c.encode(self.shared, as: "shared")
   }
 }
 
@@ -11503,6 +16051,35 @@ public enum TaggingJobParamsMotivation: String, Codable, Sendable, CaseIterable 
   case tagging = "tagging"
 }
 
+public struct Target: Codable, Sendable {
+  public var kind: TargetKind
+  public var repo: String?
+  public var root: String?
+  public init(kind: TargetKind, repo: String? = nil, root: String? = nil) {
+    self.kind = kind
+    self.repo = repo
+    self.root = root
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind", "repo", "root"], in: "Target")
+    self.kind = try c.value("kind")
+    self.repo = try c.ifPresent("repo")
+    self.root = try c.ifPresent("root")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encodeIfPresent(self.repo, as: "repo")
+    try c.encodeIfPresent(self.root, as: "root")
+  }
+}
+
+public enum TargetKind: String, Codable, Sendable, CaseIterable {
+  case local = "local"
+  case codespace = "codespace"
+}
+
 public struct TextPositionSelector: Codable, Sendable {
   public var end: Int
   public var start: Int
@@ -11787,6 +16364,43 @@ public enum UploadProgressStartedPhase: String, Codable, Sendable, CaseIterable 
   case started = "started"
 }
 
+public struct UserAction: Codable, Sendable {
+  public var expiresInSeconds: Int
+  public var requestId: RequestId
+  public var userCode: String
+  public var verificationUri: String
+  public var verificationUriComplete: String?
+  public init(
+    expiresInSeconds: Int, requestId: RequestId, userCode: String, verificationUri: String,
+    verificationUriComplete: String? = nil
+  ) {
+    self.expiresInSeconds = expiresInSeconds
+    self.requestId = requestId
+    self.userCode = userCode
+    self.verificationUri = verificationUri
+    self.verificationUriComplete = verificationUriComplete
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["expiresInSeconds", "requestId", "userCode", "verificationUri", "verificationUriComplete"],
+      in: "UserAction")
+    self.expiresInSeconds = try c.value("expiresInSeconds")
+    self.requestId = try c.value("requestId")
+    self.userCode = try c.value("userCode")
+    self.verificationUri = try c.value("verificationUri")
+    self.verificationUriComplete = try c.ifPresent("verificationUriComplete")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.expiresInSeconds, as: "expiresInSeconds")
+    try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.userCode, as: "userCode")
+    try c.encode(self.verificationUri, as: "verificationUri")
+    try c.encodeIfPresent(self.verificationUriComplete, as: "verificationUriComplete")
+  }
+}
+
 public struct UserId: Hashable, Sendable, Codable, CustomStringConvertible {
   public let value: String
   public var description: String { value }
@@ -11851,6 +16465,66 @@ public struct UserResponse: Codable, Sendable {
     try c.encode(self.email, as: "email")
     try c.encode(self.image, as: "image")
     try c.encode(self.name, as: "name")
+  }
+}
+
+public struct VectorStore: Codable, Sendable {
+  public var apiVersion: StackApiVersion
+  public let kind: VectorStoreKind
+  public var metadata: Metadata
+  public var spec: VectorStoreSpec
+  public init(apiVersion: StackApiVersion, metadata: Metadata, spec: VectorStoreSpec) {
+    self.apiVersion = apiVersion
+    self.kind = .vectorStore
+    self.metadata = metadata
+    self.spec = spec
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "kind", "metadata", "spec"], in: "VectorStore")
+    self.apiVersion = try c.value("apiVersion")
+    self.kind = try c.value("kind")
+    self.metadata = try c.value("metadata")
+    self.spec = try c.value("spec")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encode(self.spec, as: "spec")
+  }
+}
+
+public enum VectorStoreKind: String, Codable, Sendable, CaseIterable {
+  case vectorStore = "VectorStore"
+}
+
+public struct VectorStoreSpec: Codable, Sendable {
+  public var image: Image
+  public var port: Int
+  public var resources: Resources
+  public var type: String
+  public init(image: Image, port: Int, resources: Resources, type: String) {
+    self.image = image
+    self.port = port
+    self.resources = resources
+    self.type = type
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["image", "port", "resources", "type"], in: "VectorStoreSpec")
+    self.image = try c.value("image")
+    self.port = try c.value("port")
+    self.resources = try c.value("resources")
+    self.type = try c.value("type")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.image, as: "image")
+    try c.encode(self.port, as: "port")
+    try c.encode(self.resources, as: "resources")
+    try c.encode(self.type, as: "type")
   }
 }
 
@@ -12002,11 +16676,11 @@ public struct WeaverConfig: Codable, Sendable {
 }
 
 public struct WeaverHealth: Codable, Sendable {
-  public var following: WeaverHealthFollowing
-  public var kb: String
+  public var following: FollowerFollowing
+  public var kb: KbDid
   public var reconcile: WeaverHealthReconcile
   public let status: WeaverHealthStatus
-  public init(following: WeaverHealthFollowing, kb: String, reconcile: WeaverHealthReconcile) {
+  public init(following: FollowerFollowing, kb: KbDid, reconcile: WeaverHealthReconcile) {
     self.following = following
     self.kb = kb
     self.reconcile = reconcile
@@ -12027,42 +16701,6 @@ public struct WeaverHealth: Codable, Sendable {
     try c.encode(self.reconcile, as: "reconcile")
     try c.encode(self.status, as: "status")
   }
-}
-
-public struct WeaverHealthFollowing: Codable, Sendable {
-  public var refused: Int
-  public var stopped: Int
-  public var streamDrops: Int
-  public var sweep: WeaverHealthFollowingSweep
-  public init(refused: Int, stopped: Int, streamDrops: Int, sweep: WeaverHealthFollowingSweep) {
-    self.refused = refused
-    self.stopped = stopped
-    self.streamDrops = streamDrops
-    self.sweep = sweep
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(
-      ["refused", "stopped", "streamDrops", "sweep"], in: "WeaverHealthFollowing")
-    self.refused = try c.value("refused")
-    self.stopped = try c.value("stopped")
-    self.streamDrops = try c.value("streamDrops")
-    self.sweep = try c.value("sweep")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.refused, as: "refused")
-    try c.encode(self.stopped, as: "stopped")
-    try c.encode(self.streamDrops, as: "streamDrops")
-    try c.encode(self.sweep, as: "sweep")
-  }
-}
-
-public enum WeaverHealthFollowingSweep: String, Codable, Sendable, CaseIterable {
-  case pending = "pending"
-  case running = "running"
-  case done = "done"
-  case due = "due"
 }
 
 public struct WeaverHealthReconcile: Codable, Sendable {
@@ -12389,6 +17027,146 @@ public enum WorkerKnowledgeBaseHealthState: String, Codable, Sendable, CaseItera
   case starting = "starting"
   case working = "working"
   case refused = "refused"
+}
+
+public struct WorkerPool: Codable, Sendable {
+  public var apiVersion: StackApiVersion
+  public let kind: WorkerPoolKind
+  public var metadata: Metadata
+  public var spec: WorkerPoolSpec
+  public init(apiVersion: StackApiVersion, metadata: Metadata, spec: WorkerPoolSpec) {
+    self.apiVersion = apiVersion
+    self.kind = .workerPool
+    self.metadata = metadata
+    self.spec = spec
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["apiVersion", "kind", "metadata", "spec"], in: "WorkerPool")
+    self.apiVersion = try c.value("apiVersion")
+    self.kind = try c.value("kind")
+    self.metadata = try c.value("metadata")
+    self.spec = try c.value("spec")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encode(self.spec, as: "spec")
+  }
+}
+
+public enum WorkerPoolKind: String, Codable, Sendable, CaseIterable {
+  case workerPool = "WorkerPool"
+}
+
+public struct WorkerPoolSpec: Codable, Sendable {
+  public var logLevel: LogLevel
+  public var worker: WorkerPoolSpecWorker
+  public init(logLevel: LogLevel, worker: WorkerPoolSpecWorker) {
+    self.logLevel = logLevel
+    self.worker = worker
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["logLevel", "worker"], in: "WorkerPoolSpec")
+    self.logLevel = try c.value("logLevel")
+    self.worker = try c.value("worker")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.worker, as: "worker")
+  }
+}
+
+public struct WorkerPoolSpecWorker: Codable, Sendable {
+  public var image: Image
+  public var resources: Resources
+  public init(image: Image, resources: Resources) {
+    self.image = image
+    self.resources = resources
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["image", "resources"], in: "WorkerPoolSpecWorker")
+    self.image = try c.value("image")
+    self.resources = try c.value("resources")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.image, as: "image")
+    try c.encode(self.resources, as: "resources")
+  }
+}
+
+public struct WorkloadStatus: Codable, Sendable {
+  public var ledger: WorkloadStatusLedger?
+  public var queue: WorkloadStatusQueue?
+  public init(ledger: WorkloadStatusLedger? = nil, queue: WorkloadStatusQueue? = nil) {
+    self.ledger = ledger
+    self.queue = queue
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["ledger", "queue"], in: "WorkloadStatus")
+    self.ledger = try c.ifPresent("ledger")
+    self.queue = try c.ifPresent("queue")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.ledger, as: "ledger")
+    try c.encodeIfPresent(self.queue, as: "queue")
+  }
+}
+
+public struct WorkloadStatusLedger: Codable, Sendable {
+  public var capacity: Int
+  public var claims: Int
+  public init(capacity: Int, claims: Int) {
+    self.capacity = capacity
+    self.claims = claims
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["capacity", "claims"], in: "WorkloadStatusLedger")
+    self.capacity = try c.value("capacity")
+    self.claims = try c.value("claims")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.capacity, as: "capacity")
+    try c.encode(self.claims, as: "claims")
+  }
+}
+
+public struct WorkloadStatusQueue: Codable, Sendable {
+  public var completed: Int?
+  public var failed: Int?
+  public var pending: Int
+  public var running: Int
+  public init(completed: Int? = nil, failed: Int? = nil, pending: Int, running: Int) {
+    self.completed = completed
+    self.failed = failed
+    self.pending = pending
+    self.running = running
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["completed", "failed", "pending", "running"], in: "WorkloadStatusQueue")
+    self.completed = try c.ifPresent("completed")
+    self.failed = try c.ifPresent("failed")
+    self.pending = try c.value("pending")
+    self.running = try c.value("running")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.completed, as: "completed")
+    try c.encodeIfPresent(self.failed, as: "failed")
+    try c.encode(self.pending, as: "pending")
+    try c.encode(self.running, as: "running")
+  }
 }
 
 public struct YieldCloneCreateCommand: Codable, Sendable {
@@ -14687,6 +19465,21 @@ internal let storedEventChannels = [
 ]
 internal let requiredSchemas: [String: Shape] = {
   var shapes: [String: Shape] = [:]
+  shapes["AboutParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"], members: ["apiVersion": Shape(ref: "ApiVersion")],
+    closed: ["apiVersion"])
+  shapes["AboutResult"] = Shape(
+    kinds: [.object], required: ["development", "apiVersions", "imageRegistry", "runtimes"],
+    members: [
+      "apiVersions": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "built": Shape(kinds: [.string]), "commit": Shape(kinds: [.string]),
+      "development": Shape(kinds: [.boolean]), "imageRegistry": Shape(kinds: [.string]),
+      "runtimes": Shape(kinds: [.array], items: Shape(ref: "RuntimeState")),
+      "version": Shape(kinds: [.string]),
+    ],
+    closed: [
+      "apiVersions", "built", "commit", "development", "imageRegistry", "runtimes", "version",
+    ])
   shapes["Agent"] = Shape(
     kinds: [.object],
     oneOf: [
@@ -14759,7 +19552,8 @@ internal let requiredSchemas: [String: Shape] = {
     members: [
       "checksums": Shape(
         kinds: [.array],
-        items: Shape(kinds: [.string], pattern: [Step(of: [48...57, 97...102], min: 64, max: 64)]))
+        items: Shape(
+          kinds: [.string], pattern: [.step(Step(of: [48...57, 97...102], min: 64, max: 64))]))
     ], closed: ["checksums"])
   shapes["AnchoredTextEntry"] = Shape(
     kinds: [.object],
@@ -14791,18 +19585,19 @@ internal let requiredSchemas: [String: Shape] = {
       "stamp": Shape(
         kinds: [.string],
         pattern: [
-          Step(
-            of: [
-              0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
-              8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
-            ], min: 1, max: nil)
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: nil))
         ], minLength: 1)
     ], closed: ["stamp"])
   shapes["AnchoredTextWrite"] = Shape(
     kinds: [.object], required: ["contentChecksum", "entry"],
     members: [
       "contentChecksum": Shape(
-        kinds: [.string], pattern: [Step(of: [48...57, 97...102], min: 64, max: 64)]),
+        kinds: [.string], pattern: [.step(Step(of: [48...57, 97...102], min: 64, max: 64))]),
       "entry": Shape(ref: "AnchoredTextEntry"),
     ], closed: ["contentChecksum", "entry"])
   shapes["Annotation"] = Shape(
@@ -14841,7 +19636,7 @@ internal let requiredSchemas: [String: Shape] = {
     ])
   shapes["AnnotationId"] = Shape(
     kinds: [.string],
-    pattern: [Step(of: [45...45, 48...57, 65...90, 95...95, 97...122], min: 1, max: 128)])
+    pattern: [.step(Step(of: [45...45, 48...57, 65...90, 95...95, 97...122], min: 1, max: 128))])
   shapes["AnnotationRemovedPayload"] = Shape(
     kinds: [.object], required: ["annotationId"],
     members: ["annotationId": Shape(ref: "AnnotationId")])
@@ -14854,6 +19649,8 @@ internal let requiredSchemas: [String: Shape] = {
       "selector": Shape(ref: "AnnotationSelector"), "source": Shape(ref: "ResourceId"),
       "type": Shape(kinds: [.string], enumeration: [.string("SpecificResource")]),
     ])
+  shapes["ApiVersion"] = Shape(
+    kinds: [.string], enumeration: [.string("control.xynolog.org/v1alpha1")])
   shapes["ArchivistConfig"] = Shape(
     kinds: [.object],
     required: [
@@ -14944,6 +19741,30 @@ internal let requiredSchemas: [String: Shape] = {
       Shape(ref: "StoredEventResponse"),
       Shape(kinds: [.object], required: ["agent"], members: ["agent": Shape(ref: "Agent")]),
     ])
+  shapes["AuthLoginParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "runtime": Shape(ref: "Runtime"),
+      "target": Shape(ref: "Target"),
+    ], closed: ["apiVersion", "runtime", "target"])
+  shapes["AuthLoginResult"] = Shape(
+    kinds: [.object], required: ["key", "who", "issuer"],
+    members: [
+      "issuer": Shape(kinds: [.string]), "key": Shape(kinds: [.string]),
+      "who": Shape(kinds: [.string]),
+    ], closed: ["issuer", "key", "who"])
+  shapes["AuthLogoutParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "runtime": Shape(ref: "Runtime"),
+      "target": Shape(ref: "Target"),
+    ], closed: ["apiVersion", "runtime", "target"])
+  shapes["AuthLogoutResult"] = Shape(
+    kinds: [.object], required: ["wasSignedIn", "revoked"],
+    members: [
+      "key": Shape(kinds: [.string]), "revoked": Shape(kinds: [.boolean]),
+      "wasSignedIn": Shape(kinds: [.boolean]),
+    ], closed: ["key", "revoked", "wasSignedIn"])
   shapes["BeckonFocusEvent"] = Shape(
     kinds: [.object], required: ["resourceId"],
     members: ["annotationId": Shape(ref: "AnnotationId"), "resourceId": Shape(ref: "ResourceId")])
@@ -15146,6 +19967,20 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["BrowseTagSchemasResult"] = Shape(
     kinds: [.object], required: ["response"],
     members: ["response": Shape(ref: "GetTagSchemasResponse")])
+  shapes["Browser"] = Shape(
+    kinds: [.object], required: ["apiVersion", "kind", "metadata", "spec"],
+    members: [
+      "apiVersion": Shape(ref: "StackApiVersion"),
+      "kind": Shape(kinds: [.string], enumeration: [.string("Browser")]),
+      "metadata": Shape(ref: "Metadata"),
+      "spec": Shape(
+        kinds: [.object], required: ["image", "resources", "port"],
+        members: [
+          "image": Shape(ref: "Image"),
+          "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+          "resources": Shape(ref: "Resources"),
+        ], closed: ["image", "port", "resources"]),
+    ], closed: ["apiVersion", "kind", "metadata", "spec"])
   shapes["BusEmitAccepted"] = Shape(
     kinds: [.object], members: ["subscribers": Shape(kinds: [.integer], minimum: 0.0)])
   shapes["BusEmitRequest"] = Shape(
@@ -15210,6 +20045,16 @@ internal let requiredSchemas: [String: Shape] = {
             "lastEventId": Shape(kinds: [.string]), "scope": Shape(ref: "ResourceId"),
           ], closed: ["channels", "lastEventId", "scope"])),
     ], closed: ["clientId", "global", "pendingReplies", "scoped"])
+  shapes["Cancelled"] = Shape(
+    kinds: [.object], required: ["requestId"],
+    members: ["reason": Shape(kinds: [.string]), "requestId": Shape(ref: "RequestId")],
+    closed: ["reason", "requestId"])
+  shapes["ClientSecretForm"] = Shape(
+    kinds: [.object], required: ["grant_type", "client_id", "client_secret"],
+    members: [
+      "client_id": Shape(kinds: [.string]), "client_secret": Shape(kinds: [.string]),
+      "grant_type": Shape(kinds: [.string], enumeration: [.string("client_credentials")]),
+    ])
   shapes["CloneResourceWithTokenResponse"] = Shape(
     kinds: [.object], required: ["token", "expiresAt", "resource"],
     members: [
@@ -15238,6 +20083,431 @@ internal let requiredSchemas: [String: Shape] = {
           .string("technical"),
         ]),
     ], closed: ["density", "instructions", "language", "motivation", "sourceLanguage", "tone"])
+  shapes["ConformanceBusFetch"] = Shape(
+    kinds: [.object], required: ["fetch", "as"],
+    members: [
+      "as": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+          .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+        ]),
+      "fetch": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [97...122], min: 1, max: nil)), .step(Step(of: [58...58], min: 1, max: 1)),
+          .step(Step(of: [45...45, 97...122], min: 1, max: nil)),
+        ]),
+    ], closed: ["as", "fetch", "payload"])
+  shapes["ConformanceCase"] = Shape(
+    kinds: [.object], required: ["about", "source", "steps"],
+    members: [
+      "about": Shape(kinds: [.string], minLength: 1),
+      "planes": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(kinds: [.string], enumeration: [.string("in-process"), .string("nats")])),
+      "source": Shape(kinds: [.string], minLength: 1),
+      "steps": Shape(kinds: [.array], minItems: 1, items: Shape(ref: "ConformanceStep")),
+      "telemetry": Shape(kinds: [.boolean], enumeration: [.bool(true)]),
+      "tier": Shape(kinds: [.string], enumeration: [.string("fleet"), .string("parity")]),
+    ], closed: ["about", "planes", "source", "steps", "telemetry", "tier"])
+  shapes["ConformanceDriverLine"] = Shape(
+    kinds: [.object],
+    oneOf: [
+      Shape(
+        kinds: [.object], required: ["ready"],
+        members: ["ready": Shape(kinds: [.boolean], enumeration: [.bool(true)])], closed: ["ready"]),
+      Shape(
+        kinds: [.object], required: ["id", "ok"],
+        members: ["id": Shape(kinds: [.integer], minimum: 1.0)], closed: ["id", "ok"]),
+      Shape(
+        kinds: [.object], required: ["id", "error"],
+        members: [
+          "error": Shape(ref: "ConformanceFailure"), "id": Shape(kinds: [.integer], minimum: 1.0),
+        ], closed: ["error", "id"]),
+      Shape(
+        kinds: [.object], required: ["id", "abandoned"],
+        members: [
+          "abandoned": Shape(kinds: [.boolean], enumeration: [.bool(true)]),
+          "id": Shape(kinds: [.integer], minimum: 1.0),
+        ], closed: ["abandoned", "id"]),
+      Shape(
+        kinds: [.object], required: ["id", "unsupported"],
+        members: [
+          "id": Shape(kinds: [.integer], minimum: 1.0),
+          "unsupported": Shape(kinds: [.boolean], enumeration: [.bool(true)]),
+        ], closed: ["id", "unsupported"]),
+      Shape(
+        kinds: [.object], required: ["id", "misuse"],
+        members: ["id": Shape(kinds: [.integer], minimum: 1.0), "misuse": Shape(kinds: [.string])],
+        closed: ["id", "misuse"]),
+      Shape(
+        kinds: [.object], required: ["state"], members: ["state": Shape(kinds: [.string])],
+        closed: ["state"]),
+      Shape(
+        kinds: [.object], required: ["frame"],
+        members: [
+          "frame": Shape(
+            kinds: [.object], required: ["channel"],
+            members: [
+              "channel": Shape(kinds: [.string]), "correlationId": Shape(kinds: [.string]),
+              "scope": Shape(ref: "ResourceId"),
+            ], closed: ["channel", "correlationId", "payload", "scope"])
+        ], closed: ["frame"]),
+      Shape(
+        kinds: [.object], required: ["error"], members: ["error": Shape(ref: "ConformanceFailure")],
+        closed: ["error"]),
+      Shape(
+        kinds: [.object], required: ["progress"],
+        members: [
+          "progress": Shape(
+            kinds: [.object], required: ["upload", "bytesUploaded", "totalBytes"],
+            members: [
+              "bytesUploaded": Shape(kinds: [.integer], minimum: 0.0),
+              "totalBytes": Shape(kinds: [.integer], minimum: 0.0),
+              "upload": Shape(kinds: [.integer], minimum: 1.0),
+            ], closed: ["bytesUploaded", "totalBytes", "upload"])
+        ], closed: ["progress"]),
+      Shape(
+        kinds: [.object], required: ["emission"],
+        members: [
+          "emission": Shape(
+            kinds: [.object], required: ["observer", "state"],
+            members: [
+              "observer": Shape(kinds: [.string]),
+              "state": Shape(
+                kinds: [.object],
+                oneOf: [
+                  Shape(
+                    kinds: [.object], required: ["status"],
+                    members: ["status": Shape(kinds: [.string], enumeration: [.string("pending")])],
+                    closed: ["status"]),
+                  Shape(
+                    kinds: [.object], required: ["status", "value"],
+                    members: ["status": Shape(kinds: [.string], enumeration: [.string("ready")])],
+                    closed: ["status", "value"]),
+                  Shape(
+                    kinds: [.object], required: ["status", "error"],
+                    members: [
+                      "error": Shape(ref: "ConformanceFailure"),
+                      "status": Shape(kinds: [.string], enumeration: [.string("failed")]),
+                    ], closed: ["error", "status"]),
+                ]),
+            ], closed: ["observer", "state"])
+        ], closed: ["emission"]),
+      Shape(
+        kinds: [.object], required: ["completed"], members: ["completed": Shape(kinds: [.string])],
+        closed: ["completed"]),
+      Shape(
+        kinds: [.object], required: ["claimed"], members: ["claimed": Shape(kinds: [.object])],
+        closed: ["claimed"]),
+      Shape(
+        kinds: [.object], required: ["refused"],
+        members: ["refused": Shape(ref: "ConformanceFailure")], closed: ["refused"]),
+      Shape(
+        kinds: [.object], required: ["signalled"], members: ["signalled": Shape(kinds: [.string])],
+        closed: ["signalled"]),
+      Shape(
+        kinds: [.object], required: ["stalled"], members: ["stalled": Shape(kinds: [.string])],
+        closed: ["stalled"]),
+    ])
+  shapes["ConformanceFailure"] = Shape(
+    kinds: [.object], required: ["detail"],
+    members: [
+      "code": Shape(kinds: [.string]), "detail": Shape(kinds: [.string]),
+      "failureClass": Shape(ref: "FailureClass"), "status": Shape(kinds: [.integer]),
+    ], closed: ["code", "detail", "failureClass", "status"])
+  shapes["ConformanceHttpFetch"] = Shape(
+    kinds: [.object], required: ["fetch"],
+    members: [
+      "fetch": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [71...71], min: 1, max: 1)), .step(Step(of: [69...69], min: 1, max: 1)),
+          .step(Step(of: [84...84], min: 1, max: 1)), .step(Step(of: [32...32], min: 1, max: 1)),
+          .step(Step(of: [47...47], min: 1, max: 1)),
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ])
+    ], closed: ["fetch", "params"])
+  shapes["ConformanceImplementations"] = Shape(
+    kinds: [.object], required: ["launcher", "target", "sdks"],
+    members: [
+      "launcher": Shape(kinds: [.array], minItems: 1, items: Shape(kinds: [.string], minLength: 1)),
+      "modelCatalogue": Shape(kinds: [.string], minLength: 1),
+      "sdks": Shape(
+        kinds: [.object],
+        values: Shape(
+          kinds: [.object],
+          members: [
+            "exempt": Shape(kinds: [.object], values: Shape(kinds: [.string], minLength: 1)),
+            "live": Shape(
+              kinds: [.object], required: ["command", "tier"],
+              members: [
+                "command": Shape(
+                  kinds: [.array], minItems: 1, items: Shape(kinds: [.string], minLength: 1)),
+                "tier": Shape(
+                  kinds: [.string], enumeration: [.string("fleet"), .string("parity")]),
+              ], closed: ["command", "tier"]),
+            "wire": Shape(
+              kinds: [.array], minItems: 1, items: Shape(kinds: [.string], minLength: 1)),
+            "worker": Shape(
+              kinds: [.array], minItems: 1, items: Shape(kinds: [.string], minLength: 1)),
+          ], closed: ["exempt", "live", "wire", "worker"])), "target": Shape(ref: "LocalTarget"),
+    ], closed: ["launcher", "modelCatalogue", "sdks", "target"])
+  shapes["ConformanceStep"] = Shape(
+    kinds: [.object],
+    oneOf: [
+      Shape(
+        kinds: [.object], required: ["let"],
+        members: ["let": Shape(kinds: [.object], minMembers: 1)], closed: ["let"]),
+      Shape(
+        kinds: [.object], required: ["driver"],
+        members: [
+          "as": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ]), "driver": Shape(kinds: [.string], minLength: 1), "with": Shape(kinds: [.object]),
+        ], closed: ["as", "driver", "fails", "returns", "with"], notAll: [["returns", "fails"]]),
+      Shape(
+        kinds: [.object], required: ["abandon"],
+        members: [
+          "abandon": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ])
+        ], closed: ["abandon"]),
+      Shape(
+        kinds: [.object], required: ["settles"],
+        members: [
+          "abandoned": Shape(kinds: [.boolean], enumeration: [.bool(true)]),
+          "settles": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ]),
+        ], closed: ["abandoned", "fails", "returns", "settles"],
+        notAll: [["returns", "fails"], ["returns", "abandoned"], ["fails", "abandoned"]]),
+      Shape(
+        kinds: [.object], required: ["wire"],
+        members: [
+          "as": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ]),
+          "at": Shape(
+            kinds: [.string], enumeration: [.string("arrival"), .string("answer"), .string("live")]),
+          "follows": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ]), "headers": Shape(kinds: [.object]), "status": Shape(kinds: [.integer]),
+          "waited": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ]),
+          "wire": Shape(
+            kinds: [.string],
+            pattern: [
+              .group(
+                Group(
+                  either: [
+                    [
+                      .step(Step(of: [71...71], min: 1, max: 1)),
+                      .step(Step(of: [69...69], min: 1, max: 1)),
+                      .step(Step(of: [84...84], min: 1, max: 1)),
+                    ],
+                    [
+                      .step(Step(of: [80...80], min: 1, max: 1)),
+                      .step(Step(of: [79...79], min: 1, max: 1)),
+                      .step(Step(of: [83...83], min: 1, max: 1)),
+                      .step(Step(of: [84...84], min: 1, max: 1)),
+                    ],
+                    [
+                      .step(Step(of: [80...80], min: 1, max: 1)),
+                      .step(Step(of: [85...85], min: 1, max: 1)),
+                      .step(Step(of: [84...84], min: 1, max: 1)),
+                    ],
+                    [
+                      .step(Step(of: [68...68], min: 1, max: 1)),
+                      .step(Step(of: [69...69], min: 1, max: 1)),
+                      .step(Step(of: [76...76], min: 1, max: 1)),
+                      .step(Step(of: [69...69], min: 1, max: 1)),
+                      .step(Step(of: [84...84], min: 1, max: 1)),
+                      .step(Step(of: [69...69], min: 1, max: 1)),
+                    ],
+                    [
+                      .step(Step(of: [80...80], min: 1, max: 1)),
+                      .step(Step(of: [65...65], min: 1, max: 1)),
+                      .step(Step(of: [84...84], min: 1, max: 1)),
+                      .step(Step(of: [67...67], min: 1, max: 1)),
+                      .step(Step(of: [72...72], min: 1, max: 1)),
+                    ],
+                  ], min: 1, max: 1)), .step(Step(of: [32...32], min: 1, max: 1)),
+              .step(Step(of: [47...47], min: 1, max: 1)),
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+        ],
+        closed: [
+          "answer", "as", "at", "body", "follows", "headers", "params", "status", "token", "waited",
+          "wire",
+        ]),
+      Shape(
+        kinds: [.object], required: ["carried", "is"],
+        members: [
+          "carried": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ])
+        ], closed: ["carried", "is"]),
+      Shape(
+        kinds: [.object], required: ["closed"],
+        members: [
+          "closed": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ])
+        ], closed: ["closed"]),
+      Shape(
+        kinds: [.object], required: ["progress"],
+        members: [
+          "progress": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ])
+        ], closed: ["progress"]),
+      Shape(
+        kinds: [.object], required: ["state"],
+        members: [
+          "state": Shape(
+            kinds: [.string],
+            enumeration: [
+              .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
+              .string("degraded"), .string("unauthenticated"), .string("closed"),
+            ])
+        ], closed: ["state"]),
+      Shape(
+        kinds: [.object], required: ["stays"],
+        members: [
+          "stays": Shape(
+            kinds: [.string],
+            enumeration: [
+              .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
+              .string("degraded"), .string("unauthenticated"), .string("closed"),
+            ])
+        ], closed: ["stays"]),
+      Shape(
+        kinds: [.object], required: ["frame", "is"],
+        members: ["frame": Shape(kinds: [.string], minLength: 1)], closed: ["frame", "is"]),
+      Shape(
+        kinds: [.object], required: ["frames", "count"],
+        members: [
+          "count": Shape(kinds: [.integer], minimum: 1.0),
+          "frames": Shape(kinds: [.string], minLength: 1),
+        ], closed: ["count", "frames"]),
+      Shape(kinds: [.object], required: ["error"], closed: ["error"]),
+      Shape(
+        kinds: [.object], required: ["backend"],
+        members: [
+          "backend": Shape(
+            kinds: [.string],
+            enumeration: [
+              .string("listen"), .string("emit"), .string("record"), .string("content"),
+              .string("description"), .string("annotations"), .string("anchored-text"),
+              .string("uploaded"), .string("refuse"), .string("unanswered"), .string("answer-lost"),
+              .string("hold"), .string("release"), .string("rechunk"), .string("carry"),
+              .string("cut"), .string("down"), .string("up"), .string("archivist"),
+            ]), "with": Shape(kinds: [.object]),
+        ], closed: ["backend", "with"]),
+      Shape(
+        kinds: [.object], required: ["quiet"],
+        members: ["quiet": Shape(kinds: [.integer], minimum: 1.0)], closed: ["quiet"]),
+      Shape(
+        kinds: [.object], required: ["observe", "as"],
+        members: [
+          "as": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ]),
+          "observe": Shape(
+            kinds: [.object], required: ["query"],
+            members: ["query": Shape(kinds: [.string], minLength: 1)],
+            closed: ["annotation", "filters", "query", "resource", "search"]),
+        ], closed: ["as", "observe"]),
+      Shape(
+        kinds: [.object], required: ["leave"],
+        members: [
+          "leave": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ])
+        ], closed: ["leave"]),
+      Shape(
+        kinds: [.object], required: ["reaches", "state"],
+        members: [
+          "reaches": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ])
+        ], closed: ["reaches", "state"]),
+      Shape(
+        kinds: [.object], required: ["holds", "state"],
+        members: [
+          "holds": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ])
+        ], closed: ["holds", "state"]),
+      Shape(
+        kinds: [.object], required: ["completes"],
+        members: [
+          "completes": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [65...90, 97...122], min: 1, max: 1)),
+              .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+            ])
+        ], closed: ["completes"]), Shape(ref: "ConformanceBusFetch"),
+      Shape(ref: "ConformanceHttpFetch"),
+      Shape(
+        kinds: [.object], required: ["fetches"],
+        members: [
+          "fetches": Shape(
+            kinds: [.array], minItems: 2,
+            items: Shape(
+              kinds: [.object],
+              oneOf: [Shape(ref: "ConformanceBusFetch"), Shape(ref: "ConformanceHttpFetch")]))
+        ], closed: ["fetches"]),
+      Shape(
+        kinds: [.object], required: ["scopes"], members: ["scopes": Shape(kinds: [.array])],
+        closed: ["scopes"]), Shape(kinds: [.object], required: ["claimed"], closed: ["claimed"]),
+      Shape(kinds: [.object], required: ["refused"], closed: ["refused"]),
+      Shape(kinds: [.object], required: ["signalled"], closed: ["signalled"]),
+      Shape(kinds: [.object], required: ["stalled"], closed: ["stalled"]),
+    ])
   shapes["ContentFormat"] = Shape(kinds: [.string])
   shapes["ContextualSummaryResponse"] = Shape(
     kinds: [.object], required: ["summary", "relevantFields", "context"],
@@ -15379,9 +20649,35 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["EphemeralEventId"] = Shape(
     kinds: [.string],
     pattern: [
-      Step(of: [101...101], min: 1, max: 1), Step(of: [45...45], min: 1, max: 1),
-      Step(of: [0...57, 59...1_114_111], min: 1, max: nil),
+      .step(Step(of: [101...101], min: 1, max: 1)), .step(Step(of: [45...45], min: 1, max: 1)),
+      .step(Step(of: [0...57, 59...1_114_111], min: 1, max: nil)),
     ])
+  shapes["ErrorData"] = Shape(
+    kinds: [.object], required: ["code", "retryable"],
+    members: [
+      "choices": Shape(kinds: [.array], items: Shape(ref: "Target")),
+      "code": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [99...99], min: 1, max: 1)), .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [110...110], min: 1, max: 1)),
+          .step(Step(of: [116...116], min: 1, max: 1)),
+          .step(Step(of: [114...114], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [108...108], min: 1, max: 1)), .step(Step(of: [46...46], min: 1, max: 1)),
+          .step(Step(of: [97...122], min: 1, max: nil)),
+          .group(
+            Group(
+              either: [
+                [
+                  .step(Step(of: [45...45], min: 1, max: 1)),
+                  .step(Step(of: [97...122], min: 1, max: nil)),
+                ]
+              ], min: 0, max: nil)),
+        ]), "fields": Shape(kinds: [.array], items: Shape(ref: "FieldFault")),
+      "mayStillRun": Shape(kinds: [.boolean]), "retryable": Shape(kinds: [.boolean]),
+      "supported": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+    ], closed: ["choices", "code", "fields", "mayStillRun", "retryable", "supported"])
   shapes["ErrorResponse"] = Shape(
     kinds: [.object], required: ["error"],
     members: [
@@ -15427,6 +20723,10 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["FailureClass"] = Shape(
     kinds: [.string],
     enumeration: [.string("transient"), .string("deterministic"), .string("withheld")])
+  shapes["FieldFault"] = Shape(
+    kinds: [.object], required: ["field", "message"],
+    members: ["field": Shape(kinds: [.string]), "message": Shape(kinds: [.string])],
+    closed: ["field", "message"])
   shapes["FileEntry"] = Shape(
     kinds: [.object], required: ["type", "name", "path", "size", "mtime", "tracked"],
     members: [
@@ -15441,6 +20741,16 @@ internal let requiredSchemas: [String: Shape] = {
       "annotationCount", "creator", "entityTypes", "mtime", "name", "path", "resourceId", "size",
       "tracked", "type",
     ])
+  shapes["FollowerFollowing"] = Shape(
+    kinds: [.object], required: ["sweep", "stopped", "refused", "streamDrops"],
+    members: [
+      "refused": Shape(kinds: [.integer], minimum: 0.0),
+      "stopped": Shape(kinds: [.integer], minimum: 0.0),
+      "streamDrops": Shape(kinds: [.integer], minimum: 0.0),
+      "sweep": Shape(
+        kinds: [.string],
+        enumeration: [.string("pending"), .string("running"), .string("done"), .string("due")]),
+    ], closed: ["refused", "stopped", "streamDrops", "sweep"])
   shapes["FragmentSelector"] = Shape(
     kinds: [.object], required: ["type", "value"],
     members: [
@@ -15724,6 +21034,12 @@ internal let requiredSchemas: [String: Shape] = {
       "motivation": Shape(kinds: [.string], enumeration: [.string("highlighting")]),
       "sourceLanguage": Shape(kinds: [.string]),
     ], closed: ["density", "instructions", "motivation", "sourceLanguage"])
+  shapes["HostPort"] = Shape(
+    kinds: [.object], required: ["host", "port"],
+    members: [
+      "host": Shape(kinds: [.string], minLength: 1),
+      "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+    ], closed: ["host", "port"])
   shapes["HttpEndpoint"] = Shape(
     kinds: [.object], required: ["kind", "host", "port", "protocol"],
     members: [
@@ -15732,6 +21048,64 @@ internal let requiredSchemas: [String: Shape] = {
       "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
       "protocol": Shape(kinds: [.string], enumeration: [.string("http"), .string("https")]),
     ])
+  shapes["HttpStatus"] = Shape(kinds: [.integer], minimum: 100.0, maximum: 599.0)
+  shapes["IdentityUser"] = Shape(
+    kinds: [.object], required: ["email", "identity", "enabled"],
+    members: [
+      "email": Shape(kinds: [.string]), "enabled": Shape(kinds: [.boolean]),
+      "identity": Shape(kinds: [.string]),
+    ], closed: ["email", "enabled", "identity"])
+  shapes["IdentityUseraddParams"] = Shape(
+    kinds: [.object], required: ["apiVersion", "target", "email", "generatePassword"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "email": Shape(kinds: [.string], minLength: 3),
+      "generatePassword": Shape(kinds: [.boolean]),
+      "password": Shape(kinds: [.string], minLength: 1), "target": Shape(ref: "LocalTarget"),
+    ], closed: ["apiVersion", "email", "generatePassword", "password", "target"],
+    oneOf: [
+      Shape(
+        kinds: [.object], required: ["password"],
+        members: ["generatePassword": Shape(kinds: [.boolean], enumeration: [.bool(false)])]),
+      Shape(
+        kinds: [.object],
+        members: ["generatePassword": Shape(kinds: [.boolean], enumeration: [.bool(true)])],
+        notAll: [["password"]]),
+    ])
+  shapes["IdentityUseraddResult"] = Shape(
+    kinds: [.object], required: ["email", "identity", "created"],
+    members: [
+      "created": Shape(kinds: [.boolean]), "email": Shape(kinds: [.string]),
+      "generatedPassword": Shape(kinds: [.string]), "identity": Shape(kinds: [.string]),
+    ], closed: ["created", "email", "generatedPassword", "identity"])
+  shapes["IdentityUsersListParams"] = Shape(
+    kinds: [.object], required: ["apiVersion", "target"],
+    members: ["apiVersion": Shape(ref: "ApiVersion"), "target": Shape(ref: "LocalTarget")],
+    closed: ["apiVersion", "target"])
+  shapes["IdentityUsersListResult"] = Shape(
+    kinds: [.object], required: ["users"],
+    members: ["users": Shape(kinds: [.array], items: Shape(ref: "IdentityUser"))], closed: ["users"]
+  )
+  shapes["Image"] = Shape(kinds: [.string], minLength: 1)
+  shapes["Inference"] = Shape(
+    kinds: [.object], required: ["apiVersion", "kind", "metadata", "spec"],
+    members: [
+      "apiVersion": Shape(ref: "StackApiVersion"),
+      "kind": Shape(kinds: [.string], enumeration: [.string("Inference")]),
+      "metadata": Shape(ref: "Metadata"),
+      "spec": Shape(
+        kinds: [.object], required: ["providers", "engines"],
+        members: [
+          "engines": Shape(ref: "ArchivistEngines"),
+          "providers": Shape(
+            kinds: [.object], values: Shape(ref: "Provider"), minMembers: 1,
+            names: Shape(
+              kinds: [.string],
+              enumeration: [
+                .string("anthropic"), .string("google"), .string("llamacpp"), .string("ollama"),
+                .string("openai"), .string("together"), .string("vllm"),
+              ])),
+        ], closed: ["engines", "providers"]),
+    ], closed: ["apiVersion", "kind", "metadata", "spec"])
   shapes["InferenceLimits"] = Shape(
     kinds: [.object], required: ["contextTokens", "maxOutputTokens"],
     members: [
@@ -15746,6 +21120,47 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object], required: ["limits"],
         members: ["limits": Shape(kinds: [.array], items: Shape(ref: "EngineLimits"))])
     ])
+  shapes["Issuer"] = Shape(
+    kinds: [.object], required: ["apiVersion", "kind", "metadata", "spec"],
+    members: [
+      "apiVersion": Shape(ref: "StackApiVersion"),
+      "kind": Shape(kinds: [.string], enumeration: [.string("Issuer")]),
+      "metadata": Shape(ref: "Metadata"),
+      "spec": Shape(
+        kinds: [.object], required: ["type", "image", "resources", "port", "database"],
+        members: [
+          "database": Shape(
+            kinds: [.object], required: ["type", "name", "user"],
+            members: [
+              "external": Shape(
+                kinds: [.object], required: ["host", "port", "password"],
+                members: [
+                  "host": Shape(kinds: [.string], minLength: 1),
+                  "password": Shape(ref: "SecretRef"),
+                  "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+                ], closed: ["host", "password", "port"]), "image": Shape(ref: "Image"),
+              "name": Shape(
+                kinds: [.string],
+                pattern: [
+                  .step(Step(of: [95...95, 97...122], min: 1, max: 1)),
+                  .step(Step(of: [48...57, 95...95, 97...122], min: 0, max: 62)),
+                ]), "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+              "resources": Shape(ref: "Resources"), "type": Shape(kinds: [.string], minLength: 1),
+              "user": Shape(kinds: [.string], minLength: 1),
+            ], closed: ["external", "image", "name", "port", "resources", "type", "user"],
+            allOf: [
+              Shape(ref: "Runner"),
+              Shape(
+                kinds: [.object],
+                oneOf: [
+                  Shape(kinds: [.object], required: ["port"], notAll: [["external"]]),
+                  Shape(kinds: [.object], required: ["external"], notAll: [["port"]]),
+                ]),
+            ]), "image": Shape(ref: "Image"),
+          "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+          "resources": Shape(ref: "Resources"), "type": Shape(kinds: [.string], minLength: 1),
+        ], closed: ["database", "image", "port", "resources", "type"]),
+    ], closed: ["apiVersion", "kind", "metadata", "spec"])
   shapes["JanusGraphConfig"] = Shape(
     kinds: [.object], required: ["type", "host", "port"],
     members: [
@@ -15890,7 +21305,7 @@ internal let requiredSchemas: [String: Shape] = {
     discriminator: Discriminator(property: "jobType", mapping: ["mark": 0, "yield": 1]))
   shapes["JobId"] = Shape(
     kinds: [.string],
-    pattern: [Step(of: [45...45, 48...57, 65...90, 95...95, 97...122], min: 1, max: 128)])
+    pattern: [.step(Step(of: [45...45, 48...57, 65...90, 95...95, 97...122], min: 1, max: 128))])
   shapes["JobMetadata"] = Shape(
     kinds: [.object], required: ["id", "type", "userId", "created", "retryCount", "maxRetries"],
     members: [
@@ -16083,6 +21498,20 @@ internal let requiredSchemas: [String: Shape] = {
       "domain": Shape(kinds: [.string]), "gitBranch": Shape(kinds: [.string]),
       "name": Shape(kinds: [.string]),
     ])
+  shapes["KbDid"] = Shape(
+    kinds: [.string],
+    pattern: [
+      .step(Step(of: [100...100], min: 1, max: 1)), .step(Step(of: [105...105], min: 1, max: 1)),
+      .step(Step(of: [100...100], min: 1, max: 1)), .step(Step(of: [58...58], min: 1, max: 1)),
+      .step(Step(of: [119...119], min: 1, max: 1)), .step(Step(of: [101...101], min: 1, max: 1)),
+      .step(Step(of: [98...98], min: 1, max: 1)), .step(Step(of: [58...58], min: 1, max: 1)),
+      .step(
+        Step(
+          of: [
+            0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+            8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+          ], min: 1, max: nil)),
+    ])
   shapes["KbEndpoint"] = Shape(
     kinds: [.object], oneOf: [Shape(ref: "HttpEndpoint"), Shape(ref: "LocalEndpoint")],
     discriminator: Discriminator(property: "kind", mapping: ["http": 0, "local": 1]))
@@ -16092,11 +21521,12 @@ internal let requiredSchemas: [String: Shape] = {
       "domain": Shape(
         kinds: [.string],
         pattern: [
-          Step(
-            of: [
-              0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
-              8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
-            ], min: 1, max: nil)
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: nil))
         ], minLength: 1), "name": Shape(kinds: [.string], minLength: 1),
     ], closed: ["domain", "name"])
   shapes["KbRead"] = Shape(
@@ -16110,6 +21540,27 @@ internal let requiredSchemas: [String: Shape] = {
     ])
   shapes["KnowledgeBase"] = Shape(
     kinds: [.object], allOf: [Shape(ref: "KbTarget"), Shape(ref: "NewKnowledgeBase")])
+  shapes["KnowledgeBaseStatus"] = Shape(
+    kinds: [.object],
+    required: ["name", "key", "recorded", "placement", "starting", "healthy", "services"],
+    members: [
+      "did": Shape(kinds: [.string]), "gateway": Shape(kinds: [.string]),
+      "healthy": Shape(kinds: [.boolean]), "identityError": Shape(kinds: [.string]),
+      "kb": Shape(ref: "DiscoveredKB"), "key": Shape(kinds: [.string]),
+      "lan": Shape(kinds: [.string]), "name": Shape(kinds: [.string]),
+      "placement": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
+      "recorded": Shape(kinds: [.boolean]), "repo": Shape(kinds: [.string]),
+      "root": Shape(kinds: [.string]), "runtime": Shape(ref: "Runtime"),
+      "secretStore": Shape(kinds: [.string]),
+      "services": Shape(kinds: [.array], items: Shape(ref: "ServiceStatus")),
+      "session": Shape(ref: "Session"), "siteName": Shape(kinds: [.string]),
+      "starting": Shape(kinds: [.boolean]), "workload": Shape(ref: "WorkloadStatus"),
+    ],
+    closed: [
+      "did", "gateway", "healthy", "identityError", "kb", "key", "lan", "name", "placement",
+      "recorded", "repo", "root", "runtime", "secretStore", "services", "session", "siteName",
+      "starting", "workload",
+    ])
   shapes["KnowledgeGraph"] = Shape(
     kinds: [.object], required: ["nodes", "edges"],
     members: [
@@ -16130,6 +21581,114 @@ internal let requiredSchemas: [String: Shape] = {
           discriminator: Discriminator(property: "type", mapping: ["annotation": 1, "resource": 0]))
       ), "truncated": Shape(kinds: [.boolean]),
     ])
+  shapes["KnowledgeIndex"] = Shape(
+    kinds: [.object], required: ["apiVersion", "kind", "metadata", "spec"],
+    members: [
+      "apiVersion": Shape(ref: "StackApiVersion"),
+      "kind": Shape(kinds: [.string], enumeration: [.string("KnowledgeIndex")]),
+      "metadata": Shape(ref: "Metadata"),
+      "spec": Shape(
+        kinds: [.object],
+        required: [
+          "knowledgeBase", "logLevel", "graph", "vectors", "embedding", "librarian", "smelter",
+          "weaver",
+        ],
+        members: [
+          "embedding": Shape(
+            kinds: [.object], required: ["type", "model", "chunking"],
+            members: [
+              "apiKey": Shape(ref: "SecretRef"),
+              "chunking": Shape(
+                kinds: [.object], required: ["chunkSize", "overlap"],
+                members: [
+                  "chunkSize": Shape(kinds: [.integer], minimum: 1.0),
+                  "overlap": Shape(kinds: [.integer], minimum: 0.0),
+                ], closed: ["chunkSize", "overlap"]),
+              "endpoint": Shape(kinds: [.string], minLength: 1),
+              "model": Shape(kinds: [.string], minLength: 1),
+              "type": Shape(kinds: [.string], minLength: 1),
+            ], closed: ["apiKey", "chunking", "endpoint", "model", "type"]),
+          "graph": Shape(
+            kinds: [.object], required: ["type", "username"],
+            members: [
+              "external": Shape(
+                kinds: [.object], required: ["uri", "password"],
+                members: [
+                  "password": Shape(ref: "SecretRef"), "uri": Shape(kinds: [.string], minLength: 1),
+                ], closed: ["password", "uri"]), "image": Shape(ref: "Image"),
+              "resources": Shape(ref: "Resources"), "type": Shape(kinds: [.string], minLength: 1),
+              "username": Shape(kinds: [.string], minLength: 1),
+            ], closed: ["external", "image", "resources", "type", "username"],
+            allOf: [Shape(ref: "Runner")]),
+          "knowledgeBase": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [48...57, 97...122], min: 1, max: 1)),
+              .group(
+                Group(
+                  either: [
+                    [
+                      .step(Step(of: [45...45, 48...57, 97...122], min: 0, max: nil)),
+                      .step(Step(of: [48...57, 97...122], min: 1, max: 1)),
+                    ]
+                  ], min: 0, max: 1)),
+            ]),
+          "librarian": Shape(
+            kinds: [.object], required: ["image", "resources", "gather", "search"],
+            members: [
+              "gather": Shape(
+                kinds: [.object], required: ["settleTimeoutMs"],
+                members: ["settleTimeoutMs": Shape(kinds: [.integer], minimum: 1.0)],
+                closed: ["settleTimeoutMs"]), "image": Shape(ref: "Image"),
+              "resources": Shape(ref: "Resources"),
+              "search": Shape(
+                kinds: [.object], required: ["semanticFloor"],
+                members: ["semanticFloor": Shape(kinds: [.number], minimum: 0.0, maximum: 1.0)],
+                closed: ["semanticFloor"]),
+            ], closed: ["gather", "image", "resources", "search"]),
+          "logLevel": Shape(ref: "LogLevel"),
+          "smelter": Shape(
+            kinds: [.object], required: ["image", "resources", "pdfsAtOnce"],
+            members: [
+              "image": Shape(ref: "Image"), "pdfsAtOnce": Shape(kinds: [.integer], minimum: 1.0),
+              "resources": Shape(ref: "Resources"),
+            ], closed: ["image", "pdfsAtOnce", "resources"]),
+          "vectors": Shape(
+            kinds: [.object], required: ["type"],
+            members: [
+              "external": Shape(
+                kinds: [.object], required: ["host", "port", "smelterToken", "librarianToken"],
+                members: [
+                  "host": Shape(kinds: [.string], minLength: 1),
+                  "librarianToken": Shape(ref: "SecretRef"),
+                  "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+                  "smelterToken": Shape(ref: "SecretRef"),
+                ], closed: ["host", "librarianToken", "port", "smelterToken"]),
+              "image": Shape(ref: "Image"), "resources": Shape(ref: "Resources"),
+              "shared": Shape(kinds: [.object], closed: []),
+              "type": Shape(kinds: [.string], minLength: 1),
+            ], closed: ["external", "image", "resources", "shared", "type"],
+            oneOf: [
+              Shape(
+                kinds: [.object], required: ["shared"],
+                notAll: [["image"], ["resources"], ["external"]]),
+              Shape(
+                kinds: [.object], required: ["image", "resources"],
+                notAll: [["shared"], ["external"]]),
+              Shape(
+                kinds: [.object], required: ["external"],
+                notAll: [["shared"], ["image"], ["resources"]]),
+            ]),
+          "weaver": Shape(
+            kinds: [.object], required: ["image", "resources"],
+            members: ["image": Shape(ref: "Image"), "resources": Shape(ref: "Resources")],
+            closed: ["image", "resources"]),
+        ],
+        closed: [
+          "embedding", "graph", "knowledgeBase", "librarian", "logLevel", "smelter", "vectors",
+          "weaver",
+        ]),
+    ], closed: ["apiVersion", "kind", "metadata", "spec"])
   shapes["LibrarianConfig"] = Shape(
     kinds: [.object],
     required: [
@@ -16169,20 +21728,12 @@ internal let requiredSchemas: [String: Shape] = {
       "actors": Shape(
         kinds: [.array], minItems: 2,
         items: Shape(kinds: [.string], enumeration: [.string("matcher"), .string("gatherer")])),
-      "kb": Shape(
-        kinds: [.string],
-        pattern: [
-          Step(of: [100...100], min: 1, max: 1), Step(of: [105...105], min: 1, max: 1),
-          Step(of: [100...100], min: 1, max: 1), Step(of: [58...58], min: 1, max: 1),
-          Step(of: [119...119], min: 1, max: 1), Step(of: [101...101], min: 1, max: 1),
-          Step(of: [98...98], min: 1, max: 1), Step(of: [58...58], min: 1, max: 1),
-          Step(
-            of: [
-              0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
-              8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
-            ], min: 1, max: nil),
-        ]), "status": Shape(kinds: [.string], enumeration: [.string("ok")]),
+      "kb": Shape(ref: "KbDid"), "status": Shape(kinds: [.string], enumeration: [.string("ok")]),
     ], closed: ["actors", "kb", "status"])
+  shapes["LibrarianPromptScore"] = Shape(
+    kinds: [.object], required: ["candidate", "score"],
+    members: ["candidate": Shape(kinds: [.number]), "score": Shape(kinds: [.number])],
+    closed: ["candidate", "score"])
   shapes["LimitRefusal"] = Shape(
     kinds: [.object],
     allOf: [
@@ -16222,12 +21773,35 @@ internal let requiredSchemas: [String: Shape] = {
       "kbId": Shape(kinds: [.string]),
       "kind": Shape(kinds: [.string], enumeration: [.string("local")]),
     ])
+  shapes["LocalTarget"] = Shape(
+    kinds: [.object], required: ["kind", "root"],
+    members: [
+      "kind": Shape(kinds: [.string], enumeration: [.string("local")]),
+      "root": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["kind", "root"])
   shapes["LogFormat"] = Shape(kinds: [.string], enumeration: [.string("json"), .string("simple")])
   shapes["LogLevel"] = Shape(
     kinds: [.string],
     enumeration: [
       .string("error"), .string("warn"), .string("info"), .string("http"), .string("debug"),
     ])
+  shapes["LogRecord"] = Shape(
+    kinds: [.object], required: ["requestId", "service", "stream", "line", "receivedAt"],
+    members: [
+      "line": Shape(kinds: [.string]), "receivedAt": Shape(kinds: [.string], minLength: 1),
+      "requestId": Shape(ref: "RequestId"), "service": Shape(kinds: [.string]),
+      "stream": Shape(ref: "OutputStream"),
+    ], closed: ["line", "receivedAt", "requestId", "service", "stream"])
+  shapes["LogsFollowParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "runtime": Shape(ref: "Runtime"),
+      "service": Shape(kinds: [.string], minLength: 1), "target": Shape(ref: "Target"),
+    ], closed: ["apiVersion", "runtime", "service", "target"])
+  shapes["LogsFollowResult"] = Shape(
+    kinds: [.object], required: ["services"],
+    members: ["services": Shape(kinds: [.array], items: Shape(kinds: [.string]))],
+    closed: ["services"])
   shapes["MarkArchiveCommand"] = Shape(
     kinds: [.object], required: ["resourceId"],
     members: [
@@ -16420,6 +21994,38 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["MemoryVectorsConfig"] = Shape(
     kinds: [.object], required: ["type"],
     members: ["type": Shape(kinds: [.string], enumeration: [.string("memory")])], closed: ["type"])
+  shapes["Metadata"] = Shape(
+    kinds: [.object], required: ["name"],
+    members: [
+      "annotations": Shape(kinds: [.object], values: Shape(kinds: [.string])),
+      "labels": Shape(kinds: [.object], values: Shape(kinds: [.string])),
+      "name": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [48...57, 97...122], min: 1, max: 1)),
+          .group(
+            Group(
+              either: [
+                [
+                  .step(Step(of: [45...45, 48...57, 97...122], min: 0, max: nil)),
+                  .step(Step(of: [48...57, 97...122], min: 1, max: 1)),
+                ]
+              ], min: 0, max: 1)),
+        ], maxLength: 63),
+      "namespace": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [48...57, 97...122], min: 1, max: 1)),
+          .group(
+            Group(
+              either: [
+                [
+                  .step(Step(of: [45...45, 48...57, 97...122], min: 0, max: nil)),
+                  .step(Step(of: [48...57, 97...122], min: 1, max: 1)),
+                ]
+              ], min: 0, max: 1)),
+        ], maxLength: 63),
+    ], closed: ["annotations", "labels", "name", "namespace"])
   shapes["Motivation"] = Shape(
     kinds: [.string],
     enumeration: [
@@ -16474,6 +22080,15 @@ internal let requiredSchemas: [String: Shape] = {
     oneOf: [
       Shape(kinds: [.string]), Shape(kinds: [.array], minItems: 1, items: Shape(kinds: [.string])),
     ])
+  shapes["OpenResource"] = Shape(
+    kinds: [.object], required: ["id", "name", "openedAt", "order"],
+    members: [
+      "id": Shape(ref: "ResourceId"), "mediaType": Shape(kinds: [.string]),
+      "name": Shape(kinds: [.string]), "openedAt": Shape(kinds: [.integer], minimum: 0.0),
+      "order": Shape(kinds: [.integer], minimum: 0.0), "storageUri": Shape(kinds: [.string]),
+    ])
+  shapes["OutputStream"] = Shape(
+    kinds: [.string], enumeration: [.string("stdout"), .string("stderr")])
   shapes["PdfClass"] = Shape(
     kinds: [.string],
     enumeration: [
@@ -16490,9 +22105,9 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["PersistedEventId"] = Shape(
     kinds: [.string],
     pattern: [
-      Step(of: [112...112], min: 1, max: 1), Step(of: [45...45], min: 1, max: 1),
-      Step(of: [0...9, 11...12, 14...8231, 8234...1_114_111], min: 1, max: nil),
-      Step(of: [45...45], min: 1, max: 1), Step(of: [48...57], min: 1, max: nil),
+      .step(Step(of: [112...112], min: 1, max: 1)), .step(Step(of: [45...45], min: 1, max: 1)),
+      .step(Step(of: [0...9, 11...12, 14...8231, 8234...1_114_111], min: 1, max: nil)),
+      .step(Step(of: [45...45], min: 1, max: 1)), .step(Step(of: [48...57], min: 1, max: nil)),
     ])
   shapes["PrincipalProfileCommand"] = Shape(
     kinds: [.object], required: ["name"],
@@ -16507,6 +22122,44 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["profiles"],
     members: ["profiles": Shape(kinds: [.object], values: Shape(ref: "Profile"))],
     closed: ["profiles"])
+  shapes["Progress"] = Shape(
+    kinds: [.object], required: ["requestId", "kind", "text"],
+    members: [
+      "kind": Shape(
+        kinds: [.string],
+        enumeration: [
+          .string("log"), .string("note"), .string("ok"), .string("warn"), .string("fail"),
+          .string("banner"), .string("section"), .string("stamp"), .string("command"),
+          .string("output"),
+        ]), "requestId": Shape(ref: "RequestId"), "text": Shape(kinds: [.string]),
+    ], closed: ["kind", "requestId", "text"])
+  shapes["ProjectConfig"] = Shape(
+    kinds: [.object], required: ["project", "git", "site"],
+    members: [
+      "git": Shape(
+        kinds: [.object], required: ["sync"], members: ["sync": Shape(kinds: [.boolean])],
+        closed: ["sync"]),
+      "project": Shape(
+        kinds: [.object], required: ["name"],
+        members: [
+          "name": Shape(kinds: [.string], minLength: 1),
+          "version": Shape(kinds: [.string], minLength: 1),
+        ], closed: ["name", "version"]),
+      "site": Shape(
+        kinds: [.object], required: ["domain", "siteName"],
+        members: [
+          "domain": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: nil))
+            ], minLength: 1), "siteName": Shape(kinds: [.string], minLength: 1),
+        ], closed: ["domain", "siteName"]),
+    ], closed: ["git", "project", "site"])
   shapes["ProtectedResourceMetadata"] = Shape(
     kinds: [.object], required: ["resource", "authorization_servers", "bearer_methods_supported"],
     members: [
@@ -16515,6 +22168,10 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.array], items: Shape(kinds: [.string], enumeration: [.string("header")])),
       "resource": Shape(kinds: [.string]), "resource_name": Shape(kinds: [.string]),
     ], closed: ["authorization_servers", "bearer_methods_supported", "resource", "resource_name"])
+  shapes["Provider"] = Shape(
+    kinds: [.object],
+    members: ["apiKey": Shape(ref: "SecretRef"), "baseURL": Shape(kinds: [.string], minLength: 1)],
+    closed: ["apiKey", "baseURL"])
   shapes["QdrantVectorsConfig"] = Shape(
     kinds: [.object], required: ["type", "host", "port", "tokenEnv"],
     members: [
@@ -16526,10 +22183,12 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["ReplyEventId"] = Shape(
     kinds: [.string],
     pattern: [
-      Step(of: [101...101], min: 1, max: 1), Step(of: [45...45], min: 1, max: 1),
-      Step(of: [0...57, 59...1_114_111], min: 1, max: nil), Step(of: [58...58], min: 1, max: 1),
-      Step(of: [0...57, 59...1_114_111], min: 1, max: nil), Step(of: [58...58], min: 1, max: 1),
-      Step(of: [0...9, 11...12, 14...8231, 8234...1_114_111], min: 1, max: nil),
+      .step(Step(of: [101...101], min: 1, max: 1)), .step(Step(of: [45...45], min: 1, max: 1)),
+      .step(Step(of: [0...57, 59...1_114_111], min: 1, max: nil)),
+      .step(Step(of: [58...58], min: 1, max: 1)),
+      .step(Step(of: [0...57, 59...1_114_111], min: 1, max: nil)),
+      .step(Step(of: [58...58], min: 1, max: 1)),
+      .step(Step(of: [0...9, 11...12, 14...8231, 8234...1_114_111], min: 1, max: nil)),
     ])
   shapes["Representation"] = Shape(
     kinds: [.object], required: ["mediaType"],
@@ -16566,6 +22225,7 @@ internal let requiredSchemas: [String: Shape] = {
     ])
   shapes["RepresentationRemovedPayload"] = Shape(
     kinds: [.object], required: ["checksum"], members: ["checksum": Shape(kinds: [.string])])
+  shapes["RequestId"] = Shape(kinds: [.string, .integer])
   shapes["ResourceAnnotations"] = Shape(
     kinds: [.object], required: ["resourceId", "annotations", "version", "updatedAt"],
     members: [
@@ -16652,7 +22312,7 @@ internal let requiredSchemas: [String: Shape] = {
     members: ["message": Shape(kinds: [.string]), "resourceId": Shape(ref: "ResourceId")])
   shapes["ResourceId"] = Shape(
     kinds: [.string],
-    pattern: [Step(of: [45...45, 48...57, 65...90, 95...95, 97...122], min: 1, max: 128)])
+    pattern: [.step(Step(of: [45...45, 48...57, 65...90, 95...95, 97...122], min: 1, max: 128))])
   shapes["ResourceMovedPayload"] = Shape(
     kinds: [.object], required: ["fromUri", "toUri"],
     members: ["fromUri": Shape(kinds: [.string]), "toUri": Shape(kinds: [.string])])
@@ -16680,6 +22340,115 @@ internal let requiredSchemas: [String: Shape] = {
       "lastSequence": Shape(kinds: [.integer], minimum: 1.0),
       "resource": Shape(ref: "ResourceDescriptor"),
     ], closed: ["annotations", "lastSequence", "resource"])
+  shapes["Resources"] = Shape(
+    kinds: [.object], required: ["limits"],
+    members: [
+      "limits": Shape(
+        kinds: [.object], required: ["memory"],
+        members: [
+          "memory": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [49...57], min: 1, max: 1)),
+              .step(Step(of: [48...57], min: 0, max: nil)),
+              .step(Step(of: [71...71, 77...77], min: 1, max: 1)),
+            ])
+        ], closed: ["memory"])
+    ], closed: ["limits"])
+  shapes["Root"] = Shape(
+    kinds: [.object], required: ["placement", "registered", "running"],
+    members: [
+      "codespace": Shape(kinds: [.string]), "codespaceState": Shape(kinds: [.string]),
+      "config": Shape(kinds: [.string]),
+      "configs": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "current": Shape(kinds: [.string], enumeration: [.string("cwd"), .string("xynolog-root")]),
+      "did": Shape(kinds: [.string]), "forwardPort": Shape(kinds: [.integer]),
+      "forwarded": Shape(kinds: [.boolean]), "identityError": Shape(kinds: [.string]),
+      "lastUsed": Shape(kinds: [.string]), "path": Shape(kinds: [.string]),
+      "placement": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
+      "present": Shape(kinds: [.boolean]), "reachable": Shape(kinds: [.boolean]),
+      "registered": Shape(kinds: [.boolean]), "repo": Shape(kinds: [.string]),
+      "running": Shape(kinds: [.boolean]), "siteName": Shape(kinds: [.string]),
+    ],
+    closed: [
+      "codespace", "codespaceState", "config", "configs", "current", "did", "forwardPort",
+      "forwarded", "identityError", "lastUsed", "path", "placement", "present", "reachable",
+      "registered", "repo", "running", "siteName",
+    ])
+  shapes["RootsForgetParams"] = Shape(
+    kinds: [.object], required: ["apiVersion", "root"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "root": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["apiVersion", "root"])
+  shapes["RootsForgetResult"] = Shape(
+    kinds: [.object], required: ["path", "directoryMissing"],
+    members: [
+      "directoryMissing": Shape(kinds: [.boolean]), "path": Shape(kinds: [.string]),
+      "persistentState": Shape(kinds: [.string]),
+    ], closed: ["directoryMissing", "path", "persistentState"])
+  shapes["RootsInitParams"] = Shape(
+    kinds: [.object], required: ["apiVersion", "path", "domain"],
+    members: [
+      "anthropicEndpoint": Shape(kinds: [.string], minLength: 1),
+      "apiVersion": Shape(ref: "ApiVersion"), "configName": Shape(kinds: [.string], minLength: 1),
+      "domain": Shape(kinds: [.string], minLength: 1),
+      "embedding": Shape(kinds: [.string], minLength: 1),
+      "inference": Shape(kinds: [.string], enumeration: [.string("anthropic"), .string("ollama")]),
+      "model": Shape(kinds: [.string], minLength: 1),
+      "modelLight": Shape(kinds: [.string], minLength: 1),
+      "name": Shape(kinds: [.string], minLength: 1),
+      "ollamaBase": Shape(kinds: [.string], minLength: 1),
+      "ollamaRegistry": Shape(kinds: [.string], minLength: 1),
+      "path": Shape(kinds: [.string], minLength: 1),
+      "siteName": Shape(kinds: [.string], minLength: 1),
+    ],
+    closed: [
+      "anthropicEndpoint", "apiVersion", "configName", "domain", "embedding", "inference", "model",
+      "modelLight", "name", "ollamaBase", "ollamaRegistry", "path", "siteName",
+    ])
+  shapes["RootsInitResult"] = Shape(
+    kinds: [.object], required: ["path"], members: ["path": Shape(kinds: [.string], minLength: 1)],
+    closed: ["path"])
+  shapes["RootsListParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"], members: ["apiVersion": Shape(ref: "ApiVersion")],
+    closed: ["apiVersion"])
+  shapes["RootsListResult"] = Shape(
+    kinds: [.object], required: ["roots"],
+    members: [
+      "roots": Shape(kinds: [.array], items: Shape(ref: "Root")),
+      "warnings": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+    ], closed: ["roots", "warnings"])
+  shapes["RunInstance"] = Shape(
+    kinds: [.string],
+    pattern: [
+      .step(Step(of: [48...57, 97...122], min: 1, max: nil)),
+      .group(
+        Group(
+          either: [
+            [
+              .step(Step(of: [45...45], min: 1, max: 1)),
+              .step(Step(of: [48...57, 97...122], min: 1, max: nil)),
+            ]
+          ], min: 0, max: nil)),
+    ])
+  shapes["RunService"] = Shape(
+    kinds: [.string],
+    enumeration: [
+      .string("archivist"), .string("dispatcher"), .string("gateway"), .string("librarian"),
+      .string("smelter"), .string("weaver"), .string("worker"),
+    ])
+  shapes["Runner"] = Shape(
+    kinds: [.object],
+    oneOf: [
+      Shape(kinds: [.object], required: ["image", "resources"], notAll: [["external"]]),
+      Shape(kinds: [.object], required: ["external"], notAll: [["image"], ["resources"]]),
+    ])
+  shapes["Runtime"] = Shape(
+    kinds: [.string], enumeration: [.string("container"), .string("docker"), .string("podman")])
+  shapes["RuntimeState"] = Shape(
+    kinds: [.object], required: ["name", "found"],
+    members: ["found": Shape(kinds: [.boolean]), "name": Shape(ref: "Runtime")],
+    closed: ["found", "name"])
   shapes["ScoredResource"] = Shape(
     kinds: [.object],
     allOf: [
@@ -16688,6 +22457,16 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object],
         members: ["matchReason": Shape(kinds: [.string]), "score": Shape(kinds: [.number])]),
     ])
+  shapes["SecretRef"] = Shape(
+    kinds: [.object], required: ["fromEnv"],
+    members: [
+      "fromEnv": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [65...90, 95...95, 97...122], min: 1, max: 1)),
+          .step(Step(of: [48...57, 65...90, 95...95, 97...122], min: 0, max: nil)),
+        ])
+    ], closed: ["fromEnv"])
   shapes["Selector"] = Shape(
     kinds: [.object],
     oneOf: [
@@ -16714,26 +22493,192 @@ internal let requiredSchemas: [String: Shape] = {
       "host": Shape(kinds: [.string], minLength: 1),
       "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
     ], closed: ["host", "port"])
+  shapes["ServiceGroup"] = Shape(
+    kinds: [.string],
+    enumeration: [
+      .string("record"), .string("index"), .string("issuer"), .string("knowledge-workers"),
+      .string("providers"), .string("telemetry"),
+    ])
+  shapes["ServiceHostParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"],
+    members: ["apiVersion": Shape(ref: "ApiVersion"), "runtime": Shape(ref: "Runtime")],
+    closed: ["apiVersion", "runtime"])
+  shapes["ServiceHostResult"] = Shape(
+    kinds: [.object], required: ["runtime", "address"],
+    members: ["address": Shape(kinds: [.string], minLength: 1), "runtime": Shape(ref: "Runtime")],
+    closed: ["address", "runtime"])
   shapes["ServiceIdentity"] = Shape(
     kinds: [.object], required: ["issuer"],
     members: ["issuer": Shape(kinds: [.string], minLength: 1)], closed: ["issuer"])
+  shapes["ServiceOutput"] = Shape(
+    kinds: [.object], required: ["requestId", "instance", "stream", "line"],
+    members: [
+      "instance": Shape(ref: "RunInstance"), "line": Shape(kinds: [.string]),
+      "requestId": Shape(ref: "RequestId"), "stream": Shape(ref: "OutputStream"),
+    ], closed: ["instance", "line", "requestId", "stream"])
+  shapes["ServiceRunParams"] = Shape(
+    kinds: [.object],
+    required: [
+      "apiVersion", "target", "service", "instance", "environment", "mounts", "pathFirst", "ports",
+    ],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"),
+      "args": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "document": Shape(kinds: [.string]),
+      "environment": Shape(kinds: [.object], values: Shape(kinds: [.string])),
+      "instance": Shape(ref: "RunInstance"),
+      "mounts": Shape(
+        kinds: [.array],
+        items: Shape(
+          kinds: [.string],
+          pattern: [
+            .step(Step(of: [47...47], min: 1, max: 1)),
+            .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          ])),
+      "pathFirst": Shape(
+        kinds: [.array],
+        items: Shape(
+          kinds: [.string],
+          pattern: [
+            .step(Step(of: [47...47], min: 1, max: 1)),
+            .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          ])), "ports": Shape(kinds: [.array], items: Shape(kinds: [.integer], minimum: 1.0)),
+      "runtime": Shape(ref: "Runtime"), "service": Shape(ref: "RunService"),
+      "target": Shape(ref: "LocalTarget"),
+    ],
+    closed: [
+      "apiVersion", "args", "document", "environment", "instance", "mounts", "pathFirst", "ports",
+      "runtime", "service", "target",
+    ])
+  shapes["ServiceRunResult"] = Shape(
+    kinds: [.object], required: ["instance", "exitCode", "ranMs"],
+    members: [
+      "exitCode": Shape(kinds: [.integer], minimum: 0.0), "instance": Shape(ref: "RunInstance"),
+      "ranMs": Shape(kinds: [.integer], minimum: 0.0),
+    ], closed: ["exitCode", "instance", "ranMs"])
+  shapes["ServiceSignalParams"] = Shape(
+    kinds: [.object], required: ["apiVersion", "target", "instance", "signal"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "instance": Shape(ref: "RunInstance"),
+      "runtime": Shape(ref: "Runtime"),
+      "signal": Shape(kinds: [.string], enumeration: [.string("term"), .string("kill")]),
+      "target": Shape(ref: "LocalTarget"),
+    ], closed: ["apiVersion", "instance", "runtime", "signal", "target"])
+  shapes["ServiceSignalResult"] = Shape(
+    kinds: [.object], required: ["delivered"], members: ["delivered": Shape(kinds: [.boolean])],
+    closed: ["delivered"])
+  shapes["ServiceStarted"] = Shape(
+    kinds: [.object], required: ["requestId", "instance", "container", "address"],
+    members: [
+      "address": Shape(kinds: [.string], minLength: 1),
+      "container": Shape(kinds: [.string], minLength: 1),
+      "documentPath": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [47...47], min: 1, max: 1)),
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]), "instance": Shape(ref: "RunInstance"), "requestId": Shape(ref: "RequestId"),
+    ], closed: ["address", "container", "documentPath", "instance", "requestId"])
+  shapes["ServiceStatus"] = Shape(
+    kinds: [.object], required: ["role", "group", "state", "healthy", "counted"],
+    members: [
+      "containerState": Shape(kinds: [.string]), "counted": Shape(kinds: [.boolean]),
+      "group": Shape(ref: "ServiceGroup"), "healthy": Shape(kinds: [.boolean]),
+      "page": Shape(kinds: [.string]), "probe": Shape(kinds: [.string]),
+      "product": Shape(kinds: [.string]), "realm": Shape(kinds: [.string]),
+      "role": Shape(kinds: [.string]), "runsOn": Shape(kinds: [.string]),
+      "serves": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "state": Shape(
+        kinds: [.string],
+        enumeration: [
+          .string("running"), .string("stopped"), .string("reachable"), .string("unreachable"),
+          .string("absent"), .string("not-configured"),
+        ]),
+    ],
+    closed: [
+      "containerState", "counted", "group", "healthy", "page", "probe", "product", "realm", "role",
+      "runsOn", "serves", "state",
+    ])
+  shapes["Session"] = Shape(
+    kinds: [.object], required: ["state"],
+    members: [
+      "email": Shape(kinds: [.string]),
+      "state": Shape(
+        kinds: [.string],
+        enumeration: [.string("valid"), .string("expired"), .string("unverified"), .string("none")]),
+    ], closed: ["email", "state"])
   shapes["SessionJoinedEvent"] = Shape(
     kinds: [.object], required: ["participant", "connectionId"],
     members: ["connectionId": Shape(kinds: [.string]), "participant": Shape(ref: "UserId")])
   shapes["SessionLeftEvent"] = Shape(
     kinds: [.object], required: ["participant", "connectionId"],
     members: ["connectionId": Shape(kinds: [.string]), "participant": Shape(ref: "UserId")])
+  shapes["Setting"] = Shape(
+    kinds: [.object], required: ["name", "default", "appliesTo", "values", "settable"],
+    members: [
+      "appliesTo": Shape(
+        kinds: [.string], enumeration: [.string("machine"), .string("knowledge-base")]),
+      "changedBy": Shape(kinds: [.string]), "default": Shape(kinds: [.boolean]),
+      "name": Shape(kinds: [.string]), "settable": Shape(kinds: [.boolean]),
+      "values": Shape(kinds: [.array], items: Shape(ref: "SettingLine")),
+    ], closed: ["appliesTo", "changedBy", "default", "name", "settable", "values"])
+  shapes["SettingLine"] = Shape(
+    kinds: [.object], required: ["value", "source"],
+    members: ["source": Shape(kinds: [.string]), "value": Shape(kinds: [.string])],
+    closed: ["source", "value"])
+  shapes["SettingsGetParams"] = Shape(
+    kinds: [.object], required: ["apiVersion", "name"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "default": Shape(kinds: [.boolean]),
+      "name": Shape(kinds: [.string], minLength: 1), "root": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["apiVersion", "default", "name", "root"])
   shapes["SettingsHoverDelayChangedEvent"] = Shape(
     kinds: [.object], required: ["hoverDelayMs"],
     members: ["hoverDelayMs": Shape(kinds: [.integer])])
+  shapes["SettingsListParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "root": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["apiVersion", "root"])
+  shapes["SettingsListResult"] = Shape(
+    kinds: [.object], required: ["settings"],
+    members: [
+      "root": Shape(kinds: [.string]),
+      "settings": Shape(kinds: [.array], items: Shape(ref: "Setting")),
+      "unresolved": Shape(kinds: [.string]),
+    ], closed: ["root", "settings", "unresolved"])
   shapes["SettingsLocaleChangedEvent"] = Shape(
     kinds: [.object], required: ["locale"], members: ["locale": Shape(kinds: [.string])])
+  shapes["SettingsPathParams"] = Shape(
+    kinds: [.object], required: ["apiVersion", "document"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"),
+      "document": Shape(
+        kinds: [.string],
+        enumeration: [.string("browser"), .string("worker"), .string("issuer"), .string("vectors")]),
+    ], closed: ["apiVersion", "document"])
+  shapes["SettingsPathResult"] = Shape(
+    kinds: [.object], required: ["path"], members: ["path": Shape(kinds: [.string])],
+    closed: ["path"])
+  shapes["SettingsSetParams"] = Shape(
+    kinds: [.object], required: ["apiVersion", "name", "value"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "default": Shape(kinds: [.boolean]),
+      "name": Shape(kinds: [.string], minLength: 1), "root": Shape(kinds: [.string], minLength: 1),
+      "value": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["apiVersion", "default", "name", "root", "value"])
   shapes["SettingsThemeChangedEvent"] = Shape(
     kinds: [.object], required: ["theme"],
     members: [
       "theme": Shape(
         kinds: [.string], enumeration: [.string("light"), .string("dark"), .string("system")])
     ])
+  shapes["SettingsUnsetParams"] = Shape(
+    kinds: [.object], required: ["apiVersion", "name"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "default": Shape(kinds: [.boolean]),
+      "name": Shape(kinds: [.string], minLength: 1), "root": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["apiVersion", "default", "name", "root"])
   shapes["SmeltRebuildAnchorsCommand"] = Shape(
     kinds: [.object],
     members: ["_userId": Shape(ref: "UserId"), "resourceId": Shape(ref: "ResourceId")])
@@ -16780,16 +22725,7 @@ internal let requiredSchemas: [String: Shape] = {
     required: ["status", "kb", "stream", "following", "eventsProcessed", "reconcile", "index"],
     members: [
       "eventsProcessed": Shape(kinds: [.integer], minimum: 0.0),
-      "following": Shape(
-        kinds: [.object], required: ["sweep", "stopped", "refused", "streamDrops"],
-        members: [
-          "refused": Shape(kinds: [.integer], minimum: 0.0),
-          "stopped": Shape(kinds: [.integer], minimum: 0.0),
-          "streamDrops": Shape(kinds: [.integer], minimum: 0.0),
-          "sweep": Shape(
-            kinds: [.string],
-            enumeration: [.string("pending"), .string("running"), .string("done"), .string("due")]),
-        ], closed: ["refused", "stopped", "streamDrops", "sweep"]),
+      "following": Shape(ref: "FollowerFollowing"),
       "index": Shape(
         kinds: [.object], required: ["stamp", "madeAnew"],
         members: [
@@ -16805,20 +22741,7 @@ internal let requiredSchemas: [String: Shape] = {
                   "type": Shape(kinds: [.string], minLength: 1),
                 ], closed: ["model", "type"]),
             ], closed: ["chunking", "embedding"]),
-        ], closed: ["madeAnew", "stamp"]),
-      "kb": Shape(
-        kinds: [.string],
-        pattern: [
-          Step(of: [100...100], min: 1, max: 1), Step(of: [105...105], min: 1, max: 1),
-          Step(of: [100...100], min: 1, max: 1), Step(of: [58...58], min: 1, max: 1),
-          Step(of: [119...119], min: 1, max: 1), Step(of: [101...101], min: 1, max: 1),
-          Step(of: [98...98], min: 1, max: 1), Step(of: [58...58], min: 1, max: 1),
-          Step(
-            of: [
-              0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
-              8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
-            ], min: 1, max: nil),
-        ]),
+        ], closed: ["madeAnew", "stamp"]), "kb": Shape(ref: "KbDid"),
       "reconcile": Shape(
         kinds: [.object], required: ["phase"],
         members: [
@@ -16870,6 +22793,115 @@ internal let requiredSchemas: [String: Shape] = {
       "purpose": Shape(ref: "BodyPurpose"), "source": Shape(ref: "ResourceId"),
       "type": Shape(kinds: [.string], enumeration: [.string("SpecificResource")]),
     ])
+  shapes["StackApiVersion"] = Shape(
+    kinds: [.string], enumeration: [.string("xynolog.org/v1alpha1")])
+  shapes["StackKnowledgeBase"] = Shape(
+    kinds: [.object], required: ["apiVersion", "kind", "metadata", "spec"],
+    members: [
+      "apiVersion": Shape(ref: "StackApiVersion"),
+      "kind": Shape(kinds: [.string], enumeration: [.string("KnowledgeBase")]),
+      "metadata": Shape(ref: "Metadata"),
+      "spec": Shape(
+        kinds: [.object],
+        required: ["logLevel", "gateway", "dispatcher", "archivist", "messaging", "issuer"],
+        members: [
+          "archivist": Shape(
+            kinds: [.object], required: ["image", "resources"],
+            members: [
+              "address": Shape(ref: "HostPort"), "image": Shape(ref: "Image"),
+              "resources": Shape(ref: "Resources"),
+            ], closed: ["address", "image", "resources"]),
+          "dispatcher": Shape(
+            kinds: [.object], required: ["image", "resources"],
+            members: ["image": Shape(ref: "Image"), "resources": Shape(ref: "Resources")],
+            closed: ["image", "resources"]),
+          "gateway": Shape(
+            kinds: [.object], required: ["image", "resources", "port", "publicURL"],
+            members: [
+              "image": Shape(ref: "Image"),
+              "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+              "publicURL": Shape(kinds: [.string], minLength: 1),
+              "resources": Shape(ref: "Resources"),
+            ], closed: ["image", "port", "publicURL", "resources"]),
+          "issuer": Shape(
+            kinds: [.object], required: ["subjectClaim"],
+            members: [
+              "external": Shape(
+                kinds: [.object], required: ["type", "url"],
+                members: [
+                  "type": Shape(kinds: [.string], minLength: 1),
+                  "url": Shape(kinds: [.string], minLength: 1),
+                ], closed: ["type", "url"]),
+              "shared": Shape(
+                kinds: [.object], required: ["accessTokenLifespan"],
+                members: ["accessTokenLifespan": Shape(kinds: [.integer], minimum: 1.0)],
+                closed: ["accessTokenLifespan"]),
+              "subjectClaim": Shape(kinds: [.string], minLength: 1),
+            ], closed: ["external", "shared", "subjectClaim"],
+            oneOf: [
+              Shape(kinds: [.object], required: ["shared"]),
+              Shape(kinds: [.object], required: ["external"]),
+            ]), "logLevel": Shape(ref: "LogLevel"),
+          "messaging": Shape(
+            kinds: [.object], required: ["jobs", "signal"],
+            members: [
+              "external": Shape(
+                kinds: [.object], required: ["servers", "user", "password"],
+                members: [
+                  "password": Shape(ref: "SecretRef"),
+                  "servers": Shape(kinds: [.string], minLength: 1), "user": Shape(ref: "SecretRef"),
+                ], closed: ["password", "servers", "user"]), "image": Shape(ref: "Image"),
+              "jobs": Shape(
+                kinds: [.object], required: ["type"],
+                members: ["type": Shape(kinds: [.string], minLength: 1)], closed: ["type"]),
+              "resources": Shape(ref: "Resources"),
+              "signal": Shape(
+                kinds: [.object], required: ["type"],
+                members: ["type": Shape(kinds: [.string], minLength: 1)], closed: ["type"]),
+            ], closed: ["external", "image", "jobs", "resources", "signal"],
+            allOf: [Shape(ref: "Runner")]),
+        ], closed: ["archivist", "dispatcher", "gateway", "issuer", "logLevel", "messaging"]),
+    ], closed: ["apiVersion", "kind", "metadata", "spec"])
+  shapes["StackStartParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"),
+      "codespaceName": Shape(kinds: [.string], minLength: 1),
+      "config": Shape(kinds: [.string], minLength: 1), "dryRun": Shape(kinds: [.boolean]),
+      "group": Shape(ref: "ServiceGroup"), "idleTimeout": Shape(kinds: [.string], minLength: 1),
+      "machine": Shape(kinds: [.string], minLength: 1), "observe": Shape(kinds: [.boolean]),
+      "ollamaCache": Shape(kinds: [.string], enumeration: [.string("host"), .string("volume")]),
+      "retentionPeriod": Shape(kinds: [.string], minLength: 1), "runtime": Shape(ref: "Runtime"),
+      "service": Shape(kinds: [.string], minLength: 1), "target": Shape(ref: "Target"),
+    ],
+    closed: [
+      "apiVersion", "codespaceName", "config", "dryRun", "group", "idleTimeout", "machine",
+      "observe", "ollamaCache", "retentionPeriod", "runtime", "service", "target",
+    ])
+  shapes["StackStartResult"] = Shape(
+    kinds: [.object], required: ["dryRun"],
+    members: [
+      "dryRun": Shape(kinds: [.boolean]), "knowledgeBase": Shape(ref: "KnowledgeBaseStatus"),
+      "shared": Shape(kinds: [.array], items: Shape(ref: "ServiceStatus")),
+    ], closed: ["dryRun", "knowledgeBase", "shared"])
+  shapes["StackStopParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "delete": Shape(kinds: [.boolean]),
+      "deleteConfirmed": Shape(kinds: [.boolean]), "dryRun": Shape(kinds: [.boolean]),
+      "group": Shape(ref: "ServiceGroup"), "runtime": Shape(ref: "Runtime"),
+      "service": Shape(kinds: [.string], minLength: 1), "target": Shape(ref: "Target"),
+    ],
+    closed: [
+      "apiVersion", "delete", "deleteConfirmed", "dryRun", "group", "runtime", "service", "target",
+    ])
+  shapes["StackStopResult"] = Shape(
+    kinds: [.object], required: ["dryRun"],
+    members: [
+      "dryRun": Shape(kinds: [.boolean]),
+      "knowledgeBases": Shape(kinds: [.array], items: Shape(ref: "KnowledgeBaseStatus")),
+      "shared": Shape(kinds: [.array], items: Shape(ref: "ServiceStatus")),
+    ], closed: ["dryRun", "knowledgeBases", "shared"])
   shapes["StatusResponse"] = Shape(
     kinds: [.object], required: ["status", "version", "features", "message"],
     members: [
@@ -16881,6 +22913,18 @@ internal let requiredSchemas: [String: Shape] = {
         ]), "message": Shape(kinds: [.string]), "status": Shape(kinds: [.string]),
       "version": Shape(kinds: [.string]),
     ])
+  shapes["StatusSnapshotParams"] = Shape(
+    kinds: [.object], required: ["apiVersion"],
+    members: [
+      "apiVersion": Shape(ref: "ApiVersion"), "runtime": Shape(ref: "Runtime"),
+      "target": Shape(ref: "Target"),
+    ], closed: ["apiVersion", "runtime", "target"])
+  shapes["StatusSnapshotResult"] = Shape(
+    kinds: [.object], required: ["knowledgeBases", "shared"],
+    members: [
+      "knowledgeBases": Shape(kinds: [.array], items: Shape(ref: "KnowledgeBaseStatus")),
+      "shared": Shape(kinds: [.array], items: Shape(ref: "ServiceStatus")),
+    ], closed: ["knowledgeBases", "shared"])
   shapes["StorageUriEntry"] = Shape(
     kinds: [.object], required: ["uri", "resourceId"],
     members: ["resourceId": Shape(ref: "ResourceId"), "uri": Shape(kinds: [.string])],
@@ -16955,6 +22999,37 @@ internal let requiredSchemas: [String: Shape] = {
       "motivation": Shape(kinds: [.string], enumeration: [.string("tagging")]),
       "schemaId": Shape(kinds: [.string], minLength: 1), "sourceLanguage": Shape(kinds: [.string]),
     ], closed: ["categories", "language", "motivation", "schemaId", "sourceLanguage"])
+  shapes["Target"] = Shape(
+    kinds: [.object], required: ["kind"],
+    members: [
+      "kind": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
+      "repo": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...46, 48...159, 161...5759, 5761...8191, 8203...8231,
+                8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: nil)), .step(Step(of: [47...47], min: 1, max: 1)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...46, 48...159, 161...5759, 5761...8191, 8203...8231,
+                8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: nil)),
+        ]), "root": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["kind", "repo", "root"],
+    oneOf: [
+      Shape(
+        kinds: [.object],
+        members: ["kind": Shape(kinds: [.string], enumeration: [.string("local")])],
+        notAll: [["repo"]]),
+      Shape(
+        kinds: [.object], required: ["repo"],
+        members: ["kind": Shape(kinds: [.string], enumeration: [.string("codespace")])],
+        notAll: [["root"]]),
+    ])
   shapes["TextPositionSelector"] = Shape(
     kinds: [.object], required: ["type", "start", "end"],
     members: [
@@ -16992,16 +23067,28 @@ internal let requiredSchemas: [String: Shape] = {
       "operations": Shape(kinds: [.array], minItems: 1, items: Shape(ref: "BodyOperation")),
       "resourceId": Shape(ref: "ResourceId"),
     ])
+  shapes["UserAction"] = Shape(
+    kinds: [.object], required: ["requestId", "verificationUri", "userCode", "expiresInSeconds"],
+    members: [
+      "expiresInSeconds": Shape(kinds: [.integer], minimum: 0.0),
+      "requestId": Shape(ref: "RequestId"), "userCode": Shape(kinds: [.string]),
+      "verificationUri": Shape(kinds: [.string]),
+      "verificationUriComplete": Shape(kinds: [.string]),
+    ],
+    closed: [
+      "expiresInSeconds", "requestId", "userCode", "verificationUri", "verificationUriComplete",
+    ])
   shapes["UserId"] = Shape(
     kinds: [.string],
     pattern: [
-      Step(of: [100...100], min: 1, max: 1), Step(of: [105...105], min: 1, max: 1),
-      Step(of: [100...100], min: 1, max: 1), Step(of: [58...58], min: 1, max: 1),
-      Step(
-        of: [
-          0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238, 8240...8286,
-          8288...12287, 12289...65278, 65280...1_114_111,
-        ], min: 1, max: nil),
+      .step(Step(of: [100...100], min: 1, max: 1)), .step(Step(of: [105...105], min: 1, max: 1)),
+      .step(Step(of: [100...100], min: 1, max: 1)), .step(Step(of: [58...58], min: 1, max: 1)),
+      .step(
+        Step(
+          of: [
+            0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+            8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+          ], min: 1, max: nil)),
     ])
   shapes["UserResponse"] = Shape(
     kinds: [.object], required: ["did", "email", "name", "image", "domain"],
@@ -17010,6 +23097,20 @@ internal let requiredSchemas: [String: Shape] = {
       "email": Shape(kinds: [.string, .null]), "image": Shape(kinds: [.string, .null]),
       "name": Shape(kinds: [.string, .null]),
     ])
+  shapes["VectorStore"] = Shape(
+    kinds: [.object], required: ["apiVersion", "kind", "metadata", "spec"],
+    members: [
+      "apiVersion": Shape(ref: "StackApiVersion"),
+      "kind": Shape(kinds: [.string], enumeration: [.string("VectorStore")]),
+      "metadata": Shape(ref: "Metadata"),
+      "spec": Shape(
+        kinds: [.object], required: ["type", "image", "resources", "port"],
+        members: [
+          "image": Shape(ref: "Image"),
+          "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+          "resources": Shape(ref: "Resources"), "type": Shape(kinds: [.string], minLength: 1),
+        ], closed: ["image", "port", "resources", "type"]),
+    ], closed: ["apiVersion", "kind", "metadata", "spec"])
   shapes["VectorsConfig"] = Shape(
     kinds: [.object],
     oneOf: [Shape(ref: "QdrantVectorsConfig"), Shape(ref: "MemoryVectorsConfig")],
@@ -17048,29 +23149,7 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["WeaverHealth"] = Shape(
     kinds: [.object], required: ["status", "kb", "following", "reconcile"],
     members: [
-      "following": Shape(
-        kinds: [.object], required: ["sweep", "stopped", "refused", "streamDrops"],
-        members: [
-          "refused": Shape(kinds: [.integer], minimum: 0.0),
-          "stopped": Shape(kinds: [.integer], minimum: 0.0),
-          "streamDrops": Shape(kinds: [.integer], minimum: 0.0),
-          "sweep": Shape(
-            kinds: [.string],
-            enumeration: [.string("pending"), .string("running"), .string("done"), .string("due")]),
-        ], closed: ["refused", "stopped", "streamDrops", "sweep"]),
-      "kb": Shape(
-        kinds: [.string],
-        pattern: [
-          Step(of: [100...100], min: 1, max: 1), Step(of: [105...105], min: 1, max: 1),
-          Step(of: [100...100], min: 1, max: 1), Step(of: [58...58], min: 1, max: 1),
-          Step(of: [119...119], min: 1, max: 1), Step(of: [101...101], min: 1, max: 1),
-          Step(of: [98...98], min: 1, max: 1), Step(of: [58...58], min: 1, max: 1),
-          Step(
-            of: [
-              0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
-              8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
-            ], min: 1, max: nil),
-        ]),
+      "following": Shape(ref: "FollowerFollowing"), "kb": Shape(ref: "KbDid"),
       "reconcile": Shape(
         kinds: [.object], required: ["phase"],
         members: [
@@ -17163,6 +23242,40 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.string],
         enumeration: [.string("starting"), .string("working"), .string("refused")]),
     ], closed: ["did", "domain", "engines", "state"])
+  shapes["WorkerPool"] = Shape(
+    kinds: [.object], required: ["apiVersion", "kind", "metadata", "spec"],
+    members: [
+      "apiVersion": Shape(ref: "StackApiVersion"),
+      "kind": Shape(kinds: [.string], enumeration: [.string("WorkerPool")]),
+      "metadata": Shape(ref: "Metadata"),
+      "spec": Shape(
+        kinds: [.object], required: ["logLevel", "worker"],
+        members: [
+          "logLevel": Shape(ref: "LogLevel"),
+          "worker": Shape(
+            kinds: [.object], required: ["image", "resources"],
+            members: ["image": Shape(ref: "Image"), "resources": Shape(ref: "Resources")],
+            closed: ["image", "resources"]),
+        ], closed: ["logLevel", "worker"]),
+    ], closed: ["apiVersion", "kind", "metadata", "spec"])
+  shapes["WorkloadStatus"] = Shape(
+    kinds: [.object],
+    members: [
+      "ledger": Shape(
+        kinds: [.object], required: ["claims", "capacity"],
+        members: [
+          "capacity": Shape(kinds: [.integer], minimum: 1.0),
+          "claims": Shape(kinds: [.integer], minimum: 0.0),
+        ], closed: ["capacity", "claims"]),
+      "queue": Shape(
+        kinds: [.object], required: ["pending", "running"],
+        members: [
+          "completed": Shape(kinds: [.integer], minimum: 0.0),
+          "failed": Shape(kinds: [.integer], minimum: 0.0),
+          "pending": Shape(kinds: [.integer], minimum: 0.0),
+          "running": Shape(kinds: [.integer], minimum: 0.0),
+        ], closed: ["completed", "failed", "pending", "running"]),
+    ], closed: ["ledger", "queue"])
   shapes["YieldCloneCreateCommand"] = Shape(
     kinds: [.object],
     required: ["token", "name", "storageUri", "contentChecksum", "byteSize", "format"],

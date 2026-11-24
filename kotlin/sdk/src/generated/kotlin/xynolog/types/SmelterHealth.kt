@@ -13,11 +13,11 @@ public data class SmelterHealth(
     @EncodeDefault
     public val status: SmelterHealthStatus = SmelterHealthStatus.Ok,
     /** The DID of the knowledge base it serves: the one its settings name, which that knowledge base said it is before the Smelter reached its index. */
-    public val kb: String,
+    public val kb: KbDid,
     /** The state of its own stream of the record, one of the seven of TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while it is `open`. */
     public val stream: SmelterHealthStream,
     /** How far it has followed the record. Its sweep is also `due` where its start's reconcile failed. */
-    public val following: SmelterHealthFollowing,
+    public val following: FollowerFollowing,
     /** How many events it has applied since it started: events of the kinds that do something, and not refused. Neither an event taken as nothing nor the work of a reconcile or a rebuild is counted. */
     public val eventsProcessed: Long,
     /** How far the latest reconcile has got: the pass's `summary` when it is done, or its `error` when it failed. */
@@ -27,9 +27,9 @@ public data class SmelterHealth(
 ) {
     /** How Java makes a `SmelterHealth`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val kb: String,
+        private val kb: KbDid,
         private val stream: SmelterHealthStream,
-        private val following: SmelterHealthFollowing,
+        private val following: FollowerFollowing,
         private val eventsProcessed: Long,
         private val reconcile: SmelterHealthReconcile,
         private val index: SmelterHealthIndex,
@@ -40,6 +40,6 @@ public data class SmelterHealth(
     public companion object {
         /** A builder of a `SmelterHealth` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(kb: String, stream: SmelterHealthStream, following: SmelterHealthFollowing, eventsProcessed: Long, reconcile: SmelterHealthReconcile, index: SmelterHealthIndex): Builder = Builder(kb, stream, following, eventsProcessed, reconcile, index)
+        public fun builder(kb: KbDid, stream: SmelterHealthStream, following: FollowerFollowing, eventsProcessed: Long, reconcile: SmelterHealthReconcile, index: SmelterHealthIndex): Builder = Builder(kb, stream, following, eventsProcessed, reconcile, index)
     }
 }

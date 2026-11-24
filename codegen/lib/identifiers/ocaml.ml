@@ -41,6 +41,9 @@ let files (spec : Spec.t) (shapes : (string * Required.Shape.shape) list) =
                    one_of = [];
                    discriminator = None;
                    all_of = [];
+                   not_all = [];
+                   min_members = None;
+                   names = None;
                  }) ->
               steps
           | _ ->
@@ -60,14 +63,6 @@ let files (spec : Spec.t) (shapes : (string * Required.Shape.shape) list) =
         (k, String.capitalize_ascii (Text.snake k.schema), steps))
       kinds
   in
-  let step (s : Required.Shape.step) =
-    O.tuple
-      [
-        O.list (List.map (fun (a, b) -> O.tuple [ O.int a; O.int b ]) s.of_);
-        O.int s.min;
-        (match s.max with None -> O.none | Some m -> O.some (O.int m));
-      ]
-  in
   let value = O.ident "value" in
   let t = O.type_ "t" and string = O.type_ "string" in
   let implementation ((k : Tables.Identifiers_kinds.kinds_item), name, steps) =
@@ -80,7 +75,7 @@ let files (spec : Spec.t) (shapes : (string * Required.Shape.shape) list) =
              (O.if_
                 (O.apply
                    (O.ident "Pattern.matches")
-                   [ O.list (List.map step steps); value ])
+                   [ O.list (List.map Required.Ocaml.term steps); value ])
                 (O.construct "Ok" ~arg:value)
                 (O.construct "Error" ~arg:(O.string ("Invalid " ^ k.schema)))));
         O.let_ "to_string" (O.fun_ [ O.Pattern.var "value" ] value);

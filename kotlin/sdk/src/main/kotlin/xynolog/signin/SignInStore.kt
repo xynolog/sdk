@@ -13,6 +13,7 @@ import xynolog.errors.SignInErrorCode
 import xynolog.session.textClaim
 import xynolog.session.tokenExpiry
 import xynolog.types.SignIn
+import xynolog.types.StoredSession
 import xynolog.types.wireJson
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -138,11 +139,11 @@ private fun signInOf(entry: JsonElement?): SignIn? {
 
 /** One stack's sign-in, in the store's file. Its file is read and written off the caller's thread. */
 private class Entry(private val store: SignInStore, private val key: String) : SignInKept {
-    private fun heldNow(): HeldSignIn? {
+    private fun heldNow(): StoredSession? {
         val entry = signInOf(store.read()[key])
         // A sign-in with no refresh token is none: a session that cannot be renewed does not outlive its first access token.
         val refresh = entry?.refreshToken?.takeIf { it.isNotEmpty() } ?: return null
-        return HeldSignIn(entry.token, refresh, SCRIPT_CLIENT_ID, entry.tokenEndpoint, entry.revocationEndpoint, null)
+        return StoredSession(entry.token, refresh, SCRIPT_CLIENT_ID, entry.tokenEndpoint, entry.revocationEndpoint, null)
     }
 
     /** The entry a renewal leaves: who signed in, at which issuer and where it is renewed stay as the sign-in learned them. */
@@ -160,9 +161,9 @@ private class Entry(private val store: SignInStore, private val key: String) : S
         ),
     )
 
-    override suspend fun held(): HeldSignIn? = withContext(Dispatchers.IO) { heldNow() }
+    override suspend fun held(): StoredSession? = withContext(Dispatchers.IO) { heldNow() }
 
-    override suspend fun keep(signIn: HeldSignIn) {
+    override suspend fun keep(signIn: StoredSession) {
         require(signIn.clientId == SCRIPT_CLIENT_ID) {
             "the sign-in store keeps what the client $SCRIPT_CLIENT_ID was issued, and this was issued to ${signIn.clientId}"
         }
@@ -185,7 +186,7 @@ private class Entry(private val store: SignInStore, private val key: String) : S
         }
     }
 
-    override suspend fun renewed(read: HeldSignIn, access: String, refresh: String): String? = withContext(Dispatchers.IO) {
+    override suspend fun renewed(read: StoredSession, access: String, refresh: String): String? = withContext(Dispatchers.IO) {
         var given: String? = null
         store.change { document ->
             val before = signInOf(document[key]) ?: return@change false

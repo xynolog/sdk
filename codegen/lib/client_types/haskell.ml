@@ -143,11 +143,11 @@ let adapted spec =
            [ "PendingAnnotation"; "UploadProgress"; "FrameRefusalReason" ]))
     (Definitions.generated_client_types spec)
 
-(* A client type of [spec] read whole ([Definitions.whole]), by its name. *)
+(* A client type of [spec] as a writer of types reads it ([Definitions.typed]), by its name. *)
 let whole (spec : Spec.t) =
-  let written = Definitions.whole spec in
+  let written = Definitions.typed spec in
   fun name ->
-    let file = Schema_names.client_types ^ name ^ ".json" in
+    let file = Roots.client_types ^ name ^ ".json" in
     Result.map_error
       (fun message -> [ { Decode.file; pointer = ""; message } ])
       (written (List.assoc file spec.schemas))
@@ -290,7 +290,8 @@ let refused_member value = function
   | _ -> None
 
 (* The reports' sums: each branch a constructor holding its members but the
-   tag, in order, and written back to the branch's JSON. *)
+   tag, in order, and written back to the branch's JSON; and the types of
+   Xynolog.Types they hold. *)
 let report ~shape ~native ~prefix name =
   let* s = found ~shape name in
   let* tag, branches =
@@ -359,46 +360,58 @@ let report ~shape ~native ~prefix name =
   in
   let params = if generic then [ completion ] else [] in
   let value i = Printf.sprintf "value%d" i in
+  let named =
+    List.concat_map
+      (fun (_, members) ->
+        List.filter_map
+          (fun (m : member) ->
+            match m.held with
+            | Named { name = n; union = false } -> Some n
+            | _ -> None)
+          members)
+      branches
+  in
   Ok
-    [
-      H.data native ~params ~deriving:[ "Eq"; "Show" ]
-        (List.map
-           (fun (_, constructor, _, fields) ->
-             H.constructor constructor ~fields:(List.map fst fields))
-           rows);
-      H.instance "ToJSON"
-        ~context:(List.map (fun v -> ("ToJSON", v)) params)
-        (match params with
-        | [] -> H.T_name native
-        | vs -> H.T_apply (native, List.map (fun v -> H.T_name v) vs))
-        (List.map
-           (fun (word, constructor, members, fields) ->
-             ( "toJSON",
-               {
-                 H.patterns =
-                   [
-                     Constructor
-                       ( constructor,
-                         List.mapi (fun i _ -> H.Var (value i)) fields );
-                   ];
-                 body =
-                   Apply
-                     ( Name "object",
-                       [
-                         List
-                           (H.Infix
-                              ( Str tag,
-                                [ (".=", Typed (Str word, T_name "Text")) ] )
-                           :: List.mapi
-                                (fun i ((m : member), (_, encode)) ->
-                                  H.Infix
-                                    ( Str m.name,
-                                      [ (".=", encode (H.Name (value i))) ] ))
-                                (List.combine members fields));
-                       ] );
-               } ))
-           rows);
-    ]
+    ( named,
+      [
+        H.data native ~params ~deriving:[ "Eq"; "Show" ]
+          (List.map
+             (fun (_, constructor, _, fields) ->
+               H.constructor constructor ~fields:(List.map fst fields))
+             rows);
+        H.instance "ToJSON"
+          ~context:(List.map (fun v -> ("ToJSON", v)) params)
+          (match params with
+          | [] -> H.T_name native
+          | vs -> H.T_apply (native, List.map (fun v -> H.T_name v) vs))
+          (List.map
+             (fun (word, constructor, members, fields) ->
+               ( "toJSON",
+                 {
+                   H.patterns =
+                     [
+                       Constructor
+                         ( constructor,
+                           List.mapi (fun i _ -> H.Var (value i)) fields );
+                     ];
+                   body =
+                     Apply
+                       ( Name "object",
+                         [
+                           List
+                             (H.Infix
+                                ( Str tag,
+                                  [ (".=", Typed (Str word, T_name "Text")) ] )
+                             :: List.mapi
+                                  (fun i ((m : member), (_, encode)) ->
+                                    H.Infix
+                                      ( Str m.name,
+                                        [ (".=", encode (H.Name (value i))) ] ))
+                                  (List.combine members fields));
+                         ] );
+                 } ))
+             rows);
+      ] )
 
 let operation_reports ~shape =
   let* reasons =
@@ -406,8 +419,10 @@ let operation_reports ~shape =
     | Some (Words words) -> Ok words
     | _ -> Error [ refusal "FrameRefusalReason" "is no enum of words" ]
   in
-  let* jobs = report ~shape ~native:"JobEvent" ~prefix:"" "JobEvent" in
-  let* uploads =
+  let* jobs_named, jobs =
+    report ~shape ~native:"JobEvent" ~prefix:"" "JobEvent"
+  in
+  let* uploads_named, uploads =
     report ~shape ~native:"UploadEvent" ~prefix:"Upload" "UploadProgress"
   in
   Ok
@@ -430,7 +445,11 @@ let operation_reports ~shape =
                 H.import "Data.Aeson"
                   ~items:[ All "ToJSON"; Plain "object"; Op ".=" ];
                 H.import "Data.Text" ~items:[ Plain "Text" ];
-                H.import "Xynolog.Types";
+                H.import "Xynolog.Types"
+                  ~items:
+                    (List.map
+                       (fun n -> H.Plain n)
+                       (List.sort_uniq compare (jobs_named @ uploads_named)));
                 H.import "Xynolog.Internal.Transport"
                   ~items:[ All "FrameRefusal" ];
                 H.import "Xynolog.Internal.Required"

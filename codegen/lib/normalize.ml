@@ -68,8 +68,64 @@ let distinct names =
        (fun kept n -> if List.mem n kept then kept else n :: kept)
        [] names)
 
+(* Whether [member] of [owner]'s [oneOf] or [anyOf] only holds the object to
+   its own members ([shape_only]). *)
+let constrains (owner : Schema.t Schema.layer) (member : Schema.t) =
+  let narrows = function
+    | Schema.Schema l ->
+        List.for_all
+          (fun k -> List.mem k [ "const"; "enum"; "description" ])
+          (Schema.keywords l)
+    | Schema.Boolean_schema _ -> false
+  in
+  match member with
+  | Schema.Boolean_schema _ -> false
+  | Schema.Schema l ->
+      List.for_all
+        (fun k -> List.mem k [ "required"; "not"; "properties"; "description" ])
+        (Schema.keywords l)
+      && List.for_all
+           (fun (name, value) ->
+             narrows value
+             && List.mem_assoc name (Option.value owner.properties ~default:[]))
+           (Option.value l.properties ~default:[])
+
+let only_constraints owner = function
+  | Some members -> List.for_all (constrains owner) members
+  | None -> false
+
+(* Each part [s] states beside the others, where it is no more than an
+   [anyOf] of them. *)
+let disjuncts = function
+  | Schema.Schema ({ any_of = Some parts; _ } as l)
+    when Schema.keywords l = [ "anyOf" ] ->
+      parts
+  | s -> [ s ]
+
+(* Each part [s] states beside the others, where it is no more than an
+   [allOf] of them. *)
+let conjuncts = function
+  | Schema.Schema ({ all_of = Some parts; _ } as l)
+    when Schema.keywords l = [ "allOf" ] ->
+      parts
+  | s -> [ s ]
+
+let layer : Schema.t -> Schema.schema outcome = function
+  | Schema s -> Ok s
+  | Boolean_schema _ -> Error "expected a schema object"
+
+(* Each outcome's value, or the first refusal. *)
+let all outcomes =
+  Result.map List.rev
+    (List.fold_left
+       (fun kept outcome ->
+         let* kept = kept in
+         let* value = outcome in
+         Ok (value :: kept))
+       (Ok []) outcomes)
+
 (* [next]'s keywords merged onto [old]'s. *)
-let merge ids (old : Schema.schema) (next : Schema.schema) :
+let rec merge ids (old : Schema.schema) (next : Schema.schema) :
     Schema.schema outcome =
   let last old next = Ok (match next with None -> old | Some _ -> next) in
   let bound pick = merge_option (fun l r -> Ok (pick l r)) in
@@ -111,16 +167,31 @@ let merge ids (old : Schema.schema) (next : Schema.schema) :
   let* pattern =
     merge_option (agree "\"pattern\"" String.equal) old.pattern next.pattern
   in
-  let* one_of =
-    merge_option
-      (agree "\"oneOf\"" (List.equal (alike ids)))
-      old.one_of next.one_of
+  (* Two [oneOf]s, or two [anyOf]s, each of which only holds the object to
+     its own members ([constrains]), are the one of each member of the one
+     beside each of the other: a value is exactly one, or at least one, of
+     those pairs when it is so of each. *)
+  let owner = { Schema.empty with properties } in
+  let composed what =
+    merge_option (fun l r ->
+        if List.equal (alike ids) l r then Ok r
+        else if
+          only_constraints owner (Some l) && only_constraints owner (Some r)
+        then
+          all
+            (List.concat_map
+               (fun a ->
+                 List.map
+                   (fun b ->
+                     let* a = layer a in
+                     let* b = layer b in
+                     Result.map (fun m -> Schema.Schema m) (merge ids a b))
+                   r)
+               l)
+        else Error ("unsupported intersection of " ^ what))
   in
-  let* any_of =
-    merge_option
-      (agree "\"anyOf\"" (List.equal (alike ids)))
-      old.any_of next.any_of
-  in
+  let* one_of = composed "\"oneOf\"" old.one_of next.one_of in
+  let* any_of = composed "\"anyOf\"" old.any_of next.any_of in
   let* items =
     merge_option (agree "\"items\"" (alike ids)) old.items next.items
   in
@@ -141,13 +212,38 @@ let merge ids (old : Schema.schema) (next : Schema.schema) :
   let* title = last old.title next.title in
   let* description = last old.description next.description in
   let* format = last old.format next.format in
-  let* const = last old.const next.const in
+  let* const = merge_option (agree "\"const\"" ( = )) old.const next.const in
   let* default = last old.default next.default in
   let* examples = last old.examples next.examples in
-  let* property_names = last old.property_names next.property_names in
-  let* min_properties = last old.min_properties next.min_properties in
+  (* The parts of [l] and of [r] that [split] finds, each once, as [joined]
+     joins them: one part is itself. *)
+  let joined split join l r =
+    let parts =
+      List.rev
+        (List.fold_left
+           (fun kept part ->
+             if List.exists (alike ids part) kept then kept else part :: kept)
+           []
+           (split l @ split r))
+    in
+    Ok
+      (match parts with
+      | [ part ] -> part
+      | parts -> Schema.Schema (join parts))
+  in
+  let* property_names =
+    merge_option
+      (joined conjuncts (fun parts -> { Schema.empty with all_of = Some parts }))
+      old.property_names next.property_names
+  in
+  let* min_properties = bound Int.max old.min_properties next.min_properties in
   let* all_of = last old.all_of next.all_of in
-  let* not_ = last old.not_ next.not_ in
+  (* A value is neither of two when it is not one of either. *)
+  let* not_ =
+    merge_option
+      (joined disjuncts (fun parts -> { Schema.empty with any_of = Some parts }))
+      old.not_ next.not_
+  in
   let* discriminator = last old.discriminator next.discriminator in
   Ok
     {
@@ -192,10 +288,6 @@ let merge ids (old : Schema.schema) (next : Schema.schema) :
    schema the part is in does not hold. A reference within it still names its
    own file, so they are still found. *)
 let resource (s : Schema.schema) = { s with defs = None }
-
-let layer : Schema.t -> Schema.schema outcome = function
-  | Schema s -> Ok s
-  | Boolean_schema _ -> Error "expected a schema object"
 
 (* A schema expanded as the whole that is normalized, and as a part of an
    [allOf]: a part that refers to a schema is that schema expanded, with the
@@ -333,3 +425,76 @@ let rec closed_within ids ~find = function
       | { unevaluated_properties = Some _; _ } ->
           Result.map (fun s -> Schema.Schema s) (closed ids ~find l)
       | l -> Ok (Schema.Schema l))
+
+(* [s] as a writer of types reads it: what a value's type is, without what
+   only holds a value to its rules, which the required table states
+   ([Required.Shape]). A [const] is an [enum] of its one value (JSON Schema
+   2020-12). [not], [minProperties] and [propertyNames] say which values of a
+   type are allowed, not what the type is, and go. So does a [oneOf] or
+   [anyOf] each of whose members only holds an object to its own members:
+   each states no more than which members it carries ([required]), which it
+   does not ([not]), and the one value or values ([const], [enum]) a member
+   the object states takes. *)
+(* A schema of several types but null and nothing else, as the [anyOf] of a
+   schema of each: a value of it is a value of one of them. *)
+let several_types = function
+  | Schema.Schema ({ type_ = Some types; _ } as l)
+    when List.length (List.filter (fun t -> t <> Schema.Null) types) > 1
+         && List.for_all
+              (fun k ->
+                List.mem k [ "type"; "description"; "title"; "$schema"; "$id" ])
+              (Schema.keywords l) ->
+      Schema.Schema
+        {
+          l with
+          type_ = None;
+          any_of =
+            Some
+              (List.map
+                 (fun t ->
+                   Schema.Schema { Schema.empty with type_ = Some [ t ] })
+                 types);
+        }
+  | s -> s
+
+(* [several_types] at every place of a schema: a schema that validates as it
+   does. *)
+let several_types_throughout : Schema.t -> Schema.t =
+  Schema.cata
+    ~boolean:(fun b -> Schema.Boolean_schema b)
+    ~schema:(fun l -> several_types (Schema.Schema l))
+
+(* What [shape_only] drops of a schema that a validator reads: each keyword,
+   at any place. *)
+let rec dropped = function
+  | Schema.Boolean_schema _ -> []
+  | Schema.Schema l ->
+      List.filter
+        (fun k -> List.mem k [ "not"; "minProperties"; "propertyNames" ])
+        (Schema.keywords l)
+      @ (if only_constraints l l.one_of then [ "oneOf" ] else [])
+      @ (if only_constraints l l.any_of then [ "anyOf" ] else [])
+      @ List.concat_map dropped (Schema.children l)
+
+let shape_only : Schema.t -> Schema.t =
+  Schema.cata
+    ~boolean:(fun b -> Schema.Boolean_schema b)
+    ~schema:(fun l ->
+      Schema.Schema
+        {
+          l with
+          comment = None;
+          const = None;
+          enum =
+            (match (l.const, l.enum) with
+            | Some value, None -> Some [ value ]
+            | Some value, Some values when List.mem value values ->
+                Some [ value ]
+            | _, enum -> enum);
+          not_ = None;
+          min_properties = None;
+          property_names = None;
+          one_of = (if only_constraints l l.one_of then None else l.one_of);
+          any_of = (if only_constraints l l.any_of then None else l.any_of);
+        }
+      |> several_types)

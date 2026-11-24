@@ -17,7 +17,7 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
     private readonly Func<string?, CancellationToken, Task<string?>> renew;
     // Null for a session told to ask nobody who its token is.
     private readonly Func<string, CancellationToken, Task<UserResponse>>? validate;
-    private readonly Issuer? issuer;
+    private readonly SignIn.Issuer? issuer;
     private readonly Action<SessionEndReason>? onAuthFailed;
     private readonly bool offline;
     private readonly CancellationTokenSource lifetime = new();
@@ -62,7 +62,7 @@ internal sealed class KeptSession : IDisposable, IAsyncDisposable
         this.onAuthFailed = onAuthFailed;
         clock = timeProvider ?? TimeProvider.System;
         this.random = random ?? Random.Shared;
-        issuer = new Issuer(httpClient, clock, this.random);
+        issuer = new SignIn.Issuer(httpClient, clock, this.random);
         renew = (holding, cancellation) => issuer.RenewAsync(kept, holding, cancellation);
         if (validates)
         {

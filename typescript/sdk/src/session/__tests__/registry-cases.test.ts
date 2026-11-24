@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { resourceId, type KbEndpoint } from '@xynolog/core';
-import { sortOpenResources, type OpenResource } from '../open-resource';
+import { resourceId, type KbEndpoint, type OpenResource } from '@xynolog/core';
+import { sortOpenResources } from '../open-resource';
 import { samePlace } from '../xynolog-browser';
 import { table } from '../../__tests__/cases/session_registry_cases';
 

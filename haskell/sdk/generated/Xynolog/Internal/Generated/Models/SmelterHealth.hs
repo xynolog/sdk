@@ -2,20 +2,22 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.SmelterHealth (SmelterHealth (..), SmelterHealthFollowing (..), SmelterHealthFollowingSweep (..), SmelterHealthIndex (..), SmelterHealthIndexStamp (..), SmelterHealthIndexStampEmbedding (..), SmelterHealthReconcile (..), SmelterHealthReconcilePhase (..), SmelterHealthStatus (..), SmelterHealthStream (..)) where
+module Xynolog.Internal.Generated.Models.SmelterHealth (SmelterHealth (..), SmelterHealthIndex (..), SmelterHealthIndexStamp (..), SmelterHealthIndexStampEmbedding (..), SmelterHealthReconcile (..), SmelterHealthReconcilePhase (..), SmelterHealthStatus (..), SmelterHealthStream (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.FollowerFollowing
+import Xynolog.Internal.Generated.Models.KbDid
 import Xynolog.Internal.Generated.Models.SmelterChunking
 import Xynolog.Internal.Generated.Models.SmelterReconcileSummary
 
 data SmelterHealth = SmelterHealth
   { smelterHealthEventsProcessed :: Integer,
-    smelterHealthFollowing :: SmelterHealthFollowing,
+    smelterHealthFollowing :: FollowerFollowing,
     smelterHealthIndex :: SmelterHealthIndex,
-    smelterHealthKb :: Text,
+    smelterHealthKb :: KbDid,
     smelterHealthReconcile :: SmelterHealthReconcile,
     smelterHealthStatus :: SmelterHealthStatus,
     smelterHealthStream :: SmelterHealthStream
@@ -25,28 +27,6 @@ data SmelterHealth = SmelterHealth
 instance FromJSON SmelterHealth where parseJSON = checked "SmelterHealth" $ withObject "SmelterHealth" (\fields -> SmelterHealth <$> (fields .: "eventsProcessed") <*> (fields .: "following") <*> (fields .: "index") <*> (fields .: "kb") <*> (fields .: "reconcile") <*> (fields .: "status") <*> (fields .: "stream"))
 
 instance ToJSON SmelterHealth where toJSON value = Object (KM.fromList (concat [[("eventsProcessed", toJSON (smelterHealthEventsProcessed value))], [("following", toJSON (smelterHealthFollowing value))], [("index", toJSON (smelterHealthIndex value))], [("kb", toJSON (smelterHealthKb value))], [("reconcile", toJSON (smelterHealthReconcile value))], [("status", toJSON (smelterHealthStatus value))], [("stream", toJSON (smelterHealthStream value))]]))
-
-data SmelterHealthFollowing = SmelterHealthFollowing
-  { smelterHealthFollowingRefused :: Integer,
-    smelterHealthFollowingStopped :: Integer,
-    smelterHealthFollowingStreamDrops :: Integer,
-    smelterHealthFollowingSweep :: SmelterHealthFollowingSweep
-  }
-  deriving (Eq, Show)
-
-instance FromJSON SmelterHealthFollowing where parseJSON = checked "SmelterHealthFollowing" $ withObject "SmelterHealthFollowing" (\fields -> SmelterHealthFollowing <$> (fields .: "refused") <*> (fields .: "stopped") <*> (fields .: "streamDrops") <*> (fields .: "sweep"))
-
-instance ToJSON SmelterHealthFollowing where toJSON value = Object (KM.fromList (concat [[("refused", toJSON (smelterHealthFollowingRefused value))], [("stopped", toJSON (smelterHealthFollowingStopped value))], [("streamDrops", toJSON (smelterHealthFollowingStreamDrops value))], [("sweep", toJSON (smelterHealthFollowingSweep value))]]))
-
-data SmelterHealthFollowingSweep = SmelterHealthFollowingSweepPending | SmelterHealthFollowingSweepRunning | SmelterHealthFollowingSweepDone | SmelterHealthFollowingSweepDue deriving (Eq, Show)
-
-instance FromJSON SmelterHealthFollowingSweep where parseJSON = checked "SmelterHealthFollowingSweep" $ \value -> if value == String "pending" then pure SmelterHealthFollowingSweepPending else if value == String "running" then pure SmelterHealthFollowingSweepRunning else if value == String "done" then pure SmelterHealthFollowingSweepDone else if value == String "due" then pure SmelterHealthFollowingSweepDue else fail "unknown enumeration member"
-
-instance ToJSON SmelterHealthFollowingSweep where
-  toJSON SmelterHealthFollowingSweepPending = String "pending"
-  toJSON SmelterHealthFollowingSweepRunning = String "running"
-  toJSON SmelterHealthFollowingSweepDone = String "done"
-  toJSON SmelterHealthFollowingSweepDue = String "due"
 
 data SmelterHealthIndex = SmelterHealthIndex
   { smelterHealthIndexMadeAnew :: Bool,

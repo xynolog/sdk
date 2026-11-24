@@ -13,7 +13,9 @@ let file name = "components/schemas/" ^ name ^ ".json"
 let definition name text =
   let json = Yojson.Safe.from_string text in
   match Decode.run ~file:(file name) json Schema.decode with
-  | Ok (schema, _) -> { M.schema; json }
+  | Ok (schema, _) ->
+      let validated = Normalize.several_types_throughout schema in
+      { M.schema = Normalize.shape_only validated; validated }
   | Error error -> failwith (Decode.error_to_string error)
 
 let roots =
@@ -52,36 +54,6 @@ let object_ properties =
 
 let refusals =
   [
-    case "a keyword that says what a value is not is refused"
-      (refuses
-         [ ("X", {|{"type":"array","items":{"type":"string","not":{}}}|}) ]
-         "components/schemas/X.json uses unsupported schema keyword not.");
-    case "a const is refused"
-      (refuses
-         [ ("X", object_ {|"a":{"type":"string","const":"c"}|}) ]
-         "components/schemas/X.json uses unsupported schema keyword const.");
-    case "propertyNames is refused"
-      (refuses
-         [
-           ( "X",
-             {|{"type":"object","additionalProperties":{"type":"string","propertyNames":{"type":"string"}}}|}
-           );
-         ]
-         "components/schemas/X.json uses unsupported schema keyword \
-          propertyNames.");
-    case "minProperties is refused"
-      (refuses
-         [
-           ( "X",
-             {|{"type":"object","oneOf":[{"type":"object","minProperties":1}]}|}
-           );
-         ]
-         "components/schemas/X.json uses unsupported schema keyword \
-          minProperties.");
-    case "a list of two types neither null is refused"
-      (refuses
-         [ ("X", object_ {|"a":{"type":["string","integer"]}|}) ]
-         "components/schemas/X.json.a has an unsupported type.");
     case "a schema that is a boolean is refused"
       (refuses
          [ ("X", object_ {|"a":true|}) ]
@@ -234,6 +206,19 @@ let readings =
         Alcotest.(check (option string))
           "code" None
           (t.member_type "CommandError" "code"));
+    case "what the type writers do not read of a schema is validated" (fun () ->
+        let stated =
+          {|{"type":"object","properties":{"a":{"type":"string","const":"c"},"b":{"type":"object","additionalProperties":{"type":"string"},"propertyNames":{"type":"string","maxLength":3},"minProperties":1,"not":{"required":["x"]}}}}|}
+        in
+        Alcotest.(check string)
+          "validated" stated
+          (Yojson.Safe.to_string
+             (Schema.runtime
+                (List.assoc "X" (models [ ("X", stated) ]).schemas))));
+    case "a list of two types is a union of each" (fun () ->
+        Alcotest.(check (list string))
+          "models" [ "X"; "XA" ]
+          (names [ ("X", object_ {|"a":{"type":["string","integer"]}|}) ] ()));
     case "the schemas are those given, then each made in place, in order"
       (fun () ->
         Alcotest.(check (list string))

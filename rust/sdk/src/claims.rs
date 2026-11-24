@@ -66,11 +66,11 @@ use crate::timing::{HELD_JOB_STALL, HELD_JOB_STALL_CHECK, JOB_CLAIM_TIMEOUT, MAR
 use crate::transport::{ConnectionState, Envelope, Events, TraceCarrier, Transport};
 use crate::types::{
     Annotation, AnnotationId, BrowseAnnotationRequest, ClaimOptions, DurabilityEvidence,
-    FailureClass, GatheredContext, GatheredContextFocus, JobCancelCommand, JobCheckpointCommand,
-    JobClaimCommand, JobCompleteCommand, JobFailCommand, JobFilter, JobId, JobMetadata, JobParams,
-    JobProgress, JobReportProgressCommand, JobRunning, JobStartCommand, JobType, MarkCommitCommand,
-    MarkJobCompleteCommand, MarkJobResult, ResourceId, UnitCursor, YieldJobCompleteCommand,
-    YieldJobResult,
+    FailureClass, GatheredContext, GatheredContextFocus, JobCancelCommand, JobCancelRequest,
+    JobCheckpointCommand, JobClaimCommand, JobCompleteCommand, JobFailCommand, JobFilter, JobId,
+    JobMetadata, JobParams, JobProgress, JobReportProgressCommand, JobRunning, JobStartCommand,
+    JobType, MarkCommitCommand, MarkJobCompleteCommand, MarkJobResult, ResourceId, UnitCursor,
+    YieldJobCompleteCommand, YieldJobResult,
 };
 use serde::Deserialize;
 use serde_json::Value;
@@ -455,10 +455,10 @@ impl Inner {
 
     /// A cancellation is the held job's only when it names it, and one that
     /// arrives after the settle signals nothing.
-    fn signal_cancellation(&self, job_id: &str) {
+    fn signal_cancellation(&self, job_id: &JobId) {
         let held = locked(&self.state).held.clone();
         if let Some(holding) = held
-            && holding.job_id.as_str() == job_id
+            && holding.job_id == *job_id
             && !holding.settled.load(Ordering::SeqCst)
         {
             holding.cancelled.send_replace(true);
@@ -1220,8 +1220,8 @@ async fn run(inner: Arc<Inner>, out: mpsc::Sender<Handed>, mut stop: watch::Rece
             },
             request = cancels.next() => match request {
                 Some(Ok(Ok(request))) => {
-                    if let Some(job_id) = request.payload.get("jobId").and_then(Value::as_str) {
-                        inner.signal_cancellation(job_id);
+                    if let Ok(named) = JobCancelRequest::deserialize(&Value::Object(request.payload)) {
+                        inner.signal_cancellation(&named.job_id);
                     }
                 }
                 // A cancellation missed is not known, and one refused names no

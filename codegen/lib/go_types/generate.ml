@@ -106,7 +106,6 @@ and type_of st owner property (s : D.t) =
   | D.Ref { name; _ } -> named_type st name
   | D.Node { keys = []; _ } -> any
   | _ -> (
-      View.refuse_const what s;
       match View.without_null s with
       | Some inner -> type_of st owner property inner
       | None -> (
@@ -116,7 +115,6 @@ and type_of st owner property (s : D.t) =
           | _ -> (
               match View.union s with
               | Some members ->
-                  List.iter (View.refuse_const what) members;
                   if List.for_all (View.is_string st.definitions) members then
                     named "string"
                   else here ()
@@ -166,7 +164,6 @@ and declaration st name (s : D.t) =
   | None -> (
       let owner = D.owners st.definitions name s in
       let s = D.meant s in
-      View.refuse_const name s;
       let n =
         match s with
         | D.Node n -> n
@@ -208,7 +205,13 @@ and declaration st name (s : D.t) =
                         def = G.Struct { fields = []; spacing = Packed };
                       };
                   ]
-              | None | Some (D.Bool true) -> alias (G.Map (named "string", any))
+              | None | Some (D.Bool true) ->
+                  (* A type of its own, not an alias: the required table holds
+                     a value of it to whatever rules its schema states. *)
+                  [
+                    G.Type
+                      { doc; name; def = G.Is (G.Map (named "string", any)) };
+                  ]
               | Some values ->
                   alias (G.Map (named "string", type_of st name "Value" values))
               ))
@@ -502,8 +505,8 @@ and union_declaration st name members (s : D.t) doc =
               | None -> refuse "%s: an array that states no items" name)
           | D.Node { type_ = Some (D.One Object); _ } -> (
               let variant =
-                match View.discriminant member with
-                | Some d -> Text.pascal d
+                match View.member_name member with
+                | Some named -> named
                 | None -> "Object"
               in
               match type_of st name variant member with
@@ -521,6 +524,30 @@ and union_declaration st name members (s : D.t) doc =
                         };
                     ];
                   t)
+          | D.Node
+              { type_ = Some (D.One ((Integer | Number | Boolean) as kind)); _ }
+            ->
+              let word, held =
+                match kind with
+                | Integer -> ("Integer", "int")
+                | Number -> ("Number", "float64")
+                | _ -> ("Boolean", "bool")
+              in
+              let t = name ^ word in
+              Hashtbl.replace st.written t
+                [
+                  G.Type
+                    {
+                      doc =
+                        G.prose
+                          (t ^ " is a " ^ name ^ " that is "
+                          ^ String.lowercase_ascii word
+                          ^ ".");
+                      name = t;
+                      def = G.Is (named held);
+                    };
+                ];
+              t
           | _ -> refuse "%s: a union member the generator does not know" name
         in
         if List.mem t acc then

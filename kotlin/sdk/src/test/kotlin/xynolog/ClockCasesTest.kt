@@ -62,7 +62,6 @@ import xynolog.session.TARGET
 import xynolog.session.XynologSession
 import xynolog.session.alice
 import xynolog.session.token
-import xynolog.signin.HeldSignIn
 import xynolog.signin.MemorySignIn
 import xynolog.signin.SCRIPT_CLIENT_ID
 import xynolog.testing.FaultyTransport
@@ -75,6 +74,7 @@ import xynolog.types.HighlightingJobParams
 import xynolog.types.JobFilter
 import xynolog.types.JobProgress
 import xynolog.types.JobStatusResponse
+import xynolog.types.StoredSession
 import xynolog.types.wireJson
 import java.net.Authenticator
 import java.net.CookieHandler
@@ -482,7 +482,7 @@ private suspend fun renewal(given: JsonObject, bench: Bench): Subject {
     var renewals = 0
     val gateway = Recording()
     val client = bench.held(XynologClient(gateway, gateway, gateway, ClientTiming(), null, bench.context, bench.clock))
-    val kept = MemorySignIn(HeldSignIn(token(lifetime, 0), "a-refresh-token", SCRIPT_CLIENT_ID, "$ISSUER/token", null, null))
+    val kept = MemorySignIn(StoredSession(token(lifetime, 0), "a-refresh-token", SCRIPT_CLIENT_ID, "$ISSUER/token", null, null))
     val renew: suspend (String?) -> String? = {
         renewals += 1
         token(lifetime, renewals)

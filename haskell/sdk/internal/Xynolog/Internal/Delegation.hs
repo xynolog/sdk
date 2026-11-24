@@ -37,7 +37,7 @@ import Xynolog.Internal.Lifetime qualified as Lifetime
 import Xynolog.Internal.Running qualified as Running
 import Xynolog.Internal.Transport qualified as Local
 import Xynolog.Timing.Settings qualified as Timing
-import Xynolog.Types
+import Xynolog.Types hiding (Progress)
 
 -- Native exception data retains absent failure words and an unknown job id.
 data JobError = JobError

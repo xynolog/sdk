@@ -163,6 +163,62 @@ func TestAClosedObjectCarriesNoMemberItDoesNotName(t *testing.T) {
 	faultsAs(t, `{"kinds":["object"],"closed":[]}`, `{"x":1}`, malformed("x"))
 }
 
+// A pattern's group is one of its alternatives, repeated as often as it
+// says; a text is of the pattern when some reading of it takes all of it.
+func TestAPatternsGroupIsOneOfItsAlternatives(t *testing.T) {
+	letter := `{"of":[[97,122]],"min":1,"max":1}`
+	anything := `{"of":[[0,1114111]],"min":0}`
+	method := `{"kinds":["string"],"pattern":[{"either":[[{"of":[[71,71]],"min":1,"max":1},{"of":[[69,69]],"min":1,"max":1},{"of":[[84,84]],"min":1,"max":1}],[{"of":[[80,80]],"min":1,"max":1},{"of":[[79,79]],"min":1,"max":1},{"of":[[83,83]],"min":1,"max":1},{"of":[[84,84]],"min":1,"max":1}]],"min":1,"max":1},{"of":[[32,32]],"min":1,"max":1},{"of":[[47,47]],"min":1,"max":1},` + anything + `]}`
+	faultsAs(t, method, `"GET /"`, none)
+	faultsAs(t, method, `"POST /kb/x"`, none)
+	faultsAs(t, method, `"PUT /"`, malformed(""))
+	faultsAs(t, method, `"GET"`, malformed(""))
+
+	kebab := `{"kinds":["string"],"pattern":[{"of":[[97,122]],"min":1},{"either":[[{"of":[[45,45]],"min":1,"max":1},{"of":[[97,122]],"min":1}]],"min":0}]}`
+	faultsAs(t, kebab, `"a"`, none)
+	faultsAs(t, kebab, `"one-two-three"`, none)
+	faultsAs(t, kebab, `"one--two"`, malformed(""))
+	faultsAs(t, kebab, `"one-"`, malformed(""))
+
+	twoOrThreeLetters := `{"kinds":["string"],"pattern":[{"either":[[` + letter + `]],"min":2,"max":3}]}`
+	faultsAs(t, twoOrThreeLetters, `"ab"`, none)
+	faultsAs(t, twoOrThreeLetters, `"abc"`, none)
+	faultsAs(t, twoOrThreeLetters, `"a"`, malformed(""))
+	faultsAs(t, twoOrThreeLetters, `"abcd"`, malformed(""))
+
+	var s shape
+	if err := json.Unmarshal([]byte(`{"pattern":[{"of":[[97,97]],"either":[],"min":1}]}`), &s); err == nil {
+		t.Error("a term that is both a step and a group was read")
+	}
+	if err := json.Unmarshal([]byte(`{"pattern":[{"of":[[97,97]],"min":1,"times":2}]}`), &s); err == nil {
+		t.Error("a term with a part no reader knows was read")
+	}
+}
+
+// An object carries no set of notAll whole, a member that holds null being
+// carried; carries at least minMembers members; and names each of its members
+// as names says.
+func TestAnObjectsMembersAreHeldTogether(t *testing.T) {
+	either := `{"kinds":["object"],"notAll":[["port","external"]]}`
+	faultsAs(t, either, `{"port":1}`, none)
+	faultsAs(t, either, `{"external":"x"}`, none)
+	faultsAs(t, either, `{"port":1,"external":"x"}`, malformed(""))
+	faultsAs(t, either, `{"port":1,"external":null}`, malformed(""))
+
+	some := `{"kinds":["object"],"minMembers":1}`
+	faultsAs(t, some, `{"a":1}`, none)
+	faultsAs(t, some, `{}`, malformed(""))
+
+	lower := `{"kinds":["object"],"names":{"kinds":["string"],"pattern":[{"of":[[97,122]],"min":1}]}}`
+	faultsAs(t, lower, `{"ab":1,"cd":2}`, none)
+	faultsAs(t, lower, `{"ab":1,"Cd":2,"X":3}`, malformed("Cd"))
+
+	ordered := `{"kinds":["object"],"required":["a"],"names":{"kinds":["string"],"pattern":[{"of":[[97,122]],"min":1}]},"notAll":[["a","b"]]}`
+	faultsAs(t, ordered, `{"B":1}`, lacks("a"))
+	faultsAs(t, ordered, `{"a":1,"B":1}`, malformed("B"))
+	faultsAs(t, ordered, `{"a":1,"b":1}`, malformed(""))
+}
+
 // readsAs reads the JSON text as the shape written as the table writes one.
 func readsAs(t *testing.T, written string, text string) (string, Fault, bool) {
 	t.Helper()

@@ -1055,16 +1055,14 @@ func (c *Claims) announced(frame Frame) {
 // cancellation is a job:cancel-requested. It is the held job's only when it
 // names it, and one that arrives after the settle signals nothing.
 func (c *Claims) cancellation(frame Frame) {
-	var named struct {
-		JobID string `json:"jobId"`
-	}
+	var named api.JobCancelRequest
 	if json.Unmarshal(frame.Payload, &named) != nil {
 		return
 	}
 	c.mu.Lock()
 	held := c.held
 	c.mu.Unlock()
-	if held != nil && !held.Settled() && named.JobID == held.jobID.String() {
+	if held != nil && !held.Settled() && named.JobId == held.jobID {
 		held.cancelled.Set(true)
 	}
 }

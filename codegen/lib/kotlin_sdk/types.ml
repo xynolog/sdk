@@ -179,14 +179,6 @@ let without_null what n =
       Some (Node { s; null_form = Not_null })
   | None, _ -> None
 
-(* [const] is a keyword no SDK reads ([Schema.unread]): a schema that admits
-   one value states it as an [enum] of one. *)
-let refuse_const what n =
-  if field (fun (s : Schema.schema) -> s.const) n <> None then
-    refuse
-      "%s: `const`, which no SDK reads: state the one value as an `enum` of one"
-      what
-
 (* What a generation reads: the schemas it writes, by name, the kinds of id
    among them, and the name of each schema a [$ref] names, by where it points
    ([Table_records.key]). *)
@@ -365,7 +357,6 @@ and type_of st owner property n =
   | Some name -> t (named st name)
   | None when is_empty n -> t "JsonElement"
   | None -> (
-      refuse_const what n;
       match without_null what n with
       | Some n -> type_of st owner property n
       | None -> (
@@ -374,7 +365,6 @@ and type_of st owner property n =
           | None -> (
               match union n with
               | Some members ->
-                  List.iter (refuse_const what) members;
                   if List.for_all (is_string st) members then t "String"
                   else inline st (inline_name st owner property) n
               | None -> (
@@ -451,17 +441,21 @@ and plain_declaration st name ~owner raw : written =
       in
       union_declaration st name members told_apart about
   | None -> (
-      refuse_const name raw;
       match enum raw with
       | Some values ->
           if type_name raw <> Some String then
             refuse "%s: only string enumerations are generated" name;
           enum_declaration name values about
       | None ->
-          if is_string st raw then
+          let alias held =
             Alias
               (K.Typealias
-                 { about; visibility = K.Public; name; type_ = t "String" })
+                 { about; visibility = K.Public; name; type_ = t held })
+          in
+          if is_string st raw then alias "String"
+          else if type_name raw = Some Integer then alias "Long"
+          else if type_name raw = Some Number then alias "Double"
+          else if type_name raw = Some Boolean then alias "Boolean"
           else if type_name raw <> Some Object then
             refuse "%s: a schema shape the generator does not know" name
           else
@@ -995,7 +989,8 @@ and union_declaration st name members told_apart about : written =
           let target_schema = schema st.spec target in
           let reads =
             if enum target_schema <> None then [ `Text ]
-            else if union target_schema <> None then [ `Text; `List; `Object ]
+            else if union target_schema <> None then
+              [ `Text; `Scalar; `List; `Object ]
             else [ `Object ]
           in
           if implementable st (t type_) then member type_ reads
@@ -1017,18 +1012,28 @@ and union_declaration st name members told_apart about : written =
             [ `Object ]
       | _ when is_string st m ->
           variant "Text" (wrapped name "Text" (t "String")) [ `Text ]
+      | _ when type_name m = Some Integer ->
+          variant "Integer" (wrapped name "Integer" (t "Long")) [ `Scalar ]
+      | _ when type_name m = Some Number ->
+          variant "Number" (wrapped name "Number" (t "Double")) [ `Scalar ]
+      | _ when type_name m = Some Boolean ->
+          variant "Boolean" (wrapped name "Boolean" (t "Boolean")) [ `Scalar ]
       | _ when type_name m = Some Array ->
           variant "List"
             (wrapped name "List"
                (list_of (type_of st name "Item" (node_of_items name m))))
             [ `List ]
       | _ when type_name m = Some Object -> (
-          (* An inline member is named by the one value its discriminant takes, when it has one. *)
+          (* An inline member is named by the one value its discriminant
+             takes, else by its title. *)
           let type_ =
             type_of st name
-              (match discriminant m with
-              | Some d -> Names.pascal d
-              | None -> "Object")
+              (match
+                 (discriminant m, field (fun (s : Schema.schema) -> s.title) m)
+               with
+              | Some d, _ -> Names.pascal d
+              | None, Some title -> Names.pascal title
+              | None, None -> "Object")
               m
           in
           match name_of type_ with
@@ -1074,6 +1079,7 @@ and union_declaration st name members told_apart about : written =
             [
               K.arg (K.Class_literal name);
               K.arg ~label:"strings" (fits `Text);
+              K.arg ~label:"scalars" (fits `Scalar);
               K.arg ~label:"arrays" (fits `List);
               K.arg ~label:"objects" (fits `Object);
             ]

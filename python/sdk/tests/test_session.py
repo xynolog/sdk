@@ -20,11 +20,11 @@ from tokens import expired, jwt, token
 
 from xynolog.errors import BusRequestError, SessionError, SignInError, TransportError, XynologError
 from xynolog.events import Broadcast, Events
-from xynolog.session import HeldSignIn, MemorySignIn, Refresh, Validate, XynologSession
+from xynolog.session import MemorySignIn, Refresh, Validate, XynologSession
 from xynolog.testing import FaultyTransport, create_test_client
 from xynolog.testing.axioms import AxiomSubject, Fresh, assert_state_unit_axioms
 from xynolog.timing import ERRORS_KEPT_FOR_FIRST_READER_COUNT, MAX_RECONNECT_MS, RECONNECT_MS
-from xynolog.types import HttpEndpoint, KbTarget, SessionEndReason, UserResponse
+from xynolog.types import HttpEndpoint, KbTarget, SessionEndReason, StoredSession, UserResponse
 from xynolog.watched import Variable
 
 TABLE = read(SPEC / "session/cases.json")
@@ -50,8 +50,8 @@ def unauthorized() -> TransportError:
     return TransportError.of_status("HTTP 401", 401, None)
 
 
-def held(access: str) -> HeldSignIn:
-    return HeldSignIn(access=access, refresh="a-refresh-token", client_id="xynolog-cli", token_endpoint="https://issuer.test/token")
+def held(access: str) -> StoredSession:
+    return StoredSession(access=access, refresh="a-refresh-token", client_id="xynolog-cli", token_endpoint="https://issuer.test/token")
 
 
 @final

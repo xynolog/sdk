@@ -2,25 +2,8 @@
 //! what is a function of a list of them and nothing else: their order, and
 //! what checking them against their knowledge base keeps and drops.
 
-use crate::types::{ResourceId, TabCheck, TabCheckReady};
-use serde::{Deserialize, Serialize};
+use crate::types::{OpenResource, ResourceId, TabCheck, TabCheckReady};
 use std::collections::HashMap;
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct OpenResource {
-    pub id: ResourceId,
-    pub name: String,
-    /// When it was opened, in milliseconds since the epoch.
-    pub opened_at: u64,
-    /// Its place among the others.
-    pub order: u64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub media_type: Option<String>,
-    /// Where it is in the working tree, such as `file://docs/overview.md`.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub storage_uri: Option<String>,
-}
 
 /// Apply each verdict to `list`: drop what is gone, take the name and media
 /// type of what was found, and leave everything else as it was. One with no

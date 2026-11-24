@@ -22,6 +22,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.io.TempDir
 import xynolog.Spec
 import xynolog.http.renewKept
+import xynolog.types.StoredSession
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.InetAddress
@@ -73,7 +74,7 @@ private class Issuer : AutoCloseable {
 
 /** The renewer's sign-in, on which another program acts between the renewal's read and its write: while its grant is in flight. */
 private class Meanwhile(private val kept: SignInKept, private val act: suspend () -> Unit) : SignInKept by kept {
-    override suspend fun held(): HeldSignIn? = kept.held().also { act() }
+    override suspend fun held(): StoredSession? = kept.held().also { act() }
 }
 
 /** The renewer's sign-in, another program's, and the tokens the store holds for the stack. */
@@ -146,9 +147,9 @@ class SignInStoreTest {
         fun nameOf(access: String?): String? = minted.entries.firstOrNull { it.value == access }?.key ?: access
 
         Issuer().use { issuer ->
-            fun signIn(stated: JsonElement): HeldSignIn {
+            fun signIn(stated: JsonElement): StoredSession {
                 stated as JsonObject
-                return HeldSignIn(
+                return StoredSession(
                     access = named(stated.getValue("token").jsonPrimitive.content),
                     refresh = stated.getValue("refreshToken").jsonPrimitive.content,
                     clientId = SCRIPT_CLIENT_ID,
@@ -282,7 +283,7 @@ class SignInStoreTest {
     }
 
     private fun held(access: String, refresh: String = "refresh-1", revocation: String? = "$ISSUER/revoke") =
-        HeldSignIn(access, refresh, SCRIPT_CLIENT_ID, "$ISSUER/token", revocation, null)
+        StoredSession(access, refresh, SCRIPT_CLIENT_ID, "$ISSUER/token", revocation, null)
 
     private fun entryOf(path: Path, key: String): JsonObject = SignInStore(path).read().getValue(key).jsonObject
 
@@ -398,7 +399,7 @@ class SignInStoreTest {
         val kept = SignInStore(path).entry("local")
         // What another client was issued would be renewed here as the wrong client.
         val wrongClient = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException::class.java) {
-            runBlocking { kept.keep(HeldSignIn(signedIn(1), "r", "xynolog-browser", "$ISSUER/token", null, null)) }
+            runBlocking { kept.keep(StoredSession(signedIn(1), "r", "xynolog-browser", "$ISSUER/token", null, null)) }
         }
         assertTrue(wrongClient.message!!.contains("xynolog-browser"))
         // A gateway admits no token from an issuer it does not trust.
@@ -522,7 +523,7 @@ class SignInStoreTest {
 internal suspend fun namingIsRecordedOnTheSignInAskedAbout(kept: SignInKept) {
     val jo = "the key of jo"
     val ann = "the key of ann"
-    fun signIn(access: String, refresh: String, personKey: String?) = HeldSignIn(access, refresh, "xynolog-browser", "https://issuer.test/token", null, personKey)
+    fun signIn(access: String, refresh: String, personKey: String?) = StoredSession(access, refresh, "xynolog-browser", "https://issuer.test/token", null, personKey)
 
     // Nothing kept: nothing is recorded, and nothing is written.
     assertFalse(kept.recordPersonKey("a1", jo))

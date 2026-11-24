@@ -98,7 +98,10 @@ let squeeze text =
 
 (* The roots ([Roots]), each the schema of the file its reference
    names, with each file it refers to that no generation names written in its
-   place ([Schema_names.in_place]). *)
+   place ([Schema_names.in_place]): as the models type it
+   ([Normalize.shape_only]), and as the SDK validates a value against it, each
+   place of several types the [anyOf] of each
+   ([Normalize.several_types_throughout]). *)
 let components (spec : Spec.t) =
   let in_place = Schema_names.in_place spec in
   each
@@ -114,7 +117,11 @@ let components (spec : Spec.t) =
          ^ name)
       else
         match List.assoc_opt file spec.schemas with
-        | Some s -> Result.map (fun s -> (name, s)) (in_place s)
+        | Some s ->
+            let validated = Normalize.several_types_throughout s in
+            let* typed = in_place (Normalize.shape_only validated) in
+            let* validated = in_place validated in
+            Ok (name, (typed, validated))
         | None -> Error ("no schema file " ^ file))
     (Roots.all spec)
 
@@ -130,7 +137,24 @@ let titled ids records (r : Decode.reference) =
         raise (Unresolved ("reference into a table not read: " ^ r.target))
 
 let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
-  let* components = components spec in
+  let* roots = components spec in
+  let components = List.map (fun (name, (typed, _)) -> (name, typed)) roots in
+  (* What is derived from a root's shape is validated as that shape: a root
+     whose shape drops what its validator reads ([Normalize.dropped]) is
+     refused. *)
+  let shaped name =
+    match List.assoc_opt name roots with
+    | Some (_, validated) -> (
+        match Normalize.dropped validated with
+        | [] -> Ok ()
+        | keyword :: _ ->
+            Error
+              (name ^ " states " ^ keyword
+             ^ ", which what is derived from its shape drops"))
+    | None -> Error (name ^ " schema missing")
+  in
+  let* () = shaped "ResourceUpload" in
+  let* () = shaped "EngineEntry" in
   let component name =
     match List.assoc_opt name components with
     | Some s -> Ok s
@@ -227,21 +251,17 @@ let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
   let* issuer = property "pending authorization" "issuer" pending in
   let* sign_in =
     Option.to_result ~none:"SignIn schema missing"
-      (List.assoc_opt "sign-in-store/SignIn.json" spec.schemas)
+      (List.assoc_opt Roots.sign_in_entry spec.schemas)
   in
   let* stored_session =
     held "session/stored.json#/storedSession"
       tables.session_stored.stored_session
-  in
-  let* open_resource =
-    held "session/stored.json#/openResource" tables.session_stored.open_resource
   in
   let stored =
     List.sort (fun (a, _) (b, _) -> String.compare a b) (adapters @ records)
     @ [
         ("SignIn", sign_in);
         ("StoredSession", stored_session);
-        ("OpenResource", open_resource);
         ("IssuerEndpoints", issuer);
         ( "PendingAuthorization",
           Schema.Schema
@@ -264,7 +284,10 @@ let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
     then Error "two schemas the models type share a name"
     else Ok ()
   in
+  let canonical_each =
+    List.map (fun (n, s) -> (n, canonical ~rewrite:unchanged s))
+  in
   Ok
-    (List.sort
-       (fun (a, _) (b, _) -> String.compare a b)
-       (List.map (fun (n, s) -> (n, canonical ~rewrite:unchanged s)) all))
+    ( List.sort (fun (a, _) (b, _) -> String.compare a b) (canonical_each all),
+      canonical_each
+        (List.map (fun (name, (_, validated)) -> (name, validated)) roots) )

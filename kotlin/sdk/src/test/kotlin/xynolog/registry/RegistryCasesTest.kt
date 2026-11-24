@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 import xynolog.Spec
 import xynolog.types.KbEndpointSerializer
+import xynolog.types.OpenResource
 import xynolog.types.wireJson
 
 private val table = Spec.read("session/registry-cases.json").jsonObject

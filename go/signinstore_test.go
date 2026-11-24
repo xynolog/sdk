@@ -23,6 +23,9 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/optional"
 )
 
 func storeIn(t *testing.T) *SignInStore {
@@ -45,8 +48,8 @@ func signedToken(n int) string {
 	return "eyJhbGciOiJub25lIn0." + base64.RawURLEncoding.EncodeToString(claims) + ".c2lnbmF0dXJl"
 }
 
-func heldFor(n int) HeldSignIn {
-	return HeldSignIn{Access: signedToken(n), Refresh: fmt.Sprintf("refresh-%d", n), ClientID: ScriptClientID, TokenEndpoint: "http://issuer.example/token"}
+func heldFor(n int) api.StoredSession {
+	return api.StoredSession{Access: signedToken(n), Refresh: fmt.Sprintf("refresh-%d", n), ClientId: ScriptClientID, TokenEndpoint: "http://issuer.example/token"}
 }
 
 // Two writers, each renewing its own stack a hundred times, both end holding
@@ -270,7 +273,7 @@ func TestTheSignInStoreIsWrittenPrivately(t *testing.T) {
 func TestASignInIsKeptAsItsTokenNamesIt(t *testing.T) {
 	store := storeIn(t)
 	held := heldFor(1)
-	held.RevocationEndpoint = "http://issuer.example/revoke"
+	held.RevocationEndpoint = optional.Text("http://issuer.example/revoke")
 	if err := store.Entry("local").Keep(context.Background(), held); err != nil {
 		t.Fatal(err)
 	}
@@ -278,7 +281,7 @@ func TestASignInIsKeptAsItsTokenNamesIt(t *testing.T) {
 	if err != nil || !ok {
 		t.Fatalf("nothing was kept (%v)", err)
 	}
-	if signIn.Email != "a@example.com" || signIn.Issuer != "http://issuer.example/realms/xynolog" || signIn.RevocationEndpoint != held.RevocationEndpoint {
+	if signIn.Email != "a@example.com" || signIn.Issuer != "http://issuer.example/realms/xynolog" || signIn.RevocationEndpoint != optional.Said(held.RevocationEndpoint) {
 		t.Errorf("kept %+v", signIn)
 	}
 	expiry, _ := TokenExpiry(held.Access)
@@ -286,7 +289,7 @@ func TestASignInIsKeptAsItsTokenNamesIt(t *testing.T) {
 		t.Errorf("kept as obtained at %s and expiring at %s, want its token's expiry %s", signIn.ObtainedAt, signIn.ExpiresAt, expiry)
 	}
 	back, ok, err := store.Entry("local").Held(context.Background())
-	if err != nil || !ok || back.Access != held.Access || back.Refresh != held.Refresh || back.ClientID != ScriptClientID {
+	if err != nil || !ok || back.Access != held.Access || back.Refresh != held.Refresh || back.ClientId != ScriptClientID {
 		t.Errorf("held back as %+v (%v, %v)", back, ok, err)
 	}
 }
@@ -491,8 +494,8 @@ func TestEveryRenewalIsTheTables(t *testing.T) {
 					claims, _ := json.Marshal(map[string]any{"email": "a@example.com", "iss": "http://issuer.example/realms/xynolog", "exp": expiry.Unix(), "jti": name})
 					return "eyJhbGciOiJub25lIn0." + base64.RawURLEncoding.EncodeToString(claims) + ".c2ln"
 				}
-				signIn := func(row tableSignIn) HeldSignIn {
-					return HeldSignIn{Access: token(row.Token), Refresh: *row.RefreshToken, ClientID: ScriptClientID, TokenEndpoint: s.issuer.URL + "/token"}
+				signIn := func(row tableSignIn) api.StoredSession {
+					return api.StoredSession{Access: token(row.Token), Refresh: *row.RefreshToken, ClientId: ScriptClientID, TokenEndpoint: s.issuer.URL + "/token"}
 				}
 				if err := another.Keep(ctx, signIn(c.Kept)); err != nil {
 					t.Fatal(err)

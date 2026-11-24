@@ -19,7 +19,6 @@ import xynolog.errors.SignInError
 import xynolog.errors.SignInErrorCode
 import xynolog.errors.TransportError
 import xynolog.errors.XynologError
-import xynolog.signin.HeldSignIn
 import xynolog.signin.MemorySignIn
 import xynolog.signin.SCRIPT_CLIENT_ID
 import xynolog.signin.SignInKept
@@ -27,6 +26,7 @@ import xynolog.types.HttpEndpoint
 import xynolog.types.HttpEndpointProtocol
 import xynolog.types.KbTarget
 import xynolog.types.SessionEndReason
+import xynolog.types.StoredSession
 import xynolog.types.UserResponse
 import xynolog.types.wireJson
 import java.io.IOException
@@ -73,7 +73,7 @@ internal val TARGET = KbTarget(id = "kb-alpha", label = "Alpha", endpoint = Http
  * are spent.
  */
 internal class SessionWorld(kept: String? = null, renewals: List<Any?> = emptyList(), validations: List<Any> = emptyList()) {
-    val kept = MemorySignIn(kept?.let { HeldSignIn(it, "a-refresh-token", SCRIPT_CLIENT_ID, "https://issuer.test/token", null, null) })
+    val kept = MemorySignIn(kept?.let { StoredSession(it, "a-refresh-token", SCRIPT_CLIENT_ID, "https://issuer.test/token", null, null) })
 
     /** Whether the session's reads of its sign-in fail, as a store's that cannot be read do. What is kept stays kept. */
     @Volatile
@@ -81,7 +81,7 @@ internal class SessionWorld(kept: String? = null, renewals: List<Any?> = emptyLi
 
     /** The sign-in as the session holds it: `kept`, read only while it is not `unreadable`. */
     private val held: SignInKept = object : SignInKept by this@SessionWorld.kept {
-        override suspend fun held(): HeldSignIn? {
+        override suspend fun held(): StoredSession? {
             if (unreadable) throw IOException("the sign-in cannot be read")
             return this@SessionWorld.kept.held()
         }

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Xynolog.Internal.Required (Fault (..), FaultReason (..), faultOf, faultChannel, faultSaid, undecoded, channelValue, channelRead, faultHttp) where
+module Xynolog.Internal.Required (Fault (..), FaultReason (..), Shape, walk, faultOf, faultChannel, faultSaid, undecoded, channelValue, channelRead, faultHttp) where
 
 import Control.Applicative ((<|>))
 import Control.Monad (unless)
@@ -13,7 +13,7 @@ import Data.Char (ord)
 import Data.Foldable (toList)
 import Data.List (sortOn)
 import Data.Map.Strict qualified as Map
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, isJust, listToMaybe, mapMaybe)
 import Data.Scientific (Scientific, floatingOrInteger)
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -33,7 +33,10 @@ faultSaid (Fault way Lacks) = "it has no `" <> way <> "`"
 faultSaid (Fault "" Malformed) = "it is malformed"
 faultSaid (Fault way Malformed) = "its `" <> way <> "` is malformed"
 
-data Step = Step [(Int, Int)] Int (Maybe Int)
+-- | One term of a pattern, repeated at least its least and at most its most
+-- times (Nothing: any number): a step, a text's next code point in one of its
+-- ranges; or a group, the text's next code points one of its alternatives.
+data Term = Step [(Int, Int)] Int (Maybe Int) | Group [[Term]] Int (Maybe Int)
 
 data Discriminator = Discriminator Text (Map.Map Text Int)
 
@@ -42,7 +45,7 @@ data Shape = Shape
     shapeKinds :: Maybe [Text],
     shapeEnum :: Maybe [Value],
     recognized :: Maybe [Text],
-    shapePattern :: Maybe [Step],
+    shapePattern :: Maybe [Term],
     minLength :: Maybe Integer,
     maxLength :: Maybe Integer,
     minimumValue :: Maybe Scientific,
@@ -56,21 +59,30 @@ data Shape = Shape
     values :: Maybe Shape,
     oneOf :: Maybe [Shape],
     discriminator :: Maybe Discriminator,
-    allOf :: [Shape]
+    allOf :: [Shape],
+    notAll :: [[Text]],
+    minMembers :: Maybe Integer,
+    shapeNames :: Maybe Shape
   }
 
 data Tables = Tables (Map.Map Text Shape) (Map.Map Text Shape) (Map.Map Text Shape)
 
 only :: [Text] -> Object -> Parser ()
 only allowed fields =
-  unless
-    (all ((`elem` allowed) . Key.toText) (KM.keys fields))
-    (fail "required-shape table gained an unread field")
+  let unread = filter (`notElem` allowed) (map Key.toText (KM.keys fields))
+   in unless (null unread) (fail ("required-shape table gained an unread field: " ++ show unread))
 
-instance FromJSON Step where
-  parseJSON = withObject "required pattern step" $ \fields -> do
-    only ["of", "min", "max"] fields
-    Step <$> fields .: "of" <*> fields .: "min" <*> fields .:? "max"
+instance FromJSON Term where
+  parseJSON = withObject "required pattern term" $ \fields -> do
+    only ["of", "either", "min", "max"] fields
+    ranges <- fields .:? "of"
+    alternatives <- fields .:? "either"
+    least <- fields .: "min"
+    most <- fields .:? "max"
+    case (ranges, alternatives) of
+      (Just stepRanges, Nothing) -> pure (Step stepRanges least most)
+      (Nothing, Just groupAlternatives) -> pure (Group groupAlternatives least most)
+      _ -> fail "a required pattern term is a step or a group"
 
 instance FromJSON Discriminator where
   parseJSON = withObject "required discriminator" $ \fields -> do
@@ -79,7 +91,7 @@ instance FromJSON Discriminator where
 
 instance FromJSON Shape where
   parseJSON = withObject "required shape" $ \fields -> do
-    only ["ref", "kinds", "enum", "recognized", "pattern", "minLength", "maxLength", "minimum", "maximum", "minItems", "maxItems", "required", "members", "closed", "items", "values", "oneOf", "discriminator", "allOf"] fields
+    only ["ref", "kinds", "enum", "recognized", "pattern", "minLength", "maxLength", "minimum", "maximum", "minItems", "maxItems", "required", "members", "closed", "items", "values", "oneOf", "discriminator", "allOf", "notAll", "minMembers", "names"] fields
     kinds <- fields .:? "kinds"
     unless
       (maybe True (all (`elem` (["object", "array", "string", "integer", "number", "boolean", "null"] :: [Text]))) kinds)
@@ -104,6 +116,9 @@ instance FromJSON Shape where
       <*> fields .:? "oneOf"
       <*> fields .:? "discriminator"
       <*> fields .:? "allOf" .!= []
+      <*> fields .:? "notAll" .!= []
+      <*> fields .:? "minMembers"
+      <*> fields .:? "names"
 
 instance FromJSON Tables where
   parseJSON = withObject "required tables" $ \fields -> do
@@ -139,26 +154,46 @@ within way name = way <> "." <> name
 bounded :: (Ord number) => Maybe number -> number -> Maybe number -> Bool
 bounded low value high = maybe True (<= value) low && maybe True (>= value) high
 
-matches :: [Step] -> String -> Bool
-matches [] text = null text
-matches (Step ranges least most : rest) text =
-  let prefix = takeWhile (\character -> any (\(low, high) -> low <= ord character && ord character <= high) ranges) (maybe text (`take` text) most)
-      available = length prefix
-   in any (\count -> matches rest (drop count text)) (reverse [least .. available])
+-- | Whether text, from offset at, is of terms, with rest taking what is left
+-- after them: a step takes as many code points as it may and gives them back
+-- one by one, and a group repeats as often as it may and gives repetitions
+-- back the same way, until rest takes what is left.
+series :: [Term] -> Int -> String -> (Int -> String -> Bool) -> Bool
+series [] at text rest = rest at text
+series (term : terms) at text rest = case term of
+  Step ranges least most ->
+    let taken = length (takeWhile (\character -> any (\(low, high) -> low <= ord character && ord character <= high) ranges) (maybe text (`take` text) most))
+     in any (\count -> next (at + count) (drop count text)) [taken, taken - 1 .. least]
+  Group alternatives least most -> repeated alternatives least most 0 at text next
+  where
+    next after left = series terms after left rest
+
+-- | Whether text, from offset at, is of a group's alternatives repeated once
+-- more than count times or more, then of next: a repetition past the group's
+-- least takes at least one code point.
+repeated :: [[Term]] -> Int -> Maybe Int -> Int -> Int -> String -> (Int -> String -> Bool) -> Bool
+repeated alternatives least most count at text next =
+  (maybe True (count <) most && any (\alternative -> series alternative at text again) alternatives)
+    || (count >= least && next at text)
+  where
+    again after left = (count < least || after > at) && repeated alternatives least most (count + 1) after left next
 
 stated :: Shape -> Value -> Bool
 stated shape value =
   maybe True (value `elem`) (shapeEnum shape) && case value of
     String text ->
       bounded (minLength shape) (fromIntegral (Text.length text)) (maxLength shape)
-        && maybe True (`matches` Text.unpack text) (shapePattern shape)
+        && maybe True (\terms -> series terms 0 (Text.unpack text) (\_ left -> null left)) (shapePattern shape)
     Number n -> bounded (minimumValue shape) n (maximumValue shape)
     Array array -> bounded (minItems shape) (fromIntegral (Vector.length array)) (maxItems shape)
+    Object fields -> bounded (minMembers shape) (fromIntegral (KM.size fields)) Nothing
     _ -> True
 
 first :: [Maybe value] -> Maybe value
 first = foldr (<|>) Nothing
 
+-- | A value's first fault against a shape, the value being at the way given
+-- (empty for a value that is no member).
 walk :: Shape -> Value -> Text -> Maybe Fault
 walk original value way
   | not (allows own value && stated own value) = Just (Fault way Malformed)
@@ -181,15 +216,18 @@ walk original value way
                 Just actual <- [KM.lookup (Key.fromText name) fields],
                 actual /= Null
               ]
+            named = sortOn id (map Key.toText (KM.keys fields))
             unknown = case closed own of
               Nothing -> []
-              Just allowed -> [Fault (within way name) Malformed | name <- sortOn id (map Key.toText (KM.keys fields)), name `notElem` allowed]
+              Just allowed -> [Fault (within way name) Malformed | name <- named, name `notElem` allowed]
+            misnamed = case shapeNames own of
+              Nothing -> []
+              Just shape -> [Fault (within way name) Malformed | name <- named, isJust (walk shape (String name) "")]
+            carried = [Fault way Malformed | set <- notAll own, all (\name -> KM.member (Key.fromText name) fields) set]
             valueFaults = case values own of
               Nothing -> []
               Just shape -> [walk shape actual way | (_, actual) <- sortOn (Key.toText . fst) (KM.toList fields)]
-         in case absent of
-              fault : _ -> Just fault
-              [] -> first memberFaults <|> (case unknown of fault : _ -> Just fault; [] -> Nothing) <|> first valueFaults
+         in listToMaybe absent <|> first memberFaults <|> listToMaybe unknown <|> listToMaybe misnamed <|> listToMaybe carried <|> first valueFaults
       _ -> Nothing
     arrayFault = case (value, items own) of
       (Array list, Just shape) -> first [walk shape actual way | actual <- toList list]

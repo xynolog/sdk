@@ -2,27 +2,12 @@
 
 package xynolog.registry
 
-import kotlinx.serialization.Serializable
 import xynolog.identifiers.ResourceId
+import xynolog.types.OpenResource
 import xynolog.types.TabCheck
 import xynolog.types.TabCheckGone
 import xynolog.types.TabCheckReady
 import xynolog.types.TabCheckUnknown
-
-/** One resource open in a knowledge base: a tab, where there are tabs. */
-@Serializable
-public data class OpenResource @JvmExposeBoxed constructor(
-    @get:JvmExposeBoxed
-    public val id: ResourceId,
-    public val name: String,
-    /** When it was opened, in milliseconds since the epoch. */
-    public val openedAt: Long,
-    /** Its place among the others. */
-    public val order: Int,
-    public val mediaType: String? = null,
-    /** Where it is in the working tree, such as `file://docs/overview.md`; null when that is not known. */
-    public val storageUri: String? = null,
-)
 
 /**
  * Apply each verdict to what is open: what is gone is dropped, what was found

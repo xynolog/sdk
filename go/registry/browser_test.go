@@ -286,11 +286,11 @@ func (w *world) stored(key string, into any) {
 }
 
 func (w *world) storedOpen(kbID string) []string {
-	var byKb map[string][]registry.OpenResource
+	var byKb map[string][]api.OpenResource
 	w.stored(registry.OpenResourcesByKbKey, &byKb)
 	ids := []string{}
 	for _, resource := range byKb[kbID] {
-		ids = append(ids, resource.ID.String())
+		ids = append(ids, resource.Id.String())
 	}
 	return ids
 }
@@ -338,7 +338,7 @@ func sessionOf(browser *registry.XynologBrowser) string {
 func open(browser *registry.XynologBrowser) []string {
 	ids := []string{}
 	for _, resource := range browser.OpenResources().Value() {
-		ids = append(ids, resource.ID.String())
+		ids = append(ids, resource.Id.String())
 	}
 	return ids
 }

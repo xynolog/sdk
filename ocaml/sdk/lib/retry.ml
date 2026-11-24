@@ -1,5 +1,4 @@
 type rule = Boot | Job | Transport | Refresh
-type budget = { attempts : int; initial_delay_ms : int; max_delay_ms : int }
 
 let retryable rule ?status ?meth ?(keyed = false) () =
   let has statuses =
@@ -48,7 +47,8 @@ let sleep_ms clock milliseconds =
   in
   Clock.sleep_until clock deadline
 
-let retry_with_backoff ~clock ~budget ~accepts ~retry_after attempt =
+let retry_with_backoff ~clock ~(budget : Client_timing.retry) ~accepts
+    ~retry_after attempt =
   if
     budget.attempts < 1
     || budget.initial_delay_ms < 0

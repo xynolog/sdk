@@ -64,16 +64,13 @@ import type {
   KbSessionStatus,
   KnowledgeBase,
   NewKnowledgeBase,
+  OpenResource,
   SignInOutcome,
   StoredSession,
   TabCheck,
 } from '@xynolog/core';
 import { kbRead } from './knowledge-base';
-import {
-  applyTabChecks,
-  sortOpenResources,
-  type OpenResource,
-} from './open-resource';
+import { applyTabChecks, sortOpenResources } from './open-resource';
 import { XynologSession } from './xynolog-session';
 import { createSessionSignals, type SessionSignals } from './session-signals';
 import { XynologSessionError } from './errors';

@@ -118,6 +118,7 @@ export type {
   KbEndpoint,
   HttpEndpoint,
   LocalEndpoint,
+  OpenResource,
   AnnotationBody,
   BodyOperation,
   ConnectionIdentity,

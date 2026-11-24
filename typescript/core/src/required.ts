@@ -26,9 +26,21 @@ type Kind =
 /** One step of a pattern: at least `min` of a text's next code points, and at most `max` (none: any number), each in one of the ranges `of`. */
 interface Step {
   readonly of: readonly (readonly [number, number])[];
+  readonly either?: never;
   readonly min: number;
   readonly max?: number;
 }
+
+/** One group of a pattern: the text's next code points one of the series `either`, at least `min` times and at most `max` (none: any number). */
+interface Group {
+  readonly either: readonly (readonly Term[])[];
+  readonly of?: never;
+  readonly min: number;
+  readonly max?: number;
+}
+
+/** One term of a pattern: a step or a group, never both. */
+type Term = Step | Group;
 
 /** What a value must be: codegen/lib/required/shape.ml states what each part means. */
 export interface Shape {
@@ -37,7 +49,7 @@ export interface Shape {
   /** Of an object's member, the texts it is read as: one that holds a text none of them is no fault, and is left out of what is read. */
   readonly recognized?: readonly string[];
   readonly enum?: readonly (string | number | boolean)[];
-  readonly pattern?: readonly Step[];
+  readonly pattern?: readonly Term[];
   readonly minLength?: number;
   readonly maxLength?: number;
   readonly minimum?: number;
@@ -56,6 +68,11 @@ export interface Shape {
     readonly mapping: { readonly [value: string]: number };
   };
   readonly allOf?: readonly Shape[];
+  /** Sets of members an object does not carry all of. */
+  readonly notAll?: readonly (readonly string[])[];
+  readonly minMembers?: number;
+  /** What each of an object's members' names must be. */
+  readonly names?: Shape;
 }
 
 /**
@@ -64,7 +81,8 @@ export interface Shape {
  * way is the value itself), and why. `lacks`: the value does not carry the
  * member, or the member holds null where it may not. `malformed`: the member
  * is not what its schema allows (of another kind, another value, form or
- * size), or is one a closed object does not name.
+ * size), is one a closed object does not name, or has a name that is not of
+ * the object's names.
  */
 export interface Fault {
   readonly member: string;
@@ -86,6 +104,10 @@ function leaveOut(leftOut: LeftOut, object: object, name: string): void {
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
+
+/** The names of the members an object carries: a member that is undefined is one JSON does not carry. */
+const carried = (object: Record<string, unknown>): string[] =>
+  Object.keys(object).filter((name) => object[name] !== undefined);
 
 /** The kind of a value JSON carries; none for what JSON never carries. */
 function kindOf(value: unknown): Kind | undefined {
@@ -137,17 +159,21 @@ const counted = (
   (most === undefined || count <= most);
 
 /**
- * Whether the code points from `at` are of `steps`: the first step takes as
- * many of them as it may, and gives them back one by one until the steps
- * after it take the rest.
+ * Whether the code points from `at` are of `terms`, with `rest` taking what
+ * is left after them: a step takes as many points as it may and gives them
+ * back one by one, and a group repeats as often as it may and gives
+ * repetitions back the same way, until `rest` takes what is left.
  */
-function matches(
-  steps: readonly Step[],
+function series(
+  terms: readonly Term[],
   points: readonly number[],
   at: number,
+  rest: (after: number) => boolean,
 ): boolean {
-  const [first, ...rest] = steps;
-  if (first === undefined) return at === points.length;
+  const [first, ...others] = terms;
+  if (first === undefined) return rest(at);
+  const next = (after: number): boolean => series(others, points, after, rest);
+  if (first.either !== undefined) return repeated(first, points, at, 0, next);
   let taken = 0;
   while (
     at + taken < points.length &&
@@ -158,15 +184,37 @@ function matches(
   ) {
     taken += 1;
   }
-  for (; taken >= first.min; taken -= 1)
-    if (matches(rest, points, at + taken)) return true;
+  for (; taken >= first.min; taken -= 1) if (next(at + taken)) return true;
   return false;
 }
 
 /**
+ * Whether the code points from `at` are of `group` repeated once more than
+ * `count` times or more, then of `next`: a repetition past the group's `min`
+ * takes at least one point.
+ */
+function repeated(
+  group: Group,
+  points: readonly number[],
+  at: number,
+  count: number,
+  next: (after: number) => boolean,
+): boolean {
+  if (group.max === undefined || count < group.max) {
+    for (const alternative of group.either) {
+      const again = (after: number): boolean =>
+        (count < group.min || after > at) &&
+        repeated(group, points, after, count + 1, next);
+      if (series(alternative, points, at, again)) return true;
+    }
+  }
+  return count >= group.min && next(at);
+}
+
+/**
  * Whether `value` is one of `shape`'s values, a text is of its pattern and
- * has as many code points as it allows, a number is within its bounds, and an
- * array has as many items as it allows.
+ * has as many code points as it allows, a number is within its bounds, an
+ * array has as many items and an object as many members as it allows.
  */
 function isAsStated(shape: Shape, value: unknown): boolean {
   if (shape.enum !== undefined && !shape.enum.some((one) => one === value))
@@ -175,13 +223,16 @@ function isAsStated(shape: Shape, value: unknown): boolean {
     const points = Array.from(value, (point) => point.codePointAt(0)!);
     return (
       counted(shape.minLength, points.length, shape.maxLength) &&
-      (shape.pattern === undefined || matches(shape.pattern, points, 0))
+      (shape.pattern === undefined ||
+        series(shape.pattern, points, 0, (at) => at === points.length))
     );
   }
   if (typeof value === 'number')
     return counted(shape.minimum, value, shape.maximum);
   if (Array.isArray(value))
     return counted(shape.minItems, value.length, shape.maxItems);
+  if (isObject(value))
+    return counted(shape.minMembers, carried(value).length, undefined);
   return true;
 }
 
@@ -224,7 +275,7 @@ function faultAt(
   return undefined;
 }
 
-/** The first fault of an object in the members `shape` requires, in what its members are, in the members it may not carry, and in its values. */
+/** The first fault of an object in the members `shape` requires, in what its members are, in the members it may not carry, in its members' names, in the sets of members it may not carry all of, and in its values. */
 function faultOfMembers(
   shape: Shape,
   object: Record<string, unknown>,
@@ -261,11 +312,21 @@ function faultOfMembers(
   }
   const { closed } = shape;
   if (closed !== undefined) {
-    const unnamed = Object.keys(object)
-      .filter((name) => object[name] !== undefined && !closed.includes(name))
+    const unnamed = carried(object)
+      .filter((name) => !closed.includes(name))
       .sort(byCodePoint)[0];
     if (unnamed !== undefined)
       return { member: within(way, unnamed), reason: 'malformed' };
+  }
+  if (shape.names !== undefined) {
+    for (const name of carried(object).sort(byCodePoint)) {
+      if (faultAt(shape.names, name, '', new Map()) !== undefined)
+        return { member: within(way, name), reason: 'malformed' };
+    }
+  }
+  for (const set of shape.notAll ?? []) {
+    if (set.every((name) => object[name] !== undefined))
+      return { member: way, reason: 'malformed' };
   }
   if (shape.values !== undefined) {
     for (const key of Object.keys(object).sort(byCodePoint)) {

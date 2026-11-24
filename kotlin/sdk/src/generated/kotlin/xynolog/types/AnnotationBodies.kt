@@ -18,6 +18,7 @@ public sealed interface AnnotationBodies {
 internal object AnnotationBodiesSerializer : KindsUnionSerializer<AnnotationBodies>(
     AnnotationBodies::class,
     strings = { listOf(AnnotationBody.serializer()) },
+    scalars = { listOf(AnnotationBody.serializer()) },
     arrays = { listOf(AnnotationBody.serializer(), AnnotationBodies.List.serializer()) },
     objects = { listOf(AnnotationBody.serializer()) },
 )

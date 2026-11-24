@@ -9,10 +9,10 @@ use xynolog::identity;
 use xynolog::refresh::CacheQuery;
 use xynolog::session::{
     ACTIVE_KEY, KNOWLEDGE_BASES_KEY, LAST_VIEWED_RESOURCE_BY_KB_KEY, OPEN_RESOURCES_BY_KB_KEY,
-    OpenResource, cache_key, last_event_id_key, person_key, session_key,
+    cache_key, last_event_id_key, person_key, session_key,
 };
 use xynolog::testing::as_id;
-use xynolog::types::StoredSession;
+use xynolog::types::{OpenResource, StoredSession};
 
 fn table(text: &str) -> Value {
     serde_json::from_str(text).expect("the table is JSON")

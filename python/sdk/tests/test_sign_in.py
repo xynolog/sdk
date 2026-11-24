@@ -60,14 +60,14 @@ from xynolog.identifiers import ResourceId, UserId
 from xynolog.identity import agent_did
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED, MARK_DELETE
 from xynolog.registry import kept_in
-from xynolog.session import HeldSignIn, MemorySignIn, SignInKept, XynologSession
+from xynolog.session import MemorySignIn, SignInKept, XynologSession
 from xynolog.sign_in_store import FILE_NAME, SignInStore
 from xynolog.storage import MemoryStorage, SessionStorage
 from xynolog.storage_keys import cache_key, last_event_id_key, person_key
 from xynolog.stored import KEPT_QUERIES
 from xynolog.testing import create_test_client
 from xynolog.timing import DEVICE_POLL_MS, DEVICE_SLOW_DOWN_MS, MAX_RECONNECT_MS, MIN_REFRESH_DELAY_MS
-from xynolog.types import HttpEndpoint, KbTarget, LocalEndpoint, SessionEndReason, UserResponse
+from xynolog.types import HttpEndpoint, KbTarget, LocalEndpoint, SessionEndReason, StoredSession, UserResponse
 from xynolog.watched import Variable, Watched, reached
 
 _JSON = TypeAdapter[JsonValue](JsonValue)
@@ -88,8 +88,8 @@ def access(n: int, lifetime: int = 3600) -> str:
     return token(lifetime, n, email="alice@example.org", iss="https://issuer.example.org")
 
 
-def held(gateway: GatewayServer, access_token: str, refresh: str = "refresh-1") -> HeldSignIn:
-    return HeldSignIn(
+def held(gateway: GatewayServer, access_token: str, refresh: str = "refresh-1") -> StoredSession:
+    return StoredSession(
         access=access_token,
         refresh=refresh,
         client_id="xynolog-cli",
@@ -1148,19 +1148,19 @@ def test_a_session_whose_issuer_will_not_renew_it_is_over_and_its_sign_in_is_for
 class InMemory(SignInKept):
     """A sign-in kept as `MemorySignIn` keeps one, for a test's own kind to read as it reads it."""
 
-    def __init__(self, sign_in: HeldSignIn) -> None:
+    def __init__(self, sign_in: StoredSession) -> None:
         self._kept: Final = MemorySignIn(sign_in)
 
     @override
-    async def held(self) -> HeldSignIn | None:
+    async def held(self) -> StoredSession | None:
         return await self._kept.held()
 
     @override
-    async def keep(self, sign_in: HeldSignIn) -> None:
+    async def keep(self, sign_in: StoredSession) -> None:
         await self._kept.keep(sign_in)
 
     @override
-    async def renewed(self, read: HeldSignIn, access: str, refresh: str) -> str | None:
+    async def renewed(self, read: StoredSession, access: str, refresh: str) -> str | None:
         return await self._kept.renewed(read, access, refresh)
 
     @override
@@ -1176,13 +1176,13 @@ class InMemory(SignInKept):
 class Slowly(InMemory):
     """A kept sign-in that is read at once the first time, and after that only once it is released."""
 
-    def __init__(self, sign_in: HeldSignIn) -> None:
+    def __init__(self, sign_in: StoredSession) -> None:
         super().__init__(sign_in)
         self.release = asyncio.Event()
         self.reads = 0
 
     @override
-    async def held(self) -> HeldSignIn | None:
+    async def held(self) -> StoredSession | None:
         self.reads += 1
         if self.reads > 1:
             await self.release.wait()
@@ -1372,7 +1372,8 @@ def test_signing_out_revokes_the_refresh_token_and_forgets_the_sign_in_whatever_
 
             # An issuer that named no revocation endpoint is told nothing, and the sign-in is forgotten all the same.
             asked = len(gateway.of("POST", REVOKE))
-            await kept.keep(HeldSignIn(access=access(3), refresh="r", client_id="xynolog-cli", token_endpoint=f"{gateway.origin}{TOKEN}"))
+            unrevocable = StoredSession(access=access(3), refresh="r", client_id="xynolog-cli", token_endpoint=f"{gateway.origin}{TOKEN}")
+            await kept.keep(unrevocable)
             await soon(sign_out(kept))
             assert await kept.held() is None
             assert len(gateway.of("POST", REVOKE)) == asked
@@ -1683,12 +1684,12 @@ def test_a_write_a_sessions_storage_refuses_is_still_owed_and_its_close_makes_it
 class Unreadable(InMemory):
     """A kept sign-in that is read as any is until `failing` is set, and after that cannot be read."""
 
-    def __init__(self, sign_in: HeldSignIn) -> None:
+    def __init__(self, sign_in: StoredSession) -> None:
         super().__init__(sign_in)
         self.failing = False
 
     @override
-    async def held(self) -> HeldSignIn | None:
+    async def held(self) -> StoredSession | None:
         if self.failing:
             raise OSError("the sign-in could not be read")
         return await super().held()
@@ -1698,13 +1699,13 @@ class Unreadable(InMemory):
 class ReadOnce(InMemory):
     """A kept sign-in that is read as any is the first time, and after that cannot be read until `readable` is set."""
 
-    def __init__(self, sign_in: HeldSignIn) -> None:
+    def __init__(self, sign_in: StoredSession) -> None:
         super().__init__(sign_in)
         self.reads = 0
         self.readable = False
 
     @override
-    async def held(self) -> HeldSignIn | None:
+    async def held(self) -> StoredSession | None:
         self.reads += 1
         if self.reads > 1 and not self.readable:
             raise OSError("the sign-in could not be read")
@@ -1945,7 +1946,7 @@ def test_a_sign_in_that_names_its_person_and_cannot_record_who_the_gateway_named
             gateway.on_emit = describing(gateway)
             first = access(1)
             # The sign-in names her already: the client keeps for her from the start, before the gateway is asked.
-            kept = Unrecording(replace(held(gateway, first), person_key=ALICE_KEY))
+            kept = Unrecording(held(gateway, first).model_copy(update={"person_key": ALICE_KEY}))
 
             async with session_from_kept(gateway.target("kb"), kept=kept, storage=storage, channels=BRIDGED_CHANNELS) as session:
                 heard = Heard(session.errors())

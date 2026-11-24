@@ -75,7 +75,7 @@ func TestATestSessionHoldsTheTokenItsSignInHeldAndThenTheOneTheTestSets(t *testi
 		kb := api.KbTarget{Id: "mine", Label: "Mine", Endpoint: at}
 		stored := goodToken()
 		kept := &xynolog.MemorySignIn{}
-		if err := kept.Keep(context.Background(), xynolog.HeldSignIn{Access: stored, Refresh: "r", ClientID: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
+		if err := kept.Keep(context.Background(), api.StoredSession{Access: stored, Refresh: "r", ClientId: "xynolog-cli", TokenEndpoint: "https://issuer.test/token"}); err != nil {
 			t.Fatal(err)
 		}
 

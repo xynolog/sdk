@@ -12,6 +12,7 @@ public sealed interface GatheredContextFocus
 internal object GatheredContextFocusSerializer : KindsUnionSerializer<GatheredContextFocus>(
     GatheredContextFocus::class,
     strings = { emptyList() },
+    scalars = { emptyList() },
     arrays = { emptyList() },
     objects = { listOf(GatheredContextFocusAnnotation.serializer(), GatheredContextFocusResource.serializer()) },
 )
