@@ -14342,8 +14342,9 @@ func (v WorkerAnswerFormats) MarshalJSON() ([]byte, error) {
 
 type WorkerAnswerFormatsFormatsItem struct {
 	// About What an element is, in prose.
-	About   string `json:"about"`
-	Element any    `json:"element"`
+	About string `json:"about"`
+	// Element The JSON Schema of one element of the answer.
+	Element any `json:"element"`
 	// Name A motivation a `mark` job takes, or `count`.
 	Name string `json:"name"`
 }

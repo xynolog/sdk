@@ -9596,6 +9596,7 @@ export interface tables {
       name: string;
       /** What an element is, in prose. */
       about: string;
+      /** The JSON Schema of one element of the answer. */
       element: unknown;
     }[];
   };

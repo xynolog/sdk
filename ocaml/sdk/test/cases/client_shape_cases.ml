@@ -78,14 +78,15 @@ let table : t =
         `required`), each member carried that holds null among them; the \
         fewest members it carries (`minProperties`); and what each member's \
         name must be (`propertyNames`), a name that is not being a fault of \
-        that member. A pattern is read as ECMA-262 reads it, its groups and \
-        alternatives among it. A value of a union none of whose variants it is \
-        has the first variant's fault. A CASE is a value read as the schema \
-        `schema` names, the stem of its file under specs/src: one that is \
-        read, or one `refused`: true, with its first fault's `member` and \
-        `reason`. Protocol's own validator holds each case: a case that is \
-        read is a value the schema allows, and one that is refused a value it \
-        does not.";
+        that member. A member that holds null is carried, and null is a fault \
+        of that member when its schema does not allow null. A pattern is read \
+        as ECMA-262 reads it, its groups and alternatives among it. A value of \
+        a union none of whose variants it is has the first variant's fault. A \
+        CASE is a value read as the schema `schema` names, the stem of its \
+        file under specs/src: one that is read, or one `refused`: true, with \
+        its first fault's `member` and `reason`. Protocol's own validator \
+        holds each case: a case that is read is a value the schema allows, and \
+        one that is refused a value it does not.";
      cases =
        [
          (Shape_accepted
@@ -272,6 +273,19 @@ let table : t =
                value = `Assoc [ ("name", `String "-kb") ];
                refused = true;
                member = "name";
+               reason = (Malformed : frame_refusal_reason);
+             }
+              : shape_refused)
+           : cases_item);
+         (Shape_refused
+            ({
+               why =
+                 "a namespace that holds null is carried, and a namespace is a \
+                  string: the namespace is malformed";
+               schema = "Metadata";
+               value = `Assoc [ ("name", `String "kb"); ("namespace", `Null) ];
+               refused = true;
+               member = "namespace";
                reason = (Malformed : frame_refusal_reason);
              }
               : shape_refused)
