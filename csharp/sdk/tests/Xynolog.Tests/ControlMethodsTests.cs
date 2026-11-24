@@ -9,6 +9,9 @@ public sealed class ControlMethodsTests
     private static string Schema(JsonElement entry, string member) =>
         Path.GetFileNameWithoutExtension(entry.GetProperty(member).GetString() ?? throw new InvalidOperationException(member + " names no schema."));
 
+    private static T Member<T>(object value, string member) =>
+        (T)(value.GetType().GetProperty(member)?.GetValue(value) ?? throw new InvalidOperationException(member + " is missing."));
+
     private static string Named(JsonElement entry) =>
         entry.GetProperty("name").GetString() ?? throw new InvalidOperationException("A control entry has no name.");
 
@@ -27,23 +30,23 @@ public sealed class ControlMethodsTests
             var arguments = type.GetGenericArguments().Select(argument => argument.Name).ToArray();
             if (type.GetGenericTypeDefinition() == typeof(ControlMethod<,>))
             {
-                var name = (string)type.GetProperty(nameof(ControlMethod<object, object>.Name))!.GetValue(value)!;
+                var name = Member<string>(value, nameof(ControlMethod<object, object>.Name));
                 var stated = methods[name];
                 Assert.True(seenMethods.Add(name));
                 Assert.Equal<string>(new[] { Schema(stated, "params"), Schema(stated, "result") }, arguments);
-                Assert.Equal(stated.GetProperty("exclusive").GetBoolean(), (bool)type.GetProperty(nameof(ControlMethod<object, object>.Exclusive))!.GetValue(value)!);
+                Assert.Equal(stated.GetProperty("exclusive").GetBoolean(), Member<bool>(value, nameof(ControlMethod<object, object>.Exclusive)));
                 Assert.Equal<string>(
                     stated.GetProperty("sends").EnumerateArray().Select(sent => sent.GetString() ?? throw new InvalidOperationException(name + " sends no name.")),
-                    (IReadOnlyList<string>)type.GetProperty(nameof(ControlMethod<object, object>.Sends))!.GetValue(value)!);
+                    Member<IReadOnlyList<string>>(value, nameof(ControlMethod<object, object>.Sends)));
             }
             else
             {
                 Assert.Equal(typeof(ControlNotification<>), type.GetGenericTypeDefinition());
-                var name = (string)type.GetProperty(nameof(ControlNotification<object>.Name))!.GetValue(value)!;
+                var name = Member<string>(value, nameof(ControlNotification<object>.Name));
                 var stated = notifications[name];
                 Assert.True(seenNotifications.Add(name));
                 Assert.Equal<string>(new[] { Schema(stated, "params") }, arguments);
-                var from = (ControlSender)type.GetProperty(nameof(ControlNotification<object>.From))!.GetValue(value)!;
+                var from = Member<ControlSender>(value, nameof(ControlNotification<object>.From));
                 Assert.Equal(stated.GetProperty("from").GetString(), from.ToString().ToLowerInvariant());
             }
         }
