@@ -1,9 +1,9 @@
 (* The telemetry group: every span and metric an SDK's transports export
    (protocol/specs/src/sdk-telemetry/telemetry.json), its kind or instrument,
    what it means, and its attributes, for the Go, Python, OCaml and Kotlin
-   SDKs; and every attribute key a row lists, for those and the TypeScript,
-   C#, Swift and Haskell SDKs. The Rust SDK's telemetry is held to the table
-   by its own tests.
+   SDKs; the name of each, for the TypeScript SDK; and every attribute key a
+   row lists, for those and the C#, Swift and Haskell SDKs. The Rust SDK's
+   telemetry is held to the table by its own tests.
 
    A metric's instrument is a counter, and a span's name holds no placeholder
    but {channel}. A row says what it means and lists each attribute once;
@@ -386,6 +386,37 @@ let ocaml (t : t) =
 
 let about = "An attribute key a row of the telemetry table lists."
 
+(* A row's name by the words of its name without what stands for the
+   channel, which the name itself keeps, for the caller to put the channel
+   in place of. *)
+let row_pascal (r : row) = key_pascal (without_channel r.name)
+let row_upper (r : row) = key_upper (without_channel r.name)
+let typescript_span r = "SPAN_" ^ row_upper r
+let typescript_metric r = "METRIC_" ^ row_upper r
+
+let typescript_names (t : t) =
+  let module T = Typescript_syntax in
+  let row name (r : row) =
+    T.const name ~about:[ Doc r.meaning ] (T.Str r.name)
+  in
+  {
+    Output.path = "typescript/observability/src/telemetry-names.ts";
+    text =
+      T.text
+        {
+          banner =
+            Banner.typescript_lines
+              ~authority:[ "protocol/specs/src/" ^ file ]
+              __FILE__;
+          body =
+            T.const "TELEMETRY_CHANNEL"
+              ~about:[ Doc "What stands for the bus channel in a span's name." ]
+              (T.Str channel)
+            :: List.map (fun r -> row (typescript_span r) r) t.spans
+            @ List.map (fun r -> row (typescript_metric r) r) t.metrics;
+        };
+  }
+
 let typescript (t : t) =
   let module T = Typescript_syntax in
   {
@@ -499,6 +530,7 @@ let files ~root:_ (spec : Spec.t) =
             ocaml t;
             kotlin;
             typescript t;
+            typescript_names t;
             csharp t;
             swift t;
             haskell t;

@@ -39,7 +39,9 @@ import {
 import {
   ATTR_BUS_CHANNEL,
   ATTR_BUS_SCOPE,
+  SPAN_BUS_EMIT,
   SpanKind,
+  TELEMETRY_CHANNEL,
   recordBusSent,
   withSpan,
 } from '@xynolog/observability';
@@ -575,7 +577,7 @@ export class HttpTransport implements ITransport, IGatewayOperations {
     );
     recordBusSent(channel as string, envelope?.scope);
     return withSpan(
-      `bus.emit:${channel as string}`,
+      SPAN_BUS_EMIT.replace(TELEMETRY_CHANNEL, channel as string),
       async () => {
         try {
           return await this.actor.emit(channel, payload, envelope, signal);

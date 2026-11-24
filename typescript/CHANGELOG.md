@@ -40,6 +40,10 @@ the coming release's, and gathers its changes as they land.
   `browse.resourceRepresentation` and `resourceRepresentationStream` answer.
 - `@xynolog/react-ui` exports `renderAgentLabel`, `renderAgentLabels` and
   `creatorName`.
+- `@xynolog/observability` names each span and metric of the SDK telemetry
+  table (`SPAN_CONTENT_GET`, `SPAN_BUS_EMIT`, `METRIC_XYNOLOG_BUS_SENT`, …,
+  and `TELEMETRY_CHANNEL`, what stands for the channel in a span's name), and
+  the transports name their spans and their count by them.
 
 ### Changed
 
