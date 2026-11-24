@@ -31,7 +31,7 @@ val required : t -> (Yojson.Raw.t -> 'a) -> string -> 'a
 val optional : t -> (Yojson.Raw.t -> 'a) -> string -> 'a Types.presence
 
 val maybe : t -> (Yojson.Raw.t -> 'a) -> string -> 'a option
-(** A member that may be absent but not null, a null read as absent. *)
+(** A member that may be absent but not null; the decoder refuses its null. *)
 
 val rest : t -> (string * Yojson.Raw.t) list
 (** The members no read named, in the object's order. *)

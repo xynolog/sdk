@@ -459,7 +459,7 @@ credential renewal, and cancellation. Each frame observer has its own queue; a v
 several channels preserves their delivery order. It holds every frame to `BusFrame` before
 it delivers it. `Frames(channel)` and `On(channel, handler)` give each frame as a
 `ReceivedBusFrame`, and, in the place of a frame `BusFrame` does not allow whose channel is a
-text of at least one character and whose scope is absent, null or a resource's id, its
+text of at least one character and whose scope is absent or a resource's id, its
 `FrameRefusal`: both are `Carried`. A request awaiting the reply such a refusal's correlation
 id names fails at once with a `TransportError` saying "a frame on `<channel>` is not that
 channel's: " and the fault. Any other line the stream carries that is not a frame is told to

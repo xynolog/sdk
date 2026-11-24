@@ -37,5 +37,4 @@ readFrame text = case eitherDecodeStrict' (encodeUtf8 text) of
             )
     refuse _ issue = Rejected issue
     readScope Nothing = Just Nothing
-    readScope (Just Null) = Just Nothing
     readScope (Just value) = case fromJSON value of Error _ -> Nothing; Success scope -> Just (Just scope)

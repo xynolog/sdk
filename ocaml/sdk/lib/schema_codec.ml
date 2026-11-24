@@ -241,7 +241,7 @@ and validate_object direction path shape received =
     read_each
       (fun (key, shape) ->
         match List.assoc_opt key fields with
-        | None | Some `Null -> Ok []
+        | None -> Ok []
         | Some value ->
             let* read = validate direction (child path key) shape value in
             Ok [ (key, read) ])

@@ -14,7 +14,6 @@ import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
@@ -609,9 +608,8 @@ internal fun lineOf(data: String): Line {
     }
     val stated = element as? JsonObject ?: return Line.Unaddressed(fault)
     val channel = (stated[BUS_FRAME_CHANNEL] as? JsonPrimitive)?.takeIf { it.isString && it.content.isNotEmpty() }?.content ?: return Line.Unaddressed(fault)
-    // A null where a member may be absent is its absence, as BusFrame reads it.
     val scope = when (val held = stated[BUS_FRAME_SCOPE]) {
-        null, JsonNull -> null
+        null -> null
         else -> (held as? JsonPrimitive)?.takeIf { it.isString }?.let { ResourceId.parse(it.content) } ?: return Line.Unaddressed(fault)
     }
     return Line.Refused(FrameRefusal(channel, fault.member, fault.reason, stated[BUS_FRAME_PAYLOAD], correlationIdOf(channel, stated[BUS_FRAME_CORRELATION_ID]), scope))
@@ -619,8 +617,7 @@ internal fun lineOf(data: String): Line {
 
 /** The correlation id a frame on `channel` carries as `held`, when BusFrame allows it, whatever the frame's other faults. */
 private fun correlationIdOf(channel: String, held: JsonElement?): String? {
-    // A null where a member may be absent is its absence, as BusFrame reads it.
-    if (held == null || held == JsonNull) return null
+    if (held == null) return null
     val alone = JsonObject(mapOf(BUS_FRAME_CHANNEL to JsonPrimitive(channel), BUS_FRAME_PAYLOAD to JsonObject(emptyMap()), BUS_FRAME_CORRELATION_ID to held))
     if (faultOf(BusFrame.serializer().descriptor, alone) != null) return null
     return held.jsonPrimitive.content

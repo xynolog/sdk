@@ -472,8 +472,8 @@ func faultOf(s *shape, value any, way string) (Fault, []unread, bool) {
 			}
 		}
 		for _, name := range sortedKeys(s.Members) {
-			held := object[name]
-			if held == nil {
+			held, has := object[name]
+			if !has {
 				continue
 			}
 			if unrecognized(s.Members[name], held) {

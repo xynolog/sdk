@@ -18568,6 +18568,7 @@ pub struct WorkerAnswerFormatsFormatsItem {
     pub name: String,
     /// What an element is, in prose.
     pub about: String,
+    /// The JSON Schema of one element of the answer.
     pub element: serde_json::Value,
 }
 

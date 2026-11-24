@@ -32,7 +32,7 @@ export type Table = {
 
 export const table: Table = {
   $comment:
-    "What every SDK's reading of a value finds of it, as a value of a schema Protocol states, as every SDK's reader must. A reader holds a value to what its schema requires of it before it reads it, by the table of each schema's shape the consumer-owned generator derives from the schemas, and finds its first fault as every SDK finds one: a member it lacks (`lacks`), or a value that is not what its schema allows (`malformed`). THE RULE. A value its schema allows is read. One it does not allow is refused for its first fault, named by its way from the value (`member`: the names of the members it is within, and its own, joined by dots; empty for the value itself). What a schema states of an object's members together is held as the table states it: a set of members the object may not carry whole (a `not` of `required`), each member carried that holds null among them; the fewest members it carries (`minProperties`); and what each member's name must be (`propertyNames`), a name that is not being a fault of that member. A pattern is read as ECMA-262 reads it, its groups and alternatives among it. A value of a union none of whose variants it is has the first variant's fault. A CASE is a value read as the schema `schema` names, the stem of its file under specs/src: one that is read, or one `refused`: true, with its first fault's `member` and `reason`. Protocol's own validator holds each case: a case that is read is a value the schema allows, and one that is refused a value it does not.",
+    "What every SDK's reading of a value finds of it, as a value of a schema Protocol states, as every SDK's reader must. A reader holds a value to what its schema requires of it before it reads it, by the table of each schema's shape the consumer-owned generator derives from the schemas, and finds its first fault as every SDK finds one: a member it lacks (`lacks`), or a value that is not what its schema allows (`malformed`). THE RULE. A value its schema allows is read. One it does not allow is refused for its first fault, named by its way from the value (`member`: the names of the members it is within, and its own, joined by dots; empty for the value itself). What a schema states of an object's members together is held as the table states it: a set of members the object may not carry whole (a `not` of `required`), each member carried that holds null among them; the fewest members it carries (`minProperties`); and what each member's name must be (`propertyNames`), a name that is not being a fault of that member. A member that holds null is carried, and null is a fault of that member when its schema does not allow null. A pattern is read as ECMA-262 reads it, its groups and alternatives among it. A value of a union none of whose variants it is has the first variant's fault. A CASE is a value read as the schema `schema` names, the stem of its file under specs/src: one that is read, or one `refused`: true, with its first fault's `member` and `reason`. Protocol's own validator holds each case: a case that is read is a value the schema allows, and one that is refused a value it does not.",
   cases: [
     {
       why: "a runner that is somebody else's names where it is reached, and nothing the launcher runs it from",
@@ -163,6 +163,17 @@ export const table: Table = {
       },
       refused: true,
       member: 'name',
+      reason: 'malformed',
+    },
+    {
+      why: 'a namespace that holds null is carried, and a namespace is a string: the namespace is malformed',
+      schema: 'Metadata',
+      value: {
+        name: 'kb',
+        namespace: null,
+      },
+      refused: true,
+      member: 'namespace',
       reason: 'malformed',
     },
     {
