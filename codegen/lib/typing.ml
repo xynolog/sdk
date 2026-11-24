@@ -94,9 +94,10 @@ and union = {
 
 and branch = {
   variant : string;
-      (** Its name within the union: the schema's it names, else what it is ([Text], [List], [Empty],
-          [Integer], [Number], [Boolean]), or an object's one value of the
-          member its discriminant is, or its title, or [Object]. *)
+      (** Its name within the union: the schema's it names, else what it is
+          ([Text], [List], [Empty], [Integer], [Number], [Boolean]), or an
+          object's one value of the member its discriminant is, or its title, or
+          [Object]. *)
   ty : ty;
   signature : signature list;
       (** What it admits; several where it is a union itself. *)
