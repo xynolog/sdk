@@ -19,6 +19,10 @@ module H = Haskell_syntax
 
 let ( let* ) = Result.bind
 
+(* The member Xynolog.Discovery.Reasons names its type and constructors by,
+   as a failure vocabulary's are. *)
+let discovery_absent_member = "discoveryAbsent"
+
 let path ~under name =
   "haskell/sdk/" ^ under ^ "/"
   ^ String.concat "/" (String.split_on_char '.' name)
@@ -114,11 +118,13 @@ let files ~root (spec : Spec.t) =
   in
   let* http =
     within "openapi.json"
-      (Http.routes ~prefix:"" ~no_content:false spec spec.gateway)
+      (Http.routes ~prefix:Http.gateway_prefix ~no_content:false spec
+         spec.gateway)
   in
   let* archivist =
     within "archivist/openapi.json"
-      (Http.routes ~prefix:"Archivist" ~no_content:true spec spec.archivist)
+      (Http.routes ~prefix:Http.archivist_prefix ~no_content:true spec
+         spec.archivist)
   in
   let* bus =
     within "bus/registry.json" (Channels.derive spec.tables.bus_registry)
@@ -298,7 +304,7 @@ let files ~root (spec : Spec.t) =
         ~test_name:"DiscoveryReasonRoundTrip"
         [
           {
-            Error_codes.Haskell.member = "discoveryAbsent";
+            Error_codes.Haskell.member = discovery_absent_member;
             codes =
               List.map
                 (fun (r : Tables.Client_discovery_absent.reasons_item) ->

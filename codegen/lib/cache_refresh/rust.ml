@@ -10,7 +10,8 @@ module R = Rust_syntax
 module T = Tables.Client_refresh
 
 let from_ = "protocol/specs/src/client/refresh.json"
-let query name = R.Path [ "CacheQuery"; Text.pascal name ]
+let variant name = Text.pascal name
+let query name = R.Path [ "CacheQuery"; variant name ]
 let trigger on = R.Path [ "RefreshTrigger"; Text.pascal on ]
 let some e = R.call "Some" [ e ]
 let slice items = R.Ref_of (R.Array items)
@@ -117,7 +118,7 @@ let cache_refresh (table : T.t) (t : Table.t) =
               variants =
                 List.map
                   (fun (q : Table.query) ->
-                    R.variant ~doc:[ q.docs ] (Text.pascal q.name))
+                    R.variant ~doc:[ q.docs ] (variant q.name))
                   t.queries;
             };
           R.Blank;

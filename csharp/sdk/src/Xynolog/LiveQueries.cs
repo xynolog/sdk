@@ -50,14 +50,14 @@ internal sealed class LiveQueries : IDisposable
         var window = TimeSpan.FromMilliseconds(transport.Settings.InvalidationWindowMs);
         ResourcesById = new(async (id, token) => (await wire.RequestAsync(BusOperations.BrowseResourceRequested,
             new BrowseResourceRequest { ResourceId = id }, cancellation: token).ConfigureAwait(Spawning.Captures)).Response.Resource, transport.SubscribeToResource, clock, window,
-            persistence?.Changed("resource"));
+            persistence?.Changed(CacheQuery.Resource));
         Resources = new(async (request, token) => (await wire.RequestAsync(BusOperations.BrowseResourcesRequested, request,
             cancellation: token).ConfigureAwait(Spawning.Captures)).Response, null, clock, window);
-        Annotations = new(content.GetAnnotationsAsync, transport.SubscribeToResource, clock, window, persistence?.Changed("annotations"));
+        Annotations = new(content.GetAnnotationsAsync, transport.SubscribeToResource, clock, window, persistence?.Changed(CacheQuery.Annotations));
         Annotation = new(async (key, token) => (await wire.RequestAsync(BusOperations.BrowseAnnotationRequested,
             new BrowseAnnotationRequest { ResourceId = key.Resource, AnnotationId = key.Annotation }, cancellation: token)
             .ConfigureAwait(Spawning.Captures)).Response.Annotation, key => transport.SubscribeToResource(key.Resource), clock, window,
-            persistence?.Changed("annotation"));
+            persistence?.Changed(CacheQuery.Annotation));
         Events = new(async (id, token) => (await wire.RequestAsync(BusOperations.BrowseEventsRequested,
             new BrowseEventsRequest { ResourceId = id }, cancellation: token).ConfigureAwait(Spawning.Captures)).Response.Events, transport.SubscribeToResource, clock, window);
         ReferencedBy = new(async (id, token) => (await wire.RequestAsync(BusOperations.GatherReferencedByRequested,
@@ -66,10 +66,10 @@ internal sealed class LiveQueries : IDisposable
             cancellation: token).ConfigureAwait(Spawning.Captures)).Response, null, clock, window);
 
         var entityTypes = Singleton<IReadOnlyList<string>>(async token => (await wire.RequestAsync(BusOperations.BrowseEntityTypesRequested,
-            new BrowseEntityTypesRequest(), cancellation: token).ConfigureAwait(Spawning.Captures)).Response.EntityTypes, out var types, persistence?.Changed("entityTypes"));
+            new BrowseEntityTypesRequest(), cancellation: token).ConfigureAwait(Spawning.Captures)).Response.EntityTypes, out var types, persistence?.Changed(CacheQuery.EntityTypes));
         EntityTypes = types;
         var tagSchemas = Singleton<IReadOnlyList<TagSchema>>(async token => (await wire.RequestAsync(BusOperations.BrowseTagSchemasRequested,
-            new BrowseTagSchemasRequest(), cancellation: token).ConfigureAwait(Spawning.Captures)).Response.TagSchemas, out var tags, persistence?.Changed("tagSchemas"));
+            new BrowseTagSchemasRequest(), cancellation: token).ConfigureAwait(Spawning.Captures)).Response.TagSchemas, out var tags, persistence?.Changed(CacheQuery.TagSchemas));
         TagSchemas = tags;
         var engines = Singleton(token => LoadEnginesAsync(wire, token), out var listed);
         Engines = listed;
@@ -78,16 +78,16 @@ internal sealed class LiveQueries : IDisposable
         caches = [ResourcesById, Resources, Annotations, Annotation, Events, ReferencedBy, MatchedResources, entityTypes, tagSchemas, engines];
         queries = new(StringComparer.Ordinal)
         {
-            ["resource"] = new(Refetch(ResourcesById, ResourceMatches)),
-            ["resources"] = new(Refetch(Resources, (_, _) => true)),
-            ["annotations"] = new(Refetch(Annotations, ResourceMatches), WriteAnnotations),
-            ["annotation"] = new(Refetch(Annotation, AnnotationMatches), WriteAnnotation, RemoveAnnotation),
-            ["events"] = new(Refetch(Events, ResourceMatches)),
-            ["referencedBy"] = new(Refetch(ReferencedBy, ResourceMatches)),
-            ["matchedResources"] = new(Refetch(MatchedResources, (_, _) => true)),
-            ["entityTypes"] = new((_, _) => EntityTypes.Refresh()),
-            ["tagSchemas"] = new((_, _) => TagSchemas.Refresh()),
-            ["engines"] = new((_, _) => Engines.Refresh()),
+            [CacheQuery.Resource] = new(Refetch(ResourcesById, ResourceMatches)),
+            [CacheQuery.Resources] = new(Refetch(Resources, (_, _) => true)),
+            [CacheQuery.Annotations] = new(Refetch(Annotations, ResourceMatches), WriteAnnotations),
+            [CacheQuery.Annotation] = new(Refetch(Annotation, AnnotationMatches), WriteAnnotation, RemoveAnnotation),
+            [CacheQuery.Events] = new(Refetch(Events, ResourceMatches)),
+            [CacheQuery.ReferencedBy] = new(Refetch(ReferencedBy, ResourceMatches)),
+            [CacheQuery.MatchedResources] = new(Refetch(MatchedResources, (_, _) => true)),
+            [CacheQuery.EntityTypes] = new((_, _) => EntityTypes.Refresh()),
+            [CacheQuery.TagSchemas] = new((_, _) => TagSchemas.Refresh()),
+            [CacheQuery.Engines] = new((_, _) => Engines.Refresh()),
         };
 
         refresh = Table.RootElement.GetProperty("refresh").EnumerateArray().ToLookup(Trigger, StringComparer.Ordinal);
@@ -99,11 +99,11 @@ internal sealed class LiveQueries : IDisposable
         {
             IKeptQuery[] kept =
             [
-                persistence.Keep("resource", ResourcesById, KeptKeys.ByResource<ResourceDescriptor>()),
-                persistence.Keep("annotations", Annotations, KeptKeys.ByResource<GetAnnotationsResponse>()),
-                persistence.Keep("annotation", Annotation, KeptKeys.ByAnnotation),
-                persistence.Keep("entityTypes", entityTypes, KeptKeys.Whole<IReadOnlyList<string>>()),
-                persistence.Keep("tagSchemas", tagSchemas, KeptKeys.Whole<IReadOnlyList<TagSchema>>()),
+                persistence.Keep(CacheQuery.Resource, ResourcesById, KeptKeys.ByResource<ResourceDescriptor>()),
+                persistence.Keep(CacheQuery.Annotations, Annotations, KeptKeys.ByResource<GetAnnotationsResponse>()),
+                persistence.Keep(CacheQuery.Annotation, Annotation, KeptKeys.ByAnnotation),
+                persistence.Keep(CacheQuery.EntityTypes, entityTypes, KeptKeys.Whole<IReadOnlyList<string>>()),
+                persistence.Keep(CacheQuery.TagSchemas, tagSchemas, KeptKeys.Whole<IReadOnlyList<TagSchema>>()),
             ];
             if (!kept.Select(query => query.Name).ToHashSet(StringComparer.Ordinal).SetEquals(PersistedQueries))
                 throw new InvalidOperationException("The live cache does not keep the queries client/refresh.json marks persisted.");

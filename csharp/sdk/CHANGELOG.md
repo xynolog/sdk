@@ -43,6 +43,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The HTTP transports name each span and their count by the SDK telemetry
+  table, and the live queries each query by the refresh table, as generated
+  constants (`TelemetrySpans`, `TelemetryMetrics`, `CacheQuery`) in place of
+  names spelled at each call. What they report and keep is the same.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - The smelter's and the weaver's health name how far they have followed the

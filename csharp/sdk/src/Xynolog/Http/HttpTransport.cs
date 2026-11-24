@@ -240,7 +240,7 @@ public sealed partial class HttpTransport : IDisposable
     /// and returns how many subscribers the gateway says it reached, when it says.</summary>
     public async Task<long?> EmitAsync(string channel, JsonElement payload, ResourceId? scope = null, string? correlationId = null, CancellationToken cancellation = default)
     {
-        using var activity = SdkTelemetry.Start("bus.emit:{channel}", SdkTelemetry.BusTags(channel, scope), channel);
+        using var activity = SdkTelemetry.Start(TelemetrySpans.BusEmit, SdkTelemetry.BusTags(channel, scope), channel);
         SdkTelemetry.Sent(channel, scope);
         BusLog.Line("EMIT", channel, payload);
         try { return await SentAsync(channel, payload, scope, correlationId, cancellation).ConfigureAwait(Spawning.Captures); }
@@ -538,7 +538,7 @@ public sealed partial class HttpTransport : IDisposable
             payload.Remove(ProtocolFacts.TraceField);
             frame = frame with { Payload = JsonSerializer.SerializeToElement(payload) };
         }
-        using var activity = SdkTelemetry.Start("bus.recv:{channel}", SdkTelemetry.BusTags(frame.Channel, frame.Scope), frame.Channel, parent);
+        using var activity = SdkTelemetry.Start(TelemetrySpans.BusRecv, SdkTelemetry.BusTags(frame.Channel, frame.Scope), frame.Channel, parent);
         BusLog.Line("RECV", frame.Channel, frame.Payload);
         Deliver(new ReceivedBusFrame(frame, parent) { EventId = id, Sequence = ++receivedSequence });
     }
