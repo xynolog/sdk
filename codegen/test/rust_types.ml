@@ -8,8 +8,9 @@ open Fixture
 
 let generated ?(identifiers = []) ?(accessors = []) ?(keys = []) schemas root =
   Rust_syntax.text ~header:[]
-    (G.items (definitions schemas)
-       { roots = [ root ]; identifiers; accessors; keys })
+    (G.items
+       (Typing.make (definitions schemas) ~roots:[ root ] ~identifiers ~keys)
+       ~accessors)
 
 let thing pattern =
   [
@@ -136,9 +137,7 @@ let cases =
         has
           (generated
              [
-               ( "Target",
-                 {|{"type": "object", "properties": {"source": {"type": "string"}}, "required": ["source"]}|}
-               );
+               ("Target", {|{"type": "integer"}|});
                ( "Holder",
                  {|{"type": "object", "required": ["target"], "properties": {"target": {"oneOf": [
                      {"type": "string"},
