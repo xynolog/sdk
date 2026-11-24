@@ -287,6 +287,7 @@ export type {
   KbEndpoint,
   HttpEndpoint,
   LocalEndpoint,
+  OpenResource,
 } from '@xynolog/core';
 // What a registry hands its caller, what its signals say, and what is kept of
 // a sign-in: records Protocol states in its tables, from core.
@@ -301,7 +302,6 @@ export type {
   StoredSession,
 } from '@xynolog/core';
 export { httpKb } from './session/knowledge-base';
-export { type OpenResource } from './session/open-resource';
 export {
   defaultProtocol,
   isValidHostname,

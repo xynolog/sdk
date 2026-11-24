@@ -27,6 +27,9 @@ the coming release's, and gathers its changes as they land.
   `propertyNames` and `minProperties` among them, each keyword beside a
   `oneOf` or an `anyOf`, and those of a schema that states no `type`. A value
   is one of a `oneOf`'s variants exactly.
+- `OpenResource` is `Xynolog.Types.OpenResource`, the type Protocol states, in
+  place of `Xynolog.Registry.OpenResource`: it is built with an initializer,
+  and its `Order` is a `long`.
 
 ## 0.8.1
 

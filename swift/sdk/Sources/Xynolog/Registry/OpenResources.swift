@@ -1,24 +1,3 @@
-public struct OpenResource: Codable, Sendable {
-  public let id: ResourceId
-  public var name: String
-  public let openedAt: Int64
-  public var order: Int
-  public var mediaType: String?
-  public var storageUri: String?
-
-  public init(
-    id: ResourceId, name: String, openedAt: Int64, order: Int,
-    mediaType: String? = nil, storageUri: String? = nil
-  ) {
-    self.id = id
-    self.name = name
-    self.openedAt = openedAt
-    self.order = order
-    self.mediaType = mediaType
-    self.storageUri = storageUri
-  }
-}
-
 public func sortOpenResources(_ resources: [OpenResource]) -> [OpenResource] {
   resources.sorted { ($0.order, $0.openedAt) < ($1.order, $1.openedAt) }
 }

@@ -1,6 +1,6 @@
 /**
- * OpenResource — a single entry in the open-resources list (tabs) — and the
- * pure list operations over it.
+ * The pure list operations over the open-resources list (tabs), each entry
+ * an `OpenResource` of @xynolog/core.
  *
  * The list itself lives on `XynologBrowser.openResources$`, and the CRUD
  * methods (`addOpenResource`, `removeOpenResource`, `updateOpenResourceName`,
@@ -13,31 +13,7 @@
  * held by __tests__/stored-table.test.ts.
  */
 
-import type { ResourceId, TabCheck } from '@xynolog/core';
-
-export interface OpenResource {
-  /** The resource. */
-  id: ResourceId;
-
-  /** The name the resource is shown by. */
-  name: string;
-
-  /** When the resource was opened, in milliseconds since the Unix epoch. Opening it again while it is open changes neither this nor its place. */
-  openedAt: number;
-
-  /**
-   * Its place among those open in the knowledge base, from 0. One opened is
-   * given the place after the last taken; a move gives each its place in the
-   * new order.
-   */
-  order: number;
-
-  /** Its media type, which its icon is chosen by. Absent when it is not known. */
-  mediaType?: string;
-
-  /** Where it is in the knowledge base's working tree, as a URI (e.g. "file://docs/overview.md"). Absent when it is not known. */
-  storageUri?: string;
-}
+import type { OpenResource, ResourceId, TabCheck } from '@xynolog/core';
 
 /**
  * Apply per-tab verdicts to a list: drop the affirmed-absent, refresh what

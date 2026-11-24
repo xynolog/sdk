@@ -23,6 +23,8 @@ the coming release's, and gathers its changes as they land.
 - A knowledge base's DID in a health reply is a `KbDid`, and a follower's
   progress a `FollowerFollowing`, where each was a plain string or an object
   stated in place.
+- `OpenResource` is `@xynolog/core`'s, the type Protocol states, which
+  `@xynolog/sdk` exports as it did its own.
 
 ## 0.8.1
 

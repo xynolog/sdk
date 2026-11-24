@@ -176,20 +176,6 @@ public static class RegistryStorage
     }
 }
 
-/// <summary>A resource open as a tab in a knowledge base, as the registry stores it.</summary>
-/// <param name="Id">Which resource is open.</param>
-/// <param name="Name">The resource's name, as its tab shows it.</param>
-/// <param name="OpenedAt">When it was opened, in milliseconds since the Unix epoch.</param>
-/// <param name="Order">Its place in the knowledge base's tab order.</param>
-/// <param name="MediaType">The resource's primary media type, if known.</param>
-/// <param name="StorageUri">The storage URI the application recorded for the resource, if it recorded one.</param>
-public sealed record OpenResource(
-    [property: JsonRequired] ResourceId Id,
-    [property: JsonRequired] string Name,
-    [property: JsonRequired] long OpenedAt,
-    [property: JsonRequired] int Order,
-    string? MediaType = null, string? StorageUri = null);
-
 /// <summary>Orders a knowledge base's tabs, and brings them up to date with what checking their resources found.</summary>
 public static class OpenResources
 {

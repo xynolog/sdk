@@ -373,45 +373,45 @@ let report ~shape ~native ~prefix name =
   in
   Ok
     ( named,
-    [
-      H.data native ~params ~deriving:[ "Eq"; "Show" ]
-        (List.map
-           (fun (_, constructor, _, fields) ->
-             H.constructor constructor ~fields:(List.map fst fields))
-           rows);
-      H.instance "ToJSON"
-        ~context:(List.map (fun v -> ("ToJSON", v)) params)
-        (match params with
-        | [] -> H.T_name native
-        | vs -> H.T_apply (native, List.map (fun v -> H.T_name v) vs))
-        (List.map
-           (fun (word, constructor, members, fields) ->
-             ( "toJSON",
-               {
-                 H.patterns =
-                   [
-                     Constructor
-                       ( constructor,
-                         List.mapi (fun i _ -> H.Var (value i)) fields );
-                   ];
-                 body =
-                   Apply
-                     ( Name "object",
-                       [
-                         List
-                           (H.Infix
-                              ( Str tag,
-                                [ (".=", Typed (Str word, T_name "Text")) ] )
-                           :: List.mapi
-                                (fun i ((m : member), (_, encode)) ->
-                                  H.Infix
-                                    ( Str m.name,
-                                      [ (".=", encode (H.Name (value i))) ] ))
-                                (List.combine members fields));
-                       ] );
-               } ))
-           rows);
-    ] )
+      [
+        H.data native ~params ~deriving:[ "Eq"; "Show" ]
+          (List.map
+             (fun (_, constructor, _, fields) ->
+               H.constructor constructor ~fields:(List.map fst fields))
+             rows);
+        H.instance "ToJSON"
+          ~context:(List.map (fun v -> ("ToJSON", v)) params)
+          (match params with
+          | [] -> H.T_name native
+          | vs -> H.T_apply (native, List.map (fun v -> H.T_name v) vs))
+          (List.map
+             (fun (word, constructor, members, fields) ->
+               ( "toJSON",
+                 {
+                   H.patterns =
+                     [
+                       Constructor
+                         ( constructor,
+                           List.mapi (fun i _ -> H.Var (value i)) fields );
+                     ];
+                   body =
+                     Apply
+                       ( Name "object",
+                         [
+                           List
+                             (H.Infix
+                                ( Str tag,
+                                  [ (".=", Typed (Str word, T_name "Text")) ] )
+                             :: List.mapi
+                                  (fun i ((m : member), (_, encode)) ->
+                                    H.Infix
+                                      ( Str m.name,
+                                        [ (".=", encode (H.Name (value i))) ] ))
+                                  (List.combine members fields));
+                         ] );
+                 } ))
+             rows);
+      ] )
 
 let operation_reports ~shape =
   let* reasons =

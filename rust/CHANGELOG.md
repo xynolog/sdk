@@ -25,6 +25,8 @@ the coming release's, and gathers its changes as they land.
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
 - A schema of one integer, number or boolean is an alias of that type
   (`HttpStatus`).
+- `OpenResource` is `xynolog::types::OpenResource`, the type Protocol states,
+  in place of `xynolog::session::OpenResource`.
 
 ## 0.8.1
 

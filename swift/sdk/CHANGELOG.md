@@ -23,6 +23,8 @@ the coming release's, and gathers its changes as they land.
 - The smelter's and the weaver's health name how far they have followed the
   record as `FollowerFollowing`, the type Protocol states, in place of
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
+- `OpenResource` is the type Protocol states: its `openedAt` is an `Int`, and
+  its initializer takes its members in their alphabetical order.
 
 ## 0.8.1
 

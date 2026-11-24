@@ -23,6 +23,9 @@ the coming release's, and gathers its changes as they land.
 - The smelter's and the weaver's health name how far they have followed the
   record as `FollowerFollowing`, the type Protocol states, in place of
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
+- `OpenResource` is `xynolog.types.OpenResource`, in place of
+  `xynolog.stored.OpenResource`. Its bounds are held by the required table as
+  the registry reads what it stored.
 
 ## 0.8.1
 

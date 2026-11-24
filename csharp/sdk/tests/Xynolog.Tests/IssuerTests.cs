@@ -36,7 +36,7 @@ public sealed class IssuerTests
         });
         using var client = new HttpClient(handler);
         var kept = new MemorySignIn(Held());
-        using (var issuer = new Issuer(client)) Assert.Equal("new", await issuer.RenewAsync(kept, "old"));
+        using (var issuer = new SignIn.Issuer(client)) Assert.Equal("new", await issuer.RenewAsync(kept, "old"));
         Assert.Equal("refresh &+=", (await kept.HeldAsync())?.Refresh);
         using var form = new FormUrlEncodedContent(new Dictionary<string, string>
         { ["refresh_token"] = "refresh &+=", ["client_id"] = SignInPolicy.ScriptClientId });
@@ -56,7 +56,7 @@ public sealed class IssuerTests
         var calls = 0;
         using var handler = new Handler((_, _) => { calls++; return Task.FromResult(Answer(status, body)); });
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client);
+        using var issuer = new SignIn.Issuer(client);
         var kept = new MemorySignIn(Held());
         var error = await Assert.ThrowsAsync<SignInError>(() => issuer.RenewAsync(kept, "old"));
         Assert.Equal("exchange", error.Code);
@@ -72,7 +72,7 @@ public sealed class IssuerTests
         var calls = 0;
         using var handler = new Handler((_, _) => { calls++; return Task.FromResult(Answer(503, "{}")); });
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock, new ZeroRandom());
+        using var issuer = new SignIn.Issuer(client, clock, new ZeroRandom());
         var budget = ProtocolFacts.Timing("refreshRetry");
         var attempts = budget.GetProperty("attempts").GetInt32();
         var cap = budget.GetProperty("initialDelayMs").GetDouble();
@@ -101,7 +101,7 @@ public sealed class IssuerTests
             throw new InvalidOperationException("An infinite wait returned");
         });
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client);
+        using var issuer = new SignIn.Issuer(client);
         using var cancellation = new CancellationTokenSource();
         var renewal = issuer.RenewAsync(new MemorySignIn(Held()), "old", cancellation.Token);
         await entered.Task;
@@ -123,7 +123,7 @@ public sealed class IssuerTests
             throw new HttpRequestException("unreachable");
         });
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock, new ZeroRandom());
+        using var issuer = new SignIn.Issuer(client, clock, new ZeroRandom());
         var kept = new MemorySignIn(Held());
         var renewal = issuer.RenewAsync(kept, "old");
         if (timeout)
@@ -151,7 +151,7 @@ public sealed class IssuerTests
             ? unanswered
             : Answer(200, "{\"access_token\":\"new\"}")));
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock, new ZeroRandom());
+        using var issuer = new SignIn.Issuer(client, clock, new ZeroRandom());
         var renewal = issuer.RenewAsync(new MemorySignIn(Held()), "old");
         var deadline = TimeSpan.FromMilliseconds(ProtocolFacts.Timing("httpRequestTimeoutMs").GetDouble());
         await clock.WaitForAsync(deadline);

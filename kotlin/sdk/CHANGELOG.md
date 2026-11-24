@@ -25,6 +25,9 @@ the coming release's, and gathers its changes as they land.
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
 - A schema of one integer, number or boolean is an alias of that type
   (`HttpStatus`), and a union reads a member that is a number or a boolean.
+- `OpenResource` is `xynolog.types.OpenResource`, the type Protocol states, in
+  place of `xynolog.registry.OpenResource`: its `order` is a `Long`, and Java
+  makes one with its `builder`.
 
 ## 0.8.1
 

@@ -26,10 +26,9 @@ use xynolog::client::{CachePersistence, ClientOptions};
 use xynolog::errors::{SessionError, SessionErrorCode, TransportError, TransportErrorCode};
 use xynolog::session::{
     ACTIVE_KEY, KNOWLEDGE_BASES_KEY, LAST_VIEWED_RESOURCE_BY_KB_KEY, MemorySignIn,
-    OPEN_RESOURCES_BY_KB_KEY, OpenResource, SessionFactory, SessionFactoryOptions, SignInKept,
-    XynologBrowser, XynologBrowserConfig, XynologSession, XynologSessionConfig,
-    load_knowledge_bases, person_key, save_knowledge_bases, session_key, store_session,
-    stored_session,
+    OPEN_RESOURCES_BY_KB_KEY, SessionFactory, SessionFactoryOptions, SignInKept, XynologBrowser,
+    XynologBrowserConfig, XynologSession, XynologSessionConfig, load_knowledge_bases, person_key,
+    save_knowledge_bases, session_key, store_session, stored_session,
 };
 use xynolog::storage::{SessionStorage, StorageChange, StorageSubscription};
 use xynolog::testing::as_id;
@@ -40,7 +39,7 @@ use xynolog::timing::SAVE_DEBOUNCE;
 use xynolog::transport::{BoxFuture, ConnectionState, Events, Transport};
 use xynolog::types::{
     Expected, KbIdentityConflict, KbReadVerdict, KbReadVerdictConflict, KbReadVerdictNoVerdict,
-    KbReadVerdictRecorded, KbSessionStatus, PermissionDenied, SessionEnded, SignedIn,
+    KbReadVerdictRecorded, KbSessionStatus, OpenResource, PermissionDenied, SessionEnded, SignedIn,
     StoredSession,
 };
 use xynolog::types::{

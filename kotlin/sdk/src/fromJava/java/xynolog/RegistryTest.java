@@ -26,7 +26,6 @@ import xynolog.http.HttpSessionFactory;
 import xynolog.identifiers.ResourceId;
 import xynolog.registry.KeepingKt;
 import xynolog.registry.OpenKt;
-import xynolog.registry.OpenResource;
 import xynolog.registry.StoredKt;
 import xynolog.registry.XynologBrowser;
 import xynolog.registry.XynologBrowserConfig;
@@ -40,6 +39,7 @@ import xynolog.types.KbReadVerdictNoVerdict;
 import xynolog.types.KbSessionStatus;
 import xynolog.types.KnowledgeBase;
 import xynolog.types.LocalEndpoint;
+import xynolog.types.OpenResource;
 import xynolog.types.SessionEndReason;
 import xynolog.types.SessionEnded;
 import xynolog.types.StoredSession;
@@ -164,8 +164,8 @@ final class RegistryTest {
 
     @Test
     void whatIsOpenIsOrderedAndCheckedFromJava() {
-        OpenResource later = new OpenResource(new ResourceId("later"), "Later", 20, 1, "text/plain", null);
-        OpenResource first = new OpenResource(new ResourceId("first"), "First", 30, 0, null, null);
+        OpenResource later = OpenResource.builder(new ResourceId("later"), "Later", 20, 1).mediaType("text/plain").build();
+        OpenResource first = OpenResource.builder(new ResourceId("first"), "First", 30, 0).build();
         List<OpenResource> ordered = OpenKt.sortOpenResources(List.of(later, first));
         assertEquals(List.of(first, later), ordered);
         List<OpenResource> kept = OpenKt.applyTabChecks(ordered, Map.of(

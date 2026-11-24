@@ -70,6 +70,7 @@ from xynolog.events import Events
 from xynolog.identifiers import ResourceId
 from xynolog.identity import kb_did
 from xynolog.model import written
+from xynolog.required import fault_of
 from xynolog.resources import primary_media_type
 from xynolog.session import HeldSignIn, SignInKept, XynologSession, is_token_expired
 from xynolog.session_signals import SessionSignals
@@ -81,7 +82,6 @@ from xynolog.stored import (
     KNOWLEDGE_BASES_KEY,
     LAST_VIEWED_RESOURCE_BY_KB_KEY,
     OPEN_RESOURCES_BY_KB_KEY,
-    OpenResource,
 )
 from xynolog.timing import CHECKS_AT_ONCE_COUNT
 from xynolog.transport import Transport
@@ -97,6 +97,7 @@ from xynolog.types import (
     KbSessionStatus,
     KnowledgeBase,
     NewKnowledgeBase,
+    OpenResource,
     SignedIn,
     SignInOutcome,
     StoredSession,
@@ -341,6 +342,7 @@ def sort_open_resources(resources: Iterable[OpenResource]) -> list[OpenResource]
     return sorted(resources, key=lambda resource: (resource.order, resource.opened_at))
 
 
+_KEPT_BY_KB: Final = TypeAdapter[dict[str, list[JsonValue]]](dict[str, list[JsonValue]])
 _OPEN_BY_KB: Final = TypeAdapter[dict[str, list[OpenResource]]](dict[str, list[OpenResource]])
 _VIEWED_BY_KB: Final = TypeAdapter[dict[str, ResourceId]](dict[str, ResourceId])
 
@@ -350,9 +352,12 @@ def _open_by_kb_of(stored: str | None) -> dict[str, list[OpenResource]]:
     if stored is None:
         return {}
     try:
-        return _OPEN_BY_KB.validate_json(stored)
+        kept = _KEPT_BY_KB.validate_json(stored)
     except ValidationError:
         return {}
+    if any(fault_of(OpenResource, entry) is not None for entries in kept.values() for entry in entries):
+        return {}
+    return _OPEN_BY_KB.validate_python(kept)
 
 
 def _viewed_by_kb_of(stored: str | None) -> dict[str, ResourceId]:

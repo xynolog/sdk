@@ -1173,46 +1173,6 @@ public final class xynolog/registry/OpenKt {
 	public static final fun sortOpenResources (Ljava/util/List;)Ljava/util/List;
 }
 
-public final class xynolog/registry/OpenResource {
-	public static final field Companion Lxynolog/registry/OpenResource$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/BoxingConstructorMarker;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/BoxingConstructorMarker;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Lxynolog/identifiers/ResourceId;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;)V
-	public final fun component1-mMrHYc8 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()J
-	public final fun component4 ()I
-	public final fun component5 ()Ljava/lang/String;
-	public final fun component6 ()Ljava/lang/String;
-	public final fun copy-2a5fTYc (Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;)Lxynolog/registry/OpenResource;
-	public static synthetic fun copy-2a5fTYc$default (Lxynolog/registry/OpenResource;Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lxynolog/registry/OpenResource;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getId ()Lxynolog/identifiers/ResourceId;
-	public final fun getId-mMrHYc8 ()Ljava/lang/String;
-	public final fun getMediaType ()Ljava/lang/String;
-	public final fun getName ()Ljava/lang/String;
-	public final fun getOpenedAt ()J
-	public final fun getOrder ()I
-	public final fun getStorageUri ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class xynolog/registry/OpenResource$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lxynolog/registry/OpenResource$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lxynolog/registry/OpenResource;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lxynolog/registry/OpenResource;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class xynolog/registry/OpenResource$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
 public abstract interface class xynolog/registry/SessionFactory {
 	public abstract fun revoke (Lxynolog/types/StoredSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun revokeFuture (Lxynolog/types/StoredSession;)Ljava/util/concurrent/CompletableFuture;

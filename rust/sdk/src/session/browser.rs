@@ -43,7 +43,7 @@
 //! `close` is the graceful end. A browser is built inside a Tokio runtime.
 
 use super::factory::{SessionFactory, SessionFactoryOptions};
-use super::open_resource::{OpenResource, apply_tab_checks, sort_open_resources};
+use super::open_resource::{apply_tab_checks, sort_open_resources};
 use super::signals::SessionSignals;
 use super::stored::{
     ACTIVE_KEY, LAST_VIEWED_RESOURCE_BY_KB_KEY, OPEN_RESOURCES_BY_KB_KEY, forget_kept,
@@ -60,6 +60,7 @@ use crate::state::{Held, Tasks};
 use crate::storage::{SessionStorage, StorageSubscription};
 use crate::timing::CHECKS_AT_ONCE_COUNT;
 use crate::transport::Events;
+use crate::types::OpenResource;
 use crate::types::{
     Expected, KbEndpoint, KbIdentityConflict, KbRead, KbReadVerdict, KbReadVerdictConflict,
     KbReadVerdictNoVerdict, KbReadVerdictRecorded, KbSessionStatus, KnowledgeBase,

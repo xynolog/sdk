@@ -2,30 +2,18 @@
    SessionStorage (protocol/specs/src/session/stored.json), for the Python
    SDK. A registry in one SDK finds what one in another wrote, over one
    storage, only if both say these alike: the key each thing is kept under,
-   the prefixes of the keys made per knowledge base, an open resource's
-   shape, the stream's places, and the queries a client keeps (those
-   client/refresh.json marks persisted), with the key of one per nothing and
-   the version of what keeps them. The stored session's shape is a table
-   record, xynolog.types' ([Table_records]).
+   the prefixes of the keys made per knowledge base, the stream's places, and
+   the queries a client keeps (those client/refresh.json marks persisted),
+   with the key of one per nothing and the version of what keeps them. The
+   stored session's and an open resource's shapes are xynolog.types'.
 
    A fixed key is a constant's name ending in Key, stated once, and begins
-   with no prefix. An open resource's members are kinds of id, text and
-   whole numbers. The stream's places are named by a kind of id, each a
+   with no prefix. The stream's places are named by a kind of id, each a
    component. *)
 
 module T = Tables.Session_stored
 
 let file = "session/stored.json"
-let snake name = String.lowercase_ascii (Text.upper_snake name)
-
-type field = {
-  name : string;
-  description : string;
-  required : bool;
-  type_ : string;  (** As Python names it. *)
-  kind : string option;  (** The kind of id it is. *)
-  least : int option;
-}
 
 type kept = { query : string; keyed_by : string option; value : string }
 
@@ -34,8 +22,6 @@ type named = { title : string; description : string }
 
 type t = {
   table : T.t;
-  open_resource_type : named;
-  open_resource : field list;
   places : named;  (** lastEventIds' type. *)
   version : int;  (** The cache document's version. *)
   version_description : string;
@@ -120,13 +106,6 @@ let derive (spec : Spec.t) ~kinds ~(refresh : Cache_refresh.Table.t) =
     | Schema s -> s
     | Boolean_schema _ -> Schema.empty
   in
-  let property at name (s : Schema.schema) =
-    match Option.bind s.properties (List.assoc_opt name) with
-    | Some property -> layer property
-    | None ->
-        refuse at (Printf.sprintf "lacks the property %s" name);
-        Schema.empty
-  in
   let said = function Some text -> text <> "" | None -> false in
   let named_type (s : Schema.schema) =
     match s.title with Some t -> Sign_in.Flat.is_type_name t | None -> false
@@ -135,75 +114,6 @@ let derive (spec : Spec.t) ~kinds ~(refresh : Cache_refresh.Table.t) =
     | Some (Schema { ref_ = Some r; _ }) -> Some r
     | _ -> None
   in
-  let at_open = "/openResource" in
-  let o =
-    match
-      Table_records.stated spec (file ^ "#" ^ at_open, table.open_resource)
-    with
-    | Ok (_, s) -> layer s
-    | Error message ->
-        refuse at_open message;
-        Schema.empty
-  in
-  if o.type_ <> Some [ Object ] then refuse (at_open ^ "/type") "is not object";
-  if not (named_type o) then refuse (at_open ^ "/title") "names no type";
-  if not (said o.description) then refuse (at_open ^ "/description") "is empty";
-  let required = Option.value ~default:[] o.required in
-  if required = [] then refuse (at_open ^ "/required") "requires nothing";
-  let p name = property (at_open ^ "/properties") name o in
-  (* A member of text or a whole number states the JSON type it is; a kind
-     of id is its kind's. *)
-  let field name ~(schema : Schema.schema) ~type_ ?kind ?(least = false) () =
-    let at = at_open ^ "/properties/" ^ name in
-    if not (said schema.description) then
-      refuse (at ^ "/description") "is empty";
-    (match schema.type_ with
-    | Some [ stated ]
-      when stated <> if type_ = "int" then Schema.Integer else Schema.String ->
-        refuse (at ^ "/type")
-          (Printf.sprintf "is %S, which this member is not"
-             (Schema.type_word stated))
-    | _ -> ());
-    {
-      name;
-      description = Option.value ~default:"" schema.description;
-      required = List.mem name required;
-      type_;
-      kind;
-      least = (if least then Option.map int_of_float schema.minimum else None);
-    }
-  in
-  let id =
-    let at = at_open ^ "/properties/id" in
-    let schema = p "id" in
-    match schema.ref_ with
-    | Some only ->
-        let kind = component (at ^ "/$ref") (Some only) in
-        if kind <> "" && not (List.mem kind kinds) then
-          refuse (at ^ "/$ref")
-            (Printf.sprintf "names %s, which is no kind of id" kind);
-        field "id" ~schema ~type_:kind ~kind ()
-    | _ ->
-        refuse at "is not one kind of id";
-        field "id" ~schema ~type_:"" ()
-  in
-  let open_resource =
-    [
-      id;
-      field "name" ~schema:(p "name") ~type_:"str" ();
-      field "openedAt" ~schema:(p "openedAt") ~type_:"int" ~least:true ();
-      field "order" ~schema:(p "order") ~type_:"int" ~least:true ();
-      field "mediaType" ~schema:(p "mediaType") ~type_:"str" ();
-      field "storageUri" ~schema:(p "storageUri") ~type_:"str" ();
-    ]
-  in
-  List.iteri
-    (fun i name ->
-      if not (List.exists (fun f -> f.name = name) open_resource) then
-        refuse
-          (Printf.sprintf "%s/required/%d" at_open i)
-          (Printf.sprintf "is %s, which is not a property" name))
-    required;
   let l = layer table.last_event_ids in
   let at_last = "/lastEventIds" in
   if l.type_ <> Some [ Object ] then refuse (at_last ^ "/type") "is not object";
@@ -316,8 +226,6 @@ let derive (spec : Spec.t) ~kinds ~(refresh : Cache_refresh.Table.t) =
       Ok
         {
           table;
-          open_resource_type = named o;
-          open_resource;
           places = named l;
           version;
           version_description;
@@ -331,44 +239,12 @@ let derive (spec : Spec.t) ~kinds ~(refresh : Cache_refresh.Table.t) =
 let python t =
   let module P = Python_syntax in
   let table = t.table in
-  let optional type_ = P.Binary (type_, P.Or, P.Name "None") in
-  let field (f : field) =
-    let python = snake f.name in
-    let plain =
-      if f.required then P.Name f.type_ else optional (P.Name f.type_)
-    in
-    let said =
-      (if python = f.name then [] else [ P.keyword "alias" (P.Str f.name) ])
-      @ match f.least with None -> [] | Some n -> [ P.keyword "ge" (P.Int n) ]
-    in
-    P.assign ~about:[ Prose f.description ] python
-      ~annotation:
-        (match said with
-        | [] -> plain
-        | said ->
-            P.sub "Annotated" [ P.item plain; P.item (P.call "Field" said) ])
-      ?value:(if f.required then None else Some (P.Name "None"))
-  in
-  let model name doc fields =
-    P.Class
-      {
-        decorators = [ P.Name "final" ];
-        name;
-        bases =
-          [ P.item (P.Name "WireModel"); P.keyword "frozen" (P.Name "True") ];
-        doc = Some (Wrapped doc);
-        spacing = Spaced;
-        body = fields;
-      }
-  in
   let constant ~about name value =
     P.assign ~about:[ Prose about ] name ~annotation:(P.Name "Final") ~value
   in
   let named = [ t.scope; t.place ] in
   let identifiers =
-    List.sort_uniq compare
-      (List.filter_map (fun f -> f.kind) t.open_resource
-      @ List.filter (fun n -> List.mem n t.kinds) named)
+    List.sort_uniq compare (List.filter (fun n -> List.mem n t.kinds) named)
   in
   let components =
     List.sort_uniq compare
@@ -390,8 +266,7 @@ let python t =
           "SESSION_KEY_PREFIX";
           "WHOLE_KEY";
         ])
-    @ List.sort compare
-        [ t.open_resource_type.title; t.places.title; "KeptQuery"; "WholeKey" ]
+    @ List.sort compare [ t.places.title; "KeptQuery"; "WholeKey" ]
   in
   let kept_as k =
     "Keyed by "
@@ -414,21 +289,15 @@ let python t =
             As_is
               "What a registry of knowledge bases keeps in a `SessionStorage` \
                (`protocol/specs/src/session/stored.json`):\n\
-               the key each thing it keeps is kept under, and the shape of a \
-               resource open in one.\n\
+               the key each thing it keeps is kept under.\n\
                And what the sessions it makes keep there: which queries, and \
                the stream's\n\
                places. The keys made of these prefixes are \
                `xynolog.storage_keys`'s.\n";
           imports =
             [
-              [
-                P.From ("typing", [ "Annotated"; "Final"; "Literal"; "final" ]);
-              ];
-              [ P.From ("pydantic", [ "Field" ]) ];
-              from "identifiers" identifiers
-              @ [ P.From ("xynolog.model", [ "WireModel" ]) ]
-              @ from "types" components;
+              [ P.From ("typing", [ "Final"; "Literal" ]) ];
+              from "identifiers" identifiers @ from "types" components;
             ];
           body =
             P.assign "__all__"
@@ -490,9 +359,6 @@ let python t =
                   ];
                 constant ~about:t.version_description "CACHE_DOCUMENT_VERSION"
                   (P.Int t.version);
-                model t.open_resource_type.title
-                  t.open_resource_type.description
-                  (List.map field t.open_resource);
               ];
         };
   }

@@ -509,12 +509,12 @@ public actor XynologBrowser {
         if let storageUri, !storageUri.isEmpty { open[index].storageUri = storageUri }
         return
       }
-      let now = Int64(Date().timeIntervalSince1970 * 1000)
+      let now = Int(Date().timeIntervalSince1970 * 1000)
       let lastOrder = max(-1, open.map(\.order).max() ?? -1)
       let order = lastOrder == Int.max ? lastOrder : lastOrder + 1
       open.append(
         OpenResource(
-          id: id, name: name, openedAt: now, order: order, mediaType: mediaType,
+          id: id, mediaType: mediaType, name: name, openedAt: now, order: order,
           storageUri: storageUri))
     }
   }

@@ -116,7 +116,7 @@ public sealed class HttpSessionFactory(HttpClient? httpClient = null, TimeProvid
     /// <inheritdoc/>
     public async Task RevokeAsync(StoredSession stored, CancellationToken cancellation = default)
     {
-        using var issuer = new Issuer(httpClient, timeProvider, random);
+        using var issuer = new SignIn.Issuer(httpClient, timeProvider, random);
         await issuer.SignOutAsync(new MemorySignIn(stored), cancellation).ConfigureAwait(Spawning.Captures);
     }
 }

@@ -31,6 +31,7 @@ import xynolog.storage.MemoryStorage
 import xynolog.types.HttpEndpoint
 import xynolog.types.HttpEndpointProtocol
 import xynolog.types.KnowledgeBase
+import xynolog.types.OpenResource
 import xynolog.types.StoredSession
 import xynolog.types.wireJson
 

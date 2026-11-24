@@ -19,7 +19,7 @@ public sealed class DeviceSignInTests
         var token = TokenTests.Jwt(new { iss = "https://issuer.example", exp = clock.GetUtcNow().ToUnixTimeSeconds() + 3600 });
         using var handler = new Handler(token);
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock);
+        using var issuer = new SignIn.Issuer(client, clock);
         var kept = new MemorySignIn();
         DeviceCode? code = null;
         var signing = issuer.SignInDeviceAsync(Endpoint(), kept, value => code = value);
@@ -57,7 +57,7 @@ public sealed class DeviceSignInTests
         using var handler = new Handler("token");
         handler.PollAnswers.Enqueue((400, JsonSerializer.Serialize(new { error = answer })));
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock);
+        using var issuer = new SignIn.Issuer(client, clock);
         var kept = new MemorySignIn();
         var signing = issuer.SignInDeviceAsync(Endpoint(), kept, _ => { });
         await clock.WaitForAsync(TimeSpan.FromSeconds(5));
@@ -77,7 +77,7 @@ public sealed class DeviceSignInTests
         handler.PollAnswers.Enqueue((400, "{\"error\":\"authorization_pending\"}"));
         handler.PollAnswers.Enqueue((200, "{\"access_token\":\"token\",\"refresh_token\":\"refresh\"}"));
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock);
+        using var issuer = new SignIn.Issuer(client, clock);
         var signing = issuer.SignInDeviceAsync(Endpoint(), new MemorySignIn(), _ => { });
         var interval = TimeSpan.FromSeconds(5);
         await clock.WaitForAsync(interval);
@@ -106,7 +106,7 @@ public sealed class DeviceSignInTests
         if (interval is double value) device["interval"] = value;
         handler.Answers["/device"] = (200, JsonSerializer.Serialize(device));
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock);
+        using var issuer = new SignIn.Issuer(client, clock);
         using var cancellation = new CancellationTokenSource();
         var signing = issuer.SignInDeviceAsync(Endpoint(), new MemorySignIn(), _ => { }, cancellation.Token);
         var wait = interval is null ? ProtocolFacts.Timing("devicePollMs").GetDouble() : ProtocolFacts.Timing("devicePollFloorMs").GetDouble();
@@ -125,7 +125,7 @@ public sealed class DeviceSignInTests
         using var handler = new Handler("token");
         handler.Answers["/device"] = (200, JsonSerializer.Serialize(new { device_code = "secret-code", user_code = "ABCD", verification_uri = "https://issuer.example/verify", expires_in = seconds, interval = 5 }));
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock);
+        using var issuer = new SignIn.Issuer(client, clock);
         var signing = issuer.SignInDeviceAsync(Endpoint(), new MemorySignIn(), _ => { });
         if (seconds > 0)
         {
@@ -152,7 +152,7 @@ public sealed class DeviceSignInTests
         using var handler = new Handler("token");
         handler.Answers[path] = (status, body);
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client);
+        using var issuer = new SignIn.Issuer(client);
         var error = await Assert.ThrowsAsync<SignInError>(() => issuer.SignInDeviceAsync(Endpoint(), new MemorySignIn(), _ => throw new InvalidOperationException("No code should be shown")));
         Assert.Equal(expected, error.Code);
         Assert.Equal(0, handler.Polls);
@@ -168,7 +168,7 @@ public sealed class DeviceSignInTests
         using var handler = new Handler("token");
         handler.PollAnswers.Enqueue((200, body));
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock);
+        using var issuer = new SignIn.Issuer(client, clock);
         var kept = new MemorySignIn();
         var signing = issuer.SignInDeviceAsync(Endpoint(), kept, _ => { });
         await clock.WaitForAsync(TimeSpan.FromSeconds(5));
@@ -184,7 +184,7 @@ public sealed class DeviceSignInTests
         var clock = new TestClock();
         using var handler = new Handler("token");
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock);
+        using var issuer = new SignIn.Issuer(client, clock);
         var kept = new MemorySignIn();
         var signing = issuer.SignInDeviceAsync(Endpoint(), kept, _ => { });
         await clock.WaitForAsync(TimeSpan.FromSeconds(5));
@@ -202,7 +202,7 @@ public sealed class DeviceSignInTests
         handler.Answers["/revoke"] = (503, "unavailable");
         handler.FailRevocation = network;
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client);
+        using var issuer = new SignIn.Issuer(client);
         var kept = new MemorySignIn(new StoredSession
         {
             Access = "token",
@@ -223,7 +223,7 @@ public sealed class DeviceSignInTests
         using var handler = new Handler(token);
         handler.PollAnswers.Enqueue((200, JsonSerializer.Serialize(new { access_token = token, refresh_token = "refresh" })));
         using var client = new HttpClient(handler);
-        using var issuer = new Issuer(client, clock);
+        using var issuer = new SignIn.Issuer(client, clock);
         var directory = Path.Combine(Path.GetTempPath(), "xynolog-device-" + Guid.NewGuid());
         var store = new SignInStore(directory, clock);
         Directory.CreateDirectory(store.FilePath);

@@ -294,7 +294,7 @@ public sealed class ClockCasesTests
             ?? throw new InvalidOperationException("An answer is null")).ToArray();
         var issuer = new DeviceIssuer(GivenSeconds(given, "intervalSeconds"), answers);
         var http = play.Keep(new HttpClient(issuer) { Timeout = Timeout.InfiniteTimeSpan });
-        var signIn = play.Keep(new Issuer(http, play.Clock, play.Random));
+        var signIn = play.Keep(new SignIn.Issuer(http, play.Clock, play.Random));
         var endpoint = Read<HttpEndpoint>("""{"kind":"http","host":"gateway.test","port":80,"protocol":"http"}""");
         play.Running(stop => signIn.SignInDeviceAsync(endpoint, new MemorySignIn(), _ => { }, stop));
         return Task.FromResult(new Subject(() => issuer.TokenAsks, null));

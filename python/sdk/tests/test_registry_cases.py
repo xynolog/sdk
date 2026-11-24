@@ -12,7 +12,7 @@ from spec import SPEC
 from xynolog._endpoints import same_place
 from xynolog.identifiers import ResourceId
 from xynolog.registry import sort_open_resources
-from xynolog.stored import OpenResource
+from xynolog.types import OpenResource
 from xynolog.types import KbEndpoint
 
 

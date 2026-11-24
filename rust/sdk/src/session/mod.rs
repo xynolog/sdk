@@ -41,7 +41,7 @@ pub use browser::{XynologBrowser, XynologBrowserConfig};
 pub use factory::{SessionFactory, SessionFactoryOptions};
 pub use kept::{MemorySignIn, SignInKept};
 pub use knowledge_base::is_valid_hostname;
-pub use open_resource::{OpenResource, apply_tab_checks, sort_open_resources};
+pub use open_resource::{apply_tab_checks, sort_open_resources};
 pub use signals::SessionSignals;
 pub use stored::{
     ACTIVE_KEY, KNOWLEDGE_BASES_KEY, LAST_VIEWED_RESOURCE_BY_KB_KEY, OPEN_RESOURCES_BY_KB_KEY,
