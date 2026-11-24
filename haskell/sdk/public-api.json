@@ -538,6 +538,7 @@
     "generated/Xynolog/Internal/Generated/SignInStore.hs": "cf9e2aab7df377a0e6d4a343b63cc23a7171a48325bb04b1d68df86c75766a26",
     "generated/Xynolog/Internal/Generated/Stored.hs": "405387078b60b92aeadff69b9a8b723960be8ba3a2a4f8231cfdb24a87378ea2",
     "generated/Xynolog/Internal/Generated/TelemetryKeys.hs": "247297fa15fc84f15215491abb9ea0a28efcab41c6963160247e59f4e37a2ffe",
+    "generated/Xynolog/Internal/Generated/TelemetryNames.hs": "6cd5e54f6d9de0db7c5bc15480435652cb161dd3017dc8b6b314306db1de2790",
     "generated/Xynolog/Internal/Generated/Testing.hs": "74b05f2827b3da0378e2f3f432498e691584d92b49c053359a465b7eda31e4e5",
     "generated/Xynolog/Internal/Generated/Text.hs": "09801fd98cc72a2f7ebf2ccdc7afada0c0f3890286d371cf8e3f08f2a97b66e5",
     "generated/Xynolog/Internal/Generated/TimingSettings.hs": "6b19e592fb7a733ff6d44dcc211d72e343ba2f70c7d1c8e2f70d3b47a9db3ca5",
@@ -564,7 +565,7 @@
     "internal/Xynolog/Internal/Gather.hs": "c2a88af309e1b0ff92ba71925306ec4ba241c94e682be958db4ad49476ffc944",
     "internal/Xynolog/Internal/Http.hs": "89d6f5bbe1c6ac0152a4761e46ac0e760b60023aa7a055b7f64d6bba34f5fcf8",
     "internal/Xynolog/Internal/HttpActor.hs": "868814bbab0ab1496b6e69a5ade2b7617807ae383337d35d527a6b5b37a87592",
-    "internal/Xynolog/Internal/HttpContent.hs": "0e8e60c45fc6039b91bcd680e9efc5ad5033b1a504120a25f88441e78d2c65f6",
+    "internal/Xynolog/Internal/HttpContent.hs": "5daf6f03a3063193c6ba40f80951d98183828961abfa12d443bfea4e21fa8d9b",
     "internal/Xynolog/Internal/Issuer.hs": "778031def0f21ccdef4fc69041e9a4abaffea9b9f1f085cc182869a141668c0e",
     "internal/Xynolog/Internal/Kept.hs": "339bd720c2bcc56a0b9b520a64e45e9d6cf689b875b503090fec59dc2e55e274",
     "internal/Xynolog/Internal/Lifetime.hs": "7683169b7799ad3119f1c2ea849238dddc0dd832dffeacc87b9be86049eba585",
@@ -586,7 +587,7 @@
     "internal/Xynolog/Internal/StateValue.hs": "b606d06bc98038a3ac06fc2146b5626933c43e90e07b45686d445b0e33ac29c9",
     "internal/Xynolog/Internal/Stored.hs": "da9c392f344fca7aed7d6095841a30818050512a4c9add73618332e03722877a",
     "internal/Xynolog/Internal/StreamFrame.hs": "09ba12982f0278f9809373609971f4d7dd23ff0698c507c5b415ce4b9407990b",
-    "internal/Xynolog/Internal/Telemetry.hs": "cb2630824bbd7ac0ef0be09f625c2e53594cd905be9dd14376d744aa4e9032d6",
+    "internal/Xynolog/Internal/Telemetry.hs": "68998bb042b6db0d24945b4565602035ba3564ec8b10e503f6460a39ce0f7d0b",
     "internal/Xynolog/Internal/Text.hs": "0299e35162f447e7c7e5cb521e0e75593351d413ff8041ab93bf2236fab1a11b",
     "internal/Xynolog/Internal/Transport.hs": "807623cd9ed2f919515428b6ce0d6f2fb6689969caa8df0e7dbaa010276847f3",
     "internal/Xynolog/Internal/UnicodeCase.hs": "db22ac7faa38045f0ee0331885d93caae5c7fc41df56d1d825da16e096ef450e",
@@ -669,7 +670,7 @@
     "src/Xynolog/Types/Presence.hs": "0c700ed04e5fe1fe43786d384622dbf716ea8703a1af8b8d8b894876dbe13a8f",
     "src/Xynolog/Worker.hs": "4ef864aedc7cdc602443a72d8a59c3e385fdfbf36bb352d3a5511fd125492e46",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
-    "xynolog.cabal.in": "2081921e60760e471c019a45868c054319354c0219b22e99683d44a8c7903e0f"
+    "xynolog.cabal.in": "fde1426ed93274b7e84f5bfc5cd3084e2400cf569a6f008a7902767a8f600f6a"
   },
   "modules": {
     "Xynolog.Annotations": {

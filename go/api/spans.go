@@ -6,7 +6,7 @@ import "encoding/json"
 // of it is built from. Each member of ReconciledSpan is a TextSpan's members
 // and how it was found, so the span is read off whichever member u holds.
 func (u ReconciledSpan) TextSpan() (TextSpan, error) {
-	if _, err := u.ValueByDiscriminator(); err != nil {
+	if _, err := u.Member(); err != nil {
 		return TextSpan{}, err
 	}
 	var span TextSpan

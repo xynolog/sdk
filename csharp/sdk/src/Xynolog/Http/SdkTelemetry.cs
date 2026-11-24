@@ -22,7 +22,7 @@ internal static class SdkTelemetry
         var row = Table.RootElement.GetProperty("spans").EnumerateArray().Single(row => row.GetProperty("name").GetString() == name);
         Validate(row, attributes);
         var kind = Enum.Parse<ActivityKind>(row.GetProperty("kind").GetString() ?? throw new InvalidOperationException("Null span kind"), ignoreCase: true);
-        return Activities.StartActivity(name.Replace("{channel}", channel ?? "", StringComparison.Ordinal), kind, parent, attributes);
+        return Activities.StartActivity(name.Replace(TelemetrySpans.Channel, channel ?? "", StringComparison.Ordinal), kind, parent, attributes);
     }
 
     internal static ActivityTagsCollection BusTags(string channel, ResourceId? scope)
@@ -34,7 +34,7 @@ internal static class SdkTelemetry
 
     internal static void Sent(string channel, ResourceId? scope)
     {
-        const string name = "xynolog.bus.sent";
+        const string name = TelemetryMetrics.XynologBusSent;
         var tags = BusTags(channel, scope);
         Validate(Table.RootElement.GetProperty("metrics").EnumerateArray().Single(row => row.GetProperty("name").GetString() == name), tags);
         Counters[name].Add(1, tags.ToArray());

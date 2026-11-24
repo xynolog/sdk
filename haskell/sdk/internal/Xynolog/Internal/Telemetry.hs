@@ -22,6 +22,7 @@ import OpenTelemetry.Propagator qualified as Propagator
 import OpenTelemetry.Trace.Core qualified as Trace
 import Paths_xynolog (version)
 import Xynolog.Internal.Generated.TelemetryKeys (attributeBusChannel, attributeBusScope, attributeContentFormat, attributeContentSizeBytes)
+import Xynolog.Internal.Generated.TelemetryNames (metricXynologBusSent, spanBusEmit, spanBusRecv, spanContentPut, telemetryChannel)
 import Xynolog.Transport.Facts (traceCarrierFields, traceField)
 import Xynolog.Types
 
@@ -49,7 +50,7 @@ withUpload format size action = do
   tracer <- Trace.getTracer provider scope Trace.tracerOptions
   Trace.inSpan''
     tracer
-    "content.put"
+    spanContentPut
     Trace.defaultSpanArguments
       { Trace.kind = Trace.Client,
         Trace.attributes = HashMap.singleton attributeContentFormat (toAttribute format)
@@ -64,13 +65,13 @@ withUpload format size action = do
 sending :: BusFrame -> IO result -> IO result
 sending frame action = do
   sent frame
-  withSpan Trace.Producer ("bus.emit:" <> busFrameChannel frame) (busAttributes frame) action
+  withSpan Trace.Producer (Text.replace telemetryChannel (busFrameChannel frame) spanBusEmit) (busAttributes frame) action
 
 sent :: BusFrame -> IO ()
 sent frame = do
   provider <- Metric.getGlobalMeterProvider
   meter <- Metric.getMeter provider scope
-  counter <- Metric.meterCreateCounterInt64 meter "xynolog.bus.sent" Nothing Nothing Metric.defaultAdvisoryParameters
+  counter <- Metric.meterCreateCounterInt64 meter metricXynologBusSent Nothing Nothing Metric.defaultAdvisoryParameters
   Metric.counterAdd counter 1 (Attributes.addAttributes Attributes.defaultAttributeLimits Attributes.emptyAttributes (HashMap.fromList (busAttributes frame)))
 
 busAttributes :: BusFrame -> [(Text, Attribute)]
@@ -88,7 +89,7 @@ withReceived frame action = do
         _ -> Propagator.emptyTextMap
   context <- Propagator.extract propagator carrier parent
   bracket (attachContext context) detachContext $ \_ ->
-    withSpan Trace.Consumer ("bus.recv:" <> busFrameChannel frame) (busAttributes frame) action
+    withSpan Trace.Consumer (Text.replace telemetryChannel (busFrameChannel frame) spanBusRecv) (busAttributes frame) action
 
 outgoingHeaders :: IO RequestHeaders
 outgoingHeaders = do

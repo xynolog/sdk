@@ -4,9 +4,10 @@
 module T = Typescript_syntax
 
 let path = "typescript/core/src/client-timing.ts"
+let name (e : Table.entry) = Text.upper_snake e.name
 
 let constant (e : Table.entry) =
-  let name = Text.upper_snake e.name and about = [ T.Doc e.docs ] in
+  let name = name e and about = [ T.Doc e.docs ] in
   match e.value with
   | Duration n | Count n -> T.const ~about name (Int n)
   | Budget { attempts; initial_delay_ms; max_delay_ms } ->

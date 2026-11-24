@@ -44,6 +44,10 @@ the coming release's, and gathers its changes as they land.
   `browse.resourceRepresentation` and `resourceRepresentationStream` answer.
 - `@xynolog/react-ui` exports `renderAgentLabel`, `renderAgentLabels` and
   `creatorName`.
+- `@xynolog/observability` names each span and metric of the SDK telemetry
+  table (`SPAN_CONTENT_GET`, `SPAN_BUS_EMIT`, `METRIC_XYNOLOG_BUS_SENT`, …,
+  and `TELEMETRY_CHANNEL`, what stands for the channel in a span's name), and
+  the transports name their spans and their count by them.
 
 ### Changed
 
@@ -84,6 +88,17 @@ the coming release's, and gathers its changes as they land.
 - A stream's place is what `isPlace(scope, id)`, which `@xynolog/core`
   exports, says `LastEventIds` holds: the transport's place in each scope and
   the places kept are decided by it.
+- Every type of its own that a schema states in place (an object of members,
+  a union, an `allOf`, an enumeration of several values) is a type
+  `@xynolog/core` exports, by the name every SDK gives it
+  (`KnowledgeGraphNodesItem`), and the member that holds it is of that type.
+  It was written in place, reached only through its member
+  (`components['schemas']['KnowledgeGraph']['nodes'][number]`). A property of
+  one value is still that literal. `@xynolog/core` exports every type
+  `types.ts` declares, so `records` and `tables` too, beside `components`.
+- `LastEventIds` is keyed by `ResourceId`, as its schema's `propertyNames`
+  states, where any text was a key: a map whose members' names Protocol
+  holds to a kind of id is a `Record` of that kind.
 
 ### Removed
 

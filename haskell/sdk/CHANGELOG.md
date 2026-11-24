@@ -41,6 +41,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The HTTP transport names each span and its count by the SDK telemetry
+  table, as generated values (`spanContentGet`, `metricXynologBusSent`, …)
+  in place of names spelled at each call. What it reports is the same.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - The smelter's and the weaver's health name how far they have followed the

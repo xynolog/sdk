@@ -22,8 +22,7 @@ the coming release's, and gathers its changes as they land.
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
 - A generated type derives `Eq` and `Hash` wherever none of its members is a
-  floating-point number, and `Default` when every member is optional. A
-  property that admits one integer is a constant (`DiscoveryDocument::VERSION`).
+  floating-point number, and `Default` when every member is optional.
 - `Claims::health(engine)` composes the generated `WorkerEngineHealth` from the
   engine, the jobs the worker claims and its vitals, with times at the
   millisecond.
@@ -54,6 +53,10 @@ the coming release's, and gathers its changes as they land.
 - `stored_session_of(client_id, issuer, tokens)` in `xynolog-http-transport`:
   the session a completed sign-in keeps.
 - A held job's `accepted()`: whether a filter it was claimed with accepts it.
+- `xynolog_telemetry::table` names each span, metric and attribute key of
+  the SDK telemetry table (`SPAN_CONTENT_GET`, `METRIC_XYNOLOG_BUS_SENT`,
+  `ATTR_RESOURCE_ID`, …, and `CHANNEL`, what stands for the channel in a
+  span's name), and the crate's spans and count are named by them.
 
 ### Changed
 
@@ -61,6 +64,18 @@ the coming release's, and gathers its changes as they land.
   (`Job::JobPending`, `ConformanceStep::ConformanceBusFetch`,
   `Agent::AgentPerson`), as every SDK names it, where the prefix its members'
   names share was stripped (`Job::Pending`).
+- A property that admits one integer or boolean is a type of that value
+  alone (`DiscoveryDocumentVersion`, `JobDeclinedDeclined`), as Go declares
+  it: it is written as that value, and a value stating another is refused
+  where it was read. Its value is the type's `VALUE`
+  (`DiscoveryDocumentVersion::VALUE`), and the struct's constructor states it
+  (`ConformanceDriverLineAbandoned::new(id)`).
+- A union is decoded as the one member that admits a value, by what each
+  member's schema states, where one whose members do not each state one
+  value of a property (`AnchoredTextAnswer`) was decoded as the first member
+  that fit. A value that no member admits, but that one member names by its
+  kind and the values it states, is refused for what is wrong with it as that
+  member. Each union states what its members admit (`Job::MEMBERS`).
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - The smelter's and the weaver's health name how far they have followed the

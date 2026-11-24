@@ -48,6 +48,9 @@ let table ~root file =
                    ] ));
         } )
 
+(* An archivist operation's property on ArchivistRoutes. *)
+let route_name operation_id = Text.pascal operation_id
+
 let route (spec : Spec.t) (path, reference) =
   let file, _ = Decode.resolve spec.ids reference in
   match List.assoc_opt file spec.path_items with
@@ -67,7 +70,7 @@ let route (spec : Spec.t) (path, reference) =
                          attributes = [];
                          modifiers = [ Public; Static ];
                          type_ = C.T "global::Xynolog.Services.ServiceRoute";
-                         name = Text.pascal o.operation_id;
+                         name = route_name o.operation_id;
                          accessors = [ Get ];
                          value =
                            Some

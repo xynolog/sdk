@@ -44,7 +44,8 @@ type family = {
   statuses : statuses option;
 }
 
-let type_name f = words f.member ^ "Code"
+let type_of member = words member ^ "Code"
+let type_name f = type_of f.member
 let function_name f = f.member ^ "Code"
 
 let declarations f =

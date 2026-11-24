@@ -10,6 +10,7 @@ module T = Tables.Client_refresh
 module O = Ocaml_syntax
 
 let strings values = O.list (List.map O.string values)
+let query_name = Text.snake
 
 let way = function
   | None -> O.list []
@@ -21,7 +22,7 @@ let file (table : T.t) =
       (List.map
          (fun q ->
            let name, _, _, _, _ = Table.query_fields q in
-           O.let_ (Text.snake name) (O.string name))
+           O.let_ (query_name name) (O.string name))
          table.queries)
   in
   let queries =

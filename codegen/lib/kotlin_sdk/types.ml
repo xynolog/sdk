@@ -16,7 +16,7 @@
    the union wherever the union is wanted. One whose schema names the
    property its members are told apart by, each member stating its own one
    value of it, is decoded as the member that value names
-   ([Deviations.single_tags]). Any other is decoded as the first member that
+   ([single_tags], [Deviations]). Any other is decoded as the first member that
    fits. A member that is text, a list or the empty object is a variant of
    the union's own, since nothing says which union a [String] was meant for.
 
@@ -188,6 +188,15 @@ let empty_json_object =
   K.call (K.Name "JsonObject") [ K.call (K.Name "emptyMap") [] ]
 
 (* The type a schema of the generation names: written once, here. *)
+(* The property a union's members are told apart by and each one's value,
+   where each states one ([Deviations]). *)
+let single_tags (u : T.union) =
+  match u.tag with
+  | Some { property; values }
+    when List.for_all (fun v -> List.length v = 1) values ->
+      Some (property, List.map List.hd values)
+  | _ -> None
+
 let rec named st name =
   let d = st.spec.find name in
   (match d.form with
@@ -270,7 +279,7 @@ and declaration st name (form : T.form) about : written =
     Alias (K.Typealias { about; visibility = K.Public; name; type_ })
   in
   match form with
-  | T.Union u -> union_declaration st name u (Deviations.single_tags u) about
+  | T.Union u -> union_declaration st name u (single_tags u) about
   | T.Enum { base = Some (T.Text _); values } ->
       enum_declaration name values about
   | T.Enum _ -> refuse "%s: only string enumerations are generated" name

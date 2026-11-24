@@ -10,12 +10,20 @@
    Archivist's routes ([Archivist_http], go/archivisthttp_gen.go). *)
 
 module Generate = Generate
+module Control = Control
+module Environment = Environment
+module Archivist_http = Archivist_http
 module G = Go_syntax
+
+let discovery_absent_type = "DiscoveryAbsentReason"
+
+let discovery_absent_constant reason =
+  discovery_absent_type ^ Naming.variant reason
 
 (* Why a client that read a launcher's discovery document found no launcher
    (protocol/specs/src/client/discovery-absent.json): a constant a reason. *)
 let discovery_absent (spec : Spec.t) =
-  let name = "DiscoveryAbsentReason" in
+  let name = discovery_absent_type in
   [
     G.Type
       {
@@ -30,7 +38,7 @@ let discovery_absent (spec : Spec.t) =
         specs =
           List.map
             (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-              let constant = name ^ Naming.variant r.reason in
+              let constant = discovery_absent_constant r.reason in
               G.spec
                 ~doc:(G.prose (constant ^ ": " ^ r.docs))
                 ~type_:(G.Named name) constant (G.Quoted r.reason))

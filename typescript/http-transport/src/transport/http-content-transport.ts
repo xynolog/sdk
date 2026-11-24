@@ -61,6 +61,11 @@ import {
   ATTR_CONTENT_SIZE_BYTES,
   ATTR_CONTENT_STREAM,
   ATTR_RESOURCE_ID,
+  SPAN_CONTENT_GET,
+  SPAN_CONTENT_GET_ANCHORED_TEXT,
+  SPAN_CONTENT_GET_ANNOTATIONS,
+  SPAN_CONTENT_GET_GRAPH,
+  SPAN_CONTENT_PUT,
   SpanKind,
   getActiveTraceparent,
   withSpan,
@@ -96,7 +101,7 @@ export class HttpContentTransport implements IContentTransport {
       sizeBytes,
     });
     return withSpan(
-      'content.put',
+      SPAN_CONTENT_PUT,
       async () => {
         const formData = buildFormData(request);
         const token = options?.auth ?? this.transport.getToken();
@@ -213,7 +218,7 @@ export class HttpContentTransport implements IContentTransport {
   ): Promise<ResourceRepresentation> {
     busLog('GET', 'content', { resourceId });
     return withSpan(
-      'content.get',
+      SPAN_CONTENT_GET,
       async () => {
         // Pure pipe: no Accept header — the route serves the stored bytes
         // verbatim with their real Content-Type.
@@ -242,7 +247,7 @@ export class HttpContentTransport implements IContentTransport {
   ): Promise<ResourceRepresentationStream> {
     busLog('GET', 'content', { resourceId, stream: true });
     return withSpan(
-      'content.get',
+      SPAN_CONTENT_GET,
       async () => {
         // Pure pipe: no Accept header (see getBinary).
         const route = gatewayRoutes.getResourceRepresentation;
@@ -280,7 +285,7 @@ export class HttpContentTransport implements IContentTransport {
   ): Promise<GetResourceResponse> {
     busLog('GET', 'content', { resourceId, graph: true });
     return withSpan(
-      'content.get_graph',
+      SPAN_CONTENT_GET_GRAPH,
       () => {
         const route = gatewayRoutes.getResourceJsonLd;
         const path = this.pathOf(route, resourceId);
@@ -313,7 +318,7 @@ export class HttpContentTransport implements IContentTransport {
   ): Promise<GetAnnotationsResponse> {
     busLog('GET', 'content', { resourceId, annotations: true });
     return withSpan(
-      'content.get_annotations',
+      SPAN_CONTENT_GET_ANNOTATIONS,
       () => {
         const route = gatewayRoutes.getResourceAnnotations;
         const path = this.pathOf(route, resourceId);
@@ -350,7 +355,7 @@ export class HttpContentTransport implements IContentTransport {
   ): Promise<AnchoredTextAnswer> {
     busLog('GET', 'content', { resourceId, anchoredText: true });
     return withSpan(
-      'content.get_anchored_text',
+      SPAN_CONTENT_GET_ANCHORED_TEXT,
       () => {
         const route = gatewayRoutes.getResourceAnchoredText;
         const path = this.pathOf(route, resourceId);

@@ -17,7 +17,7 @@
  * free-form relationshipType. The graph is a projection of the event log (the system of record),
  * read here because it is the queryable projection at gather time.
  */
-import type { components } from './types';
+import type { components, KnowledgeGraphNodesItem } from './types';
 
 type KnowledgeGraph = components['schemas']['KnowledgeGraph'];
 
@@ -40,7 +40,7 @@ export function deriveViews(
 ): GraphViews {
   // An edge names its ends as text, of either kind of node: the nodes are
   // looked up by that text.
-  const nodeById = new Map<string, KnowledgeGraph['nodes'][number]>(
+  const nodeById = new Map<string, KnowledgeGraphNodesItem>(
     graph.nodes.map((n) => [n.id, n]),
   );
   // annotation id → the resource it lives on. Both derivations resolve through

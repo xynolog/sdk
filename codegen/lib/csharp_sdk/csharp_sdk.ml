@@ -13,6 +13,8 @@
 
 module C = Csharp_syntax
 module Models = Models
+module Control = Control
+module Services = Services
 
 let generated = "csharp/sdk/src/Xynolog/Generated/"
 let types = generated ^ "Types"
@@ -399,9 +401,11 @@ let error_codes (t : Error_codes.Table.t) =
 
 (* The timing a client keeps (client/timing.json), a constant an entry,
    named as the entry is; a budget is a RetryPolicy. *)
+let timing_name (e : Timing.Table.entry) = String.capitalize_ascii e.name
+
 let timings (entries : Timing.Table.t) =
   let member (e : Timing.Table.entry) =
-    let name = String.capitalize_ascii e.name in
+    let name = timing_name e in
     match e.value with
     | Timing.Table.Duration n | Timing.Table.Count n ->
         constant "int" name (C.Int n)

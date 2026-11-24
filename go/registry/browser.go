@@ -992,7 +992,7 @@ func (b *XynologBrowser) validateOpenResources(session *xynolog.Session) error {
 	if err != nil {
 		return err
 	}
-	read, err := verdict.ValueByDiscriminator()
+	read, err := verdict.Member()
 	if err != nil {
 		return err
 	}

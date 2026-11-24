@@ -256,7 +256,12 @@ type item =
       generics : generic list;
       body : struct_body;
     }
-  | Unit_struct of { doc : string list; vis : vis; name : string }
+  | Unit_struct of {
+      doc : string list;
+      attrs : meta list;
+      vis : vis;
+      name : string;
+    }
   | Enum of {
       doc : string list;
       attrs : meta list;
@@ -1378,9 +1383,10 @@ let item_text = function
       in
       String.concat "\n"
         (doc_lines ~indent:0 doc @ attrs_lines ~indent:0 attrs @ body)
-  | Unit_struct { doc; vis; name } ->
+  | Unit_struct { doc; attrs; vis; name } ->
       String.concat "\n"
         (doc_lines ~indent:0 doc
+        @ attrs_lines ~indent:0 attrs
         @ [ vis_text vis ^ "struct " ^ ident name ^ ";" ])
   | Enum { doc; attrs; vis; name; variants } ->
       String.concat "\n"

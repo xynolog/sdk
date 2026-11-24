@@ -26,6 +26,9 @@ let model (models : Models.t) id =
 
 let sender from = String.capitalize_ascii (T.from_value from)
 
+(* A control method's or notification's property on ControlMethods. *)
+let property_name name = Text.pascal name
+
 let property ~docs ~type_ ~args name =
   C.Documented
     ( docs,
@@ -34,7 +37,7 @@ let property ~docs ~type_ ~args name =
           attributes = [];
           modifiers = [ Public; Static ];
           type_;
-          name = Text.pascal name;
+          name = property_name name;
           accessors = [ Get ];
           value = Some (C.New { type_ = None; args = Some args; init = None });
         } )
@@ -67,9 +70,9 @@ let file (models : Models.t) (spec : Spec.t) =
       Error [ { Decode.file = table; pointer = ""; message } ]
   | methods, notifications -> (
       let names =
-        List.map (fun (m : T.methods_item) -> Text.pascal m.name) t.methods
+        List.map (fun (m : T.methods_item) -> property_name m.name) t.methods
         @ List.map
-            (fun (n : T.notifications_item) -> Text.pascal n.name)
+            (fun (n : T.notifications_item) -> property_name n.name)
             t.notifications
       in
       match

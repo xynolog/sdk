@@ -50,6 +50,13 @@ let one what = function [ x ] -> Ok x | _ -> Error ("HTTP " ^ what)
 let base_name (r : Decode.reference) =
   Filename.remove_extension (Filename.basename r.target)
 
+(* What names an operation's route: its operationId, capitalized, after the
+   document's prefix, which is none for the gateway's. *)
+let route_name operation_id = String.capitalize_ascii operation_id
+let constructor ~prefix operation_id = prefix ^ route_name operation_id
+let gateway_prefix = ""
+let archivist_prefix = "Archivist"
+
 let routes ~prefix ~no_content (spec : Spec.t) (document : Openapi.document) =
   let* rows =
     each
@@ -69,8 +76,8 @@ let routes ~prefix ~no_content (spec : Spec.t) (document : Openapi.document) =
         in
         each
           (fun (method_, (operation : Openapi.operation)) ->
-            let name = String.capitalize_ascii operation.operation_id in
-            let constructor = prefix ^ name in
+            let name = route_name operation.operation_id in
+            let constructor = constructor ~prefix operation.operation_id in
             let* status, response =
               one "operation needs one success status"
                 (List.filter

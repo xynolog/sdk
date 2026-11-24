@@ -23,7 +23,7 @@
 //! it lists is a person's act.
 
 use crate::transport::BoxFuture;
-use crate::types::{DiscoveredKB, DiscoveryDocument};
+use crate::types::{DiscoveredKB, DiscoveryDocument, DiscoveryDocumentVersion};
 use futures_core::Stream;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -92,13 +92,13 @@ pub fn parse_discovery_document(text: &str) -> DiscoveryState {
     }
     match parsed["version"].as_i64() {
         None => return DiscoveryState::absent(Invalid, "missing numeric \"version\""),
-        Some(DiscoveryDocument::VERSION) => {}
+        Some(DiscoveryDocumentVersion::VALUE) => {}
         Some(other) => {
             return DiscoveryState::absent(
                 UnsupportedVersion,
                 format!(
                     "discovery document version {other} is not the one this client speaks ({}); it is not read in part",
-                    DiscoveryDocument::VERSION
+                    DiscoveryDocumentVersion::VALUE
                 ),
             );
         }
