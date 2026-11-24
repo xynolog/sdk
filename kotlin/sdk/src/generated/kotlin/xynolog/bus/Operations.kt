@@ -5,7 +5,6 @@ package xynolog.bus
 
 import xynolog.Generated
 import xynolog.channels.Channels
-import xynolog.channels.Empty
 import xynolog.channels.Response
 import xynolog.types.BindBodyUpdated
 import xynolog.types.BindUpdateBodyCommand
@@ -35,6 +34,7 @@ import xynolog.types.BrowseTagSchemasResult
 import xynolog.types.CloneResourceWithTokenResponse
 import xynolog.types.CommandError
 import xynolog.types.ContextualSummaryResponse
+import xynolog.types.EmptyObject
 import xynolog.types.FrameAddEntityTypeCommand
 import xynolog.types.FrameAddTagSchemaCommand
 import xynolog.types.GatherAnnotationComplete
@@ -136,11 +136,11 @@ public object Operations {
         Operation(Channels.BROWSE_DIRECTORY_REQUESTED, Channels.BROWSE_DIRECTORY_RESULT, Channels.BROWSE_DIRECTORY_FAILED, emptyList())
 
     @JvmField
-    public val FRAME_ADD_ENTITY_TYPE: Operation<FrameAddEntityTypeCommand, Empty, CommandError> =
+    public val FRAME_ADD_ENTITY_TYPE: Operation<FrameAddEntityTypeCommand, EmptyObject, CommandError> =
         Operation(Channels.FRAME_ADD_ENTITY_TYPE, Channels.FRAME_ENTITY_TYPE_ADD_OK, Channels.FRAME_ENTITY_TYPE_ADD_FAILED, emptyList())
 
     @JvmField
-    public val FRAME_ADD_TAG_SCHEMA: Operation<FrameAddTagSchemaCommand, Empty, CommandError> =
+    public val FRAME_ADD_TAG_SCHEMA: Operation<FrameAddTagSchemaCommand, EmptyObject, CommandError> =
         Operation(Channels.FRAME_ADD_TAG_SCHEMA, Channels.FRAME_TAG_SCHEMA_ADD_OK, Channels.FRAME_TAG_SCHEMA_ADD_FAILED, emptyList())
 
     @JvmField
@@ -196,15 +196,15 @@ public object Operations {
         Operation(Channels.MARK_DELETE, Channels.MARK_DELETE_OK, Channels.MARK_DELETE_FAILED, emptyList())
 
     @JvmField
-    public val MARK_ARCHIVE: Operation<MarkArchiveCommand, Empty, CommandError> =
+    public val MARK_ARCHIVE: Operation<MarkArchiveCommand, EmptyObject, CommandError> =
         Operation(Channels.MARK_ARCHIVE, Channels.MARK_ARCHIVE_OK, Channels.MARK_ARCHIVE_FAILED, emptyList())
 
     @JvmField
-    public val MARK_UNARCHIVE: Operation<MarkUnarchiveCommand, Empty, CommandError> =
+    public val MARK_UNARCHIVE: Operation<MarkUnarchiveCommand, EmptyObject, CommandError> =
         Operation(Channels.MARK_UNARCHIVE, Channels.MARK_UNARCHIVE_OK, Channels.MARK_UNARCHIVE_FAILED, emptyList())
 
     @JvmField
-    public val MARK_UPDATE_ENTITY_TYPES: Operation<MarkUpdateEntityTypesCommand, Empty, CommandError> =
+    public val MARK_UPDATE_ENTITY_TYPES: Operation<MarkUpdateEntityTypesCommand, EmptyObject, CommandError> =
         Operation(Channels.MARK_UPDATE_ENTITY_TYPES, Channels.MARK_UPDATE_ENTITY_TYPES_OK, Channels.MARK_UPDATE_ENTITY_TYPES_FAILED, emptyList())
 
     @JvmField
@@ -220,11 +220,11 @@ public object Operations {
         Operation(Channels.MATCH_LIMITS_REQUESTED, Channels.MATCH_LIMITS_RESULT, Channels.MATCH_LIMITS_FAILED, emptyList())
 
     @JvmField
-    public val WEAVE_REBUILD: Operation<WeaveRebuildCommand, Empty, CommandError> =
+    public val WEAVE_REBUILD: Operation<WeaveRebuildCommand, EmptyObject, CommandError> =
         Operation(Channels.WEAVE_REBUILD, Channels.WEAVE_REBUILD_OK, Channels.WEAVE_REBUILD_FAILED, emptyList())
 
     @JvmField
-    public val SMELT_REBUILD_ANCHORS: Operation<SmeltRebuildAnchorsCommand, Empty, CommandError> =
+    public val SMELT_REBUILD_ANCHORS: Operation<SmeltRebuildAnchorsCommand, EmptyObject, CommandError> =
         Operation(Channels.SMELT_REBUILD_ANCHORS, Channels.SMELT_REBUILD_ANCHORS_OK, Channels.SMELT_REBUILD_ANCHORS_FAILED, emptyList())
 
     @JvmField

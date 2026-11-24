@@ -67,7 +67,7 @@ let file ~(types : Kotlin_sdk.Types.spec) (t : Table.t) =
      ]
     @ List.map
         (fun (v : Table.vocabulary) -> vocabulary ~docs:v.docs v)
-        t.others
+        (t.others @ [ t.control ])
     @ [
         K.function_ ~about:(K.Doc "The code a refusal of `status` fails with.")
           ~visibility:K.Internal

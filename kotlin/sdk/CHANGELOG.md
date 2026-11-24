@@ -17,6 +17,19 @@ the coming release's, and gathers its changes as they land.
   pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
+- `xynolog.services.ServiceTables`: every table the services keep to, each
+  read as its schema's type (`GatewayMessages`, `ServiceEnvironmentVariables`,
+  `ArchivistLayout`, …, now in `xynolog.types`): the variables a service
+  reads and its boot refusals, its telemetry and log lines, its messages,
+  the jobs' budgets and storage, the bounds of the bus's replies, the
+  embedding requests, the worker's answer formats, the gateway's media token
+  and response headers, the Archivist's layout and default entity types, and
+  the rest; `SERVICE_TABLES` holds each by its file. And `ArchivistRoute`,
+  each of the Archivist's HTTP operations.
+- `xynolog.control`: the launcher's control API, `ControlMethods`, each of
+  its methods and notifications with the serializers of what each carries,
+  whether it runs alone and what it sends, and `ControlSender`.
+- `xynolog.errors.ControlErrorCode`, the control API's codes.
 
 ### Changed
 
@@ -30,6 +43,22 @@ the coming release's, and gathers its changes as they land.
   makes one with its `builder`.
 - What is kept of a sign-in is `xynolog.types.StoredSession`, in place of
   `xynolog.signin.HeldSignIn`.
+- A method takes the options Protocol states as one value, of Protocol's
+  type: `browse.resources(BrowseResourcesRequest)`,
+  `match.resources(search, ResourceSearchFilters)`,
+  `match.search(…, MatchSearchOptions)`, `gather.annotation(…,
+  GatherAnnotationOptions)`, `gather.resource(…, GatherResourceOptions)`,
+  `yield.createFromToken(CreateFromTokenOptions)`,
+  `job.pollUntilComplete(jobId, JobPollOptions, onStatus)` and
+  `job.claim(ClaimOptions)`, and the gather state unit's two methods. A
+  member left out is what was taken before.
+- A worker's vitals state its times as RFC 3339 text and its active job as
+  `WorkerEngineHealthActiveJob`, as `WorkerEngineHealth` does, and
+  `Claims.health(engine)` is that health. `xynolog.jobs.ActiveJob` is gone.
+- A channel that carries nothing is typed `xynolog.types.EmptyObject`, in
+  place of `xynolog.channels.Empty`.
+- A discovery document is read as its schema states it: its versions are
+  those `DiscoveryDocument` allows.
 
 ## 0.8.1
 

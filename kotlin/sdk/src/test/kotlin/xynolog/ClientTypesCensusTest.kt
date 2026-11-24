@@ -1,17 +1,20 @@
 package xynolog
 
+import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import xynolog.jobs.WorkerVitals
 import xynolog.state.SearchState
 import xynolog.types.FrameRefusalReason
 import xynolog.types.JobCompleteCommand
 import xynolog.types.JobCreatedResultResponse
 import xynolog.types.JobFailCommand
 import xynolog.types.JobProgress
+import xynolog.types.WorkerEngineHealth
 import xynolog.types.wireJson
 import java.lang.reflect.Modifier
 
@@ -41,8 +44,19 @@ private fun events(): List<JobEvent<JobCompleteCommand>> {
     return samples
 }
 
-/** SearchState and JobEvent, generic and written by hand, held to their schemas in protocol/specs/src/client/types: a member or a branch either side gains or loses fails. */
+/**
+ * The client types written by hand, each held to what states it: SearchState
+ * and JobEvent, generic, to their schemas in protocol/specs/src/client/types,
+ * and WorkerVitals to WorkerEngineHealth, which it is but for what its host
+ * and its claims state. A member or a branch either side gains or loses fails.
+ */
 class ClientTypesCensusTest {
+    @Test
+    fun workerVitalsAreAnEnginesHealthButForItsEngineAndItsJobs() {
+        val health = WorkerEngineHealth.serializer().descriptor.elementNames.toSet()
+        assertEquals(health - setOf("engine", "jobs"), held(WorkerVitals::class.java))
+    }
+
     @Test
     fun searchStateHasTheSchemasMembers() {
         assertEquals(properties(schema("SearchState")), held(SearchState::class.java))

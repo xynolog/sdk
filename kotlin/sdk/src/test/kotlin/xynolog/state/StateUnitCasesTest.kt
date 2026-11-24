@@ -41,7 +41,6 @@ import xynolog.errors.XynologError
 import xynolog.frame
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
-import xynolog.namespaces.CONTEXT_WINDOW
 import xynolog.sameJson
 import xynolog.session.SessionSignals
 import xynolog.testing.FaultyTransport
@@ -49,6 +48,7 @@ import xynolog.testing.RequestLogEntry
 import xynolog.transport.Frame
 import xynolog.transport.Watched
 import xynolog.types.AnnotationSelector
+import xynolog.types.GatherAnnotationOptions
 import xynolog.types.GenerationJobParams
 import xynolog.types.KbIdentityConflict
 import xynolog.types.MarkJobParams
@@ -228,9 +228,11 @@ private fun Over.gather(made: JsonObject): Made {
             "gatherAnnotation" to { args ->
                 unit.gatherAnnotation(
                     AnnotationId(args.getValue("annotationId").text()),
-                    args["contextWindow"]?.jsonPrimitive?.long ?: CONTEXT_WINDOW,
-                    args["includeSourceContext"]?.jsonPrimitive?.booleanOrNull,
-                    args["includeTargetContext"]?.jsonPrimitive?.booleanOrNull,
+                    GatherAnnotationOptions(
+                        contextWindow = args["contextWindow"]?.jsonPrimitive?.long,
+                        includeSourceContext = args["includeSourceContext"]?.jsonPrimitive?.booleanOrNull,
+                        includeTargetContext = args["includeTargetContext"]?.jsonPrimitive?.booleanOrNull,
+                    ),
                 )
             },
             "gatherResource" to { args -> unit.gatherResource(ResourceId(args.getValue("resourceId").text())) },

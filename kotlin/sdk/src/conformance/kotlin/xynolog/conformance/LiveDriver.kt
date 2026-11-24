@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -46,6 +47,7 @@ import xynolog.storage.MemoryStorage
 import xynolog.transport.ConnectionState
 import xynolog.types.Annotation
 import xynolog.types.AttributedEvent
+import xynolog.types.BrowseResourcesRequest
 import xynolog.types.EngineEntry
 import xynolog.types.GenerationJobParams
 import xynolog.types.GetReferencedByResponseReferencedByItem
@@ -58,6 +60,7 @@ import xynolog.types.ListResourcesResponse
 import xynolog.types.MarkJobParams
 import xynolog.types.MatchResourcesResponse
 import xynolog.types.ResourceDescriptor
+import xynolog.types.ResourceSearchFilters
 import xynolog.types.TagSchema
 
 /**
@@ -237,22 +240,21 @@ private class LiveDriver : Driver {
             "entityTypes" -> Query(client.browse.entityTypes(), ListSerializer(String.serializer()))
             "tagSchemas" -> Query(client.browse.tagSchemas(), ListSerializer(TagSchema.serializer()))
             "engines" -> Query(client.browse.engines(), ListSerializer(EngineWithLimitsWritten))
-            "resources" -> filtered(stated) { limit, offset, archived, entityType -> Query(client.browse.resources(limit, offset, archived, entityType), ListResourcesResponse.serializer()) }
-            "matchedResources" -> filtered(stated) { limit, offset, archived, entityType ->
-                Query(client.match.resources(stated.text("search"), limit, offset, archived, entityType), MatchResourcesResponse.serializer())
-            }
+            "resources" -> Query(client.browse.resources(filters(stated, BrowseResourcesRequest.serializer())), ListResourcesResponse.serializer())
+            "matchedResources" -> Query(client.match.resources(stated.text("search"), filters(stated, ResourceSearchFilters.serializer())), MatchResourcesResponse.serializer())
             else -> throw Misuse("$name is no query of client/refresh.json")
         }
     }
 
-    /** A list or a search, by the filters the suite states: the first hundred, and the rest unstated, where it states none. */
-    private fun filtered(stated: JsonObject, make: (Long, Long, Boolean?, String?) -> Query<*>): Query<*> {
+    /** The filters of a list or a search, as the suite states them: none stated is a list's first page. */
+    private fun <T> filters(stated: JsonObject, serializer: KSerializer<T>): T {
         val filters = stated["filters"] as? JsonObject ?: JsonObject(emptyMap())
-        filters.keys.firstOrNull { it !in setOf("limit", "offset", "archived", "entityType") }?.let { throw Misuse("$it is no filter of a list") }
-        val limit = if ("limit" in filters) filters.count("limit") else 100
-        val offset = if ("offset" in filters) filters.count("offset") else 0
-        val archived = filters["archived"]?.let { (it as? JsonPrimitive)?.booleanOrNull ?: throw Misuse("archived must be a boolean") }
-        return make(limit, offset, archived, filters.optionalText("entityType"))
+        filters.keys.firstOrNull { it !in serializer.descriptor.elementNames }?.let { throw Misuse("$it is no filter of a list") }
+        return try {
+            wire.decodeFromJsonElement(serializer, filters)
+        } catch (refused: IllegalArgumentException) {
+            throw Misuse("filters: ${refused.message}")
+        }
     }
 
     private suspend fun fresh(query: Query<*>): JsonElement = Say.of("value" to written(query))

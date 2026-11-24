@@ -5,11 +5,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import xynolog.Timings
+import xynolog.bus.faultOf
+import xynolog.bus.valuesOf
 import xynolog.telemetry.futureOf
 import xynolog.transport.Events
 import xynolog.types.DiscoveredKB
@@ -28,8 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 /** How often a launcher's document is read again, in milliseconds, unless a caller says otherwise. */
 public const val DISCOVERY_INTERVAL: Long = Timings.DISCOVERY_INTERVAL_MS
 
-/** The version of the document this client reads. */
-private const val VERSION = 1L
+/** The versions of the document this client reads: those DiscoveryDocument allows. */
+private val VERSIONS: List<JsonPrimitive> = valuesOf("DiscoveryDocument", "version")
 
 /** What one read gave: a state, or that nothing changed since the last. */
 public sealed interface DiscoveryRead
@@ -73,23 +74,19 @@ public fun parseDiscoveryDocument(text: String): DiscoveryState {
     }
     val document = parsed as? JsonObject ?: return Absent(DiscoveryAbsentReason.Invalid, "document is not an object")
     val version = (document["version"] as? JsonPrimitive)?.takeIf { !it.isString }?.longOrNull
-        ?: return Absent(DiscoveryAbsentReason.Invalid, "missing numeric \"version\"")
-    if (version != VERSION) {
+    if (version != null && VERSIONS.none { it.longOrNull == version }) {
         return Absent(
             DiscoveryAbsentReason.UnsupportedVersion,
-            "discovery document version $version is not the one this client speaks ($VERSION); it is not read in part",
+            "discovery document version $version is not one this client speaks (${VERSIONS.joinToString()}); it is not read in part",
         )
     }
-    // Strictly: a port written as text is not the schema's, though a reader of numbers would take it.
-    (document["kbs"] as? JsonArray)?.forEachIndexed { at, entry ->
-        val port = (entry as? JsonObject)?.get("port")
-        if (port is JsonPrimitive && port.isString) return Absent(DiscoveryAbsentReason.Invalid, "kbs[$at].port: a port is a number, not text")
-    }
+    faultOf(DiscoveryDocument.serializer().descriptor, document)?.let { return Absent(DiscoveryAbsentReason.Invalid, "the document is no discovery document: $it") }
     val read = try {
         wireJson.decodeFromJsonElement(DiscoveryDocument.serializer(), document)
     } catch (invalid: IllegalArgumentException) {
         return Absent(DiscoveryAbsentReason.Invalid, invalid.message ?: "not a discovery document")
     }
+    // DiscoveredKB states no bounds of a port (a proposal for Protocol): until it does, one that is no TCP port is refused here.
     read.kbs.firstOrNull { it.port !in 1..65535 }?.let { return Absent(DiscoveryAbsentReason.Invalid, "kb entry at ${it.host} has port ${it.port}, which is not a port") }
     return Managed(read.kbs)
 }

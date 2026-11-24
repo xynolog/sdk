@@ -14,6 +14,7 @@ import xynolog.types.JobParams
 import xynolog.types.JobProgress
 import xynolog.types.MarkJobResult
 import xynolog.types.UnitCursor
+import xynolog.types.WorkerEngineHealthActiveJob
 import xynolog.types.YieldJobResult
 
 /**
@@ -54,6 +55,9 @@ public object Stated {
 
     @JvmStatic
     public fun written(params: JobParams): JsonElement = wire.encodeToJsonElement(JobParams.serializer(), params)
+
+    @JvmStatic
+    public fun written(active: WorkerEngineHealthActiveJob): JsonElement = wire.encodeToJsonElement(WorkerEngineHealthActiveJob.serializer(), active)
 
     @JvmStatic
     public fun written(cursors: Map<String, UnitCursor>): JsonElement = wire.encodeToJsonElement(MapSerializer(String.serializer(), UnitCursor.serializer()), cursors)

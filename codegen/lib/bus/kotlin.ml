@@ -12,10 +12,12 @@ let generated = K.annotation "Generated"
 
 (* The types xynolog.channels declares beside the channels, which no
    component schema may share a name with. *)
-let channel_types = [ "Channel"; "ScopedChannel"; "Response"; "Empty" ]
+let channel_types = [ "Channel"; "ScopedChannel"; "Response" ]
 
 (* What a channel carries, in Kotlin: its type, that type's serializer, the
-   component schemas it names and the types of xynolog.channels it names. *)
+   types of xynolog.types it names (a component schema, or the generator's
+   EmptyObject for a channel that carries nothing) and the types of
+   xynolog.channels it names. *)
 type carried = {
   type_ : K.type_;
   serializer : K.expr;
@@ -58,10 +60,10 @@ let carried ~(types : Types.spec) (c : R.channels_item) =
       }
   | Nothing ->
       {
-        type_ = K.Type "Empty";
-        serializer = serializer_of "Empty";
-        components = [];
-        own = [ "Empty" ];
+        type_ = K.Type Types.empty_object;
+        serializer = serializer_of Types.empty_object;
+        components = [ Types.empty_object ];
+        own = [];
       }
 
 (* The stamps a channel's payload declares: those of the component it

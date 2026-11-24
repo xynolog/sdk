@@ -48,6 +48,7 @@ import xynolog.types.BusResumeGap
 import xynolog.types.CloneResourceWithTokenResponse
 import xynolog.types.CommandError
 import xynolog.types.ContextualSummaryResponse
+import xynolog.types.EmptyObject
 import xynolog.types.EnrichedResourceEvent
 import xynolog.types.FrameAddEntityTypeCommand
 import xynolog.types.FrameAddTagSchemaCommand
@@ -163,7 +164,7 @@ public object Channels {
     public val YIELD_UPDATE: Channel<YieldUpdateCommand> = Channel("yield:update", YieldUpdateCommand.serializer(), setOf("_userId"))
 
     @JvmField
-    public val YIELD_CLONE: Channel<Empty> = Channel("yield:clone", Empty.serializer(), emptySet())
+    public val YIELD_CLONE: Channel<EmptyObject> = Channel("yield:clone", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val YIELD_CLONE_TOKEN_REQUESTED: Channel<YieldCloneTokenRequest> = Channel("yield:clone-token-requested", YieldCloneTokenRequest.serializer(), emptySet())
@@ -271,19 +272,19 @@ public object Channels {
     public val MARK_DELETE_FAILED: Channel<CommandError> = Channel("mark:delete-failed", CommandError.serializer(), emptySet())
 
     @JvmField
-    public val MARK_ARCHIVE_OK: Channel<Empty> = Channel("mark:archive-ok", Empty.serializer(), emptySet())
+    public val MARK_ARCHIVE_OK: Channel<EmptyObject> = Channel("mark:archive-ok", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val MARK_ARCHIVE_FAILED: Channel<CommandError> = Channel("mark:archive-failed", CommandError.serializer(), emptySet())
 
     @JvmField
-    public val MARK_UNARCHIVE_OK: Channel<Empty> = Channel("mark:unarchive-ok", Empty.serializer(), emptySet())
+    public val MARK_UNARCHIVE_OK: Channel<EmptyObject> = Channel("mark:unarchive-ok", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val MARK_UNARCHIVE_FAILED: Channel<CommandError> = Channel("mark:unarchive-failed", CommandError.serializer(), emptySet())
 
     @JvmField
-    public val MARK_UPDATE_ENTITY_TYPES_OK: Channel<Empty> = Channel("mark:update-entity-types-ok", Empty.serializer(), emptySet())
+    public val MARK_UPDATE_ENTITY_TYPES_OK: Channel<EmptyObject> = Channel("mark:update-entity-types-ok", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val MARK_UPDATE_ENTITY_TYPES_FAILED: Channel<CommandError> = Channel("mark:update-entity-types-failed", CommandError.serializer(), emptySet())
@@ -322,13 +323,13 @@ public object Channels {
     public val FRAME_ADD_TAG_SCHEMA: Channel<FrameAddTagSchemaCommand> = Channel("frame:add-tag-schema", FrameAddTagSchemaCommand.serializer(), setOf("_userId"))
 
     @JvmField
-    public val FRAME_ENTITY_TYPE_ADD_OK: Channel<Empty> = Channel("frame:entity-type-add-ok", Empty.serializer(), emptySet())
+    public val FRAME_ENTITY_TYPE_ADD_OK: Channel<EmptyObject> = Channel("frame:entity-type-add-ok", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val FRAME_ENTITY_TYPE_ADD_FAILED: Channel<CommandError> = Channel("frame:entity-type-add-failed", CommandError.serializer(), emptySet())
 
     @JvmField
-    public val FRAME_TAG_SCHEMA_ADD_OK: Channel<Empty> = Channel("frame:tag-schema-add-ok", Empty.serializer(), emptySet())
+    public val FRAME_TAG_SCHEMA_ADD_OK: Channel<EmptyObject> = Channel("frame:tag-schema-add-ok", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val FRAME_TAG_SCHEMA_ADD_FAILED: Channel<CommandError> = Channel("frame:tag-schema-add-failed", CommandError.serializer(), emptySet())
@@ -541,10 +542,10 @@ public object Channels {
     public val PANEL_OPEN: Channel<BrowsePanelOpenEvent> = Channel("panel:open", BrowsePanelOpenEvent.serializer(), emptySet())
 
     @JvmField
-    public val PANEL_CLOSE: Channel<Empty> = Channel("panel:close", Empty.serializer(), emptySet())
+    public val PANEL_CLOSE: Channel<EmptyObject> = Channel("panel:close", EmptyObject.serializer(), emptySet())
 
     @JvmField
-    public val SHELL_SIDEBAR_TOGGLE: Channel<Empty> = Channel("shell:sidebar-toggle", Empty.serializer(), emptySet())
+    public val SHELL_SIDEBAR_TOGGLE: Channel<EmptyObject> = Channel("shell:sidebar-toggle", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val TABS_CLOSE: Channel<BrowseResourceCloseEvent> = Channel("tabs:close", BrowseResourceCloseEvent.serializer(), emptySet())
@@ -661,7 +662,7 @@ public object Channels {
     public val WEAVE_REBUILD: Channel<WeaveRebuildCommand> = Channel("weave:rebuild", WeaveRebuildCommand.serializer(), setOf("_userId"))
 
     @JvmField
-    public val WEAVE_REBUILD_OK: Channel<Empty> = Channel("weave:rebuild-ok", Empty.serializer(), emptySet())
+    public val WEAVE_REBUILD_OK: Channel<EmptyObject> = Channel("weave:rebuild-ok", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val WEAVE_REBUILD_FAILED: Channel<CommandError> = Channel("weave:rebuild-failed", CommandError.serializer(), emptySet())
@@ -670,7 +671,7 @@ public object Channels {
     public val SMELT_REBUILD_ANCHORS: Channel<SmeltRebuildAnchorsCommand> = Channel("smelt:rebuild-anchors", SmeltRebuildAnchorsCommand.serializer(), setOf("_userId"))
 
     @JvmField
-    public val SMELT_REBUILD_ANCHORS_OK: Channel<Empty> = Channel("smelt:rebuild-anchors-ok", Empty.serializer(), emptySet())
+    public val SMELT_REBUILD_ANCHORS_OK: Channel<EmptyObject> = Channel("smelt:rebuild-anchors-ok", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val SMELT_REBUILD_ANCHORS_FAILED: Channel<CommandError> = Channel("smelt:rebuild-anchors-failed", CommandError.serializer(), emptySet())
@@ -679,7 +680,7 @@ public object Channels {
     public val SETTINGS_THEME_CHANGED: Channel<SettingsThemeChangedEvent> = Channel("settings:theme-changed", SettingsThemeChangedEvent.serializer(), emptySet())
 
     @JvmField
-    public val SETTINGS_LINE_NUMBERS_TOGGLED: Channel<Empty> = Channel("settings:line-numbers-toggled", Empty.serializer(), emptySet())
+    public val SETTINGS_LINE_NUMBERS_TOGGLED: Channel<EmptyObject> = Channel("settings:line-numbers-toggled", EmptyObject.serializer(), emptySet())
 
     @JvmField
     public val SETTINGS_LOCALE_CHANGED: Channel<SettingsLocaleChangedEvent> = Channel("settings:locale-changed", SettingsLocaleChangedEvent.serializer(), emptySet())

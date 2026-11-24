@@ -7,10 +7,6 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,13 +27,11 @@ import kotlinx.serialization.json.JsonNull;
 import kotlinx.serialization.json.JsonObject;
 import kotlinx.serialization.json.JsonPrimitive;
 import xynolog.XynologClient;
-import xynolog.Timings;
 import xynolog.errors.XynologError;
 import xynolog.http.HttpContentTransport;
 import xynolog.http.HttpTransport;
 import xynolog.http.Timing;
 import xynolog.identifiers.ResourceId;
-import xynolog.jobs.ActiveJob;
 import xynolog.jobs.ClaimRefusal;
 import xynolog.jobs.Claims;
 import xynolog.jobs.ClaimsKt;
@@ -49,8 +43,10 @@ import xynolog.jobs.WorkerVitals;
 import xynolog.transport.ConnectionState;
 import xynolog.transport.ResourceHold;
 import xynolog.transport.TraceContext;
+import xynolog.types.ClaimOptions;
 import xynolog.types.FailureClass;
 import xynolog.types.UnitCursor;
+import xynolog.types.WorkerEngineHealthActiveJob;
 
 /**
  * The worker driver: a worker written on this SDK in Java, as
@@ -70,18 +66,16 @@ import xynolog.types.UnitCursor;
  * `close` stops the worker, failing a job it holds first.
  */
 public final class WorkerDriver {
-    private static final DateTimeFormatter MILLIS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
-
     /** How a trace context is read from what the job states. */
     private static final TextMapGetter<Map<String, String>> CARRIED = (carrier, key) -> carrier == null ? null : carrier.get(key);
 
     private HttpTransport transport;
     private HttpContentTransport content;
     private XynologClient client;
-    private long jobClaimTimeoutMs = Timings.JOB_CLAIM_TIMEOUT_MS;
-    private long heldJobStallMs = Timings.HELD_JOB_STALL_MS;
-    private long heldJobStallCheckMs = Timings.HELD_JOB_STALL_CHECK_MS;
-    private long markCommitTimeoutMs = Timings.MARK_COMMIT_TIMEOUT_MS;
+    private Long jobClaimTimeoutMs;
+    private Long heldJobStallMs;
+    private Long heldJobStallCheckMs;
+    private Long markCommitTimeoutMs;
     private Claims claims;
     private HeldJob job;
     private Span span;
@@ -111,8 +105,8 @@ public final class WorkerDriver {
         Say.line(fields(Map.entry(name, value)));
     }
 
-    private static JsonElement when(Instant at) {
-        return at == null ? JsonNull.INSTANCE : text(MILLIS.format(at.truncatedTo(ChronoUnit.MILLIS)));
+    private static JsonElement textOrNull(String value) {
+        return value == null ? JsonNull.INSTANCE : text(value);
     }
 
     // ── What it reads ───────────────────────────────────────────────
@@ -334,7 +328,13 @@ public final class WorkerDriver {
         synchronized (this) {
             if (claims != null) throw new Misuse("the worker is already claiming");
         }
-        Claims made = opened().getJob().claim(Stated.filters(args.get("accepts")), jobClaimTimeoutMs, heldJobStallMs, heldJobStallCheckMs, markCommitTimeoutMs);
+        ClaimOptions options = ClaimOptions.builder(Stated.filters(args.get("accepts")))
+                .jobClaimTimeoutMs(jobClaimTimeoutMs)
+                .heldJobStallMs(heldJobStallMs)
+                .heldJobStallCheckMs(heldJobStallCheckMs)
+                .markCommitTimeoutMs(markCommitTimeoutMs)
+                .build();
+        Claims made = opened().getJob().claim(options);
         synchronized (this) {
             claims = made;
         }
@@ -434,19 +434,13 @@ public final class WorkerDriver {
 
     private JsonElement vitals() {
         WorkerVitals vitals = claiming().vitals();
-        ActiveJob active = vitals.getActiveJob();
-        JsonElement holding = active == null
-                ? JsonNull.INSTANCE
-                : fields(
-                        Map.entry("jobId", text(active.getJobId().getValue())),
-                        Map.entry("type", text(active.getJobType().getValue())),
-                        Map.entry("since", when(active.getSince())));
+        WorkerEngineHealthActiveJob active = vitals.getActiveJob();
         return fields(
-                Map.entry("lastQueuedEventAt", when(vitals.getLastQueuedEventAt())),
-                Map.entry("lastClaimAt", when(vitals.getLastClaimAt())),
-                Map.entry("lastFinishedAt", when(vitals.getLastFinishedAt())),
-                Map.entry("lastActivityAt", when(vitals.getLastActivityAt())),
-                Map.entry("activeJob", holding),
+                Map.entry("lastQueuedEventAt", textOrNull(vitals.getLastQueuedEventAt())),
+                Map.entry("lastClaimAt", textOrNull(vitals.getLastClaimAt())),
+                Map.entry("lastFinishedAt", textOrNull(vitals.getLastFinishedAt())),
+                Map.entry("lastActivityAt", textOrNull(vitals.getLastActivityAt())),
+                Map.entry("activeJob", active == null ? JsonNull.INSTANCE : Stated.written(active)),
                 Map.entry("jobsCompleted", number(vitals.getJobsCompleted())));
     }
 

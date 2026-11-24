@@ -45,12 +45,6 @@ internal val LIMITS_HOLDERS: List<String> = LIMITS_OPERATIONS.map { it.request.n
 
 private val HOLDERS = LIMITS_OPERATIONS.associateBy { it.request.name }
 
-/** Which resources a list, or a search, is of, and which page of them. */
-internal data class ResourceFilters(val limit: Long, val offset: Long, val archived: Boolean?, val entityType: String?)
-
-/** A search for resources by text, among those its filters admit. */
-internal data class ResourceSearch(val search: String, val filters: ResourceFilters)
-
 /** What an event names: which of a split channel's rows it is, the keys a row that reaches its subject acts on, and the value an enriched event carries. */
 internal data class Subject(
     val whenIs: CacheRefreshWhen? = null,
@@ -111,10 +105,8 @@ internal class Live(private val links: Links, private val content: ContentTransp
     private suspend fun resourceOf(resourceId: ResourceId): ResourceDescriptor =
         links.request(Operations.BROWSE_RESOURCE_REQUESTED, BrowseResourceRequest(resourceId = resourceId)).response.resource
 
-    private suspend fun resourcesOf(filters: ResourceFilters): ListResourcesResponse {
-        val request = BrowseResourcesRequest(limit = filters.limit, offset = filters.offset, archived = filters.archived, entityType = filters.entityType)
-        return links.request(Operations.BROWSE_RESOURCES_REQUESTED, request).response
-    }
+    private suspend fun resourcesOf(request: BrowseResourcesRequest): ListResourcesResponse =
+        links.request(Operations.BROWSE_RESOURCES_REQUESTED, request).response
 
     private suspend fun annotationOf(annotationId: AnnotationId): Annotation {
         val resourceId = annotationOf[annotationId]
@@ -140,11 +132,8 @@ internal class Live(private val links: Links, private val content: ContentTransp
     private suspend fun referencedByOf(resourceId: ResourceId): List<GetReferencedByResponseReferencedByItem> =
         links.request(Operations.GATHER_REFERENCED_BY_REQUESTED, GatherReferencedByRequest(resourceId = resourceId)).response.referencedBy
 
-    private suspend fun searchOf(search: ResourceSearch): MatchResourcesResponse {
-        val filters = search.filters
-        val request = MatchResourcesRequest(search = search.search, limit = filters.limit, offset = filters.offset, archived = filters.archived, entityType = filters.entityType)
-        return links.request(Operations.MATCH_RESOURCES_REQUESTED, request).response
-    }
+    private suspend fun searchOf(request: MatchResourcesRequest): MatchResourcesResponse =
+        links.request(Operations.MATCH_RESOURCES_REQUESTED, request).response
 
     // What an event does.
 

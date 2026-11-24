@@ -46,8 +46,10 @@ import xynolog.types.BeckonSparkleEvent;
 import xynolog.types.BindInitiateCommand;
 import xynolog.types.BrowseDirectoryRequestSort;
 import xynolog.types.CreateAnnotationRequest;
+import xynolog.types.GatherResourceOptions;
 import xynolog.types.GatheredContext;
 import xynolog.types.JobFailCommand;
+import xynolog.types.JobPollOptions;
 import xynolog.types.JobQueuedEvent;
 import xynolog.types.JobReportProgressCommand;
 import xynolog.types.MarkJobQueuedEvent;
@@ -248,7 +250,7 @@ final class NamespacesTest {
 
     @Test
     void gatherAsksForAResourcesContextAndWhatRefersToIt() throws Exception {
-        assertEquals("gather:resource-requested", asked(client.getGather().resourceFuture(RESOURCE, 1, 1, false, false, List.of())));
+        assertEquals("gather:resource-requested", asked(client.getGather().resourceFuture(RESOURCE, GatherResourceOptions.builder().depth(1L).maxResources(1L).includeContent(false).includeSummary(false).build())));
         assertEquals("gather:referenced-by-requested", asked(client.getGather().referencedBy(RESOURCE).freshFuture()));
     }
 
@@ -301,7 +303,7 @@ final class NamespacesTest {
         assertEquals("job:status-requested", asked(client.getJob().statusFuture(JOB)));
         List<Object> statuses = new ArrayList<>();
         assertEquals("job:status-requested", asked(client.getJob().pollUntilCompleteFuture(JOB)));
-        assertEquals("job:status-requested", asked(client.getJob().pollUntilCompleteFuture(JOB, 10, 1_000, statuses::add)));
+        assertEquals("job:status-requested", asked(client.getJob().pollUntilCompleteFuture(JOB, JobPollOptions.builder().everyMs(10L).withinMs(1_000L).build(), statuses::add)));
         // The first ask was refused, so no status was told.
         assertEquals(List.of(), statuses);
         assertEquals("job:cancel-requested", asked(client.getJob().cancelFuture(JOB)));

@@ -47,7 +47,3 @@ public data class Response<T>(
     @SerialName("response")
     public val response: T,
 )
-
-/** The payload of a channel that carries none: the empty object. */
-@Serializable
-public data object Empty

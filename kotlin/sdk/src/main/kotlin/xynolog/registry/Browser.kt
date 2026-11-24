@@ -39,6 +39,7 @@ import xynolog.session.OpenedSession
 import xynolog.session.SessionSignals
 import xynolog.session.XynologSession
 import xynolog.session.isTokenExpired
+import xynolog.stamped
 import xynolog.storage.SessionStorage
 import xynolog.telemetry.futureOf
 import xynolog.transport.Broadcast
@@ -69,8 +70,6 @@ import xynolog.types.TabCheckReady
 import xynolog.types.TabCheckUnknown
 import xynolog.types.wireJson
 import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
@@ -82,9 +81,6 @@ private val OPEN_BY_KB = MapSerializer(String.serializer(), ListSerializer(OpenR
 private val VIEWED_BY_KB = MapSerializer(String.serializer(), ResourceId.serializer())
 
 private val NO_VERDICT = KbReadVerdictNoVerdict()
-
-/** A time as RFC 3339, in UTC, to the millisecond, as every SDK writes what a knowledge base last said. */
-private val AT = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
 
 /** What is stored under one of the registry's keys, read; empty for what does not read as that. */
 private fun <T> storedAs(serializer: KSerializer<Map<String, T>>, stored: String?): Map<String, T> = stored?.let {
@@ -102,7 +98,7 @@ internal fun samePlace(one: KbEndpoint, other: KbEndpoint): Boolean = when (one)
 }
 
 /** What a knowledge base said of itself now, beyond its name. */
-private fun readNow(description: KbDescription): KbRead = KbRead(AT.format(Instant.now()), description.gitBranch)
+private fun readNow(description: KbDescription): KbRead = KbRead(stamped(Instant.now()), description.gitBranch)
 
 /** A factory's refusal as the failure a registry says: the factory's own when it is a session's. */
 private fun constructFailed(refused: XynologError, kbId: String): SessionError =

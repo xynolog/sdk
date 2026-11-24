@@ -1,12 +1,8 @@
 package xynolog
 
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -17,8 +13,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -33,54 +27,35 @@ import xynolog.bus.Typed
 import xynolog.bus.decoded
 import xynolog.channels.Channel
 import xynolog.channels.Channels
-import xynolog.errors.XynologError
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
-import xynolog.transport.Broadcast
-import xynolog.transport.ConnectionState
-import xynolog.transport.Content
-import xynolog.transport.ContentStream
-import xynolog.transport.ContentTransport
 import xynolog.transport.Delivered
-import xynolog.transport.Events
-import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
-import xynolog.transport.FrameSink
-import xynolog.transport.GatewayOperations
-import xynolog.transport.PendingReply
 import xynolog.transport.PutBinaryRequest
-import xynolog.transport.ReplyRouter
-import xynolog.transport.ResourceHold
-import xynolog.transport.Transport
-import xynolog.transport.Upload
-import xynolog.transport.Watched
 import xynolog.types.AnchorRect
-import xynolog.types.AnchoredTextAnswer
 import xynolog.types.AnnotationSelector
 import xynolog.types.BindBodyOperation
 import xynolog.types.BindInitiateCommand
 import xynolog.types.BrowseDirectoryRequestSort
+import xynolog.types.BrowseResourcesRequest
+import xynolog.types.ClaimOptions
 import xynolog.types.CreateAnnotationRequest
+import xynolog.types.CreateFromTokenOptions
+import xynolog.types.GatherAnnotationOptions
+import xynolog.types.GatherResourceOptions
 import xynolog.types.GatheredContext
 import xynolog.types.GenerationJobParams
-import xynolog.types.GetAnnotationsResponse
-import xynolog.types.GetResourceResponse
-import xynolog.types.HealthResponse
-import xynolog.types.JobFilter
+import xynolog.types.JobPollOptions
 import xynolog.types.MarkJobParams
 import xynolog.types.MarkSubmitEvent
+import xynolog.types.MatchSearchOptions
 import xynolog.types.MatchSearchRequest
-import xynolog.types.MediaTokenResponse
 import xynolog.types.Motivation
-import xynolog.types.ProtectedResourceMetadata
 import xynolog.types.ResourceErrorEvent
-import xynolog.types.StatusResponse
+import xynolog.types.ResourceSearchFilters
 import xynolog.types.TagSchema
-import xynolog.types.UserResponse
 import xynolog.types.wireJson
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CopyOnWriteArrayList
 
 /** `value` with every `{"$fixture": name}` in it the table's fixture of that name. */
 private fun resolved(value: JsonElement, fixtures: JsonObject): JsonElement = when (value) {
@@ -101,20 +76,14 @@ private class Args(private val stated: JsonObject, private val fixtures: JsonObj
 
     fun <T> read(name: String, serializer: KSerializer<T>): T = wireJson.decodeFromJsonElement(serializer, getValue(name))
 
+    /** An object argument the case may leave out: one left out is the object that states nothing. */
+    fun <T> stated(name: String, serializer: KSerializer<T>): T = wireJson.decodeFromJsonElement(serializer, get(name) ?: JsonObject(emptyMap()))
+
     fun resource(name: String = "resourceId"): ResourceId = ResourceId(text(name))
 
     fun annotation(name: String = "annotationId"): AnnotationId = AnnotationId(text(name))
 
     fun job(): JobId = JobId(text("jobId"))
-}
-
-/** The filters a case states for a list or a search: the first hundred, and the rest unstated, where it states none. */
-private class Filters(args: Args) {
-    private val stated = args["filters"]?.jsonObject ?: JsonObject(emptyMap())
-    val limit: Long = stated["limit"]?.jsonPrimitive?.long ?: 100
-    val offset: Long = stated["offset"]?.jsonPrimitive?.long ?: 0
-    val archived: Boolean? = stated["archived"]?.jsonPrimitive?.boolean
-    val entityType: String? = stated["entityType"]?.jsonPrimitive?.content
 }
 
 /** A method as a case calls it. */
@@ -128,10 +97,7 @@ private val calls: Map<String, Call> = mapOf(
     "frame.addEntityTypes" to { c, a -> c.frame.addEntityTypes(a.texts("types")) },
     "frame.addTagSchema" to { c, a -> c.frame.addTagSchema(a.read("schema", TagSchema.serializer())) },
     "browse.resource" to { c, a -> c.browse.resource(a.resource()).fresh() },
-    "browse.resources" to { c, a ->
-        val filters = Filters(a)
-        c.browse.resources(filters.limit, filters.offset, filters.archived, filters.entityType).fresh()
-    },
+    "browse.resources" to { c, a -> c.browse.resources(a.stated("filters", BrowseResourcesRequest.serializer())).fresh() },
     "browse.annotations" to { c, a -> c.browse.annotations(a.resource()).fresh() },
     "browse.annotation" to { c, a -> c.browse.annotation(a.resource(), a.annotation()).fresh() },
     "browse.entityTypes" to { c, _ -> c.browse.entityTypes().fresh() },
@@ -166,46 +132,18 @@ private val calls: Map<String, Call> = mapOf(
     "bind.body" to { c, a -> c.bind.body(a.resource(), a.annotation(), a.read("operations", list(BindBodyOperation.serializer()))) },
     "bind.initiate" to { c, a -> c.bind.initiate(a.read("input", BindInitiateCommand.serializer())) },
     "bind.reportBodyError" to { c, a -> c.bind.reportBodyError(a.read("input", ResourceErrorEvent.serializer())) },
-    "gather.resource" to { c, a ->
-        val options = a["options"]?.jsonObject
-        if (options == null) {
-            c.gather.resource(a.resource())
-        } else {
-            c.gather.resource(
-                a.resource(),
-                depth = options["depth"]?.jsonPrimitive?.long ?: 2,
-                maxResources = options["maxResources"]?.jsonPrimitive?.long ?: 10,
-                includeContent = options["includeContent"]?.jsonPrimitive?.boolean ?: true,
-                includeSummary = options["includeSummary"]?.jsonPrimitive?.boolean ?: false,
-                excludeEntityTypes = options["excludeEntityTypes"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList(),
-            )
-        }
-    },
+    "gather.resource" to { c, a -> c.gather.resource(a.resource(), a.stated("options", GatherResourceOptions.serializer())) },
     "gather.referencedBy" to { c, a -> c.gather.referencedBy(a.resource()).fresh() },
-    "gather.annotation" to { c, a ->
-        val options = a["options"]?.jsonObject ?: JsonObject(emptyMap())
-        c.gather.annotation(
-            a.resource(),
-            a.annotation(),
-            contextWindow = options["contextWindow"]?.jsonPrimitive?.long ?: 2000,
-            includeSourceContext = options["includeSourceContext"]?.jsonPrimitive?.boolean,
-            includeTargetContext = options["includeTargetContext"]?.jsonPrimitive?.boolean,
-        ).await()
-    },
+    "gather.annotation" to { c, a -> c.gather.annotation(a.resource(), a.annotation(), a.stated("options", GatherAnnotationOptions.serializer())).await() },
     "match.search" to { c, a ->
-        val options = a["options"]?.jsonObject ?: JsonObject(emptyMap())
         c.match.search(
             a.resource(),
             a.annotation("referenceId"),
             a.read("context", GatheredContext.serializer()),
-            limit = options["limit"]?.jsonPrimitive?.long ?: 10,
-            useSemanticScoring = options["useSemanticScoring"]?.jsonPrimitive?.boolean ?: true,
+            a.stated("options", MatchSearchOptions.serializer()),
         ).await()
     },
-    "match.resources" to { c, a ->
-        val filters = Filters(a)
-        c.match.resources(a.text("search"), filters.limit, filters.offset, filters.archived, filters.entityType).fresh()
-    },
+    "match.resources" to { c, a -> c.match.resources(a.text("search"), a.stated("filters", ResourceSearchFilters.serializer())).fresh() },
     "match.requestSearch" to { c, a -> c.match.requestSearch(a.read("input", MatchSearchRequest.serializer()), a.text("correlationId")) },
     "yield.resource" to { c, a ->
         val data = a.getValue("data").jsonObject
@@ -213,11 +151,7 @@ private val calls: Map<String, Call> = mapOf(
         c.yield.resource(PutBinaryRequest(name = text("name"), file = text("file").toByteArray(), format = text("format"), storageUri = text("storageUri")))
     },
     "yield.delegate" to { c, a -> c.yield.delegate(a.read("params", GenerationJobParams.serializer()), a["stallDeadlineMs"]?.jsonPrimitive?.long).await() },
-    "yield.createFromToken" to { c, a ->
-        val options = a.getValue("options").jsonObject
-        fun text(name: String) = options.getValue(name).jsonPrimitive.content
-        c.yield.createFromToken(text("token"), text("name"), text("content"), options["archiveOriginal"]?.jsonPrimitive?.boolean)
-    },
+    "yield.createFromToken" to { c, a -> c.yield.createFromToken(a.read("options", CreateFromTokenOptions.serializer())) },
     "yield.cloneToken" to { c, a -> c.yield.cloneToken(a.resource()) },
     "yield.fromToken" to { c, a -> c.yield.fromToken(a.text("token")) },
     "yield.clone" to { c, _ -> c.yield.clone() },
@@ -232,10 +166,10 @@ private val calls: Map<String, Call> = mapOf(
     "job.complete" to { c, _ -> c.job.complete() },
     "job.fail" to { c, _ -> c.job.fail() },
     "job.status" to { c, a -> c.job.status(a.job()) },
-    "job.pollUntilComplete" to { c, a -> c.job.pollUntilComplete(a.job()) },
+    "job.pollUntilComplete" to { c, a -> c.job.pollUntilComplete(a.job(), a.stated("options", JobPollOptions.serializer())) },
     "job.cancel" to { c, a -> c.job.cancel(a.job()) },
     // Read, the claims claim: the first claim is what the row holds.
-    "job.claim" to { c, a -> c.job.claim(wireJson.decodeFromJsonElement(ListSerializer(serializer<JobFilter>()), a.getValue("options").jsonObject.getValue("accepts"))).next() },
+    "job.claim" to { c, a -> c.job.claim(a.read("options", ClaimOptions.serializer())).next() },
     "auth.me" to { c, _ -> c.auth.me() },
     "auth.mediaToken" to { c, a -> c.auth.mediaToken(a.resource()) },
     "auth.protectedResourceMetadata" to { c, _ -> c.auth.protectedResourceMetadata() },
