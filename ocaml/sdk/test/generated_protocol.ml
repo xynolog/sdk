@@ -158,8 +158,8 @@ let required_table () =
   accepts M.error_data {|{"code":"control.not-found-here","retryable":false}|};
   faults M.error_data {|{"code":"control.not-","retryable":false}|} "code"
     `Malformed;
-  faults M.error_data {|{"code":"control.not--found","retryable":false}|}
-    "code" `Malformed;
+  faults M.error_data {|{"code":"control.not--found","retryable":false}|} "code"
+    `Malformed;
   (* A name is ^[0-9a-z]([-0-9a-z]*[0-9a-z])?$: the step in the group gives
      back the point the step after it takes. *)
   accepts M.metadata {|{"name":"a"}|};

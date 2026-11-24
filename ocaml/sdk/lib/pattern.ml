@@ -46,13 +46,13 @@ let matches (terms : Schema_shape.term list) text =
      than [count] times or more, then of [next]: a repetition past the group's
      minimum takes at least one point. *)
   and repeated ((either, minimum, maximum) as group) position count next =
-    (Option.fold ~none:true ~some:(fun most -> count < most) maximum
+    Option.fold ~none:true ~some:(fun most -> count < most) maximum
     && List.exists
          (fun alternative ->
            series alternative position (fun after ->
                (count < minimum || after > position)
                && repeated group after (count + 1) next))
-         either)
+         either
     || (count >= minimum && next position)
   in
   !valid && series terms 0 (fun position -> position = length)
