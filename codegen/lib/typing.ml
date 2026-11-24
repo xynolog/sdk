@@ -758,6 +758,16 @@ let references (d : declaration) =
   | Some c -> List.concat_map references_of_ty c.parts
   | None -> []
 
+(* [names], and every schema they reach, [find] giving each its
+   declaration, in the order of their names. *)
+let reached find names =
+  let rec reach seen = function
+    | [] -> seen
+    | name :: rest when List.mem name seen -> reach seen rest
+    | name :: rest -> reach (name :: seen) (references (find name) @ rest)
+  in
+  List.sort String.compare (reach [] names)
+
 let make (definitions : D.definitions) ~roots ~identifiers ~keys =
   let st =
     {
@@ -768,13 +778,7 @@ let make (definitions : D.definitions) ~roots ~identifiers ~keys =
       inlines = Hashtbl.create 512;
     }
   in
-  let rec reach seen = function
-    | [] -> seen
-    | name :: rest when List.mem name seen -> reach seen rest
-    | name :: rest ->
-        reach (name :: seen) (references (declaration st name) @ rest)
-  in
-  let names = List.sort String.compare (reach [] roots) in
+  let names = reached (declaration st) roots in
   {
     names;
     find = declaration st;

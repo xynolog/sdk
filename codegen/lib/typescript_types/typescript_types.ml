@@ -134,15 +134,6 @@ let declared ~named (d : Typing.declaration) =
   | Identifier _ -> branded d.name
   | form -> form_of ~named form d.composition
 
-(* [names], and every schema they reach. *)
-let reached (typing : Typing.t) names =
-  let rec reach seen name =
-    if List.mem name seen then seen
-    else
-      List.fold_left reach (name :: seen) (Typing.references (typing.find name))
-  in
-  List.sort String.compare (List.fold_left reach [] names)
-
 (* Why a client that read a launcher's discovery document found no launcher
    (protocol/specs/src/client/discovery-absent.json): a reason a case. *)
 let discovery_absent (spec : Spec.t) =
@@ -172,14 +163,14 @@ let text (spec : Spec.t) =
   let records =
     List.filter
       (fun name -> not (List.mem name components))
-      (reached typing
+      (Typing.reached typing.find
          (List.map (fun (_, name, _) -> name) (Definitions.records spec)
          @ Definitions.generated_client_types spec))
   in
   let table_names =
     List.filter
       (fun name -> not (List.mem name components || List.mem name records))
-      (reached typing
+      (Typing.reached typing.find
          (List.map
             (fun table -> Definitions.stem (Places.schema_of table))
             tables))
