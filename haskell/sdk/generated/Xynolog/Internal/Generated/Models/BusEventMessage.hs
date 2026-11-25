@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.BusEventMessage (BusEventMessage (..), BusEventMessageEvent (..), busEventMessageEventText, BusEventMessageId (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -36,7 +35,7 @@ busEventMessageEventText BusEventMessageEventBusEvent = "bus-event"
 
 data BusEventMessageId = BusEventMessageIdPersistedEventId PersistedEventId | BusEventMessageIdReplyEventId ReplyEventId | BusEventMessageIdEphemeralEventId EphemeralEventId deriving (Eq, Show)
 
-instance FromJSON BusEventMessageId where parseJSON = checked "BusEventMessageId" $ \value -> (BusEventMessageIdPersistedEventId <$> parseJSON value) <|> (BusEventMessageIdReplyEventId <$> parseJSON value) <|> (BusEventMessageIdEphemeralEventId <$> parseJSON value)
+instance FromJSON BusEventMessageId where parseJSON = checked "BusEventMessageId" $ \value -> readMember "BusEventMessageId" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Just "^p-.+-[0-9]+$", signatureValues = Nothing}], BusEventMessageIdPersistedEventId <$> parseJSON value), ([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Just "^e-[^:]+:[^:]+:.+$", signatureValues = Nothing}], BusEventMessageIdReplyEventId <$> parseJSON value), ([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Just "^e-[^:]+$", signatureValues = Nothing}], BusEventMessageIdEphemeralEventId <$> parseJSON value)] value
 
 instance ToJSON BusEventMessageId where
   toJSON (BusEventMessageIdPersistedEventId value) = toJSON value

@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.WorkerMessages (WorkerMessages (..), WorkerMessagesBootItem (..), WorkerMessagesBootItemOwnBootRefusal (..), WorkerMessagesBootItemSharedBootRefusal (..), WorkerMessagesDetailsItem (..), WorkerMessagesErrorsItem (..), WorkerMessagesJob (..), WorkerMessagesLoggedItem (..), WorkerMessagesReasonsItem (..), WorkerMessagesWaitsItem (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -29,7 +28,7 @@ instance ToJSON WorkerMessages where toJSON value = Object (KM.fromList (concat 
 
 data WorkerMessagesBootItem = WorkerMessagesBootItemOwnBootRefusal WorkerMessagesBootItemOwnBootRefusal | WorkerMessagesBootItemSharedBootRefusal WorkerMessagesBootItemSharedBootRefusal deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesBootItem where parseJSON = checked "WorkerMessagesBootItem" $ \value -> (WorkerMessagesBootItemOwnBootRefusal <$> parseJSON value) <|> (WorkerMessagesBootItemSharedBootRefusal <$> parseJSON value)
+instance FromJSON WorkerMessagesBootItem where parseJSON = checked "WorkerMessagesBootItem" $ \value -> readMember "WorkerMessagesBootItem" [([Signature {signatureKind = ObjectKind, signatureRequired = ["name", "situation", "refusal"], signatureAllowed = Just ["name", "situation", "refusal"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], WorkerMessagesBootItemOwnBootRefusal <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["name", "situation", "bootRefusal"], signatureAllowed = Just ["name", "situation", "bootRefusal"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], WorkerMessagesBootItemSharedBootRefusal <$> parseJSON value)] value
 
 instance ToJSON WorkerMessagesBootItem where
   toJSON (WorkerMessagesBootItemOwnBootRefusal value) = toJSON value

@@ -241,6 +241,13 @@ let files ~root (spec : Spec.t) =
                Error (refused "openapi.json" (name ^ ": " ^ message)))
          models.definitions)
   in
+  let* round_trip =
+    within "openapi.json"
+      (Companions.round_trip_module
+         ~banner:(banner "protocol/specs/src")
+         ~enumerations:models.enumerations ~unions:models.unions
+         (List.map fst models.definitions))
+  in
   let unrecognized =
     Error_codes.Haskell.code_constructor "busRequest"
       spec.tables.errors_codes.bus_request.unrecognized_failure
@@ -256,11 +263,7 @@ let files ~root (spec : Spec.t) =
           (Companions.schemas_module
              ~banner:(banner "protocol/specs/src")
              validated);
-        file ~under:"test"
-          (Companions.round_trip_module
-             ~banner:(banner "protocol/specs/src")
-             ~enumerations:models.enumerations
-             (List.map fst models.definitions));
+        file ~under:"test" round_trip;
         file ~under:"src"
           (Http.file
              ~banner:

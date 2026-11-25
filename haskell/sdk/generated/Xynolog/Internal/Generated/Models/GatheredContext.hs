@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.GatheredContext (GatheredContext (..), GatheredContextFocus (..), GatheredContextFocusAnnotation (..), GatheredContextFocusAnnotationKind (..), gatheredContextFocusAnnotationKindText, GatheredContextFocusAnnotationSelected (..), GatheredContextFocusAnnotationTargetContext (..), GatheredContextFocusResource (..), GatheredContextFocusResourceContent (..), GatheredContextFocusResourceKind (..), gatheredContextFocusResourceKindText, GatheredContextMetadata (..), GatheredContextSemanticContext (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -29,7 +28,7 @@ instance ToJSON GatheredContext where toJSON value = Object (KM.fromList (concat
 
 data GatheredContextFocus = GatheredContextFocusAnnotation GatheredContextFocusAnnotation | GatheredContextFocusResource GatheredContextFocusResource deriving (Eq, Show)
 
-instance FromJSON GatheredContextFocus where parseJSON = checked "GatheredContextFocus" $ \value -> (GatheredContextFocusAnnotation <$> parseJSON value) <|> (GatheredContextFocusResource <$> parseJSON value)
+instance FromJSON GatheredContextFocus where parseJSON = checked "GatheredContextFocus" $ \value -> readMember "GatheredContextFocus" [([Signature {signatureKind = ObjectKind, signatureRequired = ["kind", "annotation", "sourceResource"], signatureAllowed = Nothing, signatureFixed = [("kind", [String "annotation"])], signaturePattern = Nothing, signatureValues = Nothing}], GatheredContextFocusAnnotation <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["kind", "resource"], signatureAllowed = Nothing, signatureFixed = [("kind", [String "resource"])], signaturePattern = Nothing, signatureValues = Nothing}], GatheredContextFocusResource <$> parseJSON value)] value
 
 instance ToJSON GatheredContextFocus where
   toJSON (GatheredContextFocusAnnotation value) = toJSON value

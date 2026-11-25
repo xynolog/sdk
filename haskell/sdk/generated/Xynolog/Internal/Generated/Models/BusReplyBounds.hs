@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.BusReplyBounds (BusReplyBounds (..), BusReplyBoundsRepliesValueValue (..), BusReplyBoundsRepliesValueValueBy (..), BusReplyBoundsRepliesValueValueGrows (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -22,7 +21,7 @@ instance ToJSON BusReplyBounds where toJSON value = Object (KM.fromList (concat 
 
 data BusReplyBoundsRepliesValueValue = BusReplyBoundsRepliesValueValueBy BusReplyBoundsRepliesValueValueBy | BusReplyBoundsRepliesValueValueGrows BusReplyBoundsRepliesValueValueGrows deriving (Eq, Show)
 
-instance FromJSON BusReplyBoundsRepliesValueValue where parseJSON = checked "BusReplyBoundsRepliesValueValue" $ \value -> (BusReplyBoundsRepliesValueValueBy <$> parseJSON value) <|> (BusReplyBoundsRepliesValueValueGrows <$> parseJSON value)
+instance FromJSON BusReplyBoundsRepliesValueValue where parseJSON = checked "BusReplyBoundsRepliesValueValue" $ \value -> readMember "BusReplyBoundsRepliesValueValue" [([Signature {signatureKind = ObjectKind, signatureRequired = ["by"], signatureAllowed = Just ["by"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], BusReplyBoundsRepliesValueValueBy <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["grows"], signatureAllowed = Just ["grows"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], BusReplyBoundsRepliesValueValueGrows <$> parseJSON value)] value
 
 instance ToJSON BusReplyBoundsRepliesValueValue where
   toJSON (BusReplyBoundsRepliesValueValueBy value) = toJSON value

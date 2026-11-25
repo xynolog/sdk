@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.KnowledgeGraph (KnowledgeGraph (..), KnowledgeGraphEdgesItem (..), KnowledgeGraphNodesItem (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -38,7 +37,7 @@ instance ToJSON KnowledgeGraphEdgesItem where toJSON value = Object (KM.fromList
 
 data KnowledgeGraphNodesItem = KnowledgeGraphNodesItemGraphResourceNode GraphResourceNode | KnowledgeGraphNodesItemGraphAnnotationNode GraphAnnotationNode deriving (Eq, Show)
 
-instance FromJSON KnowledgeGraphNodesItem where parseJSON = checked "KnowledgeGraphNodesItem" $ \value -> (KnowledgeGraphNodesItemGraphResourceNode <$> parseJSON value) <|> (KnowledgeGraphNodesItemGraphAnnotationNode <$> parseJSON value)
+instance FromJSON KnowledgeGraphNodesItem where parseJSON = checked "KnowledgeGraphNodesItem" $ \value -> readMember "KnowledgeGraphNodesItem" [([Signature {signatureKind = ObjectKind, signatureRequired = ["id", "type", "label"], signatureAllowed = Nothing, signatureFixed = [("type", [String "resource"])], signaturePattern = Nothing, signatureValues = Nothing}], KnowledgeGraphNodesItemGraphResourceNode <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["id", "type", "label", "annotation"], signatureAllowed = Nothing, signatureFixed = [("type", [String "annotation"])], signaturePattern = Nothing, signatureValues = Nothing}], KnowledgeGraphNodesItemGraphAnnotationNode <$> parseJSON value)] value
 
 instance ToJSON KnowledgeGraphNodesItem where
   toJSON (KnowledgeGraphNodesItemGraphResourceNode value) = toJSON value

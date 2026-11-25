@@ -69,6 +69,8 @@ type state = {
       (** Every enumeration declared, and its values. *)
   mutable union_members : Names.t;
       (** The types written in place as a union's members. *)
+  mutable unions : (string * T.branch list) list;
+      (** Every union declared, and its members. *)
   typing : T.t;
 }
 
@@ -186,29 +188,66 @@ let enumeration name values =
        ]
       @ text)
 
-(* A union's type, a constructor of each member's type, read as the first
-   member that parses: [Deviations.haskell_first_fit]. *)
-let union_decls name members =
-  let parse (constructor, _) =
-    H.Infix
-      (Name constructor, [ ("<$>", Apply (Name "parseJSON", [ Name "value" ])) ])
+(* A value's kind, as [Xynolog.Internal.Codec.Kind] names it. *)
+let kind : T.kind -> string = function
+  | Text_kind -> "TextKind"
+  | Integer_kind -> "IntegerKind"
+  | Number_kind -> "NumberKind"
+  | Boolean_kind -> "BooleanKind"
+  | List_kind -> "ListKind"
+  | Object_kind -> "ObjectKind"
+  | Null_kind -> "NullKind"
+  | Any_kind -> "AnyKind"
+
+(* What a union's member admits, as [Xynolog.Internal.Codec.Signature] holds
+   it. *)
+let signature (s : T.signature) =
+  let keys names = H.List (List.map (fun n -> H.Str n) names) in
+  let values vs = H.List (List.map literal_value vs) in
+  let maybe f = function
+    | None -> H.Name "Nothing"
+    | Some v -> H.Apply (Name "Just", [ f v ])
   in
-  let alternatives =
-    match List.map parse members with
-    | [] -> assert false
-    | first :: rest -> (
-        match rest with
-        | [] -> first
-        | rest -> H.Infix (first, List.map (fun e -> ("<|>", e)) rest))
+  H.Construct
+    ( "Signature",
+      [
+        ("signatureKind", Name (kind s.kind));
+        ("signatureRequired", keys s.required);
+        ("signatureAllowed", maybe keys s.allowed);
+        ( "signatureFixed",
+          List
+            (List.map
+               (fun (name, vs) -> H.Tuple [ Str name; values vs ])
+               s.fixed) );
+        ("signaturePattern", maybe (fun p -> H.Str p) s.pattern);
+        ("signatureValues", maybe values s.values);
+      ] )
+
+(* A union's type, a constructor of each member's type, read as the member
+   whose signatures admit the value. *)
+let union_decls name members =
+  let member (constructor, _, signatures) =
+    H.Tuple
+      [
+        List (List.map signature signatures);
+        Infix
+          ( Name constructor,
+            [ ("<$>", Apply (Name "parseJSON", [ Name "value" ])) ] );
+      ]
   in
   Ok
     [
       H.data name ~deriving:[ "Eq"; "Show" ]
-        (List.map (fun (c, t) -> H.constructor c ~fields:[ t ]) members);
-      instance_from name (Lambda ("value", alternatives));
+        (List.map (fun (c, t, _) -> H.constructor c ~fields:[ t ]) members);
+      instance_from name
+        (Lambda
+           ( "value",
+             Apply
+               ( Name "readMember",
+                 [ Str name; List (List.map member members); Name "value" ] ) ));
       to_json
         (List.map
-           (fun (c, _) ->
+           (fun (c, _, _) ->
              {
                H.patterns = [ Constructor (c, [ Var "value" ]) ];
                body = Apply (Name "toJSON", [ Name "value" ]);
@@ -587,9 +626,10 @@ and union state name original (u : T.union) =
                state.union_members <- Names.add i.name state.union_members
            | _ -> ());
            let* t = type_of state name part b.ty in
-           Ok ((name ^ b.variant, t) :: found))
+           Ok ((name ^ b.variant, t, b.signature) :: found))
          (Ok []) parts u.branches)
   in
+  state.unions <- (name, u.branches) :: state.unions;
   union_decls name members
 
 (* What constructs the record or newtype [name]:
@@ -705,6 +745,8 @@ type t = {
   typing : T.t;
   enumerations : (string * Schema.literal list) list;
       (** Every enumeration declared, and its values, by name. *)
+  unions : (string * T.branch list) list;
+      (** Every union declared, and its members, by name. *)
 }
 
 let prefix = "Xynolog.Internal.Generated.Models."
@@ -743,8 +785,7 @@ let imports body dependencies =
       [] aeson_names
   in
   let when_ condition import = if condition then [ import ] else [] in
-  when_ (value "<|>") (H.import "Control.Applicative" ~items:[ Op "<|>" ])
-  @ when_ (aeson <> []) (H.import "Data.Aeson" ~items:aeson)
+  when_ (aeson <> []) (H.import "Data.Aeson" ~items:aeson)
   @ (match List.filter value [ "parseEither"; "toJSONKeyText" ] with
     | [] -> []
     | used ->
@@ -763,7 +804,9 @@ let imports body dependencies =
   @ when_ (type_ "Text") (H.import "Data.Text" ~items:[ Plain "Text" ])
   @ when_
       (List.exists value
-         [ "checked"; "optional"; "optionalPair"; "withoutFields" ])
+         [
+           "checked"; "optional"; "optionalPair"; "readMember"; "withoutFields";
+         ])
       (H.import "Xynolog.Internal.Codec")
   @ List.map (fun m -> H.import m) dependencies
 
@@ -821,6 +864,7 @@ let generate ~banner ~ids ~identifiers ~keys definitions =
       keys = Names.of_list (List.map snd keys);
       enumerations = [];
       union_members = Names.empty;
+      unions = [];
       typing;
     }
   in
@@ -885,4 +929,5 @@ let generate ~banner ~ids ~identifiers ~keys definitions =
       typing;
       enumerations =
         List.sort (fun (a, _) (b, _) -> String.compare a b) state.enumerations;
+      unions = List.sort (fun (a, _) (b, _) -> String.compare a b) state.unions;
     }

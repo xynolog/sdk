@@ -121,6 +121,12 @@ the coming release's, and gathers its changes as they land.
   one `…AdditionalProperties` field (`MetadataLabels`,
   `JobMetadataUnitCursors`). A scalar that states a pattern, a length or a
   range stays a type of its own.
+- A union's value is read as the member that admits it, by what each
+  member's schema states (its kind, the members an object of it requires and
+  allows, the values it and its members may take, and the pattern its text
+  matches), in place of trying each member until one parses. Only that
+  member is read, and a value it refuses is refused as that member refuses
+  it, where it was refused as the last member tried refused it.
 
 ### Removed
 

@@ -4,8 +4,7 @@
 
 module Xynolog.Internal.Generated.Models.MarkJobParams (MarkJobParams (..)) where
 
-import Control.Applicative ((<|>))
-import Data.Aeson (FromJSON (..), ToJSON (..))
+import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AssessingJobParams
 import Xynolog.Internal.Generated.Models.CommentingJobParams
@@ -15,7 +14,7 @@ import Xynolog.Internal.Generated.Models.TaggingJobParams
 
 data MarkJobParams = MarkJobParamsHighlightingJobParams HighlightingJobParams | MarkJobParamsCommentingJobParams CommentingJobParams | MarkJobParamsAssessingJobParams AssessingJobParams | MarkJobParamsLinkingJobParams LinkingJobParams | MarkJobParamsTaggingJobParams TaggingJobParams deriving (Eq, Show)
 
-instance FromJSON MarkJobParams where parseJSON = checked "MarkJobParams" $ \value -> (MarkJobParamsHighlightingJobParams <$> parseJSON value) <|> (MarkJobParamsCommentingJobParams <$> parseJSON value) <|> (MarkJobParamsAssessingJobParams <$> parseJSON value) <|> (MarkJobParamsLinkingJobParams <$> parseJSON value) <|> (MarkJobParamsTaggingJobParams <$> parseJSON value)
+instance FromJSON MarkJobParams where parseJSON = checked "MarkJobParams" $ \value -> readMember "MarkJobParams" [([Signature {signatureKind = ObjectKind, signatureRequired = ["motivation"], signatureAllowed = Just ["motivation", "instructions", "density", "sourceLanguage"], signatureFixed = [("motivation", [String "highlighting"])], signaturePattern = Nothing, signatureValues = Nothing}], MarkJobParamsHighlightingJobParams <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["motivation"], signatureAllowed = Just ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"], signatureFixed = [("motivation", [String "commenting"]), ("tone", [String "scholarly", String "explanatory", String "conversational", String "technical"])], signaturePattern = Nothing, signatureValues = Nothing}], MarkJobParamsCommentingJobParams <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["motivation"], signatureAllowed = Just ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"], signatureFixed = [("motivation", [String "assessing"]), ("tone", [String "analytical", String "critical", String "balanced", String "constructive"])], signaturePattern = Nothing, signatureValues = Nothing}], MarkJobParamsAssessingJobParams <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["motivation", "entityTypes"], signatureAllowed = Just ["motivation", "entityTypes", "includeDescriptiveReferences", "language", "sourceLanguage"], signatureFixed = [("motivation", [String "linking"])], signaturePattern = Nothing, signatureValues = Nothing}], MarkJobParamsLinkingJobParams <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["motivation", "schemaId", "categories"], signatureAllowed = Just ["motivation", "schemaId", "categories", "language", "sourceLanguage"], signatureFixed = [("motivation", [String "tagging"])], signaturePattern = Nothing, signatureValues = Nothing}], MarkJobParamsTaggingJobParams <$> parseJSON value)] value
 
 instance ToJSON MarkJobParams where
   toJSON (MarkJobParamsHighlightingJobParams value) = toJSON value
