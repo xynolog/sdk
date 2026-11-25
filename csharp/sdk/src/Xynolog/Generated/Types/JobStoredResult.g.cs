@@ -9,5 +9,5 @@ public closed record JobStoredResult
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["found", "persisted"], ["found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"], [], null), new(global::Xynolog.Serialization.Kind.Object, ["resourceId", "resourceName", "truncated"], ["resourceId", "resourceName", "truncated"], [], null), new(global::Xynolog.Serialization.Kind.Object, ["declined", "reason"], ["declined", "reason"], [new("declined", [new global::Xynolog.Serialization.Literal.Boolean(true)]), new("reason", [new global::Xynolog.Serialization.Literal.Text("no-text-layer"), new global::Xynolog.Serialization.Literal.Text("encrypted"), new global::Xynolog.Serialization.Literal.Text("corrupt"), new global::Xynolog.Serialization.Literal.Text("too-large"), new global::Xynolog.Serialization.Literal.Text("empty")])], null)], [new(global::Xynolog.Serialization.Kind.Object, [], [], [], null)]];
     public sealed record JobResult(global::Xynolog.Types.JobResult Value) : JobStoredResult;
-    public sealed record Empty(global::Xynolog.Types.JobStoredResultObject Value) : JobStoredResult;
+    public sealed record Empty(global::Xynolog.Types.JobStoredResultEmpty Value) : JobStoredResult;
 }

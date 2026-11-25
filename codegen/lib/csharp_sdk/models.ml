@@ -415,30 +415,11 @@ and union state name (u : T.union) validated =
          C# SDK does not read"
         name a b
   | None -> ());
-  (* A member of no named member is the union's [Object], and a list's
-     items its [ArrayItem] ([Deviations]). *)
-  let renamed part (i : T.inline) =
-    T.Inline
-      {
-        i with
-        name =
-          Naming.inline
-            ~defined:(fun n ->
-              Hashtbl.mem state.validated n || Hashtbl.mem state.written n)
-            name part;
-      }
-  in
-  let held (ty : T.ty) =
-    match ty with
-    | T.Inline ({ form = T.Empty _; _ } as i) -> renamed "Object" i
-    | T.List (Some (T.Inline i)) -> T.List (Some (renamed "ArrayItem" i))
-    | ty -> ty
-  in
   let cases =
     List.mapi
       (fun i (b : T.branch) ->
         ( identifier (Text.pascal b.variant),
-          type_of state name b.variant (held b.ty, member_of i validated) ))
+          type_of state name b.variant (b.ty, member_of i validated) ))
       u.branches
   in
   let names = List.map fst cases in

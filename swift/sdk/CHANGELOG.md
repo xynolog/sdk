@@ -54,6 +54,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The items of a union's member that is a list are the union's type and
+  `Item`, as the other SDKs name them (`ResourceDescriptorContextItem`),
+  where they were `ResourceDescriptorContextListItem`.
 - A union's member that is an object of no named member, and holds any, is
   its `object` case, as Typing names its variant
   (`ResourceDescriptorContext.object`), where it was `empty`.

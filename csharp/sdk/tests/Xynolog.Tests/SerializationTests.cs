@@ -21,7 +21,7 @@ public sealed class SerializationTests
     }
 
     [Theory]
-    [InlineData("JobStoredResultObject", "{\"unexpected\":1}", "maxProperties")]
+    [InlineData("JobStoredResultEmpty", "{\"unexpected\":1}", "maxProperties")]
     [InlineData("CommandError", "{}", "message")]
     [InlineData("CommandError", "{\"message\":null}", "message")]
     [InlineData("CommandError", "{\"message\":3}", "message")]

@@ -9,5 +9,5 @@ public closed record JobStoredProgress
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["percentage"], null, [], null)], [new(global::Xynolog.Serialization.Kind.Object, [], [], [], null)]];
     public sealed record JobProgress(global::Xynolog.Types.JobProgress Value) : JobStoredProgress;
-    public sealed record Empty(global::Xynolog.Types.JobStoredProgressObject Value) : JobStoredProgress;
+    public sealed record Empty(global::Xynolog.Types.JobStoredProgressEmpty Value) : JobStoredProgress;
 }

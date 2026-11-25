@@ -43,6 +43,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A union's member written in place is the union's type and its title, as
+  the other SDKs name it: `JobStoredProgressEmpty`, `JobStoredResultEmpty`
+  and `ResourceDescriptorContextItem`, where they were
+  `JobStoredProgressObject`, `JobStoredResultObject` and
+  `ResourceDescriptorContextArrayItem`.
 - A union's case is named by its member's variant, as the Swift and Kotlin
   SDKs name it: a member a union names is the case of that type's name
   (`ConformanceStep.ConformanceBusFetch`, `KbEndpoint.HttpEndpoint`), text

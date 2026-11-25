@@ -182,10 +182,6 @@ and declare t ~modifiers (i : T.inline) =
   Hashtbl.replace t.written i.name (Some declared);
   S.Named i.name
 
-(* [i] declared as [n], the name Swift gives it ([Deviations]). *)
-and declare_as t ~modifiers n (i : T.inline) =
-  declare t ~modifiers { i with name = n }
-
 (* The Swift type of a value of [ty], not null. *)
 and type_of t what (ty : T.ty) =
   match ty with
@@ -545,17 +541,8 @@ and union t ~modifiers n (u : T.union) =
   let variants =
     List.map
       (fun (b : T.branch) ->
-        let part, type_ =
-          match b.ty with
-          | T.List (Some (T.Inline i)) ->
-              ( b.variant,
-                S.Array_of
-                  (declare_as t ~modifiers:[ "public" ]
-                     (Naming.inline ~defined:t.defined n "ListItem")
-                     i) )
-          | ty -> (b.variant, type_of t (n ^ "." ^ b.variant) ty)
-        in
-        let label = String.uncapitalize_ascii part in
+        let type_ = type_of t (n ^ "." ^ b.variant) b.ty in
+        let label = String.uncapitalize_ascii b.variant in
         if Hashtbl.mem labels label then
           refuse "%s: two union members named %s" n label;
         Hashtbl.replace labels label ();

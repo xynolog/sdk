@@ -4,10 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(ResourceDescriptorContextArrayItem.Text), typeof(ResourceDescriptorContextArrayItem.Object))]
-public closed record ResourceDescriptorContextArrayItem
+[global::Xynolog.Serialization.WireUnion(typeof(ResourceDescriptorContextItem.Text), typeof(ResourceDescriptorContextItem.Object))]
+public closed record ResourceDescriptorContextItem
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Text, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.Object, [], null, [], null)]];
-    public sealed record Text(string Value) : ResourceDescriptorContextArrayItem;
-    public sealed record Object(global::System.Text.Json.JsonElement Value) : ResourceDescriptorContextArrayItem;
+    public sealed record Text(string Value) : ResourceDescriptorContextItem;
+    public sealed record Object(global::System.Text.Json.JsonElement Value) : ResourceDescriptorContextItem;
 }

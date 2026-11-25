@@ -15075,7 +15075,7 @@ public struct ResourceDescriptor: Codable, Sendable, Hashable {
 public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
   case text(String)
   case object([String: JSONValue])
-  case list([ResourceDescriptorContextListItem])
+  case list([ResourceDescriptorContextItem])
   static let members: [[UnionSignature]] = [
     [
       UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
@@ -15093,7 +15093,7 @@ public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
       variants: [
         ("text", { decoder in try Self.text(String(from: decoder)) }),
         ("object", { decoder in try Self.object([String: JSONValue](from: decoder)) }),
-        ("list", { decoder in try Self.list([ResourceDescriptorContextListItem](from: decoder)) }),
+        ("list", { decoder in try Self.list([ResourceDescriptorContextItem](from: decoder)) }),
       ])
   }
   public func encode(to encoder: any Encoder) throws {
@@ -15105,7 +15105,7 @@ public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
   }
 }
 
-public indirect enum ResourceDescriptorContextListItem: Codable, Sendable, Hashable {
+public indirect enum ResourceDescriptorContextItem: Codable, Sendable, Hashable {
   case text(String)
   case object([String: JSONValue])
   static let members: [[UnionSignature]] = [
@@ -15118,7 +15118,7 @@ public indirect enum ResourceDescriptorContextListItem: Codable, Sendable, Hasha
   ]
   public init(from decoder: any Decoder) throws {
     self = try UnionSignature.decode(
-      from: decoder, union: "ResourceDescriptorContextListItem", members: Self.members,
+      from: decoder, union: "ResourceDescriptorContextItem", members: Self.members,
       variants: [
         ("text", { decoder in try Self.text(String(from: decoder)) }),
         ("object", { decoder in try Self.object([String: JSONValue](from: decoder)) }),

@@ -5,6 +5,6 @@
 namespace Xynolog.Types;
 
 [global::Xynolog.Serialization.WireObject]
-public sealed record JobStoredResultObject
+public sealed record JobStoredResultEmpty
 {
 }
