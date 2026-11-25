@@ -16,3 +16,5 @@ const LAST_EVENT_ID_KEY_PREFIX: &str = "xynolog.lastEventId.";
 const CACHE_KEY_PREFIX: &str = "xynolog.cache.";
 /// The key a kept query that is per nothing (a `queries` row of specs/src/client/refresh.json with no `per`) keeps its one entry under.
 pub(crate) const WHOLE_KEY: &str = "_";
+/// The form of the document. A document of another version is read as none.
+pub(crate) const CACHE_DOCUMENT_VERSION: u64 = 1;

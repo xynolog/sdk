@@ -64,9 +64,6 @@ internal fun forgetKept(storage: SessionStorage, kbId: String, personKey: String
     storage.delete(lastEventIdKey(kbId, personKey))
 }
 
-/** The form of a kept query's document, `cacheDocument`: `{version, entries}`, each entry a key, a value and its stamp. */
-internal const val CACHE_DOCUMENT_VERSION: Long = 1
-
 /** The key of a kept query per nothing, as its document writes it: `WHOLE_KEY`, and no other text. */
 internal object WholeKeySerializer : KSerializer<String> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("xynolog.registry.WholeKey", PrimitiveKind.STRING)

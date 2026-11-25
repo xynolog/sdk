@@ -58,3 +58,9 @@ internal const val CACHE_KEY_PREFIX: String = "xynolog.cache."
  */
 @Generated
 internal const val WHOLE_KEY: String = "_"
+
+/**
+ * The form of the document. A document of another version is read as none.
+ */
+@Generated
+internal const val CACHE_DOCUMENT_VERSION: Long = 1
