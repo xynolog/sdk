@@ -148,6 +148,15 @@ export type {
   JobPollOptions,
   MatchSearchOptions,
   ResourceSearchFilters,
+  TraceCarrier,
+  ConnectionState,
+  WorkerVitals,
+  WorkerActiveJob,
+  HeldJobStall,
+  ClaimRefusal,
+  JobCheckpoint,
+  JobFailure,
+  JobReached,
 } from './payload-types';
 
 // Event utilities
@@ -159,7 +168,6 @@ export {
   ScopedEventBus,
   type BusFrame,
   type BusEnvelope,
-  type TraceCarrier,
 } from './event-bus';
 export { relayFrames, type FrameSource, type FrameSink } from './relay-frames';
 
@@ -260,7 +268,6 @@ export type {
   ResourceRepresentation,
   ResourceRepresentationStream,
   PutBinaryProgress,
-  ConnectionState,
   HealthCheckResponse,
   StatusResponse,
   UserResponse,

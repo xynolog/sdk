@@ -21,6 +21,7 @@ import {
 } from './bus-log';
 import type { EventMap } from './bus-protocol';
 import type { components } from './types';
+import type { TraceCarrier } from './payload-types';
 import type { ResourceId } from './identifiers';
 
 /**
@@ -46,18 +47,6 @@ export type BusFrame<T> = Readonly<
     trace?: TraceCarrier;
   }
 >;
-
-/**
- * A W3C trace context: what a frame from the wire was sent under, so its
- * reader's work can be recorded in the same trace. A wire transport lifts it
- * off the payload's `TRACE_FIELD`, where the gateway's stream puts it.
- */
-export interface TraceCarrier {
-  /** W3C `traceparent` header value (`00-<traceId>-<spanId>-<flags>`). */
-  readonly traceparent: string;
-  /** W3C `tracestate` header value (vendor-specific extensions). */
-  readonly tracestate?: string;
-}
 
 /** The envelope half, for `emit`: the routing facts, none of which belong in a channel's domain type. */
 export type BusEnvelope = Omit<BusFrame<never>, 'payload' | 'trace'>;

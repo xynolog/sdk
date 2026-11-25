@@ -19,7 +19,8 @@ import { BRIDGED_CHANNELS } from '../bridging';
 import { FaultyTransport } from '../faulty-transport';
 import { EventBus } from '../event-bus';
 import type { EventMap } from '../bus-protocol';
-import type { BusFrame, TraceCarrier } from '../event-bus';
+import type { BusFrame } from '../event-bus';
+import type { TraceCarrier } from '../payload-types';
 import { annotationId, jobId, resourceId, userId } from '../identifiers';
 import type { EventMetadata, EventOfType, StoredEvent } from '../index';
 

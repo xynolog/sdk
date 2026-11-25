@@ -24,6 +24,7 @@
 import type { Observable } from 'rxjs';
 
 import type { components } from './types';
+import type { ConnectionState } from './payload-types';
 import type { AccessToken, BaseUrl } from './branded-types';
 import type { AnnotationId, JobId, ResourceId } from './identifiers';
 import type { EventMap } from './bus-protocol';
@@ -35,43 +36,6 @@ import type { AnchoredTextAnswer } from './pdf-anchoring';
 
 type GetResourceResponse = components['schemas']['GetResourceResponse'];
 type GetAnnotationsResponse = components['schemas']['GetAnnotationsResponse'];
-
-// ── Connection state ────────────────────────────────────────────────────
-
-/**
- * Seven-state lifecycle for a transport's connection. Drives UI affordances
- * (connecting spinners, reconnecting banners, etc.) and is observed via
- * `ITransport.state$`.
- *
- *   initial         ─ pre-`start()`; never enters subscribers' streams
- *                     except as the first replayed value
- *   connecting      ─ in-flight initial open
- *   open            ─ healthy, delivering events. Left only when the
- *                     stream DROPS: a transport that changes what its
- *                     stream carries without missing anything stays
- *                     `open`, so `open` reached again always means
- *                     something may have been missed
- *   reconnecting    ─ open → dropped, retrying; may be transient
- *   degraded        ─ has been reconnecting for > DEGRADED_THRESHOLD_MS;
- *                     UI banner threshold; distinguishes a blip from
- *                     sustained disconnection
- *   unauthenticated ─ not attempting: the credential is absent, or was
- *                     refused (401) and only a DIFFERENT one is worth
- *                     trying. No network activity; recovers on its own
- *                     when a usable credential appears (a re-login, a
- *                     session refresh). The refusal itself surfaces on
- *                     the transport's error stream; one state covers
- *                     both "no credential yet" and "credential refused"
- *   closed          ─ stop()/dispose() called; terminal
- */
-export type ConnectionState =
-  | 'initial'
-  | 'connecting'
-  | 'open'
-  | 'reconnecting'
-  | 'degraded'
-  | 'unauthenticated'
-  | 'closed';
 
 // ── Response types: the schemas the gateway's routes answer with ─────
 

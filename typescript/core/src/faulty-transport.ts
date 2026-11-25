@@ -26,7 +26,8 @@ import { baseUrl as makeBaseUrl } from './branded-types';
 import type { ResourceId } from './identifiers';
 import { TRACE_FIELD, USER_FIELD, type EventMap } from './bus-protocol';
 import type { BusEnvelope, BusFrame } from './event-bus';
-import type { ConnectionState, ITransport } from './transport';
+import type { ITransport } from './transport';
+import type { ConnectionState } from './payload-types';
 import { EventBus } from './event-bus';
 import {
   BUS_OPERATIONS,
