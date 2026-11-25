@@ -5856,17 +5856,24 @@ module Conformance_http_fetch = struct
 end
 
 module About_params = struct
-  type t = { api_version : string }
+  type t = { api_version : Enums.Api_version.t }
 
   let project fields =
     let reader = start fields in
-    { api_version = required reader string "apiVersion" }
+    {
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
+    }
 
   let of_model (model : [ `AboutParams ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("apiVersion", Some (json_string value.api_version)) ]
+    write
+      [
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
+      ]
 
   let to_model value =
     Models.decode Models.about_params (Yojson.Raw.to_string (to_json value))
@@ -6011,12 +6018,19 @@ module Identity_useradd_result = struct
 end
 
 module Local_target = struct
-  type t = { kind : string; root : string }
+  module Kind = struct
+    type t = Local
+
+    let to_string = function Local -> "local"
+    let of_string = function "local" -> Some Local | _ -> None
+  end
+
+  type t = { kind : Kind.t; root : string }
 
   let project fields =
     let reader = start fields in
     {
-      kind = required reader string "kind";
+      kind = required reader (enum Kind.of_string) "kind";
       root = required reader string "root";
     }
 
@@ -6026,7 +6040,7 @@ module Local_target = struct
   let to_json (value : t) =
     write
       [
-        ("kind", Some (json_string value.kind));
+        ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("root", Some (json_string value.root));
       ]
 
@@ -6150,12 +6164,13 @@ module Root = struct
 end
 
 module Roots_forget_params = struct
-  type t = { api_version : string; root : string }
+  type t = { api_version : Enums.Api_version.t; root : string }
 
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       root = required reader string "root";
     }
 
@@ -6165,7 +6180,8 @@ module Roots_forget_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("root", Some (json_string value.root));
       ]
 
@@ -6218,7 +6234,7 @@ module Roots_init_params = struct
   end
 
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     path : string;
     domain : string;
     name : string option;
@@ -6236,7 +6252,8 @@ module Roots_init_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       path = required reader string "path";
       domain = required reader string "domain";
       name = maybe reader string "name";
@@ -6257,7 +6274,8 @@ module Roots_init_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("path", Some (json_string value.path));
         ("domain", Some (json_string value.domain));
         ("name", Option.map json_string value.name);
@@ -6295,17 +6313,24 @@ module Roots_init_result = struct
 end
 
 module Roots_list_params = struct
-  type t = { api_version : string }
+  type t = { api_version : Enums.Api_version.t }
 
   let project fields =
     let reader = start fields in
-    { api_version = required reader string "apiVersion" }
+    {
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
+    }
 
   let of_model (model : [ `RootsListParams ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("apiVersion", Some (json_string value.api_version)) ]
+    write
+      [
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
+      ]
 
   let to_model value =
     Models.decode Models.roots_list_params
@@ -6337,12 +6362,16 @@ module Runtime_state = struct
 end
 
 module Service_host_params = struct
-  type t = { api_version : string; runtime : Enums.Runtime.t option }
+  type t = {
+    api_version : Enums.Api_version.t;
+    runtime : Enums.Runtime.t option;
+  }
 
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
     }
 
@@ -6352,7 +6381,8 @@ module Service_host_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
 
@@ -6582,7 +6612,7 @@ end
 
 module Settings_get_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     name : string;
     default : bool option;
     root : string option;
@@ -6591,7 +6621,8 @@ module Settings_get_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       name = required reader string "name";
       default = maybe reader bool "default";
       root = maybe reader string "root";
@@ -6603,7 +6634,8 @@ module Settings_get_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("name", Some (json_string value.name));
         ("default", Option.map json_bool value.default);
         ("root", Option.map json_string value.root);
@@ -6615,12 +6647,13 @@ module Settings_get_params = struct
 end
 
 module Settings_list_params = struct
-  type t = { api_version : string; root : string option }
+  type t = { api_version : Enums.Api_version.t; root : string option }
 
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       root = maybe reader string "root";
     }
 
@@ -6630,7 +6663,8 @@ module Settings_list_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("root", Option.map json_string value.root);
       ]
 
@@ -6657,12 +6691,13 @@ module Settings_path_params = struct
       | _ -> None
   end
 
-  type t = { api_version : string; document : Document.t }
+  type t = { api_version : Enums.Api_version.t; document : Document.t }
 
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       document = required reader (enum Document.of_string) "document";
     }
 
@@ -6672,7 +6707,8 @@ module Settings_path_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("document", Some ((json_enum Document.to_string) value.document));
       ]
 
@@ -6700,7 +6736,7 @@ end
 
 module Settings_set_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     name : string;
     default : bool option;
     root : string option;
@@ -6710,7 +6746,8 @@ module Settings_set_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       name = required reader string "name";
       default = maybe reader bool "default";
       root = maybe reader string "root";
@@ -6723,7 +6760,8 @@ module Settings_set_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("name", Some (json_string value.name));
         ("default", Option.map json_bool value.default);
         ("root", Option.map json_string value.root);
@@ -6737,7 +6775,7 @@ end
 
 module Settings_unset_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     name : string;
     default : bool option;
     root : string option;
@@ -6746,7 +6784,8 @@ module Settings_unset_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       name = required reader string "name";
       default = maybe reader bool "default";
       root = maybe reader string "root";
@@ -6758,7 +6797,8 @@ module Settings_unset_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("name", Some (json_string value.name));
         ("default", Option.map json_bool value.default);
         ("root", Option.map json_string value.root);
@@ -7173,12 +7213,26 @@ module Librarian_prompt_score = struct
 end
 
 module Client_secret_form = struct
-  type t = { grant_type : string; client_id : string; client_secret : string }
+  module Grant_type = struct
+    type t = Grant_type
+
+    let to_string = function Grant_type -> "client_credentials"
+
+    let of_string = function
+      | "client_credentials" -> Some Grant_type
+      | _ -> None
+  end
+
+  type t = {
+    grant_type : Grant_type.t;
+    client_id : string;
+    client_secret : string;
+  }
 
   let project fields =
     let reader = start fields in
     {
-      grant_type = required reader string "grant_type";
+      grant_type = required reader (enum Grant_type.of_string) "grant_type";
       client_id = required reader string "client_id";
       client_secret = required reader string "client_secret";
     }
@@ -7189,7 +7243,7 @@ module Client_secret_form = struct
   let to_json (value : t) =
     write
       [
-        ("grant_type", Some (json_string value.grant_type));
+        ("grant_type", Some ((json_enum Grant_type.to_string) value.grant_type));
         ("client_id", Some (json_string value.client_id));
         ("client_secret", Some (json_string value.client_secret));
       ]
@@ -10476,7 +10530,7 @@ end
 
 module Auth_login_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     target : Target.t option;
     runtime : Enums.Runtime.t option;
   }
@@ -10484,7 +10538,8 @@ module Auth_login_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = maybe reader (record Target.project) "target";
       runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
     }
@@ -10495,7 +10550,8 @@ module Auth_login_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Option.map Target.to_json value.target);
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
@@ -10507,7 +10563,7 @@ end
 
 module Auth_logout_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     target : Target.t option;
     runtime : Enums.Runtime.t option;
   }
@@ -10515,7 +10571,8 @@ module Auth_logout_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = maybe reader (record Target.project) "target";
       runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
     }
@@ -10526,7 +10583,8 @@ module Auth_logout_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Option.map Target.to_json value.target);
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
@@ -10601,7 +10659,7 @@ end
 
 module Identity_useradd_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     target : Local_target.t;
     email : string;
     password : string option;
@@ -10611,7 +10669,8 @@ module Identity_useradd_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = required reader (record Local_target.project) "target";
       email = required reader string "email";
       password = maybe reader string "password";
@@ -10624,7 +10683,8 @@ module Identity_useradd_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Some (Local_target.to_json value.target));
         ("email", Some (json_string value.email));
         ("password", Option.map json_string value.password);
@@ -10637,12 +10697,13 @@ module Identity_useradd_params = struct
 end
 
 module Identity_users_list_params = struct
-  type t = { api_version : string; target : Local_target.t }
+  type t = { api_version : Enums.Api_version.t; target : Local_target.t }
 
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = required reader (record Local_target.project) "target";
     }
 
@@ -10652,7 +10713,8 @@ module Identity_users_list_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Some (Local_target.to_json value.target));
       ]
 
@@ -10717,7 +10779,7 @@ end
 
 module Logs_follow_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     target : Target.t option;
     runtime : Enums.Runtime.t option;
     service : string option;
@@ -10726,7 +10788,8 @@ module Logs_follow_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = maybe reader (record Target.project) "target";
       runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
       service = maybe reader string "service";
@@ -10738,7 +10801,8 @@ module Logs_follow_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Option.map Target.to_json value.target);
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("service", Option.map json_string value.service);
@@ -10874,7 +10938,7 @@ end
 
 module Service_run_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     target : Local_target.t;
     runtime : Enums.Runtime.t option;
     service : Enums.Run_service.t;
@@ -10890,7 +10954,8 @@ module Service_run_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = required reader (record Local_target.project) "target";
       runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
       service = required reader (enum Enums.Run_service.of_string) "service";
@@ -10909,7 +10974,8 @@ module Service_run_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Some (Local_target.to_json value.target));
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("service", Some ((json_enum Enums.Run_service.to_string) value.service));
@@ -10940,7 +11006,7 @@ module Service_signal_params = struct
   end
 
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     target : Local_target.t;
     runtime : Enums.Runtime.t option;
     instance : string;
@@ -10950,7 +11016,8 @@ module Service_signal_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = required reader (record Local_target.project) "target";
       runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
       instance = required reader string "instance";
@@ -10963,7 +11030,8 @@ module Service_signal_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Some (Local_target.to_json value.target));
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("instance", Some (json_string value.instance));
@@ -11076,7 +11144,7 @@ module Stack_start_params = struct
   end
 
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     target : Target.t option;
     runtime : Enums.Runtime.t option;
     config : string option;
@@ -11094,7 +11162,8 @@ module Stack_start_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = maybe reader (record Target.project) "target";
       runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
       config = maybe reader string "config";
@@ -11115,7 +11184,8 @@ module Stack_start_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Option.map Target.to_json value.target);
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("config", Option.map json_string value.config);
@@ -11139,7 +11209,7 @@ end
 
 module Stack_stop_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     target : Target.t option;
     runtime : Enums.Runtime.t option;
     service : string option;
@@ -11152,7 +11222,8 @@ module Stack_stop_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = maybe reader (record Target.project) "target";
       runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
       service = maybe reader string "service";
@@ -11168,7 +11239,8 @@ module Stack_stop_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Option.map Target.to_json value.target);
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("service", Option.map json_string value.service);
@@ -11186,7 +11258,7 @@ end
 
 module Status_snapshot_params = struct
   type t = {
-    api_version : string;
+    api_version : Enums.Api_version.t;
     target : Target.t option;
     runtime : Enums.Runtime.t option;
   }
@@ -11194,7 +11266,8 @@ module Status_snapshot_params = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
+      api_version =
+        required reader (enum Enums.Api_version.of_string) "apiVersion";
       target = maybe reader (record Target.project) "target";
       runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
     }
@@ -11205,7 +11278,8 @@ module Status_snapshot_params = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
+        ( "apiVersion",
+          Some ((json_enum Enums.Api_version.to_string) value.api_version) );
         ("target", Option.map Target.to_json value.target);
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
@@ -16834,9 +16908,16 @@ module Smelter_health = struct
 end
 
 module Browser = struct
+  module Kind = struct
+    type t = Browser
+
+    let to_string = function Browser -> "Browser"
+    let of_string = function "Browser" -> Some Browser | _ -> None
+  end
+
   type t = {
-    api_version : string;
-    kind : string;
+    api_version : Enums.Stack_api_version.t;
+    kind : Kind.t;
     metadata : Metadata.t;
     spec : Browser_spec.t;
   }
@@ -16844,8 +16925,9 @@ module Browser = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
-      kind = required reader string "kind";
+      api_version =
+        required reader (enum Enums.Stack_api_version.of_string) "apiVersion";
+      kind = required reader (enum Kind.of_string) "kind";
       metadata = required reader (record Metadata.project) "metadata";
       spec = required reader (record Browser_spec.project) "spec";
     }
@@ -16856,8 +16938,10 @@ module Browser = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
-        ("kind", Some (json_string value.kind));
+        ( "apiVersion",
+          Some ((json_enum Enums.Stack_api_version.to_string) value.api_version)
+        );
+        ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Browser_spec.to_json value.spec));
       ]
@@ -16867,9 +16951,16 @@ module Browser = struct
 end
 
 module Vector_store = struct
+  module Kind = struct
+    type t = VectorStore
+
+    let to_string = function VectorStore -> "VectorStore"
+    let of_string = function "VectorStore" -> Some VectorStore | _ -> None
+  end
+
   type t = {
-    api_version : string;
-    kind : string;
+    api_version : Enums.Stack_api_version.t;
+    kind : Kind.t;
     metadata : Metadata.t;
     spec : Vector_store_spec.t;
   }
@@ -16877,8 +16968,9 @@ module Vector_store = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
-      kind = required reader string "kind";
+      api_version =
+        required reader (enum Enums.Stack_api_version.of_string) "apiVersion";
+      kind = required reader (enum Kind.of_string) "kind";
       metadata = required reader (record Metadata.project) "metadata";
       spec = required reader (record Vector_store_spec.project) "spec";
     }
@@ -16889,8 +16981,10 @@ module Vector_store = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
-        ("kind", Some (json_string value.kind));
+        ( "apiVersion",
+          Some ((json_enum Enums.Stack_api_version.to_string) value.api_version)
+        );
+        ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Vector_store_spec.to_json value.spec));
       ]
@@ -18406,9 +18500,16 @@ module Conformance_case = struct
 end
 
 module Issuer = struct
+  module Kind = struct
+    type t = Issuer
+
+    let to_string = function Issuer -> "Issuer"
+    let of_string = function "Issuer" -> Some Issuer | _ -> None
+  end
+
   type t = {
-    api_version : string;
-    kind : string;
+    api_version : Enums.Stack_api_version.t;
+    kind : Kind.t;
     metadata : Metadata.t;
     spec : Issuer_spec.t;
   }
@@ -18416,8 +18517,9 @@ module Issuer = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
-      kind = required reader string "kind";
+      api_version =
+        required reader (enum Enums.Stack_api_version.of_string) "apiVersion";
+      kind = required reader (enum Kind.of_string) "kind";
       metadata = required reader (record Metadata.project) "metadata";
       spec = required reader (record Issuer_spec.project) "spec";
     }
@@ -18428,8 +18530,10 @@ module Issuer = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
-        ("kind", Some (json_string value.kind));
+        ( "apiVersion",
+          Some ((json_enum Enums.Stack_api_version.to_string) value.api_version)
+        );
+        ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Issuer_spec.to_json value.spec));
       ]
@@ -18439,9 +18543,19 @@ module Issuer = struct
 end
 
 module Knowledge_index = struct
+  module Kind = struct
+    type t = KnowledgeIndex
+
+    let to_string = function KnowledgeIndex -> "KnowledgeIndex"
+
+    let of_string = function
+      | "KnowledgeIndex" -> Some KnowledgeIndex
+      | _ -> None
+  end
+
   type t = {
-    api_version : string;
-    kind : string;
+    api_version : Enums.Stack_api_version.t;
+    kind : Kind.t;
     metadata : Metadata.t;
     spec : Knowledge_index_spec.t;
   }
@@ -18449,8 +18563,9 @@ module Knowledge_index = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
-      kind = required reader string "kind";
+      api_version =
+        required reader (enum Enums.Stack_api_version.of_string) "apiVersion";
+      kind = required reader (enum Kind.of_string) "kind";
       metadata = required reader (record Metadata.project) "metadata";
       spec = required reader (record Knowledge_index_spec.project) "spec";
     }
@@ -18461,8 +18576,10 @@ module Knowledge_index = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
-        ("kind", Some (json_string value.kind));
+        ( "apiVersion",
+          Some ((json_enum Enums.Stack_api_version.to_string) value.api_version)
+        );
+        ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Knowledge_index_spec.to_json value.spec));
       ]
@@ -18472,9 +18589,16 @@ module Knowledge_index = struct
 end
 
 module Stack_knowledge_base = struct
+  module Kind = struct
+    type t = KnowledgeBase
+
+    let to_string = function KnowledgeBase -> "KnowledgeBase"
+    let of_string = function "KnowledgeBase" -> Some KnowledgeBase | _ -> None
+  end
+
   type t = {
-    api_version : string;
-    kind : string;
+    api_version : Enums.Stack_api_version.t;
+    kind : Kind.t;
     metadata : Metadata.t;
     spec : Stack_knowledge_base_spec.t;
   }
@@ -18482,8 +18606,9 @@ module Stack_knowledge_base = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
-      kind = required reader string "kind";
+      api_version =
+        required reader (enum Enums.Stack_api_version.of_string) "apiVersion";
+      kind = required reader (enum Kind.of_string) "kind";
       metadata = required reader (record Metadata.project) "metadata";
       spec = required reader (record Stack_knowledge_base_spec.project) "spec";
     }
@@ -18494,8 +18619,10 @@ module Stack_knowledge_base = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
-        ("kind", Some (json_string value.kind));
+        ( "apiVersion",
+          Some ((json_enum Enums.Stack_api_version.to_string) value.api_version)
+        );
+        ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Stack_knowledge_base_spec.to_json value.spec));
       ]
@@ -18506,9 +18633,16 @@ module Stack_knowledge_base = struct
 end
 
 module Worker_pool = struct
+  module Kind = struct
+    type t = WorkerPool
+
+    let to_string = function WorkerPool -> "WorkerPool"
+    let of_string = function "WorkerPool" -> Some WorkerPool | _ -> None
+  end
+
   type t = {
-    api_version : string;
-    kind : string;
+    api_version : Enums.Stack_api_version.t;
+    kind : Kind.t;
     metadata : Metadata.t;
     spec : Worker_pool_spec.t;
   }
@@ -18516,8 +18650,9 @@ module Worker_pool = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
-      kind = required reader string "kind";
+      api_version =
+        required reader (enum Enums.Stack_api_version.of_string) "apiVersion";
+      kind = required reader (enum Kind.of_string) "kind";
       metadata = required reader (record Metadata.project) "metadata";
       spec = required reader (record Worker_pool_spec.project) "spec";
     }
@@ -18528,8 +18663,10 @@ module Worker_pool = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
-        ("kind", Some (json_string value.kind));
+        ( "apiVersion",
+          Some ((json_enum Enums.Stack_api_version.to_string) value.api_version)
+        );
+        ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Worker_pool_spec.to_json value.spec));
       ]
@@ -18781,6 +18918,17 @@ module Conformance_driver_line_emission = struct
 end
 
 module Annotation = struct
+  module Field_context = struct
+    type t = Field_context
+
+    let to_string = function
+      | Field_context -> "http://www.w3.org/ns/anno.jsonld"
+
+    let of_string = function
+      | "http://www.w3.org/ns/anno.jsonld" -> Some Field_context
+      | _ -> None
+  end
+
   module Type_ = struct
     type t = Annotation
 
@@ -18789,7 +18937,7 @@ module Annotation = struct
   end
 
   type t = {
-    field_context : string;
+    field_context : Field_context.t;
     type_ : Type_.t;
     id : string;
     motivation : Enums.Motivation.t;
@@ -18805,7 +18953,7 @@ module Annotation = struct
   let project fields =
     let reader = start fields in
     {
-      field_context = required reader string "@context";
+      field_context = required reader (enum Field_context.of_string) "@context";
       type_ = required reader (enum Type_.of_string) "type";
       id = required reader string "id";
       motivation =
@@ -18825,7 +18973,8 @@ module Annotation = struct
   let to_json (value : t) =
     write
       [
-        ("@context", Some (json_string value.field_context));
+        ( "@context",
+          Some ((json_enum Field_context.to_string) value.field_context) );
         ("type", Some ((json_enum Type_.to_string) value.type_));
         ("id", Some (json_string value.id));
         ( "motivation",
@@ -19007,9 +19156,16 @@ module Job_claimed_result = struct
 end
 
 module Inference = struct
+  module Kind = struct
+    type t = Inference
+
+    let to_string = function Inference -> "Inference"
+    let of_string = function "Inference" -> Some Inference | _ -> None
+  end
+
   type t = {
-    api_version : string;
-    kind : string;
+    api_version : Enums.Stack_api_version.t;
+    kind : Kind.t;
     metadata : Metadata.t;
     spec : Inference_spec.t;
   }
@@ -19017,8 +19173,9 @@ module Inference = struct
   let project fields =
     let reader = start fields in
     {
-      api_version = required reader string "apiVersion";
-      kind = required reader string "kind";
+      api_version =
+        required reader (enum Enums.Stack_api_version.of_string) "apiVersion";
+      kind = required reader (enum Kind.of_string) "kind";
       metadata = required reader (record Metadata.project) "metadata";
       spec = required reader (record Inference_spec.project) "spec";
     }
@@ -19029,8 +19186,10 @@ module Inference = struct
   let to_json (value : t) =
     write
       [
-        ("apiVersion", Some (json_string value.api_version));
-        ("kind", Some (json_string value.kind));
+        ( "apiVersion",
+          Some ((json_enum Enums.Stack_api_version.to_string) value.api_version)
+        );
+        ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Inference_spec.to_json value.spec));
       ]

@@ -44,37 +44,5 @@ let closed_empty_named (form : T.form) =
 (* Python writes a union in place, but for one a list holds, as what it
    holds, naming none of what [Typing] invents. *)
 
-(* OCaml reads a [const] member of a component's record, or one whose
-   schema's file states a [const], as its scalar, where [Typing] has the
-   enumeration of its one value. *)
-let ocaml_const (spec : Spec.t) ~file (wire : string) =
-  let find (r : Decode.reference) =
-    match List.assoc_opt (fst (Decode.resolve spec.ids r)) spec.schemas with
-    | Some s -> Ok s
-    | None -> Error ("$ref " ^ r.target ^ " names no schema")
-  in
-  let const_file (r : Decode.reference) =
-    match Decode.resolve spec.ids r with
-    | file, "" -> (
-        match List.assoc_opt file spec.schemas with
-        | Some (Schema.Schema { const = Some _; _ }) -> true
-        | _ -> false)
-    | _ -> false
-  in
-  let rec read (l : Schema.t Schema.layer) =
-    match l with
-    | { ref_ = Some r; _ } -> const_file r
-    | { const = Some _; _ } -> true
-    | { type_ = Some [ Array ]; items = Some (Schema.Schema i); _ } -> read i
-    | _ -> false
-  in
-  match Normalize.normalize spec.ids ~find (List.assoc file spec.schemas) with
-  | Ok { properties = Some properties; _ } -> (
-      match List.assoc_opt wire properties with
-      | Some (Schema.Schema l) -> (
-          match Null_form.without_null Fun.id l with
-          | Ok (Some beside) -> read beside
-          | Ok None -> read l
-          | Error _ -> false)
-      | _ -> false)
-  | _ -> false
+(* OCaml holds an enumeration of integers, numbers or booleans, a constant
+   among them, as its scalar, where [Typing] has the enumeration. *)

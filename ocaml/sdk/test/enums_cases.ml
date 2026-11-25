@@ -2,6 +2,15 @@
    Regenerate: make generate (codegen/lib/ocaml_sdk/enums.ml) *)
 
 let () =
+  let module Model = Xynolog.Enums.Api_version in
+  Alcotest.check Alcotest.string "Api_version encode"
+    "control.xynolog.org/v1alpha1"
+    (Model.to_string Model.Control_xynolog_org_v1alpha1);
+  Alcotest.check Alcotest.bool "Api_version decode" true
+    (Model.of_string "control.xynolog.org/v1alpha1"
+    = Some Model.Control_xynolog_org_v1alpha1);
+  Alcotest.check Alcotest.bool "Api_version rejects unknown values" true
+    (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Body_purpose in
   Alcotest.check Alcotest.string "Body_purpose encode" "assessing"
     (Model.to_string Model.Assessing);
@@ -318,6 +327,14 @@ let () =
   Alcotest.check Alcotest.bool "Service_group decode" true
     (Model.of_string "telemetry" = Some Model.Telemetry);
   Alcotest.check Alcotest.bool "Service_group rejects unknown values" true
+    (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Stack_api_version in
+  Alcotest.check Alcotest.string "Stack_api_version encode"
+    "xynolog.org/v1alpha1"
+    (Model.to_string Model.Xynolog_org_v1alpha1);
+  Alcotest.check Alcotest.bool "Stack_api_version decode" true
+    (Model.of_string "xynolog.org/v1alpha1" = Some Model.Xynolog_org_v1alpha1);
+  Alcotest.check Alcotest.bool "Stack_api_version rejects unknown values" true
     (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Supported_media_type in
   Alcotest.check Alcotest.string "Supported_media_type encode" "text/plain"

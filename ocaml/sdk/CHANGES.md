@@ -102,6 +102,12 @@ the coming release's, and gathers its changes as they land.
   `Agent_software`, `Job_params`, `Representation`, `Resource_descriptor`,
   `Resource_descriptor_identifier_object` and `Scored_resource`). A
   `Selector` branch has no `extra` either.
+- A string constant is a type of its own, where a record held it as a
+  `string`: a schema that is one is a module of `Enums`
+  (`Enums.Api_version.t`, `Enums.Stack_api_version.t`), and one stated in
+  place a module of its record's (a stack document's `kind`, as
+  `Records.Inference.Kind.t`). Annotation's `@context` is
+  `Records.Annotation.Field_context.t`.
 
 - `Retry.retry_with_backoff` takes its `budget` as a `Client_timing.retry`,
   the type Protocol's client timing states, in place of `Retry.budget`.

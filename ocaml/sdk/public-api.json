@@ -137,7 +137,7 @@
     "lib/dune": "edd7021f4c909a66e409a973b2db7ebb6ac44d31a7b08002183fb40d6443a65f",
     "lib/embedding_requests.ml": "cae3ff1469b45d5421de0048d70e2fea9d2f0e5f5a060de176910b70aefec950",
     "lib/encoding_facts.ml": "dc9602d08894d9a3bd5334cb3254218f7a74dad0528d552acb00cec4061bb9bb",
-    "lib/enums.ml": "dbec63fa4930d940dbb0b4602c771efc76bfe78735a151f77af19b5b51520445",
+    "lib/enums.ml": "9ffe82fd45bee98792aca12a888d1a46f1443271ae3698f5c3564fa5837fbd37",
     "lib/error_codes.ml": "5dafeabfdb638cd2414b4925cb157529d57a7c2ed8d6992656e1ba1e07d0e938",
     "lib/frame.ml": "6e0ba59a959758ccdc672cec1d8d802be2f882a5d1354ded4e5ab21398716d54",
     "lib/gateway_http.ml": "cbcd0c640321c0ec910cb7f23f3991a766b24587e8b4e0dcb0c9870ab43cf251",
@@ -189,7 +189,7 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
-    "lib/records.ml": "2dbc68694dba40b87e611c1658264dd823d8e79b3a59289bf38833162299c3a7",
+    "lib/records.ml": "5fabc5a0b4e86193227c1b1e622b2abaa3fd8b7341ef8ce9154b7f690f4ede79",
     "lib/redirect_sign_in.ml": "12c7f252e2250311a07038063ab2797e97f12d048177a0d3c33735ff0f1135d4",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
     "lib/registry.ml": "cbb2d6ccd19fd62371e52c7d5a02f4e2fa07b26db97762b2b836db49db66bc7e",
@@ -488,6 +488,37 @@
       "path": "Xynolog.Enums",
       "declaration": "module Enums = Xynolog__.Enums",
       "alias": "Xynolog__.Enums"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Enums.Api_version",
+      "declaration": "module Api_version :\n  sig\n    type t = Control_xynolog_org_v1alpha1\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Api_version.t",
+      "declaration": "type t = Control_xynolog_org_v1alpha1",
+      "representation": "variant",
+      "constructors": [
+        "Control_xynolog_org_v1alpha1"
+      ],
+      "variants": [
+        {
+          "name": "Control_xynolog_org_v1alpha1",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Api_version.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Api_version.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "module",
@@ -1245,6 +1276,37 @@
     {
       "kind": "value",
       "path": "Xynolog.Enums.Service_group.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Enums.Stack_api_version",
+      "declaration": "module Stack_api_version :\n  sig\n    type t = Xynolog_org_v1alpha1\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Stack_api_version.t",
+      "declaration": "type t = Xynolog_org_v1alpha1",
+      "representation": "variant",
+      "constructors": [
+        "Xynolog_org_v1alpha1"
+      ],
+      "variants": [
+        {
+          "name": "Xynolog_org_v1alpha1",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Stack_api_version.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Stack_api_version.of_string",
       "declaration": "val of_string : string -> t option"
     },
     {
@@ -14289,12 +14351,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.About_params",
-      "declaration": "module About_params :\n  sig\n    type t = { api_version : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AboutParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AboutParams ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module About_params :\n  sig\n    type t = { api_version : Xynolog__.Enums.Api_version.t; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AboutParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AboutParams ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.About_params.t",
-      "declaration": "type t = { api_version : string; }",
+      "declaration": "type t = { api_version : Xynolog__.Enums.Api_version.t; }",
       "representation": "record",
       "fields": [
         "api_version"
@@ -14503,12 +14565,43 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Local_target",
-      "declaration": "module Local_target :\n  sig\n    type t = { kind : string; root : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LocalTarget ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `LocalTarget ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Local_target :\n  sig\n    module Kind :\n      sig\n        type t = Local\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = { kind : Kind.t; root : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LocalTarget ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `LocalTarget ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Local_target.Kind",
+      "declaration": "module Kind :\n  sig\n    type t = Local\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Local_target.Kind.t",
+      "declaration": "type t = Local",
+      "representation": "variant",
+      "constructors": [
+        "Local"
+      ],
+      "variants": [
+        {
+          "name": "Local",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Local_target.Kind.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Local_target.Kind.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Local_target.t",
-      "declaration": "type t = { kind : string; root : string; }",
+      "declaration": "type t = { kind : Kind.t; root : string; }",
       "representation": "record",
       "fields": [
         "kind",
@@ -14697,12 +14790,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Roots_forget_params",
-      "declaration": "module Roots_forget_params :\n  sig\n    type t = { api_version : string; root : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsForgetParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `RootsForgetParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Roots_forget_params :\n  sig\n    type t = { api_version : Xynolog__.Enums.Api_version.t; root : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsForgetParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `RootsForgetParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Roots_forget_params.t",
-      "declaration": "type t = { api_version : string; root : string; }",
+      "declaration": "type t = { api_version : Xynolog__.Enums.Api_version.t; root : string; }",
       "representation": "record",
       "fields": [
         "api_version",
@@ -14768,7 +14861,7 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Roots_init_params",
-      "declaration": "module Roots_init_params :\n  sig\n    module Inference :\n      sig\n        type t = Anthropic | Ollama\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : string;\n      path : string;\n      domain : string;\n      name : string option;\n      site_name : string option;\n      inference : Inference.t option;\n      model : string option;\n      model_light : string option;\n      embedding : string option;\n      config_name : string option;\n      anthropic_endpoint : string option;\n      ollama_base : string option;\n      ollama_registry : string option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsInitParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `RootsInitParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Roots_init_params :\n  sig\n    module Inference :\n      sig\n        type t = Anthropic | Ollama\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      path : string;\n      domain : string;\n      name : string option;\n      site_name : string option;\n      inference : Inference.t option;\n      model : string option;\n      model_light : string option;\n      embedding : string option;\n      config_name : string option;\n      anthropic_endpoint : string option;\n      ollama_base : string option;\n      ollama_registry : string option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsInitParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `RootsInitParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "module",
@@ -14810,7 +14903,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Records.Roots_init_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  path : string;\n  domain : string;\n  name : string option;\n  site_name : string option;\n  inference : Inference.t option;\n  model : string option;\n  model_light : string option;\n  embedding : string option;\n  config_name : string option;\n  anthropic_endpoint : string option;\n  ollama_base : string option;\n  ollama_registry : string option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  path : string;\n  domain : string;\n  name : string option;\n  site_name : string option;\n  inference : Inference.t option;\n  model : string option;\n  model_light : string option;\n  embedding : string option;\n  config_name : string option;\n  anthropic_endpoint : string option;\n  ollama_base : string option;\n  ollama_registry : string option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -14885,12 +14978,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Roots_list_params",
-      "declaration": "module Roots_list_params :\n  sig\n    type t = { api_version : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsListParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `RootsListParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Roots_list_params :\n  sig\n    type t = { api_version : Xynolog__.Enums.Api_version.t; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RootsListParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `RootsListParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Roots_list_params.t",
-      "declaration": "type t = { api_version : string; }",
+      "declaration": "type t = { api_version : Xynolog__.Enums.Api_version.t; }",
       "representation": "record",
       "fields": [
         "api_version"
@@ -14954,12 +15047,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Service_host_params",
-      "declaration": "module Service_host_params :\n  sig\n    type t = {\n      api_version : string;\n      runtime : Xynolog__.Enums.Runtime.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceHostParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ServiceHostParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Service_host_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      runtime : Xynolog__.Enums.Runtime.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceHostParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ServiceHostParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Service_host_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  runtime : Xynolog__.Enums.Runtime.t option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  runtime : Xynolog__.Enums.Runtime.t option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -15319,12 +15412,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Settings_get_params",
-      "declaration": "module Settings_get_params :\n  sig\n    type t = {\n      api_version : string;\n      name : string;\n      default : bool option;\n      root : string option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsGetParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsGetParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Settings_get_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      name : string;\n      default : bool option;\n      root : string option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsGetParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsGetParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Settings_get_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  name : string;\n  default : bool option;\n  root : string option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  name : string;\n  default : bool option;\n  root : string option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -15356,12 +15449,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Settings_list_params",
-      "declaration": "module Settings_list_params :\n  sig\n    type t = { api_version : string; root : string option; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsListParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsListParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Settings_list_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      root : string option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsListParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsListParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Settings_list_params.t",
-      "declaration": "type t = { api_version : string; root : string option; }",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  root : string option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -15391,7 +15484,7 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Settings_path_params",
-      "declaration": "module Settings_path_params :\n  sig\n    module Document :\n      sig\n        type t = Browser | Worker | Issuer | Vectors\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = { api_version : string; document : Document.t; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsPathParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsPathParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Settings_path_params :\n  sig\n    module Document :\n      sig\n        type t = Browser | Worker | Issuer | Vectors\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      document : Document.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsPathParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsPathParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "module",
@@ -15445,7 +15538,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Records.Settings_path_params.t",
-      "declaration": "type t = { api_version : string; document : Document.t; }",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  document : Document.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -15509,12 +15602,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Settings_set_params",
-      "declaration": "module Settings_set_params :\n  sig\n    type t = {\n      api_version : string;\n      name : string;\n      default : bool option;\n      root : string option;\n      value : string;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsSetParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsSetParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Settings_set_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      name : string;\n      default : bool option;\n      root : string option;\n      value : string;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsSetParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsSetParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Settings_set_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  name : string;\n  default : bool option;\n  root : string option;\n  value : string;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  name : string;\n  default : bool option;\n  root : string option;\n  value : string;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -15547,12 +15640,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Settings_unset_params",
-      "declaration": "module Settings_unset_params :\n  sig\n    type t = {\n      api_version : string;\n      name : string;\n      default : bool option;\n      root : string option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsUnsetParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsUnsetParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Settings_unset_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      name : string;\n      default : bool option;\n      root : string option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SettingsUnsetParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SettingsUnsetParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Settings_unset_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  name : string;\n  default : bool option;\n  root : string option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  name : string;\n  default : bool option;\n  root : string option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -16382,12 +16475,43 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Client_secret_form",
-      "declaration": "module Client_secret_form :\n  sig\n    type t = {\n      grant_type : string;\n      client_id : string;\n      client_secret : string;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ClientSecretForm ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ClientSecretForm ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Client_secret_form :\n  sig\n    module Grant_type :\n      sig\n        type t = Grant_type\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      grant_type : Grant_type.t;\n      client_id : string;\n      client_secret : string;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ClientSecretForm ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ClientSecretForm ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_secret_form.Grant_type",
+      "declaration": "module Grant_type :\n  sig\n    type t = Grant_type\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_secret_form.Grant_type.t",
+      "declaration": "type t = Grant_type",
+      "representation": "variant",
+      "constructors": [
+        "Grant_type"
+      ],
+      "variants": [
+        {
+          "name": "Grant_type",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_secret_form.Grant_type.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_secret_form.Grant_type.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Client_secret_form.t",
-      "declaration": "type t = { grant_type : string; client_id : string; client_secret : string; }",
+      "declaration": "type t = {\n  grant_type : Grant_type.t;\n  client_id : string;\n  client_secret : string;\n}",
       "representation": "record",
       "fields": [
         "grant_type",
@@ -21131,12 +21255,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Auth_login_params",
-      "declaration": "module Auth_login_params :\n  sig\n    type t = {\n      api_version : string;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AuthLoginParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AuthLoginParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Auth_login_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AuthLoginParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AuthLoginParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Auth_login_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -21167,12 +21291,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Auth_logout_params",
-      "declaration": "module Auth_logout_params :\n  sig\n    type t = {\n      api_version : string;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AuthLogoutParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AuthLogoutParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Auth_logout_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `AuthLogoutParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AuthLogoutParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Auth_logout_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -21277,12 +21401,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Identity_useradd_params",
-      "declaration": "module Identity_useradd_params :\n  sig\n    type t = {\n      api_version : string;\n      target : Local_target.t;\n      email : string;\n      password : string option;\n      generate_password : bool;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `IdentityUseraddParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `IdentityUseraddParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Identity_useradd_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Local_target.t;\n      email : string;\n      password : string option;\n      generate_password : bool;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `IdentityUseraddParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `IdentityUseraddParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Identity_useradd_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  target : Local_target.t;\n  email : string;\n  password : string option;\n  generate_password : bool;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Local_target.t;\n  email : string;\n  password : string option;\n  generate_password : bool;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -21315,12 +21439,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Identity_users_list_params",
-      "declaration": "module Identity_users_list_params :\n  sig\n    type t = { api_version : string; target : Local_target.t; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `IdentityUsersListParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `IdentityUsersListParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Identity_users_list_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Local_target.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `IdentityUsersListParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `IdentityUsersListParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Identity_users_list_params.t",
-      "declaration": "type t = { api_version : string; target : Local_target.t; }",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Local_target.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -21422,12 +21546,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Logs_follow_params",
-      "declaration": "module Logs_follow_params :\n  sig\n    type t = {\n      api_version : string;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      service : string option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LogsFollowParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `LogsFollowParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Logs_follow_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      service : string option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `LogsFollowParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `LogsFollowParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Logs_follow_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  service : string option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  service : string option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -21652,12 +21776,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Service_run_params",
-      "declaration": "module Service_run_params :\n  sig\n    type t = {\n      api_version : string;\n      target : Local_target.t;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      service : Xynolog__.Enums.Run_service.t;\n      instance : string;\n      document : string option;\n      args : string list option;\n      environment : (string * string) list;\n      mounts : string list;\n      path_first : string list;\n      ports : int list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceRunParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ServiceRunParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Service_run_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Local_target.t;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      service : Xynolog__.Enums.Run_service.t;\n      instance : string;\n      document : string option;\n      args : string list option;\n      environment : (string * string) list;\n      mounts : string list;\n      path_first : string list;\n      ports : int list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceRunParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ServiceRunParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Service_run_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  target : Local_target.t;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  service : Xynolog__.Enums.Run_service.t;\n  instance : string;\n  document : string option;\n  args : string list option;\n  environment : (string * string) list;\n  mounts : string list;\n  path_first : string list;\n  ports : int list;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Local_target.t;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  service : Xynolog__.Enums.Run_service.t;\n  instance : string;\n  document : string option;\n  args : string list option;\n  environment : (string * string) list;\n  mounts : string list;\n  path_first : string list;\n  ports : int list;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -21696,7 +21820,7 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Service_signal_params",
-      "declaration": "module Service_signal_params :\n  sig\n    module Signal :\n      sig\n        type t = Term | Kill\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : string;\n      target : Local_target.t;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      instance : string;\n      signal : Signal.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceSignalParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ServiceSignalParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Service_signal_params :\n  sig\n    module Signal :\n      sig\n        type t = Term | Kill\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Local_target.t;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      instance : string;\n      signal : Signal.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ServiceSignalParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ServiceSignalParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "module",
@@ -21738,7 +21862,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Records.Service_signal_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  target : Local_target.t;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  instance : string;\n  signal : Signal.t;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Local_target.t;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  instance : string;\n  signal : Signal.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -21885,7 +22009,7 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Stack_start_params",
-      "declaration": "module Stack_start_params :\n  sig\n    module Ollama_cache :\n      sig\n        type t = Host | Volume\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : string;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      config : string option;\n      service : string option;\n      group : Xynolog__.Enums.Service_group.t option;\n      codespace_name : string option;\n      machine : string option;\n      idle_timeout : string option;\n      retention_period : string option;\n      observe : bool option;\n      ollama_cache : Ollama_cache.t option;\n      dry_run : bool option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackStartParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `StackStartParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Stack_start_params :\n  sig\n    module Ollama_cache :\n      sig\n        type t = Host | Volume\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      config : string option;\n      service : string option;\n      group : Xynolog__.Enums.Service_group.t option;\n      codespace_name : string option;\n      machine : string option;\n      idle_timeout : string option;\n      retention_period : string option;\n      observe : bool option;\n      ollama_cache : Ollama_cache.t option;\n      dry_run : bool option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackStartParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `StackStartParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "module",
@@ -21927,7 +22051,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Records.Stack_start_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  config : string option;\n  service : string option;\n  group : Xynolog__.Enums.Service_group.t option;\n  codespace_name : string option;\n  machine : string option;\n  idle_timeout : string option;\n  retention_period : string option;\n  observe : bool option;\n  ollama_cache : Ollama_cache.t option;\n  dry_run : bool option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  config : string option;\n  service : string option;\n  group : Xynolog__.Enums.Service_group.t option;\n  codespace_name : string option;\n  machine : string option;\n  idle_timeout : string option;\n  retention_period : string option;\n  observe : bool option;\n  ollama_cache : Ollama_cache.t option;\n  dry_run : bool option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -21968,12 +22092,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Stack_stop_params",
-      "declaration": "module Stack_stop_params :\n  sig\n    type t = {\n      api_version : string;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      service : string option;\n      group : Xynolog__.Enums.Service_group.t option;\n      delete : bool option;\n      delete_confirmed : bool option;\n      dry_run : bool option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackStopParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `StackStopParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Stack_stop_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      service : string option;\n      group : Xynolog__.Enums.Service_group.t option;\n      delete : bool option;\n      delete_confirmed : bool option;\n      dry_run : bool option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackStopParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `StackStopParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Stack_stop_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  service : string option;\n  group : Xynolog__.Enums.Service_group.t option;\n  delete : bool option;\n  delete_confirmed : bool option;\n  dry_run : bool option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  service : string option;\n  group : Xynolog__.Enums.Service_group.t option;\n  delete : bool option;\n  delete_confirmed : bool option;\n  dry_run : bool option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -22009,12 +22133,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Status_snapshot_params",
-      "declaration": "module Status_snapshot_params :\n  sig\n    type t = {\n      api_version : string;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StatusSnapshotParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `StatusSnapshotParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Status_snapshot_params :\n  sig\n    type t = {\n      api_version : Xynolog__.Enums.Api_version.t;\n      target : Target.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StatusSnapshotParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `StatusSnapshotParams ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Status_snapshot_params.t",
-      "declaration": "type t = {\n  api_version : string;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Api_version.t;\n  target : Target.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -27837,12 +27961,43 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Browser",
-      "declaration": "module Browser :\n  sig\n    type t = {\n      api_version : string;\n      kind : string;\n      metadata : Metadata.t;\n      spec : Browser_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Browser ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Browser ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
+      "declaration": "module Browser :\n  sig\n    module Kind :\n      sig\n        type t = Browser\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Stack_api_version.t;\n      kind : Kind.t;\n      metadata : Metadata.t;\n      spec : Browser_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Browser ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Browser ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Browser.Kind",
+      "declaration": "module Kind :\n  sig\n    type t = Browser\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Browser.Kind.t",
+      "declaration": "type t = Browser",
+      "representation": "variant",
+      "constructors": [
+        "Browser"
+      ],
+      "variants": [
+        {
+          "name": "Browser",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Browser.Kind.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Browser.Kind.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Browser.t",
-      "declaration": "type t = {\n  api_version : string;\n  kind : string;\n  metadata : Metadata.t;\n  spec : Browser_spec.t;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Stack_api_version.t;\n  kind : Kind.t;\n  metadata : Metadata.t;\n  spec : Browser_spec.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -27874,12 +28029,43 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Vector_store",
-      "declaration": "module Vector_store :\n  sig\n    type t = {\n      api_version : string;\n      kind : string;\n      metadata : Metadata.t;\n      spec : Vector_store_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `VectorStore ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `VectorStore ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Vector_store :\n  sig\n    module Kind :\n      sig\n        type t = VectorStore\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Stack_api_version.t;\n      kind : Kind.t;\n      metadata : Metadata.t;\n      spec : Vector_store_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `VectorStore ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `VectorStore ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Vector_store.Kind",
+      "declaration": "module Kind :\n  sig\n    type t = VectorStore\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Vector_store.Kind.t",
+      "declaration": "type t = VectorStore",
+      "representation": "variant",
+      "constructors": [
+        "VectorStore"
+      ],
+      "variants": [
+        {
+          "name": "VectorStore",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Vector_store.Kind.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Vector_store.Kind.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Vector_store.t",
-      "declaration": "type t = {\n  api_version : string;\n  kind : string;\n  metadata : Metadata.t;\n  spec : Vector_store_spec.t;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Stack_api_version.t;\n  kind : Kind.t;\n  metadata : Metadata.t;\n  spec : Vector_store_spec.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -29337,12 +29523,43 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Issuer",
-      "declaration": "module Issuer :\n  sig\n    type t = {\n      api_version : string;\n      kind : string;\n      metadata : Metadata.t;\n      spec : Issuer_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Issuer ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Issuer ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
+      "declaration": "module Issuer :\n  sig\n    module Kind :\n      sig\n        type t = Issuer\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Stack_api_version.t;\n      kind : Kind.t;\n      metadata : Metadata.t;\n      spec : Issuer_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Issuer ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Issuer ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Issuer.Kind",
+      "declaration": "module Kind :\n  sig\n    type t = Issuer\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Issuer.Kind.t",
+      "declaration": "type t = Issuer",
+      "representation": "variant",
+      "constructors": [
+        "Issuer"
+      ],
+      "variants": [
+        {
+          "name": "Issuer",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Issuer.Kind.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Issuer.Kind.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Issuer.t",
-      "declaration": "type t = {\n  api_version : string;\n  kind : string;\n  metadata : Metadata.t;\n  spec : Issuer_spec.t;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Stack_api_version.t;\n  kind : Kind.t;\n  metadata : Metadata.t;\n  spec : Issuer_spec.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -29374,12 +29591,43 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Knowledge_index",
-      "declaration": "module Knowledge_index :\n  sig\n    type t = {\n      api_version : string;\n      kind : string;\n      metadata : Metadata.t;\n      spec : Knowledge_index_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `KnowledgeIndex ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `KnowledgeIndex ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Knowledge_index :\n  sig\n    module Kind :\n      sig\n        type t = KnowledgeIndex\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Stack_api_version.t;\n      kind : Kind.t;\n      metadata : Metadata.t;\n      spec : Knowledge_index_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `KnowledgeIndex ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `KnowledgeIndex ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Knowledge_index.Kind",
+      "declaration": "module Kind :\n  sig\n    type t = KnowledgeIndex\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Knowledge_index.Kind.t",
+      "declaration": "type t = KnowledgeIndex",
+      "representation": "variant",
+      "constructors": [
+        "KnowledgeIndex"
+      ],
+      "variants": [
+        {
+          "name": "KnowledgeIndex",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Knowledge_index.Kind.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Knowledge_index.Kind.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Knowledge_index.t",
-      "declaration": "type t = {\n  api_version : string;\n  kind : string;\n  metadata : Metadata.t;\n  spec : Knowledge_index_spec.t;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Stack_api_version.t;\n  kind : Kind.t;\n  metadata : Metadata.t;\n  spec : Knowledge_index_spec.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -29411,12 +29659,43 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Stack_knowledge_base",
-      "declaration": "module Stack_knowledge_base :\n  sig\n    type t = {\n      api_version : string;\n      kind : string;\n      metadata : Metadata.t;\n      spec : Stack_knowledge_base_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackKnowledgeBase ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `StackKnowledgeBase ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Stack_knowledge_base :\n  sig\n    module Kind :\n      sig\n        type t = KnowledgeBase\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Stack_api_version.t;\n      kind : Kind.t;\n      metadata : Metadata.t;\n      spec : Stack_knowledge_base_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `StackKnowledgeBase ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `StackKnowledgeBase ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Stack_knowledge_base.Kind",
+      "declaration": "module Kind :\n  sig\n    type t = KnowledgeBase\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Stack_knowledge_base.Kind.t",
+      "declaration": "type t = KnowledgeBase",
+      "representation": "variant",
+      "constructors": [
+        "KnowledgeBase"
+      ],
+      "variants": [
+        {
+          "name": "KnowledgeBase",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_knowledge_base.Kind.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Stack_knowledge_base.Kind.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Stack_knowledge_base.t",
-      "declaration": "type t = {\n  api_version : string;\n  kind : string;\n  metadata : Metadata.t;\n  spec : Stack_knowledge_base_spec.t;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Stack_api_version.t;\n  kind : Kind.t;\n  metadata : Metadata.t;\n  spec : Stack_knowledge_base_spec.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -29448,12 +29727,43 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Worker_pool",
-      "declaration": "module Worker_pool :\n  sig\n    type t = {\n      api_version : string;\n      kind : string;\n      metadata : Metadata.t;\n      spec : Worker_pool_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `WorkerPool ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `WorkerPool ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Worker_pool :\n  sig\n    module Kind :\n      sig\n        type t = WorkerPool\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Stack_api_version.t;\n      kind : Kind.t;\n      metadata : Metadata.t;\n      spec : Worker_pool_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `WorkerPool ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `WorkerPool ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Worker_pool.Kind",
+      "declaration": "module Kind :\n  sig\n    type t = WorkerPool\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Worker_pool.Kind.t",
+      "declaration": "type t = WorkerPool",
+      "representation": "variant",
+      "constructors": [
+        "WorkerPool"
+      ],
+      "variants": [
+        {
+          "name": "WorkerPool",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Worker_pool.Kind.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Worker_pool.Kind.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Worker_pool.t",
-      "declaration": "type t = {\n  api_version : string;\n  kind : string;\n  metadata : Metadata.t;\n  spec : Worker_pool_spec.t;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Stack_api_version.t;\n  kind : Kind.t;\n  metadata : Metadata.t;\n  spec : Worker_pool_spec.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",
@@ -29801,7 +30111,38 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Annotation",
-      "declaration": "module Annotation :\n  sig\n    module Type_ :\n      sig\n        type t = Annotation\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      field_context : string;\n      type_ : Type_.t;\n      id : string;\n      motivation : Xynolog__.Enums.Motivation.t;\n      target : Annotation_target_value.t;\n      body : Annotation_bodies.t option;\n      creator : Agent.t option;\n      created : string;\n      modified : string option;\n      generator : One_or_more_agents.t option;\n      was_attributed_to : One_or_more_agents.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Annotation ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Annotation ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Annotation :\n  sig\n    module Field_context :\n      sig\n        type t = Field_context\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    module Type_ :\n      sig\n        type t = Annotation\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      field_context : Field_context.t;\n      type_ : Type_.t;\n      id : string;\n      motivation : Xynolog__.Enums.Motivation.t;\n      target : Annotation_target_value.t;\n      body : Annotation_bodies.t option;\n      creator : Agent.t option;\n      created : string;\n      modified : string option;\n      generator : One_or_more_agents.t option;\n      was_attributed_to : One_or_more_agents.t option;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Annotation ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Annotation ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Annotation.Field_context",
+      "declaration": "module Field_context :\n  sig\n    type t = Field_context\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Annotation.Field_context.t",
+      "declaration": "type t = Field_context",
+      "representation": "variant",
+      "constructors": [
+        "Field_context"
+      ],
+      "variants": [
+        {
+          "name": "Field_context",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Annotation.Field_context.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Annotation.Field_context.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "module",
@@ -29837,7 +30178,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Records.Annotation.t",
-      "declaration": "type t = {\n  field_context : string;\n  type_ : Type_.t;\n  id : string;\n  motivation : Xynolog__.Enums.Motivation.t;\n  target : Annotation_target_value.t;\n  body : Annotation_bodies.t option;\n  creator : Agent.t option;\n  created : string;\n  modified : string option;\n  generator : One_or_more_agents.t option;\n  was_attributed_to : One_or_more_agents.t option;\n}",
+      "declaration": "type t = {\n  field_context : Field_context.t;\n  type_ : Type_.t;\n  id : string;\n  motivation : Xynolog__.Enums.Motivation.t;\n  target : Annotation_target_value.t;\n  body : Annotation_bodies.t option;\n  creator : Agent.t option;\n  created : string;\n  modified : string option;\n  generator : One_or_more_agents.t option;\n  was_attributed_to : One_or_more_agents.t option;\n}",
       "representation": "record",
       "fields": [
         "field_context",
@@ -30115,12 +30456,43 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Inference",
-      "declaration": "module Inference :\n  sig\n    type t = {\n      api_version : string;\n      kind : string;\n      metadata : Metadata.t;\n      spec : Inference_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Inference ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Inference ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Inference :\n  sig\n    module Kind :\n      sig\n        type t = Inference\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Stack_api_version.t;\n      kind : Kind.t;\n      metadata : Metadata.t;\n      spec : Inference_spec.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Inference ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Inference ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Inference.Kind",
+      "declaration": "module Kind :\n  sig\n    type t = Inference\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Inference.Kind.t",
+      "declaration": "type t = Inference",
+      "representation": "variant",
+      "constructors": [
+        "Inference"
+      ],
+      "variants": [
+        {
+          "name": "Inference",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Inference.Kind.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Inference.Kind.of_string",
+      "declaration": "val of_string : string -> t option"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Inference.t",
-      "declaration": "type t = {\n  api_version : string;\n  kind : string;\n  metadata : Metadata.t;\n  spec : Inference_spec.t;\n}",
+      "declaration": "type t = {\n  api_version : Xynolog__.Enums.Stack_api_version.t;\n  kind : Kind.t;\n  metadata : Metadata.t;\n  spec : Inference_spec.t;\n}",
       "representation": "record",
       "fields": [
         "api_version",

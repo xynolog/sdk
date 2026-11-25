@@ -118,24 +118,29 @@ let scalar_of (s : T.scalar) =
   | Number -> Float
 
 (* An enum stated in place, named [module_], when each of its values names a
-   constructor and no two name one. *)
+   constructor and no two name one, or when it is a constant: its one value
+   names its constructor, or the module's name does. *)
 let stated_enum module_ values =
-  let variants =
-    List.filter_map
-      (function
-        | Schema.String_literal value when Enums.is_member value ->
-            Some (Enums.constructor value, value)
-        | _ -> None)
-      values
-  in
-  let constructors = List.map fst variants in
-  if
-    variants <> []
-    && List.length variants = List.length values
-    && List.length (List.sort_uniq compare constructors)
-       = List.length constructors
-  then Some { Enums.module_; variants }
-  else None
+  match values with
+  | [ Schema.String_literal value ] when not (Enums.is_member value) ->
+      Some { Enums.module_; variants = [ (module_, value) ] }
+  | values ->
+      let variants =
+        List.filter_map
+          (function
+            | Schema.String_literal value when Enums.is_member value ->
+                Some (Enums.constructor value, value)
+            | _ -> None)
+          values
+      in
+      let constructors = List.map fst variants in
+      if
+        variants <> []
+        && List.length variants = List.length values
+        && List.length (List.sort_uniq compare constructors)
+           = List.length constructors
+      then Some { Enums.module_; variants }
+      else None
 
 (* The modules a value held so names. *)
 let rec modules_of = function
@@ -198,16 +203,16 @@ let components spec (typing : T.t) ~tabled ~enum_of =
     | T.Record { members = _ :: _ as members; rest } -> Some (members, rest)
     | _ -> None
   in
-  let rec held_of ~stated_in ~const (ty : T.ty) =
+  let rec held_of ~stated_in (ty : T.ty) =
     match ty with
     | T.Scalar s -> scalar_of s
-    | T.Nullable ty -> Nullable (held_of ~stated_in ~const ty)
-    | T.List (Some ty) -> List_of (held_of ~stated_in ~const ty)
+    | T.Nullable ty -> Nullable (held_of ~stated_in ty)
+    | T.List (Some ty) -> List_of (held_of ~stated_in ty)
     | T.List None -> List_of Raw
-    | T.Named name -> named ~const name
-    | T.Inline i -> inline ~stated_in ~const i
+    | T.Named name -> named name
+    | T.Inline i -> inline ~stated_in i
     | T.Null | T.Any | T.Nothing -> Raw
-  and named ~const name =
+  and named name =
     let module_ = Enums.module_name name in
     let file = Option.value (List.assoc_opt name roots) ~default:name in
     match (tabled name, enum_of name, (typing.find name).form) with
@@ -220,17 +225,16 @@ let components spec (typing : T.t) ~tabled ~enum_of =
     | None, None, T.Union u ->
         union ~module_ ~name ~file u;
         Union module_
-    | None, None, T.Enum { base = Some (T.Text _); _ }
-      when rooted name && not const ->
+    | None, None, T.Enum { base = Some (T.Text _); _ } when rooted name ->
         Enum module_
     | None, None, T.Enum { base = Some s; _ } -> scalar_of s
-    | None, None, T.Alias ty -> held_of ~stated_in:module_ ~const ty
+    | None, None, T.Alias ty -> held_of ~stated_in:module_ ty
     | None, None, T.Identifier _ -> Text
     | None, None, T.Map { value; _ } ->
-        Map_of (held_of ~stated_in:module_ ~const:false value)
+        Map_of (held_of ~stated_in:module_ value)
     | None, None, (T.Empty _ | T.Json | T.Enum { base = None; _ }) -> Raw
     | None, None, T.Record { members = []; _ } -> Raw
-  and inline ~stated_in ~const (i : T.inline) =
+  and inline ~stated_in (i : T.inline) =
     let module_ = Enums.module_name i.name in
     match i.form with
     | T.Record { members = _ :: _ as members; rest } ->
@@ -240,16 +244,16 @@ let components spec (typing : T.t) ~tabled ~enum_of =
     | T.Union u ->
         union ~module_ ~name:i.name ~file:i.place.owner u;
         Union module_
-    | T.Enum { base = Some (T.Text _); values } when not const -> (
+    | T.Enum { base = Some (T.Text _); values } -> (
         match stated_enum stated_in values with
         | Some e -> Stated e
         | None -> Text)
     | T.Enum { base = Some s; _ } -> scalar_of s
-    | T.Map { value; _ } -> Map_of (held_of ~stated_in ~const:false value)
+    | T.Map { value; _ } -> Map_of (held_of ~stated_in value)
     (* Deviations: an object in place that names no member and says nothing
        of others holds whatever members it is given. *)
     | T.Empty _ -> Map_of Raw
-    | T.Alias ty -> held_of ~stated_in ~const ty
+    | T.Alias ty -> held_of ~stated_in ty
     | T.Identifier _ -> Text
     | T.Json | T.Enum { base = None; _ } | T.Record { members = []; _ } -> Raw
   and declare module_ build =
@@ -263,14 +267,11 @@ let components spec (typing : T.t) ~tabled ~enum_of =
         let fields =
           List.map
             (fun (m : T.member) ->
-              let const =
-                rooted name && Deviations.ocaml_const spec ~file m.wire
-              in
               let stated_in = String.capitalize_ascii (field_name m.wire) in
               let ty, nullable =
                 match m.ty with T.Nullable ty -> (ty, true) | ty -> (ty, false)
               in
-              { member = m; held = held_of ~stated_in ~const ty; nullable })
+              { member = m; held = held_of ~stated_in ty; nullable })
             members
         in
         let labels = List.map (fun f -> field_name f.member.wire) fields in
@@ -322,10 +323,7 @@ let components spec (typing : T.t) ~tabled ~enum_of =
             Members
               (List.map
                  (fun (b : T.branch) ->
-                   {
-                     branch = b;
-                     held = held_of ~stated_in:b.variant ~const:false b.ty;
-                   })
+                   { branch = b; held = held_of ~stated_in:b.variant b.ty })
                  u.branches);
         })
   in
