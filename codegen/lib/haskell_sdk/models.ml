@@ -12,8 +12,9 @@
    enumeration and its value. A string, integer, number and boolean are
    Text, Integer, Scientific and Bool. Words are a type of constructors, with
    a function that gives each its word, branches a type of one constructor
-   each, an object a record, and anything else a newtype;
-   an identifier's newtype is opaque, made only by its module's mk. A member
+   each, an object a record, a map or a scalar whose schema states nothing
+   its type cannot carry that type, and anything else a newtype; an
+   identifier's newtype is opaque, made only by its module's mk. A member
    the object needn't state is a Maybe, and an object open to other members
    keeps them. *)
 
@@ -63,6 +64,7 @@ type state = {
   mutable dependencies : Names.t Named.t;
   ids : Decode.ids;  (** Each schema's [$id]: what a reference names. *)
   identifiers : Names.t;
+  keys : Names.t;  (** The identifiers a named map's members are named by. *)
   mutable enumerations : (string * Schema.literal list) list;
       (** Every enumeration declared, and its values. *)
   mutable union_members : Names.t;
@@ -216,8 +218,8 @@ let union_decls name members =
     ]
 
 (* A newtype of [value_type]: an identifier's opaque, made only by its
-   module's mk. *)
-let newtype_decls name ~constructor value_type opaque =
+   module's mk, and a map's [key] read and written as the map's keys. *)
+let newtype_decls name ~constructor value_type opaque ~key =
   let accessor = lower name ^ "Value" in
   let maker = "mk" ^ name in
   let newtype =
@@ -251,9 +253,27 @@ let newtype_decls name ~constructor value_type opaque =
         name;
     ]
   in
+  let keyed =
+    if key then
+      [
+        H.instance "FromJSONKey" (T_name name)
+          [
+            H.method_ "fromJSONKey"
+              (Apply
+                 ( Name "FromJSONKeyTextParser",
+                   [ Compose (Name "parseJSON", Name "String") ] ));
+          ];
+        H.instance "ToJSONKey" (T_name name)
+          [
+            H.method_ "toJSONKey"
+              (Apply (Name "toJSONKeyText", [ Name accessor ]));
+          ];
+      ]
+    else []
+  in
   if opaque then
     Ok
-      ((newtype :: instances)
+      ((newtype :: instances) @ keyed
       @ [
           Value
             {
@@ -403,6 +423,21 @@ let beside_null name original =
   in
   Ok (Schema.Schema (Option.value beside ~default:fields))
 
+(* Whether [original] states no keyword but [keywords]: no constraint the
+   type it is held as cannot carry. *)
+let holds_only state original keywords =
+  let* s = normalize state original in
+  match Schema.runtime (Schema.Schema s) with
+  | `Assoc stated ->
+      Ok (List.for_all (fun (k, _) -> List.mem k keywords) stated)
+  | _ -> Ok false
+
+(* The keywords a map's type carries: its kind, its members' values and, of a
+   named key, their names. *)
+let map_keywords key =
+  [ "type"; "additionalProperties" ]
+  @ match key with Some _ -> [ "propertyNames" ] | None -> []
+
 (* The type [ty] is in Haskell, [original] the schema it is read from, at
    [at]. *)
 let rec type_of state at original (ty : T.ty) : (H.type_, string) result =
@@ -432,9 +467,29 @@ and stated state at original (ty : T.ty) =
       let* item_schema = items state at original in
       Result.map (fun t -> H.T_list t) (type_of state at item_schema item)
   | Any -> Ok (H.T_name "Value")
+  | Inline ({ form = Map { key; value }; _ } as i) ->
+      let* only = holds_only state original (map_keywords key) in
+      if only then map_of state i.name original key value
+      else inline state original i
   | Inline i -> inline state original i
   | List None | Null | Nothing | Nullable _ ->
       Error (at ^ ": unsupported type shape")
+
+(* The map [original] states, its members named by [key] and each of
+   [value]: a [Map] by a named key's type, else a [KM.KeyMap]. *)
+and map_of state at original key value =
+  let* s = normalize state original in
+  let additional =
+    match s.additional_properties with
+    | Some (Schema _ as typed) -> typed
+    | _ -> Schema.Boolean_schema true
+  in
+  let* held = type_of state at additional value in
+  match key with
+  | None -> Ok (H.T_apply ("KM.KeyMap", [ held ]))
+  | Some key ->
+      depend state key;
+      Ok (H.T_apply ("Map.Map", [ T_name key; held ]))
 
 (* The type written in place as [i], declared once, by [Typing]'s name. *)
 and inline state schema (i : T.inline) =
@@ -491,17 +546,26 @@ and declare state name original (form : T.form) =
          others holds whatever members it is given. *)
       | Empty { rest; _ } ->
           object_ state name original [] rest ~open_:(rest <> Closed)
-      | Map { value; _ } ->
-          object_ state name original [] (Of value) ~open_:true
+      | Map { key; value } ->
+          let* only = holds_only state original (map_keywords key) in
+          if only then
+            let* held = map_of state name original key value in
+            Ok [ H.alias name held ]
+          else object_ state name original [] (Of value) ~open_:true
       | Enum { base; _ } -> (
           match base with
           | Some s -> newtype state name (scalar_of s)
           | None -> newtype state name (H.T_name "Value"))
       | Identifier _ -> newtype state name (H.T_name "Text")
       | Json -> newtype state name (H.T_name "Value")
-      | Alias ty ->
+      | Alias ty -> (
           let* value_type = type_of state name original ty in
-          newtype state name value_type
+          match ty with
+          | Scalar _ ->
+              let* only = holds_only state original [ "type" ] in
+              if only then Ok [ H.alias name value_type ]
+              else newtype state name value_type
+          | _ -> newtype state name value_type)
     in
     state.declarations <-
       Named.add name (Some { owner; decls }) state.declarations;
@@ -536,6 +600,7 @@ and constructed state name =
 and newtype state name value_type =
   newtype_decls name ~constructor:(constructed state name) value_type
     (Names.mem name state.identifiers)
+    ~key:(Names.mem name state.keys)
 
 and object_ state name original (members : T.member list) (rest : T.rest) ~open_
     =
@@ -657,6 +722,9 @@ let aeson_names =
     (`Value, "Object", All "Value");
     (`Value, "withObject", Plain "withObject");
     (`Value, ".:", Op ".:");
+    (`Type, "FromJSONKey", All "FromJSONKey");
+    (`Value, "FromJSONKeyTextParser", All "FromJSONKeyFunction");
+    (`Type, "ToJSONKey", All "ToJSONKey");
   ]
 
 (* The imports of a model module: those of the fixed modules it uses, then
@@ -677,13 +745,19 @@ let imports body dependencies =
   let when_ condition import = if condition then [ import ] else [] in
   when_ (value "<|>") (H.import "Control.Applicative" ~items:[ Op "<|>" ])
   @ when_ (aeson <> []) (H.import "Data.Aeson" ~items:aeson)
-  @ when_ (value "parseEither")
-      (H.import "Data.Aeson.Types" ~items:[ Plain "parseEither" ])
+  @ (match List.filter value [ "parseEither"; "toJSONKeyText" ] with
+    | [] -> []
+    | used ->
+        [
+          H.import "Data.Aeson.Types"
+            ~items:(List.map (fun n -> H.Plain n) used);
+        ])
   @ when_
       (List.exists
          (fun n -> String.starts_with ~prefix:"KM." n)
          (used.types @ used.values))
       (H.import "Data.Aeson.KeyMap" ~qualified:"KM")
+  @ when_ (type_ "Map.Map") (H.import "Data.Map.Strict" ~qualified:"Map")
   @ when_ (type_ "Scientific")
       (H.import "Data.Scientific" ~items:[ Plain "Scientific" ])
   @ when_ (type_ "Text") (H.import "Data.Text" ~items:[ Plain "Text" ])
@@ -696,7 +770,7 @@ let imports body dependencies =
 (* What [Typing] makes of [definitions]: each schema under its name's file
    and under every key a reference to it resolves to, a reference naming the
    schema of its file's base name ([Definitions.referenced]). *)
-let typing ~ids ~identifiers definitions =
+let typing ~ids ~identifiers ~keys definitions =
   let by_name = Hashtbl.create 512 in
   List.iter
     (fun (name, s) -> Hashtbl.replace by_name name (Normalize.shape_only s))
@@ -729,13 +803,13 @@ let typing ~ids ~identifiers definitions =
         names = List.map fst definitions;
         schema = (fun name -> view (Hashtbl.find by_name name));
       }
-      ~roots:(List.map fst definitions) ~identifiers ~keys:[]
+      ~roots:(List.map fst definitions) ~identifiers ~keys
   with
   | typing -> Ok typing
   | exception T.D.Refused message -> Error message
 
-let generate ~banner ~ids ~identifiers definitions =
-  let* typing = typing ~ids ~identifiers definitions in
+let generate ~banner ~ids ~identifiers ~keys definitions =
+  let* typing = typing ~ids ~identifiers ~keys definitions in
   let state =
     {
       definitions = Named.of_list definitions;
@@ -744,6 +818,7 @@ let generate ~banner ~ids ~identifiers definitions =
       dependencies = Named.empty;
       ids;
       identifiers = Names.of_list identifiers;
+      keys = Names.of_list (List.map snd keys);
       enumerations = [];
       union_members = Names.empty;
       typing;

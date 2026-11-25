@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.Inference (Inference (..), InferenceKind (..), inferenceKindText, InferenceSpec (..), InferenceSpecProviders (..)) where
+module Xynolog.Internal.Generated.Models.Inference (Inference (..), InferenceKind (..), inferenceKindText, InferenceSpec (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -35,7 +35,7 @@ inferenceKindText :: InferenceKind -> Text
 inferenceKindText InferenceKindInference = "Inference"
 
 data InferenceSpec = InferenceSpec
-  { inferenceSpecProviders :: InferenceSpecProviders,
+  { inferenceSpecProviders :: KM.KeyMap Provider,
     inferenceSpecEngines :: ArchivistEngines
   }
   deriving (Eq, Show)
@@ -43,12 +43,3 @@ data InferenceSpec = InferenceSpec
 instance FromJSON InferenceSpec where parseJSON = checked "InferenceSpec" $ withObject "InferenceSpec" (\fields -> InferenceSpec <$> (fields .: "providers") <*> (fields .: "engines"))
 
 instance ToJSON InferenceSpec where toJSON value = Object (KM.fromList (concat [[("providers", toJSON (inferenceSpecProviders value))], [("engines", toJSON (inferenceSpecEngines value))]]))
-
-data InferenceSpecProviders = InferenceSpecProviders
-  { inferenceSpecProvidersAdditionalProperties :: KM.KeyMap Provider
-  }
-  deriving (Eq, Show)
-
-instance FromJSON InferenceSpecProviders where parseJSON = checked "InferenceSpecProviders" $ withObject "InferenceSpecProviders" (\fields -> InferenceSpecProviders <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON InferenceSpecProviders where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (inferenceSpecProvidersAdditionalProperties value)))

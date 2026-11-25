@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BusReplyBounds (BusReplyBounds (..), BusReplyBoundsReplies (..), BusReplyBoundsRepliesValue (..), BusReplyBoundsRepliesValueValue (..), BusReplyBoundsRepliesValueValueBy (..), BusReplyBoundsRepliesValueValueGrows (..)) where
+module Xynolog.Internal.Generated.Models.BusReplyBounds (BusReplyBounds (..), BusReplyBoundsRepliesValueValue (..), BusReplyBoundsRepliesValueValueBy (..), BusReplyBoundsRepliesValueValueGrows (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -12,31 +12,13 @@ import Xynolog.Internal.Codec
 
 data BusReplyBounds = BusReplyBounds
   { busReplyBoundsComment :: Text,
-    busReplyBoundsReplies :: BusReplyBoundsReplies
+    busReplyBoundsReplies :: KM.KeyMap (KM.KeyMap BusReplyBoundsRepliesValueValue)
   }
   deriving (Eq, Show)
 
 instance FromJSON BusReplyBounds where parseJSON = checked "BusReplyBounds" $ withObject "BusReplyBounds" (\fields -> BusReplyBounds <$> (fields .: "$comment") <*> (fields .: "replies"))
 
 instance ToJSON BusReplyBounds where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (busReplyBoundsComment value))], [("replies", toJSON (busReplyBoundsReplies value))]]))
-
-data BusReplyBoundsReplies = BusReplyBoundsReplies
-  { busReplyBoundsRepliesAdditionalProperties :: KM.KeyMap BusReplyBoundsRepliesValue
-  }
-  deriving (Eq, Show)
-
-instance FromJSON BusReplyBoundsReplies where parseJSON = checked "BusReplyBoundsReplies" $ withObject "BusReplyBoundsReplies" (\fields -> BusReplyBoundsReplies <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON BusReplyBoundsReplies where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (busReplyBoundsRepliesAdditionalProperties value)))
-
-data BusReplyBoundsRepliesValue = BusReplyBoundsRepliesValue
-  { busReplyBoundsRepliesValueAdditionalProperties :: KM.KeyMap BusReplyBoundsRepliesValueValue
-  }
-  deriving (Eq, Show)
-
-instance FromJSON BusReplyBoundsRepliesValue where parseJSON = checked "BusReplyBoundsRepliesValue" $ withObject "BusReplyBoundsRepliesValue" (\fields -> BusReplyBoundsRepliesValue <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON BusReplyBoundsRepliesValue where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (busReplyBoundsRepliesValueAdditionalProperties value)))
 
 data BusReplyBoundsRepliesValueValue = BusReplyBoundsRepliesValueValueBy BusReplyBoundsRepliesValueValueBy | BusReplyBoundsRepliesValueValueGrows BusReplyBoundsRepliesValueValueGrows deriving (Eq, Show)
 

@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceStep (ConformanceStep (..), ConformanceStepAbandon (..), ConformanceStepBackend (..), ConformanceStepBackendBackend (..), conformanceStepBackendBackendText, ConformanceStepBackendWith (..), ConformanceStepCarried (..), ConformanceStepClaimed (..), ConformanceStepClosed (..), ConformanceStepCompletes (..), ConformanceStepDriver (..), ConformanceStepDriverWith (..), ConformanceStepError (..), ConformanceStepFetches (..), ConformanceStepFetchesFetchesItem (..), ConformanceStepFrame (..), ConformanceStepFrames (..), ConformanceStepHolds (..), ConformanceStepLeave (..), ConformanceStepLet (..), ConformanceStepLetLet (..), ConformanceStepObserve (..), ConformanceStepObserveObserve (..), ConformanceStepProgress (..), ConformanceStepQuiet (..), ConformanceStepReaches (..), ConformanceStepRefused (..), ConformanceStepScopes (..), ConformanceStepSettles (..), ConformanceStepSettlesAbandoned (..), ConformanceStepSignalled (..), ConformanceStepStalled (..), ConformanceStepState (..), ConformanceStepStateState (..), conformanceStepStateStateText, ConformanceStepStays (..), ConformanceStepStaysStays (..), conformanceStepStaysStaysText, ConformanceStepWire (..), ConformanceStepWireAt (..), conformanceStepWireAtText, ConformanceStepWireHeaders (..)) where
+module Xynolog.Internal.Generated.Models.ConformanceStep (ConformanceStep (..), ConformanceStepAbandon (..), ConformanceStepBackend (..), ConformanceStepBackendBackend (..), conformanceStepBackendBackendText, ConformanceStepCarried (..), ConformanceStepClaimed (..), ConformanceStepClosed (..), ConformanceStepCompletes (..), ConformanceStepDriver (..), ConformanceStepError (..), ConformanceStepFetches (..), ConformanceStepFetchesFetchesItem (..), ConformanceStepFrame (..), ConformanceStepFrames (..), ConformanceStepHolds (..), ConformanceStepLeave (..), ConformanceStepLet (..), ConformanceStepObserve (..), ConformanceStepObserveObserve (..), ConformanceStepProgress (..), ConformanceStepQuiet (..), ConformanceStepReaches (..), ConformanceStepRefused (..), ConformanceStepScopes (..), ConformanceStepSettles (..), ConformanceStepSettlesAbandoned (..), ConformanceStepSignalled (..), ConformanceStepStalled (..), ConformanceStepState (..), ConformanceStepStateState (..), conformanceStepStateStateText, ConformanceStepStays (..), ConformanceStepStaysStays (..), conformanceStepStaysStaysText, ConformanceStepWire (..), ConformanceStepWireAt (..), conformanceStepWireAtText) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -57,7 +57,7 @@ instance ToJSON ConformanceStepAbandon where toJSON value = Object (KM.fromList 
 
 data ConformanceStepBackend = MkConformanceStepBackend
   { conformanceStepBackendBackend :: ConformanceStepBackendBackend,
-    conformanceStepBackendWith :: Maybe ConformanceStepBackendWith
+    conformanceStepBackendWith :: Maybe (KM.KeyMap Value)
   }
   deriving (Eq, Show)
 
@@ -111,15 +111,6 @@ conformanceStepBackendBackendText ConformanceStepBackendBackendDown = "down"
 conformanceStepBackendBackendText ConformanceStepBackendBackendUp = "up"
 conformanceStepBackendBackendText ConformanceStepBackendBackendArchivist = "archivist"
 
-data ConformanceStepBackendWith = ConformanceStepBackendWith
-  { conformanceStepBackendWithAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceStepBackendWith where parseJSON = checked "ConformanceStepBackendWith" $ withObject "ConformanceStepBackendWith" (\fields -> ConformanceStepBackendWith <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceStepBackendWith where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepBackendWithAdditionalProperties value)))
-
 data ConformanceStepCarried = MkConformanceStepCarried
   { conformanceStepCarriedCarried :: Text,
     conformanceStepCarriedIs :: Value
@@ -159,7 +150,7 @@ instance ToJSON ConformanceStepCompletes where toJSON value = Object (KM.fromLis
 
 data ConformanceStepDriver = MkConformanceStepDriver
   { conformanceStepDriverDriver :: Text,
-    conformanceStepDriverWith :: Maybe ConformanceStepDriverWith,
+    conformanceStepDriverWith :: Maybe (KM.KeyMap Value),
     conformanceStepDriverReturns :: Maybe Value,
     conformanceStepDriverFails :: Maybe Value,
     conformanceStepDriverAs :: Maybe Text
@@ -169,15 +160,6 @@ data ConformanceStepDriver = MkConformanceStepDriver
 instance FromJSON ConformanceStepDriver where parseJSON = checked "ConformanceStepDriver" $ withObject "ConformanceStepDriver" (\fields -> MkConformanceStepDriver <$> (fields .: "driver") <*> optional fields "with" <*> optional fields "returns" <*> optional fields "fails" <*> optional fields "as")
 
 instance ToJSON ConformanceStepDriver where toJSON value = Object (KM.fromList (concat [[("driver", toJSON (conformanceStepDriverDriver value))], optionalPair "with" (conformanceStepDriverWith value), optionalPair "returns" (conformanceStepDriverReturns value), optionalPair "fails" (conformanceStepDriverFails value), optionalPair "as" (conformanceStepDriverAs value)]))
-
-data ConformanceStepDriverWith = ConformanceStepDriverWith
-  { conformanceStepDriverWithAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceStepDriverWith where parseJSON = checked "ConformanceStepDriverWith" $ withObject "ConformanceStepDriverWith" (\fields -> ConformanceStepDriverWith <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceStepDriverWith where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepDriverWithAdditionalProperties value)))
 
 data ConformanceStepError = MkConformanceStepError
   { conformanceStepErrorError :: Value
@@ -245,22 +227,13 @@ instance FromJSON ConformanceStepLeave where parseJSON = checked "ConformanceSte
 instance ToJSON ConformanceStepLeave where toJSON value = Object (KM.fromList (concat [[("leave", toJSON (conformanceStepLeaveLeave value))]]))
 
 data ConformanceStepLet = MkConformanceStepLet
-  { conformanceStepLetLet :: ConformanceStepLetLet
+  { conformanceStepLetLet :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
 instance FromJSON ConformanceStepLet where parseJSON = checked "ConformanceStepLet" $ withObject "ConformanceStepLet" (\fields -> MkConformanceStepLet <$> (fields .: "let"))
 
 instance ToJSON ConformanceStepLet where toJSON value = Object (KM.fromList (concat [[("let", toJSON (conformanceStepLetLet value))]]))
-
-data ConformanceStepLetLet = ConformanceStepLetLet
-  { conformanceStepLetLetAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceStepLetLet where parseJSON = checked "ConformanceStepLetLet" $ withObject "ConformanceStepLetLet" (\fields -> ConformanceStepLetLet <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceStepLetLet where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepLetLetAdditionalProperties value)))
 
 data ConformanceStepObserve = MkConformanceStepObserve
   { conformanceStepObserveObserve :: ConformanceStepObserveObserve,
@@ -436,7 +409,7 @@ data ConformanceStepWire = MkConformanceStepWire
     conformanceStepWireParams :: Maybe Value,
     conformanceStepWireBody :: Maybe Value,
     conformanceStepWireToken :: Maybe Value,
-    conformanceStepWireHeaders :: Maybe ConformanceStepWireHeaders,
+    conformanceStepWireHeaders :: Maybe (KM.KeyMap Value),
     conformanceStepWireAnswer :: Maybe Value,
     conformanceStepWireAs :: Maybe Text,
     conformanceStepWireFollows :: Maybe Text,
@@ -461,12 +434,3 @@ conformanceStepWireAtText :: ConformanceStepWireAt -> Text
 conformanceStepWireAtText ConformanceStepWireAtArrival = "arrival"
 conformanceStepWireAtText ConformanceStepWireAtAnswer = "answer"
 conformanceStepWireAtText ConformanceStepWireAtLive = "live"
-
-data ConformanceStepWireHeaders = ConformanceStepWireHeaders
-  { conformanceStepWireHeadersAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceStepWireHeaders where parseJSON = checked "ConformanceStepWireHeaders" $ withObject "ConformanceStepWireHeaders" (\fields -> ConformanceStepWireHeaders <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceStepWireHeaders where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepWireHeadersAdditionalProperties value)))

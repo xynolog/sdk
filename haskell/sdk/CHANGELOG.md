@@ -112,6 +112,15 @@ the coming release's, and gathers its changes as they land.
   or matched positionally binds its arguments in that order, and where two
   fields share a type a positional use still compiles: build and match a
   record by naming its fields.
+- A map or a scalar whose schema states nothing its type cannot carry is
+  that type, in place of a type that wraps it. `LastEventIds` is a
+  `Map ResourceId PersistedEventId`, and `ResourceId` reads and writes as a
+  map's key; `ContentFormat` is `Text`. A map written in place is a
+  `KM.KeyMap` of its values where it is held (`metadataLabels ::
+  Maybe (KM.KeyMap Text)`, `jobMetadataUnitCursors`), in place of a record of
+  one `…AdditionalProperties` field (`MetadataLabels`,
+  `JobMetadataUnitCursors`). A scalar that states a pattern, a length or a
+  range stays a type of its own.
 
 ### Removed
 

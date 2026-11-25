@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ServiceTelemetryTelemetry (ServiceTelemetryTelemetry (..), ServiceTelemetryTelemetryMetricsItem (..), ServiceTelemetryTelemetryMetricsItemAttributesItem (..), ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem (..), ServiceTelemetryTelemetryMetricsItemInstrument (..), serviceTelemetryTelemetryMetricsItemInstrumentText, ServiceTelemetryTelemetryMetricsItemPlanesItem (..), serviceTelemetryTelemetryMetricsItemPlanesItemText, ServiceTelemetryTelemetryMetricsItemServicesItem (..), serviceTelemetryTelemetryMetricsItemServicesItemText, ServiceTelemetryTelemetryMetricsItemWhen (..), serviceTelemetryTelemetryMetricsItemWhenText, ServiceTelemetryTelemetryResourceItem (..), ServiceTelemetryTelemetryResourceItemServicesItem (..), serviceTelemetryTelemetryResourceItemServicesItemText, ServiceTelemetryTelemetrySdk (..), ServiceTelemetryTelemetrySpansItem (..), ServiceTelemetryTelemetrySpansItemAttributesItem (..), ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem (..), ServiceTelemetryTelemetrySpansItemKind (..), serviceTelemetryTelemetrySpansItemKindText, ServiceTelemetryTelemetrySpansItemServicesItem (..), serviceTelemetryTelemetrySpansItemServicesItemText, ServiceTelemetryTelemetrySpansItemWhen (..), serviceTelemetryTelemetrySpansItemWhenText) where
+module Xynolog.Internal.Generated.Models.ServiceTelemetryTelemetry (ServiceTelemetryTelemetry (..), ServiceTelemetryTelemetryMetricsItem (..), ServiceTelemetryTelemetryMetricsItemAttributesItem (..), ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem (..), ServiceTelemetryTelemetryMetricsItemInstrument (..), serviceTelemetryTelemetryMetricsItemInstrumentText, ServiceTelemetryTelemetryMetricsItemPlanesItem (..), serviceTelemetryTelemetryMetricsItemPlanesItemText, ServiceTelemetryTelemetryMetricsItemServicesItem (..), serviceTelemetryTelemetryMetricsItemServicesItemText, ServiceTelemetryTelemetryMetricsItemWhen (..), serviceTelemetryTelemetryMetricsItemWhenText, ServiceTelemetryTelemetryResourceItem (..), ServiceTelemetryTelemetryResourceItemServicesItem (..), serviceTelemetryTelemetryResourceItemServicesItemText, ServiceTelemetryTelemetrySpansItem (..), ServiceTelemetryTelemetrySpansItemAttributesItem (..), ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem (..), ServiceTelemetryTelemetrySpansItemKind (..), serviceTelemetryTelemetrySpansItemKindText, ServiceTelemetryTelemetrySpansItemServicesItem (..), serviceTelemetryTelemetrySpansItemServicesItemText, ServiceTelemetryTelemetrySpansItemWhen (..), serviceTelemetryTelemetrySpansItemWhenText) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -12,7 +12,7 @@ import Xynolog.Internal.Codec
 
 data ServiceTelemetryTelemetry = ServiceTelemetryTelemetry
   { serviceTelemetryTelemetryComment :: Text,
-    serviceTelemetryTelemetrySdk :: ServiceTelemetryTelemetrySdk,
+    serviceTelemetryTelemetrySdk :: KM.KeyMap [Text],
     serviceTelemetryTelemetryResource :: [ServiceTelemetryTelemetryResourceItem],
     serviceTelemetryTelemetrySpans :: [ServiceTelemetryTelemetrySpansItem],
     serviceTelemetryTelemetryMetrics :: [ServiceTelemetryTelemetryMetricsItem]
@@ -156,15 +156,6 @@ serviceTelemetryTelemetryResourceItemServicesItemText ServiceTelemetryTelemetryR
 serviceTelemetryTelemetryResourceItemServicesItemText ServiceTelemetryTelemetryResourceItemServicesItemSmelter = "smelter"
 serviceTelemetryTelemetryResourceItemServicesItemText ServiceTelemetryTelemetryResourceItemServicesItemWeaver = "weaver"
 serviceTelemetryTelemetryResourceItemServicesItemText ServiceTelemetryTelemetryResourceItemServicesItemWorker = "worker"
-
-data ServiceTelemetryTelemetrySdk = ServiceTelemetryTelemetrySdk
-  { serviceTelemetryTelemetrySdkAdditionalProperties :: KM.KeyMap [Text]
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ServiceTelemetryTelemetrySdk where parseJSON = checked "ServiceTelemetryTelemetrySdk" $ withObject "ServiceTelemetryTelemetrySdk" (\fields -> ServiceTelemetryTelemetrySdk <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ServiceTelemetryTelemetrySdk where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (serviceTelemetryTelemetrySdkAdditionalProperties value)))
 
 data ServiceTelemetryTelemetrySpansItem = ServiceTelemetryTelemetrySpansItem
   { serviceTelemetryTelemetrySpansItemName :: Text,
