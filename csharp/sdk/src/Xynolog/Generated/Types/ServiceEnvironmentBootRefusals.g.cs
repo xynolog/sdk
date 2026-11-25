@@ -8,9 +8,9 @@ namespace Xynolog.Types;
 public sealed record ServiceEnvironmentBootRefusals
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("exitCode")] public required long ExitCode { get; init; }
-    [global::Xynolog.Serialization.Wire("line")] public required string Line { get; init; }
-    [global::Xynolog.Serialization.Wire("members")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceEnvironmentBootRefusalsMembersItem> Members { get; init; }
-    [global::Xynolog.Serialization.Wire("refusals")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceEnvironmentBootRefusalsRefusalsItem> Refusals { get; init; }
     [global::Xynolog.Serialization.Wire("services")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceEnvironmentBootRefusalsServicesItem> Services { get; init; }
+    [global::Xynolog.Serialization.Wire("line")] public required string Line { get; init; }
+    [global::Xynolog.Serialization.Wire("exitCode")] public required long ExitCode { get; init; }
+    [global::Xynolog.Serialization.Wire("refusals")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceEnvironmentBootRefusalsRefusalsItem> Refusals { get; init; }
+    [global::Xynolog.Serialization.Wire("members")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceEnvironmentBootRefusalsMembersItem> Members { get; init; }
 }

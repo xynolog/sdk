@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ContextualSummaryResponse
 {
-    [global::Xynolog.Serialization.Wire("context")] public required global::Xynolog.Types.ContextualSummaryResponseContext Context { get; init; }
-    [global::Xynolog.Serialization.Wire("relevantFields")] public required global::Xynolog.Types.ContextualSummaryResponseRelevantFields RelevantFields { get; init; }
     [global::Xynolog.Serialization.Wire("summary")] public required string Summary { get; init; }
+    [global::Xynolog.Serialization.Wire("relevantFields")] public required global::Xynolog.Types.ContextualSummaryResponseRelevantFields RelevantFields { get; init; }
+    [global::Xynolog.Serialization.Wire("context")] public required global::Xynolog.Types.ContextualSummaryResponseContext Context { get; init; }
 }

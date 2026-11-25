@@ -15,10 +15,46 @@ public sealed interface OneOrMoreAgents {
     }
 }
 
-internal object OneOrMoreAgentsSerializer : KindsUnionSerializer<OneOrMoreAgents>(
+internal object OneOrMoreAgentsSerializer : SignatureUnionSerializer<OneOrMoreAgents>(
     OneOrMoreAgents::class,
-    strings = { listOf(Agent.serializer()) },
-    scalars = { listOf(Agent.serializer()) },
-    arrays = { listOf(Agent.serializer(), OneOrMoreAgents.List.serializer()) },
-    objects = { listOf(Agent.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("@type"),
+                allowed = null,
+                fixed = listOf("@type" to listOf(Literal.Text("Person"))),
+                values = null,
+            ),
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("@type", "name"),
+                allowed = null,
+                fixed = listOf("@type" to listOf(Literal.Text("Organization"))),
+                values = null,
+            ),
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("@type"),
+                allowed = null,
+                fixed = listOf("@type" to listOf(Literal.Text("Software"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.LIST,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            Agent.serializer(),
+            OneOrMoreAgents.List.serializer(),
+        )
+    },
 )

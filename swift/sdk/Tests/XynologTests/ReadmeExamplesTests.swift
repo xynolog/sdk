@@ -31,8 +31,8 @@ import XynologTesting
   case .annotation: throw SpecFailure.shape("Expected a resource focus in the shared fixture")
   }
   let invalidTarget = KbTarget(
-    endpoint: .httpEndpoint(HttpEndpoint(host: "bad host", port: 4000, protocol: .http)),
-    id: "local", label: "Local")
+    id: "local", label: "Local",
+    endpoint: .httpEndpoint(HttpEndpoint(host: "bad host", port: 4000, protocol: .http)))
   await #expect(throws: SignInError.self) {
     try await readFirstResource(resource.id, in: invalidTarget) { _ in
       Issue.record("An invalid endpoint produced a device code")
@@ -45,7 +45,7 @@ import XynologTesting
     case Channels.browseResourceRequested.name:
       try wirePayload(
         BrowseResourceResult(
-          response: BrowseResourceResultResponse(lastSequence: 1, resource: resource)))
+          response: BrowseResourceResultResponse(resource: resource, lastSequence: 1)))
     case Channels.gatherResourceRequested.name:
       try wirePayload(GatherResourceComplete(resourceId: resource.id, response: context))
     case Channels.jobCreate.name:
@@ -70,7 +70,7 @@ import XynologTesting
     while !transport.requestLog.contains(where: { $0.channel == Channels.jobCreate.name }) {
       try await Task.sleep(for: .milliseconds(2))
     }
-    let completion = YieldJobCompleteCommand(jobId: job, resourceId: resource.id)
+    let completion = YieldJobCompleteCommand(resourceId: resource.id, jobId: job)
     transport.deliver(
       .frame(
         ReceivedFrame(channel: Channels.jobComplete.name, payload: try wirePayload(completion))))

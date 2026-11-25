@@ -7,10 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobRunning
 {
+    [global::Xynolog.Serialization.Wire("status")] public global::Xynolog.Types.JobRunningStatus Status => global::Xynolog.Types.JobRunningStatus.Running;
     [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.JobMetadata Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.JobParams Params { get; init; }
-    [global::Xynolog.Serialization.Wire("progress")] public required global::Xynolog.Types.JobStoredProgress Progress { get; init; }
     [global::Xynolog.Serialization.Wire("startedAt")] public required string StartedAt { get; init; }
-    public const string StatusValue = "running";
-    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
+    [global::Xynolog.Serialization.Wire("progress")] public required global::Xynolog.Types.JobStoredProgress Progress { get; init; }
 }

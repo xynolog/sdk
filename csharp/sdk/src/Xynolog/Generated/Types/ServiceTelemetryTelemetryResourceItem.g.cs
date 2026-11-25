@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceTelemetryTelemetryResourceItem
 {
-    [global::Xynolog.Serialization.Wire("default")] public string? Default { get; init; }
     [global::Xynolog.Serialization.Wire("key")] public required string Key { get; init; }
-    [global::Xynolog.Serialization.Wire("meaning")] public required string Meaning { get; init; }
     [global::Xynolog.Serialization.Wire("services")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetryResourceItemServicesItem> Services { get; init; }
+    [global::Xynolog.Serialization.Wire("meaning")] public required string Meaning { get; init; }
+    [global::Xynolog.Serialization.Wire("default")] public string? Default { get; init; }
 }

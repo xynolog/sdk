@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record GatewayMessages
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("challenges")] public required global::Xynolog.Types.GatewayMessagesChallenges Challenges { get; init; }
-    [global::Xynolog.Serialization.Wire("failures")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.GatewayMessagesFailuresItem> Failures { get; init; }
     [global::Xynolog.Serialization.Wire("messages")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.GatewayMessagesMessagesItem> Messages { get; init; }
+    [global::Xynolog.Serialization.Wire("failures")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.GatewayMessagesFailuresItem> Failures { get; init; }
+    [global::Xynolog.Serialization.Wire("challenges")] public required global::Xynolog.Types.GatewayMessagesChallenges Challenges { get; init; }
 }

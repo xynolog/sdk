@@ -7,7 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceDriverLineEmissionEmissionStateReady
 {
-    public const string StatusValue = "ready";
-    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
+    [global::Xynolog.Serialization.Wire("status")] public global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStateReadyStatus Status => global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStateReadyStatus.Ready;
     [global::Xynolog.Serialization.Wire("value")] public required global::System.Text.Json.JsonElement Value { get; init; }
 }

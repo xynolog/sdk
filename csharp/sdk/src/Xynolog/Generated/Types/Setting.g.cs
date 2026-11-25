@@ -7,10 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Setting
 {
-    [global::Xynolog.Serialization.Wire("appliesTo")] public required global::Xynolog.Types.SettingAppliesTo AppliesTo { get; init; }
-    [global::Xynolog.Serialization.Wire("changedBy")] public string? ChangedBy { get; init; }
-    [global::Xynolog.Serialization.Wire("default")] public required bool Default { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("settable")] public required bool Settable { get; init; }
+    [global::Xynolog.Serialization.Wire("default")] public required bool Default { get; init; }
+    [global::Xynolog.Serialization.Wire("appliesTo")] public required global::Xynolog.Types.SettingAppliesTo AppliesTo { get; init; }
     [global::Xynolog.Serialization.Wire("values")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.SettingLine> Values { get; init; }
+    [global::Xynolog.Serialization.Wire("settable")] public required bool Settable { get; init; }
+    [global::Xynolog.Serialization.Wire("changedBy")] public string? ChangedBy { get; init; }
 }

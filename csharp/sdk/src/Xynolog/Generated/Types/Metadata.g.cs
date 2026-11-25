@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Metadata
 {
-    [global::Xynolog.Serialization.Wire("annotations")] public global::System.Collections.Generic.IReadOnlyDictionary<string, string>? Annotations { get; init; }
-    [global::Xynolog.Serialization.Wire("labels")] public global::System.Collections.Generic.IReadOnlyDictionary<string, string>? Labels { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("namespace")] public string? Namespace { get; init; }
+    [global::Xynolog.Serialization.Wire("labels")] public global::System.Collections.Generic.IReadOnlyDictionary<string, string>? Labels { get; init; }
+    [global::Xynolog.Serialization.Wire("annotations")] public global::System.Collections.Generic.IReadOnlyDictionary<string, string>? Annotations { get; init; }
 }

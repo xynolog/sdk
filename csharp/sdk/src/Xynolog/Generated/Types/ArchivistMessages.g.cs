@@ -9,9 +9,9 @@ public sealed record ArchivistMessages
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
     [global::Xynolog.Serialization.Wire("boot")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistMessagesBootItem> Boot { get; init; }
-    [global::Xynolog.Serialization.Wire("http")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistMessagesHttpItem> Http { get; init; }
-    [global::Xynolog.Serialization.Wire("logged")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistMessagesLoggedItem> Logged { get; init; }
+    [global::Xynolog.Serialization.Wire("unsent")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistMessagesUnsentItem> Unsent { get; init; }
     [global::Xynolog.Serialization.Wire("refusals")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistMessagesRefusalsItem> Refusals { get; init; }
     [global::Xynolog.Serialization.Wire("unauthorized")] public required global::Xynolog.Types.ArchivistMessagesUnauthorized Unauthorized { get; init; }
-    [global::Xynolog.Serialization.Wire("unsent")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistMessagesUnsentItem> Unsent { get; init; }
+    [global::Xynolog.Serialization.Wire("http")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistMessagesHttpItem> Http { get; init; }
+    [global::Xynolog.Serialization.Wire("logged")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistMessagesLoggedItem> Logged { get; init; }
 }

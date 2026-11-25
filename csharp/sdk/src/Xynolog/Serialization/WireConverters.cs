@@ -44,10 +44,19 @@ internal sealed class WireEnumAttribute : JsonConverterAttribute
         ?? throw new InvalidOperationException("No converter of " + type.Name + ".");
 }
 
+/// <summary>A schema of one integer or boolean, read and written by <see cref="WireConstantConverter{T}"/> as <paramref name="value"/>.</summary>
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class WireConstantAttribute(object value) : JsonConverterAttribute
+{
+    public override JsonConverter CreateConverter(Type type) =>
+        Activator.CreateInstance(typeof(WireConstantConverter<>).MakeGenericType(type), [value]) as JsonConverter
+        ?? throw new InvalidOperationException("No converter of " + type.Name + ".");
+}
+
 /// <summary>
 /// A model read from and written to its schema's object. What each property is comes from its declaration:
 /// one with no setter is the schema's constant, a <c>required</c> one must be present (and is null only where its type admits null), and any other is absent when null.
-/// The model is validated against its schema, named as the type is, and its members are written in ordinal order of their names.
+/// The model is validated against its schema, named as the type is, and its members are written in the order they are declared, its schema's order.
 /// </summary>
 internal sealed class WireObjectConverter<T> : JsonConverter<T>
     where T : class
@@ -57,7 +66,7 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
         .GetProperties(BindingFlags.Public | BindingFlags.Instance)
         .Select(Member.Of)
         .OfType<Member>()
-        .OrderBy(member => member.Wire, StringComparer.Ordinal)
+        .OrderBy(member => member.Property.MetadataToken)
         .ToArray();
     private static readonly string[] Named = Members.Select(member => member.Wire).ToArray();
     private static readonly PropertyInfo? Rest = typeof(T)
@@ -160,6 +169,10 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
         internal void Write(object model, Dictionary<string, JsonElement> fields, JsonSerializerOptions options)
         {
             var value = Property.GetValue(model);
+            if (value is JsonElement { ValueKind: JsonValueKind.Undefined })
+            {
+                throw new JsonException(Schema + "." + Wire + " is unset.");
+            }
             switch (Kind)
             {
                 case Kind.Constant:
@@ -179,13 +192,18 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
 }
 
 /// <summary>
-/// A union read as the member of its schema's oneOf or anyOf the value matches, and written as the member it holds.
-/// Its cases are the records nested in it, one per member, each holding its member as <c>Value</c>, given in the members' order.
+/// A union read as the one member whose signature admits the value (<see cref="Signature.Member"/>), validated against
+/// that member's schema, and written as the member it holds. A value one member names but does not admit is refused as
+/// that member says, and one none names is refused. Its cases are the records nested in it, one per member, each
+/// holding its member as <c>Value</c>, given in the members' order, and its <c>Members</c> each one's signatures.
 /// </summary>
 internal sealed class WireUnionConverter<T> : JsonConverter<T>
     where T : class
 {
     private static readonly string Schema = typeof(T).Name;
+    private static readonly Signature[][] Members =
+        typeof(T).GetField("Members", BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(null) as Signature[][]
+        ?? throw new InvalidOperationException(Schema + " states no Members.");
     private readonly Type[] cases;
 
     public WireUnionConverter(Type[] cases)
@@ -195,6 +213,10 @@ internal sealed class WireUnionConverter<T> : JsonConverter<T>
         {
             throw new InvalidOperationException("The cases of " + Schema + " are not the records nested in it.");
         }
+        if (Members.Length != cases.Length)
+        {
+            throw new InvalidOperationException(Schema + " states a signature of " + Members.Length + " members, and has " + cases.Length + " cases.");
+        }
         this.cases = cases;
     }
 
@@ -202,14 +224,14 @@ internal sealed class WireUnionConverter<T> : JsonConverter<T>
     {
         using var document = JsonDocument.ParseValue(ref reader);
         var root = document.RootElement;
-        WireJson.Validate(Schema, root);
-        var variant = WireJson.Variant(Schema, root);
-        if (variant >= cases.Length)
-        {
-            throw new JsonException("No matching union variant.");
-        }
-        var held = cases[variant];
+        var (at, admitted) = Signature.Member(root, Members) ?? throw new JsonException(Signature.NoneOf(Schema, Members));
+        WireJson.ValidateMember(Schema, at, root);
+        var held = cases[at];
         var value = WireJson.Read(root, ValueOf(held).PropertyType, options);
+        if (!admitted)
+        {
+            throw new JsonException("a " + Schema + " its member " + held.Name + " does not admit");
+        }
         return Activator.CreateInstance(held, value) as T ?? throw new JsonException("Cannot make a " + Schema + ".");
     }
 
@@ -226,6 +248,29 @@ internal sealed class WireUnionConverter<T> : JsonConverter<T>
 
     private static PropertyInfo ValueOf(Type held) =>
         held.GetProperty("Value") ?? throw new JsonException(held.Name + " holds no Value.");
+}
+
+/// <summary>
+/// A type of one value, read from that value alone and written as it. Its one instance is its <c>Value</c>.
+/// </summary>
+internal sealed class WireConstantConverter<T>(object value) : JsonConverter<T>
+    where T : class
+{
+    private static readonly string Schema = typeof(T).Name;
+    private static readonly T Instance =
+        typeof(T).GetField("Value", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) as T
+        ?? throw new InvalidOperationException(Schema + " holds no Value.");
+    private readonly JsonElement wire = JsonSerializer.SerializeToElement(value);
+
+    public override T Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        return JsonElement.DeepEquals(document.RootElement, wire)
+            ? Instance
+            : throw new JsonException("a " + Schema + " is " + wire.GetRawText());
+    }
+
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) => wire.WriteTo(writer);
 }
 
 /// <summary>An enumeration read from and written as the string each constant's <see cref="JsonStringEnumMemberNameAttribute"/> names.</summary>
@@ -256,14 +301,16 @@ internal sealed class WireEnumConverter<T> : JsonConverter<T>
         throw new JsonException("Unknown enumeration value.");
     }
 
-    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) => writer.WriteStringValue(Wire(value));
+
+    /// <summary>The string <paramref name="value"/> is on the wire.</summary>
+    internal static string Wire(T value)
     {
         foreach (var (constant, wire) in Constants)
         {
             if (EqualityComparer<T>.Default.Equals(constant, value))
             {
-                writer.WriteStringValue(wire);
-                return;
+                return wire;
             }
         }
         throw new JsonException("Unknown enumeration value.");

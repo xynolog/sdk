@@ -235,8 +235,8 @@ extension HttpTransport {
       traceID: emission.context.traceId.hexString)
     let body = try JSONEncoder().encode(
       BusEmitRequest(
-        channel: channel, clientId: clientID, correlationId: correlationId, payload: payload,
-        scope: scope))
+        channel: channel, payload: payload, scope: scope, clientId: clientID,
+        correlationId: correlationId))
     let idempotencyKey = UUID().uuidString
     var credential = token
     var renewed = false

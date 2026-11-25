@@ -15,10 +15,39 @@ public sealed interface AnnotationBodies {
     }
 }
 
-internal object AnnotationBodiesSerializer : KindsUnionSerializer<AnnotationBodies>(
+internal object AnnotationBodiesSerializer : SignatureUnionSerializer<AnnotationBodies>(
     AnnotationBodies::class,
-    strings = { listOf(AnnotationBody.serializer()) },
-    scalars = { listOf(AnnotationBody.serializer()) },
-    arrays = { listOf(AnnotationBody.serializer(), AnnotationBodies.List.serializer()) },
-    objects = { listOf(AnnotationBody.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "value"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("TextualBody")), "purpose" to listOf(Literal.Text("assessing"), Literal.Text("bookmarking"), Literal.Text("classifying"), Literal.Text("commenting"), Literal.Text("describing"), Literal.Text("editing"), Literal.Text("highlighting"), Literal.Text("identifying"), Literal.Text("linking"), Literal.Text("moderating"), Literal.Text("questioning"), Literal.Text("replying"), Literal.Text("tagging"))),
+                values = null,
+            ),
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "source"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("SpecificResource")), "purpose" to listOf(Literal.Text("assessing"), Literal.Text("bookmarking"), Literal.Text("classifying"), Literal.Text("commenting"), Literal.Text("describing"), Literal.Text("editing"), Literal.Text("highlighting"), Literal.Text("identifying"), Literal.Text("linking"), Literal.Text("moderating"), Literal.Text("questioning"), Literal.Text("replying"), Literal.Text("tagging"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.LIST,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            AnnotationBody.serializer(),
+            AnnotationBodies.List.serializer(),
+        )
+    },
 )

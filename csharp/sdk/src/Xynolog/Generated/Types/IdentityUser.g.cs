@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record IdentityUser
 {
     [global::Xynolog.Serialization.Wire("email")] public required string Email { get; init; }
-    [global::Xynolog.Serialization.Wire("enabled")] public required bool Enabled { get; init; }
     [global::Xynolog.Serialization.Wire("identity")] public required string Identity { get; init; }
+    [global::Xynolog.Serialization.Wire("enabled")] public required bool Enabled { get; init; }
 }

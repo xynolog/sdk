@@ -4,9 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(AnchoredTextEntry.AnchoredTextExtractedEntryCase), typeof(AnchoredTextEntry.AnchoredTextDeclinedEntryCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(AnchoredTextEntry.AnchoredTextExtractedEntry), typeof(AnchoredTextEntry.AnchoredTextDeclinedEntry))]
 public closed record AnchoredTextEntry
 {
-    public sealed record AnchoredTextExtractedEntryCase(global::Xynolog.Types.AnchoredTextExtractedEntry Value) : AnchoredTextEntry;
-    public sealed record AnchoredTextDeclinedEntryCase(global::Xynolog.Types.AnchoredTextDeclinedEntry Value) : AnchoredTextEntry;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["v", "stamp", "text", "lines", "method"], ["v", "stamp", "text", "lines", "method", "pdfClass", "ocrConfidence", "unreadPages"], [new("v", [new global::Xynolog.Serialization.Literal.Integer(3)]), new("method", [new global::Xynolog.Serialization.Literal.Text("text-passthrough"), new global::Xynolog.Serialization.Literal.Text("pdf-text-layer"), new global::Xynolog.Serialization.Literal.Text("table"), new global::Xynolog.Serialization.Literal.Text("form"), new global::Xynolog.Serialization.Literal.Text("ocr")]), new("pdfClass", [new global::Xynolog.Serialization.Literal.Text("A"), new global::Xynolog.Serialization.Literal.Text("B"), new global::Xynolog.Serialization.Literal.Text("C"), new global::Xynolog.Serialization.Literal.Text("D"), new global::Xynolog.Serialization.Literal.Text("E"), new global::Xynolog.Serialization.Literal.Text("F"), new global::Xynolog.Serialization.Literal.Text("G")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["v", "stamp", "declined"], ["v", "stamp", "declined"], [new("v", [new global::Xynolog.Serialization.Literal.Integer(3)]), new("declined", [new global::Xynolog.Serialization.Literal.Text("no-text-layer"), new global::Xynolog.Serialization.Literal.Text("encrypted"), new global::Xynolog.Serialization.Literal.Text("corrupt"), new global::Xynolog.Serialization.Literal.Text("too-large")])], null)]];
+    public sealed record AnchoredTextExtractedEntry(global::Xynolog.Types.AnchoredTextExtractedEntry Value) : AnchoredTextEntry;
+    public sealed record AnchoredTextDeclinedEntry(global::Xynolog.Types.AnchoredTextDeclinedEntry Value) : AnchoredTextEntry;
 }

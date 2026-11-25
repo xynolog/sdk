@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistLayoutSystemProjections
 {
-    [global::Xynolog.Serialization.Wire("files")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistLayoutSystemProjectionsFilesItem> Files { get; init; }
-    [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
     [global::Xynolog.Serialization.Wire("tree")] public required global::Xynolog.Types.ArchivistLayoutSystemProjectionsTree Tree { get; init; }
+    [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
+    [global::Xynolog.Serialization.Wire("files")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistLayoutSystemProjectionsFilesItem> Files { get; init; }
 }

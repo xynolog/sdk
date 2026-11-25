@@ -30,9 +30,9 @@ public func beginAuthorization(
     URLComponents(string: options.redirectUri)?.scheme != nil
   else { throw SignInError(.discovery, "Sign-in needs valid authorization and redirect addresses") }
   let record = PendingAuthorization(
-    expectedDid: options.expectedDid, expectedName: options.expectedName, issuer: issuer,
-    kbId: options.kbId, redirectUri: options.redirectUri, state: randomURLSafe(24),
-    target: options.target, verifier: randomURLSafe(48))
+    state: randomURLSafe(24), verifier: randomURLSafe(48), redirectUri: options.redirectUri,
+    target: options.target, issuer: issuer, kbId: options.kbId,
+    expectedDid: options.expectedDid, expectedName: options.expectedName)
   let parameters = [
     ("response_type", "code"),
     ("client_id", browserClientId),
@@ -94,8 +94,8 @@ public func completeAuthorization(
   return (
     record,
     StoredSession(
-      access: access, clientId: browserClientId, refresh: refresh,
-      revocationEndpoint: record.issuer.revocation, tokenEndpoint: record.issuer.token)
+      access: access, refresh: refresh, clientId: browserClientId,
+      tokenEndpoint: record.issuer.token, revocationEndpoint: record.issuer.revocation)
   )
 }
 
@@ -128,7 +128,7 @@ public func describeConnection(
     throw IdentityUnverifiableError(reason: .unreachable, description: String(describing: error))
   }
   do {
-    return try ConnectionIdentity(description: description, did: kbDid(description.domain))
+    return try ConnectionIdentity(did: kbDid(description.domain), description: description)
   } catch {
     throw IdentityUnverifiableError(reason: .notReported, description: String(describing: error))
   }

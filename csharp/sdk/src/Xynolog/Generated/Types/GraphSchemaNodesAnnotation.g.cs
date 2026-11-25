@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GraphSchemaNodesAnnotation
 {
-    [global::Xynolog.Serialization.Wire("key")] public required string Key { get; init; }
     [global::Xynolog.Serialization.Wire("label")] public required string Label { get; init; }
-    [global::Xynolog.Serialization.Wire("lookups")] public required global::System.Collections.Generic.IReadOnlyList<string> Lookups { get; init; }
     [global::Xynolog.Serialization.Wire("row")] public string? Row { get; init; }
+    [global::Xynolog.Serialization.Wire("key")] public required string Key { get; init; }
+    [global::Xynolog.Serialization.Wire("lookups")] public required global::System.Collections.Generic.IReadOnlyList<string> Lookups { get; init; }
 }

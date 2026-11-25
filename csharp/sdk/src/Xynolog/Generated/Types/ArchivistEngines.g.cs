@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistEngines
 {
-    [global::Xynolog.Serialization.Wire("actors")] public required global::Xynolog.Types.ArchivistEnginesActors Actors { get; init; }
     [global::Xynolog.Serialization.Wire("jobs")] public required global::Xynolog.Types.ArchivistEnginesJobs Jobs { get; init; }
+    [global::Xynolog.Serialization.Wire("actors")] public required global::Xynolog.Types.ArchivistEnginesActors Actors { get; init; }
 }

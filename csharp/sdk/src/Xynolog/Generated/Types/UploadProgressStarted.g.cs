@@ -7,7 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record UploadProgressStarted
 {
-    public const string PhaseValue = "started";
-    [global::Xynolog.Serialization.Wire("phase")] public string Phase => PhaseValue;
+    [global::Xynolog.Serialization.Wire("phase")] public global::Xynolog.Types.UploadProgressStartedPhase Phase => global::Xynolog.Types.UploadProgressStartedPhase.Started;
     [global::Xynolog.Serialization.Wire("totalBytes")] public required long TotalBytes { get; init; }
 }

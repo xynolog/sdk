@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record UserAction
 {
-    [global::Xynolog.Serialization.Wire("expiresInSeconds")] public required long ExpiresInSeconds { get; init; }
     [global::Xynolog.Serialization.Wire("requestId")] public required global::Xynolog.Types.RequestId RequestId { get; init; }
-    [global::Xynolog.Serialization.Wire("userCode")] public required string UserCode { get; init; }
     [global::Xynolog.Serialization.Wire("verificationUri")] public required string VerificationUri { get; init; }
     [global::Xynolog.Serialization.Wire("verificationUriComplete")] public string? VerificationUriComplete { get; init; }
+    [global::Xynolog.Serialization.Wire("userCode")] public required string UserCode { get; init; }
+    [global::Xynolog.Serialization.Wire("expiresInSeconds")] public required long ExpiresInSeconds { get; init; }
 }

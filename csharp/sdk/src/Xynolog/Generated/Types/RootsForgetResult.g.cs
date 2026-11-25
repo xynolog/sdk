@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record RootsForgetResult
 {
-    [global::Xynolog.Serialization.Wire("directoryMissing")] public required bool DirectoryMissing { get; init; }
     [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
+    [global::Xynolog.Serialization.Wire("directoryMissing")] public required bool DirectoryMissing { get; init; }
     [global::Xynolog.Serialization.Wire("persistentState")] public string? PersistentState { get; init; }
 }

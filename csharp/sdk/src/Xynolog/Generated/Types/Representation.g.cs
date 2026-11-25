@@ -9,20 +9,20 @@ public sealed record Representation
 {
     [global::Xynolog.Serialization.Wire("@id")] public string? Id { get; init; }
     [global::Xynolog.Serialization.Wire("@type")] public global::Xynolog.Types.OneOrMoreStrings? Type { get; init; }
+    [global::Xynolog.Serialization.Wire("mediaType")] public required string MediaType { get; init; }
+    [global::Xynolog.Serialization.Wire("storageUri")] public string? StorageUri { get; init; }
+    [global::Xynolog.Serialization.Wire("filename")] public string? Filename { get; init; }
     [global::Xynolog.Serialization.Wire("byteSize")] public long? ByteSize { get; init; }
     [global::Xynolog.Serialization.Wire("checksum")] public string? Checksum { get; init; }
-    [global::Xynolog.Serialization.Wire("conformsTo")] public global::Xynolog.Types.OneOrMoreUris? ConformsTo { get; init; }
-    [global::Xynolog.Serialization.Wire("created")] public string? Created { get; init; }
-    [global::Xynolog.Serialization.Wire("duration")] public double? Duration { get; init; }
     [global::Xynolog.Serialization.Wire("encoding")] public string? Encoding { get; init; }
-    [global::Xynolog.Serialization.Wire("filename")] public string? Filename { get; init; }
-    [global::Xynolog.Serialization.Wire("height")] public long? Height { get; init; }
     [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
-    [global::Xynolog.Serialization.Wire("mediaType")] public required string MediaType { get; init; }
-    [global::Xynolog.Serialization.Wire("modified")] public string? Modified { get; init; }
-    [global::Xynolog.Serialization.Wire("rel")] public global::Xynolog.Types.RepresentationRel? Rel { get; init; }
-    [global::Xynolog.Serialization.Wire("storageUri")] public string? StorageUri { get; init; }
-    [global::Xynolog.Serialization.Wire("tags")] public global::System.Collections.Generic.IReadOnlyList<string>? Tags { get; init; }
     [global::Xynolog.Serialization.Wire("width")] public long? Width { get; init; }
+    [global::Xynolog.Serialization.Wire("height")] public long? Height { get; init; }
+    [global::Xynolog.Serialization.Wire("duration")] public double? Duration { get; init; }
+    [global::Xynolog.Serialization.Wire("created")] public string? Created { get; init; }
+    [global::Xynolog.Serialization.Wire("modified")] public string? Modified { get; init; }
+    [global::Xynolog.Serialization.Wire("conformsTo")] public global::Xynolog.Types.OneOrMoreUris? ConformsTo { get; init; }
+    [global::Xynolog.Serialization.Wire("tags")] public global::System.Collections.Generic.IReadOnlyList<string>? Tags { get; init; }
+    [global::Xynolog.Serialization.Wire("rel")] public global::Xynolog.Types.RepresentationRel? Rel { get; init; }
     [global::Xynolog.Serialization.WireRest] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement> AdditionalProperties { get; init; } = new global::System.Collections.Generic.Dictionary<string, global::System.Text.Json.JsonElement>();
 }

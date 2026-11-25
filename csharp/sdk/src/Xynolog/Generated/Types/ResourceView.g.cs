@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ResourceView
 {
+    [global::Xynolog.Serialization.Wire("resource")] public required global::Xynolog.Types.ResourceDescriptor Resource { get; init; }
     [global::Xynolog.Serialization.Wire("annotations")] public required global::Xynolog.Types.ResourceAnnotations Annotations { get; init; }
     [global::Xynolog.Serialization.Wire("lastSequence")] public required long LastSequence { get; init; }
-    [global::Xynolog.Serialization.Wire("resource")] public required global::Xynolog.Types.ResourceDescriptor Resource { get; init; }
 }

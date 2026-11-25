@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record StackKnowledgeBaseSpecMessagingExternal
 {
-    [global::Xynolog.Serialization.Wire("password")] public required global::Xynolog.Types.SecretRef Password { get; init; }
     [global::Xynolog.Serialization.Wire("servers")] public required string Servers { get; init; }
     [global::Xynolog.Serialization.Wire("user")] public required global::Xynolog.Types.SecretRef User { get; init; }
+    [global::Xynolog.Serialization.Wire("password")] public required global::Xynolog.Types.SecretRef Password { get; init; }
 }

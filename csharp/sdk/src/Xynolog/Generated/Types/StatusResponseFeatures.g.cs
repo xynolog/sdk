@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record StatusResponseFeatures
 {
-    [global::Xynolog.Serialization.Wire("collaboration")] public required string Collaboration { get; init; }
     [global::Xynolog.Serialization.Wire("semanticContent")] public required string SemanticContent { get; init; }
+    [global::Xynolog.Serialization.Wire("collaboration")] public required string Collaboration { get; init; }
 }

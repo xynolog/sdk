@@ -8,8 +8,7 @@ namespace Xynolog.Types;
 public sealed record StackKnowledgeBase
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.StackApiVersion ApiVersion { get; init; }
-    public const string KindValue = "KnowledgeBase";
-    [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.StackKnowledgeBaseKind Kind => global::Xynolog.Types.StackKnowledgeBaseKind.KnowledgeBase;
     [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.Metadata Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("spec")] public required global::Xynolog.Types.StackKnowledgeBaseSpec Spec { get; init; }
 }

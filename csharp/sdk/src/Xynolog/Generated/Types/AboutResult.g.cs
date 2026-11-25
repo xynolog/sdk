@@ -7,11 +7,11 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AboutResult
 {
-    [global::Xynolog.Serialization.Wire("apiVersions")] public required global::System.Collections.Generic.IReadOnlyList<string> ApiVersions { get; init; }
-    [global::Xynolog.Serialization.Wire("built")] public string? Built { get; init; }
-    [global::Xynolog.Serialization.Wire("commit")] public string? Commit { get; init; }
+    [global::Xynolog.Serialization.Wire("version")] public string? Version { get; init; }
     [global::Xynolog.Serialization.Wire("development")] public required bool Development { get; init; }
+    [global::Xynolog.Serialization.Wire("commit")] public string? Commit { get; init; }
+    [global::Xynolog.Serialization.Wire("built")] public string? Built { get; init; }
+    [global::Xynolog.Serialization.Wire("apiVersions")] public required global::System.Collections.Generic.IReadOnlyList<string> ApiVersions { get; init; }
     [global::Xynolog.Serialization.Wire("imageRegistry")] public required string ImageRegistry { get; init; }
     [global::Xynolog.Serialization.Wire("runtimes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.RuntimeState> Runtimes { get; init; }
-    [global::Xynolog.Serialization.Wire("version")] public string? Version { get; init; }
 }

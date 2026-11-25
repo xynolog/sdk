@@ -69,7 +69,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
         using var linked = Link(cancellation);
         cancellation = linked.Token;
         using var activity = SdkTelemetry.Start(TelemetrySpans.ContentPut, new ActivityTagsCollection { { TelemetryKeys.ContentFormat, request.Format }, { TelemetryKeys.ContentSizeBytes, request.File.LongLength } });
-        progress?.Report(new UploadProgress.StartedCase(new UploadProgressStarted { TotalBytes = request.File.LongLength }));
+        progress?.Report(new UploadProgress.Started(new UploadProgressStarted { TotalBytes = request.File.LongLength }));
         using var response = await transport.ExchangeAsync(GatewayRoute.UploadResource.Method, GatewayRoute.UploadResource.Path, () =>
         {
             var form = new MultipartFormDataContent();
@@ -85,7 +85,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
             return form;
         }, upload: true, cancellation: cancellation).ConfigureAwait(Spawning.Captures);
         var created = await transport.ReplyAsync<CreateResourceResponse>(response, GatewayRoute.UploadResource.Path, cancellation).ConfigureAwait(Spawning.Captures);
-        progress?.Report(new UploadProgress.FinishedCase(new UploadProgressFinished { ResourceId = created.ResourceId }));
+        progress?.Report(new UploadProgress.Finished(new UploadProgressFinished { ResourceId = created.ResourceId }));
         return created;
     }
 
@@ -161,7 +161,7 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
                 var count = Math.Min(65536, bytes.Length - offset);
                 await stream.WriteAsync(bytes.AsMemory(offset, count), cancellationToken).ConfigureAwait(Spawning.Captures);
                 offset += count;
-                progress?.Report(new UploadProgress.ProgressCase(new UploadProgressProgress { BytesUploaded = offset, TotalBytes = bytes.LongLength }));
+                progress?.Report(new UploadProgress.Progress(new UploadProgressProgress { BytesUploaded = offset, TotalBytes = bytes.LongLength }));
             }
         }
     }

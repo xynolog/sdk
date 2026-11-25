@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatheredContextSemanticContext
 {
-    [global::Xynolog.Serialization.Wire("excludedEntityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? ExcludedEntityTypes { get; init; }
     [global::Xynolog.Serialization.Wire("similar")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.SemanticMatch> Similar { get; init; }
+    [global::Xynolog.Serialization.Wire("excludedEntityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? ExcludedEntityTypes { get; init; }
 }

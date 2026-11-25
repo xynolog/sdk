@@ -9,10 +9,32 @@ import kotlinx.serialization.Serializable
 @Serializable(with = GatheredContextFocusSerializer::class)
 public sealed interface GatheredContextFocus
 
-internal object GatheredContextFocusSerializer : KindsUnionSerializer<GatheredContextFocus>(
+internal object GatheredContextFocusSerializer : SignatureUnionSerializer<GatheredContextFocus>(
     GatheredContextFocus::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(GatheredContextFocusAnnotation.serializer(), GatheredContextFocusResource.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("kind", "annotation", "sourceResource"),
+                allowed = null,
+                fixed = listOf("kind" to listOf(Literal.Text("annotation"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("kind", "resource"),
+                allowed = null,
+                fixed = listOf("kind" to listOf(Literal.Text("resource"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            GatheredContextFocusAnnotation.serializer(),
+            GatheredContextFocusResource.serializer(),
+        )
+    },
 )

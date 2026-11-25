@@ -92,18 +92,18 @@ private func signIn(
   personKey: String?, tokens: String = "kept", expired: Bool, tokenEndpoint: String
 ) throws -> StoredSession {
   StoredSession(
-    access: try accessToken(tokens, expired: expired), clientId: scriptClientID,
-    personKey: personKey,
-    refresh: tokens + "-refresh", tokenEndpoint: tokenEndpoint)
+    access: try accessToken(tokens, expired: expired), refresh: tokens + "-refresh",
+    clientId: scriptClientID,
+    tokenEndpoint: tokenEndpoint, personKey: personKey)
 }
 
 private let kbDomain = "kb.example.org"
 
 private func knowledgeBase(_ id: String, port: Int) -> KnowledgeBase {
   KnowledgeBase(
-    did: "did:web:" + kbDomain,
-    endpoint: .httpEndpoint(HttpEndpoint(host: "127.0.0.1", port: port, protocol: .http)), id: id,
-    label: id)
+    id: id, label: id,
+    endpoint: .httpEndpoint(HttpEndpoint(host: "127.0.0.1", port: port, protocol: .http)),
+    did: "did:web:" + kbDomain)
 }
 
 private func resource(_ id: ResourceId, named name: String) throws -> ResourceDescriptor {
@@ -203,7 +203,7 @@ private final class ClosingWrites: SessionFactory {
     guard channel == Channels.browseKbRequested.name else {
       throw BusRequestError(.busNotFound, "\(channel) is not scripted")
     }
-    return try wirePayload(BrowseKbResult(response: KbDescription(domain: kbDomain, name: "KB")))
+    return try wirePayload(BrowseKbResult(response: KbDescription(name: "KB", domain: kbDomain)))
   }
   private let storage: MemorySessionStorage
   private let person: String
@@ -506,12 +506,12 @@ private final class PersonGateway: Sendable {
         payload: try wirePayload(
           BrowseResourceResult(
             response: BrowseResourceResultResponse(
-              lastSequence: 1, resource: try resource(read.resourceId, named: "fresh")))))
+              resource: try resource(read.resourceId, named: "fresh"), lastSequence: 1))))
     case Channels.browseKbRequested.name:
       frame = BusFrame(
         channel: Channels.browseKbResult.name, correlationId: emitted.correlationId,
         payload: try wirePayload(
-          BrowseKbResult(response: KbDescription(domain: kbDomain, name: "KB"))))
+          BrowseKbResult(response: KbDescription(name: "KB", domain: kbDomain))))
     default: return nil
     }
     let data = try JSONEncoder().encode(frame)
@@ -722,9 +722,9 @@ private final class ListedStorage: SessionStorage {
 /// A `mark:archived` event of `scope` whose id is `id`, as a stream writes it.
 private func archivedEvent(of scope: ResourceId, id: String) throws -> String {
   let event = StoredEventResponse(
-    id: id, metadata: EventMetadata(sequenceNumber: 1), payload: [:], resourceId: scope,
-    timestamp: "2026-11-07T00:00:00.000Z", type: Channels.markArchived.name,
-    userId: try UserId("did:web:example.org:users:alice"), version: 1)
+    id: id, type: Channels.markArchived.name, timestamp: "2026-11-07T00:00:00.000Z",
+    userId: try UserId("did:web:example.org:users:alice"), resourceId: scope, version: 1,
+    payload: [:], metadata: EventMetadata(sequenceNumber: 1))
   let frame = BusFrame(
     channel: Channels.markArchived.name, payload: try wirePayload(event), scope: scope)
   let data = try JSONEncoder().encode(frame)
@@ -889,7 +889,7 @@ private enum SignInChange: Sendable {
       let kb = knowledgeBase("kb-a", port: port)
       // On a clock that never moves, every save waits for the client's close.
       let opened = try await sessionFromKept(
-        kb: KbTarget(endpoint: kb.endpoint, id: kb.id, label: kb.label), kept: memory,
+        kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint), kept: memory,
         httpClient: http, storage: caches, clock: TestClock())
       defer { opened.dispose() }
       try await withinTestDeadline { try await opened.session.ready() }
@@ -993,7 +993,7 @@ private func sessionErrors(_ said: [any Error], _ reason: SessionErrorCode) -> [
     let kb = knowledgeBase("kb-a", port: port)
     let clock = TestClock()
     let opened = try await sessionFromKept(
-      kb: KbTarget(endpoint: kb.endpoint, id: kb.id, label: kb.label), kept: kept,
+      kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint), kept: kept,
       httpClient: http, storage: caches, clock: clock)
     defer { opened.dispose() }
     let session = opened.session
@@ -1044,7 +1044,7 @@ private func sessionErrors(_ said: [any Error], _ reason: SessionErrorCode) -> [
     // On a clock that never moves, the save waits for the client's close.
     let clock = TestClock()
     let opened = try await sessionFromKept(
-      kb: KbTarget(endpoint: kb.endpoint, id: kb.id, label: kb.label), kept: kept,
+      kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint), kept: kept,
       httpClient: http, storage: caches, clock: clock)
     defer { opened.dispose() }
     let session = opened.session
@@ -1102,7 +1102,7 @@ private struct UnrecordedPerson: Error {}
     let caches = ListedStorage()
     let kb = knowledgeBase("kb-a", port: port)
     let opened = try await sessionFromKept(
-      kb: KbTarget(endpoint: kb.endpoint, id: kb.id, label: kb.label), kept: kept,
+      kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint), kept: kept,
       httpClient: http, storage: caches, clock: TestClock())
     defer { opened.dispose() }
     let session = opened.session
@@ -1141,7 +1141,7 @@ private struct UnrecordedPerson: Error {}
     let kb = knowledgeBase("kb-a", port: port)
     await #expect(throws: UnreadableSignInStore.self) {
       try await sessionFromKept(
-        kb: KbTarget(endpoint: kb.endpoint, id: kb.id, label: kb.label), kept: kept,
+        kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint), kept: kept,
         httpClient: http, storage: ListedStorage(), clock: TestClock())
     }
   }
@@ -1199,7 +1199,7 @@ private func owingASave(
     let kb = knowledgeBase("kb-a", port: port)
     let clock = TestClock()
     let opened = try await sessionFromKept(
-      kb: KbTarget(endpoint: kb.endpoint, id: kb.id, label: kb.label), kept: kept,
+      kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint), kept: kept,
       httpClient: http, storage: caches, clock: clock)
     defer { opened.dispose() }
     let heard = HeardErrors(opened.session)

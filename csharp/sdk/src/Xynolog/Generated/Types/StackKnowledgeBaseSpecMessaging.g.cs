@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record StackKnowledgeBaseSpecMessaging
 {
-    [global::Xynolog.Serialization.Wire("external")] public global::Xynolog.Types.StackKnowledgeBaseSpecMessagingExternal? External { get; init; }
-    [global::Xynolog.Serialization.Wire("image")] public string? Image { get; init; }
     [global::Xynolog.Serialization.Wire("jobs")] public required global::Xynolog.Types.StackKnowledgeBaseSpecMessagingJobs Jobs { get; init; }
-    [global::Xynolog.Serialization.Wire("resources")] public global::Xynolog.Types.Resources? Resources { get; init; }
     [global::Xynolog.Serialization.Wire("signal")] public required global::Xynolog.Types.StackKnowledgeBaseSpecMessagingSignal Signal { get; init; }
+    [global::Xynolog.Serialization.Wire("image")] public string? Image { get; init; }
+    [global::Xynolog.Serialization.Wire("resources")] public global::Xynolog.Types.Resources? Resources { get; init; }
+    [global::Xynolog.Serialization.Wire("external")] public global::Xynolog.Types.StackKnowledgeBaseSpecMessagingExternal? External { get; init; }
 }

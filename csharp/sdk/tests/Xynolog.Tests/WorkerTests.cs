@@ -96,7 +96,7 @@ public sealed partial class TransportTests
         Reply(server, first, BusOperations.JobClaim.Result.Name, new JobClaimedResult { Response = RunningMarkJob() });
         var job = Assert.IsType<HeldMarkJob>(await next);
 
-        var result = new MarkJobResult.MarkJobDoneCase(new MarkJobDone { Found = 3, Persisted = 2 });
+        var result = new MarkJobResult.MarkJobDone(new MarkJobDone { Found = 3, Persisted = 2 });
         var completed = job.CompleteAsync(result, deadline.Token);
         var refused = job.FailAsync("late failure", cancellation: deadline.Token);
         await completed;
@@ -130,7 +130,7 @@ public sealed partial class TransportTests
         var annotation = Required<Annotation>(examples.RootElement.GetProperty("cases")[0].GetProperty("annotation"));
         var context = GenerationParameters().Context with
         {
-            Focus = new GatheredContextFocus.AnnotationCase(new GatheredContextFocusAnnotation
+            Focus = new GatheredContextFocus.Annotation(new GatheredContextFocusAnnotation
             {
                 Annotation = annotation,
                 SourceResource = SourceResource(),
@@ -161,7 +161,7 @@ public sealed partial class TransportTests
         Assert.Equal(annotation.Id, report.AnnotationId);
         Assert.Equal(annotation.Id, report.Progress?.AnnotationId);
 
-        await job.CompleteAsync(new YieldJobResult.YieldJobDoneCase(new YieldJobDone
+        await job.CompleteAsync(new YieldJobResult.YieldJobDone(new YieldJobDone
         {
             ResourceId = ResourceId.Parse("res-2"),
             ResourceName = "Generated",
@@ -200,7 +200,7 @@ public sealed partial class TransportTests
         if (afterReply) Answer();
         PushJobFrame(server, BusChannels.JobCancelRequested, new JobCancelRequest { JobId = DelegatedJob });
         if (!afterReply) Answer();
-        PushJobFrame(server, BusChannels.JobQueued, new JobQueuedEvent.MarkJobQueuedEventCase(new MarkJobQueuedEvent
+        PushJobFrame(server, BusChannels.JobQueued, new JobQueuedEvent.MarkJobQueuedEvent(new MarkJobQueuedEvent
         {
             JobId = JobId.Parse("other-job"),
             ResourceId = DelegatedResource,
@@ -283,7 +283,7 @@ public sealed partial class TransportTests
         PushRawFrame(server, BusChannels.JobQueued.Name, "job-8");
         while (worker.Vitals().LastQueuedEventAt is null) await Task.Delay(1, deadline.Token);
         Assert.False(server.Emits.Reader.TryPeek(out _));
-        await job.CompleteAsync(new MarkJobResult.MarkJobDoneCase(new MarkJobDone { Found = 0, Persisted = 0 }), deadline.Token);
+        await job.CompleteAsync(new MarkJobResult.MarkJobDone(new MarkJobDone { Found = 0, Persisted = 0 }), deadline.Token);
         var (completion, _) = await server.Emits.Reader.ReadAsync(deadline.Token);
         Assert.Equal(BusChannels.JobComplete.Name, Text(completion, "channel"));
         var (settled, _) = await server.Emits.Reader.ReadAsync(deadline.Token);
@@ -363,7 +363,7 @@ public sealed partial class TransportTests
                 var until = clock.GetTimestamp() + quiet.Ticks;
                 while (clock.FireNext(until)) await context.DrainAsync();
                 await context.DrainAsync();
-                await job.CompleteAsync(new MarkJobResult.MarkJobDoneCase(new MarkJobDone { Found = 0, Persisted = 0 }));
+                await job.CompleteAsync(new MarkJobResult.MarkJobDone(new MarkJobDone { Found = 0, Persisted = 0 }));
                 var (completion, _) = await server.Emits.Reader.ReadAsync();
                 Assert.Equal(BusChannels.JobComplete.Name, Text(completion, "channel"));
             }

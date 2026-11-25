@@ -4,11 +4,12 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(Selector.TextPositionSelectorCase), typeof(Selector.TextQuoteSelectorCase), typeof(Selector.SvgSelectorCase), typeof(Selector.FragmentSelectorCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(Selector.TextPositionSelector), typeof(Selector.TextQuoteSelector), typeof(Selector.SvgSelector), typeof(Selector.FragmentSelector))]
 public closed record Selector
 {
-    public sealed record TextPositionSelectorCase(global::Xynolog.Types.TextPositionSelector Value) : Selector;
-    public sealed record TextQuoteSelectorCase(global::Xynolog.Types.TextQuoteSelector Value) : Selector;
-    public sealed record SvgSelectorCase(global::Xynolog.Types.SvgSelector Value) : Selector;
-    public sealed record FragmentSelectorCase(global::Xynolog.Types.FragmentSelector Value) : Selector;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["type", "start", "end"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("TextPositionSelector")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type", "exact"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("TextQuoteSelector")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type", "value"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("SvgSelector")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type", "value"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("FragmentSelector")])], null)]];
+    public sealed record TextPositionSelector(global::Xynolog.Types.TextPositionSelector Value) : Selector;
+    public sealed record TextQuoteSelector(global::Xynolog.Types.TextQuoteSelector Value) : Selector;
+    public sealed record SvgSelector(global::Xynolog.Types.SvgSelector Value) : Selector;
+    public sealed record FragmentSelector(global::Xynolog.Types.FragmentSelector Value) : Selector;
 }

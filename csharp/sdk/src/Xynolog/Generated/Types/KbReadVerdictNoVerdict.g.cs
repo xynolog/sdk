@@ -7,6 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KbReadVerdictNoVerdict
 {
-    public const string KindValue = "no-verdict";
-    [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.KbReadVerdictNoVerdictKind Kind => global::Xynolog.Types.KbReadVerdictNoVerdictKind.NoVerdict;
 }

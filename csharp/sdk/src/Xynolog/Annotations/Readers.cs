@@ -7,19 +7,19 @@ public static partial class AnnotationTools
 {
     /// <summary>The resource the first of the bodies links to, or null when none links to one.</summary>
     public static ResourceId? BodySource(AnnotationBodies? body) => Bodies(body)
-        .OfType<AnnotationBody.SpecificResourceCase>().Select(item => (ResourceId?)item.Value.Source).FirstOrDefault();
+        .OfType<AnnotationBody.SpecificResource>().Select(item => (ResourceId?)item.Value.Source).FirstOrDefault();
 
     /// <summary>The resource the target is on.</summary>
     public static ResourceId TargetSource(AnnotationTargetValue target) => target switch
     {
-        AnnotationTargetValue.ResourceIdCase(var resource) => resource,
-        AnnotationTargetValue.AnnotationTargetCase(var specific) => specific.Source,
+        AnnotationTargetValue.ResourceId(var resource) => resource,
+        AnnotationTargetValue.AnnotationTarget(var specific) => specific.Source,
     };
 
     /// <summary>The selector of a target that selects part of a resource, or null for a target that is a whole
     /// resource.</summary>
     public static AnnotationSelector? TargetSelector(AnnotationTargetValue target) =>
-        target is AnnotationTargetValue.AnnotationTargetCase(var specific) ? specific.Selector : null;
+        target is AnnotationTargetValue.AnnotationTarget(var specific) ? specific.Selector : null;
 
     /// <summary>Whether one of the bodies links to a resource.</summary>
     public static bool IsBodyResolved(AnnotationBodies? body) => BodySource(body).HasValue;
@@ -41,23 +41,23 @@ public static partial class AnnotationTools
     /// <summary>The text of a comment's first body, or null when the annotation is no comment or that body is not
     /// text.</summary>
     public static string? CommentText(Annotation annotation) =>
-        IsComment(annotation) && Bodies(annotation.Body).FirstOrDefault() is AnnotationBody.TextualBodyCase(var body) ? body.Value : null;
+        IsComment(annotation) && Bodies(annotation.Body).FirstOrDefault() is AnnotationBody.TextualBody(var body) ? body.Value : null;
 
     /// <summary>The first selector that quotes the selected text, or null when there is none.</summary>
     public static TextQuoteSelector? TextQuoteSelector(AnnotationSelector? selector) =>
-        Selectors(selector).OfType<Selector.TextQuoteSelectorCase>().FirstOrDefault()?.Value;
+        Selectors(selector).OfType<Selector.TextQuoteSelector>().FirstOrDefault()?.Value;
 
     /// <summary>The first selector that gives the selected text's position, or null when there is none.</summary>
     public static TextPositionSelector? TextPositionSelector(AnnotationSelector? selector) =>
-        Selectors(selector).OfType<Selector.TextPositionSelectorCase>().FirstOrDefault()?.Value;
+        Selectors(selector).OfType<Selector.TextPositionSelector>().FirstOrDefault()?.Value;
 
     /// <summary>The first selector that outlines the selection as an SVG shape, or null when there is none.</summary>
     public static SvgSelector? SvgSelector(AnnotationSelector? selector) =>
-        Selectors(selector).OfType<Selector.SvgSelectorCase>().FirstOrDefault()?.Value;
+        Selectors(selector).OfType<Selector.SvgSelector>().FirstOrDefault()?.Value;
 
     /// <summary>The first selector that names the selection as a fragment, or null when there is none.</summary>
     public static FragmentSelector? FragmentSelector(AnnotationSelector? selector) =>
-        Selectors(selector).OfType<Selector.FragmentSelectorCase>().FirstOrDefault()?.Value;
+        Selectors(selector).OfType<Selector.FragmentSelector>().FirstOrDefault()?.Value;
 
     /// <summary>The text the first quoting selector quotes, or an empty string when none does.</summary>
     public static string ExactText(AnnotationSelector? selector) => TextQuoteSelector(selector)?.Exact ?? "";
@@ -74,19 +74,19 @@ public static partial class AnnotationTools
     public static string? TagSchemaId(Annotation annotation) => IsTag(annotation) ? Texts(annotation, BodyPurpose.Classifying).FirstOrDefault() : null;
 
     private static IEnumerable<string> Texts(Annotation annotation, BodyPurpose purpose) => Bodies(annotation.Body)
-        .OfType<AnnotationBody.TextualBodyCase>().Where(item => item.Value.Purpose == purpose).Select(item => item.Value.Value);
+        .OfType<AnnotationBody.TextualBody>().Where(item => item.Value.Purpose == purpose).Select(item => item.Value.Value);
 
     private static IReadOnlyList<AnnotationBody> Bodies(AnnotationBodies? body) => body switch
     {
         null => [],
-        AnnotationBodies.AnnotationBodyCase(var single) => [single],
-        AnnotationBodies.ArrayCase(var list) => list,
+        AnnotationBodies.AnnotationBody(var single) => [single],
+        AnnotationBodies.List(var list) => list,
     };
 
     private static IReadOnlyList<Selector> Selectors(AnnotationSelector? selector) => selector switch
     {
         null => [],
-        AnnotationSelector.SelectorCase(var single) => [single],
-        AnnotationSelector.ArrayCase(var list) => list,
+        AnnotationSelector.Selector(var single) => [single],
+        AnnotationSelector.List(var list) => list,
     };
 }

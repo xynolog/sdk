@@ -48,7 +48,7 @@ public sealed partial class TransportTests
             {
                 case "resourceContent": Assert.Equal("hello", await client.Browse.ResourceContentAsync(resource, deadline.Token)); break;
                 case "resourceGraph": Assert.Equal(resource, (await client.Browse.ResourceGraphAsync(resource, deadline.Token)).Resource.Id); break;
-                case "resourceAnchoredText": Assert.IsType<AnchoredTextAnswer.AnchoredTextAbsentCase>(await client.Browse.ResourceAnchoredTextAsync(resource, deadline.Token)); break;
+                case "resourceAnchoredText": Assert.IsType<AnchoredTextAnswer.AnchoredTextAbsent>(await client.Browse.ResourceAnchoredTextAsync(resource, deadline.Token)); break;
                 case "resourceRepresentation":
                     var bytes = await client.Browse.ResourceRepresentationAsync(resource, deadline.Token);
                     Assert.StartsWith("text/plain", bytes.ContentType);
@@ -266,9 +266,9 @@ public sealed partial class TransportTests
             Assert.Throws<InvalidOperationException>(() => upload.GetAsyncEnumerator());
             UploadProgress[] reported =
             [
-                new UploadProgress.StartedCase(new UploadProgressStarted { TotalBytes = bytes.Length }),
-                new UploadProgress.ProgressCase(new UploadProgressProgress { BytesUploaded = bytes.Length, TotalBytes = bytes.Length }),
-                new UploadProgress.FinishedCase(new UploadProgressFinished { ResourceId = created }),
+                new UploadProgress.Started(new UploadProgressStarted { TotalBytes = bytes.Length }),
+                new UploadProgress.Progress(new UploadProgressProgress { BytesUploaded = bytes.Length, TotalBytes = bytes.Length }),
+                new UploadProgress.Finished(new UploadProgressFinished { ResourceId = created }),
             ];
             Assert.Equal(reported, progress);
             Assert.Equal(created, (await upload).ResourceId);

@@ -8,10 +8,32 @@ import kotlinx.serialization.Serializable
 @Serializable(with = BusReplyBoundsRepliesValueValueSerializer::class)
 public sealed interface BusReplyBoundsRepliesValueValue
 
-internal object BusReplyBoundsRepliesValueValueSerializer : KindsUnionSerializer<BusReplyBoundsRepliesValueValue>(
+internal object BusReplyBoundsRepliesValueValueSerializer : SignatureUnionSerializer<BusReplyBoundsRepliesValueValue>(
     BusReplyBoundsRepliesValueValue::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(BusReplyBoundsRepliesValueValueBy.serializer(), BusReplyBoundsRepliesValueValueGrows.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("by"),
+                allowed = listOf("by"),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("grows"),
+                allowed = listOf("grows"),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            BusReplyBoundsRepliesValueValueBy.serializer(),
+            BusReplyBoundsRepliesValueValueGrows.serializer(),
+        )
+    },
 )

@@ -224,10 +224,10 @@ private func form(_ data: Data) -> [String: String] {
       origin.withLock { $0 = base }
       let url = try #require(URLComponents(string: base))
       let target = KbTarget(
-        endpoint: .httpEndpoint(
-          HttpEndpoint(host: "127.0.0.1", port: try #require(url.port), protocol: .http)),
         id: "test",
-        label: "test")
+        label: "test",
+        endpoint: .httpEndpoint(
+          HttpEndpoint(host: "127.0.0.1", port: try #require(url.port), protocol: .http)))
       let kept = MemorySignIn()
       let codes = Mutex<[String]>([])
       try await signInDevice(kb: target, kept: kept, httpClient: http) { code in
@@ -283,10 +283,10 @@ private func form(_ data: Data) -> [String: String] {
       origin.withLock { $0 = base }
       let url = try #require(URLComponents(string: base))
       let target = KbTarget(
-        endpoint: .httpEndpoint(
-          HttpEndpoint(host: "127.0.0.1", port: try #require(url.port), protocol: .http)),
         id: "test",
-        label: "test")
+        label: "test",
+        endpoint: .httpEndpoint(
+          HttpEndpoint(host: "127.0.0.1", port: try #require(url.port), protocol: .http)))
       let shown = Mutex<[DeviceCode]>([])
       do {
         try await signInDevice(kb: target, kept: MemorySignIn(), httpClient: http) { code in
@@ -519,11 +519,11 @@ private func form(_ data: Data) -> [String: String] {
     run: { origin, http in
       let port = try #require(URLComponents(string: origin)?.port)
       let target = KbTarget(
-        endpoint: .httpEndpoint(HttpEndpoint(host: "127.0.0.1", port: port, protocol: .http)),
-        id: "test", label: "test")
+        id: "test", label: "test",
+        endpoint: .httpEndpoint(HttpEndpoint(host: "127.0.0.1", port: port, protocol: .http)))
       let kept = MemorySignIn(
         StoredSession(
-          access: old, clientId: scriptClientID, refresh: "refresh",
+          access: old, refresh: "refresh", clientId: scriptClientID,
           tokenEndpoint: origin + "/token")
       )
       let opened = try await sessionFromKept(kb: target, kept: kept, httpClient: http)
@@ -565,11 +565,11 @@ private func form(_ data: Data) -> [String: String] {
       run: { origin, http in
         let port = try #require(URLComponents(string: origin)?.port)
         let target = KbTarget(
-          endpoint: .httpEndpoint(HttpEndpoint(host: "127.0.0.1", port: port, protocol: .http)),
-          id: "test", label: "test")
+          id: "test", label: "test",
+          endpoint: .httpEndpoint(HttpEndpoint(host: "127.0.0.1", port: port, protocol: .http)))
         let kept = MemorySignIn(
           StoredSession(
-            access: access, clientId: scriptClientID, refresh: "refresh",
+            access: access, refresh: "refresh", clientId: scriptClientID,
             tokenEndpoint: origin + "/token"))
         let opened: OpenedSession
         if let validate {
@@ -636,7 +636,7 @@ private func form(_ data: Data) -> [String: String] {
       let target = HttpEndpoint(host: "127.0.0.1", port: try #require(url.port), protocol: .http)
       let storage = MemorySessionStorage()
       let address = try await beginAuthorization(
-        BeginAuthorizationOptions(redirectUri: redirect, target: target), storage: storage,
+        BeginAuthorizationOptions(target: target, redirectUri: redirect), storage: storage,
         httpClient: http)
       let pending = try #require(
         decodedStorage(PendingAuthorization.self, storage.get(pendingAuthorizationKey)))

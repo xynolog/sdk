@@ -151,7 +151,7 @@ import Testing
 }
 
 @Test func selectorReadersFindTheirOwnKindAndRefuseTheOthers() throws {
-  let position = Selector.textPositionSelector(TextPositionSelector(end: 3, start: 1))
+  let position = Selector.textPositionSelector(TextPositionSelector(start: 1, end: 3))
   let svg = Selector.svgSelector(SvgSelector(value: "<svg/>"))
   let fragment = Selector.fragmentSelector(FragmentSelector(value: "page=2"))
   let quote = Selector.textQuoteSelector(TextQuoteSelector(exact: "words"))

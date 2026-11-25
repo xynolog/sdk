@@ -4,9 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(DirectoryEntry.FileEntryCase), typeof(DirectoryEntry.DirEntryCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(DirectoryEntry.FileEntry), typeof(DirectoryEntry.DirEntry))]
 public closed record DirectoryEntry
 {
-    public sealed record FileEntryCase(global::Xynolog.Types.FileEntry Value) : DirectoryEntry;
-    public sealed record DirEntryCase(global::Xynolog.Types.DirEntry Value) : DirectoryEntry;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["type", "name", "path", "size", "mtime", "tracked"], ["type", "name", "path", "size", "mtime", "tracked", "resourceId", "entityTypes", "annotationCount", "creator"], [new("type", [new global::Xynolog.Serialization.Literal.Text("file")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type", "name", "path", "mtime"], ["type", "name", "path", "mtime"], [new("type", [new global::Xynolog.Serialization.Literal.Text("dir")])], null)]];
+    public sealed record FileEntry(global::Xynolog.Types.FileEntry Value) : DirectoryEntry;
+    public sealed record DirEntry(global::Xynolog.Types.DirEntry Value) : DirectoryEntry;
 }

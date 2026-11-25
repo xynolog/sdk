@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobPending
 {
+    [global::Xynolog.Serialization.Wire("status")] public global::Xynolog.Types.JobPendingStatus Status => global::Xynolog.Types.JobPendingStatus.Pending;
     [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.JobMetadata Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.JobParams Params { get; init; }
-    public const string StatusValue = "pending";
-    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
 }

@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SettingLine
 {
-    [global::Xynolog.Serialization.Wire("source")] public required string Source { get; init; }
     [global::Xynolog.Serialization.Wire("value")] public required string Value { get; init; }
+    [global::Xynolog.Serialization.Wire("source")] public required string Source { get; init; }
 }

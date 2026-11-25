@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WeaverHealthReconcile
 {
-    [global::Xynolog.Serialization.Wire("error")] public string? Error { get; init; }
     [global::Xynolog.Serialization.Wire("phase")] public required global::Xynolog.Types.WeaverHealthReconcilePhase Phase { get; init; }
     [global::Xynolog.Serialization.Wire("summary")] public global::Xynolog.Types.WeaverHealthReconcileSummary? Summary { get; init; }
+    [global::Xynolog.Serialization.Wire("error")] public string? Error { get; init; }
 }

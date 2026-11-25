@@ -4,9 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(RequestId.TextCase), typeof(RequestId.ObjectCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(RequestId.Text), typeof(RequestId.Integer))]
 public closed record RequestId
 {
-    public sealed record TextCase(string Value) : RequestId;
-    public sealed record ObjectCase(long Value) : RequestId;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Text, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.Integer, [], null, [], null)]];
+    public sealed record Text(string Value) : RequestId;
+    public sealed record Integer(long Value) : RequestId;
 }

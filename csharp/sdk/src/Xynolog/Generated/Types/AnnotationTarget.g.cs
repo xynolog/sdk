@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AnnotationTarget
 {
-    [global::Xynolog.Serialization.Wire("selector")] public global::Xynolog.Types.AnnotationSelector? Selector { get; init; }
-    [global::Xynolog.Serialization.Wire("source")] public required global::Xynolog.Identifiers.ResourceId Source { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.AnnotationTargetType? Type { get; init; }
+    [global::Xynolog.Serialization.Wire("source")] public required global::Xynolog.Identifiers.ResourceId Source { get; init; }
+    [global::Xynolog.Serialization.Wire("selector")] public global::Xynolog.Types.AnnotationSelector? Selector { get; init; }
 }

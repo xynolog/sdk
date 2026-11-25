@@ -58,7 +58,7 @@ public sealed partial class TransportTests
         gateway.Deliver(new BusFrame
         {
             Channel = BusChannels.JobComplete.Name,
-            Payload = JsonSerializer.SerializeToElement<JobCompleteCommand>(new JobCompleteCommand.YieldJobCompleteCommandCase(done)),
+            Payload = JsonSerializer.SerializeToElement<JobCompleteCommand>(new JobCompleteCommand.YieldJobCompleteCommand(done)),
         });
         Assert.Equal(done, await pending);
         Assert.Equal(new[] { gathered, create }, gateway.RequestLog.Select(entry => entry.Channel));

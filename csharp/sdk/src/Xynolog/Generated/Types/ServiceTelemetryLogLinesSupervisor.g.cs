@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceTelemetryLogLinesSupervisor
 {
-    [global::Xynolog.Serialization.Wire("counted")] public required string Counted { get; init; }
     [global::Xynolog.Serialization.Wire("line")] public required string Line { get; init; }
+    [global::Xynolog.Serialization.Wire("counted")] public required string Counted { get; init; }
 }

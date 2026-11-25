@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record EmbeddingRequestsProvidersValue
 {
-    [global::Xynolog.Serialization.Wire("atOnce")] public required long AtOnce { get; init; }
     [global::Xynolog.Serialization.Wire("textsPerRequest")] public required long TextsPerRequest { get; init; }
+    [global::Xynolog.Serialization.Wire("atOnce")] public required long AtOnce { get; init; }
 }

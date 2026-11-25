@@ -4,7 +4,8 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireObject]
-public sealed record JobStoredProgressObject
+[global::Xynolog.Serialization.WireEnum]
+public enum BodyOperationReplaceOp
 {
+    [global::System.Text.Json.Serialization.JsonStringEnumMemberName("replace")] Replace,
 }

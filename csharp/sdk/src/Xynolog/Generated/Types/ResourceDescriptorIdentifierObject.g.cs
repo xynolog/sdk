@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record ResourceDescriptorIdentifierObject
 {
     [global::Xynolog.Serialization.Wire("@id")] public string? Id { get; init; }
-    [global::Xynolog.Serialization.Wire("scheme")] public string? Scheme { get; init; }
     [global::Xynolog.Serialization.Wire("value")] public string? Value { get; init; }
+    [global::Xynolog.Serialization.Wire("scheme")] public string? Scheme { get; init; }
     [global::Xynolog.Serialization.WireRest] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement> AdditionalProperties { get; init; } = new global::System.Collections.Generic.Dictionary<string, global::System.Text.Json.JsonElement>();
 }

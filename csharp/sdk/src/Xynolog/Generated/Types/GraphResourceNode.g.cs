@@ -7,10 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GraphResourceNode
 {
-    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
     [global::Xynolog.Serialization.Wire("id")] public required global::Xynolog.Identifiers.ResourceId Id { get; init; }
+    [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.GraphResourceNodeType Type => global::Xynolog.Types.GraphResourceNodeType.Resource;
     [global::Xynolog.Serialization.Wire("label")] public required string Label { get; init; }
+    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
     [global::Xynolog.Serialization.Wire("metadata")] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement>? Metadata { get; init; }
-    public const string TypeValue = "resource";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
 }

@@ -9,8 +9,32 @@ import kotlinx.serialization.Serializable
 @Serializable(with = JobCreateCommandSerializer::class)
 public sealed interface JobCreateCommand
 
-internal object JobCreateCommandSerializer : TaggedUnionSerializer<JobCreateCommand>(
+internal object JobCreateCommandSerializer : SignatureUnionSerializer<JobCreateCommand>(
     JobCreateCommand::class,
-    "jobType",
-    members = { mapOf("mark" to MarkJobCreateCommand.serializer(), "yield" to YieldJobCreateCommand.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("jobType", "resourceId", "params"),
+                allowed = listOf("_userId", "_roles", "jobType", "resourceId", "params"),
+                fixed = listOf("jobType" to listOf(Literal.Text("mark"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("jobType", "params"),
+                allowed = listOf("_userId", "_roles", "jobType", "params"),
+                fixed = listOf("jobType" to listOf(Literal.Text("yield"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            MarkJobCreateCommand.serializer(),
+            YieldJobCreateCommand.serializer(),
+        )
+    },
 )

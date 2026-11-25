@@ -29,12 +29,16 @@ let fixture_declaration () =
     | Ok (schema, _) -> schema
     | Error error -> D.refuse "%s" (Decode.error_to_string error)
   in
+  let definitions =
+    D.alone ~ids:(Result.get_ok (Decode.ids [])) ~name:"FidelityFixture" schema
+  in
   let models =
     M.create
-      (D.alone
-         ~ids:(Result.get_ok (Decode.ids []))
-         ~name:"FidelityFixture" schema)
-      ~identifiers:[] ~keys:[]
+      [
+        Typing.make definitions ~roots:[ "FidelityFixture" ] ~identifiers:[]
+          ~keys:[];
+      ]
+      ~schema:definitions.schema
   in
   M.generate models;
   M.declarations models

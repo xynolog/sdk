@@ -49,8 +49,9 @@ import Testing
       func held(_ value: JSONValue) throws -> StoredSession {
         let entry = try value.object
         return try StoredSession(
-          access: access(required(entry, "token").text), clientId: scriptClientID,
-          refresh: required(entry, "refreshToken").text, tokenEndpoint: "http://issuer/token")
+          access: access(required(entry, "token").text),
+          refresh: required(entry, "refreshToken").text, clientId: scriptClientID,
+          tokenEndpoint: "http://issuer/token")
       }
       let initial = try held(required(row, "kept"))
       try await store.keep(initial)
@@ -114,7 +115,7 @@ import Testing
   let token = try jwt(.object(["iss": .string("https://issuer"), "exp": .number(1_900_000_000)]))
   try await entry.keep(
     StoredSession(
-      access: token, clientId: scriptClientID, refresh: "refresh",
+      access: token, refresh: "refresh", clientId: scriptClientID,
       tokenEndpoint: "http://issuer/token"))
   #expect(try store.read()["future"] == .array([.null, .bool(true)]))
   for (path, mode) in [

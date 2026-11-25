@@ -9,10 +9,10 @@ public sealed record WorkerMessages
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
     [global::Xynolog.Serialization.Wire("boot")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesBootItem> Boot { get; init; }
-    [global::Xynolog.Serialization.Wire("details")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesDetailsItem> Details { get; init; }
-    [global::Xynolog.Serialization.Wire("errors")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesErrorsItem> Errors { get; init; }
-    [global::Xynolog.Serialization.Wire("job")] public required global::Xynolog.Types.WorkerMessagesJob Job { get; init; }
-    [global::Xynolog.Serialization.Wire("logged")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesLoggedItem> Logged { get; init; }
     [global::Xynolog.Serialization.Wire("reasons")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesReasonsItem> Reasons { get; init; }
+    [global::Xynolog.Serialization.Wire("job")] public required global::Xynolog.Types.WorkerMessagesJob Job { get; init; }
+    [global::Xynolog.Serialization.Wire("errors")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesErrorsItem> Errors { get; init; }
+    [global::Xynolog.Serialization.Wire("details")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesDetailsItem> Details { get; init; }
     [global::Xynolog.Serialization.Wire("waits")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesWaitsItem> Waits { get; init; }
+    [global::Xynolog.Serialization.Wire("logged")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesLoggedItem> Logged { get; init; }
 }

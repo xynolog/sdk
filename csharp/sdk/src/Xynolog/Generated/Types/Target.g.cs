@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record Target
 {
     [global::Xynolog.Serialization.Wire("kind")] public required global::Xynolog.Types.TargetKind Kind { get; init; }
-    [global::Xynolog.Serialization.Wire("repo")] public string? Repo { get; init; }
     [global::Xynolog.Serialization.Wire("root")] public string? Root { get; init; }
+    [global::Xynolog.Serialization.Wire("repo")] public string? Repo { get; init; }
 }

@@ -78,7 +78,7 @@ public sealed class YieldStateUnit : IStateUnit
                             Progress.Set(progress);
                             IsGenerating.Set(true);
                             break;
-                        case JobEvent<YieldJobCompleteCommand>.Complete({ Result: YieldJobResult.YieldJobDoneCase(var outcome) }):
+                        case JobEvent<YieldJobCompleteCommand>.Complete({ Result: YieldJobResult.YieldJobDone(var outcome) }):
                             Outcome.Set(outcome);
                             break;
                     }

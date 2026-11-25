@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record AuthLogoutResult
 {
     [global::Xynolog.Serialization.Wire("key")] public string? Key { get; init; }
-    [global::Xynolog.Serialization.Wire("revoked")] public required bool Revoked { get; init; }
     [global::Xynolog.Serialization.Wire("wasSignedIn")] public required bool WasSignedIn { get; init; }
+    [global::Xynolog.Serialization.Wire("revoked")] public required bool Revoked { get; init; }
 }

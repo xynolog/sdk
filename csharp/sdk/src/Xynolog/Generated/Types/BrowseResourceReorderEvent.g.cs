@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BrowseResourceReorderEvent
 {
-    [global::Xynolog.Serialization.Wire("newIndex")] public required long NewIndex { get; init; }
     [global::Xynolog.Serialization.Wire("oldIndex")] public required long OldIndex { get; init; }
+    [global::Xynolog.Serialization.Wire("newIndex")] public required long NewIndex { get; init; }
 }

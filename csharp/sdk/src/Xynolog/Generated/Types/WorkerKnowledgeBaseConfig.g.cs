@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record WorkerKnowledgeBaseConfig
 {
     [global::Xynolog.Serialization.Wire("domain")] public required string Domain { get; init; }
-    [global::Xynolog.Serialization.Wire("engines")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerEngineConfig> Engines { get; init; }
     [global::Xynolog.Serialization.Wire("gatewayUrl")] public required string GatewayUrl { get; init; }
     [global::Xynolog.Serialization.Wire("identity")] public required global::Xynolog.Types.WorkerKnowledgeBaseConfigIdentity Identity { get; init; }
+    [global::Xynolog.Serialization.Wire("engines")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerEngineConfig> Engines { get; init; }
 }

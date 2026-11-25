@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record KnowledgeIndexSpecVectorsExternal
 {
     [global::Xynolog.Serialization.Wire("host")] public required string Host { get; init; }
-    [global::Xynolog.Serialization.Wire("librarianToken")] public required global::Xynolog.Types.SecretRef LibrarianToken { get; init; }
     [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
     [global::Xynolog.Serialization.Wire("smelterToken")] public required global::Xynolog.Types.SecretRef SmelterToken { get; init; }
+    [global::Xynolog.Serialization.Wire("librarianToken")] public required global::Xynolog.Types.SecretRef LibrarianToken { get; init; }
 }

@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Progress
 {
-    [global::Xynolog.Serialization.Wire("kind")] public required global::Xynolog.Types.ProgressKind Kind { get; init; }
     [global::Xynolog.Serialization.Wire("requestId")] public required global::Xynolog.Types.RequestId RequestId { get; init; }
+    [global::Xynolog.Serialization.Wire("kind")] public required global::Xynolog.Types.ProgressKind Kind { get; init; }
     [global::Xynolog.Serialization.Wire("text")] public required string Text { get; init; }
 }

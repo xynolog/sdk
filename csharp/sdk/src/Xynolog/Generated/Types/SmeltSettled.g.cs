@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SmeltSettled
 {
+    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
     [global::Xynolog.Serialization.Wire("outcome")] public required global::Xynolog.Types.SmeltSettledOutcome Outcome { get; init; }
     [global::Xynolog.Serialization.Wire("reason")] public global::Xynolog.Types.SmeltSettledReason? Reason { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
 }

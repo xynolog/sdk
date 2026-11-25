@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record WorkerConfig
 {
     [global::Xynolog.Serialization.Wire("knowledgeBases")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerKnowledgeBaseConfig> KnowledgeBases { get; init; }
-    [global::Xynolog.Serialization.Wire("logFormat")] public required global::Xynolog.Types.LogFormat LogFormat { get; init; }
-    [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
     [global::Xynolog.Serialization.Wire("modelCatalogue")] public required string ModelCatalogue { get; init; }
     [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
+    [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
+    [global::Xynolog.Serialization.Wire("logFormat")] public required global::Xynolog.Types.LogFormat LogFormat { get; init; }
 }

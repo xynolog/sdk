@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ContextualSummaryResponseContext
 {
-    [global::Xynolog.Serialization.Wire("after")] public string? After { get; init; }
     [global::Xynolog.Serialization.Wire("before")] public string? Before { get; init; }
     [global::Xynolog.Serialization.Wire("selected")] public required string Selected { get; init; }
+    [global::Xynolog.Serialization.Wire("after")] public string? After { get; init; }
 }

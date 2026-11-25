@@ -52,7 +52,7 @@ public sealed class XynologSession : IStateUnit
     {
         ArgumentNullException.ThrowIfNull(kb);
         ArgumentNullException.ThrowIfNull(kept);
-        if (kb.Endpoint is not KbEndpoint.HttpEndpointCase(var endpoint))
+        if (kb.Endpoint is not KbEndpoint.HttpEndpoint(var endpoint))
             throw new SessionError(SessionErrorCode.ConstructFailed, "A session from a kept sign-in requires an HTTP endpoint.");
         var held = await kept.HeldAsync(cancellation).ConfigureAwait(Spawning.Captures);
         var errors = new Broadcast<XynologError>(keptForFirst: XynologError.KeptForFirstReader);

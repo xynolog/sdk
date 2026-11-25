@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceHostResult
 {
-    [global::Xynolog.Serialization.Wire("address")] public required string Address { get; init; }
     [global::Xynolog.Serialization.Wire("runtime")] public required global::Xynolog.Types.Runtime Runtime { get; init; }
+    [global::Xynolog.Serialization.Wire("address")] public required string Address { get; init; }
 }

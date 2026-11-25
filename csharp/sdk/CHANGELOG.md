@@ -43,6 +43,46 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A model whose JSON member was never set is refused when written, with a
+  `JsonException` that names the member, as a default identifier is. It
+  threw an `InvalidOperationException` from System.Text.Json.
+- A schema that is a map of its own is that map, as the other SDKs alias
+  it: `LastEventIds` is an `IReadOnlyDictionary<ResourceId, string>`, where
+  it was a record that held the map as its `AdditionalProperties`.
+- A member of one value is a type of its own, as the other SDKs hold it:
+  one of text is an enumeration of one constant
+  (`ExtractionDeclined.Kind` is an `ExtractionDeclinedKind`, always
+  `ExtractionDeclinedKind.Declined`), and one integer or boolean a record of
+  one `Value`, read and written as that value
+  (`ConformanceDriverLineReady.Ready` is a
+  `ConformanceDriverLineReadyReady`). The text was a `string` and its
+  `const string` (`ExtractionDeclined.KindValue`), and the integer or
+  boolean a `long` or `bool` a caller set; neither remains.
+- A model's properties are declared in its schema's order, as the other
+  SDKs hold them, where they were in the order of their names. A model is
+  made by naming its properties, so no code that makes one changes. Its
+  members are written in that order too, where they were written in ordinal
+  order of their names.
+- A union's member written in place is the union's type and its title, as
+  the other SDKs name it: `JobStoredProgressEmpty`, `JobStoredResultEmpty`
+  and `ResourceDescriptorContextItem`, where they were
+  `JobStoredProgressObject`, `JobStoredResultObject` and
+  `ResourceDescriptorContextArrayItem`.
+- A union's case is named by its member's variant, as the Swift and Kotlin
+  SDKs name it: a member a union names is the case of that type's name
+  (`ConformanceStep.ConformanceBusFetch`, `KbEndpoint.HttpEndpoint`), text
+  is `Text`, a list `List`, and an object of no named member `Empty` or
+  `Object`, where each was its variant and `Case`
+  (`ConformanceBusFetchCase`), a list `ArrayCase` and any other `ObjectCase`.
+- A union is read as the one member that admits a value, by what each
+  member's schema states (each union's `Members`), and validated against
+  that member's schema alone, where it was read as the first member whose
+  schema the value matched. A value that no member admits, but that one
+  member names by its kind and the values it states, is refused for what is
+  wrong with it as that member; one that none names is refused.
+- A union every member of which is text is a `string`, as a bus event's
+  `id` (`BusEventMessage.Id`) is, where it was a union (`BusEventMessageId`)
+  that read every value as its first member.
 - The HTTP transports name each span and their count by the SDK telemetry
   table, and the live queries each query by the refresh table, as generated
   constants (`TelemetrySpans`, `TelemetryMetrics`, `CacheQuery`) in place of

@@ -7,8 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatewayMediaTokenHeader
 {
-    public const string AlgValue = "HS256";
-    [global::Xynolog.Serialization.Wire("alg")] public string Alg => AlgValue;
-    public const string TypValue = "JWT";
-    [global::Xynolog.Serialization.Wire("typ")] public string Typ => TypValue;
+    [global::Xynolog.Serialization.Wire("alg")] public global::Xynolog.Types.GatewayMediaTokenHeaderAlg Alg => global::Xynolog.Types.GatewayMediaTokenHeaderAlg.HS256;
+    [global::Xynolog.Serialization.Wire("typ")] public global::Xynolog.Types.GatewayMediaTokenHeaderTyp Typ => global::Xynolog.Types.GatewayMediaTokenHeaderTyp.JWT;
 }

@@ -7,13 +7,13 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record EnrichedResourceEvent
 {
-    [global::Xynolog.Serialization.Wire("annotation")] public global::Xynolog.Types.Annotation? Annotation { get; init; }
     [global::Xynolog.Serialization.Wire("id")] public required string Id { get; init; }
-    [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.EventMetadata Metadata { get; init; }
-    [global::Xynolog.Serialization.Wire("payload")] public required global::System.Text.Json.JsonElement Payload { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public global::Xynolog.Identifiers.ResourceId? ResourceId { get; init; }
-    [global::Xynolog.Serialization.Wire("timestamp")] public required string Timestamp { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public required string Type { get; init; }
+    [global::Xynolog.Serialization.Wire("timestamp")] public required string Timestamp { get; init; }
     [global::Xynolog.Serialization.Wire("userId")] public required global::Xynolog.Identifiers.UserId UserId { get; init; }
+    [global::Xynolog.Serialization.Wire("resourceId")] public global::Xynolog.Identifiers.ResourceId? ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("version")] public required long Version { get; init; }
+    [global::Xynolog.Serialization.Wire("payload")] public required global::System.Text.Json.JsonElement Payload { get; init; }
+    [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.EventMetadata Metadata { get; init; }
+    [global::Xynolog.Serialization.Wire("annotation")] public global::Xynolog.Types.Annotation? Annotation { get; init; }
 }

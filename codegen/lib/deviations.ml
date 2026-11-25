@@ -42,3 +42,17 @@ let closed_empty_named (form : T.form) =
 
 (* Python writes a union in place, but for one a list holds, as what it
    holds, naming none of what [Typing] invents. *)
+
+(* Kotlin describes as Rust and Go do ([node_description]), and holds a union
+   every member of which is text as a [String] ([text_union]). It holds an
+   enumeration in place of numbers as a [Double], dropping its values. *)
+
+(* Swift holds an [allOf] of one schema as that schema, reading past what is
+   stated beside it (a const of the schema's values), where [Typing] has
+   what they merge to. It holds a union every member of which is text as a
+   [String] ([text_union]), and an enumeration in place of numbers as a
+   [Double], dropping its values. *)
+
+(* C# holds a union every member of which is text as a [string]
+   ([text_union]). It holds an enumeration in place of numbers as a
+   [double], dropping its values. *)

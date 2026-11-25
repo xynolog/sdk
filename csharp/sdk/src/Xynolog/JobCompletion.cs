@@ -7,41 +7,41 @@ namespace Xynolog;
 internal static class JobCompletion
 {
     internal static MarkJobCompleteCommand Mark(JobCompleteCommand completion) =>
-        completion is JobCompleteCommand.MarkJobCompleteCommandCase(var mark) ? mark : throw WrongVerb();
+        completion is JobCompleteCommand.MarkJobCompleteCommand(var mark) ? mark : throw WrongVerb();
 
     internal static YieldJobCompleteCommand Yield(JobCompleteCommand completion) =>
-        completion is JobCompleteCommand.YieldJobCompleteCommandCase(var yield) ? yield : throw WrongVerb();
+        completion is JobCompleteCommand.YieldJobCompleteCommand(var yield) ? yield : throw WrongVerb();
 
     internal static JobCompleteCommand FromStatus(JobStatusResponse status, ResourceId resource)
     {
         var result = status.Result switch
         {
-            null or JobStoredResult.ObjectCase => null,
-            JobStoredResult.JobResultCase(var value) => value,
+            null or JobStoredResult.Empty => null,
+            JobStoredResult.JobResult(var value) => value,
         };
         return status.Type switch
         {
-            JobType.Mark => new JobCompleteCommand.MarkJobCompleteCommandCase(new MarkJobCompleteCommand
+            JobType.Mark => new JobCompleteCommand.MarkJobCompleteCommand(new MarkJobCompleteCommand
             {
                 JobId = status.JobId,
                 ResourceId = resource,
                 Result = result switch
                 {
                     null => null,
-                    JobResult.MarkJobDoneCase(var done) => new MarkJobResult.MarkJobDoneCase(done),
-                    JobResult.JobDeclinedCase(var declined) => new MarkJobResult.JobDeclinedCase(declined),
+                    JobResult.MarkJobDone(var done) => new MarkJobResult.MarkJobDone(done),
+                    JobResult.JobDeclined(var declined) => new MarkJobResult.JobDeclined(declined),
                     _ => throw WrongVerb(),
                 },
             }),
-            JobType.Yield => new JobCompleteCommand.YieldJobCompleteCommandCase(new YieldJobCompleteCommand
+            JobType.Yield => new JobCompleteCommand.YieldJobCompleteCommand(new YieldJobCompleteCommand
             {
                 JobId = status.JobId,
                 ResourceId = resource,
                 Result = result switch
                 {
                     null => null,
-                    JobResult.YieldJobDoneCase(var done) => new YieldJobResult.YieldJobDoneCase(done),
-                    JobResult.JobDeclinedCase(var declined) => new YieldJobResult.JobDeclinedCase(declined),
+                    JobResult.YieldJobDone(var done) => new YieldJobResult.YieldJobDone(done),
+                    JobResult.JobDeclined(var declined) => new YieldJobResult.JobDeclined(declined),
                     _ => throw WrongVerb(),
                 },
             }),
@@ -51,8 +51,8 @@ internal static class JobCompletion
 
     internal static JobId Id(JobCompleteCommand completion) => completion switch
     {
-        JobCompleteCommand.MarkJobCompleteCommandCase(var mark) => mark.JobId,
-        JobCompleteCommand.YieldJobCompleteCommandCase(var yield) => yield.JobId,
+        JobCompleteCommand.MarkJobCompleteCommand(var mark) => mark.JobId,
+        JobCompleteCommand.YieldJobCompleteCommand(var yield) => yield.JobId,
     };
 
     private static TransportError WrongVerb() => new(TransportErrorCode.Error, "The job's completion is not the delegated verb's.");

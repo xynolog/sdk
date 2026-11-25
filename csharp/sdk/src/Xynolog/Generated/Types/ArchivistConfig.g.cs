@@ -7,15 +7,15 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistConfig
 {
-    [global::Xynolog.Serialization.Wire("anchoredTextDir")] public required string AnchoredTextDir { get; init; }
-    [global::Xynolog.Serialization.Wire("engines")] public required global::Xynolog.Types.ArchivistEngines Engines { get; init; }
     [global::Xynolog.Serialization.Wire("gatewayUrl")] public required string GatewayUrl { get; init; }
     [global::Xynolog.Serialization.Wire("identity")] public required global::Xynolog.Types.ServiceIdentity Identity { get; init; }
-    [global::Xynolog.Serialization.Wire("logFormat")] public required global::Xynolog.Types.LogFormat LogFormat { get; init; }
-    [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
-    [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
     [global::Xynolog.Serialization.Wire("root")] public required string Root { get; init; }
+    [global::Xynolog.Serialization.Wire("stateHome")] public required string StateHome { get; init; }
+    [global::Xynolog.Serialization.Wire("anchoredTextDir")] public required string AnchoredTextDir { get; init; }
+    [global::Xynolog.Serialization.Wire("engines")] public required global::Xynolog.Types.ArchivistEngines Engines { get; init; }
+    [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
     [global::Xynolog.Serialization.Wire("skipRebuild")] public required bool SkipRebuild { get; init; }
     [global::Xynolog.Serialization.Wire("staging")] public required global::Xynolog.Types.ArchivistConfigStaging Staging { get; init; }
-    [global::Xynolog.Serialization.Wire("stateHome")] public required string StateHome { get; init; }
+    [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
+    [global::Xynolog.Serialization.Wire("logFormat")] public required global::Xynolog.Types.LogFormat LogFormat { get; init; }
 }

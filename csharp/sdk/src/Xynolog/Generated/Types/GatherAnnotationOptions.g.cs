@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatherAnnotationOptions
 {
-    [global::Xynolog.Serialization.Wire("contextWindow")] public long? ContextWindow { get; init; }
     [global::Xynolog.Serialization.Wire("includeSourceContext")] public bool? IncludeSourceContext { get; init; }
     [global::Xynolog.Serialization.Wire("includeTargetContext")] public bool? IncludeTargetContext { get; init; }
+    [global::Xynolog.Serialization.Wire("contextWindow")] public long? ContextWindow { get; init; }
 }

@@ -71,9 +71,9 @@ public static class TestSessions
         {
             Id = "test-kb",
             Label = "Test KB",
-            Endpoint = new KbEndpoint.HttpEndpointCase(new HttpEndpoint { Host = "localhost", Port = 4000, Protocol = HttpEndpointProtocol.Http }),
+            Endpoint = new KbEndpoint.HttpEndpoint(new HttpEndpoint { Host = "localhost", Port = 4000, Protocol = HttpEndpointProtocol.Http }),
         };
-        if (kb.Endpoint is not KbEndpoint.HttpEndpointCase(var endpoint))
+        if (kb.Endpoint is not KbEndpoint.HttpEndpoint(var endpoint))
             throw new SessionError(SessionErrorCode.ConstructFailed, "The test session requires an HTTP endpoint.");
         var origin = Gateway.Origin(endpoint);
         var clock = options.TimeProvider ?? TimeProvider.System;

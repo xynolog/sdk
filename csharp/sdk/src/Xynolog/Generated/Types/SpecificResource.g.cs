@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SpecificResource
 {
-    [global::Xynolog.Serialization.Wire("purpose")] public global::Xynolog.Types.BodyPurpose? Purpose { get; init; }
+    [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.SpecificResourceType Type => global::Xynolog.Types.SpecificResourceType.SpecificResource;
     [global::Xynolog.Serialization.Wire("source")] public required global::Xynolog.Identifiers.ResourceId Source { get; init; }
-    public const string TypeValue = "SpecificResource";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("purpose")] public global::Xynolog.Types.BodyPurpose? Purpose { get; init; }
 }

@@ -4,9 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(JobQueuedEvent.MarkJobQueuedEventCase), typeof(JobQueuedEvent.YieldJobQueuedEventCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(JobQueuedEvent.MarkJobQueuedEvent), typeof(JobQueuedEvent.YieldJobQueuedEvent))]
 public closed record JobQueuedEvent
 {
-    public sealed record MarkJobQueuedEventCase(global::Xynolog.Types.MarkJobQueuedEvent Value) : JobQueuedEvent;
-    public sealed record YieldJobQueuedEventCase(global::Xynolog.Types.YieldJobQueuedEvent Value) : JobQueuedEvent;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["jobId", "jobType", "resourceId", "userId", "params"], null, [new("jobType", [new global::Xynolog.Serialization.Literal.Text("mark")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["jobId", "jobType", "resourceId", "userId", "params"], null, [new("jobType", [new global::Xynolog.Serialization.Literal.Text("yield")])], null)]];
+    public sealed record MarkJobQueuedEvent(global::Xynolog.Types.MarkJobQueuedEvent Value) : JobQueuedEvent;
+    public sealed record YieldJobQueuedEvent(global::Xynolog.Types.YieldJobQueuedEvent Value) : JobQueuedEvent;
 }

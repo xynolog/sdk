@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceStepSettles
 {
-    [global::Xynolog.Serialization.Wire("abandoned")] public bool? Abandoned { get; init; }
-    [global::Xynolog.Serialization.Wire("fails")] public global::System.Text.Json.JsonElement? Fails { get; init; }
-    [global::Xynolog.Serialization.Wire("returns")] public global::System.Text.Json.JsonElement? Returns { get; init; }
     [global::Xynolog.Serialization.Wire("settles")] public required string Settles { get; init; }
+    [global::Xynolog.Serialization.Wire("returns")] public global::System.Text.Json.JsonElement? Returns { get; init; }
+    [global::Xynolog.Serialization.Wire("fails")] public global::System.Text.Json.JsonElement? Fails { get; init; }
+    [global::Xynolog.Serialization.Wire("abandoned")] public global::Xynolog.Types.ConformanceStepSettlesAbandoned? Abandoned { get; init; }
 }

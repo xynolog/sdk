@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KnowledgeIndexSpecLibrarian
 {
-    [global::Xynolog.Serialization.Wire("gather")] public required global::Xynolog.Types.KnowledgeIndexSpecLibrarianGather Gather { get; init; }
     [global::Xynolog.Serialization.Wire("image")] public required string Image { get; init; }
     [global::Xynolog.Serialization.Wire("resources")] public required global::Xynolog.Types.Resources Resources { get; init; }
+    [global::Xynolog.Serialization.Wire("gather")] public required global::Xynolog.Types.KnowledgeIndexSpecLibrarianGather Gather { get; init; }
     [global::Xynolog.Serialization.Wire("search")] public required global::Xynolog.Types.KnowledgeIndexSpecLibrarianSearch Search { get; init; }
 }
