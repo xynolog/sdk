@@ -225,7 +225,7 @@ let cases =
              ]
              "Things")
           "/// Some things.\npub type Things = Vec<Thing>;");
-    case "bytes are a Vec of u8, and other text a String" (fun () ->
+    case "bytes are Bytes, and other text a String" (fun () ->
         let code =
           generated
             [
@@ -235,7 +235,7 @@ let cases =
             ]
             "Upload"
         in
-        has code "pub file: Vec<u8>,";
+        has code "pub file: bytes::Bytes,";
         has code "pub name: String,");
     case "a nullable reference is the referenced type and not a copy of it"
       (fun () ->

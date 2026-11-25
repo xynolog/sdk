@@ -15596,7 +15596,7 @@ pub struct ResourceUpload {
     /// Human-readable resource name
     pub name: String,
     /// Binary content
-    pub file: Vec<u8>,
+    pub file: bytes::Bytes,
     /// Media type of the content (e.g. text/plain, text/markdown, image/png)
     pub format: String,
     /// Where the content lives (file://... for local). Required — the client names the location; the server does not derive one.
@@ -15646,7 +15646,7 @@ impl ResourceUpload {
     /// The `ResourceUpload` that states these and nothing else.
     pub fn new(
         name: impl Into<String>,
-        file: Vec<u8>,
+        file: bytes::Bytes,
         format: impl Into<String>,
         storage_uri: impl Into<String>,
     ) -> Self {

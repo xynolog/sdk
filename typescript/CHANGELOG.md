@@ -51,8 +51,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
-- A member Protocol states as bytes (`format: binary`) is a `Uint8Array`,
-  where it was a `string`: `ResourceUpload`'s `file`.
+- A member Protocol states as bytes (`format: binary`) is a `Blob`, where it
+  was a `string`: `ResourceUpload`'s `file`. A browser's `File` is one as it
+  is.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - `GetAnnotationsResponse`'s `motivation` is an optional `Motivation`, where

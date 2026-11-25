@@ -346,7 +346,7 @@ and type_of st what (ty_ : T.ty) =
   | T.Any -> R.named "serde_json::Value"
   | T.Nullable inner -> type_of st what inner
   | T.Inline i -> in_place st what i
-  | T.Scalar (T.Text { binary = true; _ }) -> generic "Vec" [ ty "u8" ]
+  | T.Scalar (T.Text { binary = true; _ }) -> R.named "bytes::Bytes"
   | T.Scalar (T.Text _) -> string_ty
   | T.Scalar T.Boolean -> ty "bool"
   | T.Scalar T.Number -> ty "f64"
@@ -1036,9 +1036,10 @@ let hashable st names =
         (not (Hashtbl.mem excluded name)) && List.for_all admits args
     | R.Named
         ( ( [
-              ( "String" | "bool" | "u8" | "u16" | "u64" | "i64" | "Vec"
-              | "Option" | "Box" );
+              ( "String" | "bool" | "u16" | "u64" | "i64" | "Vec" | "Option"
+              | "Box" );
             ]
+          | [ "bytes"; "Bytes" ]
           | [ "std"; "collections"; "BTreeMap" ]
           | [ "serde_json"; ("Map" | "Value") ] ),
           args ) ->
