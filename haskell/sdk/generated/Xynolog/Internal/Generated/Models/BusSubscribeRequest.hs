@@ -11,24 +11,24 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data BusSubscribeRequest = BusSubscribeRequest
-  { busSubscribeRequestClientId :: Text,
-    busSubscribeRequestGlobal :: Maybe [Text],
+  { busSubscribeRequestGlobal :: Maybe [Text],
     busSubscribeRequestPendingReplies :: Maybe [Text],
-    busSubscribeRequestScoped :: Maybe [BusSubscribeRequestScopedItem]
+    busSubscribeRequestScoped :: Maybe [BusSubscribeRequestScopedItem],
+    busSubscribeRequestClientId :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON BusSubscribeRequest where parseJSON = checked "BusSubscribeRequest" $ withObject "BusSubscribeRequest" (\fields -> BusSubscribeRequest <$> (fields .: "clientId") <*> optional fields "global" <*> optional fields "pendingReplies" <*> optional fields "scoped")
+instance FromJSON BusSubscribeRequest where parseJSON = checked "BusSubscribeRequest" $ withObject "BusSubscribeRequest" (\fields -> BusSubscribeRequest <$> optional fields "global" <*> optional fields "pendingReplies" <*> optional fields "scoped" <*> (fields .: "clientId"))
 
-instance ToJSON BusSubscribeRequest where toJSON value = Object (KM.fromList (concat [[("clientId", toJSON (busSubscribeRequestClientId value))], optionalPair "global" (busSubscribeRequestGlobal value), optionalPair "pendingReplies" (busSubscribeRequestPendingReplies value), optionalPair "scoped" (busSubscribeRequestScoped value)]))
+instance ToJSON BusSubscribeRequest where toJSON value = Object (KM.fromList (concat [optionalPair "global" (busSubscribeRequestGlobal value), optionalPair "pendingReplies" (busSubscribeRequestPendingReplies value), optionalPair "scoped" (busSubscribeRequestScoped value), [("clientId", toJSON (busSubscribeRequestClientId value))]]))
 
 data BusSubscribeRequestScopedItem = BusSubscribeRequestScopedItem
-  { busSubscribeRequestScopedItemChannels :: [Text],
-    busSubscribeRequestScopedItemLastEventId :: Maybe Text,
-    busSubscribeRequestScopedItemScope :: ResourceId
+  { busSubscribeRequestScopedItemScope :: ResourceId,
+    busSubscribeRequestScopedItemChannels :: [Text],
+    busSubscribeRequestScopedItemLastEventId :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON BusSubscribeRequestScopedItem where parseJSON = checked "BusSubscribeRequestScopedItem" $ withObject "BusSubscribeRequestScopedItem" (\fields -> BusSubscribeRequestScopedItem <$> (fields .: "channels") <*> optional fields "lastEventId" <*> (fields .: "scope"))
+instance FromJSON BusSubscribeRequestScopedItem where parseJSON = checked "BusSubscribeRequestScopedItem" $ withObject "BusSubscribeRequestScopedItem" (\fields -> BusSubscribeRequestScopedItem <$> (fields .: "scope") <*> (fields .: "channels") <*> optional fields "lastEventId")
 
-instance ToJSON BusSubscribeRequestScopedItem where toJSON value = Object (KM.fromList (concat [[("channels", toJSON (busSubscribeRequestScopedItemChannels value))], optionalPair "lastEventId" (busSubscribeRequestScopedItemLastEventId value), [("scope", toJSON (busSubscribeRequestScopedItemScope value))]]))
+instance ToJSON BusSubscribeRequestScopedItem where toJSON value = Object (KM.fromList (concat [[("scope", toJSON (busSubscribeRequestScopedItemScope value))], [("channels", toJSON (busSubscribeRequestScopedItemChannels value))], optionalPair "lastEventId" (busSubscribeRequestScopedItemLastEventId value)]))

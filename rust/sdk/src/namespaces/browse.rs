@@ -27,7 +27,7 @@ use crate::errors::{BusRequestError, BusRequestErrorCode, SessionErrorCode, Xyno
 use crate::locked;
 use crate::refresh::CacheQuery;
 use crate::resources::decode_representation;
-use crate::session::cache_key;
+use crate::session::{WHOLE_KEY, cache_key};
 use crate::state_unit::StateUnit;
 use crate::timing::MAX_STORED_BYTES_COUNT;
 use crate::transport::{BoxFuture, Content, ContentStream, ContentTransport, Envelope};
@@ -65,20 +65,16 @@ pub(super) const LIST_LIMIT: u16 = 100;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct WholeKey;
 
-impl WholeKey {
-    const WRITTEN: &'static str = "_";
-}
-
 impl Serialize for WholeKey {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_str(WholeKey::WRITTEN)
+        serializer.serialize_str(WHOLE_KEY)
     }
 }
 
 impl<'de> Deserialize<'de> for WholeKey {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<WholeKey, D::Error> {
         let key = String::deserialize(deserializer)?;
-        if key == WholeKey::WRITTEN {
+        if key == WHOLE_KEY {
             Ok(WholeKey)
         } else {
             Err(D::Error::invalid_value(

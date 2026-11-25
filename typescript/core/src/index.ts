@@ -324,6 +324,9 @@ export {
   type ControlErrorData,
 } from './control-methods';
 export * from './oauth-clients';
+// The keys a registry and its sessions keep what they keep under, generated
+// from protocol/specs/src/session/stored.json — the table every SDK generates from.
+export * from './stored';
 // The gateway's routes, headers and client secret form, generated from
 // protocol/specs/src/openapi.json and its paths.
 export * from './gateway-http';
@@ -442,16 +445,14 @@ export { faultOf, isPlace, isSchemaName, said, type Fault } from './required';
 export { deriveViews } from './knowledge-graph-views';
 export type { GraphViews } from './knowledge-graph-views';
 
-// Bounded retry with backoff — startup connections from long-running peers
-// to the gateway.
+// Bounded retry with backoff, inside a budget client timing states.
 export {
   retryWithBackoff,
   equalJitter,
   isRetryableRequestError,
   retryAfterMs,
-  STARTUP_FETCH_RETRY,
 } from './retry';
-export type { HttpStatusError, RetryPolicy, RetryAttemptInfo } from './retry';
+export type { HttpStatusError, RetryBudget } from './retry';
 
 // Browser ↔ launcher KB discovery — the canonical served URL of the
 // launcher's discovery document.

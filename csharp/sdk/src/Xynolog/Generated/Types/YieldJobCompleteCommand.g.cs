@@ -8,12 +8,11 @@ namespace Xynolog.Types;
 public sealed record YieldJobCompleteCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
-    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
-    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
-    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
-    [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
-    public const string JobTypeValue = "yield";
-    [global::Xynolog.Serialization.Wire("jobType")] public string JobType => JobTypeValue;
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
+    [global::Xynolog.Serialization.Wire("jobType")] public global::Xynolog.Types.YieldJobCompleteCommandJobType JobType => global::Xynolog.Types.YieldJobCompleteCommandJobType.Yield;
+    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
     [global::Xynolog.Serialization.Wire("result")] public global::Xynolog.Types.YieldJobResult? Result { get; init; }
+    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
 }

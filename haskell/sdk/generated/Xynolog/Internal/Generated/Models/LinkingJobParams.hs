@@ -10,17 +10,17 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data LinkingJobParams = LinkingJobParams
-  { linkingJobParamsEntityTypes :: [Text],
+  { linkingJobParamsMotivation :: LinkingJobParamsMotivation,
+    linkingJobParamsEntityTypes :: [Text],
     linkingJobParamsIncludeDescriptiveReferences :: Maybe Bool,
     linkingJobParamsLanguage :: Maybe Text,
-    linkingJobParamsMotivation :: LinkingJobParamsMotivation,
     linkingJobParamsSourceLanguage :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON LinkingJobParams where parseJSON = checked "LinkingJobParams" $ withObject "LinkingJobParams" (\fields -> LinkingJobParams <$> (fields .: "entityTypes") <*> optional fields "includeDescriptiveReferences" <*> optional fields "language" <*> (fields .: "motivation") <*> optional fields "sourceLanguage")
+instance FromJSON LinkingJobParams where parseJSON = checked "LinkingJobParams" $ withObject "LinkingJobParams" (\fields -> LinkingJobParams <$> (fields .: "motivation") <*> (fields .: "entityTypes") <*> optional fields "includeDescriptiveReferences" <*> optional fields "language" <*> optional fields "sourceLanguage")
 
-instance ToJSON LinkingJobParams where toJSON value = Object (KM.fromList (concat [[("entityTypes", toJSON (linkingJobParamsEntityTypes value))], optionalPair "includeDescriptiveReferences" (linkingJobParamsIncludeDescriptiveReferences value), optionalPair "language" (linkingJobParamsLanguage value), [("motivation", toJSON (linkingJobParamsMotivation value))], optionalPair "sourceLanguage" (linkingJobParamsSourceLanguage value)]))
+instance ToJSON LinkingJobParams where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (linkingJobParamsMotivation value))], [("entityTypes", toJSON (linkingJobParamsEntityTypes value))], optionalPair "includeDescriptiveReferences" (linkingJobParamsIncludeDescriptiveReferences value), optionalPair "language" (linkingJobParamsLanguage value), optionalPair "sourceLanguage" (linkingJobParamsSourceLanguage value)]))
 
 data LinkingJobParamsMotivation = LinkingJobParamsMotivationLinking deriving (Eq, Show)
 

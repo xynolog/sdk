@@ -41,6 +41,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
+  `client/RetryBudget.json`, where `Xynolog.Timing` declared one of its own:
+  its fields are `retryBudgetAttempts`, `retryBudgetInitialDelayMs` and
+  `retryBudgetMaxDelayMs`, where they were `retryAttempts`,
+  `retryInitialDelayMs` and `retryMaxDelayMs`. One read from JSON is held to
+  its schema, so each member is at least 1.
+- `ResourceUpload`'s `resourceUploadFile` is a `Binary`, the type of
+  Protocol's bytes held whole.
 - The HTTP transport names each span and its count by the SDK telemetry
   table, as generated values (`spanContentGet`, `metricXynologBusSent`, …)
   in place of names spelled at each call. What it reports is the same.
@@ -82,9 +90,44 @@ the coming release's, and gathers its changes as they land.
 - A gateway's URL takes its scheme from the endpoint's `protocol`.
 - What each retry rule retries is read from `retryRules`, the value of
   `retry/rules.json`, in place of the SDK's own statuses and methods.
+- A type written in place is named as every SDK names it: its owner and its
+  member in Pascal case (`AnnotationContext`), a list's item with `Item`
+  and a map's value with `Value` after it, in place of the member's
+  characters spelled by code point (`AnnotationU40_context`) and `Inline`
+  or `AdditionalValue` after it (`AnnotationTargetValue`,
+  `BusReplyBoundsRepliesValue`). A union's member written in place is named
+  by the union and what the member is (`ConformanceDriverLineAbandoned`, in
+  place of `ConformanceDriverLineAbandonedValue`), and as a record or
+  newtype is constructed by `Mk` and its name
+  (`MkConformanceDriverLineAbandoned`), as the union's constructor for it
+  takes that name. A field is named by its record and its member in Pascal
+  case (`annotationContext`, `clientSecretFormGrantType`), and an
+  enumeration's constructor by its value in Pascal case
+  (`AnchorMethodFuzzyMatch`, `SupportedMediaTypeTextXCPlusPlus`,
+  `AnchoredTextDeclinedEntryV3`).
+- A record drops the members its schema does not name, where it kept them
+  in a `…AdditionalProperties` field and wrote them back: only the records
+  Protocol states hold other members keep that field (`AgentOrganization`,
+  `AgentPerson`, `AgentSoftware`, `JobParams`, `Representation`,
+  `ResourceDescriptor`, `ResourceDescriptorIdentifierObject` and
+  `ScoredResource`), beside the maps and the objects that name no member
+  (`BusFramePayload`). A record built positionally takes no `mempty` for
+  them, and a knowledge base is kept as it is read, with nothing to strip.
+- A record's fields are in the order its schema states its members, in place
+  of the order of their names: `AnchorRect`'s are `anchorRectX`,
+  `anchorRectY`, `anchorRectWidth`, `anchorRectHeight`, `anchorRectTop`,
+  `anchorRectRight`, `anchorRectBottom` and `anchorRectLeft`. A record built
+  or matched positionally binds its arguments in that order, and where two
+  fields share a type a positional use still compiles: build and match a
+  record by naming its fields.
 
 ### Removed
 
+- `Session.signInAgent` takes no `RetryBudget`, and signs the agent in once,
+  as every SDK does: a failure is thrown as it came, and starting the sign-in
+  again is the service's, on its own backoff (Protocol's WORKER-SERVICE R3).
+  It was `signInAgent http options budget service`; it is
+  `signInAgent http options service`.
 - `Xynolog.Types.Presence` is removed. No member of Protocol is both optional
   and nullable, so a model's optional field is a `Maybe`.
 

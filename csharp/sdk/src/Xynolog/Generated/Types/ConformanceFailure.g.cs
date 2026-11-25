@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record ConformanceFailure
 {
     [global::Xynolog.Serialization.Wire("code")] public string? Code { get; init; }
-    [global::Xynolog.Serialization.Wire("detail")] public required string Detail { get; init; }
-    [global::Xynolog.Serialization.Wire("failureClass")] public global::Xynolog.Types.FailureClass? FailureClass { get; init; }
     [global::Xynolog.Serialization.Wire("status")] public long? Status { get; init; }
+    [global::Xynolog.Serialization.Wire("failureClass")] public global::Xynolog.Types.FailureClass? FailureClass { get; init; }
+    [global::Xynolog.Serialization.Wire("detail")] public required string Detail { get; init; }
 }

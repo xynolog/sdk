@@ -11,12 +11,12 @@ import Xynolog.Internal.Generated.Models.ResourceAnnotations
 import Xynolog.Internal.Generated.Models.ResourceDescriptor
 
 data ResourceView = ResourceView
-  { resourceViewAnnotations :: ResourceAnnotations,
-    resourceViewLastSequence :: Integer,
-    resourceViewResource :: ResourceDescriptor
+  { resourceViewResource :: ResourceDescriptor,
+    resourceViewAnnotations :: ResourceAnnotations,
+    resourceViewLastSequence :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceView where parseJSON = checked "ResourceView" $ withObject "ResourceView" (\fields -> ResourceView <$> (fields .: "annotations") <*> (fields .: "lastSequence") <*> (fields .: "resource"))
+instance FromJSON ResourceView where parseJSON = checked "ResourceView" $ withObject "ResourceView" (\fields -> ResourceView <$> (fields .: "resource") <*> (fields .: "annotations") <*> (fields .: "lastSequence"))
 
-instance ToJSON ResourceView where toJSON value = Object (KM.fromList (concat [[("annotations", toJSON (resourceViewAnnotations value))], [("lastSequence", toJSON (resourceViewLastSequence value))], [("resource", toJSON (resourceViewResource value))]]))
+instance ToJSON ResourceView where toJSON value = Object (KM.fromList (concat [[("resource", toJSON (resourceViewResource value))], [("annotations", toJSON (resourceViewAnnotations value))], [("lastSequence", toJSON (resourceViewLastSequence value))]]))

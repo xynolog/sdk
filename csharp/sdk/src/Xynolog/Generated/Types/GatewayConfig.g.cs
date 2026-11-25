@@ -7,13 +7,13 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatewayConfig
 {
-    [global::Xynolog.Serialization.Wire("archivist")] public required global::Xynolog.Types.ServiceAddress Archivist { get; init; }
-    [global::Xynolog.Serialization.Wire("capacity")] public required global::Xynolog.Types.GatewayConfigCapacity Capacity { get; init; }
-    [global::Xynolog.Serialization.Wire("identity")] public required global::Xynolog.Types.GatewayConfigIdentity Identity { get; init; }
     [global::Xynolog.Serialization.Wire("kb")] public required global::Xynolog.Types.KbIdentity Kb { get; init; }
-    [global::Xynolog.Serialization.Wire("logFormat")] public required global::Xynolog.Types.LogFormat LogFormat { get; init; }
-    [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
     [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
     [global::Xynolog.Serialization.Wire("publicUrl")] public required string PublicUrl { get; init; }
+    [global::Xynolog.Serialization.Wire("identity")] public required global::Xynolog.Types.GatewayConfigIdentity Identity { get; init; }
+    [global::Xynolog.Serialization.Wire("archivist")] public required global::Xynolog.Types.ServiceAddress Archivist { get; init; }
     [global::Xynolog.Serialization.Wire("signal")] public required global::Xynolog.Types.GatewayConfigSignal Signal { get; init; }
+    [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
+    [global::Xynolog.Serialization.Wire("logFormat")] public required global::Xynolog.Types.LogFormat LogFormat { get; init; }
+    [global::Xynolog.Serialization.Wire("capacity")] public required global::Xynolog.Types.GatewayConfigCapacity Capacity { get; init; }
 }

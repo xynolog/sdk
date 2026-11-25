@@ -8,7 +8,7 @@ namespace Xynolog.SignIn;
 
 public sealed partial class Issuer : IDisposable
 {
-    private static readonly RetryPolicy RefreshRetry = Timings.RefreshRetry;
+    private static readonly RetryBudget RefreshRetry = Timings.RefreshRetry;
 
     private readonly HttpClient? client;
     private readonly HttpMessageInvoker? owned;

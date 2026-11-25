@@ -7,6 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobProgressGeneratingResource
 {
-    public const string CodeValue = "generating-resource";
-    [global::Xynolog.Serialization.Wire("code")] public string Code => CodeValue;
+    [global::Xynolog.Serialization.Wire("code")] public global::Xynolog.Types.JobProgressGeneratingResourceCode Code => global::Xynolog.Types.JobProgressGeneratingResourceCode.GeneratingResource;
 }

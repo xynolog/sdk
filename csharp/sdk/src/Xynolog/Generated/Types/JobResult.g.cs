@@ -4,10 +4,11 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(JobResult.MarkJobDoneCase), typeof(JobResult.YieldJobDoneCase), typeof(JobResult.JobDeclinedCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(JobResult.MarkJobDone), typeof(JobResult.YieldJobDone), typeof(JobResult.JobDeclined))]
 public closed record JobResult
 {
-    public sealed record MarkJobDoneCase(global::Xynolog.Types.MarkJobDone Value) : JobResult;
-    public sealed record YieldJobDoneCase(global::Xynolog.Types.YieldJobDone Value) : JobResult;
-    public sealed record JobDeclinedCase(global::Xynolog.Types.JobDeclined Value) : JobResult;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["found", "persisted"], ["found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["resourceId", "resourceName", "truncated"], ["resourceId", "resourceName", "truncated"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["declined", "reason"], ["declined", "reason"], [new("declined", [new global::Xynolog.Serialization.Literal.Boolean(true)]), new("reason", [new global::Xynolog.Serialization.Literal.Text("no-text-layer"), new global::Xynolog.Serialization.Literal.Text("encrypted"), new global::Xynolog.Serialization.Literal.Text("corrupt"), new global::Xynolog.Serialization.Literal.Text("too-large"), new global::Xynolog.Serialization.Literal.Text("empty")])], null)]];
+    public sealed record MarkJobDone(global::Xynolog.Types.MarkJobDone Value) : JobResult;
+    public sealed record YieldJobDone(global::Xynolog.Types.YieldJobDone Value) : JobResult;
+    public sealed record JobDeclined(global::Xynolog.Types.JobDeclined Value) : JobResult;
 }

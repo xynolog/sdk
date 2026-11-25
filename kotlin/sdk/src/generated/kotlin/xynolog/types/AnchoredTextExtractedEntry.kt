@@ -1,15 +1,18 @@
 // Generated from the component schemas in protocol/specs/src; do not edit.
 // Regenerate: make generate (codegen/lib/kotlin_sdk/kotlin_sdk.ml)
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 
 package xynolog.types
 
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 
 /** The text extracted from the bytes, where each word is on the page, and how it was extracted. */
 @Serializable
 public data class AnchoredTextExtractedEntry(
     /** The entry format. */
-    public val v: Long,
+    @EncodeDefault
+    public val v: AnchoredTextExtractedEntryV = AnchoredTextExtractedEntryV,
     /** The stamp the entry was derived under: the PDF reader's and the OCR engine's. A reader takes the entry only when it equals the stamp the Smelter last stated. */
     public val stamp: String,
     /** The extracted text. */
@@ -27,7 +30,6 @@ public data class AnchoredTextExtractedEntry(
 ) : AnchoredTextEntry {
     /** How Java makes a `AnchoredTextExtractedEntry`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val v: Long,
         private val stamp: String,
         private val text: String,
         private val lines: kotlin.collections.List<AnchoredTextExtractedEntryLinesItem>,
@@ -41,12 +43,12 @@ public data class AnchoredTextExtractedEntry(
         public fun ocrConfidence(ocrConfidence: OcrConfidence?): Builder = apply { this.ocrConfidence = ocrConfidence }
         public fun unreadPages(unreadPages: kotlin.collections.List<Long>?): Builder = apply { this.unreadPages = unreadPages }
 
-        public fun build(): AnchoredTextExtractedEntry = AnchoredTextExtractedEntry(v = v, stamp = stamp, text = text, lines = lines, method = method, pdfClass = pdfClass, ocrConfidence = ocrConfidence, unreadPages = unreadPages)
+        public fun build(): AnchoredTextExtractedEntry = AnchoredTextExtractedEntry(stamp = stamp, text = text, lines = lines, method = method, pdfClass = pdfClass, ocrConfidence = ocrConfidence, unreadPages = unreadPages)
     }
 
     public companion object {
         /** A builder of a `AnchoredTextExtractedEntry` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(v: Long, stamp: String, text: String, lines: kotlin.collections.List<AnchoredTextExtractedEntryLinesItem>, method: ExtractionMethod): Builder = Builder(v, stamp, text, lines, method)
+        public fun builder(stamp: String, text: String, lines: kotlin.collections.List<AnchoredTextExtractedEntryLinesItem>, method: ExtractionMethod): Builder = Builder(stamp, text, lines, method)
     }
 }

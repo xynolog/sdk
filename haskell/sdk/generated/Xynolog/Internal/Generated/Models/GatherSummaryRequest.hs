@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data GatherSummaryRequest = GatherSummaryRequest
   { gatherSummaryRequestAnnotationId :: AnnotationId,
-    gatherSummaryRequestResourceId :: ResourceId,
-    gatherSummaryRequestAdditionalProperties :: KM.KeyMap Value
+    gatherSummaryRequestResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherSummaryRequest where parseJSON = checked "GatherSummaryRequest" $ withObject "GatherSummaryRequest" (\fields -> GatherSummaryRequest <$> (fields .: "annotationId") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["annotationId", "resourceId"] fields))
+instance FromJSON GatherSummaryRequest where parseJSON = checked "GatherSummaryRequest" $ withObject "GatherSummaryRequest" (\fields -> GatherSummaryRequest <$> (fields .: "annotationId") <*> (fields .: "resourceId"))
 
-instance ToJSON GatherSummaryRequest where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (gatherSummaryRequestAnnotationId value))], [("resourceId", toJSON (gatherSummaryRequestResourceId value))]]) <> fmap toJSON (withoutFields ["annotationId", "resourceId"] (gatherSummaryRequestAdditionalProperties value)))
+instance ToJSON GatherSummaryRequest where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (gatherSummaryRequestAnnotationId value))], [("resourceId", toJSON (gatherSummaryRequestResourceId value))]]))

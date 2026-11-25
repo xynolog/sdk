@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.KbDescription
 
 data BrowseKbResult = BrowseKbResult
-  { browseKbResultResponse :: KbDescription,
-    browseKbResultAdditionalProperties :: KM.KeyMap Value
+  { browseKbResultResponse :: KbDescription
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseKbResult where parseJSON = checked "BrowseKbResult" $ withObject "BrowseKbResult" (\fields -> BrowseKbResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON BrowseKbResult where parseJSON = checked "BrowseKbResult" $ withObject "BrowseKbResult" (\fields -> BrowseKbResult <$> (fields .: "response"))
 
-instance ToJSON BrowseKbResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseKbResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (browseKbResultAdditionalProperties value)))
+instance ToJSON BrowseKbResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseKbResultResponse value))]]))

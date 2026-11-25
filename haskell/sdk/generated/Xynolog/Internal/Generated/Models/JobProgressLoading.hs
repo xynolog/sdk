@@ -10,14 +10,13 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data JobProgressLoading = JobProgressLoading
-  { jobProgressLoadingCode :: JobProgressLoadingCode,
-    jobProgressLoadingAdditionalProperties :: KM.KeyMap Value
+  { jobProgressLoadingCode :: JobProgressLoadingCode
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressLoading where parseJSON = checked "JobProgressLoading" $ withObject "JobProgressLoading" (\fields -> JobProgressLoading <$> (fields .: "code") <*> traverse parseJSON (withoutFields ["code"] fields))
+instance FromJSON JobProgressLoading where parseJSON = checked "JobProgressLoading" $ withObject "JobProgressLoading" (\fields -> JobProgressLoading <$> (fields .: "code"))
 
-instance ToJSON JobProgressLoading where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressLoadingCode value))]]) <> fmap toJSON (withoutFields ["code"] (jobProgressLoadingAdditionalProperties value)))
+instance ToJSON JobProgressLoading where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressLoadingCode value))]]))
 
 data JobProgressLoadingCode = JobProgressLoadingCodeLoading deriving (Eq, Show)
 

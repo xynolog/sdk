@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.GetEventsResponse
 
 data BrowseEventsResult = BrowseEventsResult
-  { browseEventsResultResponse :: GetEventsResponse,
-    browseEventsResultAdditionalProperties :: KM.KeyMap Value
+  { browseEventsResultResponse :: GetEventsResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseEventsResult where parseJSON = checked "BrowseEventsResult" $ withObject "BrowseEventsResult" (\fields -> BrowseEventsResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON BrowseEventsResult where parseJSON = checked "BrowseEventsResult" $ withObject "BrowseEventsResult" (\fields -> BrowseEventsResult <$> (fields .: "response"))
 
-instance ToJSON BrowseEventsResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseEventsResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (browseEventsResultAdditionalProperties value)))
+instance ToJSON BrowseEventsResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseEventsResultResponse value))]]))

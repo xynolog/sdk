@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record PdfCoordinate
 {
-    [global::Xynolog.Serialization.Wire("height")] public required double Height { get; init; }
     [global::Xynolog.Serialization.Wire("page")] public required long Page { get; init; }
-    [global::Xynolog.Serialization.Wire("width")] public required double Width { get; init; }
     [global::Xynolog.Serialization.Wire("x")] public required double X { get; init; }
     [global::Xynolog.Serialization.Wire("y")] public required double Y { get; init; }
+    [global::Xynolog.Serialization.Wire("width")] public required double Width { get; init; }
+    [global::Xynolog.Serialization.Wire("height")] public required double Height { get; init; }
 }

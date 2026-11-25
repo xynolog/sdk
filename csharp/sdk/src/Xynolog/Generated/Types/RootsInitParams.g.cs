@@ -7,17 +7,17 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record RootsInitParams
 {
-    [global::Xynolog.Serialization.Wire("anthropicEndpoint")] public string? AnthropicEndpoint { get; init; }
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.ApiVersion ApiVersion { get; init; }
-    [global::Xynolog.Serialization.Wire("configName")] public string? ConfigName { get; init; }
+    [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
     [global::Xynolog.Serialization.Wire("domain")] public required string Domain { get; init; }
-    [global::Xynolog.Serialization.Wire("embedding")] public string? Embedding { get; init; }
+    [global::Xynolog.Serialization.Wire("name")] public string? Name { get; init; }
+    [global::Xynolog.Serialization.Wire("siteName")] public string? SiteName { get; init; }
     [global::Xynolog.Serialization.Wire("inference")] public global::Xynolog.Types.RootsInitParamsInference? Inference { get; init; }
     [global::Xynolog.Serialization.Wire("model")] public string? Model { get; init; }
     [global::Xynolog.Serialization.Wire("modelLight")] public string? ModelLight { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public string? Name { get; init; }
+    [global::Xynolog.Serialization.Wire("embedding")] public string? Embedding { get; init; }
+    [global::Xynolog.Serialization.Wire("configName")] public string? ConfigName { get; init; }
+    [global::Xynolog.Serialization.Wire("anthropicEndpoint")] public string? AnthropicEndpoint { get; init; }
     [global::Xynolog.Serialization.Wire("ollamaBase")] public string? OllamaBase { get; init; }
     [global::Xynolog.Serialization.Wire("ollamaRegistry")] public string? OllamaRegistry { get; init; }
-    [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
-    [global::Xynolog.Serialization.Wire("siteName")] public string? SiteName { get; init; }
 }

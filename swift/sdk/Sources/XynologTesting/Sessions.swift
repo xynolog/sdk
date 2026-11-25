@@ -16,8 +16,8 @@ public struct TestSessionOptions: Sendable {
     random: any RandomNumberGenerator & Sendable = SystemRandomNumberGenerator(),
     validate: @escaping @Sendable (String) async throws -> UserResponse = { _ in
       UserResponse(
-        did: try personDid("localhost", "test"), domain: "localhost", email: nil, image: nil,
-        name: nil)
+        did: try personDid("localhost", "test"), email: nil, name: nil, image: nil,
+        domain: "localhost")
     },
     renew: @escaping @Sendable (String?) async throws -> String? = { _ in nil },
     onAuthFailed: (@Sendable (SessionEndReason) -> Void)? = nil
@@ -95,7 +95,7 @@ public actor ScriptedSessions: SessionFactory {
     let kept = keptIn(options.storage, kbId: kb.id)
     return try await createTestSession(
       TestSessionOptions(
-        kb: KbTarget(endpoint: kb.endpoint, id: kb.id, label: kb.label), kept: kept,
+        kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint), kept: kept,
         transport: transport, random: random,
         renew: { [weak self] holding in
           guard let self, let read = try await kept.held() else { return nil }

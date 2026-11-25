@@ -14,20 +14,20 @@ import Xynolog.Internal.Generated.Models.UnitCursor
 import Xynolog.Internal.Generated.Models.UserId
 
 data JobMetadata = JobMetadata
-  { jobMetadataCompletedUnits :: Maybe [Text],
-    jobMetadataCreated :: Text,
-    jobMetadataId :: JobId,
-    jobMetadataMaxRetries :: Integer,
-    jobMetadataRetryCount :: Integer,
+  { jobMetadataId :: JobId,
     jobMetadataType :: JobType,
-    jobMetadataUnitCursors :: Maybe JobMetadataUnitCursors,
-    jobMetadataUserId :: UserId
+    jobMetadataUserId :: UserId,
+    jobMetadataCreated :: Text,
+    jobMetadataRetryCount :: Integer,
+    jobMetadataMaxRetries :: Integer,
+    jobMetadataCompletedUnits :: Maybe [Text],
+    jobMetadataUnitCursors :: Maybe JobMetadataUnitCursors
   }
   deriving (Eq, Show)
 
-instance FromJSON JobMetadata where parseJSON = checked "JobMetadata" $ withObject "JobMetadata" (\fields -> JobMetadata <$> optional fields "completedUnits" <*> (fields .: "created") <*> (fields .: "id") <*> (fields .: "maxRetries") <*> (fields .: "retryCount") <*> (fields .: "type") <*> optional fields "unitCursors" <*> (fields .: "userId"))
+instance FromJSON JobMetadata where parseJSON = checked "JobMetadata" $ withObject "JobMetadata" (\fields -> JobMetadata <$> (fields .: "id") <*> (fields .: "type") <*> (fields .: "userId") <*> (fields .: "created") <*> (fields .: "retryCount") <*> (fields .: "maxRetries") <*> optional fields "completedUnits" <*> optional fields "unitCursors")
 
-instance ToJSON JobMetadata where toJSON value = Object (KM.fromList (concat [optionalPair "completedUnits" (jobMetadataCompletedUnits value), [("created", toJSON (jobMetadataCreated value))], [("id", toJSON (jobMetadataId value))], [("maxRetries", toJSON (jobMetadataMaxRetries value))], [("retryCount", toJSON (jobMetadataRetryCount value))], [("type", toJSON (jobMetadataType value))], optionalPair "unitCursors" (jobMetadataUnitCursors value), [("userId", toJSON (jobMetadataUserId value))]]))
+instance ToJSON JobMetadata where toJSON value = Object (KM.fromList (concat [[("id", toJSON (jobMetadataId value))], [("type", toJSON (jobMetadataType value))], [("userId", toJSON (jobMetadataUserId value))], [("created", toJSON (jobMetadataCreated value))], [("retryCount", toJSON (jobMetadataRetryCount value))], [("maxRetries", toJSON (jobMetadataMaxRetries value))], optionalPair "completedUnits" (jobMetadataCompletedUnits value), optionalPair "unitCursors" (jobMetadataUnitCursors value)]))
 
 data JobMetadataUnitCursors = JobMetadataUnitCursors
   { jobMetadataUnitCursorsAdditionalProperties :: KM.KeyMap UnitCursor

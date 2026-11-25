@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Cancelled
 {
-    [global::Xynolog.Serialization.Wire("reason")] public string? Reason { get; init; }
     [global::Xynolog.Serialization.Wire("requestId")] public required global::Xynolog.Types.RequestId RequestId { get; init; }
+    [global::Xynolog.Serialization.Wire("reason")] public string? Reason { get; init; }
 }

@@ -64,7 +64,7 @@ let text (s : T.t) records =
   in
   let kit_record name =
     let r, typed = Table.record name records in
-    H.record ~about:[ r.docs ] r.name (fields r typed)
+    H.record ~about:[ r.docs ] ~constructor:r.name r.name (fields r typed)
   in
   let spec, spec_typed = Table.record "LivenessSpec" records in
   {
@@ -149,7 +149,7 @@ let text (s : T.t) records =
                            ("IO", [ T_apply ("Maybe", [ T_name "Value" ]) ]) )
                    ));
               kit_record "RequestLogEntry";
-              H.record "FaultyTransport"
+              H.record ~constructor:"FaultyTransport" "FaultyTransport"
                 ~about:
                   [
                     "The transport owner fills this with its real carrier and \
@@ -179,7 +179,7 @@ let text (s : T.t) records =
                   ("deliver", T_fun (T_name "Carried", io_unit));
                 ];
               kit_record "LivenessScenario";
-              H.record ~about:[ spec.docs ] spec.name
+              H.record ~about:[ spec.docs ] ~constructor:spec.name spec.name
                 (fields spec spec_typed
                 @ [ ("livenessClock", T_name "RetryOptions") ]);
             ];

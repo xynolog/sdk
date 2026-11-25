@@ -12,14 +12,13 @@ import Xynolog.Internal.Generated.Models.KbEndpoint
 import Xynolog.Internal.Generated.Models.KbRead
 
 data NewKnowledgeBase = NewKnowledgeBase
-  { newKnowledgeBaseDid :: Text,
+  { newKnowledgeBaseLabel :: Text,
     newKnowledgeBaseEndpoint :: KbEndpoint,
-    newKnowledgeBaseLabel :: Text,
-    newKnowledgeBaseLastRead :: Maybe KbRead,
-    newKnowledgeBaseAdditionalProperties :: KM.KeyMap Value
+    newKnowledgeBaseDid :: Text,
+    newKnowledgeBaseLastRead :: Maybe KbRead
   }
   deriving (Eq, Show)
 
-instance FromJSON NewKnowledgeBase where parseJSON = checked "NewKnowledgeBase" $ withObject "NewKnowledgeBase" (\fields -> NewKnowledgeBase <$> (fields .: "did") <*> (fields .: "endpoint") <*> (fields .: "label") <*> optional fields "lastRead" <*> traverse parseJSON (withoutFields ["did", "endpoint", "label", "lastRead"] fields))
+instance FromJSON NewKnowledgeBase where parseJSON = checked "NewKnowledgeBase" $ withObject "NewKnowledgeBase" (\fields -> NewKnowledgeBase <$> (fields .: "label") <*> (fields .: "endpoint") <*> (fields .: "did") <*> optional fields "lastRead")
 
-instance ToJSON NewKnowledgeBase where toJSON value = Object (KM.fromList (concat [[("did", toJSON (newKnowledgeBaseDid value))], [("endpoint", toJSON (newKnowledgeBaseEndpoint value))], [("label", toJSON (newKnowledgeBaseLabel value))], optionalPair "lastRead" (newKnowledgeBaseLastRead value)]) <> fmap toJSON (withoutFields ["did", "endpoint", "label", "lastRead"] (newKnowledgeBaseAdditionalProperties value)))
+instance ToJSON NewKnowledgeBase where toJSON value = Object (KM.fromList (concat [[("label", toJSON (newKnowledgeBaseLabel value))], [("endpoint", toJSON (newKnowledgeBaseEndpoint value))], [("did", toJSON (newKnowledgeBaseDid value))], optionalPair "lastRead" (newKnowledgeBaseLastRead value)]))

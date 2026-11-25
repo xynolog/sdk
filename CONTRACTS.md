@@ -6,7 +6,7 @@ Each kind of contract the pinned Protocol states, how many items it has, and how
 
 | Contract | Items | TypeScript | Python | Rust | Go | C# | Haskell | Kotlin | OCaml | Swift |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| schemas | 445 | 445 | 445 | 445 | 445 | 445 | 445 | 445 | 445 | 445 |
+| schemas | 447 | 447 | 447 | 447 | 447 | 447 | 447 | 447 | 447 | 447 |
 | client registry types | 9 | 9 | 9 | 9 | 9 | 9 | 9 | 9 | 9 | 9 |
 | state-unit notices | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
 | bus channels | 187 | 187 | 187 | 187 | 187 | 187 | 187 | 187 | 187 | 187 |
@@ -15,6 +15,7 @@ Each kind of contract the pinned Protocol states, how many items it has, and how
 | error codes | 67 | 67 | 67 | 67 | 67 | 67 | 67 | 67 | 67 | 67 |
 | identifier kinds | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
 | timing | 41 | 41 | 41 | 41 | 41 | 41 | 41 | 41 | 41 | 41 |
+| stored keys | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
 | service environment variables | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 |
 | telemetry spans | 7 | 7 | 7 | 7 | 7 | 7 | 7 | 7 | 7 | 7 |
 | telemetry metrics | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |

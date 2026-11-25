@@ -33,16 +33,12 @@ let ids = Result.get_ok (Decode.ids [])
 
 (* The Kotlin types of [schemas], each a component of that name. *)
 let types schemas =
-  {
-    Types.definitions =
-      List.map (fun (name, text) -> (name, schema_of text)) schemas;
-    identifiers = [ "ResourceId"; "AnnotationId" ];
-    ids;
-    name_of_key =
-      List.map
-        (fun (name, _) -> ("components/schemas/" ^ name ^ ".json", name))
-        schemas;
-  }
+  Types.spec
+    [
+      Typing.make
+        (Fixture.definitions schemas)
+        ~roots:(List.map fst schemas) ~identifiers:[] ~keys:[];
+    ]
 
 (* ── The channels ──────────────────────────────────────────────────────── *)
 
@@ -87,10 +83,10 @@ let schemas =
     ("DemoResult", object_schema);
     ("CommandError", object_schema);
     ( "A",
-      {|{"type":"object","properties":{"_userId":{"type":"string"},"kind":{"type":"string","enum":["a"]}}}|}
+      {|{"type":"object","required":["kind"],"properties":{"_userId":{"type":"string"},"kind":{"type":"string","enum":["a"]}}}|}
     );
     ( "B",
-      {|{"type":"object","properties":{"kind":{"type":"string","enum":["b"]}}}|}
+      {|{"type":"object","required":["kind"],"properties":{"kind":{"type":"string","enum":["b"]}}}|}
     );
     ("Either", {|{"oneOf":[{"$ref":"./A.json"},{"$ref":"./B.json"}]}|});
   ]

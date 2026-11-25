@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobAssignedPayload
 {
-    [global::Xynolog.Serialization.Wire("holder")] public required global::Xynolog.Identifiers.UserId Holder { get; init; }
     [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
     [global::Xynolog.Serialization.Wire("jobType")] public required global::Xynolog.Types.JobType JobType { get; init; }
-    [global::Xynolog.Serialization.Wire("requester")] public required global::Xynolog.Identifiers.UserId Requester { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("holder")] public required global::Xynolog.Identifiers.UserId Holder { get; init; }
+    [global::Xynolog.Serialization.Wire("requester")] public required global::Xynolog.Identifiers.UserId Requester { get; init; }
 }

@@ -7,18 +7,18 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ResourceUpload
 {
-    [global::Xynolog.Serialization.Wire("archiveOriginal")] public string? ArchiveOriginal { get; init; }
-    [global::Xynolog.Serialization.Wire("cloneToken")] public string? CloneToken { get; init; }
-    [global::Xynolog.Serialization.Wire("entityTypes")] public string? EntityTypes { get; init; }
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("file")] public required byte[] File { get; init; }
     [global::Xynolog.Serialization.Wire("format")] public required string Format { get; init; }
-    [global::Xynolog.Serialization.Wire("generationPrompt")] public string? GenerationPrompt { get; init; }
-    [global::Xynolog.Serialization.Wire("generator")] public string? Generator { get; init; }
-    [global::Xynolog.Serialization.Wire("isDraft")] public string? IsDraft { get; init; }
-    [global::Xynolog.Serialization.Wire("jobId")] public global::Xynolog.Identifiers.JobId? JobId { get; init; }
+    [global::Xynolog.Serialization.Wire("storageUri")] public required string StorageUri { get; init; }
     [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
+    [global::Xynolog.Serialization.Wire("entityTypes")] public string? EntityTypes { get; init; }
     [global::Xynolog.Serialization.Wire("sourceAnnotationId")] public global::Xynolog.Identifiers.AnnotationId? SourceAnnotationId { get; init; }
     [global::Xynolog.Serialization.Wire("sourceResourceId")] public global::Xynolog.Identifiers.ResourceId? SourceResourceId { get; init; }
-    [global::Xynolog.Serialization.Wire("storageUri")] public required string StorageUri { get; init; }
+    [global::Xynolog.Serialization.Wire("generationPrompt")] public string? GenerationPrompt { get; init; }
+    [global::Xynolog.Serialization.Wire("generator")] public string? Generator { get; init; }
+    [global::Xynolog.Serialization.Wire("jobId")] public global::Xynolog.Identifiers.JobId? JobId { get; init; }
+    [global::Xynolog.Serialization.Wire("isDraft")] public string? IsDraft { get; init; }
+    [global::Xynolog.Serialization.Wire("cloneToken")] public string? CloneToken { get; init; }
+    [global::Xynolog.Serialization.Wire("archiveOriginal")] public string? ArchiveOriginal { get; init; }
 }

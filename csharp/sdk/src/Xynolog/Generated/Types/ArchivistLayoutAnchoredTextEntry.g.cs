@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistLayoutAnchoredTextEntry
 {
+    [global::Xynolog.Serialization.Wire("tree")] public required global::Xynolog.Types.ArchivistLayoutAnchoredTextEntryTree Tree { get; init; }
     [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
     [global::Xynolog.Serialization.Wire("schema")] public required global::System.Text.Json.JsonElement Schema { get; init; }
-    [global::Xynolog.Serialization.Wire("tree")] public required global::Xynolog.Types.ArchivistLayoutAnchoredTextEntryTree Tree { get; init; }
 }

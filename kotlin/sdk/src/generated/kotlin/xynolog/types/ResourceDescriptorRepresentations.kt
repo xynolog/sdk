@@ -15,10 +15,32 @@ public sealed interface ResourceDescriptorRepresentations {
     }
 }
 
-internal object ResourceDescriptorRepresentationsSerializer : KindsUnionSerializer<ResourceDescriptorRepresentations>(
+internal object ResourceDescriptorRepresentationsSerializer : SignatureUnionSerializer<ResourceDescriptorRepresentations>(
     ResourceDescriptorRepresentations::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { listOf(ResourceDescriptorRepresentations.List.serializer()) },
-    objects = { listOf(Representation.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("mediaType"),
+                allowed = null,
+                fixed = listOf("rel" to listOf(Literal.Text("original"), Literal.Text("thumbnail"), Literal.Text("preview"), Literal.Text("optimized"), Literal.Text("derived"), Literal.Text("other"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.LIST,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            Representation.serializer(),
+            ResourceDescriptorRepresentations.List.serializer(),
+        )
+    },
 )

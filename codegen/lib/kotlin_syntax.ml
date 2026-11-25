@@ -470,7 +470,15 @@ let rec expr ~depth e =
   | Lambda ([], Assigning (target, e)) ->
       "{ " ^ expr ~depth target ^ " = " ^ expr ~depth e ^ " }"
   | Assigning _ -> fail "an assignment is written only as a lambda's body"
-  | Lambda ([], body) -> "{ " ^ expr ~depth body ^ " }"
+  | Lambda ([], body) -> (
+      (* A body that spans lines is on lines of its own, as ktlint has it. *)
+      let spanning = expr ~depth:(depth + 1) body in
+      match String.contains spanning '\n' with
+      | true ->
+          "{\n"
+          ^ indentation (depth + 1)
+          ^ spanning ^ "\n" ^ indentation depth ^ "}"
+      | false -> "{ " ^ expr ~depth body ^ " }")
   | Lambda (params, body) ->
       "{ "
       ^ String.concat ", " (List.map simple params)

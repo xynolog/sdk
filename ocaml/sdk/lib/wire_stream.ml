@@ -57,21 +57,18 @@ let recover_route source =
       | _ -> None)
   | _ -> None
 
-let take_trace = function
-  | `Assoc fields ->
-      let trace =
-        match List.assoc_opt Bus_registry.trace_field fields with
-        | Some (`Assoc carrier) ->
-            let get key = Option.bind (List.assoc_opt key carrier) string in
-            Option.map
-              (fun parent -> { parent; state = get "tracestate" })
-              (get "traceparent")
-        | _ -> None
-      in
-      ( `Assoc
-          (List.filter (fun (key, _) -> key <> Bus_registry.trace_field) fields),
-        trace )
-  | raw -> (raw, None)
+let take_trace fields =
+  let trace =
+    match List.assoc_opt Bus_registry.trace_field fields with
+    | Some (`Assoc carrier) ->
+        let get key = Option.bind (List.assoc_opt key carrier) string in
+        Option.map
+          (fun parent -> { parent; state = get "tracestate" })
+          (get "traceparent")
+    | _ -> None
+  in
+  ( `Assoc (List.filter (fun (key, _) -> key <> Bus_registry.trace_field) fields),
+    trace )
 
 let decode id source =
   match Models.decode Models.bus_frame source with
@@ -140,11 +137,10 @@ let encode_emit ?scope ?client_id ?correlation_id channel source =
           Records.Bus_emit_request.to_model
             {
               channel = Bus_registry.name channel;
-              payload = Bus_registry.json payload;
+              payload = Record_reader.fields_of (Bus_registry.json payload);
               scope = Option.map Identifiers.Resource_id.to_string scope;
               client_id;
               correlation_id;
-              extra = [];
             }
         with
         | Ok model -> Ok (Models.encode model)

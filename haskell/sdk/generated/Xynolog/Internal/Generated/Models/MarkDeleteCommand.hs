@@ -12,13 +12,12 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data MarkDeleteCommand = MarkDeleteCommand
-  { markDeleteCommandU5f_userId :: Maybe UserId,
+  { markDeleteCommandUserId :: Maybe UserId,
     markDeleteCommandAnnotationId :: AnnotationId,
-    markDeleteCommandResourceId :: Maybe ResourceId,
-    markDeleteCommandAdditionalProperties :: KM.KeyMap Value
+    markDeleteCommandResourceId :: Maybe ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkDeleteCommand where parseJSON = checked "MarkDeleteCommand" $ withObject "MarkDeleteCommand" (\fields -> MarkDeleteCommand <$> optional fields "_userId" <*> (fields .: "annotationId") <*> optional fields "resourceId" <*> traverse parseJSON (withoutFields ["_userId", "annotationId", "resourceId"] fields))
+instance FromJSON MarkDeleteCommand where parseJSON = checked "MarkDeleteCommand" $ withObject "MarkDeleteCommand" (\fields -> MarkDeleteCommand <$> optional fields "_userId" <*> (fields .: "annotationId") <*> optional fields "resourceId")
 
-instance ToJSON MarkDeleteCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markDeleteCommandU5f_userId value), [("annotationId", toJSON (markDeleteCommandAnnotationId value))], optionalPair "resourceId" (markDeleteCommandResourceId value)]) <> fmap toJSON (withoutFields ["_userId", "annotationId", "resourceId"] (markDeleteCommandAdditionalProperties value)))
+instance ToJSON MarkDeleteCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markDeleteCommandUserId value), [("annotationId", toJSON (markDeleteCommandAnnotationId value))], optionalPair "resourceId" (markDeleteCommandResourceId value)]))

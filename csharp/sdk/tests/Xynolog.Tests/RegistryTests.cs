@@ -24,18 +24,6 @@ public sealed partial class TransportTests
     public void RegistryStorageKeysAndSessionShapeFollowTheirTable()
     {
         using var table = ReadSpec("session/stored.json");
-        var keys = new Dictionary<string, string>
-        {
-            ["knowledgeBasesKey"] = RegistryStorage.KnowledgeBasesKey,
-            ["activeKey"] = RegistryStorage.ActiveKey,
-            ["openResourcesByKbKey"] = RegistryStorage.OpenResourcesByKbKey,
-            ["lastViewedResourceByKbKey"] = RegistryStorage.LastViewedResourceByKbKey,
-            ["pendingAuthorizationKey"] = RedirectSignIn.PendingAuthorizationKey,
-        };
-        Assert.Equal(keys.Count, table.RootElement.GetProperty("keys").GetArrayLength());
-        foreach (var row in table.RootElement.GetProperty("keys").EnumerateArray())
-            Assert.Equal(Text(row, "key"), keys[Text(row, "member")]);
-
         var key = RegistryStorage.SessionKey("kb-1");
         Assert.Equal(Text(table.RootElement.GetProperty("sessionKeyPrefix"), "prefix") + "kb-1", key);
         Assert.Equal("kb-1", RegistryStorage.KbOfSessionKey(key));
@@ -55,9 +43,7 @@ public sealed partial class TransportTests
         var persisted = refresh.RootElement.GetProperty("queries").EnumerateArray()
             .Where(row => row.TryGetProperty("persisted", out var marked) && marked.GetBoolean()).Select(row => Text(row, "name")).ToArray();
         Assert.Equal(persisted, LiveQueries.PersistedQueries);
-        Assert.Equal(Text(table.RootElement.GetProperty("wholeKey"), "key"), KeptTable.WholeKey);
         var document = table.RootElement.GetProperty("cacheDocument");
-        Assert.Equal(document.GetProperty("properties").GetProperty("version").GetProperty("const").GetInt64(), KeptTable.Version);
         Assert.Equal(new[] { "version", "entries" }, document.GetProperty("required").EnumerateArray().Select(member => Assert.IsType<string>(member.GetString())));
         var store = new MemoryStorage();
         var session = RegistryTokens() with { RevocationEndpoint = "https://issuer.test/revoke", PersonKey = PersonKeyOf(cacheExample) };
@@ -124,7 +110,7 @@ public sealed partial class TransportTests
             },
             _ => throw new InvalidOperationException("Unexpected issuer request."),
         });
-        var endpoint = Assert.IsType<KbEndpoint.HttpEndpointCase>(RegistryKb("prior", "prior.test").Endpoint).Value;
+        var endpoint = Assert.IsType<KbEndpoint.HttpEndpoint>(RegistryKb("prior", "prior.test").Endpoint).Value;
         async Task<JsonElement> Kept(BeginAuthorizationOptions options)
         {
             var store = new MemoryStorage();
@@ -416,7 +402,7 @@ public sealed partial class TransportTests
         var entry = browser.State.Kbs.Single();
         Assert.Equal(kb.Label, entry.Label);
         Assert.Null(entry.LastRead);
-        Assert.Equal(new KbReadVerdict.NoVerdictCase(new KbReadVerdictNoVerdict()), await browser.ReadActiveKbAsync(deadline.Token));
+        Assert.Equal(new KbReadVerdict.NoVerdict(new KbReadVerdictNoVerdict()), await browser.ReadActiveKbAsync(deadline.Token));
     }
 
     [Fact]
@@ -571,7 +557,7 @@ public sealed partial class TransportTests
         var factory = new RegistryFactory((options, _) => Task.FromResult(OpenRegistrySession(options.Kb)));
         await using var browser = new XynologBrowser(new XynologBrowserConfig(store, factory));
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        var endpoint = Assert.IsType<KbEndpoint.HttpEndpointCase>(expected.Endpoint).Value;
+        var endpoint = Assert.IsType<KbEndpoint.HttpEndpoint>(expected.Endpoint).Value;
         var options = new BeginAuthorizationOptions { Target = endpoint, RedirectUri = "https://app.test/callback", KbId = expected.Id };
         var url = await BrowserSignIn.BeginSignInAsync(browser, options, http, deadline.Token);
         Assert.Contains("code_challenge_method=S256", url);

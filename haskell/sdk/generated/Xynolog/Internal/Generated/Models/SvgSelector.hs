@@ -11,14 +11,13 @@ import Xynolog.Internal.Codec
 
 data SvgSelector = SvgSelector
   { svgSelectorType :: SvgSelectorType,
-    svgSelectorValue :: Text,
-    svgSelectorAdditionalProperties :: KM.KeyMap Value
+    svgSelectorValue :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SvgSelector where parseJSON = checked "SvgSelector" $ withObject "SvgSelector" (\fields -> SvgSelector <$> (fields .: "type") <*> (fields .: "value") <*> traverse parseJSON (withoutFields ["type", "value"] fields))
+instance FromJSON SvgSelector where parseJSON = checked "SvgSelector" $ withObject "SvgSelector" (\fields -> SvgSelector <$> (fields .: "type") <*> (fields .: "value"))
 
-instance ToJSON SvgSelector where toJSON value = Object (KM.fromList (concat [[("type", toJSON (svgSelectorType value))], [("value", toJSON (svgSelectorValue value))]]) <> fmap toJSON (withoutFields ["type", "value"] (svgSelectorAdditionalProperties value)))
+instance ToJSON SvgSelector where toJSON value = Object (KM.fromList (concat [[("type", toJSON (svgSelectorType value))], [("value", toJSON (svgSelectorValue value))]]))
 
 data SvgSelectorType = SvgSelectorTypeSvgSelector deriving (Eq, Show)
 

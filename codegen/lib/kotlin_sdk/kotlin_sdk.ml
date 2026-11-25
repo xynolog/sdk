@@ -16,74 +16,29 @@ let ( let* ) = Result.bind
 let directory = "kotlin/sdk/src/generated/kotlin"
 let types_directory = directory ^ "/xynolog/types"
 
-(* The schemas a generation writes: every root ([Roots]), the
-   records Protocol states in its tables ([Table_records]), the client
-   types it generates, the schema of each table the services keep to
-   ([Service_tables]), and the sign-in store's entry, which is the store's own schema and no
-   component of the API. *)
+(* The schemas a generation writes, as [Typing] reads them: every root
+   ([Roots]), the records Protocol states in its tables, the client types it
+   generates, the schema of each table the services keep to
+   ([Service_tables]), and the sign-in store's entry, which is the store's
+   own schema and no component of the API. *)
 let spec_of (spec : Spec.t) : (Types.spec, string) result =
-  let schema_of file = List.assoc_opt file spec.schemas in
-  let whole = Definitions.typed spec in
-  let components =
-    List.map
-      (fun (name, reference) ->
-        (name, fst (Decode.resolve spec.Spec.ids reference)))
-      (Roots.all spec)
-    @ List.map
-        (fun name -> (name, "client/types/" ^ name ^ ".json"))
-        (Definitions.generated_client_types spec)
-    @ List.map
-        (fun table -> (Service_tables.type_of table, Places.schema_of table))
-        (Roots.service_tables spec)
-  in
-  let* records = Table_records.all spec in
-  let* definitions =
-    List.fold_right
-      (fun (name, file) rest ->
-        let* rest = rest in
-        match schema_of file with
-        | Some schema ->
-            let* schema = whole schema in
-            Ok ((name, schema) :: rest)
-        | None ->
-            Error
-              ("the component " ^ name ^ " names " ^ file
-             ^ ", which the model has not read"))
-      components (Ok [])
-  in
-  let* sign_in =
-    match schema_of Roots.sign_in_entry with
-    | Some s -> Ok s
-    | None -> Error (Roots.sign_in_entry ^ " is not in the spec")
-  in
-  let definitions =
-    definitions
-    @ List.map (fun (_, name, s) -> (name, s)) records
-    @ [ ("SignIn", sign_in) ]
-  in
   match
-    List.find_opt
-      (fun (name, _) ->
-        List.length (List.filter (fun (n, _) -> n = name) definitions) > 1)
-      definitions
+    let sign_in =
+      match List.assoc_opt Roots.sign_in_entry spec.schemas with
+      | Some s -> s
+      | None -> Names.refuse "%s is not in the spec" Roots.sign_in_entry
+    in
+    Types.spec
+      [
+        Typing.of_spec spec ~tables:(Roots.service_tables spec);
+        Typing.make
+          (Definitions.alone ~ids:spec.ids ~name:"SignIn" sign_in)
+          ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[];
+      ]
   with
-  | Some (name, _) ->
-      Error
-        ("two schemas the types write are named " ^ name
-       ^ ": a component, a table's record or the sign-in store's entry")
-  | None ->
-      Ok
-        {
-          Types.definitions;
-          identifiers =
-            List.map
-              (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)
-              spec.tables.identifiers_kinds.kinds;
-          ids = spec.ids;
-          name_of_key =
-            List.map (fun (name, file) -> (file, name)) components
-            @ List.map (fun (key, name, _) -> (key, name)) records;
-        }
+  | types -> Ok types
+  | exception Names.Refused message -> Error message
+  | exception Definitions.Refused message -> Error message
 
 (* [spec_of], its refusal one of the gateway's document's. *)
 let refused message =
@@ -222,7 +177,7 @@ let generate (spec : Spec.t) =
       let kinds =
         List.map
           (fun kind -> Types.identifiers_package ^ "." ^ kind)
-          types_spec.identifiers
+          (Types.identifiers types_spec)
       in
       Ok
         ({
@@ -278,9 +233,7 @@ let control (types_spec : Types.spec) (spec : Spec.t) =
   let from_ = "control/methods.json" in
   let* name, named, decls =
     written ~from_ (fun () ->
-        Control.declarations
-          ~types:(List.map fst types_spec.definitions)
-          spec.tables.control_methods)
+        Control.declarations ~types:types_spec.names spec.tables.control_methods)
   in
   Ok
     (table ~from_ Control.writer ~package:Control.package ~name

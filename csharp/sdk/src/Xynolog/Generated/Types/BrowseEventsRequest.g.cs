@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BrowseEventsRequest
 {
-    [global::Xynolog.Serialization.Wire("limit")] public long? Limit { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public string? Type { get; init; }
     [global::Xynolog.Serialization.Wire("userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
+    [global::Xynolog.Serialization.Wire("limit")] public long? Limit { get; init; }
 }

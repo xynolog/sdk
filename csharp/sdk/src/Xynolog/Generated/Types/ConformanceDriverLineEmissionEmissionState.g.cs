@@ -4,10 +4,11 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(ConformanceDriverLineEmissionEmissionState.PendingCase), typeof(ConformanceDriverLineEmissionEmissionState.ReadyCase), typeof(ConformanceDriverLineEmissionEmissionState.FailedCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(ConformanceDriverLineEmissionEmissionState.Pending), typeof(ConformanceDriverLineEmissionEmissionState.Ready), typeof(ConformanceDriverLineEmissionEmissionState.Failed))]
 public closed record ConformanceDriverLineEmissionEmissionState
 {
-    public sealed record PendingCase(global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStatePending Value) : ConformanceDriverLineEmissionEmissionState;
-    public sealed record ReadyCase(global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStateReady Value) : ConformanceDriverLineEmissionEmissionState;
-    public sealed record FailedCase(global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStateFailed Value) : ConformanceDriverLineEmissionEmissionState;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["status"], ["status"], [new("status", [new global::Xynolog.Serialization.Literal.Text("pending")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["status", "value"], ["status", "value"], [new("status", [new global::Xynolog.Serialization.Literal.Text("ready")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["status", "error"], ["status", "error"], [new("status", [new global::Xynolog.Serialization.Literal.Text("failed")])], null)]];
+    public sealed record Pending(global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStatePending Value) : ConformanceDriverLineEmissionEmissionState;
+    public sealed record Ready(global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStateReady Value) : ConformanceDriverLineEmissionEmissionState;
+    public sealed record Failed(global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStateFailed Value) : ConformanceDriverLineEmissionEmissionState;
 }

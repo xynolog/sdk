@@ -10,11 +10,10 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data PrincipalProfiledPayload = PrincipalProfiledPayload
-  { principalProfiledPayloadName :: Text,
-    principalProfiledPayloadAdditionalProperties :: KM.KeyMap Value
+  { principalProfiledPayloadName :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON PrincipalProfiledPayload where parseJSON = checked "PrincipalProfiledPayload" $ withObject "PrincipalProfiledPayload" (\fields -> PrincipalProfiledPayload <$> (fields .: "name") <*> traverse parseJSON (withoutFields ["name"] fields))
+instance FromJSON PrincipalProfiledPayload where parseJSON = checked "PrincipalProfiledPayload" $ withObject "PrincipalProfiledPayload" (\fields -> PrincipalProfiledPayload <$> (fields .: "name"))
 
-instance ToJSON PrincipalProfiledPayload where toJSON value = Object (KM.fromList (concat [[("name", toJSON (principalProfiledPayloadName value))]]) <> fmap toJSON (withoutFields ["name"] (principalProfiledPayloadAdditionalProperties value)))
+instance ToJSON PrincipalProfiledPayload where toJSON value = Object (KM.fromList (concat [[("name", toJSON (principalProfiledPayloadName value))]]))

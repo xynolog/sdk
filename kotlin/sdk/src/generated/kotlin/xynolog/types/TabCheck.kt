@@ -9,8 +9,42 @@ import kotlinx.serialization.Serializable
 @Serializable(with = TabCheckSerializer::class)
 public sealed interface TabCheck
 
-internal object TabCheckSerializer : TaggedUnionSerializer<TabCheck>(
+internal object TabCheckSerializer : SignatureUnionSerializer<TabCheck>(
     TabCheck::class,
-    "verdict",
-    members = { mapOf("gone" to TabCheckGone.serializer(), "ready" to TabCheckReady.serializer(), "unknown" to TabCheckUnknown.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("verdict"),
+                allowed = listOf("verdict"),
+                fixed = listOf("verdict" to listOf(Literal.Text("gone"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("verdict", "name"),
+                allowed = listOf("verdict", "name", "mediaType"),
+                fixed = listOf("verdict" to listOf(Literal.Text("ready"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("verdict"),
+                allowed = listOf("verdict"),
+                fixed = listOf("verdict" to listOf(Literal.Text("unknown"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            TabCheckGone.serializer(),
+            TabCheckReady.serializer(),
+            TabCheckUnknown.serializer(),
+        )
+    },
 )

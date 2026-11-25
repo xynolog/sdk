@@ -7,10 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WorkerMessagesLoggedItem
 {
-    [global::Xynolog.Serialization.Wire("carries")] public required global::System.Collections.Generic.IReadOnlyList<string> Carries { get; init; }
-    [global::Xynolog.Serialization.Wire("fields")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, string> Fields { get; init; }
-    [global::Xynolog.Serialization.Wire("level")] public required global::Xynolog.Types.LogLevel Level { get; init; }
-    [global::Xynolog.Serialization.Wire("message")] public required string Message { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
+    [global::Xynolog.Serialization.Wire("level")] public required global::Xynolog.Types.LogLevel Level { get; init; }
     [global::Xynolog.Serialization.Wire("situation")] public required string Situation { get; init; }
+    [global::Xynolog.Serialization.Wire("message")] public required string Message { get; init; }
+    [global::Xynolog.Serialization.Wire("fields")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, string> Fields { get; init; }
+    [global::Xynolog.Serialization.Wire("carries")] public required global::System.Collections.Generic.IReadOnlyList<string> Carries { get; init; }
 }

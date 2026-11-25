@@ -4,7 +4,8 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireObject]
-public sealed record JobStoredResultObject
+[global::Xynolog.Serialization.WireEnum]
+public enum ExtractionDeclinedKind
 {
+    [global::System.Text.Json.Serialization.JsonStringEnumMemberName("declined")] Declined,
 }

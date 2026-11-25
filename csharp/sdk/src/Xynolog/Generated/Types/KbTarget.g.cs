@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KbTarget
 {
-    [global::Xynolog.Serialization.Wire("endpoint")] public required global::Xynolog.Types.KbEndpoint Endpoint { get; init; }
     [global::Xynolog.Serialization.Wire("id")] public required string Id { get; init; }
     [global::Xynolog.Serialization.Wire("label")] public required string Label { get; init; }
+    [global::Xynolog.Serialization.Wire("endpoint")] public required global::Xynolog.Types.KbEndpoint Endpoint { get; init; }
 }

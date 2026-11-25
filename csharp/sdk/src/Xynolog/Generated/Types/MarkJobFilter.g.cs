@@ -7,7 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MarkJobFilter
 {
-    public const string JobTypeValue = "mark";
-    [global::Xynolog.Serialization.Wire("jobType")] public string JobType => JobTypeValue;
+    [global::Xynolog.Serialization.Wire("jobType")] public global::Xynolog.Types.MarkJobFilterJobType JobType => global::Xynolog.Types.MarkJobFilterJobType.Mark;
     [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.MarkJobFilterParams Params { get; init; }
 }

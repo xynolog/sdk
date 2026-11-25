@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.KbReadVerdict (KbReadVerdict (..), KbReadVerdictConflictValue (..), KbReadVerdictNoVerdictValue (..), KbReadVerdictRecordedValue (..)) where
+module Xynolog.Internal.Generated.Models.KbReadVerdict (KbReadVerdict (..), KbReadVerdictConflict (..), KbReadVerdictNoVerdict (..), KbReadVerdictRecorded (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -11,7 +11,7 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.KbReadKind
 
-data KbReadVerdict = KbReadVerdictRecorded KbReadVerdictRecordedValue | KbReadVerdictConflict KbReadVerdictConflictValue | KbReadVerdictNoVerdict KbReadVerdictNoVerdictValue deriving (Eq, Show)
+data KbReadVerdict = KbReadVerdictRecorded KbReadVerdictRecorded | KbReadVerdictConflict KbReadVerdictConflict | KbReadVerdictNoVerdict KbReadVerdictNoVerdict deriving (Eq, Show)
 
 instance FromJSON KbReadVerdict where parseJSON = checked "KbReadVerdict" $ \value -> (KbReadVerdictRecorded <$> parseJSON value) <|> (KbReadVerdictConflict <$> parseJSON value) <|> (KbReadVerdictNoVerdict <$> parseJSON value)
 
@@ -20,31 +20,31 @@ instance ToJSON KbReadVerdict where
   toJSON (KbReadVerdictConflict value) = toJSON value
   toJSON (KbReadVerdictNoVerdict value) = toJSON value
 
-data KbReadVerdictConflictValue = KbReadVerdictConflictValue
-  { kbReadVerdictConflictValueKind :: KbReadKind,
-    kbReadVerdictConflictValueObservedDid :: Text,
-    kbReadVerdictConflictValueObservedName :: Text
+data KbReadVerdictConflict = MkKbReadVerdictConflict
+  { kbReadVerdictConflictKind :: KbReadKind,
+    kbReadVerdictConflictObservedDid :: Text,
+    kbReadVerdictConflictObservedName :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON KbReadVerdictConflictValue where parseJSON = checked "KbReadVerdictConflictValue" $ withObject "KbReadVerdictConflictValue" (\fields -> KbReadVerdictConflictValue <$> (fields .: "kind") <*> (fields .: "observedDid") <*> (fields .: "observedName"))
+instance FromJSON KbReadVerdictConflict where parseJSON = checked "KbReadVerdictConflict" $ withObject "KbReadVerdictConflict" (\fields -> MkKbReadVerdictConflict <$> (fields .: "kind") <*> (fields .: "observedDid") <*> (fields .: "observedName"))
 
-instance ToJSON KbReadVerdictConflictValue where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (kbReadVerdictConflictValueKind value))], [("observedDid", toJSON (kbReadVerdictConflictValueObservedDid value))], [("observedName", toJSON (kbReadVerdictConflictValueObservedName value))]]))
+instance ToJSON KbReadVerdictConflict where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (kbReadVerdictConflictKind value))], [("observedDid", toJSON (kbReadVerdictConflictObservedDid value))], [("observedName", toJSON (kbReadVerdictConflictObservedName value))]]))
 
-data KbReadVerdictNoVerdictValue = KbReadVerdictNoVerdictValue
-  { kbReadVerdictNoVerdictValueKind :: KbReadKind
+data KbReadVerdictNoVerdict = MkKbReadVerdictNoVerdict
+  { kbReadVerdictNoVerdictKind :: KbReadKind
   }
   deriving (Eq, Show)
 
-instance FromJSON KbReadVerdictNoVerdictValue where parseJSON = checked "KbReadVerdictNoVerdictValue" $ withObject "KbReadVerdictNoVerdictValue" (\fields -> KbReadVerdictNoVerdictValue <$> (fields .: "kind"))
+instance FromJSON KbReadVerdictNoVerdict where parseJSON = checked "KbReadVerdictNoVerdict" $ withObject "KbReadVerdictNoVerdict" (\fields -> MkKbReadVerdictNoVerdict <$> (fields .: "kind"))
 
-instance ToJSON KbReadVerdictNoVerdictValue where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (kbReadVerdictNoVerdictValueKind value))]]))
+instance ToJSON KbReadVerdictNoVerdict where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (kbReadVerdictNoVerdictKind value))]]))
 
-data KbReadVerdictRecordedValue = KbReadVerdictRecordedValue
-  { kbReadVerdictRecordedValueKind :: KbReadKind
+data KbReadVerdictRecorded = MkKbReadVerdictRecorded
+  { kbReadVerdictRecordedKind :: KbReadKind
   }
   deriving (Eq, Show)
 
-instance FromJSON KbReadVerdictRecordedValue where parseJSON = checked "KbReadVerdictRecordedValue" $ withObject "KbReadVerdictRecordedValue" (\fields -> KbReadVerdictRecordedValue <$> (fields .: "kind"))
+instance FromJSON KbReadVerdictRecorded where parseJSON = checked "KbReadVerdictRecorded" $ withObject "KbReadVerdictRecorded" (\fields -> MkKbReadVerdictRecorded <$> (fields .: "kind"))
 
-instance ToJSON KbReadVerdictRecordedValue where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (kbReadVerdictRecordedValueKind value))]]))
+instance ToJSON KbReadVerdictRecorded where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (kbReadVerdictRecordedKind value))]]))

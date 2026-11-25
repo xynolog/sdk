@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SignIn
 {
+    [global::Xynolog.Serialization.Wire("token")] public required string Token { get; init; }
+    [global::Xynolog.Serialization.Wire("refreshToken")] public string? RefreshToken { get; init; }
     [global::Xynolog.Serialization.Wire("email")] public string? Email { get; init; }
+    [global::Xynolog.Serialization.Wire("obtainedAt")] public required string ObtainedAt { get; init; }
     [global::Xynolog.Serialization.Wire("expiresAt")] public string? ExpiresAt { get; init; }
     [global::Xynolog.Serialization.Wire("issuer")] public required string Issuer { get; init; }
-    [global::Xynolog.Serialization.Wire("obtainedAt")] public required string ObtainedAt { get; init; }
-    [global::Xynolog.Serialization.Wire("refreshToken")] public string? RefreshToken { get; init; }
-    [global::Xynolog.Serialization.Wire("revocationEndpoint")] public string? RevocationEndpoint { get; init; }
-    [global::Xynolog.Serialization.Wire("token")] public required string Token { get; init; }
     [global::Xynolog.Serialization.Wire("tokenEndpoint")] public required string TokenEndpoint { get; init; }
+    [global::Xynolog.Serialization.Wire("revocationEndpoint")] public string? RevocationEndpoint { get; init; }
 }

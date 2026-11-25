@@ -13,15 +13,15 @@ import Xynolog.Internal.Generated.Models.KbEndpoint
 import Xynolog.Internal.Generated.Models.StoredSession
 
 data SignedIn = SignedIn
-  { signedInDescription :: KbDescription,
-    signedInEndpoint :: KbEndpoint,
-    signedInExpectedDid :: Maybe Text,
-    signedInExpectedName :: Maybe Text,
+  { signedInEndpoint :: KbEndpoint,
+    signedInDescription :: KbDescription,
+    signedInSession :: StoredSession,
     signedInKbId :: Maybe Text,
-    signedInSession :: StoredSession
+    signedInExpectedDid :: Maybe Text,
+    signedInExpectedName :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SignedIn where parseJSON = checked "SignedIn" $ withObject "SignedIn" (\fields -> SignedIn <$> (fields .: "description") <*> (fields .: "endpoint") <*> optional fields "expectedDid" <*> optional fields "expectedName" <*> optional fields "kbId" <*> (fields .: "session"))
+instance FromJSON SignedIn where parseJSON = checked "SignedIn" $ withObject "SignedIn" (\fields -> SignedIn <$> (fields .: "endpoint") <*> (fields .: "description") <*> (fields .: "session") <*> optional fields "kbId" <*> optional fields "expectedDid" <*> optional fields "expectedName")
 
-instance ToJSON SignedIn where toJSON value = Object (KM.fromList (concat [[("description", toJSON (signedInDescription value))], [("endpoint", toJSON (signedInEndpoint value))], optionalPair "expectedDid" (signedInExpectedDid value), optionalPair "expectedName" (signedInExpectedName value), optionalPair "kbId" (signedInKbId value), [("session", toJSON (signedInSession value))]]))
+instance ToJSON SignedIn where toJSON value = Object (KM.fromList (concat [[("endpoint", toJSON (signedInEndpoint value))], [("description", toJSON (signedInDescription value))], [("session", toJSON (signedInSession value))], optionalPair "kbId" (signedInKbId value), optionalPair "expectedDid" (signedInExpectedDid value), optionalPair "expectedName" (signedInExpectedName value)]))

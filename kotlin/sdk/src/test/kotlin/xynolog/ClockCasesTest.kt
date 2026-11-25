@@ -57,7 +57,6 @@ import xynolog.jobs.running
 import xynolog.live.KbWorld
 import xynolog.live.RESOURCE
 import xynolog.live.event
-import xynolog.retry.RetryPolicy
 import xynolog.session.TARGET
 import xynolog.session.XynologSession
 import xynolog.session.alice
@@ -75,6 +74,7 @@ import xynolog.types.HighlightingJobParams
 import xynolog.types.JobFilter
 import xynolog.types.JobProgress
 import xynolog.types.JobStatusResponse
+import xynolog.types.RetryBudget
 import xynolog.types.StoredSession
 import xynolog.types.wireJson
 import java.net.Authenticator
@@ -111,7 +111,7 @@ private fun timingMs(name: String): Long {
     val kept = Timings::class.java.getDeclaredField(constant).apply { isAccessible = true }
     return when (parts.size) {
         1 -> kept.getLong(null)
-        2 -> RetryPolicy::class.java.getMethod("get" + parts[1].replaceFirstChar(Char::uppercaseChar)).invoke(kept.get(null)) as Long
+        2 -> RetryBudget::class.java.getMethod("get" + parts[1].replaceFirstChar(Char::uppercaseChar)).invoke(kept.get(null)) as Long
         else -> throw AssertionError("$name names no timing")
     }
 }

@@ -12,12 +12,12 @@ import Xynolog.Internal.Generated.Models.FailureClass
 
 data ConformanceFailure = ConformanceFailure
   { conformanceFailureCode :: Maybe Text,
-    conformanceFailureDetail :: Text,
+    conformanceFailureStatus :: Maybe Integer,
     conformanceFailureFailureClass :: Maybe FailureClass,
-    conformanceFailureStatus :: Maybe Integer
+    conformanceFailureDetail :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceFailure where parseJSON = checked "ConformanceFailure" $ withObject "ConformanceFailure" (\fields -> ConformanceFailure <$> optional fields "code" <*> (fields .: "detail") <*> optional fields "failureClass" <*> optional fields "status")
+instance FromJSON ConformanceFailure where parseJSON = checked "ConformanceFailure" $ withObject "ConformanceFailure" (\fields -> ConformanceFailure <$> optional fields "code" <*> optional fields "status" <*> optional fields "failureClass" <*> (fields .: "detail"))
 
-instance ToJSON ConformanceFailure where toJSON value = Object (KM.fromList (concat [optionalPair "code" (conformanceFailureCode value), [("detail", toJSON (conformanceFailureDetail value))], optionalPair "failureClass" (conformanceFailureFailureClass value), optionalPair "status" (conformanceFailureStatus value)]))
+instance ToJSON ConformanceFailure where toJSON value = Object (KM.fromList (concat [optionalPair "code" (conformanceFailureCode value), optionalPair "status" (conformanceFailureStatus value), optionalPair "failureClass" (conformanceFailureFailureClass value), [("detail", toJSON (conformanceFailureDetail value))]]))

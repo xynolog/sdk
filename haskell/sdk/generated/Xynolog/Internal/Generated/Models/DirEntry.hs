@@ -10,16 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data DirEntry = DirEntry
-  { dirEntryMtime :: Text,
+  { dirEntryType :: DirEntryType,
     dirEntryName :: Text,
     dirEntryPath :: Text,
-    dirEntryType :: DirEntryType
+    dirEntryMtime :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON DirEntry where parseJSON = checked "DirEntry" $ withObject "DirEntry" (\fields -> DirEntry <$> (fields .: "mtime") <*> (fields .: "name") <*> (fields .: "path") <*> (fields .: "type"))
+instance FromJSON DirEntry where parseJSON = checked "DirEntry" $ withObject "DirEntry" (\fields -> DirEntry <$> (fields .: "type") <*> (fields .: "name") <*> (fields .: "path") <*> (fields .: "mtime"))
 
-instance ToJSON DirEntry where toJSON value = Object (KM.fromList (concat [[("mtime", toJSON (dirEntryMtime value))], [("name", toJSON (dirEntryName value))], [("path", toJSON (dirEntryPath value))], [("type", toJSON (dirEntryType value))]]))
+instance ToJSON DirEntry where toJSON value = Object (KM.fromList (concat [[("type", toJSON (dirEntryType value))], [("name", toJSON (dirEntryName value))], [("path", toJSON (dirEntryPath value))], [("mtime", toJSON (dirEntryMtime value))]]))
 
 data DirEntryType = DirEntryTypeDir deriving (Eq, Show)
 

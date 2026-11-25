@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.RequestId
 
 data Cancelled = Cancelled
-  { cancelledReason :: Maybe Text,
-    cancelledRequestId :: RequestId
+  { cancelledRequestId :: RequestId,
+    cancelledReason :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON Cancelled where parseJSON = checked "Cancelled" $ withObject "Cancelled" (\fields -> Cancelled <$> optional fields "reason" <*> (fields .: "requestId"))
+instance FromJSON Cancelled where parseJSON = checked "Cancelled" $ withObject "Cancelled" (\fields -> Cancelled <$> (fields .: "requestId") <*> optional fields "reason")
 
-instance ToJSON Cancelled where toJSON value = Object (KM.fromList (concat [optionalPair "reason" (cancelledReason value), [("requestId", toJSON (cancelledRequestId value))]]))
+instance ToJSON Cancelled where toJSON value = Object (KM.fromList (concat [[("requestId", toJSON (cancelledRequestId value))], optionalPair "reason" (cancelledReason value)]))

@@ -188,7 +188,9 @@ let typed (spec : Spec.t) =
    held to its schema by a census in every SDK; PutBinaryRequest, whose file
    is bytes, which the Swift, Kotlin and Haskell writers state as text; and
    what the engines and content methods return, which waits on each SDK's
-   methods returning what client/surface.json says they return. *)
+   methods returning what client/surface.json says they return; and
+   ByteStream, which only ResourceRepresentationStream holds, as each SDK's
+   own read-once stream. *)
 let hand_written_client_types =
   [
     "SearchState";
@@ -198,6 +200,7 @@ let hand_written_client_types =
     "EnginesWithLimits";
     "ResourceRepresentation";
     "ResourceRepresentationStream";
+    "ByteStream";
   ]
 
 (* The client types every SDK generates, by name: each file of

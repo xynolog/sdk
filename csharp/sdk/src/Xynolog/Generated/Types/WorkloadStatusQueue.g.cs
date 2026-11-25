@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WorkloadStatusQueue
 {
-    [global::Xynolog.Serialization.Wire("completed")] public long? Completed { get; init; }
-    [global::Xynolog.Serialization.Wire("failed")] public long? Failed { get; init; }
     [global::Xynolog.Serialization.Wire("pending")] public required long Pending { get; init; }
     [global::Xynolog.Serialization.Wire("running")] public required long Running { get; init; }
+    [global::Xynolog.Serialization.Wire("completed")] public long? Completed { get; init; }
+    [global::Xynolog.Serialization.Wire("failed")] public long? Failed { get; init; }
 }

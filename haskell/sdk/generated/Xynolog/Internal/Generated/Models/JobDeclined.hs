@@ -25,20 +25,20 @@ instance FromJSON JobDeclinedDeclined where parseJSON = checked "JobDeclinedDecl
 
 instance ToJSON JobDeclinedDeclined where toJSON JobDeclinedDeclinedTrue = Bool True
 
-data JobDeclinedReason = JobDeclinedReasonNoU2d_textU2d_layer | JobDeclinedReasonEncrypted | JobDeclinedReasonCorrupt | JobDeclinedReasonTooU2d_large | JobDeclinedReasonEmpty deriving (Eq, Show)
+data JobDeclinedReason = JobDeclinedReasonNoTextLayer | JobDeclinedReasonEncrypted | JobDeclinedReasonCorrupt | JobDeclinedReasonTooLarge | JobDeclinedReasonEmpty deriving (Eq, Show)
 
-instance FromJSON JobDeclinedReason where parseJSON = checked "JobDeclinedReason" $ \value -> if value == String "no-text-layer" then pure JobDeclinedReasonNoU2d_textU2d_layer else if value == String "encrypted" then pure JobDeclinedReasonEncrypted else if value == String "corrupt" then pure JobDeclinedReasonCorrupt else if value == String "too-large" then pure JobDeclinedReasonTooU2d_large else if value == String "empty" then pure JobDeclinedReasonEmpty else fail "unknown enumeration member"
+instance FromJSON JobDeclinedReason where parseJSON = checked "JobDeclinedReason" $ \value -> if value == String "no-text-layer" then pure JobDeclinedReasonNoTextLayer else if value == String "encrypted" then pure JobDeclinedReasonEncrypted else if value == String "corrupt" then pure JobDeclinedReasonCorrupt else if value == String "too-large" then pure JobDeclinedReasonTooLarge else if value == String "empty" then pure JobDeclinedReasonEmpty else fail "unknown enumeration member"
 
 instance ToJSON JobDeclinedReason where
-  toJSON JobDeclinedReasonNoU2d_textU2d_layer = String "no-text-layer"
+  toJSON JobDeclinedReasonNoTextLayer = String "no-text-layer"
   toJSON JobDeclinedReasonEncrypted = String "encrypted"
   toJSON JobDeclinedReasonCorrupt = String "corrupt"
-  toJSON JobDeclinedReasonTooU2d_large = String "too-large"
+  toJSON JobDeclinedReasonTooLarge = String "too-large"
   toJSON JobDeclinedReasonEmpty = String "empty"
 
 jobDeclinedReasonText :: JobDeclinedReason -> Text
-jobDeclinedReasonText JobDeclinedReasonNoU2d_textU2d_layer = "no-text-layer"
+jobDeclinedReasonText JobDeclinedReasonNoTextLayer = "no-text-layer"
 jobDeclinedReasonText JobDeclinedReasonEncrypted = "encrypted"
 jobDeclinedReasonText JobDeclinedReasonCorrupt = "corrupt"
-jobDeclinedReasonText JobDeclinedReasonTooU2d_large = "too-large"
+jobDeclinedReasonText JobDeclinedReasonTooLarge = "too-large"
 jobDeclinedReasonText JobDeclinedReasonEmpty = "empty"

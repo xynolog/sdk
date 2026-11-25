@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record SettingsGetParams
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.ApiVersion ApiVersion { get; init; }
-    [global::Xynolog.Serialization.Wire("default")] public bool? Default { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
+    [global::Xynolog.Serialization.Wire("default")] public bool? Default { get; init; }
     [global::Xynolog.Serialization.Wire("root")] public string? Root { get; init; }
 }

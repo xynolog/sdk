@@ -182,10 +182,10 @@ withAccount options authority clientId pem wallNow use = do
     Service.dispose use
 ```
 
-`Session.signInAgent http options budget service` opens a session for that
-account and keeps the DID the gateway actually returned; it keeps no caches. Supply its startup
-`RetryBudget` explicitly: unreachable peers and boot-transient responses retry,
-and a refused freshly issued credential ends the attempt. The service token
+`Session.signInAgent http options service` opens a session for that
+account and keeps the DID the gateway actually returned; it keeps no caches. It
+signs in once: a failure is thrown as it came, and starting the sign-in again
+is the service's, on its own backoff. The service token
 remains owned by its caller. Each renewal is handed the token it renews: the
 one held, expired or not, at the start the stored one though it has expired,
 and after a renewal that got no answer, the one that renewal was for;

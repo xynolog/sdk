@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceImplementationsSdksValue
 {
-    [global::Xynolog.Serialization.Wire("exempt")] public global::System.Collections.Generic.IReadOnlyDictionary<string, string>? Exempt { get; init; }
-    [global::Xynolog.Serialization.Wire("live")] public global::Xynolog.Types.ConformanceImplementationsSdksValueLive? Live { get; init; }
     [global::Xynolog.Serialization.Wire("wire")] public global::System.Collections.Generic.IReadOnlyList<string>? Wire { get; init; }
+    [global::Xynolog.Serialization.Wire("live")] public global::Xynolog.Types.ConformanceImplementationsSdksValueLive? Live { get; init; }
     [global::Xynolog.Serialization.Wire("worker")] public global::System.Collections.Generic.IReadOnlyList<string>? Worker { get; init; }
+    [global::Xynolog.Serialization.Wire("exempt")] public global::System.Collections.Generic.IReadOnlyDictionary<string, string>? Exempt { get; init; }
 }

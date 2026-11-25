@@ -28,7 +28,7 @@ public struct HttpSessionFactory: SessionFactory {
   public func session(_ options: SessionFactoryOptions) async throws -> OpenedSession {
     let kb = options.kb
     return try await sessionFromKept(
-      kb: KbTarget(endpoint: kb.endpoint, id: kb.id, label: kb.label),
+      kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint),
       kept: keptIn(options.storage, kbId: kb.id), httpClient: httpClient,
       onAuthFailed: options.signals.notifySessionEnded, storage: options.storage, clock: clock,
       random: random)

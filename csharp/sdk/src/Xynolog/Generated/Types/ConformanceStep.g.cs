@@ -4,35 +4,36 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(ConformanceStep.LetCase), typeof(ConformanceStep.DriverCase), typeof(ConformanceStep.AbandonCase), typeof(ConformanceStep.SettlesCase), typeof(ConformanceStep.WireCase), typeof(ConformanceStep.CarriedCase), typeof(ConformanceStep.ClosedCase), typeof(ConformanceStep.ProgressCase), typeof(ConformanceStep.StateCase), typeof(ConformanceStep.StaysCase), typeof(ConformanceStep.FrameCase), typeof(ConformanceStep.FramesCase), typeof(ConformanceStep.ErrorCase), typeof(ConformanceStep.BackendCase), typeof(ConformanceStep.QuietCase), typeof(ConformanceStep.ObserveCase), typeof(ConformanceStep.LeaveCase), typeof(ConformanceStep.ReachesCase), typeof(ConformanceStep.HoldsCase), typeof(ConformanceStep.CompletesCase), typeof(ConformanceStep.ConformanceBusFetchCase), typeof(ConformanceStep.ConformanceHttpFetchCase), typeof(ConformanceStep.FetchesCase), typeof(ConformanceStep.ScopesCase), typeof(ConformanceStep.ClaimedCase), typeof(ConformanceStep.RefusedCase), typeof(ConformanceStep.SignalledCase), typeof(ConformanceStep.StalledCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(ConformanceStep.Let), typeof(ConformanceStep.Driver), typeof(ConformanceStep.Abandon), typeof(ConformanceStep.Settles), typeof(ConformanceStep.Wire), typeof(ConformanceStep.Carried), typeof(ConformanceStep.Closed), typeof(ConformanceStep.Progress), typeof(ConformanceStep.State), typeof(ConformanceStep.Stays), typeof(ConformanceStep.Frame), typeof(ConformanceStep.Frames), typeof(ConformanceStep.Error), typeof(ConformanceStep.Backend), typeof(ConformanceStep.Quiet), typeof(ConformanceStep.Observe), typeof(ConformanceStep.Leave), typeof(ConformanceStep.Reaches), typeof(ConformanceStep.Holds), typeof(ConformanceStep.Completes), typeof(ConformanceStep.ConformanceBusFetch), typeof(ConformanceStep.ConformanceHttpFetch), typeof(ConformanceStep.Fetches), typeof(ConformanceStep.Scopes), typeof(ConformanceStep.Claimed), typeof(ConformanceStep.Refused), typeof(ConformanceStep.Signalled), typeof(ConformanceStep.Stalled))]
 public closed record ConformanceStep
 {
-    public sealed record LetCase(global::Xynolog.Types.ConformanceStepLet Value) : ConformanceStep;
-    public sealed record DriverCase(global::Xynolog.Types.ConformanceStepDriver Value) : ConformanceStep;
-    public sealed record AbandonCase(global::Xynolog.Types.ConformanceStepAbandon Value) : ConformanceStep;
-    public sealed record SettlesCase(global::Xynolog.Types.ConformanceStepSettles Value) : ConformanceStep;
-    public sealed record WireCase(global::Xynolog.Types.ConformanceStepWire Value) : ConformanceStep;
-    public sealed record CarriedCase(global::Xynolog.Types.ConformanceStepCarried Value) : ConformanceStep;
-    public sealed record ClosedCase(global::Xynolog.Types.ConformanceStepClosed Value) : ConformanceStep;
-    public sealed record ProgressCase(global::Xynolog.Types.ConformanceStepProgress Value) : ConformanceStep;
-    public sealed record StateCase(global::Xynolog.Types.ConformanceStepState Value) : ConformanceStep;
-    public sealed record StaysCase(global::Xynolog.Types.ConformanceStepStays Value) : ConformanceStep;
-    public sealed record FrameCase(global::Xynolog.Types.ConformanceStepFrame Value) : ConformanceStep;
-    public sealed record FramesCase(global::Xynolog.Types.ConformanceStepFrames Value) : ConformanceStep;
-    public sealed record ErrorCase(global::Xynolog.Types.ConformanceStepError Value) : ConformanceStep;
-    public sealed record BackendCase(global::Xynolog.Types.ConformanceStepBackend Value) : ConformanceStep;
-    public sealed record QuietCase(global::Xynolog.Types.ConformanceStepQuiet Value) : ConformanceStep;
-    public sealed record ObserveCase(global::Xynolog.Types.ConformanceStepObserve Value) : ConformanceStep;
-    public sealed record LeaveCase(global::Xynolog.Types.ConformanceStepLeave Value) : ConformanceStep;
-    public sealed record ReachesCase(global::Xynolog.Types.ConformanceStepReaches Value) : ConformanceStep;
-    public sealed record HoldsCase(global::Xynolog.Types.ConformanceStepHolds Value) : ConformanceStep;
-    public sealed record CompletesCase(global::Xynolog.Types.ConformanceStepCompletes Value) : ConformanceStep;
-    public sealed record ConformanceBusFetchCase(global::Xynolog.Types.ConformanceBusFetch Value) : ConformanceStep;
-    public sealed record ConformanceHttpFetchCase(global::Xynolog.Types.ConformanceHttpFetch Value) : ConformanceStep;
-    public sealed record FetchesCase(global::Xynolog.Types.ConformanceStepFetches Value) : ConformanceStep;
-    public sealed record ScopesCase(global::Xynolog.Types.ConformanceStepScopes Value) : ConformanceStep;
-    public sealed record ClaimedCase(global::Xynolog.Types.ConformanceStepClaimed Value) : ConformanceStep;
-    public sealed record RefusedCase(global::Xynolog.Types.ConformanceStepRefused Value) : ConformanceStep;
-    public sealed record SignalledCase(global::Xynolog.Types.ConformanceStepSignalled Value) : ConformanceStep;
-    public sealed record StalledCase(global::Xynolog.Types.ConformanceStepStalled Value) : ConformanceStep;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["let"], ["let"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["driver"], ["driver", "with", "returns", "fails", "as"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["abandon"], ["abandon"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["settles"], ["settles", "returns", "fails", "abandoned"], [new("abandoned", [new global::Xynolog.Serialization.Literal.Boolean(true)])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["wire"], ["wire", "at", "status", "params", "body", "token", "headers", "answer", "as", "follows", "waited"], [new("at", [new global::Xynolog.Serialization.Literal.Text("arrival"), new global::Xynolog.Serialization.Literal.Text("answer"), new global::Xynolog.Serialization.Literal.Text("live")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["carried", "is"], ["carried", "is"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["closed"], ["closed"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["progress"], ["progress"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["state"], ["state"], [new("state", [new global::Xynolog.Serialization.Literal.Text("initial"), new global::Xynolog.Serialization.Literal.Text("connecting"), new global::Xynolog.Serialization.Literal.Text("open"), new global::Xynolog.Serialization.Literal.Text("reconnecting"), new global::Xynolog.Serialization.Literal.Text("degraded"), new global::Xynolog.Serialization.Literal.Text("unauthenticated"), new global::Xynolog.Serialization.Literal.Text("closed")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["stays"], ["stays"], [new("stays", [new global::Xynolog.Serialization.Literal.Text("initial"), new global::Xynolog.Serialization.Literal.Text("connecting"), new global::Xynolog.Serialization.Literal.Text("open"), new global::Xynolog.Serialization.Literal.Text("reconnecting"), new global::Xynolog.Serialization.Literal.Text("degraded"), new global::Xynolog.Serialization.Literal.Text("unauthenticated"), new global::Xynolog.Serialization.Literal.Text("closed")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["frame", "is"], ["frame", "is"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["frames", "count"], ["frames", "count"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["error"], ["error"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["backend"], ["backend", "with"], [new("backend", [new global::Xynolog.Serialization.Literal.Text("listen"), new global::Xynolog.Serialization.Literal.Text("emit"), new global::Xynolog.Serialization.Literal.Text("record"), new global::Xynolog.Serialization.Literal.Text("content"), new global::Xynolog.Serialization.Literal.Text("description"), new global::Xynolog.Serialization.Literal.Text("annotations"), new global::Xynolog.Serialization.Literal.Text("anchored-text"), new global::Xynolog.Serialization.Literal.Text("uploaded"), new global::Xynolog.Serialization.Literal.Text("refuse"), new global::Xynolog.Serialization.Literal.Text("unanswered"), new global::Xynolog.Serialization.Literal.Text("answer-lost"), new global::Xynolog.Serialization.Literal.Text("hold"), new global::Xynolog.Serialization.Literal.Text("release"), new global::Xynolog.Serialization.Literal.Text("rechunk"), new global::Xynolog.Serialization.Literal.Text("carry"), new global::Xynolog.Serialization.Literal.Text("cut"), new global::Xynolog.Serialization.Literal.Text("down"), new global::Xynolog.Serialization.Literal.Text("up"), new global::Xynolog.Serialization.Literal.Text("archivist")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["quiet"], ["quiet"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["observe", "as"], ["observe", "as"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["leave"], ["leave"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["reaches", "state"], ["reaches", "state"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["holds", "state"], ["holds", "state"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["completes"], ["completes"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["fetch", "as"], ["fetch", "payload", "as"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["fetch"], ["fetch", "params"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["fetches"], ["fetches"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["scopes"], ["scopes"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["claimed"], ["claimed"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["refused"], ["refused"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["signalled"], ["signalled"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["stalled"], ["stalled"], [], null)]];
+    public sealed record Let(global::Xynolog.Types.ConformanceStepLet Value) : ConformanceStep;
+    public sealed record Driver(global::Xynolog.Types.ConformanceStepDriver Value) : ConformanceStep;
+    public sealed record Abandon(global::Xynolog.Types.ConformanceStepAbandon Value) : ConformanceStep;
+    public sealed record Settles(global::Xynolog.Types.ConformanceStepSettles Value) : ConformanceStep;
+    public sealed record Wire(global::Xynolog.Types.ConformanceStepWire Value) : ConformanceStep;
+    public sealed record Carried(global::Xynolog.Types.ConformanceStepCarried Value) : ConformanceStep;
+    public sealed record Closed(global::Xynolog.Types.ConformanceStepClosed Value) : ConformanceStep;
+    public sealed record Progress(global::Xynolog.Types.ConformanceStepProgress Value) : ConformanceStep;
+    public sealed record State(global::Xynolog.Types.ConformanceStepState Value) : ConformanceStep;
+    public sealed record Stays(global::Xynolog.Types.ConformanceStepStays Value) : ConformanceStep;
+    public sealed record Frame(global::Xynolog.Types.ConformanceStepFrame Value) : ConformanceStep;
+    public sealed record Frames(global::Xynolog.Types.ConformanceStepFrames Value) : ConformanceStep;
+    public sealed record Error(global::Xynolog.Types.ConformanceStepError Value) : ConformanceStep;
+    public sealed record Backend(global::Xynolog.Types.ConformanceStepBackend Value) : ConformanceStep;
+    public sealed record Quiet(global::Xynolog.Types.ConformanceStepQuiet Value) : ConformanceStep;
+    public sealed record Observe(global::Xynolog.Types.ConformanceStepObserve Value) : ConformanceStep;
+    public sealed record Leave(global::Xynolog.Types.ConformanceStepLeave Value) : ConformanceStep;
+    public sealed record Reaches(global::Xynolog.Types.ConformanceStepReaches Value) : ConformanceStep;
+    public sealed record Holds(global::Xynolog.Types.ConformanceStepHolds Value) : ConformanceStep;
+    public sealed record Completes(global::Xynolog.Types.ConformanceStepCompletes Value) : ConformanceStep;
+    public sealed record ConformanceBusFetch(global::Xynolog.Types.ConformanceBusFetch Value) : ConformanceStep;
+    public sealed record ConformanceHttpFetch(global::Xynolog.Types.ConformanceHttpFetch Value) : ConformanceStep;
+    public sealed record Fetches(global::Xynolog.Types.ConformanceStepFetches Value) : ConformanceStep;
+    public sealed record Scopes(global::Xynolog.Types.ConformanceStepScopes Value) : ConformanceStep;
+    public sealed record Claimed(global::Xynolog.Types.ConformanceStepClaimed Value) : ConformanceStep;
+    public sealed record Refused(global::Xynolog.Types.ConformanceStepRefused Value) : ConformanceStep;
+    public sealed record Signalled(global::Xynolog.Types.ConformanceStepSignalled Value) : ConformanceStep;
+    public sealed record Stalled(global::Xynolog.Types.ConformanceStepStalled Value) : ConformanceStep;
 }

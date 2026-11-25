@@ -452,7 +452,7 @@ class SessionFromKeptTest {
             val access = tokenFor("access-1")
             val renewed = tokenFor("access-2")
             // The issuer does not answer the renewal of the refused token, through its whole retry budget, and then renews it.
-            repeat(xynolog.Timings.REFRESH_RETRY.attempts) { realm.script("/token", Said(503, buildJsonObject { put("error", "unavailable") })) }
+            repeat(xynolog.Timings.REFRESH_RETRY.attempts.toInt()) { realm.script("/token", Said(503, buildJsonObject { put("error", "unavailable") })) }
             realm.script("/token", issued(renewed, "refresh-2"))
             val kept = MemorySignIn(StoredSession(access, "refresh-1", SCRIPT_CLIENT_ID, "${realm.origin}/token", null, null))
             sessionFromKept(kb(realm), kept, random = LowestDraw).use { opened ->
@@ -466,7 +466,7 @@ class SessionFromKeptTest {
                 // The renewal on the reconnect backoff is handed the token that renewal was for, the one kept, which the
                 // gateway refused: so the issuer is asked, and its new token is the session's, not the refused one.
                 withTimeout(15_000) { session.token.first { it == renewed } }
-                assertEquals(xynolog.Timings.REFRESH_RETRY.attempts + 1, realm.of("/token").size)
+                assertEquals(xynolog.Timings.REFRESH_RETRY.attempts.toInt() + 1, realm.of("/token").size)
                 assertEquals(renewed, kept.held()?.access)
             }
         }

@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistStream
 {
-    [global::Xynolog.Serialization.Wire("lastSequence")] public required long LastSequence { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("lastSequence")] public required long LastSequence { get; init; }
 }

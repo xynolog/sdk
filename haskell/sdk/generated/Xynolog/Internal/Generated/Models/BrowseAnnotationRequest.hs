@@ -11,12 +11,11 @@ import Xynolog.Internal.Generated.Models.AnnotationId
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data BrowseAnnotationRequest = BrowseAnnotationRequest
-  { browseAnnotationRequestAnnotationId :: AnnotationId,
-    browseAnnotationRequestResourceId :: ResourceId,
-    browseAnnotationRequestAdditionalProperties :: KM.KeyMap Value
+  { browseAnnotationRequestResourceId :: ResourceId,
+    browseAnnotationRequestAnnotationId :: AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseAnnotationRequest where parseJSON = checked "BrowseAnnotationRequest" $ withObject "BrowseAnnotationRequest" (\fields -> BrowseAnnotationRequest <$> (fields .: "annotationId") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["annotationId", "resourceId"] fields))
+instance FromJSON BrowseAnnotationRequest where parseJSON = checked "BrowseAnnotationRequest" $ withObject "BrowseAnnotationRequest" (\fields -> BrowseAnnotationRequest <$> (fields .: "resourceId") <*> (fields .: "annotationId"))
 
-instance ToJSON BrowseAnnotationRequest where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (browseAnnotationRequestAnnotationId value))], [("resourceId", toJSON (browseAnnotationRequestResourceId value))]]) <> fmap toJSON (withoutFields ["annotationId", "resourceId"] (browseAnnotationRequestAdditionalProperties value)))
+instance ToJSON BrowseAnnotationRequest where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (browseAnnotationRequestResourceId value))], [("annotationId", toJSON (browseAnnotationRequestAnnotationId value))]]))

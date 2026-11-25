@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record ServiceTelemetryLogLines
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("bus")] public required global::Xynolog.Types.ServiceTelemetryLogLinesBus Bus { get; init; }
     [global::Xynolog.Serialization.Wire("logger")] public required global::Xynolog.Types.ServiceTelemetryLogLinesLogger Logger { get; init; }
+    [global::Xynolog.Serialization.Wire("bus")] public required global::Xynolog.Types.ServiceTelemetryLogLinesBus Bus { get; init; }
     [global::Xynolog.Serialization.Wire("supervisor")] public required global::Xynolog.Types.ServiceTelemetryLogLinesSupervisor Supervisor { get; init; }
 }

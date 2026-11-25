@@ -129,7 +129,7 @@ data Claims = Claims
 -- | Claims on the transport, waiting by the bus clock, each wait the claim
 -- options leave out the timing's.
 newClaims :: Transport.Transport -> Bus.BusOptions -> Timing.Settings -> ClaimOptions -> IO Claims
-newClaims carrier busClock base (ClaimOptions filters stallCheckMs stallMs claimTimeoutMs commitTimeoutMs) = do
+newClaims carrier busClock base (ClaimOptions {claimOptionsAccepts = filters, claimOptionsHeldJobStallCheckMs = stallCheckMs, claimOptionsHeldJobStallMs = stallMs, claimOptionsJobClaimTimeoutMs = claimTimeoutMs, claimOptionsMarkCommitTimeoutMs = commitTimeoutMs}) = do
   let waits =
         base
           { Timing.heldJobStallCheckMs = fromMaybe (Timing.heldJobStallCheckMs base) stallCheckMs,
@@ -184,7 +184,7 @@ annotationId job = case jobType job of
   JobTypeYield -> do
     Success generation <- Just (fromJSON (toJSON (params job)))
     GatheredContextFocusAnnotation focus <- Just (gatheredContextFocus (generationJobParamsContext generation))
-    Just (Types.annotationId (gatheredContextFocusAnnotationValueAnnotation focus))
+    Just (Types.annotationId (gatheredContextFocusAnnotationAnnotation focus))
 
 trace :: HeldJob result -> Maybe TraceCarrier
 trace = heldTrace
@@ -346,7 +346,7 @@ claimLoop claims = forever $ mask $ \restore -> do
     connection <- State.current (Transport.state (transport claims))
     check (connection == Transport.Open)
     takeTMVar (wake claims)
-  let command = JobClaimCommand Nothing Nothing (accepts claims) KM.empty
+  let command = JobClaimCommand {jobClaimCommandRoles = Nothing, jobClaimCommandUserId = Nothing, jobClaimCommandAccepts = (accepts claims)}
       rooted action = bracket (attachContext Context.empty) detachContext (const action)
   outcome <-
     restore
@@ -476,7 +476,7 @@ start job = withMVar (heldGate job) $ \() -> do
     before <- readTVar (heldState job)
     unless (before == Claimed) (throwSTM StartAlreadySaid)
     writeTVar (heldState job) Begun
-  emit job JobStart (JobStartCommand Nothing (annotationId job) (Just (attempt job)) (jobId job) (jobType job) (resourceId job) KM.empty)
+  emit job JobStart (JobStartCommand {jobStartCommandUserId = Nothing, jobStartCommandAnnotationId = (annotationId job), jobStartCommandAttempt = (Just (attempt job)), jobStartCommandJobId = (jobId job), jobStartCommandJobType = (jobType job), jobStartCommandResourceId = (resourceId job)})
 
 progress :: HeldJob result -> JobProgress -> IO ()
 progress job value = withMVar (heldGate job) $ \() -> do
@@ -486,17 +486,7 @@ progress job value = withMVar (heldGate job) $ \() -> do
   emit
     job
     JobReportProgress
-    ( JobReportProgressCommand
-        Nothing
-        (annotationId job)
-        (Just (attempt job))
-        (jobId job)
-        (jobType job)
-        (jobProgressPercentage value)
-        (Just report)
-        (resourceId job)
-        KM.empty
-    )
+    (JobReportProgressCommand {jobReportProgressCommandUserId = Nothing, jobReportProgressCommandAnnotationId = (annotationId job), jobReportProgressCommandAttempt = (Just (attempt job)), jobReportProgressCommandJobId = (jobId job), jobReportProgressCommandJobType = (jobType job), jobReportProgressCommandPercentage = (jobProgressPercentage value), jobReportProgressCommandProgress = (Just report), jobReportProgressCommandResourceId = (resourceId job)})
 
 checkpoint :: HeldJob result -> JobCheckpoint -> IO ()
 checkpoint job value = withMVar (heldGate job) $ \() -> do
@@ -505,19 +495,13 @@ checkpoint job value = withMVar (heldGate job) $ \() -> do
   emit
     job
     Ch.JobCheckpoint
-    ( JobCheckpointCommand
-        Nothing
-        (jobCheckpointCompletedUnits value)
-        (jobId job)
-        (JobCheckpointCommandUnitCursors <$> jobCheckpointUnitCursors value)
-        KM.empty
-    )
+    (JobCheckpointCommand {jobCheckpointCommandUserId = Nothing, jobCheckpointCommandCompletedUnits = (jobCheckpointCompletedUnits value), jobCheckpointCommandJobId = (jobId job), jobCheckpointCommandUnitCursors = (JobCheckpointCommandUnitCursors <$> jobCheckpointUnitCursors value)})
 
 weakness :: DurabilityEvidence -> Int
 weakness DurabilityEvidenceAcknowledged = 0
-weakness DurabilityEvidenceProbeU2d_confirmed = 1
-weakness DurabilityEvidenceProbeU2d_refused = 2
-weakness DurabilityEvidenceProbeU2d_unreachable = 2
+weakness DurabilityEvidenceProbeConfirmed = 1
+weakness DurabilityEvidenceProbeRefused = 2
+weakness DurabilityEvidenceProbeUnreachable = 2
 
 observeDurability :: HeldJob result -> DurabilityEvidence -> IO ()
 observeDurability job observed = atomically $ modifyTVar' (heldDurability job) $ \prior ->
@@ -531,7 +515,7 @@ commit job resource annotations = withMVar (heldGate job) $ \() -> do
     lastAnnotation : _ -> do
       let claims = heldClaims job
           timeoutMs = Timing.markCommitTimeoutMs (timing claims)
-          send = Bus.request (wire claims) MarkCommitOperation (MarkCommitCommand Nothing Nothing annotations (Just (jobId job)) resource KM.empty) timeoutMs
+          send = Bus.request (wire claims) MarkCommitOperation (MarkCommitCommand {markCommitCommandRoles = Nothing, markCommitCommandUserId = Nothing, markCommitCommandAnnotations = annotations, markCommitCommandJobId = (Just (jobId job)), markCommitCommandResourceId = resource}) timeoutMs
       result <- try send
       case result of
         Right _ -> observeDurability job DurabilityEvidenceAcknowledged
@@ -541,15 +525,15 @@ commit job resource annotations = withMVar (heldGate job) $ \() -> do
               ( Bus.request
                   (wire claims)
                   BrowseAnnotationRequestedOperation
-                  (BrowseAnnotationRequest (Types.annotationId lastAnnotation) resource KM.empty)
+                  (BrowseAnnotationRequest {browseAnnotationRequestAnnotationId = (Types.annotationId lastAnnotation), browseAnnotationRequestResourceId = resource})
                   timeoutMs
               )
           let evidence = case probe of
-                Right _ -> DurabilityEvidenceProbeU2d_confirmed
-                Left failure | Just refusedProbe <- fromException failure, busRequestErrorCode refusedProbe == BusRequestRejected -> DurabilityEvidenceProbeU2d_refused
-                Left _ -> DurabilityEvidenceProbeU2d_unreachable
+                Right _ -> DurabilityEvidenceProbeConfirmed
+                Left failure | Just refusedProbe <- fromException failure, busRequestErrorCode refusedProbe == BusRequestRejected -> DurabilityEvidenceProbeRefused
+                Left _ -> DurabilityEvidenceProbeUnreachable
           observeDurability job evidence
-          unless (evidence == DurabilityEvidenceProbeU2d_confirmed) (throwIO problem)
+          unless (evidence == DurabilityEvidenceProbeConfirmed) (throwIO problem)
         Left problem -> throwIO problem
 
 release :: HeldJob result -> Bool -> IO ()
@@ -581,56 +565,23 @@ complete job result = settle job True $ do
   let payload = case heldCompletion job of
         MarkCompletion ->
           JobCompleteCommandMarkJobCompleteCommand
-            ( MarkJobCompleteCommand
-                Nothing
-                (Just (attempt job))
-                durability
-                (jobId job)
-                MarkJobCompleteCommandJobTypeMark
-                (resourceId job)
-                (Just result)
-                KM.empty
-            )
+            (MarkJobCompleteCommand {markJobCompleteCommandUserId = Nothing, markJobCompleteCommandAttempt = (Just (attempt job)), markJobCompleteCommandDurability = durability, markJobCompleteCommandJobId = (jobId job), markJobCompleteCommandJobType = MarkJobCompleteCommandJobTypeMark, markJobCompleteCommandResourceId = (resourceId job), markJobCompleteCommandResult = (Just result)})
         YieldCompletion ->
           JobCompleteCommandYieldJobCompleteCommand
-            ( YieldJobCompleteCommand
-                Nothing
-                (annotationId job)
-                (Just (attempt job))
-                durability
-                (jobId job)
-                YieldJobCompleteCommandJobTypeYield
-                (resourceId job)
-                (Just result)
-                KM.empty
-            )
+            (YieldJobCompleteCommand {yieldJobCompleteCommandUserId = Nothing, yieldJobCompleteCommandAnnotationId = (annotationId job), yieldJobCompleteCommandAttempt = (Just (attempt job)), yieldJobCompleteCommandDurability = durability, yieldJobCompleteCommandJobId = (jobId job), yieldJobCompleteCommandJobType = YieldJobCompleteCommandJobTypeYield, yieldJobCompleteCommandResourceId = (resourceId job), yieldJobCompleteCommandResult = (Just result)})
   emit job Ch.JobComplete payload
 
 fail :: HeldJob result -> Text -> Maybe JobFailure -> IO ()
 fail job message failure = settle job False $ do
   observed <- readTVarIO (heldDurability job)
-  let durability = observed >>= \value -> if weakness value > weakness DurabilityEvidenceProbeU2d_confirmed then Just value else Nothing
+  let durability = observed >>= \value -> if weakness value > weakness DurabilityEvidenceProbeConfirmed then Just value else Nothing
       classification = failure >>= jobFailureFailureClass
       units = failure >>= jobFailureCompletedUnits
       cursors = JobFailCommandUnitCursors <$> (failure >>= jobFailureUnitCursors)
   emit
     job
     JobFail
-    ( JobFailCommand
-        Nothing
-        (annotationId job)
-        (Just (attempt job))
-        units
-        durability
-        message
-        classification
-        (jobId job)
-        (jobType job)
-        (resourceId job)
-        cursors
-        (Just (willRetryAfter (jobRunningMetadata (heldRecord job)) classification))
-        KM.empty
-    )
+    (JobFailCommand {jobFailCommandUserId = Nothing, jobFailCommandAnnotationId = (annotationId job), jobFailCommandAttempt = (Just (attempt job)), jobFailCommandCompletedUnits = units, jobFailCommandDurability = durability, jobFailCommandError = message, jobFailCommandFailureClass = classification, jobFailCommandJobId = (jobId job), jobFailCommandJobType = (jobType job), jobFailCommandResourceId = (resourceId job), jobFailCommandUnitCursors = cursors, jobFailCommandWillRetry = (Just (willRetryAfter (jobRunningMetadata (heldRecord job)) classification))})
 
 cancel :: HeldJob result -> Maybe JobReached -> IO ()
 cancel job reached =
@@ -638,13 +589,4 @@ cancel job reached =
     emit
       job
       JobCancel
-      ( JobCancelCommand
-          Nothing
-          (annotationId job)
-          (reached >>= jobReachedCompletedUnits)
-          (jobId job)
-          (jobType job)
-          (resourceId job)
-          (JobCancelCommandUnitCursors <$> (reached >>= jobReachedUnitCursors))
-          KM.empty
-      )
+      (JobCancelCommand {jobCancelCommandUserId = Nothing, jobCancelCommandAnnotationId = (annotationId job), jobCancelCommandCompletedUnits = (reached >>= jobReachedCompletedUnits), jobCancelCommandJobId = (jobId job), jobCancelCommandJobType = (jobType job), jobCancelCommandResourceId = (resourceId job), jobCancelCommandUnitCursors = (JobCancelCommandUnitCursors <$> (reached >>= jobReachedUnitCursors))})

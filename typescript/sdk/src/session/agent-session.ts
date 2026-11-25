@@ -66,7 +66,6 @@ import { parseJwtExpiry, refreshDelayMs } from './storage';
 /** The logging surface this module uses, structurally. */
 interface SessionLogger {
   info(message: string, meta?: Record<string, unknown>): void;
-  warn(message: string, meta?: Record<string, unknown>): void;
   error(message: string, meta?: Record<string, unknown>): void;
 }
 
@@ -106,7 +105,7 @@ export interface AgentSession {
 /**
  * Sign in as an agent, then keep the token fresh until `stop()`.
  *
- * Throws whatever the sign-in throws on the FIRST attempt: a process that
+ * Throws whatever the sign-in throws, which is made once: a process that
  * cannot authenticate at startup has nothing useful to do, and failing loudly
  * is what lets its supervisor restart it. Later refreshes only log, because a
  * process holding a still-valid token should not die over one bad round trip.
@@ -118,19 +117,10 @@ export async function startAgentSession(
   const service = new ServiceToken(credential, fetch);
 
   logger.info('Authenticating', { baseUrl, as: credential.clientId });
-  // A gateway or an issuer that cannot be reached is tried again, and each wait is logged.
   const first = await agentToken({
     baseUrl,
     service,
     ...(fetch ? { fetch } : {}),
-    onRetry: ({ attempt, attempts, delayMs, error }) => {
-      logger.warn('Gateway unreachable, retrying authentication', {
-        attempt,
-        attempts,
-        retryInMs: delayMs,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    },
   });
   const token$ = new BehaviorSubject<AccessToken>(makeAccessToken(first.token));
   logger.info('Authenticated', {

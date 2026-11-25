@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobProgressCompletedItemsItemUnderReported
 {
-    [global::Xynolog.Serialization.Wire("counted")] public required long Counted { get; init; }
-    [global::Xynolog.Serialization.Wire("found")] public required long Found { get; init; }
     [global::Xynolog.Serialization.Wire("pieces")] public required long Pieces { get; init; }
+    [global::Xynolog.Serialization.Wire("found")] public required long Found { get; init; }
+    [global::Xynolog.Serialization.Wire("counted")] public required long Counted { get; init; }
 }

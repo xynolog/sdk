@@ -54,7 +54,7 @@ from xynolog.http.sse import SseParser
 from xynolog.identifiers import ResourceId
 from xynolog.required import Fault, read_as
 from xynolog.resume import is_place
-from xynolog.retry import RetryPolicy, equal_jitter, retry_after_ms
+from xynolog.retry import equal_jitter, retry_after_ms
 from xynolog.timing import (
     DEGRADED_THRESHOLD_MS,
     EMIT_RETRY,
@@ -68,7 +68,7 @@ from xynolog.timing import (
     STREAM_OPEN_TIMEOUT_MS,
 )
 from xynolog.transport import CONNECTION_STATE_MAY_BECOME, ConnectionState, Frame, FrameHub, FrameRefusal, ReplyRouter, TraceContext
-from xynolog.types import BusEventMessage, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem, ErrorResponse
+from xynolog.types import BusEventMessage, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem, ErrorResponse, RetryBudget
 from xynolog.watched import Variable, Watched
 
 __all__ = ["Bookmarks", "SeenIds", "Stream", "Timing", "backoff_cap_ms"]
@@ -95,7 +95,7 @@ class Timing:
     reconnect_ms: int = RECONNECT_MS
     lazy_remove_ms: int = LAZY_REMOVE_MS
     linger_ms: int = LINGER_MS
-    emit_retry: RetryPolicy = EMIT_RETRY
+    emit_retry: RetryBudget = EMIT_RETRY
     seen_event_ids_count: int = SEEN_EVENT_IDS_COUNT
     http_request_ms: int = HTTP_REQUEST_TIMEOUT_MS
     """The deadline on one request that is neither the stream nor an emit, and on reading any refusal's body, the stream's too."""

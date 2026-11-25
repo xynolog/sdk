@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatewayConfigCapacity
 {
-    [global::Xynolog.Serialization.Wire("connections")] public required long Connections { get; init; }
     [global::Xynolog.Serialization.Wire("queuedBytes")] public required long QueuedBytes { get; init; }
+    [global::Xynolog.Serialization.Wire("connections")] public required long Connections { get; init; }
 }

@@ -7,11 +7,11 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record IssuerSpecDatabase
 {
-    [global::Xynolog.Serialization.Wire("external")] public global::Xynolog.Types.IssuerSpecDatabaseExternal? External { get; init; }
-    [global::Xynolog.Serialization.Wire("image")] public string? Image { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("port")] public long? Port { get; init; }
-    [global::Xynolog.Serialization.Wire("resources")] public global::Xynolog.Types.Resources? Resources { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public required string Type { get; init; }
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("user")] public required string User { get; init; }
+    [global::Xynolog.Serialization.Wire("image")] public string? Image { get; init; }
+    [global::Xynolog.Serialization.Wire("resources")] public global::Xynolog.Types.Resources? Resources { get; init; }
+    [global::Xynolog.Serialization.Wire("port")] public long? Port { get; init; }
+    [global::Xynolog.Serialization.Wire("external")] public global::Xynolog.Types.IssuerSpecDatabaseExternal? External { get; init; }
 }

@@ -3,8 +3,9 @@
  * session layer.
  *
  * Contains:
- *  - Storage key shape (constants, `sessionKey(kbId)`, `personKey(did)`,
- *    `lastEventIdKey(kbId, personKey)`, `cacheKey(kbId, personKey, query)`)
+ *  - Storage key shape (`sessionKey(kbId)`, `personKey(did)`,
+ *    `lastEventIdKey(kbId, personKey)`, `cacheKey(kbId, personKey, query)`),
+ *    of the keys and prefixes `@xynolog/core` generates
  *  - JWT expiry parsing and "is expired" check
  *  - URL/protocol helpers for KB instances
  *  - Loaders/savers that take a `SessionStorage` and operate over it
@@ -15,9 +16,13 @@
  */
 
 import {
+  CACHE_KEY_PREFIX,
+  LAST_EVENT_ID_KEY_PREFIX,
   MIN_REFRESH_DELAY_MS,
   PERSISTED_QUERIES,
   REFRESH_BEFORE_EXP_MS,
+  SESSION_KEY_PREFIX,
+  STORAGE_KEY,
   faultOf,
   isObject,
   isString,
@@ -34,22 +39,6 @@ import type {
 import type { SessionStorage } from './session-storage';
 import type { SignInKept } from './sign-in-kept';
 import { sha256 } from './sha256';
-
-// ---------- Storage keys ----------
-
-const SESSION_PREFIX = 'xynolog.session.';
-const LAST_EVENT_ID_PREFIX = 'xynolog.lastEventId.';
-const CACHE_PREFIX = 'xynolog.cache.';
-export const STORAGE_KEY = 'xynolog.knowledgeBases';
-export const ACTIVE_KEY = 'xynolog.activeKnowledgeBaseId';
-/** Per-KB open-resource tabs: Record<kbId, OpenResource[]>. */
-export const OPEN_RESOURCES_BY_KB_KEY = 'xynolog.openResourcesByKb';
-/**
- * Per-KB "where was I": Record<kbId, resourceId>. Scoped like the tabs it
- * sits beside — a global last-viewed id sends the landing redirect into the
- * previously active KB's resource, which the new gateway 404s.
- */
-export const LAST_VIEWED_RESOURCE_BY_KB_KEY = 'xynolog.lastViewedResourceByKb';
 
 /**
  * How long to wait before proactively refreshing `token`, or `null` when it
@@ -137,13 +126,13 @@ function decodeBase64Url(segment: string): string {
 }
 
 export function sessionKey(kbId: string): string {
-  return `${SESSION_PREFIX}${kbId}`;
+  return `${SESSION_KEY_PREFIX}${kbId}`;
 }
 
 /** The knowledge base whose session `key` is kept under; null when it is no session's key. */
 export function kbOfSessionKey(key: string): string | null {
-  return key.startsWith(SESSION_PREFIX)
-    ? key.slice(SESSION_PREFIX.length)
+  return key.startsWith(SESSION_KEY_PREFIX)
+    ? key.slice(SESSION_KEY_PREFIX.length)
     : null;
 }
 
@@ -168,7 +157,7 @@ export function personKey(did: string): string {
 
 /** The key a knowledge base's stream's places are kept under, for one person. */
 export function lastEventIdKey(kbId: string, personKey: string): string {
-  return `${LAST_EVENT_ID_PREFIX}${kbId}.${personKey}`;
+  return `${LAST_EVENT_ID_KEY_PREFIX}${kbId}.${personKey}`;
 }
 
 /** The key a persisted query's values are kept under, in a knowledge base, for one person. */
@@ -177,7 +166,7 @@ export function cacheKey(
   personKey: string,
   query: PersistedQuery,
 ): string {
-  return `${CACHE_PREFIX}${kbId}.${personKey}.${query}`;
+  return `${CACHE_KEY_PREFIX}${kbId}.${personKey}.${query}`;
 }
 
 /**

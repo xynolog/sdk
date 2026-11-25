@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record CreateAnnotationRequest
 {
-    [global::Xynolog.Serialization.Wire("body")] public global::Xynolog.Types.AnnotationBodies? Body { get; init; }
     [global::Xynolog.Serialization.Wire("motivation")] public required global::Xynolog.Types.Motivation Motivation { get; init; }
     [global::Xynolog.Serialization.Wire("target")] public required global::Xynolog.Types.AnnotationTarget Target { get; init; }
+    [global::Xynolog.Serialization.Wire("body")] public global::Xynolog.Types.AnnotationBodies? Body { get; init; }
 }

@@ -21,8 +21,8 @@ extension MatchResourcesRequest {
   /// filled. Each search is kept by it, so searches that send the same request share one.
   init(_ search: String, paging filters: ResourceSearchFilters) {
     self.init(
-      archived: filters.archived, entityType: filters.entityType,
-      limit: filters.limit ?? pageLimit, offset: filters.offset ?? pageOffset, search: search)
+      search: search, archived: filters.archived, entityType: filters.entityType,
+      offset: filters.offset ?? pageOffset, limit: filters.limit ?? pageLimit)
   }
 }
 

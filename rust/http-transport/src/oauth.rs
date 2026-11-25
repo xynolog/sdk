@@ -42,8 +42,7 @@ use xynolog::types::{
     PendingAuthorizationIssuer,
 };
 
-/// Where a sign-in that is under way is remembered.
-pub const PENDING_AUTHORIZATION_KEY: &str = "xynolog.pendingAuthorization";
+include!("generated/stored.rs");
 const DEVICE_GRANT: &str = "urn:ietf:params:oauth:grant-type:device_code";
 
 fn gateway(target: &HttpEndpoint) -> Result<String, SignInError> {
@@ -461,7 +460,7 @@ pub async fn renew_kept(
     }
     let mut attempts = 0;
     let renewed = retry_with_backoff(
-        REFRESH_RETRY,
+        &REFRESH_RETRY,
         random,
         || {
             attempts += 1;

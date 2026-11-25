@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WorkerAnswerFormatsFormatsItem
 {
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("about")] public required string About { get; init; }
     [global::Xynolog.Serialization.Wire("element")] public required global::System.Text.Json.JsonElement Element { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
 }

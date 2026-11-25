@@ -9,10 +9,42 @@ import kotlinx.serialization.Serializable
 @Serializable(with = BodyOperationSerializer::class)
 public sealed interface BodyOperation
 
-internal object BodyOperationSerializer : KindsUnionSerializer<BodyOperation>(
+internal object BodyOperationSerializer : SignatureUnionSerializer<BodyOperation>(
     BodyOperation::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(BodyOperationAdd.serializer(), BodyOperationRemove.serializer(), BodyOperationReplace.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("op", "item"),
+                allowed = null,
+                fixed = listOf("op" to listOf(Literal.Text("add"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("op", "item"),
+                allowed = null,
+                fixed = listOf("op" to listOf(Literal.Text("remove"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("op", "oldItem", "newItem"),
+                allowed = null,
+                fixed = listOf("op" to listOf(Literal.Text("replace"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            BodyOperationAdd.serializer(),
+            BodyOperationRemove.serializer(),
+            BodyOperationReplace.serializer(),
+        )
+    },
 )

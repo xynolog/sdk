@@ -636,6 +636,11 @@ export interface components {
       annotationId: components['schemas']['AnnotationId'];
     };
     /**
+     * Bytes held whole. They can be read more than once, and sent again when an
+     * upload is retried.
+     */
+    Binary: string;
+    /**
      * One edit to a linking annotation's body list: add or remove a body item,
      * or replace an existing one.
      */
@@ -4704,7 +4709,7 @@ export interface components {
       /** Human-readable resource name */
       name: string;
       /** Binary content */
-      file: Blob;
+      file: components['schemas']['Binary'];
       /**
        * Media type of the content (e.g. text/plain, text/markdown, image/png)
        */
@@ -4782,6 +4787,18 @@ export interface components {
     Resources: {
       /** The most a container may use. */
       limits: ResourcesLimits;
+    };
+    /**
+     * A retry budget: how many `attempts` are allowed, with a backoff that
+     * starts at `initialDelayMs` and doubles to `maxDelayMs`.
+     */
+    RetryBudget: {
+      /** How many attempts the budget allows. */
+      attempts: number;
+      /** The delay before the second attempt, in milliseconds. */
+      initialDelayMs: number;
+      /** The longest delay between attempts, in milliseconds. */
+      maxDelayMs: number;
     };
     /**
      * One knowledge base this machine knows: a registered or running local

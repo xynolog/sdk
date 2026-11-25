@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BusSubscribeRequest
 {
-    [global::Xynolog.Serialization.Wire("clientId")] public required string ClientId { get; init; }
     [global::Xynolog.Serialization.Wire("global")] public global::System.Collections.Generic.IReadOnlyList<string>? Global { get; init; }
     [global::Xynolog.Serialization.Wire("pendingReplies")] public global::System.Collections.Generic.IReadOnlyList<string>? PendingReplies { get; init; }
     [global::Xynolog.Serialization.Wire("scoped")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.BusSubscribeRequestScopedItem>? Scoped { get; init; }
+    [global::Xynolog.Serialization.Wire("clientId")] public required string ClientId { get; init; }
 }

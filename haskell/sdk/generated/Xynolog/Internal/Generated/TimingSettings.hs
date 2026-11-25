@@ -8,11 +8,12 @@ import Control.Monad (unless)
 import Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:), (.=))
 import Data.Aeson.KeyMap qualified as KM
 import Xynolog.Timing qualified as Base
+import Xynolog.Types (RetryBudget)
 
 data Settings = Settings
   { busRequestTimeoutMs :: Integer,
     emitTimeoutMs :: Integer,
-    emitRetry :: Base.RetryBudget,
+    emitRetry :: RetryBudget,
     httpRequestTimeoutMs :: Integer,
     requestRetryPauseMs :: Integer,
     streamOpenTimeoutMs :: Integer,
@@ -23,7 +24,7 @@ data Settings = Settings
     seenEventIdsCount :: Integer,
     reconnectDebounceMs :: Integer,
     lazyRemoveMs :: Integer,
-    refreshRetry :: Base.RetryBudget,
+    refreshRetry :: RetryBudget,
     refreshBeforeExpMs :: Integer,
     minRefreshDelayMs :: Integer,
     devicePollMs :: Integer,

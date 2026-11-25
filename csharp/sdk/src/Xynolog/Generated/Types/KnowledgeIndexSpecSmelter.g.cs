@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record KnowledgeIndexSpecSmelter
 {
     [global::Xynolog.Serialization.Wire("image")] public required string Image { get; init; }
-    [global::Xynolog.Serialization.Wire("pdfsAtOnce")] public required long PdfsAtOnce { get; init; }
     [global::Xynolog.Serialization.Wire("resources")] public required global::Xynolog.Types.Resources Resources { get; init; }
+    [global::Xynolog.Serialization.Wire("pdfsAtOnce")] public required long PdfsAtOnce { get; init; }
 }

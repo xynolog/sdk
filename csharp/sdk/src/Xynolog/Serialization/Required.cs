@@ -60,10 +60,10 @@ internal static partial class Required
         return true;
     }
 
-    /// <summary>Whether <see cref="LastEventIds"/> holds <paramref name="id"/> as the place reached in
+    /// <summary>Whether the schema LastEventIds holds <paramref name="id"/> as the place reached in
     /// <paramref name="scope"/>: the one decider of what a stream's place is.</summary>
     internal static bool IsPlace(ResourceId scope, string id) =>
-        FaultOf(nameof(LastEventIds), JsonSerializer.SerializeToElement(new Dictionary<string, string> { [scope.Value] = id }), out _) is null;
+        FaultOf("LastEventIds", JsonSerializer.SerializeToElement(new Dictionary<string, string> { [scope.Value] = id }), out _) is null;
 
     /// <summary>The first fault <paramref name="value"/> has as <paramref name="shape"/>, a shape as the table writes
     /// one; null when it has none.</summary>

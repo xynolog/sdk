@@ -10,15 +10,15 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data NeptuneGraphConfig = NeptuneGraphConfig
-  { neptuneGraphConfigEndpoint :: Text,
-    neptuneGraphConfigPort :: Integer,
-    neptuneGraphConfigType :: NeptuneGraphConfigType
+  { neptuneGraphConfigType :: NeptuneGraphConfigType,
+    neptuneGraphConfigEndpoint :: Text,
+    neptuneGraphConfigPort :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON NeptuneGraphConfig where parseJSON = checked "NeptuneGraphConfig" $ withObject "NeptuneGraphConfig" (\fields -> NeptuneGraphConfig <$> (fields .: "endpoint") <*> (fields .: "port") <*> (fields .: "type"))
+instance FromJSON NeptuneGraphConfig where parseJSON = checked "NeptuneGraphConfig" $ withObject "NeptuneGraphConfig" (\fields -> NeptuneGraphConfig <$> (fields .: "type") <*> (fields .: "endpoint") <*> (fields .: "port"))
 
-instance ToJSON NeptuneGraphConfig where toJSON value = Object (KM.fromList (concat [[("endpoint", toJSON (neptuneGraphConfigEndpoint value))], [("port", toJSON (neptuneGraphConfigPort value))], [("type", toJSON (neptuneGraphConfigType value))]]))
+instance ToJSON NeptuneGraphConfig where toJSON value = Object (KM.fromList (concat [[("type", toJSON (neptuneGraphConfigType value))], [("endpoint", toJSON (neptuneGraphConfigEndpoint value))], [("port", toJSON (neptuneGraphConfigPort value))]]))
 
 data NeptuneGraphConfigType = NeptuneGraphConfigTypeNeptune deriving (Eq, Show)
 

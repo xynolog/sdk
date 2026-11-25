@@ -7,10 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record StackKnowledgeBaseSpec
 {
-    [global::Xynolog.Serialization.Wire("archivist")] public required global::Xynolog.Types.StackKnowledgeBaseSpecArchivist Archivist { get; init; }
-    [global::Xynolog.Serialization.Wire("dispatcher")] public required global::Xynolog.Types.StackKnowledgeBaseSpecDispatcher Dispatcher { get; init; }
-    [global::Xynolog.Serialization.Wire("gateway")] public required global::Xynolog.Types.StackKnowledgeBaseSpecGateway Gateway { get; init; }
-    [global::Xynolog.Serialization.Wire("issuer")] public required global::Xynolog.Types.StackKnowledgeBaseSpecIssuer Issuer { get; init; }
     [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
+    [global::Xynolog.Serialization.Wire("gateway")] public required global::Xynolog.Types.StackKnowledgeBaseSpecGateway Gateway { get; init; }
+    [global::Xynolog.Serialization.Wire("dispatcher")] public required global::Xynolog.Types.StackKnowledgeBaseSpecDispatcher Dispatcher { get; init; }
+    [global::Xynolog.Serialization.Wire("archivist")] public required global::Xynolog.Types.StackKnowledgeBaseSpecArchivist Archivist { get; init; }
     [global::Xynolog.Serialization.Wire("messaging")] public required global::Xynolog.Types.StackKnowledgeBaseSpecMessaging Messaging { get; init; }
+    [global::Xynolog.Serialization.Wire("issuer")] public required global::Xynolog.Types.StackKnowledgeBaseSpecIssuer Issuer { get; init; }
 }

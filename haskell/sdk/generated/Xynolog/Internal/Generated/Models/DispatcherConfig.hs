@@ -14,43 +14,43 @@ import Xynolog.Internal.Generated.Models.LogLevel
 import Xynolog.Internal.Generated.Models.ServiceIdentity
 
 data DispatcherConfig = DispatcherConfig
-  { dispatcherConfigGatewayUrl :: Text,
+  { dispatcherConfigKb :: KbIdentity,
+    dispatcherConfigGatewayUrl :: Text,
     dispatcherConfigIdentity :: ServiceIdentity,
-    dispatcherConfigKb :: KbIdentity,
-    dispatcherConfigLogFormat :: LogFormat,
-    dispatcherConfigLogLevel :: LogLevel,
-    dispatcherConfigPort :: Integer,
     dispatcherConfigQueue :: DispatcherConfigQueue,
-    dispatcherConfigTiming :: DispatcherConfigTiming
+    dispatcherConfigPort :: Integer,
+    dispatcherConfigTiming :: DispatcherConfigTiming,
+    dispatcherConfigLogLevel :: LogLevel,
+    dispatcherConfigLogFormat :: LogFormat
   }
   deriving (Eq, Show)
 
-instance FromJSON DispatcherConfig where parseJSON = checked "DispatcherConfig" $ withObject "DispatcherConfig" (\fields -> DispatcherConfig <$> (fields .: "gatewayUrl") <*> (fields .: "identity") <*> (fields .: "kb") <*> (fields .: "logFormat") <*> (fields .: "logLevel") <*> (fields .: "port") <*> (fields .: "queue") <*> (fields .: "timing"))
+instance FromJSON DispatcherConfig where parseJSON = checked "DispatcherConfig" $ withObject "DispatcherConfig" (\fields -> DispatcherConfig <$> (fields .: "kb") <*> (fields .: "gatewayUrl") <*> (fields .: "identity") <*> (fields .: "queue") <*> (fields .: "port") <*> (fields .: "timing") <*> (fields .: "logLevel") <*> (fields .: "logFormat"))
 
-instance ToJSON DispatcherConfig where toJSON value = Object (KM.fromList (concat [[("gatewayUrl", toJSON (dispatcherConfigGatewayUrl value))], [("identity", toJSON (dispatcherConfigIdentity value))], [("kb", toJSON (dispatcherConfigKb value))], [("logFormat", toJSON (dispatcherConfigLogFormat value))], [("logLevel", toJSON (dispatcherConfigLogLevel value))], [("port", toJSON (dispatcherConfigPort value))], [("queue", toJSON (dispatcherConfigQueue value))], [("timing", toJSON (dispatcherConfigTiming value))]]))
+instance ToJSON DispatcherConfig where toJSON value = Object (KM.fromList (concat [[("kb", toJSON (dispatcherConfigKb value))], [("gatewayUrl", toJSON (dispatcherConfigGatewayUrl value))], [("identity", toJSON (dispatcherConfigIdentity value))], [("queue", toJSON (dispatcherConfigQueue value))], [("port", toJSON (dispatcherConfigPort value))], [("timing", toJSON (dispatcherConfigTiming value))], [("logLevel", toJSON (dispatcherConfigLogLevel value))], [("logFormat", toJSON (dispatcherConfigLogFormat value))]]))
 
 data DispatcherConfigQueue = DispatcherConfigQueue
-  { dispatcherConfigQueuePasswordEnv :: Maybe Text,
-    dispatcherConfigQueueServers :: Text,
-    dispatcherConfigQueueUserEnv :: Maybe Text
+  { dispatcherConfigQueueServers :: Text,
+    dispatcherConfigQueueUserEnv :: Maybe Text,
+    dispatcherConfigQueuePasswordEnv :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON DispatcherConfigQueue where parseJSON = checked "DispatcherConfigQueue" $ withObject "DispatcherConfigQueue" (\fields -> DispatcherConfigQueue <$> optional fields "passwordEnv" <*> (fields .: "servers") <*> optional fields "userEnv")
+instance FromJSON DispatcherConfigQueue where parseJSON = checked "DispatcherConfigQueue" $ withObject "DispatcherConfigQueue" (\fields -> DispatcherConfigQueue <$> (fields .: "servers") <*> optional fields "userEnv" <*> optional fields "passwordEnv")
 
-instance ToJSON DispatcherConfigQueue where toJSON value = Object (KM.fromList (concat [optionalPair "passwordEnv" (dispatcherConfigQueuePasswordEnv value), [("servers", toJSON (dispatcherConfigQueueServers value))], optionalPair "userEnv" (dispatcherConfigQueueUserEnv value)]))
+instance ToJSON DispatcherConfigQueue where toJSON value = Object (KM.fromList (concat [[("servers", toJSON (dispatcherConfigQueueServers value))], optionalPair "userEnv" (dispatcherConfigQueueUserEnv value), optionalPair "passwordEnv" (dispatcherConfigQueuePasswordEnv value)]))
 
 data DispatcherConfigTiming = DispatcherConfigTiming
-  { dispatcherConfigTimingAckWaitMs :: Integer,
-    dispatcherConfigTimingBootDeadlineMs :: Integer,
-    dispatcherConfigTimingProgressWriteIntervalMs :: Integer,
+  { dispatcherConfigTimingTickMs :: Integer,
+    dispatcherConfigTimingStaleRunningMs :: Integer,
+    dispatcherConfigTimingAckWaitMs :: Integer,
     dispatcherConfigTimingRetentionMs :: Integer,
     dispatcherConfigTimingRetentionSweepMs :: Integer,
-    dispatcherConfigTimingStaleRunningMs :: Integer,
-    dispatcherConfigTimingTickMs :: Integer
+    dispatcherConfigTimingProgressWriteIntervalMs :: Integer,
+    dispatcherConfigTimingBootDeadlineMs :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON DispatcherConfigTiming where parseJSON = checked "DispatcherConfigTiming" $ withObject "DispatcherConfigTiming" (\fields -> DispatcherConfigTiming <$> (fields .: "ackWaitMs") <*> (fields .: "bootDeadlineMs") <*> (fields .: "progressWriteIntervalMs") <*> (fields .: "retentionMs") <*> (fields .: "retentionSweepMs") <*> (fields .: "staleRunningMs") <*> (fields .: "tickMs"))
+instance FromJSON DispatcherConfigTiming where parseJSON = checked "DispatcherConfigTiming" $ withObject "DispatcherConfigTiming" (\fields -> DispatcherConfigTiming <$> (fields .: "tickMs") <*> (fields .: "staleRunningMs") <*> (fields .: "ackWaitMs") <*> (fields .: "retentionMs") <*> (fields .: "retentionSweepMs") <*> (fields .: "progressWriteIntervalMs") <*> (fields .: "bootDeadlineMs"))
 
-instance ToJSON DispatcherConfigTiming where toJSON value = Object (KM.fromList (concat [[("ackWaitMs", toJSON (dispatcherConfigTimingAckWaitMs value))], [("bootDeadlineMs", toJSON (dispatcherConfigTimingBootDeadlineMs value))], [("progressWriteIntervalMs", toJSON (dispatcherConfigTimingProgressWriteIntervalMs value))], [("retentionMs", toJSON (dispatcherConfigTimingRetentionMs value))], [("retentionSweepMs", toJSON (dispatcherConfigTimingRetentionSweepMs value))], [("staleRunningMs", toJSON (dispatcherConfigTimingStaleRunningMs value))], [("tickMs", toJSON (dispatcherConfigTimingTickMs value))]]))
+instance ToJSON DispatcherConfigTiming where toJSON value = Object (KM.fromList (concat [[("tickMs", toJSON (dispatcherConfigTimingTickMs value))], [("staleRunningMs", toJSON (dispatcherConfigTimingStaleRunningMs value))], [("ackWaitMs", toJSON (dispatcherConfigTimingAckWaitMs value))], [("retentionMs", toJSON (dispatcherConfigTimingRetentionMs value))], [("retentionSweepMs", toJSON (dispatcherConfigTimingRetentionSweepMs value))], [("progressWriteIntervalMs", toJSON (dispatcherConfigTimingProgressWriteIntervalMs value))], [("bootDeadlineMs", toJSON (dispatcherConfigTimingBootDeadlineMs value))]]))

@@ -10,14 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data TextSpan = TextSpan
-  { textSpanEnd :: Integer,
+  { textSpanStart :: Integer,
+    textSpanEnd :: Integer,
     textSpanExact :: Text,
     textSpanPrefix :: Maybe Text,
-    textSpanStart :: Integer,
     textSpanSuffix :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON TextSpan where parseJSON = checked "TextSpan" $ withObject "TextSpan" (\fields -> TextSpan <$> (fields .: "end") <*> (fields .: "exact") <*> optional fields "prefix" <*> (fields .: "start") <*> optional fields "suffix")
+instance FromJSON TextSpan where parseJSON = checked "TextSpan" $ withObject "TextSpan" (\fields -> TextSpan <$> (fields .: "start") <*> (fields .: "end") <*> (fields .: "exact") <*> optional fields "prefix" <*> optional fields "suffix")
 
-instance ToJSON TextSpan where toJSON value = Object (KM.fromList (concat [[("end", toJSON (textSpanEnd value))], [("exact", toJSON (textSpanExact value))], optionalPair "prefix" (textSpanPrefix value), [("start", toJSON (textSpanStart value))], optionalPair "suffix" (textSpanSuffix value)]))
+instance ToJSON TextSpan where toJSON value = Object (KM.fromList (concat [[("start", toJSON (textSpanStart value))], [("end", toJSON (textSpanEnd value))], [("exact", toJSON (textSpanExact value))], optionalPair "prefix" (textSpanPrefix value), optionalPair "suffix" (textSpanSuffix value)]))

@@ -157,8 +157,8 @@ clientCases fixtures = do
   resource <- either (ioError . userError) pure (mkResourceId "res-1")
   originalAnnotation <- fixture fixtures "Annotation"
   originalDescriptor <- fixture fixtures "ResourceDescriptor"
-  let annotationValue = originalAnnotation {annotationTarget = AnnotationTargetInlineResourceId resource}
-      descriptor name = originalDescriptor {resourceDescriptorU40_id = resource, resourceDescriptorName = name}
+  let annotationValue = originalAnnotation {annotationTarget = AnnotationTargetValueResourceId resource}
+      descriptor name = originalDescriptor {resourceDescriptorId = resource, resourceDescriptorName = name}
       persistence = Just (Client.CachePersistence kept "client-case" "person" (pure 1800000000000))
       configuration = Bus.BusOptions (Time.now time) (Time.waitUntil time)
   counter <- newTVarIO (0 :: Integer)
@@ -181,8 +181,8 @@ clientCases fixtures = do
               (reply, payload) <- case busFrameChannel frame of
                 request | request == Channel.channelName Channel.BrowseResourceRequested -> do
                   atomically (readTMVar blocked)
-                  pure (Channel.channelName Channel.BrowseResourceResult, toJSON (BrowseResourceResult (BrowseResourceResultResponse 1 (descriptor name)) mempty))
-                request | request == Channel.channelName Channel.BrowseAnnotationRequested -> pure (Channel.channelName Channel.BrowseAnnotationResult, toJSON (BrowseAnnotationResult (GetAnnotationResponse annotationValue Nothing Nothing mempty) mempty))
+                  pure (Channel.channelName Channel.BrowseResourceResult, toJSON (BrowseResourceResult (BrowseResourceResultResponse {browseResourceResultResponseLastSequence = 1, browseResourceResultResponseResource = (descriptor name)})))
+                request | request == Channel.channelName Channel.BrowseAnnotationRequested -> pure (Channel.channelName Channel.BrowseAnnotationResult, toJSON (BrowseAnnotationResult (GetAnnotationResponse {getAnnotationResponseAnnotation = annotationValue, getAnnotationResponseResolvedResource = Nothing, getAnnotationResponseResource = Nothing})))
                 request -> case find (\(Channel.SomeOperation operation) -> let (channel, _, _) = Channel.operationChannels operation in Channel.channelName channel == request) Channel.allOperations of
                   Nothing -> ioError (userError "Unexpected persistence request")
                   Just (Channel.SomeOperation operation) -> do

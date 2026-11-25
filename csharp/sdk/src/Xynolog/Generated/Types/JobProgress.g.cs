@@ -7,15 +7,15 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobProgress
 {
-    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
-    [global::Xynolog.Serialization.Wire("completedItems")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.JobProgressCompletedItemsItem>? CompletedItems { get; init; }
-    [global::Xynolog.Serialization.Wire("current")] public global::Xynolog.Types.JobProgressCurrent? Current { get; init; }
-    [global::Xynolog.Serialization.Wire("entitiesEmitted")] public long? EntitiesEmitted { get; init; }
-    [global::Xynolog.Serialization.Wire("entitiesExpected")] public long? EntitiesExpected { get; init; }
-    [global::Xynolog.Serialization.Wire("entitiesFound")] public long? EntitiesFound { get; init; }
-    [global::Xynolog.Serialization.Wire("message")] public global::Xynolog.Types.JobProgressMessage? Message { get; init; }
     [global::Xynolog.Serialization.Wire("percentage")] public required double Percentage { get; init; }
+    [global::Xynolog.Serialization.Wire("message")] public global::Xynolog.Types.JobProgressMessage? Message { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
+    [global::Xynolog.Serialization.Wire("current")] public global::Xynolog.Types.JobProgressCurrent? Current { get; init; }
     [global::Xynolog.Serialization.Wire("processed")] public long? Processed { get; init; }
-    [global::Xynolog.Serialization.Wire("requestParams")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.JobProgressRequestParamsItem>? RequestParams { get; init; }
     [global::Xynolog.Serialization.Wire("total")] public long? Total { get; init; }
+    [global::Xynolog.Serialization.Wire("entitiesFound")] public long? EntitiesFound { get; init; }
+    [global::Xynolog.Serialization.Wire("entitiesExpected")] public long? EntitiesExpected { get; init; }
+    [global::Xynolog.Serialization.Wire("entitiesEmitted")] public long? EntitiesEmitted { get; init; }
+    [global::Xynolog.Serialization.Wire("completedItems")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.JobProgressCompletedItemsItem>? CompletedItems { get; init; }
+    [global::Xynolog.Serialization.Wire("requestParams")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.JobProgressRequestParamsItem>? RequestParams { get; init; }
 }

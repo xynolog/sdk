@@ -1,7 +1,7 @@
 (** How a record of {!Records} reads an object's members, the gateway having
     decoded the object as the record's schema, and writes them back: each read
-    names the member it reads, and the members no read named are the record's
-    [extra]. *)
+    names the member it reads, and the members no read named are the [extra] of
+    a record Protocol states holds other members. *)
 
 type t
 
@@ -24,6 +24,12 @@ val nullable : (Yojson.Raw.t -> 'a) -> Yojson.Raw.t -> 'a option
 val record : ((string * Yojson.Raw.t) list -> 'a) -> Yojson.Raw.t -> 'a
 (** An object a record of its own reads. *)
 
+val map : (Yojson.Raw.t -> 'a) -> Yojson.Raw.t -> (string * 'a) list
+(** An object of members each of whose values [read] reads, by name. *)
+
+val tabled : (Yojson.Safe.t -> ('a, 'error) result) -> Yojson.Raw.t -> 'a
+(** A table record, which its own reader reads. *)
+
 val raw : Yojson.Raw.t -> Yojson.Raw.t
 (** A member kept as its JSON, numbers exactly. *)
 
@@ -44,11 +50,47 @@ val json_enum : ('a -> string) -> 'a -> Yojson.Raw.t
 val json_list : ('a -> Yojson.Raw.t) -> 'a list -> Yojson.Raw.t
 val json_nullable : ('a -> Yojson.Raw.t) -> 'a option -> Yojson.Raw.t
 val json_raw : Yojson.Raw.t -> Yojson.Raw.t
+val json_map : ('a -> Yojson.Raw.t) -> (string * 'a) list -> Yojson.Raw.t
+val json_tabled : ('a -> Yojson.Safe.t) -> 'a -> Yojson.Raw.t
 val present : ('a -> Yojson.Raw.t) -> 'a Types.presence -> Yojson.Raw.t option
 
-val write :
+(** What a member of a union admits, as its schema states it: the kind of value,
+    the members an object of it requires, every member it allows if it is
+    closed, the values a member may take, and every value it admits if it says.
+*)
+type kind =
+  | Text_kind
+  | Integer_kind
+  | Number_kind
+  | Boolean_kind
+  | List_kind
+  | Object_kind
+  | Null_kind
+  | Any_kind
+
+type literal =
+  | Text_value of string
+  | Integer_value of int
+  | Boolean_value of bool
+
+type signature = {
+  kind : kind;
+  required : string list;
+  allowed : string list option;
+  fixed : (string * literal list) list;
+  values : literal list option;
+}
+
+val member : signature list list -> Yojson.Raw.t -> int
+(** The one member of a union, by the signatures of each, that admits a value of
+    the union: no two admit one value. *)
+
+val write : (string * Yojson.Raw.t option) list -> Yojson.Raw.t
+(** The members stated, each but the absent. *)
+
+val write_open :
   (string * Yojson.Raw.t option) list ->
   (string * Yojson.Raw.t) list ->
   Yojson.Raw.t
 (** The members stated, each but the absent, and then those of the extra that no
-    stated one names. *)
+    stated one names: a record Protocol states holds other members. *)

@@ -11,20 +11,19 @@ import Xynolog.Internal.Codec
 
 data JobProgressCreatingAnnotations = JobProgressCreatingAnnotations
   { jobProgressCreatingAnnotationsCode :: JobProgressCreatingAnnotationsCode,
-    jobProgressCreatingAnnotationsCount :: Integer,
-    jobProgressCreatingAnnotationsAdditionalProperties :: KM.KeyMap Value
+    jobProgressCreatingAnnotationsCount :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressCreatingAnnotations where parseJSON = checked "JobProgressCreatingAnnotations" $ withObject "JobProgressCreatingAnnotations" (\fields -> JobProgressCreatingAnnotations <$> (fields .: "code") <*> (fields .: "count") <*> traverse parseJSON (withoutFields ["code", "count"] fields))
+instance FromJSON JobProgressCreatingAnnotations where parseJSON = checked "JobProgressCreatingAnnotations" $ withObject "JobProgressCreatingAnnotations" (\fields -> JobProgressCreatingAnnotations <$> (fields .: "code") <*> (fields .: "count"))
 
-instance ToJSON JobProgressCreatingAnnotations where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingAnnotationsCode value))], [("count", toJSON (jobProgressCreatingAnnotationsCount value))]]) <> fmap toJSON (withoutFields ["code", "count"] (jobProgressCreatingAnnotationsAdditionalProperties value)))
+instance ToJSON JobProgressCreatingAnnotations where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingAnnotationsCode value))], [("count", toJSON (jobProgressCreatingAnnotationsCount value))]]))
 
-data JobProgressCreatingAnnotationsCode = JobProgressCreatingAnnotationsCodeCreatingU2d_annotations deriving (Eq, Show)
+data JobProgressCreatingAnnotationsCode = JobProgressCreatingAnnotationsCodeCreatingAnnotations deriving (Eq, Show)
 
-instance FromJSON JobProgressCreatingAnnotationsCode where parseJSON = checked "JobProgressCreatingAnnotationsCode" $ \value -> if value == String "creating-annotations" then pure JobProgressCreatingAnnotationsCodeCreatingU2d_annotations else fail "unknown enumeration member"
+instance FromJSON JobProgressCreatingAnnotationsCode where parseJSON = checked "JobProgressCreatingAnnotationsCode" $ \value -> if value == String "creating-annotations" then pure JobProgressCreatingAnnotationsCodeCreatingAnnotations else fail "unknown enumeration member"
 
-instance ToJSON JobProgressCreatingAnnotationsCode where toJSON JobProgressCreatingAnnotationsCodeCreatingU2d_annotations = String "creating-annotations"
+instance ToJSON JobProgressCreatingAnnotationsCode where toJSON JobProgressCreatingAnnotationsCodeCreatingAnnotations = String "creating-annotations"
 
 jobProgressCreatingAnnotationsCodeText :: JobProgressCreatingAnnotationsCode -> Text
-jobProgressCreatingAnnotationsCodeText JobProgressCreatingAnnotationsCodeCreatingU2d_annotations = "creating-annotations"
+jobProgressCreatingAnnotationsCodeText JobProgressCreatingAnnotationsCodeCreatingAnnotations = "creating-annotations"

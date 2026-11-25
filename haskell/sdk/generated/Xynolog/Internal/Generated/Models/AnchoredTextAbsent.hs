@@ -10,25 +10,24 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data AnchoredTextAbsent = AnchoredTextAbsent
-  { anchoredTextAbsentKind :: AnchoredTextAbsentKind,
-    anchoredTextAbsentAdditionalProperties :: KM.KeyMap Value
+  { anchoredTextAbsentKind :: AnchoredTextAbsentKind
   }
   deriving (Eq, Show)
 
-instance FromJSON AnchoredTextAbsent where parseJSON = checked "AnchoredTextAbsent" $ withObject "AnchoredTextAbsent" (\fields -> AnchoredTextAbsent <$> (fields .: "kind") <*> traverse parseJSON (withoutFields ["kind"] fields))
+instance FromJSON AnchoredTextAbsent where parseJSON = checked "AnchoredTextAbsent" $ withObject "AnchoredTextAbsent" (\fields -> AnchoredTextAbsent <$> (fields .: "kind"))
 
-instance ToJSON AnchoredTextAbsent where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (anchoredTextAbsentKind value))]]) <> fmap toJSON (withoutFields ["kind"] (anchoredTextAbsentAdditionalProperties value)))
+instance ToJSON AnchoredTextAbsent where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (anchoredTextAbsentKind value))]]))
 
-data AnchoredTextAbsentKind = AnchoredTextAbsentKindNotU2d_yet | AnchoredTextAbsentKindNoU2d_map | AnchoredTextAbsentKindUnknown deriving (Eq, Show)
+data AnchoredTextAbsentKind = AnchoredTextAbsentKindNotYet | AnchoredTextAbsentKindNoMap | AnchoredTextAbsentKindUnknown deriving (Eq, Show)
 
-instance FromJSON AnchoredTextAbsentKind where parseJSON = checked "AnchoredTextAbsentKind" $ \value -> if value == String "not-yet" then pure AnchoredTextAbsentKindNotU2d_yet else if value == String "no-map" then pure AnchoredTextAbsentKindNoU2d_map else if value == String "unknown" then pure AnchoredTextAbsentKindUnknown else fail "unknown enumeration member"
+instance FromJSON AnchoredTextAbsentKind where parseJSON = checked "AnchoredTextAbsentKind" $ \value -> if value == String "not-yet" then pure AnchoredTextAbsentKindNotYet else if value == String "no-map" then pure AnchoredTextAbsentKindNoMap else if value == String "unknown" then pure AnchoredTextAbsentKindUnknown else fail "unknown enumeration member"
 
 instance ToJSON AnchoredTextAbsentKind where
-  toJSON AnchoredTextAbsentKindNotU2d_yet = String "not-yet"
-  toJSON AnchoredTextAbsentKindNoU2d_map = String "no-map"
+  toJSON AnchoredTextAbsentKindNotYet = String "not-yet"
+  toJSON AnchoredTextAbsentKindNoMap = String "no-map"
   toJSON AnchoredTextAbsentKindUnknown = String "unknown"
 
 anchoredTextAbsentKindText :: AnchoredTextAbsentKind -> Text
-anchoredTextAbsentKindText AnchoredTextAbsentKindNotU2d_yet = "not-yet"
-anchoredTextAbsentKindText AnchoredTextAbsentKindNoU2d_map = "no-map"
+anchoredTextAbsentKindText AnchoredTextAbsentKindNotYet = "not-yet"
+anchoredTextAbsentKindText AnchoredTextAbsentKindNoMap = "no-map"
 anchoredTextAbsentKindText AnchoredTextAbsentKindUnknown = "unknown"

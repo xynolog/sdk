@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GetReferencedByResponseReferencedByItemTarget
 {
-    [global::Xynolog.Serialization.Wire("selector")] public required global::Xynolog.Types.GetReferencedByResponseReferencedByItemTargetSelector Selector { get; init; }
     [global::Xynolog.Serialization.Wire("source")] public required global::Xynolog.Identifiers.ResourceId Source { get; init; }
+    [global::Xynolog.Serialization.Wire("selector")] public required global::Xynolog.Types.GetReferencedByResponseReferencedByItemTargetSelector Selector { get; init; }
 }

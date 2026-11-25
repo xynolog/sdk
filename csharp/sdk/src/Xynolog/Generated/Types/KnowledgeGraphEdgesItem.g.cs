@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KnowledgeGraphEdgesItem
 {
-    [global::Xynolog.Serialization.Wire("bidirectional")] public bool? Bidirectional { get; init; }
-    [global::Xynolog.Serialization.Wire("metadata")] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement>? Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("source")] public required string Source { get; init; }
     [global::Xynolog.Serialization.Wire("target")] public required string Target { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public required string Type { get; init; }
+    [global::Xynolog.Serialization.Wire("bidirectional")] public bool? Bidirectional { get; init; }
+    [global::Xynolog.Serialization.Wire("metadata")] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement>? Metadata { get; init; }
 }

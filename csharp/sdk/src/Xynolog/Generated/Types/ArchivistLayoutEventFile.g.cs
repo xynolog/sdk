@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistLayoutEventFile
 {
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("digits")] public required long Digits { get; init; }
     [global::Xynolog.Serialization.Wire("first")] public required long First { get; init; }
     [global::Xynolog.Serialization.Wire("maxEvents")] public required long MaxEvents { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
 }

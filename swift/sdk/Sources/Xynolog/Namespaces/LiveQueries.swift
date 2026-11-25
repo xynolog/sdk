@@ -117,7 +117,7 @@ struct LiveQueries: Sendable {
       fetch: { key in
         try await wire.request(
           Operations.browseAnnotationRequested,
-          BrowseAnnotationRequest(annotationId: key.annotation, resourceId: key.resource)
+          BrowseAnnotationRequest(resourceId: key.resource, annotationId: key.annotation)
         ).response.annotation
       })
   }

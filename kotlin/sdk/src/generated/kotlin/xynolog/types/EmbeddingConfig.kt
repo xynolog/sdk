@@ -9,8 +9,32 @@ import kotlinx.serialization.Serializable
 @Serializable(with = EmbeddingConfigSerializer::class)
 public sealed interface EmbeddingConfig
 
-internal object EmbeddingConfigSerializer : TaggedUnionSerializer<EmbeddingConfig>(
+internal object EmbeddingConfigSerializer : SignatureUnionSerializer<EmbeddingConfig>(
     EmbeddingConfig::class,
-    "type",
-    members = { mapOf("ollama" to OllamaEmbeddingConfig.serializer(), "voyage" to VoyageEmbeddingConfig.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "model", "baseUrl"),
+                allowed = listOf("type", "model", "baseUrl"),
+                fixed = listOf("type" to listOf(Literal.Text("ollama"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "model", "endpoint", "apiKeyEnv"),
+                allowed = listOf("type", "model", "endpoint", "apiKeyEnv"),
+                fixed = listOf("type" to listOf(Literal.Text("voyage"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            OllamaEmbeddingConfig.serializer(),
+            VoyageEmbeddingConfig.serializer(),
+        )
+    },
 )

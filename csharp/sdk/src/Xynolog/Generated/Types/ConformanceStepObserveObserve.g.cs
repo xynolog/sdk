@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceStepObserveObserve
 {
-    [global::Xynolog.Serialization.Wire("annotation")] public global::System.Text.Json.JsonElement? Annotation { get; init; }
-    [global::Xynolog.Serialization.Wire("filters")] public global::System.Text.Json.JsonElement? Filters { get; init; }
     [global::Xynolog.Serialization.Wire("query")] public required string Query { get; init; }
     [global::Xynolog.Serialization.Wire("resource")] public global::System.Text.Json.JsonElement? Resource { get; init; }
+    [global::Xynolog.Serialization.Wire("annotation")] public global::System.Text.Json.JsonElement? Annotation { get; init; }
     [global::Xynolog.Serialization.Wire("search")] public global::System.Text.Json.JsonElement? Search { get; init; }
+    [global::Xynolog.Serialization.Wire("filters")] public global::System.Text.Json.JsonElement? Filters { get; init; }
 }

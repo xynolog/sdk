@@ -63,12 +63,12 @@ registryCases root fixtures = do
   resource <- either (ioError . userError) pure (mkResourceId "one")
   other <- either (ioError . userError) pure (mkResourceId "two")
   third <- either (ioError . userError) pure (mkResourceId "three")
-  let tab identity name at order = OpenResource identity (Just "text/plain") name at order Nothing mempty
+  let tab identity name at order = OpenResource {openResourceId = identity, openResourceMediaType = (Just "text/plain"), openResourceName = name, openResourceOpenedAt = at, openResourceOrder = order, openResourceStorageUri = Nothing}
       one = tab resource "old" 1 1
       two = tab other "unknown" 2 2
       three = tab third "gone" 3 3
-      ready = TabCheckReady (TabCheckReadyValue Nothing "new" TabVerdictReady)
-      gone = TabCheckGone (TabCheckGoneValue TabVerdictGone)
+      ready = TabCheckReady (MkTabCheckReady {tabCheckReadyMediaType = Nothing, tabCheckReadyName = "new", tabCheckReadyVerdict = TabVerdictReady})
+      gone = TabCheckGone (MkTabCheckGone TabVerdictGone)
       checks = Map.fromList [(resource, ready), (third, gone)]
   require
     "resource checks lost unknown/unseen tabs, or failed to refresh an affirmed one"

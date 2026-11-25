@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BrowseClickEvent
 {
-    [global::Xynolog.Serialization.Wire("anchorRect")] public global::Xynolog.Types.AnchorRect? AnchorRect { get; init; }
     [global::Xynolog.Serialization.Wire("annotationId")] public required global::Xynolog.Identifiers.AnnotationId AnnotationId { get; init; }
+    [global::Xynolog.Serialization.Wire("anchorRect")] public global::Xynolog.Types.AnchorRect? AnchorRect { get; init; }
 }

@@ -113,16 +113,16 @@ public static partial class AnnotationTools
     }
 
     private static ReconciledSpan UniqueMatch(TextSpan span) =>
-        new ReconciledSpan.UniqueMatchCase(new ReconciledSpanUniqueMatch { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix });
+        new ReconciledSpan.UniqueMatch(new ReconciledSpanUniqueMatch { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix });
 
     private static ReconciledSpan ContextRecovered(TextSpan span) =>
-        new ReconciledSpan.ContextRecoveredCase(new ReconciledSpanContextRecovered { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix });
+        new ReconciledSpan.ContextRecovered(new ReconciledSpanContextRecovered { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix });
 
     private static ReconciledSpan FirstOfMany(TextSpan span) =>
-        new ReconciledSpan.FirstOfManyCase(new ReconciledSpanFirstOfMany { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix });
+        new ReconciledSpan.FirstOfMany(new ReconciledSpanFirstOfMany { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix });
 
     private static ReconciledSpan FuzzyMatch(TextSpan span, MatchQuality quality) =>
-        new ReconciledSpan.FuzzyMatchCase(new ReconciledSpanFuzzyMatch { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix, MatchQuality = quality });
+        new ReconciledSpan.FuzzyMatch(new ReconciledSpanFuzzyMatch { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix, MatchQuality = quality });
 
     private static bool Boundary(Rune point) => Rune.IsWhiteSpace(point) ||
         (point.IsAscii && ".,;:!?'\"()[]{}<>/\\".Contains((char)point.Value));

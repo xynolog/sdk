@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record GetAnnotationResponse
 {
     [global::Xynolog.Serialization.Wire("annotation")] public required global::Xynolog.Types.Annotation Annotation { get; init; }
-    [global::Xynolog.Serialization.Wire("resolvedResource")] public required global::Xynolog.Types.ResourceDescriptor? ResolvedResource { get; init; }
     [global::Xynolog.Serialization.Wire("resource")] public required global::Xynolog.Types.ResourceDescriptor? Resource { get; init; }
+    [global::Xynolog.Serialization.Wire("resolvedResource")] public required global::Xynolog.Types.ResourceDescriptor? ResolvedResource { get; init; }
 }

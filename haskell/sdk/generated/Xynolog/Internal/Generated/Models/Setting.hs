@@ -11,27 +11,27 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.SettingLine
 
 data Setting = Setting
-  { settingAppliesTo :: SettingAppliesTo,
-    settingChangedBy :: Maybe Text,
+  { settingName :: Text,
     settingDefault :: Bool,
-    settingName :: Text,
+    settingAppliesTo :: SettingAppliesTo,
+    settingValues :: [SettingLine],
     settingSettable :: Bool,
-    settingValues :: [SettingLine]
+    settingChangedBy :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON Setting where parseJSON = checked "Setting" $ withObject "Setting" (\fields -> Setting <$> (fields .: "appliesTo") <*> optional fields "changedBy" <*> (fields .: "default") <*> (fields .: "name") <*> (fields .: "settable") <*> (fields .: "values"))
+instance FromJSON Setting where parseJSON = checked "Setting" $ withObject "Setting" (\fields -> Setting <$> (fields .: "name") <*> (fields .: "default") <*> (fields .: "appliesTo") <*> (fields .: "values") <*> (fields .: "settable") <*> optional fields "changedBy")
 
-instance ToJSON Setting where toJSON value = Object (KM.fromList (concat [[("appliesTo", toJSON (settingAppliesTo value))], optionalPair "changedBy" (settingChangedBy value), [("default", toJSON (settingDefault value))], [("name", toJSON (settingName value))], [("settable", toJSON (settingSettable value))], [("values", toJSON (settingValues value))]]))
+instance ToJSON Setting where toJSON value = Object (KM.fromList (concat [[("name", toJSON (settingName value))], [("default", toJSON (settingDefault value))], [("appliesTo", toJSON (settingAppliesTo value))], [("values", toJSON (settingValues value))], [("settable", toJSON (settingSettable value))], optionalPair "changedBy" (settingChangedBy value)]))
 
-data SettingAppliesTo = SettingAppliesToMachine | SettingAppliesToKnowledgeU2d_base deriving (Eq, Show)
+data SettingAppliesTo = SettingAppliesToMachine | SettingAppliesToKnowledgeBase deriving (Eq, Show)
 
-instance FromJSON SettingAppliesTo where parseJSON = checked "SettingAppliesTo" $ \value -> if value == String "machine" then pure SettingAppliesToMachine else if value == String "knowledge-base" then pure SettingAppliesToKnowledgeU2d_base else fail "unknown enumeration member"
+instance FromJSON SettingAppliesTo where parseJSON = checked "SettingAppliesTo" $ \value -> if value == String "machine" then pure SettingAppliesToMachine else if value == String "knowledge-base" then pure SettingAppliesToKnowledgeBase else fail "unknown enumeration member"
 
 instance ToJSON SettingAppliesTo where
   toJSON SettingAppliesToMachine = String "machine"
-  toJSON SettingAppliesToKnowledgeU2d_base = String "knowledge-base"
+  toJSON SettingAppliesToKnowledgeBase = String "knowledge-base"
 
 settingAppliesToText :: SettingAppliesTo -> Text
 settingAppliesToText SettingAppliesToMachine = "machine"
-settingAppliesToText SettingAppliesToKnowledgeU2d_base = "knowledge-base"
+settingAppliesToText SettingAppliesToKnowledgeBase = "knowledge-base"

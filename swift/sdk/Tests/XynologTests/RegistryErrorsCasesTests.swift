@@ -91,11 +91,11 @@ private final class SayingSessions: SessionFactory {
         throw BusRequestError(.busRejected, "Unread")
       }
       return try wirePayload(
-        BrowseKbResult(response: KbDescription(domain: "example.org", name: "KB")))
+        BrowseKbResult(response: KbDescription(name: "KB", domain: "example.org")))
     }
     let opened = try await createTestSession(
       TestSessionOptions(
-        kb: KbTarget(endpoint: kb.endpoint, id: kb.id, label: kb.label), kept: kept,
+        kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint), kept: kept,
         transport: transport,
         renew: { [self] holding in
           handed.withLock { $0.append(holding) }
@@ -167,10 +167,10 @@ private func saidUntilTheLastIsRead(
     do {
       _ = try await browser.signedIn(
         SignedIn(
-          description: KbDescription(domain: "example.org", name: "KB"),
           endpoint: .httpEndpoint(HttpEndpoint(host: "localhost", port: 4000, protocol: .http)),
+          description: KbDescription(name: "KB", domain: "example.org"),
           session: StoredSession(
-            access: held, clientId: "browser", refresh: "refresh", tokenEndpoint: "issuer")))
+            access: held, refresh: "refresh", clientId: "browser", tokenEndpoint: "issuer")))
       let opened = try #require(browser.activeSession.value, "\(why): no session is active")
       let signals = try #require(browser.activeSignals.value, "\(why): no session is active")
       if phase == "active" {
@@ -232,10 +232,10 @@ private func overAnUnreadRegistry(
   do {
     _ = try await browser.signedIn(
       SignedIn(
-        description: KbDescription(domain: "example.org", name: "KB"),
         endpoint: .httpEndpoint(HttpEndpoint(host: "localhost", port: 4000, protocol: .http)),
+        description: KbDescription(name: "KB", domain: "example.org"),
         session: StoredSession(
-          access: held, clientId: "browser", refresh: "refresh", tokenEndpoint: "issuer")))
+          access: held, refresh: "refresh", clientId: "browser", tokenEndpoint: "issuer")))
     let opened = try #require(browser.activeSession.value, "no session is active")
     let signals = try #require(browser.activeSignals.value, "no session is active")
     try await run(browser, opened, signals)

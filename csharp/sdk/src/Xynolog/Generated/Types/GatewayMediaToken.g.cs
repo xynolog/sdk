@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record GatewayMediaToken
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("claims")] public required global::Xynolog.Types.GatewayMediaTokenClaims Claims { get; init; }
     [global::Xynolog.Serialization.Wire("header")] public required global::Xynolog.Types.GatewayMediaTokenHeader Header { get; init; }
+    [global::Xynolog.Serialization.Wire("claims")] public required global::Xynolog.Types.GatewayMediaTokenClaims Claims { get; init; }
     [global::Xynolog.Serialization.Wire("lifetimeSeconds")] public required long LifetimeSeconds { get; init; }
 }

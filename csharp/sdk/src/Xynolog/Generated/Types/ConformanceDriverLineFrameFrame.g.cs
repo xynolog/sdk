@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record ConformanceDriverLineFrameFrame
 {
     [global::Xynolog.Serialization.Wire("channel")] public required string Channel { get; init; }
-    [global::Xynolog.Serialization.Wire("correlationId")] public string? CorrelationId { get; init; }
     [global::Xynolog.Serialization.Wire("payload")] public global::System.Text.Json.JsonElement? Payload { get; init; }
+    [global::Xynolog.Serialization.Wire("correlationId")] public string? CorrelationId { get; init; }
     [global::Xynolog.Serialization.Wire("scope")] public global::Xynolog.Identifiers.ResourceId? Scope { get; init; }
 }

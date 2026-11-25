@@ -3,26 +3,16 @@
 
 open Selector_codec
 
-type text_position_selector = {
-  start : Z.t;
-  end_ : Z.t;
-  extra : (string * Yojson.Safe.t) list;
-}
+type text_position_selector = { start : Z.t; end_ : Z.t }
 
 type text_quote_selector = {
   exact : string;
   prefix : string option;
   suffix : string option;
-  extra : (string * Yojson.Safe.t) list;
 }
 
-type svg_selector = { value : string; extra : (string * Yojson.Safe.t) list }
-
-type fragment_selector = {
-  value : string;
-  conforms_to : string option;
-  extra : (string * Yojson.Safe.t) list;
-}
+type svg_selector = { value : string }
+type fragment_selector = { value : string; conforms_to : string option }
 
 type t =
   | TextPositionSelector of text_position_selector
@@ -43,19 +33,19 @@ let of_json : Yojson.Safe.t -> (t, fault) result = function
       | "TextPositionSelector" ->
           let* start = required reader (integer_at_least 0) "start" in
           let* end_ = required reader (integer_at_least 0) "end" in
-          Ok (TextPositionSelector { start; end_; extra = rest reader })
+          Ok (TextPositionSelector { start; end_ })
       | "TextQuoteSelector" ->
           let* exact = required reader string "exact" in
           let* prefix = optional reader string "prefix" in
           let* suffix = optional reader string "suffix" in
-          Ok (TextQuoteSelector { exact; prefix; suffix; extra = rest reader })
+          Ok (TextQuoteSelector { exact; prefix; suffix })
       | "SvgSelector" ->
           let* value = required reader string "value" in
-          Ok (SvgSelector { value; extra = rest reader })
+          Ok (SvgSelector { value })
       | "FragmentSelector" ->
           let* value = required reader string "value" in
           let* conforms_to = optional reader string "conformsTo" in
-          Ok (FragmentSelector { value; conforms_to; extra = rest reader })
+          Ok (FragmentSelector { value; conforms_to })
       | _ -> malformed "type")
   | _ -> malformed ""
 
@@ -67,7 +57,6 @@ let to_json : t -> Yojson.Safe.t = function
           ("start", Some (json_integer value.start));
           ("end", Some (json_integer value.end_));
         ]
-        value.extra
   | TextQuoteSelector value ->
       write
         [
@@ -76,14 +65,12 @@ let to_json : t -> Yojson.Safe.t = function
           ("prefix", Option.map json_string value.prefix);
           ("suffix", Option.map json_string value.suffix);
         ]
-        value.extra
   | SvgSelector value ->
       write
         [
           ("type", Some (json_string "SvgSelector"));
           ("value", Some (json_string value.value));
         ]
-        value.extra
   | FragmentSelector value ->
       write
         [
@@ -91,4 +78,3 @@ let to_json : t -> Yojson.Safe.t = function
           ("value", Some (json_string value.value));
           ("conformsTo", Option.map json_string value.conforms_to);
         ]
-        value.extra

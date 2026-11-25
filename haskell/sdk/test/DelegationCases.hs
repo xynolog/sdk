@@ -78,13 +78,13 @@ newRig samples clock = do
         if busFrameChannel frame == Channel.channelName Channel.JobCreate
           then do
             held <- readTVarIO createHeld
-            unless held (answer Channel.JobCreated correlation (JobCreatedResult (JobCreatedResultResponse identity mempty) mempty))
+            unless held (answer Channel.JobCreated correlation (JobCreatedResult (JobCreatedResultResponse identity)))
           else
             if busFrameChannel frame == Channel.channelName Channel.JobStatusRequested
               then do
                 atomically (modifyTVar' count (+ 1))
                 held <- readTVarIO statusHeld
-                unless held (readTVarIO current >>= answer Channel.JobStatusResult correlation . (\value -> JobStatusResult value mempty))
+                unless held (readTVarIO current >>= answer Channel.JobStatusResult correlation . (\value -> JobStatusResult value))
               else
                 if busFrameChannel frame == Channel.channelName Channel.JobCancelRequested
                   then do
@@ -163,7 +163,7 @@ creationAnswer rig frame =
     ( BusFrame
         (Channel.channelName Channel.JobCreated)
         (busFrameCorrelationId frame)
-        (payload Channel.JobCreated (JobCreatedResult (JobCreatedResultResponse (jobId rig) mempty) mempty))
+        (payload Channel.JobCreated (JobCreatedResult (JobCreatedResultResponse (jobId rig))))
         Nothing
     )
 
@@ -216,7 +216,7 @@ retryCases samples = withRig samples $ \rig -> do
     ( BusFrame
         (Channel.channelName Channel.JobStatusResult)
         (busFrameCorrelationId oldAsk)
-        (payload Channel.JobStatusResult (JobStatusResult failed mempty))
+        (payload Channel.JobStatusResult (JobStatusResult failed))
         Nothing
     )
   Time.advance (time rig) (Timing.jobSilenceMs Timing.protocolSettings * 1000000)

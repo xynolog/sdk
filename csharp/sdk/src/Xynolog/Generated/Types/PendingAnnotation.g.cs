@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record PendingAnnotation
 {
-    [global::Xynolog.Serialization.Wire("motivation")] public required global::Xynolog.Types.Motivation Motivation { get; init; }
     [global::Xynolog.Serialization.Wire("selector")] public required global::Xynolog.Types.AnnotationSelector Selector { get; init; }
+    [global::Xynolog.Serialization.Wire("motivation")] public required global::Xynolog.Types.Motivation Motivation { get; init; }
 }

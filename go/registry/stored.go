@@ -1,8 +1,9 @@
 package registry
 
-// What a registry keeps in a SessionStorage, and under which keys: each
-// knowledge base's tokens, the list of registered knowledge bases and which of
-// them is active, and each one's open resources and last-viewed resource.
+// What a registry keeps in a SessionStorage, under the keys stored_gen.go
+// names: each knowledge base's tokens, the list of registered knowledge bases
+// and which of them is active, and each one's open resources and last-viewed
+// resource.
 //
 // An entry that does not read as what it should be is not there: a store
 // written by another release is dropped entry by entry, never half-read.
@@ -18,28 +19,12 @@ import (
 	"github.com/xynolog/sdk/go/internal/required"
 )
 
-const sessionPrefix = "xynolog.session."
-
-const (
-	// KnowledgeBasesKey is the key the registered knowledge bases are kept
-	// under.
-	KnowledgeBasesKey = "xynolog.knowledgeBases"
-	// ActiveKey is the key the id of the active one is kept under.
-	ActiveKey = "xynolog.activeKnowledgeBaseId"
-	// OpenResourcesByKbKey is the key each knowledge base's open resources are
-	// kept under, by its id.
-	OpenResourcesByKbKey = "xynolog.openResourcesByKb"
-	// LastViewedResourceByKbKey is the key each knowledge base's last-viewed
-	// resource is kept under, by its id.
-	LastViewedResourceByKbKey = "xynolog.lastViewedResourceByKb"
-)
-
 // SessionKey is the key a knowledge base's session is stored under.
-func SessionKey(kbID string) string { return sessionPrefix + kbID }
+func SessionKey(kbID string) string { return sessionKeyPrefix + kbID }
 
 // KbOfSessionKey is the knowledge base key is the session of; false when it
 // is no session's key.
-func KbOfSessionKey(key string) (string, bool) { return strings.CutPrefix(key, sessionPrefix) }
+func KbOfSessionKey(key string) (string, bool) { return strings.CutPrefix(key, sessionKeyPrefix) }
 
 // readStoredSession is a stored value as a session; false for one that is
 // not a session, which lacks a member a session has.

@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BusSubscribeRequestScopedItem
 {
+    [global::Xynolog.Serialization.Wire("scope")] public required global::Xynolog.Identifiers.ResourceId Scope { get; init; }
     [global::Xynolog.Serialization.Wire("channels")] public required global::System.Collections.Generic.IReadOnlyList<string> Channels { get; init; }
     [global::Xynolog.Serialization.Wire("lastEventId")] public string? LastEventId { get; init; }
-    [global::Xynolog.Serialization.Wire("scope")] public required global::Xynolog.Identifiers.ResourceId Scope { get; init; }
 }

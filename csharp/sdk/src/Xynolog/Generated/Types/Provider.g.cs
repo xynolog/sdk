@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Provider
 {
-    [global::Xynolog.Serialization.Wire("apiKey")] public global::Xynolog.Types.SecretRef? ApiKey { get; init; }
     [global::Xynolog.Serialization.Wire("baseURL")] public string? BaseURL { get; init; }
+    [global::Xynolog.Serialization.Wire("apiKey")] public global::Xynolog.Types.SecretRef? ApiKey { get; init; }
 }

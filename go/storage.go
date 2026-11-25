@@ -119,23 +119,14 @@ func PersonKey(did string) string { return sha256URLSafe(did) }
 // CacheKey is the key what a client keeps of query, for the person whose key
 // is personKey, is kept under in a knowledge base's storage.
 func CacheKey(kbID, personKey string, query CacheQuery) string {
-	return "xynolog.cache." + kbID + "." + personKey + "." + string(query)
+	return cacheKeyPrefix + kbID + "." + personKey + "." + string(query)
 }
 
 // LastEventIDKey is the key where a knowledge base's stream was, for the
 // person whose key is personKey, is kept under.
 func LastEventIDKey(kbID, personKey string) string {
-	return "xynolog.lastEventId." + kbID + "." + personKey
+	return lastEventIdKeyPrefix + kbID + "." + personKey
 }
-
-// keptVersion is the version of a kept document, as
-// protocol/specs/src/session/stored.json's `cacheDocument` states it. A
-// document of another version reads as nothing kept.
-const keptVersion = 1
-
-// wholeKey is the key a kept query of one value keeps its entry under, as
-// protocol/specs/src/session/stored.json states it.
-const wholeKey = "_"
 
 // keptEntry is a kept entry as it was last written: its value's text, and when.
 type keptEntry struct {
@@ -204,7 +195,7 @@ type storedEntry struct {
 
 // documentEntries is the entries of the kept document raw; false when its
 // structure is not `cacheDocument`'s: it is no JSON object, its version is
-// not the number keptVersion, its entries are no list, or an entry is not a
+// not the number cacheDocumentVersion, its entries are no list, or an entry is not a
 // key, a value and a stamp that is a whole number of at least 0. A number is
 // its value, however it is written: 1.0 is the version and 1e3 a stamp.
 func documentEntries(raw string) ([]storedEntry, bool) {
@@ -212,7 +203,7 @@ func documentEntries(raw string) ([]storedEntry, bool) {
 		Version *float64          `json:"version"`
 		Entries []json.RawMessage `json:"entries"`
 	}
-	if json.Unmarshal([]byte(raw), &document) != nil || document.Version == nil || *document.Version != keptVersion || document.Entries == nil {
+	if json.Unmarshal([]byte(raw), &document) != nil || document.Version == nil || *document.Version != cacheDocumentVersion || document.Entries == nil {
 		return nil, false
 	}
 	entries := make([]storedEntry, 0, len(document.Entries))
@@ -273,7 +264,7 @@ func (p *StoragePersister[K, V]) Save(entries map[K]V) error {
 	}
 	document := func() string {
 		var b bytes.Buffer
-		fmt.Fprintf(&b, `{"version":%d,"entries":[`, keptVersion)
+		fmt.Fprintf(&b, `{"version":%d,"entries":[`, cacheDocumentVersion)
 		for i, entry := range kept {
 			if i > 0 {
 				b.WriteByte(',')

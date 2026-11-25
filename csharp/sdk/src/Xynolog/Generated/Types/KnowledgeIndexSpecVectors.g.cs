@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KnowledgeIndexSpecVectors
 {
-    [global::Xynolog.Serialization.Wire("external")] public global::Xynolog.Types.KnowledgeIndexSpecVectorsExternal? External { get; init; }
+    [global::Xynolog.Serialization.Wire("type")] public required string Type { get; init; }
+    [global::Xynolog.Serialization.Wire("shared")] public global::Xynolog.Types.KnowledgeIndexSpecVectorsShared? Shared { get; init; }
     [global::Xynolog.Serialization.Wire("image")] public string? Image { get; init; }
     [global::Xynolog.Serialization.Wire("resources")] public global::Xynolog.Types.Resources? Resources { get; init; }
-    [global::Xynolog.Serialization.Wire("shared")] public global::Xynolog.Types.KnowledgeIndexSpecVectorsShared? Shared { get; init; }
-    [global::Xynolog.Serialization.Wire("type")] public required string Type { get; init; }
+    [global::Xynolog.Serialization.Wire("external")] public global::Xynolog.Types.KnowledgeIndexSpecVectorsExternal? External { get; init; }
 }

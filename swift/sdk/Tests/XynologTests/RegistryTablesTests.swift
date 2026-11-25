@@ -5,20 +5,8 @@ import XynologTesting
 
 @testable import Xynolog
 
-@Test func registryStorageMatchesTheSharedKeysAndSessionShape() async throws {
+@Test func registryStorageMatchesTheSharedSessionKeyAndShape() async throws {
   let table = try Spec.read("session/stored.json").object
-  let keys = [
-    "knowledgeBasesKey": knowledgeBasesKey,
-    "activeKey": activeKey,
-    "openResourcesByKbKey": openResourcesByKbKey,
-    "lastViewedResourceByKbKey": lastViewedResourceByKbKey,
-    "pendingAuthorizationKey": pendingAuthorizationKey,
-  ]
-  let expected = try required(table, "keys").array.map { value in
-    let row = try value.object
-    return (try required(row, "member").text, try required(row, "key").text)
-  }
-  #expect(keys == Dictionary(uniqueKeysWithValues: expected))
   let prefix = try required(required(table, "sessionKeyPrefix").object, "prefix").text
   let id = "one"
   #expect(sessionKey(id) == prefix + id)
@@ -92,7 +80,7 @@ import XynologTesting
   let jo = personKey(try UserId("did:web:kb.example.org:users:jo%40example.org"))
   let ann = personKey(try UserId("did:web:kb.example.org:users:ann%40example.org"))
   let signedIn = StoredSession(
-    access: first, clientId: scriptClientID, refresh: "refresh",
+    access: first, refresh: "refresh", clientId: scriptClientID,
     tokenEndpoint: "http://issuer.test/token")
   let storage = MemorySessionStorage()
   try storeSession(storage, kbId: "kb-a", session: signedIn)
@@ -124,8 +112,8 @@ import XynologTesting
   func signIn(_ tokens: String, personKey: String?) throws -> StoredSession {
     StoredSession(
       access: try jwt(.object(["exp": .number(hour), "name": .string(tokens)])),
-      clientId: scriptClientID, personKey: personKey, refresh: tokens + "-refresh",
-      tokenEndpoint: "http://issuer.test/token")
+      refresh: tokens + "-refresh", clientId: scriptClientID,
+      tokenEndpoint: "http://issuer.test/token", personKey: personKey)
   }
   let joOnA = KeptQuery.allCases.map { cacheKey("kb-a", jo, $0) } + [lastEventIdKey("kb-a", jo)]
   let others = [
@@ -312,7 +300,7 @@ private func hold(_ query: CacheQuery, in live: LiveQueries) async throws {
       throw BusRequestError(.busRejected, "Unread")
     }
     return try wirePayload(
-      BrowseKbResult(response: KbDescription(domain: "example.org", name: "KB")))
+      BrowseKbResult(response: KbDescription(name: "KB", domain: "example.org")))
   }
   let browser = try await newXynologBrowser(
     XynologBrowserConfig(storage: storage, sessionFactory: factory))
@@ -320,10 +308,10 @@ private func hold(_ query: CacheQuery, in live: LiveQueries) async throws {
     let token = try jwt(.object(["exp": .number(Date().timeIntervalSince1970 + 3600)]))
     let signedIn = try await browser.signedIn(
       SignedIn(
-        description: KbDescription(domain: "example.org", name: "KB"),
         endpoint: .httpEndpoint(HttpEndpoint(host: "localhost", port: 4000, protocol: .http)),
+        description: KbDescription(name: "KB", domain: "example.org"),
         session: StoredSession(
-          access: token, clientId: "browser", refresh: "refresh", tokenEndpoint: "issuer")))
+          access: token, refresh: "refresh", clientId: "browser", tokenEndpoint: "issuer")))
     let kbId = signedIn.kb.id
     try await withinTestDeadline {
       for await opened in browser.activeSession where opened?.session.kb.id == kbId { break }
@@ -365,7 +353,7 @@ private func openedBeforeActivation(
       throw BusRequestError(.busRejected, "Unread")
     }
     return try wirePayload(
-      BrowseKbResult(response: KbDescription(domain: "example.org", name: "KB")))
+      BrowseKbResult(response: KbDescription(name: "KB", domain: "example.org")))
   }
   let browser = try await newXynologBrowser(
     XynologBrowserConfig(storage: storage, sessionFactory: opening))
@@ -373,10 +361,10 @@ private func openedBeforeActivation(
     let token = try jwt(.object(["exp": .number(Date().timeIntervalSince1970 + 3600)]))
     let signedIn = try await browser.signedIn(
       SignedIn(
-        description: KbDescription(domain: "example.org", name: "KB"),
         endpoint: .httpEndpoint(HttpEndpoint(host: "localhost", port: 4000, protocol: .http)),
+        description: KbDescription(name: "KB", domain: "example.org"),
         session: StoredSession(
-          access: token, clientId: "browser", refresh: "refresh", tokenEndpoint: "issuer")))
+          access: token, refresh: "refresh", clientId: "browser", tokenEndpoint: "issuer")))
     let kbId = signedIn.kb.id
     try await withinTestDeadline {
       for await opened in browser.activeSession where opened?.session.kb.id == kbId { break }
@@ -412,7 +400,7 @@ private func openedBeforeActivation(
           throw BusRequestError(.busTimeout, "The knowledge base did not answer")
         }
         return try wirePayload(
-          BrowseKbResult(response: KbDescription(domain: "example.org", name: "KB")))
+          BrowseKbResult(response: KbDescription(name: "KB", domain: "example.org")))
       case Channels.browseResourceRequested.name:
         let id = try required(payload, "resourceId").text
         requested.withLock { _ = $0.insert(id) }
@@ -421,7 +409,7 @@ private func openedBeforeActivation(
           return try wirePayload(
             BrowseResourceResult(
               response: BrowseResourceResultResponse(
-                lastSequence: 1, resource: try keptDescriptor(id))))
+                resource: try keptDescriptor(id), lastSequence: 1)))
         case "gone"?: throw BusRequestError(.busNotFound, "Gone")
         case "unanswered"?:
           throw BusRequestError(.busTimeout, "The knowledge base did not answer")
@@ -499,13 +487,13 @@ private actor DiscoveryScript: DiscoveryTransport {
 
 @Test func launcherDiscoveryReportsChangesAndSkipsUnchangedReads() async throws {
   let first = DiscoveredKB(
-    did: "did:web:one.test", host: "localhost", managedBy: "launcher",
-    placement: .local, port: 4001, siteName: "First")
+    host: "localhost", port: 4001, placement: .local,
+    did: "did:web:one.test", siteName: "First", managedBy: "launcher")
   var renamed = first
   renamed.siteName = "Renamed"
   let second = DiscoveredKB(
-    did: "did:web:two.test", host: "localhost", managedBy: "launcher",
-    placement: .local, port: 4002, siteName: "Second")
+    host: "localhost", port: 4002, placement: .local,
+    did: "did:web:two.test", siteName: "Second", managedBy: "launcher")
   let script = DiscoveryScript([
     .state(.managed(Managed(kbs: [first]))), .unchanged(Unchanged()),
     .state(.managed(Managed(kbs: [first]))),

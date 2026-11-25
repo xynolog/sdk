@@ -12,15 +12,14 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data YieldUpdateCommand = YieldUpdateCommand
-  { yieldUpdateCommandU5f_userId :: Maybe UserId,
-    yieldUpdateCommandByteSize :: Integer,
-    yieldUpdateCommandContentChecksum :: Text,
+  { yieldUpdateCommandUserId :: Maybe UserId,
     yieldUpdateCommandResourceId :: ResourceId,
     yieldUpdateCommandStorageUri :: Text,
-    yieldUpdateCommandAdditionalProperties :: KM.KeyMap Value
+    yieldUpdateCommandContentChecksum :: Text,
+    yieldUpdateCommandByteSize :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldUpdateCommand where parseJSON = checked "YieldUpdateCommand" $ withObject "YieldUpdateCommand" (\fields -> YieldUpdateCommand <$> optional fields "_userId" <*> (fields .: "byteSize") <*> (fields .: "contentChecksum") <*> (fields .: "resourceId") <*> (fields .: "storageUri") <*> traverse parseJSON (withoutFields ["_userId", "byteSize", "contentChecksum", "resourceId", "storageUri"] fields))
+instance FromJSON YieldUpdateCommand where parseJSON = checked "YieldUpdateCommand" $ withObject "YieldUpdateCommand" (\fields -> YieldUpdateCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> (fields .: "storageUri") <*> (fields .: "contentChecksum") <*> (fields .: "byteSize"))
 
-instance ToJSON YieldUpdateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldUpdateCommandU5f_userId value), [("byteSize", toJSON (yieldUpdateCommandByteSize value))], [("contentChecksum", toJSON (yieldUpdateCommandContentChecksum value))], [("resourceId", toJSON (yieldUpdateCommandResourceId value))], [("storageUri", toJSON (yieldUpdateCommandStorageUri value))]]) <> fmap toJSON (withoutFields ["_userId", "byteSize", "contentChecksum", "resourceId", "storageUri"] (yieldUpdateCommandAdditionalProperties value)))
+instance ToJSON YieldUpdateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldUpdateCommandUserId value), [("resourceId", toJSON (yieldUpdateCommandResourceId value))], [("storageUri", toJSON (yieldUpdateCommandStorageUri value))], [("contentChecksum", toJSON (yieldUpdateCommandContentChecksum value))], [("byteSize", toJSON (yieldUpdateCommandByteSize value))]]))

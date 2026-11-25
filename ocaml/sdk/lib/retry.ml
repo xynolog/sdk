@@ -47,7 +47,7 @@ let sleep_ms clock milliseconds =
   in
   Clock.sleep_until clock deadline
 
-let retry_with_backoff ~clock ~(budget : Client_timing.retry) ~accepts
+let retry_with_backoff ~clock ~(budget : Records.Retry_budget.t) ~accepts
     ~retry_after attempt =
   if
     budget.attempts < 1

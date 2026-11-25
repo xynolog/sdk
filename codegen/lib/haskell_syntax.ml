@@ -92,18 +92,20 @@ type decl =
       about : string list;
       name : string;
       params : string list;
+      constructor : string;
       fields : (string * type_) list;
       deriving : string list;
-    }  (** A type of one constructor, named as the type, with named fields. *)
+    }  (** A type of one constructor, with named fields. *)
   | Newtype of {
       about : string list;
       name : string;
+      constructor : string;
       field : string option;  (** The accessor, if the field is named. *)
       type_ : type_;
       opaque : bool;
           (** Exported without its constructor, so only the module makes one. *)
       deriving : string list;
-    }  (** A type of one constructor, named as the type, holding one value. *)
+    }  (** A type of one constructor holding one value. *)
   | Gadt of {
       about : string list;
       name : string;
@@ -148,8 +150,9 @@ let constructor ?(fields = []) constructor = { constructor; fields }
 let data ?(about = []) ?(params = []) ?(deriving = []) name constructors =
   Data { about; name; params; constructors; deriving }
 
-let record ?(about = []) ?(params = []) ?(deriving = []) name fields =
-  Record { about; name; params; fields; deriving }
+let record ?(about = []) ?(params = []) ?(deriving = []) ~constructor name
+    fields =
+  Record { about; name; params; constructor; fields; deriving }
 
 let instance ?(context = []) class_ instance methods =
   Instance { context; class_; instance; methods }
@@ -406,14 +409,14 @@ let rec decl = function
   | Record { name; fields = []; _ } ->
       invalid_arg
         (Printf.sprintf "Haskell_syntax: the record %S has no fields" name)
-  | Record { about; name; params; fields; deriving } ->
+  | Record { about; name; params; constructor; fields; deriving } ->
       doc about
-      @ ("data " ^ head name params ^ " = " ^ checked name)
+      @ ("data " ^ head name params ^ " = " ^ checked constructor)
         :: record_lines fields deriving
-  | Newtype { about; name; field; type_ = t; deriving; _ } ->
+  | Newtype { about; name; constructor; field; type_ = t; deriving; _ } ->
       doc about
       @ [
-          "newtype " ^ checked name ^ " = " ^ checked name
+          "newtype " ^ checked name ^ " = " ^ checked constructor
           ^ (match field with
             | None -> " " ^ type_argument t
             | Some field -> " {" ^ variable field ^ " :: " ^ type_ t ^ "}")

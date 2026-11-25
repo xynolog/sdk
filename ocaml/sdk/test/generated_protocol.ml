@@ -20,22 +20,20 @@ let refuses json member reason =
 
 let selectors () =
   selector
-    {|{"type":"TextPositionSelector","start":0,"end":9223372036854775808,"extension":null}|};
+    {|{"type":"TextPositionSelector","start":0,"end":9223372036854775808}|};
   selector {|{"type":"TextQuoteSelector","exact":"a","suffix":"b"}|};
   selector {|{"type":"SvgSelector","value":"<svg/>"}|};
   selector {|{"type":"FragmentSelector","value":"page=1"}|};
   Alcotest.(check string)
-    "an extra member a branch states is not written"
-    {|{"type":"TextQuoteSelector","exact":"a","extension":1}|}
-    (Yojson.Safe.to_string
-       (Selector.to_json
-          (TextQuoteSelector
-             {
-               exact = "a";
-               prefix = None;
-               suffix = None;
-               extra = [ ("prefix", `String "b"); ("extension", `Int 1) ];
-             })));
+    "a member no selector's schema names is dropped"
+    {|{"type":"TextQuoteSelector","exact":"a"}|}
+    (match
+       Selector.of_json
+         (Yojson.Safe.from_string
+            {|{"type":"TextQuoteSelector","exact":"a","extension":1}|})
+     with
+    | Ok decoded -> Yojson.Safe.to_string (Selector.to_json decoded)
+    | Error _ -> Alcotest.fail "valid selector was refused");
   refuses {|{"type":"Unknown"}|} "type" R.Malformed;
   refuses {|{"type":"TextQuoteSelector","exact":"a","suffix":null}|} "suffix"
     R.Malformed;
@@ -236,11 +234,14 @@ let record_views () =
     |> R.Kb_endpoint.of_model
   in
   (match endpoint with
-  | Some (R.Kb_endpoint.Http view) ->
+  | R.Kb_endpoint.HttpEndpoint view ->
       Alcotest.(check string) "typed union selects HTTP" "example.org" view.host;
       Alcotest.(check bool)
-        "open property retained" true
-        (view.extra = [ ("hint", `Null) ])
+        "a member the schema does not name is dropped" false
+        (List.mem "hint"
+           (Yojson.Safe.Util.keys
+              (Yojson.Safe.from_string
+                 (Yojson.Raw.to_string (R.Http_endpoint.to_json view)))))
   | _ -> Alcotest.fail "expected HTTP endpoint variant");
   let outcome =
     Result.get_ok
@@ -249,7 +250,7 @@ let record_views () =
     |> R.Extraction_outcome.of_model
   in
   match outcome with
-  | Some (R.Extraction_outcome.Extracted view) ->
+  | R.Extraction_outcome.ExtractedText view ->
       Alcotest.(check string) "composed record inherits text" "sample" view.text;
       Alcotest.(check bool)
         "composed record keeps branch method" true

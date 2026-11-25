@@ -21,10 +21,32 @@ public sealed interface RequestId {
     }
 }
 
-internal object RequestIdSerializer : KindsUnionSerializer<RequestId>(
+internal object RequestIdSerializer : SignatureUnionSerializer<RequestId>(
     RequestId::class,
-    strings = { listOf(RequestId.Text.serializer()) },
-    scalars = { listOf(RequestId.Integer.serializer()) },
-    arrays = { emptyList() },
-    objects = { emptyList() },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.TEXT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.INTEGER,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            RequestId.Text.serializer(),
+            RequestId.Integer.serializer(),
+        )
+    },
 )

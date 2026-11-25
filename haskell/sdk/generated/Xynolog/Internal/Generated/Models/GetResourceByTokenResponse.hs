@@ -11,12 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceDescriptor
 
 data GetResourceByTokenResponse = GetResourceByTokenResponse
-  { getResourceByTokenResponseExpiresAt :: Text,
-    getResourceByTokenResponseSourceResource :: ResourceDescriptor,
-    getResourceByTokenResponseAdditionalProperties :: KM.KeyMap Value
+  { getResourceByTokenResponseSourceResource :: ResourceDescriptor,
+    getResourceByTokenResponseExpiresAt :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GetResourceByTokenResponse where parseJSON = checked "GetResourceByTokenResponse" $ withObject "GetResourceByTokenResponse" (\fields -> GetResourceByTokenResponse <$> (fields .: "expiresAt") <*> (fields .: "sourceResource") <*> traverse parseJSON (withoutFields ["expiresAt", "sourceResource"] fields))
+instance FromJSON GetResourceByTokenResponse where parseJSON = checked "GetResourceByTokenResponse" $ withObject "GetResourceByTokenResponse" (\fields -> GetResourceByTokenResponse <$> (fields .: "sourceResource") <*> (fields .: "expiresAt"))
 
-instance ToJSON GetResourceByTokenResponse where toJSON value = Object (KM.fromList (concat [[("expiresAt", toJSON (getResourceByTokenResponseExpiresAt value))], [("sourceResource", toJSON (getResourceByTokenResponseSourceResource value))]]) <> fmap toJSON (withoutFields ["expiresAt", "sourceResource"] (getResourceByTokenResponseAdditionalProperties value)))
+instance ToJSON GetResourceByTokenResponse where toJSON value = Object (KM.fromList (concat [[("sourceResource", toJSON (getResourceByTokenResponseSourceResource value))], [("expiresAt", toJSON (getResourceByTokenResponseExpiresAt value))]]))

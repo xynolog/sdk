@@ -16,10 +16,32 @@ public sealed interface AnnotationTargetValue {
     }
 }
 
-internal object AnnotationTargetValueSerializer : KindsUnionSerializer<AnnotationTargetValue>(
+internal object AnnotationTargetValueSerializer : SignatureUnionSerializer<AnnotationTargetValue>(
     AnnotationTargetValue::class,
-    strings = { listOf(AnnotationTargetValue.ResourceId.serializer()) },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(AnnotationTarget.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.TEXT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("source"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("SpecificResource"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            AnnotationTargetValue.ResourceId.serializer(),
+            AnnotationTarget.serializer(),
+        )
+    },
 )

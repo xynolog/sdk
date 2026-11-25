@@ -59,6 +59,7 @@ func roundTripModel(_ name: String, _ value: JSONValue) throws -> JSONValue {
   case "BeckonHoverEvent": return try roundTrip(BeckonHoverEvent.self, value)
   case "BeckonSparkleEvent": return try roundTrip(BeckonSparkleEvent.self, value)
   case "BeginAuthorizationOptions": return try roundTrip(BeginAuthorizationOptions.self, value)
+  case "Binary": return try roundTrip(Binary.self, value)
   case "BindBodyOperation": return try roundTrip(BindBodyOperation.self, value)
   case "BindBodyUpdated": return try roundTrip(BindBodyUpdated.self, value)
   case "BindInitiateCommand": return try roundTrip(BindInitiateCommand.self, value)
@@ -401,6 +402,7 @@ func roundTripModel(_ name: String, _ value: JSONValue) throws -> JSONValue {
   case "ResourceUpload": return try roundTrip(ResourceUpload.self, value)
   case "ResourceView": return try roundTrip(ResourceView.self, value)
   case "Resources": return try roundTrip(Resources.self, value)
+  case "RetryBudget": return try roundTrip(RetryBudget.self, value)
   case "RetryRules": return try roundTrip(RetryRules.self, value)
   case "Root": return try roundTrip(Root.self, value)
   case "RootsForgetParams": return try roundTrip(RootsForgetParams.self, value)
@@ -543,33 +545,33 @@ let identifierKinds:
   ]
 
 public struct FidelityFixture: Codable, Sendable, Hashable {
-  public var optionalValue: String?
-  public var requiredNullable: String?
   public var requiredValue: String
+  public var requiredNullable: String?
+  public var optionalValue: String?
   public var rest: [String: JSONValue]
   public init(
-    optionalValue: String? = nil, requiredNullable: String?, requiredValue: String,
+    requiredValue: String, requiredNullable: String?, optionalValue: String? = nil,
     rest: [String: JSONValue] = [:]
   ) {
-    self.optionalValue = optionalValue
-    self.requiredNullable = requiredNullable
     self.requiredValue = requiredValue
+    self.requiredNullable = requiredNullable
+    self.optionalValue = optionalValue
     self.rest = rest
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.optionalValue = try c.ifPresent("optionalValue")
-    self.requiredNullable = try c.value("requiredNullable")
     self.requiredValue = try c.value("requiredValue")
-    rest = try c.rest(excluding: ["optionalValue", "requiredNullable", "requiredValue"])
+    self.requiredNullable = try c.value("requiredNullable")
+    self.optionalValue = try c.ifPresent("optionalValue")
+    rest = try c.rest(excluding: ["requiredValue", "requiredNullable", "optionalValue"])
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(
-      rest: rest, excluding: ["optionalValue", "requiredNullable", "requiredValue"],
+      rest: rest, excluding: ["requiredValue", "requiredNullable", "optionalValue"],
       of: "FidelityFixture")
-    try c.encodeIfPresent(self.optionalValue, as: "optionalValue")
-    try c.encode(self.requiredNullable, as: "requiredNullable")
     try c.encode(self.requiredValue, as: "requiredValue")
+    try c.encode(self.requiredNullable, as: "requiredNullable")
+    try c.encodeIfPresent(self.optionalValue, as: "optionalValue")
   }
 }

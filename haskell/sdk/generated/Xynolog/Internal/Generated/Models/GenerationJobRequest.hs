@@ -12,22 +12,21 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.SupportedMediaType
 
 data GenerationJobRequest = GenerationJobRequest
-  { generationJobRequestCite :: Maybe Bool,
+  { generationJobRequestTitle :: Text,
+    generationJobRequestStorageUri :: Text,
+    generationJobRequestPrompt :: Maybe Text,
     generationJobRequestEntityTypes :: Maybe [Text],
     generationJobRequestLanguage :: Maybe Text,
+    generationJobRequestSourceLanguage :: Maybe Text,
+    generationJobRequestTemperature :: Maybe Scientific,
     generationJobRequestMaxTokens :: Maybe Scientific,
     generationJobRequestOutputMediaType :: Maybe SupportedMediaType,
-    generationJobRequestPrompt :: Maybe Text,
-    generationJobRequestSourceLanguage :: Maybe Text,
-    generationJobRequestStorageUri :: Text,
-    generationJobRequestStructure :: Maybe Text,
     generationJobRequestTask :: Maybe Text,
-    generationJobRequestTemperature :: Maybe Scientific,
-    generationJobRequestTitle :: Text,
-    generationJobRequestAdditionalProperties :: KM.KeyMap Value
+    generationJobRequestStructure :: Maybe Text,
+    generationJobRequestCite :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON GenerationJobRequest where parseJSON = checked "GenerationJobRequest" $ withObject "GenerationJobRequest" (\fields -> GenerationJobRequest <$> optional fields "cite" <*> optional fields "entityTypes" <*> optional fields "language" <*> optional fields "maxTokens" <*> optional fields "outputMediaType" <*> optional fields "prompt" <*> optional fields "sourceLanguage" <*> (fields .: "storageUri") <*> optional fields "structure" <*> optional fields "task" <*> optional fields "temperature" <*> (fields .: "title") <*> traverse parseJSON (withoutFields ["cite", "entityTypes", "language", "maxTokens", "outputMediaType", "prompt", "sourceLanguage", "storageUri", "structure", "task", "temperature", "title"] fields))
+instance FromJSON GenerationJobRequest where parseJSON = checked "GenerationJobRequest" $ withObject "GenerationJobRequest" (\fields -> GenerationJobRequest <$> (fields .: "title") <*> (fields .: "storageUri") <*> optional fields "prompt" <*> optional fields "entityTypes" <*> optional fields "language" <*> optional fields "sourceLanguage" <*> optional fields "temperature" <*> optional fields "maxTokens" <*> optional fields "outputMediaType" <*> optional fields "task" <*> optional fields "structure" <*> optional fields "cite")
 
-instance ToJSON GenerationJobRequest where toJSON value = Object (KM.fromList (concat [optionalPair "cite" (generationJobRequestCite value), optionalPair "entityTypes" (generationJobRequestEntityTypes value), optionalPair "language" (generationJobRequestLanguage value), optionalPair "maxTokens" (generationJobRequestMaxTokens value), optionalPair "outputMediaType" (generationJobRequestOutputMediaType value), optionalPair "prompt" (generationJobRequestPrompt value), optionalPair "sourceLanguage" (generationJobRequestSourceLanguage value), [("storageUri", toJSON (generationJobRequestStorageUri value))], optionalPair "structure" (generationJobRequestStructure value), optionalPair "task" (generationJobRequestTask value), optionalPair "temperature" (generationJobRequestTemperature value), [("title", toJSON (generationJobRequestTitle value))]]) <> fmap toJSON (withoutFields ["cite", "entityTypes", "language", "maxTokens", "outputMediaType", "prompt", "sourceLanguage", "storageUri", "structure", "task", "temperature", "title"] (generationJobRequestAdditionalProperties value)))
+instance ToJSON GenerationJobRequest where toJSON value = Object (KM.fromList (concat [[("title", toJSON (generationJobRequestTitle value))], [("storageUri", toJSON (generationJobRequestStorageUri value))], optionalPair "prompt" (generationJobRequestPrompt value), optionalPair "entityTypes" (generationJobRequestEntityTypes value), optionalPair "language" (generationJobRequestLanguage value), optionalPair "sourceLanguage" (generationJobRequestSourceLanguage value), optionalPair "temperature" (generationJobRequestTemperature value), optionalPair "maxTokens" (generationJobRequestMaxTokens value), optionalPair "outputMediaType" (generationJobRequestOutputMediaType value), optionalPair "task" (generationJobRequestTask value), optionalPair "structure" (generationJobRequestStructure value), optionalPair "cite" (generationJobRequestCite value)]))

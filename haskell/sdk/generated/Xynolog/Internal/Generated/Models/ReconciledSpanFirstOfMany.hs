@@ -11,23 +11,23 @@ import Xynolog.Internal.Codec
 
 data ReconciledSpanFirstOfMany = ReconciledSpanFirstOfMany
   { reconciledSpanFirstOfManyAnchorMethod :: ReconciledSpanFirstOfManyAnchorMethod,
+    reconciledSpanFirstOfManyStart :: Integer,
     reconciledSpanFirstOfManyEnd :: Integer,
     reconciledSpanFirstOfManyExact :: Text,
     reconciledSpanFirstOfManyPrefix :: Maybe Text,
-    reconciledSpanFirstOfManyStart :: Integer,
     reconciledSpanFirstOfManySuffix :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ReconciledSpanFirstOfMany where parseJSON = checked "ReconciledSpanFirstOfMany" $ withObject "ReconciledSpanFirstOfMany" (\fields -> ReconciledSpanFirstOfMany <$> (fields .: "anchorMethod") <*> (fields .: "end") <*> (fields .: "exact") <*> optional fields "prefix" <*> (fields .: "start") <*> optional fields "suffix")
+instance FromJSON ReconciledSpanFirstOfMany where parseJSON = checked "ReconciledSpanFirstOfMany" $ withObject "ReconciledSpanFirstOfMany" (\fields -> ReconciledSpanFirstOfMany <$> (fields .: "anchorMethod") <*> (fields .: "start") <*> (fields .: "end") <*> (fields .: "exact") <*> optional fields "prefix" <*> optional fields "suffix")
 
-instance ToJSON ReconciledSpanFirstOfMany where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanFirstOfManyAnchorMethod value))], [("end", toJSON (reconciledSpanFirstOfManyEnd value))], [("exact", toJSON (reconciledSpanFirstOfManyExact value))], optionalPair "prefix" (reconciledSpanFirstOfManyPrefix value), [("start", toJSON (reconciledSpanFirstOfManyStart value))], optionalPair "suffix" (reconciledSpanFirstOfManySuffix value)]))
+instance ToJSON ReconciledSpanFirstOfMany where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanFirstOfManyAnchorMethod value))], [("start", toJSON (reconciledSpanFirstOfManyStart value))], [("end", toJSON (reconciledSpanFirstOfManyEnd value))], [("exact", toJSON (reconciledSpanFirstOfManyExact value))], optionalPair "prefix" (reconciledSpanFirstOfManyPrefix value), optionalPair "suffix" (reconciledSpanFirstOfManySuffix value)]))
 
-data ReconciledSpanFirstOfManyAnchorMethod = ReconciledSpanFirstOfManyAnchorMethodFirstU2d_ofU2d_many deriving (Eq, Show)
+data ReconciledSpanFirstOfManyAnchorMethod = ReconciledSpanFirstOfManyAnchorMethodFirstOfMany deriving (Eq, Show)
 
-instance FromJSON ReconciledSpanFirstOfManyAnchorMethod where parseJSON = checked "ReconciledSpanFirstOfManyAnchorMethod" $ \value -> if value == String "first-of-many" then pure ReconciledSpanFirstOfManyAnchorMethodFirstU2d_ofU2d_many else fail "unknown enumeration member"
+instance FromJSON ReconciledSpanFirstOfManyAnchorMethod where parseJSON = checked "ReconciledSpanFirstOfManyAnchorMethod" $ \value -> if value == String "first-of-many" then pure ReconciledSpanFirstOfManyAnchorMethodFirstOfMany else fail "unknown enumeration member"
 
-instance ToJSON ReconciledSpanFirstOfManyAnchorMethod where toJSON ReconciledSpanFirstOfManyAnchorMethodFirstU2d_ofU2d_many = String "first-of-many"
+instance ToJSON ReconciledSpanFirstOfManyAnchorMethod where toJSON ReconciledSpanFirstOfManyAnchorMethodFirstOfMany = String "first-of-many"
 
 reconciledSpanFirstOfManyAnchorMethodText :: ReconciledSpanFirstOfManyAnchorMethod -> Text
-reconciledSpanFirstOfManyAnchorMethodText ReconciledSpanFirstOfManyAnchorMethodFirstU2d_ofU2d_many = "first-of-many"
+reconciledSpanFirstOfManyAnchorMethodText ReconciledSpanFirstOfManyAnchorMethodFirstOfMany = "first-of-many"

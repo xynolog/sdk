@@ -544,8 +544,8 @@ private func deviceGrant(_ given: [String: JSONValue], _ clock: TestClock) async
   }
   let loopback = try await Loopback.open(ledger)
   let kb = KbTarget(
-    endpoint: .httpEndpoint(HttpEndpoint(host: "127.0.0.1", port: loopback.port, protocol: .http)),
-    id: "kb-alpha", label: "Alpha")
+    id: "kb-alpha", label: "Alpha",
+    endpoint: .httpEndpoint(HttpEndpoint(host: "127.0.0.1", port: loopback.port, protocol: .http)))
   let signingIn = Task {
     try await signInDevice(kb: kb, kept: MemorySignIn(), httpClient: loopback.http, clock: clock) {
       _ in
@@ -568,8 +568,8 @@ private func deviceGrant(_ given: [String: JSONValue], _ clock: TestClock) async
 // ── A session ───────────────────────────────────────────────────────────
 
 private let alphaKb = KbTarget(
-  endpoint: .httpEndpoint(HttpEndpoint(host: "localhost", port: 4000, protocol: .http)),
-  id: "kb-alpha", label: "Alpha")
+  id: "kb-alpha", label: "Alpha",
+  endpoint: .httpEndpoint(HttpEndpoint(host: "localhost", port: 4000, protocol: .http)))
 
 /// A session signed in on a token issued now, by the wall clock, that lives `lifetimeSeconds`, and
 /// renewed every time with a token that lives as long, issued when it renews.
@@ -589,7 +589,7 @@ private func renewal(_ given: [String: JSONValue], _ clock: TestClock) async thr
   }
   let kept = MemorySignIn(
     StoredSession(
-      access: try token(), clientId: scriptClientID, refresh: "a-refresh-token",
+      access: try token(), refresh: "a-refresh-token", clientId: scriptClientID,
       tokenEndpoint: "http://issuer.test/realms/xynolog/token"))
   let client = try await XynologClient(
     transport: ScriptedTransport(channels: bridgedChannels, clock: clock), clock: clock)
@@ -601,8 +601,8 @@ private func renewal(_ given: [String: JSONValue], _ clock: TestClock) async thr
     },
     validate: { _ in
       try UserResponse(
-        did: UserId("did:web:example.org:users:alice"), domain: "example.org", email: nil,
-        image: nil, name: "Alice")
+        did: UserId("did:web:example.org:users:alice"), email: nil, name: "Alice",
+        image: nil, domain: "example.org")
     }, random: RandomSource(LowestDraw()))
   await session.start()
   return Subject(
@@ -658,8 +658,8 @@ private final class LauncherDocument: DiscoveryTransport {
       .managed(
         Managed(kbs: [
           DiscoveredKB(
-            did: "did:web:example.org:kb-a", host: "localhost", managedBy: "xynolog-launcher",
-            placement: .local, port: 4000)
+            host: "localhost", port: 4000, placement: .local,
+            did: "did:web:example.org:kb-a", managedBy: "xynolog-launcher")
         ])))
   }
 }
@@ -699,10 +699,10 @@ private func invalidationWindow(_ given: [String: JSONValue], _ clock: TestClock
     act: {
       let sequence = added.add()
       let event = StoredEventResponse(
-        id: "event-\(sequence)", metadata: EventMetadata(sequenceNumber: sequence), payload: [:],
-        resourceId: resource, timestamp: "2026-10-01T00:00:00.000Z",
-        type: Channels.markAdded.name, userId: try UserId("did:web:example.org:users:alice"),
-        version: 1)
+        id: "event-\(sequence)", type: Channels.markAdded.name,
+        timestamp: "2026-10-01T00:00:00.000Z",
+        userId: try UserId("did:web:example.org:users:alice"), resourceId: resource, version: 1,
+        payload: [:], metadata: EventMetadata(sequenceNumber: sequence))
       probe.deliver(
         .frame(
           ReceivedFrame(

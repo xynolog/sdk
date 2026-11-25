@@ -12,17 +12,16 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data BusEmitRequest = BusEmitRequest
   { busEmitRequestChannel :: Text,
-    busEmitRequestClientId :: Maybe Text,
-    busEmitRequestCorrelationId :: Maybe Text,
     busEmitRequestPayload :: BusEmitRequestPayload,
     busEmitRequestScope :: Maybe ResourceId,
-    busEmitRequestAdditionalProperties :: KM.KeyMap Value
+    busEmitRequestClientId :: Maybe Text,
+    busEmitRequestCorrelationId :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON BusEmitRequest where parseJSON = checked "BusEmitRequest" $ withObject "BusEmitRequest" (\fields -> BusEmitRequest <$> (fields .: "channel") <*> optional fields "clientId" <*> optional fields "correlationId" <*> (fields .: "payload") <*> optional fields "scope" <*> traverse parseJSON (withoutFields ["channel", "clientId", "correlationId", "payload", "scope"] fields))
+instance FromJSON BusEmitRequest where parseJSON = checked "BusEmitRequest" $ withObject "BusEmitRequest" (\fields -> BusEmitRequest <$> (fields .: "channel") <*> (fields .: "payload") <*> optional fields "scope" <*> optional fields "clientId" <*> optional fields "correlationId")
 
-instance ToJSON BusEmitRequest where toJSON value = Object (KM.fromList (concat [[("channel", toJSON (busEmitRequestChannel value))], optionalPair "clientId" (busEmitRequestClientId value), optionalPair "correlationId" (busEmitRequestCorrelationId value), [("payload", toJSON (busEmitRequestPayload value))], optionalPair "scope" (busEmitRequestScope value)]) <> fmap toJSON (withoutFields ["channel", "clientId", "correlationId", "payload", "scope"] (busEmitRequestAdditionalProperties value)))
+instance ToJSON BusEmitRequest where toJSON value = Object (KM.fromList (concat [[("channel", toJSON (busEmitRequestChannel value))], [("payload", toJSON (busEmitRequestPayload value))], optionalPair "scope" (busEmitRequestScope value), optionalPair "clientId" (busEmitRequestClientId value), optionalPair "correlationId" (busEmitRequestCorrelationId value)]))
 
 data BusEmitRequestPayload = BusEmitRequestPayload
   { busEmitRequestPayloadAdditionalProperties :: KM.KeyMap Value

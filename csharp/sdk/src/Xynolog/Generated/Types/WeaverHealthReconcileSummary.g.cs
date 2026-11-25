@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WeaverHealthReconcileSummary
 {
-    [global::Xynolog.Serialization.Wire("divergent")] public required long Divergent { get; init; }
-    [global::Xynolog.Serialization.Wire("healFailures")] public required long HealFailures { get; init; }
-    [global::Xynolog.Serialization.Wire("healed")] public required long Healed { get; init; }
-    [global::Xynolog.Serialization.Wire("orphaned")] public required long Orphaned { get; init; }
     [global::Xynolog.Serialization.Wire("resourcesChecked")] public required long ResourcesChecked { get; init; }
+    [global::Xynolog.Serialization.Wire("divergent")] public required long Divergent { get; init; }
+    [global::Xynolog.Serialization.Wire("healed")] public required long Healed { get; init; }
+    [global::Xynolog.Serialization.Wire("healFailures")] public required long HealFailures { get; init; }
+    [global::Xynolog.Serialization.Wire("orphaned")] public required long Orphaned { get; init; }
 }

@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record AuthLogoutParams
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.ApiVersion ApiVersion { get; init; }
-    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
     [global::Xynolog.Serialization.Wire("target")] public global::Xynolog.Types.Target? Target { get; init; }
+    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
 }

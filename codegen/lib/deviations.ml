@@ -13,8 +13,9 @@ module T = Typing
    says of itself, or beside null what the schema beside it says. Python
    does so of an [allOf] in place it writes as what it merges to. *)
 
-(* Rust and Go hold a union every member of which is text as a string, where
-   [Typing] has the union, its members told apart by their patterns. *)
+(* Rust, Go and OCaml hold a union every member of which is text as a
+   string, where [Typing] has the union, its members told apart by their
+   patterns. *)
 let text_union (u : T.union) = List.for_all T.admits_only_text u.branches
 
 (* Rust names an object in place that is closed and names no member, but
@@ -42,3 +43,42 @@ let closed_empty_named (form : T.form) =
 
 (* Python writes a union in place, but for one a list holds, as what it
    holds, naming none of what [Typing] invents. *)
+
+(* OCaml holds an enumeration of integers, numbers or booleans, a constant
+   among them, as its scalar, where [Typing] has the enumeration. *)
+
+(* Haskell declares an enumeration only where a schema states [enum], and
+   holds a [const] as its scalar, where [Typing] has the enumeration of its
+   one value. *)
+let haskell_enumeration (s : Schema.schema) = Option.is_some s.enum
+
+(* Haskell constructs a record or newtype written in place as a union's
+   member by [Mk] and its name ([MkConformanceDriverLineAbandoned]): the
+   union's constructor for it is the union's name and the member's variant,
+   which is the type's name, and Haskell's constructors share one namespace,
+   where [Typing] has a type constructed by its name. *)
+
+(* Haskell declares every named schema that is no record, enumeration or
+   union as a newtype, a named list or map among them, where [Typing] has it
+   an alias. *)
+
+(* Haskell reads a union as the first member that parses, where [Typing]
+   tells its members apart by their signatures. *)
+
+(* Haskell holds a schema in place that states one [allOf] as that [allOf]'s
+   schema, dropping what it states beside it ([KnowledgeIndex]'s
+   [spec.graph] is a [Runner]), where [Typing] merges them. *)
+
+(* Kotlin describes as Rust and Go do ([node_description]), and holds a union
+   every member of which is text as a [String] ([text_union]). It holds an
+   enumeration in place of numbers as a [Double], dropping its values. *)
+
+(* Swift holds an [allOf] of one schema as that schema, reading past what is
+   stated beside it (a const of the schema's values), where [Typing] has
+   what they merge to. It holds a union every member of which is text as a
+   [String] ([text_union]), and an enumeration in place of numbers as a
+   [Double], dropping its values. *)
+
+(* C# holds a union every member of which is text as a [string]
+   ([text_union]). It holds an enumeration in place of numbers as a
+   [double], dropping its values. *)

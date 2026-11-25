@@ -1700,6 +1700,12 @@ type BeginAuthorizationOptions struct {
 	ExpectedName *string `json:"expectedName,omitempty"`
 }
 
+// Binary Bytes held whole. They can be read more than once, and sent again
+// when an upload is retried.
+type (
+	Binary = []byte
+)
+
 // BindBodyOperation One edit to a linking annotation's body list: add or
 // remove a body item, or replace an existing one.
 type BindBodyOperation struct {
@@ -11188,7 +11194,7 @@ type ResourceUpload struct {
 	// Name Human-readable resource name
 	Name string `json:"name"`
 	// File Binary content
-	File []byte `json:"file"`
+	File Binary `json:"file"`
 	// Format Media type of the content (e.g. text/plain, text/markdown,
 	// image/png)
 	Format string `json:"format"`
@@ -11233,14 +11239,6 @@ type ResourceUpload struct {
 	ArchiveOriginal *string `json:"archiveOriginal,omitempty"`
 }
 
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v ResourceUpload) MarshalJSON() ([]byte, error) {
-	type written ResourceUpload
-	v.File = listOf(v.File)
-	return json.Marshal(written(v))
-}
-
 // ResourceView A resource's materialized view: the file the Archivist writes
 // at `resources/<ab>/<cd>/<resourceId>.json` under the knowledge base's state
 // directory, and every reader of that file reads. It is what the resource's
@@ -11266,6 +11264,17 @@ type ResourcesLimits struct {
 	// Memory The memory ceiling: a whole number of gigabytes or megabytes, `8G`
 	// or `512M`.
 	Memory string `json:"memory"`
+}
+
+// RetryBudget A retry budget: how many `attempts` are allowed, with a backoff
+// that starts at `initialDelayMs` and doubles to `maxDelayMs`.
+type RetryBudget struct {
+	// Attempts How many attempts the budget allows.
+	Attempts int `json:"attempts"`
+	// InitialDelayMs The delay before the second attempt, in milliseconds.
+	InitialDelayMs int `json:"initialDelayMs"`
+	// MaxDelayMs The longest delay between attempts, in milliseconds.
+	MaxDelayMs int `json:"maxDelayMs"`
 }
 
 // Root One knowledge base this machine knows: a registered or running local

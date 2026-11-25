@@ -69,7 +69,7 @@ extension MarkJobCompleteCommand: FollowedCompletion {
     case .jobResult(.jobDeclined(let value)): result = .jobDeclined(value)
     case .jobResult(.yieldJobDone): throw wrongCompletion()
     }
-    return Self(jobId: status.jobId, resourceId: resource, result: result)
+    return Self(resourceId: resource, jobId: status.jobId, result: result)
   }
 }
 extension YieldJobCompleteCommand: FollowedCompletion {
@@ -88,6 +88,6 @@ extension YieldJobCompleteCommand: FollowedCompletion {
     case .jobResult(.jobDeclined(let value)): result = .jobDeclined(value)
     case .jobResult(.markJobDone): throw wrongCompletion()
     }
-    return Self(jobId: status.jobId, resourceId: resource, result: result)
+    return Self(resourceId: resource, jobId: status.jobId, result: result)
   }
 }

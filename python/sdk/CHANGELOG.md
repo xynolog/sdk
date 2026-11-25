@@ -58,6 +58,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A retry budget is `xynolog.types.RetryBudget`, the model of Protocol's
+  `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
+  `EMIT_RETRY` and `REFRESH_RETRY` are one, and `retry_with_backoff` and
+  `Timing.emit_retry` take one. Its members are as they were.
+- `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
+  whole, which is `bytes`.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - `GetAnnotationsResponse`'s `motivation` is absent or a `Motivation`.

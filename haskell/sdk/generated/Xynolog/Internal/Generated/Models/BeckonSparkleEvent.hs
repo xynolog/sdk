@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationId
 
 data BeckonSparkleEvent = BeckonSparkleEvent
-  { beckonSparkleEventAnnotationId :: AnnotationId,
-    beckonSparkleEventAdditionalProperties :: KM.KeyMap Value
+  { beckonSparkleEventAnnotationId :: AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON BeckonSparkleEvent where parseJSON = checked "BeckonSparkleEvent" $ withObject "BeckonSparkleEvent" (\fields -> BeckonSparkleEvent <$> (fields .: "annotationId") <*> traverse parseJSON (withoutFields ["annotationId"] fields))
+instance FromJSON BeckonSparkleEvent where parseJSON = checked "BeckonSparkleEvent" $ withObject "BeckonSparkleEvent" (\fields -> BeckonSparkleEvent <$> (fields .: "annotationId"))
 
-instance ToJSON BeckonSparkleEvent where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (beckonSparkleEventAnnotationId value))]]) <> fmap toJSON (withoutFields ["annotationId"] (beckonSparkleEventAdditionalProperties value)))
+instance ToJSON BeckonSparkleEvent where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (beckonSparkleEventAnnotationId value))]]))

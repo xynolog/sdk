@@ -7,6 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record YieldJobFilter
 {
-    public const string JobTypeValue = "yield";
-    [global::Xynolog.Serialization.Wire("jobType")] public string JobType => JobTypeValue;
+    [global::Xynolog.Serialization.Wire("jobType")] public global::Xynolog.Types.YieldJobFilterJobType JobType => global::Xynolog.Types.YieldJobFilterJobType.Yield;
 }

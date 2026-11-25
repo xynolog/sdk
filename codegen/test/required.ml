@@ -548,6 +548,7 @@ let go =
       ("A", None);
       ("B", Some "string");
       ("C", Some "map[string]int");
+      ("D", Some "[]byte");
       ("L", Some "[]A");
       ("M", Some "[]string");
     ]
@@ -573,6 +574,10 @@ let go =
                  Required.Shape.Shape
                    { Required.Shape.empty with kinds = Some [ Object ] } );
              ]));
+    case "an alias of bytes read as the string encoding/json writes" (fun () ->
+        Alcotest.(check (list string))
+          "refusals" []
+          (check [ ("D", string_shape) ]));
     case "an alias whose schema holds more is refused" (fun () ->
         Alcotest.(check (list string))
           "refusals"

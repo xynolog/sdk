@@ -47,7 +47,6 @@ import Xynolog.Session qualified as Session
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.SignIn qualified as SignIn
 import Xynolog.StateValue qualified as State
-import Xynolog.Timing qualified as Budget
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
@@ -110,7 +109,7 @@ streamingPeer answer = do
 
 -- The generated endpoint's tag and protocol are explicit nominal constructors.
 endpoint :: HttpEndpoint
-endpoint = HttpEndpoint "localhost" HttpEndpointKindHttp 4000 HttpEndpointProtocolHttp KM.empty
+endpoint = HttpEndpoint {httpEndpointHost = "localhost", httpEndpointKind = HttpEndpointKindHttp, httpEndpointPort = 4000, httpEndpointProtocol = HttpEndpointProtocolHttp}
 
 metadata :: Value
 metadata = object ["authorization_servers" .= [String "http://issuer.test"], "bearer_methods_supported" .= [String "header"], "resource" .= String "http://localhost:4000"]
@@ -175,7 +174,7 @@ issuerCases fixtures = do
   issuer <- Issuer.discoverIssuer options endpoint
   require "issuer discovery lost an endpoint" (pendingAuthorizationIssuerRevocation issuer == Just "http://issuer.test/revoke")
   storage <- Storage.newMemoryStorage
-  let begin = BeginAuthorizationOptions (Just "did:web:knowledge.test") (Just "Knowledge") (Just "kb") "app://callback" endpoint
+  let begin = BeginAuthorizationOptions {beginAuthorizationOptionsExpectedDid = (Just "did:web:knowledge.test"), beginAuthorizationOptionsExpectedName = (Just "Knowledge"), beginAuthorizationOptionsKbId = (Just "kb"), beginAuthorizationOptionsRedirectUri = "app://callback", beginAuthorizationOptionsTarget = endpoint}
   url <- Issuer.beginAuthorization options begin storage
   require "authorization URL lost the issuer's own query" ("keep=yes" `Text.isInfixOf` url)
   require "authorization URL did not request PKCE" ("code_challenge_method=S256" `Text.isInfixOf` url)
@@ -200,7 +199,7 @@ issuerCases fixtures = do
   atomically (writeTVar tokenBody (object ["access_token" .= String "next"]))
   issued <- Issuer.refreshAtIssuer options "http://issuer.test/token" "client" "original"
   require "nonrotating issuer lost the refresh token" (issuedTokensRefresh issued == "original")
-  let stored = StoredSession "before" "client" Nothing "original" Nothing "http://issuer.test/token" KM.empty
+  let stored = StoredSession {storedSessionAccess = "before", storedSessionClientId = "client", storedSessionPersonKey = Nothing, storedSessionRefresh = "original", storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "http://issuer.test/token"}
   Stored.storeSession storage "kb" stored
   entered <- newEmptyTMVarIO
   release <- newEmptyTMVarIO
@@ -223,7 +222,7 @@ issuerCases fixtures = do
   require "issuer refusal lost its terminal status" (case refused of Left failure -> signInStatus failure == Just 400; Right _ -> False)
   Issuer.revokeAtIssuer options "http://issuer.test/revoke" "client" "original"
   atomically (writeTVar status 200 >> writeTVar tokenBody (object ["access_token" .= String "fresh"]))
-  let targetKb = KbTarget (KbEndpointHttpEndpoint endpoint) "http-factory" "HTTP factory" KM.empty
+  let targetKb = KbTarget {kbTargetEndpoint = (KbEndpointHttpEndpoint endpoint), kbTargetId = "http-factory", kbTargetLabel = "HTTP factory"}
       sessionOptions =
         Session.SessionOptions
           "http-factory"
@@ -281,15 +280,17 @@ issuerCases fixtures = do
     require "factory said a startup failure" (null (lefts startup))
   let agentKb = targetKb {kbTargetId = "agent-factory"}
       agentOptions = sessionOptions {Session.sessionKb = agentKb}
-  atomically (writeTVar identities [503, 200])
+      identityAsks = length . filter ((== gatewayPath GetCurrentUser) . route) <$> readTVarIO seen
+  -- A gateway not yet ready fails the sign-in at once: starting it again is the service's.
+  atomically (writeTVar identities [503])
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service -> do
-    opening <- async (Session.signInAgent http agentOptions (Budget.RetryBudget 2 10 20) service)
-    Time.settle
-    Time.advance time 4000000
-    waitingForRetry <- poll opening
-    require "agent retried before its caller-controlled equal-jitter delay" (case waitingForRetry of Nothing -> True; _ -> False)
-    Time.advance time 1000000
-    opened <- wait opening
+    asked <- identityAsks
+    unready <- try (Session.signInAgent http agentOptions service) :: IO (Either TransportError Session.OpenedSession)
+    require "agent sign-in did not fail at once on a gateway not yet ready" (case unready of Left failure -> httpStatus failure == Just 503; _ -> False)
+    require "agent sign-in asked the gateway again" . (== asked + 1) =<< identityAsks
+  atomically (writeTVar identities [200])
+  bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service -> do
+    opened <- Session.signInAgent http agentOptions service
     let session = Session.openedSession opened
     bracket (pure opened) Session.closeOpenedSession $ \_ -> do
       person <- atomically (State.current (Session.user session))
@@ -314,7 +315,7 @@ issuerCases fixtures = do
   -- with the issuer asked nothing more.
   atomically (writeTVar identities [200])
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service -> do
-    opened <- Session.signInAgent http agentOptions (Budget.RetryBudget 2 10 20) service
+    opened <- Session.signInAgent http agentOptions service
     let session = Session.openedSession opened
         tokenAsks = length . filter ((== "/token") . route) <$> readTVar seen
     first <- atomically (State.current (Session.token session))
@@ -345,7 +346,7 @@ issuerCases fixtures = do
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service ->
     bracket
       ( async
-          ( try (Session.signInAgent http refusedOptions (Budget.RetryBudget 2 10 20) service) ::
+          ( try (Session.signInAgent http refusedOptions service) ::
               IO (Either TransportError Session.OpenedSession)
           )
       )

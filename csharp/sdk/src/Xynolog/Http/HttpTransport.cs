@@ -487,7 +487,7 @@ public sealed partial class HttpTransport : IDisposable
                 {
                     foreach (var message in parser.Feed(buffer.AsSpan(0, count)))
                     {
-                        if (message.Event != BusEventMessage.EventValue || message.Data.Length == 0) continue;
+                        if (message.Event != WireEnumConverter<BusEventMessageEvent>.Wire(BusEventMessageEvent.BusEvent) || message.Data.Length == 0) continue;
                         var line = LineOf(message.Data);
                         lock (gate)
                         {

@@ -13,18 +13,18 @@ import Xynolog.Internal.Generated.Models.JobParams
 import Xynolog.Internal.Generated.Models.JobStoredResult
 
 data JobComplete = JobComplete
-  { jobCompleteCompletedAt :: Text,
+  { jobCompleteStatus :: JobCompleteStatus,
     jobCompleteMetadata :: JobMetadata,
     jobCompleteParams :: JobParams,
-    jobCompleteResult :: JobStoredResult,
     jobCompleteStartedAt :: Text,
-    jobCompleteStatus :: JobCompleteStatus
+    jobCompleteCompletedAt :: Text,
+    jobCompleteResult :: JobStoredResult
   }
   deriving (Eq, Show)
 
-instance FromJSON JobComplete where parseJSON = checked "JobComplete" $ withObject "JobComplete" (\fields -> JobComplete <$> (fields .: "completedAt") <*> (fields .: "metadata") <*> (fields .: "params") <*> (fields .: "result") <*> (fields .: "startedAt") <*> (fields .: "status"))
+instance FromJSON JobComplete where parseJSON = checked "JobComplete" $ withObject "JobComplete" (\fields -> JobComplete <$> (fields .: "status") <*> (fields .: "metadata") <*> (fields .: "params") <*> (fields .: "startedAt") <*> (fields .: "completedAt") <*> (fields .: "result"))
 
-instance ToJSON JobComplete where toJSON value = Object (KM.fromList (concat [[("completedAt", toJSON (jobCompleteCompletedAt value))], [("metadata", toJSON (jobCompleteMetadata value))], [("params", toJSON (jobCompleteParams value))], [("result", toJSON (jobCompleteResult value))], [("startedAt", toJSON (jobCompleteStartedAt value))], [("status", toJSON (jobCompleteStatus value))]]))
+instance ToJSON JobComplete where toJSON value = Object (KM.fromList (concat [[("status", toJSON (jobCompleteStatus value))], [("metadata", toJSON (jobCompleteMetadata value))], [("params", toJSON (jobCompleteParams value))], [("startedAt", toJSON (jobCompleteStartedAt value))], [("completedAt", toJSON (jobCompleteCompletedAt value))], [("result", toJSON (jobCompleteResult value))]]))
 
 data JobCompleteStatus = JobCompleteStatusComplete deriving (Eq, Show)
 

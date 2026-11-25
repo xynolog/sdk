@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AnchoredText
 {
-    [global::Xynolog.Serialization.Wire("items")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.PdfTextItem> Items { get; init; }
     [global::Xynolog.Serialization.Wire("text")] public required string Text { get; init; }
+    [global::Xynolog.Serialization.Wire("items")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.PdfTextItem> Items { get; init; }
 }

@@ -1,14 +1,15 @@
-//! What a session layer keeps in a `SessionStorage`, and under which keys:
-//! each knowledge base's tokens, the list of registered knowledge bases and
-//! which of them is active, each one's open resources and last-viewed
-//! resource, and what a client keeps of one person: its persisted queries
-//! and where its stream was.
+//! What a session layer keeps in a `SessionStorage`, under the keys and
+//! prefixes generated into the session module: each knowledge base's tokens,
+//! the list of registered knowledge bases and which of them is active, each
+//! one's open resources and last-viewed resource, and what a client keeps of
+//! one person: its persisted queries and where its stream was.
 //!
 //! An entry that does not read as what it should be is not there: a store
 //! written by another release is dropped entry by entry, never half-read.
 
 use super::kept::SignInKept;
 use super::token_expiry;
+use super::{CACHE_KEY_PREFIX, KNOWLEDGE_BASES_KEY, LAST_EVENT_ID_KEY_PREFIX, SESSION_KEY_PREFIX};
 use crate::refresh::CacheQuery;
 use crate::storage::SessionStorage;
 use crate::transport::BoxFuture;
@@ -20,26 +21,14 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::SystemTime;
 
-const SESSION_PREFIX: &str = "xynolog.session.";
-const LAST_EVENT_ID_PREFIX: &str = "xynolog.lastEventId.";
-const CACHE_PREFIX: &str = "xynolog.cache.";
-/// The registered knowledge bases.
-pub const KNOWLEDGE_BASES_KEY: &str = "xynolog.knowledgeBases";
-/// The id of the active one.
-pub const ACTIVE_KEY: &str = "xynolog.activeKnowledgeBaseId";
-/// Each knowledge base's open resources, by its id.
-pub const OPEN_RESOURCES_BY_KB_KEY: &str = "xynolog.openResourcesByKb";
-/// Each knowledge base's last-viewed resource, by its id.
-pub const LAST_VIEWED_RESOURCE_BY_KB_KEY: &str = "xynolog.lastViewedResourceByKb";
-
 /// The key a knowledge base's session is stored under.
 pub fn session_key(kb_id: &str) -> String {
-    format!("{SESSION_PREFIX}{kb_id}")
+    format!("{SESSION_KEY_PREFIX}{kb_id}")
 }
 
 /// The knowledge base a key is the session of, when it is a session's key.
 pub fn kb_of_session_key(key: &str) -> Option<&str> {
-    key.strip_prefix(SESSION_PREFIX)
+    key.strip_prefix(SESSION_KEY_PREFIX)
 }
 
 /// The key of the person a did names: the unpadded base64url SHA-256 of its
@@ -51,13 +40,13 @@ pub fn person_key(did: &str) -> String {
 /// The key where a knowledge base's stream was is kept under, for the person
 /// whose key is `person_key`.
 pub fn last_event_id_key(kb_id: &str, person_key: &str) -> String {
-    format!("{LAST_EVENT_ID_PREFIX}{kb_id}.{person_key}")
+    format!("{LAST_EVENT_ID_KEY_PREFIX}{kb_id}.{person_key}")
 }
 
 /// The key a persisted query of a knowledge base is kept under, for the
 /// person whose key is `person_key`.
 pub fn cache_key(kb_id: &str, person_key: &str, query: CacheQuery) -> String {
-    format!("{CACHE_PREFIX}{kb_id}.{person_key}.{}", query.name())
+    format!("{CACHE_KEY_PREFIX}{kb_id}.{person_key}.{}", query.name())
 }
 
 impl StoredSession {

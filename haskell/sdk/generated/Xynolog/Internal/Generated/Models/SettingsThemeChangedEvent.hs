@@ -10,14 +10,13 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data SettingsThemeChangedEvent = SettingsThemeChangedEvent
-  { settingsThemeChangedEventTheme :: SettingsThemeChangedEventTheme,
-    settingsThemeChangedEventAdditionalProperties :: KM.KeyMap Value
+  { settingsThemeChangedEventTheme :: SettingsThemeChangedEventTheme
   }
   deriving (Eq, Show)
 
-instance FromJSON SettingsThemeChangedEvent where parseJSON = checked "SettingsThemeChangedEvent" $ withObject "SettingsThemeChangedEvent" (\fields -> SettingsThemeChangedEvent <$> (fields .: "theme") <*> traverse parseJSON (withoutFields ["theme"] fields))
+instance FromJSON SettingsThemeChangedEvent where parseJSON = checked "SettingsThemeChangedEvent" $ withObject "SettingsThemeChangedEvent" (\fields -> SettingsThemeChangedEvent <$> (fields .: "theme"))
 
-instance ToJSON SettingsThemeChangedEvent where toJSON value = Object (KM.fromList (concat [[("theme", toJSON (settingsThemeChangedEventTheme value))]]) <> fmap toJSON (withoutFields ["theme"] (settingsThemeChangedEventAdditionalProperties value)))
+instance ToJSON SettingsThemeChangedEvent where toJSON value = Object (KM.fromList (concat [[("theme", toJSON (settingsThemeChangedEventTheme value))]]))
 
 data SettingsThemeChangedEventTheme = SettingsThemeChangedEventThemeLight | SettingsThemeChangedEventThemeDark | SettingsThemeChangedEventThemeSystem deriving (Eq, Show)
 

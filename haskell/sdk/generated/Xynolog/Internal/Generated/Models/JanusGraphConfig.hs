@@ -10,15 +10,15 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data JanusGraphConfig = JanusGraphConfig
-  { janusGraphConfigHost :: Text,
-    janusGraphConfigPort :: Integer,
-    janusGraphConfigType :: JanusGraphConfigType
+  { janusGraphConfigType :: JanusGraphConfigType,
+    janusGraphConfigHost :: Text,
+    janusGraphConfigPort :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON JanusGraphConfig where parseJSON = checked "JanusGraphConfig" $ withObject "JanusGraphConfig" (\fields -> JanusGraphConfig <$> (fields .: "host") <*> (fields .: "port") <*> (fields .: "type"))
+instance FromJSON JanusGraphConfig where parseJSON = checked "JanusGraphConfig" $ withObject "JanusGraphConfig" (\fields -> JanusGraphConfig <$> (fields .: "type") <*> (fields .: "host") <*> (fields .: "port"))
 
-instance ToJSON JanusGraphConfig where toJSON value = Object (KM.fromList (concat [[("host", toJSON (janusGraphConfigHost value))], [("port", toJSON (janusGraphConfigPort value))], [("type", toJSON (janusGraphConfigType value))]]))
+instance ToJSON JanusGraphConfig where toJSON value = Object (KM.fromList (concat [[("type", toJSON (janusGraphConfigType value))], [("host", toJSON (janusGraphConfigHost value))], [("port", toJSON (janusGraphConfigPort value))]]))
 
 data JanusGraphConfigType = JanusGraphConfigTypeJanusgraph deriving (Eq, Show)
 

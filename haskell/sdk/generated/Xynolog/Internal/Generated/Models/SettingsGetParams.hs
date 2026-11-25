@@ -12,12 +12,12 @@ import Xynolog.Internal.Generated.Models.ApiVersion
 
 data SettingsGetParams = SettingsGetParams
   { settingsGetParamsApiVersion :: ApiVersion,
-    settingsGetParamsDefault :: Maybe Bool,
     settingsGetParamsName :: Text,
+    settingsGetParamsDefault :: Maybe Bool,
     settingsGetParamsRoot :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SettingsGetParams where parseJSON = checked "SettingsGetParams" $ withObject "SettingsGetParams" (\fields -> SettingsGetParams <$> (fields .: "apiVersion") <*> optional fields "default" <*> (fields .: "name") <*> optional fields "root")
+instance FromJSON SettingsGetParams where parseJSON = checked "SettingsGetParams" $ withObject "SettingsGetParams" (\fields -> SettingsGetParams <$> (fields .: "apiVersion") <*> (fields .: "name") <*> optional fields "default" <*> optional fields "root")
 
-instance ToJSON SettingsGetParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (settingsGetParamsApiVersion value))], optionalPair "default" (settingsGetParamsDefault value), [("name", toJSON (settingsGetParamsName value))], optionalPair "root" (settingsGetParamsRoot value)]))
+instance ToJSON SettingsGetParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (settingsGetParamsApiVersion value))], [("name", toJSON (settingsGetParamsName value))], optionalPair "default" (settingsGetParamsDefault value), optionalPair "root" (settingsGetParamsRoot value)]))

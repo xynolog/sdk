@@ -11,11 +11,10 @@ import Xynolog.Internal.Codec
 
 data ResourceMovedPayload = ResourceMovedPayload
   { resourceMovedPayloadFromUri :: Text,
-    resourceMovedPayloadToUri :: Text,
-    resourceMovedPayloadAdditionalProperties :: KM.KeyMap Value
+    resourceMovedPayloadToUri :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceMovedPayload where parseJSON = checked "ResourceMovedPayload" $ withObject "ResourceMovedPayload" (\fields -> ResourceMovedPayload <$> (fields .: "fromUri") <*> (fields .: "toUri") <*> traverse parseJSON (withoutFields ["fromUri", "toUri"] fields))
+instance FromJSON ResourceMovedPayload where parseJSON = checked "ResourceMovedPayload" $ withObject "ResourceMovedPayload" (\fields -> ResourceMovedPayload <$> (fields .: "fromUri") <*> (fields .: "toUri"))
 
-instance ToJSON ResourceMovedPayload where toJSON value = Object (KM.fromList (concat [[("fromUri", toJSON (resourceMovedPayloadFromUri value))], [("toUri", toJSON (resourceMovedPayloadToUri value))]]) <> fmap toJSON (withoutFields ["fromUri", "toUri"] (resourceMovedPayloadAdditionalProperties value)))
+instance ToJSON ResourceMovedPayload where toJSON value = Object (KM.fromList (concat [[("fromUri", toJSON (resourceMovedPayloadFromUri value))], [("toUri", toJSON (resourceMovedPayloadToUri value))]]))

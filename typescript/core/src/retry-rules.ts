@@ -1,9 +1,9 @@
 /**
  * Which failures are worth another attempt — one catalog, several contexts.
  *
- * **Not `RetryPolicy`, which is next door and means something else.** That is a
+ * **Not `RetryBudget`, which is next door and means something else.** That is a
  * timing budget: how long to keep trying. A `RetryRule` is which failures to try
- * again at all. `STARTUP_FETCH_RETRY: RetryPolicy` and `RETRY_RULES.boot` answer
+ * again at all. `EMIT_RETRY: RetryBudget` and `RETRY_RULES.boot` answer
  * different questions about the same attempt.
  *
  * ## Why one file, when the contexts genuinely differ

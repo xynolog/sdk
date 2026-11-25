@@ -18,12 +18,8 @@ import (
 )
 
 // storedTable is protocol/specs/src/session/stored.json: what a registry keeps in its
-// storage, which Go states by hand and this test holds to the table.
+// storage, which this test holds Go's registry to.
 type storedTable struct {
-	Keys []struct {
-		Member string `json:"member"`
-		Key    string `json:"key"`
-	} `json:"keys"`
 	SessionKeyPrefix struct {
 		Prefix string `json:"prefix"`
 	} `json:"sessionKeyPrefix"`
@@ -85,24 +81,10 @@ func readStoredTable(t *testing.T) storedTable {
 	return table
 }
 
-// A key or a member the table gains fails here until Go has it.
+// A member the table gains fails here until Go has it.
 func TestWhatARegistryKeepsIsTheTables(t *testing.T) {
 	table := readStoredTable(t)
 
-	keys := map[string]string{}
-	for _, entry := range table.Keys {
-		keys[entry.Member] = entry.Key
-	}
-	stated := map[string]string{
-		"knowledgeBasesKey":         registry.KnowledgeBasesKey,
-		"activeKey":                 registry.ActiveKey,
-		"openResourcesByKbKey":      registry.OpenResourcesByKbKey,
-		"lastViewedResourceByKbKey": registry.LastViewedResourceByKbKey,
-		"pendingAuthorizationKey":   xynolog.PendingAuthorizationKey,
-	}
-	if !maps.Equal(keys, stated) {
-		t.Errorf("the table's keys are %v; Go states %v", keys, stated)
-	}
 	if got, want := registry.SessionKey("kb-a"), table.SessionKeyPrefix.Prefix+"kb-a"; got != want {
 		t.Errorf("a knowledge base's session key is %q; the table's is %q", got, want)
 	}

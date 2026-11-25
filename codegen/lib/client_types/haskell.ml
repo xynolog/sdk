@@ -241,7 +241,8 @@ let record_module ~shape name =
                  ]);
             body =
               [
-                H.record name ~params ~deriving:[ "Eq"; "Show" ] fields;
+                H.record name ~constructor:name ~params
+                  ~deriving:[ "Eq"; "Show" ] fields;
                 instance "ToJSON"
                   [
                     ( "toJSON",

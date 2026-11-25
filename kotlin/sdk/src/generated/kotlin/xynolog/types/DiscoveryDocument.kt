@@ -4,6 +4,7 @@
 
 package xynolog.types
 
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
@@ -12,21 +13,21 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 public data class DiscoveryDocument(
     /** Document schema version. Consumers MUST check it and ignore documents they do not understand. */
-    public val version: Long,
+    @EncodeDefault
+    public val version: DiscoveryDocumentVersion = DiscoveryDocumentVersion,
     /** Every KB the launcher currently manages, local and forwarded */
     public val kbs: kotlin.collections.List<DiscoveredKB>,
 ) {
     /** How Java makes a `DiscoveryDocument`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val version: Long,
         private val kbs: kotlin.collections.List<DiscoveredKB>,
     ) {
-        public fun build(): DiscoveryDocument = DiscoveryDocument(version = version, kbs = kbs)
+        public fun build(): DiscoveryDocument = DiscoveryDocument(kbs = kbs)
     }
 
     public companion object {
         /** A builder of a `DiscoveryDocument` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(version: Long, kbs: kotlin.collections.List<DiscoveredKB>): Builder = Builder(version, kbs)
+        public fun builder(kbs: kotlin.collections.List<DiscoveredKB>): Builder = Builder(kbs)
     }
 }

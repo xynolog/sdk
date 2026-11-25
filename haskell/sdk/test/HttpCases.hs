@@ -152,7 +152,7 @@ httpCases root fixtures = do
           reach peer "the connection proof"
           target <- case parseURI (Text.unpack origin) >>= uriAuthority of
             Just address -> case readMaybe (drop 1 (uriPort address)) of
-              Just port -> pure (HttpEndpoint (Text.pack (uriRegName address)) HttpEndpointKindHttp port HttpEndpointProtocolHttp mempty)
+              Just port -> pure (HttpEndpoint {httpEndpointHost = (Text.pack (uriRegName address)), httpEndpointKind = HttpEndpointKindHttp, httpEndpointPort = port, httpEndpointProtocol = HttpEndpointProtocolHttp})
               Nothing -> ioError (userError "HTTP peer named no port")
             Nothing -> ioError (userError "HTTP peer named no origin")
           proven <- Identity.describeConnection (options pool) target "proof-credential-not-for-log"
@@ -419,8 +419,8 @@ httpFaults peer http client resource clock waits = do
     atomically (writeTVar waits Set.empty)
     retryAt <- readTVarIO clock
     retrying <- async (Frame.addEntityType (Client.frame client) "Retried")
-    let firstWait = retryAt + Timing.retryInitialDelayMs Timing.emitRetry * 1000000 `div` 2
-        secondWait = firstWait + Timing.retryInitialDelayMs Timing.emitRetry * 1000000
+    let firstWait = retryAt + retryBudgetInitialDelayMs Timing.emitRetry * 1000000 `div` 2
+        secondWait = firstWait + retryBudgetInitialDelayMs Timing.emitRetry * 1000000
     waitForDeadline waits firstWait
     atomically (writeTVar clock firstWait)
     waitForDeadline waits secondWait

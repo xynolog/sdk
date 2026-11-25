@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record IdentityUseraddParams
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.ApiVersion ApiVersion { get; init; }
-    [global::Xynolog.Serialization.Wire("email")] public required string Email { get; init; }
-    [global::Xynolog.Serialization.Wire("generatePassword")] public required bool GeneratePassword { get; init; }
-    [global::Xynolog.Serialization.Wire("password")] public string? Password { get; init; }
     [global::Xynolog.Serialization.Wire("target")] public required global::Xynolog.Types.LocalTarget Target { get; init; }
+    [global::Xynolog.Serialization.Wire("email")] public required string Email { get; init; }
+    [global::Xynolog.Serialization.Wire("password")] public string? Password { get; init; }
+    [global::Xynolog.Serialization.Wire("generatePassword")] public required bool GeneratePassword { get; init; }
 }
