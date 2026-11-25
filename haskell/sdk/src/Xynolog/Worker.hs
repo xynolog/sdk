@@ -348,7 +348,7 @@ claimLoop claims = forever $ mask $ \restore -> do
                 heldJobRecordResourceId = jobParamsResourceId (jobRunningParams running),
                 heldJobRecordParams = jobRunningParams running,
                 heldJobRecordCompletedUnits = fromMaybe [] (jobMetadataCompletedUnits metadata),
-                heldJobRecordUnitCursors = HeldJobRecordUnitCursors (maybe KM.empty jobMetadataUnitCursorsAdditionalProperties (jobMetadataUnitCursors metadata)),
+                heldJobRecordUnitCursors = fromMaybe KM.empty (jobMetadataUnitCursors metadata),
                 heldJobRecordRetryCount = jobMetadataRetryCount metadata,
                 heldJobRecordMaxRetries = jobMetadataMaxRetries metadata
               }
@@ -479,7 +479,7 @@ checkpoint job value = withMVar (heldGate job) $ \() -> do
   emit
     job
     Ch.JobCheckpoint
-    (JobCheckpointCommand {jobCheckpointCommandUserId = Nothing, jobCheckpointCommandCompletedUnits = (jobCheckpointCompletedUnits value), jobCheckpointCommandJobId = (jobId job), jobCheckpointCommandUnitCursors = (JobCheckpointCommandUnitCursors . jobCheckpointUnitCursorsAdditionalProperties <$> jobCheckpointUnitCursors value)})
+    (JobCheckpointCommand {jobCheckpointCommandUserId = Nothing, jobCheckpointCommandCompletedUnits = (jobCheckpointCompletedUnits value), jobCheckpointCommandJobId = (jobId job), jobCheckpointCommandUnitCursors = jobCheckpointUnitCursors value})
 
 weakness :: DurabilityEvidence -> Int
 weakness DurabilityEvidenceAcknowledged = 0
@@ -561,7 +561,7 @@ fail job message failure = settle job False $ do
   let durability = observed >>= \value -> if weakness value > weakness DurabilityEvidenceProbeConfirmed then Just value else Nothing
       classification = failure >>= jobFailureFailureClass
       units = failure >>= jobFailureCompletedUnits
-      cursors = JobFailCommandUnitCursors . jobFailureUnitCursorsAdditionalProperties <$> (failure >>= jobFailureUnitCursors)
+      cursors = failure >>= jobFailureUnitCursors
   emit
     job
     JobFail
@@ -573,4 +573,4 @@ cancel job reached =
     emit
       job
       JobCancel
-      (JobCancelCommand {jobCancelCommandUserId = Nothing, jobCancelCommandAnnotationId = (annotationId job), jobCancelCommandCompletedUnits = (reached >>= jobReachedCompletedUnits), jobCancelCommandJobId = (jobId job), jobCancelCommandJobType = (jobType job), jobCancelCommandResourceId = (resourceId job), jobCancelCommandUnitCursors = (JobCancelCommandUnitCursors . jobReachedUnitCursorsAdditionalProperties <$> (reached >>= jobReachedUnitCursors))})
+      (JobCancelCommand {jobCancelCommandUserId = Nothing, jobCancelCommandAnnotationId = (annotationId job), jobCancelCommandCompletedUnits = (reached >>= jobReachedCompletedUnits), jobCancelCommandJobId = (jobId job), jobCancelCommandJobType = (jobType job), jobCancelCommandResourceId = (resourceId job), jobCancelCommandUnitCursors = reached >>= jobReachedUnitCursors})

@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.TabCheck (TabCheck (..), TabCheckGone (..), TabCheckReady (..), TabCheckUnknown (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -13,7 +12,7 @@ import Xynolog.Internal.Generated.Models.TabVerdict
 
 data TabCheck = TabCheckGone TabCheckGone | TabCheckReady TabCheckReady | TabCheckUnknown TabCheckUnknown deriving (Eq, Show)
 
-instance FromJSON TabCheck where parseJSON = checked "TabCheck" $ \value -> (TabCheckGone <$> parseJSON value) <|> (TabCheckReady <$> parseJSON value) <|> (TabCheckUnknown <$> parseJSON value)
+instance FromJSON TabCheck where parseJSON = checked "TabCheck" $ \value -> readMember "TabCheck" [([Signature {signatureKind = ObjectKind, signatureRequired = ["verdict"], signatureAllowed = Just ["verdict"], signatureFixed = [("verdict", [String "gone"])], signaturePattern = Nothing, signatureValues = Nothing}], TabCheckGone <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["verdict", "name"], signatureAllowed = Just ["verdict", "name", "mediaType"], signatureFixed = [("verdict", [String "ready"])], signaturePattern = Nothing, signatureValues = Nothing}], TabCheckReady <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["verdict"], signatureAllowed = Just ["verdict"], signatureFixed = [("verdict", [String "unknown"])], signaturePattern = Nothing, signatureValues = Nothing}], TabCheckUnknown <$> parseJSON value)] value
 
 instance ToJSON TabCheck where
   toJSON (TabCheckGone value) = toJSON value

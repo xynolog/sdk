@@ -2,8 +2,9 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 module Xynolog.Internal.Generated.HeldJob (HasHeldJobRecord (..), jobId, jobType, resourceId, params, completedUnits, unitCursors, retryCount, maxRetries) where
 
+import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
-import Xynolog.Types (HeldJobRecord (..), HeldJobRecordUnitCursors, JobId, JobParams, JobType, ResourceId)
+import Xynolog.Types (HeldJobRecord (..), JobId, JobParams, JobType, ResourceId, UnitCursor)
 
 -- | What holds the HeldJobRecord a claim hands it.
 class HasHeldJobRecord held where
@@ -26,7 +27,7 @@ completedUnits :: (HasHeldJobRecord held) => held -> [Text]
 completedUnits = heldJobRecordCompletedUnits . heldJobRecord
 
 -- | The furthest each unit begun got, keyed by unit, with what it had counted there. A finished unit keeps its cursor: where it ended, and its final counts.
-unitCursors :: (HasHeldJobRecord held) => held -> HeldJobRecordUnitCursors
+unitCursors :: (HasHeldJobRecord held) => held -> KM.KeyMap UnitCursor
 unitCursors = heldJobRecordUnitCursors . heldJobRecord
 
 retryCount :: (HasHeldJobRecord held) => held -> Integer

@@ -4,15 +4,14 @@
 
 module Xynolog.Internal.Generated.Models.VectorsConfig (VectorsConfig (..)) where
 
-import Control.Applicative ((<|>))
-import Data.Aeson (FromJSON (..), ToJSON (..))
+import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.MemoryVectorsConfig
 import Xynolog.Internal.Generated.Models.QdrantVectorsConfig
 
 data VectorsConfig = VectorsConfigQdrantVectorsConfig QdrantVectorsConfig | VectorsConfigMemoryVectorsConfig MemoryVectorsConfig deriving (Eq, Show)
 
-instance FromJSON VectorsConfig where parseJSON = checked "VectorsConfig" $ \value -> (VectorsConfigQdrantVectorsConfig <$> parseJSON value) <|> (VectorsConfigMemoryVectorsConfig <$> parseJSON value)
+instance FromJSON VectorsConfig where parseJSON = checked "VectorsConfig" $ \value -> readMember "VectorsConfig" [([Signature {signatureKind = ObjectKind, signatureRequired = ["type", "host", "port", "tokenEnv"], signatureAllowed = Just ["type", "host", "port", "tokenEnv"], signatureFixed = [("type", [String "qdrant"])], signaturePattern = Nothing, signatureValues = Nothing}], VectorsConfigQdrantVectorsConfig <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["type"], signatureAllowed = Just ["type"], signatureFixed = [("type", [String "memory"])], signaturePattern = Nothing, signatureValues = Nothing}], VectorsConfigMemoryVectorsConfig <$> parseJSON value)] value
 
 instance ToJSON VectorsConfig where
   toJSON (VectorsConfigQdrantVectorsConfig value) = toJSON value

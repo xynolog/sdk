@@ -143,7 +143,7 @@ let files ~root (spec : Spec.t) =
     within "openapi.json"
       (Models.generate
          ~banner:(banner "protocol/specs/src")
-         ~ids:spec.ids ~identifiers definitions)
+         ~ids:spec.ids ~identifiers ~keys:(Typing.D.map_keys spec) definitions)
   in
   let* () =
     within "openapi.json"
@@ -229,6 +229,13 @@ let files ~root (spec : Spec.t) =
          models.definitions)
   in
   let* codes = Error_codes.Table.derive spec.tables.errors_codes in
+  let* round_trip =
+    within "openapi.json"
+      (Companions.round_trip_module
+         ~banner:(banner "protocol/specs/src")
+         ~enumerations:models.enumerations ~unions:models.unions
+         (List.map fst models.definitions))
+  in
   let unrecognized =
     Error_codes.Haskell.code_constructor "busRequest"
       spec.tables.errors_codes.bus_request.unrecognized_failure
@@ -245,11 +252,7 @@ let files ~root (spec : Spec.t) =
              ~banner:(banner "protocol/specs/src")
              ~vocabularies:(Error_codes.Table.vocabularies codes)
              validated);
-        file ~under:"test"
-          (Companions.round_trip_module
-             ~banner:(banner "protocol/specs/src")
-             ~enumerations:models.enumerations
-             (List.map fst models.definitions));
+        file ~under:"test" round_trip;
         file ~under:"src"
           (Http.file
              ~banner:(banner "protocol/specs/src/openapi.json and its paths")

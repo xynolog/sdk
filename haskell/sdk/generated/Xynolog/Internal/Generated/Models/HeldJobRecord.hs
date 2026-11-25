@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.HeldJobRecord (HeldJobRecord (..), HeldJobRecordUnitCursors (..)) where
+module Xynolog.Internal.Generated.Models.HeldJobRecord (HeldJobRecord (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -20,7 +20,7 @@ data HeldJobRecord = HeldJobRecord
     heldJobRecordResourceId :: ResourceId,
     heldJobRecordParams :: JobParams,
     heldJobRecordCompletedUnits :: [Text],
-    heldJobRecordUnitCursors :: HeldJobRecordUnitCursors,
+    heldJobRecordUnitCursors :: KM.KeyMap UnitCursor,
     heldJobRecordRetryCount :: Integer,
     heldJobRecordMaxRetries :: Integer
   }
@@ -29,12 +29,3 @@ data HeldJobRecord = HeldJobRecord
 instance FromJSON HeldJobRecord where parseJSON = checked "HeldJobRecord" $ withObject "HeldJobRecord" (\fields -> HeldJobRecord <$> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> (fields .: "params") <*> (fields .: "completedUnits") <*> (fields .: "unitCursors") <*> (fields .: "retryCount") <*> (fields .: "maxRetries"))
 
 instance ToJSON HeldJobRecord where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (heldJobRecordJobId value))], [("jobType", toJSON (heldJobRecordJobType value))], [("resourceId", toJSON (heldJobRecordResourceId value))], [("params", toJSON (heldJobRecordParams value))], [("completedUnits", toJSON (heldJobRecordCompletedUnits value))], [("unitCursors", toJSON (heldJobRecordUnitCursors value))], [("retryCount", toJSON (heldJobRecordRetryCount value))], [("maxRetries", toJSON (heldJobRecordMaxRetries value))]]))
-
-data HeldJobRecordUnitCursors = HeldJobRecordUnitCursors
-  { heldJobRecordUnitCursorsAdditionalProperties :: KM.KeyMap UnitCursor
-  }
-  deriving (Eq, Show)
-
-instance FromJSON HeldJobRecordUnitCursors where parseJSON = checked "HeldJobRecordUnitCursors" $ withObject "HeldJobRecordUnitCursors" (\fields -> HeldJobRecordUnitCursors <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON HeldJobRecordUnitCursors where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (heldJobRecordUnitCursorsAdditionalProperties value)))
