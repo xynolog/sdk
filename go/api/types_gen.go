@@ -1700,6 +1700,12 @@ type BeginAuthorizationOptions struct {
 	ExpectedName *string `json:"expectedName,omitempty"`
 }
 
+// Binary Bytes held whole. They can be read more than once, and sent again
+// when an upload is retried.
+type (
+	Binary = []byte
+)
+
 // BindBodyOperation One edit to a linking annotation's body list: add or
 // remove a body item, or replace an existing one.
 type BindBodyOperation struct {
@@ -2591,6 +2597,19 @@ func (v ClaimOptions) MarshalJSON() ([]byte, error) {
 	return json.Marshal(written(v))
 }
 
+// ClaimRefusal A claim refused for a reason other than that nothing is
+// pending, which is no fault: what a worker's claims say on `refused`
+// (contract/WORKER-CONTRACT.md § Claiming). `bus.unauthorized` means the
+// credential cannot claim, and will not be able to later.
+type ClaimRefusal struct {
+	// Code The bus code the reply was read as, or null when the refusal was the
+	// worker's own: a reply its schema does not allow. Never a code the reply
+	// did not state, and never `bus.none-pending`.
+	Code *BusRequestErrorCode `json:"code"`
+	// Message What the refusal said.
+	Message string `json:"message"`
+}
+
 // ClientSecretForm The form a service account that holds a client secret
 // posts to its issuer's token endpoint for a client-credentials grant: its
 // client id and secret in the body (RFC 6749 §2.3.1). An account that holds a
@@ -2953,7 +2972,7 @@ func (e ConformanceDriverLineAbandonedAbandoned) Valid() bool {
 // ConformanceDriverLineClaimed A worker driver: its worker claimed a job.
 type ConformanceDriverLineClaimed struct {
 	// Claimed The job, as the worker read the record.
-	Claimed map[string]any `json:"claimed"`
+	Claimed HeldJobRecord `json:"claimed"`
 }
 
 func (ConformanceDriverLineClaimed) memberOfConformanceDriverLine() {}
@@ -3778,65 +3797,19 @@ func (ConformanceStepStalled) memberOfConformanceStep() {}
 // ConformanceStepState The transport comes to report this state.
 type ConformanceStepState struct {
 	// State The state.
-	State ConformanceStepStateState `json:"state"`
+	State ConnectionState `json:"state"`
 }
 
 func (ConformanceStepState) memberOfConformanceStep() {}
-
-// ConformanceStepStateState The state.
-type ConformanceStepStateState string
-
-// The values of ConformanceStepStateState.
-const (
-	ConformanceStepStateStateInitial         ConformanceStepStateState = "initial"
-	ConformanceStepStateStateConnecting      ConformanceStepStateState = "connecting"
-	ConformanceStepStateStateOpen            ConformanceStepStateState = "open"
-	ConformanceStepStateStateReconnecting    ConformanceStepStateState = "reconnecting"
-	ConformanceStepStateStateDegraded        ConformanceStepStateState = "degraded"
-	ConformanceStepStateStateUnauthenticated ConformanceStepStateState = "unauthenticated"
-	ConformanceStepStateStateClosed          ConformanceStepStateState = "closed"
-)
-
-// Valid is whether e is one of ConformanceStepStateState's values.
-func (e ConformanceStepStateState) Valid() bool {
-	switch e {
-	case ConformanceStepStateStateInitial, ConformanceStepStateStateConnecting, ConformanceStepStateStateOpen, ConformanceStepStateStateReconnecting, ConformanceStepStateStateDegraded, ConformanceStepStateStateUnauthenticated, ConformanceStepStateStateClosed:
-		return true
-	}
-	return false
-}
 
 // ConformanceStepStays The transport is in this state and has reported no
 // other since the case last read its state.
 type ConformanceStepStays struct {
 	// Stays The state.
-	Stays ConformanceStepStaysStays `json:"stays"`
+	Stays ConnectionState `json:"stays"`
 }
 
 func (ConformanceStepStays) memberOfConformanceStep() {}
-
-// ConformanceStepStaysStays The state.
-type ConformanceStepStaysStays string
-
-// The values of ConformanceStepStaysStays.
-const (
-	ConformanceStepStaysStaysInitial         ConformanceStepStaysStays = "initial"
-	ConformanceStepStaysStaysConnecting      ConformanceStepStaysStays = "connecting"
-	ConformanceStepStaysStaysOpen            ConformanceStepStaysStays = "open"
-	ConformanceStepStaysStaysReconnecting    ConformanceStepStaysStays = "reconnecting"
-	ConformanceStepStaysStaysDegraded        ConformanceStepStaysStays = "degraded"
-	ConformanceStepStaysStaysUnauthenticated ConformanceStepStaysStays = "unauthenticated"
-	ConformanceStepStaysStaysClosed          ConformanceStepStaysStays = "closed"
-)
-
-// Valid is whether e is one of ConformanceStepStaysStays's values.
-func (e ConformanceStepStaysStays) Valid() bool {
-	switch e {
-	case ConformanceStepStaysStaysInitial, ConformanceStepStaysStaysConnecting, ConformanceStepStaysStaysOpen, ConformanceStepStaysStaysReconnecting, ConformanceStepStaysStaysDegraded, ConformanceStepStaysStaysUnauthenticated, ConformanceStepStaysStaysClosed:
-		return true
-	}
-	return false
-}
 
 // ConformanceStepWire The next request the client put on the wire is this
 // operation, with each field given.
@@ -3894,6 +3867,31 @@ type ConnectionIdentity struct {
 	Did UserId `json:"did"`
 	// Description What it says of itself.
 	Description KbDescription `json:"description"`
+}
+
+// ConnectionState Where a client's stream is: one of the states of
+// client/connection-states.json, which says what each means and where it
+// moves.
+type ConnectionState string
+
+// The values of ConnectionState.
+const (
+	ConnectionStateInitial         ConnectionState = "initial"
+	ConnectionStateConnecting      ConnectionState = "connecting"
+	ConnectionStateOpen            ConnectionState = "open"
+	ConnectionStateReconnecting    ConnectionState = "reconnecting"
+	ConnectionStateDegraded        ConnectionState = "degraded"
+	ConnectionStateUnauthenticated ConnectionState = "unauthenticated"
+	ConnectionStateClosed          ConnectionState = "closed"
+)
+
+// Valid is whether e is one of ConnectionState's values.
+func (e ConnectionState) Valid() bool {
+	switch e {
+	case ConnectionStateInitial, ConnectionStateConnecting, ConnectionStateOpen, ConnectionStateReconnecting, ConnectionStateDegraded, ConnectionStateUnauthenticated, ConnectionStateClosed:
+		return true
+	}
+	return false
 }
 
 // ContentFormat Content format as a MIME type, optionally with parameters.
@@ -4062,7 +4060,7 @@ type DiscoveredKB struct {
 	Port int `json:"port"`
 	// Placement Where the stack actually runs. "local": containers on this
 	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-	Placement DiscoveredKBPlacement `json:"placement"`
+	Placement KbPlacement `json:"placement"`
 	// Repo owner/name GitHub slug — present for codespace placements, where the
 	// repo is the stack's identity
 	Repo *string `json:"repo,omitempty"`
@@ -4085,26 +4083,6 @@ type DiscoveredKB struct {
 	// themselves — upsert on appearance, remove on disappearance — and never
 	// touch entries they did not write.
 	ManagedBy string `json:"managedBy"`
-}
-
-// DiscoveredKBPlacement Where the stack actually runs. "local": containers on
-// this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded
-// here.
-type DiscoveredKBPlacement string
-
-// The values of DiscoveredKBPlacement.
-const (
-	DiscoveredKBPlacementLocal     DiscoveredKBPlacement = "local"
-	DiscoveredKBPlacementCodespace DiscoveredKBPlacement = "codespace"
-)
-
-// Valid is whether e is one of DiscoveredKBPlacement's values.
-func (e DiscoveredKBPlacement) Valid() bool {
-	switch e {
-	case DiscoveredKBPlacementLocal, DiscoveredKBPlacementCodespace:
-		return true
-	}
-	return false
 }
 
 // DiscoveryDocument The launcher's KB discovery document — the schema
@@ -4504,11 +4482,7 @@ func (EmptyObject) memberOfJobStoredResult()   {}
 // that used one names it on each write it produced with it (`generator`). A
 // person who does a job uses none.
 type Engine struct {
-	// Provider The inference provider: who serves the model. `anthropic`,
-	// `google`, `openai` and `together` are those companies' own APIs.
-	// `llamacpp`, `ollama` and `vllm` are servers a deployment runs or reaches,
-	// each named for the server's software.
-	Provider EngineProvider `json:"provider"`
+	Provider InferenceProvider `json:"provider"`
 	// Model The model identifier, as the provider names it.
 	Model string `json:"model"`
 }
@@ -4531,32 +4505,6 @@ type EngineEntry struct {
 type EngineLimits struct {
 	Engine Engine          `json:"engine"`
 	Limits InferenceLimits `json:"limits"`
-}
-
-// EngineProvider The inference provider: who serves the model. `anthropic`,
-// `google`, `openai` and `together` are those companies' own APIs.
-// `llamacpp`, `ollama` and `vllm` are servers a deployment runs or reaches,
-// each named for the server's software.
-type EngineProvider string
-
-// The values of EngineProvider.
-const (
-	EngineProviderAnthropic EngineProvider = "anthropic"
-	EngineProviderGoogle    EngineProvider = "google"
-	EngineProviderLlamacpp  EngineProvider = "llamacpp"
-	EngineProviderOllama    EngineProvider = "ollama"
-	EngineProviderOpenai    EngineProvider = "openai"
-	EngineProviderTogether  EngineProvider = "together"
-	EngineProviderVllm      EngineProvider = "vllm"
-)
-
-// Valid is whether e is one of EngineProvider's values.
-func (e EngineProvider) Valid() bool {
-	switch e {
-	case EngineProviderAnthropic, EngineProviderGoogle, EngineProviderLlamacpp, EngineProviderOllama, EngineProviderOpenai, EngineProviderTogether, EngineProviderVllm:
-		return true
-	}
-	return false
 }
 
 // EnrichedResourceEvent Wire format for persisted events delivered over the
@@ -4632,7 +4580,7 @@ type (
 type ErrorData struct {
 	// Code Why the request failed: a code of the control group of
 	// specs/src/errors/codes.json.
-	Code string `json:"code"`
+	Code ControlErrorCode `json:"code"`
 	// Retryable Whether the same request can succeed sent again unchanged, once
 	// something outside it changes: a start finishes, a runtime is installed, a
 	// stack comes up.
@@ -6273,6 +6221,55 @@ type HealthResponse struct {
 	Timestamp string `json:"timestamp"`
 }
 
+// HeldJobRecord The job a worker holds, as its claim hands it: read from the
+// `JobRunning` that `job:claimed` carries, its metadata's id, type, units,
+// cursors and retries, and its params with the resource they name. A unit the
+// job has not reached is no member of `completedUnits` and no key of
+// `unitCursors`.
+type HeldJobRecord struct {
+	JobId      JobId      `json:"jobId"`
+	JobType    JobType    `json:"jobType"`
+	ResourceId ResourceId `json:"resourceId"`
+	Params     JobParams  `json:"params"`
+	// CompletedUnits The units a worker has finished, merged across checkpoints
+	// and failures as a set.
+	CompletedUnits []string `json:"completedUnits"`
+	// UnitCursors The furthest each unit begun got, keyed by unit, with what it
+	// had counted there. A finished unit keeps its cursor: where it ended, and
+	// its final counts.
+	UnitCursors map[string]UnitCursor `json:"unitCursors"`
+	RetryCount  int                   `json:"retryCount"`
+	// MaxRetries How many transient failures the queue retries: 0 for
+	// generation, whose re-run produces different content; 1 for every other
+	// type.
+	MaxRetries int `json:"maxRetries"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v HeldJobRecord) MarshalJSON() ([]byte, error) {
+	type written HeldJobRecord
+	v.CompletedUnits = listOf(v.CompletedUnits)
+	return json.Marshal(written(v))
+}
+
+// HeldJobStall A held job that showed no activity for `heldJobStallMs`
+// (contract/WORKER-CONTRACT.md V2): what a worker's claims say on `stalled`.
+// What its host does then is the host's.
+type HeldJobStall struct {
+	JobId   JobId   `json:"jobId"`
+	JobType JobType `json:"jobType"`
+	// HeldSince When the worker was handed the job.
+	HeldSince string `json:"heldSince"`
+	// LastActivityAt When the job last showed activity: its claim, a progress
+	// report, a checkpoint or a commit.
+	LastActivityAt string `json:"lastActivityAt"`
+	// SilentForMs How long it has shown none, in milliseconds.
+	SilentForMs int `json:"silentForMs"`
+	// ThresholdMs The `heldJobStallMs` it was held to, in milliseconds.
+	ThresholdMs int `json:"thresholdMs"`
+}
+
 // HighlightingJobParams What a highlighting job takes: passages of the
 // resource worth a reader's attention are marked, with no text of the job's
 // own.
@@ -6518,6 +6515,32 @@ func (v InferenceLimitsResultResponse) MarshalJSON() ([]byte, error) {
 	type written InferenceLimitsResultResponse
 	v.Limits = listOf(v.Limits)
 	return json.Marshal(written(v))
+}
+
+// InferenceProvider The inference provider: who serves the model.
+// `anthropic`, `google`, `openai` and `together` are those companies' own
+// APIs. `llamacpp`, `ollama` and `vllm` are servers a deployment runs or
+// reaches, each named for the server's software.
+type InferenceProvider string
+
+// The values of InferenceProvider.
+const (
+	InferenceProviderAnthropic InferenceProvider = "anthropic"
+	InferenceProviderGoogle    InferenceProvider = "google"
+	InferenceProviderLlamacpp  InferenceProvider = "llamacpp"
+	InferenceProviderOllama    InferenceProvider = "ollama"
+	InferenceProviderOpenai    InferenceProvider = "openai"
+	InferenceProviderTogether  InferenceProvider = "together"
+	InferenceProviderVllm      InferenceProvider = "vllm"
+)
+
+// Valid is whether e is one of InferenceProvider's values.
+func (e InferenceProvider) Valid() bool {
+	switch e {
+	case InferenceProviderAnthropic, InferenceProviderGoogle, InferenceProviderLlamacpp, InferenceProviderOllama, InferenceProviderOpenai, InferenceProviderTogether, InferenceProviderVllm:
+		return true
+	}
+	return false
 }
 
 // InferenceSpec The providers, and the engine for each job and each Librarian
@@ -6796,6 +6819,32 @@ func (e JobCancelledStatus) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// JobCheckpoint What a held job states when it checkpoints (`job:checkpoint`,
+// contract/JOBS.md § Checkpoints): the units finished, and the furthest each
+// unit begun got.
+type JobCheckpoint struct {
+	// CompletedUnits Entity-type units whose annotations have been fully emitted
+	// so far. Unioned into the running job's metadata checkpoint; a retry after
+	// recovery skips them.
+	CompletedUnits []string `json:"completedUnits"`
+	// UnitCursors The furthest each unit begun got, keyed by unit, with what it
+	// had counted there — the grain `completedUnits` cannot express. A unit
+	// named in `completedUnits` is stated here too, by the cursor it ended at: a
+	// later attempt skips it whole and counts it by that cursor. A cursor never
+	// says a unit is finished; only `completedUnits` does. Merged monotonically
+	// per unit, finished or not: a stale snapshot must never move a cursor
+	// backward.
+	UnitCursors *map[string]UnitCursor `json:"unitCursors,omitempty"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v JobCheckpoint) MarshalJSON() ([]byte, error) {
+	type written JobCheckpoint
+	v.CompletedUnits = listOf(v.CompletedUnits)
+	return json.Marshal(written(v))
 }
 
 // JobCheckpointCommand Command to persist a running job's completed-unit
@@ -7162,6 +7211,26 @@ func (e JobFailedStatus) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// JobFailure What a held job's failure states beside its error (`job:fail`):
+// what it had reached, and the failure's class when the worker knows it. What
+// its commits observed is the held job's own to state.
+type JobFailure struct {
+	// CompletedUnits Entity-type units whose annotations were fully emitted
+	// before this failure (checkpointed resume). The queue records them on the
+	// retried job's metadata; a retried claim skips them so completed work is
+	// neither redone nor duplicated.
+	CompletedUnits *[]string `json:"completedUnits,omitempty"`
+	// UnitCursors The furthest each unit begun got, keyed by unit, with what it
+	// had counted there — the grain `completedUnits` cannot express. A unit
+	// named in `completedUnits` is stated here too, by the cursor it ended at: a
+	// later attempt skips it whole and counts it by that cursor. A cursor never
+	// says a unit is finished; only `completedUnits` does. Merged monotonically
+	// per unit, finished or not: a stale snapshot must never move a cursor
+	// backward.
+	UnitCursors  *map[string]UnitCursor `json:"unitCursors,omitempty"`
+	FailureClass *FailureClass          `json:"failureClass,omitempty"`
 }
 
 // JobFilter Some jobs, named by fields of the job description: a partial
@@ -7774,6 +7843,23 @@ var jobQueuedEventMembers = []unionMember{
 	{"YieldJobQueuedEvent", readAs[YieldJobQueuedEvent], []signature{{kind: objectKind, required: []string{"jobId", "jobType", "resourceId", "userId", "params"}, fixed: []fixedValues{{"jobType", []any{"yield"}}}}}},
 }
 
+// JobReached What a held job that stops on a cancellation states it had
+// reached (`job:cancel`): the units finished, and the furthest each unit
+// begun got.
+type JobReached struct {
+	// CompletedUnits The units the worker had finished when it stopped. Recorded
+	// on the cancelled job's metadata so the work already done stays visible.
+	CompletedUnits *[]string `json:"completedUnits,omitempty"`
+	// UnitCursors The furthest each unit begun got, keyed by unit, with what it
+	// had counted there — the grain `completedUnits` cannot express. A unit
+	// named in `completedUnits` is stated here too, by the cursor it ended at: a
+	// later attempt skips it whole and counts it by that cursor. A cursor never
+	// says a unit is finished; only `completedUnits` does. Merged monotonically
+	// per unit, finished or not: a stale snapshot must never move a cursor
+	// backward.
+	UnitCursors *map[string]UnitCursor `json:"unitCursors,omitempty"`
+}
+
 // JobRecord One job as the queue stores it: the job, and when it last showed
 // life. The dead-worker sweep reads `lastProgressAt`: a running job whose
 // worker has reported nothing for the configured interval is presumed dead.
@@ -8147,6 +8233,26 @@ type KbIdentityConflict struct {
 	ObservedDid string `json:"observedDid"`
 }
 
+// KbPlacement Where a knowledge base's stack runs: on this machine (local),
+// or in a GitHub codespace whose knowledge base is forwarded here
+// (codespace).
+type KbPlacement string
+
+// The values of KbPlacement.
+const (
+	KbPlacementLocal     KbPlacement = "local"
+	KbPlacementCodespace KbPlacement = "codespace"
+)
+
+// Valid is whether e is one of KbPlacement's values.
+func (e KbPlacement) Valid() bool {
+	switch e {
+	case KbPlacementLocal, KbPlacementCodespace:
+		return true
+	}
+	return false
+}
+
 // KbRead When a knowledge base last described itself, and what it said beyond
 // its name. A client shows it as current only while a session to the
 // knowledge base is live, and as of `at` otherwise.
@@ -8366,10 +8472,8 @@ type KnowledgeBaseStatus struct {
 	Key string `json:"key"`
 	// Recorded Whether a stack of it is recorded. When none is, its services are
 	// found by name.
-	Recorded bool `json:"recorded"`
-	// Placement Where the stack actually runs. "local": containers on this
-	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-	Placement KnowledgeBaseStatusPlacement `json:"placement"`
+	Recorded  bool        `json:"recorded"`
+	Placement KbPlacement `json:"placement"`
 	// Root Its clone, for a local stack.
 	Root *string `json:"root,omitempty"`
 	// Repo owner/name GitHub slug — present for codespace placements, where the
@@ -8427,26 +8531,6 @@ func (v KnowledgeBaseStatus) MarshalJSON() ([]byte, error) {
 	type written KnowledgeBaseStatus
 	v.Services = listOf(v.Services)
 	return json.Marshal(written(v))
-}
-
-// KnowledgeBaseStatusPlacement Where the stack actually runs. "local":
-// containers on this machine. "codespace": a GitHub-hosted VM whose KB is
-// port-forwarded here.
-type KnowledgeBaseStatusPlacement string
-
-// The values of KnowledgeBaseStatusPlacement.
-const (
-	KnowledgeBaseStatusPlacementLocal     KnowledgeBaseStatusPlacement = "local"
-	KnowledgeBaseStatusPlacementCodespace KnowledgeBaseStatusPlacement = "codespace"
-)
-
-// Valid is whether e is one of KnowledgeBaseStatusPlacement's values.
-func (e KnowledgeBaseStatusPlacement) Valid() bool {
-	switch e {
-	case KnowledgeBaseStatusPlacementLocal, KnowledgeBaseStatusPlacementCodespace:
-		return true
-	}
-	return false
 }
 
 // KnowledgeGraph Knowledge graph gathered for an LLM context — a shared
@@ -11188,7 +11272,7 @@ type ResourceUpload struct {
 	// Name Human-readable resource name
 	Name string `json:"name"`
 	// File Binary content
-	File []byte `json:"file"`
+	File Binary `json:"file"`
 	// Format Media type of the content (e.g. text/plain, text/markdown,
 	// image/png)
 	Format string `json:"format"`
@@ -11233,14 +11317,6 @@ type ResourceUpload struct {
 	ArchiveOriginal *string `json:"archiveOriginal,omitempty"`
 }
 
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v ResourceUpload) MarshalJSON() ([]byte, error) {
-	type written ResourceUpload
-	v.File = listOf(v.File)
-	return json.Marshal(written(v))
-}
-
 // ResourceView A resource's materialized view: the file the Archivist writes
 // at `resources/<ab>/<cd>/<resourceId>.json` under the knowledge base's state
 // directory, and every reader of that file reads. It is what the resource's
@@ -11268,13 +11344,22 @@ type ResourcesLimits struct {
 	Memory string `json:"memory"`
 }
 
+// RetryBudget A retry budget: how many `attempts` are allowed, with a backoff
+// that starts at `initialDelayMs` and doubles to `maxDelayMs`.
+type RetryBudget struct {
+	// Attempts How many attempts the budget allows.
+	Attempts int `json:"attempts"`
+	// InitialDelayMs The delay before the second attempt, in milliseconds.
+	InitialDelayMs int `json:"initialDelayMs"`
+	// MaxDelayMs The longest delay between attempts, in milliseconds.
+	MaxDelayMs int `json:"maxDelayMs"`
+}
+
 // Root One knowledge base this machine knows: a registered or running local
 // clone, or a codespace stack recorded here. Registration, the directory, the
 // stack and the forward are separate facts, each stated as it is.
 type Root struct {
-	// Placement Where the stack actually runs. "local": containers on this
-	// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-	Placement RootPlacement `json:"placement"`
+	Placement KbPlacement `json:"placement"`
 	// Path For a local root: the clone's path.
 	Path *string `json:"path,omitempty"`
 	// Present For a local root: whether the directory exists. A registered root
@@ -11345,25 +11430,6 @@ const (
 func (e RootCurrent) Valid() bool {
 	switch e {
 	case RootCurrentCwd, RootCurrentXynologRoot:
-		return true
-	}
-	return false
-}
-
-// RootPlacement Where the stack actually runs. "local": containers on this
-// machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-type RootPlacement string
-
-// The values of RootPlacement.
-const (
-	RootPlacementLocal     RootPlacement = "local"
-	RootPlacementCodespace RootPlacement = "codespace"
-)
-
-// Valid is whether e is one of RootPlacement's values.
-func (e RootPlacement) Valid() bool {
-	switch e {
-	case RootPlacementLocal, RootPlacementCodespace:
 		return true
 	}
 	return false
@@ -13058,10 +13124,10 @@ type SmelterHealth struct {
 	// Kb The DID of the knowledge base it serves: the one its settings name,
 	// which that knowledge base said it is before the Smelter reached its index.
 	Kb KbDid `json:"kb"`
-	// Stream The state of its own stream of the record, one of the seven of
-	// TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while
-	// it is `open`.
-	Stream SmelterHealthStream `json:"stream"`
+	// Stream The state of its own stream of the record, one of
+	// client/connection-states.json's. Events are delivered to it while it is
+	// `open`.
+	Stream ConnectionState `json:"stream"`
 	// Following How far it has followed the record. Its sweep is also `due`
 	// where its start's reconcile failed.
 	Following FollowerFollowing `json:"following"`
@@ -13140,31 +13206,6 @@ const (
 func (e SmelterHealthStatus) Valid() bool {
 	switch e {
 	case SmelterHealthStatusOk:
-		return true
-	}
-	return false
-}
-
-// SmelterHealthStream The state of its own stream of the record, one of the
-// seven of TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to
-// it while it is `open`.
-type SmelterHealthStream string
-
-// The values of SmelterHealthStream.
-const (
-	SmelterHealthStreamInitial         SmelterHealthStream = "initial"
-	SmelterHealthStreamConnecting      SmelterHealthStream = "connecting"
-	SmelterHealthStreamOpen            SmelterHealthStream = "open"
-	SmelterHealthStreamReconnecting    SmelterHealthStream = "reconnecting"
-	SmelterHealthStreamDegraded        SmelterHealthStream = "degraded"
-	SmelterHealthStreamUnauthenticated SmelterHealthStream = "unauthenticated"
-	SmelterHealthStreamClosed          SmelterHealthStream = "closed"
-)
-
-// Valid is whether e is one of SmelterHealthStream's values.
-func (e SmelterHealthStream) Valid() bool {
-	switch e {
-	case SmelterHealthStreamInitial, SmelterHealthStreamConnecting, SmelterHealthStreamOpen, SmelterHealthStreamReconnecting, SmelterHealthStreamDegraded, SmelterHealthStreamUnauthenticated, SmelterHealthStreamClosed:
 		return true
 	}
 	return false
@@ -14052,7 +14093,7 @@ func (e TaggingJobParamsMotivation) Valid() bool {
 type Target struct {
 	// Kind Where the stack runs: on this machine (local), or on a GitHub
 	// codespace whose knowledge base is forwarded here (codespace).
-	Kind TargetKind `json:"kind"`
+	Kind KbPlacement `json:"kind"`
 	// Root For a local target: the knowledge base's clone, by path or by the
 	// basename of a registered root, as --root takes it. Absent: the local stack
 	// the command line chooses with --runtime, standing where the control server
@@ -14060,25 +14101,6 @@ type Target struct {
 	Root *string `json:"root,omitempty"`
 	// Repo For a codespace target: the GitHub repository, as --repo takes it.
 	Repo *string `json:"repo,omitempty"`
-}
-
-// TargetKind Where the stack runs: on this machine (local), or on a GitHub
-// codespace whose knowledge base is forwarded here (codespace).
-type TargetKind string
-
-// The values of TargetKind.
-const (
-	TargetKindLocal     TargetKind = "local"
-	TargetKindCodespace TargetKind = "codespace"
-)
-
-// Valid is whether e is one of TargetKind's values.
-func (e TargetKind) Valid() bool {
-	switch e {
-	case TargetKindLocal, TargetKindCodespace:
-		return true
-	}
-	return false
 }
 
 type TextPositionSelector struct {
@@ -14184,6 +14206,17 @@ func (e TextualBodyType) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// TraceCarrier A W3C trace context, as a relayed frame's trace field carries
+// it (bus/registry.json `trace`) and a held job states it as its `trace`: the
+// trace a frame was sent under, so its reader's work is recorded in the same
+// trace.
+type TraceCarrier struct {
+	// Traceparent W3C `traceparent` (`00-<traceId>-<spanId>-<flags>`).
+	Traceparent string `json:"traceparent"`
+	// Tracestate W3C `tracestate`, when the trace has one.
+	Tracestate *string `json:"tracestate,omitempty"`
 }
 
 // UnitCursor The furthest a single unit got, and what it had counted when it
@@ -14629,6 +14662,15 @@ func (e WeaverHealthStatus) Valid() bool {
 	return false
 }
 
+// WorkerActiveJob The job an engine holds: which it is, of what type, and
+// since when.
+type WorkerActiveJob struct {
+	JobId JobId   `json:"jobId"`
+	Type  JobType `json:"type"`
+	// Since When it was handed the job.
+	Since string `json:"since"`
+}
+
 // WorkerAnswerFormats worker/answer-formats.json: the element of the array
 // each kind of detection asks a model for.
 type WorkerAnswerFormats struct {
@@ -14733,9 +14775,8 @@ type WorkerEngineHealth struct {
 	// LastFinishedAt When a job it held last settled, or null.
 	LastFinishedAt *string `json:"lastFinishedAt"`
 	// LastActivityAt When it was last active, or null.
-	LastActivityAt *string `json:"lastActivityAt"`
-	// ActiveJob The job it holds, or null.
-	ActiveJob *WorkerEngineHealthActiveJob `json:"activeJob"`
+	LastActivityAt *string          `json:"lastActivityAt"`
+	ActiveJob      *WorkerActiveJob `json:"activeJob"`
 	// JobsCompleted How many jobs it has completed since the service started.
 	JobsCompleted int `json:"jobsCompleted"`
 }
@@ -14746,14 +14787,6 @@ func (v WorkerEngineHealth) MarshalJSON() ([]byte, error) {
 	type written WorkerEngineHealth
 	v.Jobs = listOf(v.Jobs)
 	return json.Marshal(written(v))
-}
-
-// WorkerEngineHealthActiveJob The job it holds, or null.
-type WorkerEngineHealthActiveJob struct {
-	JobId JobId   `json:"jobId"`
-	Type  JobType `json:"type"`
-	// Since When it was handed the job.
-	Since string `json:"since"`
 }
 
 // WorkerHealth The Worker service's health answer (WORKER-SERVICE H1). It
@@ -15074,6 +15107,25 @@ type WorkerPoolSpec struct {
 type WorkerPoolSpecWorker struct {
 	Image     Image     `json:"image"`
 	Resources Resources `json:"resources"`
+}
+
+// WorkerVitals What a worker can say of itself at any moment
+// (contract/WORKER-CONTRACT.md V1): what a worker's claims hand it as
+// `vitals`, and what the worker service answers of each engine beside the
+// engine and its jobs (worker/WorkerEngineHealth.json).
+type WorkerVitals struct {
+	// LastQueuedEventAt When a `job:queued` last reached it, or null.
+	LastQueuedEventAt *string `json:"lastQueuedEventAt"`
+	// LastClaimAt When it was last handed a job, or null. A claim answered with
+	// none pending is not one.
+	LastClaimAt *string `json:"lastClaimAt"`
+	// LastFinishedAt When a job it held last settled, or null.
+	LastFinishedAt *string `json:"lastFinishedAt"`
+	// LastActivityAt When it was last active, or null.
+	LastActivityAt *string          `json:"lastActivityAt"`
+	ActiveJob      *WorkerActiveJob `json:"activeJob"`
+	// JobsCompleted How many jobs it has completed since the service started.
+	JobsCompleted int `json:"jobsCompleted"`
 }
 
 // WorkloadStatus A knowledge base's operational readings from Collector

@@ -55,16 +55,14 @@ export {
 } from './claims';
 export type {
   ClaimRefusal,
+  HeldJobRecord,
   HeldJobStall,
   JobCheckpoint,
   JobFailure,
   JobReached,
   WorkerVitals,
 } from '@xynolog/core';
-export {
-  JOB_CLAIM_CHANNELS,
-  JOB_COMMIT_CHANNELS,
-} from './worker-channels';
+export { JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS } from './worker-channels';
 
 // The SWR cache primitive behind every `browse.*` live query. Exported so
 // consumers of its observables (react-ui's `trackList`) can be tested against

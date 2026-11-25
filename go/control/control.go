@@ -7,10 +7,6 @@
 // is an api.ControlErrorCode.
 package control
 
-import (
-	"github.com/xynolog/sdk/go/api"
-)
-
 // Method is a method of the control API: a request whose params are P,
 // answered with a result R.
 type Method[P, R any] struct {

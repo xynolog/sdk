@@ -49,23 +49,12 @@ let fail t ?status ~message code =
   t.on_error failure;
   raise (Failed failure)
 
-let json_text key source =
-  match Strict_json.parse source with
-  | Ok (`Assoc fields) -> (
-      match List.assoc_opt key fields with
-      | Some (`Stringlit literal) -> (
-          match Yojson.Safe.from_string literal with
-          | `String value -> Some value
-          | _ -> None)
-      | _ -> None)
-  | _ -> None
-
 (* A refusal in the gateway's own words when its body states them, as an
    ErrorResponse's error, and by its status when it does not. *)
 let refusal status body =
-  match json_text "error" body with
-  | Some words -> words
-  | None -> "HTTP " ^ string_of_int status
+  match Models.decode Models.error_response body with
+  | Ok response -> (Records.Error_response.of_model response).error
+  | Error _ -> "HTTP " ^ string_of_int status
 
 let unanswered = "The request got no answer before its deadline"
 let unreachable = "The gateway could not be reached"
@@ -86,7 +75,13 @@ let credential_refused status body =
        (fun (limited, code, transport) ->
          transport = Error_codes.Transport.Unauthorized
          && limited = status
-         && json_text "code" body = Some code)
+         &&
+         match Models.decode Models.limit_refusal body with
+         | Ok refusal ->
+             Records.Limit_refusal.Code.to_string
+               (Records.Limit_refusal.of_model refusal).code
+             = code
+         | Error _ -> false)
        Error_codes.limit_refusal_transport_codes
 
 let bearer token headers =
@@ -214,8 +209,8 @@ let emit t ~client_id ?scope ?correlation_id ?trace channel source =
       ?scope:(Option.map Identifiers.Resource_id.to_string scope)
       ?correlation_id
       ?trace:
-        (Option.bind trace (fun (trace : Wire_stream.trace) ->
-             Bus_log.trace_id trace.parent))
+        (Option.bind trace (fun (trace : Records.Trace_carrier.t) ->
+             Bus_log.trace_id trace.traceparent))
       (Yojson.Safe.from_string source);
   let attributes =
     (attr_bus_channel, Telemetry.String name)
@@ -248,12 +243,15 @@ let emit t ~client_id ?scope ?correlation_id ?trace channel source =
              (Gateway_http.Header.idempotency_key, t.key ());
            ]
           @ Option.fold ~none:[]
-              ~some:(fun (trace : Wire_stream.trace) ->
-                ("traceparent", trace.parent)
-                :: Option.to_list
-                     (Option.map
-                        (fun state -> ("tracestate", state))
-                        trace.state))
+              ~some:(fun trace ->
+                match Records.Trace_carrier.to_json trace with
+                | `Assoc members ->
+                    List.filter_map
+                      (function
+                        | header, `String value -> Some (header, value)
+                        | _ -> None)
+                      members
+                | _ -> [])
               trace)
         ~attempts:timing.emit_attempts
         ~initial_delay:timing.emit_initial_delay_ms
@@ -262,8 +260,14 @@ let emit t ~client_id ?scope ?correlation_id ?trace channel source =
 
 let bus_failure payload =
   Http_facts.bus_failure
-    (Option.map Http_facts.Failure_code.of_wire
-       (json_text "code" (Bus_registry.encode payload)))
+    (match Models.decode Models.command_error (Bus_registry.encode payload) with
+    | Ok failure ->
+        Option.map
+          (fun code ->
+            Http_facts.Failure_code.of_wire
+              (Records.Command_error.Code.to_string code))
+          (Records.Command_error.of_model failure).code
+    | Error _ -> None)
 
 let json_get t ?(auth = true) path =
   exchange t ~auth ~timeout_ms:t.timing.request_timeout_ms ~attempts:2

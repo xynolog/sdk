@@ -8,24 +8,10 @@ using Xynolog.Types;
 namespace Xynolog;
 
 /// <summary>A job a worker has claimed: what it asks for, and the lifecycle messages that report on it and settle it.</summary>
-public interface IHeldJob
+public partial interface IHeldJob
 {
-    /// <summary>The job's identity.</summary>
-    public JobId JobId { get; }
-    /// <summary>The kind of work the job asks for.</summary>
-    public JobType JobType { get; }
-    /// <summary>The resource the job works on.</summary>
-    public ResourceId ResourceId { get; }
-    /// <summary>What the job was asked to do, as its creator stated it.</summary>
-    public JobParams Params { get; }
-    /// <summary>The units of work an earlier attempt finished, which this attempt need not do again.</summary>
-    public IReadOnlyList<string> CompletedUnits { get; }
-    /// <summary>How far an earlier attempt got within each unfinished unit, by unit.</summary>
-    public IReadOnlyDictionary<string, UnitCursor> UnitCursors { get; }
-    /// <summary>How many earlier attempts of the job failed.</summary>
-    public long RetryCount { get; }
-    /// <summary>How many failed attempts the job may be retried after.</summary>
-    public long MaxRetries { get; }
+    /// <summary>The job as its claim handed it.</summary>
+    public HeldJobRecord Record { get; }
     /// <summary>Which attempt of the job this is, counting from 1.</summary>
     public long Attempt { get; }
     /// <summary>The annotation a yield job's gathered context is focused on, if it is focused on one.</summary>
@@ -43,24 +29,23 @@ public interface IHeldJob
     public Task ProgressAsync(JobProgress progress, CancellationToken cancellation = default);
     /// <summary>Records the units finished so far, and how far each unfinished one got, so a later attempt resumes from
     /// them.</summary>
-    public Task CheckpointAsync(IReadOnlyList<string> completedUnits, IReadOnlyDictionary<string, UnitCursor>? unitCursors = null, CancellationToken cancellation = default);
+    public Task CheckpointAsync(JobCheckpoint checkpoint, CancellationToken cancellation = default);
     /// <summary>Writes annotations the job made to a resource, confirming them by reading back the last one if the write
     /// times out.</summary>
     public Task CommitAsync(ResourceId resourceId, IReadOnlyList<Annotation> annotations, CancellationToken cancellation = default);
     /// <summary>Settles the job as failed, saying whether it will be retried and what a retry may resume from.</summary>
-    public Task FailAsync(string error, FailureClass? failureClass = null, IReadOnlyList<string>? completedUnits = null,
-        IReadOnlyDictionary<string, UnitCursor>? unitCursors = null, CancellationToken cancellation = default);
+    public Task FailAsync(string error, JobFailure? failure = null, CancellationToken cancellation = default);
     /// <summary>Settles the job as cancelled, with what was finished before it stopped.</summary>
-    public Task CancelAsync(IReadOnlyList<string>? completedUnits = null, IReadOnlyDictionary<string, UnitCursor>? unitCursors = null,
-        CancellationToken cancellation = default);
+    public Task CancelAsync(JobReached? reached = null, CancellationToken cancellation = default);
 }
 
 /// <summary>A claimed job. Its lifecycle operations are serialized and it settles once.</summary>
-public abstract class HeldJob : IHeldJob
+public abstract partial class HeldJob : IHeldJob
 {
+    private static readonly IReadOnlyDictionary<string, UnitCursor> EmptyCursors =
+        System.Collections.ObjectModel.ReadOnlyDictionary<string, UnitCursor>.Empty;
     private readonly Claims holder;
     private readonly Bus wire;
-    private readonly JobRunning job;
     private readonly SemaphoreSlim turn = new(1, 1);
     private readonly CancellationTokenSource cancelled = new();
     private Task? signalling;
@@ -72,7 +57,17 @@ public abstract class HeldJob : IHeldJob
     {
         this.holder = holder;
         this.wire = wire;
-        this.job = job;
+        Record = new HeldJobRecord
+        {
+            JobId = job.Metadata.Id,
+            JobType = job.Metadata.Type,
+            ResourceId = job.Params.ResourceId,
+            Params = job.Params,
+            CompletedUnits = job.Metadata.CompletedUnits ?? [],
+            UnitCursors = job.Metadata.UnitCursors ?? EmptyCursors,
+            RetryCount = job.Metadata.RetryCount,
+            MaxRetries = job.Metadata.MaxRetries,
+        };
         Cancelled = cancelled.Token;
         Trace = trace;
         if (JobType == JobType.Yield && Params.AdditionalProperties.TryGetValue("context", out var context) &&
@@ -82,21 +77,7 @@ public abstract class HeldJob : IHeldJob
     }
 
     /// <inheritdoc/>
-    public JobId JobId => job.Metadata.Id;
-    /// <inheritdoc/>
-    public JobType JobType => job.Metadata.Type;
-    /// <inheritdoc/>
-    public ResourceId ResourceId => Params.ResourceId;
-    /// <inheritdoc/>
-    public JobParams Params => job.Params;
-    /// <inheritdoc/>
-    public IReadOnlyList<string> CompletedUnits => job.Metadata.CompletedUnits ?? [];
-    /// <inheritdoc/>
-    public IReadOnlyDictionary<string, UnitCursor> UnitCursors => job.Metadata.UnitCursors ?? EmptyCursors;
-    /// <inheritdoc/>
-    public long RetryCount => job.Metadata.RetryCount;
-    /// <inheritdoc/>
-    public long MaxRetries => job.Metadata.MaxRetries;
+    public HeldJobRecord Record { get; }
     /// <inheritdoc/>
     public long Attempt => RetryCount + 1;
     /// <inheritdoc/>
@@ -107,8 +88,6 @@ public abstract class HeldJob : IHeldJob
     public CancellationToken Cancelled { get; }
     /// <inheritdoc/>
     public bool Settled => settled;
-    private static readonly IReadOnlyDictionary<string, UnitCursor> EmptyCursors =
-        System.Collections.ObjectModel.ReadOnlyDictionary<string, UnitCursor>.Empty;
 
     /// <inheritdoc/>
     public Task StartAsync(CancellationToken cancellation = default) => WhileHeldAsync(async () =>
@@ -142,15 +121,14 @@ public abstract class HeldJob : IHeldJob
     }, cancellation);
 
     /// <inheritdoc/>
-    public Task CheckpointAsync(IReadOnlyList<string> completedUnits, IReadOnlyDictionary<string, UnitCursor>? unitCursors = null,
-        CancellationToken cancellation = default) => WhileHeldAsync(async () =>
+    public Task CheckpointAsync(JobCheckpoint checkpoint, CancellationToken cancellation = default) => WhileHeldAsync(async () =>
     {
         Working();
         await wire.EmitAsync(BusChannels.JobCheckpoint, new JobCheckpointCommand
         {
             JobId = JobId,
-            CompletedUnits = completedUnits,
-            UnitCursors = unitCursors,
+            CompletedUnits = checkpoint.CompletedUnits,
+            UnitCursors = checkpoint.UnitCursors,
         }, cancellation: cancellation).ConfigureAwait(Spawning.Captures);
     }, cancellation);
 
@@ -210,12 +188,10 @@ public abstract class HeldJob : IHeldJob
     }
 
     /// <inheritdoc/>
-    public Task FailAsync(string error, FailureClass? failureClass = null, IReadOnlyList<string>? completedUnits = null,
-        IReadOnlyDictionary<string, UnitCursor>? unitCursors = null, CancellationToken cancellation = default) =>
-        SettleAsync(() => SayFailureAsync(error, failureClass, completedUnits, unitCursors, cancellation), false, cancellation);
+    public Task FailAsync(string error, JobFailure? failure = null, CancellationToken cancellation = default) =>
+        SettleAsync(() => SayFailureAsync(error, failure, cancellation), false, cancellation);
 
-    private Task SayFailureAsync(string error, FailureClass? failureClass, IReadOnlyList<string>? completedUnits,
-        IReadOnlyDictionary<string, UnitCursor>? unitCursors, CancellationToken cancellation) =>
+    private Task SayFailureAsync(string error, JobFailure? failure, CancellationToken cancellation) =>
         wire.EmitAsync(BusChannels.JobFail, new JobFailCommand
         {
             JobId = JobId,
@@ -224,24 +200,23 @@ public abstract class HeldJob : IHeldJob
             Attempt = Attempt,
             AnnotationId = AnnotationId,
             Error = error,
-            FailureClass = failureClass,
-            CompletedUnits = completedUnits,
-            UnitCursors = unitCursors,
-            WillRetry = WorkerRules.WillRetryAfter(RetryCount, MaxRetries, failureClass),
+            FailureClass = failure?.FailureClass,
+            CompletedUnits = failure?.CompletedUnits,
+            UnitCursors = failure?.UnitCursors,
+            WillRetry = WorkerRules.WillRetryAfter(RetryCount, MaxRetries, failure?.FailureClass),
             Durability = durability is DurabilityEvidence.ProbeRefused or DurabilityEvidence.ProbeUnreachable ? durability : null,
         }, cancellation: cancellation);
 
     /// <inheritdoc/>
-    public Task CancelAsync(IReadOnlyList<string>? completedUnits = null, IReadOnlyDictionary<string, UnitCursor>? unitCursors = null,
-        CancellationToken cancellation = default) => SettleAsync(() => wire.EmitAsync(BusChannels.JobCancel, new JobCancelCommand
-        {
-            JobId = JobId,
-            JobType = JobType,
-            ResourceId = ResourceId,
-            AnnotationId = AnnotationId,
-            CompletedUnits = completedUnits,
-            UnitCursors = unitCursors,
-        }, cancellation: cancellation), false, cancellation);
+    public Task CancelAsync(JobReached? reached = null, CancellationToken cancellation = default) => SettleAsync(() => wire.EmitAsync(BusChannels.JobCancel, new JobCancelCommand
+    {
+        JobId = JobId,
+        JobType = JobType,
+        ResourceId = ResourceId,
+        AnnotationId = AnnotationId,
+        CompletedUnits = reached?.CompletedUnits,
+        UnitCursors = reached?.UnitCursors,
+    }, cancellation: cancellation), false, cancellation);
 
     private protected Task CompleteAsync(Func<DurabilityEvidence?, JobCompleteCommand> command, CancellationToken cancellation) =>
         SettleAsync(() => wire.EmitAsync(BusChannels.JobComplete, command(durability), cancellation: cancellation), true, cancellation);
@@ -259,7 +234,7 @@ public abstract class HeldJob : IHeldJob
                 context.TraceStateString = Trace.TraceState;
                 context.Start();
             }
-            await FinishAsync(() => SayFailureAsync("The worker stopped while it held the job", null, null, null, default), false).ConfigureAwait(Spawning.Captures);
+            await FinishAsync(() => SayFailureAsync("The worker stopped while it held the job", null, default), false).ConfigureAwait(Spawning.Captures);
         }
         catch (XynologError) { /* The dispatcher's sweep handles a failure the worker could not deliver. */ }
         finally { turn.Release(); }

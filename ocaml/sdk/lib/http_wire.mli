@@ -47,7 +47,7 @@ val emit :
   client_id:string ->
   ?scope:Identifiers.Resource_id.t ->
   ?correlation_id:string ->
-  ?trace:Wire_stream.trace ->
+  ?trace:Records.Trace_carrier.t ->
   'a Bus_registry.channel ->
   string ->
   string

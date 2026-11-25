@@ -277,18 +277,7 @@ const operations: Record<
           () => say({ signalled: job.jobId }),
           { once: true },
         );
-        say({
-          claimed: {
-            jobId: job.jobId,
-            jobType: job.jobType,
-            resourceId: job.resourceId,
-            params: job.params,
-            completedUnits: job.completedUnits,
-            unitCursors: job.unitCursors,
-            retryCount: job.retryCount,
-            maxRetries: job.maxRetries,
-          },
-        });
+        say({ claimed: job.record });
       },
       error: (error) => say({ error: failure(error) }),
     });

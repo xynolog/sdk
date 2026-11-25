@@ -1,3 +1,4 @@
+import Foundation
 import OpenTelemetryApi
 
 struct TraceMap: Getter, Setter {
@@ -36,6 +37,16 @@ func transportSpan(
   if let scope { builder.setAttribute(key: attributeBusScope, value: scope.value) }
   for (key, value) in attributes { builder.setAttribute(key: key, value: value) }
   return builder.startSpan()
+}
+
+/// `carried`'s members by their wire names, as the propagator reads a carrier.
+func propagated(_ carried: TraceCarrier) -> [String: String] {
+  do {
+    return try JSONDecoder().decode(
+      [String: String].self, from: JSONEncoder().encode(carried))
+  } catch {
+    preconditionFailure("A TraceCarrier is members of text: \(error)")
+  }
 }
 
 func traceCarrier(_ span: any Span) -> [String: String] {

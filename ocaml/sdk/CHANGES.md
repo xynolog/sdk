@@ -50,6 +50,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A frame's trace, a held job's and the one a worker's claims are made in is
+  the generated `Records.Trace_carrier.t` (`traceparent`, `tracestate`),
+  where `Wire_stream.trace` (`parent`, `state`) declared its own.
+- `Enums.Kb_placement` names where a knowledge base's stack runs, in place of
+  `Records.Discovered_kb.Placement`, `Records.Root.Placement`,
+  `Records.Knowledge_base_status.Placement` and `Records.Target.Kind`;
+  `Enums.Inference_provider` names an inference provider, in place of
+  `Records.Engine.Provider`.
 - `Annotations.span_refusal` is `Error_codes.Span_refusal.t`, the
   generated vocabulary, in place of a variant of its own.
 - A member that holds null where its schema does not allow null is refused

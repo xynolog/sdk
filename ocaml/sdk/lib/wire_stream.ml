@@ -4,14 +4,12 @@ type route = {
   scope : Identifiers.Resource_id.t option;
 }
 
-type trace = { parent : string; state : string option }
-
 type frame =
   | Frame : {
       id : string option;
       route : route;
       channel : 'a Bus_registry.channel;
-      trace : trace option;
+      trace : Records.Trace_carrier.t option;
       payload : ('a Bus_registry.decoded, Bus_registry.decode_error) result;
     }
       -> frame
@@ -59,13 +57,15 @@ let recover_route source =
 
 let take_trace fields =
   let trace =
-    match List.assoc_opt Bus_registry.trace_field fields with
-    | Some (`Assoc carrier) ->
-        let get key = Option.bind (List.assoc_opt key carrier) string in
-        Option.map
-          (fun parent -> { parent; state = get "tracestate" })
-          (get "traceparent")
-    | _ -> None
+    Option.bind (List.assoc_opt Bus_registry.trace_field fields) (fun carrier ->
+        match
+          Models.decode Models.trace_carrier (Yojson.Raw.to_string carrier)
+        with
+        | Error _ -> None
+        | Ok model ->
+            Result.to_option
+              (Records.Trace_carrier.of_json
+                 (Yojson.Safe.from_string (Models.encode model))))
   in
   ( `Assoc (List.filter (fun (key, _) -> key <> Bus_registry.trace_field) fields),
     trace )

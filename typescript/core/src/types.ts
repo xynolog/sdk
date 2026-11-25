@@ -8,6 +8,8 @@
 //              protocol/specs/src/identifiers/kinds.json, for the brands
 // Regenerate:  make generate  (codegen/lib/typescript_types/typescript_types.ml)
 
+import type { BusRequestErrorCode, ControlErrorCode } from './error-codes';
+
 export interface components {
   schemas: {
     /** launcher.about's params. */
@@ -635,6 +637,11 @@ export interface components {
     BeckonSparkleEvent: {
       annotationId: components['schemas']['AnnotationId'];
     };
+    /**
+     * Bytes held whole. They can be read more than once, and sent again when an
+     * upload is retried.
+     */
+    Binary: string;
     /**
      * One edit to a linking annotation's body list: add or remove a body item,
      * or replace an existing one.
@@ -1362,6 +1369,19 @@ export interface components {
       | ConformanceStepSignalled
       | ConformanceStepStalled;
     /**
+     * Where a client's stream is: one of the states of
+     * client/connection-states.json, which says what each means and where it
+     * moves.
+     */
+    ConnectionState:
+      | 'initial'
+      | 'connecting'
+      | 'open'
+      | 'reconnecting'
+      | 'degraded'
+      | 'unauthenticated'
+      | 'closed';
+    /**
      * Content format as a MIME type, optionally with parameters. The base type
      * (everything before the first ';') MUST be a SupportedMediaType;
      * parameters such as charset are preserved as metadata. Semantic validation
@@ -1448,7 +1468,7 @@ export interface components {
        * Where the stack actually runs. "local": containers on this machine.
        * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
        */
-      placement: DiscoveredKBPlacement;
+      placement: components['schemas']['KbPlacement'];
       /**
        * owner/name GitHub slug — present for codespace placements, where the
        * repo is the stack's identity
@@ -1583,13 +1603,7 @@ export interface components {
      * person who does a job uses none.
      */
     Engine: {
-      /**
-       * The inference provider: who serves the model. `anthropic`, `google`,
-       * `openai` and `together` are those companies' own APIs. `llamacpp`,
-       * `ollama` and `vllm` are servers a deployment runs or reaches, each
-       * named for the server's software.
-       */
-      provider: EngineProvider;
+      provider: components['schemas']['InferenceProvider'];
       /** The model identifier, as the provider names it. */
       model: string;
     };
@@ -1666,7 +1680,7 @@ export interface components {
        * Why the request failed: a code of the control group of
        * specs/src/errors/codes.json.
        */
-      code: string;
+      code: ControlErrorCode;
       /**
        * Whether the same request can succeed sent again unchanged, once
        * something outside it changes: a start finishes, a runtime is installed,
@@ -2268,6 +2282,35 @@ export interface components {
       timestamp: string;
     };
     /**
+     * The job a worker holds, as its claim hands it: read from the `JobRunning`
+     * that `job:claimed` carries, its metadata's id, type, units, cursors and
+     * retries, and its params with the resource they name. A unit the job has
+     * not reached is no member of `completedUnits` and no key of `unitCursors`.
+     */
+    HeldJobRecord: {
+      jobId: components['schemas']['JobId'];
+      jobType: components['schemas']['JobType'];
+      resourceId: components['schemas']['ResourceId'];
+      params: components['schemas']['JobParams'];
+      /**
+       * The units a worker has finished, merged across checkpoints and failures
+       * as a set.
+       */
+      completedUnits: string[];
+      /**
+       * The furthest each unit begun got, keyed by unit, with what it had
+       * counted there. A finished unit keeps its cursor: where it ended, and
+       * its final counts.
+       */
+      unitCursors: { [key: string]: components['schemas']['UnitCursor'] };
+      retryCount: number;
+      /**
+       * How many transient failures the queue retries: 0 for generation, whose
+       * re-run produces different content; 1 for every other type.
+       */
+      maxRetries: number;
+    };
+    /**
      * What a highlighting job takes: passages of the resource worth a reader's
      * attention are marked, with no text of the job's own.
      */
@@ -2439,6 +2482,20 @@ export interface components {
     InferenceLimitsResult: {
       response: InferenceLimitsResultResponse;
     };
+    /**
+     * The inference provider: who serves the model. `anthropic`, `google`,
+     * `openai` and `together` are those companies' own APIs. `llamacpp`,
+     * `ollama` and `vllm` are servers a deployment runs or reaches, each named
+     * for the server's software.
+     */
+    InferenceProvider:
+      | 'anthropic'
+      | 'google'
+      | 'llamacpp'
+      | 'ollama'
+      | 'openai'
+      | 'together'
+      | 'vllm';
     /**
      * The issuer the launcher runs for the knowledge bases on a machine, with a
      * realm for each, and the database it keeps their realms in. It belongs to
@@ -3312,6 +3369,11 @@ export interface components {
       domain: string;
     };
     /**
+     * Where a knowledge base's stack runs: on this machine (local), or in a
+     * GitHub codespace whose knowledge base is forwarded here (codespace).
+     */
+    KbPlacement: 'local' | 'codespace';
+    /**
      * When a knowledge base last described itself, and what it said beyond its
      * name. A client shows it as current only while a session to the knowledge
      * base is live, and as of `at` otherwise.
@@ -3379,11 +3441,7 @@ export interface components {
        * by name.
        */
       recorded: boolean;
-      /**
-       * Where the stack actually runs. "local": containers on this machine.
-       * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-       */
-      placement: KnowledgeBaseStatusPlacement;
+      placement: components['schemas']['KbPlacement'];
       /** Its clone, for a local stack. */
       root?: string;
       /**
@@ -4704,7 +4762,7 @@ export interface components {
       /** Human-readable resource name */
       name: string;
       /** Binary content */
-      file: string;
+      file: components['schemas']['Binary'];
       /**
        * Media type of the content (e.g. text/plain, text/markdown, image/png)
        */
@@ -4784,16 +4842,24 @@ export interface components {
       limits: ResourcesLimits;
     };
     /**
+     * A retry budget: how many `attempts` are allowed, with a backoff that
+     * starts at `initialDelayMs` and doubles to `maxDelayMs`.
+     */
+    RetryBudget: {
+      /** How many attempts the budget allows. */
+      attempts: number;
+      /** The delay before the second attempt, in milliseconds. */
+      initialDelayMs: number;
+      /** The longest delay between attempts, in milliseconds. */
+      maxDelayMs: number;
+    };
+    /**
      * One knowledge base this machine knows: a registered or running local
      * clone, or a codespace stack recorded here. Registration, the directory,
      * the stack and the forward are separate facts, each stated as it is.
      */
     Root: {
-      /**
-       * Where the stack actually runs. "local": containers on this machine.
-       * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-       */
-      placement: RootPlacement;
+      placement: components['schemas']['KbPlacement'];
       /** For a local root: the clone's path. */
       path?: string;
       /**
@@ -5578,11 +5644,11 @@ export interface components {
        */
       kb: components['schemas']['KbDid'];
       /**
-       * The state of its own stream of the record, one of the seven of
-       * TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it
-       * while it is `open`.
+       * The state of its own stream of the record, one of
+       * client/connection-states.json's. Events are delivered to it while it is
+       * `open`.
        */
-      stream: SmelterHealthStream;
+      stream: components['schemas']['ConnectionState'];
       /**
        * How far it has followed the record. Its sweep is also `due` where its
        * start's reconcile failed.
@@ -6024,7 +6090,7 @@ export interface components {
        * Where the stack runs: on this machine (local), or on a GitHub codespace
        * whose knowledge base is forwarded here (codespace).
        */
-      kind: TargetKind;
+      kind: components['schemas']['KbPlacement'];
       /**
        * For a local target: the knowledge base's clone, by path or by the
        * basename of a registered root, as --root takes it. Absent: the local
@@ -6322,6 +6388,13 @@ export interface components {
        */
       reconcile: WeaverHealthReconcile;
     };
+    /** The job an engine holds: which it is, of what type, and since when. */
+    WorkerActiveJob: {
+      jobId: components['schemas']['JobId'];
+      type: components['schemas']['JobType'];
+      /** When it was handed the job. */
+      since: string;
+    };
     /**
      * Everything a worker reads at boot: nothing in it is defaulted by the
      * worker. The launcher writes it for the machine's worker, from the
@@ -6402,7 +6475,7 @@ export interface components {
       /** When it was last active, or null. */
       lastActivityAt: string | null;
       /** The job it holds, or null. */
-      activeJob: WorkerEngineHealthActiveJob | null;
+      activeJob: components['schemas']['WorkerActiveJob'] | null;
       /** How many jobs it has completed since the service started. */
       jobsCompleted: number;
     };
@@ -6851,6 +6924,22 @@ export interface records {
     markCommitTimeoutMs?: number;
   };
   /**
+   * A claim refused for a reason other than that nothing is pending, which is
+   * no fault: what a worker's claims say on `refused`
+   * (contract/WORKER-CONTRACT.md § Claiming). `bus.unauthorized` means the
+   * credential cannot claim, and will not be able to later.
+   */
+  ClaimRefusal: {
+    /**
+     * The bus code the reply was read as, or null when the refusal was the
+     * worker's own: a reply its schema does not allow. Never a code the reply
+     * did not state, and never `bus.none-pending`.
+     */
+    code: BusRequestErrorCode | null;
+    /** What the refusal said. */
+    message: string;
+  };
+  /**
    * Who the knowledge base at an address says it is, asked with a token just
    * issued, before any entry is made for it.
    */
@@ -6930,6 +7019,26 @@ export interface records {
      */
     excludeEntityTypes?: string[];
   };
+  /**
+   * A held job that showed no activity for `heldJobStallMs`
+   * (contract/WORKER-CONTRACT.md V2): what a worker's claims say on `stalled`.
+   * What its host does then is the host's.
+   */
+  HeldJobStall: {
+    jobId: components['schemas']['JobId'];
+    jobType: components['schemas']['JobType'];
+    /** When the worker was handed the job. */
+    heldSince: string;
+    /**
+     * When the job last showed activity: its claim, a progress report, a
+     * checkpoint or a commit.
+     */
+    lastActivityAt: string;
+    /** How long it has shown none, in milliseconds. */
+    silentForMs: number;
+    /** The `heldJobStallMs` it was held to, in milliseconds. */
+    thresholdMs: number;
+  };
   /** The tokens an issuer issued at the end of a sign-in. */
   IssuedTokens: {
     /** The access token: short-lived, sent as a Bearer token. */
@@ -6938,6 +7047,54 @@ export interface records {
      * The refresh token: what renews the access token without another sign-in.
      */
     refresh: string;
+  };
+  /**
+   * What a held job states when it checkpoints (`job:checkpoint`,
+   * contract/JOBS.md § Checkpoints): the units finished, and the furthest each
+   * unit begun got.
+   */
+  JobCheckpoint: {
+    /**
+     * Entity-type units whose annotations have been fully emitted so far.
+     * Unioned into the running job's metadata checkpoint; a retry after
+     * recovery skips them.
+     */
+    completedUnits: string[];
+    /**
+     * The furthest each unit begun got, keyed by unit, with what it had counted
+     * there — the grain `completedUnits` cannot express. A unit named in
+     * `completedUnits` is stated here too, by the cursor it ended at: a later
+     * attempt skips it whole and counts it by that cursor. A cursor never says
+     * a unit is finished; only `completedUnits` does. Merged monotonically per
+     * unit, finished or not: a stale snapshot must never move a cursor
+     * backward.
+     */
+    unitCursors?: { [key: string]: components['schemas']['UnitCursor'] };
+  };
+  /**
+   * What a held job's failure states beside its error (`job:fail`): what it had
+   * reached, and the failure's class when the worker knows it. What its commits
+   * observed is the held job's own to state.
+   */
+  JobFailure: {
+    /**
+     * Entity-type units whose annotations were fully emitted before this
+     * failure (checkpointed resume). The queue records them on the retried
+     * job's metadata; a retried claim skips them so completed work is neither
+     * redone nor duplicated.
+     */
+    completedUnits?: string[];
+    /**
+     * The furthest each unit begun got, keyed by unit, with what it had counted
+     * there — the grain `completedUnits` cannot express. A unit named in
+     * `completedUnits` is stated here too, by the cursor it ended at: a later
+     * attempt skips it whole and counts it by that cursor. A cursor never says
+     * a unit is finished; only `completedUnits` does. Merged monotonically per
+     * unit, finished or not: a stale snapshot must never move a cursor
+     * backward.
+     */
+    unitCursors?: { [key: string]: components['schemas']['UnitCursor'] };
+    failureClass?: components['schemas']['FailureClass'];
   };
   /**
    * How a job's `pollUntilComplete` asks for the job's status: how long it
@@ -6952,6 +7109,27 @@ export interface records {
      * out, in milliseconds.
      */
     withinMs?: number;
+  };
+  /**
+   * What a held job that stops on a cancellation states it had reached
+   * (`job:cancel`): the units finished, and the furthest each unit begun got.
+   */
+  JobReached: {
+    /**
+     * The units the worker had finished when it stopped. Recorded on the
+     * cancelled job's metadata so the work already done stays visible.
+     */
+    completedUnits?: string[];
+    /**
+     * The furthest each unit begun got, keyed by unit, with what it had counted
+     * there — the grain `completedUnits` cannot express. A unit named in
+     * `completedUnits` is stated here too, by the cursor it ended at: a later
+     * attempt skips it whole and counts it by that cursor. A cursor never says
+     * a unit is finished; only `completedUnits` does. Merged monotonically per
+     * unit, finished or not: a stale snapshot must never move a cursor
+     * backward.
+     */
+    unitCursors?: { [key: string]: components['schemas']['UnitCursor'] };
   };
   /**
    * A different knowledge base answers at a registered address. Both dids,
@@ -7240,11 +7418,46 @@ export interface records {
     suffix?: string;
   };
   /**
+   * A W3C trace context, as a relayed frame's trace field carries it
+   * (bus/registry.json `trace`) and a held job states it as its `trace`: the
+   * trace a frame was sent under, so its reader's work is recorded in the same
+   * trace.
+   */
+  TraceCarrier: {
+    /** W3C `traceparent` (`00-<traceId>-<spanId>-<flags>`). */
+    traceparent: string;
+    /** W3C `tracestate`, when the trace has one. */
+    tracestate?: string;
+  };
+  /**
    * What an upload reports as it goes, told apart by `phase`: its size first,
    * then the bytes sent so far, then the resource made.
    */
   UploadProgress:
     UploadProgressStarted | UploadProgressProgress | UploadProgressFinished;
+  /**
+   * What a worker can say of itself at any moment (contract/WORKER-CONTRACT.md
+   * V1): what a worker's claims hand it as `vitals`, and what the worker
+   * service answers of each engine beside the engine and its jobs
+   * (worker/WorkerEngineHealth.json).
+   */
+  WorkerVitals: {
+    /** When a `job:queued` last reached it, or null. */
+    lastQueuedEventAt: string | null;
+    /**
+     * When it was last handed a job, or null. A claim answered with none
+     * pending is not one.
+     */
+    lastClaimAt: string | null;
+    /** When a job it held last settled, or null. */
+    lastFinishedAt: string | null;
+    /** When it was last active, or null. */
+    lastActivityAt: string | null;
+    /** The job it holds, or null. */
+    activeJob: components['schemas']['WorkerActiveJob'] | null;
+    /** How many jobs it has completed since the service started. */
+    jobsCompleted: number;
+  };
   /** Why no launcher was found. */
   DiscoveryAbsentReason:
     /**
@@ -9412,7 +9625,7 @@ export type ConformanceDriverLineCompleted = {
 /** A worker driver: its worker claimed a job. */
 export type ConformanceDriverLineClaimed = {
   /** The job, as the worker read the record. */
-  claimed: { [key: string]: unknown };
+  claimed: components['schemas']['HeldJobRecord'];
 };
 
 /** A worker driver: a claim was refused. */
@@ -9600,18 +9813,8 @@ export type ConformanceStepProgress = {
 /** The transport comes to report this state. */
 export type ConformanceStepState = {
   /** The state. */
-  state: ConformanceStepStateState;
+  state: components['schemas']['ConnectionState'];
 };
-
-/** The state. */
-export type ConformanceStepStateState =
-  | 'initial'
-  | 'connecting'
-  | 'open'
-  | 'reconnecting'
-  | 'degraded'
-  | 'unauthenticated'
-  | 'closed';
 
 /**
  * The transport is in this state and has reported no other since the case last
@@ -9619,18 +9822,8 @@ export type ConformanceStepStateState =
  */
 export type ConformanceStepStays = {
   /** The state. */
-  stays: ConformanceStepStaysStays;
+  stays: components['schemas']['ConnectionState'];
 };
-
-/** The state. */
-export type ConformanceStepStaysStays =
-  | 'initial'
-  | 'connecting'
-  | 'open'
-  | 'reconnecting'
-  | 'degraded'
-  | 'unauthenticated'
-  | 'closed';
 
 /** The next frame the client delivers on this channel is this one. */
 export type ConformanceStepFrame = {
@@ -9799,12 +9992,6 @@ export type ContextualSummaryResponseContext = {
 };
 
 /**
- * Where the stack actually runs. "local": containers on this machine.
- * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
- */
-export type DiscoveredKBPlacement = 'local' | 'codespace';
-
-/**
  * The JetStream broker holding the job queue, whose layout is
  * specs/src/jobs/storage.json.
  */
@@ -9858,21 +10045,6 @@ export type DispatcherConfigTiming = {
    */
   bootDeadlineMs: number;
 };
-
-/**
- * The inference provider: who serves the model. `anthropic`, `google`, `openai`
- * and `together` are those companies' own APIs. `llamacpp`, `ollama` and `vllm`
- * are servers a deployment runs or reaches, each named for the server's
- * software.
- */
-export type EngineProvider =
-  | 'anthropic'
-  | 'google'
-  | 'llamacpp'
-  | 'ollama'
-  | 'openai'
-  | 'together'
-  | 'vllm';
 
 export type EnrichedResourceEventValue = {
   /**
@@ -10257,12 +10429,6 @@ export type JobProgressRequestParamsItemLabel =
 
 export type JobStatusResponseStatus =
   'pending' | 'running' | 'complete' | 'failed' | 'cancelled';
-
-/**
- * Where the stack actually runs. "local": containers on this machine.
- * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
- */
-export type KnowledgeBaseStatusPlacement = 'local' | 'codespace';
 
 export type KnowledgeGraphNodesItem =
   | components['schemas']['GraphResourceNode']
@@ -10649,12 +10815,6 @@ export type ResourcesLimits = {
 };
 
 /**
- * Where the stack actually runs. "local": containers on this machine.
- * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
- */
-export type RootPlacement = 'local' | 'codespace';
-
-/**
  * For a local root: how the control server's own directory selects it, when it
  * does — standing in it (cwd), or XYNOLOG_ROOT.
  */
@@ -10719,20 +10879,6 @@ export type SmeltSettledReason =
   | 'encrypted'
   | 'corrupt'
   | 'too-large';
-
-/**
- * The state of its own stream of the record, one of the seven of
- * TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while it
- * is `open`.
- */
-export type SmelterHealthStream =
-  | 'initial'
-  | 'connecting'
-  | 'open'
-  | 'reconnecting'
-  | 'degraded'
-  | 'unauthenticated'
-  | 'closed';
 
 /**
  * How far the latest reconcile has got: the pass's `summary` when it is done,
@@ -10934,12 +11080,6 @@ export type StatusResponseFeatures = {
   collaboration: string;
 };
 
-/**
- * Where the stack runs: on this machine (local), or on a GitHub codespace whose
- * knowledge base is forwarded here (codespace).
- */
-export type TargetKind = 'local' | 'codespace';
-
 /** The vector store, and where it is published. */
 export type VectorStoreSpec = {
   /** The vector store's driver: `qdrant`. */
@@ -10990,14 +11130,6 @@ export type WeaverHealthReconcileSummary = {
    * record holds no events for. Each is counted, and not healed.
    */
   orphaned: number;
-};
-
-/** The job it holds, or null. */
-export type WorkerEngineHealthActiveJob = {
-  jobId: components['schemas']['JobId'];
-  type: components['schemas']['JobType'];
-  /** When it was handed the job. */
-  since: string;
 };
 
 /** Where the worker signs in for this knowledge base, and as which client. */

@@ -600,6 +600,7 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['expectedDid', 'expectedName', 'kbId', 'redirectUri', 'target'],
   },
+  Binary: { kinds: ['string'] },
   BindBodyOperation: {
     kinds: ['object'],
     required: ['op'],
@@ -1072,6 +1073,33 @@ export const REQUIRED_SCHEMAS: {
       'markCommitTimeoutMs',
     ],
   },
+  ClaimRefusal: {
+    kinds: ['object'],
+    required: ['code', 'message'],
+    members: {
+      code: {
+        kinds: ['string', 'null'],
+        oneOf: [
+          { kinds: ['null'] },
+          {
+            kinds: ['string'],
+            enum: [
+              'bus.timeout',
+              'bus.rejected',
+              'bus.closed',
+              'bus.not-found',
+              'bus.unsubscribed',
+              'bus.peer-unavailable',
+              'bus.unauthorized',
+              'bus.none-pending',
+            ],
+          },
+        ],
+      },
+      message: { kinds: ['string'] },
+    },
+    closed: ['code', 'message'],
+  },
   ClientSecretForm: {
     kinds: ['object'],
     required: ['grant_type', 'client_id', 'client_secret'],
@@ -1342,7 +1370,7 @@ export const REQUIRED_SCHEMAS: {
       {
         kinds: ['object'],
         required: ['claimed'],
-        members: { claimed: { kinds: ['object'] } },
+        members: { claimed: { ref: 'HeldJobRecord' } },
         closed: ['claimed'],
       },
       {
@@ -1763,39 +1791,13 @@ export const REQUIRED_SCHEMAS: {
       {
         kinds: ['object'],
         required: ['state'],
-        members: {
-          state: {
-            kinds: ['string'],
-            enum: [
-              'initial',
-              'connecting',
-              'open',
-              'reconnecting',
-              'degraded',
-              'unauthenticated',
-              'closed',
-            ],
-          },
-        },
+        members: { state: { ref: 'ConnectionState' } },
         closed: ['state'],
       },
       {
         kinds: ['object'],
         required: ['stays'],
-        members: {
-          stays: {
-            kinds: ['string'],
-            enum: [
-              'initial',
-              'connecting',
-              'open',
-              'reconnecting',
-              'degraded',
-              'unauthenticated',
-              'closed',
-            ],
-          },
-        },
+        members: { stays: { ref: 'ConnectionState' } },
         closed: ['stays'],
       },
       {
@@ -2036,6 +2038,18 @@ export const REQUIRED_SCHEMAS: {
     members: { description: { ref: 'KbDescription' }, did: { ref: 'UserId' } },
     closed: ['description', 'did'],
   },
+  ConnectionState: {
+    kinds: ['string'],
+    enum: [
+      'initial',
+      'connecting',
+      'open',
+      'reconnecting',
+      'degraded',
+      'unauthenticated',
+      'closed',
+    ],
+  },
   ContentFormat: { kinds: ['string'] },
   ContextualSummaryResponse: {
     kinds: ['object'],
@@ -2128,7 +2142,7 @@ export const REQUIRED_SCHEMAS: {
       did: { kinds: ['string'] },
       host: { kinds: ['string'] },
       managedBy: { kinds: ['string'] },
-      placement: { kinds: ['string'], enum: ['local', 'codespace'] },
+      placement: { ref: 'KbPlacement' },
       port: { kinds: ['integer'] },
       repo: { kinds: ['string'] },
       siteName: { kinds: ['string'] },
@@ -2251,18 +2265,7 @@ export const REQUIRED_SCHEMAS: {
     required: ['provider', 'model'],
     members: {
       model: { kinds: ['string'], minLength: 1 },
-      provider: {
-        kinds: ['string'],
-        enum: [
-          'anthropic',
-          'google',
-          'llamacpp',
-          'ollama',
-          'openai',
-          'together',
-          'vllm',
-        ],
-      },
+      provider: { ref: 'InferenceProvider' },
     },
     closed: ['model', 'provider'],
   },
@@ -2327,25 +2330,31 @@ export const REQUIRED_SCHEMAS: {
       choices: { kinds: ['array'], items: { ref: 'Target' } },
       code: {
         kinds: ['string'],
-        pattern: [
-          { of: [[99, 99]], min: 1, max: 1 },
-          { of: [[111, 111]], min: 1, max: 1 },
-          { of: [[110, 110]], min: 1, max: 1 },
-          { of: [[116, 116]], min: 1, max: 1 },
-          { of: [[114, 114]], min: 1, max: 1 },
-          { of: [[111, 111]], min: 1, max: 1 },
-          { of: [[108, 108]], min: 1, max: 1 },
-          { of: [[46, 46]], min: 1, max: 1 },
-          { of: [[97, 122]], min: 1 },
-          {
-            either: [
-              [
-                { of: [[45, 45]], min: 1, max: 1 },
-                { of: [[97, 122]], min: 1 },
-              ],
-            ],
-            min: 0,
-          },
+        enum: [
+          'control.invalid-params',
+          'control.unsupported-api-version',
+          'control.invalid-request',
+          'control.invalid-service',
+          'control.invalid-value',
+          'control.unknown-setting',
+          'control.target-required',
+          'control.target-ambiguous',
+          'control.root-not-found',
+          'control.root-not-registered',
+          'control.stack-not-running',
+          'control.stack-running',
+          'control.start-in-progress',
+          'control.runtime-unavailable',
+          'control.dependency-unavailable',
+          'control.unreachable',
+          'control.instance-in-use',
+          'control.instance-not-found',
+          'control.confirmation-required',
+          'control.unreadable-state',
+          'control.already-signed-in',
+          'control.sign-in-failed',
+          'control.cancelled',
+          'control.failed',
         ],
       },
       fields: { kinds: ['array'], items: { ref: 'FieldFault' } },
@@ -2923,6 +2932,66 @@ export const REQUIRED_SCHEMAS: {
       version: { kinds: ['string'] },
     },
   },
+  HeldJobRecord: {
+    kinds: ['object'],
+    required: [
+      'jobId',
+      'jobType',
+      'resourceId',
+      'params',
+      'completedUnits',
+      'unitCursors',
+      'retryCount',
+      'maxRetries',
+    ],
+    members: {
+      completedUnits: { kinds: ['array'], items: { kinds: ['string'] } },
+      jobId: { ref: 'JobId' },
+      jobType: { ref: 'JobType' },
+      maxRetries: { kinds: ['integer'], minimum: 0 },
+      params: { ref: 'JobParams' },
+      resourceId: { ref: 'ResourceId' },
+      retryCount: { kinds: ['integer'], minimum: 0 },
+      unitCursors: { kinds: ['object'], values: { ref: 'UnitCursor' } },
+    },
+    closed: [
+      'completedUnits',
+      'jobId',
+      'jobType',
+      'maxRetries',
+      'params',
+      'resourceId',
+      'retryCount',
+      'unitCursors',
+    ],
+  },
+  HeldJobStall: {
+    kinds: ['object'],
+    required: [
+      'jobId',
+      'jobType',
+      'heldSince',
+      'lastActivityAt',
+      'silentForMs',
+      'thresholdMs',
+    ],
+    members: {
+      heldSince: { kinds: ['string'] },
+      jobId: { ref: 'JobId' },
+      jobType: { ref: 'JobType' },
+      lastActivityAt: { kinds: ['string'] },
+      silentForMs: { kinds: ['integer'], minimum: 0 },
+      thresholdMs: { kinds: ['integer'], minimum: 0 },
+    },
+    closed: [
+      'heldSince',
+      'jobId',
+      'jobType',
+      'lastActivityAt',
+      'silentForMs',
+      'thresholdMs',
+    ],
+  },
   HighlightingJobParams: {
     kinds: ['object'],
     required: ['motivation'],
@@ -3031,18 +3100,7 @@ export const REQUIRED_SCHEMAS: {
             kinds: ['object'],
             values: { ref: 'Provider' },
             minMembers: 1,
-            names: {
-              kinds: ['string'],
-              enum: [
-                'anthropic',
-                'google',
-                'llamacpp',
-                'ollama',
-                'openai',
-                'together',
-                'vllm',
-              ],
-            },
+            names: { ref: 'InferenceProvider' },
           },
         },
         closed: ['engines', 'providers'],
@@ -3072,6 +3130,18 @@ export const REQUIRED_SCHEMAS: {
         },
       },
     },
+  },
+  InferenceProvider: {
+    kinds: ['string'],
+    enum: [
+      'anthropic',
+      'google',
+      'llamacpp',
+      'ollama',
+      'openai',
+      'together',
+      'vllm',
+    ],
   },
   IssuedTokens: {
     kinds: ['object'],
@@ -3252,6 +3322,15 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['completedAt', 'metadata', 'params', 'startedAt', 'status'],
   },
+  JobCheckpoint: {
+    kinds: ['object'],
+    required: ['completedUnits'],
+    members: {
+      completedUnits: { kinds: ['array'], items: { kinds: ['string'] } },
+      unitCursors: { kinds: ['object'], values: { ref: 'UnitCursor' } },
+    },
+    closed: ['completedUnits', 'unitCursors'],
+  },
   JobCheckpointCommand: {
     kinds: ['object'],
     required: ['jobId', 'completedUnits'],
@@ -3408,6 +3487,15 @@ export const REQUIRED_SCHEMAS: {
       jobType: { ref: 'JobType' },
       willRetry: { kinds: ['boolean'] },
     },
+  },
+  JobFailure: {
+    kinds: ['object'],
+    members: {
+      completedUnits: { kinds: ['array'], items: { kinds: ['string'] } },
+      failureClass: { ref: 'FailureClass' },
+      unitCursors: { kinds: ['object'], values: { ref: 'UnitCursor' } },
+    },
+    closed: ['completedUnits', 'failureClass', 'unitCursors'],
   },
   JobFilter: {
     kinds: ['object'],
@@ -3638,6 +3726,14 @@ export const REQUIRED_SCHEMAS: {
     oneOf: [{ ref: 'MarkJobQueuedEvent' }, { ref: 'YieldJobQueuedEvent' }],
     discriminator: { property: 'jobType', mapping: { mark: 0, yield: 1 } },
   },
+  JobReached: {
+    kinds: ['object'],
+    members: {
+      completedUnits: { kinds: ['array'], items: { kinds: ['string'] } },
+      unitCursors: { kinds: ['object'], values: { ref: 'UnitCursor' } },
+    },
+    closed: ['completedUnits', 'unitCursors'],
+  },
   JobRecord: {
     kinds: ['object'],
     required: ['job', 'lastProgressAt'],
@@ -3821,6 +3917,7 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['expectedDid', 'observedDid'],
   },
+  KbPlacement: { kinds: ['string'], enum: ['local', 'codespace'] },
   KbRead: {
     kinds: ['object'],
     required: ['at'],
@@ -3914,7 +4011,7 @@ export const REQUIRED_SCHEMAS: {
       key: { kinds: ['string'] },
       lan: { kinds: ['string'] },
       name: { kinds: ['string'] },
-      placement: { kinds: ['string'], enum: ['local', 'codespace'] },
+      placement: { ref: 'KbPlacement' },
       recorded: { kinds: ['boolean'] },
       repo: { kinds: ['string'] },
       root: { kinds: ['string'] },
@@ -5448,7 +5545,7 @@ export const REQUIRED_SCHEMAS: {
       archiveOriginal: { kinds: ['string'] },
       cloneToken: { kinds: ['string'] },
       entityTypes: { kinds: ['string'] },
-      file: { kinds: ['string'] },
+      file: { ref: 'Binary' },
       format: { kinds: ['string'] },
       generationPrompt: { kinds: ['string'] },
       generator: { kinds: ['string'] },
@@ -5500,6 +5597,16 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['limits'],
   },
+  RetryBudget: {
+    kinds: ['object'],
+    required: ['attempts', 'initialDelayMs', 'maxDelayMs'],
+    members: {
+      attempts: { kinds: ['integer'], minimum: 1 },
+      initialDelayMs: { kinds: ['integer'], minimum: 1 },
+      maxDelayMs: { kinds: ['integer'], minimum: 1 },
+    },
+    closed: ['attempts', 'initialDelayMs', 'maxDelayMs'],
+  },
   Root: {
     kinds: ['object'],
     required: ['placement', 'registered', 'running'],
@@ -5515,7 +5622,7 @@ export const REQUIRED_SCHEMAS: {
       identityError: { kinds: ['string'] },
       lastUsed: { kinds: ['string'] },
       path: { kinds: ['string'] },
-      placement: { kinds: ['string'], enum: ['local', 'codespace'] },
+      placement: { ref: 'KbPlacement' },
       present: { kinds: ['boolean'] },
       reachable: { kinds: ['boolean'] },
       registered: { kinds: ['boolean'] },
@@ -6250,18 +6357,7 @@ export const REQUIRED_SCHEMAS: {
         closed: ['error', 'phase', 'summary'],
       },
       status: { kinds: ['string'], enum: ['ok'] },
-      stream: {
-        kinds: ['string'],
-        enum: [
-          'initial',
-          'connecting',
-          'open',
-          'reconnecting',
-          'degraded',
-          'unauthenticated',
-          'closed',
-        ],
-      },
+      stream: { ref: 'ConnectionState' },
     },
     closed: [
       'eventsProcessed',
@@ -6796,7 +6892,7 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     required: ['kind'],
     members: {
-      kind: { kinds: ['string'], enum: ['local', 'codespace'] },
+      kind: { ref: 'KbPlacement' },
       repo: {
         kinds: ['string'],
         pattern: [
@@ -6895,6 +6991,15 @@ export const REQUIRED_SCHEMAS: {
       type: { kinds: ['string'], enum: ['TextualBody'] },
       value: { kinds: ['string'] },
     },
+  },
+  TraceCarrier: {
+    kinds: ['object'],
+    required: ['traceparent'],
+    members: {
+      traceparent: { kinds: ['string'], minLength: 1 },
+      tracestate: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['traceparent', 'tracestate'],
   },
   UnitCursor: {
     kinds: ['object'],
@@ -7141,6 +7246,16 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['following', 'kb', 'reconcile', 'status'],
   },
+  WorkerActiveJob: {
+    kinds: ['object'],
+    required: ['jobId', 'type', 'since'],
+    members: {
+      jobId: { ref: 'JobId' },
+      since: { kinds: ['string'] },
+      type: { ref: 'JobType' },
+    },
+    closed: ['jobId', 'since', 'type'],
+  },
   WorkerConfig: {
     kinds: ['object'],
     required: [
@@ -7195,13 +7310,7 @@ export const REQUIRED_SCHEMAS: {
     members: {
       activeJob: {
         kinds: ['object', 'null'],
-        required: ['jobId', 'type', 'since'],
-        members: {
-          jobId: { ref: 'JobId' },
-          since: { kinds: ['string'] },
-          type: { ref: 'JobType' },
-        },
-        closed: ['jobId', 'since', 'type'],
+        oneOf: [{ kinds: ['null'] }, { ref: 'WorkerActiveJob' }],
       },
       engine: { ref: 'Engine' },
       jobs: { kinds: ['array'], minItems: 1, items: { ref: 'JobFilter' } },
@@ -7299,6 +7408,36 @@ export const REQUIRED_SCHEMAS: {
       },
     },
     closed: ['apiVersion', 'kind', 'metadata', 'spec'],
+  },
+  WorkerVitals: {
+    kinds: ['object'],
+    required: [
+      'lastQueuedEventAt',
+      'lastClaimAt',
+      'lastFinishedAt',
+      'lastActivityAt',
+      'activeJob',
+      'jobsCompleted',
+    ],
+    members: {
+      activeJob: {
+        kinds: ['object', 'null'],
+        oneOf: [{ kinds: ['null'] }, { ref: 'WorkerActiveJob' }],
+      },
+      jobsCompleted: { kinds: ['integer'], minimum: 0 },
+      lastActivityAt: { kinds: ['string', 'null'] },
+      lastClaimAt: { kinds: ['string', 'null'] },
+      lastFinishedAt: { kinds: ['string', 'null'] },
+      lastQueuedEventAt: { kinds: ['string', 'null'] },
+    },
+    closed: [
+      'activeJob',
+      'jobsCompleted',
+      'lastActivityAt',
+      'lastClaimAt',
+      'lastFinishedAt',
+      'lastQueuedEventAt',
+    ],
   },
   WorkloadStatus: {
     kinds: ['object'],

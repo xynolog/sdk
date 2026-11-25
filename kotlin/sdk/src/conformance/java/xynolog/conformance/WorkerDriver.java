@@ -32,21 +32,23 @@ import xynolog.http.HttpContentTransport;
 import xynolog.http.HttpTransport;
 import xynolog.http.Timing;
 import xynolog.identifiers.ResourceId;
-import xynolog.jobs.ClaimRefusal;
 import xynolog.jobs.Claims;
-import xynolog.jobs.ClaimsKt;
 import xynolog.jobs.HeldJob;
-import xynolog.jobs.HeldJobStall;
 import xynolog.jobs.HeldMarkJob;
 import xynolog.jobs.HeldYieldJob;
-import xynolog.jobs.WorkerVitals;
-import xynolog.transport.ConnectionState;
+import xynolog.jobs.WorkerChannelsKt;
 import xynolog.transport.ResourceHold;
-import xynolog.transport.TraceContext;
 import xynolog.types.ClaimOptions;
+import xynolog.types.ClaimRefusal;
+import xynolog.types.ConformanceDriverLineClaimed;
+import xynolog.types.ConnectionState;
 import xynolog.types.FailureClass;
+import xynolog.types.HeldJobStall;
+import xynolog.types.JobCheckpoint;
+import xynolog.types.JobFailure;
+import xynolog.types.JobReached;
+import xynolog.types.TraceCarrier;
 import xynolog.types.UnitCursor;
-import xynolog.types.WorkerEngineHealthActiveJob;
 
 /**
  * The worker driver: a worker written on this SDK in Java, as
@@ -89,10 +91,6 @@ public final class WorkerDriver {
         return JsonElementKt.JsonPrimitive(value);
     }
 
-    private static JsonElement number(long value) {
-        return JsonElementKt.JsonPrimitive(value);
-    }
-
     /** An object of these members, in this order. */
     @SafeVarargs
     private static JsonObject fields(Map.Entry<String, JsonElement>... members) {
@@ -103,10 +101,6 @@ public final class WorkerDriver {
 
     private static void say(String name, JsonElement value) {
         Say.line(fields(Map.entry(name, value)));
-    }
-
-    private static JsonElement textOrNull(String value) {
-        return value == null ? JsonNull.INSTANCE : text(value);
     }
 
     // ── What it reads ───────────────────────────────────────────────
@@ -182,7 +176,7 @@ public final class WorkerDriver {
     private synchronized void report(ConnectionState state) {
         if (state == reported) return;
         reported = state;
-        say("state", text(state.getWire()));
+        say("state", text(state.getValue()));
     }
 
     // ── The held job and its span ───────────────────────────────────
@@ -195,7 +189,7 @@ public final class WorkerDriver {
     /** Hold `handed`, and open the span it is run in: in the trace the job states. */
     private synchronized void hold(HeldJob handed) {
         Context parent = Context.root();
-        TraceContext trace = handed.getTrace();
+        TraceCarrier trace = handed.getTrace();
         if (trace != null) {
             Map<String, String> carrier = new HashMap<>();
             carrier.put("traceparent", trace.getTraceparent());
@@ -278,8 +272,8 @@ public final class WorkerDriver {
             commits = Boolean.parseBoolean(stated.getContent());
         }
         // What a worker's stream names for its claims, and for its commits when it will make any, and no more.
-        List<String> channels = new ArrayList<>(ClaimsKt.getJOB_CLAIM_CHANNELS());
-        if (commits) channels.addAll(ClaimsKt.getJOB_COMMIT_CHANNELS());
+        List<String> channels = new ArrayList<>(WorkerChannelsKt.getJOB_CLAIM_CHANNELS());
+        if (commits) channels.addAll(WorkerChannelsKt.getJOB_COMMIT_CHANNELS());
         HttpTransport made = new HttpTransport(text(args, "baseUrl"), StateFlowKt.MutableStateFlow(text(args, "token")), channels, new Timing(reconnectMs, lazyRemoveMs, lingerMs));
         // Taken at once, so every failure from the first request on is heard.
         reading(made.failures().asPublisher(), (XynologError error) -> say("error", ProtocolKt.failure(error)));
@@ -365,17 +359,7 @@ public final class WorkerDriver {
             reading(handed.getCancelled().asPublisher(), (Optional<Boolean> cancelled) -> {
                 if (cancelled.orElse(false)) say("signalled", text(handed.getJobId().getValue()));
             });
-            List<JsonElement> units = new ArrayList<>();
-            for (String unit : handed.getCompletedUnits()) units.add(text(unit));
-            say("claimed", fields(
-                    Map.entry("jobId", text(handed.getJobId().getValue())),
-                    Map.entry("jobType", text(handed.getJobType().getValue())),
-                    Map.entry("resourceId", text(handed.getResourceId().getValue())),
-                    Map.entry("params", Stated.written(handed.getParams())),
-                    Map.entry("completedUnits", new JsonArray(units)),
-                    Map.entry("unitCursors", Stated.written(handed.getUnitCursors())),
-                    Map.entry("retryCount", number(handed.getRetryCount())),
-                    Map.entry("maxRetries", number(handed.getMaxRetries()))));
+            Say.line(Stated.written(ConformanceDriverLineClaimed.builder(handed.getRecord()).build()));
         }
     }
 
@@ -393,9 +377,8 @@ public final class WorkerDriver {
     }
 
     private CompletableFuture<JsonElement> checkpoint(JsonObject args) {
-        List<String> completed = texts(args, "completedUnits");
-        Map<String, UnitCursor> cursors = cursors(args);
-        return working(job -> job.checkpointFuture(completed, cursors));
+        JobCheckpoint checkpoint = JobCheckpoint.builder(texts(args, "completedUnits")).unitCursors(cursors(args)).build();
+        return working(job -> job.checkpointFuture(checkpoint));
     }
 
     /** The held job commits for itself: it cites its own id, and remembers what the commit observed for its settle. */
@@ -421,27 +404,17 @@ public final class WorkerDriver {
     private CompletableFuture<JsonElement> fail(JsonObject args) {
         String error = text(args, "error");
         FailureClass failureClass = args.containsKey("failureClass") ? Stated.failureClass(args.get("failureClass")) : null;
-        List<String> completed = units(args);
-        Map<String, UnitCursor> cursors = cursors(args);
-        return settling(job -> job.failFuture(error, failureClass, completed, cursors));
+        JobFailure failure = JobFailure.builder().completedUnits(units(args)).unitCursors(cursors(args)).failureClass(failureClass).build();
+        return settling(job -> job.failFuture(error, failure));
     }
 
     private CompletableFuture<JsonElement> cancel(JsonObject args) {
-        List<String> completed = units(args);
-        Map<String, UnitCursor> cursors = cursors(args);
-        return settling(job -> job.cancelFuture(completed, cursors));
+        JobReached reached = JobReached.builder().completedUnits(units(args)).unitCursors(cursors(args)).build();
+        return settling(job -> job.cancelFuture(reached));
     }
 
     private JsonElement vitals() {
-        WorkerVitals vitals = claiming().vitals();
-        WorkerEngineHealthActiveJob active = vitals.getActiveJob();
-        return fields(
-                Map.entry("lastQueuedEventAt", textOrNull(vitals.getLastQueuedEventAt())),
-                Map.entry("lastClaimAt", textOrNull(vitals.getLastClaimAt())),
-                Map.entry("lastFinishedAt", textOrNull(vitals.getLastFinishedAt())),
-                Map.entry("lastActivityAt", textOrNull(vitals.getLastActivityAt())),
-                Map.entry("activeJob", active == null ? JsonNull.INSTANCE : Stated.written(active)),
-                Map.entry("jobsCompleted", number(vitals.getJobsCompleted())));
+        return Stated.written(claiming().vitals());
     }
 
     /** Close the client and the transport, telling the suite nothing more: what a stop does after its failing, and all a killed worker does. */

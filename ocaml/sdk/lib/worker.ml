@@ -6,7 +6,7 @@ type phase = Claimed | Started | Settled
 type held = {
   http : Http_wire.t;
   client_id : string;
-  trace : Wire_stream.trace option;
+  trace : Records.Trace_carrier.t option;
   metadata : Yojson.Safe.t;
   params : Yojson.Safe.t;
   job_id : Identifiers.Job_id.t;

@@ -170,11 +170,15 @@ within fields alternative = KM.unionWithKey beside (KM.delete "oneOf" (KM.delete
 memberNames :: Value -> [Text]
 memberNames schema = case at "propertyNames" schema of
   Null -> ["__haskell_probe"]
-  names -> case at "enum" names of
-    Array values -> [name | String name <- toList values]
-    _ -> case at "pattern" names of
-      String pattern -> [patternSample pattern]
-      _ -> []
+  names -> allowed names
+  where
+    allowed names = case at "$ref" names of
+      String reference | Just target <- Map.lookup (T.pack (takeBaseName (T.unpack reference))) schemas -> allowed target
+      _ -> case at "enum" names of
+        Array values -> [name | String name <- toList values]
+        _ -> case at "pattern" names of
+          String pattern -> [patternSample pattern]
+          _ -> []
 
 sample :: Int -> Value -> Either String Value
 sample = variant 0

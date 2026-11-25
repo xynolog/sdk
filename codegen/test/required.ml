@@ -17,7 +17,7 @@ let component (name, text) =
 let ids = Result.get_ok (Decode.ids [])
 
 let derived components =
-  Required.Shape.derive ~ids ~unrecognized:"Unrecognized"
+  Required.Shape.derive ~ids ~unrecognized:"Unrecognized" ~vocabularies:[]
     (List.map component (command_error :: components))
 
 let compact text = Yojson.Safe.to_string (Yojson.Safe.from_string text)
@@ -497,6 +497,7 @@ let command_errors =
     case "a CommandError that requires its code is refused" (fun () ->
         match
           Required.Shape.derive ~ids ~unrecognized:"Unrecognized"
+            ~vocabularies:[]
             [
               component
                 ( "CommandError",
@@ -517,6 +518,7 @@ let command_errors =
     case "a CommandError whose code names no list is refused" (fun () ->
         match
           Required.Shape.derive ~ids ~unrecognized:"Unrecognized"
+            ~vocabularies:[]
             [
               component
                 ( "CommandError",

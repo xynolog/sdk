@@ -7,7 +7,7 @@ val make :
   ?timeout_ms:int ->
   ?stall_ms:int ->
   ?stall_check_ms:int ->
-  ?trace:(unit -> Wire_stream.trace option) ->
+  ?trace:(unit -> Records.Trace_carrier.t option) ->
   ?on_cancel:(Worker.held -> unit) ->
   [ `JobFilter ] Models.t list ->
   t

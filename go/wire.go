@@ -170,9 +170,9 @@ type Delivered[P any] struct {
 	// UserID is who emitted it, as the gateway stamped it; the zero UserId
 	// when no stamp names one.
 	UserID api.UserId
-	// Trace is the trace the frame was sent under; the zero TraceContext
-	// when it was sent under none.
-	Trace TraceContext
+	// Trace is the trace the frame was sent under; nil when it was sent
+	// under none.
+	Trace *api.TraceCarrier
 }
 
 // delivered is frame with its payload decoded as P; or, for a payload with a

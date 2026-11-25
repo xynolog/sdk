@@ -13,7 +13,7 @@ use opentelemetry_sdk::propagation::TraceContextPropagator;
 use opentelemetry_sdk::trace::{InMemorySpanExporter, SdkTracerProvider, SpanData};
 use serde_json::Value;
 use xynolog::testing::examples::assert_readme_shows;
-use xynolog::transport::TraceCarrier;
+use xynolog::types::TraceCarrier;
 use xynolog_telemetry::{
     active_trace, active_trace_id, bus_emit, bus_recv, content_get, content_get_anchored_text,
     content_get_annotations, content_get_graph, content_put, continued, continuing, in_span_now,

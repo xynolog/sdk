@@ -304,13 +304,14 @@ let error_codes t (spec : Spec.t) =
   let codes =
     List.concat_map
       (fun (v : E.vocabulary) -> List.map (fun c -> (v, c)) v.codes)
-      ((table.bus :: table.transport :: table.others) @ [ table.control ])
+      (E.vocabularies table)
   in
   kind "error codes" codes
     ~item:(fun (_, (c : E.code)) -> c.code)
     ~declared:(fun sdk ((v : E.vocabulary), (c : E.code)) ->
       match sdk with
-      | Go -> declares (t.generated "go/api/errorcodes_gen.go") ("\n\t", " ") c.go
+      | Go ->
+          declares (t.generated "go/api/errorcodes_gen.go") ("\n\t", " ") c.go
       | Python ->
           declares
             (block
@@ -336,10 +337,7 @@ let error_codes t (spec : Spec.t) =
       | Swift ->
           declares
             (block
-               ~opening:
-                 ("public enum "
-                 ^ snd (Code_names.named v.member)
-                 ^ ":")
+               ~opening:("public enum " ^ snd (Code_names.named v.member) ^ ":")
                ~closing:"\n}" (t.generated swift_models))
             ("case ", " = ")
             (Swift_sdk.Models.enum_case c.code)

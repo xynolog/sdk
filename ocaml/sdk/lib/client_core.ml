@@ -135,7 +135,9 @@ let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
             if dropped then
               Live_query.refetch cache ~on:"reopened" ~payload:None;
             monitor Enums.Connection_state.Open false
-        | state -> monitor state (dropped || state = Enums.Connection_state.Reconnecting)
+        | state ->
+            monitor state
+              (dropped || state = Enums.Connection_state.Reconnecting)
       in
       monitor Enums.Connection_state.Initial false);
   {

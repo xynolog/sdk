@@ -40,7 +40,7 @@ type workerWire struct {
 	// it is the failure, and whether any reply comes at all.
 	answer func(request bus.Channel, payload map[string]any) (reply string, refused, answered bool)
 	// replyTrace is the trace every reply arrives in.
-	replyTrace TraceContext
+	replyTrace *api.TraceCarrier
 
 	mu    sync.Mutex
 	said  []sentFrame
@@ -515,11 +515,11 @@ func TestClaimsAgainWhenAJobIsSettledAndAnAnnouncementWhileOneIsHeldIsIgnored(t 
 	if claimsSent() != 2 || second.JobId().String() != "job-2" {
 		t.Fatalf("%d claims, holding %s", claimsSent(), second.JobId())
 	}
-	if err := second.Fail(context.Background(), "kaboom", JobFailure{}); err != nil {
+	if err := second.Fail(context.Background(), "kaboom", api.JobFailure{}); err != nil {
 		t.Fatal(err)
 	}
 	third := pull.held(t)
-	if err := third.Cancel(context.Background(), nil, nil); err != nil {
+	if err := third.Cancel(context.Background(), api.JobReached{}); err != nil {
 		t.Fatal(err)
 	}
 	eventually(t, "the settle asks, and is told nothing is pending", func() bool { return claimsSent() == 4 })
@@ -563,8 +563,8 @@ func TestARefusedAnnouncementIsStampedAndClaimsForAnIdleWorker(t *testing.T) {
 	claimsSent := func() int { return len(w.wire.sent(bus.JobClaim.Request().Channel())) }
 	came := pulling(t, claims).asking()
 	eventually(t, "the first claim, answered with nothing pending", func() bool { return claimsSent() == 1 })
-	if stamped := claims.Vitals().LastQueuedEventAt; !stamped.IsZero() {
-		t.Fatalf("stamped %v before any announcement", stamped)
+	if stamped := claims.Vitals().LastQueuedEventAt; stamped != nil {
+		t.Fatalf("stamped %s before any announcement", *stamped)
 	}
 	w.offer(running("job-1", "mark", "", `"motivation": "tagging"`))
 	w.wire.refuse(bus.JobQueued.Channel())
@@ -572,7 +572,7 @@ func TestARefusedAnnouncementIsStampedAndClaimsForAnIdleWorker(t *testing.T) {
 	if !one.ok || one.err != nil {
 		t.Fatalf("the refused announcement claimed nothing: ended %v, refused %v", !one.ok, one.err)
 	}
-	if claims.Vitals().LastQueuedEventAt.IsZero() {
+	if claims.Vitals().LastQueuedEventAt == nil {
 		t.Error("the refused announcement was not stamped")
 	}
 	finish(t, one.job)
@@ -649,7 +649,7 @@ func TestARefusalIsHandedOutWithItsCodeAndAReplyThatNamesNoJobIsRefusedHere(t *t
 	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	pull := pulling(t, claims)
-	var refused *ClaimRefusal
+	var refused *api.ClaimRefusal
 	if one := pull.take(t); !errors.As(one.err, &refused) || refused.Code == nil || *refused.Code != api.BusRequestErrorCodeUnauthorized ||
 		refused.Message != "the caller is not a worker for this knowledge base" {
 		t.Fatalf("handed out %+v", one)
@@ -701,7 +701,7 @@ func TestAHeldJobSaysItsWholeLifecycleItself(t *testing.T) {
 	if err := job.Progress(ctx, api.JobProgress{Percentage: 40}); err != nil {
 		t.Fatal(err)
 	}
-	if err := job.Checkpoint(ctx, []string{"Person"}, map[string]api.UnitCursor{"Place": readJSON[api.UnitCursor](t, cursor)}); err != nil {
+	if err := job.Checkpoint(ctx, api.JobCheckpoint{CompletedUnits: []string{"Person"}, UnitCursors: &map[string]api.UnitCursor{"Place": readJSON[api.UnitCursor](t, cursor)}}); err != nil {
 		t.Fatal(err)
 	}
 	if err := job.Commit(ctx, job.ResourceId(), []api.Annotation{readJSON[api.Annotation](t, annotationJSON("ann-1"))}); err != nil {
@@ -710,7 +710,7 @@ func TestAHeldJobSaysItsWholeLifecycleItself(t *testing.T) {
 	if err := job.Complete(ctx, readJSON[api.MarkJobResult](t, `{"found": 9, "persisted": 7}`)); err != nil {
 		t.Fatal(err)
 	}
-	if err := job.Fail(ctx, "too late", JobFailure{}); err == nil {
+	if err := job.Fail(ctx, "too late", api.JobFailure{}); err == nil {
 		t.Fatal("a settled job settled again")
 	}
 	claims.Close()
@@ -775,13 +775,13 @@ func TestAFailureSaysWhetherItWillBeRetriedAndACancelSaysOnlyWhatItsCommandNames
 	claims := w.client.Job.Claim(claiming(t, everything))
 	pull := pulling(t, claims)
 	ctx := context.Background()
-	if err := pull.held(t).Fail(ctx, "the model timed out", JobFailure{CompletedUnits: []string{"Person"}}); err != nil {
+	if err := pull.held(t).Fail(ctx, "the model timed out", api.JobFailure{CompletedUnits: &[]string{"Person"}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := pull.held(t).Fail(ctx, "the model timed out", JobFailure{}); err != nil {
+	if err := pull.held(t).Fail(ctx, "the model timed out", api.JobFailure{}); err != nil {
 		t.Fatal(err)
 	}
-	if err := pull.held(t).Cancel(ctx, []string{"Person"}, nil); err != nil {
+	if err := pull.held(t).Cancel(ctx, api.JobReached{CompletedUnits: &[]string{"Person"}}); err != nil {
 		t.Fatal(err)
 	}
 	claims.Close()
@@ -811,7 +811,7 @@ func TestACancellationThatNamesTheHeldJobIsSignalledAndAnyOtherIsNot(t *testing.
 	}
 	w.wire.relay(bus.JobCancelRequested.Request().Channel(), `{"jobId": "job-1"}`)
 	eventually(t, "the cancellation", job.Cancelled().Value)
-	if err := job.Cancel(context.Background(), nil, nil); err != nil {
+	if err := job.Cancel(context.Background(), api.JobReached{}); err != nil {
 		t.Fatal(err)
 	}
 	// Settled: whoever watches for a cancellation is told there is no more.
@@ -943,7 +943,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 		if err := job.Commit(ctx, job.ResourceId(), batch(t)); !errors.As(err, &timedOut) || timedOut.Code != api.BusRequestErrorCodeTimeout {
 			t.Fatalf("committed with %v", err)
 		}
-		if err := job.Fail(ctx, "a commit was not established", JobFailure{}); err != nil {
+		if err := job.Fail(ctx, "a commit was not established", api.JobFailure{}); err != nil {
 			t.Fatal(err)
 		}
 		if durability := readJSON[map[string]any](t, w.wire.sent(bus.JobFail.Channel())[0])["durability"]; durability != "probe-refused" {
@@ -959,7 +959,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 		if err := job.Commit(ctx, job.ResourceId(), batch(t)); err == nil {
 			t.Fatal("a commit nobody answered was established")
 		}
-		if err := job.Fail(ctx, "a commit was not established", JobFailure{}); err != nil {
+		if err := job.Fail(ctx, "a commit was not established", api.JobFailure{}); err != nil {
 			t.Fatal(err)
 		}
 		if durability := readJSON[map[string]any](t, w.wire.sent(bus.JobFail.Channel())[0])["durability"]; durability != "probe-unreachable" {
@@ -990,18 +990,18 @@ func TestVitalsSayWhatTheWorkerHoldsAndHasDoneAndASilentHeldJobIsStalled(t *test
 	w.offer(running("job-1", "mark", "", ""))
 	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
-	if vitals := claims.Vitals(); vitals.ActiveJob != nil || !vitals.LastClaimAt.IsZero() || vitals.JobsCompleted != 0 {
+	if vitals := claims.Vitals(); vitals.ActiveJob != nil || vitals.LastClaimAt != nil || vitals.JobsCompleted != 0 {
 		t.Fatalf("before any claim, %+v", vitals)
 	}
 	pull := pulling(t, claims)
 	job := pull.held(t)
 	vitals := claims.Vitals()
-	if vitals.ActiveJob == nil || vitals.ActiveJob.JobId != job.JobId() || vitals.LastClaimAt.IsZero() {
+	if vitals.ActiveJob == nil || vitals.ActiveJob.JobId != job.JobId() || vitals.LastClaimAt == nil {
 		t.Fatalf("holding a job, %+v", vitals)
 	}
 	w.wire.relay(bus.JobQueued.Channel(), queuedOf("tagging"))
-	eventually(t, "the announcement is stamped", func() bool { return !claims.Vitals().LastQueuedEventAt.IsZero() })
-	stalled := make(chan *HeldJobStall, 1)
+	eventually(t, "the announcement is stamped", func() bool { return claims.Vitals().LastQueuedEventAt != nil })
+	stalled := make(chan *api.HeldJobStall, 1)
 	go func() {
 		for stall := range claims.Stalled() {
 			stalled <- stall
@@ -1010,14 +1010,15 @@ func TestVitalsSayWhatTheWorkerHoldsAndHasDoneAndASilentHeldJobIsStalled(t *test
 	}()
 	select {
 	case stall := <-stalled:
-		if stall.JobId != job.JobId() || stall.Threshold != timing.HeldJobStall || stall.SilentFor <= timing.HeldJobStall {
+		// Silent for longer than the threshold, which whole milliseconds may round to it.
+		if stall.JobId != job.JobId() || stall.ThresholdMs != int(timing.HeldJobStall.Milliseconds()) || stall.SilentForMs < stall.ThresholdMs {
 			t.Fatalf("stalled %+v", stall)
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("the held job's stall was not reported")
 	}
 	finish(t, job)
-	if vitals := claims.Vitals(); vitals.ActiveJob != nil || vitals.JobsCompleted != 1 || vitals.LastFinishedAt.IsZero() {
+	if vitals := claims.Vitals(); vitals.ActiveJob != nil || vitals.JobsCompleted != 1 || vitals.LastFinishedAt == nil {
 		t.Fatalf("after the settle, %+v", vitals)
 	}
 }
@@ -1030,18 +1031,18 @@ func TestTheFirstReaderOfTheStallsIsGivenTheLatestReportedBeforeItAndALaterReade
 	w := newClaimWorld(t, timing)
 	claims := w.client.Job.Claim(claiming(t, everything))
 	beyond := 5
-	reported := make([]*HeldJobStall, timing.ErrorsKeptForFirstReaderCount+beyond)
+	reported := make([]*api.HeldJobStall, timing.ErrorsKeptForFirstReaderCount+beyond)
 	for n := range reported {
-		reported[n] = claims.stalls.Report(&HeldJobStall{SilentFor: time.Duration(n)})
+		reported[n] = claims.stalls.Report(&api.HeldJobStall{SilentForMs: n})
 	}
 	first, later := claims.Stalled(), claims.Stalled()
-	following := claims.stalls.Report(&HeldJobStall{SilentFor: time.Duration(len(reported))})
+	following := claims.stalls.Report(&api.HeldJobStall{SilentForMs: len(reported)})
 	claims.Close()
 
 	if heard := slices.Collect(first); !slices.Equal(heard, append(slices.Clone(reported[beyond:]), following)) {
 		t.Errorf("the first reader was given %d stalls, want the latest %d reported before it, in order, and the one after", len(heard), timing.ErrorsKeptForFirstReaderCount)
 	}
-	if heard := slices.Collect(later); !slices.Equal(heard, []*HeldJobStall{following}) {
+	if heard := slices.Collect(later); !slices.Equal(heard, []*api.HeldJobStall{following}) {
 		t.Errorf("a later reader was given %v, want only the stall reported after it came", heard)
 	}
 }
@@ -1051,7 +1052,7 @@ func TestTheFirstReaderOfTheStallsIsGivenTheLatestReportedBeforeItAndALaterReade
 func TestAFirstReaderOfTheStallsWhoComesAfterTheClaimsEndedIsGivenNothing(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
 	claims := w.client.Job.Claim(claiming(t, everything))
-	claims.stalls.Report(&HeldJobStall{})
+	claims.stalls.Report(&api.HeldJobStall{})
 	claims.Close()
 
 	if heard := slices.Collect(claims.Stalled()); len(heard) != 0 {
@@ -1129,7 +1130,7 @@ func (w *claimWorld) refusing(count int) {
 
 // refusedWith is whether one is the refusal "refusal n".
 func refusedWith(one pulled, n int) bool {
-	var refusal *ClaimRefusal
+	var refusal *api.ClaimRefusal
 	return errors.As(one.err, &refusal) && refusal.Message == fmt.Sprintf("refusal %d", n)
 }
 
@@ -1149,11 +1150,11 @@ func (w *claimWorld) claimEachAnnounced(t *testing.T, count int) {
 
 func TestAHeldJobStatesTheTraceItsReplyArrivedIn(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
-	w.wire.replyTrace = TraceContext{Traceparent: "00-11111111111111111111111111111111-1111111111111111-01"}
+	w.wire.replyTrace = &api.TraceCarrier{Traceparent: "00-11111111111111111111111111111111-1111111111111111-01"}
 	w.offer(running("job-1", "mark", "", ""))
 	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
-	if job := pulling(t, claims).held(t); job.Trace() != w.wire.replyTrace {
+	if job := pulling(t, claims).held(t); !reflect.DeepEqual(job.Trace(), w.wire.replyTrace) {
 		t.Fatalf("the job states %+v", job.Trace())
 	}
 }

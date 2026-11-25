@@ -2256,6 +2256,9 @@ impl BeginAuthorizationOptions {
 
 schema!(BeginAuthorizationOptions);
 
+/// Bytes held whole. They can be read more than once, and sent again when an upload is retried.
+pub type Binary = String;
+
 /// One edit to a linking annotation's body list: add or remove a body item, or replace an existing one.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BindBodyOperation {
@@ -3522,6 +3525,18 @@ impl ClaimOptions {
 
 schema!(ClaimOptions);
 
+/// A claim refused for a reason other than that nothing is pending, which is no fault: what a worker's claims say on `refused` (contract/WORKER-CONTRACT.md § Claiming). `bus.unauthorized` means the credential cannot claim, and will not be able to later.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClaimRefusal {
+    /// The bus code the reply was read as, or null when the refusal was the worker's own: a reply its schema does not allow. Never a code the reply did not state, and never `bus.none-pending`.
+    pub code: Option<crate::errors::BusRequestErrorCode>,
+    /// What the refusal said.
+    pub message: String,
+}
+
+schema!(ClaimRefusal);
+
 /// The form a service account that holds a client secret posts to its issuer's token endpoint for a client-credentials grant: its client id and secret in the body (RFC 6749 §2.3.1). An account that holds a key proves itself by the client assertion of client-assertion-cases.json instead.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ClientSecretForm {
@@ -4023,7 +4038,7 @@ constant!(ConformanceDriverLineAbandonedAbandoned, bool, true);
 #[serde(deny_unknown_fields)]
 pub struct ConformanceDriverLineClaimed {
     /// The job, as the worker read the record.
-    pub claimed: std::collections::BTreeMap<String, serde_json::Value>,
+    pub claimed: HeldJobRecord,
 }
 
 /// The live driver: the observer's live query completed.
@@ -5247,43 +5262,7 @@ pub struct ConformanceStepStalled {
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepState {
     /// The state.
-    pub state: ConformanceStepStateState,
-}
-
-/// The state.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ConformanceStepStateState {
-    #[serde(rename = "initial")]
-    Initial,
-    #[serde(rename = "connecting")]
-    Connecting,
-    #[serde(rename = "open")]
-    Open,
-    #[serde(rename = "reconnecting")]
-    Reconnecting,
-    #[serde(rename = "degraded")]
-    Degraded,
-    #[serde(rename = "unauthenticated")]
-    Unauthenticated,
-    #[serde(rename = "closed")]
-    Closed,
-}
-
-impl ConformanceStepStateState {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ConformanceStepStateState::Initial => "initial",
-            ConformanceStepStateState::Connecting => "connecting",
-            ConformanceStepStateState::Open => "open",
-            ConformanceStepStateState::Reconnecting => "reconnecting",
-            ConformanceStepStateState::Degraded => "degraded",
-            ConformanceStepStateState::Unauthenticated => "unauthenticated",
-            ConformanceStepStateState::Closed => "closed",
-        }
-    }
+    pub state: ConnectionState,
 }
 
 /// The transport is in this state and has reported no other since the case last read its state.
@@ -5291,43 +5270,7 @@ impl ConformanceStepStateState {
 #[serde(deny_unknown_fields)]
 pub struct ConformanceStepStays {
     /// The state.
-    pub stays: ConformanceStepStaysStays,
-}
-
-/// The state.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ConformanceStepStaysStays {
-    #[serde(rename = "initial")]
-    Initial,
-    #[serde(rename = "connecting")]
-    Connecting,
-    #[serde(rename = "open")]
-    Open,
-    #[serde(rename = "reconnecting")]
-    Reconnecting,
-    #[serde(rename = "degraded")]
-    Degraded,
-    #[serde(rename = "unauthenticated")]
-    Unauthenticated,
-    #[serde(rename = "closed")]
-    Closed,
-}
-
-impl ConformanceStepStaysStays {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ConformanceStepStaysStays::Initial => "initial",
-            ConformanceStepStaysStays::Connecting => "connecting",
-            ConformanceStepStaysStays::Open => "open",
-            ConformanceStepStaysStays::Reconnecting => "reconnecting",
-            ConformanceStepStaysStays::Degraded => "degraded",
-            ConformanceStepStaysStays::Unauthenticated => "unauthenticated",
-            ConformanceStepStaysStays::Closed => "closed",
-        }
-    }
+    pub stays: ConnectionState,
 }
 
 /// The next request the client put on the wire is this operation, with each field given.
@@ -5418,6 +5361,44 @@ pub struct ConnectionIdentity {
 }
 
 schema!(ConnectionIdentity);
+
+/// Where a client's stream is: one of the states of client/connection-states.json, which says what each means and where it moves.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ConnectionState {
+    #[serde(rename = "initial")]
+    Initial,
+    #[serde(rename = "connecting")]
+    Connecting,
+    #[serde(rename = "open")]
+    Open,
+    #[serde(rename = "reconnecting")]
+    Reconnecting,
+    #[serde(rename = "degraded")]
+    Degraded,
+    #[serde(rename = "unauthenticated")]
+    Unauthenticated,
+    #[serde(rename = "closed")]
+    Closed,
+}
+
+impl ConnectionState {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ConnectionState::Initial => "initial",
+            ConnectionState::Connecting => "connecting",
+            ConnectionState::Open => "open",
+            ConnectionState::Reconnecting => "reconnecting",
+            ConnectionState::Degraded => "degraded",
+            ConnectionState::Unauthenticated => "unauthenticated",
+            ConnectionState::Closed => "closed",
+        }
+    }
+}
+
+schema!(ConnectionState);
 
 /// Content format as a MIME type, optionally with parameters. The base type (everything before the first ';') MUST be a SupportedMediaType; parameters such as charset are preserved as metadata. Semantic validation happens in code at the create/yield boundary — there is deliberately no pattern here, the vocabulary lives in SupportedMediaType. Examples: text/plain, text/plain; charset=iso-8859-1, text/markdown; charset=windows-1252, image/png, application/pdf
 pub type ContentFormat = String;
@@ -5663,7 +5644,7 @@ pub struct DiscoveredKB {
     /// Local TCP port of the KB's API (the gateway port for a local stack; the allocated forward port for a codespace stack)
     pub port: i64,
     /// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-    pub placement: DiscoveredKBPlacement,
+    pub placement: KbPlacement,
     /// owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub repo: Option<String>,
@@ -5683,7 +5664,7 @@ impl DiscoveredKB {
     pub fn new(
         host: impl Into<String>,
         port: i64,
-        placement: DiscoveredKBPlacement,
+        placement: KbPlacement,
         did: impl Into<String>,
         managed_by: impl Into<String>,
     ) -> Self {
@@ -5700,27 +5681,6 @@ impl DiscoveredKB {
 }
 
 schema!(DiscoveredKB);
-
-/// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum DiscoveredKBPlacement {
-    #[serde(rename = "local")]
-    Local,
-    #[serde(rename = "codespace")]
-    Codespace,
-}
-
-impl DiscoveredKBPlacement {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            DiscoveredKBPlacement::Local => "local",
-            DiscoveredKBPlacement::Codespace => "codespace",
-        }
-    }
-}
 
 /// The launcher's KB discovery document — the schema authority for <stateDir>/discovery/kbs.json, which the Xynolog CLI (xynolog/cli) regenerates on every stack mutation and the Browser container mounts read-only at /discovery. NOT an API endpoint: a static document fetched same-origin by browsers (via the Browser's static server). An empty kbs list is meaningful ("the launcher manages nothing right now") and distinct from an absent file.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -6102,8 +6062,7 @@ pub struct EmptyObject {}
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Engine {
-    /// The inference provider: who serves the model. `anthropic`, `google`, `openai` and `together` are those companies' own APIs. `llamacpp`, `ollama` and `vllm` are servers a deployment runs or reaches, each named for the server's software.
-    pub provider: EngineProvider,
+    pub provider: InferenceProvider,
     /// The model identifier, as the provider names it.
     pub model: String,
 }
@@ -6138,42 +6097,6 @@ pub struct EngineLimits {
 }
 
 schema!(EngineLimits);
-
-/// The inference provider: who serves the model. `anthropic`, `google`, `openai` and `together` are those companies' own APIs. `llamacpp`, `ollama` and `vllm` are servers a deployment runs or reaches, each named for the server's software.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum EngineProvider {
-    #[serde(rename = "anthropic")]
-    Anthropic,
-    #[serde(rename = "google")]
-    Google,
-    #[serde(rename = "llamacpp")]
-    Llamacpp,
-    #[serde(rename = "ollama")]
-    Ollama,
-    #[serde(rename = "openai")]
-    Openai,
-    #[serde(rename = "together")]
-    Together,
-    #[serde(rename = "vllm")]
-    Vllm,
-}
-
-impl EngineProvider {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            EngineProvider::Anthropic => "anthropic",
-            EngineProvider::Google => "google",
-            EngineProvider::Llamacpp => "llamacpp",
-            EngineProvider::Ollama => "ollama",
-            EngineProvider::Openai => "openai",
-            EngineProvider::Together => "together",
-            EngineProvider::Vllm => "vllm",
-        }
-    }
-}
 
 /// Wire format for persisted events delivered over the bus SSE stream (GET /bus/subscribe). Extends StoredEventResponse with optional enrichment fields the EventStore populates from the materialized view at publish time (persistence → view → enrich → notification). Subscribers read the enrichment fields directly to update local caches without an additional fetch.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -6265,7 +6188,7 @@ pub type EphemeralEventId = String;
 #[serde(deny_unknown_fields)]
 pub struct ErrorData {
     /// Why the request failed: a code of the control group of specs/src/errors/codes.json.
-    pub code: String,
+    pub code: crate::errors::ControlErrorCode,
     /// Whether the same request can succeed sent again unchanged, once something outside it changes: a start finishes, a runtime is installed, a stack comes up.
     pub retryable: bool,
     /// For params the contract refuses: each fault, where it is.
@@ -6285,9 +6208,9 @@ pub struct ErrorData {
 
 impl ErrorData {
     /// The `ErrorData` that states these and nothing else.
-    pub fn new(code: impl Into<String>, retryable: bool) -> Self {
+    pub fn new(code: crate::errors::ControlErrorCode, retryable: bool) -> Self {
         Self {
-            code: code.into(),
+            code,
             retryable,
             fields: None,
             choices: None,
@@ -8373,6 +8296,56 @@ pub struct HealthResponse {
 
 schema!(HealthResponse);
 
+/// The job a worker holds, as its claim hands it: read from the `JobRunning` that `job:claimed` carries, its metadata's id, type, units, cursors and retries, and its params with the resource they name. A unit the job has not reached is no member of `completedUnits` and no key of `unitCursors`.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct HeldJobRecord {
+    #[serde(rename = "jobId")]
+    pub job_id: JobId,
+    #[serde(rename = "jobType")]
+    pub job_type: JobType,
+    #[serde(rename = "resourceId")]
+    pub resource_id: ResourceId,
+    pub params: JobParams,
+    /// The units a worker has finished, merged across checkpoints and failures as a set.
+    #[serde(rename = "completedUnits")]
+    pub completed_units: Vec<String>,
+    /// The furthest each unit begun got, keyed by unit, with what it had counted there. A finished unit keeps its cursor: where it ended, and its final counts.
+    #[serde(rename = "unitCursors")]
+    pub unit_cursors: std::collections::BTreeMap<String, UnitCursor>,
+    #[serde(rename = "retryCount")]
+    pub retry_count: u64,
+    /// How many transient failures the queue retries: 0 for generation, whose re-run produces different content; 1 for every other type.
+    #[serde(rename = "maxRetries")]
+    pub max_retries: u64,
+}
+
+schema!(HeldJobRecord);
+
+/// A held job that showed no activity for `heldJobStallMs` (contract/WORKER-CONTRACT.md V2): what a worker's claims say on `stalled`. What its host does then is the host's.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct HeldJobStall {
+    #[serde(rename = "jobId")]
+    pub job_id: JobId,
+    #[serde(rename = "jobType")]
+    pub job_type: JobType,
+    /// When the worker was handed the job.
+    #[serde(rename = "heldSince")]
+    pub held_since: String,
+    /// When the job last showed activity: its claim, a progress report, a checkpoint or a commit.
+    #[serde(rename = "lastActivityAt")]
+    pub last_activity_at: String,
+    /// How long it has shown none, in milliseconds.
+    #[serde(rename = "silentForMs")]
+    pub silent_for_ms: u64,
+    /// The `heldJobStallMs` it was held to, in milliseconds.
+    #[serde(rename = "thresholdMs")]
+    pub threshold_ms: u64,
+}
+
+schema!(HeldJobStall);
+
 /// What a highlighting job takes: passages of the resource worth a reader's attention are marked, with no text of the job's own.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -8702,6 +8675,44 @@ schema!(InferenceLimitsResult);
 pub struct InferenceLimitsResultResponse {
     pub limits: Vec<EngineLimits>,
 }
+
+/// The inference provider: who serves the model. `anthropic`, `google`, `openai` and `together` are those companies' own APIs. `llamacpp`, `ollama` and `vllm` are servers a deployment runs or reaches, each named for the server's software.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum InferenceProvider {
+    #[serde(rename = "anthropic")]
+    Anthropic,
+    #[serde(rename = "google")]
+    Google,
+    #[serde(rename = "llamacpp")]
+    Llamacpp,
+    #[serde(rename = "ollama")]
+    Ollama,
+    #[serde(rename = "openai")]
+    Openai,
+    #[serde(rename = "together")]
+    Together,
+    #[serde(rename = "vllm")]
+    Vllm,
+}
+
+impl InferenceProvider {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            InferenceProvider::Anthropic => "anthropic",
+            InferenceProvider::Google => "google",
+            InferenceProvider::Llamacpp => "llamacpp",
+            InferenceProvider::Ollama => "ollama",
+            InferenceProvider::Openai => "openai",
+            InferenceProvider::Together => "together",
+            InferenceProvider::Vllm => "vllm",
+        }
+    }
+}
+
+schema!(InferenceProvider);
 
 /// The providers, and the engine for each job and each Librarian actor.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -9143,6 +9154,31 @@ impl JobCancelledStatus {
         }
     }
 }
+
+/// What a held job states when it checkpoints (`job:checkpoint`, contract/JOBS.md § Checkpoints): the units finished, and the furthest each unit begun got.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobCheckpoint {
+    /// Entity-type units whose annotations have been fully emitted so far. Unioned into the running job's metadata checkpoint; a retry after recovery skips them.
+    #[serde(rename = "completedUnits")]
+    pub completed_units: Vec<String>,
+    /// The furthest each unit begun got, keyed by unit, with what it had counted there — the grain `completedUnits` cannot express. A unit named in `completedUnits` is stated here too, by the cursor it ended at: a later attempt skips it whole and counts it by that cursor. A cursor never says a unit is finished; only `completedUnits` does. Merged monotonically per unit, finished or not: a stale snapshot must never move a cursor backward.
+    #[serde(rename = "unitCursors")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unit_cursors: Option<std::collections::BTreeMap<String, UnitCursor>>,
+}
+
+impl JobCheckpoint {
+    /// The `JobCheckpoint` that states these and nothing else.
+    pub fn new(completed_units: Vec<String>) -> Self {
+        Self {
+            completed_units,
+            unit_cursors: None,
+        }
+    }
+}
+
+schema!(JobCheckpoint);
 
 /// Command to persist a running job's completed-unit checkpoint AT unit completion. Distinct from JobFailCommand's checkpoint, which lands only on a clean failure: a worker that dies (crash/OOM/kill) never emits job:fail, so this durable, unthrottled write is what lets the janitor's stale-running recovery resume a dead worker's job rather than redo its finished units.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -9669,6 +9705,25 @@ impl JobFailedStatus {
         }
     }
 }
+
+/// What a held job's failure states beside its error (`job:fail`): what it had reached, and the failure's class when the worker knows it. What its commits observed is the held job's own to state.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobFailure {
+    /// Entity-type units whose annotations were fully emitted before this failure (checkpointed resume). The queue records them on the retried job's metadata; a retried claim skips them so completed work is neither redone nor duplicated.
+    #[serde(rename = "completedUnits")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub completed_units: Option<Vec<String>>,
+    /// The furthest each unit begun got, keyed by unit, with what it had counted there — the grain `completedUnits` cannot express. A unit named in `completedUnits` is stated here too, by the cursor it ended at: a later attempt skips it whole and counts it by that cursor. A cursor never says a unit is finished; only `completedUnits` does. Merged monotonically per unit, finished or not: a stale snapshot must never move a cursor backward.
+    #[serde(rename = "unitCursors")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unit_cursors: Option<std::collections::BTreeMap<String, UnitCursor>>,
+    #[serde(rename = "failureClass")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure_class: Option<FailureClass>,
+}
+
+schema!(JobFailure);
 
 /// Some jobs, named by fields of the job description: a partial description, at the description's own paths. A job matches when every field stated here equals the job's. A `mark` filter always states its motivation.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
@@ -10670,6 +10725,22 @@ member!(JobQueuedEvent::MarkJobQueuedEvent(MarkJobQueuedEvent));
 member!(JobQueuedEvent::YieldJobQueuedEvent(YieldJobQueuedEvent));
 schema!(JobQueuedEvent);
 
+/// What a held job that stops on a cancellation states it had reached (`job:cancel`): the units finished, and the furthest each unit begun got.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct JobReached {
+    /// The units the worker had finished when it stopped. Recorded on the cancelled job's metadata so the work already done stays visible.
+    #[serde(rename = "completedUnits")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub completed_units: Option<Vec<String>>,
+    /// The furthest each unit begun got, keyed by unit, with what it had counted there — the grain `completedUnits` cannot express. A unit named in `completedUnits` is stated here too, by the cursor it ended at: a later attempt skips it whole and counts it by that cursor. A cursor never says a unit is finished; only `completedUnits` does. Merged monotonically per unit, finished or not: a stale snapshot must never move a cursor backward.
+    #[serde(rename = "unitCursors")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unit_cursors: Option<std::collections::BTreeMap<String, UnitCursor>>,
+}
+
+schema!(JobReached);
+
 /// One job as the queue stores it: the job, and when it last showed life. The dead-worker sweep reads `lastProgressAt`: a running job whose worker has reported nothing for the configured interval is presumed dead. Where the queue keeps these records is the job storage layout, specs/src/jobs/storage.json.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -11283,6 +11354,29 @@ pub struct KbIdentityConflict {
 
 schema!(KbIdentityConflict);
 
+/// Where a knowledge base's stack runs: on this machine (local), or in a GitHub codespace whose knowledge base is forwarded here (codespace).
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum KbPlacement {
+    #[serde(rename = "local")]
+    Local,
+    #[serde(rename = "codespace")]
+    Codespace,
+}
+
+impl KbPlacement {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            KbPlacement::Local => "local",
+            KbPlacement::Codespace => "codespace",
+        }
+    }
+}
+
+schema!(KbPlacement);
+
 /// When a knowledge base last described itself, and what it said beyond its name. A client shows it as current only while a session to the knowledge base is live, and as of `at` otherwise.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct KbRead {
@@ -11580,8 +11674,7 @@ pub struct KnowledgeBaseStatus {
     pub key: String,
     /// Whether a stack of it is recorded. When none is, its services are found by name.
     pub recorded: bool,
-    /// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-    pub placement: KnowledgeBaseStatusPlacement,
+    pub placement: KbPlacement,
     /// Its clone, for a local stack.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub root: Option<String>,
@@ -11634,7 +11727,7 @@ impl KnowledgeBaseStatus {
         name: impl Into<String>,
         key: impl Into<String>,
         recorded: bool,
-        placement: KnowledgeBaseStatusPlacement,
+        placement: KbPlacement,
         starting: bool,
         healthy: bool,
         services: Vec<ServiceStatus>,
@@ -11664,27 +11757,6 @@ impl KnowledgeBaseStatus {
 }
 
 schema!(KnowledgeBaseStatus);
-
-/// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum KnowledgeBaseStatusPlacement {
-    #[serde(rename = "local")]
-    Local,
-    #[serde(rename = "codespace")]
-    Codespace,
-}
-
-impl KnowledgeBaseStatusPlacement {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            KnowledgeBaseStatusPlacement::Local => "local",
-            KnowledgeBaseStatusPlacement::Codespace => "codespace",
-        }
-    }
-}
 
 /// Knowledge graph gathered for an LLM context — a shared backbone in which resources AND annotations are typed nodes, connected by typed (optionally bidirectional) edges. Flattened views the matcher/generation read (connections, citedBy, siblings) are derived from these nodes/edges.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -15596,7 +15668,7 @@ pub struct ResourceUpload {
     /// Human-readable resource name
     pub name: String,
     /// Binary content
-    pub file: String,
+    pub file: Binary,
     /// Media type of the content (e.g. text/plain, text/markdown, image/png)
     pub format: String,
     /// Where the content lives (file://... for local). Required — the client names the location; the server does not derive one.
@@ -15646,13 +15718,13 @@ impl ResourceUpload {
     /// The `ResourceUpload` that states these and nothing else.
     pub fn new(
         name: impl Into<String>,
-        file: impl Into<String>,
+        file: Binary,
         format: impl Into<String>,
         storage_uri: impl Into<String>,
     ) -> Self {
         Self {
             name: name.into(),
-            file: file.into(),
+            file,
             format: format.into(),
             storage_uri: storage_uri.into(),
             language: None,
@@ -15702,12 +15774,27 @@ pub struct ResourcesLimits {
     pub memory: String,
 }
 
+/// A retry budget: how many `attempts` are allowed, with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RetryBudget {
+    /// How many attempts the budget allows.
+    pub attempts: u64,
+    /// The delay before the second attempt, in milliseconds.
+    #[serde(rename = "initialDelayMs")]
+    pub initial_delay_ms: u64,
+    /// The longest delay between attempts, in milliseconds.
+    #[serde(rename = "maxDelayMs")]
+    pub max_delay_ms: u64,
+}
+
+schema!(RetryBudget);
+
 /// One knowledge base this machine knows: a registered or running local clone, or a codespace stack recorded here. Registration, the directory, the stack and the forward are separate facts, each stated as it is.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Root {
-    /// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-    pub placement: RootPlacement,
+    pub placement: KbPlacement,
     /// For a local root: the clone's path.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -15766,7 +15853,7 @@ pub struct Root {
 
 impl Root {
     /// The `Root` that states these and nothing else.
-    pub fn new(placement: RootPlacement, registered: bool, running: bool) -> Self {
+    pub fn new(placement: KbPlacement, registered: bool, running: bool) -> Self {
         Self {
             placement,
             path: None,
@@ -15809,27 +15896,6 @@ impl RootCurrent {
         match self {
             RootCurrent::Cwd => "cwd",
             RootCurrent::XynologRoot => "xynolog-root",
-        }
-    }
-}
-
-/// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum RootPlacement {
-    #[serde(rename = "local")]
-    Local,
-    #[serde(rename = "codespace")]
-    Codespace,
-}
-
-impl RootPlacement {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            RootPlacement::Local => "local",
-            RootPlacement::Codespace => "codespace",
         }
     }
 }
@@ -18144,8 +18210,8 @@ pub struct SmelterHealth {
     pub status: SmelterHealthStatus,
     /// The DID of the knowledge base it serves: the one its settings name, which that knowledge base said it is before the Smelter reached its index.
     pub kb: KbDid,
-    /// The state of its own stream of the record, one of the seven of TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while it is `open`.
-    pub stream: SmelterHealthStream,
+    /// The state of its own stream of the record, one of client/connection-states.json's. Events are delivered to it while it is `open`.
+    pub stream: ConnectionState,
     /// How far it has followed the record. Its sweep is also `due` where its start's reconcile failed.
     pub following: FollowerFollowing,
     /// How many events it has applied since it started: events of the kinds that do something, and not refused. Neither an event taken as nothing nor the work of a reconcile or a rebuild is counted.
@@ -18161,7 +18227,7 @@ impl SmelterHealth {
     /// The `SmelterHealth` that states these and nothing else.
     pub fn new(
         kb: KbDid,
-        stream: SmelterHealthStream,
+        stream: ConnectionState,
         following: FollowerFollowing,
         events_processed: u64,
         reconcile: SmelterHealthReconcile,
@@ -18272,42 +18338,6 @@ impl SmelterHealthStatus {
     pub const fn as_str(&self) -> &'static str {
         match self {
             SmelterHealthStatus::Ok => "ok",
-        }
-    }
-}
-
-/// The state of its own stream of the record, one of the seven of TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while it is `open`.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum SmelterHealthStream {
-    #[serde(rename = "initial")]
-    Initial,
-    #[serde(rename = "connecting")]
-    Connecting,
-    #[serde(rename = "open")]
-    Open,
-    #[serde(rename = "reconnecting")]
-    Reconnecting,
-    #[serde(rename = "degraded")]
-    Degraded,
-    #[serde(rename = "unauthenticated")]
-    Unauthenticated,
-    #[serde(rename = "closed")]
-    Closed,
-}
-
-impl SmelterHealthStream {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            SmelterHealthStream::Initial => "initial",
-            SmelterHealthStream::Connecting => "connecting",
-            SmelterHealthStream::Open => "open",
-            SmelterHealthStream::Reconnecting => "reconnecting",
-            SmelterHealthStream::Degraded => "degraded",
-            SmelterHealthStream::Unauthenticated => "unauthenticated",
-            SmelterHealthStream::Closed => "closed",
         }
     }
 }
@@ -19588,7 +19618,7 @@ impl TaggingJobParamsMotivation {
 #[serde(deny_unknown_fields)]
 pub struct Target {
     /// Where the stack runs: on this machine (local), or on a GitHub codespace whose knowledge base is forwarded here (codespace).
-    pub kind: TargetKind,
+    pub kind: KbPlacement,
     /// For a local target: the knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the local stack the command line chooses with --runtime, standing where the control server was started.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub root: Option<String>,
@@ -19599,7 +19629,7 @@ pub struct Target {
 
 impl Target {
     /// The `Target` that states these and nothing else.
-    pub fn new(kind: TargetKind) -> Self {
+    pub fn new(kind: KbPlacement) -> Self {
         Self {
             kind,
             root: None,
@@ -19609,27 +19639,6 @@ impl Target {
 }
 
 schema!(Target);
-
-/// Where the stack runs: on this machine (local), or on a GitHub codespace whose knowledge base is forwarded here (codespace).
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum TargetKind {
-    #[serde(rename = "local")]
-    Local,
-    #[serde(rename = "codespace")]
-    Codespace,
-}
-
-impl TargetKind {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            TargetKind::Local => "local",
-            TargetKind::Codespace => "codespace",
-        }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct TextPositionSelector {
@@ -19791,6 +19800,29 @@ impl TextualBodyType {
         }
     }
 }
+
+/// A W3C trace context, as a relayed frame's trace field carries it (bus/registry.json `trace`) and a held job states it as its `trace`: the trace a frame was sent under, so its reader's work is recorded in the same trace.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct TraceCarrier {
+    /// W3C `traceparent` (`00-<traceId>-<spanId>-<flags>`).
+    pub traceparent: String,
+    /// W3C `tracestate`, when the trace has one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tracestate: Option<String>,
+}
+
+impl TraceCarrier {
+    /// The `TraceCarrier` that states these and nothing else.
+    pub fn new(traceparent: impl Into<String>) -> Self {
+        Self {
+            traceparent: traceparent.into(),
+            tracestate: None,
+        }
+    }
+}
+
+schema!(TraceCarrier);
 
 /// The furthest a single unit got, and what it had counted when it got there. A unit left partway is resumed from its cursor rather than redone. A finished unit keeps its cursor: `next` at the length of the text, `size` the size its last piece was cut at, and its final `found`, `emitted` and `errors`, so that an attempt that skips the unit still counts it. A cursor never says a unit is finished, wherever it stands: `completedUnits` does. A unit is an entity type for a linking job, a category for a tagging job, and the job's own motivation for every other — which is why a unit-grain checkpoint alone is too coarse: those three have exactly one unit, so nothing could be recorded until the whole document was done.
 ///
@@ -20432,6 +20464,19 @@ impl WeaverHealthStatus {
     }
 }
 
+/// The job an engine holds: which it is, of what type, and since when.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerActiveJob {
+    #[serde(rename = "jobId")]
+    pub job_id: JobId,
+    pub r#type: JobType,
+    /// When it was handed the job.
+    pub since: String,
+}
+
+schema!(WorkerActiveJob);
+
 /// worker/answer-formats.json: the element of the array each kind of detection asks a model for.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -20524,26 +20569,14 @@ pub struct WorkerEngineHealth {
     /// When it was last active, or null.
     #[serde(rename = "lastActivityAt")]
     pub last_activity_at: Option<String>,
-    /// The job it holds, or null.
     #[serde(rename = "activeJob")]
-    pub active_job: Option<WorkerEngineHealthActiveJob>,
+    pub active_job: Option<WorkerActiveJob>,
     /// How many jobs it has completed since the service started.
     #[serde(rename = "jobsCompleted")]
     pub jobs_completed: u64,
 }
 
 schema!(WorkerEngineHealth);
-
-/// The job it holds, or null.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct WorkerEngineHealthActiveJob {
-    #[serde(rename = "jobId")]
-    pub job_id: JobId,
-    pub r#type: JobType,
-    /// When it was handed the job.
-    pub since: String,
-}
 
 /// The Worker service's health answer (WORKER-SERVICE H1). It answers only once a knowledge base of its document is confirmed, so a 200 means it is working somewhere.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -20871,6 +20904,31 @@ pub struct WorkerPoolSpecWorker {
     pub image: Image,
     pub resources: Resources,
 }
+
+/// What a worker can say of itself at any moment (contract/WORKER-CONTRACT.md V1): what a worker's claims hand it as `vitals`, and what the worker service answers of each engine beside the engine and its jobs (worker/WorkerEngineHealth.json).
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerVitals {
+    /// When a `job:queued` last reached it, or null.
+    #[serde(rename = "lastQueuedEventAt")]
+    pub last_queued_event_at: Option<String>,
+    /// When it was last handed a job, or null. A claim answered with none pending is not one.
+    #[serde(rename = "lastClaimAt")]
+    pub last_claim_at: Option<String>,
+    /// When a job it held last settled, or null.
+    #[serde(rename = "lastFinishedAt")]
+    pub last_finished_at: Option<String>,
+    /// When it was last active, or null.
+    #[serde(rename = "lastActivityAt")]
+    pub last_activity_at: Option<String>,
+    #[serde(rename = "activeJob")]
+    pub active_job: Option<WorkerActiveJob>,
+    /// How many jobs it has completed since the service started.
+    #[serde(rename = "jobsCompleted")]
+    pub jobs_completed: u64,
+}
+
+schema!(WorkerVitals);
 
 /// A knowledge base's operational readings from Collector metrics. Request-tracking occupancy and queue depth are current gauges; completed and failed are worker counters since that worker process started. Missing readings are unknown, never zero.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]

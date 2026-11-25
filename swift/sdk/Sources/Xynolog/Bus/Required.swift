@@ -133,6 +133,14 @@ func faultOf(_ shape: Shape, _ value: JSONValue) -> Fault? {
   return faultAt(shape, &read, way: "")
 }
 
+/// `value` as `Value`, a generated type, held to the table as the component schema of its name
+/// before it is decoded: nil for its first fault, or where its decoder refuses it.
+func readAs<Value: Decodable>(_ type: Value.Type, _ value: JSONValue) -> Value? {
+  var read = value
+  guard faultAt(component(String(describing: type)), &read, way: "") == nil else { return nil }
+  return try? JSONDecoder().decode(type, from: JSONEncoder().encode(read))
+}
+
 /// `payload`, a payload on `channel`, as it is read by the rules every SDK reads the table by: a
 /// member it reads as absent left out. It is refused for its first fault.
 func payloadAsRead(_ payload: [String: JSONValue], on channel: String) throws(Fault)

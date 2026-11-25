@@ -2,8 +2,8 @@
    message carries (protocol/specs/src/client/types), and the form a service
    account posts with a client secret (session/ClientSecretForm.json), for the
    Haskell SDK. Each is read once into a model of its members, refusing a
-   keyword the model does not know, so a type that grows a shape the writers
-   cannot state stops the run. *)
+   keyword the model does not know: a type's refusals are its own, and stop
+   the run where a writer reads its members. *)
 
 let types = "client/types/"
 let form = "session/ClientSecretForm.json"
@@ -33,7 +33,8 @@ type shape =
   | Union of { tag : string; branches : (string * member list) list }
 
 type t = {
-  shapes : (string * shape) list;  (** Each client type, by its name. *)
+  shapes : (string * (shape, Decode.error list) result) list;
+      (** Each client type, by its name, or why the model holds none of it. *)
   form : member list;  (** The client secret form's members, in order. *)
   grant_type : string;  (** The client assertion's grant. *)
 }
@@ -49,7 +50,7 @@ let words_of literals =
     literals (Some [])
 
 let derive (spec : Spec.t) =
-  let refusals = ref [] in
+  let refusals : Decode.error list ref = ref [] in
   let refuse file pointer message =
     refusals := { Decode.file; pointer; message } :: !refusals
   in
@@ -245,12 +246,22 @@ let derive (spec : Spec.t) =
     List.filter_map
       (fun (file, s) ->
         if String.starts_with ~prefix:types file then (
-          match whole s with
-          | Ok s ->
-              Option.map (fun shape -> (name_of file, shape)) (shape file s)
-          | Error message ->
-              refuse file "" message;
-              None)
+          let before = !refusals in
+          refusals := [];
+          let found =
+            match whole s with
+            | Ok s -> shape file s
+            | Error message ->
+                refuse file "" message;
+                None
+          in
+          let own = List.rev !refusals in
+          refusals := before;
+          Some
+            ( name_of file,
+              match (found, own) with
+              | Some shape, [] -> Ok shape
+              | _, own -> Error own ))
         else None)
       spec.schemas
   in

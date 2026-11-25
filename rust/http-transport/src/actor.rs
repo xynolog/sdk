@@ -34,11 +34,13 @@ use xynolog::bus_log::{bus_log, bus_note};
 use xynolog::channels::{RESOURCE_SCOPED_CHANNELS, TRACE_FIELD};
 use xynolog::errors::{TransportError, TransportErrorCode};
 use xynolog::gateway_http::SUBSCRIBE_TO_BUS;
+use xynolog::read_as;
 use xynolog::resume::is_place;
 use xynolog::retry::{equal_jitter, retry_after};
 use xynolog::timing::{DEGRADED_THRESHOLD, MAX_RECONNECT, RECONNECT_DEBOUNCE};
-use xynolog::transport::{CONNECTION_STATE_MOVES, Frame, FrameRefusal, StreamId, TraceCarrier};
+use xynolog::transport::{CONNECTION_STATE_MOVES, Frame, FrameRefusal, StreamId};
 use xynolog::types::ConnectionState;
+use xynolog::types::TraceCarrier;
 use xynolog::types::{
     BusEventMessageEvent, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem,
 };
@@ -388,7 +390,10 @@ impl Actor {
                 return;
             }
         };
-        let trace = bus_frame.payload.remove(TRACE_FIELD).and_then(carrier);
+        let trace = bus_frame
+            .payload
+            .remove(TRACE_FIELD)
+            .and_then(|carrier| read_as::<TraceCarrier>(carrier).ok());
 
         bus_log(
             "RECV",
@@ -736,16 +741,6 @@ fn readers_of(value: &Value) -> Option<(String, Option<ResourceId>)> {
         Some(_) => return None,
     };
     Some((channel.to_owned(), scope))
-}
-
-fn carrier(value: Value) -> Option<TraceCarrier> {
-    Some(TraceCarrier {
-        traceparent: value.get("traceparent")?.as_str()?.to_owned(),
-        tracestate: value
-            .get("tracestate")
-            .and_then(Value::as_str)
-            .map(str::to_owned),
-    })
 }
 
 /// One connection: the subscribe request, and every event its stream

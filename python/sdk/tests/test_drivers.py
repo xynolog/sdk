@@ -114,7 +114,7 @@ def test_the_live_driver_answers_each_operation_once_and_disposes_of_its_client_
     states = [line["state"] for line in said if "state" in line]
     assert states[0] == "initial"
     assert states[-1] == "closed"
-    assert set(states) <= set(get_args(ConnectionState.__value__))
+    assert set(states) <= set(get_args(get_args(ConnectionState.__value__)[0]))
 
 
 def test_the_wire_driver_answers_each_operation_once_and_disposes_of_its_transport_when_its_stdin_ends() -> None:
@@ -167,7 +167,7 @@ def test_the_wire_driver_answers_each_operation_once_and_disposes_of_its_transpo
     states = [line["state"] for line in said if "state" in line]
     assert states[0] == "initial"
     assert states[-1] == "closed"
-    assert set(states) <= set(get_args(ConnectionState.__value__))
+    assert set(states) <= set(get_args(get_args(ConnectionState.__value__)[0]))
     assert [line for line in said if "error" in line and "id" not in line] == []
 
 
@@ -222,4 +222,4 @@ def test_the_worker_driver_answers_each_operation_once_and_fails_nothing_when_it
     states = [line["state"] for line in said if "state" in line]
     assert states[0] == "initial"
     assert states[-1] == "closed"
-    assert set(states) <= set(get_args(ConnectionState.__value__))
+    assert set(states) <= set(get_args(get_args(ConnectionState.__value__)[0]))

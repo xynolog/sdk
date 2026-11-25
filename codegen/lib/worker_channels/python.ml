@@ -22,7 +22,7 @@ let file (constants : Table.t list) =
           doc =
             As_is
               "The channels a worker's stream names, as client/surface.json's \
-               constants state them.\n";
+               constants state them.";
           imports = [ [ P.From ("typing", [ "Final" ]) ] ];
           body =
             P.assign "__all__"

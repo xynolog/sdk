@@ -51,7 +51,8 @@ type Timing struct {
 	// content, and the gateway waits for the Archivist as the Archivist's
 	// document states (specs/src/archivist/openapi.json): this deadline is
 	// longer than its `connectSeconds` and `readSeconds` together, and the hold
-	// is shorter than `readSeconds`, which `lint:spec-protocol` holds.
+	// is shorter than `readSeconds`, which the reader's protocol rules
+	// (`reader/lib/protocol_rules.ml`) hold.
 	HttpRequestTimeout time.Duration
 	// RequestRetryPause is requestRetryPauseMs: The wait before an HTTP request
 	// that is neither the stream nor an emit is made a second time. It is made

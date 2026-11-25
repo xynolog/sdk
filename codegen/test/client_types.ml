@@ -14,7 +14,7 @@ let refused = function
   | Error (_ :: _) -> ()
   | Error [] -> Alcotest.fail "refused, naming nothing"
 
-let shapes list name = List.assoc_opt name list
+let shapes list name = Option.map Result.ok (List.assoc_opt name list)
 
 let refused_frame members =
   shapes

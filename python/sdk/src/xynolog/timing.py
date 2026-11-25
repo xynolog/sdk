@@ -91,8 +91,8 @@ EMIT_RETRY: Final = RetryPolicy(attempts=4, initial_delay_ms=1000, max_delay_ms=
 # how large the resource is. A read of anchored text may be held by the Archivist while the
 # Smelter reads the content, and the gateway waits for the Archivist as the Archivist's document
 # states (specs/src/archivist/openapi.json): this deadline is longer than its `connectSeconds`
-# and `readSeconds` together, and the hold is shorter than `readSeconds`, which
-# `lint:spec-protocol` holds.
+# and `readSeconds` together, and the hold is shorter than `readSeconds`, which the reader's
+# protocol rules (`reader/lib/protocol_rules.ml`) hold.
 HTTP_REQUEST_TIMEOUT_MS: Final = 30000
 
 # The wait before an HTTP request that is neither the stream nor an emit is made a second time.

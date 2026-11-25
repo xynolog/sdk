@@ -101,18 +101,6 @@ func units(args protocol.Arguments) ([]string, error) {
 	return protocol.Texts(args, "completedUnits")
 }
 
-// iso is a time as the protocol carries one; nil for one that has not
-// happened.
-func iso(at time.Time) any {
-	if at.IsZero() {
-		return nil
-	}
-	return stamp(at)
-}
-
-// stamp is at as the wire writes a time.
-func stamp(at time.Time) string { return at.UTC().Format("2006-01-02T15:04:05.000Z07:00") }
-
 // running is the held job, and the span it is run in.
 type running struct {
 	job  xynolog.HeldJob
@@ -358,7 +346,7 @@ func (w *worker) claim(args protocol.Arguments) error {
 func (w *worker) reading(claims *xynolog.Claims) {
 	for job, err := range claims.All() {
 		if err != nil {
-			var refusal *xynolog.ClaimRefusal
+			var refusal *api.ClaimRefusal
 			if !errors.As(err, &refusal) {
 				protocol.Say(api.ConformanceDriverLineRefused{Refused: api.ConformanceFailure{Detail: err.Error()}})
 				continue
@@ -382,16 +370,7 @@ func (w *worker) reading(claims *xynolog.Claims) {
 				}
 			}
 		}()
-		protocol.Say(api.ConformanceDriverLineClaimed{Claimed: map[string]any{
-			"jobId":          job.JobId(),
-			"jobType":        job.JobType(),
-			"resourceId":     job.ResourceId(),
-			"params":         job.Params(),
-			"completedUnits": job.CompletedUnits(),
-			"unitCursors":    job.UnitCursors(),
-			"retryCount":     job.RetryCount(),
-			"maxRetries":     job.MaxRetries(),
-		}})
+		protocol.Say(api.ConformanceDriverLineClaimed{Claimed: job.Record()})
 	}
 }
 
@@ -434,15 +413,19 @@ func (w *worker) checkpoint(ctx context.Context, args protocol.Arguments) error 
 	if err != nil {
 		return err
 	}
+	checkpoint := api.JobCheckpoint{CompletedUnits: completed}
 	unitCursors, err := cursors(args)
 	if err != nil {
 		return err
+	}
+	if unitCursors != nil {
+		checkpoint.UnitCursors = &unitCursors
 	}
 	held, inSpan, err := w.working(ctx)
 	if err != nil {
 		return err
 	}
-	return held.job.Checkpoint(inSpan, completed, unitCursors)
+	return held.job.Checkpoint(inSpan, checkpoint)
 }
 
 // commit is the held job committing for itself: it cites its own id, and
@@ -502,7 +485,7 @@ func (w *worker) fail(ctx context.Context, args protocol.Arguments) error {
 	if err != nil {
 		return err
 	}
-	var failure xynolog.JobFailure
+	var failure api.JobFailure
 	if _, given := args["failureClass"]; given {
 		class, err := asTheSuiteWroteIt[api.FailureClass](args, "failureClass")
 		if err != nil {
@@ -510,11 +493,19 @@ func (w *worker) fail(ctx context.Context, args protocol.Arguments) error {
 		}
 		failure.FailureClass = &class
 	}
-	if failure.CompletedUnits, err = units(args); err != nil {
+	completed, err := units(args)
+	if err != nil {
 		return err
 	}
-	if failure.UnitCursors, err = cursors(args); err != nil {
+	if completed != nil {
+		failure.CompletedUnits = &completed
+	}
+	unitCursors, err := cursors(args)
+	if err != nil {
 		return err
+	}
+	if unitCursors != nil {
+		failure.UnitCursors = &unitCursors
 	}
 	held, inSpan, done, err := w.settling(ctx)
 	if err != nil {
@@ -525,20 +516,27 @@ func (w *worker) fail(ctx context.Context, args protocol.Arguments) error {
 }
 
 func (w *worker) cancel(ctx context.Context, args protocol.Arguments) error {
+	var reached api.JobReached
 	completed, err := units(args)
 	if err != nil {
 		return err
 	}
+	if completed != nil {
+		reached.CompletedUnits = &completed
+	}
 	unitCursors, err := cursors(args)
 	if err != nil {
 		return err
+	}
+	if unitCursors != nil {
+		reached.UnitCursors = &unitCursors
 	}
 	held, inSpan, done, err := w.settling(ctx)
 	if err != nil {
 		return err
 	}
 	defer done()
-	return held.job.Cancel(inSpan, completed, unitCursors)
+	return held.job.Cancel(inSpan, reached)
 }
 
 func (w *worker) vitals() (any, error) {
@@ -546,19 +544,7 @@ func (w *worker) vitals() (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	vitals := claims.Vitals()
-	var active *api.WorkerEngineHealthActiveJob
-	if job := vitals.ActiveJob; job != nil {
-		active = &api.WorkerEngineHealthActiveJob{JobId: job.JobId, Type: job.Type, Since: stamp(job.Since)}
-	}
-	return map[string]any{
-		"lastQueuedEventAt": iso(vitals.LastQueuedEventAt),
-		"lastClaimAt":       iso(vitals.LastClaimAt),
-		"lastFinishedAt":    iso(vitals.LastFinishedAt),
-		"lastActivityAt":    iso(vitals.LastActivityAt),
-		"activeJob":         active,
-		"jobsCompleted":     vitals.JobsCompleted,
-	}, nil
+	return claims.Vitals(), nil
 }
 
 // Finish is the suite done with this worker, which ends as a worker that is

@@ -92,19 +92,7 @@ actor WorkerDriver {
 
   private func claimed(_ job: any HeldJob) async {
     held = job
-    do {
-      let fields: [String: JSONValue] = [
-        "jobId": try encoded(job.jobId), "jobType": try encoded(job.jobType),
-        "resourceId": try encoded(job.resourceId), "params": try encoded(job.params),
-        "completedUnits": try encoded(job.completedUnits),
-        "unitCursors": try encoded(job.unitCursors),
-        "retryCount": .number(Double(job.retryCount)),
-        "maxRetries": .number(Double(job.maxRetries)),
-      ]
-      await output.say(.claimed(ConformanceDriverLineClaimed(claimed: fields)))
-    } catch {
-      await output.say(.errorStream(ConformanceDriverLineErrorStream(error: failure(error))))
-    }
+    await output.say(.claimed(ConformanceDriverLineClaimed(claimed: job.record)))
     let output = output
     reporters.append(
       Task {
@@ -138,7 +126,7 @@ actor WorkerDriver {
             await output.say(
               .refused(
                 ConformanceDriverLineRefused(
-                  refused: ConformanceFailure(code: error.code?.rawValue, detail: error.detail))))
+                  refused: ConformanceFailure(code: error.code?.rawValue, detail: error.message))))
           }
         } catch {}
       })
@@ -164,22 +152,7 @@ actor WorkerDriver {
 
   private func vitals() async throws -> JSONValue {
     guard let claims else { throw Misuse(description: "The worker is not claiming") }
-    let vitals = await claims.vitals
-    func time(_ date: Date?) -> JSONValue { date.map { .string(dateTime($0)) } ?? .null }
-    let active: JSONValue
-    if let job = vitals.activeJob {
-      active = .object([
-        "jobId": .string(job.jobId.value), "type": .string(job.jobType.rawValue),
-        "since": time(job.since),
-      ])
-    } else {
-      active = .null
-    }
-    return .object([
-      "lastQueuedEventAt": time(vitals.lastQueuedEventAt), "lastClaimAt": time(vitals.lastClaimAt),
-      "lastFinishedAt": time(vitals.lastFinishedAt), "lastActivityAt": time(vitals.lastActivityAt),
-      "activeJob": active, "jobsCompleted": .number(Double(vitals.jobsCompleted)),
-    ])
+    return try encoded(await claims.vitals)
   }
 
   func run(_ op: String, args: [String: JSONValue]) async throws -> JSONValue {
@@ -204,8 +177,9 @@ actor WorkerDriver {
       try await working().progress(JobProgress(percentage: percentage, message: message))
     case "checkpoint":
       try await working().checkpoint(
-        completedUnits: args.texts("completedUnits"),
-        unitCursors: args.optional("unitCursors", as: [String: UnitCursor].self))
+        JobCheckpoint(
+          completedUnits: args.texts("completedUnits"),
+          unitCursors: args.optional("unitCursors", as: [String: UnitCursor].self)))
     case "commit":
       try await working().commit(
         resourceId: ResourceId(args.text("resourceId")),
@@ -221,13 +195,16 @@ actor WorkerDriver {
       }
     case "fail":
       try await working().fail(
-        args.text("error"), failureClass: args.optional("failureClass", as: FailureClass.self),
-        completedUnits: args.optional("completedUnits", as: [String].self),
-        unitCursors: args.optional("unitCursors", as: [String: UnitCursor].self))
+        args.text("error"),
+        failure: JobFailure(
+          completedUnits: args.optional("completedUnits", as: [String].self),
+          unitCursors: args.optional("unitCursors", as: [String: UnitCursor].self),
+          failureClass: args.optional("failureClass", as: FailureClass.self)))
     case "cancel":
       try await working().cancel(
-        completedUnits: args.optional("completedUnits", as: [String].self),
-        unitCursors: args.optional("unitCursors", as: [String: UnitCursor].self))
+        JobReached(
+          completedUnits: args.optional("completedUnits", as: [String].self),
+          unitCursors: args.optional("unitCursors", as: [String: UnitCursor].self)))
     case "vitals": return try await vitals()
     case "sync": break
     default: throw Misuse(description: "Unknown worker operation \(op)")

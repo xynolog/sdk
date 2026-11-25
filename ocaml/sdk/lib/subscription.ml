@@ -227,7 +227,10 @@ let hold_scope t scope =
   let changed left right =
     names (scope_channels left) <> names (scope_channels right)
   in
-  if t.state <> Enums.Connection_state.Closed && not (Promise.is_resolved t.closing) then (
+  if
+    t.state <> Enums.Connection_state.Closed
+    && not (Promise.is_resolved t.closing)
+  then (
     Hashtbl.replace t.scopes key held;
     if changed add held then schedule_scope_change t ~addition:true);
   fun () ->
@@ -335,8 +338,8 @@ let read_stream t input =
                 ?scope:
                   (Option.map Identifiers.Resource_id.to_string route.scope)
                 ?trace:
-                  (Option.bind trace (fun (trace : Wire_stream.trace) ->
-                       Bus_log.trace_id trace.parent))
+                  (Option.bind trace (fun (trace : Records.Trace_carrier.t) ->
+                       Bus_log.trace_id trace.traceparent))
                 (Yojson.Safe.from_string (Bus_registry.encode payload))
           | _ -> ());
           dispatch t event;
@@ -434,7 +437,8 @@ let run t =
           Fiber.first
             (fun () ->
               Clock.sleep_until t.clock degraded_at;
-              if not (Promise.is_resolved restored) then set_state t Enums.Connection_state.Degraded)
+              if not (Promise.is_resolved restored) then
+                set_state t Enums.Connection_state.Degraded)
             (fun () -> Promise.await restored);
           `Stop_daemon))
   in
@@ -651,8 +655,8 @@ let request t ?(timeout_ms = t.timing.bus_request_timeout_ms)
               send ();
               Promise.await reply)
   in
-  if t.state = Enums.Connection_state.Closed || Promise.is_resolved t.closing then
-    Error Transport_closed
+  if t.state = Enums.Connection_state.Closed || Promise.is_resolved t.closing
+  then Error Transport_closed
   else if not (List.mem result_name globals && List.mem failure_name globals)
   then Error Unsubscribed
   else

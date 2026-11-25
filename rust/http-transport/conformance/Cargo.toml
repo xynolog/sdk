@@ -8,7 +8,6 @@ description = "The Rust drivers for the SDK and worker conformance suites (proto
 [dependencies]
 base64.workspace = true
 bytes.workspace = true
-chrono.workspace = true
 futures.workspace = true
 # The worker driver opens a span of its own around each job, as a worker's code does.
 opentelemetry = { workspace = true, features = ["trace"] }

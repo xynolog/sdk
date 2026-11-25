@@ -7,12 +7,13 @@ module Xynolog.Internal.Generated.Models.ErrorData (ErrorData (..)) where
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
+import Xynolog.ErrorCodes (ControlCode (..))
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.FieldFault
 import Xynolog.Internal.Generated.Models.Target
 
 data ErrorData = ErrorData
-  { errorDataCode :: Text,
+  { errorDataCode :: ControlCode,
     errorDataRetryable :: Bool,
     errorDataFields :: Maybe [FieldFault],
     errorDataChoices :: Maybe [Target],

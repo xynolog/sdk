@@ -96,6 +96,12 @@ def declarations(module: str) -> Exports:
         elif declaration.startswith(("data ", "newtype ")):
             name = declaration.split(" ", 2)[1].rsplit(".", 1)[-1]
             types.setdefault(name, {})["definition"] = declaration
+        elif declaration.startswith("class "):
+            # A class's methods are values of their own; its head is what it declares.
+            head = re.fullmatch(r"class (?:.+ => )?([\w.]+)(?: [a-z]\w*)* \.\.\.", declaration)
+            if not head:
+                raise ValueError(f"unreadable compiler class in {module}: {declaration}")
+            types.setdefault(head[1].rsplit(".", 1)[-1], {})["definition"] = declaration
         elif " :: " in declaration:
             qualified, signature = declaration.split(" :: ", 1)
             name = qualified.rsplit(".", 1)[-1]

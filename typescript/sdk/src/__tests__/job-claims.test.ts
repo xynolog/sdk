@@ -38,6 +38,7 @@ import type {
   BusPrimitive,
   ClaimOptions,
   ClaimRefusal,
+  HeldJobRecord,
   HeldJobStall,
   JobFailure,
 } from '@xynolog/core';
@@ -901,16 +902,28 @@ describe('job.claim — the held job', () => {
       annotationId: undefined,
       settled: false,
     });
+    expect(job.record).toEqual({
+      jobId: 'j1',
+      jobType: 'mark',
+      resourceId: 'res-1',
+      params: { resourceId: 'res-1', motivation: 'highlighting', foo: 'bar' },
+      completedUnits: [],
+      unitCursors: {},
+      retryCount: 1,
+      maxRetries: 3,
+    });
     expect(job.cancelled.aborted).toBe(false);
 
     subscription.unsubscribe();
   });
 
-  // A held job is the record a `job:claimed` reply carries, as the spec types
-  // it (`JobRunning`), read field by field. A field cannot be typed wider here
-  // than the spec types it there: a job's type is a `JobType` and not text to
-  // be recognised again, and its params are the record's params.
+  // A held job holds its `HeldJobRecord`, read from what a `job:claimed` reply
+  // carries (`JobRunning`), and each of the record's members is one of its
+  // own. A member cannot be typed wider here than the spec types it there: a
+  // job's type is a `JobType` and not text to be recognised again, and its
+  // params are the claim's params.
   it('each field has the type of the field it is read from', () => {
+    expectTypeOf<HeldJob['record']>().toEqualTypeOf<HeldJobRecord>();
     expectTypeOf<HeldJob['jobId']>().toEqualTypeOf<
       ClaimedJob['metadata']['id']
     >();
@@ -928,10 +941,10 @@ describe('job.claim — the held job', () => {
       ClaimedJob['metadata']['maxRetries']
     >();
     expectTypeOf<HeldJob['completedUnits']>().toEqualTypeOf<
-      Readonly<NonNullable<ClaimedJob['metadata']['completedUnits']>>
+      NonNullable<ClaimedJob['metadata']['completedUnits']>
     >();
     expectTypeOf<HeldJob['unitCursors']>().toEqualTypeOf<
-      Readonly<NonNullable<ClaimedJob['metadata']['unitCursors']>>
+      NonNullable<ClaimedJob['metadata']['unitCursors']>
     >();
   });
 

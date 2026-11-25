@@ -25,7 +25,8 @@ let ( let* ) = Result.bind
 
 let found ~shape name =
   match shape name with
-  | Some s -> Ok s
+  | Some (Ok s) -> Ok s
+  | Some (Error refusals) -> Error refusals
   | None ->
       Error [ refusal name "is no client type, and a Haskell writer reads it" ]
 
@@ -150,13 +151,21 @@ let whole (spec : Spec.t) =
       (written (List.assoc file spec.schemas))
 
 (* The client types [names] the Haskell SDK models: an object as [whole]
-   reads it, its bounds and what is said of it kept. *)
+   reads it, its bounds and what is said of it kept, and so any type the
+   group's model holds none of. *)
 let adapters ~names ~shape ~whole =
   Spec.all
     (List.map
        (fun name ->
-         let* s = found ~shape name in
-         adapter ~whole name s)
+         match shape name with
+         | Some (Ok s) -> adapter ~whole name s
+         | Some (Error _) -> (
+             let* s = whole name in
+             match s with
+             | Schema.Schema s ->
+                 Ok [ (name, Schema.Schema { s with title = Some name }) ]
+             | Schema.Boolean_schema _ -> Error [ refusal name "is no schema" ])
+         | None -> Error [ refusal name "is no client type" ])
        names)
   |> Result.map List.concat
 

@@ -17,7 +17,7 @@ let file (constants : Table.t list) =
               ~from_:
                 ("protocol/specs/src/" ^ Table.file ^ " and bus/registry.json")
               __FILE__;
-          imports = [];
+          imports = [ { S.module_ = "Foundation"; testable = false } ];
           decls =
             List.map
               (fun (c : Table.t) ->
@@ -34,7 +34,8 @@ let file (constants : Table.t list) =
                           value =
                             Some
                               (S.Array
-                                 (S.Lines, List.map (fun n -> S.String n) c.channels));
+                                 ( S.Lines,
+                                   List.map (fun n -> S.String n) c.channels ));
                         };
                   } ))
               constants;

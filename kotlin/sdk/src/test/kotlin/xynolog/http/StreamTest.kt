@@ -4,9 +4,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import xynolog.channels.TRACE_FIELD
 import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
 import xynolog.frame
@@ -38,6 +41,24 @@ class StreamTest {
                     failures.map { Triple((it as TransportError).reason, it.status, it.message) },
                 )
                 assertEquals(1, gateway.subscriptions.size, "the stream goes on")
+            }
+        }
+    }
+
+    @Test
+    fun aFrameWhoseTraceTheTableRefusesArrivesWithNoTraceAndWithoutIt() = runBlocking {
+        StreamGateway().use { gateway ->
+            HttpTransport(gateway.origin, MutableStateFlow("t"), listOf("beckon:focus"), QUICK).use { transport ->
+                val heard = transport.frames("beckon:focus")
+                withTimeout(5_000) { while (gateway.subscriptions.isEmpty()) delay(5) }
+
+                // TraceCarrier's `tracestate` is a text of at least one character.
+                val refused = """{"traceparent": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01", "tracestate": ""}"""
+                gateway.send("e-1", """{"channel": "beckon:focus", "payload": {"annotationId": "a-1", "$TRACE_FIELD": $refused}}""")
+
+                val frame = withTimeout(5_000) { heard.firstOf(1) }.single().frame()
+                assertEquals(JsonObject(mapOf("annotationId" to JsonPrimitive("a-1"))), frame.payload)
+                assertNull(frame.trace)
             }
         }
     }

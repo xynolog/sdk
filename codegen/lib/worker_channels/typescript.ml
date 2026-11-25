@@ -27,27 +27,30 @@ let file (constants : Table.t list) =
             :: List.concat_map
                  (fun (c : Table.t) ->
                    [
-                   T.Type
-                     {
-                       about =
-                         [
-                           T.Doc
-                             ("Each operation whose replies "
-                             ^ Text.upper_snake c.member ^ " names.");
-                         ];
-                       export = true;
-                       name = String.capitalize_ascii c.member ^ "Operation";
-                       params = [];
-                       type_ = T.T_union (List.map (fun o -> T.T_str o) c.replies_of);
-                     };
-                   T.const
-                     ~about:[ T.Doc (Table.doc c) ]
-                     ~annotation:
-                       (T.T_readonly
-                          (T.T_array (T.T_paren (T.T_keyof (T.T_name "EventMap")))))
-                     (Text.upper_snake c.member)
-                     (T.Array
-                        (List.map (fun n -> T.element (T.Str n)) c.channels));
+                     T.Type
+                       {
+                         about =
+                           [
+                             T.Doc
+                               ("Each operation whose replies "
+                              ^ Text.upper_snake c.member ^ " names.");
+                           ];
+                         export = true;
+                         name = String.capitalize_ascii c.member ^ "Operation";
+                         params = [];
+                         type_ =
+                           T.T_union
+                             (List.map (fun o -> T.T_str o) c.replies_of);
+                       };
+                     T.const
+                       ~about:[ T.Doc (Table.doc c) ]
+                       ~annotation:
+                         (T.T_readonly
+                            (T.T_array
+                               (T.T_paren (T.T_keyof (T.T_name "EventMap")))))
+                       (Text.upper_snake c.member)
+                       (T.Array
+                          (List.map (fun n -> T.element (T.Str n)) c.channels));
                    ])
                  constants;
         };

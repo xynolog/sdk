@@ -129,7 +129,7 @@ lifecycle :: Map.Map Text Value -> IO ()
 lifecycle fixtures = rig fixtures $ \rigValue@(Rig worker input sent _ _) -> do
   job <- acquire fixtures rigValue
   require "attempt was not read from the claimed record" (Worker.retryCount job == 1 && Worker.maxRetries job == 3 && Worker.attempt job == 2)
-  require "first attempt checkpoint was manufactured" (null (Worker.completedUnits job) && KM.null (Worker.unitCursors job))
+  require "first attempt checkpoint was manufactured" (null (Worker.completedUnits job) && KM.null (heldJobRecordUnitCursorsAdditionalProperties (Worker.unitCursors job)))
   require "claim identity changed" (Worker.resourceId job == jobParamsResourceId (Worker.params job) && Worker.jobType job == JobTypeMark)
   require "mark job was anchored to an annotation" (Worker.annotationId job == Nothing)
   Worker.start job

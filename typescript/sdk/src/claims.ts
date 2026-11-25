@@ -73,6 +73,7 @@ import type {
   ClaimOptions,
   ClaimRefusal,
   EventMap,
+  HeldJobRecord,
   HeldJobStall,
   JobCheckpoint,
   JobFailure,
@@ -82,7 +83,6 @@ import type {
   JobType,
   ResourceId,
   TraceCarrier,
-  UnitCursor,
   WorkerVitals,
   components,
 } from '@xynolog/core';
@@ -91,7 +91,10 @@ import {
   withTraceparent,
   withoutTrace,
 } from '@xynolog/observability';
-import { JOB_CLAIM_CHANNELS, type JobCommitChannelsOperation } from './worker-channels';
+import {
+  JOB_CLAIM_CHANNELS,
+  type JobCommitChannelsOperation,
+} from './worker-channels';
 
 /** The job a `job:claimed` reply carries, running under this worker: the spec's `JobRunning`. */
 type ClaimedJob = EventMap['job:claimed']['response'];
@@ -155,18 +158,12 @@ export function willRetryAfter(
   );
 }
 
-interface Held<T extends JobType, R> {
-  readonly jobId: JobId;
+interface Held<T extends JobType, R> extends Readonly<
+  Omit<HeldJobRecord, 'jobType'>
+> {
   readonly jobType: T;
-  readonly resourceId: ResourceId;
-  /** The job's parameters as the dispatcher holds them: the description, and what the dispatcher adds. */
-  readonly params: ClaimedJob['params'];
-  /** The units earlier attempts finished. A worker does not do them again. Empty on a first attempt. */
-  readonly completedUnits: readonly string[];
-  /** The furthest each unit begun got on an earlier attempt, and what it had counted there: a finished unit's is where it ended. Empty on a first attempt. */
-  readonly unitCursors: Readonly<Record<string, UnitCursor>>;
-  readonly retryCount: number;
-  readonly maxRetries: number;
+  /** The job as its claim hands it, whole. */
+  readonly record: HeldJobRecord;
   /** Which attempt this is, 1-based. Every lifecycle message states it. */
   readonly attempt: number;
   /** The annotation the job is anchored to: the one a `yield` job's context is focused on. */
@@ -262,13 +259,7 @@ interface Holder {
 }
 
 class HeldJobOf<T extends JobType, R> implements Held<T, R> {
-  readonly jobId: JobId;
-  readonly resourceId: ResourceId;
-  readonly params: ClaimedJob['params'];
-  readonly completedUnits: readonly string[];
-  readonly unitCursors: Readonly<Record<string, UnitCursor>>;
-  readonly retryCount: number;
-  readonly maxRetries: number;
+  readonly record: HeldJobRecord;
   readonly attempt: number;
   readonly annotationId: AnnotationId | undefined;
   readonly trace: TraceCarrier | undefined;
@@ -296,18 +287,49 @@ class HeldJobOf<T extends JobType, R> implements Held<T, R> {
     ) => EventMap['job:complete'],
   ) {
     const { metadata, params } = claimed;
-    this.jobId = metadata.id;
-    this.resourceId = params.resourceId;
-    this.params = params;
-    // Both appear on the record once an attempt has checkpointed. Absent, each reads as none.
-    this.completedUnits = metadata.completedUnits ?? [];
-    this.unitCursors = metadata.unitCursors ?? {};
-    this.retryCount = metadata.retryCount;
-    this.maxRetries = metadata.maxRetries;
-    this.attempt = metadata.retryCount + 1;
+    this.record = {
+      jobId: metadata.id,
+      jobType,
+      resourceId: params.resourceId,
+      params,
+      // Both appear on the claimed record once an attempt has checkpointed. Absent, each reads as none.
+      completedUnits: metadata.completedUnits ?? [],
+      unitCursors: metadata.unitCursors ?? {},
+      retryCount: metadata.retryCount,
+      maxRetries: metadata.maxRetries,
+    };
+    this.attempt = this.record.retryCount + 1;
     this.annotationId = anchorOf(jobType, params);
     this.trace = trace;
     this.cancelled = this.cancellation.signal;
+  }
+
+  get jobId(): HeldJobRecord['jobId'] {
+    return this.record.jobId;
+  }
+
+  get resourceId(): HeldJobRecord['resourceId'] {
+    return this.record.resourceId;
+  }
+
+  get params(): HeldJobRecord['params'] {
+    return this.record.params;
+  }
+
+  get completedUnits(): HeldJobRecord['completedUnits'] {
+    return this.record.completedUnits;
+  }
+
+  get unitCursors(): HeldJobRecord['unitCursors'] {
+    return this.record.unitCursors;
+  }
+
+  get retryCount(): HeldJobRecord['retryCount'] {
+    return this.record.retryCount;
+  }
+
+  get maxRetries(): HeldJobRecord['maxRetries'] {
+    return this.record.maxRetries;
   }
 
   get settled(): boolean {

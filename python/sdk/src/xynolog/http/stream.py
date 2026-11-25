@@ -52,7 +52,7 @@ from xynolog.http.gateway_http import (
 )
 from xynolog.http.sse import SseParser
 from xynolog.identifiers import ResourceId
-from xynolog.required import Fault, read_as
+from xynolog.required import Fault, as_read, read_as
 from xynolog.resume import is_place
 from xynolog.retry import RetryPolicy, equal_jitter, retry_after_ms
 from xynolog.timing import (
@@ -67,8 +67,8 @@ from xynolog.timing import (
     SEEN_EVENT_IDS_COUNT,
     STREAM_OPEN_TIMEOUT_MS,
 )
-from xynolog.transport import CONNECTION_STATE_MAY_BECOME, ConnectionState, Frame, FrameHub, FrameRefusal, ReplyRouter, TraceContext
-from xynolog.types import BusEventMessage, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem, ErrorResponse
+from xynolog.transport import CONNECTION_STATE_MAY_BECOME, ConnectionState, Frame, FrameHub, FrameRefusal, ReplyRouter
+from xynolog.types import BusEventMessage, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem, ErrorResponse, TraceCarrier
 from xynolog.watched import Variable, Watched
 
 __all__ = ["Bookmarks", "SeenIds", "Stream", "Timing", "backoff_cap_ms"]
@@ -77,14 +77,15 @@ __all__ = ["Bookmarks", "SeenIds", "Stream", "Timing", "backoff_cap_ms"]
 _BUS_EVENT: Final = TypeAdapter[tuple[str]](tuple[str]).validate_python(get_args(BusEventMessage.model_fields["event"].annotation))[0]
 
 
-def _sent_under(carried: JsonValue) -> TraceContext | None:
-    """The trace a frame's payload says it was sent under, when it says so."""
-    if not isinstance(carried, dict):
+def _sent_under(carried: JsonValue) -> TraceCarrier | None:
+    """The trace a frame's payload says it was sent under: none, where the table refuses what it carries as one."""
+    read = as_read(TraceCarrier, carried)
+    if isinstance(read, Fault):
         return None
-    traceparent, tracestate = carried.get("traceparent"), carried.get("tracestate")
-    if not isinstance(traceparent, str):
+    try:
+        return TraceCarrier.model_validate(read)
+    except ValidationError:
         return None
-    return TraceContext(traceparent=traceparent, tracestate=tracestate if isinstance(tracestate, str) and tracestate else None)
 
 
 @final
@@ -600,7 +601,7 @@ class Stream:
             # What closing a retired connection at once would have lost.
             bus_note("LINGER", read.channel, "delivered on superseded connection")
         payload = read.payload
-        sent_under: TraceContext | None = None
+        sent_under: TraceCarrier | None = None
         if TRACE_FIELD in payload:
             sent_under = _sent_under(payload[TRACE_FIELD])
             payload = {name: value for name, value in payload.items() if name != TRACE_FIELD}

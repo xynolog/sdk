@@ -22,4 +22,5 @@ let named member =
   | Some named -> named
   | None ->
       invalid_arg
-        (Printf.sprintf "errors/codes.json names %s, which is no vocabulary of it" member)
+        (Printf.sprintf
+           "errors/codes.json names %s, which is no vocabulary of it" member)

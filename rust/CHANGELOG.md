@@ -60,6 +60,22 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What a worker says of itself and of its claims is the generated client
+  types, in `xynolog::types` as Protocol states them: `ClaimRefusal`,
+  `WorkerVitals` and its `WorkerActiveJob` (where `ActiveJob` was; its job's
+  kind is `r#type`), `HeldJobStall`, `JobFailure` and `TraceCarrier`, where
+  `claims` and `transport` declared their own. A vitals stamp is the RFC 3339
+  `String` the wire carries, to the millisecond, where it was a `SystemTime`;
+  a stall's `silent_for_ms` and `threshold_ms` are its milliseconds, where
+  `silent_for` and `threshold` were `Duration`s.
+- A held job keeps the `HeldJobRecord` its claim handed it, as `record()`,
+  and its `job_id`, `job_type`, `resource_id`, `params`, `completed_units`,
+  `unit_cursors`, `retry_count` and `max_retries` are the record's, generated
+  from `client/surface.json` and typed as the record types them.
+- `KbPlacement` names where a knowledge base's stack runs, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
+  and `TargetKind`; `InferenceProvider` names an inference provider, in
+  place of `EngineProvider`.
 - A union's variant for a schema it names is that schema's own name
   (`Job::JobPending`, `ConformanceStep::ConformanceBusFetch`,
   `Agent::AgentPerson`), as every SDK names it, where the prefix its members'
@@ -113,6 +129,16 @@ the coming release's, and gathers its changes as they land.
 - `xynolog::resume::is_place(scope, event_id)`, whether `LastEventIds` holds
   the id as the place reached in the scope, in place of
   `is_persisted_event_id(id)`. The stream and the places kept both ask it.
+- A held job's `checkpoint` takes the generated `JobCheckpoint`, in place of
+  its units and cursors: `checkpoint(checkpoint: JobCheckpoint)` where it was
+  `checkpoint(completed_units: Vec<String>, unit_cursors:
+  Option<BTreeMap<String, UnitCursor>>)`. Its `cancel` takes the generated
+  `JobReached`: `cancel(reached: Option<JobReached>)` where it was
+  `cancel(completed_units: Option<Vec<String>>, unit_cursors:
+  Option<BTreeMap<String, UnitCursor>>)`. Both on `Held<V>` and `HeldJob`.
+- The HTTP transport reads a frame's trace as `TraceCarrier` by the required
+  table (`read_as`): one the table refuses, such as one whose tracestate is
+  empty, is no trace, and is still taken off the payload.
 
 ## 0.8.1
 

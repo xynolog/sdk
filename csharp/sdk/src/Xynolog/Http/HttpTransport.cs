@@ -513,10 +513,8 @@ public sealed partial class HttpTransport : IDisposable
         ActivityContext parent = default;
         if (frame.Payload.TryGetProperty(ProtocolFacts.TraceField, out var trace))
         {
-            if (trace.ValueKind == JsonValueKind.Object && trace.TryGetProperty("traceparent", out var traceparent) && traceparent.ValueKind == JsonValueKind.String)
-            {
-                ActivityContext.TryParse(traceparent.GetString(), trace.TryGetProperty("tracestate", out var tracestate) && tracestate.ValueKind == JsonValueKind.String ? tracestate.GetString() : null, isRemote: true, out parent);
-            }
+            if (Required.TryRead<TraceCarrier>(trace, out var carrier, out _))
+                ActivityContext.TryParse(carrier.Traceparent, carrier.Tracestate, isRemote: true, out parent);
             var payload = JsonNode.Parse(frame.Payload.GetRawText())?.AsObject() ?? throw new JsonException("Null frame payload");
             payload.Remove(ProtocolFacts.TraceField);
             frame = frame with { Payload = JsonSerializer.SerializeToElement(payload) };
@@ -650,7 +648,7 @@ public sealed partial class HttpTransport : IDisposable
         try
         {
             using var body = JsonDocument.Parse(text);
-            if (body.RootElement.ValueKind == JsonValueKind.Object && body.RootElement.TryGetProperty("code", out var value) && value.ValueKind == JsonValueKind.String && TransportErrorCode.OfLimitRefusal(status, value.GetString()!) is { } limited) code = limited;
+            if (Required.TryRead<LimitRefusal>(body.RootElement, out var refusal, out _) && TransportErrorCode.OfLimitRefusal(status, refusal.Code) is { } limited) code = limited;
         }
         catch (JsonException) { }
         return new TransportError(code, $"HTTP {status}: {text}", status);

@@ -16,7 +16,7 @@ public data class DiscoveredKB(
     /** Local TCP port of the KB's API (the gateway port for a local stack; the allocated forward port for a codespace stack) */
     public val port: Long,
     /** Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here. */
-    public val placement: DiscoveredKBPlacement,
+    public val placement: KbPlacement,
     /** owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity */
     public val repo: String? = null,
     /** The KB's did:web identifier, from its committed .xynolog/config.yaml — "did:web:" + its site.domain, verbatim. REQUIRED: a KB that declares no domain has no identity to publish, and the launcher refuses to start it rather than inventing or defaulting one. NOT unique within a document: a did names the knowledge base, not a running copy of it, so a local clone and a codespace of the same repo legitimately share one and both are published. host:port is the unique field (at most one entry per address), so consumers look up by ADDRESS and use the did to VERIFY that the copy they reached is the KB they meant — an address alone cannot say which KB is which, and an identity alone cannot say which copy. */
@@ -30,7 +30,7 @@ public data class DiscoveredKB(
     public class Builder internal constructor(
         private val host: String,
         private val port: Long,
-        private val placement: DiscoveredKBPlacement,
+        private val placement: KbPlacement,
         private val did: String,
         private val managedBy: String,
     ) {
@@ -46,6 +46,6 @@ public data class DiscoveredKB(
     public companion object {
         /** A builder of a `DiscoveredKB` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(host: String, port: Long, placement: DiscoveredKBPlacement, did: String, managedBy: String): Builder = Builder(host, port, placement, did, managedBy)
+        public fun builder(host: String, port: Long, placement: KbPlacement, did: String, managedBy: String): Builder = Builder(host, port, placement, did, managedBy)
     }
 }

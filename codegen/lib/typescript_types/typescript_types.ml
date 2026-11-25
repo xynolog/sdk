@@ -286,15 +286,13 @@ let text (spec : Spec.t) =
           __FILE__;
       body =
         (match Typing.codes typing with
-        | [] -> []
-        | vocabularies ->
-            [
-              T.import ~type_only:true
-                (List.map
-                   (fun v -> fst (Code_names.named v))
-                   vocabularies)
-                "./error-codes";
-            ])
+          | [] -> []
+          | vocabularies ->
+              [
+                T.import ~type_only:true
+                  (List.map (fun v -> fst (Code_names.named v)) vocabularies)
+                  "./error-codes";
+              ])
         @ interfaces @ aliases names;
     }
 

@@ -90,7 +90,8 @@ type TransportErrorCode string
 
 const (
 	// Authentication is required: the token is missing, expired, or refused. A
-	// 429 whose `code` is `refusal-rate` refuses the token too, and is reported
+	// refusal of `limitRefusals` refuses the token too
+	// (contract/TRANSPORT-CONTRACT.md § A refused credential), and is reported
 	// as this code with its own status.
 	TransportErrorCodeUnauthorized TransportErrorCode = "unauthorized"
 	// Authenticated, and lacking permission.
@@ -137,6 +138,21 @@ func TransportErrorCodeOfStatus(status int) TransportErrorCode {
 	default:
 		return TransportErrorCodeError
 	}
+}
+
+// LimitRefusalTransportCode is a gateway refusal of a limit that is a
+// transport code too: its status, its LimitRefusal code, and the transport
+// code it is.
+type LimitRefusalTransportCode struct {
+	Status    int
+	Code      string
+	Transport TransportErrorCode
+}
+
+// LimitRefusalTransportCodes is each gateway refusal of a limit that is a
+// transport code too.
+var LimitRefusalTransportCodes = []LimitRefusalTransportCode{
+	{Status: 429, Code: "refusal-rate", Transport: TransportErrorCodeUnauthorized},
 }
 
 // Why a job its client follows ended without a result. A failure the queue

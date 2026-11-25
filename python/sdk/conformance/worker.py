@@ -30,7 +30,7 @@ from protocol import Arguments, Misuse, Operation, count, exporting, failure, ob
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog import telemetry
-from xynolog.claims import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, ClaimRefusal, Claims, HeldJob, HeldJobStall
+from xynolog.claims import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, Claims, HeldJob
 from xynolog.client import XynologClient
 from xynolog.errors import XynologError
 from xynolog.events import Events
@@ -41,6 +41,7 @@ from xynolog.transport import ConnectionState, ResourceHold
 from xynolog.types import (
     Annotation,
     ClaimOptions,
+    ClaimRefusal,
     ConformanceDriverLineClaimed,
     ConformanceDriverLineErrorStream,
     ConformanceDriverLineRefused,
@@ -49,7 +50,11 @@ from xynolog.types import (
     ConformanceDriverLineState,
     ConformanceFailure,
     FailureClass,
+    HeldJobStall,
+    JobCheckpoint,
+    JobFailure,
     JobProgress,
+    JobReached,
     MarkJobResult,
     UnitCursor,
     YieldJobResult,
@@ -247,20 +252,7 @@ class Worker:
                 continue
             self._hold(handed)
             self._telling.append(self._reporters.create_task(self._signalled(handed)))
-            say(
-                ConformanceDriverLineClaimed(
-                    claimed={
-                        "jobId": handed.job_id,
-                        "jobType": handed.job_type,
-                        "resourceId": handed.resource_id,
-                        "params": written(handed.params),
-                        "completedUnits": list(handed.completed_units),
-                        "unitCursors": {unit: written(cursor) for unit, cursor in handed.unit_cursors.items()},
-                        "retryCount": handed.retry_count,
-                        "maxRetries": handed.max_retries,
-                    }
-                )
-            )
+            say(ConformanceDriverLineClaimed(claimed=handed.record))
 
     async def _signalled(self, job: HeldJob) -> None:
         async for cancelled in job.cancelled:
@@ -285,7 +277,7 @@ class Worker:
 
     async def checkpoint(self, _: int, args: Arguments) -> JsonValue:
         with self._working() as job:
-            await job.checkpoint(texts(args, "completedUnits"), _cursors(args))
+            await job.checkpoint(JobCheckpoint(completed_units=texts(args, "completedUnits"), unit_cursors=_cursors(args)))
         return None
 
     async def commit(self, _: int, args: Arguments) -> JsonValue:
@@ -320,17 +312,21 @@ class Worker:
         with self._settling() as job:
             await job.fail(
                 text(args, "error"),
-                failure_class=_failure_class(args),
-                completed_units=texts(args, "completedUnits") if "completedUnits" in args else None,
-                unit_cursors=_cursors(args),
+                JobFailure(
+                    completed_units=texts(args, "completedUnits") if "completedUnits" in args else None,
+                    unit_cursors=_cursors(args),
+                    failure_class=_failure_class(args),
+                ),
             )
         return None
 
     async def cancel(self, _: int, args: Arguments) -> JsonValue:
         with self._settling() as job:
             await job.cancel(
-                texts(args, "completedUnits") if "completedUnits" in args else None,
-                _cursors(args),
+                JobReached(
+                    completed_units=texts(args, "completedUnits") if "completedUnits" in args else None,
+                    unit_cursors=_cursors(args),
+                )
             )
         return None
 

@@ -649,7 +649,7 @@ type launcherDocument struct{ reads atomic.Int64 }
 func (d *launcherDocument) Read(context.Context) discovery.DiscoveryRead {
 	if d.reads.Add(1) == 1 {
 		return discovery.Managed{KBs: []api.DiscoveredKB{{
-			Host: "localhost", Port: 4000, Placement: api.DiscoveredKBPlacementLocal, ManagedBy: "xynolog-launcher", Did: "did:web:example.org:kb-a",
+			Host: "localhost", Port: 4000, Placement: api.KbPlacementLocal, ManagedBy: "xynolog-launcher", Did: "did:web:example.org:kb-a",
 		}}}
 	}
 	return discovery.Unchanged{}

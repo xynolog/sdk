@@ -1032,6 +1032,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             ..NONE
         },
     ),
+    ("Binary", of(&[Kind::String])),
     (
         "BindBodyOperation",
         Shape {
@@ -1990,6 +1991,42 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "ClaimRefusal",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["code", "message"],
+            members: &[
+                (
+                    "code",
+                    Shape {
+                        kinds: Some(&[Kind::String, Kind::Null]),
+                        one_of: &[
+                            of(&[Kind::Null]),
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[
+                                    Listed::Text("bus.timeout"),
+                                    Listed::Text("bus.rejected"),
+                                    Listed::Text("bus.closed"),
+                                    Listed::Text("bus.not-found"),
+                                    Listed::Text("bus.unsubscribed"),
+                                    Listed::Text("bus.peer-unavailable"),
+                                    Listed::Text("bus.unauthorized"),
+                                    Listed::Text("bus.none-pending"),
+                                ]),
+                                ..NONE
+                            },
+                        ],
+                        ..NONE
+                    },
+                ),
+                ("message", of(&[Kind::String])),
+            ],
+            closed: Some(&["code", "message"]),
+            ..NONE
+        },
+    ),
+    (
         "ClientSecretForm",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -2485,7 +2522,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 Shape {
                     kinds: Some(&[Kind::Object]),
                     required: &["claimed"],
-                    members: &[("claimed", of(&[Kind::Object]))],
+                    members: &[("claimed", reference("HeldJobRecord"))],
                     closed: Some(&["claimed"]),
                     ..NONE
                 },
@@ -3123,44 +3160,14 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 Shape {
                     kinds: Some(&[Kind::Object]),
                     required: &["state"],
-                    members: &[(
-                        "state",
-                        Shape {
-                            kinds: Some(&[Kind::String]),
-                            enumeration: Some(&[
-                                Listed::Text("initial"),
-                                Listed::Text("connecting"),
-                                Listed::Text("open"),
-                                Listed::Text("reconnecting"),
-                                Listed::Text("degraded"),
-                                Listed::Text("unauthenticated"),
-                                Listed::Text("closed"),
-                            ]),
-                            ..NONE
-                        },
-                    )],
+                    members: &[("state", reference("ConnectionState"))],
                     closed: Some(&["state"]),
                     ..NONE
                 },
                 Shape {
                     kinds: Some(&[Kind::Object]),
                     required: &["stays"],
-                    members: &[(
-                        "stays",
-                        Shape {
-                            kinds: Some(&[Kind::String]),
-                            enumeration: Some(&[
-                                Listed::Text("initial"),
-                                Listed::Text("connecting"),
-                                Listed::Text("open"),
-                                Listed::Text("reconnecting"),
-                                Listed::Text("degraded"),
-                                Listed::Text("unauthenticated"),
-                                Listed::Text("closed"),
-                            ]),
-                            ..NONE
-                        },
-                    )],
+                    members: &[("stays", reference("ConnectionState"))],
                     closed: Some(&["stays"]),
                     ..NONE
                 },
@@ -3481,6 +3488,22 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             ..NONE
         },
     ),
+    (
+        "ConnectionState",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("initial"),
+                Listed::Text("connecting"),
+                Listed::Text("open"),
+                Listed::Text("reconnecting"),
+                Listed::Text("degraded"),
+                Listed::Text("unauthenticated"),
+                Listed::Text("closed"),
+            ]),
+            ..NONE
+        },
+    ),
     ("ContentFormat", of(&[Kind::String])),
     (
         "ContextualSummaryResponse",
@@ -3642,14 +3665,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("did", of(&[Kind::String])),
                 ("host", of(&[Kind::String])),
                 ("managedBy", of(&[Kind::String])),
-                (
-                    "placement",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
-                        ..NONE
-                    },
-                ),
+                ("placement", reference("KbPlacement")),
                 ("port", of(&[Kind::Integer])),
                 ("repo", of(&[Kind::String])),
                 ("siteName", of(&[Kind::String])),
@@ -3934,22 +3950,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                (
-                    "provider",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[
-                            Listed::Text("anthropic"),
-                            Listed::Text("google"),
-                            Listed::Text("llamacpp"),
-                            Listed::Text("ollama"),
-                            Listed::Text("openai"),
-                            Listed::Text("together"),
-                            Listed::Text("vllm"),
-                        ]),
-                        ..NONE
-                    },
-                ),
+                ("provider", reference("InferenceProvider")),
             ],
             closed: Some(&["model", "provider"]),
             ..NONE
@@ -4080,68 +4081,31 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     "code",
                     Shape {
                         kinds: Some(&[Kind::String]),
-                        pattern: Some(&[
-                            Term::Step(Step {
-                                of: &[(99, 99)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(111, 111)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(110, 110)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(116, 116)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(114, 114)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(111, 111)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(108, 108)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(46, 46)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(97, 122)],
-                                min: 1,
-                                max: None,
-                            }),
-                            Term::Group(Group {
-                                either: &[&[
-                                    Term::Step(Step {
-                                        of: &[(45, 45)],
-                                        min: 1,
-                                        max: Some(1),
-                                    }),
-                                    Term::Step(Step {
-                                        of: &[(97, 122)],
-                                        min: 1,
-                                        max: None,
-                                    }),
-                                ]],
-                                min: 0,
-                                max: None,
-                            }),
+                        enumeration: Some(&[
+                            Listed::Text("control.invalid-params"),
+                            Listed::Text("control.unsupported-api-version"),
+                            Listed::Text("control.invalid-request"),
+                            Listed::Text("control.invalid-service"),
+                            Listed::Text("control.invalid-value"),
+                            Listed::Text("control.unknown-setting"),
+                            Listed::Text("control.target-required"),
+                            Listed::Text("control.target-ambiguous"),
+                            Listed::Text("control.root-not-found"),
+                            Listed::Text("control.root-not-registered"),
+                            Listed::Text("control.stack-not-running"),
+                            Listed::Text("control.stack-running"),
+                            Listed::Text("control.start-in-progress"),
+                            Listed::Text("control.runtime-unavailable"),
+                            Listed::Text("control.dependency-unavailable"),
+                            Listed::Text("control.unreachable"),
+                            Listed::Text("control.instance-in-use"),
+                            Listed::Text("control.instance-not-found"),
+                            Listed::Text("control.confirmation-required"),
+                            Listed::Text("control.unreadable-state"),
+                            Listed::Text("control.already-signed-in"),
+                            Listed::Text("control.sign-in-failed"),
+                            Listed::Text("control.cancelled"),
+                            Listed::Text("control.failed"),
                         ]),
                         ..NONE
                     },
@@ -5363,6 +5327,116 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "HeldJobRecord",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "jobId",
+                "jobType",
+                "resourceId",
+                "params",
+                "completedUnits",
+                "unitCursors",
+                "retryCount",
+                "maxRetries",
+            ],
+            members: &[
+                (
+                    "completedUnits",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                ("jobId", reference("JobId")),
+                ("jobType", reference("JobType")),
+                (
+                    "maxRetries",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("params", reference("JobParams")),
+                ("resourceId", reference("ResourceId")),
+                (
+                    "retryCount",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "unitCursors",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&reference("UnitCursor")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "completedUnits",
+                "jobId",
+                "jobType",
+                "maxRetries",
+                "params",
+                "resourceId",
+                "retryCount",
+                "unitCursors",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "HeldJobStall",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "jobId",
+                "jobType",
+                "heldSince",
+                "lastActivityAt",
+                "silentForMs",
+                "thresholdMs",
+            ],
+            members: &[
+                ("heldSince", of(&[Kind::String])),
+                ("jobId", reference("JobId")),
+                ("jobType", reference("JobType")),
+                ("lastActivityAt", of(&[Kind::String])),
+                (
+                    "silentForMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "thresholdMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "heldSince",
+                "jobId",
+                "jobType",
+                "lastActivityAt",
+                "silentForMs",
+                "thresholdMs",
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "HighlightingJobParams",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -5617,19 +5691,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                                     kinds: Some(&[Kind::Object]),
                                     values: Some(&reference("Provider")),
                                     min_members: Some(1),
-                                    names: Some(&Shape {
-                                        kinds: Some(&[Kind::String]),
-                                        enumeration: Some(&[
-                                            Listed::Text("anthropic"),
-                                            Listed::Text("google"),
-                                            Listed::Text("llamacpp"),
-                                            Listed::Text("ollama"),
-                                            Listed::Text("openai"),
-                                            Listed::Text("together"),
-                                            Listed::Text("vllm"),
-                                        ]),
-                                        ..NONE
-                                    }),
+                                    names: Some(&reference("InferenceProvider")),
                                     ..NONE
                                 },
                             ),
@@ -5678,6 +5740,22 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     ..NONE
                 },
             )],
+            ..NONE
+        },
+    ),
+    (
+        "InferenceProvider",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("anthropic"),
+                Listed::Text("google"),
+                Listed::Text("llamacpp"),
+                Listed::Text("ollama"),
+                Listed::Text("openai"),
+                Listed::Text("together"),
+                Listed::Text("vllm"),
+            ]),
             ..NONE
         },
     ),
@@ -6024,6 +6102,33 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "JobCheckpoint",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["completedUnits"],
+            members: &[
+                (
+                    "completedUnits",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                (
+                    "unitCursors",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&reference("UnitCursor")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["completedUnits", "unitCursors"]),
+            ..NONE
+        },
+    ),
+    (
         "JobCheckpointCommand",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -6312,6 +6417,33 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("jobType", reference("JobType")),
                 ("willRetry", of(&[Kind::Boolean])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "JobFailure",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                (
+                    "completedUnits",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                ("failureClass", reference("FailureClass")),
+                (
+                    "unitCursors",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&reference("UnitCursor")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["completedUnits", "failureClass", "unitCursors"]),
             ..NONE
         },
     ),
@@ -6785,6 +6917,32 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "JobReached",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                (
+                    "completedUnits",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                (
+                    "unitCursors",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&reference("UnitCursor")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["completedUnits", "unitCursors"]),
+            ..NONE
+        },
+    ),
+    (
         "JobRecord",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -7119,6 +7277,14 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "KbPlacement",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
+            ..NONE
+        },
+    ),
+    (
         "KbRead",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -7259,14 +7425,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("key", of(&[Kind::String])),
                 ("lan", of(&[Kind::String])),
                 ("name", of(&[Kind::String])),
-                (
-                    "placement",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
-                        ..NONE
-                    },
-                ),
+                ("placement", reference("KbPlacement")),
                 ("recorded", of(&[Kind::Boolean])),
                 ("repo", of(&[Kind::String])),
                 ("root", of(&[Kind::String])),
@@ -10259,7 +10418,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("archiveOriginal", of(&[Kind::String])),
                 ("cloneToken", of(&[Kind::String])),
                 ("entityTypes", of(&[Kind::String])),
-                ("file", of(&[Kind::String])),
+                ("file", reference("Binary")),
                 ("format", of(&[Kind::String])),
                 ("generationPrompt", of(&[Kind::String])),
                 ("generator", of(&[Kind::String])),
@@ -10338,6 +10497,41 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "RetryBudget",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["attempts", "initialDelayMs", "maxDelayMs"],
+            members: &[
+                (
+                    "attempts",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "initialDelayMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "maxDelayMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["attempts", "initialDelayMs", "maxDelayMs"]),
+            ..NONE
+        },
+    ),
+    (
         "Root",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -10368,14 +10562,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("identityError", of(&[Kind::String])),
                 ("lastUsed", of(&[Kind::String])),
                 ("path", of(&[Kind::String])),
-                (
-                    "placement",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
-                        ..NONE
-                    },
-                ),
+                ("placement", reference("KbPlacement")),
                 ("present", of(&[Kind::Boolean])),
                 ("reachable", of(&[Kind::Boolean])),
                 ("registered", of(&[Kind::Boolean])),
@@ -11812,22 +11999,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                (
-                    "stream",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[
-                            Listed::Text("initial"),
-                            Listed::Text("connecting"),
-                            Listed::Text("open"),
-                            Listed::Text("reconnecting"),
-                            Listed::Text("degraded"),
-                            Listed::Text("unauthenticated"),
-                            Listed::Text("closed"),
-                        ]),
-                        ..NONE
-                    },
-                ),
+                ("stream", reference("ConnectionState")),
             ],
             closed: Some(&[
                 "eventsProcessed",
@@ -12840,14 +13012,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             kinds: Some(&[Kind::Object]),
             required: &["kind"],
             members: &[
-                (
-                    "kind",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
-                        ..NONE
-                    },
-                ),
+                ("kind", reference("KbPlacement")),
                 (
                     "repo",
                     Shape {
@@ -13044,6 +13209,33 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
                 ("value", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "TraceCarrier",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["traceparent"],
+            members: &[
+                (
+                    "traceparent",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "tracestate",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["traceparent", "tracestate"]),
             ..NONE
         },
     ),
@@ -13595,6 +13787,20 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "WorkerActiveJob",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["jobId", "type", "since"],
+            members: &[
+                ("jobId", reference("JobId")),
+                ("since", of(&[Kind::String])),
+                ("type", reference("JobType")),
+            ],
+            closed: Some(&["jobId", "since", "type"]),
+            ..NONE
+        },
+    ),
+    (
         "WorkerConfig",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -13701,13 +13907,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     "activeJob",
                     Shape {
                         kinds: Some(&[Kind::Object, Kind::Null]),
-                        required: &["jobId", "type", "since"],
-                        members: &[
-                            ("jobId", reference("JobId")),
-                            ("since", of(&[Kind::String])),
-                            ("type", reference("JobType")),
-                        ],
-                        closed: Some(&["jobId", "since", "type"]),
+                        one_of: &[of(&[Kind::Null]), reference("WorkerActiveJob")],
                         ..NONE
                     },
                 ),
@@ -13929,6 +14129,51 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
             ],
             closed: Some(&["apiVersion", "kind", "metadata", "spec"]),
+            ..NONE
+        },
+    ),
+    (
+        "WorkerVitals",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "lastQueuedEventAt",
+                "lastClaimAt",
+                "lastFinishedAt",
+                "lastActivityAt",
+                "activeJob",
+                "jobsCompleted",
+            ],
+            members: &[
+                (
+                    "activeJob",
+                    Shape {
+                        kinds: Some(&[Kind::Object, Kind::Null]),
+                        one_of: &[of(&[Kind::Null]), reference("WorkerActiveJob")],
+                        ..NONE
+                    },
+                ),
+                (
+                    "jobsCompleted",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("lastActivityAt", of(&[Kind::String, Kind::Null])),
+                ("lastClaimAt", of(&[Kind::String, Kind::Null])),
+                ("lastFinishedAt", of(&[Kind::String, Kind::Null])),
+                ("lastQueuedEventAt", of(&[Kind::String, Kind::Null])),
+            ],
+            closed: Some(&[
+                "activeJob",
+                "jobsCompleted",
+                "lastActivityAt",
+                "lastClaimAt",
+                "lastFinishedAt",
+                "lastQueuedEventAt",
+            ]),
             ..NONE
         },
     ),

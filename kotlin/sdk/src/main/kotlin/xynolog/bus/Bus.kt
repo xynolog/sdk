@@ -34,7 +34,6 @@ import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
 import xynolog.transport.Heard
 import xynolog.transport.ResourceHold
-import xynolog.transport.TraceContext
 import xynolog.transport.Transport
 import xynolog.transport.scope
 import xynolog.types.CommandError

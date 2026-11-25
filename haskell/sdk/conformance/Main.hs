@@ -299,20 +299,7 @@ reportJobs driver worker = do
               $ \_ -> do
                 context <- getContext
                 atomically (writeTVar (currentJob driver) (Just (ActiveJob some context)))
-                say driver
-                  $ ConformanceDriverLineClaimed
-                  $ MkConformanceDriverLineClaimed
-                  $ ConformanceDriverLineClaimedClaimed
-                  $ KM.fromList
-                    [ "jobId" .= Worker.jobId job,
-                      "jobType" .= Worker.jobType job,
-                      "resourceId" .= Worker.resourceId job,
-                      "params" .= Worker.params job,
-                      "completedUnits" .= Worker.completedUnits job,
-                      "unitCursors" .= Worker.unitCursors job,
-                      "retryCount" .= Worker.retryCount job,
-                      "maxRetries" .= Worker.maxRetries job
-                    ]
+                say driver (ConformanceDriverLineClaimed (MkConformanceDriverLineClaimed (Worker.heldJobRecord job)))
                 let waitSettled = atomically (Worker.settled job >>= check)
                     cancellation = do
                       signalled <- atomically ((Worker.cancelled job >>= check >> pure True) `orElse` (Worker.settled job >>= check >> pure False))

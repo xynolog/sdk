@@ -14,7 +14,7 @@ let file (t : Table.t) =
       S.print
         {
           banner = Banner.lines ~from_:Table.from_ __FILE__;
-          imports = [];
+          imports = [ { S.module_ = "Foundation"; testable = false } ];
           decls =
             [
               ( S.Blank,
@@ -42,7 +42,8 @@ let file (t : Table.t) =
                                  List.map
                                    (fun (s, moves) ->
                                      ( state s,
-                                       S.Array (S.Inline, List.map state moves) ))
+                                       S.Array (S.Inline, List.map state moves)
+                                     ))
                                    t ));
                       };
                 } );

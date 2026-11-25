@@ -53,8 +53,8 @@ from xynolog.identifiers import ResourceId, UserId
 from xynolog.model import WireModel, written
 from xynolog.required import UNDECODED, Fault, as_read
 from xynolog.timing import BUS_REQUEST_TIMEOUT_MS
-from xynolog.transport import ConnectionState, Frame, FrameRefusal, ResourceHold, TraceContext, Transport
-from xynolog.types import CommandError
+from xynolog.transport import ConnectionState, Frame, FrameRefusal, ResourceHold, Transport
+from xynolog.types import CommandError, TraceCarrier
 from xynolog.watched import NeverReached, reached
 
 __all__ = ["Bus", "Delivered", "Heard", "Typed", "decoded", "reply_channels_for", "request"]
@@ -217,7 +217,7 @@ class Delivered[P: WireModel]:
     scope: ResourceId | None = None
     user_id: UserId | None = None
     """Who emitted it, as the gateway stamped it."""
-    trace: TraceContext | None = None
+    trace: TraceCarrier | None = None
     status: Literal["delivered"] = field(default="delivered", init=False)
 
 

@@ -7,5 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceStepState
 {
-    [global::Xynolog.Serialization.Wire("state")] public required global::Xynolog.Types.ConformanceStepStateState State { get; init; }
+    [global::Xynolog.Serialization.Wire("state")] public required global::Xynolog.Types.ConnectionState State { get; init; }
 }

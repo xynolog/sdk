@@ -9,7 +9,8 @@ type t = {
     [ `UserResponse ] Models.t option State_value.t
     * [ `UserResponse ] Models.t option State_value.writer;
   stream :
-    Enums.Connection_state.t State_value.t * Enums.Connection_state.t State_value.writer;
+    Enums.Connection_state.t State_value.t
+    * Enums.Connection_state.t State_value.writer;
   said : Client.said Kept_for_first_reader.t;
   ready : unit Promise.t * unit Promise.u;
   tasks : State_task.t;

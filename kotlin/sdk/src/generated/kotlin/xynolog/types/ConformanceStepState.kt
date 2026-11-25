@@ -9,11 +9,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 public data class ConformanceStepState(
     /** The state. */
-    public val state: ConformanceStepStateState,
+    public val state: ConnectionState,
 ) : ConformanceStep {
     /** How Java makes a `ConformanceStepState`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val state: ConformanceStepStateState,
+        private val state: ConnectionState,
     ) {
         public fun build(): ConformanceStepState = ConformanceStepState(state = state)
     }
@@ -21,6 +21,6 @@ public data class ConformanceStepState(
     public companion object {
         /** A builder of a `ConformanceStepState` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(state: ConformanceStepStateState): Builder = Builder(state)
+        public fun builder(state: ConnectionState): Builder = Builder(state)
     }
 }

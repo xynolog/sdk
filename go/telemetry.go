@@ -29,6 +29,8 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/optional"
+	"github.com/xynolog/sdk/go/internal/required"
 )
 
 // instrumentationScope is the scope every span and count here is made under.
@@ -48,41 +50,36 @@ type telemetryMetric struct {
 	meaning string
 }
 
-// TraceContext is a trace as the wire carries one: what a frame was sent
-// under. Its zero value is no trace.
-type TraceContext struct {
-	Traceparent string
-	Tracestate  string
-}
-
-// IsZero reports whether t is no trace.
-func (t TraceContext) IsZero() bool { return t.Traceparent == "" }
-
-func (t TraceContext) carrier() propagation.MapCarrier {
-	carrier := propagation.MapCarrier{"traceparent": t.Traceparent}
-	if t.Tracestate != "" {
-		carrier["tracestate"] = t.Tracestate
+// carrierOf is trace as a propagator reads it.
+func carrierOf(trace *api.TraceCarrier) propagation.MapCarrier {
+	carrier := propagation.MapCarrier{"traceparent": trace.Traceparent}
+	if trace.Tracestate != nil {
+		carrier["tracestate"] = *trace.Tracestate
 	}
 	return carrier
 }
 
 // Continuing is ctx holding trace: a span started under it continues that
 // trace, as the work done for a frame continues the trace the frame brought
-// (Frame.Trace). With no trace, or no propagator installed to read one, it is
-// ctx.
-func Continuing(ctx context.Context, trace TraceContext) context.Context {
-	if trace.IsZero() {
+// (Frame.Trace). With no trace (nil), or no propagator installed to read one,
+// it is ctx.
+func Continuing(ctx context.Context, trace *api.TraceCarrier) context.Context {
+	if trace == nil {
 		return ctx
 	}
-	return otel.GetTextMapPropagator().Extract(ctx, trace.carrier())
+	return otel.GetTextMapPropagator().Extract(ctx, carrierOf(trace))
 }
 
-// activeTrace is the trace ctx is in, as the wire carries one: none when it is
+// activeTrace is the trace ctx is in, as the wire carries one: nil when it is
 // in none, or no propagator is installed to write one.
-func activeTrace(ctx context.Context) TraceContext {
+func activeTrace(ctx context.Context) *api.TraceCarrier {
 	carrier := propagation.MapCarrier{}
 	otel.GetTextMapPropagator().Inject(ctx, carrier)
-	return TraceContext{Traceparent: carrier.Get("traceparent"), Tracestate: carrier.Get("tracestate")}
+	traceparent := carrier.Get("traceparent")
+	if traceparent == "" {
+		return nil
+	}
+	return &api.TraceCarrier{Traceparent: traceparent, Tracestate: optional.Text(carrier.Get("tracestate"))}
 }
 
 // carryTrace puts the trace ctx is in on a request's headers: none when it is
@@ -92,19 +89,20 @@ func carryTrace(ctx context.Context, header http.Header) {
 }
 
 // withoutTrace is a frame's payload without the trace it rides in, and that
-// trace. A payload that is not an object carries no trace member, and is
-// given as it came.
-func withoutTrace(payload json.RawMessage) (rest json.RawMessage, sentUnder TraceContext) {
+// trace read as a TraceCarrier by the required table: nil for none, and for
+// one the table refuses. A payload that is not an object carries no trace
+// member, and is given as it came.
+func withoutTrace(payload json.RawMessage) (rest json.RawMessage, sentUnder *api.TraceCarrier) {
 	if !bytes.Contains(payload, []byte(`"`+bus.TraceField+`"`)) {
-		return payload, TraceContext{}
+		return payload, nil
 	}
 	var fields map[string]json.RawMessage
 	if json.Unmarshal(payload, &fields) != nil {
-		return payload, TraceContext{}
+		return payload, nil
 	}
 	carried, has := fields[bus.TraceField]
 	if !has {
-		return payload, TraceContext{}
+		return payload, nil
 	}
 	delete(fields, bus.TraceField)
 	rest, err := json.Marshal(fields)
@@ -112,18 +110,11 @@ func withoutTrace(payload json.RawMessage) (rest json.RawMessage, sentUnder Trac
 		// Each member was read from JSON just now: writing them again cannot fail.
 		panic(fmt.Sprintf("a payload's members, read from JSON, cannot be written again: %v", err))
 	}
-	var stated struct {
-		Traceparent *string `json:"traceparent"`
-		Tracestate  *string `json:"tracestate"`
+	stated, held := required.ReadAs[api.TraceCarrier](carried)
+	if !held {
+		return rest, nil
 	}
-	if json.Unmarshal(carried, &stated) != nil || stated.Traceparent == nil {
-		return rest, TraceContext{}
-	}
-	sentUnder.Traceparent = *stated.Traceparent
-	if stated.Tracestate != nil {
-		sentUnder.Tracestate = *stated.Tracestate
-	}
-	return rest, sentUnder
+	return rest, &stated
 }
 
 // named is the span's name for a frame on channel.
@@ -161,10 +152,10 @@ func emitting(ctx context.Context, channel bus.Channel, scope api.ResourceId) (c
 // received marks a frame's arrival, in the trace it was sent under, and is
 // the trace the work done for the frame continues: the arrival's own span
 // when one is recorded, and what the frame brought otherwise.
-func received(channel bus.Channel, scope api.ResourceId, sentUnder TraceContext) TraceContext {
+func received(channel bus.Channel, scope api.ResourceId, sentUnder *api.TraceCarrier) *api.TraceCarrier {
 	ctx, span := startSpan(Continuing(context.Background(), sentUnder), spanBusRecv, spanBusRecv.named(channel), onTheBus(channel, scope)...)
 	defer span.End()
-	if active := activeTrace(ctx); !active.IsZero() {
+	if active := activeTrace(ctx); active != nil {
 		return active
 	}
 	return sentUnder

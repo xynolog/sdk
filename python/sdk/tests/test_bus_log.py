@@ -27,7 +27,8 @@ from xynolog.http import HttpTransport, Timing
 from xynolog.identifiers import ResourceId
 from xynolog.model import WireModel
 from xynolog.retry import RetryPolicy
-from xynolog.transport import PutBinaryRequest, TraceContext
+from xynolog.transport import PutBinaryRequest
+from xynolog.types import TraceCarrier
 from xynolog.watched import Variable, reached
 
 QUICK: Final = Timing(
@@ -35,7 +36,7 @@ QUICK: Final = Timing(
 )
 RESOURCE: Final = ResourceId("res-1")
 CORRELATION: Final = "a89a670a-1b2c-4d3e-8f90-123456789abc"
-TRACE: Final = TraceContext(traceparent="00-8f3ca4ed5a6b7c8d9e0f112233445566-b7ad6b7169203331-01")
+TRACE: Final = TraceCarrier(traceparent="00-8f3ca4ed5a6b7c8d9e0f112233445566-b7ad6b7169203331-01")
 
 
 @pytest.fixture

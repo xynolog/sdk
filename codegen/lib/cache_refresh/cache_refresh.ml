@@ -58,12 +58,8 @@ let channels ~known (registry : Tables.Bus_registry.t) =
 
 let context (spec : Spec.t) =
   let registry = spec.tables.bus_registry in
-  let* components = Required.collect (Required.components spec) in
-  let* derivation =
-    Required.Shape.derive ~ids:spec.ids
-      ~unrecognized:spec.tables.errors_codes.bus_request.unrecognized_failure
-      components
-  in
+  let* components = Required.roots spec in
+  let* derivation = Required.derive_roots spec components in
   let shapes = derivation.shapes in
   let* channels =
     channels ~known:(fun name -> List.mem_assoc name shapes) registry

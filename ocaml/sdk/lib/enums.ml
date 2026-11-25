@@ -128,6 +128,29 @@ module Failure_class = struct
     | _ -> None
 end
 
+module Inference_provider = struct
+  type t = Anthropic | Google | Llamacpp | Ollama | Openai | Together | Vllm
+
+  let to_string = function
+    | Anthropic -> "anthropic"
+    | Google -> "google"
+    | Llamacpp -> "llamacpp"
+    | Ollama -> "ollama"
+    | Openai -> "openai"
+    | Together -> "together"
+    | Vllm -> "vllm"
+
+  let of_string = function
+    | "anthropic" -> Some Anthropic
+    | "google" -> Some Google
+    | "llamacpp" -> Some Llamacpp
+    | "ollama" -> Some Ollama
+    | "openai" -> Some Openai
+    | "together" -> Some Together
+    | "vllm" -> Some Vllm
+    | _ -> None
+end
+
 module Job_type = struct
   type t = Mark | Yield
 
@@ -136,6 +159,17 @@ module Job_type = struct
   let of_string = function
     | "mark" -> Some Mark
     | "yield" -> Some Yield
+    | _ -> None
+end
+
+module Kb_placement = struct
+  type t = Local | Codespace
+
+  let to_string = function Local -> "local" | Codespace -> "codespace"
+
+  let of_string = function
+    | "local" -> Some Local
+    | "codespace" -> Some Codespace
     | _ -> None
 end
 
@@ -521,6 +555,36 @@ module Anchor_method = struct
     | "context-recovered" -> Some Context_recovered
     | "first-of-many" -> Some First_of_many
     | "fuzzy-match" -> Some Fuzzy_match
+    | _ -> None
+end
+
+module Connection_state = struct
+  type t =
+    | Initial
+    | Connecting
+    | Open
+    | Reconnecting
+    | Degraded
+    | Unauthenticated
+    | Closed
+
+  let to_string = function
+    | Initial -> "initial"
+    | Connecting -> "connecting"
+    | Open -> "open"
+    | Reconnecting -> "reconnecting"
+    | Degraded -> "degraded"
+    | Unauthenticated -> "unauthenticated"
+    | Closed -> "closed"
+
+  let of_string = function
+    | "initial" -> Some Initial
+    | "connecting" -> Some Connecting
+    | "open" -> Some Open
+    | "reconnecting" -> Some Reconnecting
+    | "degraded" -> Some Degraded
+    | "unauthenticated" -> Some Unauthenticated
+    | "closed" -> Some Closed
     | _ -> None
 end
 

@@ -3,13 +3,13 @@
 // Authority:   protocol/specs/src/client/timing.json
 // Regenerate:  make generate  (codegen/lib/case_data/typescript.ml)
 
-export type Object = {
+export type RetryBudget = {
   attempts: number;
   initialDelayMs: number;
   maxDelayMs: number;
 };
 
-export type ItemValue = number | Object;
+export type ItemValue = number | RetryBudget;
 
 export type TimingItem = {
   name: string;
@@ -24,7 +24,7 @@ export type Table = {
 
 export const table: Table = {
   $comment:
-    "AUTHORITY for the timing a Xynolog client keeps: its deadlines, its retry budgets and the cadence of its stream. Every SDK generates its constants from this file, so one client waits as long, and tries as often, as another. A name ending in `Ms` is a duration in milliseconds; one ending in `Retry` is a budget of `attempts` with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`; one ending in `Count` is a whole number of things. TypeScript: the consumer-owned generator writes sdk/typescript/core/src/client-timing.ts. An SDK's testing surface may override any of these; these are what it does unasked. Which failures are worth an attempt is specs/src/retry/rules.json.",
+    "AUTHORITY for the timing a Xynolog client keeps: its deadlines, its retry budgets and the cadence of its stream. Every SDK generates its constants from this file, so one client waits as long, and tries as often, as another. A name ending in `Ms` is a duration in milliseconds; one ending in `Retry` is a budget of `attempts` with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`; one ending in `Count` is a whole number of things. An SDK's testing surface may override any of these; these are what it does unasked. Which failures are worth an attempt is specs/src/retry/rules.json.",
   timing: [
     {
       name: 'busRequestTimeoutMs',
@@ -48,7 +48,7 @@ export const table: Table = {
     {
       name: 'httpRequestTimeoutMs',
       value: 30000,
-      docs: "The deadline on one HTTP request that is neither the stream nor an emit: one of the gateway's own operations (who a token is, a media token, the resource metadata, health, status), the wait for a resource's bytes to begin arriving, a read of a resource's description or of its anchored text, a request to the issuer (its discovery, a grant, a revocation), and a read of a launcher's discovery document. Unanswered here, the request fails as one that got no answer. It bounds the read of a refusal's body too, of such a request or of the request that opens the stream (`streamOpenTimeoutMs`): a body not read by then is the refusal with none of the gateway's words, refused, renewed or retried as any refusal is. Without it, a gateway or an issuer that accepts a connection and never answers holds a session's start, and every renewal after it, for as long as the process lives. An upload has no deadline: how long it takes is how large the resource is. A read of anchored text may be held by the Archivist while the Smelter reads the content, and the gateway waits for the Archivist as the Archivist's document states (specs/src/archivist/openapi.json): this deadline is longer than its `connectSeconds` and `readSeconds` together, and the hold is shorter than `readSeconds`, which `lint:spec-protocol` holds.",
+      docs: "The deadline on one HTTP request that is neither the stream nor an emit: one of the gateway's own operations (who a token is, a media token, the resource metadata, health, status), the wait for a resource's bytes to begin arriving, a read of a resource's description or of its anchored text, a request to the issuer (its discovery, a grant, a revocation), and a read of a launcher's discovery document. Unanswered here, the request fails as one that got no answer. It bounds the read of a refusal's body too, of such a request or of the request that opens the stream (`streamOpenTimeoutMs`): a body not read by then is the refusal with none of the gateway's words, refused, renewed or retried as any refusal is. Without it, a gateway or an issuer that accepts a connection and never answers holds a session's start, and every renewal after it, for as long as the process lives. An upload has no deadline: how long it takes is how large the resource is. A read of anchored text may be held by the Archivist while the Smelter reads the content, and the gateway waits for the Archivist as the Archivist's document states (specs/src/archivist/openapi.json): this deadline is longer than its `connectSeconds` and `readSeconds` together, and the hold is shorter than `readSeconds`, which the reader's protocol rules (`reader/lib/protocol_rules.ml`) hold.",
     },
     {
       name: 'requestRetryPauseMs',

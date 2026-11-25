@@ -17,16 +17,55 @@ let regenerate from_ = Banner.lines ~from_ __FILE__
    own schema ([Places.schema_of]), named as that schema's file is. *)
 let table_type table = Definitions.stem (Places.schema_of table)
 
+let items (spec : Spec.t) =
+  Generate.items
+    (Typing.of_spec spec ~tables:(Roots.service_tables spec))
+    ~accessors
+
 let types (spec : Spec.t) =
   {
     Output.path = "rust/sdk/src/generated/types.rs";
     text =
       Rust_syntax.text
         ~header:(regenerate "the component schemas in protocol/specs/src")
-        (Generate.items
-           (Typing.of_spec spec ~tables:(Roots.service_tables spec))
-           ~accessors);
+        (items spec);
   }
+
+(* The fields of the struct [types] declares of [name], and whether a value
+   of a type is copied: a scalar, or a type [types] derives [Copy] of. *)
+let fields (spec : Spec.t) name =
+  let items = items spec in
+  let copies attrs =
+    List.exists
+      (function
+        | R.List ([ "derive" ], words) -> List.mem (R.Word [ "Copy" ]) words
+        | _ -> false)
+      attrs
+  in
+  let copied =
+    List.filter_map
+      (function
+        | (R.Struct_def { name; attrs; _ } | R.Enum { name; attrs; _ })
+          when copies attrs ->
+            Some name
+        | _ -> None)
+      items
+  in
+  let is_copied = function
+    | R.Named ([ ("u16" | "u64" | "i64" | "f64" | "bool") ], []) -> true
+    | R.Named ([ name ], []) -> List.mem name copied
+    | _ -> false
+  in
+  match
+    List.find_map
+      (function
+        | R.Struct_def { name = n; body = Fields fields; _ } when n = name ->
+            Some fields
+        | _ -> None)
+      items
+  with
+  | Some fields -> (fields, is_copied)
+  | None -> Definitions.refuse "%s: the Rust types declare no struct of it" name
 
 (* JSON text in ASCII, as a Rust string the printer lays out must be: each
    character past it as a JSON escape, which reads as the same value. *)

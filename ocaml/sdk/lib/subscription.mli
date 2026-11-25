@@ -73,7 +73,10 @@ val hold_scope : t -> scope -> unit -> unit
     hold once. A replacement opens before the current stream is retired. *)
 
 val state : t -> Enums.Connection_state.t
-val await_state_change : t -> from:Enums.Connection_state.t -> Enums.Connection_state.t
+
+val await_state_change :
+  t -> from:Enums.Connection_state.t -> Enums.Connection_state.t
+
 val close : t -> unit
 val await_closed : t -> unit
 

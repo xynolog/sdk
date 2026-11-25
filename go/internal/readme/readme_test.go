@@ -426,7 +426,7 @@ func TestAWorker(t *testing.T) {
 		return nil
 	})
 	err := readme.Run(within(t), made.Client)
-	var refused *xynolog.ClaimRefusal
+	var refused *api.ClaimRefusal
 	if !errors.As(err, &refused) || refused.Code == nil || *refused.Code != api.BusRequestErrorCodeUnauthorized {
 		t.Fatalf("the worker stopped with %v", err)
 	}

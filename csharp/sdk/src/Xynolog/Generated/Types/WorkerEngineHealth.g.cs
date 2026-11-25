@@ -13,6 +13,6 @@ public sealed record WorkerEngineHealth
     [global::Xynolog.Serialization.Wire("lastClaimAt")] public required string? LastClaimAt { get; init; }
     [global::Xynolog.Serialization.Wire("lastFinishedAt")] public required string? LastFinishedAt { get; init; }
     [global::Xynolog.Serialization.Wire("lastActivityAt")] public required string? LastActivityAt { get; init; }
-    [global::Xynolog.Serialization.Wire("activeJob")] public required global::Xynolog.Types.WorkerEngineHealthActiveJob? ActiveJob { get; init; }
+    [global::Xynolog.Serialization.Wire("activeJob")] public required global::Xynolog.Types.WorkerActiveJob? ActiveJob { get; init; }
     [global::Xynolog.Serialization.Wire("jobsCompleted")] public required long JobsCompleted { get; init; }
 }

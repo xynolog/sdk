@@ -112,9 +112,33 @@ the coming release's, and gathers its changes as they land.
   `Job.PollUntilCompleteAsync(jobId, JobPollOptions?, onStatus)`, in place
   of their positional parameters. A worker's claim, stall and commit waits
   are its `ClaimOptions`, and default to the client's `Timing`.
-- `WorkerVitals.ActiveJob` is `WorkerEngineHealthActiveJob`, the type
-  Protocol states, in place of `ActiveJob`, and the vitals' times are
-  ISO 8601 text, as a worker's health carries them.
+- What a worker says of itself and of its claims is the types Protocol
+  states, in `Xynolog.Types`, where `Claims` declared its own records in
+  `Xynolog`: `ClaimRefusal`, whose text is `Message`, where it was `Detail`;
+  `WorkerVitals`, whose `ActiveJob` is a `WorkerActiveJob`, where it was an
+  `ActiveJob`; and `HeldJobStall`, whose `HeldSince` and `LastActivityAt` are
+  text, where they were `DateTimeOffset`s, and whose `ThresholdMs` is a
+  `long`. Each is built with an initializer. A vitals or stall time is the
+  RFC 3339 text the wire carries, to the millisecond.
+- A held job keeps the `HeldJobRecord` its claim handed it, as
+  `IHeldJob.Record`, and its `JobId`, `JobType`, `ResourceId`, `Params`,
+  `CompletedUnits`, `UnitCursors`, `RetryCount` and `MaxRetries` are the
+  record's members, read through it.
+- A held job's checkpoint, failure and cancellation take the types Protocol
+  states for what each one says: `CheckpointAsync(JobCheckpoint checkpoint)`,
+  in place of `CheckpointAsync(completedUnits, unitCursors)`;
+  `FailAsync(string error, JobFailure? failure)`, in place of
+  `FailAsync(error, failureClass, completedUnits, unitCursors)`; and
+  `CancelAsync(JobReached? reached)`, in place of
+  `CancelAsync(completedUnits, unitCursors)`.
+- A relayed frame's trace is read as a `TraceCarrier`, the type Protocol
+  states, and a carrier that type does not admit is ignored whole: one with
+  a `tracestate` that is not text or is empty, or with a member the type
+  does not name, no longer continues its `traceparent`.
+- `KbPlacement` names where a knowledge base's stack runs, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
+  and `TargetKind`; `InferenceProvider` names an inference provider, in
+  place of `EngineProvider`.
 - `Timing.HttpRequestMs` and `Timing.StreamOpenMs` are
   `HttpRequestTimeoutMs` and `StreamOpenTimeoutMs`, the names the protocol's
   timing table gives them; each of `Timing`'s defaults is that table's.

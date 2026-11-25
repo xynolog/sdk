@@ -7,6 +7,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.serializer
@@ -32,13 +33,16 @@ import xynolog.transport.FrameRefusal
 import xynolog.transport.Transport
 import xynolog.transport.Variable
 import xynolog.types.ClaimOptions
+import xynolog.types.ClaimRefusal
 import xynolog.types.ConnectionState
 import xynolog.types.Engine
+import xynolog.types.HeldJobStall
 import xynolog.types.JobClaimCommand
 import xynolog.types.JobFilter
 import xynolog.types.JobType
+import xynolog.types.WorkerActiveJob
 import xynolog.types.WorkerEngineHealth
-import xynolog.types.WorkerEngineHealthActiveJob
+import xynolog.types.WorkerVitals
 import xynolog.types.wireJson
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
@@ -178,24 +182,21 @@ public class Claims internal constructor(
             lastClaimAt = lastClaimAt?.let(::stamped),
             lastFinishedAt = lastFinishedAt?.let(::stamped),
             lastActivityAt = lastActivityAt?.let(::stamped),
-            activeJob = if (holding == null || since == null) null else WorkerEngineHealthActiveJob(jobId = holding.jobId, type = holding.jobType, since = stamped(since)),
+            activeJob = if (holding == null || since == null) null else WorkerActiveJob(jobId = holding.jobId, type = holding.jobType, since = stamped(since)),
             jobsCompleted = jobsCompleted,
         )
     }
 
-    /** This worker's health as `engine`'s, which its host reports among its knowledge base's engines: its vitals, and the jobs these claims take. */
+    /**
+     * This worker's health as `engine`'s, which its host reports among its
+     * knowledge base's engines: its vitals, and the jobs these claims take.
+     * Made by the wire, so every member of the vitals is the health's with no
+     * list of them here.
+     */
     public fun health(engine: Engine): WorkerEngineHealth {
-        val now = vitals()
-        return WorkerEngineHealth(
-            engine = engine,
-            jobs = accepts,
-            lastQueuedEventAt = now.lastQueuedEventAt,
-            lastClaimAt = now.lastClaimAt,
-            lastFinishedAt = now.lastFinishedAt,
-            lastActivityAt = now.lastActivityAt,
-            activeJob = now.activeJob,
-            jobsCompleted = now.jobsCompleted,
-        )
+        val now = wireJson.encodeToJsonElement(WorkerVitals.serializer(), vitals()).jsonObject
+        val claiming = mapOf("engine" to wireJson.encodeToJsonElement(Engine.serializer(), engine), "jobs" to JsonArray(filters))
+        return wireJson.decodeFromJsonElement(WorkerEngineHealth.serializer(), JsonObject(now + claiming))
     }
 
     /**
@@ -290,7 +291,7 @@ public class Claims internal constructor(
                 val silentForMs = mark.elapsedNow().inWholeMilliseconds
                 if (silentForMs <= heldJobStallMs) return@synchronized null
                 stallReported = true
-                HeldJobStall(holding.jobId, holding.jobType, since, last, silentForMs, heldJobStallMs)
+                HeldJobStall(jobId = holding.jobId, jobType = holding.jobType, heldSince = stamped(since), lastActivityAt = stamped(last), silentForMs = silentForMs, thresholdMs = heldJobStallMs)
             }
             if (found != null) stalls.deliver(found)
         }

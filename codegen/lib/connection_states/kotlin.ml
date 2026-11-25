@@ -4,8 +4,7 @@
 
 module K = Kotlin_syntax
 
-let state s =
-  K.Member (K.Name "ConnectionState", Kotlin_sdk.Names.variant_of s)
+let state s = K.Member (K.Name "ConnectionState", Kotlin_sdk.Names.variant_of s)
 
 let file (t : Table.t) =
   Kotlin_sdk.table ~from_:Table.file __FILE__ ~package:"xynolog.transport"
@@ -15,13 +14,16 @@ let file (t : Table.t) =
       K.property
         ~about:
           (K.Doc
-             "Each state of a client's stream, with the states it moves to \
-              and no other.")
+             "Each state of a client's stream, with the states it moves to and \
+              no other.")
         ~visibility:K.Internal
         ~type_:
           (K.Generic
              ( "Map",
-               [ K.Type "ConnectionState"; K.Generic ("Set", [ K.Type "ConnectionState" ]) ] ))
+               [
+                 K.Type "ConnectionState";
+                 K.Generic ("Set", [ K.Type "ConnectionState" ]);
+               ] ))
         ~value:
           (K.Same_line
              (K.call ~layout:K.Lines (K.Name "mapOf")

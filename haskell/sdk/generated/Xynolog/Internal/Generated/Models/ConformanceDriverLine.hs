@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceDriverLine (ConformanceDriverLine (..), ConformanceDriverLineAbandoned (..), ConformanceDriverLineAbandonedAbandoned (..), ConformanceDriverLineClaimed (..), ConformanceDriverLineClaimedClaimed (..), ConformanceDriverLineCompleted (..), ConformanceDriverLineEmission (..), ConformanceDriverLineEmissionEmission (..), ConformanceDriverLineEmissionEmissionState (..), ConformanceDriverLineEmissionEmissionStateFailed (..), ConformanceDriverLineEmissionEmissionStateFailedStatus (..), conformanceDriverLineEmissionEmissionStateFailedStatusText, ConformanceDriverLineEmissionEmissionStatePending (..), ConformanceDriverLineEmissionEmissionStatePendingStatus (..), conformanceDriverLineEmissionEmissionStatePendingStatusText, ConformanceDriverLineEmissionEmissionStateReady (..), ConformanceDriverLineEmissionEmissionStateReadyStatus (..), conformanceDriverLineEmissionEmissionStateReadyStatusText, ConformanceDriverLineErrorStream (..), ConformanceDriverLineFailed (..), ConformanceDriverLineFrame (..), ConformanceDriverLineFrameFrame (..), ConformanceDriverLineMisuse (..), ConformanceDriverLineOk (..), ConformanceDriverLineProgress (..), ConformanceDriverLineProgressProgress (..), ConformanceDriverLineReady (..), ConformanceDriverLineReadyReady (..), ConformanceDriverLineRefused (..), ConformanceDriverLineSignalled (..), ConformanceDriverLineStalled (..), ConformanceDriverLineState (..), ConformanceDriverLineUnsupported (..), ConformanceDriverLineUnsupportedUnsupported (..)) where
+module Xynolog.Internal.Generated.Models.ConformanceDriverLine (ConformanceDriverLine (..), ConformanceDriverLineAbandoned (..), ConformanceDriverLineAbandonedAbandoned (..), ConformanceDriverLineClaimed (..), ConformanceDriverLineCompleted (..), ConformanceDriverLineEmission (..), ConformanceDriverLineEmissionEmission (..), ConformanceDriverLineEmissionEmissionState (..), ConformanceDriverLineEmissionEmissionStateFailed (..), ConformanceDriverLineEmissionEmissionStateFailedStatus (..), conformanceDriverLineEmissionEmissionStateFailedStatusText, ConformanceDriverLineEmissionEmissionStatePending (..), ConformanceDriverLineEmissionEmissionStatePendingStatus (..), conformanceDriverLineEmissionEmissionStatePendingStatusText, ConformanceDriverLineEmissionEmissionStateReady (..), ConformanceDriverLineEmissionEmissionStateReadyStatus (..), conformanceDriverLineEmissionEmissionStateReadyStatusText, ConformanceDriverLineErrorStream (..), ConformanceDriverLineFailed (..), ConformanceDriverLineFrame (..), ConformanceDriverLineFrameFrame (..), ConformanceDriverLineMisuse (..), ConformanceDriverLineOk (..), ConformanceDriverLineProgress (..), ConformanceDriverLineProgressProgress (..), ConformanceDriverLineReady (..), ConformanceDriverLineReadyReady (..), ConformanceDriverLineRefused (..), ConformanceDriverLineSignalled (..), ConformanceDriverLineStalled (..), ConformanceDriverLineState (..), ConformanceDriverLineUnsupported (..), ConformanceDriverLineUnsupportedUnsupported (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -10,6 +10,7 @@ import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ConformanceFailure
+import Xynolog.Internal.Generated.Models.HeldJobRecord
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ConformanceDriverLine = ConformanceDriverLineReady ConformanceDriverLineReady | ConformanceDriverLineOk ConformanceDriverLineOk | ConformanceDriverLineFailed ConformanceDriverLineFailed | ConformanceDriverLineAbandoned ConformanceDriverLineAbandoned | ConformanceDriverLineUnsupported ConformanceDriverLineUnsupported | ConformanceDriverLineMisuse ConformanceDriverLineMisuse | ConformanceDriverLineState ConformanceDriverLineState | ConformanceDriverLineFrame ConformanceDriverLineFrame | ConformanceDriverLineErrorStream ConformanceDriverLineErrorStream | ConformanceDriverLineProgress ConformanceDriverLineProgress | ConformanceDriverLineEmission ConformanceDriverLineEmission | ConformanceDriverLineCompleted ConformanceDriverLineCompleted | ConformanceDriverLineClaimed ConformanceDriverLineClaimed | ConformanceDriverLineRefused ConformanceDriverLineRefused | ConformanceDriverLineSignalled ConformanceDriverLineSignalled | ConformanceDriverLineStalled ConformanceDriverLineStalled deriving (Eq, Show)
@@ -51,22 +52,13 @@ instance FromJSON ConformanceDriverLineAbandonedAbandoned where parseJSON = chec
 instance ToJSON ConformanceDriverLineAbandonedAbandoned where toJSON ConformanceDriverLineAbandonedAbandonedTrue = Bool True
 
 data ConformanceDriverLineClaimed = MkConformanceDriverLineClaimed
-  { conformanceDriverLineClaimedClaimed :: ConformanceDriverLineClaimedClaimed
+  { conformanceDriverLineClaimedClaimed :: HeldJobRecord
   }
   deriving (Eq, Show)
 
 instance FromJSON ConformanceDriverLineClaimed where parseJSON = checked "ConformanceDriverLineClaimed" $ withObject "ConformanceDriverLineClaimed" (\fields -> MkConformanceDriverLineClaimed <$> (fields .: "claimed"))
 
 instance ToJSON ConformanceDriverLineClaimed where toJSON value = Object (KM.fromList (concat [[("claimed", toJSON (conformanceDriverLineClaimedClaimed value))]]))
-
-data ConformanceDriverLineClaimedClaimed = ConformanceDriverLineClaimedClaimed
-  { conformanceDriverLineClaimedClaimedAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceDriverLineClaimedClaimed where parseJSON = checked "ConformanceDriverLineClaimedClaimed" $ withObject "ConformanceDriverLineClaimedClaimed" (\fields -> ConformanceDriverLineClaimedClaimed <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceDriverLineClaimedClaimed where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceDriverLineClaimedClaimedAdditionalProperties value)))
 
 data ConformanceDriverLineCompleted = MkConformanceDriverLineCompleted
   { conformanceDriverLineCompletedCompleted :: Text

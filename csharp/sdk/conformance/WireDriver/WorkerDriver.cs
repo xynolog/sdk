@@ -11,7 +11,6 @@ internal sealed class WorkerDriver : IDisposable
 {
     private static readonly ActivitySource Activities = new("xynolog");
     private static readonly JsonSerializerOptions TimingJson = new() { PropertyNameCaseInsensitive = true };
-    private static readonly JsonSerializerOptions CamelJson = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     private readonly object gate = new();
     private readonly List<IDisposable> scopes = [];
     private XynologClient? client;
@@ -57,7 +56,7 @@ internal sealed class WorkerDriver : IDisposable
                 case "sync": break;
                 default: await SayForJobAsync(args).ConfigureAwait(false); break;
             }
-            WireDriver.Say(Lines.Ok(id, JsonSerializer.SerializeToElement(answer, CamelJson)));
+            WireDriver.Say(Lines.Ok(id, JsonSerializer.SerializeToElement(answer)));
         }
         catch (XynologError error) { WireDriver.Say(Lines.Failed(id, error)); }
         catch (Exception error) { WireDriver.Say(Lines.Misuse(id, error)); }
@@ -77,17 +76,7 @@ internal sealed class WorkerDriver : IDisposable
             {
                 held?.Dispose();
                 held = new Held(job, span, cancellation);
-                WireDriver.Say(Lines.Claimed(JsonSerializer.SerializeToElement(new
-                {
-                    jobId = job.JobId,
-                    jobType = job.JobType,
-                    resourceId = job.ResourceId,
-                    @params = job.Params,
-                    completedUnits = job.CompletedUnits,
-                    unitCursors = job.UnitCursors,
-                    retryCount = job.RetryCount,
-                    maxRetries = job.MaxRetries,
-                }, WireDriver.Json)));
+                WireDriver.Say(Lines.Claimed(job.Record));
             }
         }
     }
@@ -131,8 +120,11 @@ internal sealed class WorkerDriver : IDisposable
                     await job.ProgressAsync(new JobProgress { Percentage = args.GetProperty("percentage").GetDouble(), Message = message }).ConfigureAwait(false);
                     break;
                 case "checkpoint":
-                    await job.CheckpointAsync(Required<string[]>(args, "completedUnits"),
-                        Optional<Dictionary<string, UnitCursor>>(args, "unitCursors")).ConfigureAwait(false);
+                    await job.CheckpointAsync(new JobCheckpoint
+                    {
+                        CompletedUnits = Required<string[]>(args, "completedUnits"),
+                        UnitCursors = Optional<Dictionary<string, UnitCursor>>(args, "unitCursors"),
+                    }).ConfigureAwait(false);
                     break;
                 case "commit":
                     await job.CommitAsync(ResourceId.Parse(Text(args, "resourceId")), Required<Annotation[]>(args, "annotations")).ConfigureAwait(false);
@@ -142,12 +134,19 @@ internal sealed class WorkerDriver : IDisposable
                     else if (job is HeldYieldJob yield) await yield.CompleteAsync(Required<YieldJobResult>(args, "result")).ConfigureAwait(false);
                     break;
                 case "fail":
-                    var kind = args.TryGetProperty("failureClass", out var failure) ? failure.Deserialize<FailureClass>() : (FailureClass?)null;
-                    await job.FailAsync(Text(args, "error"), kind, Optional<string[]>(args, "completedUnits"),
-                        Optional<Dictionary<string, UnitCursor>>(args, "unitCursors")).ConfigureAwait(false);
+                    await job.FailAsync(Text(args, "error"), new JobFailure
+                    {
+                        FailureClass = args.TryGetProperty("failureClass", out var failureClass) ? failureClass.Deserialize<FailureClass>() : null,
+                        CompletedUnits = Optional<string[]>(args, "completedUnits"),
+                        UnitCursors = Optional<Dictionary<string, UnitCursor>>(args, "unitCursors"),
+                    }).ConfigureAwait(false);
                     break;
                 case "cancel":
-                    await job.CancelAsync(Optional<string[]>(args, "completedUnits")).ConfigureAwait(false);
+                    await job.CancelAsync(new JobReached
+                    {
+                        CompletedUnits = Optional<string[]>(args, "completedUnits"),
+                        UnitCursors = Optional<Dictionary<string, UnitCursor>>(args, "unitCursors"),
+                    }).ConfigureAwait(false);
                     break;
                 default: throw new InvalidOperationException("Unknown worker operation.");
             }

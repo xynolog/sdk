@@ -1039,6 +1039,8 @@ let hashable st names =
     | R.Named ([ "f64" ], []) -> false
     | R.Named ([ name ], args) when Hashtbl.mem st.written name ->
         (not (Hashtbl.mem excluded name)) && List.for_all admits args
+    (* An error code, which [Error_codes.Rust] derives Eq and Hash of. *)
+    | R.Named ([ "crate"; "errors"; _ ], []) -> true
     | R.Named
         ( ( [
               ( "String" | "bool" | "u16" | "u64" | "i64" | "Vec" | "Option"

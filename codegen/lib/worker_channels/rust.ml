@@ -26,8 +26,7 @@ let file (constants : Table.t list) =
                  name = R.screaming c.member;
                  ty =
                    R.Array_of
-                     ( R.Ref (None, R.named "str"),
-                       List.length c.channels );
+                     (R.Ref (None, R.named "str"), List.length c.channels);
                  value = R.Array (List.map (fun n -> R.Str n) c.channels);
                })
            constants);

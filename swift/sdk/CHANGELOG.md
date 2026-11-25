@@ -54,6 +54,31 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What a worker says of itself and of its claims is the generated client
+  types: `ClaimRefusal` (its text is `message`, where it was `detail`),
+  `WorkerVitals` with its `WorkerActiveJob`, and `HeldJobStall` (its
+  `silentForMs` and `thresholdMs`), where `Claims` declared its own. A vitals
+  stamp is the RFC 3339 string the wire carries, to the millisecond.
+- A held job keeps the `HeldJobRecord` its claim handed it, as `record`, and
+  its `jobId`, `jobType`, `resourceId`, `params`, `completedUnits`,
+  `unitCursors`, `retryCount` and `maxRetries` are the record's members, read
+  through it.
+- A held job's `trace`, and a received frame's, is the generated
+  `TraceCarrier`, where it was a `[String: String]` of its members.
+- A relayed frame's trace is held to the table before it is read as a
+  `TraceCarrier`, and a carrier the table refuses is ignored whole: one with
+  an empty `tracestate`, for one, no longer continues its `traceparent`.
+- A held job's checkpoint, failure and cancellation take the types Protocol
+  states for what each one says: `checkpoint(_ checkpoint: JobCheckpoint)`,
+  in place of `checkpoint(completedUnits:unitCursors:)`;
+  `fail(_ message: String, failure: JobFailure?)`, in place of
+  `fail(_:failureClass:completedUnits:unitCursors:)`; and
+  `cancel(_ reached: JobReached?)`, in place of
+  `cancel(completedUnits:unitCursors:)`.
+- `KbPlacement` names where a knowledge base's stack runs, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
+  and `TargetKind`; `InferenceProvider` names an inference provider, in
+  place of `EngineProvider`.
 - A model's members are in its schema's order, as the other SDKs hold them,
   and so are its initializer's arguments and the members it writes: a call
   names them in that order (`JobProgress(percentage: 50, message: …)`),

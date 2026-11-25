@@ -165,12 +165,19 @@ let collect results =
       | Error error, Error errors -> Error (error :: errors))
     results (Ok [])
 
+(* Each root schema and each table record, with its file. *)
+let roots (spec : Spec.t) = collect (components spec @ records spec)
+
+(* What each of [roots] requires, by its name. *)
+let derive_roots (spec : Spec.t) roots =
+  Result.bind (Error_codes.Table.derive spec.tables.errors_codes) (fun codes ->
+      Shape.derive ~ids:spec.ids
+        ~unrecognized:spec.tables.errors_codes.bus_request.unrecognized_failure
+        ~vocabularies:(Error_codes.Table.vocabularies codes)
+        roots)
+
 (* What each root schema and each table record requires, by its name. *)
-let derive (spec : Spec.t) =
-  Result.bind
-    (collect (components spec @ records spec))
-    (Shape.derive ~ids:spec.ids
-       ~unrecognized:spec.tables.errors_codes.bus_request.unrecognized_failure)
+let derive (spec : Spec.t) = Result.bind (roots spec) (derive_roots spec)
 
 let files ~root (spec : Spec.t) =
   let ( let* ) = Result.bind in

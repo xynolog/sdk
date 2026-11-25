@@ -208,6 +208,7 @@ library internal
     Xynolog.Internal.Generated.ServiceProof
     Xynolog.Internal.Issuer
     Xynolog.Internal.Digest
+    Xynolog.Internal.Generated.HeldJob
     Xynolog.Internal.Generated.WorkerChannels
 @MODEL_MODULES@
   autogen-modules: Paths_xynolog

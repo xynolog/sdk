@@ -270,7 +270,13 @@ let files (t : Table.t) =
                is.";
             ]
           "limitRefusalTransportCodes"
-          (T_list (T_tuple [ T_name "Int"; T_name "Text"; T_name (type_of t.transport.member) ]))
+          (T_list
+             (T_tuple
+                [
+                  T_name "Int";
+                  T_name "Text";
+                  T_name (type_of t.transport.member);
+                ]))
           (List
              (List.map
                 (fun (status, limit, c) ->

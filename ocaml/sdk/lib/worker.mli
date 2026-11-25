@@ -10,7 +10,7 @@ val claim :
   Http_wire.t ->
   client_id:string ->
   correlation_id:string ->
-  ?trace:Wire_stream.trace ->
+  ?trace:Records.Trace_carrier.t ->
   ?on_activity:(unit -> unit) ->
   ?on_settled:(bool -> unit) ->
   ?timeout_ms:int ->
@@ -19,7 +19,7 @@ val claim :
   claim
 
 val view : held -> Yojson.Safe.t
-val trace : held -> Wire_stream.trace option
+val trace : held -> Records.Trace_carrier.t option
 val id : held -> string
 val start : held -> unit
 val progress : held -> percentage:int -> message:Yojson.Safe.t option -> unit

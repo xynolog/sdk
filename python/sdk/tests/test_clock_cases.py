@@ -32,7 +32,7 @@ from xynolog import retry, timing
 from xynolog.bus import request
 from xynolog.cache import Cache, CachePersister
 from xynolog.channels import BRIDGED_CHANNELS
-from xynolog.claims import JOB_CLAIM_CHANNELS, ClaimRefusal
+from xynolog.claims import JOB_CLAIM_CHANNELS
 from xynolog.client import XynologClient
 from xynolog.discovery import DiscoveryRead, DiscoveryTransport, Managed, Unchanged, subscribe_discovery
 from xynolog.errors import BusRequestError, TransportError
@@ -45,6 +45,7 @@ from xynolog.testing import FaultyTransport, InMemoryContent, StubGateway, creat
 from xynolog.transport import Frame
 from xynolog.types import (
     ClaimOptions,
+    ClaimRefusal,
     DiscoveredKB,
     HighlightingJobParams,
     HttpEndpoint,

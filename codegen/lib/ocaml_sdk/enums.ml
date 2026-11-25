@@ -16,7 +16,8 @@ let client_types (spec : Spec.t) =
   List.filter
     (fun name ->
       match List.assoc_opt ("client/types/" ^ name ^ ".json") spec.schemas with
-      | Some (Schema.Schema { type_ = Some [ String ]; _ }) -> true
+      | Some (Schema.Schema { type_ = Some [ String ]; enum = Some _; _ }) ->
+          true
       | _ -> false)
     (Definitions.generated_client_types spec)
 

@@ -41,8 +41,7 @@ import Control.Concurrent.MVar
 import Control.Concurrent.STM
 import Control.Exception (Exception, Handler (..), SomeException, bracket, catch, catches, mask, onException, throwIO, try)
 import Control.Monad (unless, void, when)
-import Data.Aeson (FromJSON, Result (..), ToJSON, Value (Object, String), eitherDecodeStrict', encode, fromJSON, toJSON)
-import Data.Aeson.KeyMap qualified as KM
+import Data.Aeson (FromJSON, Result (..), ToJSON, Value (String), eitherDecodeStrict', encode, fromJSON, toJSON)
 import Data.ByteString qualified as Bytes
 import Data.ByteString.Char8 qualified as Char8
 import Data.CaseInsensitive qualified as CI
@@ -462,5 +461,5 @@ wireRefusesCredential status body = Code.transportCodeFromStatus status == Code.
     refuses (limited, code, Code.TransportUnauthorized) = status == limited && maybe False (names code) body
     refuses _ = False
     names code value = case fromJSON value of
-      Success refusal -> limitRefusalCodeText (limitRefusalCode refusal) == code
+      Success stated -> limitRefusalCodeText (limitRefusalCode stated) == code
       Error _ -> False

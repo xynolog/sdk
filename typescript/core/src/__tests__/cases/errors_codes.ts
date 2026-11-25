@@ -18,10 +18,19 @@ export type BusRequest = {
   codes: CodesItem[];
 };
 
+export type LimitRefusalCode =
+  'streams' | 'emit-rate' | 'unanswered-requests' | 'capacity' | 'refusal-rate';
+
+export type LimitRefusalsItem = {
+  status: number;
+  code: LimitRefusalCode;
+};
+
 export type Status = {
   code: string;
   docs: string;
   status: number;
+  limitRefusals?: LimitRefusalsItem[];
 };
 
 export type StatusFrom = {
@@ -67,7 +76,7 @@ export type Table = {
 
 export const table: Table = {
   $comment:
-    'AUTHORITY for the error codes a Xynolog client reports. Every SDK generates its code types and its classifiers from this file, so a code means one thing in every language. TypeScript: the consumer-owned generator writes sdk/typescript/core/src/error-codes.ts. A code belongs here only when something produces it: a member nothing emits promises a distinction the system does not make.',
+    'AUTHORITY for the error codes a Xynolog client reports. Every SDK generates its code types and its classifiers from this file, so a code means one thing in every language. A code belongs here only when something produces it: a member nothing emits promises a distinction the system does not make.',
   busRequest: {
     docs: "Why a bus request did not resolve. Some members restate a failure the answering peer declared on the wire (`wire` names its `CommandError.code`); the rest are facts only the requesting side knows, which is why this vocabulary and the wire's stay separate.",
     unrecognizedFailure: 'bus.rejected',
@@ -116,8 +125,14 @@ export const table: Table = {
     codes: [
       {
         code: 'unauthorized',
-        docs: 'Authentication is required: the token is missing, expired, or refused. A 429 whose `code` is `refusal-rate` refuses the token too, and is reported as this code with its own status.',
+        docs: 'Authentication is required: the token is missing, expired, or refused. A refusal of `limitRefusals` refuses the token too (contract/TRANSPORT-CONTRACT.md § A refused credential), and is reported as this code with its own status.',
         status: 401,
+        limitRefusals: [
+          {
+            status: 429,
+            code: 'refusal-rate',
+          },
+        ],
       },
       {
         code: 'forbidden',

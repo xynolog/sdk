@@ -30,8 +30,8 @@ use xynolog::testing::{
 };
 use xynolog::timing::SAVE_DEBOUNCE;
 use xynolog::transport::{Envelope, Frame, STREAM_BACKLOG};
-use xynolog::types::ConnectionState;
 use xynolog::types::BusFrame;
+use xynolog::types::ConnectionState;
 use xynolog::types::{BrowseResourcesRequest, MatchResourcesResponse, ResourceSearchFilters};
 
 const WINDOW: Duration = Duration::from_millis(100);

@@ -33,7 +33,7 @@ let returning pairs =
   List.map (fun (case, result) -> (case, [ P.Return result ])) pairs
 
 let text (t : Table.t) =
-  let vocabularies = (t.bus :: t.transport :: t.others) @ [ t.control ] in
+  let vocabularies = Table.vocabularies t in
   let exported =
     List.sort compare
       (List.concat_map
@@ -60,21 +60,9 @@ let text (t : Table.t) =
            of the same\n\
            codes to iterate.\n";
       imports =
-        [
-          [ P.From ("__future__", [ "annotations" ]) ];
-          [
-            P.From
-              ("typing", [ "TYPE_CHECKING"; "Final"; "Literal"; "assert_never" ]);
-          ];
-        ];
+        [ [ P.From ("typing", [ "Final"; "Literal"; "assert_never" ]) ] ];
       body =
         [
-          (* xynolog.types names these vocabularies ([Typing.Code]), so this
-             module names its types for the checker alone. *)
-          P.If
-            ( P.Name "TYPE_CHECKING",
-              [ P.Imports [ [ P.From ("xynolog.types", [ "CommandErrorCode" ]) ] ] ]
-            );
           P.assign "__all__"
             ~value:
               (P.List
@@ -88,9 +76,17 @@ let text (t : Table.t) =
                 name = "bus_request_code_for_wire_code";
                 params =
                   [
+                    (* CommandError.code's enumeration, every member of which
+                       the table restates: xynolog.types names this module's
+                       vocabularies, so this module reads nothing of it. *)
                     ( "code",
-                      P.Binary (P.Name "CommandErrorCode", P.Or, P.Name "None")
-                    );
+                      P.Binary
+                        ( P.sub "Literal"
+                            (List.map
+                               (fun (wire, _) -> P.item (P.Str wire))
+                               t.wire),
+                          P.Or,
+                          P.Name "None" ) );
                   ];
                 returns = P.Name t.bus.name;
                 doc =
@@ -170,7 +166,12 @@ let text (t : Table.t) =
                    (List.map
                       (fun (status, limit, c) ->
                         P.item
-                          (P.tuple [ P.item (P.Int status); P.item (P.Str limit); P.item (str c) ]))
+                          (P.tuple
+                             [
+                               P.item (P.Int status);
+                               P.item (P.Str limit);
+                               P.item (str c);
+                             ]))
                       t.limit_refusals))
               ~doc:
                 (As_is

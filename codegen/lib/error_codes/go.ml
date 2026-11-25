@@ -111,8 +111,7 @@ let text (t : Table.t) =
               ~results:
                 (G.Named_results
                    [
-                     ("code", G.Named "CommandErrorCode");
-                     ("ok", G.Named "bool");
+                     ("code", G.Named "CommandErrorCode"); ("ok", G.Named "bool");
                    ])
               "Wire"
               (G.Block
@@ -215,7 +214,11 @@ let text (t : Table.t) =
                                     elements =
                                       List.map
                                         (fun (k, v) ->
-                                          { G.about = []; key = Some (G.Name k); value = v })
+                                          {
+                                            G.about = [];
+                                            key = Some (G.Name k);
+                                            value = v;
+                                          })
                                         [
                                           ("Status", G.Int status);
                                           ("Code", G.Quoted limit);

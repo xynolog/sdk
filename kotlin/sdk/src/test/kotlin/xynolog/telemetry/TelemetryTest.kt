@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test
 import xynolog.channels.BRIDGED_CHANNELS
 import xynolog.http.HttpTransport
 import xynolog.identifiers.ResourceId
-import xynolog.transport.TraceContext
+import xynolog.types.TraceCarrier
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.util.concurrent.CompletableFuture
@@ -81,7 +81,7 @@ class TelemetryTest {
 
     @Test
     fun aFrameIsReceivedInTheTraceItWasSentUnder() {
-        val continued = Telemetry.received("beckon:focus", null, TraceContext(SENT_UNDER))
+        val continued = Telemetry.received("beckon:focus", null, TraceCarrier(SENT_UNDER))
         val span = kept.spans.single()
         assertEquals("bus.recv:beckon:focus", span.name)
         assertEquals(SpanKind.CONSUMER, span.kind)
@@ -103,14 +103,14 @@ class TelemetryTest {
     @Test
     fun withNoOpenTelemetryInstalledAFrameKeepsTheTraceItBrought() {
         GlobalOpenTelemetry.resetForTest()
-        assertEquals(TraceContext(SENT_UNDER), Telemetry.received("beckon:focus", null, TraceContext(SENT_UNDER)))
+        assertEquals(TraceCarrier(SENT_UNDER), Telemetry.received("beckon:focus", null, TraceCarrier(SENT_UNDER)))
         assertEquals(null, Telemetry.received("beckon:focus", null, null))
     }
 
     @Test
     fun anApplicationInstallsItsOwnOpenTelemetryAfterTheSdkHasBegun() {
         GlobalOpenTelemetry.resetForTest()
-        Telemetry.received("beckon:focus", null, TraceContext(SENT_UNDER))
+        Telemetry.received("beckon:focus", null, TraceCarrier(SENT_UNDER))
         // The SDK asked for one and installed none, so the application's is taken.
         OpenTelemetrySdk.builder().buildAndRegisterGlobal()
     }

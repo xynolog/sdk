@@ -10,6 +10,7 @@ from typing import Annotated, Literal
 from pydantic import JsonValue, Field
 from xynolog.model import WireModel
 from xynolog.identifiers import AnnotationId, JobId, ResourceId, UserId
+from xynolog.error_codes import BusRequestErrorCode, ControlErrorCode
 
 __all__ = [
     "AboutParams",
@@ -88,6 +89,7 @@ __all__ = [
     "BeckonHoverEvent",
     "BeckonSparkleEvent",
     "BeginAuthorizationOptions",
+    "Binary",
     "BindBodyOperation",
     "BindBodyOperationOp",
     "BindBodyUpdated",
@@ -155,6 +157,7 @@ __all__ = [
     "BusSubscribeRequestScopedItem",
     "Cancelled",
     "ClaimOptions",
+    "ClaimRefusal",
     "ClientSecretForm",
     "CloneResourceWithTokenResponse",
     "CommandError",
@@ -222,12 +225,11 @@ __all__ = [
     "ConformanceStepSignalled",
     "ConformanceStepStalled",
     "ConformanceStepState",
-    "ConformanceStepStateState",
     "ConformanceStepStays",
-    "ConformanceStepStaysStays",
     "ConformanceStepWire",
     "ConformanceStepWireAt",
     "ConnectionIdentity",
+    "ConnectionState",
     "ContentFormat",
     "ContextualSummaryResponse",
     "ContextualSummaryResponseContext",
@@ -240,7 +242,6 @@ __all__ = [
     "DirEntry",
     "DirectoryEntry",
     "DiscoveredKB",
-    "DiscoveredKBPlacement",
     "DiscoveryAbsentReason",
     "DiscoveryDocument",
     "DispatcherConfig",
@@ -259,7 +260,6 @@ __all__ = [
     "Engine",
     "EngineEntry",
     "EngineLimits",
-    "EngineProvider",
     "EnrichedResourceEvent",
     "EntityTagChangedPayload",
     "EntityTypeAddedPayload",
@@ -348,6 +348,8 @@ __all__ = [
     "GraphSchemaRelationshipsTaggedAs",
     "GraphSchemaStub",
     "HealthResponse",
+    "HeldJobRecord",
+    "HeldJobStall",
     "HighlightingJobParams",
     "HostPort",
     "HttpEndpoint",
@@ -364,6 +366,7 @@ __all__ = [
     "InferenceLimitsRequest",
     "InferenceLimitsResult",
     "InferenceLimitsResultResponse",
+    "InferenceProvider",
     "InferenceSpec",
     "IssuedTokens",
     "Issuer",
@@ -378,6 +381,7 @@ __all__ = [
     "JobCancelRequest",
     "JobCancelResult",
     "JobCancelled",
+    "JobCheckpoint",
     "JobCheckpointCommand",
     "JobClaimCommand",
     "JobClaimedResult",
@@ -392,6 +396,7 @@ __all__ = [
     "JobFailCommand",
     "JobFailed",
     "JobFailedPayload",
+    "JobFailure",
     "JobFilter",
     "JobMetadata",
     "JobParams",
@@ -416,6 +421,7 @@ __all__ = [
     "JobProgressRequestParamsItem",
     "JobProgressRequestParamsItemLabel",
     "JobQueuedEvent",
+    "JobReached",
     "JobRecord",
     "JobReportProgressCommand",
     "JobResult",
@@ -442,6 +448,7 @@ __all__ = [
     "KbEndpoint",
     "KbIdentity",
     "KbIdentityConflict",
+    "KbPlacement",
     "KbRead",
     "KbReadKind",
     "KbReadVerdict",
@@ -452,7 +459,6 @@ __all__ = [
     "KbTarget",
     "KnowledgeBase",
     "KnowledgeBaseStatus",
-    "KnowledgeBaseStatusPlacement",
     "KnowledgeGraph",
     "KnowledgeGraphEdgesItem",
     "KnowledgeGraphNodesItem",
@@ -590,9 +596,9 @@ __all__ = [
     "ResourceView",
     "Resources",
     "ResourcesLimits",
+    "RetryBudget",
     "Root",
     "RootCurrent",
-    "RootPlacement",
     "RootsForgetParams",
     "RootsForgetResult",
     "RootsInitParams",
@@ -690,7 +696,6 @@ __all__ = [
     "SmelterHealthIndexStampEmbedding",
     "SmelterHealthReconcile",
     "SmelterHealthReconcilePhase",
-    "SmelterHealthStream",
     "SmelterMessages",
     "SmelterMessagesLoggedItem",
     "SmelterMessagesRefusalsItem",
@@ -734,11 +739,11 @@ __all__ = [
     "TagSchemasProjection",
     "TaggingJobParams",
     "Target",
-    "TargetKind",
     "TextPositionSelector",
     "TextQuoteSelector",
     "TextSpan",
     "TextualBody",
+    "TraceCarrier",
     "UnitCursor",
     "UpdateAnnotationBodyRequest",
     "UploadProgress",
@@ -758,12 +763,12 @@ __all__ = [
     "WeaverHealthReconcile",
     "WeaverHealthReconcilePhase",
     "WeaverHealthReconcileSummary",
+    "WorkerActiveJob",
     "WorkerAnswerFormats",
     "WorkerAnswerFormatsFormatsItem",
     "WorkerConfig",
     "WorkerEngineConfig",
     "WorkerEngineHealth",
-    "WorkerEngineHealthActiveJob",
     "WorkerHealth",
     "WorkerKnowledgeBaseConfig",
     "WorkerKnowledgeBaseConfigIdentity",
@@ -782,6 +787,7 @@ __all__ = [
     "WorkerPool",
     "WorkerPoolSpec",
     "WorkerPoolSpecWorker",
+    "WorkerVitals",
     "WorkloadStatus",
     "WorkloadStatusLedger",
     "WorkloadStatusQueue",
@@ -1397,7 +1403,7 @@ class ServiceIdentity(WireModel, frozen=True, extra="forbid"):
     issuer: Annotated[str, Field(description="The issuer URL, exactly as tokens carry it in `iss`.")]
 
 
-type EngineProvider = Annotated[
+type InferenceProvider = Annotated[
     Literal["anthropic", "google", "llamacpp", "ollama", "openai", "together", "vllm"],
     Field(
         description="The inference provider: who serves the model. `anthropic`, `google`, `openai` and `together` are those companies' own APIs. `llamacpp`, `ollama` and `vllm` are servers a deployment runs or reaches, each named for the server's software."
@@ -1410,7 +1416,7 @@ class Engine(WireModel, frozen=True, extra="forbid"):
     An engine: an inference provider and a model, which software does a job or an actor's step with. An engine is not a principal: the principal that used one names it on each write it produced with it (`generator`). A person who does a job uses none.
     """
 
-    provider: EngineProvider
+    provider: InferenceProvider
     model: Annotated[str, Field(description="The model identifier, as the provider names it.")]
 
 
@@ -1920,10 +1926,10 @@ class AttributedEvent(StoredEventResponse, frozen=True):
     agent: Annotated[Agent, Field(description="Who `userId` is.")]
 
 
-type TargetKind = Annotated[
+type KbPlacement = Annotated[
     Literal["local", "codespace"],
     Field(
-        description="Where the stack runs: on this machine (local), or on a GitHub codespace whose knowledge base is forwarded here (codespace)."
+        description="Where a knowledge base's stack runs: on this machine (local), or in a GitHub codespace whose knowledge base is forwarded here (codespace)."
     ),
 ]
 
@@ -1933,7 +1939,12 @@ class Target(WireModel, frozen=True, extra="forbid"):
     Which knowledge base an operation acts on: a local clone's stack, or a codespace's. The launcher resolves it as the command line resolves --root and --repo, and refuses a choice it would have to guess.
     """
 
-    kind: TargetKind
+    kind: Annotated[
+        KbPlacement,
+        Field(
+            description="Where the stack runs: on this machine (local), or on a GitHub codespace whose knowledge base is forwarded here (codespace)."
+        ),
+    ]
     root: Annotated[
         str | None,
         Field(
@@ -2063,6 +2074,10 @@ class BeginAuthorizationOptions(WireModel, frozen=True, extra="forbid"):
         Field(alias="expectedName", description="The knowledge base's name the person believed they chose: verified after, never assumed."),
     ] = None
 
+
+type Binary = Annotated[
+    bytes, Field(description="Bytes held whole. They can be read more than once, and sent again when an upload is retried.")
+]
 
 type BindBodyOperationOp = Annotated[Literal["add", "remove", "replace"], Field(description="The type of body operation")]
 
@@ -3064,6 +3079,20 @@ class ClaimOptions(WireModel, frozen=True, extra="forbid"):
     ] = None
 
 
+class ClaimRefusal(WireModel, frozen=True, extra="forbid"):
+    """
+    A claim refused for a reason other than that nothing is pending, which is no fault: what a worker's claims say on `refused` (contract/WORKER-CONTRACT.md § Claiming). `bus.unauthorized` means the credential cannot claim, and will not be able to later.
+    """
+
+    code: Annotated[
+        BusRequestErrorCode | None,
+        Field(
+            description="The bus code the reply was read as, or null when the refusal was the worker's own: a reply its schema does not allow. Never a code the reply did not state, and never `bus.none-pending`."
+        ),
+    ]
+    message: Annotated[str, Field(description="What the refusal said.")]
+
+
 class ClientSecretForm(WireModel, frozen=True):
     """
     The form a service account that holds a client secret posts to its issuer's token endpoint for a client-credentials grant: its client id and secret in the body (RFC 6749 §2.3.1). An account that holds a key proves itself by the client assertion of client-assertion-cases.json instead.
@@ -3215,8 +3244,11 @@ class ConformanceStepProgress(WireModel, frozen=True, extra="forbid"):
     progress: Annotated[str, Field(description="The upload.")]
 
 
-type ConformanceStepStateState = Annotated[
-    Literal["initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"], Field(description="The state.")
+type ConnectionState = Annotated[
+    Literal["initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"],
+    Field(
+        description="Where a client's stream is: one of the states of client/connection-states.json, which says what each means and where it moves."
+    ),
 ]
 
 
@@ -3225,12 +3257,7 @@ class ConformanceStepState(WireModel, frozen=True, extra="forbid"):
     The transport comes to report this state.
     """
 
-    state: ConformanceStepStateState
-
-
-type ConformanceStepStaysStays = Annotated[
-    Literal["initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"], Field(description="The state.")
-]
+    state: Annotated[ConnectionState, Field(description="The state.")]
 
 
 class ConformanceStepStays(WireModel, frozen=True, extra="forbid"):
@@ -3238,7 +3265,7 @@ class ConformanceStepStays(WireModel, frozen=True, extra="forbid"):
     The transport is in this state and has reported no other since the case last read its state.
     """
 
-    stays: ConformanceStepStaysStays
+    stays: Annotated[ConnectionState, Field(description="The state.")]
 
 
 class ConformanceStepFrame(WireModel, frozen=True, extra="forbid"):
@@ -3654,12 +3681,106 @@ class ConformanceDriverLineCompleted(WireModel, frozen=True, extra="forbid"):
     completed: Annotated[str, Field(description="The observer.")]
 
 
+type JobType = Annotated[
+    Literal["mark", "yield"],
+    Field(
+        description="What a job does, as the verb that asks for it: `mark` annotates a resource, `yield` makes one. A job description is its `jobType` and the parameters that verb takes; a `mark` job's parameters state its motivation."
+    ),
+]
+
+
+class JobParams(WireModel, frozen=True, extra="allow"):
+    """
+    A job's parameters as the Dispatcher holds them: the `params` of its `job:create`, and what the Dispatcher adds. It adds `resourceId`, the resource the job is about: a `mark` job's own, and for a `yield` job the one its context focuses on. For a tagging job it adds `schema`, the tag schema its `schemaId` names, so that whoever holds the job needs no registry. Nothing the caller sent is changed or removed.
+    """
+
+    resource_id: Annotated[ResourceId, Field(alias="resourceId")]
+    schema_: Annotated[
+        TagSchema | None,
+        Field(
+            alias="schema",
+            description="The tag schema a tagging job's `schemaId` names, as the knowledge base registered it when the job was created. On a tagging job, and on no other.",
+        ),
+    ] = None
+
+
+class UnitCursor(WireModel, frozen=True):
+    """
+    The furthest a single unit got, and what it had counted when it got there. A unit left partway is resumed from its cursor rather than redone. A finished unit keeps its cursor: `next` at the length of the text, `size` the size its last piece was cut at, and its final `found`, `emitted` and `errors`, so that an attempt that skips the unit still counts it. A cursor never says a unit is finished, wherever it stands: `completedUnits` does. A unit is an entity type for a linking job, a category for a tagging job, and the job's own motivation for every other — which is why a unit-grain checkpoint alone is too coarse: those three have exactly one unit, so nothing could be recorded until the whole document was done.
+
+    MERGE IS MONOTONE PER UNIT, not a union. `completedUnits` is a set and converges under concurrent snapshots because a set only grows; a cursor converges only if a stale snapshot can never move it backward.
+
+    IT CARRIES THE UNIT'S RUNNING TALLIES TOO, and they are required. A resumed unit counts only the chunks it actually runs, so without them a retry's terminal record reports the remainder of the document as if it were the whole — measured at a `found` of 19 where the document yielded 25. The position and the tallies are ONE observation of the same committed chunk; splitting them would let a resume take the saving and still report a number nobody can trust.
+    """
+
+    next: Annotated[
+        int,
+        Field(
+            description="Unicode code points of the text consumed once the last COMMITTED chunk completed — the resume position, and the length of the text for a unit whose last chunk it was. Deliberately the chunk's `next`, never its `at`: the checkpoint must not lead the log, so it records where a chunk that is already durable ended, not where the in-flight one began. Recording `at` would make a resume re-run the chunk it already paid for."
+        ),
+    ]
+    size: Annotated[
+        int,
+        Field(
+            description="The token size that last committed chunk was cut at — the calibration the attempt paid for over the chunks before it. A resume seeds from this and then takes ONE adaptive step, as if the last outcome were a failure, which it was: the job died. Seeding alone would re-cut the failing piece identically; opening at the default would discard the calibration."
+        ),
+    ]
+    found: Annotated[
+        int,
+        Field(
+            description="Items detection has returned for this unit through the last committed chunk — the numerator a resumed attempt continues from rather than restarting at zero. Counts what the model reported, before dedupe."
+        ),
+    ]
+    emitted: Annotated[
+        int,
+        Field(
+            description="Annotations actually committed for this unit through the last committed chunk, after dedupe. With `found` and `errors` it is what the job's terminal result reports, so a resumed unit seeds all three and its record describes the whole document rather than one attempt's share."
+        ),
+    ]
+    errors: Annotated[
+        int,
+        Field(
+            description="Items detection returned for this unit through the last committed chunk that could not be anchored in the text. Carried with the other two tallies so that a resumed job reports the whole document's, and not only its last attempt's."
+        ),
+    ]
+
+
+class HeldJobRecord(WireModel, frozen=True, extra="forbid"):
+    """
+    The job a worker holds, as its claim hands it: read from the `JobRunning` that `job:claimed` carries, its metadata's id, type, units, cursors and retries, and its params with the resource they name. A unit the job has not reached is no member of `completedUnits` and no key of `unitCursors`.
+    """
+
+    job_id: Annotated[JobId, Field(alias="jobId")]
+    job_type: Annotated[JobType, Field(alias="jobType")]
+    resource_id: Annotated[ResourceId, Field(alias="resourceId")]
+    params: JobParams
+    completed_units: Annotated[
+        list[str],
+        Field(alias="completedUnits", description="The units a worker has finished, merged across checkpoints and failures as a set."),
+    ]
+    unit_cursors: Annotated[
+        dict[str, UnitCursor],
+        Field(
+            alias="unitCursors",
+            description="The furthest each unit begun got, keyed by unit, with what it had counted there. A finished unit keeps its cursor: where it ended, and its final counts.",
+        ),
+    ]
+    retry_count: Annotated[int, Field(alias="retryCount")]
+    max_retries: Annotated[
+        int,
+        Field(
+            alias="maxRetries",
+            description="How many transient failures the queue retries: 0 for generation, whose re-run produces different content; 1 for every other type.",
+        ),
+    ]
+
+
 class ConformanceDriverLineClaimed(WireModel, frozen=True, extra="forbid"):
     """
     A worker driver: its worker claimed a job.
     """
 
-    claimed: Annotated[dict[str, JsonValue], Field(description="The job, as the worker read the record.")]
+    claimed: Annotated[HeldJobRecord, Field(description="The job, as the worker read the record.")]
 
 
 class ConformanceDriverLineRefused(WireModel, frozen=True, extra="forbid"):
@@ -3896,14 +4017,6 @@ class DeviceCode(WireModel, frozen=True, extra="forbid"):
     expires_in: Annotated[int, Field(alias="expiresIn", description="How many seconds the code stays good for.")]
 
 
-type DiscoveredKBPlacement = Annotated[
-    Literal["local", "codespace"],
-    Field(
-        description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
-    ),
-]
-
-
 class DiscoveredKB(WireModel, frozen=True):
     """
     One knowledge base the Xynolog launcher manages on this machine, as published in the discovery document (see DiscoveryDocument). Endpoints and identity only — never credentials; login remains the consumer's per-KB business.
@@ -3921,7 +4034,12 @@ class DiscoveredKB(WireModel, frozen=True):
             description="Local TCP port of the KB's API (the gateway port for a local stack; the allocated forward port for a codespace stack)"
         ),
     ]
-    placement: DiscoveredKBPlacement
+    placement: Annotated[
+        KbPlacement,
+        Field(
+            description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
+        ),
+    ]
     repo: Annotated[
         str | None, Field(description="owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity")
     ] = None
@@ -4287,7 +4405,9 @@ class ErrorData(WireModel, frozen=True, extra="forbid"):
     The data of a control error: the launcher's code for the failure, one of specs/src/errors/codes.json's control group, and what a client can act on. A request's failure is never only a message.
     """
 
-    code: Annotated[str, Field(description="Why the request failed: a code of the control group of specs/src/errors/codes.json.")]
+    code: Annotated[
+        ControlErrorCode, Field(description="Why the request failed: a code of the control group of specs/src/errors/codes.json.")
+    ]
     retryable: Annotated[
         bool,
         Field(
@@ -5356,6 +5476,24 @@ class HealthResponse(WireModel, frozen=True):
     timestamp: str
 
 
+class HeldJobStall(WireModel, frozen=True, extra="forbid"):
+    """
+    A held job that showed no activity for `heldJobStallMs` (contract/WORKER-CONTRACT.md V2): what a worker's claims say on `stalled`. What its host does then is the host's.
+    """
+
+    job_id: Annotated[JobId, Field(alias="jobId")]
+    job_type: Annotated[JobType, Field(alias="jobType")]
+    held_since: Annotated[str, Field(alias="heldSince", description="When the worker was handed the job.")]
+    last_activity_at: Annotated[
+        str,
+        Field(
+            alias="lastActivityAt", description="When the job last showed activity: its claim, a progress report, a checkpoint or a commit."
+        ),
+    ]
+    silent_for_ms: Annotated[int, Field(alias="silentForMs", description="How long it has shown none, in milliseconds.")]
+    threshold_ms: Annotated[int, Field(alias="thresholdMs", description="The `heldJobStallMs` it was held to, in milliseconds.")]
+
+
 class HighlightingJobParams(WireModel, frozen=True, extra="forbid"):
     """
     What a highlighting job takes: passages of the resource worth a reader's attention are marked, with no text of the job's own.
@@ -5588,55 +5726,6 @@ class Issuer(WireModel, frozen=True, extra="forbid"):
     spec: IssuerSpec
 
 
-type JobType = Annotated[
-    Literal["mark", "yield"],
-    Field(
-        description="What a job does, as the verb that asks for it: `mark` annotates a resource, `yield` makes one. A job description is its `jobType` and the parameters that verb takes; a `mark` job's parameters state its motivation."
-    ),
-]
-
-
-class UnitCursor(WireModel, frozen=True):
-    """
-    The furthest a single unit got, and what it had counted when it got there. A unit left partway is resumed from its cursor rather than redone. A finished unit keeps its cursor: `next` at the length of the text, `size` the size its last piece was cut at, and its final `found`, `emitted` and `errors`, so that an attempt that skips the unit still counts it. A cursor never says a unit is finished, wherever it stands: `completedUnits` does. A unit is an entity type for a linking job, a category for a tagging job, and the job's own motivation for every other — which is why a unit-grain checkpoint alone is too coarse: those three have exactly one unit, so nothing could be recorded until the whole document was done.
-
-    MERGE IS MONOTONE PER UNIT, not a union. `completedUnits` is a set and converges under concurrent snapshots because a set only grows; a cursor converges only if a stale snapshot can never move it backward.
-
-    IT CARRIES THE UNIT'S RUNNING TALLIES TOO, and they are required. A resumed unit counts only the chunks it actually runs, so without them a retry's terminal record reports the remainder of the document as if it were the whole — measured at a `found` of 19 where the document yielded 25. The position and the tallies are ONE observation of the same committed chunk; splitting them would let a resume take the saving and still report a number nobody can trust.
-    """
-
-    next: Annotated[
-        int,
-        Field(
-            description="Unicode code points of the text consumed once the last COMMITTED chunk completed — the resume position, and the length of the text for a unit whose last chunk it was. Deliberately the chunk's `next`, never its `at`: the checkpoint must not lead the log, so it records where a chunk that is already durable ended, not where the in-flight one began. Recording `at` would make a resume re-run the chunk it already paid for."
-        ),
-    ]
-    size: Annotated[
-        int,
-        Field(
-            description="The token size that last committed chunk was cut at — the calibration the attempt paid for over the chunks before it. A resume seeds from this and then takes ONE adaptive step, as if the last outcome were a failure, which it was: the job died. Seeding alone would re-cut the failing piece identically; opening at the default would discard the calibration."
-        ),
-    ]
-    found: Annotated[
-        int,
-        Field(
-            description="Items detection has returned for this unit through the last committed chunk — the numerator a resumed attempt continues from rather than restarting at zero. Counts what the model reported, before dedupe."
-        ),
-    ]
-    emitted: Annotated[
-        int,
-        Field(
-            description="Annotations actually committed for this unit through the last committed chunk, after dedupe. With `found` and `errors` it is what the job's terminal result reports, so a resumed unit seeds all three and its record describes the whole document rather than one attempt's share."
-        ),
-    ]
-    errors: Annotated[
-        int,
-        Field(
-            description="Items detection returned for this unit through the last committed chunk that could not be anchored in the text. Carried with the other two tallies so that a resumed job reports the whole document's, and not only its last attempt's."
-        ),
-    ]
-
-
 class JobMetadata(WireModel, frozen=True, extra="forbid"):
     """
     What the dispatcher records about a job beside its parameters. `completedUnits` and `unitCursors` appear once a worker has checkpointed. `retryCount` counts the times the queue has put the job back to pending after a failure it classes as transient.
@@ -5665,21 +5754,6 @@ class JobMetadata(WireModel, frozen=True, extra="forbid"):
         Field(
             alias="unitCursors",
             description="The furthest each unit begun got, keyed by unit, with what it had counted there. A finished unit keeps its cursor: where it ended, and its final counts.",
-        ),
-    ] = None
-
-
-class JobParams(WireModel, frozen=True, extra="allow"):
-    """
-    A job's parameters as the Dispatcher holds them: the `params` of its `job:create`, and what the Dispatcher adds. It adds `resourceId`, the resource the job is about: a `mark` job's own, and for a `yield` job the one its context focuses on. For a tagging job it adds `schema`, the tag schema its `schemaId` names, so that whoever holds the job needs no registry. Nothing the caller sent is changed or removed.
-    """
-
-    resource_id: Annotated[ResourceId, Field(alias="resourceId")]
-    schema_: Annotated[
-        TagSchema | None,
-        Field(
-            alias="schema",
-            description="The tag schema a tagging job's `schemaId` names, as the knowledge base registered it when the job was created. On a tagging job, and on no other.",
         ),
     ] = None
 
@@ -6183,6 +6257,27 @@ class JobCancelResult(WireModel, frozen=True):
     cancelled: Annotated[bool, Field(description="True when the queue acted on the job; false when the job is unknown or already over.")]
 
 
+class JobCheckpoint(WireModel, frozen=True, extra="forbid"):
+    """
+    What a held job states when it checkpoints (`job:checkpoint`, contract/JOBS.md § Checkpoints): the units finished, and the furthest each unit begun got.
+    """
+
+    completed_units: Annotated[
+        list[str],
+        Field(
+            alias="completedUnits",
+            description="Entity-type units whose annotations have been fully emitted so far. Unioned into the running job's metadata checkpoint; a retry after recovery skips them.",
+        ),
+    ]
+    unit_cursors: Annotated[
+        dict[str, UnitCursor] | None,
+        Field(
+            alias="unitCursors",
+            description="The furthest each unit begun got, keyed by unit, with what it had counted there — the grain `completedUnits` cannot express. A unit named in `completedUnits` is stated here too, by the cursor it ended at: a later attempt skips it whole and counts it by that cursor. A cursor never says a unit is finished; only `completedUnits` does. Merged monotonically per unit, finished or not: a stale snapshot must never move a cursor backward.",
+        ),
+    ] = None
+
+
 class JobCheckpointCommand(WireModel, frozen=True):
     """
     Command to persist a running job's completed-unit checkpoint AT unit completion. Distinct from JobFailCommand's checkpoint, which lands only on a clean failure: a worker that dies (crash/OOM/kill) never emits job:fail, so this durable, unthrottled write is what lets the janitor's stale-running recovery resume a dead worker's job rather than redo its finished units.
@@ -6523,6 +6618,28 @@ class JobFailedPayload(WireModel, frozen=True):
     durability: DurabilityEvidence | None = None
 
 
+class JobFailure(WireModel, frozen=True, extra="forbid"):
+    """
+    What a held job's failure states beside its error (`job:fail`): what it had reached, and the failure's class when the worker knows it. What its commits observed is the held job's own to state.
+    """
+
+    completed_units: Annotated[
+        list[str] | None,
+        Field(
+            alias="completedUnits",
+            description="Entity-type units whose annotations were fully emitted before this failure (checkpointed resume). The queue records them on the retried job's metadata; a retried claim skips them so completed work is neither redone nor duplicated.",
+        ),
+    ] = None
+    unit_cursors: Annotated[
+        dict[str, UnitCursor] | None,
+        Field(
+            alias="unitCursors",
+            description="The furthest each unit begun got, keyed by unit, with what it had counted there — the grain `completedUnits` cannot express. A unit named in `completedUnits` is stated here too, by the cursor it ended at: a later attempt skips it whole and counts it by that cursor. A cursor never says a unit is finished; only `completedUnits` does. Merged monotonically per unit, finished or not: a stale snapshot must never move a cursor backward.",
+        ),
+    ] = None
+    failure_class: Annotated[FailureClass | None, Field(alias="failureClass")] = None
+
+
 class JobPollOptions(WireModel, frozen=True, extra="forbid"):
     """
     How a job's `pollUntilComplete` asks for the job's status: how long it waits between its asks, and how long it goes on asking. A member left out is client/timing.json's: `jobPollMs` and `jobPollTimeoutMs`.
@@ -6570,6 +6687,27 @@ type JobQueuedEvent = Annotated[
         discriminator="job_type",
     ),
 ]
+
+
+class JobReached(WireModel, frozen=True, extra="forbid"):
+    """
+    What a held job that stops on a cancellation states it had reached (`job:cancel`): the units finished, and the furthest each unit begun got.
+    """
+
+    completed_units: Annotated[
+        list[str] | None,
+        Field(
+            alias="completedUnits",
+            description="The units the worker had finished when it stopped. Recorded on the cancelled job's metadata so the work already done stays visible.",
+        ),
+    ] = None
+    unit_cursors: Annotated[
+        dict[str, UnitCursor] | None,
+        Field(
+            alias="unitCursors",
+            description="The furthest each unit begun got, keyed by unit, with what it had counted there — the grain `completedUnits` cannot express. A unit named in `completedUnits` is stated here too, by the cursor it ended at: a later attempt skips it whole and counts it by that cursor. A cursor never says a unit is finished; only `completedUnits` does. Merged monotonically per unit, finished or not: a stale snapshot must never move a cursor backward.",
+        ),
+    ] = None
 
 
 class JobRecord(WireModel, frozen=True, extra="forbid"):
@@ -6890,13 +7028,6 @@ class KnowledgeBase(KbTarget, NewKnowledgeBase, frozen=True):
     """
 
 
-type KnowledgeBaseStatusPlacement = Annotated[
-    Literal["local", "codespace"],
-    Field(
-        description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
-    ),
-]
-
 type SessionState = Annotated[
     Literal["valid", "expired", "unverified", "none"],
     Field(
@@ -7021,7 +7152,7 @@ class KnowledgeBaseStatus(WireModel, frozen=True, extra="forbid"):
     ]
     key: Annotated[str, Field(description="The knowledge base's key on this machine, which names its containers and its state.")]
     recorded: Annotated[bool, Field(description="Whether a stack of it is recorded. When none is, its services are found by name.")]
-    placement: KnowledgeBaseStatusPlacement
+    placement: KbPlacement
     root: Annotated[str | None, Field(description="Its clone, for a local stack.")] = None
     repo: Annotated[
         str | None, Field(description="owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity")
@@ -8261,7 +8392,7 @@ class ResourceUpload(WireModel, frozen=True):
     """
 
     name: Annotated[str, Field(description="Human-readable resource name")]
-    file: Annotated[bytes, Field(description="Binary content")]
+    file: Annotated[Binary, Field(description="Binary content")]
     format: Annotated[str, Field(description="Media type of the content (e.g. text/plain, text/markdown, image/png)")]
     storage_uri: Annotated[
         str,
@@ -8331,12 +8462,15 @@ class ResourceView(WireModel, frozen=True, extra="forbid"):
     ]
 
 
-type RootPlacement = Annotated[
-    Literal["local", "codespace"],
-    Field(
-        description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
-    ),
-]
+class RetryBudget(WireModel, frozen=True, extra="forbid"):
+    """
+    A retry budget: how many `attempts` are allowed, with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`.
+    """
+
+    attempts: Annotated[int, Field(description="How many attempts the budget allows.")]
+    initial_delay_ms: Annotated[int, Field(alias="initialDelayMs", description="The delay before the second attempt, in milliseconds.")]
+    max_delay_ms: Annotated[int, Field(alias="maxDelayMs", description="The longest delay between attempts, in milliseconds.")]
+
 
 type RootCurrent = Annotated[
     Literal["cwd", "xynolog-root"],
@@ -8351,7 +8485,7 @@ class Root(WireModel, frozen=True, extra="forbid"):
     One knowledge base this machine knows: a registered or running local clone, or a codespace stack recorded here. Registration, the directory, the stack and the forward are separate facts, each stated as it is.
     """
 
-    placement: RootPlacement
+    placement: KbPlacement
     path: Annotated[str | None, Field(description="For a local root: the clone's path.")] = None
     present: Annotated[
         bool | None,
@@ -9264,13 +9398,6 @@ class SmelterConfig(WireModel, frozen=True, extra="forbid"):
     log_format: Annotated[LogFormat, Field(alias="logFormat")]
 
 
-type SmelterHealthStream = Annotated[
-    Literal["initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"],
-    Field(
-        description="The state of its own stream of the record, one of the seven of TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while it is `open`."
-    ),
-]
-
 type SmelterHealthReconcilePhase = Literal["pending", "running", "done", "failed"]
 
 
@@ -9364,7 +9491,12 @@ class SmelterHealth(WireModel, frozen=True, extra="forbid"):
             description="The DID of the knowledge base it serves: the one its settings name, which that knowledge base said it is before the Smelter reached its index."
         ),
     ]
-    stream: SmelterHealthStream
+    stream: Annotated[
+        ConnectionState,
+        Field(
+            description="The state of its own stream of the record, one of client/connection-states.json's. Events are delivered to it while it is `open`."
+        ),
+    ]
     following: Annotated[
         FollowerFollowing,
         Field(description="How far it has followed the record. Its sweep is also `due` where its start's reconcile failed."),
@@ -9848,6 +9980,15 @@ class TextSpan(WireModel, frozen=True, extra="forbid"):
     suffix: Annotated[str | None, Field(description="The text just after them.")] = None
 
 
+class TraceCarrier(WireModel, frozen=True, extra="forbid"):
+    """
+    A W3C trace context, as a relayed frame's trace field carries it (bus/registry.json `trace`) and a held job states it as its `trace`: the trace a frame was sent under, so its reader's work is recorded in the same trace.
+    """
+
+    traceparent: Annotated[str, Field(description="W3C `traceparent` (`00-<traceId>-<spanId>-<flags>`).")]
+    tracestate: Annotated[str | None, Field(description="W3C `tracestate`, when the trace has one.")] = None
+
+
 class UpdateAnnotationBodyRequest(WireModel, frozen=True):
     resource_id: Annotated[
         ResourceId, Field(alias="resourceId", description="Resource ID containing the annotation (required for O(1) Layer 3 lookup)")
@@ -10052,6 +10193,16 @@ class WeaverHealth(WireModel, frozen=True, extra="forbid"):
     reconcile: WeaverHealthReconcile
 
 
+class WorkerActiveJob(WireModel, frozen=True, extra="forbid"):
+    """
+    The job an engine holds: which it is, of what type, and since when.
+    """
+
+    job_id: Annotated[JobId, Field(alias="jobId")]
+    type: JobType
+    since: Annotated[str, Field(description="When it was handed the job.")]
+
+
 class WorkerAnswerFormatsFormatsItem(WireModel, frozen=True, extra="forbid"):
     name: Annotated[str, Field(description="A motivation a `mark` job takes, or `count`.")]
     about: Annotated[str, Field(description="What an element is, in prose.")]
@@ -10152,16 +10303,6 @@ class WorkerConfig(WireModel, frozen=True, extra="forbid"):
     log_format: Annotated[LogFormat, Field(alias="logFormat")]
 
 
-class WorkerEngineHealthActiveJob(WireModel, frozen=True, extra="forbid"):
-    """
-    The job it holds, or null.
-    """
-
-    job_id: Annotated[JobId, Field(alias="jobId")]
-    type: JobType
-    since: Annotated[str, Field(description="When it was handed the job.")]
-
-
 class WorkerEngineHealth(WireModel, frozen=True, extra="forbid"):
     """
     One engine at one knowledge base: which it is, the jobs it claims, and what its claims can say of themselves (WORKER-CONTRACT V1).
@@ -10178,7 +10319,7 @@ class WorkerEngineHealth(WireModel, frozen=True, extra="forbid"):
     ]
     last_finished_at: Annotated[str | None, Field(alias="lastFinishedAt", description="When a job it held last settled, or null.")]
     last_activity_at: Annotated[str | None, Field(alias="lastActivityAt", description="When it was last active, or null.")]
-    active_job: Annotated[WorkerEngineHealthActiveJob | None, Field(alias="activeJob")]
+    active_job: Annotated[WorkerActiveJob | None, Field(alias="activeJob", description="The job it holds, or null.")]
     jobs_completed: Annotated[int, Field(alias="jobsCompleted", description="How many jobs it has completed since the service started.")]
 
 
@@ -10363,6 +10504,24 @@ class WorkerPool(WireModel, frozen=True, extra="forbid"):
     kind: Literal["WorkerPool"]
     metadata: Metadata
     spec: WorkerPoolSpec
+
+
+class WorkerVitals(WireModel, frozen=True, extra="forbid"):
+    """
+    What a worker can say of itself at any moment (contract/WORKER-CONTRACT.md V1): what a worker's claims hand it as `vitals`, and what the worker service answers of each engine beside the engine and its jobs (worker/WorkerEngineHealth.json).
+    """
+
+    last_queued_event_at: Annotated[
+        str | None, Field(alias="lastQueuedEventAt", description="When a `job:queued` last reached it, or null.")
+    ]
+    last_claim_at: Annotated[
+        str | None,
+        Field(alias="lastClaimAt", description="When it was last handed a job, or null. A claim answered with none pending is not one."),
+    ]
+    last_finished_at: Annotated[str | None, Field(alias="lastFinishedAt", description="When a job it held last settled, or null.")]
+    last_activity_at: Annotated[str | None, Field(alias="lastActivityAt", description="When it was last active, or null.")]
+    active_job: Annotated[WorkerActiveJob | None, Field(alias="activeJob", description="The job it holds, or null.")]
+    jobs_completed: Annotated[int, Field(alias="jobsCompleted", description="How many jobs it has completed since the service started.")]
 
 
 class YieldCloneCreateCommand(WireModel, frozen=True):

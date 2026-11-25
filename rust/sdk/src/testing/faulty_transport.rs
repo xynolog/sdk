@@ -29,7 +29,10 @@ use crate::channels::{RESOURCE_SCOPED_CHANNELS, TRACE_FIELD, USER_FIELD};
 use crate::errors::{BusRequestError, BusRequestErrorCode, TransportError, TransportErrorCode};
 use crate::event_bus::EventBus;
 use crate::locked;
-use crate::transport::{BoxFuture, Envelope, Events, FailureListener, FailureStream, Failures, Frame, FrameHub, FrameRefusal, Frames, PendingReply, ReplyRouter, ResourceHold, StreamId, Transport};
+use crate::transport::{
+    BoxFuture, Envelope, Events, FailureListener, FailureStream, Failures, Frame, FrameHub,
+    FrameRefusal, Frames, PendingReply, ReplyRouter, ResourceHold, StreamId, Transport,
+};
 use crate::types::ConnectionState;
 use crate::types::{BusFrame, ResourceId};
 use serde_json::{Map, Value};

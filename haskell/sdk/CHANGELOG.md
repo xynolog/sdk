@@ -41,6 +41,16 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A held job keeps the `HeldJobRecord` its claim handed it, and `jobId`,
+  `jobType`, `resourceId`, `params`, `completedUnits`, `unitCursors`,
+  `retryCount` and `maxRetries` are read from it through
+  `HasHeldJobRecord`, generated from `client/surface.json` and typed as the
+  record types them: `unitCursors` is the record's
+  `HeldJobRecordUnitCursors`, where it was a `KM.KeyMap UnitCursor`.
+- `KbPlacement` names where a knowledge base's stack runs, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
+  and `TargetKind`; `InferenceProvider` names an inference provider, in
+  place of `EngineProvider`.
 - The HTTP transport names each span and its count by the SDK telemetry
   table, as generated values (`spanContentGet`, `metricXynologBusSent`, …)
   in place of names spelled at each call. What it reports is the same.

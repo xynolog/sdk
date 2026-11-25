@@ -1,11 +1,10 @@
--- Generated from protocol/specs/src/openapi.json, its paths, and the reference credential classifier; do not edit.
+-- Generated from protocol/specs/src/openapi.json and its paths; do not edit.
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Http.Routes (HttpRoute (..), routeName, routeMethod, routePath, routeStatus, routeMediaType, routeRequestMediaType, routeAuthenticated, routeRequiredHeaders, unauthorizedStatus, limitedStatus, refusalField, refusalCode, busEventName) where
+module Xynolog.Http.Routes (HttpRoute (..), routeName, routeMethod, routePath, routeStatus, routeMediaType, routeRequestMediaType, routeAuthenticated, routeRequiredHeaders, busEventName) where
 
-import Data.Aeson.Key (Key)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Xynolog.Types
@@ -162,18 +161,6 @@ routeRequiredHeaders GetResourceRepresentation = []
 routeRequiredHeaders GetResourceAnchoredText = []
 routeRequiredHeaders GetResourceAnnotations = []
 routeRequiredHeaders GetResourceJsonLd = []
-
-unauthorizedStatus :: Int
-unauthorizedStatus = 401
-
-limitedStatus :: Int
-limitedStatus = 429
-
-refusalField :: Key
-refusalField = "code"
-
-refusalCode :: Text
-refusalCode = "refusal-rate"
 
 busEventName :: Text
 busEventName = "bus-event"

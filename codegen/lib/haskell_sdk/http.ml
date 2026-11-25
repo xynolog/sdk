@@ -285,9 +285,7 @@ let file ~banner t ~bus_event =
     (declarations gateway routes
     @ [ dispatch gateway "MediaType" (text "ByteString") routes content ]
     @ headed gateway routes
-    @ [
-        H.value "busEventName" (text "Text") (Str bus_event);
-      ])
+    @ [ H.value "busEventName" (text "Text") (Str bus_event) ])
     routes
 
 let archivist_file ~banner t =

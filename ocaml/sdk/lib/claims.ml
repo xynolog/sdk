@@ -27,7 +27,7 @@ type t = {
   timeout_ms : int option;
   stall_ms : int;
   stall_check_ms : int;
-  trace : unit -> Wire_stream.trace option;
+  trace : unit -> Records.Trace_carrier.t option;
   mutable last_active : Mtime.t option;
   mutable did_stall : bool;
   refusals : string option Kept_for_first_reader.t;
@@ -157,7 +157,8 @@ let listen t =
               match S.await_state_change bus ~from:previous with
               | Enums.Connection_state.Closed -> ()
               | state ->
-                  if seen_open && state = Enums.Connection_state.Open then wake t;
+                  if seen_open && state = Enums.Connection_state.Open then
+                    wake t;
                   watch state (seen_open || state = Enums.Connection_state.Open)
             in
             let state = S.state bus in
@@ -250,4 +251,5 @@ let stop ?(settle = true) t =
     Kept_for_first_reader.close t.stalls)
 
 include Worker_facts
+
 let will_retry_after = Worker.will_retry_after

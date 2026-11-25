@@ -48,7 +48,7 @@ package xynolog
 //	claims := client.Job.Claim(api.ClaimOptions{Accepts: accepts})
 //	defer claims.Close()
 //	for job, err := range claims.All() {
-//		var refused *xynolog.ClaimRefusal
+//		var refused *api.ClaimRefusal
 //		if errors.As(err, &refused) {
 //			continue // the host judges: bus.unauthorized means stop
 //		}
@@ -159,60 +159,6 @@ func states(stated, actual any) bool {
 	return reflect.DeepEqual(stated, actual)
 }
 
-// ClaimRefusal is a claim that was refused for a reason other than "nothing
-// pending". It is the error the claims give where a job would have been.
-type ClaimRefusal struct {
-	// Code is the code the reply was given; nil when the refusal was the
-	// worker's own: a reply that names no job, or a claim that could not be
-	// sent. bus.none-pending never appears: an empty queue is not a fault.
-	// bus.unauthorized means this credential cannot claim, and will not be
-	// able to later.
-	Code    *api.BusRequestErrorCode
-	Message string
-}
-
-func (r *ClaimRefusal) Error() string { return r.Message }
-
-// ActiveJob is the job a worker holds, as its vitals name it.
-type ActiveJob struct {
-	JobId api.JobId
-	Type  api.JobType
-	Since time.Time
-}
-
-// WorkerVitals is what a worker can say of itself at any moment
-// (WORKER-CONTRACT V1): the members of WorkerEngineHealth a worker knows of
-// itself, each time a time.Time. A time that is zero has not happened yet.
-//
-// LastQueuedEventAt is any job:queued received, matching or not, refused by
-// its transport or not. On an idle stack with an empty queue it stands still
-// by design, so a still stamp alone is not a fault of the stream.
-// LastActivityAt (a claim, a progress report, a checkpoint, a settle) is the
-// liveness of the work: a job stuck partway stops advancing it, and that is
-// what the stall rule reads.
-type WorkerVitals struct {
-	LastQueuedEventAt time.Time
-	LastClaimAt       time.Time
-	// LastFinishedAt is the last settle, whatever its outcome: a worker that
-	// fails and moves on is alive.
-	LastFinishedAt time.Time
-	LastActivityAt time.Time
-	// ActiveJob is the job held now; nil when none is.
-	ActiveJob     *ActiveJob
-	JobsCompleted int
-}
-
-// HeldJobStall is a held job that showed no activity for Threshold
-// (WORKER-CONTRACT V2). What its host does then is the host's.
-type HeldJobStall struct {
-	JobId          api.JobId
-	JobType        api.JobType
-	HeldSince      time.Time
-	LastActivityAt time.Time
-	SilentFor      time.Duration
-	Threshold      time.Duration
-}
-
 // ending is a Watched read until over is done, after which it changes no
 // more.
 type ending[T comparable] struct {
@@ -236,43 +182,15 @@ func (e ending[T]) Changes(ctx context.Context) iter.Seq[T] {
 	}
 }
 
-// JobFailure is what a failure carries beside its error. What the job's
-// commits observed is the held job's own to state.
-type JobFailure struct {
-	// FailureClass is the failure's class, when the worker knows it.
-	FailureClass *api.FailureClass
-	// CompletedUnits is the units finished before the failure; nil when the
-	// failure states none.
-	CompletedUnits []string
-	// UnitCursors is the furthest each unit begun got, a finished unit's
-	// cursor where it ended; nil when the failure states none.
-	UnitCursors map[string]api.UnitCursor
-}
-
 // HeldJob is a job this worker holds, as its verb's: a *HeldMarkJob or a
 // *HeldYieldJob. A completion is its verb's, so a type switch reads which
 // before Complete is called; every other member is the same for both.
 type HeldJob interface {
-	// JobId is the job's id.
-	JobId() api.JobId
-	// JobType is the job's verb.
-	JobType() api.JobType
-	// ResourceId is the resource the job is about.
-	ResourceId() api.ResourceId
-	// Params is the job's parameters as the dispatcher holds them: the
-	// description, and what the dispatcher adds.
-	Params() api.JobParams
-	// CompletedUnits is the units earlier attempts finished. A worker does
-	// not do them again. Empty on a first attempt.
-	CompletedUnits() []string
-	// UnitCursors is the furthest each unit begun got on an earlier attempt,
-	// and what it had counted there; a finished unit's is where it ended.
-	// Empty on a first attempt.
-	UnitCursors() map[string]api.UnitCursor
-	// RetryCount is how many attempts failed before this one.
-	RetryCount() int
-	// MaxRetries is how many the job is allowed.
-	MaxRetries() int
+	// Each member of the job as its claim handed it. CompletedUnits and
+	// UnitCursors are empty on a first attempt.
+	HeldJobRecordMembers
+	// Record is the job as its claim handed it.
+	Record() api.HeldJobRecord
 	// Attempt is which attempt this is, 1-based. Every lifecycle message
 	// states it.
 	Attempt() int
@@ -280,9 +198,9 @@ type HeldJob interface {
 	// job's context is focused on. The zero AnnotationId for a job anchored
 	// to none.
 	AnnotationId() api.AnnotationId
-	// Trace is the trace the job is run in: the one its reply arrived in.
-	// The zero TraceContext for a reply that arrived in none.
-	Trace() TraceContext
+	// Trace is the trace the job is run in: the one its reply arrived in;
+	// nil for a reply that arrived in none.
+	Trace() *api.TraceCarrier
 	// Cancelled is whether a cancellation has named this job: the answer
 	// now, and the change to it, until the job is settled. The work stops
 	// where it can, and the worker says Cancel.
@@ -296,14 +214,14 @@ type HeldJob interface {
 	Progress(ctx context.Context, progress api.JobProgress) error
 	// Checkpoint says job:checkpoint: what a later attempt resumes from. It
 	// counts as activity.
-	Checkpoint(ctx context.Context, completedUnits []string, unitCursors map[string]api.UnitCursor) error
+	Checkpoint(ctx context.Context, checkpoint api.JobCheckpoint) error
 	// Commit says mark:commit for this job, and returns once the batch is
 	// established.
 	Commit(ctx context.Context, resourceID api.ResourceId, annotations []api.Annotation) error
 	// Fail settles the job: job:fail.
-	Fail(ctx context.Context, message string, failure JobFailure) error
+	Fail(ctx context.Context, message string, failure api.JobFailure) error
 	// Cancel settles the job: job:cancel.
-	Cancel(ctx context.Context, completedUnits []string, unitCursors map[string]api.UnitCursor) error
+	Cancel(ctx context.Context, reached api.JobReached) error
 
 	held() *heldJob
 }
@@ -316,19 +234,10 @@ var (
 // heldJob is what a held job is, whatever its verb.
 type heldJob struct {
 	claims       *Claims
-	trace        TraceContext
-	jobID        api.JobId
-	jobType      api.JobType
-	resourceID   api.ResourceId
-	params       api.JobParams
-	retryCount   int
-	maxRetries   int
+	trace        *api.TraceCarrier
+	record       api.HeldJobRecord
 	annotationID api.AnnotationId
-	// completedUnits and unitCursors are the record's, once an attempt has
-	// checkpointed. Absent, each reads as none.
-	completedUnits []string
-	unitCursors    map[string]api.UnitCursor
-	cancelled      *Variable[bool]
+	cancelled    *Variable[bool]
 	// over is done once the job is settled: nothing about it changes after.
 	over context.Context
 	end  context.CancelFunc
@@ -345,18 +254,16 @@ type heldJob struct {
 
 func (h *heldJob) held() *heldJob { return h }
 
-func (h *heldJob) JobId() api.JobId               { return h.jobID }
-func (h *heldJob) JobType() api.JobType           { return h.jobType }
-func (h *heldJob) ResourceId() api.ResourceId     { return h.resourceID }
-func (h *heldJob) Params() api.JobParams          { return h.params }
-func (h *heldJob) CompletedUnits() []string       { return slices.Clone(h.completedUnits) }
-func (h *heldJob) RetryCount() int                { return h.retryCount }
-func (h *heldJob) MaxRetries() int                { return h.maxRetries }
-func (h *heldJob) Attempt() int                   { return h.retryCount + 1 }
+func (h *heldJob) Attempt() int                   { return h.record.RetryCount + 1 }
 func (h *heldJob) AnnotationId() api.AnnotationId { return h.annotationID }
-func (h *heldJob) Trace() TraceContext            { return h.trace }
+func (h *heldJob) Trace() *api.TraceCarrier       { return h.trace }
 
-func (h *heldJob) UnitCursors() map[string]api.UnitCursor { return maps.Clone(h.unitCursors) }
+func (h *heldJob) Record() api.HeldJobRecord {
+	record := h.record
+	record.CompletedUnits = slices.Clone(h.record.CompletedUnits)
+	record.UnitCursors = maps.Clone(h.record.UnitCursors)
+	return record
+}
 
 func (h *heldJob) Cancelled() Watched[bool] { return ending[bool]{h.cancelled, h.over} }
 
@@ -384,7 +291,7 @@ func (h *heldJob) anchor() *api.AnnotationId {
 
 // inTrace is ctx, in the job's trace when ctx is in none.
 func (h *heldJob) inTrace(ctx context.Context) context.Context {
-	if activeTrace(ctx).IsZero() {
+	if activeTrace(ctx) == nil {
 		return Continuing(ctx, h.trace)
 	}
 	return ctx
@@ -393,7 +300,7 @@ func (h *heldJob) inTrace(ctx context.Context) context.Context {
 // unsettled refuses a message of a job that is settled.
 func (h *heldJob) unsettled(saying bus.Channel) error {
 	if h.settled {
-		return fmt.Errorf("Job %s is already settled: it cannot say %s", h.jobID, saying)
+		return fmt.Errorf("Job %s is already settled: it cannot say %s", h.record.JobId, saying)
 	}
 	return nil
 }
@@ -445,12 +352,12 @@ func (h *heldJob) Start(ctx context.Context) error {
 	}
 	if h.begun {
 		h.mu.Unlock()
-		return fmt.Errorf("job:start is a held job's first message, said once: job %s has already said more", h.jobID)
+		return fmt.Errorf("job:start is a held job's first message, said once: job %s has already said more", h.record.JobId)
 	}
 	h.begun = true
 	h.mu.Unlock()
 	return say(ctx, h, bus.JobStart, api.JobStartCommand{
-		ResourceId: h.resourceID, JobId: h.jobID, JobType: h.jobType, Attempt: h.attempt(), AnnotationId: h.anchor(),
+		ResourceId: h.record.ResourceId, JobId: h.record.JobId, JobType: h.record.JobType, Attempt: h.attempt(), AnnotationId: h.anchor(),
 	})
 }
 
@@ -463,44 +370,19 @@ func (h *heldJob) Progress(ctx context.Context, progress api.JobProgress) error 
 		progress.AnnotationId = anchor
 	}
 	return say(ctx, h, bus.JobReportProgress, api.JobReportProgressCommand{
-		ResourceId: h.resourceID, JobId: h.jobID, JobType: h.jobType, Attempt: h.attempt(), AnnotationId: h.anchor(),
+		ResourceId: h.record.ResourceId, JobId: h.record.JobId, JobType: h.record.JobType, Attempt: h.attempt(), AnnotationId: h.anchor(),
 		Percentage: progress.Percentage, Progress: &progress,
 	})
 }
 
-func (h *heldJob) Checkpoint(ctx context.Context, completedUnits []string, unitCursors map[string]api.UnitCursor) error {
+func (h *heldJob) Checkpoint(ctx context.Context, checkpoint api.JobCheckpoint) error {
 	if err := h.going(bus.JobCheckpoint.Channel()); err != nil {
 		return err
 	}
 	h.claims.active()
 	return say(ctx, h, bus.JobCheckpoint, api.JobCheckpointCommand{
-		JobId: h.jobID, CompletedUnits: listed(completedUnits), UnitCursors: stated(unitCursors),
+		JobId: h.record.JobId, CompletedUnits: checkpoint.CompletedUnits, UnitCursors: checkpoint.UnitCursors,
 	})
-}
-
-// listed is units as a message states them: none is an empty list.
-func listed(units []string) []string {
-	if units == nil {
-		return []string{}
-	}
-	return units
-}
-
-// stated is cursors as a message states them: nil when none are stated.
-func stated(cursors map[string]api.UnitCursor) *map[string]api.UnitCursor {
-	if cursors == nil {
-		return nil
-	}
-	return &cursors
-}
-
-// statedUnits is units as an optional field states them: nil when none are
-// stated.
-func statedUnits(units []string) *[]string {
-	if units == nil {
-		return nil
-	}
-	return &units
 }
 
 // Commit says mark:commit for this job: it returns once the batch is
@@ -532,7 +414,7 @@ func (h *heldJob) Commit(ctx context.Context, resourceID api.ResourceId, annotat
 		// A batch of no annotations is no commit: there is nothing to establish.
 		return nil
 	}
-	jobID := h.jobID
+	jobID := h.record.JobId
 	unanswered := h.answered(ctx, bus.MarkCommit.Request().Channel(), api.MarkCommitCommand{ResourceId: resourceID, Annotations: annotations, JobId: &jobID})
 	if unanswered == nil {
 		h.observe(api.DurabilityEvidenceAcknowledged)
@@ -616,7 +498,7 @@ func (h *heldJob) observed() *api.DurabilityEvidence {
 // the record's budget and the failure's class, and what a commit that was not
 // established observed. A settle the gateway did not take still releases the
 // job, and fails.
-func (h *heldJob) Fail(ctx context.Context, message string, failure JobFailure) error {
+func (h *heldJob) Fail(ctx context.Context, message string, failure api.JobFailure) error {
 	if err := h.settling(bus.JobFail.Channel()); err != nil {
 		return err
 	}
@@ -628,26 +510,26 @@ func (h *heldJob) Fail(ctx context.Context, message string, failure JobFailure) 
 	if observed := h.observed(); observed != nil && weakness[*observed] > weakness[api.DurabilityEvidenceProbeConfirmed] {
 		notEstablished = observed
 	}
-	willRetry := WillRetryAfter(h.retryCount, h.maxRetries, failure.FailureClass)
+	willRetry := WillRetryAfter(h.record.RetryCount, h.record.MaxRetries, failure.FailureClass)
 	return say(ctx, h, bus.JobFail, api.JobFailCommand{
-		ResourceId: h.resourceID, JobId: h.jobID, JobType: h.jobType, Attempt: h.attempt(), AnnotationId: h.anchor(),
-		Error: message, CompletedUnits: statedUnits(failure.CompletedUnits), UnitCursors: stated(failure.UnitCursors),
+		ResourceId: h.record.ResourceId, JobId: h.record.JobId, JobType: h.record.JobType, Attempt: h.attempt(), AnnotationId: h.anchor(),
+		Error: message, CompletedUnits: failure.CompletedUnits, UnitCursors: failure.UnitCursors,
 		FailureClass: failure.FailureClass, WillRetry: &willRetry, Durability: notEstablished,
 	})
 }
 
 // Cancel settles the job: job:cancel, once the work has stopped for a
-// cancellation, with the units it finished and the furthest each unit begun
-// got, a finished unit's cursor where it ended; nil for none stated. The
-// message is the command's own fields and no more: it names no attempt.
-func (h *heldJob) Cancel(ctx context.Context, completedUnits []string, unitCursors map[string]api.UnitCursor) error {
+// cancellation, with what it reached: the units it finished and the furthest
+// each unit begun got, a finished unit's cursor where it ended. The message
+// is the command's own fields and no more: it names no attempt.
+func (h *heldJob) Cancel(ctx context.Context, reached api.JobReached) error {
 	if err := h.settling(bus.JobCancel.Channel()); err != nil {
 		return err
 	}
 	defer h.released(false)
 	return say(ctx, h, bus.JobCancel, api.JobCancelCommand{
-		ResourceId: h.resourceID, JobId: h.jobID, JobType: h.jobType, AnnotationId: h.anchor(),
-		CompletedUnits: statedUnits(completedUnits), UnitCursors: stated(unitCursors),
+		ResourceId: h.record.ResourceId, JobId: h.record.JobId, JobType: h.record.JobType, AnnotationId: h.anchor(),
+		CompletedUnits: reached.CompletedUnits, UnitCursors: reached.UnitCursors,
 	})
 }
 
@@ -659,7 +541,7 @@ func (h *heldJob) failFor(ctx context.Context, reason string) {
 	if h.Settled() {
 		return
 	}
-	_ = h.Fail(ctx, reason, JobFailure{})
+	_ = h.Fail(ctx, reason, api.JobFailure{})
 }
 
 // HeldMarkJob is a mark job this worker holds, from its claim until it
@@ -679,7 +561,7 @@ func (j *HeldMarkJob) Complete(ctx context.Context, result api.MarkJobResult) er
 	defer j.released(true)
 	var completed api.JobCompleteCommand
 	if err := completed.From(api.MarkJobCompleteCommand{
-		ResourceId: j.resourceID, JobId: j.jobID, JobType: api.MarkJobCompleteCommandJobTypeMark, Attempt: j.attempt(),
+		ResourceId: j.record.ResourceId, JobId: j.record.JobId, JobType: api.MarkJobCompleteCommandJobTypeMark, Attempt: j.attempt(),
 		Result: &result, Durability: j.observed(),
 	}); err != nil {
 		return err
@@ -704,7 +586,7 @@ func (j *HeldYieldJob) Complete(ctx context.Context, result api.YieldJobResult) 
 	defer j.released(true)
 	var completed api.JobCompleteCommand
 	if err := completed.From(api.YieldJobCompleteCommand{
-		ResourceId: j.resourceID, JobId: j.jobID, JobType: api.YieldJobCompleteCommandJobTypeYield, Attempt: j.attempt(),
+		ResourceId: j.record.ResourceId, JobId: j.record.JobId, JobType: api.YieldJobCompleteCommandJobTypeYield, Attempt: j.attempt(),
 		AnnotationId: j.anchor(), Result: &result, Durability: j.observed(),
 	}); err != nil {
 		return err
@@ -737,7 +619,7 @@ func anchorOf(jobType api.JobType, params api.JobParams) api.AnnotationId {
 // handedOut is what the claims hand out next: a job, or a refusal.
 type handedOut struct {
 	job     HeldJob
-	refusal *ClaimRefusal
+	refusal *api.ClaimRefusal
 }
 
 // Claims is a worker's claims, from Job.Claim: each job the worker comes to
@@ -760,7 +642,7 @@ type Claims struct {
 	// claims when they are first ranged over.
 	filtersErr error
 	handed     *kept.Queue[handedOut]
-	stalls     *kept.Stream[*HeldJobStall]
+	stalls     *kept.Stream[*api.HeldJobStall]
 	// life is the claims': done once they have ended. What watches for an
 	// idle moment runs in it; a claim in flight does not, and is left to be
 	// answered.
@@ -797,7 +679,7 @@ func newClaims(l *links, options api.ClaimOptions) *Claims {
 		timing:  claimTiming(l.timing, options),
 		accepts: slices.Clone(options.Accepts),
 		handed:  kept.NewQueue[handedOut](),
-		stalls:  kept.NewStream[*HeldJobStall](l.timing.ErrorsKeptForFirstReaderCount),
+		stalls:  kept.NewStream[*api.HeldJobStall](l.timing.ErrorsKeptForFirstReaderCount),
 		life:    life,
 		end:     end,
 	}
@@ -885,39 +767,55 @@ func (c *Claims) All() iter.Seq2[HeldJob, error] {
 	}
 }
 
-// Vitals is what this worker can say of itself now.
-func (c *Claims) Vitals() WorkerVitals {
+// Vitals is what this worker can say of itself now (WORKER-CONTRACT V1),
+// each stamp nil until it has happened.
+//
+// LastQueuedEventAt is any job:queued received, matching or not, refused by
+// its transport or not. On an idle stack with an empty queue it stands still
+// by design, so a still stamp alone is not a fault of the stream.
+// LastActivityAt (a claim, a progress report, a checkpoint, a settle) is the
+// liveness of the work: a job stuck partway stops advancing it, and that is
+// what the stall rule reads. LastFinishedAt is the last settle, whatever its
+// outcome: a worker that fails and moves on is alive.
+func (c *Claims) Vitals() api.WorkerVitals {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	vitals := WorkerVitals{
-		LastQueuedEventAt: utc(c.lastQueuedEventAt),
-		LastClaimAt:       utc(c.lastClaimAt),
-		LastFinishedAt:    utc(c.lastFinishedAt),
-		LastActivityAt:    utc(c.lastActivityAt),
+	vitals := api.WorkerVitals{
+		LastQueuedEventAt: stampedAt(c.lastQueuedEventAt),
+		LastClaimAt:       stampedAt(c.lastClaimAt),
+		LastFinishedAt:    stampedAt(c.lastFinishedAt),
+		LastActivityAt:    stampedAt(c.lastActivityAt),
 		JobsCompleted:     c.jobsCompleted,
 	}
 	if c.held != nil && !c.heldSince.IsZero() {
-		vitals.ActiveJob = &ActiveJob{JobId: c.held.jobID, Type: c.held.jobType, Since: utc(c.heldSince)}
+		vitals.ActiveJob = &api.WorkerActiveJob{JobId: c.held.record.JobId, Type: c.held.record.JobType, Since: stamp(c.heldSince)}
 	}
 	return vitals
 }
 
-// utc is t in UTC; the zero time stays the zero time.
-func utc(t time.Time) time.Time {
-	if t.IsZero() {
-		return t
+// stamp is at as the wire writes a time: RFC 3339, in UTC, to the
+// millisecond.
+func stamp(at time.Time) string { return at.UTC().Format("2006-01-02T15:04:05.000Z07:00") }
+
+// stampedAt is at as the wire writes a time; nil for the zero time, which
+// has not happened.
+func stampedAt(at time.Time) *string {
+	if at.IsZero() {
+		return nil
 	}
-	return t.UTC()
+	stamped := stamp(at)
+	return &stamped
 }
 
 // Stalled is each held job that has shown no activity for the client's
-// HeldJobStall, reported once. Its first reader is given the latest
+// HeldJobStall, reported once (WORKER-CONTRACT V2); what its host does then
+// is the host's. Its first reader is given the latest
 // ErrorsKeptForFirstReaderCount (Timing) reported since the claims were
 // made, the oldest dropped beyond them, in order, and every later one what
 // is reported from then on; reporting never waits for a reader. It ends when
 // the claims end, and a reader who comes after that, the first among them,
 // is given nothing.
-func (c *Claims) Stalled() iter.Seq[*HeldJobStall] { return c.stalls.Reported(nil) }
+func (c *Claims) Stalled() iter.Seq[*api.HeldJobStall] { return c.stalls.Reported(nil) }
 
 // Close stops claiming. A job still held is failed first, and Close returns
 // once that has been said, or could not be. A claim in flight is waited for,
@@ -1063,7 +961,7 @@ func (c *Claims) cancellation(frame Frame) {
 	c.mu.Lock()
 	held := c.held
 	c.mu.Unlock()
-	if held != nil && !held.Settled() && named.JobId == held.jobID {
+	if held != nil && !held.Settled() && named.JobId == held.record.JobId {
 		held.cancelled.Set(true)
 	}
 }
@@ -1113,9 +1011,9 @@ func (c *Claims) lookForStalls() {
 			continue
 		}
 		c.stallReported = true
-		stall := &HeldJobStall{
-			JobId: held.jobID, JobType: held.jobType, HeldSince: utc(c.heldSince), LastActivityAt: utc(c.lastActivityAt),
-			SilentFor: silentFor, Threshold: timing.HeldJobStall,
+		stall := &api.HeldJobStall{
+			JobId: held.record.JobId, JobType: held.record.JobType, HeldSince: stamp(c.heldSince), LastActivityAt: stamp(c.lastActivityAt),
+			SilentForMs: int(silentFor.Milliseconds()), ThresholdMs: int(timing.HeldJobStall.Milliseconds()),
 		}
 		c.mu.Unlock()
 		c.stalls.Report(stall)
@@ -1211,7 +1109,7 @@ func (c *Claims) claim() {
 //
 // The claim is made in no trace: it runs in the client's life, never in the
 // context of whatever settled the job before it.
-func (c *Claims) claimNext() (HeldJob, *ClaimRefusal) {
+func (c *Claims) claimNext() (HeldJob, *api.ClaimRefusal) {
 	life := c.links.life
 	answer, err := claimed(life, c.links, c.accepts, c.timing.JobClaimTimeout)
 	if err != nil {
@@ -1225,9 +1123,9 @@ func (c *Claims) claimNext() (HeldJob, *ClaimRefusal) {
 				return nil, nil
 			}
 			code := refused.Code
-			return nil, &ClaimRefusal{Code: &code, Message: refused.Message}
+			return nil, &api.ClaimRefusal{Code: &code, Message: refused.Message}
 		}
-		return nil, &ClaimRefusal{Message: err.Error()}
+		return nil, &api.ClaimRefusal{Message: err.Error()}
 	}
 	running := answer.Payload.Response
 	// The verb's handle is made first, and its job filled in place: a held
@@ -1243,24 +1141,26 @@ func (c *Claims) claimNext() (HeldJob, *ClaimRefusal) {
 	}
 	held.claims = c
 	held.trace = answer.Trace
-	held.jobID = running.Metadata.Id
-	held.jobType = running.Metadata.Type
-	held.resourceID = running.Params.ResourceId
-	held.params = running.Params
-	held.retryCount = running.Metadata.RetryCount
-	held.maxRetries = running.Metadata.MaxRetries
+	held.record = api.HeldJobRecord{
+		JobId:          running.Metadata.Id,
+		JobType:        running.Metadata.Type,
+		ResourceId:     running.Params.ResourceId,
+		Params:         running.Params,
+		CompletedUnits: []string{},
+		UnitCursors:    map[string]api.UnitCursor{},
+		RetryCount:     running.Metadata.RetryCount,
+		MaxRetries:     running.Metadata.MaxRetries,
+	}
+	// Both appear on the job once an attempt has checkpointed. Absent, each is none.
+	if units := running.Metadata.CompletedUnits; units != nil {
+		held.record.CompletedUnits = slices.Clone(*units)
+	}
+	if cursors := running.Metadata.UnitCursors; cursors != nil {
+		held.record.UnitCursors = maps.Clone(*cursors)
+	}
 	held.annotationID = anchorOf(running.Metadata.Type, running.Params)
 	held.cancelled = NewVariable(false)
 	held.over, held.end = context.WithCancel(context.Background())
-	// Both appear on the record once an attempt has checkpointed. Absent, each reads as none.
-	held.completedUnits = []string{}
-	if units := running.Metadata.CompletedUnits; units != nil {
-		held.completedUnits = slices.Clone(*units)
-	}
-	held.unitCursors = map[string]api.UnitCursor{}
-	if cursors := running.Metadata.UnitCursors; cursors != nil {
-		held.unitCursors = maps.Clone(*cursors)
-	}
 	return job, nil
 }
 

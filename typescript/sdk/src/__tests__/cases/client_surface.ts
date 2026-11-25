@@ -147,6 +147,7 @@ export type MembersItem = {
 export type WorkerItem = {
   handed: string;
   docs: string;
+  record?: string;
   members: MembersItem[];
 };
 
@@ -201,10 +202,16 @@ export type ModulesItemMembersItemType = {
   fields?: string[];
 };
 
+export type Names = {
+  repliesOf: string[];
+  channels: string[];
+};
+
 export type Constant = {
   member: string;
   kind: 'constant';
   named?: { [key: string]: string };
+  names?: Names;
 };
 
 export type ModulesItemMembersItem =
@@ -242,7 +249,7 @@ export type Table = {
 
 export const table: Table = {
   $comment:
-    "AUTHORITY for the surface of a Xynolog client: every namespace, every method, the shape of what it returns, and what calling it does first. Its behaviour is run: each SDK's surface test calls every method as each of its `cases` states and holds what the call did to the row. Which methods an SDK has is held by its own surface test, where the test keeps a census of them; what each takes and returns is held by no check yet. `parameters` is what a method takes, in order: each parameter by the name its cases' `args` give it, whether a caller must give it, and either its `schema` (a component, a member within one, or a client type of specs/src/client/types, so that every object is named; or a scalar where none states it) or, for a callback, the schema of what each call hands it (`calls`). Protocol's reader holds each case to its method's `parameters` (reader/lib/client_surface.ml): a case gives no argument the method does not take, every one it requires, and each as its parameter's schema says. A null is a value, which a caller gives only where the schema admits it. Every SDK takes each parameter the table states, and none another: an SDK's name for one is the table's, spelled by its language's convention, and how it takes one is its language's (positionally, by keyword, or as a member of a record its writer makes of an object whose members a caller may each leave out), as is the type it holds a count of milliseconds as. A language's own means of cancelling a call (Go's `context.Context`, C#'s `CancellationToken`) is no parameter here. The consumer-owned generator is to write each SDK's namespace types from each method's `parameters` and `shape`. A method name is the table's, in camelCase; an SDK spells it by its language's convention (`resourceContent` is `resource_content` in Rust and `ResourceContent` in Go, whose first letter is a capital), and a namespace whose name is a keyword there takes a trailing underscore (`yield_`, `match_`). Swift keeps both names, including its contextual `yield`. Neither is a keyword in Kotlin, which keeps both names; Java reaches them through their getters (`getYield()`), which Java's contextual `yield` does not touch. An `events` row is a property named `<method>$` in TypeScript. The table names no SDK that lacks part of the surface: which SDK lacks a method, a member, a unit, a module or a clock's maker, or is still to have one, and why, is each SDK repository's to record. Add a row here before adding a method to any SDK. `worker` is the surface of what a worker is handed: the claims `job.claim` returns, and a job the worker holds. Each lists its members by name, and every SDK is to match the list both ways: it lacks no member the list has, and has no public member the list lacks. No check holds an SDK to the list yet. A member is matched by its name alone, spelled as its language spells it, and its form is its language's: what a held job states is a property in TypeScript and Python and a method in Rust, and a property that gives a stream of values is named `<member>$` in TypeScript. What a language's own protocols give a type is no member here: how a type is made, Python's names that begin with an underscore, its `__aenter__` and `__anext__` among them, Rust's trait implementations, and what a TypeScript class inherits from a class the SDK does not declare. `named` gives the name an SDK has the member under where its ecosystem has a name of its own for it, and why: that SDK then has that name, and not the table's as well. `takes` marks a member a held job has as its verb's: for each verb, the schema of what the member takes. What a member does is not held here and these rows have no cases: contract/WORKER-CONTRACT.md states it, and the worker conformance suite (conformance/worker) holds each SDK to it. Add a member here before adding it to any SDK. `stateUnits` lists each state unit: what each SDK makes it as (`made`), and its members by name. Every SDK is to match it both ways, and no check holds one to it yet: it declares every unit, each as a `StateUnit`; every `StateUnit` it declares among its units is one a row makes; and each of its units has every member the list has and no public member the list lacks. A member is matched by its name alone, spelled as its language spells it, and its form is its language's, as for `worker`. `dispose` is no member here: every unit has it, being a `StateUnit`. How a unit is made is stated apart from its members: every unit can be made from outside its SDK, by the type's own public constructor (Rust's `pub fn new` in the type's own `impl`, Python's class), or by the public function that `madeBy` names for that SDK, spelled as that SDK spells it, where the constructor is not what makes it; Go has no constructors, so every Go unit names one. No unit is without a public way to make it, and a `madeBy` names a function its SDK has publicly. Public is reachable from outside the SDK, including what Swift declares `public` or `open`: what TypeScript's entry (sdk/typescript/sdk/src/index.ts) exports, an item a module Rust's crate root reaches declares or re-exports, a name in the `__all__` of a Python module whose path has no private part, what Kotlin declares `public`, and what Go exports from a package that is not internal. What a unit does is not held here: each SDK's tests of its units hold that. Add a unit or a member here before adding it to any SDK. `wire` is the typed bus over a client's transport, which every client hands out as `wire`: what each SDK makes it as (`made`), and its members by name. Every SDK is to match it both ways, as for a state unit, and no check holds one to it yet: it declares a bus, and its bus has every member the list has and no public member the list lacks. A member is matched by its name alone, as for `worker`; how a bus is made is no member. A Go method takes no type parameters, so a member of Go's bus that is generic in its channel is a function of its package that takes the bus (`Emit(ctx, w, bus.MarkSubmit, payload)`). TypeScript's bus is read where @xynolog/core declares it. A transport is no member: a bus hands out none. Add a member here before adding it to any SDK. `storage` is where a client keeps text under a key: the interface an application implements (a trait in Rust, a protocol in Python), what each SDK names it (`made`), and its members by name. Every SDK is to match it both ways, as for `wire`, and no check holds one to it yet: it declares a storage, and its storage has every member the list has and no public member the list lacks. A member is matched by its name alone, as for `worker`. What implements a storage is not read here. Add a member here before adding it to any SDK. `modules` is what each SDK has beside its namespaces: the free functions, types and values of its modules, each module with where each SDK keeps it and its members. A member is named as the table spells it and matched by its `kind`: a `function` is spelled by each language's convention, a `reader` as a function but `get` and its name in TypeScript, a `type` as the table spells it, and a `constant` in capitals with underscores but in Go, as a function, and in Swift, as the table spells it. `named` gives an SDK's own name where the rule does not, and is stale once it is not so. A module whose `whole` names an SDK is that SDK's files alone, and every public member of them is listed. `clock` is what a caller controls of an SDK's time and chance: the clock every wait keeps, and the random source every jitter draws, one row each. For every SDK a row says either how a caller controls the source from outside the SDK (`outside`), or which public makers take it (`takes`): each maker as its SDK spells it (`Type.member`, or `Type::member` in Rust, for a type's function), with the types it takes the source as. Every SDK is to match it both ways, and no check holds one to it yet: every public way of making a listed maker takes each of its types, or is handed another maker of the row that takes them already, and keeps that one's; and no parameter or field of an `outside` SDK has a type the row's `typeWords` name. When a wait ends under a moved clock is specs/src/client/clock-cases.json's.",
+    "AUTHORITY for the surface of a Xynolog client: every namespace, every method, the shape of what it returns, and what calling it does first. Its behaviour is run: each SDK's surface test calls every method as each of its `cases` states and holds what the call did to the row. Which methods an SDK has is held by its own surface test, where the test keeps a census of them; what each takes and returns is held by no check yet. `parameters` is what a method takes, in order: each parameter by the name its cases' `args` give it, whether a caller must give it, and either its `schema` (a component, a member within one, or a client type of specs/src/client/types, so that every object is named; or a scalar where none states it) or, for a callback, the schema of what each call hands it (`calls`). Protocol's reader holds each case to its method's `parameters` (reader/lib/client_surface.ml): a case gives no argument the method does not take, every one it requires, and each as its parameter's schema says. A null is a value, which a caller gives only where the schema admits it. Every SDK takes each parameter the table states, and none another: an SDK's name for one is the table's, spelled by its language's convention, and how it takes one is its language's (positionally, by keyword, or as a member of a record its writer makes of an object whose members a caller may each leave out), as is the type it holds a count of milliseconds as. A language's own means of cancelling a call (Go's `context.Context`, C#'s `CancellationToken`) is no parameter here. The consumer-owned generator is to write each SDK's namespace types from each method's `parameters` and `shape`. A method name is the table's, in camelCase; an SDK spells it by its language's convention (`resourceContent` is `resource_content` in Rust and `ResourceContent` in Go, whose first letter is a capital), and a namespace whose name is a keyword there takes a trailing underscore (`yield_`, `match_`). Swift keeps both names, including its contextual `yield`. Neither is a keyword in Kotlin, which keeps both names; Java reaches them through their getters (`getYield()`), which Java's contextual `yield` does not touch. An `events` row is a property named `<method>$` in TypeScript. The table names no SDK that lacks part of the surface: which SDK lacks a method, a member, a unit, a module or a clock's maker, or is still to have one, and why, is each SDK repository's to record. Add a row here before adding a method to any SDK. `worker` is the surface of what a worker is handed: the claims `job.claim` returns, and a job the worker holds. Each lists its members by name, and every SDK is to match the list both ways: it lacks no member the list has, and has no public member the list lacks. No check holds an SDK to the list yet. A member is matched by its name alone, spelled as its language spells it, and its form is its language's: what a held job states is a property in TypeScript and Python and a method in Rust, and a property that gives a stream of values is named `<member>$` in TypeScript. What a language's own protocols give a type is no member here: how a type is made, Python's names that begin with an underscore, its `__aenter__` and `__anext__` among them, Rust's trait implementations, and what a TypeScript class inherits from a class the SDK does not declare. `named` gives the name an SDK has the member under where its ecosystem has a name of its own for it, and why: that SDK then has that name, and not the table's as well. `takes` marks a member a held job has as its verb's: for each verb, the schema of what the member takes. What a member does is not held here and these rows have no cases: contract/WORKER-CONTRACT.md states it, and the worker conformance suite (conformance/worker) holds each SDK to it. Add a member here before adding it to any SDK. `stateUnits` lists each state unit: what each SDK makes it as (`made`), and its members by name. Every SDK is to match it both ways, and no check holds one to it yet: it declares every unit, each as a `StateUnit`; every `StateUnit` it declares among its units is one a row makes; and each of its units has every member the list has and no public member the list lacks. A member is matched by its name alone, spelled as its language spells it, and its form is its language's, as for `worker`. `dispose` is no member here: every unit has it, being a `StateUnit`. How a unit is made is stated apart from its members: every unit can be made from outside its SDK, by the type's own public constructor (Rust's `pub fn new` in the type's own `impl`, Python's class), or by the public function that `madeBy` names for that SDK, spelled as that SDK spells it, where the constructor is not what makes it; Go has no constructors, so every Go unit names one. No unit is without a public way to make it, and a `madeBy` names a function its SDK has publicly. Public is reachable from outside the SDK, including what Swift declares `public` or `open`: what TypeScript's entry exports, an item a module Rust's crate root reaches declares or re-exports, a name in the `__all__` of a Python module whose path has no private part, what Kotlin declares `public`, and what Go exports from a package that is not internal. What a unit does is not held here: each SDK's tests of its units hold that. Add a unit or a member here before adding it to any SDK. `wire` is the typed bus over a client's transport, which every client hands out as `wire`: what each SDK makes it as (`made`), and its members by name. Every SDK is to match it both ways, as for a state unit, and no check holds one to it yet: it declares a bus, and its bus has every member the list has and no public member the list lacks. A member is matched by its name alone, as for `worker`; how a bus is made is no member. A Go method takes no type parameters, so a member of Go's bus that is generic in its channel is a function of its package that takes the bus (`Emit(ctx, w, bus.MarkSubmit, payload)`). TypeScript's bus is read where @xynolog/core declares it. A transport is no member: a bus hands out none. Add a member here before adding it to any SDK. `storage` is where a client keeps text under a key: the interface an application implements (a trait in Rust, a protocol in Python), what each SDK names it (`made`), and its members by name. Every SDK is to match it both ways, as for `wire`, and no check holds one to it yet: it declares a storage, and its storage has every member the list has and no public member the list lacks. A member is matched by its name alone, as for `worker`. What implements a storage is not read here. Add a member here before adding it to any SDK. `modules` is what each SDK has beside its namespaces: the free functions, types and values of its modules, each module with where each SDK keeps it and its members. A member is named as the table spells it and matched by its `kind`: a `function` is spelled by each language's convention, a `reader` as a function but `get` and its name in TypeScript, a `type` as the table spells it, and a `constant` in capitals with underscores but in Go, as a function, and in Swift, as the table spells it. `named` gives an SDK's own name where the rule does not, and is stale once it is not so. A module whose `whole` names an SDK is that SDK's files alone, and every public member of them is listed. `clock` is what a caller controls of an SDK's time and chance: the clock every wait keeps, and the random source every jitter draws, one row each. For every SDK a row says either how a caller controls the source from outside the SDK (`outside`), or which public makers take it (`takes`): each maker as its SDK spells it (`Type.member`, or `Type::member` in Rust, for a type's function), with the types it takes the source as. Every SDK is to match it both ways, and no check holds one to it yet: every public way of making a listed maker takes each of its types, or is handed another maker of the row that takes them already, and keeps that one's; and no parameter or field of an `outside` SDK has a type the row's `typeWords` name. When a wait ends under a moved clock is specs/src/client/clock-cases.json's.",
   shapes: {
     promise: 'Asked once, answered once: the value, or a failure with a code.',
     stream:
@@ -2912,6 +2919,7 @@ export const table: Table = {
     {
       handed: 'heldJob',
       docs: "A job a worker holds, from its claim until it settles it. A held job is its verb's, `mark` or `yield`. A member with `takes` is one a held job has as its verb's, and it takes what that verb's entry names; every other member is the same for both verbs, and a job held as either verb's has it without its verb being asked.",
+      record: 'HeldJobRecord',
       members: [
         {
           member: 'jobId',
@@ -3658,27 +3666,56 @@ export const table: Table = {
     },
     {
       module: 'claims',
-      docs: "What a worker's stream names, and whether a failed job is run again: the channels claiming reads (the replies of `job:claim`, and the announcements and cancellations a worker hears), the channels committing reads (the replies of `mark:commit`, and of the question whether a batch is recorded), and whether a failed attempt is retried, which a held job reports on `job:fail`. Held by specs/src/jobs/retry-cases.json.",
+      docs: "What a worker's stream names, and whether a failed job is run again: the channels claiming reads and the channels committing reads, each constant's `names`, and whether a failed attempt is retried, which a held job reports on `job:fail`. Held by specs/src/jobs/retry-cases.json.",
       where: {
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Jobs'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift'],
-        typescript: ['sdk/typescript/sdk/src/claims.ts'],
-        rust: ['sdk/rust/sdk/src/claims.rs'],
-        python: ['sdk/python/sdk/src/xynolog/claims.py'],
+        csharp: [
+          'sdk/csharp/sdk/src/Xynolog/Jobs',
+          'sdk/csharp/sdk/src/Xynolog/Generated/WorkerRules.g.cs',
+        ],
+        swift: [
+          'sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift',
+          'sdk/swift/sdk/Sources/Xynolog/Generated/WorkerChannels.swift',
+        ],
+        typescript: [
+          'sdk/typescript/sdk/src/claims.ts',
+          'sdk/typescript/sdk/src/worker-channels.ts',
+        ],
+        rust: [
+          'sdk/rust/sdk/src/claims.rs',
+          'sdk/rust/sdk/src/generated/worker_channels.rs',
+        ],
+        python: [
+          'sdk/python/sdk/src/xynolog/claims.py',
+          'sdk/python/sdk/src/xynolog/_worker_channels.py',
+        ],
         go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs'],
+        kotlin: [
+          'sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs',
+          'sdk/kotlin/sdk/src/generated/kotlin/xynolog/jobs/WorkerChannels.kt',
+        ],
         haskell: ['sdk/haskell/sdk/src/Xynolog/Claims.hs'],
-        ocaml: ['sdk/ocaml/sdk/lib/claims.mli'],
+        ocaml: [
+          'sdk/ocaml/sdk/lib/claims.mli',
+          'sdk/ocaml/sdk/lib/worker_facts.ml',
+        ],
       },
       whole: ['haskell'],
       members: [
         {
           member: 'jobClaimChannels',
           kind: 'constant',
+          names: {
+            repliesOf: ['job:claim'],
+            channels: ['job:queued', 'job:cancel-requested'],
+          },
         },
         {
           member: 'jobCommitChannels',
           kind: 'constant',
+          names: {
+            repliesOf: ['mark:commit', 'browse:annotation-requested'],
+            channels: [],
+          },
         },
         {
           member: 'willRetryAfter',

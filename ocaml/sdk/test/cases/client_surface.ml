@@ -336,6 +336,7 @@ let members_item_json (r : members_item) =
 type worker_item = {
   handed : string;
   docs : string;
+  record : string option;
   members : members_item list;
 }
 
@@ -345,6 +346,7 @@ let worker_item_json (r : worker_item) =
        [
          Option.Some ("handed", (fun s -> `String s) r.handed);
          Option.Some ("docs", (fun s -> `String s) r.docs);
+         Option.map (fun v -> ("record", (fun s -> `String s) v)) r.record;
          Option.Some
            ("members", (fun l -> `List (List.map members_item_json l)) r.members);
        ])
@@ -517,10 +519,25 @@ let modules_item_members_item_type_json (r : modules_item_members_item_type) =
            r.fields;
        ])
 
+type names = { replies_of : string list; channels : string list }
+
+let names_json (r : names) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some
+           ( "repliesOf",
+             (fun l -> `List (List.map (fun s -> `String s) l)) r.replies_of );
+         Option.Some
+           ( "channels",
+             (fun l -> `List (List.map (fun s -> `String s) l)) r.channels );
+       ])
+
 type constant = {
   member : string;
   kind : string;
   named : (string * string) list option;
+  names : names option;
 }
 
 let constant_json (r : constant) =
@@ -536,6 +553,7 @@ let constant_json (r : constant) =
                  `Assoc (List.map (fun (k, v) -> (k, (fun s -> `String s) v)) l))
                  v ))
            r.named;
+         Option.map (fun v -> ("names", names_json v)) r.names;
        ])
 
 type modules_item_members_item =
@@ -742,53 +760,52 @@ let table : t =
         constructors, so every Go unit names one. No unit is without a public \
         way to make it, and a `madeBy` names a function its SDK has publicly. \
         Public is reachable from outside the SDK, including what Swift \
-        declares `public` or `open`: what TypeScript's entry \
-        (sdk/typescript/sdk/src/index.ts) exports, an item a module Rust's \
-        crate root reaches declares or re-exports, a name in the `__all__` of \
-        a Python module whose path has no private part, what Kotlin declares \
-        `public`, and what Go exports from a package that is not internal. \
-        What a unit does is not held here: each SDK's tests of its units hold \
-        that. Add a unit or a member here before adding it to any SDK. `wire` \
-        is the typed bus over a client's transport, which every client hands \
-        out as `wire`: what each SDK makes it as (`made`), and its members by \
-        name. Every SDK is to match it both ways, as for a state unit, and no \
-        check holds one to it yet: it declares a bus, and its bus has every \
-        member the list has and no public member the list lacks. A member is \
-        matched by its name alone, as for `worker`; how a bus is made is no \
-        member. A Go method takes no type parameters, so a member of Go's bus \
-        that is generic in its channel is a function of its package that takes \
-        the bus (`Emit(ctx, w, bus.MarkSubmit, payload)`). TypeScript's bus is \
-        read where @xynolog/core declares it. A transport is no member: a bus \
-        hands out none. Add a member here before adding it to any SDK. \
-        `storage` is where a client keeps text under a key: the interface an \
-        application implements (a trait in Rust, a protocol in Python), what \
-        each SDK names it (`made`), and its members by name. Every SDK is to \
-        match it both ways, as for `wire`, and no check holds one to it yet: \
-        it declares a storage, and its storage has every member the list has \
-        and no public member the list lacks. A member is matched by its name \
-        alone, as for `worker`. What implements a storage is not read here. \
-        Add a member here before adding it to any SDK. `modules` is what each \
-        SDK has beside its namespaces: the free functions, types and values of \
-        its modules, each module with where each SDK keeps it and its members. \
-        A member is named as the table spells it and matched by its `kind`: a \
-        `function` is spelled by each language's convention, a `reader` as a \
-        function but `get` and its name in TypeScript, a `type` as the table \
-        spells it, and a `constant` in capitals with underscores but in Go, as \
-        a function, and in Swift, as the table spells it. `named` gives an \
-        SDK's own name where the rule does not, and is stale once it is not \
-        so. A module whose `whole` names an SDK is that SDK's files alone, and \
-        every public member of them is listed. `clock` is what a caller \
-        controls of an SDK's time and chance: the clock every wait keeps, and \
-        the random source every jitter draws, one row each. For every SDK a \
-        row says either how a caller controls the source from outside the SDK \
-        (`outside`), or which public makers take it (`takes`): each maker as \
-        its SDK spells it (`Type.member`, or `Type::member` in Rust, for a \
-        type's function), with the types it takes the source as. Every SDK is \
-        to match it both ways, and no check holds one to it yet: every public \
-        way of making a listed maker takes each of its types, or is handed \
-        another maker of the row that takes them already, and keeps that \
-        one's; and no parameter or field of an `outside` SDK has a type the \
-        row's `typeWords` name. When a wait ends under a moved clock is \
+        declares `public` or `open`: what TypeScript's entry exports, an item \
+        a module Rust's crate root reaches declares or re-exports, a name in \
+        the `__all__` of a Python module whose path has no private part, what \
+        Kotlin declares `public`, and what Go exports from a package that is \
+        not internal. What a unit does is not held here: each SDK's tests of \
+        its units hold that. Add a unit or a member here before adding it to \
+        any SDK. `wire` is the typed bus over a client's transport, which \
+        every client hands out as `wire`: what each SDK makes it as (`made`), \
+        and its members by name. Every SDK is to match it both ways, as for a \
+        state unit, and no check holds one to it yet: it declares a bus, and \
+        its bus has every member the list has and no public member the list \
+        lacks. A member is matched by its name alone, as for `worker`; how a \
+        bus is made is no member. A Go method takes no type parameters, so a \
+        member of Go's bus that is generic in its channel is a function of its \
+        package that takes the bus (`Emit(ctx, w, bus.MarkSubmit, payload)`). \
+        TypeScript's bus is read where @xynolog/core declares it. A transport \
+        is no member: a bus hands out none. Add a member here before adding it \
+        to any SDK. `storage` is where a client keeps text under a key: the \
+        interface an application implements (a trait in Rust, a protocol in \
+        Python), what each SDK names it (`made`), and its members by name. \
+        Every SDK is to match it both ways, as for `wire`, and no check holds \
+        one to it yet: it declares a storage, and its storage has every member \
+        the list has and no public member the list lacks. A member is matched \
+        by its name alone, as for `worker`. What implements a storage is not \
+        read here. Add a member here before adding it to any SDK. `modules` is \
+        what each SDK has beside its namespaces: the free functions, types and \
+        values of its modules, each module with where each SDK keeps it and \
+        its members. A member is named as the table spells it and matched by \
+        its `kind`: a `function` is spelled by each language's convention, a \
+        `reader` as a function but `get` and its name in TypeScript, a `type` \
+        as the table spells it, and a `constant` in capitals with underscores \
+        but in Go, as a function, and in Swift, as the table spells it. \
+        `named` gives an SDK's own name where the rule does not, and is stale \
+        once it is not so. A module whose `whole` names an SDK is that SDK's \
+        files alone, and every public member of them is listed. `clock` is \
+        what a caller controls of an SDK's time and chance: the clock every \
+        wait keeps, and the random source every jitter draws, one row each. \
+        For every SDK a row says either how a caller controls the source from \
+        outside the SDK (`outside`), or which public makers take it (`takes`): \
+        each maker as its SDK spells it (`Type.member`, or `Type::member` in \
+        Rust, for a type's function), with the types it takes the source as. \
+        Every SDK is to match it both ways, and no check holds one to it yet: \
+        every public way of making a listed maker takes each of its types, or \
+        is handed another maker of the row that takes them already, and keeps \
+        that one's; and no parameter or field of an `outside` SDK has a type \
+        the row's `typeWords` name. When a wait ends under a moved clock is \
         specs/src/client/clock-cases.json's.";
      shapes =
        ({
@@ -5184,6 +5201,7 @@ let table : t =
                How the jobs are read is the language's: subscribed to in \
                TypeScript, iterated in Python, asked for one at a time in Rust \
                and Kotlin (`next`), ranged over in Go.";
+            record = None;
             members =
               [
                 ({
@@ -5252,6 +5270,7 @@ let table : t =
                that verb's entry names; every other member is the same for \
                both verbs, and a job held as either verb's has it without its \
                verb being asked.";
+            record = Some "HeldJobRecord";
             members =
               [
                 ({ member = "jobId"; named = None; takes = None }
@@ -6041,24 +6060,49 @@ let table : t =
             module_ = "claims";
             docs =
               "What a worker's stream names, and whether a failed job is run \
-               again: the channels claiming reads (the replies of `job:claim`, \
-               and the announcements and cancellations a worker hears), the \
-               channels committing reads (the replies of `mark:commit`, and of \
-               the question whether a batch is recorded), and whether a failed \
-               attempt is retried, which a held job reports on `job:fail`. \
-               Held by specs/src/jobs/retry-cases.json.";
+               again: the channels claiming reads and the channels committing \
+               reads, each constant's `names`, and whether a failed attempt is \
+               retried, which a held job reports on `job:fail`. Held by \
+               specs/src/jobs/retry-cases.json.";
             where =
               [
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Jobs" ]);
+                ( "csharp",
+                  [
+                    "sdk/csharp/sdk/src/Xynolog/Jobs";
+                    "sdk/csharp/sdk/src/Xynolog/Generated/WorkerRules.g.cs";
+                  ] );
                 ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift" ] );
-                ("typescript", [ "sdk/typescript/sdk/src/claims.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/claims.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/claims.py" ]);
+                  [
+                    "sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift";
+                    "sdk/swift/sdk/Sources/Xynolog/Generated/WorkerChannels.swift";
+                  ] );
+                ( "typescript",
+                  [
+                    "sdk/typescript/sdk/src/claims.ts";
+                    "sdk/typescript/sdk/src/worker-channels.ts";
+                  ] );
+                ( "rust",
+                  [
+                    "sdk/rust/sdk/src/claims.rs";
+                    "sdk/rust/sdk/src/generated/worker_channels.rs";
+                  ] );
+                ( "python",
+                  [
+                    "sdk/python/sdk/src/xynolog/claims.py";
+                    "sdk/python/sdk/src/xynolog/_worker_channels.py";
+                  ] );
                 ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs" ]);
+                ( "kotlin",
+                  [
+                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs";
+                    "sdk/kotlin/sdk/src/generated/kotlin/xynolog/jobs/WorkerChannels.kt";
+                  ] );
                 ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Claims.hs" ]);
-                ("ocaml", [ "sdk/ocaml/sdk/lib/claims.mli" ]);
+                ( "ocaml",
+                  [
+                    "sdk/ocaml/sdk/lib/claims.mli";
+                    "sdk/ocaml/sdk/lib/worker_facts.ml";
+                  ] );
               ];
             whole = Some [ "haskell" ];
             members =
@@ -6068,6 +6112,13 @@ let table : t =
                       member = "jobClaimChannels";
                       kind = "constant";
                       named = None;
+                      names =
+                        Some
+                          ({
+                             replies_of = [ "job:claim" ];
+                             channels = [ "job:queued"; "job:cancel-requested" ];
+                           }
+                            : names);
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6076,6 +6127,14 @@ let table : t =
                       member = "jobCommitChannels";
                       kind = "constant";
                       named = None;
+                      names =
+                        Some
+                          ({
+                             replies_of =
+                               [ "mark:commit"; "browse:annotation-requested" ];
+                             channels = [];
+                           }
+                            : names);
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6316,6 +6375,7 @@ let table : t =
                       member = "persistedEventTypes";
                       kind = "constant";
                       named = None;
+                      names = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6602,11 +6662,17 @@ let table : t =
                       member = "knowledgeBasesKey";
                       kind = "constant";
                       named = Some [ ("typescript", "STORAGE_KEY") ];
+                      names = None;
                     }
                      : constant)
                   : modules_item_members_item);
                 (Constant
-                   ({ member = "activeKey"; kind = "constant"; named = None }
+                   ({
+                      member = "activeKey";
+                      kind = "constant";
+                      named = None;
+                      names = None;
+                    }
                      : constant)
                   : modules_item_members_item);
                 (Constant
@@ -6614,6 +6680,7 @@ let table : t =
                       member = "openResourcesByKbKey";
                       kind = "constant";
                       named = None;
+                      names = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6622,6 +6689,7 @@ let table : t =
                       member = "lastViewedResourceByKbKey";
                       kind = "constant";
                       named = None;
+                      names = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6834,6 +6902,7 @@ let table : t =
                       member = "pendingAuthorizationKey";
                       kind = "constant";
                       named = None;
+                      names = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -7016,6 +7085,7 @@ let table : t =
                           [
                             ("go", "SignInFile"); ("haskell", "signInFileName");
                           ];
+                      names = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -7185,6 +7255,7 @@ let table : t =
                       member = "discoveryInterval";
                       kind = "constant";
                       named = None;
+                      names = None;
                     }
                      : constant)
                   : modules_item_members_item);

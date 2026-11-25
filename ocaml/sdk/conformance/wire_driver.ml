@@ -280,8 +280,9 @@ let run mode env =
       | Worker ->
           commit_timeout := optional J.to_int "markCommitTimeoutMs" timing;
           if field "commits" input = `Bool true then
-            W.channels @ W.commit_channels
-          else W.channels
+            Xynolog.Claims.job_claim_channels
+            @ Xynolog.Claims.job_commit_channels
+          else Xynolog.Claims.job_claim_channels
       | Live -> B.bridged_channels
       | Wire ->
           field "channels" input |> J.to_list
@@ -353,7 +354,8 @@ let run mode env =
         let rec report previous =
           let current = S.await_state_change subscription ~from:previous in
           output_json (`Assoc [ ("state", text (state current)) ]);
-          if current <> Xynolog.Enums.Connection_state.Closed then report current
+          if current <> Xynolog.Enums.Connection_state.Closed then
+            report current
         in
         report Xynolog.Enums.Connection_state.Initial;
         `Stop_daemon)
@@ -495,9 +497,9 @@ let run mode env =
         (fun _ ->
           let hex () = String.concat "" (String.split_on_char '-' (uuid env)) in
           {
-            Xynolog.Wire_stream.parent =
+            Xynolog.Records.Trace_carrier.traceparent =
               "00-" ^ hex () ^ "-" ^ String.sub (hex ()) 0 16 ^ "-01";
-            state = None;
+            tracestate = None;
           })
         telemetry
     in

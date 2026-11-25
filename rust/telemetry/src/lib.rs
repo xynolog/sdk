@@ -28,7 +28,7 @@ use opentelemetry::trace::{SpanKind, TraceContextExt, Tracer};
 use opentelemetry::{Context, KeyValue, global};
 use std::collections::HashMap;
 use std::future::Future;
-use xynolog::transport::TraceCarrier;
+use xynolog::types::TraceCarrier;
 
 /// The SDK telemetry table's names: each span's, each metric's and each
 /// attribute key's, generated from protocol/specs/src/sdk-telemetry/telemetry.json.

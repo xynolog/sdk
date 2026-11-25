@@ -305,16 +305,9 @@ public actor HttpTransport: Transport, GatewayOperations {
   private func deliver(_ allowed: BusFrame, id eventId: String?) {
     var wire = allowed
     var payload = wire.payload
-    let trace: [String: String]?
-    if case .object(let fields) = payload.removeValue(forKey: traceField) {
-      trace = fields.reduce(into: [:]) { result, pair in
-        if case .string(let text) = pair.value { result[pair.key] = text }
-      }
-    } else {
-      trace = nil
-    }
+    let trace = payload.removeValue(forKey: traceField).flatMap { readAs(TraceCarrier.self, $0) }
     let received = transportSpan(
-      .busRecvChannel, channel: wire.channel, scope: wire.scope, parent: trace)
+      .busRecvChannel, channel: wire.channel, scope: wire.scope, parent: trace.map(propagated))
     defer { received.end() }
     wire.payload = payload
     let frame = ReceivedFrame(wire, trace: trace, eventId: eventId)

@@ -38,7 +38,8 @@ let file (t : Table.t) =
                       (List.map
                          (fun (s, moves) ->
                            G.element ~key:(state s)
-                             (G.inline (List.map (fun m -> G.item (state m)) moves)))
+                             (G.inline
+                                (List.map (fun m -> G.item (state m)) moves)))
                          t)));
             ];
         };

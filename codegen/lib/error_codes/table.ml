@@ -42,9 +42,9 @@ type t = {
       (** The status every one at or above which becomes the code. *)
   unclassified : code;  (** What any other status becomes. *)
   limit_refusals : (int * string * code) list;
-      (** Each gateway refusal of a limit, by its status and LimitRefusal
-          code, that is the transport code too (a transport code's
-          [limitRefusals]). *)
+      (** Each gateway refusal of a limit, by its status and LimitRefusal code,
+          that is the transport code too (a transport code's [limitRefusals]).
+      *)
   others : vocabulary list;
       (** The vocabularies that state nothing but their codes. *)
   control : vocabulary;  (** The control plane's codes. *)
@@ -290,7 +290,17 @@ let derive (table : Tables.Errors_codes.t) =
                 | Status _ | Status_from _ | No_status _ -> [])
               (List.combine table.transport.codes transport.codes);
           others;
-          control =
-            plain ~member:"control" table.control;
+          control = plain ~member:"control" table.control;
         }
   | refusals, _, _ -> Error refusals
+
+(* Every vocabulary, in the table's order. *)
+let vocabularies t = (t.bus :: t.transport :: t.others) @ [ t.control ]
+
+(* The codes of the vocabulary [member] names among [vocabularies], as the
+   texts a schema's [enum] states ([x-xynolog-codes]). *)
+let enum vocabularies member =
+  Option.map
+    (fun (v : vocabulary) ->
+      List.map (fun (c : code) -> Schema.String_literal c.code) v.codes)
+    (List.find_opt (fun (v : vocabulary) -> v.member = member) vocabularies)

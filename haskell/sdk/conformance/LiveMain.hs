@@ -53,6 +53,7 @@ import Xynolog.Types
     ConformanceDriverLineEmissionEmissionStateReadyStatus (..),
     ConformanceDriverLineErrorStream (..),
     ConformanceDriverLineState (..),
+    connectionStateText,
   )
 import Xynolog.Yield qualified as Yield
 

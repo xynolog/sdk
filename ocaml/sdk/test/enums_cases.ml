@@ -145,6 +145,37 @@ let () =
     (Model.of_string "withheld" = Some Model.Withheld);
   Alcotest.check Alcotest.bool "Failure_class rejects unknown values" true
     (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Inference_provider in
+  Alcotest.check Alcotest.string "Inference_provider encode" "anthropic"
+    (Model.to_string Model.Anthropic);
+  Alcotest.check Alcotest.bool "Inference_provider decode" true
+    (Model.of_string "anthropic" = Some Model.Anthropic);
+  Alcotest.check Alcotest.string "Inference_provider encode" "google"
+    (Model.to_string Model.Google);
+  Alcotest.check Alcotest.bool "Inference_provider decode" true
+    (Model.of_string "google" = Some Model.Google);
+  Alcotest.check Alcotest.string "Inference_provider encode" "llamacpp"
+    (Model.to_string Model.Llamacpp);
+  Alcotest.check Alcotest.bool "Inference_provider decode" true
+    (Model.of_string "llamacpp" = Some Model.Llamacpp);
+  Alcotest.check Alcotest.string "Inference_provider encode" "ollama"
+    (Model.to_string Model.Ollama);
+  Alcotest.check Alcotest.bool "Inference_provider decode" true
+    (Model.of_string "ollama" = Some Model.Ollama);
+  Alcotest.check Alcotest.string "Inference_provider encode" "openai"
+    (Model.to_string Model.Openai);
+  Alcotest.check Alcotest.bool "Inference_provider decode" true
+    (Model.of_string "openai" = Some Model.Openai);
+  Alcotest.check Alcotest.string "Inference_provider encode" "together"
+    (Model.to_string Model.Together);
+  Alcotest.check Alcotest.bool "Inference_provider decode" true
+    (Model.of_string "together" = Some Model.Together);
+  Alcotest.check Alcotest.string "Inference_provider encode" "vllm"
+    (Model.to_string Model.Vllm);
+  Alcotest.check Alcotest.bool "Inference_provider decode" true
+    (Model.of_string "vllm" = Some Model.Vllm);
+  Alcotest.check Alcotest.bool "Inference_provider rejects unknown values" true
+    (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Job_type in
   Alcotest.check Alcotest.string "Job_type encode" "mark"
     (Model.to_string Model.Mark);
@@ -155,6 +186,17 @@ let () =
   Alcotest.check Alcotest.bool "Job_type decode" true
     (Model.of_string "yield" = Some Model.Yield);
   Alcotest.check Alcotest.bool "Job_type rejects unknown values" true
+    (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Kb_placement in
+  Alcotest.check Alcotest.string "Kb_placement encode" "local"
+    (Model.to_string Model.Local);
+  Alcotest.check Alcotest.bool "Kb_placement decode" true
+    (Model.of_string "local" = Some Model.Local);
+  Alcotest.check Alcotest.string "Kb_placement encode" "codespace"
+    (Model.to_string Model.Codespace);
+  Alcotest.check Alcotest.bool "Kb_placement decode" true
+    (Model.of_string "codespace" = Some Model.Codespace);
+  Alcotest.check Alcotest.bool "Kb_placement rejects unknown values" true
     (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Log_format in
   Alcotest.check Alcotest.string "Log_format encode" "json"
@@ -652,6 +694,37 @@ let () =
   Alcotest.check Alcotest.bool "Anchor_method decode" true
     (Model.of_string "fuzzy-match" = Some Model.Fuzzy_match);
   Alcotest.check Alcotest.bool "Anchor_method rejects unknown values" true
+    (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Connection_state in
+  Alcotest.check Alcotest.string "Connection_state encode" "initial"
+    (Model.to_string Model.Initial);
+  Alcotest.check Alcotest.bool "Connection_state decode" true
+    (Model.of_string "initial" = Some Model.Initial);
+  Alcotest.check Alcotest.string "Connection_state encode" "connecting"
+    (Model.to_string Model.Connecting);
+  Alcotest.check Alcotest.bool "Connection_state decode" true
+    (Model.of_string "connecting" = Some Model.Connecting);
+  Alcotest.check Alcotest.string "Connection_state encode" "open"
+    (Model.to_string Model.Open);
+  Alcotest.check Alcotest.bool "Connection_state decode" true
+    (Model.of_string "open" = Some Model.Open);
+  Alcotest.check Alcotest.string "Connection_state encode" "reconnecting"
+    (Model.to_string Model.Reconnecting);
+  Alcotest.check Alcotest.bool "Connection_state decode" true
+    (Model.of_string "reconnecting" = Some Model.Reconnecting);
+  Alcotest.check Alcotest.string "Connection_state encode" "degraded"
+    (Model.to_string Model.Degraded);
+  Alcotest.check Alcotest.bool "Connection_state decode" true
+    (Model.of_string "degraded" = Some Model.Degraded);
+  Alcotest.check Alcotest.string "Connection_state encode" "unauthenticated"
+    (Model.to_string Model.Unauthenticated);
+  Alcotest.check Alcotest.bool "Connection_state decode" true
+    (Model.of_string "unauthenticated" = Some Model.Unauthenticated);
+  Alcotest.check Alcotest.string "Connection_state encode" "closed"
+    (Model.to_string Model.Closed);
+  Alcotest.check Alcotest.bool "Connection_state decode" true
+    (Model.of_string "closed" = Some Model.Closed);
+  Alcotest.check Alcotest.bool "Connection_state rejects unknown values" true
     (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Frame_refusal_reason in
   Alcotest.check Alcotest.string "Frame_refusal_reason encode" "lacks"

@@ -84,13 +84,42 @@ the coming release's, and gathers its changes as they land.
   the id as the place reached in the scope, in place of
   `is_recorded_event_id(event_id)`. The stream and the places kept both ask
   it.
-- `claims.vitals()` is a `WorkerVitals` model named and written as
-  `WorkerEngineHealth`'s members are: its times are the protocol's text, and
-  the job it holds is a `WorkerEngineHealthActiveJob`. `ActiveJob` is gone. A
-  host's health is `WorkerEngineHealth(engine=…, jobs=…, **dict(vitals))`.
+- `claims.vitals()` is a `xynolog.types.WorkerVitals`, the type Protocol
+  states, in place of `xynolog.claims.WorkerVitals`: its times are the
+  protocol's text, and the job it holds is a `xynolog.types.WorkerActiveJob`,
+  in place of `WorkerEngineHealthActiveJob`. `ActiveJob` is gone. A host's
+  health is `WorkerEngineHealth(engine=…, jobs=…, **dict(vitals))`.
 - A list of resources, and a search for them, are cached by the request each
   sends, `BrowseResourcesRequest` and `MatchResourcesRequest`, in place of
   `xynolog.namespaces.live.ResourceFilters` and `ResourceSearch`.
+- A claim refused is a `xynolog.types.ClaimRefusal`, in place of
+  `xynolog.claims.ClaimRefusal`. It is a model, made by keyword:
+  `ClaimRefusal(code=…, message=…)`.
+- A stall is a `xynolog.types.HeldJobStall`, in place of
+  `xynolog.claims.HeldJobStall`: its `held_since` and `last_activity_at` are
+  the protocol's text, to the millisecond, where they were `datetime`s.
+- A trace as the wire carries it is `xynolog.types.TraceCarrier`, in place of
+  `xynolog.transport.TraceContext`: a frame's `trace`, a delivered payload's,
+  a held job's, and what `xynolog.telemetry` reads and continues.
+- A held job holds `record`, the `xynolog.types.HeldJobRecord` its claim
+  handed it. Its `job_id`, `job_type`, `resource_id`, `params`,
+  `completed_units`, `unit_cursors`, `retry_count` and `max_retries` are
+  read-only properties of that record, generated from it:
+  `completed_units` is the record's list, where it was a tuple, and
+  `HeldMarkJob.job_type` and `HeldYieldJob.job_type` are properties, where
+  they were class attributes.
+- `KbPlacement` is where a knowledge base's stack runs, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
+  and `TargetKind`, and `InferenceProvider` who serves a model, in
+  place of `EngineProvider`, as Protocol names them.
+- A held job says what it reached as the types Protocol states:
+  `checkpoint(JobCheckpoint(completed_units=…, unit_cursors=…))`, in place of
+  `checkpoint(completed_units, unit_cursors=None)`;
+  `fail(error, JobFailure(failure_class=…, completed_units=…, unit_cursors=…))`,
+  in place of `fail(error, *, failure_class=None, completed_units=None,
+  unit_cursors=None)`; and `cancel(JobReached(completed_units=…,
+  unit_cursors=…))`, in place of `cancel(completed_units=None,
+  unit_cursors=None)`. Each of `fail`'s and `cancel`'s is optional.
 
 ## 0.8.1
 

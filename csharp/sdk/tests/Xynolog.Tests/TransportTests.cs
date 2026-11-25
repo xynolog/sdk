@@ -184,6 +184,26 @@ public sealed partial class TransportTests
     }
 
     [Fact]
+    public async Task AFrameWhoseTraceTheTableRefusesArrivesWithNoTraceAndWithoutIt()
+    {
+        using var server = new Handler();
+        using var http = new HttpClient(server);
+        using var client = new XynologClient("http://unit.test", "token", http);
+        await OpenAsync(client.Transport);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await using var frames = client.Wire.Frames(BusChannels.BeckonFocus, cancellation: deadline.Token).GetAsyncEnumerator();
+        var first = frames.MoveNextAsync().AsTask();
+        server.Stream.Push("event: bus-event\ndata: " + """
+            {"channel":"beckon:focus","payload":{"resourceId":"r1","_trace":{"traceparent":"00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01","tracestate":""}}}
+            """ + "\n\n");
+
+        Assert.True(await first);
+        var delivered = Assert.IsType<Heard<BeckonFocusEvent>.Delivered>(frames.Current);
+        Assert.Equal(default(System.Diagnostics.ActivityContext), delivered.Received.Trace);
+        Assert.False(delivered.Received.Frame.Payload.TryGetProperty("_trace", out _));
+    }
+
+    [Fact]
     public async Task TypedScopedFramesHoldAndReleaseTheResourceAndFilterOtherScopes()
     {
         using var server = new Handler();

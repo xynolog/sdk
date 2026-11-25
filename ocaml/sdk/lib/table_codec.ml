@@ -47,6 +47,10 @@ let map read members =
       Ok ((member, value) :: rest))
     members (Ok [])
 
+let assoc read member = function
+  | `Assoc members -> map read members
+  | _ -> malformed member
+
 let nullable read member = function
   | `Null -> Ok None
   | json -> Result.map Option.some (read member json)

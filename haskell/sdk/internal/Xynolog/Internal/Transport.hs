@@ -73,6 +73,7 @@ import Xynolog.Internal.Generated.Schemas (schemas)
 import Xynolog.Internal.Required (Fault (..), faultSaid)
 import Xynolog.Internal.Schema (validateProperty)
 import Xynolog.Internal.StateValue qualified as State
+import Xynolog.Internal.Telemetry (traceCarrier)
 import Xynolog.Transport.Facts
 import Xynolog.Types (BusFrame (..), BusFramePayload (..), ConnectionState (..), ResourceId, TraceCarrier)
 
@@ -366,9 +367,7 @@ receiveContextSTM context (TransportInput runtime) raw = do
   over <- readTVar (closing runtime)
   unless over $ do
     let payload = busFramePayloadAdditionalProperties (busFramePayload raw)
-        carrier = case KM.lookup (Key.fromText traceField) payload of
-          Nothing -> Nothing
-          Just value -> case fromJSON value of Success value' -> Just value'; Error _ -> Nothing
+        carrier = KM.lookup (Key.fromText traceField) payload >>= traceCarrier
         frame = Frame (raw {busFramePayload = BusFramePayload (KM.delete (Key.fromText traceField) payload)}) carrier
     targets <- nub . Map.elems <$> readTVar (bridges runtime)
     forM_ targets $ \(EventBus _ held) -> writeTVar held context

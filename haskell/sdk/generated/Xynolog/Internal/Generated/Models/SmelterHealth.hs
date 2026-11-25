@@ -2,12 +2,13 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.SmelterHealth (SmelterHealth (..), SmelterHealthIndex (..), SmelterHealthIndexStamp (..), SmelterHealthIndexStampEmbedding (..), SmelterHealthReconcile (..), SmelterHealthReconcilePhase (..), smelterHealthReconcilePhaseText, SmelterHealthStatus (..), smelterHealthStatusText, SmelterHealthStream (..), smelterHealthStreamText) where
+module Xynolog.Internal.Generated.Models.SmelterHealth (SmelterHealth (..), SmelterHealthIndex (..), SmelterHealthIndexStamp (..), SmelterHealthIndexStampEmbedding (..), SmelterHealthReconcile (..), SmelterHealthReconcilePhase (..), smelterHealthReconcilePhaseText, SmelterHealthStatus (..), smelterHealthStatusText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.ConnectionState
 import Xynolog.Internal.Generated.Models.FollowerFollowing
 import Xynolog.Internal.Generated.Models.KbDid
 import Xynolog.Internal.Generated.Models.SmelterChunking
@@ -16,7 +17,7 @@ import Xynolog.Internal.Generated.Models.SmelterReconcileSummary
 data SmelterHealth = SmelterHealth
   { smelterHealthStatus :: SmelterHealthStatus,
     smelterHealthKb :: KbDid,
-    smelterHealthStream :: SmelterHealthStream,
+    smelterHealthStream :: ConnectionState,
     smelterHealthFollowing :: FollowerFollowing,
     smelterHealthEventsProcessed :: Integer,
     smelterHealthReconcile :: SmelterHealthReconcile,
@@ -93,25 +94,3 @@ instance ToJSON SmelterHealthStatus where toJSON SmelterHealthStatusOk = String 
 
 smelterHealthStatusText :: SmelterHealthStatus -> Text
 smelterHealthStatusText SmelterHealthStatusOk = "ok"
-
-data SmelterHealthStream = SmelterHealthStreamInitial | SmelterHealthStreamConnecting | SmelterHealthStreamOpen | SmelterHealthStreamReconnecting | SmelterHealthStreamDegraded | SmelterHealthStreamUnauthenticated | SmelterHealthStreamClosed deriving (Eq, Show)
-
-instance FromJSON SmelterHealthStream where parseJSON = checked "SmelterHealthStream" $ \value -> if value == String "initial" then pure SmelterHealthStreamInitial else if value == String "connecting" then pure SmelterHealthStreamConnecting else if value == String "open" then pure SmelterHealthStreamOpen else if value == String "reconnecting" then pure SmelterHealthStreamReconnecting else if value == String "degraded" then pure SmelterHealthStreamDegraded else if value == String "unauthenticated" then pure SmelterHealthStreamUnauthenticated else if value == String "closed" then pure SmelterHealthStreamClosed else fail "unknown enumeration member"
-
-instance ToJSON SmelterHealthStream where
-  toJSON SmelterHealthStreamInitial = String "initial"
-  toJSON SmelterHealthStreamConnecting = String "connecting"
-  toJSON SmelterHealthStreamOpen = String "open"
-  toJSON SmelterHealthStreamReconnecting = String "reconnecting"
-  toJSON SmelterHealthStreamDegraded = String "degraded"
-  toJSON SmelterHealthStreamUnauthenticated = String "unauthenticated"
-  toJSON SmelterHealthStreamClosed = String "closed"
-
-smelterHealthStreamText :: SmelterHealthStream -> Text
-smelterHealthStreamText SmelterHealthStreamInitial = "initial"
-smelterHealthStreamText SmelterHealthStreamConnecting = "connecting"
-smelterHealthStreamText SmelterHealthStreamOpen = "open"
-smelterHealthStreamText SmelterHealthStreamReconnecting = "reconnecting"
-smelterHealthStreamText SmelterHealthStreamDegraded = "degraded"
-smelterHealthStreamText SmelterHealthStreamUnauthenticated = "unauthenticated"
-smelterHealthStreamText SmelterHealthStreamClosed = "closed"

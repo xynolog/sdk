@@ -16,14 +16,7 @@ module Xynolog.Worker
     HeldJob,
     SomeHeldJob (..),
     WorkerError (..),
-    jobId,
-    jobType,
-    resourceId,
-    params,
-    completedUnits,
-    unitCursors,
-    retryCount,
-    maxRetries,
+    module Xynolog.Internal.Generated.HeldJob,
     attempt,
     annotationId,
     trace,
@@ -63,6 +56,7 @@ import Xynolog.ErrorCodes
 import Xynolog.Errors (BusRequestError (..))
 import Xynolog.Internal.Broadcast qualified as Broadcast
 import Xynolog.Internal.Bus qualified as Bus
+import Xynolog.Internal.Generated.HeldJob
 import Xynolog.JobFilter (jobMatchesFilter)
 import Xynolog.StateValue qualified as State
 import Xynolog.Timing.Settings qualified as Timing
@@ -87,7 +81,8 @@ data SomeHeldJob = HeldMark (HeldJob MarkJobResult) | HeldYield (HeldJob YieldJo
 
 data HeldJob result = HeldJob
   { heldClaims :: Claims,
-    heldRecord :: JobRunning,
+    heldRecord :: HeldJobRecord,
+    heldBudget :: JobMetadata,
     heldCompletion :: Completion result,
     heldTrace :: Maybe TraceCarrier,
     heldState :: TVar JobPhase,
@@ -150,29 +145,7 @@ newClaims carrier busClock base (ClaimOptions {claimOptionsAccepts = filters, cl
     <*> newMVar Nothing
     <*> newEmptyTMVarIO
 
-jobId :: HeldJob result -> JobId
-jobId = jobMetadataId . jobRunningMetadata . heldRecord
-
-jobType :: HeldJob result -> JobType
-jobType = jobMetadataType . jobRunningMetadata . heldRecord
-
-resourceId :: HeldJob result -> ResourceId
-resourceId = jobParamsResourceId . params
-
-params :: HeldJob result -> JobParams
-params = jobRunningParams . heldRecord
-
-completedUnits :: HeldJob result -> [Text]
-completedUnits = fromMaybe [] . jobMetadataCompletedUnits . jobRunningMetadata . heldRecord
-
-unitCursors :: HeldJob result -> KM.KeyMap UnitCursor
-unitCursors = maybe KM.empty jobMetadataUnitCursorsAdditionalProperties . jobMetadataUnitCursors . jobRunningMetadata . heldRecord
-
-retryCount :: HeldJob result -> Integer
-retryCount = jobMetadataRetryCount . jobRunningMetadata . heldRecord
-
-maxRetries :: HeldJob result -> Integer
-maxRetries = jobMetadataMaxRetries . jobRunningMetadata . heldRecord
+instance HasHeldJobRecord (HeldJob result) where heldJobRecord = heldRecord
 
 attempt :: HeldJob result -> Integer
 attempt = (+ 1) . retryCount
@@ -366,14 +339,26 @@ claimLoop claims = forever $ mask $ \restore -> do
             (refusals claims)
             (ClaimRefusal (busRequestErrorCode <$> maybeRefusal) (maybe (T.pack (displayException problem)) busRequestErrorMessage maybeRefusal))
     Right delivered -> do
-      let record = jobClaimedResultResponse (Bus.deliveredPayload delivered)
+      let running = jobClaimedResultResponse (Bus.deliveredPayload delivered)
+          metadata = jobRunningMetadata running
+          record =
+            HeldJobRecord
+              { heldJobRecordJobId = jobMetadataId metadata,
+                heldJobRecordJobType = jobMetadataType metadata,
+                heldJobRecordResourceId = jobParamsResourceId (jobRunningParams running),
+                heldJobRecordParams = jobRunningParams running,
+                heldJobRecordCompletedUnits = fromMaybe [] (jobMetadataCompletedUnits metadata),
+                heldJobRecordUnitCursors = HeldJobRecordUnitCursors (maybe KM.empty jobMetadataUnitCursorsAdditionalProperties (jobMetadataUnitCursors metadata)),
+                heldJobRecordRetryCount = jobMetadataRetryCount metadata,
+                heldJobRecordMaxRetries = jobMetadataMaxRetries metadata
+              }
       state <- newTVarIO Claimed
       cancellationCell <- newTVarIO False
       durability <- newTVarIO Nothing
       gate <- newMVar ()
       let make :: Completion result -> HeldJob result
-          make completion = HeldJob claims record completion (Transport.frameTrace (Bus.deliveredFrame delivered)) state cancellationCell durability gate
-          job = case jobMetadataType (jobRunningMetadata record) of
+          make completion = HeldJob claims record metadata completion (Transport.frameTrace (Bus.deliveredFrame delivered)) state cancellationCell durability gate
+          job = case heldJobRecordJobType record of
             JobTypeMark -> HeldMark (make MarkCompletion)
             JobTypeYield -> HeldYield (make YieldCompletion)
       now <- restore (stamp claims)
@@ -412,8 +397,8 @@ checkStalls claims ready = do
                         (jobType value)
                         since
                         activeStamp
-                        (fromRational (toRational (currentTime - active) / 1000000))
-                        (fromInteger (Timing.heldJobStallMs waits))
+                        ((currentTime - active) `div` 1000000)
+                        (Timing.heldJobStallMs waits)
                   )
                 writeTVar (runtime claims) current {stallReported = True}
           _ -> pure ()
@@ -494,7 +479,7 @@ checkpoint job value = withMVar (heldGate job) $ \() -> do
   emit
     job
     Ch.JobCheckpoint
-    (JobCheckpointCommand {jobCheckpointCommandUserId = Nothing, jobCheckpointCommandCompletedUnits = (jobCheckpointCompletedUnits value), jobCheckpointCommandJobId = (jobId job), jobCheckpointCommandUnitCursors = (JobCheckpointCommandUnitCursors <$> jobCheckpointUnitCursors value)})
+    (JobCheckpointCommand {jobCheckpointCommandUserId = Nothing, jobCheckpointCommandCompletedUnits = (jobCheckpointCompletedUnits value), jobCheckpointCommandJobId = (jobId job), jobCheckpointCommandUnitCursors = (JobCheckpointCommandUnitCursors . jobCheckpointUnitCursorsAdditionalProperties <$> jobCheckpointUnitCursors value)})
 
 weakness :: DurabilityEvidence -> Int
 weakness DurabilityEvidenceAcknowledged = 0
@@ -576,11 +561,11 @@ fail job message failure = settle job False $ do
   let durability = observed >>= \value -> if weakness value > weakness DurabilityEvidenceProbeConfirmed then Just value else Nothing
       classification = failure >>= jobFailureFailureClass
       units = failure >>= jobFailureCompletedUnits
-      cursors = JobFailCommandUnitCursors <$> (failure >>= jobFailureUnitCursors)
+      cursors = JobFailCommandUnitCursors . jobFailureUnitCursorsAdditionalProperties <$> (failure >>= jobFailureUnitCursors)
   emit
     job
     JobFail
-    (JobFailCommand {jobFailCommandUserId = Nothing, jobFailCommandAnnotationId = (annotationId job), jobFailCommandAttempt = (Just (attempt job)), jobFailCommandCompletedUnits = units, jobFailCommandDurability = durability, jobFailCommandError = message, jobFailCommandFailureClass = classification, jobFailCommandJobId = (jobId job), jobFailCommandJobType = (jobType job), jobFailCommandResourceId = (resourceId job), jobFailCommandUnitCursors = cursors, jobFailCommandWillRetry = (Just (willRetryAfter (jobRunningMetadata (heldRecord job)) classification))})
+    (JobFailCommand {jobFailCommandUserId = Nothing, jobFailCommandAnnotationId = (annotationId job), jobFailCommandAttempt = (Just (attempt job)), jobFailCommandCompletedUnits = units, jobFailCommandDurability = durability, jobFailCommandError = message, jobFailCommandFailureClass = classification, jobFailCommandJobId = (jobId job), jobFailCommandJobType = (jobType job), jobFailCommandResourceId = (resourceId job), jobFailCommandUnitCursors = cursors, jobFailCommandWillRetry = (Just (willRetryAfter (heldBudget job) classification))})
 
 cancel :: HeldJob result -> Maybe JobReached -> IO ()
 cancel job reached =
@@ -588,4 +573,4 @@ cancel job reached =
     emit
       job
       JobCancel
-      (JobCancelCommand {jobCancelCommandUserId = Nothing, jobCancelCommandAnnotationId = (annotationId job), jobCancelCommandCompletedUnits = (reached >>= jobReachedCompletedUnits), jobCancelCommandJobId = (jobId job), jobCancelCommandJobType = (jobType job), jobCancelCommandResourceId = (resourceId job), jobCancelCommandUnitCursors = (JobCancelCommandUnitCursors <$> (reached >>= jobReachedUnitCursors))})
+      (JobCancelCommand {jobCancelCommandUserId = Nothing, jobCancelCommandAnnotationId = (annotationId job), jobCancelCommandCompletedUnits = (reached >>= jobReachedCompletedUnits), jobCancelCommandJobId = (jobId job), jobCancelCommandJobType = (jobType job), jobCancelCommandResourceId = (resourceId job), jobCancelCommandUnitCursors = (JobCancelCommandUnitCursors . jobReachedUnitCursorsAdditionalProperties <$> (reached >>= jobReachedUnitCursors))})

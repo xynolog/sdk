@@ -247,8 +247,10 @@ let controlled () =
                     let next =
                       Subscription.await_state_change bus ~from:previous
                     in
-                    if next = Xynolog.Enums.Connection_state.Degraded then incr count;
-                    if next <> Xynolog.Enums.Connection_state.Closed then read next
+                    if next = Xynolog.Enums.Connection_state.Degraded then
+                      incr count;
+                    if next <> Xynolog.Enums.Connection_state.Closed then
+                      read next
                   in
                   read Xynolog.Enums.Connection_state.Initial;
                   `Stop_daemon)
@@ -940,7 +942,9 @@ let session_unit startup () =
   assert (
     State_value.get (S.token unit) = None
     && State_value.get (S.user unit) = None);
-  assert (Subscription.state (Client.subscription client) <> Xynolog.Enums.Connection_state.Closed);
+  assert (
+    Subscription.state (Client.subscription client)
+    <> Xynolog.Enums.Connection_state.Closed);
   Client.close client;
   Client.await_closed client
 

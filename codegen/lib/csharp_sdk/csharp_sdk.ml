@@ -401,7 +401,11 @@ let error_codes (t : Error_codes.Table.t) =
             params =
               [
                 { by = `Value; type_ = T "int"; name = "status" };
-                { by = `Value; type_ = T "string"; name = "code" };
+                {
+                  by = `Value;
+                  type_ = T "global::Xynolog.Types.LimitRefusalCode";
+                  name = "code";
+                };
               ];
             body =
               Block
@@ -411,7 +415,12 @@ let error_codes (t : Error_codes.Table.t) =
                        ( C.Binary
                            ( status C.Eq n,
                              C.And,
-                             C.Binary (C.Name "code", C.Eq, C.Str limit) ),
+                             C.Binary
+                               ( C.Name "code",
+                                 C.Eq,
+                                 C.Name
+                                   ("global::Xynolog.Types.LimitRefusalCode."
+                                  ^ Models.enum_constant limit) ) ),
                          [ returns c ] ))
                    t.limit_refusals
                 @ [ C.Return C.Null ]);
@@ -420,10 +429,13 @@ let error_codes (t : Error_codes.Table.t) =
   let vocabulary ?(more = []) (v : Error_codes.Table.vocabulary) =
     static_class ~modifiers:[ C.Public; C.Static ] v.go_name (codes v @ more)
   in
-  file ~namespace:"Xynolog.Errors"
+  file ~nullable:true ~namespace:"Xynolog.Errors"
     ~from_:("protocol/specs/src/" ^ Error_codes.Table.file)
     (generated ^ "ErrorCodes.g.cs")
-    ([ vocabulary t.bus; vocabulary ~more:[ transport_of; of_limit_refusal ] t.transport ]
+    ([
+       vocabulary t.bus;
+       vocabulary ~more:[ transport_of; of_limit_refusal ] t.transport;
+     ]
     @ List.map (fun v -> vocabulary v) t.others
     @ [ vocabulary t.control ])
 
@@ -466,7 +478,9 @@ let timings (entries : Timing.Table.t) =
     (generated ^ "Timings.g.cs")
     [ static_class "Timings" (List.map member entries) ]
 
-let files ~root (spec : Spec.t) =
+(* The models of every schema the C# SDK types, and the records Protocol
+   states in its tables. *)
+let models (spec : Spec.t) =
   let* kinds = Identifiers.Table.derive spec in
   let* roots, records = roots spec in
   let* made =
@@ -514,6 +528,35 @@ let files ~root (spec : Spec.t) =
              ~roots ~made
        | exception Definitions.Refused message -> Error message)
   in
+  Ok (records, models)
+
+(* The properties of the record modelled of [name]: each one's name and
+   type, as the model declares it, and what it is. *)
+let properties (spec : Spec.t) name =
+  match models spec with
+  | Error errors ->
+      Definitions.refuse "%s"
+        (String.concat "; " (List.map Decode.error_to_string errors))
+  | Ok (_, models) -> (
+      let rec property = function
+        | C.Property { name; type_; _ } -> Some (name, type_, None)
+        | C.Documented (doc, member) ->
+            Option.map (fun (n, t, _) -> (n, t, Some doc)) (property member)
+        | _ -> None
+      in
+      match
+        List.find_map
+          (function
+            | C.Type { name = n; body = Some (_, members); _ } when n = name ->
+                Some (List.filter_map property members)
+            | _ -> None)
+          (Option.value ~default:[] (List.assoc_opt name models.models))
+      with
+      | Some properties -> properties
+      | None -> Definitions.refuse "%s: the C# SDK models no record of it" name)
+
+let files ~root (spec : Spec.t) =
+  let* records, models = models spec in
   let* codes = Error_codes.Table.derive spec.tables.errors_codes in
   let* failures = failure_codes codes models in
   let* timing = Timing.Table.derive spec.tables.client_timing in

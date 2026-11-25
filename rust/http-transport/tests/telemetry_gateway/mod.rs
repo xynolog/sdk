@@ -119,16 +119,16 @@ impl Gateway {
             .collect()
     }
 
-    /// Write a frame on `HEARD`, sent under `traceparent`, to the client's
+    /// Write a frame on `HEARD`, its `_trace` `trace`, to the client's
     /// stream, and answer it as `transport` delivers it.
-    pub async fn deliver(&self, transport: &HttpTransport, traceparent: &str) -> Frame {
+    pub async fn deliver(&self, transport: &HttpTransport, trace: Value) -> Frame {
         let mut frames = transport.frames(HEARD).expect("frames");
         let frame = json!({
             "channel": HEARD,
             "payload": {
                 "resourceId": "res-1",
                 "annotationId": "a-1",
-                "_trace": { "traceparent": traceparent }
+                "_trace": trace
             },
         });
         let event = Bytes::from(format!("event: bus-event\nid: e-1\ndata: {frame}\n\n"));

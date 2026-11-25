@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceStep (ConformanceStep (..), ConformanceStepAbandon (..), ConformanceStepBackend (..), ConformanceStepBackendBackend (..), conformanceStepBackendBackendText, ConformanceStepBackendWith (..), ConformanceStepCarried (..), ConformanceStepClaimed (..), ConformanceStepClosed (..), ConformanceStepCompletes (..), ConformanceStepDriver (..), ConformanceStepDriverWith (..), ConformanceStepError (..), ConformanceStepFetches (..), ConformanceStepFetchesFetchesItem (..), ConformanceStepFrame (..), ConformanceStepFrames (..), ConformanceStepHolds (..), ConformanceStepLeave (..), ConformanceStepLet (..), ConformanceStepLetLet (..), ConformanceStepObserve (..), ConformanceStepObserveObserve (..), ConformanceStepProgress (..), ConformanceStepQuiet (..), ConformanceStepReaches (..), ConformanceStepRefused (..), ConformanceStepScopes (..), ConformanceStepSettles (..), ConformanceStepSettlesAbandoned (..), ConformanceStepSignalled (..), ConformanceStepStalled (..), ConformanceStepState (..), ConformanceStepStateState (..), conformanceStepStateStateText, ConformanceStepStays (..), ConformanceStepStaysStays (..), conformanceStepStaysStaysText, ConformanceStepWire (..), ConformanceStepWireAt (..), conformanceStepWireAtText, ConformanceStepWireHeaders (..)) where
+module Xynolog.Internal.Generated.Models.ConformanceStep (ConformanceStep (..), ConformanceStepAbandon (..), ConformanceStepBackend (..), ConformanceStepBackendBackend (..), conformanceStepBackendBackendText, ConformanceStepBackendWith (..), ConformanceStepCarried (..), ConformanceStepClaimed (..), ConformanceStepClosed (..), ConformanceStepCompletes (..), ConformanceStepDriver (..), ConformanceStepDriverWith (..), ConformanceStepError (..), ConformanceStepFetches (..), ConformanceStepFetchesFetchesItem (..), ConformanceStepFrame (..), ConformanceStepFrames (..), ConformanceStepHolds (..), ConformanceStepLeave (..), ConformanceStepLet (..), ConformanceStepLetLet (..), ConformanceStepObserve (..), ConformanceStepObserveObserve (..), ConformanceStepProgress (..), ConformanceStepQuiet (..), ConformanceStepReaches (..), ConformanceStepRefused (..), ConformanceStepScopes (..), ConformanceStepSettles (..), ConformanceStepSettlesAbandoned (..), ConformanceStepSignalled (..), ConformanceStepStalled (..), ConformanceStepState (..), ConformanceStepStays (..), ConformanceStepWire (..), ConformanceStepWireAt (..), conformanceStepWireAtText, ConformanceStepWireHeaders (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -11,6 +11,7 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ConformanceBusFetch
 import Xynolog.Internal.Generated.Models.ConformanceHttpFetch
+import Xynolog.Internal.Generated.Models.ConnectionState
 
 data ConformanceStep = ConformanceStepLet ConformanceStepLet | ConformanceStepDriver ConformanceStepDriver | ConformanceStepAbandon ConformanceStepAbandon | ConformanceStepSettles ConformanceStepSettles | ConformanceStepWire ConformanceStepWire | ConformanceStepCarried ConformanceStepCarried | ConformanceStepClosed ConformanceStepClosed | ConformanceStepProgress ConformanceStepProgress | ConformanceStepState ConformanceStepState | ConformanceStepStays ConformanceStepStays | ConformanceStepFrame ConformanceStepFrame | ConformanceStepFrames ConformanceStepFrames | ConformanceStepError ConformanceStepError | ConformanceStepBackend ConformanceStepBackend | ConformanceStepQuiet ConformanceStepQuiet | ConformanceStepObserve ConformanceStepObserve | ConformanceStepLeave ConformanceStepLeave | ConformanceStepReaches ConformanceStepReaches | ConformanceStepHolds ConformanceStepHolds | ConformanceStepCompletes ConformanceStepCompletes | ConformanceStepConformanceBusFetch ConformanceBusFetch | ConformanceStepConformanceHttpFetch ConformanceHttpFetch | ConformanceStepFetches ConformanceStepFetches | ConformanceStepScopes ConformanceStepScopes | ConformanceStepClaimed ConformanceStepClaimed | ConformanceStepRefused ConformanceStepRefused | ConformanceStepSignalled ConformanceStepSignalled | ConformanceStepStalled ConformanceStepStalled deriving (Eq, Show)
 
@@ -368,7 +369,7 @@ instance FromJSON ConformanceStepStalled where parseJSON = checked "ConformanceS
 instance ToJSON ConformanceStepStalled where toJSON value = Object (KM.fromList (concat [[("stalled", toJSON (conformanceStepStalledStalled value))]]))
 
 data ConformanceStepState = MkConformanceStepState
-  { conformanceStepStateState :: ConformanceStepStateState
+  { conformanceStepStateState :: ConnectionState
   }
   deriving (Eq, Show)
 
@@ -376,58 +377,14 @@ instance FromJSON ConformanceStepState where parseJSON = checked "ConformanceSte
 
 instance ToJSON ConformanceStepState where toJSON value = Object (KM.fromList (concat [[("state", toJSON (conformanceStepStateState value))]]))
 
-data ConformanceStepStateState = ConformanceStepStateStateInitial | ConformanceStepStateStateConnecting | ConformanceStepStateStateOpen | ConformanceStepStateStateReconnecting | ConformanceStepStateStateDegraded | ConformanceStepStateStateUnauthenticated | ConformanceStepStateStateClosed deriving (Eq, Show)
-
-instance FromJSON ConformanceStepStateState where parseJSON = checked "ConformanceStepStateState" $ \value -> if value == String "initial" then pure ConformanceStepStateStateInitial else if value == String "connecting" then pure ConformanceStepStateStateConnecting else if value == String "open" then pure ConformanceStepStateStateOpen else if value == String "reconnecting" then pure ConformanceStepStateStateReconnecting else if value == String "degraded" then pure ConformanceStepStateStateDegraded else if value == String "unauthenticated" then pure ConformanceStepStateStateUnauthenticated else if value == String "closed" then pure ConformanceStepStateStateClosed else fail "unknown enumeration member"
-
-instance ToJSON ConformanceStepStateState where
-  toJSON ConformanceStepStateStateInitial = String "initial"
-  toJSON ConformanceStepStateStateConnecting = String "connecting"
-  toJSON ConformanceStepStateStateOpen = String "open"
-  toJSON ConformanceStepStateStateReconnecting = String "reconnecting"
-  toJSON ConformanceStepStateStateDegraded = String "degraded"
-  toJSON ConformanceStepStateStateUnauthenticated = String "unauthenticated"
-  toJSON ConformanceStepStateStateClosed = String "closed"
-
-conformanceStepStateStateText :: ConformanceStepStateState -> Text
-conformanceStepStateStateText ConformanceStepStateStateInitial = "initial"
-conformanceStepStateStateText ConformanceStepStateStateConnecting = "connecting"
-conformanceStepStateStateText ConformanceStepStateStateOpen = "open"
-conformanceStepStateStateText ConformanceStepStateStateReconnecting = "reconnecting"
-conformanceStepStateStateText ConformanceStepStateStateDegraded = "degraded"
-conformanceStepStateStateText ConformanceStepStateStateUnauthenticated = "unauthenticated"
-conformanceStepStateStateText ConformanceStepStateStateClosed = "closed"
-
 data ConformanceStepStays = MkConformanceStepStays
-  { conformanceStepStaysStays :: ConformanceStepStaysStays
+  { conformanceStepStaysStays :: ConnectionState
   }
   deriving (Eq, Show)
 
 instance FromJSON ConformanceStepStays where parseJSON = checked "ConformanceStepStays" $ withObject "ConformanceStepStays" (\fields -> MkConformanceStepStays <$> (fields .: "stays"))
 
 instance ToJSON ConformanceStepStays where toJSON value = Object (KM.fromList (concat [[("stays", toJSON (conformanceStepStaysStays value))]]))
-
-data ConformanceStepStaysStays = ConformanceStepStaysStaysInitial | ConformanceStepStaysStaysConnecting | ConformanceStepStaysStaysOpen | ConformanceStepStaysStaysReconnecting | ConformanceStepStaysStaysDegraded | ConformanceStepStaysStaysUnauthenticated | ConformanceStepStaysStaysClosed deriving (Eq, Show)
-
-instance FromJSON ConformanceStepStaysStays where parseJSON = checked "ConformanceStepStaysStays" $ \value -> if value == String "initial" then pure ConformanceStepStaysStaysInitial else if value == String "connecting" then pure ConformanceStepStaysStaysConnecting else if value == String "open" then pure ConformanceStepStaysStaysOpen else if value == String "reconnecting" then pure ConformanceStepStaysStaysReconnecting else if value == String "degraded" then pure ConformanceStepStaysStaysDegraded else if value == String "unauthenticated" then pure ConformanceStepStaysStaysUnauthenticated else if value == String "closed" then pure ConformanceStepStaysStaysClosed else fail "unknown enumeration member"
-
-instance ToJSON ConformanceStepStaysStays where
-  toJSON ConformanceStepStaysStaysInitial = String "initial"
-  toJSON ConformanceStepStaysStaysConnecting = String "connecting"
-  toJSON ConformanceStepStaysStaysOpen = String "open"
-  toJSON ConformanceStepStaysStaysReconnecting = String "reconnecting"
-  toJSON ConformanceStepStaysStaysDegraded = String "degraded"
-  toJSON ConformanceStepStaysStaysUnauthenticated = String "unauthenticated"
-  toJSON ConformanceStepStaysStaysClosed = String "closed"
-
-conformanceStepStaysStaysText :: ConformanceStepStaysStays -> Text
-conformanceStepStaysStaysText ConformanceStepStaysStaysInitial = "initial"
-conformanceStepStaysStaysText ConformanceStepStaysStaysConnecting = "connecting"
-conformanceStepStaysStaysText ConformanceStepStaysStaysOpen = "open"
-conformanceStepStaysStaysText ConformanceStepStaysStaysReconnecting = "reconnecting"
-conformanceStepStaysStaysText ConformanceStepStaysStaysDegraded = "degraded"
-conformanceStepStaysStaysText ConformanceStepStaysStaysUnauthenticated = "unauthenticated"
-conformanceStepStaysStaysText ConformanceStepStaysStaysClosed = "closed"
 
 data ConformanceStepWire = MkConformanceStepWire
   { conformanceStepWireWire :: Text,

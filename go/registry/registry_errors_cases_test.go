@@ -52,7 +52,7 @@ type registryErrorsCase struct {
 	Said []struct {
 		Own       *api.SessionErrorCode   `json:"own"`
 		Transport *api.TransportErrorCode `json:"transport"`
-		Message   *string                     `json:"message"`
+		Message   *string                 `json:"message"`
 	} `json:"said"`
 	RegistryErrors []api.SessionErrorCode `json:"registryErrors"`
 	// PermissionDenied is nil for a case that says no refusal for lack of
@@ -61,8 +61,8 @@ type registryErrorsCase struct {
 }
 
 type registryClosingRow struct {
-	Why            string                     `json:"why"`
-	Owed           *bool                      `json:"owed"`
+	Why            string                 `json:"why"`
+	Owed           *bool                  `json:"owed"`
 	RegistryErrors []api.SessionErrorCode `json:"registryErrors"`
 }
 

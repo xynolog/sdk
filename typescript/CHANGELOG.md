@@ -102,6 +102,17 @@ the coming release's, and gathers its changes as they land.
 - `LastEventIds` is keyed by `ResourceId`, as its schema's `propertyNames`
   states, where any text was a key: a map whose members' names Protocol
   holds to a kind of id is a `Record` of that kind.
+- A held job holds `HeldJobRecord`, the record Protocol states for the job
+  its claim hands it, as `record`, which `@xynolog/core` and `@xynolog/sdk`
+  export. Its `jobId`, `resourceId`, `params`, `completedUnits`,
+  `unitCursors`, `retryCount` and `maxRetries` are the record's members, of
+  the record's types: `completedUnits` is a `string[]` and `unitCursors` a
+  `{ [key: string]: UnitCursor }`, where each was its read-only array or
+  `Record`.
+- The placement of a knowledge base is `KbPlacement`, where it was
+  `DiscoveredKBPlacement`, `KnowledgeBaseStatusPlacement`, `RootPlacement`
+  and `TargetKind`, one type each place it was stated; an inference provider
+  is `InferenceProvider`, where it was `EngineProvider`.
 
 ### Removed
 

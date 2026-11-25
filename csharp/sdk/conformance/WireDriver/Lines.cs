@@ -56,11 +56,11 @@ internal static class Lines
     internal static ConformanceDriverLine Completed(string observer) =>
         new ConformanceDriverLine.Completed(new() { Completed = observer });
 
-    internal static ConformanceDriverLine Claimed(JsonElement job) =>
-        new ConformanceDriverLine.Claimed(new() { Claimed = job.EnumerateObject().ToDictionary(member => member.Name, member => member.Value.Clone()) });
+    internal static ConformanceDriverLine Claimed(HeldJobRecord job) =>
+        new ConformanceDriverLine.Claimed(new() { Claimed = job });
 
     internal static ConformanceDriverLine Refused(ClaimRefusal refusal) =>
-        new ConformanceDriverLine.Refused(new() { Refused = new() { Code = refusal.Code, Detail = refusal.Detail } });
+        new ConformanceDriverLine.Refused(new() { Refused = new() { Code = refusal.Code, Detail = refusal.Message } });
 
     internal static ConformanceDriverLine Signalled(JobId job) =>
         new ConformanceDriverLine.Signalled(new() { Signalled = job.Value });

@@ -27,7 +27,9 @@ let vocabulary ~name (v : Table.vocabulary) =
             R.List
               ( [ "derive" ],
                 List.map
-                  (fun w -> R.Word [ w ])
+                  (fun w ->
+                    R.Word
+                      (String.split_on_char ':' w |> List.filter (( <> ) "")))
                   [
                     "Debug";
                     "Clone";
@@ -46,7 +48,10 @@ let vocabulary ~name (v : Table.vocabulary) =
             (fun (c : Table.code) ->
               R.variant ~doc:[ c.docs ]
                 ~attrs:
-                  [ R.List ([ "serde" ], [ R.Name_value ("rename", R.Str c.code) ]) ]
+                  [
+                    R.List
+                      ([ "serde" ], [ R.Name_value ("rename", R.Str c.code) ]);
+                  ]
                 (variant c))
             v.codes;
       };

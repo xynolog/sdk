@@ -26,6 +26,7 @@ import xynolog.identifiers.UserId
 import xynolog.telemetry.futureOf
 import xynolog.types.ConnectionState
 import xynolog.types.FrameRefusalReason
+import xynolog.types.TraceCarrier
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
@@ -221,9 +222,6 @@ internal class Broadcast<T : Any>(private val keptForFirst: Long = 0) {
 /** Whether this state may be followed by [next]. */
 internal fun ConnectionState.mayBecome(next: ConnectionState): Boolean = next in CONNECTION_STATE_MOVES.getValue(this)
 
-/** A W3C trace context, as the wire carries one. */
-public data class TraceContext(public val traceparent: String, public val tracestate: String? = null)
-
 /**
  * What a transport delivers on a channel, one after another: a frame, or, in
  * the place of a frame BusFrame does not allow that names its channel's
@@ -256,7 +254,7 @@ public data class Frame @JvmExposeBoxed constructor(
     @get:JvmExposeBoxed
     public val scope: ResourceId? = null,
     /** The trace the work done for this frame continues, when the frame was sent under one. */
-    public val trace: TraceContext? = null,
+    public val trace: TraceCarrier? = null,
 ) : Carried {
     /**
      * Where the stream was in the scope this frame came on, once it delivered
@@ -297,7 +295,7 @@ public data class Delivered<P>(
     @get:JvmExposeBoxed
     public val userId: UserId?,
     /** The trace it was sent under. */
-    public val trace: TraceContext?,
+    public val trace: TraceCarrier?,
 ) : Heard<P> {
     override val status: String get() = "delivered"
 }

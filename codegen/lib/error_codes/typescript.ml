@@ -69,9 +69,9 @@ let text (t : Table.t) =
             ~about:
               [
                 Doc
-                  "Each gateway refusal of a limit that is a transport code too: \
-                   its status, its `LimitRefusal` code, and the transport code \
-                   it is.";
+                  "Each gateway refusal of a limit that is a transport code \
+                   too: its status, its `LimitRefusal` code, and the transport \
+                   code it is.";
               ]
             (T.array
                (List.map

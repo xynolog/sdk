@@ -8,13 +8,13 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
 import xynolog.types.Annotation
+import xynolog.types.ConformanceDriverLineClaimed
 import xynolog.types.FailureClass
 import xynolog.types.JobFilter
-import xynolog.types.JobParams
 import xynolog.types.JobProgress
 import xynolog.types.MarkJobResult
 import xynolog.types.UnitCursor
-import xynolog.types.WorkerEngineHealthActiveJob
+import xynolog.types.WorkerVitals
 import xynolog.types.YieldJobResult
 
 /**
@@ -54,11 +54,8 @@ public object Stated {
     public fun failureClass(value: JsonElement): FailureClass = read("failureClass", FailureClass.serializer(), value)
 
     @JvmStatic
-    public fun written(params: JobParams): JsonElement = wire.encodeToJsonElement(JobParams.serializer(), params)
+    public fun written(claimed: ConformanceDriverLineClaimed): JsonElement = wire.encodeToJsonElement(ConformanceDriverLineClaimed.serializer(), claimed)
 
     @JvmStatic
-    public fun written(active: WorkerEngineHealthActiveJob): JsonElement = wire.encodeToJsonElement(WorkerEngineHealthActiveJob.serializer(), active)
-
-    @JvmStatic
-    public fun written(cursors: Map<String, UnitCursor>): JsonElement = wire.encodeToJsonElement(MapSerializer(String.serializer(), UnitCursor.serializer()), cursors)
+    public fun written(vitals: WorkerVitals): JsonElement = wire.encodeToJsonElement(WorkerVitals.serializer(), vitals)
 }

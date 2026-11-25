@@ -23,14 +23,14 @@ use crate::event_bus::EventBus;
 use crate::kept_for_first_reader::KeptForFirstReader;
 use crate::locked;
 use crate::required::{Fault, fault_of, schema};
+use crate::types::ConnectionState;
 use crate::types::{
     AnchoredTextAnswer, CreateResourceResponse, GetAnnotationsResponse, GetResourceResponse,
     HealthResponse, MediaTokenResponse, ProtectedResourceMetadata, StatusResponse, UploadProgress,
     UploadProgressFinished, UserResponse,
 };
-use crate::types::ConnectionState;
 use crate::types::{AnnotationId, JobId};
-use crate::types::{BusFrame, FrameRefusalReason, ResourceId, Schema};
+use crate::types::{BusFrame, FrameRefusalReason, ResourceId, Schema, TraceCarrier};
 use bytes::Bytes;
 use futures_core::Stream;
 use serde_json::{Map, Value};
@@ -64,13 +64,6 @@ include!("generated/connection_states.rs");
 pub struct Envelope {
     pub correlation_id: Option<String>,
     pub scope: Option<ResourceId>,
-}
-
-/// The W3C trace context a frame was sent under.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TraceCarrier {
-    pub traceparent: String,
-    pub tracestate: Option<String>,
 }
 
 /// Where on the stream a frame was delivered: the resource scope it came

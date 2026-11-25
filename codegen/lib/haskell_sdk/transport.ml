@@ -1,33 +1,19 @@
 (* The Haskell SDK's transport facts: where each connection state can move
    (protocol/specs/src/client/connection-states.json), over the generated
-   ConnectionState; the member a frame's trace context is lifted from, and
-   the members a trace carrier holds (client/types/TraceCarrier.json); and the
-   member a user's identifier is stamped under. *)
+   ConnectionState; the member a frame's trace context is lifted from; and
+   the member a user's identifier is stamped under. *)
 
 module H = Haskell_syntax
 
-let ( let* ) = Result.bind
-
 type t = {
   states : (string * string list) list;  (** Each state, and where it moves. *)
-  carrier : string list;  (** The members a trace carrier holds. *)
   trace_field : string;
   user_field : string;
 }
 
-let carrier = Roots.client_types ^ "TraceCarrier.json"
-
 let derive ~user_field (spec : Spec.t) =
-  let* carrier =
-    match List.assoc_opt carrier spec.schemas with
-    | Some (Schema.Schema { properties = Some properties; _ }) ->
-        Ok (List.map fst properties)
-    | _ -> Error (carrier ^ " states no properties")
-  in
-  Ok
   {
     states = Connection_states.Table.derive spec;
-    carrier;
     trace_field = spec.tables.bus_registry.trace.field;
     user_field;
   }
@@ -65,8 +51,6 @@ let file ~banner t =
                 t.states;
           };
         H.value "traceField" text (Str t.trace_field);
-        H.value "traceCarrierFields" (T_list text)
-          (List (List.map (fun k -> H.Str k) t.carrier));
         H.value "userField" text (Str t.user_field);
       ];
   }

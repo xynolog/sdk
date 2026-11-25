@@ -10,7 +10,6 @@
 (* The module of the vocabulary [member] names, as a schema's
    [x-xynolog-codes] names it. *)
 let module_of member = String.capitalize_ascii (Text.snake member)
-
 let module_name (v : Table.vocabulary) = module_of v.member
 
 let value_name code =

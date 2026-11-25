@@ -49,7 +49,7 @@ common crypto
 library
   default-language: GHC2021
   build-depends: base >=4.20 && <4.22, xynolog:internal
-  reexported-modules: Xynolog.Types, Xynolog.Channels, Xynolog.Running, Xynolog.ErrorCodes, Xynolog.Timing, Xynolog.Timing.Settings, Xynolog.Retry, Xynolog.Discovery, Xynolog.Discovery.Reasons, Xynolog.Transport, Xynolog.Transport.Facts, Xynolog.StateValue, Xynolog.Errors, Xynolog.EventBus, Xynolog.Bus, Xynolog.Http, Xynolog.Http.Discovery, Xynolog.Content, Xynolog.Gateway, Xynolog.Frame, Xynolog.Auth, Xynolog.System, Xynolog.Client, Xynolog.JobFilter, Xynolog.Claims, Xynolog.HostName, Xynolog.Worker, Xynolog.Worker.Types, Xynolog.Bind, Xynolog.Beckon, Xynolog.Job, Xynolog.Cache, Xynolog.Resources, Xynolog.MediaTypes, Xynolog.Browse, Xynolog.Gather, Xynolog.Match, Xynolog.Delegation, Xynolog.Mark, Xynolog.Yield, Xynolog.Tokens, Xynolog.SessionStorage, Xynolog.Session, Xynolog.Issuer, Xynolog.Registry.Stored, Xynolog.ClientAssertion, Xynolog.ServiceToken, Xynolog.SignIn, Xynolog.SignInStore, Xynolog.Annotations, Xynolog.Identity, Xynolog.StoragePersister, Xynolog.State.SessionSignals, Xynolog.Registry.Identity, Xynolog.Registry.Factory, Xynolog.Registry.Resources, Xynolog.Registry, Xynolog.State.HoverDwell, Xynolog.State.Search, Xynolog.State.Beckon, Xynolog.State.Match, Xynolog.State.Gather, Xynolog.State.Mark, Xynolog.State.Yield, Xynolog.Testing, Xynolog.Testing.Client, Xynolog.Testing.Transport, Xynolog.Testing.Storage, Xynolog.Testing.Sessions, Xynolog.Testing.Liveness, Xynolog.Archivist.Routes, Xynolog.Control, Xynolog.ServiceEnvironment, Xynolog.ServiceTables, Xynolog.Tables
+  reexported-modules: Xynolog.Types, Xynolog.Channels, Xynolog.Running, Xynolog.ErrorCodes, Xynolog.Timing, Xynolog.Timing.Settings, Xynolog.Retry, Xynolog.Discovery, Xynolog.Discovery.Reasons, Xynolog.Transport, Xynolog.Transport.Facts, Xynolog.StateValue, Xynolog.Errors, Xynolog.EventBus, Xynolog.Bus, Xynolog.Http, Xynolog.Http.Discovery, Xynolog.Content, Xynolog.Gateway, Xynolog.Frame, Xynolog.Auth, Xynolog.System, Xynolog.Client, Xynolog.JobFilter, Xynolog.Claims, Xynolog.HostName, Xynolog.Worker, Xynolog.Bind, Xynolog.Beckon, Xynolog.Job, Xynolog.Cache, Xynolog.Resources, Xynolog.MediaTypes, Xynolog.Browse, Xynolog.Gather, Xynolog.Match, Xynolog.Delegation, Xynolog.Mark, Xynolog.Yield, Xynolog.Tokens, Xynolog.SessionStorage, Xynolog.Session, Xynolog.Issuer, Xynolog.Registry.Stored, Xynolog.ClientAssertion, Xynolog.ServiceToken, Xynolog.SignIn, Xynolog.SignInStore, Xynolog.Annotations, Xynolog.Identity, Xynolog.StoragePersister, Xynolog.State.SessionSignals, Xynolog.Registry.Identity, Xynolog.Registry.Factory, Xynolog.Registry.Resources, Xynolog.Registry, Xynolog.State.HoverDwell, Xynolog.State.Search, Xynolog.State.Beckon, Xynolog.State.Match, Xynolog.State.Gather, Xynolog.State.Mark, Xynolog.State.Yield, Xynolog.Testing, Xynolog.Testing.Client, Xynolog.Testing.Transport, Xynolog.Testing.Storage, Xynolog.Testing.Sessions, Xynolog.Testing.Liveness, Xynolog.Archivist.Routes, Xynolog.Control, Xynolog.ServiceEnvironment, Xynolog.ServiceTables, Xynolog.Tables
 
 library internal
   import: settings, context-propagation, crypto
@@ -155,7 +155,6 @@ library internal
     Xynolog.Claims
     Xynolog.HostName
     Xynolog.Worker
-    Xynolog.Worker.Types
     Xynolog.Bind
     Xynolog.Beckon
     Xynolog.Job
@@ -209,6 +208,7 @@ library internal
     Xynolog.Internal.Generated.ServiceProof
     Xynolog.Internal.Issuer
     Xynolog.Internal.Digest
+    Xynolog.Internal.Generated.HeldJob
     Xynolog.Internal.Generated.WorkerChannels
     Xynolog.Internal.Generated.Models.AboutParams
     Xynolog.Internal.Generated.Models.AboutResult
@@ -258,6 +258,7 @@ library internal
     Xynolog.Internal.Generated.Models.BeckonHoverEvent
     Xynolog.Internal.Generated.Models.BeckonSparkleEvent
     Xynolog.Internal.Generated.Models.BeginAuthorizationOptions
+    Xynolog.Internal.Generated.Models.Binary
     Xynolog.Internal.Generated.Models.BindBodyOperation
     Xynolog.Internal.Generated.Models.BindBodyUpdated
     Xynolog.Internal.Generated.Models.BindInitiateCommand
@@ -315,6 +316,7 @@ library internal
     Xynolog.Internal.Generated.Models.BusSubscribeRequest
     Xynolog.Internal.Generated.Models.Cancelled
     Xynolog.Internal.Generated.Models.ClaimOptions
+    Xynolog.Internal.Generated.Models.ClaimRefusal
     Xynolog.Internal.Generated.Models.ClientSecretForm
     Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponse
     Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponseBusEnvelope
@@ -328,6 +330,7 @@ library internal
     Xynolog.Internal.Generated.Models.ConformanceImplementations
     Xynolog.Internal.Generated.Models.ConformanceStep
     Xynolog.Internal.Generated.Models.ConnectionIdentity
+    Xynolog.Internal.Generated.Models.ConnectionState
     Xynolog.Internal.Generated.Models.ContentFormat
     Xynolog.Internal.Generated.Models.ContextualSummaryResponse
     Xynolog.Internal.Generated.Models.ContextualSummaryResponseBusEnvelope
@@ -410,6 +413,8 @@ library internal
     Xynolog.Internal.Generated.Models.GraphResourceNode
     Xynolog.Internal.Generated.Models.GraphSchema
     Xynolog.Internal.Generated.Models.HealthResponse
+    Xynolog.Internal.Generated.Models.HeldJobRecord
+    Xynolog.Internal.Generated.Models.HeldJobStall
     Xynolog.Internal.Generated.Models.HighlightingJobParams
     Xynolog.Internal.Generated.Models.HostPort
     Xynolog.Internal.Generated.Models.HttpEndpoint
@@ -424,6 +429,7 @@ library internal
     Xynolog.Internal.Generated.Models.InferenceLimits
     Xynolog.Internal.Generated.Models.InferenceLimitsRequest
     Xynolog.Internal.Generated.Models.InferenceLimitsResult
+    Xynolog.Internal.Generated.Models.InferenceProvider
     Xynolog.Internal.Generated.Models.IssuedTokens
     Xynolog.Internal.Generated.Models.Issuer
     Xynolog.Internal.Generated.Models.JanusGraphConfig
@@ -435,6 +441,7 @@ library internal
     Xynolog.Internal.Generated.Models.JobCancelResult
     Xynolog.Internal.Generated.Models.JobCancelResultBusEnvelope
     Xynolog.Internal.Generated.Models.JobCancelled
+    Xynolog.Internal.Generated.Models.JobCheckpoint
     Xynolog.Internal.Generated.Models.JobCheckpointCommand
     Xynolog.Internal.Generated.Models.JobClaimCommand
     Xynolog.Internal.Generated.Models.JobClaimedResult
@@ -448,6 +455,7 @@ library internal
     Xynolog.Internal.Generated.Models.JobFailCommand
     Xynolog.Internal.Generated.Models.JobFailed
     Xynolog.Internal.Generated.Models.JobFailedPayload
+    Xynolog.Internal.Generated.Models.JobFailure
     Xynolog.Internal.Generated.Models.JobFilter
     Xynolog.Internal.Generated.Models.JobId
     Xynolog.Internal.Generated.Models.JobMetadata
@@ -467,6 +475,7 @@ library internal
     Xynolog.Internal.Generated.Models.JobProgressLoading
     Xynolog.Internal.Generated.Models.JobProgressMessage
     Xynolog.Internal.Generated.Models.JobQueuedEvent
+    Xynolog.Internal.Generated.Models.JobReached
     Xynolog.Internal.Generated.Models.JobRecord
     Xynolog.Internal.Generated.Models.JobReportProgressCommand
     Xynolog.Internal.Generated.Models.JobResult
@@ -486,6 +495,7 @@ library internal
     Xynolog.Internal.Generated.Models.KbEndpoint
     Xynolog.Internal.Generated.Models.KbIdentity
     Xynolog.Internal.Generated.Models.KbIdentityConflict
+    Xynolog.Internal.Generated.Models.KbPlacement
     Xynolog.Internal.Generated.Models.KbRead
     Xynolog.Internal.Generated.Models.KbReadKind
     Xynolog.Internal.Generated.Models.KbReadVerdict
@@ -598,6 +608,7 @@ library internal
     Xynolog.Internal.Generated.Models.ResourceUploadMetadata
     Xynolog.Internal.Generated.Models.ResourceView
     Xynolog.Internal.Generated.Models.Resources
+    Xynolog.Internal.Generated.Models.RetryBudget
     Xynolog.Internal.Generated.Models.RetryRules
     Xynolog.Internal.Generated.Models.Root
     Xynolog.Internal.Generated.Models.RootsForgetParams
@@ -699,6 +710,7 @@ library internal
     Xynolog.Internal.Generated.Models.WeaveRebuildCommand
     Xynolog.Internal.Generated.Models.WeaverConfig
     Xynolog.Internal.Generated.Models.WeaverHealth
+    Xynolog.Internal.Generated.Models.WorkerActiveJob
     Xynolog.Internal.Generated.Models.WorkerAnswerFormats
     Xynolog.Internal.Generated.Models.WorkerConfig
     Xynolog.Internal.Generated.Models.WorkerEngineConfig
@@ -708,6 +720,7 @@ library internal
     Xynolog.Internal.Generated.Models.WorkerKnowledgeBaseHealth
     Xynolog.Internal.Generated.Models.WorkerMessages
     Xynolog.Internal.Generated.Models.WorkerPool
+    Xynolog.Internal.Generated.Models.WorkerVitals
     Xynolog.Internal.Generated.Models.WorkloadStatus
     Xynolog.Internal.Generated.Models.YieldCloneCreateCommand
     Xynolog.Internal.Generated.Models.YieldCloneCreated

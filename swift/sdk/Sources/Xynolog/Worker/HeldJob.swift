@@ -2,29 +2,29 @@ import Foundation
 import OpenTelemetryApi
 import Synchronization
 
+/// A job a worker holds. Each member of its `record` is the held job's own: `job.jobId` is
+/// `job.record.jobId`.
+@dynamicMemberLookup
 public protocol HeldJob: Sendable {
-  var jobId: JobId { get }
-  var jobType: JobType { get }
-  var resourceId: ResourceId { get }
-  var params: JobParams { get }
-  var completedUnits: [String] { get }
-  var unitCursors: [String: UnitCursor] { get }
-  var retryCount: Int { get }
-  var maxRetries: Int { get }
+  /// The job as its claim handed it.
+  var record: HeldJobRecord { get }
   var attempt: Int { get }
   var annotationId: AnnotationId? { get }
-  var trace: [String: String]? { get }
+  var trace: TraceCarrier? { get }
   var cancelled: Watched<Bool> { get }
   var settled: Bool { get async }
   func start() async throws
   func progress(_ progress: JobProgress) async throws
-  func checkpoint(completedUnits: [String], unitCursors: [String: UnitCursor]?) async throws
+  func checkpoint(_ checkpoint: JobCheckpoint) async throws
   func commit(resourceId: ResourceId, annotations: [Annotation]) async throws
-  func fail(
-    _ message: String, failureClass: FailureClass?, completedUnits: [String]?,
-    unitCursors: [String: UnitCursor]?
-  ) async throws
-  func cancel(completedUnits: [String]?, unitCursors: [String: UnitCursor]?) async throws
+  func fail(_ message: String, failure: JobFailure?) async throws
+  func cancel(_ reached: JobReached?) async throws
+}
+
+extension HeldJob {
+  public subscript<Member>(dynamicMember member: KeyPath<HeldJobRecord, Member>) -> Member {
+    record[keyPath: member]
+  }
 }
 
 public protocol HeldMarkJob: HeldJob {
@@ -40,17 +40,10 @@ protocol WorkerLease: HeldJob, AnyObject {
 }
 
 actor HeldWork<Result: Sendable>: WorkerLease {
-  nonisolated let jobId: JobId
-  nonisolated let jobType: JobType
-  nonisolated let resourceId: ResourceId
-  nonisolated let params: JobParams
-  nonisolated let completedUnits: [String]
-  nonisolated let unitCursors: [String: UnitCursor]
-  nonisolated let retryCount: Int
-  nonisolated let maxRetries: Int
-  nonisolated var attempt: Int { retryCount + 1 }
+  nonisolated let record: HeldJobRecord
+  nonisolated var attempt: Int { record.retryCount + 1 }
   nonisolated let annotationId: AnnotationId?
-  nonisolated let trace: [String: String]?
+  nonisolated let trace: TraceCarrier?
   nonisolated let cancelled = Watched(false)
   private(set) var settled = false
 
@@ -66,18 +59,15 @@ actor HeldWork<Result: Sendable>: WorkerLease {
   private var durability: DurabilityEvidence?
 
   init(
-    record: JobRunning, trace: [String: String]?, transport: any Transport, owner: Claims,
+    record: JobRunning, trace: TraceCarrier?, transport: any Transport, owner: Claims,
     options: ClaimOptions, clock: any Clock<Duration>
   ) {
     let metadata = record.metadata
-    jobId = metadata.id
-    jobType = metadata.type
-    resourceId = record.params.resourceId
-    params = record.params
-    completedUnits = metadata.completedUnits ?? []
-    unitCursors = metadata.unitCursors ?? [:]
-    retryCount = metadata.retryCount
-    maxRetries = metadata.maxRetries
+    self.record = HeldJobRecord(
+      jobId: metadata.id, jobType: metadata.type, resourceId: record.params.resourceId,
+      params: record.params, completedUnits: metadata.completedUnits ?? [],
+      unitCursors: metadata.unitCursors ?? [:], retryCount: metadata.retryCount,
+      maxRetries: metadata.maxRetries)
     annotationId = Self.anchor(record)
     self.trace = trace
     self.transport = transport
@@ -94,7 +84,7 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     cancelled.finish()
   }
 
-  private static func startSpan(jobId: JobId, jobType: JobType, trace: [String: String]?)
+  private static func startSpan(jobId: JobId, jobType: JobType, trace: TraceCarrier?)
     -> any Span
   {
     let builder = OpenTelemetry.instance.tracerProvider.get(instrumentationName: "Xynolog")
@@ -102,7 +92,7 @@ actor HeldWork<Result: Sendable>: WorkerLease {
       .setAttribute(key: "job.id", value: jobId.value)
     if let trace,
       let parent = OpenTelemetry.instance.propagators.textMapPropagator.extract(
-        carrier: trace, getter: TraceMap())
+        carrier: propagated(trace), getter: TraceMap())
     {
       builder.setParent(parent)
     }
@@ -147,7 +137,7 @@ actor HeldWork<Result: Sendable>: WorkerLease {
 
   private func requireUnsettled() throws {
     try Task.checkCancellation()
-    if settled { throw BusRequestError(.busRejected, "Job \(jobId.value) is already settled") }
+    if settled { throw BusRequestError(.busRejected, "Job \(record.jobId.value) is already settled") }
   }
 
   private func say<Payload>(_ channel: Channel<Payload>, _ payload: Payload) async throws {
@@ -171,7 +161,7 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     try await say(
       Channels.jobStart,
       JobStartCommand(
-        resourceId: resourceId, jobId: jobId, jobType: jobType, annotationId: annotationId,
+        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType, annotationId: annotationId,
         attempt: attempt))
   }
 
@@ -186,13 +176,11 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     try await say(
       Channels.jobReportProgress,
       JobReportProgressCommand(
-        resourceId: resourceId, jobId: jobId, jobType: jobType, attempt: attempt,
+        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType, attempt: attempt,
         annotationId: annotationId, percentage: progress.percentage, progress: progress))
   }
 
-  func checkpoint(
-    completedUnits: [String], unitCursors: [String: UnitCursor]? = nil
-  ) async throws {
+  func checkpoint(_ checkpoint: JobCheckpoint) async throws {
     await enter()
     defer { leave() }
     try requireUnsettled()
@@ -200,7 +188,9 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     await owner?.active()
     try await say(
       Channels.jobCheckpoint,
-      JobCheckpointCommand(jobId: jobId, completedUnits: completedUnits, unitCursors: unitCursors))
+      JobCheckpointCommand(
+        jobId: record.jobId, completedUnits: checkpoint.completedUnits,
+        unitCursors: checkpoint.unitCursors))
   }
 
   func commit(resourceId: ResourceId, annotations: [Annotation]) async throws {
@@ -212,7 +202,7 @@ actor HeldWork<Result: Sendable>: WorkerLease {
       _ = try await resultOf(
         Operations.markCommit.request.name,
         wirePayload(
-          MarkCommitCommand(jobId: jobId, resourceId: resourceId, annotations: annotations)),
+          MarkCommitCommand(jobId: record.jobId, resourceId: resourceId, annotations: annotations)),
         over: transport, timeoutMs: options.commitTimeoutMs, clock: clock, parent: workingTrace)
       observed(.acknowledged)
     } catch let timeout as BusRequestError where timeout.reason == .busTimeout {
@@ -264,35 +254,31 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     await owner?.released(self, completed: completed)
   }
 
-  func fail(
-    _ message: String, failureClass: FailureClass? = nil, completedUnits: [String]? = nil,
-    unitCursors: [String: UnitCursor]? = nil
-  ) async throws {
+  func fail(_ message: String, failure: JobFailure? = nil) async throws {
     await enter()
     defer { leave() }
     let notEstablished = durability.flatMap { weakness($0) == 2 ? $0 : nil }
     try await settle(
       Channels.jobFail,
       JobFailCommand(
-        resourceId: resourceId, jobId: jobId, jobType: jobType,
+        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType,
         attempt: attempt, annotationId: annotationId, error: message,
-        completedUnits: completedUnits,
-        unitCursors: unitCursors, failureClass: failureClass,
+        completedUnits: failure?.completedUnits, unitCursors: failure?.unitCursors,
+        failureClass: failure?.failureClass,
         willRetry: willRetryAfter(
-          retryCount: retryCount, maxRetries: maxRetries, failureClass: failureClass),
+          retryCount: record.retryCount, maxRetries: record.maxRetries,
+          failureClass: failure?.failureClass),
         durability: notEstablished))
   }
 
-  func cancel(
-    completedUnits: [String]? = nil, unitCursors: [String: UnitCursor]? = nil
-  ) async throws {
+  func cancel(_ reached: JobReached? = nil) async throws {
     await enter()
     defer { leave() }
     try await settle(
       Channels.jobCancel,
       JobCancelCommand(
-        resourceId: resourceId, jobId: jobId, jobType: jobType, annotationId: annotationId,
-        completedUnits: completedUnits, unitCursors: unitCursors))
+        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType, annotationId: annotationId,
+        completedUnits: reached?.completedUnits, unitCursors: reached?.unitCursors))
   }
 }
 
@@ -304,7 +290,7 @@ extension HeldWork: HeldMarkJob where Result == MarkJobResult {
       Channels.jobComplete,
       .markJobCompleteCommand(
         MarkJobCompleteCommand(
-          resourceId: resourceId, jobId: jobId, attempt: attempt, result: result,
+          resourceId: record.resourceId, jobId: record.jobId, attempt: attempt, result: result,
           durability: durability)),
       completed: true)
   }
@@ -318,7 +304,7 @@ extension HeldWork: HeldYieldJob where Result == YieldJobResult {
       Channels.jobComplete,
       .yieldJobCompleteCommand(
         YieldJobCompleteCommand(
-          resourceId: resourceId, jobId: jobId, attempt: attempt, annotationId: annotationId,
+          resourceId: record.resourceId, jobId: record.jobId, attempt: attempt, annotationId: annotationId,
           result: result, durability: durability)),
       completed: true)
   }

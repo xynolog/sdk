@@ -9,31 +9,6 @@ using Xynolog.Types;
 
 namespace Xynolog;
 
-/// <summary>Why a claim the worker made was refused.</summary>
-/// <param name="Code">The bus error code the refusal carried, or null when the claim failed in transport or its reply could
-/// not be read.</param>
-/// <param name="Detail">The refusal's message.</param>
-public sealed record ClaimRefusal(string? Code, string Detail);
-/// <summary>A snapshot of a worker's activity, for telling a healthy worker from a stuck one: the members of
-/// <see cref="WorkerEngineHealth"/> a worker knows of itself, all but the engine it runs and the jobs it takes.</summary>
-/// <param name="LastQueuedEventAt">When the worker last saw a job announced, if it has.</param>
-/// <param name="LastClaimAt">When the worker last claimed a job, if it has.</param>
-/// <param name="LastFinishedAt">When the worker last let go of a job, completed or not, if it has.</param>
-/// <param name="LastActivityAt">When the worker last claimed, worked on or let go of a job, if it has.</param>
-/// <param name="ActiveJob">The job the worker holds now, if any, and since when.</param>
-/// <param name="JobsCompleted">How many jobs the worker has completed.</param>
-public sealed record WorkerVitals(string? LastQueuedEventAt, string? LastClaimAt, string? LastFinishedAt,
-    string? LastActivityAt, WorkerEngineHealthActiveJob? ActiveJob, long JobsCompleted);
-/// <summary>A held job that has shown no activity for longer than the stall threshold.</summary>
-/// <param name="JobId">The stalled job.</param>
-/// <param name="JobType">What kind of job it is.</param>
-/// <param name="HeldSince">When the worker claimed it.</param>
-/// <param name="LastActivityAt">When the job last showed activity.</param>
-/// <param name="SilentForMs">How long, in milliseconds, the job had been silent when found stalled.</param>
-/// <param name="ThresholdMs">The silence, in milliseconds, past which a held job counts as stalled.</param>
-public sealed record HeldJobStall(JobId JobId, JobType JobType, DateTimeOffset HeldSince,
-    DateTimeOffset LastActivityAt, long SilentForMs, int ThresholdMs);
-
 /// <summary>One worker's claims. The first read starts the worker and StopAsync releases its job.</summary>
 public sealed class Claims
 {
@@ -119,9 +94,17 @@ public sealed class Claims
         lock (gate)
         {
             var active = held is { } job && lastClaimed is { } since
-                ? new WorkerEngineHealthActiveJob { JobId = job.JobId, Type = job.JobType, Since = Stamp(since) }
+                ? new WorkerActiveJob { JobId = job.JobId, Type = job.JobType, Since = Stamp(since) }
                 : null;
-            return new WorkerVitals(Stamp(lastQueued), Stamp(lastClaimed), Stamp(lastFinished), Stamp(lastActivity), active, jobsCompleted);
+            return new WorkerVitals
+            {
+                LastQueuedEventAt = Stamp(lastQueued),
+                LastClaimAt = Stamp(lastClaimed),
+                LastFinishedAt = Stamp(lastFinished),
+                LastActivityAt = Stamp(lastActivity),
+                ActiveJob = active,
+                JobsCompleted = jobsCompleted,
+            };
         }
     }
 
@@ -130,11 +113,14 @@ public sealed class Claims
     public WorkerEngineHealth Health(Engine engine)
     {
         ArgumentNullException.ThrowIfNull(engine);
-        var vitals = Vitals();
-        return new WorkerEngineHealth
+        return Health(Vitals(), engine, accepts);
+    }
+
+    internal static WorkerEngineHealth Health(WorkerVitals vitals, Engine engine, IReadOnlyList<JobFilter> jobs) =>
+        new()
         {
             Engine = engine,
-            Jobs = accepts,
+            Jobs = jobs,
             LastQueuedEventAt = vitals.LastQueuedEventAt,
             LastClaimAt = vitals.LastClaimAt,
             LastFinishedAt = vitals.LastFinishedAt,
@@ -142,7 +128,6 @@ public sealed class Claims
             ActiveJob = vitals.ActiveJob,
             JobsCompleted = vitals.JobsCompleted,
         };
-    }
 
     private static string? Stamp(DateTimeOffset? at) => at is { } known ? Stamp(known) : null;
 
@@ -264,7 +249,15 @@ public sealed class Claims
                     var silence = clock.GetElapsedTime(activeAt).TotalMilliseconds;
                     if (silence <= stallMs) continue;
                     stallReported = true;
-                    stalls.Publish(new HeldJobStall(job.JobId, job.JobType, since, active, (long)silence, stallMs));
+                    stalls.Publish(new HeldJobStall
+                    {
+                        JobId = job.JobId,
+                        JobType = job.JobType,
+                        HeldSince = Stamp(since),
+                        LastActivityAt = Stamp(active),
+                        SilentForMs = (long)silence,
+                        ThresholdMs = stallMs,
+                    });
                 }
             }
         }
@@ -304,11 +297,11 @@ public sealed class Claims
         }
         catch (BusRequestError error)
         {
-            if (error.Code != BusRequestErrorCode.NonePending) refused = new ClaimRefusal(error.Code, error.Message);
+            if (error.Code != BusRequestErrorCode.NonePending) refused = new ClaimRefusal { Code = error.Code, Message = error.Message };
         }
         catch (Exception error) when (error is TransportError or JsonException)
         {
-            refused = new ClaimRefusal(null, error.Message);
+            refused = new ClaimRefusal { Code = null, Message = error.Message };
         }
 
         lock (gate)

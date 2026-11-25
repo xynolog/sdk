@@ -450,10 +450,26 @@ public final class xynolog/errors/BusRequestError : xynolog/errors/XynologError 
 	public final fun getReason ()Lxynolog/errors/BusRequestErrorCode;
 }
 
+public final class xynolog/errors/BusRequestErrorCode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xynolog/errors/ControlErrorCode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xynolog/errors/ErrorCodesKt {
+	public static final fun getLIMIT_REFUSAL_TRANSPORT_CODES ()Ljava/util/List;
+}
+
 public final class xynolog/errors/IdentityUnverifiableError : xynolog/errors/XynologError {
 	public fun <init> (Lxynolog/errors/IdentityUnverifiableReason;Ljava/lang/String;)V
 	public fun getCode ()Ljava/lang/String;
 	public final fun getReason ()Lxynolog/errors/IdentityUnverifiableReason;
+}
+
+public final class xynolog/errors/IdentityUnverifiableReason$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class xynolog/errors/JobError : xynolog/errors/XynologError {
@@ -466,11 +482,19 @@ public final class xynolog/errors/JobError : xynolog/errors/XynologError {
 	public final fun getReason ()Lxynolog/errors/JobErrorCode;
 }
 
+public final class xynolog/errors/JobErrorCode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class xynolog/errors/SessionError : xynolog/errors/XynologError {
 	public fun <init> (Lxynolog/errors/SessionErrorCode;Ljava/lang/String;Ljava/lang/String;)V
 	public fun getCode ()Ljava/lang/String;
 	public final fun getKbId ()Ljava/lang/String;
 	public final fun getReason ()Lxynolog/errors/SessionErrorCode;
+}
+
+public final class xynolog/errors/SessionErrorCode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class xynolog/errors/SignInError : xynolog/errors/XynologError {
@@ -479,6 +503,14 @@ public final class xynolog/errors/SignInError : xynolog/errors/XynologError {
 	public fun getCode ()Ljava/lang/String;
 	public final fun getReason ()Lxynolog/errors/SignInErrorCode;
 	public final fun getStatus ()Ljava/lang/Integer;
+}
+
+public final class xynolog/errors/SignInErrorCode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class xynolog/errors/SpanRefusal$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class xynolog/errors/SpanRefusedError : xynolog/errors/XynologError {
@@ -494,6 +526,10 @@ public final class xynolog/errors/TransportError : xynolog/errors/XynologError {
 	public final fun getReason ()Lxynolog/errors/TransportErrorCode;
 	public fun getRetryAfterMs ()Ljava/lang/Long;
 	public final fun getStatus ()Ljava/lang/Integer;
+}
+
+public final class xynolog/errors/TransportErrorCode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public abstract class xynolog/errors/XynologError : java/lang/Exception {
@@ -756,12 +792,6 @@ public final class xynolog/identity/IdentityKt {
 	public static final fun personDid (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
-public final class xynolog/jobs/ClaimRefusal {
-	public final fun getCode ()Lxynolog/errors/BusRequestErrorCode;
-	public final fun getMessage ()Ljava/lang/String;
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class xynolog/jobs/Claims {
 	public final fun health (Lxynolog/types/Engine;)Lxynolog/types/WorkerEngineHealth;
 	public final fun next (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -770,59 +800,47 @@ public final class xynolog/jobs/Claims {
 	public final fun stalled ()Lxynolog/transport/Events;
 	public final fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun stopFuture ()Ljava/util/concurrent/CompletableFuture;
-	public final fun vitals ()Lxynolog/jobs/WorkerVitals;
+	public final fun vitals ()Lxynolog/types/WorkerVitals;
 }
 
-public final class xynolog/jobs/ClaimsKt {
-	public static final fun getJOB_CLAIM_CHANNELS ()Ljava/util/List;
-	public static final fun getJOB_COMMIT_CHANNELS ()Ljava/util/List;
-}
-
-public abstract class xynolog/jobs/HeldJob : java/lang/AutoCloseable {
-	public synthetic fun <init> (Lxynolog/jobs/Holder;Lxynolog/types/JobRunning;Lxynolog/transport/Variable;Lxynolog/transport/TraceContext;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun cancel (Ljava/util/List;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun cancel$default (Lxynolog/jobs/HeldJob;Ljava/util/List;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun cancelFuture (Ljava/util/List;Ljava/util/Map;)Ljava/util/concurrent/CompletableFuture;
-	public final fun checkpoint (Ljava/util/List;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun checkpoint$default (Lxynolog/jobs/HeldJob;Ljava/util/List;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun checkpointFuture (Ljava/util/List;Ljava/util/Map;)Ljava/util/concurrent/CompletableFuture;
+public abstract class xynolog/jobs/HeldJob : xynolog/jobs/HeldJobRecordMembers, java/lang/AutoCloseable {
+	public synthetic fun <init> (Lxynolog/jobs/Holder;Lxynolog/types/JobRunning;Lxynolog/transport/Variable;Lxynolog/types/TraceCarrier;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun cancel (Lxynolog/types/JobReached;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun cancel$default (Lxynolog/jobs/HeldJob;Lxynolog/types/JobReached;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun cancelFuture (Lxynolog/types/JobReached;)Ljava/util/concurrent/CompletableFuture;
+	public final fun checkpoint (Lxynolog/types/JobCheckpoint;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun checkpointFuture (Lxynolog/types/JobCheckpoint;)Ljava/util/concurrent/CompletableFuture;
 	public fun close ()V
 	public final fun commit-e71mPsk (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun commitFuture (Lxynolog/identifiers/ResourceId;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
 	public final fun commitFuture-Tz_IDJk (Ljava/lang/String;Ljava/util/List;)Ljava/util/concurrent/CompletableFuture;
-	public final fun fail (Ljava/lang/String;Lxynolog/types/FailureClass;Ljava/util/List;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun fail$default (Lxynolog/jobs/HeldJob;Ljava/lang/String;Lxynolog/types/FailureClass;Ljava/util/List;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun failFuture (Ljava/lang/String;Lxynolog/types/FailureClass;Ljava/util/List;Ljava/util/Map;)Ljava/util/concurrent/CompletableFuture;
+	public final fun fail (Ljava/lang/String;Lxynolog/types/JobFailure;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun fail$default (Lxynolog/jobs/HeldJob;Ljava/lang/String;Lxynolog/types/JobFailure;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun failFuture (Ljava/lang/String;Lxynolog/types/JobFailure;)Ljava/util/concurrent/CompletableFuture;
 	public final fun getAnnotationId ()Lxynolog/identifiers/AnnotationId;
 	public final fun getAnnotationId-9QHvHjw ()Ljava/lang/String;
 	public final fun getAttempt ()J
 	public final fun getCancelled ()Lxynolog/transport/Watched;
-	public final fun getCompletedUnits ()Ljava/util/List;
-	public final fun getJobId ()Lxynolog/identifiers/JobId;
-	public final fun getJobId-gcNJweM ()Ljava/lang/String;
-	public final fun getJobType ()Lxynolog/types/JobType;
-	public final fun getMaxRetries ()J
-	public final fun getParams ()Lxynolog/types/JobParams;
-	public final fun getResourceId ()Lxynolog/identifiers/ResourceId;
-	public final fun getResourceId-mMrHYc8 ()Ljava/lang/String;
-	public final fun getRetryCount ()J
 	public final fun getSettled ()Z
-	public final fun getTrace ()Lxynolog/transport/TraceContext;
-	public final fun getUnitCursors ()Ljava/util/Map;
+	public final fun getTrace ()Lxynolog/types/TraceCarrier;
 	public final fun progress (Lxynolog/types/JobProgress;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun progressFuture (Lxynolog/types/JobProgress;)Ljava/util/concurrent/CompletableFuture;
 	public final fun start (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun startFuture ()Ljava/util/concurrent/CompletableFuture;
 }
 
-public final class xynolog/jobs/HeldJobStall {
-	public final fun getHeldSince ()Ljava/time/Instant;
+public abstract class xynolog/jobs/HeldJobRecordMembers {
+	public final fun getCompletedUnits ()Ljava/util/List;
 	public final fun getJobId ()Lxynolog/identifiers/JobId;
 	public final fun getJobId-gcNJweM ()Ljava/lang/String;
 	public final fun getJobType ()Lxynolog/types/JobType;
-	public final fun getLastActivityAt ()Ljava/time/Instant;
-	public final fun getSilentForMs ()J
-	public final fun getThresholdMs ()J
+	public final fun getMaxRetries ()J
+	public final fun getParams ()Lxynolog/types/JobParams;
+	public final fun getRecord ()Lxynolog/types/HeldJobRecord;
+	public final fun getResourceId ()Lxynolog/identifiers/ResourceId;
+	public final fun getResourceId-mMrHYc8 ()Ljava/lang/String;
+	public final fun getRetryCount ()J
+	public final fun getUnitCursors ()Ljava/util/Map;
 }
 
 public final class xynolog/jobs/HeldMarkJob : xynolog/jobs/HeldJob {
@@ -843,13 +861,9 @@ public final class xynolog/jobs/RetriesKt {
 	public static final fun willRetryAfter (JJLxynolog/types/FailureClass;)Z
 }
 
-public final class xynolog/jobs/WorkerVitals {
-	public final fun getActiveJob ()Lxynolog/types/WorkerEngineHealthActiveJob;
-	public final fun getJobsCompleted ()J
-	public final fun getLastActivityAt ()Ljava/lang/String;
-	public final fun getLastClaimAt ()Ljava/lang/String;
-	public final fun getLastFinishedAt ()Ljava/lang/String;
-	public final fun getLastQueuedEventAt ()Ljava/lang/String;
+public final class xynolog/jobs/WorkerChannelsKt {
+	public static final fun getJOB_CLAIM_CHANNELS ()Ljava/util/List;
+	public static final fun getJOB_COMMIT_CHANNELS ()Ljava/util/List;
 }
 
 public final class xynolog/namespaces/AuthNamespace {
@@ -1523,7 +1537,7 @@ public final class xynolog/testing/FaultyTransport : xynolog/transport/Transport
 	public fun isSubscribed (Ljava/lang/String;)Z
 	public final fun queueReply (Ljava/lang/String;Ljava/util/List;)V
 	public final fun refuseWhen (Lxynolog/testing/Refuse;)V
-	public final fun setState (Lxynolog/transport/ConnectionState;)V
+	public final fun setState (Lxynolog/types/ConnectionState;)V
 	public fun subscribeToResource (Lxynolog/identifiers/ResourceId;)Lxynolog/transport/ResourceHold;
 	public fun subscribeToResource-n-VWWI8 (Ljava/lang/String;)Lxynolog/transport/ResourceHold;
 	public fun trackReply (Ljava/lang/String;Ljava/util/Collection;)Lxynolog/transport/PendingReply;
@@ -1763,20 +1777,6 @@ public abstract interface class xynolog/transport/Carried {
 	public abstract fun getCorrelationId ()Ljava/lang/String;
 }
 
-public final class xynolog/transport/ConnectionState : java/lang/Enum {
-	public static final field Closed Lxynolog/transport/ConnectionState;
-	public static final field Connecting Lxynolog/transport/ConnectionState;
-	public static final field Degraded Lxynolog/transport/ConnectionState;
-	public static final field Initial Lxynolog/transport/ConnectionState;
-	public static final field Open Lxynolog/transport/ConnectionState;
-	public static final field Reconnecting Lxynolog/transport/ConnectionState;
-	public static final field Unauthenticated Lxynolog/transport/ConnectionState;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public final fun getWire ()Ljava/lang/String;
-	public static fun valueOf (Ljava/lang/String;)Lxynolog/transport/ConnectionState;
-	public static fun values ()[Lxynolog/transport/ConnectionState;
-}
-
 public final class xynolog/transport/Content {
 	public fun <init> (Ljava/lang/String;[B)V
 	public final fun getBytes ()[B
@@ -1804,21 +1804,21 @@ public abstract interface class xynolog/transport/ContentTransport : java/lang/A
 }
 
 public final class xynolog/transport/Delivered : xynolog/transport/Heard {
-	public synthetic fun <init> (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/transport/TraceContext;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/TraceCarrier;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Object;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3-3LCPUrU ()Ljava/lang/String;
 	public final fun component4-KuqBCL0 ()Ljava/lang/String;
-	public final fun component5 ()Lxynolog/transport/TraceContext;
-	public final fun copy-Ho5u24c (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/transport/TraceContext;)Lxynolog/transport/Delivered;
-	public static synthetic fun copy-Ho5u24c$default (Lxynolog/transport/Delivered;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/transport/TraceContext;ILjava/lang/Object;)Lxynolog/transport/Delivered;
+	public final fun component5 ()Lxynolog/types/TraceCarrier;
+	public final fun copy-Ho5u24c (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/TraceCarrier;)Lxynolog/transport/Delivered;
+	public static synthetic fun copy-Ho5u24c$default (Lxynolog/transport/Delivered;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/TraceCarrier;ILjava/lang/Object;)Lxynolog/transport/Delivered;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCorrelationId ()Ljava/lang/String;
 	public final fun getPayload ()Ljava/lang/Object;
 	public final fun getScope ()Lxynolog/identifiers/ResourceId;
 	public final fun getScope-3LCPUrU ()Ljava/lang/String;
 	public fun getStatus ()Ljava/lang/String;
-	public final fun getTrace ()Lxynolog/transport/TraceContext;
+	public final fun getTrace ()Lxynolog/types/TraceCarrier;
 	public final fun getUserId ()Lxynolog/identifiers/UserId;
 	public final fun getUserId-KuqBCL0 ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -1832,23 +1832,23 @@ public final class xynolog/transport/Events : java/lang/AutoCloseable, kotlinx/c
 }
 
 public final class xynolog/transport/Frame : xynolog/transport/Carried {
-	public synthetic fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lxynolog/transport/TraceContext;Lkotlin/jvm/internal/BoxingConstructorMarker;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lxynolog/transport/TraceContext;Lkotlin/jvm/internal/BoxingConstructorMarker;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Lxynolog/identifiers/ResourceId;Lxynolog/transport/TraceContext;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/TraceCarrier;Lkotlin/jvm/internal/BoxingConstructorMarker;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/TraceCarrier;Lkotlin/jvm/internal/BoxingConstructorMarker;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Lxynolog/identifiers/ResourceId;Lxynolog/types/TraceCarrier;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Lkotlinx/serialization/json/JsonObject;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4-3LCPUrU ()Ljava/lang/String;
-	public final fun component5 ()Lxynolog/transport/TraceContext;
-	public final fun copy-TiJG1JI (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lxynolog/transport/TraceContext;)Lxynolog/transport/Frame;
-	public static synthetic fun copy-TiJG1JI$default (Lxynolog/transport/Frame;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lxynolog/transport/TraceContext;ILjava/lang/Object;)Lxynolog/transport/Frame;
+	public final fun component5 ()Lxynolog/types/TraceCarrier;
+	public final fun copy-TiJG1JI (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/TraceCarrier;)Lxynolog/transport/Frame;
+	public static synthetic fun copy-TiJG1JI$default (Lxynolog/transport/Frame;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/TraceCarrier;ILjava/lang/Object;)Lxynolog/transport/Frame;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getChannel ()Ljava/lang/String;
 	public fun getCorrelationId ()Ljava/lang/String;
 	public final fun getPayload ()Lkotlinx/serialization/json/JsonObject;
 	public final fun getScope ()Lxynolog/identifiers/ResourceId;
 	public final fun getScope-3LCPUrU ()Ljava/lang/String;
-	public final fun getTrace ()Lxynolog/transport/TraceContext;
+	public final fun getTrace ()Lxynolog/types/TraceCarrier;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -1970,20 +1970,6 @@ public final class xynolog/transport/PutBinaryRequest$Companion {
 
 public final class xynolog/transport/ResourceHold : java/lang/AutoCloseable {
 	public fun close ()V
-}
-
-public final class xynolog/transport/TraceContext {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lxynolog/transport/TraceContext;
-	public static synthetic fun copy$default (Lxynolog/transport/TraceContext;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lxynolog/transport/TraceContext;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getTraceparent ()Ljava/lang/String;
-	public final fun getTracestate ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class xynolog/transport/Transport : java/lang/AutoCloseable {

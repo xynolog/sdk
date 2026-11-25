@@ -24,19 +24,22 @@ import xynolog.http.HttpContentTransport;
 import xynolog.http.HttpTransport;
 import xynolog.identifiers.JobId;
 import xynolog.identifiers.ResourceId;
-import xynolog.jobs.ClaimRefusal;
 import xynolog.jobs.Claims;
-import xynolog.jobs.ClaimsKt;
 import xynolog.jobs.HeldJob;
-import xynolog.jobs.HeldJobStall;
 import xynolog.jobs.HeldYieldJob;
 import xynolog.jobs.JobFilterKt;
 import xynolog.jobs.RetriesKt;
+import xynolog.jobs.WorkerChannelsKt;
 import xynolog.transport.Events;
 import xynolog.types.ClaimOptions;
+import xynolog.types.ClaimRefusal;
 import xynolog.types.FailureClass;
+import xynolog.types.HeldJobStall;
+import xynolog.types.JobCheckpoint;
+import xynolog.types.JobFailure;
 import xynolog.types.JobFilter;
 import xynolog.types.JobProgress;
+import xynolog.types.JobReached;
 import xynolog.types.JobType;
 import xynolog.types.YieldJobDone;
 import xynolog.types.YieldJobFilter;
@@ -60,7 +63,7 @@ final class WorkerTest {
         final AtomicInteger claimed = new AtomicInteger();
 
         Opened() throws Exception {
-            transport = new HttpTransport(gateway.origin(), StateFlowKt.<String>MutableStateFlow("token"), ClaimsKt.getJOB_CLAIM_CHANNELS());
+            transport = new HttpTransport(gateway.origin(), StateFlowKt.<String>MutableStateFlow("token"), WorkerChannelsKt.getJOB_CLAIM_CHANNELS());
             content = new HttpContentTransport(transport);
             client = new XynologClient(transport, content, transport);
             gateway.answer = body -> {
@@ -158,7 +161,7 @@ final class WorkerTest {
             assertTrue(opened.next("job:start").contains("\"jobId\":\"job-1\""));
             held.progressFuture(JobProgress.builder(40.0).build()).get(10, SECONDS);
             assertTrue(opened.next("job:report-progress").contains("\"percentage\":40"));
-            held.failFuture("the model refused", FailureClass.Deterministic, null, null).get(10, SECONDS);
+            held.failFuture("the model refused", JobFailure.builder().failureClass(FailureClass.Deterministic).build()).get(10, SECONDS);
             String failed = opened.next("job:fail");
             assertTrue(failed.contains("\"willRetry\":false"), failed);
             assertTrue(held.getSettled());
@@ -201,7 +204,7 @@ final class WorkerTest {
             // The reply that handed the job over carried no trace.
             assertNull(held.getTrace());
             held.startFuture().get(10, SECONDS);
-            held.checkpointFuture(List.of("unit-1"), Map.of()).get(10, SECONDS);
+            held.checkpointFuture(JobCheckpoint.builder(List.of("unit-1")).unitCursors(Map.of()).build()).get(10, SECONDS);
             assertTrue(opened.next("job:checkpoint").contains("unit-1"));
             // A batch of no annotations is no commit: nothing is sent.
             held.commitFuture(new ResourceId("res-1"), List.of()).get(10, SECONDS);
@@ -220,7 +223,7 @@ final class WorkerTest {
             Claims claims = opened.client.getJob().claim(ClaimOptions.builder(List.<JobFilter>of(YieldJobFilter.builder().build())).build());
             HeldJob held = claims.nextFuture().get(10, SECONDS);
             held.startFuture().get(10, SECONDS);
-            held.cancelFuture(List.of(), Map.of()).get(10, SECONDS);
+            held.cancelFuture(JobReached.builder().completedUnits(List.of()).unitCursors(Map.of()).build()).get(10, SECONDS);
             assertTrue(opened.next("job:cancel").contains("\"jobId\":\"job-1\""));
             assertTrue(held.getSettled());
             claims.stopFuture().get(10, SECONDS);
@@ -261,6 +264,6 @@ final class WorkerTest {
         assertTrue(RetriesKt.willRetryAfter(0, 1, FailureClass.Transient));
         assertFalse(RetriesKt.willRetryAfter(1, 1, FailureClass.Transient));
         assertFalse(RetriesKt.willRetryAfter(0, 1, FailureClass.Deterministic));
-        assertTrue(ClaimsKt.getJOB_COMMIT_CHANNELS().contains("mark:commit-ok"));
+        assertTrue(WorkerChannelsKt.getJOB_COMMIT_CHANNELS().contains("mark:commit-ok"));
     }
 }

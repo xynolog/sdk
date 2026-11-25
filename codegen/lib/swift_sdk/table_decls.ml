@@ -330,9 +330,7 @@ let error_codes models ~shapes ~table (codes : Error_codes.Table.t) =
   let enums =
     List.map
       (fun (family, listed) ->
-        string_enumeration [ "public" ]
-          (snd (Code_names.named family))
-          listed)
+        string_enumeration [ "public" ] (snd (Code_names.named family)) listed)
       (List.sort (fun (a, _) (b, _) -> String.compare a b) (families table))
   in
   let returns (code : Error_codes.Table.code) =
@@ -455,7 +453,9 @@ let error_codes models ~shapes ~table (codes : Error_codes.Table.t) =
         (Some
            (S.Array_of
               (S.Tuple_of
-                 [ S.Named "Int"; S.Named "String"; S.Named codes.transport.name ])))
+                 [
+                   S.Named "Int"; S.Named "String"; S.Named codes.transport.name;
+                 ])))
         (S.Array
            ( S.Lines,
              List.map
@@ -1399,13 +1399,7 @@ let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
   let metadata =
     [
       ("eventId", string_schema);
-      ( "trace",
-        D.Node
-          {
-            (D.node [ "type"; "additionalProperties" ]) with
-            type_ = Some (D.One Schema.Object);
-            additional_properties = Some string_schema;
-          } );
+      ("trace", D.Ref { name = "TraceCarrier"; description = None });
     ]
   in
   let fields =
@@ -1446,7 +1440,7 @@ let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
                           {
                             label = None;
                             name = "trace";
-                            type_ = S.Optional (M.dictionary_of string_type);
+                            type_ = S.Optional (S.Named "TraceCarrier");
                             default = None;
                           };
                           {

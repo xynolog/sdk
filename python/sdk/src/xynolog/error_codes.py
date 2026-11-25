@@ -11,8 +11,6 @@ codes to iterate.
 
 from typing import Final, Literal, assert_never
 
-from xynolog.types import CommandErrorCode
-
 __all__ = [
     "BUS_REQUEST_ERROR_CODES",
     "BusRequestErrorCode",
@@ -22,6 +20,7 @@ __all__ = [
     "IdentityUnverifiableReason",
     "JOB_ERROR_CODES",
     "JobErrorCode",
+    "LIMIT_REFUSAL_TRANSPORT_CODES",
     "SIGN_IN_ERROR_CODES",
     "SPAN_REFUSALS",
     "SignInErrorCode",
@@ -74,7 +73,9 @@ BUS_REQUEST_ERROR_CODES: Final[tuple[BusRequestErrorCode, ...]] = (
 )
 
 
-def bus_request_code_for_wire_code(code: CommandErrorCode | None) -> BusRequestErrorCode:
+def bus_request_code_for_wire_code(
+    code: Literal["not-found", "peer-unavailable", "unauthorized", "none-pending"] | None,
+) -> BusRequestErrorCode:
     """The bus code a failure's own code (`CommandError.code`) becomes.
 
     A failure that states none is the unrecognized failure, and so is one
@@ -99,8 +100,9 @@ def bus_request_code_for_wire_code(code: CommandErrorCode | None) -> BusRequestE
 # these, so a routing layer matches on the code without knowing the wire kind. Over HTTP the
 # mapping is by status: `status` is an exact status, `statusFrom` every status at or above it.
 type TransportErrorCode = Literal[
-    # Authentication is required: the token is missing, expired, or refused. A 429 whose `code`
-    # is `refusal-rate` refuses the token too, and is reported as this code with its own status.
+    # Authentication is required: the token is missing, expired, or refused. A refusal of
+    # `limitRefusals` refuses the token too (contract/TRANSPORT-CONTRACT.md § A refused
+    # credential), and is reported as this code with its own status.
     "unauthorized",
     # Authenticated, and lacking permission.
     "forbidden",
@@ -157,6 +159,9 @@ def transport_error_code_for_status(status: int) -> TransportErrorCode:
         return "unavailable"
     return "error"
 
+
+LIMIT_REFUSAL_TRANSPORT_CODES: Final[tuple[tuple[int, str, TransportErrorCode], ...]] = ((429, "refusal-rate", "unauthorized"),)
+"""Each gateway refusal of a limit that is a transport code too: its status, its `LimitRefusal` code, and the transport code it is."""
 
 # Why a job its client follows ended without a result. A failure the queue will retry is not one
 # of these: the job goes on, and its follower is told of the setback and keeps following.

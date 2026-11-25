@@ -157,6 +157,7 @@ export type {
   JobCheckpoint,
   JobFailure,
   JobReached,
+  HeldJobRecord,
 } from './payload-types';
 
 // Event utilities

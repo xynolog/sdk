@@ -1,36 +1,23 @@
--- Generated from TRANSPORT-HTTP.md, bus/registry.json and identifiers/kinds.json; do not edit.
+-- Generated from client/connection-states.json, bus/registry.json and identifiers/kinds.json; do not edit.
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Transport.Facts (ConnectionState (..), connectionStateName, connectionTransitions, traceField, traceCarrierFields, userField) where
+module Xynolog.Transport.Facts (connectionTransitions, traceField, userField) where
 
 import Data.Text (Text)
-
-data ConnectionState = Initial | Connecting | Open | Reconnecting | Degraded | Unauthenticated | Closed deriving (Eq, Ord, Show, Enum, Bounded)
-
-connectionStateName :: ConnectionState -> Text
-connectionStateName Initial = "initial"
-connectionStateName Connecting = "connecting"
-connectionStateName Open = "open"
-connectionStateName Reconnecting = "reconnecting"
-connectionStateName Degraded = "degraded"
-connectionStateName Unauthenticated = "unauthenticated"
-connectionStateName Closed = "closed"
+import Xynolog.Types (ConnectionState (..))
 
 connectionTransitions :: ConnectionState -> [ConnectionState]
-connectionTransitions Initial = [Connecting, Unauthenticated, Closed]
-connectionTransitions Connecting = [Open, Reconnecting, Unauthenticated, Closed]
-connectionTransitions Open = [Reconnecting, Closed]
-connectionTransitions Reconnecting = [Connecting, Degraded, Unauthenticated, Closed]
-connectionTransitions Degraded = [Connecting, Unauthenticated, Closed]
-connectionTransitions Unauthenticated = [Connecting, Closed]
-connectionTransitions Closed = []
+connectionTransitions ConnectionStateInitial = [ConnectionStateConnecting, ConnectionStateUnauthenticated, ConnectionStateClosed]
+connectionTransitions ConnectionStateConnecting = [ConnectionStateOpen, ConnectionStateReconnecting, ConnectionStateUnauthenticated, ConnectionStateClosed]
+connectionTransitions ConnectionStateOpen = [ConnectionStateReconnecting, ConnectionStateClosed]
+connectionTransitions ConnectionStateReconnecting = [ConnectionStateConnecting, ConnectionStateDegraded, ConnectionStateUnauthenticated, ConnectionStateClosed]
+connectionTransitions ConnectionStateDegraded = [ConnectionStateConnecting, ConnectionStateUnauthenticated, ConnectionStateClosed]
+connectionTransitions ConnectionStateUnauthenticated = [ConnectionStateConnecting, ConnectionStateClosed]
+connectionTransitions ConnectionStateClosed = []
 
 traceField :: Text
 traceField = "_trace"
-
-traceCarrierFields :: [Text]
-traceCarrierFields = ["traceparent", "tracestate"]
 
 userField :: Text
 userField = "_userId"

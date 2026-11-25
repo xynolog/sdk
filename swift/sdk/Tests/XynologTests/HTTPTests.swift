@@ -362,9 +362,9 @@ extension HttpTransport {
       Channels.beckonFocus.name, Channels.beckonSparkle.name,
     ])
     let resource = try ResourceId("resource")
-    let trace = ["traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"]
+    let trace = TraceCarrier(traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01")
     let payload: [String: JSONValue] = [
-      "annotationId": .string("annotation"), traceField: .object(trace.mapValues(JSONValue.string)),
+      "annotationId": .string("annotation"), traceField: try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode(trace)),
     ]
     for (channel, id) in [
       (Channels.beckonFocus.name, "p-resource-1"), (Channels.beckonSparkle.name, "e-two"),
@@ -390,6 +390,34 @@ extension HttpTransport {
       ])
     #expect(received.allSatisfy { $0.payload[traceField] == nil && $0.trace == trace })
     #expect(await transport.watermarks[resource] == "p-resource-3")
+  }
+}
+
+@Test func aFrameWhoseTraceTheTableRefusesArrivesWithNoTraceAndWithoutIt() async throws {
+  try await server(.answering(.noHeaders)) { base, http in
+    let transport = HttpTransport(
+      baseUrl: base, httpClient: http, token: nil, channels: [Channels.beckonFocus.name])
+    let events = try await transport.frames([Channels.beckonFocus.name])
+    let payload: [String: JSONValue] = [
+      "annotationId": .string("annotation"),
+      traceField: .object([
+        "traceparent": .string("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"),
+        "tracestate": .string(""),
+      ]),
+    ]
+    try await transport.deliverForTest(
+      BusFrame(
+        channel: Channels.beckonFocus.name, payload: payload, scope: try ResourceId("resource")),
+      id: "e-one")
+    transport.dispose()
+    var received: [Carried] = []
+    for try await carried in events { received.append(carried) }
+    guard case .frame(let frame) = try #require(received.first), received.count == 1 else {
+      Issue.record("The frame was not delivered alone: \(received)")
+      return
+    }
+    #expect(frame.trace == nil)
+    #expect(frame.payload[traceField] == nil)
   }
 }
 

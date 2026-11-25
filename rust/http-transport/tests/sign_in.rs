@@ -35,7 +35,7 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use xynolog::annotations::{annotation_of_span, reconcile};
 use xynolog::cache::CacheState;
 use xynolog::channels::{BRIDGED_CHANNELS, PrincipalProfile};
-use xynolog::claims::{HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, JobFailure};
+use xynolog::claims::{HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS};
 use xynolog::client::ClientOptions;
 use xynolog::discovery::{
     DiscoveryAbsentReason, DiscoveryRead, DiscoveryState, DiscoveryTransport,
@@ -64,6 +64,7 @@ use xynolog::testing::as_id;
 use xynolog::testing::examples::{assert_blocks_are_examples, assert_readme_shows};
 use xynolog::timing::{DEVICE_SLOW_DOWN, HTTP_REQUEST_TIMEOUT, REFRESH_RETRY, SAVE_DEBOUNCE};
 use xynolog::transport::{BoxFuture, Envelope, Events, Lagged, PutBinaryRequest};
+use xynolog::types::JobFailure;
 use xynolog::types::{
     AgentSoftware, Annotation, BeginAuthorizationOptions, DeviceCode, FailureClass, HttpEndpoint,
     HttpEndpointProtocol, JobCompleteCommand, JobProgress, KbEndpoint, KbTarget, KnowledgeBase,

@@ -43,6 +43,7 @@ import {
   type Span,
 } from '@opentelemetry/api';
 import {
+  faultOf,
   setBusLogTraceIdProvider,
   TRACE_FIELD,
   type TraceCarrier,
@@ -114,20 +115,22 @@ export function getActiveTraceparent(): TraceCarrier | undefined {
     : { traceparent };
 }
 
+const isTraceCarrier = (value: unknown): value is TraceCarrier =>
+  faultOf('TraceCarrier', value) === undefined;
+
 /**
  * Strip and return the trace field (`TRACE_FIELD`) from a payload. Mutates `payload`.
  * The field is internal plumbing and should not be visible to subscribers.
+ * A field the required table refuses as a `TraceCarrier` carries no trace.
  */
 export function extractTraceparent<T extends Record<string, unknown>>(
   payload: T,
 ): TraceCarrier | undefined {
-  const carrier = (payload as Record<string, unknown>)[TRACE_FIELD] as
-    TraceCarrier | undefined;
+  const carrier: unknown = (payload as Record<string, unknown>)[TRACE_FIELD];
   if (carrier !== undefined) {
     delete (payload as Record<string, unknown>)[TRACE_FIELD];
   }
-  if (!carrier || typeof carrier.traceparent !== 'string') return undefined;
-  return carrier;
+  return isTraceCarrier(carrier) ? carrier : undefined;
 }
 
 /**

@@ -38,6 +38,7 @@ from xynolog.types import (
     MediaTokenResponse,
     ProtectedResourceMetadata,
     StatusResponse,
+    TraceCarrier,
     UploadProgress,
     UploadProgressFinished,
     UserResponse,
@@ -59,20 +60,11 @@ __all__ = [
     "PutBinaryRequest",
     "ReplyRouter",
     "ResourceHold",
-    "TraceContext",
     "Transport",
     "Upload",
     "UploadProgress",
     "unsubscribed",
 ]
-
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class TraceContext:
-    """A W3C trace context, as the wire carries one."""
-
-    traceparent: str
-    tracestate: str | None = None
 
 
 @final
@@ -86,7 +78,7 @@ class Frame:
     """What pairs a reply with its request."""
     scope: ResourceId | None = None
     """The resource whose scope the frame was delivered on."""
-    trace: TraceContext | None = None
+    trace: TraceCarrier | None = None
     """The trace the work done for this frame continues, when the frame was sent under one."""
 
 

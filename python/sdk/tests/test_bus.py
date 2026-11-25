@@ -26,7 +26,7 @@ from xynolog.operations import (
     OPERATIONS,
 )
 from xynolog.testing import FaultyTransport
-from xynolog.transport import Frame, FrameRefusal, TraceContext
+from xynolog.transport import Frame, FrameRefusal
 from xynolog.types import (
     BeckonFocusEvent,
     BeckonHoverEvent,
@@ -45,6 +45,7 @@ from xynolog.types import (
     MatchSearchRequest,
     MatchSearchResult,
     TaggingJobParams,
+    TraceCarrier,
 )
 
 RESOURCE, ANNOTATION = ResourceId("res-1"), AnnotationId("ann-1")
@@ -360,13 +361,13 @@ def test_a_request_whose_replies_the_transport_does_not_carry_is_refused_before_
 
 
 def test_a_request_is_answered_under_its_correlation_id_with_its_result_or_its_failure_naming_what_it_asked_for() -> None:
-    asked_under = TraceContext(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
+    asked_under = TraceCarrier(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
     request: dict[str, JsonValue] = {"resourceId": "res-1", "referenceId": "ann-1", "context": dict(CONTEXT)}
 
     async def scenario() -> None:
         transport = FaultyTransport(channels=())
         bus = Bus(transport)
-        traces: list[TraceContext | None] = []
+        traces: list[TraceCarrier | None] = []
 
         def asked(correlation_id: str) -> Delivered[MatchSearchRequest]:
             return Delivered(payload=MATCH_SEARCH_REQUESTED.request.decode(request), correlation_id=correlation_id, trace=asked_under)

@@ -158,9 +158,9 @@ let frame (row : Frames.cases_item) =
               Alcotest.fail "a read is stated on a channel not read by type"
           | false, _ -> ()))
 
-(* Protocol's first delivered frame, its payload carrying a trace: the
-   frame's trace is read from it, and its payload is read without it. *)
-let traced () =
+(* Protocol's first delivered frame, its payload carrying [carrier] as its
+   trace: the frame's trace, read from it, and its payload, read without it. *)
+let read_traced carrier =
   let frame =
     match
       List.find_map
@@ -169,10 +169,6 @@ let traced () =
     with
     | Some frame -> frame
     | None -> Alcotest.fail "bus/frame-cases.json delivers no frame"
-  in
-  let carrier =
-    `Assoc
-      [ ("traceparent", `String "00-a-b-01"); ("tracestate", `String "k=v") ]
   in
   let payload =
     match frame.payload with
@@ -188,12 +184,37 @@ let traced () =
   match
     Wire_stream.read (Eio.Buf_read.of_flow ~max_size:65536 input) |> Option.get
   with
-  | Ok (Wire_stream.Frame { trace; _ }) ->
-      Alcotest.(check (option (pair string (option string))))
-        "trace"
-        (Some ("00-a-b-01", Some "k=v"))
-        (Option.map (fun (t : Wire_stream.trace) -> (t.parent, t.state)) trace)
+  | Ok (Wire_stream.Frame { trace; payload; _ }) ->
+      ( Option.map
+          (fun (t : Records.Trace_carrier.t) -> (t.traceparent, t.tracestate))
+          trace,
+        Result.map Bus_registry.encode payload )
   | _ -> Alcotest.fail "the traced frame was not delivered"
+
+let trace_read = Alcotest.(option (pair string (option string)))
+
+let traced () =
+  let carrier =
+    `Assoc
+      [ ("traceparent", `String "00-a-b-01"); ("tracestate", `String "k=v") ]
+  in
+  let trace, _ = read_traced carrier in
+  Alcotest.check trace_read "trace" (Some ("00-a-b-01", Some "k=v")) trace
+
+(* A trace the required table refuses, its tracestate empty: the frame
+   carries no trace, and its payload is read without it. *)
+let refused_trace () =
+  let carrier =
+    `Assoc [ ("traceparent", `String "00-a-b-01"); ("tracestate", `String "") ]
+  in
+  let trace, payload = read_traced carrier in
+  Alcotest.check trace_read "trace" None trace;
+  match Result.map Yojson.Safe.from_string payload with
+  | Ok (`Assoc members) ->
+      Alcotest.(check bool)
+        "the payload carries no trace" false
+        (List.mem_assoc Bus_registry.trace_field members)
+  | _ -> Alcotest.fail "the untraced frame's payload was not read"
 
 (* Shared cases from annotations/reader-cases.json. *)
 let annotation (row : Readers.cases_item) =
@@ -504,7 +525,10 @@ let () =
             | Line_refused { why; _ } ->
                 why)
           frame
-        @ [ Alcotest.test_case "a frame's trace" `Quick traced ] );
+        @ [
+            Alcotest.test_case "a frame's trace" `Quick traced;
+            Alcotest.test_case "a refused trace" `Quick refused_trace;
+          ] );
       ( "annotations",
         cases Readers.table.cases
           (fun (r : Readers.cases_item) -> r.why)

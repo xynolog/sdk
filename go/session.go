@@ -282,7 +282,9 @@ func (s *Session) Token() Watched[string] { return s.config.Token.Reading() }
 func (s *Session) User() Watched[*api.UserResponse] { return s.user.Reading() }
 
 // StreamState is the state of the client's connection.
-func (s *Session) StreamState() Watched[api.ConnectionState] { return s.config.Client.Transport.State() }
+func (s *Session) StreamState() Watched[api.ConnectionState] {
+	return s.config.Client.Transport.State()
+}
 
 // Errors is the session's one stream of what went wrong: its own failures
 // (a *SessionError) and its client's transport's (a *TransportError), each

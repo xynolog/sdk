@@ -12,7 +12,6 @@
 //! trace the job states, where the job is handed to it, and ended once it has
 //! settled the job. Everything it does for the job it does in that span.
 
-use chrono::{DateTime, SecondsFormat, Utc};
 use opentelemetry::context::FutureExt;
 use opentelemetry::trace::{SpanKind, TraceContextExt, Tracer};
 use opentelemetry::{Context, KeyValue, global};
@@ -20,10 +19,11 @@ use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use std::future::Future;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 use tokio::sync::watch;
 use tokio::task::JoinSet;
-use xynolog::claims::{Claims, HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, JobFailure};
+use xynolog::claims::{Claims, HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS};
+use xynolog::types::{JobCheckpoint, JobFailure, JobReached};
 use xynolog::client::{ClientOptions, XynologClient};
 use xynolog::transport::{ResourceHold, Transport};
 use xynolog::types::ConnectionState;
@@ -71,11 +71,6 @@ struct Worker {
     /// observes.
     reported: Mutex<Option<ConnectionState>>,
     reporters: Mutex<JoinSet<()>>,
-}
-
-/// A time as the protocol carries one.
-fn iso(at: SystemTime) -> String {
-    DateTime::<Utc>::from(at).to_rfc3339_opts(SecondsFormat::Millis, true)
 }
 
 /// What a case states as the wire carries it, as the SDK's type for it. One
@@ -278,16 +273,7 @@ impl Worker {
             while let Some(handed) = claims.next().await {
                 match handed {
                     Ok(job) => {
-                        let claimed = json!({
-                            "jobId": job.job_id(),
-                            "jobType": job.job_type(),
-                            "resourceId": job.resource_id(),
-                            "params": job.params(),
-                            "completedUnits": job.completed_units(),
-                            "unitCursors": job.unit_cursors(),
-                            "retryCount": job.retry_count(),
-                            "maxRetries": job.max_retries(),
-                        });
+                        let claimed = job.record().clone();
                         let (mut cancelled, job_id) = (job.cancelled(), job.job_id().clone());
                         tokio::spawn(async move {
                             if cancelled.wait_for(|cancelled| *cancelled).await.is_ok() {
@@ -302,8 +288,7 @@ impl Worker {
                         *driver.held.lock().await = Some((job, span));
                         say(ConformanceDriverLine::Claimed(
                             ConformanceDriverLineClaimed {
-                                claimed: serde_json::from_value(claimed)
-                                    .expect("a held job's members are an object"),
+                                claimed,
                             },
                         ));
                     }
@@ -369,15 +354,15 @@ impl Worker {
                 Ok(Value::Null)
             }
             "checkpoint" => {
-                let (units, cursors) = (
-                    texts(&args, "completedUnits")?,
-                    optional(&args, "unitCursors")?,
-                );
+                let checkpoint = JobCheckpoint {
+                    completed_units: texts(&args, "completedUnits")?,
+                    unit_cursors: optional(&args, "unitCursors")?,
+                };
                 let held = self.held.lock().await;
                 let (job, span) = held
                     .as_ref()
                     .ok_or_else(|| Ended::Misuse("the worker holds no job".to_owned()))?;
-                job.checkpoint(units, cursors)
+                job.checkpoint(checkpoint)
                     .with_context(span.clone())
                     .await?;
                 Ok(Value::Null)
@@ -430,25 +415,16 @@ impl Worker {
                 settled(span, async { Ok(job.fail(error, failure).await?) }).await
             }
             "cancel" => {
-                let (units, cursors) = (
-                    optional(&args, "completedUnits")?,
-                    optional(&args, "unitCursors")?,
-                );
+                let reached = JobReached {
+                    completed_units: optional(&args, "completedUnits")?,
+                    unit_cursors: optional(&args, "unitCursors")?,
+                };
                 let (job, span) = self.settling().await?;
-                settled(span, async { Ok(job.cancel(units, cursors).await?) }).await
+                settled(span, async { Ok(job.cancel(Some(reached)).await?) }).await
             }
             "vitals" => {
-                let vitals = self.claiming()?.vitals();
-                Ok(json!({
-                    "lastQueuedEventAt": vitals.last_queued_event_at.map(iso),
-                    "lastClaimAt": vitals.last_claim_at.map(iso),
-                    "lastFinishedAt": vitals.last_finished_at.map(iso),
-                    "lastActivityAt": vitals.last_activity_at.map(iso),
-                    "activeJob": vitals.active_job.map(|job| json!({
-                        "jobId": job.job_id, "type": job.job_type, "since": iso(job.since),
-                    })),
-                    "jobsCompleted": vitals.jobs_completed,
-                }))
+                Ok(serde_json::to_value(self.claiming()?.vitals())
+                    .expect("vitals are JSON"))
             }
             // Answers after everything the worker reported before it.
             "sync" => Ok(Value::Null),

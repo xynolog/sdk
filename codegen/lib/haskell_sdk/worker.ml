@@ -7,11 +7,11 @@ module H = Haskell_syntax
 
 let file (spec : Spec.t) =
   let constant (c : Worker_channels.Table.t) =
-    H.value c.member
-      (H.T_list (T_name "Text"))
+    H.value c.member (H.T_list (T_name "Text"))
       (List
          (List.map
-            (fun n -> H.Apply (Name "channelName", [ Name (Channels.member n) ]))
+            (fun n ->
+              H.Apply (Name "channelName", [ Name (Channels.member n) ]))
             c.channels))
   in
   {

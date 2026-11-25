@@ -19,8 +19,8 @@ type literal = Schema.literal
 type scalar =
   | Text of { binary : bool; pattern : string option }
   | Code of string
-      (** A code of the errors/codes.json vocabulary it names, which each
-          SDK's error codes declare. *)
+      (** A code of the errors/codes.json vocabulary it names, which each SDK's
+          error codes declare. *)
   | Integer of { minimum : float option; maximum : float option }
   | Number
   | Boolean
@@ -205,6 +205,7 @@ let keywords =
     ("not", Rule);
     ("discriminator", Shape);
     ("$defs", Said);
+    ("x-xynolog-codes", Shape);
   ]
 
 (* A keyword that constrains nothing, so a schema of these alone, as
@@ -402,8 +403,11 @@ and merged st ~register ~name ~owners (s : D.t) : form =
   | D.Node n when without_null s = None && union_members s = None -> (
       match (n.enum, n.type_) with
       | Some values, types ->
+          (* An enum's values are what it is: one of codes is text. *)
           let base =
-            match types with Some (D.One t) -> scalar n t | _ -> None
+            match types with
+            | Some (D.One t) -> scalar { n with codes = None } t
+            | _ -> None
           in
           Enum { base; values }
       | None, _ when List.mem name st.identifiers -> (

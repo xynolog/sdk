@@ -71,6 +71,7 @@ type modifier =
   | Static
   | Sealed
   | Closed
+  | Abstract
   | Readonly
   | Partial
   | Override
@@ -120,10 +121,13 @@ type member =
   | Nested of decl
   | Documented of string * member
       (** A [/// <summary>] line of prose before the member. *)
+  | Inherited of member
+      (** A [/// <inheritdoc/>] line before the member: it says what the member
+          it implements says. *)
 
 (* Members a line each, or a blank line between. *)
 and spacing = Packed | Spaced
-and kind = Class | Record | Record_struct
+and kind = Class | Record | Record_struct | Interface
 
 and decl =
   | Type of {
@@ -321,6 +325,7 @@ let modifier_text = function
   | Static -> "static"
   | Sealed -> "sealed"
   | Closed -> "closed"
+  | Abstract -> "abstract"
   | Readonly -> "readonly"
   | Partial -> "partial"
   | Override -> "override"
@@ -544,6 +549,7 @@ let kind_text = function
   | Class -> "class"
   | Record -> "record"
   | Record_struct -> "record struct"
+  | Interface -> "interface"
 
 (* Prose as one XML documentation line: its lines joined, and the characters
    XML reserves escaped. *)
@@ -604,6 +610,7 @@ let rec member ~depth = function
         body
   | Nested d -> decl ~depth d
   | Documented (text, m) -> summary ~depth text @ member ~depth m
+  | Inherited m -> (indent depth ^ "/// <inheritdoc/>") :: member ~depth m
 
 and decl ~depth = function
   | Type { attributes; modifiers; kind; name; params; base; body } -> (

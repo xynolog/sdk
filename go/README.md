@@ -156,6 +156,7 @@ import (
 	"net/http"
 
 	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/api"
 )
 
 // Work signs the agent in, and opens a stream as it.
@@ -179,7 +180,7 @@ func Work(ctx context.Context, gateway, issuer, secret string) error {
 	defer transport.Close()
 	fmt.Println("working as", agent.DID()) // who its work is attributed to: its account, as the gateway names it
 	for state := range transport.State().Changes(ctx) {
-		if state == xynolog.ConnectionStateOpen {
+		if state == api.ConnectionStateOpen {
 			fmt.Println("its stream is open, as the agent")
 			return nil
 		}
@@ -642,7 +643,7 @@ func Run(ctx context.Context, client *xynolog.Client) error {
 	deterministic := api.FailureClassDeterministic
 	// Each job the worker comes to hold, one at a time. The next is claimed when this one settles.
 	for held, err := range claims.All() {
-		var refused *xynolog.ClaimRefusal
+		var refused *api.ClaimRefusal
 		if errors.As(err, &refused) && refused.Code != nil && *refused.Code == api.BusRequestErrorCodeUnauthorized {
 			// This credential can never claim. Stop, so that whoever runs the worker sees it.
 			return refused
@@ -653,7 +654,7 @@ func Run(ctx context.Context, client *xynolog.Client) error {
 		}
 		switch job := held.(type) {
 		case *xynolog.HeldYieldJob:
-			if err := job.Fail(ctx, "this worker runs no yield job", xynolog.JobFailure{FailureClass: &deterministic}); err != nil {
+			if err := job.Fail(ctx, "this worker runs no yield job", api.JobFailure{FailureClass: &deterministic}); err != nil {
 				return err
 			}
 		case *xynolog.HeldMarkJob:
@@ -662,7 +663,7 @@ func Run(ctx context.Context, client *xynolog.Client) error {
 			}
 			result, err := Count(ctx, client, job)
 			if err != nil {
-				err = job.Fail(ctx, err.Error(), xynolog.JobFailure{})
+				err = job.Fail(ctx, err.Error(), api.JobFailure{})
 			} else {
 				err = job.Complete(ctx, result)
 			}
@@ -692,7 +693,7 @@ func Run(ctx context.Context, client *xynolog.Client) error {
   settles, when a job it accepts is announced (or an announcement its
   transport refused, which it cannot tell it does not accept), and when its
   stream opens again. A claim answered with nothing pending is no refusal, and the worker
-  waits. A `*ClaimRefusal` is a claim the dispatcher refused or did not
+  waits. An `*api.ClaimRefusal` is a claim the dispatcher refused or did not
   answer. A range over the claims is handed every refusal, however slowly it
   takes them. While nobody ranges over them, the latest
   `ErrorsKeptForFirstReaderCount` of the refusals met wait for whoever ranges

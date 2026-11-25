@@ -362,6 +362,7 @@ type base =
   | Record_base of string  (** its module *)
   | Model_base of string  (** its component *)
   | List_base of base
+  | Map_base of base  (** an object of no named member, each of [base] *)
 
 type field = {
   json : string;
@@ -422,6 +423,9 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
     | T.List (Some item) ->
         let item, need = base_of key at ~named item in
         (List_base item, need)
+    | T.Inline { form = T.Map { value; _ }; _ } ->
+        let value, need = base_of key at ~named:(named ^ "_value") value in
+        (Map_base value, need)
     | T.Inline { form = T.Record { members = ms; _ }; _ } ->
         let fields, needs = members key at ~owner:named ms in
         stated := { module_ = named; form = Fields fields; needs } :: !stated;
@@ -858,6 +862,8 @@ let rec base_type = function
   | Record_base m -> O.type_ (m ^ ".t")
   | Model_base c -> O.type_ "Models.t" ~args:[ O.tags [ c ] ]
   | List_base b -> O.type_ "list" ~args:[ base_type b ]
+  | Map_base b ->
+      O.type_ "list" ~args:[ O.type_tuple [ O.type_ "string"; base_type b ] ]
 
 let rec base_reader = function
   | Text_base -> O.ident "string"
@@ -869,6 +875,7 @@ let rec base_reader = function
   | Record_base m -> O.call "record" [ O.ident (m ^ ".of_json") ]
   | Model_base c -> O.call "model" [ descriptor c ]
   | List_base b -> O.call "list" [ base_reader b ]
+  | Map_base b -> O.call "assoc" [ base_reader b ]
 
 let rec base_writer = function
   | Text_base -> O.ident "json_string"
@@ -880,6 +887,7 @@ let rec base_writer = function
   | Record_base m -> O.ident (m ^ ".to_json")
   | Model_base _ -> O.ident "json_model"
   | List_base b -> O.call "json_list" [ base_writer b ]
+  | Map_base b -> O.call "json_map" [ base_writer b ]
 
 let field_type f =
   if f.required && not f.nullable then base_type f.base
@@ -900,6 +908,7 @@ let codec_names =
     "model";
     "list";
     "map";
+    "assoc";
     "nullable";
     "required";
     "optional";

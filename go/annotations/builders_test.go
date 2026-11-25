@@ -30,7 +30,7 @@ type builderCase struct {
 	Generator  *api.Agent            `json:"generator"`
 	Body       *api.AnnotationBodies `json:"body"`
 	Annotation json.RawMessage       `json:"annotation"`
-	Refused    api.SpanRefusal   `json:"refused"`
+	Refused    api.SpanRefusal       `json:"refused"`
 }
 
 // builderTable is the table, with a span's offsets as the table writes them.

@@ -59,6 +59,20 @@ let generated (spec : Spec.t) =
       (fun (k : Tables.Identifiers_kinds.kinds_item) -> (k.schema, None))
       spec.tables.identifiers_kinds.kinds )
 
+(* The fields of the struct package api declares of [name]. *)
+let fields spec name =
+  let generated, _ = generated spec in
+  match
+    List.find_map
+      (function
+        | G.Type { name = n; def = Struct { fields; _ }; _ } when n = name ->
+            Some fields
+        | _ -> None)
+      generated.decls
+  with
+  | Some fields -> fields
+  | None -> Definitions.refuse "%s: package api declares no struct of it" name
+
 (* Every type package api declares, and what it is an alias of, if it is
    one: the generated types, the kinds of id and why no launcher was found. *)
 let declared spec =

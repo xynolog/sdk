@@ -1,12 +1,12 @@
 package readme
 
 import (
-	"github.com/xynolog/sdk/go/api"
 	"context"
 	"fmt"
 	"net/http"
 
 	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/api"
 )
 
 // Work signs the agent in, and opens a stream as it.

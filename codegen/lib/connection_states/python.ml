@@ -13,9 +13,7 @@ let file (t : Table.t) =
       P.text
         {
           header = Banner.python_lines ~from_:Table.from_ __FILE__;
-          doc =
-            As_is
-              "The states each state of a client's stream may become.\n";
+          doc = As_is "The states each state of a client's stream may become.";
           imports =
             [
               [
@@ -30,9 +28,7 @@ let file (t : Table.t) =
                 ~value:
                   (P.List
                      (P.items ~magic:true
-                        [
-                          P.item (P.Str "CONNECTION_STATE_MAY_BECOME");
-                        ]));
+                        [ P.item (P.Str "CONNECTION_STATE_MAY_BECOME") ]));
               P.assign
                 ~about:[ Line "The states each state may be followed by." ]
                 ~annotation:

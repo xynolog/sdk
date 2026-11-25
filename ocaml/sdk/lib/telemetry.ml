@@ -2,7 +2,7 @@ type kind = Client | Producer | Consumer
 type attribute = String of string | Int of int | Bool of bool
 
 type span = {
-  trace : Wire_stream.trace option;
+  trace : Records.Trace_carrier.t option;
   name : string;
   kind : kind;
   attributes : (string * attribute) list;

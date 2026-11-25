@@ -2152,6 +2152,8 @@ public struct BeginAuthorizationOptions: Codable, Sendable, Hashable {
   }
 }
 
+public typealias Binary = String
+
 public struct BindBodyOperation: Codable, Sendable, Hashable {
   public var op: BindBodyOperationOp
   public var item: AnnotationBody?
@@ -3529,6 +3531,26 @@ public struct ClaimOptions: Codable, Sendable, Hashable {
   }
 }
 
+public struct ClaimRefusal: Codable, Sendable, Hashable {
+  public var code: BusRequestErrorCode?
+  public var message: String
+  public init(code: BusRequestErrorCode?, message: String) {
+    self.code = code
+    self.message = message
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "message"], in: "ClaimRefusal")
+    self.code = try c.value("code")
+    self.message = try c.value("message")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.message, as: "message")
+  }
+}
+
 public struct ClientSecretForm: Codable, Sendable, Hashable {
   public let grantType: ClientSecretFormGrantType
   public var clientId: String
@@ -3935,8 +3957,8 @@ public enum ConformanceDriverLineAbandonedAbandoned: Codable, Sendable, Hashable
 }
 
 public struct ConformanceDriverLineClaimed: Codable, Sendable, Hashable {
-  public var claimed: [String: JSONValue]
-  public init(claimed: [String: JSONValue]) {
+  public var claimed: HeldJobRecord
+  public init(claimed: HeldJobRecord) {
     self.claimed = claimed
   }
   public init(from decoder: any Decoder) throws {
@@ -5363,8 +5385,8 @@ public struct ConformanceStepStalled: Codable, Sendable, Hashable {
 }
 
 public struct ConformanceStepState: Codable, Sendable, Hashable {
-  public var state: ConformanceStepStateState
-  public init(state: ConformanceStepStateState) {
+  public var state: ConnectionState
+  public init(state: ConnectionState) {
     self.state = state
   }
   public init(from decoder: any Decoder) throws {
@@ -5378,19 +5400,9 @@ public struct ConformanceStepState: Codable, Sendable, Hashable {
   }
 }
 
-public enum ConformanceStepStateState: String, Codable, Sendable, CaseIterable {
-  case initial = "initial"
-  case connecting = "connecting"
-  case `open` = "open"
-  case reconnecting = "reconnecting"
-  case degraded = "degraded"
-  case unauthenticated = "unauthenticated"
-  case closed = "closed"
-}
-
 public struct ConformanceStepStays: Codable, Sendable, Hashable {
-  public var stays: ConformanceStepStaysStays
-  public init(stays: ConformanceStepStaysStays) {
+  public var stays: ConnectionState
+  public init(stays: ConnectionState) {
     self.stays = stays
   }
   public init(from decoder: any Decoder) throws {
@@ -5402,16 +5414,6 @@ public struct ConformanceStepStays: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.stays, as: "stays")
   }
-}
-
-public enum ConformanceStepStaysStays: String, Codable, Sendable, CaseIterable {
-  case initial = "initial"
-  case connecting = "connecting"
-  case `open` = "open"
-  case reconnecting = "reconnecting"
-  case degraded = "degraded"
-  case unauthenticated = "unauthenticated"
-  case closed = "closed"
 }
 
 public struct ConformanceStepWire: Codable, Sendable, Hashable {
@@ -5502,6 +5504,16 @@ public struct ConnectionIdentity: Codable, Sendable, Hashable {
     try c.encode(self.did, as: "did")
     try c.encode(self.description, as: "description")
   }
+}
+
+public enum ConnectionState: String, Codable, Sendable, CaseIterable {
+  case initial = "initial"
+  case connecting = "connecting"
+  case `open` = "open"
+  case reconnecting = "reconnecting"
+  case degraded = "degraded"
+  case unauthenticated = "unauthenticated"
+  case closed = "closed"
 }
 
 public typealias ContentFormat = String
@@ -5751,13 +5763,13 @@ public indirect enum DirectoryEntry: Codable, Sendable, Hashable {
 public struct DiscoveredKB: Codable, Sendable, Hashable {
   public var host: String
   public var port: Int
-  public var placement: DiscoveredKBPlacement
+  public var placement: KbPlacement
   public var repo: String?
   public var did: String
   public var siteName: String?
   public var managedBy: String
   public init(
-    host: String, port: Int, placement: DiscoveredKBPlacement, repo: String? = nil, did: String,
+    host: String, port: Int, placement: KbPlacement, repo: String? = nil, did: String,
     siteName: String? = nil, managedBy: String
   ) {
     self.host = host
@@ -5788,11 +5800,6 @@ public struct DiscoveredKB: Codable, Sendable, Hashable {
     try c.encodeIfPresent(self.siteName, as: "siteName")
     try c.encode(self.managedBy, as: "managedBy")
   }
-}
-
-public enum DiscoveredKBPlacement: String, Codable, Sendable, CaseIterable {
-  case local = "local"
-  case codespace = "codespace"
 }
 
 public struct DiscoveryDocument: Codable, Sendable, Hashable {
@@ -6199,9 +6206,9 @@ public struct EmbeddingRequestsProvidersValue: Codable, Sendable, Hashable {
 }
 
 public struct Engine: Codable, Sendable, Hashable {
-  public var provider: EngineProvider
+  public var provider: InferenceProvider
   public var model: String
-  public init(provider: EngineProvider, model: String) {
+  public init(provider: InferenceProvider, model: String) {
     self.provider = provider
     self.model = model
   }
@@ -6256,16 +6263,6 @@ public struct EngineLimits: Codable, Sendable, Hashable {
     try c.encode(self.engine, as: "engine")
     try c.encode(self.limits, as: "limits")
   }
-}
-
-public enum EngineProvider: String, Codable, Sendable, CaseIterable {
-  case anthropic = "anthropic"
-  case google = "google"
-  case llamacpp = "llamacpp"
-  case ollama = "ollama"
-  case openai = "openai"
-  case together = "together"
-  case vllm = "vllm"
 }
 
 public struct EnrichedResourceEvent: Codable, Sendable, Hashable {
@@ -6368,14 +6365,14 @@ public struct EntityTypesProjection: Codable, Sendable, Hashable {
 public typealias EphemeralEventId = String
 
 public struct ErrorData: Codable, Sendable, Hashable {
-  public var code: String
+  public var code: ControlErrorCode
   public var retryable: Bool
   public var fields: [FieldFault]?
   public var choices: [Target]?
   public var supported: [String]?
   public var mayStillRun: Bool?
   public init(
-    code: String, retryable: Bool, fields: [FieldFault]? = nil, choices: [Target]? = nil,
+    code: ControlErrorCode, retryable: Bool, fields: [FieldFault]? = nil, choices: [Target]? = nil,
     supported: [String]? = nil, mayStillRun: Bool? = nil
   ) {
     self.code = code
@@ -8686,6 +8683,98 @@ public struct HealthResponse: Codable, Sendable, Hashable {
   }
 }
 
+public struct HeldJobRecord: Codable, Sendable, Hashable {
+  public var jobId: JobId
+  public var jobType: JobType
+  public var resourceId: ResourceId
+  public var params: JobParams
+  public var completedUnits: [String]
+  public var unitCursors: [String: UnitCursor]
+  public var retryCount: Int
+  public var maxRetries: Int
+  public init(
+    jobId: JobId, jobType: JobType, resourceId: ResourceId, params: JobParams,
+    completedUnits: [String], unitCursors: [String: UnitCursor], retryCount: Int, maxRetries: Int
+  ) {
+    self.jobId = jobId
+    self.jobType = jobType
+    self.resourceId = resourceId
+    self.params = params
+    self.completedUnits = completedUnits
+    self.unitCursors = unitCursors
+    self.retryCount = retryCount
+    self.maxRetries = maxRetries
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "jobId", "jobType", "resourceId", "params", "completedUnits", "unitCursors", "retryCount",
+        "maxRetries",
+      ], in: "HeldJobRecord")
+    self.jobId = try c.value("jobId")
+    self.jobType = try c.value("jobType")
+    self.resourceId = try c.value("resourceId")
+    self.params = try c.value("params")
+    self.completedUnits = try c.value("completedUnits")
+    self.unitCursors = try c.value("unitCursors")
+    self.retryCount = try c.value("retryCount")
+    self.maxRetries = try c.value("maxRetries")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.jobId, as: "jobId")
+    try c.encode(self.jobType, as: "jobType")
+    try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.params, as: "params")
+    try c.encode(self.completedUnits, as: "completedUnits")
+    try c.encode(self.unitCursors, as: "unitCursors")
+    try c.encode(self.retryCount, as: "retryCount")
+    try c.encode(self.maxRetries, as: "maxRetries")
+  }
+}
+
+public struct HeldJobStall: Codable, Sendable, Hashable {
+  public var jobId: JobId
+  public var jobType: JobType
+  public var heldSince: String
+  public var lastActivityAt: String
+  public var silentForMs: Int
+  public var thresholdMs: Int
+  public init(
+    jobId: JobId, jobType: JobType, heldSince: String, lastActivityAt: String, silentForMs: Int,
+    thresholdMs: Int
+  ) {
+    self.jobId = jobId
+    self.jobType = jobType
+    self.heldSince = heldSince
+    self.lastActivityAt = lastActivityAt
+    self.silentForMs = silentForMs
+    self.thresholdMs = thresholdMs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["jobId", "jobType", "heldSince", "lastActivityAt", "silentForMs", "thresholdMs"],
+      in: "HeldJobStall")
+    self.jobId = try c.value("jobId")
+    self.jobType = try c.value("jobType")
+    self.heldSince = try c.value("heldSince")
+    self.lastActivityAt = try c.value("lastActivityAt")
+    self.silentForMs = try c.value("silentForMs")
+    self.thresholdMs = try c.value("thresholdMs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.jobId, as: "jobId")
+    try c.encode(self.jobType, as: "jobType")
+    try c.encode(self.heldSince, as: "heldSince")
+    try c.encode(self.lastActivityAt, as: "lastActivityAt")
+    try c.encode(self.silentForMs, as: "silentForMs")
+    try c.encode(self.thresholdMs, as: "thresholdMs")
+  }
+}
+
 public struct HighlightingJobParams: Codable, Sendable, Hashable {
   public let motivation: HighlightingJobParamsMotivation
   public var instructions: String?
@@ -8999,6 +9088,16 @@ public struct InferenceLimitsResultResponse: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.limits, as: "limits")
   }
+}
+
+public enum InferenceProvider: String, Codable, Sendable, CaseIterable {
+  case anthropic = "anthropic"
+  case google = "google"
+  case llamacpp = "llamacpp"
+  case ollama = "ollama"
+  case openai = "openai"
+  case together = "together"
+  case vllm = "vllm"
 }
 
 public struct InferenceSpec: Codable, Sendable, Hashable {
@@ -9452,6 +9551,26 @@ public struct JobCancelled: Codable, Sendable, Hashable {
 
 public enum JobCancelledStatus: String, Codable, Sendable, CaseIterable {
   case cancelled = "cancelled"
+}
+
+public struct JobCheckpoint: Codable, Sendable, Hashable {
+  public var completedUnits: [String]
+  public var unitCursors: [String: UnitCursor]?
+  public init(completedUnits: [String], unitCursors: [String: UnitCursor]? = nil) {
+    self.completedUnits = completedUnits
+    self.unitCursors = unitCursors
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["completedUnits", "unitCursors"], in: "JobCheckpoint")
+    self.completedUnits = try c.value("completedUnits")
+    self.unitCursors = try c.ifPresent("unitCursors")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.completedUnits, as: "completedUnits")
+    try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
+  }
 }
 
 public struct JobCheckpointCommand: Codable, Sendable, Hashable {
@@ -9946,6 +10065,33 @@ public struct JobFailedPayload: Codable, Sendable, Hashable {
 
 public enum JobFailedStatus: String, Codable, Sendable, CaseIterable {
   case failed = "failed"
+}
+
+public struct JobFailure: Codable, Sendable, Hashable {
+  public var completedUnits: [String]?
+  public var unitCursors: [String: UnitCursor]?
+  public var failureClass: FailureClass?
+  public init(
+    completedUnits: [String]? = nil, unitCursors: [String: UnitCursor]? = nil,
+    failureClass: FailureClass? = nil
+  ) {
+    self.completedUnits = completedUnits
+    self.unitCursors = unitCursors
+    self.failureClass = failureClass
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["completedUnits", "unitCursors", "failureClass"], in: "JobFailure")
+    self.completedUnits = try c.ifPresent("completedUnits")
+    self.unitCursors = try c.ifPresent("unitCursors")
+    self.failureClass = try c.ifPresent("failureClass")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
+    try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
+    try c.encodeIfPresent(self.failureClass, as: "failureClass")
+  }
 }
 
 public indirect enum JobFilter: Codable, Sendable, Hashable {
@@ -10698,6 +10844,26 @@ public indirect enum JobQueuedEvent: Codable, Sendable, Hashable {
   }
 }
 
+public struct JobReached: Codable, Sendable, Hashable {
+  public var completedUnits: [String]?
+  public var unitCursors: [String: UnitCursor]?
+  public init(completedUnits: [String]? = nil, unitCursors: [String: UnitCursor]? = nil) {
+    self.completedUnits = completedUnits
+    self.unitCursors = unitCursors
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["completedUnits", "unitCursors"], in: "JobReached")
+    self.completedUnits = try c.ifPresent("completedUnits")
+    self.unitCursors = try c.ifPresent("unitCursors")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
+    try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
+  }
+}
+
 public struct JobRecord: Codable, Sendable, Hashable {
   public var job: Job
   public var lastProgressAt: String
@@ -11345,6 +11511,11 @@ public struct KbIdentityConflict: Codable, Sendable, Hashable {
   }
 }
 
+public enum KbPlacement: String, Codable, Sendable, CaseIterable {
+  case local = "local"
+  case codespace = "codespace"
+}
+
 public struct KbRead: Codable, Sendable, Hashable {
   public var at: String
   public var gitBranch: String?
@@ -11531,7 +11702,7 @@ public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
   public var name: String
   public var key: String
   public var recorded: Bool
-  public var placement: KnowledgeBaseStatusPlacement
+  public var placement: KbPlacement
   public var root: String?
   public var repo: String?
   public var did: String?
@@ -11548,12 +11719,11 @@ public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
   public var services: [ServiceStatus]
   public var workload: WorkloadStatus?
   public init(
-    name: String, key: String, recorded: Bool, placement: KnowledgeBaseStatusPlacement,
-    root: String? = nil, repo: String? = nil, did: String? = nil, siteName: String? = nil,
-    identityError: String? = nil, kb: DiscoveredKB? = nil, runtime: Runtime? = nil,
-    gateway: String? = nil, secretStore: String? = nil, lan: String? = nil, starting: Bool,
-    session: Session? = nil, healthy: Bool, services: [ServiceStatus],
-    workload: WorkloadStatus? = nil
+    name: String, key: String, recorded: Bool, placement: KbPlacement, root: String? = nil,
+    repo: String? = nil, did: String? = nil, siteName: String? = nil, identityError: String? = nil,
+    kb: DiscoveredKB? = nil, runtime: Runtime? = nil, gateway: String? = nil,
+    secretStore: String? = nil, lan: String? = nil, starting: Bool, session: Session? = nil,
+    healthy: Bool, services: [ServiceStatus], workload: WorkloadStatus? = nil
   ) {
     self.name = name
     self.key = key
@@ -11625,11 +11795,6 @@ public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
     try c.encode(self.services, as: "services")
     try c.encodeIfPresent(self.workload, as: "workload")
   }
-}
-
-public enum KnowledgeBaseStatusPlacement: String, Codable, Sendable, CaseIterable {
-  case local = "local"
-  case codespace = "codespace"
 }
 
 public struct KnowledgeGraph: Codable, Sendable, Hashable {
@@ -14267,10 +14432,10 @@ public struct ReceivedFrame: Codable, Sendable, Hashable {
   public var eventId: String?
   public var payload: [String: JSONValue]
   public var scope: ResourceId?
-  public var trace: [String: String]?
+  public var trace: TraceCarrier?
   public init(
     channel: String, correlationId: String? = nil, eventId: String? = nil,
-    payload: [String: JSONValue], scope: ResourceId? = nil, trace: [String: String]? = nil
+    payload: [String: JSONValue], scope: ResourceId? = nil, trace: TraceCarrier? = nil
   ) {
     self.channel = channel
     self.correlationId = correlationId
@@ -15404,7 +15569,7 @@ public struct ResourceUpdatedPayload: Codable, Sendable, Hashable {
 
 public struct ResourceUpload: Codable, Sendable, Hashable {
   public var name: String
-  public var file: String
+  public var file: Binary
   public var format: String
   public var storageUri: String
   public var language: String?
@@ -15418,7 +15583,7 @@ public struct ResourceUpload: Codable, Sendable, Hashable {
   public var cloneToken: String?
   public var archiveOriginal: String?
   public init(
-    name: String, file: String, format: String, storageUri: String, language: String? = nil,
+    name: String, file: Binary, format: String, storageUri: String, language: String? = nil,
     entityTypes: String? = nil, sourceAnnotationId: AnnotationId? = nil,
     sourceResourceId: ResourceId? = nil, generationPrompt: String? = nil, generator: String? = nil,
     jobId: JobId? = nil, isDraft: String? = nil, cloneToken: String? = nil,
@@ -15528,6 +15693,30 @@ public struct ResourcesLimits: Codable, Sendable, Hashable {
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.memory, as: "memory")
+  }
+}
+
+public struct RetryBudget: Codable, Sendable, Hashable {
+  public var attempts: Int
+  public var initialDelayMs: Int
+  public var maxDelayMs: Int
+  public init(attempts: Int, initialDelayMs: Int, maxDelayMs: Int) {
+    self.attempts = attempts
+    self.initialDelayMs = initialDelayMs
+    self.maxDelayMs = maxDelayMs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["attempts", "initialDelayMs", "maxDelayMs"], in: "RetryBudget")
+    self.attempts = try c.value("attempts")
+    self.initialDelayMs = try c.value("initialDelayMs")
+    self.maxDelayMs = try c.value("maxDelayMs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.attempts, as: "attempts")
+    try c.encode(self.initialDelayMs, as: "initialDelayMs")
+    try c.encode(self.maxDelayMs, as: "maxDelayMs")
   }
 }
 
@@ -15647,7 +15836,7 @@ public struct RetryRulesTransport: Codable, Sendable, Hashable {
 }
 
 public struct Root: Codable, Sendable, Hashable {
-  public var placement: RootPlacement
+  public var placement: KbPlacement
   public var path: String?
   public var present: Bool?
   public var current: RootCurrent?
@@ -15666,10 +15855,10 @@ public struct Root: Codable, Sendable, Hashable {
   public var forwarded: Bool?
   public var reachable: Bool?
   public init(
-    placement: RootPlacement, path: String? = nil, present: Bool? = nil,
-    current: RootCurrent? = nil, registered: Bool, running: Bool, lastUsed: String? = nil,
-    did: String? = nil, siteName: String? = nil, identityError: String? = nil,
-    config: String? = nil, configs: [String]? = nil, repo: String? = nil, codespace: String? = nil,
+    placement: KbPlacement, path: String? = nil, present: Bool? = nil, current: RootCurrent? = nil,
+    registered: Bool, running: Bool, lastUsed: String? = nil, did: String? = nil,
+    siteName: String? = nil, identityError: String? = nil, config: String? = nil,
+    configs: [String]? = nil, repo: String? = nil, codespace: String? = nil,
     codespaceState: String? = nil, forwardPort: Int? = nil, forwarded: Bool? = nil,
     reachable: Bool? = nil
   ) {
@@ -15745,11 +15934,6 @@ public struct Root: Codable, Sendable, Hashable {
 public enum RootCurrent: String, Codable, Sendable, CaseIterable {
   case cwd = "cwd"
   case xynologRoot = "xynolog-root"
-}
-
-public enum RootPlacement: String, Codable, Sendable, CaseIterable {
-  case local = "local"
-  case codespace = "codespace"
 }
 
 public struct RootsForgetParams: Codable, Sendable, Hashable {
@@ -17952,13 +18136,13 @@ public struct SmelterConfig: Codable, Sendable, Hashable {
 public struct SmelterHealth: Codable, Sendable, Hashable {
   public let status: SmelterHealthStatus
   public var kb: KbDid
-  public var stream: SmelterHealthStream
+  public var stream: ConnectionState
   public var following: FollowerFollowing
   public var eventsProcessed: Int
   public var reconcile: SmelterHealthReconcile
   public var index: SmelterHealthIndex
   public init(
-    kb: KbDid, stream: SmelterHealthStream, following: FollowerFollowing, eventsProcessed: Int,
+    kb: KbDid, stream: ConnectionState, following: FollowerFollowing, eventsProcessed: Int,
     reconcile: SmelterHealthReconcile, index: SmelterHealthIndex
   ) {
     self.status = .ok
@@ -18090,16 +18274,6 @@ public enum SmelterHealthReconcilePhase: String, Codable, Sendable, CaseIterable
 
 public enum SmelterHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
-}
-
-public enum SmelterHealthStream: String, Codable, Sendable, CaseIterable {
-  case initial = "initial"
-  case connecting = "connecting"
-  case `open` = "open"
-  case reconnecting = "reconnecting"
-  case degraded = "degraded"
-  case unauthenticated = "unauthenticated"
-  case closed = "closed"
 }
 
 public struct SmelterMessages: Codable, Sendable, Hashable {
@@ -19570,10 +19744,10 @@ public enum TaggingJobParamsMotivation: String, Codable, Sendable, CaseIterable 
 }
 
 public struct Target: Codable, Sendable, Hashable {
-  public var kind: TargetKind
+  public var kind: KbPlacement
   public var root: String?
   public var repo: String?
-  public init(kind: TargetKind, root: String? = nil, repo: String? = nil) {
+  public init(kind: KbPlacement, root: String? = nil, repo: String? = nil) {
     self.kind = kind
     self.root = root
     self.repo = repo
@@ -19591,11 +19765,6 @@ public struct Target: Codable, Sendable, Hashable {
     try c.encodeIfPresent(self.root, as: "root")
     try c.encodeIfPresent(self.repo, as: "repo")
   }
-}
-
-public enum TargetKind: String, Codable, Sendable, CaseIterable {
-  case local = "local"
-  case codespace = "codespace"
 }
 
 public struct TextPositionSelector: Codable, Sendable, Hashable {
@@ -19729,6 +19898,26 @@ public struct TextualBody: Codable, Sendable, Hashable {
 
 public enum TextualBodyType: String, Codable, Sendable, CaseIterable {
   case textualBody = "TextualBody"
+}
+
+public struct TraceCarrier: Codable, Sendable, Hashable {
+  public var traceparent: String
+  public var tracestate: String?
+  public init(traceparent: String, tracestate: String? = nil) {
+    self.traceparent = traceparent
+    self.tracestate = tracestate
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["traceparent", "tracestate"], in: "TraceCarrier")
+    self.traceparent = try c.value("traceparent")
+    self.tracestate = try c.ifPresent("tracestate")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.traceparent, as: "traceparent")
+    try c.encodeIfPresent(self.tracestate, as: "tracestate")
+  }
 }
 
 public struct UnitCursor: Codable, Sendable, Hashable {
@@ -20326,6 +20515,30 @@ public enum WeaverHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
 }
 
+public struct WorkerActiveJob: Codable, Sendable, Hashable {
+  public var jobId: JobId
+  public var type: JobType
+  public var since: String
+  public init(jobId: JobId, type: JobType, since: String) {
+    self.jobId = jobId
+    self.type = type
+    self.since = since
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["jobId", "type", "since"], in: "WorkerActiveJob")
+    self.jobId = try c.value("jobId")
+    self.type = try c.value("type")
+    self.since = try c.value("since")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.jobId, as: "jobId")
+    try c.encode(self.type, as: "type")
+    try c.encode(self.since, as: "since")
+  }
+}
+
 public struct WorkerAnswerFormats: Codable, Sendable, Hashable {
   public var comment: String
   public var formats: [WorkerAnswerFormatsFormatsItem]
@@ -20441,11 +20654,11 @@ public struct WorkerEngineHealth: Codable, Sendable, Hashable {
   public var lastClaimAt: String?
   public var lastFinishedAt: String?
   public var lastActivityAt: String?
-  public var activeJob: WorkerEngineHealthActiveJob?
+  public var activeJob: WorkerActiveJob?
   public var jobsCompleted: Int
   public init(
     engine: Engine, jobs: [JobFilter], lastQueuedEventAt: String?, lastClaimAt: String?,
-    lastFinishedAt: String?, lastActivityAt: String?, activeJob: WorkerEngineHealthActiveJob?,
+    lastFinishedAt: String?, lastActivityAt: String?, activeJob: WorkerActiveJob?,
     jobsCompleted: Int
   ) {
     self.engine = engine
@@ -20483,30 +20696,6 @@ public struct WorkerEngineHealth: Codable, Sendable, Hashable {
     try c.encode(self.lastActivityAt, as: "lastActivityAt")
     try c.encode(self.activeJob, as: "activeJob")
     try c.encode(self.jobsCompleted, as: "jobsCompleted")
-  }
-}
-
-public struct WorkerEngineHealthActiveJob: Codable, Sendable, Hashable {
-  public var jobId: JobId
-  public var type: JobType
-  public var since: String
-  public init(jobId: JobId, type: JobType, since: String) {
-    self.jobId = jobId
-    self.type = type
-    self.since = since
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["jobId", "type", "since"], in: "WorkerEngineHealthActiveJob")
-    self.jobId = try c.value("jobId")
-    self.type = try c.value("type")
-    self.since = try c.value("since")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.jobId, as: "jobId")
-    try c.encode(self.type, as: "type")
-    try c.encode(self.since, as: "since")
   }
 }
 
@@ -20990,6 +21179,49 @@ public struct WorkerPoolSpecWorker: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.image, as: "image")
     try c.encode(self.resources, as: "resources")
+  }
+}
+
+public struct WorkerVitals: Codable, Sendable, Hashable {
+  public var lastQueuedEventAt: String?
+  public var lastClaimAt: String?
+  public var lastFinishedAt: String?
+  public var lastActivityAt: String?
+  public var activeJob: WorkerActiveJob?
+  public var jobsCompleted: Int
+  public init(
+    lastQueuedEventAt: String?, lastClaimAt: String?, lastFinishedAt: String?,
+    lastActivityAt: String?, activeJob: WorkerActiveJob?, jobsCompleted: Int
+  ) {
+    self.lastQueuedEventAt = lastQueuedEventAt
+    self.lastClaimAt = lastClaimAt
+    self.lastFinishedAt = lastFinishedAt
+    self.lastActivityAt = lastActivityAt
+    self.activeJob = activeJob
+    self.jobsCompleted = jobsCompleted
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "lastQueuedEventAt", "lastClaimAt", "lastFinishedAt", "lastActivityAt", "activeJob",
+        "jobsCompleted",
+      ], in: "WorkerVitals")
+    self.lastQueuedEventAt = try c.value("lastQueuedEventAt")
+    self.lastClaimAt = try c.value("lastClaimAt")
+    self.lastFinishedAt = try c.value("lastFinishedAt")
+    self.lastActivityAt = try c.value("lastActivityAt")
+    self.activeJob = try c.value("activeJob")
+    self.jobsCompleted = try c.value("jobsCompleted")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.lastQueuedEventAt, as: "lastQueuedEventAt")
+    try c.encode(self.lastClaimAt, as: "lastClaimAt")
+    try c.encode(self.lastFinishedAt, as: "lastFinishedAt")
+    try c.encode(self.lastActivityAt, as: "lastActivityAt")
+    try c.encode(self.activeJob, as: "activeJob")
+    try c.encode(self.jobsCompleted, as: "jobsCompleted")
   }
 }
 
@@ -21609,7 +21841,7 @@ public enum DiscoveryAbsentReason: String, Codable, Sendable, CaseIterable {
 }
 
 extension ReceivedFrame {
-  internal init(_ frame: BusFrame, trace: [String: String]?, eventId: String?) {
+  internal init(_ frame: BusFrame, trace: TraceCarrier?, eventId: String?) {
     self.init(
       channel: frame.channel, correlationId: frame.correlationId, eventId: eventId,
       payload: frame.payload, scope: frame.scope, trace: trace)
@@ -21716,7 +21948,7 @@ public enum JobErrorCode: String, Codable, Sendable, CaseIterable {
   case jobCancelled = "job.cancelled"
   case jobStalled = "job.stalled"
 }
-public enum KbIdentityErrorCode: String, Codable, Sendable, CaseIterable {
+public enum IdentityUnverifiableReason: String, Codable, Sendable, CaseIterable {
   case unreachable = "unreachable"
   case notReported = "not-reported"
 }
@@ -21738,7 +21970,7 @@ public enum SignInErrorCode: String, Codable, Sendable, CaseIterable {
   case aborted = "aborted"
   case exchange = "exchange"
 }
-public enum SpanRefusalErrorCode: String, Codable, Sendable, CaseIterable {
+public enum SpanRefusal: String, Codable, Sendable, CaseIterable {
   case spanOutOfRange = "span-out-of-range"
   case exactMismatch = "exact-mismatch"
   case prefixMismatch = "prefix-mismatch"
@@ -21778,6 +22010,10 @@ internal func busRequestCode(for wire: CommandErrorCode) -> BusRequestErrorCode 
   }
 }
 internal let unrecognizedBusFailure: BusRequestErrorCode = .busRejected
+/// Each gateway refusal of a limit that is a transport code too: its status, its LimitRefusal code, and the transport code it is.
+internal let limitRefusalTransportCodes: [(Int, String, TransportErrorCode)] = [
+  (429, "refusal-rate", .unauthorized)
+]
 public let telemetrySpans: [SpecTelemetrySpansItem] = [
   SpecTelemetrySpansItem(
     attributes: [
@@ -23729,6 +23965,7 @@ internal let requiredSchemas: [String: Shape] = {
       "kbId": Shape(kinds: [.string]), "redirectUri": Shape(kinds: [.string]),
       "target": Shape(ref: "HttpEndpoint"),
     ], closed: ["expectedDid", "expectedName", "kbId", "redirectUri", "target"])
+  shapes["Binary"] = Shape(kinds: [.string])
   shapes["BindBodyOperation"] = Shape(
     kinds: [.object], required: ["op"],
     members: [
@@ -24014,6 +24251,23 @@ internal let requiredSchemas: [String: Shape] = {
       "accepts", "heldJobStallCheckMs", "heldJobStallMs", "jobClaimTimeoutMs",
       "markCommitTimeoutMs",
     ])
+  shapes["ClaimRefusal"] = Shape(
+    kinds: [.object], required: ["code", "message"],
+    members: [
+      "code": Shape(
+        kinds: [.string, .null],
+        oneOf: [
+          Shape(kinds: [.null]),
+          Shape(
+            kinds: [.string],
+            enumeration: [
+              .string("bus.timeout"), .string("bus.rejected"), .string("bus.closed"),
+              .string("bus.not-found"), .string("bus.unsubscribed"),
+              .string("bus.peer-unavailable"), .string("bus.unauthorized"),
+              .string("bus.none-pending"),
+            ]),
+        ]), "message": Shape(kinds: [.string]),
+    ], closed: ["code", "message"])
   shapes["ClientSecretForm"] = Shape(
     kinds: [.object], required: ["grant_type", "client_id", "client_secret"],
     members: [
@@ -24164,7 +24418,7 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object], required: ["completed"], members: ["completed": Shape(kinds: [.string])],
         closed: ["completed"]),
       Shape(
-        kinds: [.object], required: ["claimed"], members: ["claimed": Shape(kinds: [.object])],
+        kinds: [.object], required: ["claimed"], members: ["claimed": Shape(ref: "HeldJobRecord")],
         closed: ["claimed"]),
       Shape(
         kinds: [.object], required: ["refused"],
@@ -24357,25 +24611,11 @@ internal let requiredSchemas: [String: Shape] = {
             ])
         ], closed: ["progress"]),
       Shape(
-        kinds: [.object], required: ["state"],
-        members: [
-          "state": Shape(
-            kinds: [.string],
-            enumeration: [
-              .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
-              .string("degraded"), .string("unauthenticated"), .string("closed"),
-            ])
-        ], closed: ["state"]),
+        kinds: [.object], required: ["state"], members: ["state": Shape(ref: "ConnectionState")],
+        closed: ["state"]),
       Shape(
-        kinds: [.object], required: ["stays"],
-        members: [
-          "stays": Shape(
-            kinds: [.string],
-            enumeration: [
-              .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
-              .string("degraded"), .string("unauthenticated"), .string("closed"),
-            ])
-        ], closed: ["stays"]),
+        kinds: [.object], required: ["stays"], members: ["stays": Shape(ref: "ConnectionState")],
+        closed: ["stays"]),
       Shape(
         kinds: [.object], required: ["frame", "is"],
         members: ["frame": Shape(kinds: [.string], minLength: 1)], closed: ["frame", "is"]),
@@ -24477,6 +24717,12 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["did", "description"],
     members: ["description": Shape(ref: "KbDescription"), "did": Shape(ref: "UserId")],
     closed: ["description", "did"])
+  shapes["ConnectionState"] = Shape(
+    kinds: [.string],
+    enumeration: [
+      .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
+      .string("degraded"), .string("unauthenticated"), .string("closed"),
+    ])
   shapes["ContentFormat"] = Shape(kinds: [.string])
   shapes["ContextualSummaryResponse"] = Shape(
     kinds: [.object], required: ["summary", "relevantFields", "context"],
@@ -24531,8 +24777,7 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["host", "port", "placement", "did", "managedBy"],
     members: [
       "did": Shape(kinds: [.string]), "host": Shape(kinds: [.string]),
-      "managedBy": Shape(kinds: [.string]),
-      "placement": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
+      "managedBy": Shape(kinds: [.string]), "placement": Shape(ref: "KbPlacement"),
       "port": Shape(kinds: [.integer]), "repo": Shape(kinds: [.string]),
       "siteName": Shape(kinds: [.string]),
     ])
@@ -24602,13 +24847,7 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["Engine"] = Shape(
     kinds: [.object], required: ["provider", "model"],
     members: [
-      "model": Shape(kinds: [.string], minLength: 1),
-      "provider": Shape(
-        kinds: [.string],
-        enumeration: [
-          .string("anthropic"), .string("google"), .string("llamacpp"), .string("ollama"),
-          .string("openai"), .string("together"), .string("vllm"),
-        ]),
+      "model": Shape(kinds: [.string], minLength: 1), "provider": Shape(ref: "InferenceProvider"),
     ], closed: ["model", "provider"])
   shapes["EngineEntry"] = Shape(
     kinds: [.object], required: ["engine"],
@@ -24646,22 +24885,19 @@ internal let requiredSchemas: [String: Shape] = {
       "choices": Shape(kinds: [.array], items: Shape(ref: "Target")),
       "code": Shape(
         kinds: [.string],
-        pattern: [
-          .step(Step(of: [99...99], min: 1, max: 1)), .step(Step(of: [111...111], min: 1, max: 1)),
-          .step(Step(of: [110...110], min: 1, max: 1)),
-          .step(Step(of: [116...116], min: 1, max: 1)),
-          .step(Step(of: [114...114], min: 1, max: 1)),
-          .step(Step(of: [111...111], min: 1, max: 1)),
-          .step(Step(of: [108...108], min: 1, max: 1)), .step(Step(of: [46...46], min: 1, max: 1)),
-          .step(Step(of: [97...122], min: 1, max: nil)),
-          .group(
-            Group(
-              either: [
-                [
-                  .step(Step(of: [45...45], min: 1, max: 1)),
-                  .step(Step(of: [97...122], min: 1, max: nil)),
-                ]
-              ], min: 0, max: nil)),
+        enumeration: [
+          .string("control.invalid-params"), .string("control.unsupported-api-version"),
+          .string("control.invalid-request"), .string("control.invalid-service"),
+          .string("control.invalid-value"), .string("control.unknown-setting"),
+          .string("control.target-required"), .string("control.target-ambiguous"),
+          .string("control.root-not-found"), .string("control.root-not-registered"),
+          .string("control.stack-not-running"), .string("control.stack-running"),
+          .string("control.start-in-progress"), .string("control.runtime-unavailable"),
+          .string("control.dependency-unavailable"), .string("control.unreachable"),
+          .string("control.instance-in-use"), .string("control.instance-not-found"),
+          .string("control.confirmation-required"), .string("control.unreadable-state"),
+          .string("control.already-signed-in"), .string("control.sign-in-failed"),
+          .string("control.cancelled"), .string("control.failed"),
         ]), "fields": Shape(kinds: [.array], items: Shape(ref: "FieldFault")),
       "mayStillRun": Shape(kinds: [.boolean]), "retryable": Shape(kinds: [.boolean]),
       "supported": Shape(kinds: [.array], items: Shape(kinds: [.string])),
@@ -25027,6 +25263,32 @@ internal let requiredSchemas: [String: Shape] = {
       "message": Shape(kinds: [.string]), "status": Shape(kinds: [.string]),
       "timestamp": Shape(kinds: [.string]), "version": Shape(kinds: [.string]),
     ])
+  shapes["HeldJobRecord"] = Shape(
+    kinds: [.object],
+    required: [
+      "jobId", "jobType", "resourceId", "params", "completedUnits", "unitCursors", "retryCount",
+      "maxRetries",
+    ],
+    members: [
+      "completedUnits": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "jobId": Shape(ref: "JobId"), "jobType": Shape(ref: "JobType"),
+      "maxRetries": Shape(kinds: [.integer], minimum: 0.0), "params": Shape(ref: "JobParams"),
+      "resourceId": Shape(ref: "ResourceId"), "retryCount": Shape(kinds: [.integer], minimum: 0.0),
+      "unitCursors": Shape(kinds: [.object], values: Shape(ref: "UnitCursor")),
+    ],
+    closed: [
+      "completedUnits", "jobId", "jobType", "maxRetries", "params", "resourceId", "retryCount",
+      "unitCursors",
+    ])
+  shapes["HeldJobStall"] = Shape(
+    kinds: [.object],
+    required: ["jobId", "jobType", "heldSince", "lastActivityAt", "silentForMs", "thresholdMs"],
+    members: [
+      "heldSince": Shape(kinds: [.string]), "jobId": Shape(ref: "JobId"),
+      "jobType": Shape(ref: "JobType"), "lastActivityAt": Shape(kinds: [.string]),
+      "silentForMs": Shape(kinds: [.integer], minimum: 0.0),
+      "thresholdMs": Shape(kinds: [.integer], minimum: 0.0),
+    ], closed: ["heldSince", "jobId", "jobType", "lastActivityAt", "silentForMs", "thresholdMs"])
   shapes["HighlightingJobParams"] = Shape(
     kinds: [.object], required: ["motivation"],
     members: [
@@ -25098,12 +25360,7 @@ internal let requiredSchemas: [String: Shape] = {
           "engines": Shape(ref: "ArchivistEngines"),
           "providers": Shape(
             kinds: [.object], values: Shape(ref: "Provider"), minMembers: 1,
-            names: Shape(
-              kinds: [.string],
-              enumeration: [
-                .string("anthropic"), .string("google"), .string("llamacpp"), .string("ollama"),
-                .string("openai"), .string("together"), .string("vllm"),
-              ])),
+            names: Shape(ref: "InferenceProvider")),
         ], closed: ["engines", "providers"]),
     ], closed: ["apiVersion", "kind", "metadata", "spec"])
   shapes["InferenceLimits"] = Shape(
@@ -25119,6 +25376,12 @@ internal let requiredSchemas: [String: Shape] = {
       "response": Shape(
         kinds: [.object], required: ["limits"],
         members: ["limits": Shape(kinds: [.array], items: Shape(ref: "EngineLimits"))])
+    ])
+  shapes["InferenceProvider"] = Shape(
+    kinds: [.string],
+    enumeration: [
+      .string("anthropic"), .string("google"), .string("llamacpp"), .string("ollama"),
+      .string("openai"), .string("together"), .string("vllm"),
     ])
   shapes["IssuedTokens"] = Shape(
     kinds: [.object], required: ["access", "refresh"],
@@ -25215,6 +25478,12 @@ internal let requiredSchemas: [String: Shape] = {
       "params": Shape(ref: "JobParams"), "startedAt": Shape(kinds: [.string]),
       "status": Shape(kinds: [.string], enumeration: [.string("cancelled")]),
     ], closed: ["completedAt", "metadata", "params", "startedAt", "status"])
+  shapes["JobCheckpoint"] = Shape(
+    kinds: [.object], required: ["completedUnits"],
+    members: [
+      "completedUnits": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "unitCursors": Shape(kinds: [.object], values: Shape(ref: "UnitCursor")),
+    ], closed: ["completedUnits", "unitCursors"])
   shapes["JobCheckpointCommand"] = Shape(
     kinds: [.object], required: ["jobId", "completedUnits"],
     members: [
@@ -25304,6 +25573,13 @@ internal let requiredSchemas: [String: Shape] = {
       "failureClass": Shape(ref: "FailureClass"), "jobId": Shape(ref: "JobId"),
       "jobType": Shape(ref: "JobType"), "willRetry": Shape(kinds: [.boolean]),
     ])
+  shapes["JobFailure"] = Shape(
+    kinds: [.object],
+    members: [
+      "completedUnits": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "failureClass": Shape(ref: "FailureClass"),
+      "unitCursors": Shape(kinds: [.object], values: Shape(ref: "UnitCursor")),
+    ], closed: ["completedUnits", "failureClass", "unitCursors"])
   shapes["JobFilter"] = Shape(
     kinds: [.object], oneOf: [Shape(ref: "MarkJobFilter"), Shape(ref: "YieldJobFilter")],
     discriminator: Discriminator(property: "jobType", mapping: ["mark": 0, "yield": 1]))
@@ -25443,6 +25719,12 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["JobQueuedEvent"] = Shape(
     kinds: [.object], oneOf: [Shape(ref: "MarkJobQueuedEvent"), Shape(ref: "YieldJobQueuedEvent")],
     discriminator: Discriminator(property: "jobType", mapping: ["mark": 0, "yield": 1]))
+  shapes["JobReached"] = Shape(
+    kinds: [.object],
+    members: [
+      "completedUnits": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "unitCursors": Shape(kinds: [.object], values: Shape(ref: "UnitCursor")),
+    ], closed: ["completedUnits", "unitCursors"])
   shapes["JobRecord"] = Shape(
     kinds: [.object], required: ["job", "lastProgressAt"],
     members: ["job": Shape(ref: "Job"), "lastProgressAt": Shape(kinds: [.string])],
@@ -25543,6 +25825,8 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["expectedDid", "observedDid"],
     members: ["expectedDid": Shape(kinds: [.string]), "observedDid": Shape(kinds: [.string])],
     closed: ["expectedDid", "observedDid"])
+  shapes["KbPlacement"] = Shape(
+    kinds: [.string], enumeration: [.string("local"), .string("codespace")])
   shapes["KbRead"] = Shape(
     kinds: [.object], required: ["at"],
     members: ["at": Shape(kinds: [.string]), "gitBranch": Shape(kinds: [.string])])
@@ -25594,10 +25878,9 @@ internal let requiredSchemas: [String: Shape] = {
       "healthy": Shape(kinds: [.boolean]), "identityError": Shape(kinds: [.string]),
       "kb": Shape(ref: "DiscoveredKB"), "key": Shape(kinds: [.string]),
       "lan": Shape(kinds: [.string]), "name": Shape(kinds: [.string]),
-      "placement": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
-      "recorded": Shape(kinds: [.boolean]), "repo": Shape(kinds: [.string]),
-      "root": Shape(kinds: [.string]), "runtime": Shape(ref: "Runtime"),
-      "secretStore": Shape(kinds: [.string]),
+      "placement": Shape(ref: "KbPlacement"), "recorded": Shape(kinds: [.boolean]),
+      "repo": Shape(kinds: [.string]), "root": Shape(kinds: [.string]),
+      "runtime": Shape(ref: "Runtime"), "secretStore": Shape(kinds: [.string]),
       "services": Shape(kinds: [.array], items: Shape(ref: "ServiceStatus")),
       "session": Shape(ref: "Session"), "siteName": Shape(kinds: [.string]),
       "starting": Shape(kinds: [.boolean]), "workload": Shape(ref: "WorkloadStatus"),
@@ -26463,7 +26746,7 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["name", "file", "format", "storageUri"],
     members: [
       "archiveOriginal": Shape(kinds: [.string]), "cloneToken": Shape(kinds: [.string]),
-      "entityTypes": Shape(kinds: [.string]), "file": Shape(kinds: [.string]),
+      "entityTypes": Shape(kinds: [.string]), "file": Shape(ref: "Binary"),
       "format": Shape(kinds: [.string]), "generationPrompt": Shape(kinds: [.string]),
       "generator": Shape(kinds: [.string]), "isDraft": Shape(kinds: [.string]),
       "jobId": Shape(ref: "JobId"), "language": Shape(kinds: [.string]),
@@ -26492,6 +26775,13 @@ internal let requiredSchemas: [String: Shape] = {
             ])
         ], closed: ["memory"])
     ], closed: ["limits"])
+  shapes["RetryBudget"] = Shape(
+    kinds: [.object], required: ["attempts", "initialDelayMs", "maxDelayMs"],
+    members: [
+      "attempts": Shape(kinds: [.integer], minimum: 1.0),
+      "initialDelayMs": Shape(kinds: [.integer], minimum: 1.0),
+      "maxDelayMs": Shape(kinds: [.integer], minimum: 1.0),
+    ], closed: ["attempts", "initialDelayMs", "maxDelayMs"])
   shapes["Root"] = Shape(
     kinds: [.object], required: ["placement", "registered", "running"],
     members: [
@@ -26502,10 +26792,10 @@ internal let requiredSchemas: [String: Shape] = {
       "did": Shape(kinds: [.string]), "forwardPort": Shape(kinds: [.integer]),
       "forwarded": Shape(kinds: [.boolean]), "identityError": Shape(kinds: [.string]),
       "lastUsed": Shape(kinds: [.string]), "path": Shape(kinds: [.string]),
-      "placement": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
-      "present": Shape(kinds: [.boolean]), "reachable": Shape(kinds: [.boolean]),
-      "registered": Shape(kinds: [.boolean]), "repo": Shape(kinds: [.string]),
-      "running": Shape(kinds: [.boolean]), "siteName": Shape(kinds: [.string]),
+      "placement": Shape(ref: "KbPlacement"), "present": Shape(kinds: [.boolean]),
+      "reachable": Shape(kinds: [.boolean]), "registered": Shape(kinds: [.boolean]),
+      "repo": Shape(kinds: [.string]), "running": Shape(kinds: [.boolean]),
+      "siteName": Shape(kinds: [.string]),
     ],
     closed: [
       "codespace", "codespaceState", "config", "configs", "current", "did", "forwardPort",
@@ -26906,12 +27196,7 @@ internal let requiredSchemas: [String: Shape] = {
             ]), "summary": Shape(ref: "SmelterReconcileSummary"),
         ], closed: ["error", "phase", "summary"]),
       "status": Shape(kinds: [.string], enumeration: [.string("ok")]),
-      "stream": Shape(
-        kinds: [.string],
-        enumeration: [
-          .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
-          .string("degraded"), .string("unauthenticated"), .string("closed"),
-        ]),
+      "stream": Shape(ref: "ConnectionState"),
     ], closed: ["eventsProcessed", "following", "index", "kb", "reconcile", "status", "stream"])
   shapes["SmelterReconcileSummary"] = Shape(
     kinds: [.object],
@@ -27189,7 +27474,7 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["Target"] = Shape(
     kinds: [.object], required: ["kind"],
     members: [
-      "kind": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
+      "kind": Shape(ref: "KbPlacement"),
       "repo": Shape(
         kinds: [.string],
         pattern: [
@@ -27246,6 +27531,12 @@ internal let requiredSchemas: [String: Shape] = {
       "type": Shape(kinds: [.string], enumeration: [.string("TextualBody")]),
       "value": Shape(kinds: [.string]),
     ])
+  shapes["TraceCarrier"] = Shape(
+    kinds: [.object], required: ["traceparent"],
+    members: [
+      "traceparent": Shape(kinds: [.string], minLength: 1),
+      "tracestate": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["traceparent", "tracestate"])
   shapes["UnitCursor"] = Shape(
     kinds: [.object], required: ["next", "size", "found", "emitted", "errors"],
     members: [
@@ -27391,6 +27682,11 @@ internal let requiredSchemas: [String: Shape] = {
         ], closed: ["error", "phase", "summary"]),
       "status": Shape(kinds: [.string], enumeration: [.string("ok")]),
     ], closed: ["following", "kb", "reconcile", "status"])
+  shapes["WorkerActiveJob"] = Shape(
+    kinds: [.object], required: ["jobId", "type", "since"],
+    members: [
+      "jobId": Shape(ref: "JobId"), "since": Shape(kinds: [.string]), "type": Shape(ref: "JobType"),
+    ], closed: ["jobId", "since", "type"])
   shapes["WorkerConfig"] = Shape(
     kinds: [.object],
     required: ["knowledgeBases", "modelCatalogue", "port", "logLevel", "logFormat"],
@@ -27416,11 +27712,8 @@ internal let requiredSchemas: [String: Shape] = {
     ],
     members: [
       "activeJob": Shape(
-        kinds: [.object, .null], required: ["jobId", "type", "since"],
-        members: [
-          "jobId": Shape(ref: "JobId"), "since": Shape(kinds: [.string]),
-          "type": Shape(ref: "JobType"),
-        ], closed: ["jobId", "since", "type"]), "engine": Shape(ref: "Engine"),
+        kinds: [.object, .null], oneOf: [Shape(kinds: [.null]), Shape(ref: "WorkerActiveJob")]),
+      "engine": Shape(ref: "Engine"),
       "jobs": Shape(kinds: [.array], minItems: 1, items: Shape(ref: "JobFilter")),
       "jobsCompleted": Shape(kinds: [.integer], minimum: 0.0),
       "lastActivityAt": Shape(kinds: [.string, .null]),
@@ -27477,6 +27770,25 @@ internal let requiredSchemas: [String: Shape] = {
             closed: ["image", "resources"]),
         ], closed: ["logLevel", "worker"]),
     ], closed: ["apiVersion", "kind", "metadata", "spec"])
+  shapes["WorkerVitals"] = Shape(
+    kinds: [.object],
+    required: [
+      "lastQueuedEventAt", "lastClaimAt", "lastFinishedAt", "lastActivityAt", "activeJob",
+      "jobsCompleted",
+    ],
+    members: [
+      "activeJob": Shape(
+        kinds: [.object, .null], oneOf: [Shape(kinds: [.null]), Shape(ref: "WorkerActiveJob")]),
+      "jobsCompleted": Shape(kinds: [.integer], minimum: 0.0),
+      "lastActivityAt": Shape(kinds: [.string, .null]),
+      "lastClaimAt": Shape(kinds: [.string, .null]),
+      "lastFinishedAt": Shape(kinds: [.string, .null]),
+      "lastQueuedEventAt": Shape(kinds: [.string, .null]),
+    ],
+    closed: [
+      "activeJob", "jobsCompleted", "lastActivityAt", "lastClaimAt", "lastFinishedAt",
+      "lastQueuedEventAt",
+    ])
   shapes["WorkloadStatus"] = Shape(
     kinds: [.object],
     members: [

@@ -113,9 +113,7 @@ let files ~root (spec : Spec.t) =
   let refused file message = [ { Decode.file; pointer = ""; message } ] in
   let within file result = Result.map_error (refused file) result in
   let* user_field = User_stamp.field spec.tables.identifiers_kinds in
-  let* transport =
-    within Transport.carrier (Transport.derive ~user_field spec)
-  in
+  let transport = Transport.derive ~user_field spec in
   let* http =
     within "openapi.json"
       (Http.routes ~prefix:Http.gateway_prefix ~no_content:false spec
@@ -183,6 +181,13 @@ let files ~root (spec : Spec.t) =
       | Error e -> Error e)
   in
   let* constants = within "client/surface.json" (Constants.modules spec) in
+  let* held_job =
+    within "client/surface.json"
+      (Held_job_members.module_
+         ~banner:
+           (banner "protocol/specs/src/client/surface.json and client/types")
+         spec models)
+  in
   let* control =
     within "control/methods.json"
       (Control.module_
@@ -223,6 +228,7 @@ let files ~root (spec : Spec.t) =
                Error (refused "openapi.json" (name ^ ": " ^ message)))
          models.definitions)
   in
+  let* codes = Error_codes.Table.derive spec.tables.errors_codes in
   let unrecognized =
     Error_codes.Haskell.code_constructor "busRequest"
       spec.tables.errors_codes.bus_request.unrecognized_failure
@@ -237,6 +243,7 @@ let files ~root (spec : Spec.t) =
         file ~under:"generated"
           (Companions.schemas_module
              ~banner:(banner "protocol/specs/src")
+             ~vocabularies:(Error_codes.Table.vocabularies codes)
              validated);
         file ~under:"test"
           (Companions.round_trip_module
@@ -245,9 +252,7 @@ let files ~root (spec : Spec.t) =
              (List.map fst models.definitions));
         file ~under:"src"
           (Http.file
-             ~banner:
-               (banner
-                  "protocol/specs/src/openapi.json and its paths")
+             ~banner:(banner "protocol/specs/src/openapi.json and its paths")
              http ~bus_event);
         file ~under:"src"
           (Http.archivist_file
@@ -279,7 +284,10 @@ let files ~root (spec : Spec.t) =
       ]
     @ List.map (file ~under:"src") (control :: tables)
     @ List.map (file ~under:"generated") constants
-    @ [ file ~under:"generated" (Worker.file spec) ]
+    @ [
+        file ~under:"generated" (Worker.file spec);
+        file ~under:"generated" held_job;
+      ]
     @ manifest
     @ Error_codes.Haskell.modules
         ~from_:"protocol/specs/src/client/discovery-absent.json"

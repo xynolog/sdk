@@ -35,7 +35,8 @@ let vocabulary ~docs (v : Table.vocabulary) =
              Names.refuse "%s: two codes would both be %s" v.go_name constant;
            Hashtbl.replace taken constant ();
            K.entry ~about:(K.Block c.docs)
-             ~annotations:[ K.annotation ~args:[ K.arg (K.Str c.code) ] "SerialName" ]
+             ~annotations:
+               [ K.annotation ~args:[ K.arg (K.Str c.code) ] "SerialName" ]
              ~args:[ K.Str c.code ] constant)
          v.codes)
     K.Enum_class v.go_name
@@ -59,7 +60,7 @@ let file ~(types : Kotlin_sdk.Types.spec) (t : Table.t) =
     ~imports:
       (List.sort_uniq String.compare
          ("xynolog.Generated" :: "kotlinx.serialization.SerialName"
-         :: "kotlinx.serialization.Serializable"
+        :: "kotlinx.serialization.Serializable"
          :: Kotlin_sdk.Types.imports_of types code_type))
     ([
        vocabulary
@@ -150,9 +151,14 @@ let file ~(types : Kotlin_sdk.Types.spec) (t : Table.t) =
                (List.map
                   (fun (name, type_) ->
                     K.param
-                      ~binding:(K.Bound { visibility = K.Public; mutable_ = false })
+                      ~binding:
+                        (K.Bound { visibility = K.Public; mutable_ = false })
                       name (K.Type type_))
-                  [ ("status", "Int"); ("code", "String"); ("transport", transport) ]))
+                  [
+                    ("status", "Int");
+                    ("code", "String");
+                    ("transport", transport);
+                  ]))
           K.Data_class "LimitRefusalTransportCode";
         K.property
           ~about:

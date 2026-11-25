@@ -78,7 +78,7 @@ the coming release's, and gathers its changes as they land.
   `job.claim(ClaimOptions)`, and the gather state unit's two methods. A
   member left out is what was taken before.
 - A worker's vitals state its times as RFC 3339 text and its active job as
-  `WorkerEngineHealthActiveJob`, as `WorkerEngineHealth` does, and
+  `WorkerActiveJob`, as `WorkerEngineHealth` does, and
   `Claims.health(engine)` is that health. `xynolog.jobs.ActiveJob` is gone.
 - A channel that carries nothing is typed `xynolog.types.EmptyObject`, in
   place of `xynolog.channels.Empty`.
@@ -89,6 +89,35 @@ the coming release's, and gathers its changes as they land.
   `xynolog.http.PendingAuthorization`, and its issuer is
   `xynolog.types.PendingAuthorizationIssuer`, in place of
   `xynolog.http.IssuerEndpoints`. Java makes each with its `builder`.
+- What a worker's claims say is of the types Protocol states:
+  `xynolog.types.ClaimRefusal`, `xynolog.types.WorkerVitals` and
+  `xynolog.types.HeldJobStall`, in place of `xynolog.jobs.ClaimRefusal`,
+  `xynolog.jobs.WorkerVitals` and `xynolog.jobs.HeldJobStall`. A stall's
+  `heldSince` and `lastActivityAt` are RFC 3339 text, to the millisecond,
+  where they were `Instant`s. Java makes each with its `builder`.
+- A trace a frame was sent under is `xynolog.types.TraceCarrier`, the type
+  Protocol states, in place of `xynolog.transport.TraceContext`: a `Frame`'s,
+  a `Delivered`'s and a `HeldJob`'s `trace`.
+- A held job's `jobId`, `jobType`, `resourceId`, `params`, `completedUnits`,
+  `unitCursors`, `retryCount` and `maxRetries` are those of its `record`, the
+  `xynolog.types.HeldJobRecord` its claim hands it: `HeldJob` is a
+  `HeldJobRecordMembers`, generated from Protocol, and `record` is new.
+- Where a knowledge base runs is `KbPlacement`, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement` and
+  `TargetKind`; an engine's provider is `InferenceProvider`, in place of
+  `EngineProvider`.
+- A held job says what it reached as the types Protocol states:
+  `checkpoint(JobCheckpoint)`, in place of `checkpoint(completedUnits,
+  unitCursors = null)`; `fail(error, JobFailure? = null)`, in place of
+  `fail(error, failureClass = null, completedUnits = null, unitCursors =
+  null)`; and `cancel(JobReached? = null)`, in place of
+  `cancel(completedUnits = null, unitCursors = null)`. Java's
+  `checkpointFuture(JobCheckpoint)`, `failFuture(error, JobFailure)` and
+  `cancelFuture(JobReached)` take them the same way, made with each type's
+  `builder`.
+- `JOB_CLAIM_CHANNELS` and `JOB_COMMIT_CHANNELS` are generated, in
+  `xynolog/jobs/WorkerChannels.kt`. Java reads them from `WorkerChannelsKt`,
+  in place of `ClaimsKt`: `WorkerChannelsKt.getJOB_CLAIM_CHANNELS()`.
 
 ### Removed
 
