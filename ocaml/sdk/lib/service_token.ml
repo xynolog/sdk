@@ -59,11 +59,11 @@ let acquire t refused =
                   (fun issuer ->
                     t.issuer <- Some issuer;
                     issuer)
-                  (request ~code:Error_codes.Sign_in.discovery t.http
+                  (request ~code:Error_codes.Sign_in.Discovery t.http
                      (fun http -> Oauth.discover http ~issuer:t.authority))
           in
           let* tokens =
-            request ~code:Error_codes.Sign_in.exchange t.http (fun http ->
+            request ~code:Error_codes.Sign_in.Exchange t.http (fun http ->
                 grant ~clock:t.clock ~http ~issuer ~client_id:t.client_id
                   ~proof:t.proof ~jti:t.jti)
           in

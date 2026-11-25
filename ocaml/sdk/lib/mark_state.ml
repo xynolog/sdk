@@ -98,7 +98,8 @@ let make ?(silence_ms = Client_timing.delegate_silence_ms) client ~resource =
                      (`Assoc
                         [ ("resourceId", source t); ("request", `Assoc fields) ]))
                 |> Result.map_error (fun _ -> "Annotation submission failed")
-              with Http_wire.Failed failure -> Error failure.code
+              with Http_wire.Failed failure ->
+                Error (Error_codes.Transport.code failure.code)
             in
             if current () then
               match result with
@@ -169,7 +170,7 @@ let request_delegate t params =
           | Complete | Refused -> ())
         ~on_failure:(fun failure ->
           set t.failure (Some failure);
-          if failure.code <> Error_codes.Job.cancelled then (
+          if failure.code <> Delegation.Job Error_codes.Job.Cancelled then (
             set t.progress None;
             set t.motivation None))
         ~on_close:(fun () ->

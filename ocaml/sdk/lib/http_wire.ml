@@ -18,7 +18,19 @@ let default_timing =
     request_timeout_ms = Client_timing.http_request_timeout_ms;
   }
 
-type failure = { code : string; status : int option; message : string }
+type failure = {
+  code : Error_codes.Transport.t;
+  status : int option;
+  message : string;
+}
+
+type request_code =
+  | Bus of Error_codes.Bus_request.t
+  | Transport of Error_codes.Transport.t
+
+let request_code = function
+  | Bus code -> Error_codes.Bus_request.code code
+  | Transport code -> Error_codes.Transport.code code
 
 exception Failed of failure
 exception Deadline
@@ -159,9 +171,9 @@ let exchange t ~auth ?progress ?timeout_ms ?(headers = []) ?(body = "")
     match outcome with
     | `Answered (Ok value) -> value
     | `Expired when jitter && left > 1 -> retry 0.
-    | `Expired -> fail t ~message:unanswered Error_codes.Transport.unavailable
+    | `Expired -> fail t ~message:unanswered Error_codes.Transport.Unavailable
     | `Lost when left > 1 -> retry 0.
-    | `Lost -> fail t ~message:unreachable Error_codes.Transport.unavailable
+    | `Lost -> fail t ~message:unreachable Error_codes.Transport.Unavailable
     | `Answered (Error (status, headers, detail)) ->
         let message = refusal status detail in
         if credential_refused status detail then
@@ -171,8 +183,8 @@ let exchange t ~auth ?progress ?timeout_ms ?(headers = []) ?(body = "")
               | Some replacement ->
                   attempt (Some replacement) true attempts initial_delay
               | None ->
-                  fail t ~status ~message Error_codes.Transport.unauthorized)
-          | _ -> fail t ~status ~message Error_codes.Transport.unauthorized
+                  fail t ~status ~message Error_codes.Transport.Unauthorized)
+          | _ -> fail t ~status ~message Error_codes.Transport.Unauthorized
         else if
           left > 1
           && Retry.retryable
@@ -196,7 +208,7 @@ let emit t ~client_id ?scope ?correlation_id ?trace channel source =
     | Ok body -> body
     | Error _ ->
         fail t ~message:"The emit's payload is not its channel's"
-          Error_codes.Transport.bad_request
+          Error_codes.Transport.Bad_request
   in
   let open Telemetry_facts in
   let name = Bus_registry.name channel in
@@ -280,8 +292,8 @@ let check_user t token =
               {
                 code =
                   (if credential_refused status body then
-                     Error_codes.Transport.unauthorized
-                   else Error_codes.Transport.unavailable);
+                     Error_codes.Transport.Unauthorized
+                   else Error_codes.Transport.Unavailable);
                 status = Some status;
                 message = refusal status body;
               })
@@ -290,14 +302,14 @@ let check_user t token =
         sleep t (float t.timing.request_timeout_ms);
         Error
           {
-            code = Error_codes.Transport.unavailable;
+            code = Error_codes.Transport.Unavailable;
             status = None;
             message = unanswered;
           })
   with Eio.Io _ | End_of_file ->
     Error
       {
-        code = Error_codes.Transport.unavailable;
+        code = Error_codes.Transport.Unavailable;
         status = None;
         message = unreachable;
       }
@@ -442,4 +454,4 @@ let put t ~fields ~bytes ~on_progress =
           answer
       | Error _ ->
           fail t ~message:"The gateway's answer to the upload names no resource"
-            Error_codes.Transport.error)
+            Error_codes.Transport.Error)
