@@ -68,8 +68,7 @@ let all (spec : Spec.t) =
   List.iter
     (fun table ->
       if not (List.mem table spec.table_files) then
-        failwith
-          (table ^ ", which all does not root, is no table of Protocol's"))
+        failwith (table ^ ", which all does not root, is no table of Protocol's"))
     unrooted_tables;
   let service = service_tables spec in
   let table_schemas =
