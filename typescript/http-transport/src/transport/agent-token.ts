@@ -19,22 +19,19 @@
 
 import {
   HTTP_REQUEST_TIMEOUT_MS,
-  STARTUP_FETCH_RETRY,
   UnansweredError,
   isObject,
   isString,
   jsonOf,
   retryAfterMs,
-  retryWithBackoff,
   userId,
   withinDeadline,
   gatewayHeaders,
   gatewayRoutes,
-  type RetryAttemptInfo,
   type ServiceToken,
   type UserId,
 } from '@xynolog/core';
-import { APIError, retryableUnlessRefused } from './api-error';
+import { APIError } from './api-error';
 import { fetchOf } from './fetch-of';
 
 export interface AgentSignIn {
@@ -42,8 +39,6 @@ export interface AgentSignIn {
   baseUrl: string;
   /** The token of the agent's account at the knowledge base's issuer, which asks the issuer with the `fetch` it was made with. */
   service: ServiceToken;
-  /** Told before each wait for a gateway or an issuer that could not be reached. */
-  onRetry?: (info: RetryAttemptInfo) => void;
   /** What the gateway's request is sent with. Absent, the runtime's own `fetch`. */
   fetch?: typeof fetch;
 }
@@ -52,36 +47,22 @@ export interface AgentSignIn {
  * Sign the agent in as its account: the account's token, and the DID the
  * gateway names it by.
  *
- * Each request is bounded by `httpRequestTimeoutMs`
- * (protocol/specs/src/client/timing.json). A sign-in is tried again with backoff
- * (`STARTUP_FETCH_RETRY`) when the gateway or the issuer could not be
- * reached, did not answer by that deadline, or said "not now" (the statuses
- * of `RETRY_RULES.boot`): either may be starting when this process does, and
- * a process run with no restart policy that gave up on its first attempt
- * would never come back. Any other refusal is not asked again: the far end is
- * up and said no. The gateway's is thrown as an `APIError` carrying its
- * status, the issuer's as a `SignInError`.
+ * One grant at the issuer and one request to the gateway, each bounded by
+ * `httpRequestTimeoutMs` (protocol/specs/src/client/timing.json), and neither
+ * made again. A sign-in that fails is the service's to start again: a starting
+ * worker's patience for an issuer or a gateway still coming up is its own
+ * backoff (protocol/contract/WORKER-SERVICE.md, R3), and a peer that exits
+ * leaves it to its restart policy (protocol/contract/ARCHIVIST.md, Boot). The
+ * gateway's refusal is thrown as an `APIError` carrying its status, the
+ * issuer's as a `SignInError`, and a request that got no answer as an
+ * `UnansweredError`.
  */
 export async function agentToken(
   opts: AgentSignIn,
 ): Promise<{ token: string; did: UserId }> {
-  const { baseUrl, service, onRetry, fetch } = opts;
-
-  return retryWithBackoff(
-    async () => {
-      // Both steps sit inside the retry: the issuer and the gateway come up
-      // independently of this process, and of each other.
-      const token = await service.token({ renewed: false });
-      return { token, did: await named(baseUrl, token, fetch) };
-    },
-    // A request that got no answer, its deadline passing among the ways it
-    // gets none, and a status that says "not now": a sign-in against a
-    // gateway that accepts a connection and never answers is tried again. A
-    // refused token is not: the same token gets the same answer.
-    retryableUnlessRefused,
-    STARTUP_FETCH_RETRY,
-    onRetry,
-  );
+  const { baseUrl, service, fetch } = opts;
+  const token = await service.token({ renewed: false });
+  return { token, did: await named(baseUrl, token, fetch) };
 }
 
 /** The DID the gateway names the bearer of `token` by: `GET /api/users/me`. */

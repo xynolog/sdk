@@ -85,6 +85,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Removed
 
+- `Session.signInAgent` takes no `RetryBudget`, and signs the agent in once,
+  as every SDK does: a failure is thrown as it came, and starting the sign-in
+  again is the service's, on its own backoff (Protocol's WORKER-SERVICE R3).
+  It was `signInAgent http options budget service`; it is
+  `signInAgent http options service`.
 - `Xynolog.Types.Presence` is removed. No member of Protocol is both optional
   and nullable, so a model's optional field is a `Maybe`.
 

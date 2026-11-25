@@ -10,7 +10,6 @@ import util from 'node:util';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   HTTP_REQUEST_TIMEOUT_MS,
-  STARTUP_FETCH_RETRY,
   ServiceToken,
   SignInError,
 } from '@xynolog/core';
@@ -166,11 +165,9 @@ describe('agentToken', () => {
     );
     const failed: unknown[] = [];
 
-    void agentToken({
-      baseUrl: GATEWAY,
-      service: service(),
-      onRetry: ({ error }) => failed.push(error),
-    }).catch((e: unknown) => e);
+    void agentToken({ baseUrl: GATEWAY, service: service() }).catch(
+      (e: unknown) => failed.push(e),
+    );
     await vi.advanceTimersByTimeAsync(HTTP_REQUEST_TIMEOUT_MS - 1);
     expect(failed).toEqual([]);
     await vi.advanceTimersByTimeAsync(1);
@@ -222,11 +219,10 @@ describe('agentToken', () => {
       ),
     );
 
-    const signing = agentToken({ baseUrl: GATEWAY, service: service() }).catch(
-      (e: unknown) => e,
-    );
-    await vi.runAllTimersAsync();
-    const refused = await signing;
+    const refused = await agentToken({
+      baseUrl: GATEWAY,
+      service: service(),
+    }).catch((e: unknown) => e);
 
     expect(refused).toBeInstanceOf(APIError);
     expect(refused).toMatchObject({ status: 429, code: 'unauthorized' });
@@ -236,30 +232,29 @@ describe('agentToken', () => {
     ).toHaveLength(1);
   });
 
-  it('a 429 from any other limit is still "not now", and the sign-in is tried again', async () => {
-    let attempts = 0;
-    const wire = stubFetch(() => {
-      attempts += 1;
-      if (attempts === 1)
-        return Response.json(
-          { error: 'slow down', code: 'emit-rate' },
-          {
-            status: 429,
-            statusText: 'Too Many Requests',
-            headers: { 'retry-after': '1' },
-          },
-        );
-      return named();
-    });
+  it("a 429 from any other limit is the gateway's answer too: thrown with its status and its wait, and not asked again", async () => {
+    // "Not now" is the service's to wait out: it starts the sign-in again on
+    // its own backoff (WORKER-SERVICE R3), and the stated wait rides along.
+    const wire = stubFetch(() =>
+      Response.json(
+        { error: 'slow down', code: 'emit-rate' },
+        {
+          status: 429,
+          statusText: 'Too Many Requests',
+          headers: { 'retry-after': '1' },
+        },
+      ),
+    );
 
-    const signing = agentToken({ baseUrl: GATEWAY, service: service() });
-    await vi.runAllTimersAsync();
+    const refused = await agentToken({
+      baseUrl: GATEWAY,
+      service: service(),
+    }).catch((e: unknown) => e);
 
-    await expect(signing).resolves.toEqual({
-      token: 'service-account-token',
-      did: DID,
-    });
-    expect(wire.gateway()).toHaveLength(2);
+    expect(refused).toBeInstanceOf(APIError);
+    expect(refused).toMatchObject({ status: 429, retryAfterMs: 1_000 });
+    expect(refused).not.toMatchObject({ code: 'unauthorized' });
+    expect(wire.gateway()).toHaveLength(1);
   });
 
   it("a refused service account is the issuer's answer, with its status, and the gateway is never asked", async () => {
@@ -295,97 +290,59 @@ describe('agentToken', () => {
     ).rejects.toThrow(`${GATEWAY}/api/users/me did not answer a DID`);
   });
 
-  it('a gateway that cannot be reached is tried again with backoff, and each wait is told', async () => {
-    let attempts = 0;
-    const wire = stubFetch(() => {
-      attempts += 1;
-      if (attempts < 3) throw new TypeError('fetch failed');
-      return named();
-    });
-    const waits: number[] = [];
-
-    const signing = agentToken({
-      baseUrl: GATEWAY,
-      service: service(),
-      onRetry: ({ attempt }) => waits.push(attempt),
-    });
-    await vi.runAllTimersAsync();
-
-    await expect(signing).resolves.toEqual({
-      token: 'service-account-token',
-      did: DID,
-    });
-    expect(wire.gateway()).toHaveLength(3);
-    expect(waits).toEqual([1, 2]);
-  });
-
-  it('a request whose deadline passes, and a gateway that says "not now", are tried again too', async () => {
-    // A request that bounds itself is rejected with a TimeoutError when the
-    // bound fires. A sign-in that gave up on it would never be made again by
-    // a process run with no restart policy.
-    let attempts = 0;
-    const wire = stubFetch(() => {
-      attempts += 1;
-      if (attempts === 1)
-        throw new DOMException('The operation timed out.', 'TimeoutError');
-      if (attempts === 2)
-        return new Response('', {
-          status: 503,
-          statusText: 'Service Unavailable',
-        });
-      return named();
-    });
-
-    const signing = agentToken({ baseUrl: GATEWAY, service: service() });
-    await vi.runAllTimersAsync();
-
-    await expect(signing).resolves.toEqual({
-      token: 'service-account-token',
-      did: DID,
-    });
-    expect(wire.gateway()).toHaveLength(3);
-  });
-
-  it('gives up when the gateway never comes up, with the failure it last saw', async () => {
+  it('a gateway that cannot be reached fails the sign-in at once, with the failure it saw', async () => {
     const wire = stubFetch(() => {
       throw new TypeError('fetch failed');
     });
 
-    const signing = agentToken({ baseUrl: GATEWAY, service: service() }).catch(
-      (e: unknown) => e,
-    );
-    await vi.runAllTimersAsync();
+    const failure = await agentToken({
+      baseUrl: GATEWAY,
+      service: service(),
+    }).catch((e: unknown) => e);
 
     // Nothing answered, and it is said as that: under the code of every request that got no answer, and with no status.
-    const failure = await signing;
     expect(failure).toMatchObject({
       code: 'unavailable',
       message: `${GATEWAY}/api/users/me got no answer: TypeError`,
     });
     expect(failure).not.toHaveProperty('status');
-    expect(wire.gateway()).toHaveLength(STARTUP_FETCH_RETRY.attempts);
+    expect(wire.gateway()).toHaveLength(1);
   });
 
-  it('a gateway answer the runtime could not read is asked again, and its failure holds nothing of the answer', async () => {
+  it('a gateway that says "not now" fails the sign-in at once, with its status', async () => {
+    const wire = stubFetch(
+      () =>
+        new Response('', { status: 503, statusText: 'Service Unavailable' }),
+    );
+
+    const refused = await agentToken({
+      baseUrl: GATEWAY,
+      service: service(),
+    }).catch((e: unknown) => e);
+
+    expect(refused).toBeInstanceOf(APIError);
+    expect(refused).toMatchObject({ status: 503 });
+    expect(wire.gateway()).toHaveLength(1);
+  });
+
+  it('a gateway answer the runtime could not read got no answer, and its failure holds nothing of the answer', async () => {
     const wire = stubFetch(() => {
       throw unread();
     });
 
-    const signing = agentToken({ baseUrl: GATEWAY, service: service() }).catch(
-      (e: unknown) => e,
-    );
-    await vi.runAllTimersAsync();
-
-    const failure = await signing;
+    const failure = await agentToken({
+      baseUrl: GATEWAY,
+      service: service(),
+    }).catch((e: unknown) => e);
     expect(util.inspect(failure, { depth: 6 })).not.toContain(UNREAD);
     expect(failure).toMatchObject({
       code: 'unavailable',
       message: `${GATEWAY}/api/users/me got no answer: HTTPParserError`,
     });
-    expect(wire.gateway()).toHaveLength(STARTUP_FETCH_RETRY.attempts);
+    expect(wire.gateway()).toHaveLength(1);
   });
 
-  it('a gateway answer that stops coming got no answer, and is asked again', async () => {
+  it('a gateway answer that stops coming got no answer', async () => {
     const wire = stubFetch(
       () =>
         new Response(
@@ -395,21 +352,19 @@ describe('agentToken', () => {
         ),
     );
 
-    const signing = agentToken({ baseUrl: GATEWAY, service: service() }).catch(
-      (e: unknown) => e,
-    );
-    await vi.runAllTimersAsync();
-
-    const failure = await signing;
+    const failure = await agentToken({
+      baseUrl: GATEWAY,
+      service: service(),
+    }).catch((e: unknown) => e);
     expect(util.inspect(failure, { depth: 6 })).not.toContain(UNREAD);
     expect(failure).toMatchObject({
       code: 'unavailable',
       message: `${GATEWAY}/api/users/me got no answer: HTTPParserError`,
     });
-    expect(wire.gateway()).toHaveLength(STARTUP_FETCH_RETRY.attempts);
+    expect(wire.gateway()).toHaveLength(1);
   });
 
-  it('a grant the runtime could not read is asked again too, and its failure holds nothing of the answer', async () => {
+  it('a grant the runtime could not read got no answer, its failure holds nothing of the answer, and the gateway is never asked', async () => {
     let grants = 0;
     const wire = stubFetch(named, {
       grant: () => {
@@ -418,19 +373,16 @@ describe('agentToken', () => {
       },
     });
 
-    const signing = agentToken({ baseUrl: GATEWAY, service: service() }).catch(
-      (e: unknown) => e,
-    );
-    await vi.runAllTimersAsync();
-
-    const failure = await signing;
+    const failure = await agentToken({
+      baseUrl: GATEWAY,
+      service: service(),
+    }).catch((e: unknown) => e);
     expect(util.inspect(failure, { depth: 6 })).not.toContain(UNREAD);
     expect(failure).toMatchObject({
       code: 'unavailable',
       message: `Client-credentials grant for xynolog-worker at ${ACCOUNT.issuer} got no answer: HTTPParserError`,
     });
-    // The issuer may be starting when this process does: the whole sign-in is made again.
-    expect(grants).toBe(STARTUP_FETCH_RETRY.attempts);
+    expect(grants).toBe(1);
     expect(wire.gateway()).toHaveLength(0);
   });
 });
