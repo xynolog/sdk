@@ -189,7 +189,7 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "b593458f87d025c0bbc0283035b16a39c9f8c06a7d89027f6ba711c3cbfb79fb",
     "lib/record_reader.mli": "1c08f78d98db5840296684f52781f04df3bd8013ee45db693535c0f3d4a4c951",
-    "lib/records.ml": "14ac426e74a56d0b897b7db966a255cadbbf828197f0d0a606cf2b86c9cff491",
+    "lib/records.ml": "42efc3f06af8a3ad2f3eecc3ea3dfc891469cd27d8af52b3b3388ce04e62fe1a",
     "lib/redirect_sign_in.ml": "12c7f252e2250311a07038063ab2797e97f12d048177a0d3c33735ff0f1135d4",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
     "lib/registry.ml": "8c45ad08127ce44a391f72db9ec62f4a3636098141a9b339886143ff5815e29a",
@@ -203,7 +203,7 @@
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "778e25587a1ef44a67155fd4b04a7160d1b9bdd79ff0b708bff3526c3ff34e90",
+    "lib/schema_shapes.ml": "53ceb3895f5d0cbdf100f2bab8dc19f8e007d7e2dd8281f644e1f507e884570b",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "aa663f563557765b0b8bf77b32669fd1ab0f7b7e5b618eb8865445dd642dc8b6",
@@ -256,7 +256,7 @@
     "lib/tokens.ml": "a18316d4f94a7deffdaed3a99670163a86ca3ccf66f179628117c4e3a5e0410a",
     "lib/tokens.mli": "97dc7110f327c05cad137497a82178180d6b227ae4cffa177c7b8210cb5ddf4f",
     "lib/types.ml": "5921efffb7596beb176e09960cdfa080ec954349ec2ce9d7e54bc7f638c808fe",
-    "lib/types.mli": "97149245ffc84db1b741d7156a08017eff6f941179e9e6df950f212da8d60d76",
+    "lib/types.mli": "3ec616457afe2af244044e7f01a04bc7fbc3489e0a78517526d34bcdf393fc81",
     "lib/upload.ml": "fe94bfbfee4573abda5b6527367f76f8bce42459d5ae0a5bede7aebaaea35903",
     "lib/upload.mli": "2da3e555f0e86db3441a21ce158920509c48a0bafd9d446d8c9d5dc428b658c6",
     "lib/wire_stream.ml": "263f452a0527787fb19468676d1728541e67dbe956e4ca7848b17e6edf1cf047",
@@ -30105,12 +30105,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Get_annotations_response",
-      "declaration": "module Get_annotations_response :\n  sig\n    type t = {\n      annotations : Annotation.t list;\n      total : float;\n      motivation : Xynolog__.Enums.Motivation.t Xynolog__.Types.presence;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `GetAnnotationsResponse ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `GetAnnotationsResponse ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Get_annotations_response :\n  sig\n    type t = {\n      annotations : Annotation.t list;\n      total : float;\n      motivation : Xynolog__.Enums.Motivation.t option;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `GetAnnotationsResponse ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `GetAnnotationsResponse ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Get_annotations_response.t",
-      "declaration": "type t = {\n  annotations : Annotation.t list;\n  total : float;\n  motivation : Xynolog__.Enums.Motivation.t Xynolog__.Types.presence;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "declaration": "type t = {\n  annotations : Annotation.t list;\n  total : float;\n  motivation : Xynolog__.Enums.Motivation.t option;\n  extra : (string * Yojson.Raw.t) list;\n}",
       "representation": "record",
       "fields": [
         "annotations",

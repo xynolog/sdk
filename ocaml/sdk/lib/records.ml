@@ -21496,7 +21496,7 @@ module Get_annotations_response = struct
   type t = {
     annotations : Annotation.t list;
     total : float;
-    motivation : Enums.Motivation.t Types.presence;
+    motivation : Enums.Motivation.t option;
     extra : (string * Yojson.Raw.t) list;
   }
 
@@ -21507,8 +21507,7 @@ module Get_annotations_response = struct
         annotations =
           required reader (list (record Annotation.project)) "annotations";
         total = required reader float "total";
-        motivation =
-          optional reader (enum Enums.Motivation.of_string) "motivation";
+        motivation = maybe reader (enum Enums.Motivation.of_string) "motivation";
         extra = [];
       }
     in
@@ -21523,7 +21522,7 @@ module Get_annotations_response = struct
         ("annotations", Some ((json_list Annotation.to_json) value.annotations));
         ("total", Some (json_float value.total));
         ( "motivation",
-          present (json_enum Enums.Motivation.to_string) value.motivation );
+          Option.map (json_enum Enums.Motivation.to_string) value.motivation );
       ]
       value.extra
 
