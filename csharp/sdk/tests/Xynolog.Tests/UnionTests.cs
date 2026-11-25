@@ -18,7 +18,7 @@ public sealed class UnionTests
     public void EveryUnionStatesASignatureOfEachOfItsCases()
     {
         var unions = typeof(AnchoredTextAnswer).Assembly.GetTypes()
-            .Where(type => type.Namespace == "Xynolog.Types" && type.GetCustomAttribute<WireUnionAttribute>() is not null)
+            .Where(type => type.Namespace == "Xynolog.Types" && type.GetCustomAttribute<WireUnionAttribute>(inherit: false) is not null)
             .ToArray();
         Assert.True(unions.Length > 10, unions.Length + " unions");
         foreach (var union in unions)

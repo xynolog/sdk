@@ -160,17 +160,22 @@ internal open class SignatureUnionSerializer<T : Any>(
         }
     }
 
-    /** A member's decoding that says what is wrong with the value, and refuses it if nothing is. */
+    /**
+     * A member's decoding that says what is wrong with the value, and refuses it if nothing is. It is a serializer,
+     * as the polymorphic decoding it is chosen by takes one, and it writes nothing.
+     */
     private class Refused<T>(
         private val variant: DeserializationStrategy<T>,
         private val message: String,
-    ) : DeserializationStrategy<T> {
+    ) : KSerializer<T> {
         override val descriptor: SerialDescriptor = variant.descriptor
 
         override fun deserialize(decoder: Decoder): T {
             variant.deserialize(decoder)
             throw SerializationException(message)
         }
+
+        override fun serialize(encoder: Encoder, value: T): Unit = throw SerializationException(message)
     }
 }
 
