@@ -130,14 +130,17 @@ writes:
   base media type stated once, with an extension, a label and a word of each
   vocabulary; an alias is another spelling of a row's extension; and the rows
   are the `SupportedMediaType` enum's members, no more and no fewer.
-- `stored`: what a client keeps for its person, from `session/stored.json`,
-  for the Python and Haskell SDKs: the store's keys and prefixes, an open
-  resource, the last event ids, the cache document, and the queries a client
-  keeps, which are the refresh table's persisted queries, by the identifier
-  each is keyed by. The stored session is a table record (`Table_records`),
-  which each SDK's types write. A key is a camel-case `…Key` stated once, and no key begins with a
-  prefix; a cache document is a version and its entries, each a key, a value
-  and a whole-number stamp.
+- `stored`: what a client keeps for its person, from `session/stored.json`:
+  the store's keys and prefixes, and the whole key, for the Python, Haskell,
+  Go, TypeScript, Rust, Kotlin, Swift and C# SDKs (OCaml's are its registry
+  facts), each key named as `client/surface.json` names its constant; and for
+  Python and Haskell, an open resource, the last event ids, the cache
+  document, and the queries a client keeps, which are the refresh table's
+  persisted queries, by the identifier each is keyed by. The stored session
+  is a table record (`Table_records`), which each SDK's types write. A key is
+  a camel-case `…Key` stated once, a constant of the surface's registry or
+  redirectSignIn module, and no key begins with a prefix; a cache document is
+  a version and its entries, each a key, a value and a whole-number stamp.
 - `locales`: every language an SDK's interface speaks, from
   `locales/registry.json`, for the TypeScript SDK. A code is two or three
   lower-case letters stated once, with a native and an English name.
