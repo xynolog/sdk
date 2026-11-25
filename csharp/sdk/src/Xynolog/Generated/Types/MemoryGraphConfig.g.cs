@@ -7,6 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MemoryGraphConfig
 {
-    public const string TypeValue = "memory";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.MemoryGraphConfigType Type => global::Xynolog.Types.MemoryGraphConfigType.Memory;
 }

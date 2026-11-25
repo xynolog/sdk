@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobClaimCommand
 {
-    [global::Xynolog.Serialization.Wire("_roles")] public global::System.Collections.Generic.IReadOnlyList<string>? Roles { get; init; }
-    [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
     [global::Xynolog.Serialization.Wire("accepts")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.JobFilter> Accepts { get; init; }
+    [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
+    [global::Xynolog.Serialization.Wire("_roles")] public global::System.Collections.Generic.IReadOnlyList<string>? Roles { get; init; }
 }

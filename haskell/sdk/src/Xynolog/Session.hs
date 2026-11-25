@@ -60,7 +60,6 @@ import Xynolog.Retry qualified as Retry
 import Xynolog.ServiceToken qualified as Service
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.SignIn qualified as SignIn
-import Xynolog.Timing (RetryBudget)
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Tokens qualified as Tokens
 import Xynolog.Transport qualified as Transport
@@ -392,8 +391,10 @@ signInDevice http storage options onCode = do
 -- | An account proves itself to its issuer, and the gateway names that account.
 -- This factory owns the credential callbacks; its ServiceToken remains borrowed.
 -- Its sign-in is the session's own, and names no person, so it keeps nothing.
-signInAgent :: Http.HttpOptions -> SessionOptions -> RetryBudget -> Service.ServiceToken -> IO OpenedSession
-signInAgent http options budget service = Retry.retryWithBackoff (Http.httpTime http) budget accepts delay $ do
+-- It is made once: a sign-in that fails is the service's to start again, on its
+-- own backoff (protocol/contract/WORKER-SERVICE.md, R3).
+signInAgent :: Http.HttpOptions -> SessionOptions -> Service.ServiceToken -> IO OpenedSession
+signInAgent http options service = do
   endpoint <- httpTarget options
   base <-
     either
@@ -426,19 +427,6 @@ signInAgent http options budget service = Retry.retryWithBackoff (Http.httpTime 
       closeOpenedSession opened
       failure <- readIORef refused
       maybe (throwIO (SessionError Code.SessionAuthFailed "The gateway did not confirm the account" (kbTargetId (sessionKb options)))) throwIO failure
-  where
-    accepts :: SomeException -> Bool
-    accepts failure = case fromException failure of
-      Just problem ->
-        transportErrorCode problem /= Code.TransportUnauthorized
-          && (httpStatus problem == Nothing || Retry.retryable Retry.Boot (httpStatus problem) Nothing False)
-      Nothing -> case fromException failure of
-        Just problem ->
-          signInErrorCode problem `elem` [Code.SignInDiscovery, Code.SignInExchange]
-            && (signInStatus problem == Nothing || Retry.retryable Retry.Boot (signInStatus problem) Nothing False)
-        Nothing -> False
-    delay :: SomeException -> Maybe Integer
-    delay failure = fromException failure >>= retryAfterMs
 
 httpTarget :: SessionOptions -> IO HttpEndpoint
 httpTarget options = case kbTargetEndpoint (sessionKb options) of

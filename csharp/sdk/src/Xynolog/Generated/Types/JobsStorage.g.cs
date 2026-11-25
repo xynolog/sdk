@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record JobsStorage
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("bucket")] public required global::Xynolog.Types.JobsStorageBucket Bucket { get; init; }
-    [global::Xynolog.Serialization.Wire("consumer")] public required global::Xynolog.Types.JobsStorageConsumer Consumer { get; init; }
     [global::Xynolog.Serialization.Wire("stream")] public required global::Xynolog.Types.JobsStorageStream Stream { get; init; }
+    [global::Xynolog.Serialization.Wire("consumer")] public required global::Xynolog.Types.JobsStorageConsumer Consumer { get; init; }
+    [global::Xynolog.Serialization.Wire("bucket")] public required global::Xynolog.Types.JobsStorageBucket Bucket { get; init; }
 }

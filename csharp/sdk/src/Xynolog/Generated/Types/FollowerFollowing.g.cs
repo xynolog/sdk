@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record FollowerFollowing
 {
-    [global::Xynolog.Serialization.Wire("refused")] public required long Refused { get; init; }
-    [global::Xynolog.Serialization.Wire("stopped")] public required long Stopped { get; init; }
-    [global::Xynolog.Serialization.Wire("streamDrops")] public required long StreamDrops { get; init; }
     [global::Xynolog.Serialization.Wire("sweep")] public required global::Xynolog.Types.FollowerFollowingSweep Sweep { get; init; }
+    [global::Xynolog.Serialization.Wire("stopped")] public required long Stopped { get; init; }
+    [global::Xynolog.Serialization.Wire("refused")] public required long Refused { get; init; }
+    [global::Xynolog.Serialization.Wire("streamDrops")] public required long StreamDrops { get; init; }
 }

@@ -4,10 +4,11 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(Agent.AgentPersonCase), typeof(Agent.AgentOrganizationCase), typeof(Agent.AgentSoftwareCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(Agent.AgentPerson), typeof(Agent.AgentOrganization), typeof(Agent.AgentSoftware))]
 public closed record Agent
 {
-    public sealed record AgentPersonCase(global::Xynolog.Types.AgentPerson Value) : Agent;
-    public sealed record AgentOrganizationCase(global::Xynolog.Types.AgentOrganization Value) : Agent;
-    public sealed record AgentSoftwareCase(global::Xynolog.Types.AgentSoftware Value) : Agent;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["@type"], null, [new("@type", [new global::Xynolog.Serialization.Literal.Text("Person")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["@type", "name"], null, [new("@type", [new global::Xynolog.Serialization.Literal.Text("Organization")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["@type"], null, [new("@type", [new global::Xynolog.Serialization.Literal.Text("Software")])], null)]];
+    public sealed record AgentPerson(global::Xynolog.Types.AgentPerson Value) : Agent;
+    public sealed record AgentOrganization(global::Xynolog.Types.AgentOrganization Value) : Agent;
+    public sealed record AgentSoftware(global::Xynolog.Types.AgentSoftware Value) : Agent;
 }

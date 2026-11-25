@@ -57,7 +57,7 @@ public final class MarkStateUnit: StateUnit {
       let request = requested.payload
       life.whileOpen {
         pendingAnnotation.set(
-          PendingAnnotation(motivation: request.motivation, selector: request.selector))
+          PendingAnnotation(selector: request.selector, motivation: request.motivation))
       }
     case Channels.markSubmit.name:
       let channel = Channels.markSubmit
@@ -68,8 +68,9 @@ public final class MarkStateUnit: StateUnit {
       else { return }
       let submission = submitted.payload
       let request = CreateAnnotationRequest(
-        body: submission.body, motivation: submission.motivation,
-        target: AnnotationTarget(selector: submission.selector, source: resourceId))
+        motivation: submission.motivation,
+        target: AnnotationTarget(source: resourceId, selector: submission.selector),
+        body: submission.body)
       life.start { [weak self, mark] in
         do {
           _ = try await mark.annotation(request)
@@ -86,7 +87,7 @@ public final class MarkStateUnit: StateUnit {
     life.whileOpen {
       try? bus.emit(
         Channels.markCreateError,
-        ResourceErrorEvent(message: String(describing: error), resourceId: resourceId))
+        ResourceErrorEvent(resourceId: resourceId, message: String(describing: error)))
     }
   }
 
@@ -143,7 +144,7 @@ public final class MarkStateUnit: StateUnit {
       if progress.value == nil { progress.set(JobProgress(percentage: 0)) }
       try? bus.emit(
         Channels.markDelegateTimeout,
-        MarkDelegateTimeoutEvent(motivation: motivation, resourceId: resourceId))
+        MarkDelegateTimeoutEvent(resourceId: resourceId, motivation: motivation))
     }
   }
 

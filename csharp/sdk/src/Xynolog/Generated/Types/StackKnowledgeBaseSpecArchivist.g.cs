@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record StackKnowledgeBaseSpecArchivist
 {
-    [global::Xynolog.Serialization.Wire("address")] public global::Xynolog.Types.HostPort? Address { get; init; }
     [global::Xynolog.Serialization.Wire("image")] public required string Image { get; init; }
     [global::Xynolog.Serialization.Wire("resources")] public required global::Xynolog.Types.Resources Resources { get; init; }
+    [global::Xynolog.Serialization.Wire("address")] public global::Xynolog.Types.HostPort? Address { get; init; }
 }

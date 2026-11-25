@@ -36,6 +36,17 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A member of one integer or boolean is a type of its own, as a member of
+  one string already was: an object, read and written as that value, and
+  the member's default (`ConformanceDriverLineReady.ready` is
+  `ConformanceDriverLineReadyReady`). It was a `Long` or `Boolean` a caller
+  passed, and a builder took.
+- A union is decoded as the one member that admits a value, by what each
+  member's schema states, where one whose members do not each state one
+  value of a property was decoded as the first member, of those read from
+  the value's kind of JSON, that fit. A value that no member admits, but
+  that one member names by its kind and the values it states, is refused for
+  what is wrong with it as that member; one that none names is refused.
 - A stream's place, and each place the bookmarks keep, is an id
   `LastEventIds` holds in its scope, in place of an id held to
   `PersistedEventId` by that schema's name.

@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MatchResourcesRequest
 {
+    [global::Xynolog.Serialization.Wire("search")] public required string Search { get; init; }
     [global::Xynolog.Serialization.Wire("archived")] public bool? Archived { get; init; }
     [global::Xynolog.Serialization.Wire("entityType")] public string? EntityType { get; init; }
-    [global::Xynolog.Serialization.Wire("limit")] public long? Limit { get; init; }
     [global::Xynolog.Serialization.Wire("offset")] public long? Offset { get; init; }
-    [global::Xynolog.Serialization.Wire("search")] public required string Search { get; init; }
+    [global::Xynolog.Serialization.Wire("limit")] public long? Limit { get; init; }
 }

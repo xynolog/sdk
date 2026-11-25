@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KnowledgeIndexSpec
 {
-    [global::Xynolog.Serialization.Wire("embedding")] public required global::Xynolog.Types.KnowledgeIndexSpecEmbedding Embedding { get; init; }
-    [global::Xynolog.Serialization.Wire("graph")] public required global::Xynolog.Types.KnowledgeIndexSpecGraph Graph { get; init; }
     [global::Xynolog.Serialization.Wire("knowledgeBase")] public required string KnowledgeBase { get; init; }
-    [global::Xynolog.Serialization.Wire("librarian")] public required global::Xynolog.Types.KnowledgeIndexSpecLibrarian Librarian { get; init; }
     [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
-    [global::Xynolog.Serialization.Wire("smelter")] public required global::Xynolog.Types.KnowledgeIndexSpecSmelter Smelter { get; init; }
+    [global::Xynolog.Serialization.Wire("graph")] public required global::Xynolog.Types.KnowledgeIndexSpecGraph Graph { get; init; }
     [global::Xynolog.Serialization.Wire("vectors")] public required global::Xynolog.Types.KnowledgeIndexSpecVectors Vectors { get; init; }
+    [global::Xynolog.Serialization.Wire("embedding")] public required global::Xynolog.Types.KnowledgeIndexSpecEmbedding Embedding { get; init; }
+    [global::Xynolog.Serialization.Wire("librarian")] public required global::Xynolog.Types.KnowledgeIndexSpecLibrarian Librarian { get; init; }
+    [global::Xynolog.Serialization.Wire("smelter")] public required global::Xynolog.Types.KnowledgeIndexSpecSmelter Smelter { get; init; }
     [global::Xynolog.Serialization.Wire("weaver")] public required global::Xynolog.Types.KnowledgeIndexSpecWeaver Weaver { get; init; }
 }

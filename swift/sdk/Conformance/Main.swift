@@ -68,10 +68,10 @@ func failure(_ error: any Error) -> ConformanceFailure {
   let detail = String(describing: error)
   return switch error {
   case let error as TransportError:
-    ConformanceFailure(code: error.code, detail: detail, status: error.status)
+    ConformanceFailure(code: error.code, status: error.status, detail: detail)
   case let error as BusRequestError: ConformanceFailure(code: error.code, detail: detail)
   case let error as JobError:
-    ConformanceFailure(code: error.code, detail: detail, failureClass: error.failureClass)
+    ConformanceFailure(code: error.code, failureClass: error.failureClass, detail: detail)
   default: ConformanceFailure(detail: detail)
   }
 }
@@ -156,7 +156,7 @@ private actor Driver {
     } else if let misuse = error as? Misuse {
       await output.say(.misuse(ConformanceDriverLineMisuse(id: id, misuse: misuse.description)))
     } else {
-      await output.say(.failed(ConformanceDriverLineFailed(error: failure(error), id: id)))
+      await output.say(.failed(ConformanceDriverLineFailed(id: id, error: failure(error))))
     }
   }
   func current() throws -> HttpTransport {
@@ -254,8 +254,8 @@ private actor Driver {
                 .frame(
                   ConformanceDriverLineFrame(
                     frame: ConformanceDriverLineFrameFrame(
-                      channel: frame.channel, correlationId: frame.correlationId,
-                      payload: .object(frame.payload), scope: frame.scope))))
+                      channel: frame.channel, payload: .object(frame.payload),
+                      correlationId: frame.correlationId, scope: frame.scope))))
             }
           } catch {}
         })
@@ -354,7 +354,7 @@ private actor Driver {
                 .progress(
                   ConformanceDriverLineProgress(
                     progress: ConformanceDriverLineProgressProgress(
-                      bytesUploaded: sent.bytesUploaded, totalBytes: sent.totalBytes, upload: id))))
+                      upload: id, bytesUploaded: sent.bytesUploaded, totalBytes: sent.totalBytes))))
             }
           } catch {}
         }

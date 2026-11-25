@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record SmelterMessages
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("logged")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.SmelterMessagesLoggedItem> Logged { get; init; }
     [global::Xynolog.Serialization.Wire("refusals")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.SmelterMessagesRefusalsItem> Refusals { get; init; }
+    [global::Xynolog.Serialization.Wire("logged")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.SmelterMessagesLoggedItem> Logged { get; init; }
 }

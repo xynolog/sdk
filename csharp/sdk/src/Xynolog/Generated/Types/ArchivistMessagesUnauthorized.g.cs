@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistMessagesUnauthorized
 {
-    [global::Xynolog.Serialization.Wire("absent")] public required string Absent { get; init; }
+    [global::Xynolog.Serialization.Wire("status")] public required long Status { get; init; }
     [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
     [global::Xynolog.Serialization.Wire("presented")] public required string Presented { get; init; }
-    [global::Xynolog.Serialization.Wire("status")] public required long Status { get; init; }
+    [global::Xynolog.Serialization.Wire("absent")] public required string Absent { get; init; }
 }

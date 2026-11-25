@@ -9,7 +9,7 @@ public sealed record GatheredContext
 {
     [global::Xynolog.Serialization.Wire("focus")] public required global::Xynolog.Types.GatheredContextFocus Focus { get; init; }
     [global::Xynolog.Serialization.Wire("graph")] public required global::Xynolog.Types.KnowledgeGraph Graph { get; init; }
-    [global::Xynolog.Serialization.Wire("inferredRelationshipSummary")] public string? InferredRelationshipSummary { get; init; }
-    [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.GatheredContextMetadata Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("semanticContext")] public global::Xynolog.Types.GatheredContextSemanticContext? SemanticContext { get; init; }
+    [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.GatheredContextMetadata Metadata { get; init; }
+    [global::Xynolog.Serialization.Wire("inferredRelationshipSummary")] public string? InferredRelationshipSummary { get; init; }
 }

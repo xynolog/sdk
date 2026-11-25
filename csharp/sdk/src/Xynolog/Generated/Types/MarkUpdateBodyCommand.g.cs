@@ -9,6 +9,6 @@ public sealed record MarkUpdateBodyCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
     [global::Xynolog.Serialization.Wire("annotationId")] public required global::Xynolog.Identifiers.AnnotationId AnnotationId { get; init; }
-    [global::Xynolog.Serialization.Wire("operations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.BodyOperation> Operations { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("operations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.BodyOperation> Operations { get; init; }
 }

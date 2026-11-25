@@ -17,7 +17,7 @@ exception Refused of string
 (* The model a row names by its [$id], by its file's stem. *)
 let model (models : Models.t) id =
   let name = Filename.remove_extension (Filename.basename id) in
-  if List.exists (fun (n, _, _) -> n = name) models.models then
+  if List.exists (fun (n, _) -> n = name) models.models then
     C.T ("global::Xynolog.Types." ^ name)
   else
     raise

@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record UnitCursor
 {
-    [global::Xynolog.Serialization.Wire("emitted")] public required long Emitted { get; init; }
-    [global::Xynolog.Serialization.Wire("errors")] public required long Errors { get; init; }
-    [global::Xynolog.Serialization.Wire("found")] public required long Found { get; init; }
     [global::Xynolog.Serialization.Wire("next")] public required long Next { get; init; }
     [global::Xynolog.Serialization.Wire("size")] public required long Size { get; init; }
+    [global::Xynolog.Serialization.Wire("found")] public required long Found { get; init; }
+    [global::Xynolog.Serialization.Wire("emitted")] public required long Emitted { get; init; }
+    [global::Xynolog.Serialization.Wire("errors")] public required long Errors { get; init; }
 }

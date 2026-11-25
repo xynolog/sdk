@@ -7,11 +7,11 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceTelemetryTelemetryMetricsItem
 {
-    [global::Xynolog.Serialization.Wire("attributes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItemAttributesItem> Attributes { get; init; }
-    [global::Xynolog.Serialization.Wire("instrument")] public required global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItemInstrument Instrument { get; init; }
-    [global::Xynolog.Serialization.Wire("meaning")] public required string Meaning { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("planes")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItemPlanesItem>? Planes { get; init; }
     [global::Xynolog.Serialization.Wire("services")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItemServicesItem> Services { get; init; }
+    [global::Xynolog.Serialization.Wire("instrument")] public required global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItemInstrument Instrument { get; init; }
     [global::Xynolog.Serialization.Wire("when")] public required global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItemWhen When { get; init; }
+    [global::Xynolog.Serialization.Wire("planes")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItemPlanesItem>? Planes { get; init; }
+    [global::Xynolog.Serialization.Wire("meaning")] public required string Meaning { get; init; }
+    [global::Xynolog.Serialization.Wire("attributes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItemAttributesItem> Attributes { get; init; }
 }

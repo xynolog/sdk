@@ -21,10 +21,32 @@ public sealed interface OneOrMoreStrings {
     }
 }
 
-internal object OneOrMoreStringsSerializer : KindsUnionSerializer<OneOrMoreStrings>(
+internal object OneOrMoreStringsSerializer : SignatureUnionSerializer<OneOrMoreStrings>(
     OneOrMoreStrings::class,
-    strings = { listOf(OneOrMoreStrings.Text.serializer()) },
-    scalars = { emptyList() },
-    arrays = { listOf(OneOrMoreStrings.List.serializer()) },
-    objects = { emptyList() },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.TEXT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.LIST,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            OneOrMoreStrings.Text.serializer(),
+            OneOrMoreStrings.List.serializer(),
+        )
+    },
 )

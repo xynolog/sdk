@@ -7,10 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatewayMediaTokenClaims
 {
-    public const string IssValue = "{domain}";
-    [global::Xynolog.Serialization.Wire("iss")] public string Iss => IssValue;
-    public const string PurposeValue = "media";
-    [global::Xynolog.Serialization.Wire("purpose")] public string Purpose => PurposeValue;
-    public const string SubValue = "{resourceId}";
-    [global::Xynolog.Serialization.Wire("sub")] public string Sub => SubValue;
+    [global::Xynolog.Serialization.Wire("purpose")] public global::Xynolog.Types.GatewayMediaTokenClaimsPurpose Purpose => global::Xynolog.Types.GatewayMediaTokenClaimsPurpose.Media;
+    [global::Xynolog.Serialization.Wire("iss")] public global::Xynolog.Types.GatewayMediaTokenClaimsIss Iss => global::Xynolog.Types.GatewayMediaTokenClaimsIss.Domain;
+    [global::Xynolog.Serialization.Wire("sub")] public global::Xynolog.Types.GatewayMediaTokenClaimsSub Sub => global::Xynolog.Types.GatewayMediaTokenClaimsSub.ResourceId;
 }

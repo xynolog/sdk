@@ -75,8 +75,8 @@ private struct StoreEntry: SignInKept {
       !refresh.isEmpty
     else { return nil }
     return StoredSession(
-      access: entry.token, clientId: scriptClientID, refresh: refresh,
-      revocationEndpoint: entry.revocationEndpoint, tokenEndpoint: entry.tokenEndpoint)
+      access: entry.token, refresh: refresh, clientId: scriptClientID,
+      tokenEndpoint: entry.tokenEndpoint, revocationEndpoint: entry.revocationEndpoint)
   }
   private func written(_ before: SignIn, access: String, refresh: String) throws -> JSONValue {
     var entry = before
@@ -96,9 +96,9 @@ private struct StoreEntry: SignInKept {
       throw SignInError(.exchange, "The access token names no issuer")
     }
     let learned = SignIn(
-      email: textClaim(signIn.access, name: "email"), issuer: issuer,
-      obtainedAt: Date().formatted(.iso8601), revocationEndpoint: signIn.revocationEndpoint,
-      token: signIn.access, tokenEndpoint: signIn.tokenEndpoint)
+      token: signIn.access, email: textClaim(signIn.access, name: "email"),
+      obtainedAt: Date().formatted(.iso8601), issuer: issuer,
+      tokenEndpoint: signIn.tokenEndpoint, revocationEndpoint: signIn.revocationEndpoint)
     let value = try written(learned, access: signIn.access, refresh: signIn.refresh)
     try await spawnDetached {
       try store.change { document in

@@ -7,14 +7,14 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ResourceClonedPayload
 {
-    [global::Xynolog.Serialization.Wire("contentByteSize")] public long? ContentByteSize { get; init; }
-    [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
-    [global::Xynolog.Serialization.Wire("creator")] public global::Xynolog.Types.Agent? Creator { get; init; }
-    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
-    [global::Xynolog.Serialization.Wire("format")] public required string Format { get; init; }
-    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("parentResourceId")] public required global::Xynolog.Identifiers.ResourceId ParentResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("format")] public required string Format { get; init; }
+    [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
+    [global::Xynolog.Serialization.Wire("contentByteSize")] public long? ContentByteSize { get; init; }
     [global::Xynolog.Serialization.Wire("storageUri")] public string? StorageUri { get; init; }
+    [global::Xynolog.Serialization.Wire("parentResourceId")] public required global::Xynolog.Identifiers.ResourceId ParentResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
+    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
+    [global::Xynolog.Serialization.Wire("creator")] public global::Xynolog.Types.Agent? Creator { get; init; }
     [global::Xynolog.Serialization.Wire("wasAttributedTo")] public global::Xynolog.Types.OneOrMoreAgents? WasAttributedTo { get; init; }
 }

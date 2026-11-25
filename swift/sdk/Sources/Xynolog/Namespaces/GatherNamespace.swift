@@ -14,7 +14,7 @@ public struct GatherNamespace: Sendable {
     var options = options ?? GatherAnnotationOptions()
     if options.contextWindow == nil { options.contextWindow = 2000 }
     let request = GatherAnnotationRequest(
-      annotationId: annotationId, options: options, resourceId: resourceId)
+      annotationId: annotationId, resourceId: resourceId, options: options)
     return Running(lifetime: lifetime) { _ in
       try await wire.request(Operations.gatherRequested, request)
     }
@@ -24,13 +24,13 @@ public struct GatherNamespace: Sendable {
   {
     let excluded = options?.excludeEntityTypes.flatMap { $0.isEmpty ? nil : $0 }
     let options = GatherResourceRequestOptions(
-      depth: options?.depth ?? 2, excludeEntityTypes: excluded,
+      depth: options?.depth ?? 2, maxResources: options?.maxResources ?? 10,
       includeContent: options?.includeContent ?? true,
       includeSummary: options?.includeSummary ?? false,
-      maxResources: options?.maxResources ?? 10)
+      excludeEntityTypes: excluded)
     return try await wire.request(
       Operations.gatherResourceRequested,
-      GatherResourceRequest(options: options, resourceId: resourceId)
+      GatherResourceRequest(resourceId: resourceId, options: options)
     ).response
   }
 }

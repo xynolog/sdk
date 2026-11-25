@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GetAnnotationHistoryResponse
 {
-    [global::Xynolog.Serialization.Wire("annotationId")] public required global::Xynolog.Identifiers.AnnotationId AnnotationId { get; init; }
     [global::Xynolog.Serialization.Wire("events")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.AttributedEvent> Events { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("total")] public required double Total { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationId")] public required global::Xynolog.Identifiers.AnnotationId AnnotationId { get; init; }
+    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
 }

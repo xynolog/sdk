@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WorkerMessagesDetailsItem
 {
-    [global::Xynolog.Serialization.Wire("detail")] public required string Detail { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("situation")] public required string Situation { get; init; }
+    [global::Xynolog.Serialization.Wire("detail")] public required string Detail { get; init; }
 }

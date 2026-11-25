@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceStepFrames
 {
-    [global::Xynolog.Serialization.Wire("count")] public required long Count { get; init; }
     [global::Xynolog.Serialization.Wire("frames")] public required string Frames { get; init; }
+    [global::Xynolog.Serialization.Wire("count")] public required long Count { get; init; }
 }

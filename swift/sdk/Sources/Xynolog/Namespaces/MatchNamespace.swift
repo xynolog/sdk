@@ -15,7 +15,7 @@ public struct MatchNamespace: Sendable {
   ) -> Running<MatchSearchResult> {
     search(
       MatchSearchRequest(
-        context: context, limit: options.limit, referenceId: referenceId, resourceId: resourceId,
+        resourceId: resourceId, referenceId: referenceId, context: context, limit: options.limit,
         useSemanticScoring: options.useSemanticScoring))
   }
 

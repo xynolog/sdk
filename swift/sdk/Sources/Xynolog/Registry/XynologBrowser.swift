@@ -186,7 +186,7 @@ public actor XynologBrowser {
   ) async throws -> KnowledgeBase {
     try requireOpen()
     let kb = KnowledgeBase(
-      did: input.did, endpoint: input.endpoint, id: UUID().uuidString, label: input.label,
+      id: UUID().uuidString, label: input.label, endpoint: input.endpoint, did: input.did,
       lastRead: input.lastRead)
     try storeSession(storage, kbId: kb.id, session: session)
     do {
@@ -313,11 +313,11 @@ public actor XynologBrowser {
         kb = bases[index]
       } else {
         kb = KnowledgeBase(
-          did: did, endpoint: signed.endpoint, id: UUID().uuidString,
-          label: signed.description.name, lastRead: read)
+          id: UUID().uuidString, label: signed.description.name, endpoint: signed.endpoint,
+          did: did, lastRead: read)
         bases.append(kb)
       }
-      result.withLock { $0 = SignInOutcome(expected: expected, kb: kb) }
+      result.withLock { $0 = SignInOutcome(kb: kb, expected: expected) }
     }
     guard let outcome = result.withLock({ $0 }) else {
       throw BusRequestError(.busRejected, "Storage did not register the signed-in knowledge base")
@@ -514,7 +514,7 @@ public actor XynologBrowser {
       let order = lastOrder == Int.max ? lastOrder : lastOrder + 1
       open.append(
         OpenResource(
-          id: id, mediaType: mediaType, name: name, openedAt: now, order: order,
+          id: id, name: name, openedAt: now, order: order, mediaType: mediaType,
           storageUri: storageUri))
     }
   }
@@ -660,7 +660,7 @@ public func completeSignIn(
     random: browser.random)
   return try await browser.signedIn(
     SignedIn(
-      description: identity.description, endpoint: .httpEndpoint(pending.target),
-      expectedDid: pending.expectedDid, expectedName: pending.expectedName, kbId: pending.kbId,
-      session: session))
+      endpoint: .httpEndpoint(pending.target), description: identity.description,
+      session: session, kbId: pending.kbId, expectedDid: pending.expectedDid,
+      expectedName: pending.expectedName))
 }

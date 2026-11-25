@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record WorkerMessagesBootItemOwnBootRefusal
 {
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("refusal")] public required string Refusal { get; init; }
     [global::Xynolog.Serialization.Wire("situation")] public required string Situation { get; init; }
+    [global::Xynolog.Serialization.Wire("refusal")] public required string Refusal { get; init; }
 }

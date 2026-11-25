@@ -31,7 +31,7 @@ func generate(
   let context = try await client.gather.resource(resource)
   let run = try client.yield.delegate(
     params: GenerationJobParams(
-      context: context, storageUri: "file://summary.md", title: "Summary"))
+      title: "Summary", storageUri: "file://summary.md", context: context))
   return try await run.completed()
 }
 // README examples end

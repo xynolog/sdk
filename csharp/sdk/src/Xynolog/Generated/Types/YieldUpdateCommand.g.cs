@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record YieldUpdateCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
-    [global::Xynolog.Serialization.Wire("byteSize")] public required long ByteSize { get; init; }
-    [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("storageUri")] public required string StorageUri { get; init; }
+    [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
+    [global::Xynolog.Serialization.Wire("byteSize")] public required long ByteSize { get; init; }
 }

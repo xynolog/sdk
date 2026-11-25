@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MarkUpdateEntityTypesCommand
 {
+    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
     [global::Xynolog.Serialization.Wire("currentEntityTypes")] public required global::System.Collections.Generic.IReadOnlyList<string> CurrentEntityTypes { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("updatedEntityTypes")] public required global::System.Collections.Generic.IReadOnlyList<string> UpdatedEntityTypes { get; init; }
 }

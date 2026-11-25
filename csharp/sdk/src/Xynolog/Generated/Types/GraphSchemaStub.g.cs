@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GraphSchemaStub
 {
-    [global::Xynolog.Serialization.Wire("marker")] public required string Marker { get; init; }
     [global::Xynolog.Serialization.Wire("node")] public required string Node { get; init; }
+    [global::Xynolog.Serialization.Wire("marker")] public required string Marker { get; init; }
 }

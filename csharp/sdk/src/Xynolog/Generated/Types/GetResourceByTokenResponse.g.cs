@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GetResourceByTokenResponse
 {
-    [global::Xynolog.Serialization.Wire("expiresAt")] public required string ExpiresAt { get; init; }
     [global::Xynolog.Serialization.Wire("sourceResource")] public required global::Xynolog.Types.ResourceDescriptor SourceResource { get; init; }
+    [global::Xynolog.Serialization.Wire("expiresAt")] public required string ExpiresAt { get; init; }
 }

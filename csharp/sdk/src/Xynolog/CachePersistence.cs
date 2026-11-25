@@ -387,19 +387,20 @@ internal sealed class LiveCacheStorage(CachePersistence persistence, TimeProvide
         if (pendingPlaces.Count == 0) return;
         var places = ReadPlaces(named);
         foreach (var (scope, id) in pendingPlaces) places[scope] = id;
-        if (Set(RegistryStorage.LastEventIdKey(persistence.KbId, named), JsonSerializer.Serialize(new LastEventIds { AdditionalProperties = places })))
+        if (Set(RegistryStorage.LastEventIdKey(persistence.KbId, named), JsonSerializer.Serialize<IReadOnlyDictionary<ResourceId, string>>(places)))
             pendingPlaces.Clear();
     }
 
-    /// <summary>The places kept for <paramref name="named"/>: each pair <see cref="LastEventIds"/> holds, and none of
+    /// <summary>The places kept for <paramref name="named"/>: each pair the schema LastEventIds holds, and none of
     /// what is no object.</summary>
     private Dictionary<ResourceId, string> ReadPlaces(string named)
     {
         var places = new Dictionary<ResourceId, string>();
         if (Parse(Get(RegistryStorage.LastEventIdKey(persistence.KbId, named))) is not { ValueKind: JsonValueKind.Object } read) return places;
         foreach (var place in read.EnumerateObject())
-            if (Required.TryRead<LastEventIds>(JsonSerializer.SerializeToElement(new Dictionary<string, JsonElement> { [place.Name] = place.Value }), out var pair, out _))
-                foreach (var (scope, id) in pair.AdditionalProperties) places[scope] = id;
+            if (Required.FaultOf("LastEventIds", JsonSerializer.SerializeToElement(new Dictionary<string, JsonElement> { [place.Name] = place.Value }), out var pair) is null)
+                foreach (var (scope, id) in pair.Deserialize<Dictionary<ResourceId, string>>() ?? throw new JsonException("LastEventIds is null."))
+                    places[scope] = id;
         return places;
     }
 

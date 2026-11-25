@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AnchoredTextExtractedEntryLinesItem
 {
-    [global::Xynolog.Serialization.Wire("h")] public required double H { get; init; }
     [global::Xynolog.Serialization.Wire("p")] public required long P { get; init; }
-    [global::Xynolog.Serialization.Wire("words")] public required global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<double>> Words { get; init; }
     [global::Xynolog.Serialization.Wire("y")] public required double Y { get; init; }
+    [global::Xynolog.Serialization.Wire("h")] public required double H { get; init; }
+    [global::Xynolog.Serialization.Wire("words")] public required global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<double>> Words { get; init; }
 }

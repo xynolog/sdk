@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record BindInitiateCommand
 {
     [global::Xynolog.Serialization.Wire("annotationId")] public required global::Xynolog.Identifiers.AnnotationId AnnotationId { get; init; }
+    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("defaultTitle")] public required string DefaultTitle { get; init; }
     [global::Xynolog.Serialization.Wire("entityTypes")] public required global::System.Collections.Generic.IReadOnlyList<string> EntityTypes { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
 }

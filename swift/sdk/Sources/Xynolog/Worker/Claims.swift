@@ -93,13 +93,15 @@ public actor Claims: AsyncSequence {
   public func health(of engine: Engine) -> WorkerEngineHealth {
     let vitals = currentVitals
     return WorkerEngineHealth(
-      activeJob: vitals.activeJob.map {
-        WorkerEngineHealthActiveJob(jobId: $0.jobId, since: dateTime($0.since), type: $0.jobType)
-      }, engine: engine, jobs: options.accepts, jobsCompleted: vitals.jobsCompleted,
-      lastActivityAt: vitals.lastActivityAt.map(dateTime),
+      engine: engine, jobs: options.accepts,
+      lastQueuedEventAt: vitals.lastQueuedEventAt.map(dateTime),
       lastClaimAt: vitals.lastClaimAt.map(dateTime),
       lastFinishedAt: vitals.lastFinishedAt.map(dateTime),
-      lastQueuedEventAt: vitals.lastQueuedEventAt.map(dateTime))
+      lastActivityAt: vitals.lastActivityAt.map(dateTime),
+      activeJob: vitals.activeJob.map {
+        WorkerEngineHealthActiveJob(jobId: $0.jobId, type: $0.jobType, since: dateTime($0.since))
+      },
+      jobsCompleted: vitals.jobsCompleted)
   }
 
   private let iterated = Mutex(false)

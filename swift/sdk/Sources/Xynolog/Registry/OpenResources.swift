@@ -22,7 +22,7 @@ public func applyTabChecks(
 func checkOpenResource(_ client: XynologClient, id: ResourceId) async -> TabCheck {
   do {
     let descriptor = try await client.browse.resource(id).fresh()
-    return .ready(TabCheckReady(mediaType: primaryMediaType(descriptor), name: descriptor.name))
+    return .ready(TabCheckReady(name: descriptor.name, mediaType: primaryMediaType(descriptor)))
   } catch let error as BusRequestError where error.reason == .busNotFound {
     return .gone(TabCheckGone())
   } catch {

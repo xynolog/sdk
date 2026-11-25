@@ -205,10 +205,10 @@ public actor HttpTransport: Transport, GatewayOperations {
     if live == nil { transition(.connecting) }
     let scoped = holds.keys.sorted { $0.value < $1.value }.map { resource in
       BusSubscribeRequestScopedItem(
-        channels: resourceScopedChannels, lastEventId: watermarks[resource], scope: resource)
+        scope: resource, channels: resourceScopedChannels, lastEventId: watermarks[resource])
     }
     let body = BusSubscribeRequest(
-      clientId: clientID, global: channels, pendingReplies: pending.keys.sorted(), scoped: scoped)
+      global: channels, pendingReplies: pending.keys.sorted(), scoped: scoped, clientId: clientID)
     let id = UUID()
     let http = self.http
     let base = baseUrl

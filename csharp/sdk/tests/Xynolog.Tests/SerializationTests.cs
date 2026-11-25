@@ -21,7 +21,7 @@ public sealed class SerializationTests
     }
 
     [Theory]
-    [InlineData("JobStoredResultObject", "{\"unexpected\":1}", "maxProperties")]
+    [InlineData("JobStoredResultEmpty", "{\"unexpected\":1}", "maxProperties")]
     [InlineData("CommandError", "{}", "message")]
     [InlineData("CommandError", "{\"message\":null}", "message")]
     [InlineData("CommandError", "{\"message\":3}", "message")]
@@ -47,6 +47,13 @@ public sealed class SerializationTests
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ResourceId>("42"));
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ResourceId>("null"));
         Assert.DoesNotContain(typeof(ResourceId).GetConstructors(), constructor => constructor.GetParameters().Length > 0);
+    }
+
+    [Fact]
+    public void AnUnsetJsonMemberIsRefusedWhenWritten()
+    {
+        var refused = Assert.Throws<JsonException>(() => JsonSerializer.Serialize(Activator.CreateInstance<Xynolog.Types.ArchivistLayoutStorageUriIndex>()));
+        Assert.Equal("ArchivistLayoutStorageUriIndex.schema is unset.", refused.Message);
     }
 
     private static Type Model(string name) => Assembly.Load("Xynolog").GetType("Xynolog.Types." + name)

@@ -11,8 +11,8 @@ internal static class ResourceReaders
     /// none.</summary>
     internal static Representation? PrimaryRepresentation(ResourceDescriptor resource) => resource.Representations switch
     {
-        ResourceDescriptorRepresentations.RepresentationCase(var only) => only,
-        ResourceDescriptorRepresentations.ArrayCase(var listed) => listed.FirstOrDefault(),
+        ResourceDescriptorRepresentations.Representation(var only) => only,
+        ResourceDescriptorRepresentations.List(var listed) => listed.FirstOrDefault(),
     };
 
     /// <summary>The media type of a resource's primary representation, as it is stated. Null for a resource with

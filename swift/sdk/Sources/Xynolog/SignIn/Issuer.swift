@@ -153,8 +153,9 @@ func discoverIssuer(_ gateway: String, http: HTTPClient, clock: any Clock<Durati
       .discovery, "The issuer did not answer its OpenID configuration", status: document.status)
   }
   return PendingAuthorizationIssuer(
-    authorization: authorization, device: document.text("device_authorization_endpoint"),
-    issuer: issuer, revocation: document.text("revocation_endpoint"), token: token)
+    issuer: issuer, authorization: authorization, token: token,
+    device: document.text("device_authorization_endpoint"),
+    revocation: document.text("revocation_endpoint"))
 }
 public func signInDevice(
   kb: KbTarget, kept: any SignInKept, httpClient: HTTPClient,
@@ -178,8 +179,8 @@ public func signInDevice(
   }
   onCode(
     DeviceCode(
-      expiresIn: expires, userCode: userCode, verificationUri: uri,
-      verificationUriComplete: answer.text("verification_uri_complete")))
+      userCode: userCode, verificationUri: uri,
+      verificationUriComplete: answer.text("verification_uri_complete"), expiresIn: expires))
   var interval = max(
     answer.seconds("interval") ?? Double(Timings.devicePollMs) / 1000,
     Double(Timings.devicePollFloorMs) / 1000)
@@ -205,8 +206,8 @@ public func signInDevice(
       }
       try await kept.keep(
         StoredSession(
-          access: access, clientId: scriptClientID, refresh: refresh,
-          revocationEndpoint: issuer.revocation, tokenEndpoint: issuer.token))
+          access: access, refresh: refresh, clientId: scriptClientID,
+          tokenEndpoint: issuer.token, revocationEndpoint: issuer.revocation))
       return
     }
     switch polled.text("error") {

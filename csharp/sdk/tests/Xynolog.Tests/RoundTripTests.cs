@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Xynolog.Serialization;
+using Xynolog.Types;
 using Xunit;
 
 namespace Xynolog.Tests;
@@ -82,6 +84,50 @@ public sealed class RoundTripTests
         Assert.True(failures.Count == 0, string.Join("\n", failures));
         Assert.Equal(3, refused);
         Assert.True(held >= 150, "Only " + held + " corpus payloads were checked");
+    }
+
+    [Fact]
+    public void EveryConformanceCaseRoundTrips()
+    {
+        var corpus = Path.Combine(AppContext.BaseDirectory, "corpus");
+        var cases = new[] { "sdk", "worker" }
+            .SelectMany(plane => Directory.GetFiles(Path.Combine(corpus, plane), "*.json", SearchOption.AllDirectories))
+            .ToArray();
+        Assert.True(cases.Length >= 100, cases.Length + " conformance cases");
+        Assert.All(cases, file =>
+        {
+            var source = JsonNode.Parse(File.ReadAllText(file));
+            var back = JsonSerializer.SerializeToNode(source.Deserialize<ConformanceCase>());
+            Assert.True(JsonNode.DeepEquals(source, back), Path.GetFileName(file) + " became " + back);
+        });
+    }
+
+    [Fact]
+    public void WhatAModelWritesItReadsBack()
+    {
+        var models = typeof(ConformanceCase).Assembly.GetTypes()
+            .Where(type => type.Namespace == "Xynolog.Types" && type.GetCustomAttribute<WireObjectAttribute>() is not null)
+            .ToArray();
+        var written = 0;
+        var refused = 0;
+        foreach (var type in models)
+        {
+            JsonElement wire;
+            try
+            {
+                wire = JsonSerializer.SerializeToElement(Activator.CreateInstance(type), type);
+            }
+            catch (JsonException)
+            {
+                refused++;
+                continue;
+            }
+            written++;
+            var back = JsonSerializer.SerializeToElement(JsonSerializer.Deserialize(wire, type), type);
+            Assert.True(JsonElement.DeepEquals(wire, back), type.Name + " wrote " + wire.GetRawText() + " and read back " + back.GetRawText());
+        }
+        Assert.True(refused > 400, refused + " unset models refused");
+        Assert.True(written > 15, written + " unset models written");
     }
 
     private static void RemoveMissingStamps(JsonNode read, JsonNode? written)

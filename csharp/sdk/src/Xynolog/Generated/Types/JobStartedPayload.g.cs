@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobStartedPayload
 {
-    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
     [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
     [global::Xynolog.Serialization.Wire("jobType")] public required global::Xynolog.Types.JobType JobType { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
     [global::Xynolog.Serialization.Wire("totalSteps")] public long? TotalSteps { get; init; }
 }

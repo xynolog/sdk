@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record DispatcherMessages
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("errors")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DispatcherMessagesErrorsItem> Errors { get; init; }
     [global::Xynolog.Serialization.Wire("refusals")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DispatcherMessagesRefusalsItem> Refusals { get; init; }
+    [global::Xynolog.Serialization.Wire("errors")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DispatcherMessagesErrorsItem> Errors { get; init; }
 }

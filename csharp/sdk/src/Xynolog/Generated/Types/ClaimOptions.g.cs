@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record ClaimOptions
 {
     [global::Xynolog.Serialization.Wire("accepts")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.JobFilter> Accepts { get; init; }
-    [global::Xynolog.Serialization.Wire("heldJobStallCheckMs")] public long? HeldJobStallCheckMs { get; init; }
-    [global::Xynolog.Serialization.Wire("heldJobStallMs")] public long? HeldJobStallMs { get; init; }
     [global::Xynolog.Serialization.Wire("jobClaimTimeoutMs")] public long? JobClaimTimeoutMs { get; init; }
+    [global::Xynolog.Serialization.Wire("heldJobStallMs")] public long? HeldJobStallMs { get; init; }
+    [global::Xynolog.Serialization.Wire("heldJobStallCheckMs")] public long? HeldJobStallCheckMs { get; init; }
     [global::Xynolog.Serialization.Wire("markCommitTimeoutMs")] public long? MarkCommitTimeoutMs { get; init; }
 }

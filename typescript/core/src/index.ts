@@ -442,16 +442,14 @@ export { faultOf, isPlace, isSchemaName, said, type Fault } from './required';
 export { deriveViews } from './knowledge-graph-views';
 export type { GraphViews } from './knowledge-graph-views';
 
-// Bounded retry with backoff — startup connections from long-running peers
-// to the gateway.
+// Bounded retry with backoff, inside a budget client timing states.
 export {
   retryWithBackoff,
   equalJitter,
   isRetryableRequestError,
   retryAfterMs,
-  STARTUP_FETCH_RETRY,
 } from './retry';
-export type { HttpStatusError, RetryPolicy, RetryAttemptInfo } from './retry';
+export type { HttpStatusError, RetryPolicy } from './retry';
 
 // Browser ↔ launcher KB discovery — the canonical served URL of the
 // launcher's discovery document.

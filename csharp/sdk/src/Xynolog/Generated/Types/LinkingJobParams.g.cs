@@ -7,10 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record LinkingJobParams
 {
+    [global::Xynolog.Serialization.Wire("motivation")] public global::Xynolog.Types.LinkingJobParamsMotivation Motivation => global::Xynolog.Types.LinkingJobParamsMotivation.Linking;
     [global::Xynolog.Serialization.Wire("entityTypes")] public required global::System.Collections.Generic.IReadOnlyList<string> EntityTypes { get; init; }
     [global::Xynolog.Serialization.Wire("includeDescriptiveReferences")] public bool? IncludeDescriptiveReferences { get; init; }
     [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
-    public const string MotivationValue = "linking";
-    [global::Xynolog.Serialization.Wire("motivation")] public string Motivation => MotivationValue;
     [global::Xynolog.Serialization.Wire("sourceLanguage")] public string? SourceLanguage { get; init; }
 }

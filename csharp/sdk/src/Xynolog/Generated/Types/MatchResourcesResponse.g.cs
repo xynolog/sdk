@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MatchResourcesResponse
 {
-    [global::Xynolog.Serialization.Wire("limit")] public required long Limit { get; init; }
-    [global::Xynolog.Serialization.Wire("matchKind")] public required global::Xynolog.Types.MatchResourcesResponseMatchKind MatchKind { get; init; }
-    [global::Xynolog.Serialization.Wire("offset")] public required long Offset { get; init; }
     [global::Xynolog.Serialization.Wire("resources")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ResourceDescriptor> Resources { get; init; }
     [global::Xynolog.Serialization.Wire("total")] public required long Total { get; init; }
+    [global::Xynolog.Serialization.Wire("offset")] public required long Offset { get; init; }
+    [global::Xynolog.Serialization.Wire("limit")] public required long Limit { get; init; }
+    [global::Xynolog.Serialization.Wire("matchKind")] public required global::Xynolog.Types.MatchResourcesResponseMatchKind MatchKind { get; init; }
 }

@@ -83,7 +83,7 @@ function named(): Response {
 }
 
 function makeLogger() {
-  return { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+  return { info: vi.fn(), error: vi.fn() };
 }
 
 function start(logger = makeLogger()) {
@@ -161,33 +161,22 @@ describe('startAgentSession', () => {
     expect(gateway).not.toHaveBeenCalled();
   });
 
-  it('a connection failure is retried with backoff until the gateway answers', async () => {
-    const token = tokenExpiringIn(5 * 60 * 1000, 'after-retry');
-    grant.mockImplementation(() => granted(token, 5 * 60 * 1000));
-    gateway
-      .mockRejectedValueOnce(
-        Object.assign(new TypeError('fetch failed'), {
-          cause: { code: 'ECONNREFUSED' },
-        }),
-      )
-      .mockImplementationOnce(async () => named());
-    const logger = makeLogger();
-
-    const starting = start(logger);
-    // STARTUP_FETCH_RETRY's first wait is jittered inside [500, 1000) ms.
-    await vi.advanceTimersByTimeAsync(1_000);
-    session = await starting;
-
-    expect(gateway).toHaveBeenCalledTimes(2);
-    expect(session.token$.getValue()).toBe(token);
-    expect(logger.warn).toHaveBeenCalledWith(
-      'Gateway unreachable, retrying authentication',
-      // Which request got no answer, and the code the runtime gave the failed connection.
-      expect.objectContaining({
-        attempt: 1,
-        error: 'http://gateway.test/api/users/me got no answer: ECONNREFUSED',
+  it('a gateway that cannot be reached fails the sign-in at once, and is asked nothing more', async () => {
+    grant.mockReturnValueOnce(
+      granted(tokenExpiringIn(5 * 60 * 1000, 'first'), 5 * 60 * 1000),
+    );
+    gateway.mockRejectedValueOnce(
+      Object.assign(new TypeError('fetch failed'), {
+        cause: { code: 'ECONNREFUSED' },
       }),
     );
+
+    // Which request got no answer, and the code the runtime gave the failed connection.
+    await expect(start()).rejects.toThrow(
+      'http://gateway.test/api/users/me got no answer: ECONNREFUSED',
+    );
+    expect(grant).toHaveBeenCalledTimes(1);
+    expect(gateway).toHaveBeenCalledTimes(1);
   });
 
   it('refresh(refused) of the token it holds asks the issuer for a new grant, pushes it, and asks the gateway nothing', async () => {

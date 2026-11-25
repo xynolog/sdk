@@ -4,10 +4,11 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(ResourceDescriptorContext.TextCase), typeof(ResourceDescriptorContext.ObjectCase), typeof(ResourceDescriptorContext.ArrayCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(ResourceDescriptorContext.Text), typeof(ResourceDescriptorContext.Object), typeof(ResourceDescriptorContext.List))]
 public closed record ResourceDescriptorContext
 {
-    public sealed record TextCase(string Value) : ResourceDescriptorContext;
-    public sealed record ObjectCase(global::System.Text.Json.JsonElement Value) : ResourceDescriptorContext;
-    public sealed record ArrayCase(global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ResourceDescriptorContextArrayItem> Value) : ResourceDescriptorContext;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Text, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.Object, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.List, [], null, [], null)]];
+    public sealed record Text(string Value) : ResourceDescriptorContext;
+    public sealed record Object(global::System.Text.Json.JsonElement Value) : ResourceDescriptorContext;
+    public sealed record List(global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ResourceDescriptorContextItem> Value) : ResourceDescriptorContext;
 }

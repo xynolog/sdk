@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistEnginesJobsMark
 {
-    [global::Xynolog.Serialization.Wire("assessing")] public global::Xynolog.Types.Engine? Assessing { get; init; }
-    [global::Xynolog.Serialization.Wire("commenting")] public global::Xynolog.Types.Engine? Commenting { get; init; }
     [global::Xynolog.Serialization.Wire("highlighting")] public global::Xynolog.Types.Engine? Highlighting { get; init; }
+    [global::Xynolog.Serialization.Wire("commenting")] public global::Xynolog.Types.Engine? Commenting { get; init; }
+    [global::Xynolog.Serialization.Wire("assessing")] public global::Xynolog.Types.Engine? Assessing { get; init; }
     [global::Xynolog.Serialization.Wire("linking")] public global::Xynolog.Types.Engine? Linking { get; init; }
     [global::Xynolog.Serialization.Wire("tagging")] public global::Xynolog.Types.Engine? Tagging { get; init; }
 }

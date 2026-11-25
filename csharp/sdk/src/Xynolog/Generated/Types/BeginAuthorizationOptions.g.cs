@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BeginAuthorizationOptions
 {
+    [global::Xynolog.Serialization.Wire("target")] public required global::Xynolog.Types.HttpEndpoint Target { get; init; }
+    [global::Xynolog.Serialization.Wire("redirectUri")] public required string RedirectUri { get; init; }
+    [global::Xynolog.Serialization.Wire("kbId")] public string? KbId { get; init; }
     [global::Xynolog.Serialization.Wire("expectedDid")] public string? ExpectedDid { get; init; }
     [global::Xynolog.Serialization.Wire("expectedName")] public string? ExpectedName { get; init; }
-    [global::Xynolog.Serialization.Wire("kbId")] public string? KbId { get; init; }
-    [global::Xynolog.Serialization.Wire("redirectUri")] public required string RedirectUri { get; init; }
-    [global::Xynolog.Serialization.Wire("target")] public required global::Xynolog.Types.HttpEndpoint Target { get; init; }
 }

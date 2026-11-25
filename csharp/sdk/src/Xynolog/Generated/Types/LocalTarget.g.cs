@@ -7,7 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record LocalTarget
 {
-    public const string KindValue = "local";
-    [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.LocalTargetKind Kind => global::Xynolog.Types.LocalTargetKind.Local;
     [global::Xynolog.Serialization.Wire("root")] public required string Root { get; init; }
 }

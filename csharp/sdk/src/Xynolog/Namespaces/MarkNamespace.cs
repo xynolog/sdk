@@ -55,7 +55,7 @@ public sealed class MarkNamespace
 
     /// <summary>Follows the job that annotates a resource.</summary>
     public Delegation<MarkJobCompleteCommand> Delegate(ResourceId resourceId, MarkJobParams parameters) =>
-        follower.Follow(new JobCreateCommand.MarkJobCreateCommandCase(new MarkJobCreateCommand
+        follower.Follow(new JobCreateCommand.MarkJobCreateCommand(new MarkJobCreateCommand
         {
             ResourceId = resourceId,
             Params = parameters,

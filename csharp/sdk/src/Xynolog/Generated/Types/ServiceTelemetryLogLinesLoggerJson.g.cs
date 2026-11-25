@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record ServiceTelemetryLogLinesLoggerJson
 {
     [global::Xynolog.Serialization.Wire("first")] public required global::System.Collections.Generic.IReadOnlyList<string> First { get; init; }
-    [global::Xynolog.Serialization.Wire("last")] public required string Last { get; init; }
     [global::Xynolog.Serialization.Wire("requestId")] public required string RequestId { get; init; }
     [global::Xynolog.Serialization.Wire("trace")] public required global::System.Collections.Generic.IReadOnlyList<string> Trace { get; init; }
+    [global::Xynolog.Serialization.Wire("last")] public required string Last { get; init; }
 }

@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SmelterHealthReconcile
 {
-    [global::Xynolog.Serialization.Wire("error")] public string? Error { get; init; }
     [global::Xynolog.Serialization.Wire("phase")] public required global::Xynolog.Types.SmelterHealthReconcilePhase Phase { get; init; }
     [global::Xynolog.Serialization.Wire("summary")] public global::Xynolog.Types.SmelterReconcileSummary? Summary { get; init; }
+    [global::Xynolog.Serialization.Wire("error")] public string? Error { get; init; }
 }

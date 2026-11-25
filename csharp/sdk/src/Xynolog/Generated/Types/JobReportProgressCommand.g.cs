@@ -8,11 +8,11 @@ namespace Xynolog.Types;
 public sealed record JobReportProgressCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
-    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
-    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
+    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
     [global::Xynolog.Serialization.Wire("jobType")] public required global::Xynolog.Types.JobType JobType { get; init; }
+    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
     [global::Xynolog.Serialization.Wire("percentage")] public required double Percentage { get; init; }
     [global::Xynolog.Serialization.Wire("progress")] public global::Xynolog.Types.JobProgress? Progress { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
 }

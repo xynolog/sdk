@@ -124,7 +124,7 @@ public sealed partial class TransportTests
             },
             _ => throw new InvalidOperationException("Unexpected issuer request."),
         });
-        var endpoint = Assert.IsType<KbEndpoint.HttpEndpointCase>(RegistryKb("prior", "prior.test").Endpoint).Value;
+        var endpoint = Assert.IsType<KbEndpoint.HttpEndpoint>(RegistryKb("prior", "prior.test").Endpoint).Value;
         async Task<JsonElement> Kept(BeginAuthorizationOptions options)
         {
             var store = new MemoryStorage();
@@ -416,7 +416,7 @@ public sealed partial class TransportTests
         var entry = browser.State.Kbs.Single();
         Assert.Equal(kb.Label, entry.Label);
         Assert.Null(entry.LastRead);
-        Assert.Equal(new KbReadVerdict.NoVerdictCase(new KbReadVerdictNoVerdict()), await browser.ReadActiveKbAsync(deadline.Token));
+        Assert.Equal(new KbReadVerdict.NoVerdict(new KbReadVerdictNoVerdict()), await browser.ReadActiveKbAsync(deadline.Token));
     }
 
     [Fact]
@@ -571,7 +571,7 @@ public sealed partial class TransportTests
         var factory = new RegistryFactory((options, _) => Task.FromResult(OpenRegistrySession(options.Kb)));
         await using var browser = new XynologBrowser(new XynologBrowserConfig(store, factory));
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        var endpoint = Assert.IsType<KbEndpoint.HttpEndpointCase>(expected.Endpoint).Value;
+        var endpoint = Assert.IsType<KbEndpoint.HttpEndpoint>(expected.Endpoint).Value;
         var options = new BeginAuthorizationOptions { Target = endpoint, RedirectUri = "https://app.test/callback", KbId = expected.Id };
         var url = await BrowserSignIn.BeginSignInAsync(browser, options, http, deadline.Token);
         Assert.Contains("code_challenge_method=S256", url);

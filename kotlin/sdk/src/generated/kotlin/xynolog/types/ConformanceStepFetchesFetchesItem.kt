@@ -8,10 +8,32 @@ import kotlinx.serialization.Serializable
 @Serializable(with = ConformanceStepFetchesFetchesItemSerializer::class)
 public sealed interface ConformanceStepFetchesFetchesItem
 
-internal object ConformanceStepFetchesFetchesItemSerializer : KindsUnionSerializer<ConformanceStepFetchesFetchesItem>(
+internal object ConformanceStepFetchesFetchesItemSerializer : SignatureUnionSerializer<ConformanceStepFetchesFetchesItem>(
     ConformanceStepFetchesFetchesItem::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(ConformanceBusFetch.serializer(), ConformanceHttpFetch.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("fetch", "as"),
+                allowed = listOf("fetch", "payload", "as"),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("fetch"),
+                allowed = listOf("fetch", "params"),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            ConformanceBusFetch.serializer(),
+            ConformanceHttpFetch.serializer(),
+        )
+    },
 )

@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobDeclined
 {
-    [global::Xynolog.Serialization.Wire("declined")] public required bool Declined { get; init; }
+    [global::Xynolog.Serialization.Wire("declined")] public global::Xynolog.Types.JobDeclinedDeclined Declined => global::Xynolog.Types.JobDeclinedDeclined.Value;
     [global::Xynolog.Serialization.Wire("reason")] public required global::Xynolog.Types.JobDeclinedReason Reason { get; init; }
 }

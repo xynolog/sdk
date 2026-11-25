@@ -7,6 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobProgressAnalyzingTags
 {
-    public const string CodeValue = "analyzing-tags";
-    [global::Xynolog.Serialization.Wire("code")] public string Code => CodeValue;
+    [global::Xynolog.Serialization.Wire("code")] public global::Xynolog.Types.JobProgressAnalyzingTagsCode Code => global::Xynolog.Types.JobProgressAnalyzingTagsCode.AnalyzingTags;
 }

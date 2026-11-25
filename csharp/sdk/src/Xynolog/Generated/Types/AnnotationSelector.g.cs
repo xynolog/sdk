@@ -4,9 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(AnnotationSelector.SelectorCase), typeof(AnnotationSelector.ArrayCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(AnnotationSelector.Selector), typeof(AnnotationSelector.List))]
 public closed record AnnotationSelector
 {
-    public sealed record SelectorCase(global::Xynolog.Types.Selector Value) : AnnotationSelector;
-    public sealed record ArrayCase(global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Selector> Value) : AnnotationSelector;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["type", "start", "end"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("TextPositionSelector")])], null), new(global::Xynolog.Serialization.Kind.Object, ["type", "exact"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("TextQuoteSelector")])], null), new(global::Xynolog.Serialization.Kind.Object, ["type", "value"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("SvgSelector")])], null), new(global::Xynolog.Serialization.Kind.Object, ["type", "value"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("FragmentSelector")])], null)], [new(global::Xynolog.Serialization.Kind.List, [], null, [], null)]];
+    public sealed record Selector(global::Xynolog.Types.Selector Value) : AnnotationSelector;
+    public sealed record List(global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Selector> Value) : AnnotationSelector;
 }

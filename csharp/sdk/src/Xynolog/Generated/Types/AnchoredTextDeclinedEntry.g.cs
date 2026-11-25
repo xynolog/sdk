@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AnchoredTextDeclinedEntry
 {
-    [global::Xynolog.Serialization.Wire("declined")] public required global::Xynolog.Types.ExtractionDeclinedReason Declined { get; init; }
+    [global::Xynolog.Serialization.Wire("v")] public global::Xynolog.Types.AnchoredTextDeclinedEntryV V => global::Xynolog.Types.AnchoredTextDeclinedEntryV.Value;
     [global::Xynolog.Serialization.Wire("stamp")] public required string Stamp { get; init; }
-    [global::Xynolog.Serialization.Wire("v")] public required long V { get; init; }
+    [global::Xynolog.Serialization.Wire("declined")] public required global::Xynolog.Types.ExtractionDeclinedReason Declined { get; init; }
 }

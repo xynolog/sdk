@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WorkloadStatusLedger
 {
-    [global::Xynolog.Serialization.Wire("capacity")] public required long Capacity { get; init; }
     [global::Xynolog.Serialization.Wire("claims")] public required long Claims { get; init; }
+    [global::Xynolog.Serialization.Wire("capacity")] public required long Capacity { get; init; }
 }

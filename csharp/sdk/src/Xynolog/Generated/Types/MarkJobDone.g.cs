@@ -7,10 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MarkJobDone
 {
-    [global::Xynolog.Serialization.Wire("byCategory")] public global::System.Collections.Generic.IReadOnlyDictionary<string, long>? ByCategory { get; init; }
-    [global::Xynolog.Serialization.Wire("errors")] public long? Errors { get; init; }
     [global::Xynolog.Serialization.Wire("found")] public required long Found { get; init; }
     [global::Xynolog.Serialization.Wire("persisted")] public required long Persisted { get; init; }
-    [global::Xynolog.Serialization.Wire("uncheckedPieces")] public long? UncheckedPieces { get; init; }
+    [global::Xynolog.Serialization.Wire("errors")] public long? Errors { get; init; }
+    [global::Xynolog.Serialization.Wire("byCategory")] public global::System.Collections.Generic.IReadOnlyDictionary<string, long>? ByCategory { get; init; }
     [global::Xynolog.Serialization.Wire("underReportedPieces")] public long? UnderReportedPieces { get; init; }
+    [global::Xynolog.Serialization.Wire("uncheckedPieces")] public long? UncheckedPieces { get; init; }
 }

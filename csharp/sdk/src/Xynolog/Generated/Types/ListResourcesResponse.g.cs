@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ListResourcesResponse
 {
-    [global::Xynolog.Serialization.Wire("limit")] public required double Limit { get; init; }
-    [global::Xynolog.Serialization.Wire("offset")] public required double Offset { get; init; }
     [global::Xynolog.Serialization.Wire("resources")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ResourceDescriptor> Resources { get; init; }
     [global::Xynolog.Serialization.Wire("total")] public required double Total { get; init; }
+    [global::Xynolog.Serialization.Wire("offset")] public required double Offset { get; init; }
+    [global::Xynolog.Serialization.Wire("limit")] public required double Limit { get; init; }
 }

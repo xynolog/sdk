@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KnowledgeIndexSpecEmbedding
 {
-    [global::Xynolog.Serialization.Wire("apiKey")] public global::Xynolog.Types.SecretRef? ApiKey { get; init; }
+    [global::Xynolog.Serialization.Wire("type")] public required string Type { get; init; }
+    [global::Xynolog.Serialization.Wire("model")] public required string Model { get; init; }
     [global::Xynolog.Serialization.Wire("chunking")] public required global::Xynolog.Types.KnowledgeIndexSpecEmbeddingChunking Chunking { get; init; }
     [global::Xynolog.Serialization.Wire("endpoint")] public string? Endpoint { get; init; }
-    [global::Xynolog.Serialization.Wire("model")] public required string Model { get; init; }
-    [global::Xynolog.Serialization.Wire("type")] public required string Type { get; init; }
+    [global::Xynolog.Serialization.Wire("apiKey")] public global::Xynolog.Types.SecretRef? ApiKey { get; init; }
 }

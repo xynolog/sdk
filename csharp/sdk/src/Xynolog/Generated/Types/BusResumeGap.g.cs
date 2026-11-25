@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BusResumeGap
 {
+    [global::Xynolog.Serialization.Wire("scope")] public required global::Xynolog.Identifiers.ResourceId Scope { get; init; }
     [global::Xynolog.Serialization.Wire("lastSeenId")] public required string LastSeenId { get; init; }
     [global::Xynolog.Serialization.Wire("reason")] public required global::Xynolog.Types.BusResumeGapReason Reason { get; init; }
-    [global::Xynolog.Serialization.Wire("scope")] public required global::Xynolog.Identifiers.ResourceId Scope { get; init; }
 }

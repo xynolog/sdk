@@ -49,7 +49,7 @@ import XynologTesting
 
 @Test func sessionStateUnitEndsItsReadoutsAndLeavesItsClientOpen() async throws {
   let test = try await createTestSession(
-    TestSessionOptions(kb: KbTarget(endpoint: registryEndpoint, id: "session", label: "KB")))
+    TestSessionOptions(kb: KbTarget(id: "session", label: "KB", endpoint: registryEndpoint)))
   let session = test.opened.session
   let transport = test.transport
   defer { test.opened.dispose() }
@@ -76,11 +76,11 @@ private var registryEndpoint: KbEndpoint {
     case Channels.browseKbRequested.name:
       try wirePayload(
         BrowseKbResult(
-          response: KbDescription(domain: address.withLock { $0 }, gitBranch: "main", name: "KB")))
+          response: KbDescription(name: "KB", domain: address.withLock { $0 }, gitBranch: "main")))
     case Channels.browseResourceRequested.name:
       try wirePayload(
         BrowseResourceResult(
-          response: BrowseResourceResultResponse(lastSequence: 1, resource: description)))
+          response: BrowseResourceResultResponse(resource: description, lastSequence: 1)))
     default: throw BusRequestError(.busNotFound, "Gone")
     }
   }
@@ -90,12 +90,12 @@ private var registryEndpoint: KbEndpoint {
     XynologBrowserConfig(storage: storage.context(), sessionFactory: factory))
   let token = try jwt(.object(["exp": .number(Date().timeIntervalSince1970 + 3600)]))
   let session = StoredSession(
-    access: token, clientId: "browser", refresh: "refresh", tokenEndpoint: "issuer")
+    access: token, refresh: "refresh", clientId: "browser", tokenEndpoint: "issuer")
   do {
     let first = try await browser.signedIn(
       SignedIn(
-        description: KbDescription(domain: "example.org", name: "First"),
         endpoint: registryEndpoint,
+        description: KbDescription(name: "First", domain: "example.org"),
         session: session))
     let id = first.kb.id
     #expect(browser.activeSession.value?.session.kb.id == id)
@@ -130,9 +130,9 @@ private var registryEndpoint: KbEndpoint {
     #expect(browser.lastViewedResource.value == nil)
     let second = try await browser.signedIn(
       SignedIn(
-        description: KbDescription(domain: "elsewhere.example.org", name: "Other"),
         endpoint: registryEndpoint,
-        kbId: id, session: session))
+        description: KbDescription(name: "Other", domain: "elsewhere.example.org"),
+        session: session, kbId: id))
     #expect(second.kb.id != id)
     #expect(second.expected?.did == "did:web:example.org")
     #expect(browser.knowledgeBases.value.count == 2)
@@ -164,7 +164,7 @@ private func registryResource(_ id: ResourceId) throws -> ResourceDescriptor {
 @Test func testingProductChecksLivenessAndDelivery() async throws {
   #expect(faultSchedules(8) == faultSchedules(8))
   let result = try wirePayload(
-    BrowseKbResult(response: KbDescription(domain: "example.org", name: "KB")))
+    BrowseKbResult(response: KbDescription(name: "KB", domain: "example.org")))
   let spec = LivenessSpec(
     setup: { transport in
       let client = try await XynologClient(transport: transport, busRequestTimeoutMs: 500)

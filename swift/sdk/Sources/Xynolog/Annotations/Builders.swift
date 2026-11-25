@@ -105,12 +105,12 @@ private func built(
     try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode($0))
   }
   return Annotation(
-    body: body,
-    created: dateTime(Date()),
-    generator: generator.map { .agent($0) },
     id: try annotationID(
       resourceId: target.source, motivation: motivation, anchor: anchor, body: written),
-    motivation: motivation, target: .annotationTarget(target))
+    motivation: motivation,
+    target: .annotationTarget(target),
+    body: body,
+    created: dateTime(Date()), generator: generator.map { .agent($0) })
 }
 private func validSpan(_ start: Int, _ end: Int, _ length: Int) -> Bool {
   start >= 0 && start <= end && end <= length
@@ -147,12 +147,12 @@ public func annotationOfSpan(_ of: OfSpan) throws -> Annotation {
     }
     selectors = rectangles.map {
       .fragmentSelector(
-        FragmentSelector(conformsTo: "http://tools.ietf.org/rfc/rfc3778", value: fragmentOf($0)))
+        FragmentSelector(value: fragmentOf($0), conformsTo: "http://tools.ietf.org/rfc/rfc3778"))
     }
   } else {
     guard text.text(span.start, span.end).unicodeScalars.elementsEqual(span.exact.unicodeScalars)
     else { throw refused(.exactMismatch) }
-    selectors = [.textPositionSelector(TextPositionSelector(end: span.end, start: span.start))]
+    selectors = [.textPositionSelector(TextPositionSelector(start: span.start, end: span.end))]
   }
   if let prefix = span.prefix,
     !Array(text.points[..<span.start]).suffix(prefix.unicodeScalars.count).elementsEqual(
@@ -173,7 +173,7 @@ public func annotationOfSpan(_ of: OfSpan) throws -> Annotation {
         suffix: span.suffix.flatMap { $0.isEmpty ? nil : $0 })))
   return try built(
     target: AnnotationTarget(
-      selector: .list(selectors), source: of.resourceId, type: .specificResource),
+      type: .specificResource, source: of.resourceId, selector: .list(selectors)),
     motivation: of.motivation, anchor: "\(span.start):\(span.end):\(span.exact)",
     generator: of.generator, body: of.body)
 }

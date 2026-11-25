@@ -31,7 +31,7 @@ func locate(_ anchored: AnchoredText, start: Int, end: Int) -> ([PdfTextItem], [
       if let x = edges.map(\.0).min(), let right = edges.map(\.1).max(),
         let y = line.map(\.y).min(), let top = line.map({ $0.y + $0.height }).max()
       {
-        rectangles.append(PdfCoordinate(height: top - y, page: page, width: right - x, x: x, y: y))
+        rectangles.append(PdfCoordinate(page: page, x: x, y: y, width: right - x, height: top - y))
       }
     }
   }

@@ -191,8 +191,8 @@ public static class OpenResources
         foreach (var tab in opened)
         {
             var check = checks.GetValueOrDefault(tab.Id);
-            if (check is TabCheck.GoneCase) continue;
-            tabs.Add(check is TabCheck.ReadyCase(var ready)
+            if (check is TabCheck.Gone) continue;
+            tabs.Add(check is TabCheck.Ready(var ready)
                 ? tab with { Name = ready.Name, MediaType = ready.MediaType ?? tab.MediaType } : tab);
         }
         return tabs.AsReadOnly();

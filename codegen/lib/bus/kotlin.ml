@@ -33,7 +33,7 @@ let carried ~(types : Types.spec) (c : R.channels_item) =
       Names.refuse
         "%s carries %s, which xynolog.channels names a type of its own"
         (Registry.name c) name;
-    if not (List.mem_assoc name types.definitions) then
+    if not (List.mem name types.names) then
       Names.refuse "%s carries %s, which is no component schema"
         (Registry.name c) name
   in

@@ -8,9 +8,8 @@ namespace Xynolog.Types;
 public sealed record YieldJobQueuedEvent
 {
     [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
-    public const string JobTypeValue = "yield";
-    [global::Xynolog.Serialization.Wire("jobType")] public string JobType => JobTypeValue;
-    [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.GenerationJobRequest Params { get; init; }
+    [global::Xynolog.Serialization.Wire("jobType")] public global::Xynolog.Types.YieldJobQueuedEventJobType JobType => global::Xynolog.Types.YieldJobQueuedEventJobType.Yield;
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("userId")] public required global::Xynolog.Identifiers.UserId UserId { get; init; }
+    [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.GenerationJobRequest Params { get; init; }
 }

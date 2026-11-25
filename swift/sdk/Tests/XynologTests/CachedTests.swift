@@ -74,9 +74,9 @@ private func entityTypesReply(_ types: [String]) throws -> [String: JSONValue] {
     transport.handle { _, _ in try entityTypesReply(["New"]) }
     let channel = Channels.frameEntityTypeAdded.name
     let event = try StoredEventResponse(
-      id: "e-frame", metadata: EventMetadata(sequenceNumber: 0), payload: [:],
-      timestamp: "2026-11-03T00:00:00Z", type: channel,
-      userId: UserId("did:web:kb.test:users:person"), version: 1)
+      id: "e-frame", type: channel, timestamp: "2026-11-03T00:00:00Z",
+      userId: UserId("did:web:kb.test:users:person"), version: 1,
+      payload: [:], metadata: EventMetadata(sequenceNumber: 0))
     transport.deliver(.frame(ReceivedFrame(channel: channel, payload: try wirePayload(event))))
     guard case .ready(let updated)? = await observer.next() else {
       Issue.record("Invalidation should replace the ready value without emitting pending")
@@ -180,7 +180,7 @@ private func entityTypesReply(_ types: [String]) throws -> [String: JSONValue] {
     }
     #expect(transport.holds == 2)
 
-    let gap = BusResumeGap(lastSeenId: "p-first-1", reason: .retentionExceeded, scope: first)
+    let gap = BusResumeGap(scope: first, lastSeenId: "p-first-1", reason: .retentionExceeded)
     transport.deliver(
       .frame(ReceivedFrame(channel: Channels.busResumeGap.name, payload: try wirePayload(gap))))
     guard case .ready? = await firstReader.next() else {
@@ -189,12 +189,13 @@ private func entityTypesReply(_ types: [String]) throws -> [String: JSONValue] {
     }
     let channel = Channels.markBodyUpdated.name
     let edit = try EnrichedResourceEvent(
-      id: "e-edit", metadata: EventMetadata(sequenceNumber: 2),
+      id: "e-edit", type: channel,
+      timestamp: "2026-11-03T00:00:00Z",
+      userId: UserId("did:web:kb.test:users:person"),
+      resourceId: second, version: 1,
       payload: wirePayload(
         AnnotationBodyUpdatedPayload(annotationId: AnnotationId("edited"), operations: [])),
-      resourceId: second,
-      timestamp: "2026-11-03T00:00:00Z", type: channel,
-      userId: UserId("did:web:kb.test:users:person"), version: 1)
+      metadata: EventMetadata(sequenceNumber: 2))
     transport.deliver(
       .frame(ReceivedFrame(channel: channel, payload: try wirePayload(edit), scope: second)))
     guard case .ready? = await secondReader.next() else {
@@ -217,14 +218,14 @@ private func entityTypesReply(_ types: [String]) throws -> [String: JSONValue] {
   let resource = try ResourceId("document")
   let id = try AnnotationId("annotated")
   let original = Annotation(
-    created: "2026-11-04T00:00:00Z", id: id, motivation: .commenting,
-    target: .resourceId(resource))
+    id: id, motivation: .commenting, target: .resourceId(resource),
+    created: "2026-11-04T00:00:00Z")
   let enriched = Annotation(
-    created: original.created, id: id, modified: "2026-11-04T00:01:00Z",
-    motivation: original.motivation, target: original.target)
+    id: id, motivation: original.motivation, target: original.target,
+    created: original.created, modified: "2026-11-04T00:01:00Z")
   let fetched = Annotation(
-    created: original.created, id: id, modified: "2026-11-04T00:02:00Z",
-    motivation: original.motivation, target: original.target)
+    id: id, motivation: original.motivation, target: original.target,
+    created: original.created, modified: "2026-11-04T00:02:00Z")
   transport.setAnnotations([original])
   transport.handle { _, _ in try annotationReply(original) }
   let client = try await XynologClient(transport: transport)
@@ -246,9 +247,9 @@ private func entityTypesReply(_ types: [String]) throws -> [String: JSONValue] {
     let channel = Channels.markBodyUpdated.name
     let payload = try wirePayload(AnnotationBodyUpdatedPayload(annotationId: id, operations: []))
     var event = try EnrichedResourceEvent(
-      annotation: enriched, id: "e-write", metadata: EventMetadata(sequenceNumber: 1),
-      payload: payload, resourceId: resource, timestamp: "2026-11-04T00:01:00Z",
-      type: channel, userId: UserId("did:web:kb.test:users:person"), version: 1)
+      id: "e-write", type: channel, timestamp: "2026-11-04T00:01:00Z",
+      userId: UserId("did:web:kb.test:users:person"), resourceId: resource, version: 1,
+      payload: payload, metadata: EventMetadata(sequenceNumber: 1), annotation: enriched)
     transport.deliver(
       .frame(ReceivedFrame(channel: channel, payload: try wirePayload(event), scope: resource)))
     guard case .ready(let writtenList)? = await listReader.next(),
@@ -287,8 +288,8 @@ func annotationRemovalSurvivesAnEarlierInFlightRead(confirmedByReply: Bool) asyn
   let resource = try ResourceId("document")
   let id = try AnnotationId("removed")
   let original = Annotation(
-    created: "2026-11-04T00:00:00Z", id: id, motivation: .commenting,
-    target: .resourceId(resource))
+    id: id, motivation: .commenting, target: .resourceId(resource),
+    created: "2026-11-04T00:00:00Z")
   transport.handle { _, _ in try annotationReply(original) }
   let client = try await XynologClient(transport: transport)
   defer {
@@ -318,10 +319,10 @@ func annotationRemovalSurvivesAnEarlierInFlightRead(confirmedByReply: Bool) asyn
     } else {
       let channel = Channels.markRemoved.name
       let event = try StoredEventResponse(
-        id: "e-remove", metadata: EventMetadata(sequenceNumber: 2),
-        payload: wirePayload(AnnotationRemovedPayload(annotationId: id)), resourceId: resource,
-        timestamp: "2026-11-04T00:01:00Z", type: channel,
-        userId: UserId("did:web:kb.test:users:person"), version: 1)
+        id: "e-remove", type: channel, timestamp: "2026-11-04T00:01:00Z",
+        userId: UserId("did:web:kb.test:users:person"), resourceId: resource, version: 1,
+        payload: wirePayload(AnnotationRemovedPayload(annotationId: id)),
+        metadata: EventMetadata(sequenceNumber: 2))
       transport.deliver(
         .frame(ReceivedFrame(channel: channel, payload: try wirePayload(event), scope: resource)))
     }
@@ -379,8 +380,8 @@ func annotationRemovalSurvivesAnEarlierInFlightRead(confirmedByReply: Bool) asyn
 
 @Test func enginesKeepTheirOrderAndOnlyJoinLimitsForTheSameProviderAndModel() async throws {
   let transport = ProbeTransport(channels: bridgedChannels)
-  let first = Engine(model: "shared-name", provider: .openai)
-  let second = Engine(model: "shared-name", provider: .ollama)
+  let first = Engine(provider: .openai, model: "shared-name")
+  let second = Engine(provider: .ollama, model: "shared-name")
   let answering = try #require(Operations.limits.first).request.name
   transport.handle { operation, _ in
     if operation == Operations.browseEnginesRequested.request.name {

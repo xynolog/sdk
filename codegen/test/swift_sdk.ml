@@ -1,5 +1,6 @@
 (* The schemas the Swift models generator refuses, each with why: a shape it
-   has no Swift for is refused, never written as something near it. *)
+   has no Swift for is refused, never written as something near it; and what
+   it holds a shape [Deviations] names as. *)
 
 open Xynolog_codegen
 module D = Definitions
@@ -17,14 +18,48 @@ let refusal ?(identifiers = []) ?(name = "Fixture") json =
   | Error e -> Decode.error_to_string e
   | Ok (schema, _) -> (
       match
+        let definitions = D.alone ~ids ~name schema in
         let models =
-          M.create (D.alone ~ids ~name schema) ~identifiers ~keys:[]
+          M.create
+            [ Typing.make definitions ~roots:[ name ] ~identifiers ~keys:[] ]
+            ~schema:definitions.schema
         in
         M.generate models;
         M.declarations models
       with
       | exception D.Refused message -> message
       | _ -> Alcotest.failf "%s was generated" json)
+
+(* The Swift the schema [json], named [Fixture], is written as. *)
+let written json =
+  match
+    Decode.run ~file:"Fixture" (Yojson.Safe.from_string json) Schema.decode
+  with
+  | Error e -> Alcotest.fail (Decode.error_to_string e)
+  | Ok (schema, _) ->
+      let definitions = D.alone ~ids ~name:"Fixture" schema in
+      let models =
+        M.create
+          [
+            Typing.make definitions ~roots:[ "Fixture" ] ~identifiers:[]
+              ~keys:[];
+          ]
+          ~schema:definitions.schema
+      in
+      M.generate models;
+      Swift_syntax.print
+        {
+          banner = [];
+          imports = [];
+          decls =
+            List.map (fun d -> (Swift_syntax.Blank, d)) (M.declarations models);
+        }
+
+let holds what json expected =
+  case what (fun () ->
+      let swift = written json in
+      if List.length (Text.split ~sub:expected swift) < 2 then
+        Alcotest.failf "%s holds no %s:\n%s" what expected swift)
 
 let refused ?identifiers ?name what json expected =
   case what (fun () ->
@@ -37,10 +72,6 @@ let () =
         [
           refused "a type array" {|{"type":["string","integer"]}|}
             "a schema of several types the generator does not know";
-          refused "not" {|{"type":"object","not":{}}|}
-            {|unsupported schema keywords: ["not"]|};
-          refused "const" {|{"type":"string","const":"x"}|}
-            {|unsupported schema keywords: ["const"]|};
           refused "an array without items" {|{"type":"array"}|}
             "Fixture: array without items";
           refused "an empty oneOf" {|{"oneOf":[]}|}
@@ -55,5 +86,15 @@ let () =
             ~identifiers:[ "FixtureId" ] ~name:"FixtureId"
             {|{"type":"string","pattern":"^(a|b)+$"}|}
             "FixtureId: unsupported identifier pattern";
+        ] );
+      ( "held",
+        [
+          holds
+            "an object in place that names no member and says nothing of others"
+            {|{"type":"object","required":["x"],"properties":{"x":{"type":"object"}}}|}
+            "public var x: [String: JSONValue]";
+          holds "an object in place that names no member and admits any"
+            {|{"type":"object","required":["x"],"properties":{"x":{"type":"object","additionalProperties":true}}}|}
+            "public var x: [String: JSONValue]";
         ] );
     ]

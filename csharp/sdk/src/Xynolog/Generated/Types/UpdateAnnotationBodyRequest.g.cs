@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record UpdateAnnotationBodyRequest
 {
-    [global::Xynolog.Serialization.Wire("operations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.BodyOperation> Operations { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("operations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.BodyOperation> Operations { get; init; }
 }

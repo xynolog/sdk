@@ -29,7 +29,7 @@ public sealed record BrowserState(IReadOnlyList<KnowledgeBase> Kbs, string? Acti
 /// <summary>The application's registered knowledge bases and its active session.</summary>
 public sealed class XynologBrowser : IAsyncDisposable
 {
-    private static readonly KbReadVerdict Unavailable = new KbReadVerdict.NoVerdictCase(new KbReadVerdictNoVerdict());
+    private static readonly KbReadVerdict Unavailable = new KbReadVerdict.NoVerdict(new KbReadVerdictNoVerdict());
     private static readonly int ChecksAtOnce = Timings.ChecksAtOnceCount;
     private readonly SessionFactory factory;
     private readonly TimeProvider clock;
@@ -431,7 +431,7 @@ public sealed class XynologBrowser : IAsyncDisposable
         lock (gate)
         {
             if (live != current || closing) return;
-            if (verdict is KbReadVerdict.ConflictCase(var conflict))
+            if (verdict is KbReadVerdict.Conflict(var conflict))
             {
                 var expected = state.Kbs.FirstOrDefault(kb => kb.Id == current.KbId);
                 ForgetTabs(current.KbId);
@@ -450,11 +450,11 @@ public sealed class XynologBrowser : IAsyncDisposable
                 try
                 {
                     var descriptor = await current.Opened.Client.Browse.Resource(resource).FreshAsync(token).ConfigureAwait(Spawning.Captures);
-                    checks[resource] = new TabCheck.ReadyCase(new TabCheckReady { Name = descriptor.Name, MediaType = PrimaryMediaType(descriptor) });
+                    checks[resource] = new TabCheck.Ready(new TabCheckReady { Name = descriptor.Name, MediaType = PrimaryMediaType(descriptor) });
                 }
                 catch (BusRequestError error) when (error.Code == BusRequestErrorCode.NotFound)
-                { checks[resource] = new TabCheck.GoneCase(new TabCheckGone()); }
-                catch (XynologError) { checks[resource] = new TabCheck.UnknownCase(new TabCheckUnknown()); }
+                { checks[resource] = new TabCheck.Gone(new TabCheckGone()); }
+                catch (XynologError) { checks[resource] = new TabCheck.Unknown(new TabCheckUnknown()); }
             }).ConfigureAwait(Spawning.Captures);
         lock (gate)
         {
@@ -478,14 +478,14 @@ public sealed class XynologBrowser : IAsyncDisposable
         }
         catch (Exception error) when (error is XynologError or FormatException) { return Unavailable; }
         if (did != entry.Did)
-            return new KbReadVerdict.ConflictCase(new KbReadVerdictConflict { ObservedDid = did, ObservedName = description.Name });
+            return new KbReadVerdict.Conflict(new KbReadVerdictConflict { ObservedDid = did, ObservedName = description.Name });
         lock (gate)
         {
             if (closing || live != current) return Unavailable;
             ChangeKbs(items => items.Select(kb => kb.Id == entry.Id && kb.Did == did
                 ? kb with { Label = description.Name, LastRead = ReadNow(description) } : kb).ToArray());
         }
-        return new KbReadVerdict.RecordedCase(new KbReadVerdictRecorded());
+        return new KbReadVerdict.Recorded(new KbReadVerdictRecorded());
     }
 
     private void ChangeActiveTabs(Func<IReadOnlyList<OpenResource>, IReadOnlyList<OpenResource>> change)
@@ -676,9 +676,9 @@ public sealed class XynologBrowser : IAsyncDisposable
 
     internal static bool SamePlace(KbEndpoint first, KbEndpoint second) => (first, second) switch
     {
-        (KbEndpoint.HttpEndpointCase(var a), KbEndpoint.HttpEndpointCase(var b)) =>
+        (KbEndpoint.HttpEndpoint(var a), KbEndpoint.HttpEndpoint(var b)) =>
             a.Protocol == b.Protocol && a.Port == b.Port && StringComparer.OrdinalIgnoreCase.Equals(a.Host, b.Host),
-        (KbEndpoint.LocalEndpointCase(var a), KbEndpoint.LocalEndpointCase(var b)) => a.KbId == b.KbId,
+        (KbEndpoint.LocalEndpoint(var a), KbEndpoint.LocalEndpoint(var b)) => a.KbId == b.KbId,
         _ => false,
     };
 
@@ -755,7 +755,7 @@ public static class BrowserSignIn
             browser.Clock, browser.Random, cancellation).ConfigureAwait(Spawning.Captures);
         return await browser.SignedInAsync(new SignedIn
         {
-            Endpoint = new KbEndpoint.HttpEndpointCase(pending.Target),
+            Endpoint = new KbEndpoint.HttpEndpoint(pending.Target),
             Description = identity.Description,
             Session = session,
             KbId = pending.KbId,

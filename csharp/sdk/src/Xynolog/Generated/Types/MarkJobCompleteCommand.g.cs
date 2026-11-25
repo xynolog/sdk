@@ -8,11 +8,10 @@ namespace Xynolog.Types;
 public sealed record MarkJobCompleteCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
-    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
-    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
-    [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
-    public const string JobTypeValue = "mark";
-    [global::Xynolog.Serialization.Wire("jobType")] public string JobType => JobTypeValue;
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
+    [global::Xynolog.Serialization.Wire("jobType")] public global::Xynolog.Types.MarkJobCompleteCommandJobType JobType => global::Xynolog.Types.MarkJobCompleteCommandJobType.Mark;
+    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
     [global::Xynolog.Serialization.Wire("result")] public global::Xynolog.Types.MarkJobResult? Result { get; init; }
+    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
 }

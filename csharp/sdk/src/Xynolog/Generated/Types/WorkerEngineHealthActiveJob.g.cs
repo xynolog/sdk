@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record WorkerEngineHealthActiveJob
 {
     [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
-    [global::Xynolog.Serialization.Wire("since")] public required string Since { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public required global::Xynolog.Types.JobType Type { get; init; }
+    [global::Xynolog.Serialization.Wire("since")] public required string Since { get; init; }
 }

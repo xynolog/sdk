@@ -8,14 +8,14 @@ namespace Xynolog.Types;
 public sealed record ServiceRunParams
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.ApiVersion ApiVersion { get; init; }
-    [global::Xynolog.Serialization.Wire("args")] public global::System.Collections.Generic.IReadOnlyList<string>? Args { get; init; }
-    [global::Xynolog.Serialization.Wire("document")] public string? Document { get; init; }
-    [global::Xynolog.Serialization.Wire("environment")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, string> Environment { get; init; }
+    [global::Xynolog.Serialization.Wire("target")] public required global::Xynolog.Types.LocalTarget Target { get; init; }
+    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
+    [global::Xynolog.Serialization.Wire("service")] public required global::Xynolog.Types.RunService Service { get; init; }
     [global::Xynolog.Serialization.Wire("instance")] public required string Instance { get; init; }
+    [global::Xynolog.Serialization.Wire("document")] public string? Document { get; init; }
+    [global::Xynolog.Serialization.Wire("args")] public global::System.Collections.Generic.IReadOnlyList<string>? Args { get; init; }
+    [global::Xynolog.Serialization.Wire("environment")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, string> Environment { get; init; }
     [global::Xynolog.Serialization.Wire("mounts")] public required global::System.Collections.Generic.IReadOnlyList<string> Mounts { get; init; }
     [global::Xynolog.Serialization.Wire("pathFirst")] public required global::System.Collections.Generic.IReadOnlyList<string> PathFirst { get; init; }
     [global::Xynolog.Serialization.Wire("ports")] public required global::System.Collections.Generic.IReadOnlyList<long> Ports { get; init; }
-    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
-    [global::Xynolog.Serialization.Wire("service")] public required global::Xynolog.Types.RunService Service { get; init; }
-    [global::Xynolog.Serialization.Wire("target")] public required global::Xynolog.Types.LocalTarget Target { get; init; }
 }

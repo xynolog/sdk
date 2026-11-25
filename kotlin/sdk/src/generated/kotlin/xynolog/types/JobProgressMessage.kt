@@ -9,8 +9,112 @@ import kotlinx.serialization.Serializable
 @Serializable(with = JobProgressMessageSerializer::class)
 public sealed interface JobProgressMessage
 
-internal object JobProgressMessageSerializer : TaggedUnionSerializer<JobProgressMessage>(
+internal object JobProgressMessageSerializer : SignatureUnionSerializer<JobProgressMessage>(
     JobProgressMessage::class,
-    "code",
-    members = { mapOf("loading" to JobProgressLoading.serializer(), "analyzing" to JobProgressAnalyzing.serializer(), "analyzing-tags" to JobProgressAnalyzingTags.serializer(), "generating-resource" to JobProgressGeneratingResource.serializer(), "creating-resource" to JobProgressCreatingResource.serializer(), "complete-generated" to JobProgressCompleteGenerated.serializer(), "detecting-entities" to JobProgressDetectingEntities.serializer(), "creating-annotations" to JobProgressCreatingAnnotations.serializer(), "creating-tag-annotations" to JobProgressCreatingTagAnnotations.serializer(), "complete-created" to JobProgressCompleteCreated.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("loading"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("analyzing"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("analyzing-tags"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("generating-resource"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("creating-resource"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code", "truncated"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("complete-generated"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code", "entityType"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("detecting-entities"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code", "count"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("creating-annotations"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code", "count"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("creating-tag-annotations"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("code", "count", "motivation"),
+                allowed = null,
+                fixed = listOf("code" to listOf(Literal.Text("complete-created")), "motivation" to listOf(Literal.Text("assessing"), Literal.Text("commenting"), Literal.Text("highlighting"), Literal.Text("linking"), Literal.Text("tagging"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            JobProgressLoading.serializer(),
+            JobProgressAnalyzing.serializer(),
+            JobProgressAnalyzingTags.serializer(),
+            JobProgressGeneratingResource.serializer(),
+            JobProgressCreatingResource.serializer(),
+            JobProgressCompleteGenerated.serializer(),
+            JobProgressDetectingEntities.serializer(),
+            JobProgressCreatingAnnotations.serializer(),
+            JobProgressCreatingTagAnnotations.serializer(),
+            JobProgressCompleteCreated.serializer(),
+        )
+    },
 )

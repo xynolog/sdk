@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConnectionIdentity
 {
-    [global::Xynolog.Serialization.Wire("description")] public required global::Xynolog.Types.KbDescription Description { get; init; }
     [global::Xynolog.Serialization.Wire("did")] public required global::Xynolog.Identifiers.UserId Did { get; init; }
+    [global::Xynolog.Serialization.Wire("description")] public required global::Xynolog.Types.KbDescription Description { get; init; }
 }

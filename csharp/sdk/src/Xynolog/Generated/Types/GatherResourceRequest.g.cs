@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatherResourceRequest
 {
-    [global::Xynolog.Serialization.Wire("options")] public required global::Xynolog.Types.GatherResourceRequestOptions Options { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("options")] public required global::Xynolog.Types.GatherResourceRequestOptions Options { get; init; }
 }

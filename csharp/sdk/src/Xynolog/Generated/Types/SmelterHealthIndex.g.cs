@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SmelterHealthIndex
 {
-    [global::Xynolog.Serialization.Wire("madeAnew")] public required bool MadeAnew { get; init; }
     [global::Xynolog.Serialization.Wire("stamp")] public required global::Xynolog.Types.SmelterHealthIndexStamp Stamp { get; init; }
+    [global::Xynolog.Serialization.Wire("madeAnew")] public required bool MadeAnew { get; init; }
 }

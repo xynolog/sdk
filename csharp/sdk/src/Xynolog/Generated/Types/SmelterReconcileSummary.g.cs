@@ -7,16 +7,16 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SmelterReconcileSummary
 {
-    [global::Xynolog.Serialization.Wire("annotationVectorsDeleted")] public required long AnnotationVectorsDeleted { get; init; }
-    [global::Xynolog.Serialization.Wire("annotationsEmbedded")] public required long AnnotationsEmbedded { get; init; }
-    [global::Xynolog.Serialization.Wire("annotationsRestamped")] public required long AnnotationsRestamped { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceVectorsDeleted")] public required long ResourceVectorsDeleted { get; init; }
-    [global::Xynolog.Serialization.Wire("resourcesEligible")] public required long ResourcesEligible { get; init; }
     [global::Xynolog.Serialization.Wire("resourcesEmbedded")] public required long ResourcesEmbedded { get; init; }
-    [global::Xynolog.Serialization.Wire("resourcesFailed")] public required long ResourcesFailed { get; init; }
-    [global::Xynolog.Serialization.Wire("resourcesIndexed")] public required long ResourcesIndexed { get; init; }
-    [global::Xynolog.Serialization.Wire("resourcesReanchored")] public required long ResourcesReanchored { get; init; }
-    [global::Xynolog.Serialization.Wire("resourcesRestamped")] public required long ResourcesRestamped { get; init; }
     [global::Xynolog.Serialization.Wire("resourcesSkipped")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, long> ResourcesSkipped { get; init; }
     [global::Xynolog.Serialization.Wire("resourcesUnavailable")] public required long ResourcesUnavailable { get; init; }
+    [global::Xynolog.Serialization.Wire("resourcesFailed")] public required long ResourcesFailed { get; init; }
+    [global::Xynolog.Serialization.Wire("resourcesRestamped")] public required long ResourcesRestamped { get; init; }
+    [global::Xynolog.Serialization.Wire("resourcesReanchored")] public required long ResourcesReanchored { get; init; }
+    [global::Xynolog.Serialization.Wire("resourceVectorsDeleted")] public required long ResourceVectorsDeleted { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationsEmbedded")] public required long AnnotationsEmbedded { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationsRestamped")] public required long AnnotationsRestamped { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationVectorsDeleted")] public required long AnnotationVectorsDeleted { get; init; }
+    [global::Xynolog.Serialization.Wire("resourcesEligible")] public required long ResourcesEligible { get; init; }
+    [global::Xynolog.Serialization.Wire("resourcesIndexed")] public required long ResourcesIndexed { get; init; }
 }

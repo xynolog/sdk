@@ -7,7 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobProgressCompleteGenerated
 {
-    public const string CodeValue = "complete-generated";
-    [global::Xynolog.Serialization.Wire("code")] public string Code => CodeValue;
+    [global::Xynolog.Serialization.Wire("code")] public global::Xynolog.Types.JobProgressCompleteGeneratedCode Code => global::Xynolog.Types.JobProgressCompleteGeneratedCode.CompleteGenerated;
     [global::Xynolog.Serialization.Wire("truncated")] public required bool Truncated { get; init; }
 }

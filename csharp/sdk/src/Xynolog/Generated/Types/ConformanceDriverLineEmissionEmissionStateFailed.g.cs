@@ -7,7 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceDriverLineEmissionEmissionStateFailed
 {
+    [global::Xynolog.Serialization.Wire("status")] public global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStateFailedStatus Status => global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStateFailedStatus.Failed;
     [global::Xynolog.Serialization.Wire("error")] public required global::Xynolog.Types.ConformanceFailure Error { get; init; }
-    public const string StatusValue = "failed";
-    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
 }

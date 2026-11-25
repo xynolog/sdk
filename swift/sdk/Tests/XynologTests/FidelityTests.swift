@@ -26,8 +26,8 @@ private func json(_ text: String) throws -> JSONValue {
 
 @Test func requiredNullableMembersAreNeverManufactured() throws {
   let model = UserResponse(
-    did: try UserId("did:web:kb.example:users:a"), domain: "kb.example", email: nil, image: nil,
-    name: nil)
+    did: try UserId("did:web:kb.example:users:a"), email: nil, name: nil, image: nil,
+    domain: "kb.example")
   let input = try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode(model))
   #expect(try roundTripModel("UserResponse", input) == input)
   for (key, value) in try input.object where value == .null {
@@ -72,7 +72,7 @@ private func json(_ text: String) throws -> JSONValue {
 @Test func timestampsAndUnicodeAreNotNormalised() throws {
   let time = "2026-11-02T00:00:00.111Z"
   let model = SignIn(
-    issuer: "https://issuer.example", obtainedAt: time, token: "token",
+    token: "token", obtainedAt: time, issuer: "https://issuer.example",
     tokenEndpoint: "https://issuer.example/token")
   let back = try JSONDecoder().decode(SignIn.self, from: JSONEncoder().encode(model))
   #expect(back.obtainedAt.utf8.elementsEqual(time.utf8))

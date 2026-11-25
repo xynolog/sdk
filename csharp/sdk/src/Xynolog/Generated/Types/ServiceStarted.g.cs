@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceStarted
 {
-    [global::Xynolog.Serialization.Wire("address")] public required string Address { get; init; }
+    [global::Xynolog.Serialization.Wire("requestId")] public required global::Xynolog.Types.RequestId RequestId { get; init; }
+    [global::Xynolog.Serialization.Wire("instance")] public required string Instance { get; init; }
     [global::Xynolog.Serialization.Wire("container")] public required string Container { get; init; }
     [global::Xynolog.Serialization.Wire("documentPath")] public string? DocumentPath { get; init; }
-    [global::Xynolog.Serialization.Wire("instance")] public required string Instance { get; init; }
-    [global::Xynolog.Serialization.Wire("requestId")] public required global::Xynolog.Types.RequestId RequestId { get; init; }
+    [global::Xynolog.Serialization.Wire("address")] public required string Address { get; init; }
 }

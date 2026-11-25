@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BrowseResourceResultResponse
 {
-    [global::Xynolog.Serialization.Wire("lastSequence")] public required long LastSequence { get; init; }
     [global::Xynolog.Serialization.Wire("resource")] public required global::Xynolog.Types.ResourceDescriptor Resource { get; init; }
+    [global::Xynolog.Serialization.Wire("lastSequence")] public required long LastSequence { get; init; }
 }
