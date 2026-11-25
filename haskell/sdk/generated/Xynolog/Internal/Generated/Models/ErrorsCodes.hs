@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.ErrorsCodes (ErrorsCodes (..), ErrorsCodesBusRequest (..), ErrorsCodesBusRequestCodesItem (..), ErrorsCodesBusRequestCodesItemWire (..), errorsCodesBusRequestCodesItemWireText, ErrorsCodesControl (..), ErrorsCodesControlCodesItem (..), ErrorsCodesJob (..), ErrorsCodesJobCodesItem (..), ErrorsCodesKbIdentity (..), ErrorsCodesKbIdentityCodesItem (..), ErrorsCodesSession (..), ErrorsCodesSessionCodesItem (..), ErrorsCodesSignIn (..), ErrorsCodesSignInCodesItem (..), ErrorsCodesSpanRefusal (..), ErrorsCodesSpanRefusalCodesItem (..), ErrorsCodesTransport (..), ErrorsCodesTransportCodesItem (..), ErrorsCodesTransportCodesItemNoStatus (..), ErrorsCodesTransportCodesItemStatus (..), ErrorsCodesTransportCodesItemStatusFrom (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -199,7 +198,7 @@ instance ToJSON ErrorsCodesTransport where toJSON value = Object (KM.fromList (c
 
 data ErrorsCodesTransportCodesItem = ErrorsCodesTransportCodesItemStatus ErrorsCodesTransportCodesItemStatus | ErrorsCodesTransportCodesItemStatusFrom ErrorsCodesTransportCodesItemStatusFrom | ErrorsCodesTransportCodesItemNoStatus ErrorsCodesTransportCodesItemNoStatus deriving (Eq, Show)
 
-instance FromJSON ErrorsCodesTransportCodesItem where parseJSON = checked "ErrorsCodesTransportCodesItem" $ \value -> (ErrorsCodesTransportCodesItemStatus <$> parseJSON value) <|> (ErrorsCodesTransportCodesItemStatusFrom <$> parseJSON value) <|> (ErrorsCodesTransportCodesItemNoStatus <$> parseJSON value)
+instance FromJSON ErrorsCodesTransportCodesItem where parseJSON = checked "ErrorsCodesTransportCodesItem" $ \value -> readMember "ErrorsCodesTransportCodesItem" [([Signature {signatureKind = ObjectKind, signatureRequired = ["code", "docs", "status"], signatureAllowed = Just ["code", "docs", "status"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ErrorsCodesTransportCodesItemStatus <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["code", "docs", "statusFrom"], signatureAllowed = Just ["code", "docs", "statusFrom"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ErrorsCodesTransportCodesItemStatusFrom <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["code", "docs"], signatureAllowed = Just ["code", "docs"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ErrorsCodesTransportCodesItemNoStatus <$> parseJSON value)] value
 
 instance ToJSON ErrorsCodesTransportCodesItem where
   toJSON (ErrorsCodesTransportCodesItemStatus value) = toJSON value

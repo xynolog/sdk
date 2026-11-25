@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.SmelterMessages (SmelterMessages (..), SmelterMessagesLoggedItem (..), SmelterMessagesLoggedItemFields (..), SmelterMessagesRefusalsItem (..)) where
+module Xynolog.Internal.Generated.Models.SmelterMessages (SmelterMessages (..), SmelterMessagesLoggedItem (..), SmelterMessagesRefusalsItem (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -26,7 +26,7 @@ data SmelterMessagesLoggedItem = SmelterMessagesLoggedItem
     smelterMessagesLoggedItemLevel :: LogLevel,
     smelterMessagesLoggedItemSituation :: Text,
     smelterMessagesLoggedItemMessage :: Text,
-    smelterMessagesLoggedItemFields :: SmelterMessagesLoggedItemFields,
+    smelterMessagesLoggedItemFields :: KM.KeyMap Text,
     smelterMessagesLoggedItemCarries :: [Text]
   }
   deriving (Eq, Show)
@@ -34,15 +34,6 @@ data SmelterMessagesLoggedItem = SmelterMessagesLoggedItem
 instance FromJSON SmelterMessagesLoggedItem where parseJSON = checked "SmelterMessagesLoggedItem" $ withObject "SmelterMessagesLoggedItem" (\fields -> SmelterMessagesLoggedItem <$> (fields .: "name") <*> (fields .: "level") <*> (fields .: "situation") <*> (fields .: "message") <*> (fields .: "fields") <*> (fields .: "carries"))
 
 instance ToJSON SmelterMessagesLoggedItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (smelterMessagesLoggedItemName value))], [("level", toJSON (smelterMessagesLoggedItemLevel value))], [("situation", toJSON (smelterMessagesLoggedItemSituation value))], [("message", toJSON (smelterMessagesLoggedItemMessage value))], [("fields", toJSON (smelterMessagesLoggedItemFields value))], [("carries", toJSON (smelterMessagesLoggedItemCarries value))]]))
-
-data SmelterMessagesLoggedItemFields = SmelterMessagesLoggedItemFields
-  { smelterMessagesLoggedItemFieldsAdditionalProperties :: KM.KeyMap Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON SmelterMessagesLoggedItemFields where parseJSON = checked "SmelterMessagesLoggedItemFields" $ withObject "SmelterMessagesLoggedItemFields" (\fields -> SmelterMessagesLoggedItemFields <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON SmelterMessagesLoggedItemFields where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (smelterMessagesLoggedItemFieldsAdditionalProperties value)))
 
 data SmelterMessagesRefusalsItem = SmelterMessagesRefusalsItem
   { smelterMessagesRefusalsItemName :: Text,

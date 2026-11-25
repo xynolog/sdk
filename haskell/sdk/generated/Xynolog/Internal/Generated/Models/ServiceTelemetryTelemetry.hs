@@ -2,9 +2,8 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ServiceTelemetryTelemetry (ServiceTelemetryTelemetry (..), ServiceTelemetryTelemetryMetricsItem (..), ServiceTelemetryTelemetryMetricsItemAttributesItem (..), ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem (..), ServiceTelemetryTelemetryMetricsItemInstrument (..), serviceTelemetryTelemetryMetricsItemInstrumentText, ServiceTelemetryTelemetryMetricsItemPlanesItem (..), serviceTelemetryTelemetryMetricsItemPlanesItemText, ServiceTelemetryTelemetryMetricsItemServicesItem (..), serviceTelemetryTelemetryMetricsItemServicesItemText, ServiceTelemetryTelemetryMetricsItemWhen (..), serviceTelemetryTelemetryMetricsItemWhenText, ServiceTelemetryTelemetryResourceItem (..), ServiceTelemetryTelemetryResourceItemServicesItem (..), serviceTelemetryTelemetryResourceItemServicesItemText, ServiceTelemetryTelemetrySdk (..), ServiceTelemetryTelemetrySpansItem (..), ServiceTelemetryTelemetrySpansItemAttributesItem (..), ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem (..), ServiceTelemetryTelemetrySpansItemKind (..), serviceTelemetryTelemetrySpansItemKindText, ServiceTelemetryTelemetrySpansItemServicesItem (..), serviceTelemetryTelemetrySpansItemServicesItemText, ServiceTelemetryTelemetrySpansItemWhen (..), serviceTelemetryTelemetrySpansItemWhenText) where
+module Xynolog.Internal.Generated.Models.ServiceTelemetryTelemetry (ServiceTelemetryTelemetry (..), ServiceTelemetryTelemetryMetricsItem (..), ServiceTelemetryTelemetryMetricsItemAttributesItem (..), ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem (..), ServiceTelemetryTelemetryMetricsItemInstrument (..), serviceTelemetryTelemetryMetricsItemInstrumentText, ServiceTelemetryTelemetryMetricsItemPlanesItem (..), serviceTelemetryTelemetryMetricsItemPlanesItemText, ServiceTelemetryTelemetryMetricsItemServicesItem (..), serviceTelemetryTelemetryMetricsItemServicesItemText, ServiceTelemetryTelemetryMetricsItemWhen (..), serviceTelemetryTelemetryMetricsItemWhenText, ServiceTelemetryTelemetryResourceItem (..), ServiceTelemetryTelemetryResourceItemServicesItem (..), serviceTelemetryTelemetryResourceItemServicesItemText, ServiceTelemetryTelemetrySpansItem (..), ServiceTelemetryTelemetrySpansItemAttributesItem (..), ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem (..), ServiceTelemetryTelemetrySpansItemKind (..), serviceTelemetryTelemetrySpansItemKindText, ServiceTelemetryTelemetrySpansItemServicesItem (..), serviceTelemetryTelemetrySpansItemServicesItemText, ServiceTelemetryTelemetrySpansItemWhen (..), serviceTelemetryTelemetrySpansItemWhenText) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -12,7 +11,7 @@ import Xynolog.Internal.Codec
 
 data ServiceTelemetryTelemetry = ServiceTelemetryTelemetry
   { serviceTelemetryTelemetryComment :: Text,
-    serviceTelemetryTelemetrySdk :: ServiceTelemetryTelemetrySdk,
+    serviceTelemetryTelemetrySdk :: KM.KeyMap [Text],
     serviceTelemetryTelemetryResource :: [ServiceTelemetryTelemetryResourceItem],
     serviceTelemetryTelemetrySpans :: [ServiceTelemetryTelemetrySpansItem],
     serviceTelemetryTelemetryMetrics :: [ServiceTelemetryTelemetryMetricsItem]
@@ -51,7 +50,7 @@ instance ToJSON ServiceTelemetryTelemetryMetricsItemAttributesItem where toJSON 
 
 data ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem = ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText Text | ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean Bool deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem where parseJSON = checked "ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem" $ \value -> (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText <$> parseJSON value) <|> (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean <$> parseJSON value)
+instance FromJSON ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem where parseJSON = checked "ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem" $ \value -> readMember "ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText <$> parseJSON value), ([Signature {signatureKind = BooleanKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean <$> parseJSON value)] value
 
 instance ToJSON ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem where
   toJSON (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText value) = toJSON value
@@ -157,15 +156,6 @@ serviceTelemetryTelemetryResourceItemServicesItemText ServiceTelemetryTelemetryR
 serviceTelemetryTelemetryResourceItemServicesItemText ServiceTelemetryTelemetryResourceItemServicesItemWeaver = "weaver"
 serviceTelemetryTelemetryResourceItemServicesItemText ServiceTelemetryTelemetryResourceItemServicesItemWorker = "worker"
 
-data ServiceTelemetryTelemetrySdk = ServiceTelemetryTelemetrySdk
-  { serviceTelemetryTelemetrySdkAdditionalProperties :: KM.KeyMap [Text]
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ServiceTelemetryTelemetrySdk where parseJSON = checked "ServiceTelemetryTelemetrySdk" $ withObject "ServiceTelemetryTelemetrySdk" (\fields -> ServiceTelemetryTelemetrySdk <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ServiceTelemetryTelemetrySdk where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (serviceTelemetryTelemetrySdkAdditionalProperties value)))
-
 data ServiceTelemetryTelemetrySpansItem = ServiceTelemetryTelemetrySpansItem
   { serviceTelemetryTelemetrySpansItemName :: Text,
     serviceTelemetryTelemetrySpansItemServices :: [ServiceTelemetryTelemetrySpansItemServicesItem],
@@ -193,7 +183,7 @@ instance ToJSON ServiceTelemetryTelemetrySpansItemAttributesItem where toJSON va
 
 data ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem = ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText Text | ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean Bool deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem where parseJSON = checked "ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem" $ \value -> (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText <$> parseJSON value) <|> (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean <$> parseJSON value)
+instance FromJSON ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem where parseJSON = checked "ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem" $ \value -> readMember "ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText <$> parseJSON value), ([Signature {signatureKind = BooleanKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean <$> parseJSON value)] value
 
 instance ToJSON ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem where
   toJSON (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText value) = toJSON value

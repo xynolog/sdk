@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.ClientRefresh (ClientRefresh (..), ClientRefreshQueriesItem (..), ClientRefreshQueriesItemAsks (..), ClientRefreshQueriesItemAsksPer (..), clientRefreshQueriesItemAsksPerText, ClientRefreshQueriesItemAsksPersisted (..), ClientRefreshQueriesItemAsksValue (..), ClientRefreshQueriesItemReads (..), ClientRefreshQueriesItemReadsPer (..), clientRefreshQueriesItemReadsPerText, ClientRefreshQueriesItemReadsPersisted (..), ClientRefreshQueriesItemReadsValue (..), ClientRefreshRefreshItem (..), ClientRefreshRefreshItemOn (..), ClientRefreshRefreshItemOnNames (..), ClientRefreshRefreshItemOnReach (..), clientRefreshRefreshItemOnReachText, ClientRefreshRefreshItemOnWhen (..), clientRefreshRefreshItemOnWhenText, ClientRefreshRefreshItemStream (..), ClientRefreshRefreshItemStreamReach (..), clientRefreshRefreshItemStreamReachText, ClientRefreshRefreshItemStreamStream (..), clientRefreshRefreshItemStreamStreamText) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -23,7 +22,7 @@ instance ToJSON ClientRefresh where toJSON value = Object (KM.fromList (concat [
 
 data ClientRefreshQueriesItem = ClientRefreshQueriesItemAsks ClientRefreshQueriesItemAsks | ClientRefreshQueriesItemReads ClientRefreshQueriesItemReads deriving (Eq, Show)
 
-instance FromJSON ClientRefreshQueriesItem where parseJSON = checked "ClientRefreshQueriesItem" $ \value -> (ClientRefreshQueriesItemAsks <$> parseJSON value) <|> (ClientRefreshQueriesItemReads <$> parseJSON value)
+instance FromJSON ClientRefreshQueriesItem where parseJSON = checked "ClientRefreshQueriesItem" $ \value -> readMember "ClientRefreshQueriesItem" [([Signature {signatureKind = ObjectKind, signatureRequired = ["name", "asks", "value", "docs"], signatureAllowed = Just ["name", "per", "asks", "persisted", "value", "docs"], signatureFixed = [("per", [String "resource", String "annotation", String "filters"]), ("persisted", [Bool True])], signaturePattern = Nothing, signatureValues = Nothing}], ClientRefreshQueriesItemAsks <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["name", "reads", "value", "docs"], signatureAllowed = Just ["name", "per", "reads", "persisted", "value", "docs"], signatureFixed = [("per", [String "resource", String "annotation", String "filters"]), ("persisted", [Bool True])], signaturePattern = Nothing, signatureValues = Nothing}], ClientRefreshQueriesItemReads <$> parseJSON value)] value
 
 instance ToJSON ClientRefreshQueriesItem where
   toJSON (ClientRefreshQueriesItemAsks value) = toJSON value
@@ -117,7 +116,7 @@ instance ToJSON ClientRefreshQueriesItemReadsValue where toJSON value = Object (
 
 data ClientRefreshRefreshItem = ClientRefreshRefreshItemOn ClientRefreshRefreshItemOn | ClientRefreshRefreshItemStream ClientRefreshRefreshItemStream deriving (Eq, Show)
 
-instance FromJSON ClientRefreshRefreshItem where parseJSON = checked "ClientRefreshRefreshItem" $ \value -> (ClientRefreshRefreshItemOn <$> parseJSON value) <|> (ClientRefreshRefreshItemStream <$> parseJSON value)
+instance FromJSON ClientRefreshRefreshItem where parseJSON = checked "ClientRefreshRefreshItem" $ \value -> readMember "ClientRefreshRefreshItem" [([Signature {signatureKind = ObjectKind, signatureRequired = ["on", "docs"], signatureAllowed = Just ["on", "when", "reach", "names", "carries", "refetches", "writes", "removes", "docs"], signatureFixed = [("when", [String "enriched", String "unenriched"]), ("reach", [String "subject", String "held"])], signaturePattern = Nothing, signatureValues = Nothing}], ClientRefreshRefreshItemOn <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["stream", "docs"], signatureAllowed = Just ["stream", "reach", "refetches", "docs"], signatureFixed = [("stream", [String "reopened", String "unreadable"]), ("reach", [String "subject", String "held"])], signaturePattern = Nothing, signatureValues = Nothing}], ClientRefreshRefreshItemStream <$> parseJSON value)] value
 
 instance ToJSON ClientRefreshRefreshItem where
   toJSON (ClientRefreshRefreshItemOn value) = toJSON value

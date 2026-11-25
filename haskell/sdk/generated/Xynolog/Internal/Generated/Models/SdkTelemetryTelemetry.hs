@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry (SdkTelemetryTelemetry (..), SdkTelemetryTelemetryMetricsItem (..), SdkTelemetryTelemetryMetricsItemAttributesItem (..), SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem (..), SdkTelemetryTelemetryMetricsItemInstrument (..), sdkTelemetryTelemetryMetricsItemInstrumentText, SdkTelemetryTelemetryMetricsItemTransport (..), sdkTelemetryTelemetryMetricsItemTransportText, SdkTelemetryTelemetrySpansItem (..), SdkTelemetryTelemetrySpansItemAttributesItem (..), SdkTelemetryTelemetrySpansItemAttributesItemValuesItem (..), SdkTelemetryTelemetrySpansItemKind (..), sdkTelemetryTelemetrySpansItemKindText, SdkTelemetryTelemetrySpansItemTransport (..), sdkTelemetryTelemetrySpansItemTransportText) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -47,7 +46,7 @@ instance ToJSON SdkTelemetryTelemetryMetricsItemAttributesItem where toJSON valu
 
 data SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem = SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText Text | SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean Bool deriving (Eq, Show)
 
-instance FromJSON SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem where parseJSON = checked "SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem" $ \value -> (SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText <$> parseJSON value) <|> (SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean <$> parseJSON value)
+instance FromJSON SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem where parseJSON = checked "SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem" $ \value -> readMember "SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText <$> parseJSON value), ([Signature {signatureKind = BooleanKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean <$> parseJSON value)] value
 
 instance ToJSON SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem where
   toJSON (SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText value) = toJSON value
@@ -107,7 +106,7 @@ instance ToJSON SdkTelemetryTelemetrySpansItemAttributesItem where toJSON value 
 
 data SdkTelemetryTelemetrySpansItemAttributesItemValuesItem = SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText Text | SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean Bool deriving (Eq, Show)
 
-instance FromJSON SdkTelemetryTelemetrySpansItemAttributesItemValuesItem where parseJSON = checked "SdkTelemetryTelemetrySpansItemAttributesItemValuesItem" $ \value -> (SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText <$> parseJSON value) <|> (SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean <$> parseJSON value)
+instance FromJSON SdkTelemetryTelemetrySpansItemAttributesItemValuesItem where parseJSON = checked "SdkTelemetryTelemetrySpansItemAttributesItemValuesItem" $ \value -> readMember "SdkTelemetryTelemetrySpansItemAttributesItemValuesItem" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText <$> parseJSON value), ([Signature {signatureKind = BooleanKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean <$> parseJSON value)] value
 
 instance ToJSON SdkTelemetryTelemetrySpansItemAttributesItemValuesItem where
   toJSON (SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText value) = toJSON value

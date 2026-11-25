@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.Annotation (Annotation (..), AnnotationContext (..), annotationContextText, AnnotationTargetValue (..), AnnotationType (..), annotationTypeText) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -47,7 +46,7 @@ annotationContextText AnnotationContextHttpWwwW3OrgNsAnnoJsonld = "http://www.w3
 
 data AnnotationTargetValue = AnnotationTargetValueResourceId ResourceId | AnnotationTargetValueAnnotationTarget AnnotationTarget deriving (Eq, Show)
 
-instance FromJSON AnnotationTargetValue where parseJSON = checked "AnnotationTargetValue" $ \value -> (AnnotationTargetValueResourceId <$> parseJSON value) <|> (AnnotationTargetValueAnnotationTarget <$> parseJSON value)
+instance FromJSON AnnotationTargetValue where parseJSON = checked "AnnotationTargetValue" $ \value -> readMember "AnnotationTargetValue" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Just "^[A-Za-z0-9_-]{1,128}$", signatureValues = Nothing}], AnnotationTargetValueResourceId <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["source"], signatureAllowed = Nothing, signatureFixed = [("type", [String "SpecificResource"])], signaturePattern = Nothing, signatureValues = Nothing}], AnnotationTargetValueAnnotationTarget <$> parseJSON value)] value
 
 instance ToJSON AnnotationTargetValue where
   toJSON (AnnotationTargetValueResourceId value) = toJSON value

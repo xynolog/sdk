@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.MediaTypesRegistry (MediaTypesRegistry (..), MediaTypesRegistryExtensionAliases (..), MediaTypesRegistryMediaTypesItem (..)) where
+module Xynolog.Internal.Generated.Models.MediaTypesRegistry (MediaTypesRegistry (..), MediaTypesRegistryMediaTypesItem (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -15,7 +15,7 @@ data MediaTypesRegistry = MediaTypesRegistry
     mediaTypesRegistryRender :: [Text],
     mediaTypesRegistryAnchoring :: [Text],
     mediaTypesRegistryTextSource :: [Text],
-    mediaTypesRegistryExtensionAliases :: MediaTypesRegistryExtensionAliases,
+    mediaTypesRegistryExtensionAliases :: KM.KeyMap Text,
     mediaTypesRegistryMediaTypes :: [MediaTypesRegistryMediaTypesItem]
   }
   deriving (Eq, Show)
@@ -23,15 +23,6 @@ data MediaTypesRegistry = MediaTypesRegistry
 instance FromJSON MediaTypesRegistry where parseJSON = checked "MediaTypesRegistry" $ withObject "MediaTypesRegistry" (\fields -> MediaTypesRegistry <$> (fields .: "$comment") <*> (fields .: "render") <*> (fields .: "anchoring") <*> (fields .: "textSource") <*> (fields .: "extensionAliases") <*> (fields .: "mediaTypes"))
 
 instance ToJSON MediaTypesRegistry where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (mediaTypesRegistryComment value))], [("render", toJSON (mediaTypesRegistryRender value))], [("anchoring", toJSON (mediaTypesRegistryAnchoring value))], [("textSource", toJSON (mediaTypesRegistryTextSource value))], [("extensionAliases", toJSON (mediaTypesRegistryExtensionAliases value))], [("mediaTypes", toJSON (mediaTypesRegistryMediaTypes value))]]))
-
-data MediaTypesRegistryExtensionAliases = MediaTypesRegistryExtensionAliases
-  { mediaTypesRegistryExtensionAliasesAdditionalProperties :: KM.KeyMap Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON MediaTypesRegistryExtensionAliases where parseJSON = checked "MediaTypesRegistryExtensionAliases" $ withObject "MediaTypesRegistryExtensionAliases" (\fields -> MediaTypesRegistryExtensionAliases <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON MediaTypesRegistryExtensionAliases where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (mediaTypesRegistryExtensionAliasesAdditionalProperties value)))
 
 data MediaTypesRegistryMediaTypesItem = MediaTypesRegistryMediaTypesItem
   { mediaTypesRegistryMediaTypesItemMediaType :: SupportedMediaType,

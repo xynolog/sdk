@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.ClientTiming (ClientTiming (..), ClientTimingTimingItem (..), ClientTimingTimingItemValue (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -34,7 +33,7 @@ instance ToJSON ClientTimingTimingItem where toJSON value = Object (KM.fromList 
 
 data ClientTimingTimingItemValue = ClientTimingTimingItemValueInteger Integer | ClientTimingTimingItemValueRetryBudget RetryBudget deriving (Eq, Show)
 
-instance FromJSON ClientTimingTimingItemValue where parseJSON = checked "ClientTimingTimingItemValue" $ \value -> (ClientTimingTimingItemValueInteger <$> parseJSON value) <|> (ClientTimingTimingItemValueRetryBudget <$> parseJSON value)
+instance FromJSON ClientTimingTimingItemValue where parseJSON = checked "ClientTimingTimingItemValue" $ \value -> readMember "ClientTimingTimingItemValue" [([Signature {signatureKind = IntegerKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ClientTimingTimingItemValueInteger <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["attempts", "initialDelayMs", "maxDelayMs"], signatureAllowed = Just ["attempts", "initialDelayMs", "maxDelayMs"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ClientTimingTimingItemValueRetryBudget <$> parseJSON value)] value
 
 instance ToJSON ClientTimingTimingItemValue where
   toJSON (ClientTimingTimingItemValueInteger value) = toJSON value

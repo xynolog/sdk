@@ -2,7 +2,7 @@
    model module; the schemas the SDK validates against at run time, each
    without what only describes it; the carried tables' values; and the
    dispatcher the round-trip tests decode and encode each model's examples
-   by. *)
+   by, and what each union's members admit. *)
 
 module H = Haskell_syntax
 
@@ -190,69 +190,178 @@ let enumeration_cases enumerations =
         ];
     }
 
-let round_trip_module ~banner ~enumerations names =
-  {
-    H.banner;
-    extensions = [ "OverloadedStrings" ];
-    name = "Xynolog.Internal.Generated.RoundTrip";
-    imports =
-      [
-        H.import "Data.Aeson"
-          ~items:[ All "Value"; Plain "parseJSON"; Plain "toJSON" ];
-        H.import "Data.Aeson.Types" ~items:[ Plain "parseEither" ];
-        H.import "Data.Text" ~items:[ Plain "Text" ];
-        H.import "Xynolog.Types";
-      ];
-    body =
-      [
-        Value
-          {
-            about = [];
-            name = "roundTrip";
-            type_ =
-              T_fun
-                ( T_name "Text",
-                  T_fun
-                    ( T_name "Value",
-                      T_apply ("Either", [ T_name "String"; T_name "Value" ]) )
-                );
-            clauses =
-              [
-                {
-                  patterns = [ Var "name"; Var "value" ];
-                  body =
-                    Case
-                      ( Name "name",
-                        List.map
-                          (fun n ->
-                            ( H.Literal n,
-                              H.Infix
-                                ( Name "toJSON",
+(* A value [s] admits: its first stated value, else one of its kind, a text
+   its pattern admits, and an object of its required members and of each
+   fixed one at its first value. *)
+let admitted ~union ~variant (s : Typing.signature) =
+  match s.values with
+  | Some (v :: _) -> Ok (Models.literal_value v)
+  | _ -> (
+      match s.kind with
+      | Text_kind -> (
+          match s.pattern with
+          | None -> Ok (value (`String ""))
+          | Some pattern -> (
+              match Text_patterns.admitted pattern with
+              | Some text -> Ok (value (`String text))
+              | None ->
+                  Error
+                    (Printf.sprintf
+                       "%s: no text of ASCII its member %s's pattern %s admits \
+                        is spelled"
+                       union variant pattern)))
+      | Integer_kind -> Ok (value (`Int 0))
+      | Number_kind ->
+          Ok (H.Apply (Name "Number", [ Apply (Name "read", [ Str "0.5" ]) ]))
+      | Boolean_kind -> Ok (value (`Bool false))
+      | List_kind -> Ok (H.Apply (Name "Array", [ Name "mempty" ]))
+      | Null_kind | Any_kind -> Ok (H.Name "Null")
+      | Object_kind ->
+          let fixed = List.map fst s.fixed in
+          Ok
+            (H.Apply
+               ( Name "Object",
+                 [
+                   Apply
+                     ( Name "KM.fromList",
+                       [
+                         List
+                           (List.map
+                              (fun name ->
+                                H.Tuple
                                   [
-                                    ( "<$>",
-                                      Typed
-                                        ( Apply
-                                            ( Name "parseEither",
-                                              [ Name "parseJSON"; Name "value" ]
-                                            ),
-                                          T_apply
-                                            ( "Either",
-                                              [ T_name "String"; T_name n ] ) )
-                                    );
-                                  ] ) ))
-                          names
-                        @ [
-                            ( Otherwise,
-                              Apply
-                                ( Name "Left",
-                                  [
-                                    Str
-                                      "unknown schema in round-trip dispatcher";
-                                  ] ) );
-                          ] );
-                };
-              ];
-          };
-        enumeration_cases enumerations;
-      ];
-  }
+                                    Str name;
+                                    (match List.assoc_opt name s.fixed with
+                                    | Some (v :: _) -> Models.literal_value v
+                                    | _ -> Name "Null");
+                                  ])
+                              (s.required
+                              @ List.filter
+                                  (fun name -> not (List.mem name s.required))
+                                  fixed));
+                       ] );
+                 ] )))
+
+(* Each member of every union the models declare, by the union's name: its
+   variant, and each of its signatures with a value it admits, which the
+   test reads as that member. *)
+let union_members unions =
+  let ( let* ) = Result.bind in
+  let* listed =
+    Normalize.all
+      (List.map
+         (fun (union, members) ->
+           let* members =
+             Normalize.all
+               (List.map
+                  (fun (b : Typing.branch) ->
+                    let* signed =
+                      Normalize.all
+                        (List.map
+                           (fun s ->
+                             Result.map
+                               (fun v -> H.Tuple [ Models.signature s; v ])
+                               (admitted ~union ~variant:b.variant s))
+                           b.signature)
+                    in
+                    Ok (H.Tuple [ Str b.variant; List signed ]))
+                  members)
+           in
+           Ok (H.Tuple [ Str union; List members ]))
+         unions)
+  in
+  Ok
+    (H.Value
+       {
+         about = [];
+         name = "unionMembers";
+         type_ =
+           T_list
+             (T_tuple
+                [
+                  T_name "Text";
+                  T_list
+                    (T_tuple
+                       [
+                         T_name "Text";
+                         T_list (T_tuple [ T_name "Signature"; T_name "Value" ]);
+                       ]);
+                ]);
+         clauses = [ { patterns = []; body = List listed } ];
+       })
+
+let round_trip_module ~banner ~enumerations ~unions names =
+  let ( let* ) = Result.bind in
+  let* members = union_members unions in
+  Ok
+    {
+      H.banner;
+      extensions = [ "OverloadedStrings" ];
+      name = "Xynolog.Internal.Generated.RoundTrip";
+      imports =
+        [
+          H.import "Data.Aeson"
+            ~items:[ All "Value"; Plain "parseJSON"; Plain "toJSON" ];
+          H.import "Data.Aeson.KeyMap" ~qualified:"KM";
+          H.import "Data.Aeson.Types" ~items:[ Plain "parseEither" ];
+          H.import "Data.Text" ~items:[ Plain "Text" ];
+          H.import "Xynolog.Internal.Codec"
+            ~items:[ All "Kind"; All "Signature" ];
+          H.import "Xynolog.Types";
+        ];
+      body =
+        [
+          Value
+            {
+              about = [];
+              name = "roundTrip";
+              type_ =
+                T_fun
+                  ( T_name "Text",
+                    T_fun
+                      ( T_name "Value",
+                        T_apply ("Either", [ T_name "String"; T_name "Value" ])
+                      ) );
+              clauses =
+                [
+                  {
+                    patterns = [ Var "name"; Var "value" ];
+                    body =
+                      Case
+                        ( Name "name",
+                          List.map
+                            (fun n ->
+                              ( H.Literal n,
+                                H.Infix
+                                  ( Name "toJSON",
+                                    [
+                                      ( "<$>",
+                                        Typed
+                                          ( Apply
+                                              ( Name "parseEither",
+                                                [
+                                                  Name "parseJSON"; Name "value";
+                                                ] ),
+                                            T_apply
+                                              ( "Either",
+                                                [ T_name "String"; T_name n ] )
+                                          ) );
+                                    ] ) ))
+                            names
+                          @ [
+                              ( Otherwise,
+                                Apply
+                                  ( Name "Left",
+                                    [
+                                      Str
+                                        "unknown schema in round-trip \
+                                         dispatcher";
+                                    ] ) );
+                            ] );
+                  };
+                ];
+            };
+          enumeration_cases enumerations;
+          members;
+        ];
+    }

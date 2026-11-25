@@ -2,9 +2,8 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceStep (ConformanceStep (..), ConformanceStepAbandon (..), ConformanceStepBackend (..), ConformanceStepBackendBackend (..), conformanceStepBackendBackendText, ConformanceStepBackendWith (..), ConformanceStepCarried (..), ConformanceStepClaimed (..), ConformanceStepClosed (..), ConformanceStepCompletes (..), ConformanceStepDriver (..), ConformanceStepDriverWith (..), ConformanceStepError (..), ConformanceStepFetches (..), ConformanceStepFetchesFetchesItem (..), ConformanceStepFrame (..), ConformanceStepFrames (..), ConformanceStepHolds (..), ConformanceStepLeave (..), ConformanceStepLet (..), ConformanceStepLetLet (..), ConformanceStepObserve (..), ConformanceStepObserveObserve (..), ConformanceStepProgress (..), ConformanceStepQuiet (..), ConformanceStepReaches (..), ConformanceStepRefused (..), ConformanceStepScopes (..), ConformanceStepSettles (..), ConformanceStepSettlesAbandoned (..), ConformanceStepSignalled (..), ConformanceStepStalled (..), ConformanceStepState (..), ConformanceStepStateState (..), conformanceStepStateStateText, ConformanceStepStays (..), ConformanceStepStaysStays (..), conformanceStepStaysStaysText, ConformanceStepWire (..), ConformanceStepWireAt (..), conformanceStepWireAtText, ConformanceStepWireHeaders (..)) where
+module Xynolog.Internal.Generated.Models.ConformanceStep (ConformanceStep (..), ConformanceStepAbandon (..), ConformanceStepBackend (..), ConformanceStepBackendBackend (..), conformanceStepBackendBackendText, ConformanceStepCarried (..), ConformanceStepClaimed (..), ConformanceStepClosed (..), ConformanceStepCompletes (..), ConformanceStepDriver (..), ConformanceStepError (..), ConformanceStepFetches (..), ConformanceStepFetchesFetchesItem (..), ConformanceStepFrame (..), ConformanceStepFrames (..), ConformanceStepHolds (..), ConformanceStepLeave (..), ConformanceStepLet (..), ConformanceStepObserve (..), ConformanceStepObserveObserve (..), ConformanceStepProgress (..), ConformanceStepQuiet (..), ConformanceStepReaches (..), ConformanceStepRefused (..), ConformanceStepScopes (..), ConformanceStepSettles (..), ConformanceStepSettlesAbandoned (..), ConformanceStepSignalled (..), ConformanceStepStalled (..), ConformanceStepState (..), ConformanceStepStateState (..), conformanceStepStateStateText, ConformanceStepStays (..), ConformanceStepStaysStays (..), conformanceStepStaysStaysText, ConformanceStepWire (..), ConformanceStepWireAt (..), conformanceStepWireAtText) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -14,7 +13,7 @@ import Xynolog.Internal.Generated.Models.ConformanceHttpFetch
 
 data ConformanceStep = ConformanceStepLet ConformanceStepLet | ConformanceStepDriver ConformanceStepDriver | ConformanceStepAbandon ConformanceStepAbandon | ConformanceStepSettles ConformanceStepSettles | ConformanceStepWire ConformanceStepWire | ConformanceStepCarried ConformanceStepCarried | ConformanceStepClosed ConformanceStepClosed | ConformanceStepProgress ConformanceStepProgress | ConformanceStepState ConformanceStepState | ConformanceStepStays ConformanceStepStays | ConformanceStepFrame ConformanceStepFrame | ConformanceStepFrames ConformanceStepFrames | ConformanceStepError ConformanceStepError | ConformanceStepBackend ConformanceStepBackend | ConformanceStepQuiet ConformanceStepQuiet | ConformanceStepObserve ConformanceStepObserve | ConformanceStepLeave ConformanceStepLeave | ConformanceStepReaches ConformanceStepReaches | ConformanceStepHolds ConformanceStepHolds | ConformanceStepCompletes ConformanceStepCompletes | ConformanceStepConformanceBusFetch ConformanceBusFetch | ConformanceStepConformanceHttpFetch ConformanceHttpFetch | ConformanceStepFetches ConformanceStepFetches | ConformanceStepScopes ConformanceStepScopes | ConformanceStepClaimed ConformanceStepClaimed | ConformanceStepRefused ConformanceStepRefused | ConformanceStepSignalled ConformanceStepSignalled | ConformanceStepStalled ConformanceStepStalled deriving (Eq, Show)
 
-instance FromJSON ConformanceStep where parseJSON = checked "ConformanceStep" $ \value -> (ConformanceStepLet <$> parseJSON value) <|> (ConformanceStepDriver <$> parseJSON value) <|> (ConformanceStepAbandon <$> parseJSON value) <|> (ConformanceStepSettles <$> parseJSON value) <|> (ConformanceStepWire <$> parseJSON value) <|> (ConformanceStepCarried <$> parseJSON value) <|> (ConformanceStepClosed <$> parseJSON value) <|> (ConformanceStepProgress <$> parseJSON value) <|> (ConformanceStepState <$> parseJSON value) <|> (ConformanceStepStays <$> parseJSON value) <|> (ConformanceStepFrame <$> parseJSON value) <|> (ConformanceStepFrames <$> parseJSON value) <|> (ConformanceStepError <$> parseJSON value) <|> (ConformanceStepBackend <$> parseJSON value) <|> (ConformanceStepQuiet <$> parseJSON value) <|> (ConformanceStepObserve <$> parseJSON value) <|> (ConformanceStepLeave <$> parseJSON value) <|> (ConformanceStepReaches <$> parseJSON value) <|> (ConformanceStepHolds <$> parseJSON value) <|> (ConformanceStepCompletes <$> parseJSON value) <|> (ConformanceStepConformanceBusFetch <$> parseJSON value) <|> (ConformanceStepConformanceHttpFetch <$> parseJSON value) <|> (ConformanceStepFetches <$> parseJSON value) <|> (ConformanceStepScopes <$> parseJSON value) <|> (ConformanceStepClaimed <$> parseJSON value) <|> (ConformanceStepRefused <$> parseJSON value) <|> (ConformanceStepSignalled <$> parseJSON value) <|> (ConformanceStepStalled <$> parseJSON value)
+instance FromJSON ConformanceStep where parseJSON = checked "ConformanceStep" $ \value -> readMember "ConformanceStep" [([Signature {signatureKind = ObjectKind, signatureRequired = ["let"], signatureAllowed = Just ["let"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepLet <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["driver"], signatureAllowed = Just ["driver", "with", "returns", "fails", "as"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepDriver <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["abandon"], signatureAllowed = Just ["abandon"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepAbandon <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["settles"], signatureAllowed = Just ["settles", "returns", "fails", "abandoned"], signatureFixed = [("abandoned", [Bool True])], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepSettles <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["wire"], signatureAllowed = Just ["wire", "at", "status", "params", "body", "token", "headers", "answer", "as", "follows", "waited"], signatureFixed = [("at", [String "arrival", String "answer", String "live"])], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepWire <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["carried", "is"], signatureAllowed = Just ["carried", "is"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepCarried <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["closed"], signatureAllowed = Just ["closed"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepClosed <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["progress"], signatureAllowed = Just ["progress"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepProgress <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["state"], signatureAllowed = Just ["state"], signatureFixed = [("state", [String "initial", String "connecting", String "open", String "reconnecting", String "degraded", String "unauthenticated", String "closed"])], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepState <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["stays"], signatureAllowed = Just ["stays"], signatureFixed = [("stays", [String "initial", String "connecting", String "open", String "reconnecting", String "degraded", String "unauthenticated", String "closed"])], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepStays <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["frame", "is"], signatureAllowed = Just ["frame", "is"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepFrame <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["frames", "count"], signatureAllowed = Just ["frames", "count"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepFrames <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["error"], signatureAllowed = Just ["error"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepError <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["backend"], signatureAllowed = Just ["backend", "with"], signatureFixed = [("backend", [String "listen", String "emit", String "record", String "content", String "description", String "annotations", String "anchored-text", String "uploaded", String "refuse", String "unanswered", String "answer-lost", String "hold", String "release", String "rechunk", String "carry", String "cut", String "down", String "up", String "archivist"])], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepBackend <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["quiet"], signatureAllowed = Just ["quiet"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepQuiet <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["observe", "as"], signatureAllowed = Just ["observe", "as"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepObserve <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["leave"], signatureAllowed = Just ["leave"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepLeave <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["reaches", "state"], signatureAllowed = Just ["reaches", "state"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepReaches <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["holds", "state"], signatureAllowed = Just ["holds", "state"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepHolds <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["completes"], signatureAllowed = Just ["completes"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepCompletes <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["fetch", "as"], signatureAllowed = Just ["fetch", "payload", "as"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepConformanceBusFetch <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["fetch"], signatureAllowed = Just ["fetch", "params"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepConformanceHttpFetch <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["fetches"], signatureAllowed = Just ["fetches"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepFetches <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["scopes"], signatureAllowed = Just ["scopes"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepScopes <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["claimed"], signatureAllowed = Just ["claimed"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepClaimed <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["refused"], signatureAllowed = Just ["refused"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepRefused <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["signalled"], signatureAllowed = Just ["signalled"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepSignalled <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["stalled"], signatureAllowed = Just ["stalled"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepStalled <$> parseJSON value)] value
 
 instance ToJSON ConformanceStep where
   toJSON (ConformanceStepLet value) = toJSON value
@@ -57,7 +56,7 @@ instance ToJSON ConformanceStepAbandon where toJSON value = Object (KM.fromList 
 
 data ConformanceStepBackend = MkConformanceStepBackend
   { conformanceStepBackendBackend :: ConformanceStepBackendBackend,
-    conformanceStepBackendWith :: Maybe ConformanceStepBackendWith
+    conformanceStepBackendWith :: Maybe (KM.KeyMap Value)
   }
   deriving (Eq, Show)
 
@@ -111,15 +110,6 @@ conformanceStepBackendBackendText ConformanceStepBackendBackendDown = "down"
 conformanceStepBackendBackendText ConformanceStepBackendBackendUp = "up"
 conformanceStepBackendBackendText ConformanceStepBackendBackendArchivist = "archivist"
 
-data ConformanceStepBackendWith = ConformanceStepBackendWith
-  { conformanceStepBackendWithAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceStepBackendWith where parseJSON = checked "ConformanceStepBackendWith" $ withObject "ConformanceStepBackendWith" (\fields -> ConformanceStepBackendWith <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceStepBackendWith where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepBackendWithAdditionalProperties value)))
-
 data ConformanceStepCarried = MkConformanceStepCarried
   { conformanceStepCarriedCarried :: Text,
     conformanceStepCarriedIs :: Value
@@ -159,7 +149,7 @@ instance ToJSON ConformanceStepCompletes where toJSON value = Object (KM.fromLis
 
 data ConformanceStepDriver = MkConformanceStepDriver
   { conformanceStepDriverDriver :: Text,
-    conformanceStepDriverWith :: Maybe ConformanceStepDriverWith,
+    conformanceStepDriverWith :: Maybe (KM.KeyMap Value),
     conformanceStepDriverReturns :: Maybe Value,
     conformanceStepDriverFails :: Maybe Value,
     conformanceStepDriverAs :: Maybe Text
@@ -169,15 +159,6 @@ data ConformanceStepDriver = MkConformanceStepDriver
 instance FromJSON ConformanceStepDriver where parseJSON = checked "ConformanceStepDriver" $ withObject "ConformanceStepDriver" (\fields -> MkConformanceStepDriver <$> (fields .: "driver") <*> optional fields "with" <*> optional fields "returns" <*> optional fields "fails" <*> optional fields "as")
 
 instance ToJSON ConformanceStepDriver where toJSON value = Object (KM.fromList (concat [[("driver", toJSON (conformanceStepDriverDriver value))], optionalPair "with" (conformanceStepDriverWith value), optionalPair "returns" (conformanceStepDriverReturns value), optionalPair "fails" (conformanceStepDriverFails value), optionalPair "as" (conformanceStepDriverAs value)]))
-
-data ConformanceStepDriverWith = ConformanceStepDriverWith
-  { conformanceStepDriverWithAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceStepDriverWith where parseJSON = checked "ConformanceStepDriverWith" $ withObject "ConformanceStepDriverWith" (\fields -> ConformanceStepDriverWith <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceStepDriverWith where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepDriverWithAdditionalProperties value)))
 
 data ConformanceStepError = MkConformanceStepError
   { conformanceStepErrorError :: Value
@@ -199,7 +180,7 @@ instance ToJSON ConformanceStepFetches where toJSON value = Object (KM.fromList 
 
 data ConformanceStepFetchesFetchesItem = ConformanceStepFetchesFetchesItemConformanceBusFetch ConformanceBusFetch | ConformanceStepFetchesFetchesItemConformanceHttpFetch ConformanceHttpFetch deriving (Eq, Show)
 
-instance FromJSON ConformanceStepFetchesFetchesItem where parseJSON = checked "ConformanceStepFetchesFetchesItem" $ \value -> (ConformanceStepFetchesFetchesItemConformanceBusFetch <$> parseJSON value) <|> (ConformanceStepFetchesFetchesItemConformanceHttpFetch <$> parseJSON value)
+instance FromJSON ConformanceStepFetchesFetchesItem where parseJSON = checked "ConformanceStepFetchesFetchesItem" $ \value -> readMember "ConformanceStepFetchesFetchesItem" [([Signature {signatureKind = ObjectKind, signatureRequired = ["fetch", "as"], signatureAllowed = Just ["fetch", "payload", "as"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepFetchesFetchesItemConformanceBusFetch <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["fetch"], signatureAllowed = Just ["fetch", "params"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ConformanceStepFetchesFetchesItemConformanceHttpFetch <$> parseJSON value)] value
 
 instance ToJSON ConformanceStepFetchesFetchesItem where
   toJSON (ConformanceStepFetchesFetchesItemConformanceBusFetch value) = toJSON value
@@ -245,22 +226,13 @@ instance FromJSON ConformanceStepLeave where parseJSON = checked "ConformanceSte
 instance ToJSON ConformanceStepLeave where toJSON value = Object (KM.fromList (concat [[("leave", toJSON (conformanceStepLeaveLeave value))]]))
 
 data ConformanceStepLet = MkConformanceStepLet
-  { conformanceStepLetLet :: ConformanceStepLetLet
+  { conformanceStepLetLet :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
 instance FromJSON ConformanceStepLet where parseJSON = checked "ConformanceStepLet" $ withObject "ConformanceStepLet" (\fields -> MkConformanceStepLet <$> (fields .: "let"))
 
 instance ToJSON ConformanceStepLet where toJSON value = Object (KM.fromList (concat [[("let", toJSON (conformanceStepLetLet value))]]))
-
-data ConformanceStepLetLet = ConformanceStepLetLet
-  { conformanceStepLetLetAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceStepLetLet where parseJSON = checked "ConformanceStepLetLet" $ withObject "ConformanceStepLetLet" (\fields -> ConformanceStepLetLet <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceStepLetLet where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepLetLetAdditionalProperties value)))
 
 data ConformanceStepObserve = MkConformanceStepObserve
   { conformanceStepObserveObserve :: ConformanceStepObserveObserve,
@@ -436,7 +408,7 @@ data ConformanceStepWire = MkConformanceStepWire
     conformanceStepWireParams :: Maybe Value,
     conformanceStepWireBody :: Maybe Value,
     conformanceStepWireToken :: Maybe Value,
-    conformanceStepWireHeaders :: Maybe ConformanceStepWireHeaders,
+    conformanceStepWireHeaders :: Maybe (KM.KeyMap Value),
     conformanceStepWireAnswer :: Maybe Value,
     conformanceStepWireAs :: Maybe Text,
     conformanceStepWireFollows :: Maybe Text,
@@ -461,12 +433,3 @@ conformanceStepWireAtText :: ConformanceStepWireAt -> Text
 conformanceStepWireAtText ConformanceStepWireAtArrival = "arrival"
 conformanceStepWireAtText ConformanceStepWireAtAnswer = "answer"
 conformanceStepWireAtText ConformanceStepWireAtLive = "live"
-
-data ConformanceStepWireHeaders = ConformanceStepWireHeaders
-  { conformanceStepWireHeadersAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceStepWireHeaders where parseJSON = checked "ConformanceStepWireHeaders" $ withObject "ConformanceStepWireHeaders" (\fields -> ConformanceStepWireHeaders <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceStepWireHeaders where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepWireHeadersAdditionalProperties value)))

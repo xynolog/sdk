@@ -2,9 +2,8 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ControlCli (ControlCli (..), ControlCliCommands (..), ControlCliCommandsValue (..), ControlCliCommandsValueFlags (..), ControlCliCommandsValueFlagsValue (..), ControlCliCommandsValueFlagsValueCliOnly (..), ControlCliCommandsValueFlagsValueFields (..), ControlCliCommandsValueFlagsValueMethod (..), ControlCliCommandsValuePositionalsItem (..), ControlCliCommandsValuePositionalsItemCliOnly (..), ControlCliCommandsValuePositionalsItemFields (..)) where
+module Xynolog.Internal.Generated.Models.ControlCli (ControlCli (..), ControlCliCommandsValue (..), ControlCliCommandsValueFlagsValue (..), ControlCliCommandsValueFlagsValueCliOnly (..), ControlCliCommandsValueFlagsValueFields (..), ControlCliCommandsValueFlagsValueMethod (..), ControlCliCommandsValuePositionalsItem (..), ControlCliCommandsValuePositionalsItemCliOnly (..), ControlCliCommandsValuePositionalsItemFields (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -12,7 +11,7 @@ import Xynolog.Internal.Codec
 
 data ControlCli = ControlCli
   { controlCliComment :: Text,
-    controlCliCommands :: ControlCliCommands
+    controlCliCommands :: KM.KeyMap ControlCliCommandsValue
   }
   deriving (Eq, Show)
 
@@ -20,20 +19,11 @@ instance FromJSON ControlCli where parseJSON = checked "ControlCli" $ withObject
 
 instance ToJSON ControlCli where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (controlCliComment value))], [("commands", toJSON (controlCliCommands value))]]))
 
-data ControlCliCommands = ControlCliCommands
-  { controlCliCommandsAdditionalProperties :: KM.KeyMap ControlCliCommandsValue
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ControlCliCommands where parseJSON = checked "ControlCliCommands" $ withObject "ControlCliCommands" (\fields -> ControlCliCommands <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ControlCliCommands where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (controlCliCommandsAdditionalProperties value)))
-
 data ControlCliCommandsValue = ControlCliCommandsValue
   { controlCliCommandsValueParser :: Text,
     controlCliCommandsValueMethod :: Text,
     controlCliCommandsValuePositionals :: Maybe [ControlCliCommandsValuePositionalsItem],
-    controlCliCommandsValueFlags :: ControlCliCommandsValueFlags
+    controlCliCommandsValueFlags :: KM.KeyMap ControlCliCommandsValueFlagsValue
   }
   deriving (Eq, Show)
 
@@ -41,18 +31,9 @@ instance FromJSON ControlCliCommandsValue where parseJSON = checked "ControlCliC
 
 instance ToJSON ControlCliCommandsValue where toJSON value = Object (KM.fromList (concat [[("parser", toJSON (controlCliCommandsValueParser value))], [("method", toJSON (controlCliCommandsValueMethod value))], optionalPair "positionals" (controlCliCommandsValuePositionals value), [("flags", toJSON (controlCliCommandsValueFlags value))]]))
 
-data ControlCliCommandsValueFlags = ControlCliCommandsValueFlags
-  { controlCliCommandsValueFlagsAdditionalProperties :: KM.KeyMap ControlCliCommandsValueFlagsValue
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ControlCliCommandsValueFlags where parseJSON = checked "ControlCliCommandsValueFlags" $ withObject "ControlCliCommandsValueFlags" (\fields -> ControlCliCommandsValueFlags <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ControlCliCommandsValueFlags where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (controlCliCommandsValueFlagsAdditionalProperties value)))
-
 data ControlCliCommandsValueFlagsValue = ControlCliCommandsValueFlagsValueFields ControlCliCommandsValueFlagsValueFields | ControlCliCommandsValueFlagsValueMethod ControlCliCommandsValueFlagsValueMethod | ControlCliCommandsValueFlagsValueCliOnly ControlCliCommandsValueFlagsValueCliOnly deriving (Eq, Show)
 
-instance FromJSON ControlCliCommandsValueFlagsValue where parseJSON = checked "ControlCliCommandsValueFlagsValue" $ \value -> (ControlCliCommandsValueFlagsValueFields <$> parseJSON value) <|> (ControlCliCommandsValueFlagsValueMethod <$> parseJSON value) <|> (ControlCliCommandsValueFlagsValueCliOnly <$> parseJSON value)
+instance FromJSON ControlCliCommandsValueFlagsValue where parseJSON = checked "ControlCliCommandsValueFlagsValue" $ \value -> readMember "ControlCliCommandsValueFlagsValue" [([Signature {signatureKind = ObjectKind, signatureRequired = ["fields"], signatureAllowed = Just ["fields", "notes"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ControlCliCommandsValueFlagsValueFields <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["method"], signatureAllowed = Just ["method"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ControlCliCommandsValueFlagsValueMethod <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["cliOnly"], signatureAllowed = Just ["cliOnly"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ControlCliCommandsValueFlagsValueCliOnly <$> parseJSON value)] value
 
 instance ToJSON ControlCliCommandsValueFlagsValue where
   toJSON (ControlCliCommandsValueFlagsValueFields value) = toJSON value
@@ -89,7 +70,7 @@ instance ToJSON ControlCliCommandsValueFlagsValueMethod where toJSON value = Obj
 
 data ControlCliCommandsValuePositionalsItem = ControlCliCommandsValuePositionalsItemFields ControlCliCommandsValuePositionalsItemFields | ControlCliCommandsValuePositionalsItemCliOnly ControlCliCommandsValuePositionalsItemCliOnly deriving (Eq, Show)
 
-instance FromJSON ControlCliCommandsValuePositionalsItem where parseJSON = checked "ControlCliCommandsValuePositionalsItem" $ \value -> (ControlCliCommandsValuePositionalsItemFields <$> parseJSON value) <|> (ControlCliCommandsValuePositionalsItemCliOnly <$> parseJSON value)
+instance FromJSON ControlCliCommandsValuePositionalsItem where parseJSON = checked "ControlCliCommandsValuePositionalsItem" $ \value -> readMember "ControlCliCommandsValuePositionalsItem" [([Signature {signatureKind = ObjectKind, signatureRequired = ["name", "fields"], signatureAllowed = Just ["name", "fields"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ControlCliCommandsValuePositionalsItemFields <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["name", "cliOnly"], signatureAllowed = Just ["name", "cliOnly"], signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ControlCliCommandsValuePositionalsItemCliOnly <$> parseJSON value)] value
 
 instance ToJSON ControlCliCommandsValuePositionalsItem where
   toJSON (ControlCliCommandsValuePositionalsItemFields value) = toJSON value

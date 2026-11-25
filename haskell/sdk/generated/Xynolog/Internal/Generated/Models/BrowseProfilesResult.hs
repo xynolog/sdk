@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BrowseProfilesResult (BrowseProfilesResult (..), BrowseProfilesResultResponse (..), BrowseProfilesResultResponseProfiles (..)) where
+module Xynolog.Internal.Generated.Models.BrowseProfilesResult (BrowseProfilesResult (..), BrowseProfilesResultResponse (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -19,19 +19,10 @@ instance FromJSON BrowseProfilesResult where parseJSON = checked "BrowseProfiles
 instance ToJSON BrowseProfilesResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseProfilesResultResponse value))]]))
 
 data BrowseProfilesResultResponse = BrowseProfilesResultResponse
-  { browseProfilesResultResponseProfiles :: BrowseProfilesResultResponseProfiles
+  { browseProfilesResultResponseProfiles :: KM.KeyMap Profile
   }
   deriving (Eq, Show)
 
 instance FromJSON BrowseProfilesResultResponse where parseJSON = checked "BrowseProfilesResultResponse" $ withObject "BrowseProfilesResultResponse" (\fields -> BrowseProfilesResultResponse <$> (fields .: "profiles"))
 
 instance ToJSON BrowseProfilesResultResponse where toJSON value = Object (KM.fromList (concat [[("profiles", toJSON (browseProfilesResultResponseProfiles value))]]))
-
-data BrowseProfilesResultResponseProfiles = BrowseProfilesResultResponseProfiles
-  { browseProfilesResultResponseProfilesAdditionalProperties :: KM.KeyMap Profile
-  }
-  deriving (Eq, Show)
-
-instance FromJSON BrowseProfilesResultResponseProfiles where parseJSON = checked "BrowseProfilesResultResponseProfiles" $ withObject "BrowseProfilesResultResponseProfiles" (\fields -> BrowseProfilesResultResponseProfiles <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON BrowseProfilesResultResponseProfiles where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (browseProfilesResultResponseProfilesAdditionalProperties value)))

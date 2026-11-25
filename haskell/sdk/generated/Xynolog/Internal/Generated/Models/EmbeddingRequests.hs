@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.EmbeddingRequests (EmbeddingRequests (..), EmbeddingRequestsBusy (..), EmbeddingRequestsProviders (..), EmbeddingRequestsProvidersValue (..)) where
+module Xynolog.Internal.Generated.Models.EmbeddingRequests (EmbeddingRequests (..), EmbeddingRequestsBusy (..), EmbeddingRequestsProvidersValue (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -11,7 +11,7 @@ import Xynolog.Internal.Codec
 
 data EmbeddingRequests = EmbeddingRequests
   { embeddingRequestsComment :: Text,
-    embeddingRequestsProviders :: EmbeddingRequestsProviders,
+    embeddingRequestsProviders :: KM.KeyMap EmbeddingRequestsProvidersValue,
     embeddingRequestsRequestSeconds :: Integer,
     embeddingRequestsBusy :: EmbeddingRequestsBusy,
     embeddingRequestsStartAgain :: Integer
@@ -31,15 +31,6 @@ data EmbeddingRequestsBusy = EmbeddingRequestsBusy
 instance FromJSON EmbeddingRequestsBusy where parseJSON = checked "EmbeddingRequestsBusy" $ withObject "EmbeddingRequestsBusy" (\fields -> EmbeddingRequestsBusy <$> (fields .: "statuses") <*> (fields .: "againAfterSeconds"))
 
 instance ToJSON EmbeddingRequestsBusy where toJSON value = Object (KM.fromList (concat [[("statuses", toJSON (embeddingRequestsBusyStatuses value))], [("againAfterSeconds", toJSON (embeddingRequestsBusyAgainAfterSeconds value))]]))
-
-data EmbeddingRequestsProviders = EmbeddingRequestsProviders
-  { embeddingRequestsProvidersAdditionalProperties :: KM.KeyMap EmbeddingRequestsProvidersValue
-  }
-  deriving (Eq, Show)
-
-instance FromJSON EmbeddingRequestsProviders where parseJSON = checked "EmbeddingRequestsProviders" $ withObject "EmbeddingRequestsProviders" (\fields -> EmbeddingRequestsProviders <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON EmbeddingRequestsProviders where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (embeddingRequestsProvidersAdditionalProperties value)))
 
 data EmbeddingRequestsProvidersValue = EmbeddingRequestsProvidersValue
   { embeddingRequestsProvidersValueTextsPerRequest :: Integer,
