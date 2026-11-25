@@ -9,12 +9,12 @@ import Data.Aeson.KeyMap qualified as KM
 import Xynolog.Internal.Codec
 
 data GatherAnnotationOptions = GatherAnnotationOptions
-  { gatherAnnotationOptionsContextWindow :: Maybe Integer,
-    gatherAnnotationOptionsIncludeSourceContext :: Maybe Bool,
-    gatherAnnotationOptionsIncludeTargetContext :: Maybe Bool
+  { gatherAnnotationOptionsIncludeSourceContext :: Maybe Bool,
+    gatherAnnotationOptionsIncludeTargetContext :: Maybe Bool,
+    gatherAnnotationOptionsContextWindow :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherAnnotationOptions where parseJSON = checked "GatherAnnotationOptions" $ withObject "GatherAnnotationOptions" (\fields -> GatherAnnotationOptions <$> optional fields "contextWindow" <*> optional fields "includeSourceContext" <*> optional fields "includeTargetContext")
+instance FromJSON GatherAnnotationOptions where parseJSON = checked "GatherAnnotationOptions" $ withObject "GatherAnnotationOptions" (\fields -> GatherAnnotationOptions <$> optional fields "includeSourceContext" <*> optional fields "includeTargetContext" <*> optional fields "contextWindow")
 
-instance ToJSON GatherAnnotationOptions where toJSON value = Object (KM.fromList (concat [optionalPair "contextWindow" (gatherAnnotationOptionsContextWindow value), optionalPair "includeSourceContext" (gatherAnnotationOptionsIncludeSourceContext value), optionalPair "includeTargetContext" (gatherAnnotationOptionsIncludeTargetContext value)]))
+instance ToJSON GatherAnnotationOptions where toJSON value = Object (KM.fromList (concat [optionalPair "includeSourceContext" (gatherAnnotationOptionsIncludeSourceContext value), optionalPair "includeTargetContext" (gatherAnnotationOptionsIncludeTargetContext value), optionalPair "contextWindow" (gatherAnnotationOptionsContextWindow value)]))

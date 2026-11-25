@@ -10,13 +10,13 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data CreateFromTokenOptions = CreateFromTokenOptions
-  { createFromTokenOptionsArchiveOriginal :: Maybe Bool,
-    createFromTokenOptionsContent :: Text,
+  { createFromTokenOptionsToken :: Text,
     createFromTokenOptionsName :: Text,
-    createFromTokenOptionsToken :: Text
+    createFromTokenOptionsContent :: Text,
+    createFromTokenOptionsArchiveOriginal :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON CreateFromTokenOptions where parseJSON = checked "CreateFromTokenOptions" $ withObject "CreateFromTokenOptions" (\fields -> CreateFromTokenOptions <$> optional fields "archiveOriginal" <*> (fields .: "content") <*> (fields .: "name") <*> (fields .: "token"))
+instance FromJSON CreateFromTokenOptions where parseJSON = checked "CreateFromTokenOptions" $ withObject "CreateFromTokenOptions" (\fields -> CreateFromTokenOptions <$> (fields .: "token") <*> (fields .: "name") <*> (fields .: "content") <*> optional fields "archiveOriginal")
 
-instance ToJSON CreateFromTokenOptions where toJSON value = Object (KM.fromList (concat [optionalPair "archiveOriginal" (createFromTokenOptionsArchiveOriginal value), [("content", toJSON (createFromTokenOptionsContent value))], [("name", toJSON (createFromTokenOptionsName value))], [("token", toJSON (createFromTokenOptionsToken value))]]))
+instance ToJSON CreateFromTokenOptions where toJSON value = Object (KM.fromList (concat [[("token", toJSON (createFromTokenOptionsToken value))], [("name", toJSON (createFromTokenOptionsName value))], [("content", toJSON (createFromTokenOptionsContent value))], optionalPair "archiveOriginal" (createFromTokenOptionsArchiveOriginal value)]))

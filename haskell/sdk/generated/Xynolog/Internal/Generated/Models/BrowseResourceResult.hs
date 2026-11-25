@@ -19,11 +19,11 @@ instance FromJSON BrowseResourceResult where parseJSON = checked "BrowseResource
 instance ToJSON BrowseResourceResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseResourceResultResponse value))]]))
 
 data BrowseResourceResultResponse = BrowseResourceResultResponse
-  { browseResourceResultResponseLastSequence :: Integer,
-    browseResourceResultResponseResource :: ResourceDescriptor
+  { browseResourceResultResponseResource :: ResourceDescriptor,
+    browseResourceResultResponseLastSequence :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseResourceResultResponse where parseJSON = checked "BrowseResourceResultResponse" $ withObject "BrowseResourceResultResponse" (\fields -> BrowseResourceResultResponse <$> (fields .: "lastSequence") <*> (fields .: "resource"))
+instance FromJSON BrowseResourceResultResponse where parseJSON = checked "BrowseResourceResultResponse" $ withObject "BrowseResourceResultResponse" (\fields -> BrowseResourceResultResponse <$> (fields .: "resource") <*> (fields .: "lastSequence"))
 
-instance ToJSON BrowseResourceResultResponse where toJSON value = Object (KM.fromList (concat [[("lastSequence", toJSON (browseResourceResultResponseLastSequence value))], [("resource", toJSON (browseResourceResultResponseResource value))]]))
+instance ToJSON BrowseResourceResultResponse where toJSON value = Object (KM.fromList (concat [[("resource", toJSON (browseResourceResultResponseResource value))], [("lastSequence", toJSON (browseResourceResultResponseLastSequence value))]]))

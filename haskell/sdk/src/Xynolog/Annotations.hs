@@ -145,30 +145,18 @@ built wall resource motivation anchor target generator body = do
   instant <- wall
   let created = Text.pack (formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%3QZ" instant)
   pure
-    ( Annotation
-        AnnotationContextHttpWwwW3OrgNsAnnoJsonld
-        body
-        created
-        Nothing
-        (OneOrMoreAgentsAgent <$> generator)
-        identity
-        Nothing
-        motivation
-        (AnnotationTargetValueAnnotationTarget target)
-        AnnotationTypeAnnotation
-        Nothing
-    )
+    (Annotation {annotationContext = AnnotationContextHttpWwwW3OrgNsAnnoJsonld, annotationBody = body, annotationCreated = created, annotationCreator = Nothing, annotationGenerator = (OneOrMoreAgentsAgent <$> generator), annotationId = identity, annotationModified = Nothing, annotationMotivation = motivation, annotationTarget = (AnnotationTargetValueAnnotationTarget target), annotationType = AnnotationTypeAnnotation, annotationWasAttributedTo = Nothing})
 
 annotationOfResource :: IO UTCTime -> ResourceId -> Motivation -> Maybe Agent -> Maybe AnnotationBodies -> IO Annotation
 annotationOfResource wall resource motivation generator body =
-  built wall resource motivation "" (AnnotationTarget Nothing resource Nothing) generator body
+  built wall resource motivation "" (AnnotationTarget {annotationTargetSelector = Nothing, annotationTargetSource = resource, annotationTargetType = Nothing}) generator body
 
 -- | The span a reconciliation found, as 'annotationOfSpan' takes one.
 textSpanOf :: ReconciledSpan -> TextSpan
-textSpanOf (ReconciledSpanReconciledSpanUniqueMatch found) = TextSpan (reconciledSpanUniqueMatchEnd found) (reconciledSpanUniqueMatchExact found) (reconciledSpanUniqueMatchPrefix found) (reconciledSpanUniqueMatchStart found) (reconciledSpanUniqueMatchSuffix found)
-textSpanOf (ReconciledSpanReconciledSpanContextRecovered found) = TextSpan (reconciledSpanContextRecoveredEnd found) (reconciledSpanContextRecoveredExact found) (reconciledSpanContextRecoveredPrefix found) (reconciledSpanContextRecoveredStart found) (reconciledSpanContextRecoveredSuffix found)
-textSpanOf (ReconciledSpanReconciledSpanFirstOfMany found) = TextSpan (reconciledSpanFirstOfManyEnd found) (reconciledSpanFirstOfManyExact found) (reconciledSpanFirstOfManyPrefix found) (reconciledSpanFirstOfManyStart found) (reconciledSpanFirstOfManySuffix found)
-textSpanOf (ReconciledSpanReconciledSpanFuzzyMatch found) = TextSpan (reconciledSpanFuzzyMatchEnd found) (reconciledSpanFuzzyMatchExact found) (reconciledSpanFuzzyMatchPrefix found) (reconciledSpanFuzzyMatchStart found) (reconciledSpanFuzzyMatchSuffix found)
+textSpanOf (ReconciledSpanReconciledSpanUniqueMatch found) = TextSpan {textSpanEnd = (reconciledSpanUniqueMatchEnd found), textSpanExact = (reconciledSpanUniqueMatchExact found), textSpanPrefix = (reconciledSpanUniqueMatchPrefix found), textSpanStart = (reconciledSpanUniqueMatchStart found), textSpanSuffix = (reconciledSpanUniqueMatchSuffix found)}
+textSpanOf (ReconciledSpanReconciledSpanContextRecovered found) = TextSpan {textSpanEnd = (reconciledSpanContextRecoveredEnd found), textSpanExact = (reconciledSpanContextRecoveredExact found), textSpanPrefix = (reconciledSpanContextRecoveredPrefix found), textSpanStart = (reconciledSpanContextRecoveredStart found), textSpanSuffix = (reconciledSpanContextRecoveredSuffix found)}
+textSpanOf (ReconciledSpanReconciledSpanFirstOfMany found) = TextSpan {textSpanEnd = (reconciledSpanFirstOfManyEnd found), textSpanExact = (reconciledSpanFirstOfManyExact found), textSpanPrefix = (reconciledSpanFirstOfManyPrefix found), textSpanStart = (reconciledSpanFirstOfManyStart found), textSpanSuffix = (reconciledSpanFirstOfManySuffix found)}
+textSpanOf (ReconciledSpanReconciledSpanFuzzyMatch found) = TextSpan {textSpanEnd = (reconciledSpanFuzzyMatchEnd found), textSpanExact = (reconciledSpanFuzzyMatchExact found), textSpanPrefix = (reconciledSpanFuzzyMatchPrefix found), textSpanStart = (reconciledSpanFuzzyMatchStart found), textSpanSuffix = (reconciledSpanFuzzyMatchSuffix found)}
 
 annotationOfSpan :: IO UTCTime -> Spanned -> TextSpan -> ResourceId -> Motivation -> Agent -> Maybe AnnotationBodies -> IO Annotation
 annotationOfSpan wall content spanValue resource motivation generator body = do
@@ -193,7 +181,7 @@ annotationOfSpan wall content spanValue resource motivation generator body = do
       unless
         (between whole (fromInteger start) (fromInteger end) == exact)
         (refuse SpanRefusalExactMismatch "The span's words differ from the text between its offsets")
-      pure [SelectorTextPositionSelector (TextPositionSelector end start TextPositionSelectorTypeTextPositionSelector)]
+      pure [SelectorTextPositionSelector (TextPositionSelector {textPositionSelectorEnd = end, textPositionSelectorStart = start, textPositionSelectorType = TextPositionSelectorTypeTextPositionSelector})]
     PdfContent anchored -> do
       let (overlapping, rectangles) = Pdf.locate anchored start end
       unless (not (null rectangles)) (refuse SpanRefusalNothingLocated "No anchored-text item overlaps the span")
@@ -201,7 +189,7 @@ annotationOfSpan wall content spanValue resource motivation generator body = do
       unless
         (collapsed exact `Text.isInfixOf` collapsed covered)
         (refuse SpanRefusalExactNotCovered "The overlapping items do not cover the span's words")
-      pure [SelectorFragmentSelector (FragmentSelector (Just "http://tools.ietf.org/rfc/rfc3778") FragmentSelectorTypeFragmentSelector (Pdf.fragmentOf rectangle)) | rectangle <- rectangles]
+      pure [SelectorFragmentSelector (FragmentSelector {fragmentSelectorConformsTo = (Just "http://tools.ietf.org/rfc/rfc3778"), fragmentSelectorType = FragmentSelectorTypeFragmentSelector, fragmentSelectorValue = (Pdf.fragmentOf rectangle)}) | rectangle <- rectangles]
   forM_ (textSpanPrefix spanValue) $ \prefix ->
     unless
       (prefix `Text.isSuffixOf` Text.take (fromInteger start) whole)
@@ -211,7 +199,7 @@ annotationOfSpan wall content spanValue resource motivation generator body = do
       (suffix `Text.isPrefixOf` Text.drop (fromInteger end) whole)
       (refuse SpanRefusalSuffixMismatch "The span's suffix differs from the text after it")
   let nonempty = (>>= \value -> if Text.null value then Nothing else Just value)
-      quote = SelectorTextQuoteSelector (TextQuoteSelector exact (nonempty (textSpanPrefix spanValue)) (nonempty (textSpanSuffix spanValue)) TextQuoteSelectorTypeTextQuoteSelector)
-      target = AnnotationTarget (Just (AnnotationSelectorList (places ++ [quote]))) resource (Just AnnotationTargetTypeSpecificResource)
+      quote = SelectorTextQuoteSelector (TextQuoteSelector {textQuoteSelectorExact = exact, textQuoteSelectorPrefix = (nonempty (textSpanPrefix spanValue)), textQuoteSelectorSuffix = (nonempty (textSpanSuffix spanValue)), textQuoteSelectorType = TextQuoteSelectorTypeTextQuoteSelector})
+      target = AnnotationTarget {annotationTargetSelector = (Just (AnnotationSelectorList (places ++ [quote]))), annotationTargetSource = resource, annotationTargetType = (Just AnnotationTargetTypeSpecificResource)}
       anchor = Text.pack (show start) <> ":" <> Text.pack (show end) <> ":" <> exact
   built wall resource motivation anchor target (Just generator) body

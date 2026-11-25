@@ -11,16 +11,16 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data SmeltSettled = SmeltSettled
-  { smeltSettledContentChecksum :: Text,
+  { smeltSettledResourceId :: ResourceId,
+    smeltSettledContentChecksum :: Text,
     smeltSettledOutcome :: SmeltSettledOutcome,
-    smeltSettledReason :: Maybe SmeltSettledReason,
-    smeltSettledResourceId :: ResourceId
+    smeltSettledReason :: Maybe SmeltSettledReason
   }
   deriving (Eq, Show)
 
-instance FromJSON SmeltSettled where parseJSON = checked "SmeltSettled" $ withObject "SmeltSettled" (\fields -> SmeltSettled <$> (fields .: "contentChecksum") <*> (fields .: "outcome") <*> optional fields "reason" <*> (fields .: "resourceId"))
+instance FromJSON SmeltSettled where parseJSON = checked "SmeltSettled" $ withObject "SmeltSettled" (\fields -> SmeltSettled <$> (fields .: "resourceId") <*> (fields .: "contentChecksum") <*> (fields .: "outcome") <*> optional fields "reason")
 
-instance ToJSON SmeltSettled where toJSON value = Object (KM.fromList (concat [[("contentChecksum", toJSON (smeltSettledContentChecksum value))], [("outcome", toJSON (smeltSettledOutcome value))], optionalPair "reason" (smeltSettledReason value), [("resourceId", toJSON (smeltSettledResourceId value))]]))
+instance ToJSON SmeltSettled where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (smeltSettledResourceId value))], [("contentChecksum", toJSON (smeltSettledContentChecksum value))], [("outcome", toJSON (smeltSettledOutcome value))], optionalPair "reason" (smeltSettledReason value)]))
 
 data SmeltSettledOutcome = SmeltSettledOutcomeIndexed | SmeltSettledOutcomeSkipped deriving (Eq, Show)
 

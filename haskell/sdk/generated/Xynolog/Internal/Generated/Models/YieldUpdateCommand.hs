@@ -13,13 +13,13 @@ import Xynolog.Internal.Generated.Models.UserId
 
 data YieldUpdateCommand = YieldUpdateCommand
   { yieldUpdateCommandUserId :: Maybe UserId,
-    yieldUpdateCommandByteSize :: Integer,
-    yieldUpdateCommandContentChecksum :: Text,
     yieldUpdateCommandResourceId :: ResourceId,
-    yieldUpdateCommandStorageUri :: Text
+    yieldUpdateCommandStorageUri :: Text,
+    yieldUpdateCommandContentChecksum :: Text,
+    yieldUpdateCommandByteSize :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldUpdateCommand where parseJSON = checked "YieldUpdateCommand" $ withObject "YieldUpdateCommand" (\fields -> YieldUpdateCommand <$> optional fields "_userId" <*> (fields .: "byteSize") <*> (fields .: "contentChecksum") <*> (fields .: "resourceId") <*> (fields .: "storageUri"))
+instance FromJSON YieldUpdateCommand where parseJSON = checked "YieldUpdateCommand" $ withObject "YieldUpdateCommand" (\fields -> YieldUpdateCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> (fields .: "storageUri") <*> (fields .: "contentChecksum") <*> (fields .: "byteSize"))
 
-instance ToJSON YieldUpdateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldUpdateCommandUserId value), [("byteSize", toJSON (yieldUpdateCommandByteSize value))], [("contentChecksum", toJSON (yieldUpdateCommandContentChecksum value))], [("resourceId", toJSON (yieldUpdateCommandResourceId value))], [("storageUri", toJSON (yieldUpdateCommandStorageUri value))]]))
+instance ToJSON YieldUpdateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldUpdateCommandUserId value), [("resourceId", toJSON (yieldUpdateCommandResourceId value))], [("storageUri", toJSON (yieldUpdateCommandStorageUri value))], [("contentChecksum", toJSON (yieldUpdateCommandContentChecksum value))], [("byteSize", toJSON (yieldUpdateCommandByteSize value))]]))

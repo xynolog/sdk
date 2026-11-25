@@ -10,20 +10,20 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data AgentPerson = AgentPerson
-  { agentPersonId :: Maybe Text,
-    agentPersonType :: AgentPersonType,
+  { agentPersonType :: AgentPersonType,
+    agentPersonId :: Maybe Text,
+    agentPersonName :: Maybe Text,
+    agentPersonNickname :: Maybe Text,
     agentPersonEmail :: Maybe Text,
     agentPersonEmailSha1 :: Maybe Text,
     agentPersonHomepage :: Maybe Text,
-    agentPersonName :: Maybe Text,
-    agentPersonNickname :: Maybe Text,
     agentPersonAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON AgentPerson where parseJSON = checked "AgentPerson" $ withObject "AgentPerson" (\fields -> AgentPerson <$> optional fields "@id" <*> (fields .: "@type") <*> optional fields "email" <*> optional fields "email_sha1" <*> optional fields "homepage" <*> optional fields "name" <*> optional fields "nickname" <*> traverse parseJSON (withoutFields ["@id", "@type", "email", "email_sha1", "homepage", "name", "nickname"] fields))
+instance FromJSON AgentPerson where parseJSON = checked "AgentPerson" $ withObject "AgentPerson" (\fields -> AgentPerson <$> (fields .: "@type") <*> optional fields "@id" <*> optional fields "name" <*> optional fields "nickname" <*> optional fields "email" <*> optional fields "email_sha1" <*> optional fields "homepage" <*> traverse parseJSON (withoutFields ["@type", "@id", "name", "nickname", "email", "email_sha1", "homepage"] fields))
 
-instance ToJSON AgentPerson where toJSON value = Object (KM.fromList (concat [optionalPair "@id" (agentPersonId value), [("@type", toJSON (agentPersonType value))], optionalPair "email" (agentPersonEmail value), optionalPair "email_sha1" (agentPersonEmailSha1 value), optionalPair "homepage" (agentPersonHomepage value), optionalPair "name" (agentPersonName value), optionalPair "nickname" (agentPersonNickname value)]) <> fmap toJSON (withoutFields ["@id", "@type", "email", "email_sha1", "homepage", "name", "nickname"] (agentPersonAdditionalProperties value)))
+instance ToJSON AgentPerson where toJSON value = Object (KM.fromList (concat [[("@type", toJSON (agentPersonType value))], optionalPair "@id" (agentPersonId value), optionalPair "name" (agentPersonName value), optionalPair "nickname" (agentPersonNickname value), optionalPair "email" (agentPersonEmail value), optionalPair "email_sha1" (agentPersonEmailSha1 value), optionalPair "homepage" (agentPersonHomepage value)]) <> fmap toJSON (withoutFields ["@type", "@id", "name", "nickname", "email", "email_sha1", "homepage"] (agentPersonAdditionalProperties value)))
 
 data AgentPersonType = AgentPersonTypePerson deriving (Eq, Show)
 

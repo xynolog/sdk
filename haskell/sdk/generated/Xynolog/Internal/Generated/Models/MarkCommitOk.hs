@@ -19,11 +19,11 @@ instance FromJSON MarkCommitOk where parseJSON = checked "MarkCommitOk" $ withOb
 instance ToJSON MarkCommitOk where toJSON value = Object (KM.fromList (concat [[("response", toJSON (markCommitOkResponse value))]]))
 
 data MarkCommitOkResponse = MarkCommitOkResponse
-  { markCommitOkResponseAnnotationIds :: [AnnotationId],
-    markCommitOkResponsePersisted :: Integer
+  { markCommitOkResponsePersisted :: Integer,
+    markCommitOkResponseAnnotationIds :: [AnnotationId]
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkCommitOkResponse where parseJSON = checked "MarkCommitOkResponse" $ withObject "MarkCommitOkResponse" (\fields -> MarkCommitOkResponse <$> (fields .: "annotationIds") <*> (fields .: "persisted"))
+instance FromJSON MarkCommitOkResponse where parseJSON = checked "MarkCommitOkResponse" $ withObject "MarkCommitOkResponse" (\fields -> MarkCommitOkResponse <$> (fields .: "persisted") <*> (fields .: "annotationIds"))
 
-instance ToJSON MarkCommitOkResponse where toJSON value = Object (KM.fromList (concat [[("annotationIds", toJSON (markCommitOkResponseAnnotationIds value))], [("persisted", toJSON (markCommitOkResponsePersisted value))]]))
+instance ToJSON MarkCommitOkResponse where toJSON value = Object (KM.fromList (concat [[("persisted", toJSON (markCommitOkResponsePersisted value))], [("annotationIds", toJSON (markCommitOkResponseAnnotationIds value))]]))

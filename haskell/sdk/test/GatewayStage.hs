@@ -88,12 +88,7 @@ stageHttp stage time timing = do
 -- | A knowledge base at the stage's gateway, whose did the gateway's description of it makes.
 registered :: Text -> KnowledgeBase
 registered key =
-  KnowledgeBase
-    (either error userIdValue (Identity.kbDid (domainOf key)))
-    (KbEndpointHttpEndpoint (HttpEndpoint "gateway.test" HttpEndpointKindHttp 80 HttpEndpointProtocolHttp))
-    key
-    key
-    Nothing
+  KnowledgeBase {knowledgeBaseDid = (either error userIdValue (Identity.kbDid (domainOf key))), knowledgeBaseEndpoint = (KbEndpointHttpEndpoint (HttpEndpoint {httpEndpointHost = "gateway.test", httpEndpointKind = HttpEndpointKindHttp, httpEndpointPort = 80, httpEndpointProtocol = HttpEndpointProtocolHttp})), knowledgeBaseId = key, knowledgeBaseLabel = key, knowledgeBaseLastRead = Nothing}
 
 domainOf :: Text -> Text
 domainOf key = key <> ".example.test"
@@ -101,7 +96,7 @@ domainOf key = key <> ".example.test"
 -- | A sign-in of the stage's issuer, naming the person whose key is given, or nobody.
 signInOf :: Text -> Text -> Text -> Maybe Text -> StoredSession
 signInOf clientId access refresh person =
-  StoredSession access clientId person refresh (Just "http://issuer.test/revoke") "http://issuer.test/token"
+  StoredSession {storedSessionAccess = access, storedSessionClientId = clientId, storedSessionPersonKey = person, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = (Just "http://issuer.test/revoke"), storedSessionTokenEndpoint = "http://issuer.test/token"}
 
 answer :: Stage -> Bytes.ByteString -> (Bytes.ByteString -> STM ()) -> STM () -> IO ()
 answer stage request write hangUp = dispatch (decodeUtf8 (Char8.takeWhile (/= '?') (route request)))
@@ -113,7 +108,7 @@ answer stage request write hangUp = dispatch (decodeUtf8 (Char8.takeWhile (/= '?
             Set.member token <$> readTVar (stageRefusesWho stage)
           atomically $
             if refused
-              then write (jsonReply 401 (toJSON (ErrorResponse Nothing Nothing "Invalid token" Nothing)))
+              then write (jsonReply 401 (toJSON (ErrorResponse {errorResponseCode = Nothing, errorResponseDetails = Nothing, errorResponseError = "Invalid token", errorResponseHint = Nothing})))
               else do
                 readTVar (stageWhoHeld stage) >>= check . not
                 readTVar (stageWho stage) >>= maybe hangUp (write . jsonReply 200)
@@ -151,7 +146,7 @@ answer stage request write hangUp = dispatch (decodeUtf8 (Char8.takeWhile (/= '?
           write (jsonReply 202 (toJSON (BusEmitAccepted (Just 1))))
       | otherwise = atomically $ do
           modifyTVar' (stageStrays stage) (<> [request])
-          write (jsonReply 404 (toJSON (ErrorResponse Nothing Nothing "the stage has no answer for this" Nothing)))
+          write (jsonReply 404 (toJSON (ErrorResponse {errorResponseCode = Nothing, errorResponseDetails = Nothing, errorResponseError = "the stage has no answer for this", errorResponseHint = Nothing})))
     decoded :: (FromJSON value) => Either String value
     decoded = eitherDecodeStrict' (bodyOf request)
     token =
@@ -168,12 +163,12 @@ answer stage request write hangUp = dispatch (decodeUtf8 (Char8.takeWhile (/= '?
       let asked = busEmitRequestChannel emitted
           payload = Object (busEmitRequestPayloadAdditionalProperties (busEmitRequestPayload emitted))
       if asked == channelName BrowseKbRequested
-        then Just (correlation, frameOf BrowseKbResult correlation (Types.BrowseKbResult (KbDescription (domainOf "kb-a") Nothing "KB A")))
+        then Just (correlation, frameOf BrowseKbResult correlation (Types.BrowseKbResult (KbDescription {kbDescriptionDomain = (domainOf "kb-a"), kbDescriptionGitBranch = Nothing, kbDescriptionName = "KB A"})))
         else
           if asked == channelName BrowseResourceRequested
             then do
               resource <- either (const Nothing) (Just . browseResourceRequestResourceId) (decodePayload BrowseResourceRequested payload)
-              Just (correlation, frameOf BrowseResourceResult correlation (Types.BrowseResourceResult (BrowseResourceResultResponse 1 (freshResource resource))))
+              Just (correlation, frameOf BrowseResourceResult correlation (Types.BrowseResourceResult (BrowseResourceResultResponse {browseResourceResultResponseLastSequence = 1, browseResourceResultResponseResource = (freshResource resource)})))
             else Nothing
 
 -- | The resource the stage describes as it is now: named fresh, and of no representation.

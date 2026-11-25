@@ -11,26 +11,26 @@ import Xynolog.Internal.Codec
 
 data GatewayMediaToken = GatewayMediaToken
   { gatewayMediaTokenComment :: Text,
-    gatewayMediaTokenClaims :: GatewayMediaTokenClaims,
     gatewayMediaTokenHeader :: GatewayMediaTokenHeader,
+    gatewayMediaTokenClaims :: GatewayMediaTokenClaims,
     gatewayMediaTokenLifetimeSeconds :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayMediaToken where parseJSON = checked "GatewayMediaToken" $ withObject "GatewayMediaToken" (\fields -> GatewayMediaToken <$> (fields .: "$comment") <*> (fields .: "claims") <*> (fields .: "header") <*> (fields .: "lifetimeSeconds"))
+instance FromJSON GatewayMediaToken where parseJSON = checked "GatewayMediaToken" $ withObject "GatewayMediaToken" (\fields -> GatewayMediaToken <$> (fields .: "$comment") <*> (fields .: "header") <*> (fields .: "claims") <*> (fields .: "lifetimeSeconds"))
 
-instance ToJSON GatewayMediaToken where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (gatewayMediaTokenComment value))], [("claims", toJSON (gatewayMediaTokenClaims value))], [("header", toJSON (gatewayMediaTokenHeader value))], [("lifetimeSeconds", toJSON (gatewayMediaTokenLifetimeSeconds value))]]))
+instance ToJSON GatewayMediaToken where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (gatewayMediaTokenComment value))], [("header", toJSON (gatewayMediaTokenHeader value))], [("claims", toJSON (gatewayMediaTokenClaims value))], [("lifetimeSeconds", toJSON (gatewayMediaTokenLifetimeSeconds value))]]))
 
 data GatewayMediaTokenClaims = GatewayMediaTokenClaims
-  { gatewayMediaTokenClaimsIss :: GatewayMediaTokenClaimsIss,
-    gatewayMediaTokenClaimsPurpose :: GatewayMediaTokenClaimsPurpose,
+  { gatewayMediaTokenClaimsPurpose :: GatewayMediaTokenClaimsPurpose,
+    gatewayMediaTokenClaimsIss :: GatewayMediaTokenClaimsIss,
     gatewayMediaTokenClaimsSub :: GatewayMediaTokenClaimsSub
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayMediaTokenClaims where parseJSON = checked "GatewayMediaTokenClaims" $ withObject "GatewayMediaTokenClaims" (\fields -> GatewayMediaTokenClaims <$> (fields .: "iss") <*> (fields .: "purpose") <*> (fields .: "sub"))
+instance FromJSON GatewayMediaTokenClaims where parseJSON = checked "GatewayMediaTokenClaims" $ withObject "GatewayMediaTokenClaims" (\fields -> GatewayMediaTokenClaims <$> (fields .: "purpose") <*> (fields .: "iss") <*> (fields .: "sub"))
 
-instance ToJSON GatewayMediaTokenClaims where toJSON value = Object (KM.fromList (concat [[("iss", toJSON (gatewayMediaTokenClaimsIss value))], [("purpose", toJSON (gatewayMediaTokenClaimsPurpose value))], [("sub", toJSON (gatewayMediaTokenClaimsSub value))]]))
+instance ToJSON GatewayMediaTokenClaims where toJSON value = Object (KM.fromList (concat [[("purpose", toJSON (gatewayMediaTokenClaimsPurpose value))], [("iss", toJSON (gatewayMediaTokenClaimsIss value))], [("sub", toJSON (gatewayMediaTokenClaimsSub value))]]))
 
 data GatewayMediaTokenClaimsIss = GatewayMediaTokenClaimsIssDomain deriving (Eq, Show)
 

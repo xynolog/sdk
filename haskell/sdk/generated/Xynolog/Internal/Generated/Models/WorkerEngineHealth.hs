@@ -14,28 +14,28 @@ import Xynolog.Internal.Generated.Models.JobId
 import Xynolog.Internal.Generated.Models.JobType
 
 data WorkerEngineHealth = WorkerEngineHealth
-  { workerEngineHealthActiveJob :: Maybe WorkerEngineHealthActiveJob,
-    workerEngineHealthEngine :: Engine,
+  { workerEngineHealthEngine :: Engine,
     workerEngineHealthJobs :: [JobFilter],
-    workerEngineHealthJobsCompleted :: Integer,
-    workerEngineHealthLastActivityAt :: Maybe Text,
+    workerEngineHealthLastQueuedEventAt :: Maybe Text,
     workerEngineHealthLastClaimAt :: Maybe Text,
     workerEngineHealthLastFinishedAt :: Maybe Text,
-    workerEngineHealthLastQueuedEventAt :: Maybe Text
+    workerEngineHealthLastActivityAt :: Maybe Text,
+    workerEngineHealthActiveJob :: Maybe WorkerEngineHealthActiveJob,
+    workerEngineHealthJobsCompleted :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerEngineHealth where parseJSON = checked "WorkerEngineHealth" $ withObject "WorkerEngineHealth" (\fields -> WorkerEngineHealth <$> (fields .: "activeJob") <*> (fields .: "engine") <*> (fields .: "jobs") <*> (fields .: "jobsCompleted") <*> (fields .: "lastActivityAt") <*> (fields .: "lastClaimAt") <*> (fields .: "lastFinishedAt") <*> (fields .: "lastQueuedEventAt"))
+instance FromJSON WorkerEngineHealth where parseJSON = checked "WorkerEngineHealth" $ withObject "WorkerEngineHealth" (\fields -> WorkerEngineHealth <$> (fields .: "engine") <*> (fields .: "jobs") <*> (fields .: "lastQueuedEventAt") <*> (fields .: "lastClaimAt") <*> (fields .: "lastFinishedAt") <*> (fields .: "lastActivityAt") <*> (fields .: "activeJob") <*> (fields .: "jobsCompleted"))
 
-instance ToJSON WorkerEngineHealth where toJSON value = Object (KM.fromList (concat [[("activeJob", toJSON (workerEngineHealthActiveJob value))], [("engine", toJSON (workerEngineHealthEngine value))], [("jobs", toJSON (workerEngineHealthJobs value))], [("jobsCompleted", toJSON (workerEngineHealthJobsCompleted value))], [("lastActivityAt", toJSON (workerEngineHealthLastActivityAt value))], [("lastClaimAt", toJSON (workerEngineHealthLastClaimAt value))], [("lastFinishedAt", toJSON (workerEngineHealthLastFinishedAt value))], [("lastQueuedEventAt", toJSON (workerEngineHealthLastQueuedEventAt value))]]))
+instance ToJSON WorkerEngineHealth where toJSON value = Object (KM.fromList (concat [[("engine", toJSON (workerEngineHealthEngine value))], [("jobs", toJSON (workerEngineHealthJobs value))], [("lastQueuedEventAt", toJSON (workerEngineHealthLastQueuedEventAt value))], [("lastClaimAt", toJSON (workerEngineHealthLastClaimAt value))], [("lastFinishedAt", toJSON (workerEngineHealthLastFinishedAt value))], [("lastActivityAt", toJSON (workerEngineHealthLastActivityAt value))], [("activeJob", toJSON (workerEngineHealthActiveJob value))], [("jobsCompleted", toJSON (workerEngineHealthJobsCompleted value))]]))
 
 data WorkerEngineHealthActiveJob = WorkerEngineHealthActiveJob
   { workerEngineHealthActiveJobJobId :: JobId,
-    workerEngineHealthActiveJobSince :: Text,
-    workerEngineHealthActiveJobType :: JobType
+    workerEngineHealthActiveJobType :: JobType,
+    workerEngineHealthActiveJobSince :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerEngineHealthActiveJob where parseJSON = checked "WorkerEngineHealthActiveJob" $ withObject "WorkerEngineHealthActiveJob" (\fields -> WorkerEngineHealthActiveJob <$> (fields .: "jobId") <*> (fields .: "since") <*> (fields .: "type"))
+instance FromJSON WorkerEngineHealthActiveJob where parseJSON = checked "WorkerEngineHealthActiveJob" $ withObject "WorkerEngineHealthActiveJob" (\fields -> WorkerEngineHealthActiveJob <$> (fields .: "jobId") <*> (fields .: "type") <*> (fields .: "since"))
 
-instance ToJSON WorkerEngineHealthActiveJob where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (workerEngineHealthActiveJobJobId value))], [("since", toJSON (workerEngineHealthActiveJobSince value))], [("type", toJSON (workerEngineHealthActiveJobType value))]]))
+instance ToJSON WorkerEngineHealthActiveJob where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (workerEngineHealthActiveJobJobId value))], [("type", toJSON (workerEngineHealthActiveJobType value))], [("since", toJSON (workerEngineHealthActiveJobSince value))]]))

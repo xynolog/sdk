@@ -392,12 +392,7 @@ addKb :: XynologBrowser -> NewKnowledgeBase -> StoredSession -> IO KnowledgeBase
 addKb owner proposed grant = Lifetime.run (lifetime owner) $ do
   key <- UUID.toText <$> Http.httpNewId (registryHttp (configuration owner))
   let added =
-        KnowledgeBase
-          (newKnowledgeBaseDid proposed)
-          (newKnowledgeBaseEndpoint proposed)
-          key
-          (newKnowledgeBaseLabel proposed)
-          (newKnowledgeBaseLastRead proposed)
+        KnowledgeBase {knowledgeBaseDid = (newKnowledgeBaseDid proposed), knowledgeBaseEndpoint = (newKnowledgeBaseEndpoint proposed), knowledgeBaseId = key, knowledgeBaseLabel = (newKnowledgeBaseLabel proposed), knowledgeBaseLastRead = (newKnowledgeBaseLastRead proposed)}
   storeSession (storage owner) key grant
   void (writeKbs owner (<> [added]))
   setActiveKb owner (Just key)
@@ -454,12 +449,12 @@ signedIn owner completed = Lifetime.run (lifetime owner) $ do
         Just did -> Just (Expected did (signedInExpectedName completed))
         Nothing -> (\entry -> Expected (knowledgeBaseDid entry) (Just (knowledgeBaseLabel entry))) <$> belief
   landed <- case find ((== actual) . knowledgeBaseDid) atAddress of
-    Nothing -> addKb owner (NewKnowledgeBase actual (signedInEndpoint completed) (kbDescriptionName (signedInDescription completed)) (Just reading)) (signedInSession completed)
+    Nothing -> addKb owner (NewKnowledgeBase {newKnowledgeBaseDid = actual, newKnowledgeBaseEndpoint = (signedInEndpoint completed), newKnowledgeBaseLabel = (kbDescriptionName (signedInDescription completed)), newKnowledgeBaseLastRead = (Just reading)}) (signedInSession completed)
     Just existing -> do
       updateKb owner (knowledgeBaseId existing) (Just (kbDescriptionName (signedInDescription completed))) (Just reading)
       signIn owner (knowledgeBaseId existing) (signedInSession completed)
       pure existing {knowledgeBaseLabel = kbDescriptionName (signedInDescription completed), knowledgeBaseLastRead = Just reading}
-  pure (SignInOutcome expected landed)
+  pure (SignInOutcome {signInOutcomeExpected = expected, signInOutcomeKb = landed})
 
 signOut :: XynologBrowser -> Text -> IO ()
 signOut owner key = Lifetime.run (lifetime owner) $ do
@@ -521,7 +516,7 @@ addOpenResource owner resource name media uri = Lifetime.run (lifetime owner) $ 
               }
       | tab <- tabs
       ]
-    Nothing -> tabs ++ [OpenResource resource media name now (maximum (0 : [1 + openResourceOrder tab | tab <- tabs])) uri]
+    Nothing -> tabs ++ [OpenResource {openResourceId = resource, openResourceMediaType = media, openResourceName = name, openResourceOpenedAt = now, openResourceOrder = (maximum (0 : [1 + openResourceOrder tab | tab <- tabs])), openResourceStorageUri = uri}]
 
 removeOpenResource :: XynologBrowser -> ResourceId -> IO ()
 removeOpenResource owner resource = Lifetime.run (lifetime owner) (changeOpen owner (filter ((/= resource) . openResourceId)))
@@ -603,7 +598,7 @@ validateOpened owner version session = do
           checkTab tab =
             ( do
                 value <- Cache.fresh (Browse.resource (Client.browse (Session.client session)) (openResourceId tab))
-                pure (openResourceId tab, TabCheckReady (MkTabCheckReady (Resources.getPrimaryMediaType value) (resourceDescriptorName value) TabVerdictReady))
+                pure (openResourceId tab, TabCheckReady (MkTabCheckReady {tabCheckReadyMediaType = (Resources.getPrimaryMediaType value), tabCheckReadyName = (resourceDescriptorName value), tabCheckReadyVerdict = TabVerdictReady}))
             )
               `catchSync` \problem ->
                 pure
@@ -640,15 +635,9 @@ completeSignIn owner callback = Lifetime.run (lifetime owner) $ do
   (pending, tokens) <- Issuer.completeAuthorization (issuer owner) callback (storage owner)
   identityProof <- Connection.describeConnection (registryHttp (configuration owner)) (pendingAuthorizationTarget pending) (issuedTokensAccess tokens)
   let endpoints = pendingAuthorizationIssuer pending
-      grant = StoredSession (issuedTokensAccess tokens) Issuer.browserClientId Nothing (issuedTokensRefresh tokens) (pendingAuthorizationIssuerRevocation endpoints) (pendingAuthorizationIssuerToken endpoints)
+      grant = StoredSession {storedSessionAccess = (issuedTokensAccess tokens), storedSessionClientId = Issuer.browserClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = (issuedTokensRefresh tokens), storedSessionRevocationEndpoint = (pendingAuthorizationIssuerRevocation endpoints), storedSessionTokenEndpoint = (pendingAuthorizationIssuerToken endpoints)}
       completed =
-        SignedIn
-          (connectionIdentityDescription identityProof)
-          (KbEndpointHttpEndpoint (pendingAuthorizationTarget pending))
-          (pendingAuthorizationExpectedDid pending)
-          (pendingAuthorizationExpectedName pending)
-          (pendingAuthorizationKbId pending)
-          grant
+        SignedIn {signedInDescription = (connectionIdentityDescription identityProof), signedInEndpoint = (KbEndpointHttpEndpoint (pendingAuthorizationTarget pending)), signedInExpectedDid = (pendingAuthorizationExpectedDid pending), signedInExpectedName = (pendingAuthorizationExpectedName pending), signedInKbId = (pendingAuthorizationKbId pending), signedInSession = grant}
   signedIn owner completed
 
 dispose :: XynologBrowser -> IO ()

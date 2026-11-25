@@ -17,18 +17,18 @@ import Xynolog.Internal.Generated.Models.UserId
 
 data JobCancelCommand = JobCancelCommand
   { jobCancelCommandUserId :: Maybe UserId,
-    jobCancelCommandAnnotationId :: Maybe AnnotationId,
-    jobCancelCommandCompletedUnits :: Maybe [Text],
+    jobCancelCommandResourceId :: ResourceId,
     jobCancelCommandJobId :: JobId,
     jobCancelCommandJobType :: JobType,
-    jobCancelCommandResourceId :: ResourceId,
+    jobCancelCommandAnnotationId :: Maybe AnnotationId,
+    jobCancelCommandCompletedUnits :: Maybe [Text],
     jobCancelCommandUnitCursors :: Maybe JobCancelCommandUnitCursors
   }
   deriving (Eq, Show)
 
-instance FromJSON JobCancelCommand where parseJSON = checked "JobCancelCommand" $ withObject "JobCancelCommand" (\fields -> JobCancelCommand <$> optional fields "_userId" <*> optional fields "annotationId" <*> optional fields "completedUnits" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> optional fields "unitCursors")
+instance FromJSON JobCancelCommand where parseJSON = checked "JobCancelCommand" $ withObject "JobCancelCommand" (\fields -> JobCancelCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "annotationId" <*> optional fields "completedUnits" <*> optional fields "unitCursors")
 
-instance ToJSON JobCancelCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobCancelCommandUserId value), optionalPair "annotationId" (jobCancelCommandAnnotationId value), optionalPair "completedUnits" (jobCancelCommandCompletedUnits value), [("jobId", toJSON (jobCancelCommandJobId value))], [("jobType", toJSON (jobCancelCommandJobType value))], [("resourceId", toJSON (jobCancelCommandResourceId value))], optionalPair "unitCursors" (jobCancelCommandUnitCursors value)]))
+instance ToJSON JobCancelCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobCancelCommandUserId value), [("resourceId", toJSON (jobCancelCommandResourceId value))], [("jobId", toJSON (jobCancelCommandJobId value))], [("jobType", toJSON (jobCancelCommandJobType value))], optionalPair "annotationId" (jobCancelCommandAnnotationId value), optionalPair "completedUnits" (jobCancelCommandCompletedUnits value), optionalPair "unitCursors" (jobCancelCommandUnitCursors value)]))
 
 data JobCancelCommandUnitCursors = JobCancelCommandUnitCursors
   { jobCancelCommandUnitCursorsAdditionalProperties :: KM.KeyMap UnitCursor

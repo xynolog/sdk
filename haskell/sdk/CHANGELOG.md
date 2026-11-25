@@ -105,6 +105,13 @@ the coming release's, and gathers its changes as they land.
   `ScoredResource`), beside the maps and the objects that name no member
   (`BusFramePayload`). A record built positionally takes no `mempty` for
   them, and a knowledge base is kept as it is read, with nothing to strip.
+- A record's fields are in the order its schema states its members, in place
+  of the order of their names: `AnchorRect`'s are `anchorRectX`,
+  `anchorRectY`, `anchorRectWidth`, `anchorRectHeight`, `anchorRectTop`,
+  `anchorRectRight`, `anchorRectBottom` and `anchorRectLeft`. A record built
+  or matched positionally binds its arguments in that order, and where two
+  fields share a type a positional use still compiles: build and match a
+  record by naming its fields.
 
 ### Removed
 

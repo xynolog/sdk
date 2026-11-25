@@ -16,15 +16,15 @@ import Xynolog.Internal.Generated.Models.UserId
 data YieldJobQueuedEvent = YieldJobQueuedEvent
   { yieldJobQueuedEventJobId :: JobId,
     yieldJobQueuedEventJobType :: YieldJobQueuedEventJobType,
-    yieldJobQueuedEventParams :: GenerationJobRequest,
     yieldJobQueuedEventResourceId :: ResourceId,
-    yieldJobQueuedEventUserId :: UserId
+    yieldJobQueuedEventUserId :: UserId,
+    yieldJobQueuedEventParams :: GenerationJobRequest
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldJobQueuedEvent where parseJSON = checked "YieldJobQueuedEvent" $ withObject "YieldJobQueuedEvent" (\fields -> YieldJobQueuedEvent <$> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "params") <*> (fields .: "resourceId") <*> (fields .: "userId"))
+instance FromJSON YieldJobQueuedEvent where parseJSON = checked "YieldJobQueuedEvent" $ withObject "YieldJobQueuedEvent" (\fields -> YieldJobQueuedEvent <$> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> (fields .: "userId") <*> (fields .: "params"))
 
-instance ToJSON YieldJobQueuedEvent where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (yieldJobQueuedEventJobId value))], [("jobType", toJSON (yieldJobQueuedEventJobType value))], [("params", toJSON (yieldJobQueuedEventParams value))], [("resourceId", toJSON (yieldJobQueuedEventResourceId value))], [("userId", toJSON (yieldJobQueuedEventUserId value))]]))
+instance ToJSON YieldJobQueuedEvent where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (yieldJobQueuedEventJobId value))], [("jobType", toJSON (yieldJobQueuedEventJobType value))], [("resourceId", toJSON (yieldJobQueuedEventResourceId value))], [("userId", toJSON (yieldJobQueuedEventUserId value))], [("params", toJSON (yieldJobQueuedEventParams value))]]))
 
 data YieldJobQueuedEventJobType = YieldJobQueuedEventJobTypeYield deriving (Eq, Show)
 

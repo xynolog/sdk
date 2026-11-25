@@ -11,34 +11,34 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ContextualSummaryResponse = ContextualSummaryResponse
-  { contextualSummaryResponseContext :: ContextualSummaryResponseContext,
+  { contextualSummaryResponseSummary :: Text,
     contextualSummaryResponseRelevantFields :: ContextualSummaryResponseRelevantFields,
-    contextualSummaryResponseSummary :: Text
+    contextualSummaryResponseContext :: ContextualSummaryResponseContext
   }
   deriving (Eq, Show)
 
-instance FromJSON ContextualSummaryResponse where parseJSON = checked "ContextualSummaryResponse" $ withObject "ContextualSummaryResponse" (\fields -> ContextualSummaryResponse <$> (fields .: "context") <*> (fields .: "relevantFields") <*> (fields .: "summary"))
+instance FromJSON ContextualSummaryResponse where parseJSON = checked "ContextualSummaryResponse" $ withObject "ContextualSummaryResponse" (\fields -> ContextualSummaryResponse <$> (fields .: "summary") <*> (fields .: "relevantFields") <*> (fields .: "context"))
 
-instance ToJSON ContextualSummaryResponse where toJSON value = Object (KM.fromList (concat [[("context", toJSON (contextualSummaryResponseContext value))], [("relevantFields", toJSON (contextualSummaryResponseRelevantFields value))], [("summary", toJSON (contextualSummaryResponseSummary value))]]))
+instance ToJSON ContextualSummaryResponse where toJSON value = Object (KM.fromList (concat [[("summary", toJSON (contextualSummaryResponseSummary value))], [("relevantFields", toJSON (contextualSummaryResponseRelevantFields value))], [("context", toJSON (contextualSummaryResponseContext value))]]))
 
 data ContextualSummaryResponseContext = ContextualSummaryResponseContext
-  { contextualSummaryResponseContextAfter :: Maybe Text,
-    contextualSummaryResponseContextBefore :: Maybe Text,
-    contextualSummaryResponseContextSelected :: Text
+  { contextualSummaryResponseContextBefore :: Maybe Text,
+    contextualSummaryResponseContextSelected :: Text,
+    contextualSummaryResponseContextAfter :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ContextualSummaryResponseContext where parseJSON = checked "ContextualSummaryResponseContext" $ withObject "ContextualSummaryResponseContext" (\fields -> ContextualSummaryResponseContext <$> optional fields "after" <*> optional fields "before" <*> (fields .: "selected"))
+instance FromJSON ContextualSummaryResponseContext where parseJSON = checked "ContextualSummaryResponseContext" $ withObject "ContextualSummaryResponseContext" (\fields -> ContextualSummaryResponseContext <$> optional fields "before" <*> (fields .: "selected") <*> optional fields "after")
 
-instance ToJSON ContextualSummaryResponseContext where toJSON value = Object (KM.fromList (concat [optionalPair "after" (contextualSummaryResponseContextAfter value), optionalPair "before" (contextualSummaryResponseContextBefore value), [("selected", toJSON (contextualSummaryResponseContextSelected value))]]))
+instance ToJSON ContextualSummaryResponseContext where toJSON value = Object (KM.fromList (concat [optionalPair "before" (contextualSummaryResponseContextBefore value), [("selected", toJSON (contextualSummaryResponseContextSelected value))], optionalPair "after" (contextualSummaryResponseContextAfter value)]))
 
 data ContextualSummaryResponseRelevantFields = ContextualSummaryResponseRelevantFields
-  { contextualSummaryResponseRelevantFieldsEntityTypes :: [Text],
-    contextualSummaryResponseRelevantFieldsResourceId :: ResourceId,
-    contextualSummaryResponseRelevantFieldsResourceName :: Text
+  { contextualSummaryResponseRelevantFieldsResourceId :: ResourceId,
+    contextualSummaryResponseRelevantFieldsResourceName :: Text,
+    contextualSummaryResponseRelevantFieldsEntityTypes :: [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON ContextualSummaryResponseRelevantFields where parseJSON = checked "ContextualSummaryResponseRelevantFields" $ withObject "ContextualSummaryResponseRelevantFields" (\fields -> ContextualSummaryResponseRelevantFields <$> (fields .: "entityTypes") <*> (fields .: "resourceId") <*> (fields .: "resourceName"))
+instance FromJSON ContextualSummaryResponseRelevantFields where parseJSON = checked "ContextualSummaryResponseRelevantFields" $ withObject "ContextualSummaryResponseRelevantFields" (\fields -> ContextualSummaryResponseRelevantFields <$> (fields .: "resourceId") <*> (fields .: "resourceName") <*> (fields .: "entityTypes"))
 
-instance ToJSON ContextualSummaryResponseRelevantFields where toJSON value = Object (KM.fromList (concat [[("entityTypes", toJSON (contextualSummaryResponseRelevantFieldsEntityTypes value))], [("resourceId", toJSON (contextualSummaryResponseRelevantFieldsResourceId value))], [("resourceName", toJSON (contextualSummaryResponseRelevantFieldsResourceName value))]]))
+instance ToJSON ContextualSummaryResponseRelevantFields where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (contextualSummaryResponseRelevantFieldsResourceId value))], [("resourceName", toJSON (contextualSummaryResponseRelevantFieldsResourceName value))], [("entityTypes", toJSON (contextualSummaryResponseRelevantFieldsEntityTypes value))]]))

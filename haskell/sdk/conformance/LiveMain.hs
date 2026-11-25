@@ -81,7 +81,7 @@ emissionState Cache.Pending =
 emissionState (Cache.Ready value) =
   pure (ConformanceDriverLineEmissionEmissionStateReady (MkConformanceDriverLineEmissionEmissionStateReady ConformanceDriverLineEmissionEmissionStateReadyStatusReady value))
 emissionState (Cache.Failed problem) = case failure problem of
-  Just reason -> pure (ConformanceDriverLineEmissionEmissionStateFailed (MkConformanceDriverLineEmissionEmissionStateFailed reason ConformanceDriverLineEmissionEmissionStateFailedStatusFailed))
+  Just reason -> pure (ConformanceDriverLineEmissionEmissionStateFailed (MkConformanceDriverLineEmissionEmissionStateFailed {conformanceDriverLineEmissionEmissionStateFailedError = reason, conformanceDriverLineEmissionEmissionStateFailedStatus = ConformanceDriverLineEmissionEmissionStateFailedStatusFailed}))
   Nothing -> throwIO problem
 
 queryOf :: Client.Client -> Object -> IO (Cache.Query Value)

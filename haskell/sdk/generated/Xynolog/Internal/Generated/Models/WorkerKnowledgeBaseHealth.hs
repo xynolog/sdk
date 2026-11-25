@@ -11,16 +11,16 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.WorkerEngineHealth
 
 data WorkerKnowledgeBaseHealth = WorkerKnowledgeBaseHealth
-  { workerKnowledgeBaseHealthDid :: Maybe Text,
-    workerKnowledgeBaseHealthDomain :: Text,
-    workerKnowledgeBaseHealthEngines :: Maybe [WorkerEngineHealth],
-    workerKnowledgeBaseHealthState :: WorkerKnowledgeBaseHealthState
+  { workerKnowledgeBaseHealthDomain :: Text,
+    workerKnowledgeBaseHealthState :: WorkerKnowledgeBaseHealthState,
+    workerKnowledgeBaseHealthDid :: Maybe Text,
+    workerKnowledgeBaseHealthEngines :: Maybe [WorkerEngineHealth]
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerKnowledgeBaseHealth where parseJSON = checked "WorkerKnowledgeBaseHealth" $ withObject "WorkerKnowledgeBaseHealth" (\fields -> WorkerKnowledgeBaseHealth <$> optional fields "did" <*> (fields .: "domain") <*> optional fields "engines" <*> (fields .: "state"))
+instance FromJSON WorkerKnowledgeBaseHealth where parseJSON = checked "WorkerKnowledgeBaseHealth" $ withObject "WorkerKnowledgeBaseHealth" (\fields -> WorkerKnowledgeBaseHealth <$> (fields .: "domain") <*> (fields .: "state") <*> optional fields "did" <*> optional fields "engines")
 
-instance ToJSON WorkerKnowledgeBaseHealth where toJSON value = Object (KM.fromList (concat [optionalPair "did" (workerKnowledgeBaseHealthDid value), [("domain", toJSON (workerKnowledgeBaseHealthDomain value))], optionalPair "engines" (workerKnowledgeBaseHealthEngines value), [("state", toJSON (workerKnowledgeBaseHealthState value))]]))
+instance ToJSON WorkerKnowledgeBaseHealth where toJSON value = Object (KM.fromList (concat [[("domain", toJSON (workerKnowledgeBaseHealthDomain value))], [("state", toJSON (workerKnowledgeBaseHealthState value))], optionalPair "did" (workerKnowledgeBaseHealthDid value), optionalPair "engines" (workerKnowledgeBaseHealthEngines value)]))
 
 data WorkerKnowledgeBaseHealthState = WorkerKnowledgeBaseHealthStateStarting | WorkerKnowledgeBaseHealthStateWorking | WorkerKnowledgeBaseHealthStateRefused deriving (Eq, Show)
 

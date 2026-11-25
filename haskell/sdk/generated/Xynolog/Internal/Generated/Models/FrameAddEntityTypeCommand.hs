@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.UserId
 
 data FrameAddEntityTypeCommand = FrameAddEntityTypeCommand
-  { frameAddEntityTypeCommandUserId :: Maybe UserId,
-    frameAddEntityTypeCommandTag :: Text
+  { frameAddEntityTypeCommandTag :: Text,
+    frameAddEntityTypeCommandUserId :: Maybe UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON FrameAddEntityTypeCommand where parseJSON = checked "FrameAddEntityTypeCommand" $ withObject "FrameAddEntityTypeCommand" (\fields -> FrameAddEntityTypeCommand <$> optional fields "_userId" <*> (fields .: "tag"))
+instance FromJSON FrameAddEntityTypeCommand where parseJSON = checked "FrameAddEntityTypeCommand" $ withObject "FrameAddEntityTypeCommand" (\fields -> FrameAddEntityTypeCommand <$> (fields .: "tag") <*> optional fields "_userId")
 
-instance ToJSON FrameAddEntityTypeCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (frameAddEntityTypeCommandUserId value), [("tag", toJSON (frameAddEntityTypeCommandTag value))]]))
+instance ToJSON FrameAddEntityTypeCommand where toJSON value = Object (KM.fromList (concat [[("tag", toJSON (frameAddEntityTypeCommandTag value))], optionalPair "_userId" (frameAddEntityTypeCommandUserId value)]))

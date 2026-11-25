@@ -153,7 +153,7 @@ discoverIssuer options target = do
   doc <- configuration options identity
   authorization <- requiredText Code.SignInDiscovery "authorization_endpoint" doc
   tokenEndpoint <- requiredText Code.SignInDiscovery "token_endpoint" doc
-  pure (PendingAuthorizationIssuer authorization (text "device_authorization_endpoint" doc) identity (text "revocation_endpoint" doc) tokenEndpoint)
+  pure (PendingAuthorizationIssuer {pendingAuthorizationIssuerAuthorization = authorization, pendingAuthorizationIssuerDevice = (text "device_authorization_endpoint" doc), pendingAuthorizationIssuerIssuer = identity, pendingAuthorizationIssuerRevocation = (text "revocation_endpoint" doc), pendingAuthorizationIssuerToken = tokenEndpoint})
 
 configuration :: IssuerOptions -> Text -> IO Value
 configuration options identity = do
@@ -174,15 +174,7 @@ beginAuthorization options begin storage = do
   verifier <- randomUrlSafe 48
   state <- randomUrlSafe 24
   let pending =
-        PendingAuthorization
-          (beginAuthorizationOptionsExpectedDid begin)
-          (beginAuthorizationOptionsExpectedName begin)
-          issuer
-          (beginAuthorizationOptionsKbId begin)
-          (beginAuthorizationOptionsRedirectUri begin)
-          state
-          (beginAuthorizationOptionsTarget begin)
-          verifier
+        PendingAuthorization {pendingAuthorizationExpectedDid = (beginAuthorizationOptionsExpectedDid begin), pendingAuthorizationExpectedName = (beginAuthorizationOptionsExpectedName begin), pendingAuthorizationIssuer = issuer, pendingAuthorizationKbId = (beginAuthorizationOptionsKbId begin), pendingAuthorizationRedirectUri = (beginAuthorizationOptionsRedirectUri begin), pendingAuthorizationState = state, pendingAuthorizationTarget = (beginAuthorizationOptionsTarget begin), pendingAuthorizationVerifier = verifier}
   address <- case parseURI (Text.unpack (pendingAuthorizationIssuerAuthorization issuer)) of
     Just uri | uriScheme uri `elem` ["http:", "https:"] && maybe False ((== "") . uriUserInfo) (uriAuthority uri) -> pure uri
     _ -> failWith Code.SignInDiscovery "The authorization endpoint is not a credential-free HTTP URL" Nothing
@@ -295,7 +287,7 @@ signInWithDeviceGrant options target onCode = do
   verification <- requiredText Code.SignInExchange "verification_uri" body
   expires <- maybe (failWith Code.SignInExchange "The device code has no lifetime" Nothing) pure (whole "expires_in" body)
   when (expires < 0) (failWith Code.SignInExchange "The device code has a negative lifetime" Nothing)
-  onCode (DeviceCode expires userCode verification (text "verification_uri_complete" body))
+  onCode (DeviceCode {deviceCodeExpiresIn = expires, deviceCodeUserCode = userCode, deviceCodeVerificationUri = verification, deviceCodeVerificationUriComplete = (text "verification_uri_complete" body)})
   now <- Retry.retryNow (issuerTime options)
   let settings = issuerTiming options
       interval =

@@ -15,28 +15,28 @@ import Xynolog.Internal.Generated.Models.OneOrMoreUris
 data Representation = Representation
   { representationId :: Maybe Text,
     representationType :: Maybe OneOrMoreStrings,
+    representationMediaType :: Text,
+    representationStorageUri :: Maybe Text,
+    representationFilename :: Maybe Text,
     representationByteSize :: Maybe Integer,
     representationChecksum :: Maybe Text,
-    representationConformsTo :: Maybe OneOrMoreUris,
-    representationCreated :: Maybe Text,
-    representationDuration :: Maybe Scientific,
     representationEncoding :: Maybe Text,
-    representationFilename :: Maybe Text,
-    representationHeight :: Maybe Integer,
     representationLanguage :: Maybe Text,
-    representationMediaType :: Text,
-    representationModified :: Maybe Text,
-    representationRel :: Maybe RepresentationRel,
-    representationStorageUri :: Maybe Text,
-    representationTags :: Maybe [Text],
     representationWidth :: Maybe Integer,
+    representationHeight :: Maybe Integer,
+    representationDuration :: Maybe Scientific,
+    representationCreated :: Maybe Text,
+    representationModified :: Maybe Text,
+    representationConformsTo :: Maybe OneOrMoreUris,
+    representationTags :: Maybe [Text],
+    representationRel :: Maybe RepresentationRel,
     representationAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON Representation where parseJSON = checked "Representation" $ withObject "Representation" (\fields -> Representation <$> optional fields "@id" <*> optional fields "@type" <*> optional fields "byteSize" <*> optional fields "checksum" <*> optional fields "conformsTo" <*> optional fields "created" <*> optional fields "duration" <*> optional fields "encoding" <*> optional fields "filename" <*> optional fields "height" <*> optional fields "language" <*> (fields .: "mediaType") <*> optional fields "modified" <*> optional fields "rel" <*> optional fields "storageUri" <*> optional fields "tags" <*> optional fields "width" <*> traverse parseJSON (withoutFields ["@id", "@type", "byteSize", "checksum", "conformsTo", "created", "duration", "encoding", "filename", "height", "language", "mediaType", "modified", "rel", "storageUri", "tags", "width"] fields))
+instance FromJSON Representation where parseJSON = checked "Representation" $ withObject "Representation" (\fields -> Representation <$> optional fields "@id" <*> optional fields "@type" <*> (fields .: "mediaType") <*> optional fields "storageUri" <*> optional fields "filename" <*> optional fields "byteSize" <*> optional fields "checksum" <*> optional fields "encoding" <*> optional fields "language" <*> optional fields "width" <*> optional fields "height" <*> optional fields "duration" <*> optional fields "created" <*> optional fields "modified" <*> optional fields "conformsTo" <*> optional fields "tags" <*> optional fields "rel" <*> traverse parseJSON (withoutFields ["@id", "@type", "mediaType", "storageUri", "filename", "byteSize", "checksum", "encoding", "language", "width", "height", "duration", "created", "modified", "conformsTo", "tags", "rel"] fields))
 
-instance ToJSON Representation where toJSON value = Object (KM.fromList (concat [optionalPair "@id" (representationId value), optionalPair "@type" (representationType value), optionalPair "byteSize" (representationByteSize value), optionalPair "checksum" (representationChecksum value), optionalPair "conformsTo" (representationConformsTo value), optionalPair "created" (representationCreated value), optionalPair "duration" (representationDuration value), optionalPair "encoding" (representationEncoding value), optionalPair "filename" (representationFilename value), optionalPair "height" (representationHeight value), optionalPair "language" (representationLanguage value), [("mediaType", toJSON (representationMediaType value))], optionalPair "modified" (representationModified value), optionalPair "rel" (representationRel value), optionalPair "storageUri" (representationStorageUri value), optionalPair "tags" (representationTags value), optionalPair "width" (representationWidth value)]) <> fmap toJSON (withoutFields ["@id", "@type", "byteSize", "checksum", "conformsTo", "created", "duration", "encoding", "filename", "height", "language", "mediaType", "modified", "rel", "storageUri", "tags", "width"] (representationAdditionalProperties value)))
+instance ToJSON Representation where toJSON value = Object (KM.fromList (concat [optionalPair "@id" (representationId value), optionalPair "@type" (representationType value), [("mediaType", toJSON (representationMediaType value))], optionalPair "storageUri" (representationStorageUri value), optionalPair "filename" (representationFilename value), optionalPair "byteSize" (representationByteSize value), optionalPair "checksum" (representationChecksum value), optionalPair "encoding" (representationEncoding value), optionalPair "language" (representationLanguage value), optionalPair "width" (representationWidth value), optionalPair "height" (representationHeight value), optionalPair "duration" (representationDuration value), optionalPair "created" (representationCreated value), optionalPair "modified" (representationModified value), optionalPair "conformsTo" (representationConformsTo value), optionalPair "tags" (representationTags value), optionalPair "rel" (representationRel value)]) <> fmap toJSON (withoutFields ["@id", "@type", "mediaType", "storageUri", "filename", "byteSize", "checksum", "encoding", "language", "width", "height", "duration", "created", "modified", "conformsTo", "tags", "rel"] (representationAdditionalProperties value)))
 
 data RepresentationRel = RepresentationRelOriginal | RepresentationRelThumbnail | RepresentationRelPreview | RepresentationRelOptimized | RepresentationRelDerived | RepresentationRelOther deriving (Eq, Show)
 

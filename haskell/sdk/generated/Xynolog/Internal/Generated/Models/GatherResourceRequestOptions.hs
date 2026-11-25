@@ -11,13 +11,13 @@ import Xynolog.Internal.Codec
 
 data GatherResourceRequestOptions = GatherResourceRequestOptions
   { gatherResourceRequestOptionsDepth :: Integer,
-    gatherResourceRequestOptionsExcludeEntityTypes :: Maybe [Text],
+    gatherResourceRequestOptionsMaxResources :: Integer,
     gatherResourceRequestOptionsIncludeContent :: Bool,
     gatherResourceRequestOptionsIncludeSummary :: Bool,
-    gatherResourceRequestOptionsMaxResources :: Integer
+    gatherResourceRequestOptionsExcludeEntityTypes :: Maybe [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherResourceRequestOptions where parseJSON = checked "GatherResourceRequestOptions" $ withObject "GatherResourceRequestOptions" (\fields -> GatherResourceRequestOptions <$> (fields .: "depth") <*> optional fields "excludeEntityTypes" <*> (fields .: "includeContent") <*> (fields .: "includeSummary") <*> (fields .: "maxResources"))
+instance FromJSON GatherResourceRequestOptions where parseJSON = checked "GatherResourceRequestOptions" $ withObject "GatherResourceRequestOptions" (\fields -> GatherResourceRequestOptions <$> (fields .: "depth") <*> (fields .: "maxResources") <*> (fields .: "includeContent") <*> (fields .: "includeSummary") <*> optional fields "excludeEntityTypes")
 
-instance ToJSON GatherResourceRequestOptions where toJSON value = Object (KM.fromList (concat [[("depth", toJSON (gatherResourceRequestOptionsDepth value))], optionalPair "excludeEntityTypes" (gatherResourceRequestOptionsExcludeEntityTypes value), [("includeContent", toJSON (gatherResourceRequestOptionsIncludeContent value))], [("includeSummary", toJSON (gatherResourceRequestOptionsIncludeSummary value))], [("maxResources", toJSON (gatherResourceRequestOptionsMaxResources value))]]))
+instance ToJSON GatherResourceRequestOptions where toJSON value = Object (KM.fromList (concat [[("depth", toJSON (gatherResourceRequestOptionsDepth value))], [("maxResources", toJSON (gatherResourceRequestOptionsMaxResources value))], [("includeContent", toJSON (gatherResourceRequestOptionsIncludeContent value))], [("includeSummary", toJSON (gatherResourceRequestOptionsIncludeSummary value))], optionalPair "excludeEntityTypes" (gatherResourceRequestOptionsExcludeEntityTypes value)]))

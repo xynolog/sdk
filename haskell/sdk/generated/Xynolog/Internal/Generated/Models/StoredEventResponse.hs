@@ -14,19 +14,19 @@ import Xynolog.Internal.Generated.Models.UserId
 
 data StoredEventResponse = StoredEventResponse
   { storedEventResponseId :: Text,
-    storedEventResponseMetadata :: EventMetadata,
-    storedEventResponsePayload :: StoredEventResponsePayload,
-    storedEventResponseResourceId :: Maybe ResourceId,
-    storedEventResponseTimestamp :: Text,
     storedEventResponseType :: Text,
+    storedEventResponseTimestamp :: Text,
     storedEventResponseUserId :: UserId,
-    storedEventResponseVersion :: Integer
+    storedEventResponseResourceId :: Maybe ResourceId,
+    storedEventResponseVersion :: Integer,
+    storedEventResponsePayload :: StoredEventResponsePayload,
+    storedEventResponseMetadata :: EventMetadata
   }
   deriving (Eq, Show)
 
-instance FromJSON StoredEventResponse where parseJSON = checked "StoredEventResponse" $ withObject "StoredEventResponse" (\fields -> StoredEventResponse <$> (fields .: "id") <*> (fields .: "metadata") <*> (fields .: "payload") <*> optional fields "resourceId" <*> (fields .: "timestamp") <*> (fields .: "type") <*> (fields .: "userId") <*> (fields .: "version"))
+instance FromJSON StoredEventResponse where parseJSON = checked "StoredEventResponse" $ withObject "StoredEventResponse" (\fields -> StoredEventResponse <$> (fields .: "id") <*> (fields .: "type") <*> (fields .: "timestamp") <*> (fields .: "userId") <*> optional fields "resourceId" <*> (fields .: "version") <*> (fields .: "payload") <*> (fields .: "metadata"))
 
-instance ToJSON StoredEventResponse where toJSON value = Object (KM.fromList (concat [[("id", toJSON (storedEventResponseId value))], [("metadata", toJSON (storedEventResponseMetadata value))], [("payload", toJSON (storedEventResponsePayload value))], optionalPair "resourceId" (storedEventResponseResourceId value), [("timestamp", toJSON (storedEventResponseTimestamp value))], [("type", toJSON (storedEventResponseType value))], [("userId", toJSON (storedEventResponseUserId value))], [("version", toJSON (storedEventResponseVersion value))]]))
+instance ToJSON StoredEventResponse where toJSON value = Object (KM.fromList (concat [[("id", toJSON (storedEventResponseId value))], [("type", toJSON (storedEventResponseType value))], [("timestamp", toJSON (storedEventResponseTimestamp value))], [("userId", toJSON (storedEventResponseUserId value))], optionalPair "resourceId" (storedEventResponseResourceId value), [("version", toJSON (storedEventResponseVersion value))], [("payload", toJSON (storedEventResponsePayload value))], [("metadata", toJSON (storedEventResponseMetadata value))]]))
 
 data StoredEventResponsePayload = StoredEventResponsePayload
   { storedEventResponsePayloadAdditionalProperties :: KM.KeyMap Value

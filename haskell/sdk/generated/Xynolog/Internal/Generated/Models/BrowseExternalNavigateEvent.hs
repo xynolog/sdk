@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data BrowseExternalNavigateEvent = BrowseExternalNavigateEvent
-  { browseExternalNavigateEventResourceId :: Maybe ResourceId,
-    browseExternalNavigateEventUrl :: Text
+  { browseExternalNavigateEventUrl :: Text,
+    browseExternalNavigateEventResourceId :: Maybe ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseExternalNavigateEvent where parseJSON = checked "BrowseExternalNavigateEvent" $ withObject "BrowseExternalNavigateEvent" (\fields -> BrowseExternalNavigateEvent <$> optional fields "resourceId" <*> (fields .: "url"))
+instance FromJSON BrowseExternalNavigateEvent where parseJSON = checked "BrowseExternalNavigateEvent" $ withObject "BrowseExternalNavigateEvent" (\fields -> BrowseExternalNavigateEvent <$> (fields .: "url") <*> optional fields "resourceId")
 
-instance ToJSON BrowseExternalNavigateEvent where toJSON value = Object (KM.fromList (concat [optionalPair "resourceId" (browseExternalNavigateEventResourceId value), [("url", toJSON (browseExternalNavigateEventUrl value))]]))
+instance ToJSON BrowseExternalNavigateEvent where toJSON value = Object (KM.fromList (concat [[("url", toJSON (browseExternalNavigateEventUrl value))], optionalPair "resourceId" (browseExternalNavigateEventResourceId value)]))

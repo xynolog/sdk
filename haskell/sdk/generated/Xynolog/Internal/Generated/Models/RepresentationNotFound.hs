@@ -10,16 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data RepresentationNotFound = RepresentationNotFound
-  { representationNotFoundCode :: RepresentationNotFoundCode,
-    representationNotFoundDetails :: Maybe Value,
-    representationNotFoundError :: Text,
-    representationNotFoundHint :: Maybe Text
+  { representationNotFoundError :: Text,
+    representationNotFoundCode :: RepresentationNotFoundCode,
+    representationNotFoundHint :: Maybe Text,
+    representationNotFoundDetails :: Maybe Value
   }
   deriving (Eq, Show)
 
-instance FromJSON RepresentationNotFound where parseJSON = checked "RepresentationNotFound" $ withObject "RepresentationNotFound" (\fields -> RepresentationNotFound <$> (fields .: "code") <*> optional fields "details" <*> (fields .: "error") <*> optional fields "hint")
+instance FromJSON RepresentationNotFound where parseJSON = checked "RepresentationNotFound" $ withObject "RepresentationNotFound" (\fields -> RepresentationNotFound <$> (fields .: "error") <*> (fields .: "code") <*> optional fields "hint" <*> optional fields "details")
 
-instance ToJSON RepresentationNotFound where toJSON value = Object (KM.fromList (concat [[("code", toJSON (representationNotFoundCode value))], optionalPair "details" (representationNotFoundDetails value), [("error", toJSON (representationNotFoundError value))], optionalPair "hint" (representationNotFoundHint value)]))
+instance ToJSON RepresentationNotFound where toJSON value = Object (KM.fromList (concat [[("error", toJSON (representationNotFoundError value))], [("code", toJSON (representationNotFoundCode value))], optionalPair "hint" (representationNotFoundHint value), optionalPair "details" (representationNotFoundDetails value)]))
 
 data RepresentationNotFoundCode = RepresentationNotFoundCodeResource | RepresentationNotFoundCodeRepresentation deriving (Eq, Show)
 

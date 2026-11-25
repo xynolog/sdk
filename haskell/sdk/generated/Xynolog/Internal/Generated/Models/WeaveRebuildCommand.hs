@@ -11,11 +11,11 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data WeaveRebuildCommand = WeaveRebuildCommand
-  { weaveRebuildCommandUserId :: Maybe UserId,
-    weaveRebuildCommandResourceId :: Maybe ResourceId
+  { weaveRebuildCommandResourceId :: Maybe ResourceId,
+    weaveRebuildCommandUserId :: Maybe UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON WeaveRebuildCommand where parseJSON = checked "WeaveRebuildCommand" $ withObject "WeaveRebuildCommand" (\fields -> WeaveRebuildCommand <$> optional fields "_userId" <*> optional fields "resourceId")
+instance FromJSON WeaveRebuildCommand where parseJSON = checked "WeaveRebuildCommand" $ withObject "WeaveRebuildCommand" (\fields -> WeaveRebuildCommand <$> optional fields "resourceId" <*> optional fields "_userId")
 
-instance ToJSON WeaveRebuildCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (weaveRebuildCommandUserId value), optionalPair "resourceId" (weaveRebuildCommandResourceId value)]))
+instance ToJSON WeaveRebuildCommand where toJSON value = Object (KM.fromList (concat [optionalPair "resourceId" (weaveRebuildCommandResourceId value), optionalPair "_userId" (weaveRebuildCommandUserId value)]))

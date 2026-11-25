@@ -11,18 +11,18 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.SettingLine
 
 data Setting = Setting
-  { settingAppliesTo :: SettingAppliesTo,
-    settingChangedBy :: Maybe Text,
+  { settingName :: Text,
     settingDefault :: Bool,
-    settingName :: Text,
+    settingAppliesTo :: SettingAppliesTo,
+    settingValues :: [SettingLine],
     settingSettable :: Bool,
-    settingValues :: [SettingLine]
+    settingChangedBy :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON Setting where parseJSON = checked "Setting" $ withObject "Setting" (\fields -> Setting <$> (fields .: "appliesTo") <*> optional fields "changedBy" <*> (fields .: "default") <*> (fields .: "name") <*> (fields .: "settable") <*> (fields .: "values"))
+instance FromJSON Setting where parseJSON = checked "Setting" $ withObject "Setting" (\fields -> Setting <$> (fields .: "name") <*> (fields .: "default") <*> (fields .: "appliesTo") <*> (fields .: "values") <*> (fields .: "settable") <*> optional fields "changedBy")
 
-instance ToJSON Setting where toJSON value = Object (KM.fromList (concat [[("appliesTo", toJSON (settingAppliesTo value))], optionalPair "changedBy" (settingChangedBy value), [("default", toJSON (settingDefault value))], [("name", toJSON (settingName value))], [("settable", toJSON (settingSettable value))], [("values", toJSON (settingValues value))]]))
+instance ToJSON Setting where toJSON value = Object (KM.fromList (concat [[("name", toJSON (settingName value))], [("default", toJSON (settingDefault value))], [("appliesTo", toJSON (settingAppliesTo value))], [("values", toJSON (settingValues value))], [("settable", toJSON (settingSettable value))], optionalPair "changedBy" (settingChangedBy value)]))
 
 data SettingAppliesTo = SettingAppliesToMachine | SettingAppliesToKnowledgeBase deriving (Eq, Show)
 

@@ -11,15 +11,15 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data BusResumeGap = BusResumeGap
-  { busResumeGapLastSeenId :: Text,
-    busResumeGapReason :: BusResumeGapReason,
-    busResumeGapScope :: ResourceId
+  { busResumeGapScope :: ResourceId,
+    busResumeGapLastSeenId :: Text,
+    busResumeGapReason :: BusResumeGapReason
   }
   deriving (Eq, Show)
 
-instance FromJSON BusResumeGap where parseJSON = checked "BusResumeGap" $ withObject "BusResumeGap" (\fields -> BusResumeGap <$> (fields .: "lastSeenId") <*> (fields .: "reason") <*> (fields .: "scope"))
+instance FromJSON BusResumeGap where parseJSON = checked "BusResumeGap" $ withObject "BusResumeGap" (\fields -> BusResumeGap <$> (fields .: "scope") <*> (fields .: "lastSeenId") <*> (fields .: "reason"))
 
-instance ToJSON BusResumeGap where toJSON value = Object (KM.fromList (concat [[("lastSeenId", toJSON (busResumeGapLastSeenId value))], [("reason", toJSON (busResumeGapReason value))], [("scope", toJSON (busResumeGapScope value))]]))
+instance ToJSON BusResumeGap where toJSON value = Object (KM.fromList (concat [[("scope", toJSON (busResumeGapScope value))], [("lastSeenId", toJSON (busResumeGapLastSeenId value))], [("reason", toJSON (busResumeGapReason value))]]))
 
 data BusResumeGapReason = BusResumeGapReasonUnparseableLastEventId | BusResumeGapReasonScopeMismatch | BusResumeGapReasonRetentionExceeded | BusResumeGapReasonQueryError deriving (Eq, Show)
 

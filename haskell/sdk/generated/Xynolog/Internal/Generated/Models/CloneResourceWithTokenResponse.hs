@@ -11,12 +11,12 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceDescriptor
 
 data CloneResourceWithTokenResponse = CloneResourceWithTokenResponse
-  { cloneResourceWithTokenResponseExpiresAt :: Text,
-    cloneResourceWithTokenResponseResource :: ResourceDescriptor,
-    cloneResourceWithTokenResponseToken :: Text
+  { cloneResourceWithTokenResponseToken :: Text,
+    cloneResourceWithTokenResponseExpiresAt :: Text,
+    cloneResourceWithTokenResponseResource :: ResourceDescriptor
   }
   deriving (Eq, Show)
 
-instance FromJSON CloneResourceWithTokenResponse where parseJSON = checked "CloneResourceWithTokenResponse" $ withObject "CloneResourceWithTokenResponse" (\fields -> CloneResourceWithTokenResponse <$> (fields .: "expiresAt") <*> (fields .: "resource") <*> (fields .: "token"))
+instance FromJSON CloneResourceWithTokenResponse where parseJSON = checked "CloneResourceWithTokenResponse" $ withObject "CloneResourceWithTokenResponse" (\fields -> CloneResourceWithTokenResponse <$> (fields .: "token") <*> (fields .: "expiresAt") <*> (fields .: "resource"))
 
-instance ToJSON CloneResourceWithTokenResponse where toJSON value = Object (KM.fromList (concat [[("expiresAt", toJSON (cloneResourceWithTokenResponseExpiresAt value))], [("resource", toJSON (cloneResourceWithTokenResponseResource value))], [("token", toJSON (cloneResourceWithTokenResponseToken value))]]))
+instance ToJSON CloneResourceWithTokenResponse where toJSON value = Object (KM.fromList (concat [[("token", toJSON (cloneResourceWithTokenResponseToken value))], [("expiresAt", toJSON (cloneResourceWithTokenResponseExpiresAt value))], [("resource", toJSON (cloneResourceWithTokenResponseResource value))]]))

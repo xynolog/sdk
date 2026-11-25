@@ -10,12 +10,12 @@ import Data.Scientific (Scientific)
 import Xynolog.Internal.Codec
 
 data OcrConfidence = OcrConfidence
-  { ocrConfidenceLowConfidenceWords :: Integer,
-    ocrConfidenceMean :: Scientific,
+  { ocrConfidenceMean :: Scientific,
+    ocrConfidenceLowConfidenceWords :: Integer,
     ocrConfidenceTotalWords :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON OcrConfidence where parseJSON = checked "OcrConfidence" $ withObject "OcrConfidence" (\fields -> OcrConfidence <$> (fields .: "lowConfidenceWords") <*> (fields .: "mean") <*> (fields .: "totalWords"))
+instance FromJSON OcrConfidence where parseJSON = checked "OcrConfidence" $ withObject "OcrConfidence" (\fields -> OcrConfidence <$> (fields .: "mean") <*> (fields .: "lowConfidenceWords") <*> (fields .: "totalWords"))
 
-instance ToJSON OcrConfidence where toJSON value = Object (KM.fromList (concat [[("lowConfidenceWords", toJSON (ocrConfidenceLowConfidenceWords value))], [("mean", toJSON (ocrConfidenceMean value))], [("totalWords", toJSON (ocrConfidenceTotalWords value))]]))
+instance ToJSON OcrConfidence where toJSON value = Object (KM.fromList (concat [[("mean", toJSON (ocrConfidenceMean value))], [("lowConfidenceWords", toJSON (ocrConfidenceLowConfidenceWords value))], [("totalWords", toJSON (ocrConfidenceTotalWords value))]]))

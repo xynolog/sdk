@@ -413,10 +413,10 @@ searchFailureCase fixtures = do
   context <- fixture fixtures "GatheredContext"
   identity <- either (ioError . userError) pure (mkResourceId "search-resource")
   reference <- either (ioError . userError) pure (mkAnnotationId "search-annotation")
-  let input = MatchSearchRequest context Nothing reference identity Nothing
+  let input = MatchSearchRequest {matchSearchRequestContext = context, matchSearchRequestLimit = Nothing, matchSearchRequestReferenceId = reference, matchSearchRequestResourceId = identity, matchSearchRequestUseSemanticScoring = Nothing}
       send frame = do
         source <- atomically (readTMVar inputCell)
-        let refusal = Types.MatchSearchFailed Nothing Nothing "the search was refused" reference
+        let refusal = Types.MatchSearchFailed {matchSearchFailedCode = Nothing, matchSearchFailedDetails = Nothing, matchSearchFailedMessage = "the search was refused", matchSearchFailedReferenceId = reference}
         case encodePayload Channel.MatchSearchFailed refusal of
           Object fields -> Transport.receive source (BusFrame (channelName Channel.MatchSearchFailed) (busFrameCorrelationId frame) (BusFramePayload fields) Nothing)
           _ -> ioError (userError "search failure is not an object")

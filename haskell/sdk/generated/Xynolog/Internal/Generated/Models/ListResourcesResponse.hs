@@ -11,13 +11,13 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceDescriptor
 
 data ListResourcesResponse = ListResourcesResponse
-  { listResourcesResponseLimit :: Scientific,
+  { listResourcesResponseResources :: [ResourceDescriptor],
+    listResourcesResponseTotal :: Scientific,
     listResourcesResponseOffset :: Scientific,
-    listResourcesResponseResources :: [ResourceDescriptor],
-    listResourcesResponseTotal :: Scientific
+    listResourcesResponseLimit :: Scientific
   }
   deriving (Eq, Show)
 
-instance FromJSON ListResourcesResponse where parseJSON = checked "ListResourcesResponse" $ withObject "ListResourcesResponse" (\fields -> ListResourcesResponse <$> (fields .: "limit") <*> (fields .: "offset") <*> (fields .: "resources") <*> (fields .: "total"))
+instance FromJSON ListResourcesResponse where parseJSON = checked "ListResourcesResponse" $ withObject "ListResourcesResponse" (\fields -> ListResourcesResponse <$> (fields .: "resources") <*> (fields .: "total") <*> (fields .: "offset") <*> (fields .: "limit"))
 
-instance ToJSON ListResourcesResponse where toJSON value = Object (KM.fromList (concat [[("limit", toJSON (listResourcesResponseLimit value))], [("offset", toJSON (listResourcesResponseOffset value))], [("resources", toJSON (listResourcesResponseResources value))], [("total", toJSON (listResourcesResponseTotal value))]]))
+instance ToJSON ListResourcesResponse where toJSON value = Object (KM.fromList (concat [[("resources", toJSON (listResourcesResponseResources value))], [("total", toJSON (listResourcesResponseTotal value))], [("offset", toJSON (listResourcesResponseOffset value))], [("limit", toJSON (listResourcesResponseLimit value))]]))

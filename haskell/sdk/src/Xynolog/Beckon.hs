@@ -16,7 +16,7 @@ attention :: BeckonNamespace -> ResourceId -> Maybe AnnotationId -> IO (Maybe In
 attention (BeckonNamespace wire _) resource annotation = Bus.emit wire BeckonFocus (BeckonFocusEvent annotation resource) NoScope Nothing
 
 click :: BeckonNamespace -> AnnotationId -> IO (Maybe Integer)
-click (BeckonNamespace wire _) annotation = Bus.emit wire BrowseClick (BrowseClickEvent Nothing annotation) NoScope Nothing
+click (BeckonNamespace wire _) annotation = Bus.emit wire BrowseClick (BrowseClickEvent {browseClickEventAnchorRect = Nothing, browseClickEventAnnotationId = annotation}) NoScope Nothing
 
 openResource :: BeckonNamespace -> ResourceId -> IO (Maybe Integer)
 openResource (BeckonNamespace wire _) resource = Bus.emit wire BrowseResourceOpen (BrowseResourceOpenEvent resource) NoScope Nothing

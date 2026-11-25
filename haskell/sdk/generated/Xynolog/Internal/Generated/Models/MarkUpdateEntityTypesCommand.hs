@@ -12,13 +12,13 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data MarkUpdateEntityTypesCommand = MarkUpdateEntityTypesCommand
-  { markUpdateEntityTypesCommandUserId :: Maybe UserId,
+  { markUpdateEntityTypesCommandResourceId :: ResourceId,
+    markUpdateEntityTypesCommandUserId :: Maybe UserId,
     markUpdateEntityTypesCommandCurrentEntityTypes :: [Text],
-    markUpdateEntityTypesCommandResourceId :: ResourceId,
     markUpdateEntityTypesCommandUpdatedEntityTypes :: [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkUpdateEntityTypesCommand where parseJSON = checked "MarkUpdateEntityTypesCommand" $ withObject "MarkUpdateEntityTypesCommand" (\fields -> MarkUpdateEntityTypesCommand <$> optional fields "_userId" <*> (fields .: "currentEntityTypes") <*> (fields .: "resourceId") <*> (fields .: "updatedEntityTypes"))
+instance FromJSON MarkUpdateEntityTypesCommand where parseJSON = checked "MarkUpdateEntityTypesCommand" $ withObject "MarkUpdateEntityTypesCommand" (\fields -> MarkUpdateEntityTypesCommand <$> (fields .: "resourceId") <*> optional fields "_userId" <*> (fields .: "currentEntityTypes") <*> (fields .: "updatedEntityTypes"))
 
-instance ToJSON MarkUpdateEntityTypesCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markUpdateEntityTypesCommandUserId value), [("currentEntityTypes", toJSON (markUpdateEntityTypesCommandCurrentEntityTypes value))], [("resourceId", toJSON (markUpdateEntityTypesCommandResourceId value))], [("updatedEntityTypes", toJSON (markUpdateEntityTypesCommandUpdatedEntityTypes value))]]))
+instance ToJSON MarkUpdateEntityTypesCommand where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (markUpdateEntityTypesCommandResourceId value))], optionalPair "_userId" (markUpdateEntityTypesCommandUserId value), [("currentEntityTypes", toJSON (markUpdateEntityTypesCommandCurrentEntityTypes value))], [("updatedEntityTypes", toJSON (markUpdateEntityTypesCommandUpdatedEntityTypes value))]]))

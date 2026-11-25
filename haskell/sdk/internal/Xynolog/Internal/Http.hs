@@ -444,12 +444,7 @@ emit http frame = Telemetry.sending frame $ do
   BusLog.frame (logger http) "EMIT" frame
   key <- UUID.toText <$> httpNewId (options http)
   let body =
-        BusEmitRequest
-          (busFrameChannel frame)
-          (Just (clientId http))
-          (busFrameCorrelationId frame)
-          (BusEmitRequestPayload (busFramePayloadAdditionalProperties (busFramePayload frame)))
-          (busFrameScope frame)
+        BusEmitRequest {busEmitRequestChannel = (busFrameChannel frame), busEmitRequestClientId = (Just (clientId http)), busEmitRequestCorrelationId = (busFrameCorrelationId frame), busEmitRequestPayload = (BusEmitRequestPayload (busFramePayloadAdditionalProperties (busFramePayload frame))), busEmitRequestScope = (busFrameScope frame)}
       sending = exchange http EmitOnBus Nothing (jsonBody EmitOnBus body) (Just key) Nothing [] $ \response -> do
         let count = do
               bytes <- deadline http (Settings.emitTimeoutMs (httpTiming (options http))) (Bytes.concat <$> brConsume (responseBody response))

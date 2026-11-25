@@ -10,14 +10,14 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.DiscoveredKB
 
 data DiscoveryDocument = DiscoveryDocument
-  { discoveryDocumentKbs :: [DiscoveredKB],
-    discoveryDocumentVersion :: DiscoveryDocumentVersion
+  { discoveryDocumentVersion :: DiscoveryDocumentVersion,
+    discoveryDocumentKbs :: [DiscoveredKB]
   }
   deriving (Eq, Show)
 
-instance FromJSON DiscoveryDocument where parseJSON = checked "DiscoveryDocument" $ withObject "DiscoveryDocument" (\fields -> DiscoveryDocument <$> (fields .: "kbs") <*> (fields .: "version"))
+instance FromJSON DiscoveryDocument where parseJSON = checked "DiscoveryDocument" $ withObject "DiscoveryDocument" (\fields -> DiscoveryDocument <$> (fields .: "version") <*> (fields .: "kbs"))
 
-instance ToJSON DiscoveryDocument where toJSON value = Object (KM.fromList (concat [[("kbs", toJSON (discoveryDocumentKbs value))], [("version", toJSON (discoveryDocumentVersion value))]]))
+instance ToJSON DiscoveryDocument where toJSON value = Object (KM.fromList (concat [[("version", toJSON (discoveryDocumentVersion value))], [("kbs", toJSON (discoveryDocumentKbs value))]]))
 
 data DiscoveryDocumentVersion = DiscoveryDocumentVersion1 deriving (Eq, Show)
 

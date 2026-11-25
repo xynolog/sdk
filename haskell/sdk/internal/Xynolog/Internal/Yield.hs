@@ -32,7 +32,7 @@ delegate :: YieldNamespace -> GenerationJobParams -> Maybe Scientific -> IO (Run
 delegate (YieldNamespace _ _ _ timing follower) params stall =
   Delegation.follow
     follower
-    (JobCreateCommandYieldJobCreateCommand (YieldJobCreateCommand Nothing Nothing YieldJobCreateCommandJobTypeYield params))
+    (JobCreateCommandYieldJobCreateCommand (YieldJobCreateCommand {yieldJobCreateCommandRoles = Nothing, yieldJobCreateCommandUserId = Nothing, yieldJobCreateCommandJobType = YieldJobCreateCommandJobTypeYield, yieldJobCreateCommandParams = params}))
     Verb.yield
     identity
     (Just (fromMaybe (Delegation.deriveStallDeadlineMs timing (generationJobParamsMaxTokens params)) stall))
@@ -52,7 +52,7 @@ fromToken (YieldNamespace wire _ _ timing _) token =
     <$> Bus.request wire YieldCloneResourceRequestedOperation (YieldCloneResourceRequest token) (Timing.busRequestTimeoutMs timing)
 
 createFromToken :: YieldNamespace -> CreateFromTokenOptions -> IO CreateResourceResponse
-createFromToken namespace@(YieldNamespace _ _ content _ follower) (CreateFromTokenOptions archiveOriginal text name token) = Delegation.run follower $ do
+createFromToken namespace@(YieldNamespace _ _ content _ follower) (CreateFromTokenOptions {createFromTokenOptionsArchiveOriginal = archiveOriginal, createFromTokenOptionsContent = text, createFromTokenOptionsName = name, createFromTokenOptionsToken = token}) = Delegation.run follower $ do
   source <- fromToken namespace token
   let format = Media.cloneFormat (Resources.getPrimaryMediaType source)
   file <- either (ioError . userError . show) pure (Media.storageFileName name format)

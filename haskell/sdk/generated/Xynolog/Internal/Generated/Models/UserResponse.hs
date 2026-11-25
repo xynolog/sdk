@@ -12,13 +12,13 @@ import Xynolog.Internal.Generated.Models.UserId
 
 data UserResponse = UserResponse
   { userResponseDid :: UserId,
-    userResponseDomain :: Text,
     userResponseEmail :: Maybe Text,
+    userResponseName :: Maybe Text,
     userResponseImage :: Maybe Text,
-    userResponseName :: Maybe Text
+    userResponseDomain :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON UserResponse where parseJSON = checked "UserResponse" $ withObject "UserResponse" (\fields -> UserResponse <$> (fields .: "did") <*> (fields .: "domain") <*> (fields .: "email") <*> (fields .: "image") <*> (fields .: "name"))
+instance FromJSON UserResponse where parseJSON = checked "UserResponse" $ withObject "UserResponse" (\fields -> UserResponse <$> (fields .: "did") <*> (fields .: "email") <*> (fields .: "name") <*> (fields .: "image") <*> (fields .: "domain"))
 
-instance ToJSON UserResponse where toJSON value = Object (KM.fromList (concat [[("did", toJSON (userResponseDid value))], [("domain", toJSON (userResponseDomain value))], [("email", toJSON (userResponseEmail value))], [("image", toJSON (userResponseImage value))], [("name", toJSON (userResponseName value))]]))
+instance ToJSON UserResponse where toJSON value = Object (KM.fromList (concat [[("did", toJSON (userResponseDid value))], [("email", toJSON (userResponseEmail value))], [("name", toJSON (userResponseName value))], [("image", toJSON (userResponseImage value))], [("domain", toJSON (userResponseDomain value))]]))

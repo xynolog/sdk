@@ -119,7 +119,7 @@ rig time fixtures = do
         Transport.setState input Transport.Open
         client <- Client.newClient carrier contents Nothing options Timing.protocolSettings Nothing
         kept <- SignIn.newMemorySignIn
-        let target = KbTarget (knowledgeBaseEndpoint kb) (knowledgeBaseId kb) (knowledgeBaseLabel kb)
+        let target = KbTarget {kbTargetEndpoint = (knowledgeBaseEndpoint kb), kbTargetId = (knowledgeBaseId kb), kbTargetLabel = (knowledgeBaseLabel kb)}
             settings =
               Session.SessionOptions
                 (knowledgeBaseId kb)
@@ -162,8 +162,8 @@ cases fixtures = do
           (pure Map.empty)
           (\_ _ -> pure ())
       config = Browser.XynologBrowserConfig storage factory http (pure 1800000000)
-      local name = KbEndpointLocalEndpoint (LocalEndpoint name LocalEndpointKindLocal)
-      proposed name domain = NewKnowledgeBase (either error userIdValue (Identity.kbDid domain)) (local name) name Nothing
+      local name = KbEndpointLocalEndpoint (LocalEndpoint {localEndpointKbId = name, localEndpointKind = LocalEndpointKindLocal})
+      proposed name domain = NewKnowledgeBase {newKnowledgeBaseDid = (either error userIdValue (Identity.kbDid domain)), newKnowledgeBaseEndpoint = (local name), newKnowledgeBaseLabel = name, newKnowledgeBaseLastRead = Nothing}
   grant <- fixture fixtures "StoredSession"
   resource <- either (ioError . userError) pure (mkResourceId "res-1")
   bracket (Browser.newXynologBrowser config) Browser.dispose $ \browser -> do
@@ -190,9 +190,9 @@ cases fixtures = do
     -- last-viewed id for A, while B kept its own empty projection.
     require "KB switch lost its per-KB viewed bookmark" . (== Just resource) =<< atomically (State.current (Browser.lastViewedResource browser))
     Time.settle
-    let description = KbDescription "another.example.test" Nothing "Another"
+    let description = KbDescription {kbDescriptionDomain = "another.example.test", kbDescriptionGitBranch = Nothing, kbDescriptionName = "Another"}
         newGrant = grant {storedSessionAccess = "another-issued-access", storedSessionRefresh = "another-refresh"}
-        signed = SignedIn description (knowledgeBaseEndpoint a) Nothing Nothing Nothing newGrant
+        signed = SignedIn {signedInDescription = description, signedInEndpoint = (knowledgeBaseEndpoint a), signedInExpectedDid = Nothing, signedInExpectedName = Nothing, signedInKbId = Nothing, signedInSession = newGrant}
     outcome <- Browser.signedIn browser signed
     Time.settle
     require "sign-in adopted an entry which the answering DID did not prove" (knowledgeBaseId (signInOutcomeKb outcome) /= aId)

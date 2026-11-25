@@ -12,18 +12,18 @@ import Xynolog.Internal.Generated.Models.MatchQuality
 
 data ReconciledSpanFuzzyMatch = ReconciledSpanFuzzyMatch
   { reconciledSpanFuzzyMatchAnchorMethod :: ReconciledSpanFuzzyMatchAnchorMethod,
+    reconciledSpanFuzzyMatchStart :: Integer,
     reconciledSpanFuzzyMatchEnd :: Integer,
     reconciledSpanFuzzyMatchExact :: Text,
-    reconciledSpanFuzzyMatchMatchQuality :: MatchQuality,
     reconciledSpanFuzzyMatchPrefix :: Maybe Text,
-    reconciledSpanFuzzyMatchStart :: Integer,
-    reconciledSpanFuzzyMatchSuffix :: Maybe Text
+    reconciledSpanFuzzyMatchSuffix :: Maybe Text,
+    reconciledSpanFuzzyMatchMatchQuality :: MatchQuality
   }
   deriving (Eq, Show)
 
-instance FromJSON ReconciledSpanFuzzyMatch where parseJSON = checked "ReconciledSpanFuzzyMatch" $ withObject "ReconciledSpanFuzzyMatch" (\fields -> ReconciledSpanFuzzyMatch <$> (fields .: "anchorMethod") <*> (fields .: "end") <*> (fields .: "exact") <*> (fields .: "matchQuality") <*> optional fields "prefix" <*> (fields .: "start") <*> optional fields "suffix")
+instance FromJSON ReconciledSpanFuzzyMatch where parseJSON = checked "ReconciledSpanFuzzyMatch" $ withObject "ReconciledSpanFuzzyMatch" (\fields -> ReconciledSpanFuzzyMatch <$> (fields .: "anchorMethod") <*> (fields .: "start") <*> (fields .: "end") <*> (fields .: "exact") <*> optional fields "prefix" <*> optional fields "suffix" <*> (fields .: "matchQuality"))
 
-instance ToJSON ReconciledSpanFuzzyMatch where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanFuzzyMatchAnchorMethod value))], [("end", toJSON (reconciledSpanFuzzyMatchEnd value))], [("exact", toJSON (reconciledSpanFuzzyMatchExact value))], [("matchQuality", toJSON (reconciledSpanFuzzyMatchMatchQuality value))], optionalPair "prefix" (reconciledSpanFuzzyMatchPrefix value), [("start", toJSON (reconciledSpanFuzzyMatchStart value))], optionalPair "suffix" (reconciledSpanFuzzyMatchSuffix value)]))
+instance ToJSON ReconciledSpanFuzzyMatch where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanFuzzyMatchAnchorMethod value))], [("start", toJSON (reconciledSpanFuzzyMatchStart value))], [("end", toJSON (reconciledSpanFuzzyMatchEnd value))], [("exact", toJSON (reconciledSpanFuzzyMatchExact value))], optionalPair "prefix" (reconciledSpanFuzzyMatchPrefix value), optionalPair "suffix" (reconciledSpanFuzzyMatchSuffix value), [("matchQuality", toJSON (reconciledSpanFuzzyMatchMatchQuality value))]]))
 
 data ReconciledSpanFuzzyMatchAnchorMethod = ReconciledSpanFuzzyMatchAnchorMethodFuzzyMatch deriving (Eq, Show)
 

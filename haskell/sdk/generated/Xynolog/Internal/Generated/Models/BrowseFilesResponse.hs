@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.DirectoryEntry
 
 data BrowseFilesResponse = BrowseFilesResponse
-  { browseFilesResponseEntries :: [DirectoryEntry],
-    browseFilesResponsePath :: Text
+  { browseFilesResponsePath :: Text,
+    browseFilesResponseEntries :: [DirectoryEntry]
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseFilesResponse where parseJSON = checked "BrowseFilesResponse" $ withObject "BrowseFilesResponse" (\fields -> BrowseFilesResponse <$> (fields .: "entries") <*> (fields .: "path"))
+instance FromJSON BrowseFilesResponse where parseJSON = checked "BrowseFilesResponse" $ withObject "BrowseFilesResponse" (\fields -> BrowseFilesResponse <$> (fields .: "path") <*> (fields .: "entries"))
 
-instance ToJSON BrowseFilesResponse where toJSON value = Object (KM.fromList (concat [[("entries", toJSON (browseFilesResponseEntries value))], [("path", toJSON (browseFilesResponsePath value))]]))
+instance ToJSON BrowseFilesResponse where toJSON value = Object (KM.fromList (concat [[("path", toJSON (browseFilesResponsePath value))], [("entries", toJSON (browseFilesResponseEntries value))]]))

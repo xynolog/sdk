@@ -11,11 +11,11 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data SmeltRebuildAnchorsCommand = SmeltRebuildAnchorsCommand
-  { smeltRebuildAnchorsCommandUserId :: Maybe UserId,
-    smeltRebuildAnchorsCommandResourceId :: Maybe ResourceId
+  { smeltRebuildAnchorsCommandResourceId :: Maybe ResourceId,
+    smeltRebuildAnchorsCommandUserId :: Maybe UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON SmeltRebuildAnchorsCommand where parseJSON = checked "SmeltRebuildAnchorsCommand" $ withObject "SmeltRebuildAnchorsCommand" (\fields -> SmeltRebuildAnchorsCommand <$> optional fields "_userId" <*> optional fields "resourceId")
+instance FromJSON SmeltRebuildAnchorsCommand where parseJSON = checked "SmeltRebuildAnchorsCommand" $ withObject "SmeltRebuildAnchorsCommand" (\fields -> SmeltRebuildAnchorsCommand <$> optional fields "resourceId" <*> optional fields "_userId")
 
-instance ToJSON SmeltRebuildAnchorsCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (smeltRebuildAnchorsCommandUserId value), optionalPair "resourceId" (smeltRebuildAnchorsCommandResourceId value)]))
+instance ToJSON SmeltRebuildAnchorsCommand where toJSON value = Object (KM.fromList (concat [optionalPair "resourceId" (smeltRebuildAnchorsCommandResourceId value), optionalPair "_userId" (smeltRebuildAnchorsCommandUserId value)]))

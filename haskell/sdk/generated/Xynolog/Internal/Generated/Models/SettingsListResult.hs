@@ -12,11 +12,11 @@ import Xynolog.Internal.Generated.Models.Setting
 
 data SettingsListResult = SettingsListResult
   { settingsListResultRoot :: Maybe Text,
-    settingsListResultSettings :: [Setting],
-    settingsListResultUnresolved :: Maybe Text
+    settingsListResultUnresolved :: Maybe Text,
+    settingsListResultSettings :: [Setting]
   }
   deriving (Eq, Show)
 
-instance FromJSON SettingsListResult where parseJSON = checked "SettingsListResult" $ withObject "SettingsListResult" (\fields -> SettingsListResult <$> optional fields "root" <*> (fields .: "settings") <*> optional fields "unresolved")
+instance FromJSON SettingsListResult where parseJSON = checked "SettingsListResult" $ withObject "SettingsListResult" (\fields -> SettingsListResult <$> optional fields "root" <*> optional fields "unresolved" <*> (fields .: "settings"))
 
-instance ToJSON SettingsListResult where toJSON value = Object (KM.fromList (concat [optionalPair "root" (settingsListResultRoot value), [("settings", toJSON (settingsListResultSettings value))], optionalPair "unresolved" (settingsListResultUnresolved value)]))
+instance ToJSON SettingsListResult where toJSON value = Object (KM.fromList (concat [optionalPair "root" (settingsListResultRoot value), optionalPair "unresolved" (settingsListResultUnresolved value), [("settings", toJSON (settingsListResultSettings value))]]))

@@ -12,12 +12,12 @@ import Xynolog.Internal.Generated.Models.Motivation
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data MarkRequestedEvent = MarkRequestedEvent
-  { markRequestedEventMotivation :: Motivation,
+  { markRequestedEventSource :: ResourceId,
     markRequestedEventSelector :: AnnotationSelector,
-    markRequestedEventSource :: ResourceId
+    markRequestedEventMotivation :: Motivation
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkRequestedEvent where parseJSON = checked "MarkRequestedEvent" $ withObject "MarkRequestedEvent" (\fields -> MarkRequestedEvent <$> (fields .: "motivation") <*> (fields .: "selector") <*> (fields .: "source"))
+instance FromJSON MarkRequestedEvent where parseJSON = checked "MarkRequestedEvent" $ withObject "MarkRequestedEvent" (\fields -> MarkRequestedEvent <$> (fields .: "source") <*> (fields .: "selector") <*> (fields .: "motivation"))
 
-instance ToJSON MarkRequestedEvent where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (markRequestedEventMotivation value))], [("selector", toJSON (markRequestedEventSelector value))], [("source", toJSON (markRequestedEventSource value))]]))
+instance ToJSON MarkRequestedEvent where toJSON value = Object (KM.fromList (concat [[("source", toJSON (markRequestedEventSource value))], [("selector", toJSON (markRequestedEventSelector value))], [("motivation", toJSON (markRequestedEventMotivation value))]]))

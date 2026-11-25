@@ -32,7 +32,7 @@ newHttpSessionFactory http wall = SessionFactory open revoke
           settings =
             Session.SessionOptions
               (knowledgeBaseId kb)
-              (KbTarget (knowledgeBaseEndpoint kb) (knowledgeBaseId kb) (knowledgeBaseLabel kb))
+              (KbTarget {kbTargetEndpoint = (knowledgeBaseEndpoint kb), kbTargetId = (knowledgeBaseId kb), kbTargetLabel = (knowledgeBaseLabel kb)})
               kept
               Nothing
               Nothing

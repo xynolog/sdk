@@ -11,14 +11,14 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.WorkerKnowledgeBaseHealth
 
 data WorkerHealth = WorkerHealth
-  { workerHealthKnowledgeBases :: [WorkerKnowledgeBaseHealth],
-    workerHealthStatus :: WorkerHealthStatus
+  { workerHealthStatus :: WorkerHealthStatus,
+    workerHealthKnowledgeBases :: [WorkerKnowledgeBaseHealth]
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerHealth where parseJSON = checked "WorkerHealth" $ withObject "WorkerHealth" (\fields -> WorkerHealth <$> (fields .: "knowledgeBases") <*> (fields .: "status"))
+instance FromJSON WorkerHealth where parseJSON = checked "WorkerHealth" $ withObject "WorkerHealth" (\fields -> WorkerHealth <$> (fields .: "status") <*> (fields .: "knowledgeBases"))
 
-instance ToJSON WorkerHealth where toJSON value = Object (KM.fromList (concat [[("knowledgeBases", toJSON (workerHealthKnowledgeBases value))], [("status", toJSON (workerHealthStatus value))]]))
+instance ToJSON WorkerHealth where toJSON value = Object (KM.fromList (concat [[("status", toJSON (workerHealthStatus value))], [("knowledgeBases", toJSON (workerHealthKnowledgeBases value))]]))
 
 data WorkerHealthStatus = WorkerHealthStatusOk deriving (Eq, Show)
 

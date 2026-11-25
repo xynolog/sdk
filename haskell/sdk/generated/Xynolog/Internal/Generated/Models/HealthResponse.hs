@@ -10,13 +10,13 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data HealthResponse = HealthResponse
-  { healthResponseMessage :: Text,
-    healthResponseStatus :: Text,
-    healthResponseTimestamp :: Text,
-    healthResponseVersion :: Text
+  { healthResponseStatus :: Text,
+    healthResponseMessage :: Text,
+    healthResponseVersion :: Text,
+    healthResponseTimestamp :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON HealthResponse where parseJSON = checked "HealthResponse" $ withObject "HealthResponse" (\fields -> HealthResponse <$> (fields .: "message") <*> (fields .: "status") <*> (fields .: "timestamp") <*> (fields .: "version"))
+instance FromJSON HealthResponse where parseJSON = checked "HealthResponse" $ withObject "HealthResponse" (\fields -> HealthResponse <$> (fields .: "status") <*> (fields .: "message") <*> (fields .: "version") <*> (fields .: "timestamp"))
 
-instance ToJSON HealthResponse where toJSON value = Object (KM.fromList (concat [[("message", toJSON (healthResponseMessage value))], [("status", toJSON (healthResponseStatus value))], [("timestamp", toJSON (healthResponseTimestamp value))], [("version", toJSON (healthResponseVersion value))]]))
+instance ToJSON HealthResponse where toJSON value = Object (KM.fromList (concat [[("status", toJSON (healthResponseStatus value))], [("message", toJSON (healthResponseMessage value))], [("version", toJSON (healthResponseVersion value))], [("timestamp", toJSON (healthResponseTimestamp value))]]))

@@ -20,12 +20,12 @@ instance FromJSON WorkerAnswerFormats where parseJSON = checked "WorkerAnswerFor
 instance ToJSON WorkerAnswerFormats where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (workerAnswerFormatsComment value))], [("formats", toJSON (workerAnswerFormatsFormats value))]]))
 
 data WorkerAnswerFormatsFormatsItem = WorkerAnswerFormatsFormatsItem
-  { workerAnswerFormatsFormatsItemAbout :: Text,
-    workerAnswerFormatsFormatsItemElement :: Value,
-    workerAnswerFormatsFormatsItemName :: Text
+  { workerAnswerFormatsFormatsItemName :: Text,
+    workerAnswerFormatsFormatsItemAbout :: Text,
+    workerAnswerFormatsFormatsItemElement :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerAnswerFormatsFormatsItem where parseJSON = checked "WorkerAnswerFormatsFormatsItem" $ withObject "WorkerAnswerFormatsFormatsItem" (\fields -> WorkerAnswerFormatsFormatsItem <$> (fields .: "about") <*> (fields .: "element") <*> (fields .: "name"))
+instance FromJSON WorkerAnswerFormatsFormatsItem where parseJSON = checked "WorkerAnswerFormatsFormatsItem" $ withObject "WorkerAnswerFormatsFormatsItem" (\fields -> WorkerAnswerFormatsFormatsItem <$> (fields .: "name") <*> (fields .: "about") <*> (fields .: "element"))
 
-instance ToJSON WorkerAnswerFormatsFormatsItem where toJSON value = Object (KM.fromList (concat [[("about", toJSON (workerAnswerFormatsFormatsItemAbout value))], [("element", toJSON (workerAnswerFormatsFormatsItemElement value))], [("name", toJSON (workerAnswerFormatsFormatsItemName value))]]))
+instance ToJSON WorkerAnswerFormatsFormatsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerAnswerFormatsFormatsItemName value))], [("about", toJSON (workerAnswerFormatsFormatsItemAbout value))], [("element", toJSON (workerAnswerFormatsFormatsItemElement value))]]))

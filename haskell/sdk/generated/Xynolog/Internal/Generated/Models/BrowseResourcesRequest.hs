@@ -12,11 +12,11 @@ import Xynolog.Internal.Codec
 data BrowseResourcesRequest = BrowseResourcesRequest
   { browseResourcesRequestArchived :: Maybe Bool,
     browseResourcesRequestEntityType :: Maybe Text,
-    browseResourcesRequestLimit :: Maybe Integer,
-    browseResourcesRequestOffset :: Maybe Integer
+    browseResourcesRequestOffset :: Maybe Integer,
+    browseResourcesRequestLimit :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseResourcesRequest where parseJSON = checked "BrowseResourcesRequest" $ withObject "BrowseResourcesRequest" (\fields -> BrowseResourcesRequest <$> optional fields "archived" <*> optional fields "entityType" <*> optional fields "limit" <*> optional fields "offset")
+instance FromJSON BrowseResourcesRequest where parseJSON = checked "BrowseResourcesRequest" $ withObject "BrowseResourcesRequest" (\fields -> BrowseResourcesRequest <$> optional fields "archived" <*> optional fields "entityType" <*> optional fields "offset" <*> optional fields "limit")
 
-instance ToJSON BrowseResourcesRequest where toJSON value = Object (KM.fromList (concat [optionalPair "archived" (browseResourcesRequestArchived value), optionalPair "entityType" (browseResourcesRequestEntityType value), optionalPair "limit" (browseResourcesRequestLimit value), optionalPair "offset" (browseResourcesRequestOffset value)]))
+instance ToJSON BrowseResourcesRequest where toJSON value = Object (KM.fromList (concat [optionalPair "archived" (browseResourcesRequestArchived value), optionalPair "entityType" (browseResourcesRequestEntityType value), optionalPair "offset" (browseResourcesRequestOffset value), optionalPair "limit" (browseResourcesRequestLimit value)]))

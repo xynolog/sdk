@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ResourceErrorEvent = ResourceErrorEvent
-  { resourceErrorEventMessage :: Text,
-    resourceErrorEventResourceId :: ResourceId
+  { resourceErrorEventResourceId :: ResourceId,
+    resourceErrorEventMessage :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceErrorEvent where parseJSON = checked "ResourceErrorEvent" $ withObject "ResourceErrorEvent" (\fields -> ResourceErrorEvent <$> (fields .: "message") <*> (fields .: "resourceId"))
+instance FromJSON ResourceErrorEvent where parseJSON = checked "ResourceErrorEvent" $ withObject "ResourceErrorEvent" (\fields -> ResourceErrorEvent <$> (fields .: "resourceId") <*> (fields .: "message"))
 
-instance ToJSON ResourceErrorEvent where toJSON value = Object (KM.fromList (concat [[("message", toJSON (resourceErrorEventMessage value))], [("resourceId", toJSON (resourceErrorEventResourceId value))]]))
+instance ToJSON ResourceErrorEvent where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (resourceErrorEventResourceId value))], [("message", toJSON (resourceErrorEventMessage value))]]))

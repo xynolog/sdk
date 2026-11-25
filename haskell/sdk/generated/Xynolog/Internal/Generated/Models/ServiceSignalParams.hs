@@ -15,16 +15,16 @@ import Xynolog.Internal.Generated.Models.Runtime
 
 data ServiceSignalParams = ServiceSignalParams
   { serviceSignalParamsApiVersion :: ApiVersion,
-    serviceSignalParamsInstance :: RunInstance,
+    serviceSignalParamsTarget :: LocalTarget,
     serviceSignalParamsRuntime :: Maybe Runtime,
-    serviceSignalParamsSignal :: ServiceSignalParamsSignal,
-    serviceSignalParamsTarget :: LocalTarget
+    serviceSignalParamsInstance :: RunInstance,
+    serviceSignalParamsSignal :: ServiceSignalParamsSignal
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceSignalParams where parseJSON = checked "ServiceSignalParams" $ withObject "ServiceSignalParams" (\fields -> ServiceSignalParams <$> (fields .: "apiVersion") <*> (fields .: "instance") <*> optional fields "runtime" <*> (fields .: "signal") <*> (fields .: "target"))
+instance FromJSON ServiceSignalParams where parseJSON = checked "ServiceSignalParams" $ withObject "ServiceSignalParams" (\fields -> ServiceSignalParams <$> (fields .: "apiVersion") <*> (fields .: "target") <*> optional fields "runtime" <*> (fields .: "instance") <*> (fields .: "signal"))
 
-instance ToJSON ServiceSignalParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (serviceSignalParamsApiVersion value))], [("instance", toJSON (serviceSignalParamsInstance value))], optionalPair "runtime" (serviceSignalParamsRuntime value), [("signal", toJSON (serviceSignalParamsSignal value))], [("target", toJSON (serviceSignalParamsTarget value))]]))
+instance ToJSON ServiceSignalParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (serviceSignalParamsApiVersion value))], [("target", toJSON (serviceSignalParamsTarget value))], optionalPair "runtime" (serviceSignalParamsRuntime value), [("instance", toJSON (serviceSignalParamsInstance value))], [("signal", toJSON (serviceSignalParamsSignal value))]]))
 
 data ServiceSignalParamsSignal = ServiceSignalParamsSignalTerm | ServiceSignalParamsSignalKill deriving (Eq, Show)
 

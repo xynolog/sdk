@@ -38,7 +38,7 @@ locate anchored start end
           right = maximum (map snd points)
           bottom = minimum (map pdfTextItemY line)
           top = maximum [pdfTextItemY item + pdfTextItemHeight item | item <- line]
-       in PdfCoordinate (top - bottom) page (right - left) left bottom
+       in PdfCoordinate {pdfCoordinateHeight = (top - bottom), pdfCoordinatePage = page, pdfCoordinateWidth = (right - left), pdfCoordinateX = left, pdfCoordinateY = bottom}
 
 fragmentOf :: PdfCoordinate -> Text
 fragmentOf rectangle =

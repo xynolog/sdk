@@ -97,7 +97,7 @@ jwt instant name expired =
     <> "."
 
 held :: Text -> Text -> StoredSession
-held access refresh = StoredSession access Issuer.scriptClientId Nothing refresh Nothing "http://issuer.test/token"
+held access refresh = StoredSession {storedSessionAccess = access, storedSessionClientId = Issuer.scriptClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "http://issuer.test/token"}
 
 clockOptions :: Time.ControlledTime -> Retry.RetryOptions
 clockOptions time = Retry.RetryOptions (Time.now time) (Time.waitUntil time) (pure 0)

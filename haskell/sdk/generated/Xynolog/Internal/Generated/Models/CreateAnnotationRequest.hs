@@ -12,12 +12,12 @@ import Xynolog.Internal.Generated.Models.AnnotationTarget
 import Xynolog.Internal.Generated.Models.Motivation
 
 data CreateAnnotationRequest = CreateAnnotationRequest
-  { createAnnotationRequestBody :: Maybe AnnotationBodies,
-    createAnnotationRequestMotivation :: Motivation,
-    createAnnotationRequestTarget :: AnnotationTarget
+  { createAnnotationRequestMotivation :: Motivation,
+    createAnnotationRequestTarget :: AnnotationTarget,
+    createAnnotationRequestBody :: Maybe AnnotationBodies
   }
   deriving (Eq, Show)
 
-instance FromJSON CreateAnnotationRequest where parseJSON = checked "CreateAnnotationRequest" $ withObject "CreateAnnotationRequest" (\fields -> CreateAnnotationRequest <$> optional fields "body" <*> (fields .: "motivation") <*> (fields .: "target"))
+instance FromJSON CreateAnnotationRequest where parseJSON = checked "CreateAnnotationRequest" $ withObject "CreateAnnotationRequest" (\fields -> CreateAnnotationRequest <$> (fields .: "motivation") <*> (fields .: "target") <*> optional fields "body")
 
-instance ToJSON CreateAnnotationRequest where toJSON value = Object (KM.fromList (concat [optionalPair "body" (createAnnotationRequestBody value), [("motivation", toJSON (createAnnotationRequestMotivation value))], [("target", toJSON (createAnnotationRequestTarget value))]]))
+instance ToJSON CreateAnnotationRequest where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (createAnnotationRequestMotivation value))], [("target", toJSON (createAnnotationRequestTarget value))], optionalPair "body" (createAnnotationRequestBody value)]))

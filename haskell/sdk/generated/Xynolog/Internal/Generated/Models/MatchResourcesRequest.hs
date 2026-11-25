@@ -10,14 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data MatchResourcesRequest = MatchResourcesRequest
-  { matchResourcesRequestArchived :: Maybe Bool,
+  { matchResourcesRequestSearch :: Text,
+    matchResourcesRequestArchived :: Maybe Bool,
     matchResourcesRequestEntityType :: Maybe Text,
-    matchResourcesRequestLimit :: Maybe Integer,
     matchResourcesRequestOffset :: Maybe Integer,
-    matchResourcesRequestSearch :: Text
+    matchResourcesRequestLimit :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON MatchResourcesRequest where parseJSON = checked "MatchResourcesRequest" $ withObject "MatchResourcesRequest" (\fields -> MatchResourcesRequest <$> optional fields "archived" <*> optional fields "entityType" <*> optional fields "limit" <*> optional fields "offset" <*> (fields .: "search"))
+instance FromJSON MatchResourcesRequest where parseJSON = checked "MatchResourcesRequest" $ withObject "MatchResourcesRequest" (\fields -> MatchResourcesRequest <$> (fields .: "search") <*> optional fields "archived" <*> optional fields "entityType" <*> optional fields "offset" <*> optional fields "limit")
 
-instance ToJSON MatchResourcesRequest where toJSON value = Object (KM.fromList (concat [optionalPair "archived" (matchResourcesRequestArchived value), optionalPair "entityType" (matchResourcesRequestEntityType value), optionalPair "limit" (matchResourcesRequestLimit value), optionalPair "offset" (matchResourcesRequestOffset value), [("search", toJSON (matchResourcesRequestSearch value))]]))
+instance ToJSON MatchResourcesRequest where toJSON value = Object (KM.fromList (concat [[("search", toJSON (matchResourcesRequestSearch value))], optionalPair "archived" (matchResourcesRequestArchived value), optionalPair "entityType" (matchResourcesRequestEntityType value), optionalPair "offset" (matchResourcesRequestOffset value), optionalPair "limit" (matchResourcesRequestLimit value)]))

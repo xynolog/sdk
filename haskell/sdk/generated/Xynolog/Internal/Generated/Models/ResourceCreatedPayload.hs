@@ -16,33 +16,33 @@ import Xynolog.Internal.Generated.Models.OneOrMoreAgents
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ResourceCreatedPayload = ResourceCreatedPayload
-  { resourceCreatedPayloadContentByteSize :: Maybe Integer,
-    resourceCreatedPayloadContentChecksum :: Text,
-    resourceCreatedPayloadCreator :: Maybe Agent,
-    resourceCreatedPayloadEntityTypes :: Maybe [Text],
+  { resourceCreatedPayloadName :: Text,
     resourceCreatedPayloadFormat :: ContentFormat,
+    resourceCreatedPayloadContentChecksum :: Text,
+    resourceCreatedPayloadContentByteSize :: Maybe Integer,
+    resourceCreatedPayloadEntityTypes :: Maybe [Text],
+    resourceCreatedPayloadStorageUri :: Maybe Text,
+    resourceCreatedPayloadLanguage :: Maybe Text,
+    resourceCreatedPayloadIsDraft :: Maybe Bool,
+    resourceCreatedPayloadJobId :: Maybe JobId,
     resourceCreatedPayloadGeneratedFrom :: Maybe ResourceCreatedPayloadGeneratedFrom,
     resourceCreatedPayloadGenerationPrompt :: Maybe Text,
     resourceCreatedPayloadGenerator :: Maybe OneOrMoreAgents,
-    resourceCreatedPayloadIsDraft :: Maybe Bool,
-    resourceCreatedPayloadJobId :: Maybe JobId,
-    resourceCreatedPayloadLanguage :: Maybe Text,
-    resourceCreatedPayloadName :: Text,
-    resourceCreatedPayloadStorageUri :: Maybe Text,
+    resourceCreatedPayloadCreator :: Maybe Agent,
     resourceCreatedPayloadWasAttributedTo :: Maybe OneOrMoreAgents
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceCreatedPayload where parseJSON = checked "ResourceCreatedPayload" $ withObject "ResourceCreatedPayload" (\fields -> ResourceCreatedPayload <$> optional fields "contentByteSize" <*> (fields .: "contentChecksum") <*> optional fields "creator" <*> optional fields "entityTypes" <*> (fields .: "format") <*> optional fields "generatedFrom" <*> optional fields "generationPrompt" <*> optional fields "generator" <*> optional fields "isDraft" <*> optional fields "jobId" <*> optional fields "language" <*> (fields .: "name") <*> optional fields "storageUri" <*> optional fields "wasAttributedTo")
+instance FromJSON ResourceCreatedPayload where parseJSON = checked "ResourceCreatedPayload" $ withObject "ResourceCreatedPayload" (\fields -> ResourceCreatedPayload <$> (fields .: "name") <*> (fields .: "format") <*> (fields .: "contentChecksum") <*> optional fields "contentByteSize" <*> optional fields "entityTypes" <*> optional fields "storageUri" <*> optional fields "language" <*> optional fields "isDraft" <*> optional fields "jobId" <*> optional fields "generatedFrom" <*> optional fields "generationPrompt" <*> optional fields "generator" <*> optional fields "creator" <*> optional fields "wasAttributedTo")
 
-instance ToJSON ResourceCreatedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "contentByteSize" (resourceCreatedPayloadContentByteSize value), [("contentChecksum", toJSON (resourceCreatedPayloadContentChecksum value))], optionalPair "creator" (resourceCreatedPayloadCreator value), optionalPair "entityTypes" (resourceCreatedPayloadEntityTypes value), [("format", toJSON (resourceCreatedPayloadFormat value))], optionalPair "generatedFrom" (resourceCreatedPayloadGeneratedFrom value), optionalPair "generationPrompt" (resourceCreatedPayloadGenerationPrompt value), optionalPair "generator" (resourceCreatedPayloadGenerator value), optionalPair "isDraft" (resourceCreatedPayloadIsDraft value), optionalPair "jobId" (resourceCreatedPayloadJobId value), optionalPair "language" (resourceCreatedPayloadLanguage value), [("name", toJSON (resourceCreatedPayloadName value))], optionalPair "storageUri" (resourceCreatedPayloadStorageUri value), optionalPair "wasAttributedTo" (resourceCreatedPayloadWasAttributedTo value)]))
+instance ToJSON ResourceCreatedPayload where toJSON value = Object (KM.fromList (concat [[("name", toJSON (resourceCreatedPayloadName value))], [("format", toJSON (resourceCreatedPayloadFormat value))], [("contentChecksum", toJSON (resourceCreatedPayloadContentChecksum value))], optionalPair "contentByteSize" (resourceCreatedPayloadContentByteSize value), optionalPair "entityTypes" (resourceCreatedPayloadEntityTypes value), optionalPair "storageUri" (resourceCreatedPayloadStorageUri value), optionalPair "language" (resourceCreatedPayloadLanguage value), optionalPair "isDraft" (resourceCreatedPayloadIsDraft value), optionalPair "jobId" (resourceCreatedPayloadJobId value), optionalPair "generatedFrom" (resourceCreatedPayloadGeneratedFrom value), optionalPair "generationPrompt" (resourceCreatedPayloadGenerationPrompt value), optionalPair "generator" (resourceCreatedPayloadGenerator value), optionalPair "creator" (resourceCreatedPayloadCreator value), optionalPair "wasAttributedTo" (resourceCreatedPayloadWasAttributedTo value)]))
 
 data ResourceCreatedPayloadGeneratedFrom = ResourceCreatedPayloadGeneratedFrom
-  { resourceCreatedPayloadGeneratedFromAnnotationId :: Maybe AnnotationId,
-    resourceCreatedPayloadGeneratedFromResourceId :: ResourceId
+  { resourceCreatedPayloadGeneratedFromResourceId :: ResourceId,
+    resourceCreatedPayloadGeneratedFromAnnotationId :: Maybe AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceCreatedPayloadGeneratedFrom where parseJSON = checked "ResourceCreatedPayloadGeneratedFrom" $ withObject "ResourceCreatedPayloadGeneratedFrom" (\fields -> ResourceCreatedPayloadGeneratedFrom <$> optional fields "annotationId" <*> (fields .: "resourceId"))
+instance FromJSON ResourceCreatedPayloadGeneratedFrom where parseJSON = checked "ResourceCreatedPayloadGeneratedFrom" $ withObject "ResourceCreatedPayloadGeneratedFrom" (\fields -> ResourceCreatedPayloadGeneratedFrom <$> (fields .: "resourceId") <*> optional fields "annotationId")
 
-instance ToJSON ResourceCreatedPayloadGeneratedFrom where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (resourceCreatedPayloadGeneratedFromAnnotationId value), [("resourceId", toJSON (resourceCreatedPayloadGeneratedFromResourceId value))]]))
+instance ToJSON ResourceCreatedPayloadGeneratedFrom where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (resourceCreatedPayloadGeneratedFromResourceId value))], optionalPair "annotationId" (resourceCreatedPayloadGeneratedFromAnnotationId value)]))

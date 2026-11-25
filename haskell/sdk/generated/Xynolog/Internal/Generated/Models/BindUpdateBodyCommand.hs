@@ -15,11 +15,11 @@ import Xynolog.Internal.Generated.Models.UserId
 data BindUpdateBodyCommand = BindUpdateBodyCommand
   { bindUpdateBodyCommandUserId :: Maybe UserId,
     bindUpdateBodyCommandAnnotationId :: AnnotationId,
-    bindUpdateBodyCommandOperations :: [BindBodyOperation],
-    bindUpdateBodyCommandResourceId :: ResourceId
+    bindUpdateBodyCommandResourceId :: ResourceId,
+    bindUpdateBodyCommandOperations :: [BindBodyOperation]
   }
   deriving (Eq, Show)
 
-instance FromJSON BindUpdateBodyCommand where parseJSON = checked "BindUpdateBodyCommand" $ withObject "BindUpdateBodyCommand" (\fields -> BindUpdateBodyCommand <$> optional fields "_userId" <*> (fields .: "annotationId") <*> (fields .: "operations") <*> (fields .: "resourceId"))
+instance FromJSON BindUpdateBodyCommand where parseJSON = checked "BindUpdateBodyCommand" $ withObject "BindUpdateBodyCommand" (\fields -> BindUpdateBodyCommand <$> optional fields "_userId" <*> (fields .: "annotationId") <*> (fields .: "resourceId") <*> (fields .: "operations"))
 
-instance ToJSON BindUpdateBodyCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (bindUpdateBodyCommandUserId value), [("annotationId", toJSON (bindUpdateBodyCommandAnnotationId value))], [("operations", toJSON (bindUpdateBodyCommandOperations value))], [("resourceId", toJSON (bindUpdateBodyCommandResourceId value))]]))
+instance ToJSON BindUpdateBodyCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (bindUpdateBodyCommandUserId value), [("annotationId", toJSON (bindUpdateBodyCommandAnnotationId value))], [("resourceId", toJSON (bindUpdateBodyCommandResourceId value))], [("operations", toJSON (bindUpdateBodyCommandOperations value))]]))

@@ -14,23 +14,23 @@ import Xynolog.Internal.Generated.Models.LogLevel
 import Xynolog.Internal.Generated.Models.ServiceIdentity
 
 data ArchivistConfig = ArchivistConfig
-  { archivistConfigAnchoredTextDir :: Text,
-    archivistConfigEngines :: ArchivistEngines,
-    archivistConfigGatewayUrl :: Text,
+  { archivistConfigGatewayUrl :: Text,
     archivistConfigIdentity :: ServiceIdentity,
-    archivistConfigLogFormat :: LogFormat,
-    archivistConfigLogLevel :: LogLevel,
-    archivistConfigPort :: Integer,
     archivistConfigRoot :: Text,
+    archivistConfigStateHome :: Text,
+    archivistConfigAnchoredTextDir :: Text,
+    archivistConfigEngines :: ArchivistEngines,
+    archivistConfigPort :: Integer,
     archivistConfigSkipRebuild :: Bool,
     archivistConfigStaging :: ArchivistConfigStaging,
-    archivistConfigStateHome :: Text
+    archivistConfigLogLevel :: LogLevel,
+    archivistConfigLogFormat :: LogFormat
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistConfig where parseJSON = checked "ArchivistConfig" $ withObject "ArchivistConfig" (\fields -> ArchivistConfig <$> (fields .: "anchoredTextDir") <*> (fields .: "engines") <*> (fields .: "gatewayUrl") <*> (fields .: "identity") <*> (fields .: "logFormat") <*> (fields .: "logLevel") <*> (fields .: "port") <*> (fields .: "root") <*> (fields .: "skipRebuild") <*> (fields .: "staging") <*> (fields .: "stateHome"))
+instance FromJSON ArchivistConfig where parseJSON = checked "ArchivistConfig" $ withObject "ArchivistConfig" (\fields -> ArchivistConfig <$> (fields .: "gatewayUrl") <*> (fields .: "identity") <*> (fields .: "root") <*> (fields .: "stateHome") <*> (fields .: "anchoredTextDir") <*> (fields .: "engines") <*> (fields .: "port") <*> (fields .: "skipRebuild") <*> (fields .: "staging") <*> (fields .: "logLevel") <*> (fields .: "logFormat"))
 
-instance ToJSON ArchivistConfig where toJSON value = Object (KM.fromList (concat [[("anchoredTextDir", toJSON (archivistConfigAnchoredTextDir value))], [("engines", toJSON (archivistConfigEngines value))], [("gatewayUrl", toJSON (archivistConfigGatewayUrl value))], [("identity", toJSON (archivistConfigIdentity value))], [("logFormat", toJSON (archivistConfigLogFormat value))], [("logLevel", toJSON (archivistConfigLogLevel value))], [("port", toJSON (archivistConfigPort value))], [("root", toJSON (archivistConfigRoot value))], [("skipRebuild", toJSON (archivistConfigSkipRebuild value))], [("staging", toJSON (archivistConfigStaging value))], [("stateHome", toJSON (archivistConfigStateHome value))]]))
+instance ToJSON ArchivistConfig where toJSON value = Object (KM.fromList (concat [[("gatewayUrl", toJSON (archivistConfigGatewayUrl value))], [("identity", toJSON (archivistConfigIdentity value))], [("root", toJSON (archivistConfigRoot value))], [("stateHome", toJSON (archivistConfigStateHome value))], [("anchoredTextDir", toJSON (archivistConfigAnchoredTextDir value))], [("engines", toJSON (archivistConfigEngines value))], [("port", toJSON (archivistConfigPort value))], [("skipRebuild", toJSON (archivistConfigSkipRebuild value))], [("staging", toJSON (archivistConfigStaging value))], [("logLevel", toJSON (archivistConfigLogLevel value))], [("logFormat", toJSON (archivistConfigLogFormat value))]]))
 
 data ArchivistConfigStaging = ArchivistConfigStaging
   { archivistConfigStagingFlushMs :: Integer,

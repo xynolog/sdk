@@ -11,32 +11,32 @@ import Xynolog.Internal.Codec
 
 data ArchivistLayout = ArchivistLayout
   { archivistLayoutComment :: Text,
-    archivistLayoutAnchoredTextEntry :: ArchivistLayoutAnchoredTextEntry,
-    archivistLayoutAnchoredTextStamp :: ArchivistLayoutAnchoredTextStamp,
-    archivistLayoutEventFile :: ArchivistLayoutEventFile,
     archivistLayoutEventStream :: ArchivistLayoutEventStream,
-    archivistLayoutStorageUriIndex :: ArchivistLayoutStorageUriIndex,
-    archivistLayoutStoredEvent :: Value,
-    archivistLayoutSystemProjections :: ArchivistLayoutSystemProjections,
     archivistLayoutSystemStream :: ArchivistLayoutSystemStream,
-    archivistLayoutView :: ArchivistLayoutView
+    archivistLayoutEventFile :: ArchivistLayoutEventFile,
+    archivistLayoutStoredEvent :: Value,
+    archivistLayoutView :: ArchivistLayoutView,
+    archivistLayoutSystemProjections :: ArchivistLayoutSystemProjections,
+    archivistLayoutStorageUriIndex :: ArchivistLayoutStorageUriIndex,
+    archivistLayoutAnchoredTextEntry :: ArchivistLayoutAnchoredTextEntry,
+    archivistLayoutAnchoredTextStamp :: ArchivistLayoutAnchoredTextStamp
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayout where parseJSON = checked "ArchivistLayout" $ withObject "ArchivistLayout" (\fields -> ArchivistLayout <$> (fields .: "$comment") <*> (fields .: "anchoredTextEntry") <*> (fields .: "anchoredTextStamp") <*> (fields .: "eventFile") <*> (fields .: "eventStream") <*> (fields .: "storageUriIndex") <*> (fields .: "storedEvent") <*> (fields .: "systemProjections") <*> (fields .: "systemStream") <*> (fields .: "view"))
+instance FromJSON ArchivistLayout where parseJSON = checked "ArchivistLayout" $ withObject "ArchivistLayout" (\fields -> ArchivistLayout <$> (fields .: "$comment") <*> (fields .: "eventStream") <*> (fields .: "systemStream") <*> (fields .: "eventFile") <*> (fields .: "storedEvent") <*> (fields .: "view") <*> (fields .: "systemProjections") <*> (fields .: "storageUriIndex") <*> (fields .: "anchoredTextEntry") <*> (fields .: "anchoredTextStamp"))
 
-instance ToJSON ArchivistLayout where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (archivistLayoutComment value))], [("anchoredTextEntry", toJSON (archivistLayoutAnchoredTextEntry value))], [("anchoredTextStamp", toJSON (archivistLayoutAnchoredTextStamp value))], [("eventFile", toJSON (archivistLayoutEventFile value))], [("eventStream", toJSON (archivistLayoutEventStream value))], [("storageUriIndex", toJSON (archivistLayoutStorageUriIndex value))], [("storedEvent", toJSON (archivistLayoutStoredEvent value))], [("systemProjections", toJSON (archivistLayoutSystemProjections value))], [("systemStream", toJSON (archivistLayoutSystemStream value))], [("view", toJSON (archivistLayoutView value))]]))
+instance ToJSON ArchivistLayout where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (archivistLayoutComment value))], [("eventStream", toJSON (archivistLayoutEventStream value))], [("systemStream", toJSON (archivistLayoutSystemStream value))], [("eventFile", toJSON (archivistLayoutEventFile value))], [("storedEvent", toJSON (archivistLayoutStoredEvent value))], [("view", toJSON (archivistLayoutView value))], [("systemProjections", toJSON (archivistLayoutSystemProjections value))], [("storageUriIndex", toJSON (archivistLayoutStorageUriIndex value))], [("anchoredTextEntry", toJSON (archivistLayoutAnchoredTextEntry value))], [("anchoredTextStamp", toJSON (archivistLayoutAnchoredTextStamp value))]]))
 
 data ArchivistLayoutAnchoredTextEntry = ArchivistLayoutAnchoredTextEntry
-  { archivistLayoutAnchoredTextEntryPath :: Text,
-    archivistLayoutAnchoredTextEntrySchema :: Value,
-    archivistLayoutAnchoredTextEntryTree :: ArchivistLayoutAnchoredTextEntryTree
+  { archivistLayoutAnchoredTextEntryTree :: ArchivistLayoutAnchoredTextEntryTree,
+    archivistLayoutAnchoredTextEntryPath :: Text,
+    archivistLayoutAnchoredTextEntrySchema :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayoutAnchoredTextEntry where parseJSON = checked "ArchivistLayoutAnchoredTextEntry" $ withObject "ArchivistLayoutAnchoredTextEntry" (\fields -> ArchivistLayoutAnchoredTextEntry <$> (fields .: "path") <*> (fields .: "schema") <*> (fields .: "tree"))
+instance FromJSON ArchivistLayoutAnchoredTextEntry where parseJSON = checked "ArchivistLayoutAnchoredTextEntry" $ withObject "ArchivistLayoutAnchoredTextEntry" (\fields -> ArchivistLayoutAnchoredTextEntry <$> (fields .: "tree") <*> (fields .: "path") <*> (fields .: "schema"))
 
-instance ToJSON ArchivistLayoutAnchoredTextEntry where toJSON value = Object (KM.fromList (concat [[("path", toJSON (archivistLayoutAnchoredTextEntryPath value))], [("schema", toJSON (archivistLayoutAnchoredTextEntrySchema value))], [("tree", toJSON (archivistLayoutAnchoredTextEntryTree value))]]))
+instance ToJSON ArchivistLayoutAnchoredTextEntry where toJSON value = Object (KM.fromList (concat [[("tree", toJSON (archivistLayoutAnchoredTextEntryTree value))], [("path", toJSON (archivistLayoutAnchoredTextEntryPath value))], [("schema", toJSON (archivistLayoutAnchoredTextEntrySchema value))]]))
 
 data ArchivistLayoutAnchoredTextEntryTree = ArchivistLayoutAnchoredTextEntryTreeRoot | ArchivistLayoutAnchoredTextEntryTreeStateHome | ArchivistLayoutAnchoredTextEntryTreeAnchoredTextDir deriving (Eq, Show)
 
@@ -53,14 +53,14 @@ archivistLayoutAnchoredTextEntryTreeText ArchivistLayoutAnchoredTextEntryTreeSta
 archivistLayoutAnchoredTextEntryTreeText ArchivistLayoutAnchoredTextEntryTreeAnchoredTextDir = "anchoredTextDir"
 
 data ArchivistLayoutAnchoredTextStamp = ArchivistLayoutAnchoredTextStamp
-  { archivistLayoutAnchoredTextStampPath :: Text,
-    archivistLayoutAnchoredTextStampTree :: ArchivistLayoutAnchoredTextStampTree
+  { archivistLayoutAnchoredTextStampTree :: ArchivistLayoutAnchoredTextStampTree,
+    archivistLayoutAnchoredTextStampPath :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayoutAnchoredTextStamp where parseJSON = checked "ArchivistLayoutAnchoredTextStamp" $ withObject "ArchivistLayoutAnchoredTextStamp" (\fields -> ArchivistLayoutAnchoredTextStamp <$> (fields .: "path") <*> (fields .: "tree"))
+instance FromJSON ArchivistLayoutAnchoredTextStamp where parseJSON = checked "ArchivistLayoutAnchoredTextStamp" $ withObject "ArchivistLayoutAnchoredTextStamp" (\fields -> ArchivistLayoutAnchoredTextStamp <$> (fields .: "tree") <*> (fields .: "path"))
 
-instance ToJSON ArchivistLayoutAnchoredTextStamp where toJSON value = Object (KM.fromList (concat [[("path", toJSON (archivistLayoutAnchoredTextStampPath value))], [("tree", toJSON (archivistLayoutAnchoredTextStampTree value))]]))
+instance ToJSON ArchivistLayoutAnchoredTextStamp where toJSON value = Object (KM.fromList (concat [[("tree", toJSON (archivistLayoutAnchoredTextStampTree value))], [("path", toJSON (archivistLayoutAnchoredTextStampPath value))]]))
 
 data ArchivistLayoutAnchoredTextStampTree = ArchivistLayoutAnchoredTextStampTreeRoot | ArchivistLayoutAnchoredTextStampTreeStateHome | ArchivistLayoutAnchoredTextStampTreeAnchoredTextDir deriving (Eq, Show)
 
@@ -77,26 +77,26 @@ archivistLayoutAnchoredTextStampTreeText ArchivistLayoutAnchoredTextStampTreeSta
 archivistLayoutAnchoredTextStampTreeText ArchivistLayoutAnchoredTextStampTreeAnchoredTextDir = "anchoredTextDir"
 
 data ArchivistLayoutEventFile = ArchivistLayoutEventFile
-  { archivistLayoutEventFileDigits :: Integer,
+  { archivistLayoutEventFileName :: Text,
+    archivistLayoutEventFileDigits :: Integer,
     archivistLayoutEventFileFirst :: Integer,
-    archivistLayoutEventFileMaxEvents :: Integer,
-    archivistLayoutEventFileName :: Text
+    archivistLayoutEventFileMaxEvents :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayoutEventFile where parseJSON = checked "ArchivistLayoutEventFile" $ withObject "ArchivistLayoutEventFile" (\fields -> ArchivistLayoutEventFile <$> (fields .: "digits") <*> (fields .: "first") <*> (fields .: "maxEvents") <*> (fields .: "name"))
+instance FromJSON ArchivistLayoutEventFile where parseJSON = checked "ArchivistLayoutEventFile" $ withObject "ArchivistLayoutEventFile" (\fields -> ArchivistLayoutEventFile <$> (fields .: "name") <*> (fields .: "digits") <*> (fields .: "first") <*> (fields .: "maxEvents"))
 
-instance ToJSON ArchivistLayoutEventFile where toJSON value = Object (KM.fromList (concat [[("digits", toJSON (archivistLayoutEventFileDigits value))], [("first", toJSON (archivistLayoutEventFileFirst value))], [("maxEvents", toJSON (archivistLayoutEventFileMaxEvents value))], [("name", toJSON (archivistLayoutEventFileName value))]]))
+instance ToJSON ArchivistLayoutEventFile where toJSON value = Object (KM.fromList (concat [[("name", toJSON (archivistLayoutEventFileName value))], [("digits", toJSON (archivistLayoutEventFileDigits value))], [("first", toJSON (archivistLayoutEventFileFirst value))], [("maxEvents", toJSON (archivistLayoutEventFileMaxEvents value))]]))
 
 data ArchivistLayoutEventStream = ArchivistLayoutEventStream
-  { archivistLayoutEventStreamPath :: Text,
-    archivistLayoutEventStreamTree :: ArchivistLayoutEventStreamTree
+  { archivistLayoutEventStreamTree :: ArchivistLayoutEventStreamTree,
+    archivistLayoutEventStreamPath :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayoutEventStream where parseJSON = checked "ArchivistLayoutEventStream" $ withObject "ArchivistLayoutEventStream" (\fields -> ArchivistLayoutEventStream <$> (fields .: "path") <*> (fields .: "tree"))
+instance FromJSON ArchivistLayoutEventStream where parseJSON = checked "ArchivistLayoutEventStream" $ withObject "ArchivistLayoutEventStream" (\fields -> ArchivistLayoutEventStream <$> (fields .: "tree") <*> (fields .: "path"))
 
-instance ToJSON ArchivistLayoutEventStream where toJSON value = Object (KM.fromList (concat [[("path", toJSON (archivistLayoutEventStreamPath value))], [("tree", toJSON (archivistLayoutEventStreamTree value))]]))
+instance ToJSON ArchivistLayoutEventStream where toJSON value = Object (KM.fromList (concat [[("tree", toJSON (archivistLayoutEventStreamTree value))], [("path", toJSON (archivistLayoutEventStreamPath value))]]))
 
 data ArchivistLayoutEventStreamTree = ArchivistLayoutEventStreamTreeRoot | ArchivistLayoutEventStreamTreeStateHome | ArchivistLayoutEventStreamTreeAnchoredTextDir deriving (Eq, Show)
 
@@ -113,15 +113,15 @@ archivistLayoutEventStreamTreeText ArchivistLayoutEventStreamTreeStateHome = "st
 archivistLayoutEventStreamTreeText ArchivistLayoutEventStreamTreeAnchoredTextDir = "anchoredTextDir"
 
 data ArchivistLayoutStorageUriIndex = ArchivistLayoutStorageUriIndex
-  { archivistLayoutStorageUriIndexPath :: Text,
-    archivistLayoutStorageUriIndexSchema :: Value,
-    archivistLayoutStorageUriIndexTree :: ArchivistLayoutStorageUriIndexTree
+  { archivistLayoutStorageUriIndexTree :: ArchivistLayoutStorageUriIndexTree,
+    archivistLayoutStorageUriIndexPath :: Text,
+    archivistLayoutStorageUriIndexSchema :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayoutStorageUriIndex where parseJSON = checked "ArchivistLayoutStorageUriIndex" $ withObject "ArchivistLayoutStorageUriIndex" (\fields -> ArchivistLayoutStorageUriIndex <$> (fields .: "path") <*> (fields .: "schema") <*> (fields .: "tree"))
+instance FromJSON ArchivistLayoutStorageUriIndex where parseJSON = checked "ArchivistLayoutStorageUriIndex" $ withObject "ArchivistLayoutStorageUriIndex" (\fields -> ArchivistLayoutStorageUriIndex <$> (fields .: "tree") <*> (fields .: "path") <*> (fields .: "schema"))
 
-instance ToJSON ArchivistLayoutStorageUriIndex where toJSON value = Object (KM.fromList (concat [[("path", toJSON (archivistLayoutStorageUriIndexPath value))], [("schema", toJSON (archivistLayoutStorageUriIndexSchema value))], [("tree", toJSON (archivistLayoutStorageUriIndexTree value))]]))
+instance ToJSON ArchivistLayoutStorageUriIndex where toJSON value = Object (KM.fromList (concat [[("tree", toJSON (archivistLayoutStorageUriIndexTree value))], [("path", toJSON (archivistLayoutStorageUriIndexPath value))], [("schema", toJSON (archivistLayoutStorageUriIndexSchema value))]]))
 
 data ArchivistLayoutStorageUriIndexTree = ArchivistLayoutStorageUriIndexTreeRoot | ArchivistLayoutStorageUriIndexTreeStateHome | ArchivistLayoutStorageUriIndexTreeAnchoredTextDir deriving (Eq, Show)
 
@@ -138,15 +138,15 @@ archivistLayoutStorageUriIndexTreeText ArchivistLayoutStorageUriIndexTreeStateHo
 archivistLayoutStorageUriIndexTreeText ArchivistLayoutStorageUriIndexTreeAnchoredTextDir = "anchoredTextDir"
 
 data ArchivistLayoutSystemProjections = ArchivistLayoutSystemProjections
-  { archivistLayoutSystemProjectionsFiles :: [ArchivistLayoutSystemProjectionsFilesItem],
+  { archivistLayoutSystemProjectionsTree :: ArchivistLayoutSystemProjectionsTree,
     archivistLayoutSystemProjectionsPath :: Text,
-    archivistLayoutSystemProjectionsTree :: ArchivistLayoutSystemProjectionsTree
+    archivistLayoutSystemProjectionsFiles :: [ArchivistLayoutSystemProjectionsFilesItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayoutSystemProjections where parseJSON = checked "ArchivistLayoutSystemProjections" $ withObject "ArchivistLayoutSystemProjections" (\fields -> ArchivistLayoutSystemProjections <$> (fields .: "files") <*> (fields .: "path") <*> (fields .: "tree"))
+instance FromJSON ArchivistLayoutSystemProjections where parseJSON = checked "ArchivistLayoutSystemProjections" $ withObject "ArchivistLayoutSystemProjections" (\fields -> ArchivistLayoutSystemProjections <$> (fields .: "tree") <*> (fields .: "path") <*> (fields .: "files"))
 
-instance ToJSON ArchivistLayoutSystemProjections where toJSON value = Object (KM.fromList (concat [[("files", toJSON (archivistLayoutSystemProjectionsFiles value))], [("path", toJSON (archivistLayoutSystemProjectionsPath value))], [("tree", toJSON (archivistLayoutSystemProjectionsTree value))]]))
+instance ToJSON ArchivistLayoutSystemProjections where toJSON value = Object (KM.fromList (concat [[("tree", toJSON (archivistLayoutSystemProjectionsTree value))], [("path", toJSON (archivistLayoutSystemProjectionsPath value))], [("files", toJSON (archivistLayoutSystemProjectionsFiles value))]]))
 
 data ArchivistLayoutSystemProjectionsFilesItem = ArchivistLayoutSystemProjectionsFilesItem
   { archivistLayoutSystemProjectionsFilesItemName :: Text,
@@ -173,14 +173,14 @@ archivistLayoutSystemProjectionsTreeText ArchivistLayoutSystemProjectionsTreeSta
 archivistLayoutSystemProjectionsTreeText ArchivistLayoutSystemProjectionsTreeAnchoredTextDir = "anchoredTextDir"
 
 data ArchivistLayoutSystemStream = ArchivistLayoutSystemStream
-  { archivistLayoutSystemStreamPath :: Text,
-    archivistLayoutSystemStreamTree :: ArchivistLayoutSystemStreamTree
+  { archivistLayoutSystemStreamTree :: ArchivistLayoutSystemStreamTree,
+    archivistLayoutSystemStreamPath :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayoutSystemStream where parseJSON = checked "ArchivistLayoutSystemStream" $ withObject "ArchivistLayoutSystemStream" (\fields -> ArchivistLayoutSystemStream <$> (fields .: "path") <*> (fields .: "tree"))
+instance FromJSON ArchivistLayoutSystemStream where parseJSON = checked "ArchivistLayoutSystemStream" $ withObject "ArchivistLayoutSystemStream" (\fields -> ArchivistLayoutSystemStream <$> (fields .: "tree") <*> (fields .: "path"))
 
-instance ToJSON ArchivistLayoutSystemStream where toJSON value = Object (KM.fromList (concat [[("path", toJSON (archivistLayoutSystemStreamPath value))], [("tree", toJSON (archivistLayoutSystemStreamTree value))]]))
+instance ToJSON ArchivistLayoutSystemStream where toJSON value = Object (KM.fromList (concat [[("tree", toJSON (archivistLayoutSystemStreamTree value))], [("path", toJSON (archivistLayoutSystemStreamPath value))]]))
 
 data ArchivistLayoutSystemStreamTree = ArchivistLayoutSystemStreamTreeRoot | ArchivistLayoutSystemStreamTreeStateHome | ArchivistLayoutSystemStreamTreeAnchoredTextDir deriving (Eq, Show)
 
@@ -197,15 +197,15 @@ archivistLayoutSystemStreamTreeText ArchivistLayoutSystemStreamTreeStateHome = "
 archivistLayoutSystemStreamTreeText ArchivistLayoutSystemStreamTreeAnchoredTextDir = "anchoredTextDir"
 
 data ArchivistLayoutView = ArchivistLayoutView
-  { archivistLayoutViewPath :: Text,
-    archivistLayoutViewSchema :: Value,
-    archivistLayoutViewTree :: ArchivistLayoutViewTree
+  { archivistLayoutViewTree :: ArchivistLayoutViewTree,
+    archivistLayoutViewPath :: Text,
+    archivistLayoutViewSchema :: Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistLayoutView where parseJSON = checked "ArchivistLayoutView" $ withObject "ArchivistLayoutView" (\fields -> ArchivistLayoutView <$> (fields .: "path") <*> (fields .: "schema") <*> (fields .: "tree"))
+instance FromJSON ArchivistLayoutView where parseJSON = checked "ArchivistLayoutView" $ withObject "ArchivistLayoutView" (\fields -> ArchivistLayoutView <$> (fields .: "tree") <*> (fields .: "path") <*> (fields .: "schema"))
 
-instance ToJSON ArchivistLayoutView where toJSON value = Object (KM.fromList (concat [[("path", toJSON (archivistLayoutViewPath value))], [("schema", toJSON (archivistLayoutViewSchema value))], [("tree", toJSON (archivistLayoutViewTree value))]]))
+instance ToJSON ArchivistLayoutView where toJSON value = Object (KM.fromList (concat [[("tree", toJSON (archivistLayoutViewTree value))], [("path", toJSON (archivistLayoutViewPath value))], [("schema", toJSON (archivistLayoutViewSchema value))]]))
 
 data ArchivistLayoutViewTree = ArchivistLayoutViewTreeRoot | ArchivistLayoutViewTreeStateHome | ArchivistLayoutViewTreeAnchoredTextDir deriving (Eq, Show)
 

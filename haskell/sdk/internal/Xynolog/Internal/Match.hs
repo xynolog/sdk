@@ -32,13 +32,7 @@ search (MatchNamespace wire _ timing _) identity reference context options =
     Bus.request
       wire
       MatchSearchRequestedOperation
-      ( MatchSearchRequest
-          context
-          (Just (fromMaybe 10 (matchSearchOptionsLimit chosen)))
-          reference
-          identity
-          (Just (fromMaybe True (matchSearchOptionsUseSemanticScoring chosen)))
-      )
+      (MatchSearchRequest {matchSearchRequestContext = context, matchSearchRequestLimit = (Just (fromMaybe 10 (matchSearchOptionsLimit chosen))), matchSearchRequestReferenceId = reference, matchSearchRequestResourceId = identity, matchSearchRequestUseSemanticScoring = (Just (fromMaybe True (matchSearchOptionsUseSemanticScoring chosen)))})
       (Timing.busRequestTimeoutMs timing)
   where
     chosen = fromMaybe (MatchSearchOptions Nothing Nothing) options
@@ -50,15 +44,9 @@ resources :: MatchNamespace -> Text -> Maybe BrowseResourcesRequest -> Cache.Que
 resources (MatchNamespace _ _ _ cache) text filters =
   Cache.query
     cache
-    ( MatchResourcesRequest
-        (browseResourcesRequestArchived selected)
-        (browseResourcesRequestEntityType selected)
-        (Just (fromMaybe 100 (browseResourcesRequestLimit selected)))
-        (Just (fromMaybe 0 (browseResourcesRequestOffset selected)))
-        text
-    )
+    (MatchResourcesRequest {matchResourcesRequestArchived = (browseResourcesRequestArchived selected), matchResourcesRequestEntityType = (browseResourcesRequestEntityType selected), matchResourcesRequestLimit = (Just (fromMaybe 100 (browseResourcesRequestLimit selected))), matchResourcesRequestOffset = (Just (fromMaybe 0 (browseResourcesRequestOffset selected))), matchResourcesRequestSearch = text})
   where
-    selected = fromMaybe (BrowseResourcesRequest Nothing Nothing Nothing Nothing) filters
+    selected = fromMaybe (BrowseResourcesRequest {browseResourcesRequestArchived = Nothing, browseResourcesRequestEntityType = Nothing, browseResourcesRequestLimit = Nothing, browseResourcesRequestOffset = Nothing}) filters
 
 controls :: MatchNamespace -> [(Fact.Query, Refresh.Acts)]
 controls (MatchNamespace _ _ _ cache) =

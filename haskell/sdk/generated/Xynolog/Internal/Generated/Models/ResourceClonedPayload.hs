@@ -14,19 +14,19 @@ import Xynolog.Internal.Generated.Models.OneOrMoreAgents
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ResourceClonedPayload = ResourceClonedPayload
-  { resourceClonedPayloadContentByteSize :: Maybe Integer,
-    resourceClonedPayloadContentChecksum :: Text,
-    resourceClonedPayloadCreator :: Maybe Agent,
-    resourceClonedPayloadEntityTypes :: Maybe [Text],
+  { resourceClonedPayloadName :: Text,
     resourceClonedPayloadFormat :: ContentFormat,
-    resourceClonedPayloadLanguage :: Maybe Text,
-    resourceClonedPayloadName :: Text,
-    resourceClonedPayloadParentResourceId :: ResourceId,
+    resourceClonedPayloadContentChecksum :: Text,
+    resourceClonedPayloadContentByteSize :: Maybe Integer,
     resourceClonedPayloadStorageUri :: Maybe Text,
+    resourceClonedPayloadParentResourceId :: ResourceId,
+    resourceClonedPayloadEntityTypes :: Maybe [Text],
+    resourceClonedPayloadLanguage :: Maybe Text,
+    resourceClonedPayloadCreator :: Maybe Agent,
     resourceClonedPayloadWasAttributedTo :: Maybe OneOrMoreAgents
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceClonedPayload where parseJSON = checked "ResourceClonedPayload" $ withObject "ResourceClonedPayload" (\fields -> ResourceClonedPayload <$> optional fields "contentByteSize" <*> (fields .: "contentChecksum") <*> optional fields "creator" <*> optional fields "entityTypes" <*> (fields .: "format") <*> optional fields "language" <*> (fields .: "name") <*> (fields .: "parentResourceId") <*> optional fields "storageUri" <*> optional fields "wasAttributedTo")
+instance FromJSON ResourceClonedPayload where parseJSON = checked "ResourceClonedPayload" $ withObject "ResourceClonedPayload" (\fields -> ResourceClonedPayload <$> (fields .: "name") <*> (fields .: "format") <*> (fields .: "contentChecksum") <*> optional fields "contentByteSize" <*> optional fields "storageUri" <*> (fields .: "parentResourceId") <*> optional fields "entityTypes" <*> optional fields "language" <*> optional fields "creator" <*> optional fields "wasAttributedTo")
 
-instance ToJSON ResourceClonedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "contentByteSize" (resourceClonedPayloadContentByteSize value), [("contentChecksum", toJSON (resourceClonedPayloadContentChecksum value))], optionalPair "creator" (resourceClonedPayloadCreator value), optionalPair "entityTypes" (resourceClonedPayloadEntityTypes value), [("format", toJSON (resourceClonedPayloadFormat value))], optionalPair "language" (resourceClonedPayloadLanguage value), [("name", toJSON (resourceClonedPayloadName value))], [("parentResourceId", toJSON (resourceClonedPayloadParentResourceId value))], optionalPair "storageUri" (resourceClonedPayloadStorageUri value), optionalPair "wasAttributedTo" (resourceClonedPayloadWasAttributedTo value)]))
+instance ToJSON ResourceClonedPayload where toJSON value = Object (KM.fromList (concat [[("name", toJSON (resourceClonedPayloadName value))], [("format", toJSON (resourceClonedPayloadFormat value))], [("contentChecksum", toJSON (resourceClonedPayloadContentChecksum value))], optionalPair "contentByteSize" (resourceClonedPayloadContentByteSize value), optionalPair "storageUri" (resourceClonedPayloadStorageUri value), [("parentResourceId", toJSON (resourceClonedPayloadParentResourceId value))], optionalPair "entityTypes" (resourceClonedPayloadEntityTypes value), optionalPair "language" (resourceClonedPayloadLanguage value), optionalPair "creator" (resourceClonedPayloadCreator value), optionalPair "wasAttributedTo" (resourceClonedPayloadWasAttributedTo value)]))

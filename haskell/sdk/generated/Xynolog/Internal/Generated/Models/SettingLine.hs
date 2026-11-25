@@ -10,11 +10,11 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data SettingLine = SettingLine
-  { settingLineSource :: Text,
-    settingLineValue :: Text
+  { settingLineValue :: Text,
+    settingLineSource :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SettingLine where parseJSON = checked "SettingLine" $ withObject "SettingLine" (\fields -> SettingLine <$> (fields .: "source") <*> (fields .: "value"))
+instance FromJSON SettingLine where parseJSON = checked "SettingLine" $ withObject "SettingLine" (\fields -> SettingLine <$> (fields .: "value") <*> (fields .: "source"))
 
-instance ToJSON SettingLine where toJSON value = Object (KM.fromList (concat [[("source", toJSON (settingLineSource value))], [("value", toJSON (settingLineValue value))]]))
+instance ToJSON SettingLine where toJSON value = Object (KM.fromList (concat [[("value", toJSON (settingLineValue value))], [("source", toJSON (settingLineSource value))]]))

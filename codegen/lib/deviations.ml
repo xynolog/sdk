@@ -58,9 +58,6 @@ let haskell_enumeration (s : Schema.schema) = Option.is_some s.enum
    which is the type's name, and Haskell's constructors share one namespace,
    where [Typing] has a type constructed by its name. *)
 
-(* Haskell sorts a record's members by name, where [Typing] has them in the
-   schema's order. *)
-
 (* Haskell declares every named schema that is no record, enumeration or
    union as a newtype, a named list or map among them, where [Typing] has it
    an alias. *)

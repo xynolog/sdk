@@ -10,16 +10,16 @@ import Data.Scientific (Scientific)
 import Xynolog.Internal.Codec
 
 data PdfTextItem = PdfTextItem
-  { pdfTextItemEnd :: Integer,
-    pdfTextItemHeight :: Scientific,
+  { pdfTextItemStart :: Integer,
+    pdfTextItemEnd :: Integer,
     pdfTextItemPage :: Integer,
-    pdfTextItemStart :: Integer,
-    pdfTextItemWidth :: Scientific,
     pdfTextItemX :: Scientific,
-    pdfTextItemY :: Scientific
+    pdfTextItemY :: Scientific,
+    pdfTextItemWidth :: Scientific,
+    pdfTextItemHeight :: Scientific
   }
   deriving (Eq, Show)
 
-instance FromJSON PdfTextItem where parseJSON = checked "PdfTextItem" $ withObject "PdfTextItem" (\fields -> PdfTextItem <$> (fields .: "end") <*> (fields .: "height") <*> (fields .: "page") <*> (fields .: "start") <*> (fields .: "width") <*> (fields .: "x") <*> (fields .: "y"))
+instance FromJSON PdfTextItem where parseJSON = checked "PdfTextItem" $ withObject "PdfTextItem" (\fields -> PdfTextItem <$> (fields .: "start") <*> (fields .: "end") <*> (fields .: "page") <*> (fields .: "x") <*> (fields .: "y") <*> (fields .: "width") <*> (fields .: "height"))
 
-instance ToJSON PdfTextItem where toJSON value = Object (KM.fromList (concat [[("end", toJSON (pdfTextItemEnd value))], [("height", toJSON (pdfTextItemHeight value))], [("page", toJSON (pdfTextItemPage value))], [("start", toJSON (pdfTextItemStart value))], [("width", toJSON (pdfTextItemWidth value))], [("x", toJSON (pdfTextItemX value))], [("y", toJSON (pdfTextItemY value))]]))
+instance ToJSON PdfTextItem where toJSON value = Object (KM.fromList (concat [[("start", toJSON (pdfTextItemStart value))], [("end", toJSON (pdfTextItemEnd value))], [("page", toJSON (pdfTextItemPage value))], [("x", toJSON (pdfTextItemX value))], [("y", toJSON (pdfTextItemY value))], [("width", toJSON (pdfTextItemWidth value))], [("height", toJSON (pdfTextItemHeight value))]]))

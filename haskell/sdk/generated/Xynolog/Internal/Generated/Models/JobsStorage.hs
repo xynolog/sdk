@@ -11,15 +11,15 @@ import Xynolog.Internal.Codec
 
 data JobsStorage = JobsStorage
   { jobsStorageComment :: Text,
-    jobsStorageBucket :: JobsStorageBucket,
+    jobsStorageStream :: JobsStorageStream,
     jobsStorageConsumer :: JobsStorageConsumer,
-    jobsStorageStream :: JobsStorageStream
+    jobsStorageBucket :: JobsStorageBucket
   }
   deriving (Eq, Show)
 
-instance FromJSON JobsStorage where parseJSON = checked "JobsStorage" $ withObject "JobsStorage" (\fields -> JobsStorage <$> (fields .: "$comment") <*> (fields .: "bucket") <*> (fields .: "consumer") <*> (fields .: "stream"))
+instance FromJSON JobsStorage where parseJSON = checked "JobsStorage" $ withObject "JobsStorage" (\fields -> JobsStorage <$> (fields .: "$comment") <*> (fields .: "stream") <*> (fields .: "consumer") <*> (fields .: "bucket"))
 
-instance ToJSON JobsStorage where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (jobsStorageComment value))], [("bucket", toJSON (jobsStorageBucket value))], [("consumer", toJSON (jobsStorageConsumer value))], [("stream", toJSON (jobsStorageStream value))]]))
+instance ToJSON JobsStorage where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (jobsStorageComment value))], [("stream", toJSON (jobsStorageStream value))], [("consumer", toJSON (jobsStorageConsumer value))], [("bucket", toJSON (jobsStorageBucket value))]]))
 
 data JobsStorageBucket = JobsStorageBucket
   { jobsStorageBucketName :: Text,

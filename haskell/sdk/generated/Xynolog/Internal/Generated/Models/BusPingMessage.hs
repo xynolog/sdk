@@ -10,14 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data BusPingMessage = BusPingMessage
-  { busPingMessageData :: Text,
-    busPingMessageEvent :: BusPingMessageEvent
+  { busPingMessageEvent :: BusPingMessageEvent,
+    busPingMessageData :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON BusPingMessage where parseJSON = checked "BusPingMessage" $ withObject "BusPingMessage" (\fields -> BusPingMessage <$> (fields .: "data") <*> (fields .: "event"))
+instance FromJSON BusPingMessage where parseJSON = checked "BusPingMessage" $ withObject "BusPingMessage" (\fields -> BusPingMessage <$> (fields .: "event") <*> (fields .: "data"))
 
-instance ToJSON BusPingMessage where toJSON value = Object (KM.fromList (concat [[("data", toJSON (busPingMessageData value))], [("event", toJSON (busPingMessageEvent value))]]))
+instance ToJSON BusPingMessage where toJSON value = Object (KM.fromList (concat [[("event", toJSON (busPingMessageEvent value))], [("data", toJSON (busPingMessageData value))]]))
 
 data BusPingMessageEvent = BusPingMessageEventPing deriving (Eq, Show)
 

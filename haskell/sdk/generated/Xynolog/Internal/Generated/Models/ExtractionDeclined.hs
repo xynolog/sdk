@@ -11,14 +11,14 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ExtractionDeclinedReason
 
 data ExtractionDeclined = ExtractionDeclined
-  { extractionDeclinedDeclined :: ExtractionDeclinedReason,
-    extractionDeclinedKind :: ExtractionDeclinedKind
+  { extractionDeclinedKind :: ExtractionDeclinedKind,
+    extractionDeclinedDeclined :: ExtractionDeclinedReason
   }
   deriving (Eq, Show)
 
-instance FromJSON ExtractionDeclined where parseJSON = checked "ExtractionDeclined" $ withObject "ExtractionDeclined" (\fields -> ExtractionDeclined <$> (fields .: "declined") <*> (fields .: "kind"))
+instance FromJSON ExtractionDeclined where parseJSON = checked "ExtractionDeclined" $ withObject "ExtractionDeclined" (\fields -> ExtractionDeclined <$> (fields .: "kind") <*> (fields .: "declined"))
 
-instance ToJSON ExtractionDeclined where toJSON value = Object (KM.fromList (concat [[("declined", toJSON (extractionDeclinedDeclined value))], [("kind", toJSON (extractionDeclinedKind value))]]))
+instance ToJSON ExtractionDeclined where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (extractionDeclinedKind value))], [("declined", toJSON (extractionDeclinedDeclined value))]]))
 
 data ExtractionDeclinedKind = ExtractionDeclinedKindDeclined deriving (Eq, Show)
 

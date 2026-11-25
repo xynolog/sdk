@@ -13,14 +13,14 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data JobAssignedPayload = JobAssignedPayload
-  { jobAssignedPayloadHolder :: UserId,
-    jobAssignedPayloadJobId :: JobId,
+  { jobAssignedPayloadJobId :: JobId,
     jobAssignedPayloadJobType :: JobType,
-    jobAssignedPayloadRequester :: UserId,
-    jobAssignedPayloadResourceId :: ResourceId
+    jobAssignedPayloadResourceId :: ResourceId,
+    jobAssignedPayloadHolder :: UserId,
+    jobAssignedPayloadRequester :: UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON JobAssignedPayload where parseJSON = checked "JobAssignedPayload" $ withObject "JobAssignedPayload" (\fields -> JobAssignedPayload <$> (fields .: "holder") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "requester") <*> (fields .: "resourceId"))
+instance FromJSON JobAssignedPayload where parseJSON = checked "JobAssignedPayload" $ withObject "JobAssignedPayload" (\fields -> JobAssignedPayload <$> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> (fields .: "holder") <*> (fields .: "requester"))
 
-instance ToJSON JobAssignedPayload where toJSON value = Object (KM.fromList (concat [[("holder", toJSON (jobAssignedPayloadHolder value))], [("jobId", toJSON (jobAssignedPayloadJobId value))], [("jobType", toJSON (jobAssignedPayloadJobType value))], [("requester", toJSON (jobAssignedPayloadRequester value))], [("resourceId", toJSON (jobAssignedPayloadResourceId value))]]))
+instance ToJSON JobAssignedPayload where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (jobAssignedPayloadJobId value))], [("jobType", toJSON (jobAssignedPayloadJobType value))], [("resourceId", toJSON (jobAssignedPayloadResourceId value))], [("holder", toJSON (jobAssignedPayloadHolder value))], [("requester", toJSON (jobAssignedPayloadRequester value))]]))

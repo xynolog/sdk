@@ -386,13 +386,7 @@ signInDevice http storage options onCode = do
   let issuerOptions = Issuer.IssuerOptions (Http.httpClient http) (Http.httpTime http) (Http.httpTiming http)
   (issuer, issued) <- Issuer.signInWithDeviceGrant issuerOptions endpoint onCode
   let stored =
-        StoredSession
-          (issuedTokensAccess issued)
-          Issuer.scriptClientId
-          Nothing
-          (issuedTokensRefresh issued)
-          (pendingAuthorizationIssuerRevocation issuer)
-          (pendingAuthorizationIssuerToken issuer)
+        StoredSession {storedSessionAccess = (issuedTokensAccess issued), storedSessionClientId = Issuer.scriptClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = (issuedTokensRefresh issued), storedSessionRevocationEndpoint = (pendingAuthorizationIssuerRevocation issuer), storedSessionTokenEndpoint = (pendingAuthorizationIssuerToken issuer)}
   fromIssuedSession http storage options stored
 
 -- | An account proves itself to its issuer, and the gateway names that account.

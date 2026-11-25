@@ -13,17 +13,17 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data MarkJobCreateCommand = MarkJobCreateCommand
-  { markJobCreateCommandRoles :: Maybe [Text],
-    markJobCreateCommandUserId :: Maybe UserId,
+  { markJobCreateCommandUserId :: Maybe UserId,
+    markJobCreateCommandRoles :: Maybe [Text],
     markJobCreateCommandJobType :: MarkJobCreateCommandJobType,
-    markJobCreateCommandParams :: MarkJobParams,
-    markJobCreateCommandResourceId :: ResourceId
+    markJobCreateCommandResourceId :: ResourceId,
+    markJobCreateCommandParams :: MarkJobParams
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkJobCreateCommand where parseJSON = checked "MarkJobCreateCommand" $ withObject "MarkJobCreateCommand" (\fields -> MarkJobCreateCommand <$> optional fields "_roles" <*> optional fields "_userId" <*> (fields .: "jobType") <*> (fields .: "params") <*> (fields .: "resourceId"))
+instance FromJSON MarkJobCreateCommand where parseJSON = checked "MarkJobCreateCommand" $ withObject "MarkJobCreateCommand" (\fields -> MarkJobCreateCommand <$> optional fields "_userId" <*> optional fields "_roles" <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> (fields .: "params"))
 
-instance ToJSON MarkJobCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (markJobCreateCommandRoles value), optionalPair "_userId" (markJobCreateCommandUserId value), [("jobType", toJSON (markJobCreateCommandJobType value))], [("params", toJSON (markJobCreateCommandParams value))], [("resourceId", toJSON (markJobCreateCommandResourceId value))]]))
+instance ToJSON MarkJobCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markJobCreateCommandUserId value), optionalPair "_roles" (markJobCreateCommandRoles value), [("jobType", toJSON (markJobCreateCommandJobType value))], [("resourceId", toJSON (markJobCreateCommandResourceId value))], [("params", toJSON (markJobCreateCommandParams value))]]))
 
 data MarkJobCreateCommandJobType = MarkJobCreateCommandJobTypeMark deriving (Eq, Show)
 

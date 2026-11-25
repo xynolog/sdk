@@ -16,23 +16,23 @@ import Xynolog.Internal.Generated.Models.JobType
 import Xynolog.Internal.Generated.Models.UserId
 
 data JobStatusResponse = JobStatusResponse
-  { jobStatusResponseCompletedAt :: Maybe Text,
+  { jobStatusResponseJobId :: JobId,
+    jobStatusResponseType :: JobType,
+    jobStatusResponseStatus :: JobStatusResponseStatus,
+    jobStatusResponseUserId :: UserId,
     jobStatusResponseCreated :: Text,
+    jobStatusResponseStartedAt :: Maybe Text,
+    jobStatusResponseCompletedAt :: Maybe Text,
     jobStatusResponseError :: Maybe Text,
     jobStatusResponseFailureClass :: Maybe FailureClass,
-    jobStatusResponseJobId :: JobId,
     jobStatusResponseProgress :: Maybe JobStoredProgress,
-    jobStatusResponseResult :: Maybe JobStoredResult,
-    jobStatusResponseStartedAt :: Maybe Text,
-    jobStatusResponseStatus :: JobStatusResponseStatus,
-    jobStatusResponseType :: JobType,
-    jobStatusResponseUserId :: UserId
+    jobStatusResponseResult :: Maybe JobStoredResult
   }
   deriving (Eq, Show)
 
-instance FromJSON JobStatusResponse where parseJSON = checked "JobStatusResponse" $ withObject "JobStatusResponse" (\fields -> JobStatusResponse <$> optional fields "completedAt" <*> (fields .: "created") <*> optional fields "error" <*> optional fields "failureClass" <*> (fields .: "jobId") <*> optional fields "progress" <*> optional fields "result" <*> optional fields "startedAt" <*> (fields .: "status") <*> (fields .: "type") <*> (fields .: "userId"))
+instance FromJSON JobStatusResponse where parseJSON = checked "JobStatusResponse" $ withObject "JobStatusResponse" (\fields -> JobStatusResponse <$> (fields .: "jobId") <*> (fields .: "type") <*> (fields .: "status") <*> (fields .: "userId") <*> (fields .: "created") <*> optional fields "startedAt" <*> optional fields "completedAt" <*> optional fields "error" <*> optional fields "failureClass" <*> optional fields "progress" <*> optional fields "result")
 
-instance ToJSON JobStatusResponse where toJSON value = Object (KM.fromList (concat [optionalPair "completedAt" (jobStatusResponseCompletedAt value), [("created", toJSON (jobStatusResponseCreated value))], optionalPair "error" (jobStatusResponseError value), optionalPair "failureClass" (jobStatusResponseFailureClass value), [("jobId", toJSON (jobStatusResponseJobId value))], optionalPair "progress" (jobStatusResponseProgress value), optionalPair "result" (jobStatusResponseResult value), optionalPair "startedAt" (jobStatusResponseStartedAt value), [("status", toJSON (jobStatusResponseStatus value))], [("type", toJSON (jobStatusResponseType value))], [("userId", toJSON (jobStatusResponseUserId value))]]))
+instance ToJSON JobStatusResponse where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (jobStatusResponseJobId value))], [("type", toJSON (jobStatusResponseType value))], [("status", toJSON (jobStatusResponseStatus value))], [("userId", toJSON (jobStatusResponseUserId value))], [("created", toJSON (jobStatusResponseCreated value))], optionalPair "startedAt" (jobStatusResponseStartedAt value), optionalPair "completedAt" (jobStatusResponseCompletedAt value), optionalPair "error" (jobStatusResponseError value), optionalPair "failureClass" (jobStatusResponseFailureClass value), optionalPair "progress" (jobStatusResponseProgress value), optionalPair "result" (jobStatusResponseResult value)]))
 
 data JobStatusResponseStatus = JobStatusResponseStatusPending | JobStatusResponseStatusRunning | JobStatusResponseStatusComplete | JobStatusResponseStatusFailed | JobStatusResponseStatusCancelled deriving (Eq, Show)
 

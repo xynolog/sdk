@@ -107,10 +107,10 @@ jobId (MarkStateUnit _ _ _ _ _ _ _ _ _ _ value) = value
 
 create :: MarkStateUnit -> MarkSubmitEvent -> IO ()
 create unit@(MarkStateUnit _ client resource _ _ _ _ _ _ _ _) submission = do
-  let target = AnnotationTarget (Just (markSubmitEventSelector submission)) resource Nothing
-      request = CreateAnnotationRequest (markSubmitEventBody submission) (markSubmitEventMotivation submission) target
+  let target = AnnotationTarget {annotationTargetSelector = (Just (markSubmitEventSelector submission)), annotationTargetSource = resource, annotationTargetType = Nothing}
+      request = CreateAnnotationRequest {createAnnotationRequestBody = (markSubmitEventBody submission), createAnnotationRequestMotivation = (markSubmitEventMotivation submission), createAnnotationRequestTarget = target}
       work = Mark.annotation (Client.mark client) request >> atomically (State.update (pendingAnnotation unit) Nothing)
-      failed message = atomically (Local.signal (Client.bus client) Channel.MarkCreateError (ResourceErrorEvent message resource) Channel.NoScope)
+      failed message = atomically (Local.signal (Client.bus client) Channel.MarkCreateError (ResourceErrorEvent {resourceErrorEventMessage = message, resourceErrorEventResourceId = resource}) Channel.NoScope)
   work `catches` [Handler (failed . busRequestErrorMessage), Handler (failed . transportErrorMessage)]
 
 requestDelegate :: MarkStateUnit -> MarkJobParams -> IO ()
@@ -140,8 +140,8 @@ follow unit@(MarkStateUnit _ client resource clock timing _ _ _ _ _ _) params mo
           Delegation.Complete _ -> pure ()
       quiet = atomically $ do
         current <- State.current (progress unit)
-        when (current == Nothing) (State.update (progress unit) (Just (JobProgress Nothing Nothing Nothing Nothing Nothing Nothing Nothing 0 Nothing Nothing Nothing)))
-        Local.signal (Client.bus client) Channel.MarkDelegateTimeout (MarkDelegateTimeoutEvent motivation resource) Channel.NoScope
+        when (current == Nothing) (State.update (progress unit) (Just (JobProgress {jobProgressAnnotationId = Nothing, jobProgressCompletedItems = Nothing, jobProgressCurrent = Nothing, jobProgressEntitiesEmitted = Nothing, jobProgressEntitiesExpected = Nothing, jobProgressEntitiesFound = Nothing, jobProgressMessage = Nothing, jobProgressPercentage = 0, jobProgressProcessed = Nothing, jobProgressRequestParams = Nothing, jobProgressTotal = Nothing})))
+        Local.signal (Client.bus client) Channel.MarkDelegateTimeout (MarkDelegateTimeoutEvent {markDelegateTimeoutEventMotivation = motivation, markDelegateTimeoutEventResourceId = resource}) Channel.NoScope
       work = do
         run <- Mark.delegate (Client.mark client) resource params
         Running.withReports run $ \reports -> do

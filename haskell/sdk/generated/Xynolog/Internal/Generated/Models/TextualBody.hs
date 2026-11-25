@@ -11,17 +11,17 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.BodyPurpose
 
 data TextualBody = TextualBody
-  { textualBodyFormat :: Maybe Text,
-    textualBodyLanguage :: Maybe Text,
+  { textualBodyType :: TextualBodyType,
+    textualBodyValue :: Text,
     textualBodyPurpose :: Maybe BodyPurpose,
-    textualBodyType :: TextualBodyType,
-    textualBodyValue :: Text
+    textualBodyFormat :: Maybe Text,
+    textualBodyLanguage :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON TextualBody where parseJSON = checked "TextualBody" $ withObject "TextualBody" (\fields -> TextualBody <$> optional fields "format" <*> optional fields "language" <*> optional fields "purpose" <*> (fields .: "type") <*> (fields .: "value"))
+instance FromJSON TextualBody where parseJSON = checked "TextualBody" $ withObject "TextualBody" (\fields -> TextualBody <$> (fields .: "type") <*> (fields .: "value") <*> optional fields "purpose" <*> optional fields "format" <*> optional fields "language")
 
-instance ToJSON TextualBody where toJSON value = Object (KM.fromList (concat [optionalPair "format" (textualBodyFormat value), optionalPair "language" (textualBodyLanguage value), optionalPair "purpose" (textualBodyPurpose value), [("type", toJSON (textualBodyType value))], [("value", toJSON (textualBodyValue value))]]))
+instance ToJSON TextualBody where toJSON value = Object (KM.fromList (concat [[("type", toJSON (textualBodyType value))], [("value", toJSON (textualBodyValue value))], optionalPair "purpose" (textualBodyPurpose value), optionalPair "format" (textualBodyFormat value), optionalPair "language" (textualBodyLanguage value)]))
 
 data TextualBodyType = TextualBodyTypeTextualBody deriving (Eq, Show)
 

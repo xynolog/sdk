@@ -110,7 +110,7 @@ streamingPeer answer = do
 
 -- The generated endpoint's tag and protocol are explicit nominal constructors.
 endpoint :: HttpEndpoint
-endpoint = HttpEndpoint "localhost" HttpEndpointKindHttp 4000 HttpEndpointProtocolHttp
+endpoint = HttpEndpoint {httpEndpointHost = "localhost", httpEndpointKind = HttpEndpointKindHttp, httpEndpointPort = 4000, httpEndpointProtocol = HttpEndpointProtocolHttp}
 
 metadata :: Value
 metadata = object ["authorization_servers" .= [String "http://issuer.test"], "bearer_methods_supported" .= [String "header"], "resource" .= String "http://localhost:4000"]
@@ -175,7 +175,7 @@ issuerCases fixtures = do
   issuer <- Issuer.discoverIssuer options endpoint
   require "issuer discovery lost an endpoint" (pendingAuthorizationIssuerRevocation issuer == Just "http://issuer.test/revoke")
   storage <- Storage.newMemoryStorage
-  let begin = BeginAuthorizationOptions (Just "did:web:knowledge.test") (Just "Knowledge") (Just "kb") "app://callback" endpoint
+  let begin = BeginAuthorizationOptions {beginAuthorizationOptionsExpectedDid = (Just "did:web:knowledge.test"), beginAuthorizationOptionsExpectedName = (Just "Knowledge"), beginAuthorizationOptionsKbId = (Just "kb"), beginAuthorizationOptionsRedirectUri = "app://callback", beginAuthorizationOptionsTarget = endpoint}
   url <- Issuer.beginAuthorization options begin storage
   require "authorization URL lost the issuer's own query" ("keep=yes" `Text.isInfixOf` url)
   require "authorization URL did not request PKCE" ("code_challenge_method=S256" `Text.isInfixOf` url)
@@ -200,7 +200,7 @@ issuerCases fixtures = do
   atomically (writeTVar tokenBody (object ["access_token" .= String "next"]))
   issued <- Issuer.refreshAtIssuer options "http://issuer.test/token" "client" "original"
   require "nonrotating issuer lost the refresh token" (issuedTokensRefresh issued == "original")
-  let stored = StoredSession "before" "client" Nothing "original" Nothing "http://issuer.test/token"
+  let stored = StoredSession {storedSessionAccess = "before", storedSessionClientId = "client", storedSessionPersonKey = Nothing, storedSessionRefresh = "original", storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "http://issuer.test/token"}
   Stored.storeSession storage "kb" stored
   entered <- newEmptyTMVarIO
   release <- newEmptyTMVarIO
@@ -223,7 +223,7 @@ issuerCases fixtures = do
   require "issuer refusal lost its terminal status" (case refused of Left failure -> signInStatus failure == Just 400; Right _ -> False)
   Issuer.revokeAtIssuer options "http://issuer.test/revoke" "client" "original"
   atomically (writeTVar status 200 >> writeTVar tokenBody (object ["access_token" .= String "fresh"]))
-  let targetKb = KbTarget (KbEndpointHttpEndpoint endpoint) "http-factory" "HTTP factory"
+  let targetKb = KbTarget {kbTargetEndpoint = (KbEndpointHttpEndpoint endpoint), kbTargetId = "http-factory", kbTargetLabel = "HTTP factory"}
       sessionOptions =
         Session.SessionOptions
           "http-factory"

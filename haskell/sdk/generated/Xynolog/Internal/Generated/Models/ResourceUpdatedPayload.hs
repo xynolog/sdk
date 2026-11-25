@@ -10,11 +10,11 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ResourceUpdatedPayload = ResourceUpdatedPayload
-  { resourceUpdatedPayloadContentByteSize :: Maybe Integer,
-    resourceUpdatedPayloadContentChecksum :: Text
+  { resourceUpdatedPayloadContentChecksum :: Text,
+    resourceUpdatedPayloadContentByteSize :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceUpdatedPayload where parseJSON = checked "ResourceUpdatedPayload" $ withObject "ResourceUpdatedPayload" (\fields -> ResourceUpdatedPayload <$> optional fields "contentByteSize" <*> (fields .: "contentChecksum"))
+instance FromJSON ResourceUpdatedPayload where parseJSON = checked "ResourceUpdatedPayload" $ withObject "ResourceUpdatedPayload" (\fields -> ResourceUpdatedPayload <$> (fields .: "contentChecksum") <*> optional fields "contentByteSize")
 
-instance ToJSON ResourceUpdatedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "contentByteSize" (resourceUpdatedPayloadContentByteSize value), [("contentChecksum", toJSON (resourceUpdatedPayloadContentChecksum value))]]))
+instance ToJSON ResourceUpdatedPayload where toJSON value = Object (KM.fromList (concat [[("contentChecksum", toJSON (resourceUpdatedPayloadContentChecksum value))], optionalPair "contentByteSize" (resourceUpdatedPayloadContentByteSize value)]))

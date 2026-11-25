@@ -15,15 +15,15 @@ import Xynolog.Internal.Generated.Models.PersistedEventId
 import Xynolog.Internal.Generated.Models.ReplyEventId
 
 data BusEventMessage = BusEventMessage
-  { busEventMessageData :: BusFrame,
-    busEventMessageEvent :: BusEventMessageEvent,
-    busEventMessageId :: BusEventMessageId
+  { busEventMessageEvent :: BusEventMessageEvent,
+    busEventMessageId :: BusEventMessageId,
+    busEventMessageData :: BusFrame
   }
   deriving (Eq, Show)
 
-instance FromJSON BusEventMessage where parseJSON = checked "BusEventMessage" $ withObject "BusEventMessage" (\fields -> BusEventMessage <$> (fields .: "data") <*> (fields .: "event") <*> (fields .: "id"))
+instance FromJSON BusEventMessage where parseJSON = checked "BusEventMessage" $ withObject "BusEventMessage" (\fields -> BusEventMessage <$> (fields .: "event") <*> (fields .: "id") <*> (fields .: "data"))
 
-instance ToJSON BusEventMessage where toJSON value = Object (KM.fromList (concat [[("data", toJSON (busEventMessageData value))], [("event", toJSON (busEventMessageEvent value))], [("id", toJSON (busEventMessageId value))]]))
+instance ToJSON BusEventMessage where toJSON value = Object (KM.fromList (concat [[("event", toJSON (busEventMessageEvent value))], [("id", toJSON (busEventMessageId value))], [("data", toJSON (busEventMessageData value))]]))
 
 data BusEventMessageEvent = BusEventMessageEventBusEvent deriving (Eq, Show)
 

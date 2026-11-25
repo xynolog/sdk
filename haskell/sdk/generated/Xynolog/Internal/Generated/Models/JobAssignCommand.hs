@@ -14,14 +14,14 @@ import Xynolog.Internal.Generated.Models.UserId
 
 data JobAssignCommand = JobAssignCommand
   { jobAssignCommandUserId :: Maybe UserId,
-    jobAssignCommandHolder :: UserId,
     jobAssignCommandJobId :: JobId,
     jobAssignCommandJobType :: JobType,
-    jobAssignCommandRequester :: UserId,
-    jobAssignCommandResourceId :: ResourceId
+    jobAssignCommandResourceId :: ResourceId,
+    jobAssignCommandHolder :: UserId,
+    jobAssignCommandRequester :: UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON JobAssignCommand where parseJSON = checked "JobAssignCommand" $ withObject "JobAssignCommand" (\fields -> JobAssignCommand <$> optional fields "_userId" <*> (fields .: "holder") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "requester") <*> (fields .: "resourceId"))
+instance FromJSON JobAssignCommand where parseJSON = checked "JobAssignCommand" $ withObject "JobAssignCommand" (\fields -> JobAssignCommand <$> optional fields "_userId" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> (fields .: "holder") <*> (fields .: "requester"))
 
-instance ToJSON JobAssignCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobAssignCommandUserId value), [("holder", toJSON (jobAssignCommandHolder value))], [("jobId", toJSON (jobAssignCommandJobId value))], [("jobType", toJSON (jobAssignCommandJobType value))], [("requester", toJSON (jobAssignCommandRequester value))], [("resourceId", toJSON (jobAssignCommandResourceId value))]]))
+instance ToJSON JobAssignCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobAssignCommandUserId value), [("jobId", toJSON (jobAssignCommandJobId value))], [("jobType", toJSON (jobAssignCommandJobType value))], [("resourceId", toJSON (jobAssignCommandResourceId value))], [("holder", toJSON (jobAssignCommandHolder value))], [("requester", toJSON (jobAssignCommandRequester value))]]))

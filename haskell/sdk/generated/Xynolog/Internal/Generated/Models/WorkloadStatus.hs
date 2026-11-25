@@ -19,23 +19,23 @@ instance FromJSON WorkloadStatus where parseJSON = checked "WorkloadStatus" $ wi
 instance ToJSON WorkloadStatus where toJSON value = Object (KM.fromList (concat [optionalPair "ledger" (workloadStatusLedger value), optionalPair "queue" (workloadStatusQueue value)]))
 
 data WorkloadStatusLedger = WorkloadStatusLedger
-  { workloadStatusLedgerCapacity :: Integer,
-    workloadStatusLedgerClaims :: Integer
+  { workloadStatusLedgerClaims :: Integer,
+    workloadStatusLedgerCapacity :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkloadStatusLedger where parseJSON = checked "WorkloadStatusLedger" $ withObject "WorkloadStatusLedger" (\fields -> WorkloadStatusLedger <$> (fields .: "capacity") <*> (fields .: "claims"))
+instance FromJSON WorkloadStatusLedger where parseJSON = checked "WorkloadStatusLedger" $ withObject "WorkloadStatusLedger" (\fields -> WorkloadStatusLedger <$> (fields .: "claims") <*> (fields .: "capacity"))
 
-instance ToJSON WorkloadStatusLedger where toJSON value = Object (KM.fromList (concat [[("capacity", toJSON (workloadStatusLedgerCapacity value))], [("claims", toJSON (workloadStatusLedgerClaims value))]]))
+instance ToJSON WorkloadStatusLedger where toJSON value = Object (KM.fromList (concat [[("claims", toJSON (workloadStatusLedgerClaims value))], [("capacity", toJSON (workloadStatusLedgerCapacity value))]]))
 
 data WorkloadStatusQueue = WorkloadStatusQueue
-  { workloadStatusQueueCompleted :: Maybe Integer,
-    workloadStatusQueueFailed :: Maybe Integer,
-    workloadStatusQueuePending :: Integer,
-    workloadStatusQueueRunning :: Integer
+  { workloadStatusQueuePending :: Integer,
+    workloadStatusQueueRunning :: Integer,
+    workloadStatusQueueCompleted :: Maybe Integer,
+    workloadStatusQueueFailed :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkloadStatusQueue where parseJSON = checked "WorkloadStatusQueue" $ withObject "WorkloadStatusQueue" (\fields -> WorkloadStatusQueue <$> optional fields "completed" <*> optional fields "failed" <*> (fields .: "pending") <*> (fields .: "running"))
+instance FromJSON WorkloadStatusQueue where parseJSON = checked "WorkloadStatusQueue" $ withObject "WorkloadStatusQueue" (\fields -> WorkloadStatusQueue <$> (fields .: "pending") <*> (fields .: "running") <*> optional fields "completed" <*> optional fields "failed")
 
-instance ToJSON WorkloadStatusQueue where toJSON value = Object (KM.fromList (concat [optionalPair "completed" (workloadStatusQueueCompleted value), optionalPair "failed" (workloadStatusQueueFailed value), [("pending", toJSON (workloadStatusQueuePending value))], [("running", toJSON (workloadStatusQueueRunning value))]]))
+instance ToJSON WorkloadStatusQueue where toJSON value = Object (KM.fromList (concat [[("pending", toJSON (workloadStatusQueuePending value))], [("running", toJSON (workloadStatusQueueRunning value))], optionalPair "completed" (workloadStatusQueueCompleted value), optionalPair "failed" (workloadStatusQueueFailed value)]))

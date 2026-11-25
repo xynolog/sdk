@@ -9,14 +9,14 @@ import Data.Aeson.KeyMap qualified as KM
 import Xynolog.Internal.Codec
 
 data UnitCursor = UnitCursor
-  { unitCursorEmitted :: Integer,
-    unitCursorErrors :: Integer,
+  { unitCursorNext :: Integer,
+    unitCursorSize :: Integer,
     unitCursorFound :: Integer,
-    unitCursorNext :: Integer,
-    unitCursorSize :: Integer
+    unitCursorEmitted :: Integer,
+    unitCursorErrors :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON UnitCursor where parseJSON = checked "UnitCursor" $ withObject "UnitCursor" (\fields -> UnitCursor <$> (fields .: "emitted") <*> (fields .: "errors") <*> (fields .: "found") <*> (fields .: "next") <*> (fields .: "size"))
+instance FromJSON UnitCursor where parseJSON = checked "UnitCursor" $ withObject "UnitCursor" (\fields -> UnitCursor <$> (fields .: "next") <*> (fields .: "size") <*> (fields .: "found") <*> (fields .: "emitted") <*> (fields .: "errors"))
 
-instance ToJSON UnitCursor where toJSON value = Object (KM.fromList (concat [[("emitted", toJSON (unitCursorEmitted value))], [("errors", toJSON (unitCursorErrors value))], [("found", toJSON (unitCursorFound value))], [("next", toJSON (unitCursorNext value))], [("size", toJSON (unitCursorSize value))]]))
+instance ToJSON UnitCursor where toJSON value = Object (KM.fromList (concat [[("next", toJSON (unitCursorNext value))], [("size", toJSON (unitCursorSize value))], [("found", toJSON (unitCursorFound value))], [("emitted", toJSON (unitCursorEmitted value))], [("errors", toJSON (unitCursorErrors value))]]))

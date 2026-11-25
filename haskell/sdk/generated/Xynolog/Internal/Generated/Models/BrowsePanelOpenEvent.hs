@@ -12,12 +12,12 @@ import Xynolog.Internal.Generated.Models.AnnotationId
 import Xynolog.Internal.Generated.Models.Motivation
 
 data BrowsePanelOpenEvent = BrowsePanelOpenEvent
-  { browsePanelOpenEventMotivation :: Maybe Motivation,
-    browsePanelOpenEventPanel :: Text,
-    browsePanelOpenEventScrollToAnnotationId :: Maybe AnnotationId
+  { browsePanelOpenEventPanel :: Text,
+    browsePanelOpenEventScrollToAnnotationId :: Maybe AnnotationId,
+    browsePanelOpenEventMotivation :: Maybe Motivation
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowsePanelOpenEvent where parseJSON = checked "BrowsePanelOpenEvent" $ withObject "BrowsePanelOpenEvent" (\fields -> BrowsePanelOpenEvent <$> optional fields "motivation" <*> (fields .: "panel") <*> optional fields "scrollToAnnotationId")
+instance FromJSON BrowsePanelOpenEvent where parseJSON = checked "BrowsePanelOpenEvent" $ withObject "BrowsePanelOpenEvent" (\fields -> BrowsePanelOpenEvent <$> (fields .: "panel") <*> optional fields "scrollToAnnotationId" <*> optional fields "motivation")
 
-instance ToJSON BrowsePanelOpenEvent where toJSON value = Object (KM.fromList (concat [optionalPair "motivation" (browsePanelOpenEventMotivation value), [("panel", toJSON (browsePanelOpenEventPanel value))], optionalPair "scrollToAnnotationId" (browsePanelOpenEventScrollToAnnotationId value)]))
+instance ToJSON BrowsePanelOpenEvent where toJSON value = Object (KM.fromList (concat [[("panel", toJSON (browsePanelOpenEventPanel value))], optionalPair "scrollToAnnotationId" (browsePanelOpenEventScrollToAnnotationId value), optionalPair "motivation" (browsePanelOpenEventMotivation value)]))

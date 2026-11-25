@@ -10,17 +10,17 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data AgentOrganization = AgentOrganization
-  { agentOrganizationId :: Maybe Text,
-    agentOrganizationType :: AgentOrganizationType,
-    agentOrganizationHomepage :: Maybe Text,
+  { agentOrganizationType :: AgentOrganizationType,
+    agentOrganizationId :: Maybe Text,
     agentOrganizationName :: Text,
+    agentOrganizationHomepage :: Maybe Text,
     agentOrganizationAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON AgentOrganization where parseJSON = checked "AgentOrganization" $ withObject "AgentOrganization" (\fields -> AgentOrganization <$> optional fields "@id" <*> (fields .: "@type") <*> optional fields "homepage" <*> (fields .: "name") <*> traverse parseJSON (withoutFields ["@id", "@type", "homepage", "name"] fields))
+instance FromJSON AgentOrganization where parseJSON = checked "AgentOrganization" $ withObject "AgentOrganization" (\fields -> AgentOrganization <$> (fields .: "@type") <*> optional fields "@id" <*> (fields .: "name") <*> optional fields "homepage" <*> traverse parseJSON (withoutFields ["@type", "@id", "name", "homepage"] fields))
 
-instance ToJSON AgentOrganization where toJSON value = Object (KM.fromList (concat [optionalPair "@id" (agentOrganizationId value), [("@type", toJSON (agentOrganizationType value))], optionalPair "homepage" (agentOrganizationHomepage value), [("name", toJSON (agentOrganizationName value))]]) <> fmap toJSON (withoutFields ["@id", "@type", "homepage", "name"] (agentOrganizationAdditionalProperties value)))
+instance ToJSON AgentOrganization where toJSON value = Object (KM.fromList (concat [[("@type", toJSON (agentOrganizationType value))], optionalPair "@id" (agentOrganizationId value), [("name", toJSON (agentOrganizationName value))], optionalPair "homepage" (agentOrganizationHomepage value)]) <> fmap toJSON (withoutFields ["@type", "@id", "name", "homepage"] (agentOrganizationAdditionalProperties value)))
 
 data AgentOrganizationType = AgentOrganizationTypeOrganization deriving (Eq, Show)
 

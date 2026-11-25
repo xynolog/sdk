@@ -14,32 +14,32 @@ import Xynolog.Internal.Generated.Models.OcrConfidence
 import Xynolog.Internal.Generated.Models.PdfClass
 
 data AnchoredTextExtractedEntry = AnchoredTextExtractedEntry
-  { anchoredTextExtractedEntryLines :: [AnchoredTextExtractedEntryLinesItem],
-    anchoredTextExtractedEntryMethod :: ExtractionMethod,
-    anchoredTextExtractedEntryOcrConfidence :: Maybe OcrConfidence,
-    anchoredTextExtractedEntryPdfClass :: Maybe PdfClass,
+  { anchoredTextExtractedEntryV :: AnchoredTextExtractedEntryV,
     anchoredTextExtractedEntryStamp :: Text,
     anchoredTextExtractedEntryText :: Text,
-    anchoredTextExtractedEntryUnreadPages :: Maybe [Integer],
-    anchoredTextExtractedEntryV :: AnchoredTextExtractedEntryV
+    anchoredTextExtractedEntryLines :: [AnchoredTextExtractedEntryLinesItem],
+    anchoredTextExtractedEntryMethod :: ExtractionMethod,
+    anchoredTextExtractedEntryPdfClass :: Maybe PdfClass,
+    anchoredTextExtractedEntryOcrConfidence :: Maybe OcrConfidence,
+    anchoredTextExtractedEntryUnreadPages :: Maybe [Integer]
   }
   deriving (Eq, Show)
 
-instance FromJSON AnchoredTextExtractedEntry where parseJSON = checked "AnchoredTextExtractedEntry" $ withObject "AnchoredTextExtractedEntry" (\fields -> AnchoredTextExtractedEntry <$> (fields .: "lines") <*> (fields .: "method") <*> optional fields "ocrConfidence" <*> optional fields "pdfClass" <*> (fields .: "stamp") <*> (fields .: "text") <*> optional fields "unreadPages" <*> (fields .: "v"))
+instance FromJSON AnchoredTextExtractedEntry where parseJSON = checked "AnchoredTextExtractedEntry" $ withObject "AnchoredTextExtractedEntry" (\fields -> AnchoredTextExtractedEntry <$> (fields .: "v") <*> (fields .: "stamp") <*> (fields .: "text") <*> (fields .: "lines") <*> (fields .: "method") <*> optional fields "pdfClass" <*> optional fields "ocrConfidence" <*> optional fields "unreadPages")
 
-instance ToJSON AnchoredTextExtractedEntry where toJSON value = Object (KM.fromList (concat [[("lines", toJSON (anchoredTextExtractedEntryLines value))], [("method", toJSON (anchoredTextExtractedEntryMethod value))], optionalPair "ocrConfidence" (anchoredTextExtractedEntryOcrConfidence value), optionalPair "pdfClass" (anchoredTextExtractedEntryPdfClass value), [("stamp", toJSON (anchoredTextExtractedEntryStamp value))], [("text", toJSON (anchoredTextExtractedEntryText value))], optionalPair "unreadPages" (anchoredTextExtractedEntryUnreadPages value), [("v", toJSON (anchoredTextExtractedEntryV value))]]))
+instance ToJSON AnchoredTextExtractedEntry where toJSON value = Object (KM.fromList (concat [[("v", toJSON (anchoredTextExtractedEntryV value))], [("stamp", toJSON (anchoredTextExtractedEntryStamp value))], [("text", toJSON (anchoredTextExtractedEntryText value))], [("lines", toJSON (anchoredTextExtractedEntryLines value))], [("method", toJSON (anchoredTextExtractedEntryMethod value))], optionalPair "pdfClass" (anchoredTextExtractedEntryPdfClass value), optionalPair "ocrConfidence" (anchoredTextExtractedEntryOcrConfidence value), optionalPair "unreadPages" (anchoredTextExtractedEntryUnreadPages value)]))
 
 data AnchoredTextExtractedEntryLinesItem = AnchoredTextExtractedEntryLinesItem
-  { anchoredTextExtractedEntryLinesItemH :: Scientific,
-    anchoredTextExtractedEntryLinesItemP :: Integer,
-    anchoredTextExtractedEntryLinesItemWords :: [[Scientific]],
-    anchoredTextExtractedEntryLinesItemY :: Scientific
+  { anchoredTextExtractedEntryLinesItemP :: Integer,
+    anchoredTextExtractedEntryLinesItemY :: Scientific,
+    anchoredTextExtractedEntryLinesItemH :: Scientific,
+    anchoredTextExtractedEntryLinesItemWords :: [[Scientific]]
   }
   deriving (Eq, Show)
 
-instance FromJSON AnchoredTextExtractedEntryLinesItem where parseJSON = checked "AnchoredTextExtractedEntryLinesItem" $ withObject "AnchoredTextExtractedEntryLinesItem" (\fields -> AnchoredTextExtractedEntryLinesItem <$> (fields .: "h") <*> (fields .: "p") <*> (fields .: "words") <*> (fields .: "y"))
+instance FromJSON AnchoredTextExtractedEntryLinesItem where parseJSON = checked "AnchoredTextExtractedEntryLinesItem" $ withObject "AnchoredTextExtractedEntryLinesItem" (\fields -> AnchoredTextExtractedEntryLinesItem <$> (fields .: "p") <*> (fields .: "y") <*> (fields .: "h") <*> (fields .: "words"))
 
-instance ToJSON AnchoredTextExtractedEntryLinesItem where toJSON value = Object (KM.fromList (concat [[("h", toJSON (anchoredTextExtractedEntryLinesItemH value))], [("p", toJSON (anchoredTextExtractedEntryLinesItemP value))], [("words", toJSON (anchoredTextExtractedEntryLinesItemWords value))], [("y", toJSON (anchoredTextExtractedEntryLinesItemY value))]]))
+instance ToJSON AnchoredTextExtractedEntryLinesItem where toJSON value = Object (KM.fromList (concat [[("p", toJSON (anchoredTextExtractedEntryLinesItemP value))], [("y", toJSON (anchoredTextExtractedEntryLinesItemY value))], [("h", toJSON (anchoredTextExtractedEntryLinesItemH value))], [("words", toJSON (anchoredTextExtractedEntryLinesItemWords value))]]))
 
 data AnchoredTextExtractedEntryV = AnchoredTextExtractedEntryV3 deriving (Eq, Show)
 

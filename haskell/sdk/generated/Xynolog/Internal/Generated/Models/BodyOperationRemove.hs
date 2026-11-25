@@ -11,14 +11,14 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationBody
 
 data BodyOperationRemove = BodyOperationRemove
-  { bodyOperationRemoveItem :: AnnotationBody,
-    bodyOperationRemoveOp :: BodyOperationRemoveOp
+  { bodyOperationRemoveOp :: BodyOperationRemoveOp,
+    bodyOperationRemoveItem :: AnnotationBody
   }
   deriving (Eq, Show)
 
-instance FromJSON BodyOperationRemove where parseJSON = checked "BodyOperationRemove" $ withObject "BodyOperationRemove" (\fields -> BodyOperationRemove <$> (fields .: "item") <*> (fields .: "op"))
+instance FromJSON BodyOperationRemove where parseJSON = checked "BodyOperationRemove" $ withObject "BodyOperationRemove" (\fields -> BodyOperationRemove <$> (fields .: "op") <*> (fields .: "item"))
 
-instance ToJSON BodyOperationRemove where toJSON value = Object (KM.fromList (concat [[("item", toJSON (bodyOperationRemoveItem value))], [("op", toJSON (bodyOperationRemoveOp value))]]))
+instance ToJSON BodyOperationRemove where toJSON value = Object (KM.fromList (concat [[("op", toJSON (bodyOperationRemoveOp value))], [("item", toJSON (bodyOperationRemoveItem value))]]))
 
 data BodyOperationRemoveOp = BodyOperationRemoveOpRemove deriving (Eq, Show)
 

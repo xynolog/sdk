@@ -12,17 +12,17 @@ import Xynolog.Internal.Generated.Models.ConformanceStep
 
 data ConformanceCase = ConformanceCase
   { conformanceCaseAbout :: Text,
-    conformanceCasePlanes :: Maybe [ConformanceCasePlanesItem],
     conformanceCaseSource :: Text,
-    conformanceCaseSteps :: [ConformanceStep],
+    conformanceCasePlanes :: Maybe [ConformanceCasePlanesItem],
+    conformanceCaseTier :: Maybe ConformanceCaseTier,
     conformanceCaseTelemetry :: Maybe ConformanceCaseTelemetry,
-    conformanceCaseTier :: Maybe ConformanceCaseTier
+    conformanceCaseSteps :: [ConformanceStep]
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceCase where parseJSON = checked "ConformanceCase" $ withObject "ConformanceCase" (\fields -> ConformanceCase <$> (fields .: "about") <*> optional fields "planes" <*> (fields .: "source") <*> (fields .: "steps") <*> optional fields "telemetry" <*> optional fields "tier")
+instance FromJSON ConformanceCase where parseJSON = checked "ConformanceCase" $ withObject "ConformanceCase" (\fields -> ConformanceCase <$> (fields .: "about") <*> (fields .: "source") <*> optional fields "planes" <*> optional fields "tier" <*> optional fields "telemetry" <*> (fields .: "steps"))
 
-instance ToJSON ConformanceCase where toJSON value = Object (KM.fromList (concat [[("about", toJSON (conformanceCaseAbout value))], optionalPair "planes" (conformanceCasePlanes value), [("source", toJSON (conformanceCaseSource value))], [("steps", toJSON (conformanceCaseSteps value))], optionalPair "telemetry" (conformanceCaseTelemetry value), optionalPair "tier" (conformanceCaseTier value)]))
+instance ToJSON ConformanceCase where toJSON value = Object (KM.fromList (concat [[("about", toJSON (conformanceCaseAbout value))], [("source", toJSON (conformanceCaseSource value))], optionalPair "planes" (conformanceCasePlanes value), optionalPair "tier" (conformanceCaseTier value), optionalPair "telemetry" (conformanceCaseTelemetry value), [("steps", toJSON (conformanceCaseSteps value))]]))
 
 data ConformanceCasePlanesItem = ConformanceCasePlanesItemInProcess | ConformanceCasePlanesItemNats deriving (Eq, Show)
 

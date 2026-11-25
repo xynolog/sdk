@@ -12,14 +12,14 @@ import Xynolog.Internal.Generated.Models.RequestId
 import Xynolog.Internal.Generated.Models.RunInstance
 
 data ServiceStarted = ServiceStarted
-  { serviceStartedAddress :: Text,
+  { serviceStartedRequestId :: RequestId,
+    serviceStartedInstance :: RunInstance,
     serviceStartedContainer :: Text,
     serviceStartedDocumentPath :: Maybe Text,
-    serviceStartedInstance :: RunInstance,
-    serviceStartedRequestId :: RequestId
+    serviceStartedAddress :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceStarted where parseJSON = checked "ServiceStarted" $ withObject "ServiceStarted" (\fields -> ServiceStarted <$> (fields .: "address") <*> (fields .: "container") <*> optional fields "documentPath" <*> (fields .: "instance") <*> (fields .: "requestId"))
+instance FromJSON ServiceStarted where parseJSON = checked "ServiceStarted" $ withObject "ServiceStarted" (\fields -> ServiceStarted <$> (fields .: "requestId") <*> (fields .: "instance") <*> (fields .: "container") <*> optional fields "documentPath" <*> (fields .: "address"))
 
-instance ToJSON ServiceStarted where toJSON value = Object (KM.fromList (concat [[("address", toJSON (serviceStartedAddress value))], [("container", toJSON (serviceStartedContainer value))], optionalPair "documentPath" (serviceStartedDocumentPath value), [("instance", toJSON (serviceStartedInstance value))], [("requestId", toJSON (serviceStartedRequestId value))]]))
+instance ToJSON ServiceStarted where toJSON value = Object (KM.fromList (concat [[("requestId", toJSON (serviceStartedRequestId value))], [("instance", toJSON (serviceStartedInstance value))], [("container", toJSON (serviceStartedContainer value))], optionalPair "documentPath" (serviceStartedDocumentPath value), [("address", toJSON (serviceStartedAddress value))]]))

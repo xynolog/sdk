@@ -11,11 +11,11 @@ import Xynolog.Internal.Generated.Models.CreateAnnotationRequest
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data MarkCreateRequest = MarkCreateRequest
-  { markCreateRequestRequest :: CreateAnnotationRequest,
-    markCreateRequestResourceId :: ResourceId
+  { markCreateRequestResourceId :: ResourceId,
+    markCreateRequestRequest :: CreateAnnotationRequest
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkCreateRequest where parseJSON = checked "MarkCreateRequest" $ withObject "MarkCreateRequest" (\fields -> MarkCreateRequest <$> (fields .: "request") <*> (fields .: "resourceId"))
+instance FromJSON MarkCreateRequest where parseJSON = checked "MarkCreateRequest" $ withObject "MarkCreateRequest" (\fields -> MarkCreateRequest <$> (fields .: "resourceId") <*> (fields .: "request"))
 
-instance ToJSON MarkCreateRequest where toJSON value = Object (KM.fromList (concat [[("request", toJSON (markCreateRequestRequest value))], [("resourceId", toJSON (markCreateRequestResourceId value))]]))
+instance ToJSON MarkCreateRequest where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (markCreateRequestResourceId value))], [("request", toJSON (markCreateRequestRequest value))]]))

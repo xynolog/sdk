@@ -12,13 +12,13 @@ import Xynolog.Internal.Generated.Models.AnnotationId
 import Xynolog.Internal.Generated.Models.CommandError
 
 data GatherFailed = GatherFailed
-  { gatherFailedAnnotationId :: AnnotationId,
-    gatherFailedCode :: Maybe CommandErrorCode,
+  { gatherFailedCode :: Maybe CommandErrorCode,
+    gatherFailedMessage :: Text,
     gatherFailedDetails :: Maybe Text,
-    gatherFailedMessage :: Text
+    gatherFailedAnnotationId :: AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherFailed where parseJSON = checked "GatherFailed" $ withObject "GatherFailed" (\fields -> GatherFailed <$> (fields .: "annotationId") <*> optional fields "code" <*> optional fields "details" <*> (fields .: "message"))
+instance FromJSON GatherFailed where parseJSON = checked "GatherFailed" $ withObject "GatherFailed" (\fields -> GatherFailed <$> optional fields "code" <*> (fields .: "message") <*> optional fields "details" <*> (fields .: "annotationId"))
 
-instance ToJSON GatherFailed where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (gatherFailedAnnotationId value))], optionalPair "code" (gatherFailedCode value), optionalPair "details" (gatherFailedDetails value), [("message", toJSON (gatherFailedMessage value))]]))
+instance ToJSON GatherFailed where toJSON value = Object (KM.fromList (concat [optionalPair "code" (gatherFailedCode value), [("message", toJSON (gatherFailedMessage value))], optionalPair "details" (gatherFailedDetails value), [("annotationId", toJSON (gatherFailedAnnotationId value))]]))

@@ -11,17 +11,17 @@ import Xynolog.Internal.Codec
 
 data ReconciledSpanUniqueMatch = ReconciledSpanUniqueMatch
   { reconciledSpanUniqueMatchAnchorMethod :: ReconciledSpanUniqueMatchAnchorMethod,
+    reconciledSpanUniqueMatchStart :: Integer,
     reconciledSpanUniqueMatchEnd :: Integer,
     reconciledSpanUniqueMatchExact :: Text,
     reconciledSpanUniqueMatchPrefix :: Maybe Text,
-    reconciledSpanUniqueMatchStart :: Integer,
     reconciledSpanUniqueMatchSuffix :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ReconciledSpanUniqueMatch where parseJSON = checked "ReconciledSpanUniqueMatch" $ withObject "ReconciledSpanUniqueMatch" (\fields -> ReconciledSpanUniqueMatch <$> (fields .: "anchorMethod") <*> (fields .: "end") <*> (fields .: "exact") <*> optional fields "prefix" <*> (fields .: "start") <*> optional fields "suffix")
+instance FromJSON ReconciledSpanUniqueMatch where parseJSON = checked "ReconciledSpanUniqueMatch" $ withObject "ReconciledSpanUniqueMatch" (\fields -> ReconciledSpanUniqueMatch <$> (fields .: "anchorMethod") <*> (fields .: "start") <*> (fields .: "end") <*> (fields .: "exact") <*> optional fields "prefix" <*> optional fields "suffix")
 
-instance ToJSON ReconciledSpanUniqueMatch where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanUniqueMatchAnchorMethod value))], [("end", toJSON (reconciledSpanUniqueMatchEnd value))], [("exact", toJSON (reconciledSpanUniqueMatchExact value))], optionalPair "prefix" (reconciledSpanUniqueMatchPrefix value), [("start", toJSON (reconciledSpanUniqueMatchStart value))], optionalPair "suffix" (reconciledSpanUniqueMatchSuffix value)]))
+instance ToJSON ReconciledSpanUniqueMatch where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanUniqueMatchAnchorMethod value))], [("start", toJSON (reconciledSpanUniqueMatchStart value))], [("end", toJSON (reconciledSpanUniqueMatchEnd value))], [("exact", toJSON (reconciledSpanUniqueMatchExact value))], optionalPair "prefix" (reconciledSpanUniqueMatchPrefix value), optionalPair "suffix" (reconciledSpanUniqueMatchSuffix value)]))
 
 data ReconciledSpanUniqueMatchAnchorMethod = ReconciledSpanUniqueMatchAnchorMethodUniqueMatch deriving (Eq, Show)
 

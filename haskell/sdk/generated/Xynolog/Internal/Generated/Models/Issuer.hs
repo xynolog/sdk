@@ -36,40 +36,40 @@ issuerKindText :: IssuerKind -> Text
 issuerKindText IssuerKindIssuer = "Issuer"
 
 data IssuerSpec = IssuerSpec
-  { issuerSpecDatabase :: IssuerSpecDatabase,
+  { issuerSpecType :: Text,
     issuerSpecImage :: Image,
-    issuerSpecPort :: Integer,
     issuerSpecResources :: Resources,
-    issuerSpecType :: Text
+    issuerSpecPort :: Integer,
+    issuerSpecDatabase :: IssuerSpecDatabase
   }
   deriving (Eq, Show)
 
-instance FromJSON IssuerSpec where parseJSON = checked "IssuerSpec" $ withObject "IssuerSpec" (\fields -> IssuerSpec <$> (fields .: "database") <*> (fields .: "image") <*> (fields .: "port") <*> (fields .: "resources") <*> (fields .: "type"))
+instance FromJSON IssuerSpec where parseJSON = checked "IssuerSpec" $ withObject "IssuerSpec" (\fields -> IssuerSpec <$> (fields .: "type") <*> (fields .: "image") <*> (fields .: "resources") <*> (fields .: "port") <*> (fields .: "database"))
 
-instance ToJSON IssuerSpec where toJSON value = Object (KM.fromList (concat [[("database", toJSON (issuerSpecDatabase value))], [("image", toJSON (issuerSpecImage value))], [("port", toJSON (issuerSpecPort value))], [("resources", toJSON (issuerSpecResources value))], [("type", toJSON (issuerSpecType value))]]))
+instance ToJSON IssuerSpec where toJSON value = Object (KM.fromList (concat [[("type", toJSON (issuerSpecType value))], [("image", toJSON (issuerSpecImage value))], [("resources", toJSON (issuerSpecResources value))], [("port", toJSON (issuerSpecPort value))], [("database", toJSON (issuerSpecDatabase value))]]))
 
 data IssuerSpecDatabase = IssuerSpecDatabase
-  { issuerSpecDatabaseExternal :: Maybe IssuerSpecDatabaseExternal,
-    issuerSpecDatabaseImage :: Maybe Image,
+  { issuerSpecDatabaseType :: Text,
     issuerSpecDatabaseName :: Text,
-    issuerSpecDatabasePort :: Maybe Integer,
+    issuerSpecDatabaseUser :: Text,
+    issuerSpecDatabaseImage :: Maybe Image,
     issuerSpecDatabaseResources :: Maybe Resources,
-    issuerSpecDatabaseType :: Text,
-    issuerSpecDatabaseUser :: Text
+    issuerSpecDatabasePort :: Maybe Integer,
+    issuerSpecDatabaseExternal :: Maybe IssuerSpecDatabaseExternal
   }
   deriving (Eq, Show)
 
-instance FromJSON IssuerSpecDatabase where parseJSON = checked "IssuerSpecDatabase" $ withObject "IssuerSpecDatabase" (\fields -> IssuerSpecDatabase <$> optional fields "external" <*> optional fields "image" <*> (fields .: "name") <*> optional fields "port" <*> optional fields "resources" <*> (fields .: "type") <*> (fields .: "user"))
+instance FromJSON IssuerSpecDatabase where parseJSON = checked "IssuerSpecDatabase" $ withObject "IssuerSpecDatabase" (\fields -> IssuerSpecDatabase <$> (fields .: "type") <*> (fields .: "name") <*> (fields .: "user") <*> optional fields "image" <*> optional fields "resources" <*> optional fields "port" <*> optional fields "external")
 
-instance ToJSON IssuerSpecDatabase where toJSON value = Object (KM.fromList (concat [optionalPair "external" (issuerSpecDatabaseExternal value), optionalPair "image" (issuerSpecDatabaseImage value), [("name", toJSON (issuerSpecDatabaseName value))], optionalPair "port" (issuerSpecDatabasePort value), optionalPair "resources" (issuerSpecDatabaseResources value), [("type", toJSON (issuerSpecDatabaseType value))], [("user", toJSON (issuerSpecDatabaseUser value))]]))
+instance ToJSON IssuerSpecDatabase where toJSON value = Object (KM.fromList (concat [[("type", toJSON (issuerSpecDatabaseType value))], [("name", toJSON (issuerSpecDatabaseName value))], [("user", toJSON (issuerSpecDatabaseUser value))], optionalPair "image" (issuerSpecDatabaseImage value), optionalPair "resources" (issuerSpecDatabaseResources value), optionalPair "port" (issuerSpecDatabasePort value), optionalPair "external" (issuerSpecDatabaseExternal value)]))
 
 data IssuerSpecDatabaseExternal = IssuerSpecDatabaseExternal
   { issuerSpecDatabaseExternalHost :: Text,
-    issuerSpecDatabaseExternalPassword :: SecretRef,
-    issuerSpecDatabaseExternalPort :: Integer
+    issuerSpecDatabaseExternalPort :: Integer,
+    issuerSpecDatabaseExternalPassword :: SecretRef
   }
   deriving (Eq, Show)
 
-instance FromJSON IssuerSpecDatabaseExternal where parseJSON = checked "IssuerSpecDatabaseExternal" $ withObject "IssuerSpecDatabaseExternal" (\fields -> IssuerSpecDatabaseExternal <$> (fields .: "host") <*> (fields .: "password") <*> (fields .: "port"))
+instance FromJSON IssuerSpecDatabaseExternal where parseJSON = checked "IssuerSpecDatabaseExternal" $ withObject "IssuerSpecDatabaseExternal" (\fields -> IssuerSpecDatabaseExternal <$> (fields .: "host") <*> (fields .: "port") <*> (fields .: "password"))
 
-instance ToJSON IssuerSpecDatabaseExternal where toJSON value = Object (KM.fromList (concat [[("host", toJSON (issuerSpecDatabaseExternalHost value))], [("password", toJSON (issuerSpecDatabaseExternalPassword value))], [("port", toJSON (issuerSpecDatabaseExternalPort value))]]))
+instance ToJSON IssuerSpecDatabaseExternal where toJSON value = Object (KM.fromList (concat [[("host", toJSON (issuerSpecDatabaseExternalHost value))], [("port", toJSON (issuerSpecDatabaseExternalPort value))], [("password", toJSON (issuerSpecDatabaseExternalPassword value))]]))

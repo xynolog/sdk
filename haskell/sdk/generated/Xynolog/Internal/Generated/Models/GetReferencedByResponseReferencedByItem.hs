@@ -23,14 +23,14 @@ instance FromJSON GetReferencedByResponseReferencedByItem where parseJSON = chec
 instance ToJSON GetReferencedByResponseReferencedByItem where toJSON value = Object (KM.fromList (concat [[("id", toJSON (getReferencedByResponseReferencedByItemId value))], optionalPair "resourceName" (getReferencedByResponseReferencedByItemResourceName value), [("target", toJSON (getReferencedByResponseReferencedByItemTarget value))]]))
 
 data GetReferencedByResponseReferencedByItemTarget = GetReferencedByResponseReferencedByItemTarget
-  { getReferencedByResponseReferencedByItemTargetSelector :: GetReferencedByResponseReferencedByItemTargetSelector,
-    getReferencedByResponseReferencedByItemTargetSource :: ResourceId
+  { getReferencedByResponseReferencedByItemTargetSource :: ResourceId,
+    getReferencedByResponseReferencedByItemTargetSelector :: GetReferencedByResponseReferencedByItemTargetSelector
   }
   deriving (Eq, Show)
 
-instance FromJSON GetReferencedByResponseReferencedByItemTarget where parseJSON = checked "GetReferencedByResponseReferencedByItemTarget" $ withObject "GetReferencedByResponseReferencedByItemTarget" (\fields -> GetReferencedByResponseReferencedByItemTarget <$> (fields .: "selector") <*> (fields .: "source"))
+instance FromJSON GetReferencedByResponseReferencedByItemTarget where parseJSON = checked "GetReferencedByResponseReferencedByItemTarget" $ withObject "GetReferencedByResponseReferencedByItemTarget" (\fields -> GetReferencedByResponseReferencedByItemTarget <$> (fields .: "source") <*> (fields .: "selector"))
 
-instance ToJSON GetReferencedByResponseReferencedByItemTarget where toJSON value = Object (KM.fromList (concat [[("selector", toJSON (getReferencedByResponseReferencedByItemTargetSelector value))], [("source", toJSON (getReferencedByResponseReferencedByItemTargetSource value))]]))
+instance ToJSON GetReferencedByResponseReferencedByItemTarget where toJSON value = Object (KM.fromList (concat [[("source", toJSON (getReferencedByResponseReferencedByItemTargetSource value))], [("selector", toJSON (getReferencedByResponseReferencedByItemTargetSelector value))]]))
 
 data GetReferencedByResponseReferencedByItemTargetSelector = GetReferencedByResponseReferencedByItemTargetSelector
   { getReferencedByResponseReferencedByItemTargetSelectorExact :: Text

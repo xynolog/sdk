@@ -20,36 +20,36 @@ data ResourceDescriptor = ResourceDescriptor
   { resourceDescriptorContext :: ResourceDescriptorContext,
     resourceDescriptorId :: ResourceId,
     resourceDescriptorType :: Maybe OneOrMoreStrings,
+    resourceDescriptorName :: Text,
+    resourceDescriptorDescription :: Maybe Text,
+    resourceDescriptorIdentifier :: Maybe ResourceDescriptorIdentifier,
     resourceDescriptorAbout :: Maybe OneOrMoreStrings,
-    resourceDescriptorArchived :: Maybe Bool,
-    resourceDescriptorAvailableFormats :: Maybe [Text],
-    resourceDescriptorConformsTo :: Maybe OneOrMoreUris,
+    resourceDescriptorSameAs :: Maybe [Text],
+    resourceDescriptorIsPartOf :: Maybe [Text],
+    resourceDescriptorHasPart :: Maybe [Text],
+    resourceDescriptorLicense :: Maybe Text,
+    resourceDescriptorVersion :: Maybe Text,
     resourceDescriptorDateCreated :: Maybe Text,
     resourceDescriptorDateModified :: Maybe Text,
-    resourceDescriptorDescription :: Maybe Text,
-    resourceDescriptorEntityTypes :: Maybe [Text],
+    resourceDescriptorWasDerivedFrom :: Maybe ResourceDescriptorWasDerivedFrom,
+    resourceDescriptorWasAttributedTo :: Maybe OneOrMoreAgents,
     resourceDescriptorGenerator :: Maybe OneOrMoreAgents,
-    resourceDescriptorHasPart :: Maybe [Text],
-    resourceDescriptorIdentifier :: Maybe ResourceDescriptorIdentifier,
-    resourceDescriptorIsDraft :: Maybe Bool,
-    resourceDescriptorIsPartOf :: Maybe [Text],
-    resourceDescriptorLicense :: Maybe Text,
-    resourceDescriptorName :: Text,
-    resourceDescriptorOriginatedFrom :: Maybe Text,
+    resourceDescriptorConformsTo :: Maybe OneOrMoreUris,
+    resourceDescriptorAvailableFormats :: Maybe [Text],
     resourceDescriptorRepresentations :: ResourceDescriptorRepresentations,
-    resourceDescriptorSameAs :: Maybe [Text],
+    resourceDescriptorArchived :: Maybe Bool,
+    resourceDescriptorEntityTypes :: Maybe [Text],
+    resourceDescriptorIsDraft :: Maybe Bool,
     resourceDescriptorSourceAnnotationId :: Maybe AnnotationId,
     resourceDescriptorSourceResourceId :: Maybe ResourceId,
-    resourceDescriptorVersion :: Maybe Text,
-    resourceDescriptorWasAttributedTo :: Maybe OneOrMoreAgents,
-    resourceDescriptorWasDerivedFrom :: Maybe ResourceDescriptorWasDerivedFrom,
+    resourceDescriptorOriginatedFrom :: Maybe Text,
     resourceDescriptorAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptor where parseJSON = checked "ResourceDescriptor" $ withObject "ResourceDescriptor" (\fields -> ResourceDescriptor <$> (fields .: "@context") <*> (fields .: "@id") <*> optional fields "@type" <*> optional fields "about" <*> optional fields "archived" <*> optional fields "availableFormats" <*> optional fields "conformsTo" <*> optional fields "dateCreated" <*> optional fields "dateModified" <*> optional fields "description" <*> optional fields "entityTypes" <*> optional fields "generator" <*> optional fields "hasPart" <*> optional fields "identifier" <*> optional fields "isDraft" <*> optional fields "isPartOf" <*> optional fields "license" <*> (fields .: "name") <*> optional fields "originatedFrom" <*> (fields .: "representations") <*> optional fields "sameAs" <*> optional fields "sourceAnnotationId" <*> optional fields "sourceResourceId" <*> optional fields "version" <*> optional fields "wasAttributedTo" <*> optional fields "wasDerivedFrom" <*> traverse parseJSON (withoutFields ["@context", "@id", "@type", "about", "archived", "availableFormats", "conformsTo", "dateCreated", "dateModified", "description", "entityTypes", "generator", "hasPart", "identifier", "isDraft", "isPartOf", "license", "name", "originatedFrom", "representations", "sameAs", "sourceAnnotationId", "sourceResourceId", "version", "wasAttributedTo", "wasDerivedFrom"] fields))
+instance FromJSON ResourceDescriptor where parseJSON = checked "ResourceDescriptor" $ withObject "ResourceDescriptor" (\fields -> ResourceDescriptor <$> (fields .: "@context") <*> (fields .: "@id") <*> optional fields "@type" <*> (fields .: "name") <*> optional fields "description" <*> optional fields "identifier" <*> optional fields "about" <*> optional fields "sameAs" <*> optional fields "isPartOf" <*> optional fields "hasPart" <*> optional fields "license" <*> optional fields "version" <*> optional fields "dateCreated" <*> optional fields "dateModified" <*> optional fields "wasDerivedFrom" <*> optional fields "wasAttributedTo" <*> optional fields "generator" <*> optional fields "conformsTo" <*> optional fields "availableFormats" <*> (fields .: "representations") <*> optional fields "archived" <*> optional fields "entityTypes" <*> optional fields "isDraft" <*> optional fields "sourceAnnotationId" <*> optional fields "sourceResourceId" <*> optional fields "originatedFrom" <*> traverse parseJSON (withoutFields ["@context", "@id", "@type", "name", "description", "identifier", "about", "sameAs", "isPartOf", "hasPart", "license", "version", "dateCreated", "dateModified", "wasDerivedFrom", "wasAttributedTo", "generator", "conformsTo", "availableFormats", "representations", "archived", "entityTypes", "isDraft", "sourceAnnotationId", "sourceResourceId", "originatedFrom"] fields))
 
-instance ToJSON ResourceDescriptor where toJSON value = Object (KM.fromList (concat [[("@context", toJSON (resourceDescriptorContext value))], [("@id", toJSON (resourceDescriptorId value))], optionalPair "@type" (resourceDescriptorType value), optionalPair "about" (resourceDescriptorAbout value), optionalPair "archived" (resourceDescriptorArchived value), optionalPair "availableFormats" (resourceDescriptorAvailableFormats value), optionalPair "conformsTo" (resourceDescriptorConformsTo value), optionalPair "dateCreated" (resourceDescriptorDateCreated value), optionalPair "dateModified" (resourceDescriptorDateModified value), optionalPair "description" (resourceDescriptorDescription value), optionalPair "entityTypes" (resourceDescriptorEntityTypes value), optionalPair "generator" (resourceDescriptorGenerator value), optionalPair "hasPart" (resourceDescriptorHasPart value), optionalPair "identifier" (resourceDescriptorIdentifier value), optionalPair "isDraft" (resourceDescriptorIsDraft value), optionalPair "isPartOf" (resourceDescriptorIsPartOf value), optionalPair "license" (resourceDescriptorLicense value), [("name", toJSON (resourceDescriptorName value))], optionalPair "originatedFrom" (resourceDescriptorOriginatedFrom value), [("representations", toJSON (resourceDescriptorRepresentations value))], optionalPair "sameAs" (resourceDescriptorSameAs value), optionalPair "sourceAnnotationId" (resourceDescriptorSourceAnnotationId value), optionalPair "sourceResourceId" (resourceDescriptorSourceResourceId value), optionalPair "version" (resourceDescriptorVersion value), optionalPair "wasAttributedTo" (resourceDescriptorWasAttributedTo value), optionalPair "wasDerivedFrom" (resourceDescriptorWasDerivedFrom value)]) <> fmap toJSON (withoutFields ["@context", "@id", "@type", "about", "archived", "availableFormats", "conformsTo", "dateCreated", "dateModified", "description", "entityTypes", "generator", "hasPart", "identifier", "isDraft", "isPartOf", "license", "name", "originatedFrom", "representations", "sameAs", "sourceAnnotationId", "sourceResourceId", "version", "wasAttributedTo", "wasDerivedFrom"] (resourceDescriptorAdditionalProperties value)))
+instance ToJSON ResourceDescriptor where toJSON value = Object (KM.fromList (concat [[("@context", toJSON (resourceDescriptorContext value))], [("@id", toJSON (resourceDescriptorId value))], optionalPair "@type" (resourceDescriptorType value), [("name", toJSON (resourceDescriptorName value))], optionalPair "description" (resourceDescriptorDescription value), optionalPair "identifier" (resourceDescriptorIdentifier value), optionalPair "about" (resourceDescriptorAbout value), optionalPair "sameAs" (resourceDescriptorSameAs value), optionalPair "isPartOf" (resourceDescriptorIsPartOf value), optionalPair "hasPart" (resourceDescriptorHasPart value), optionalPair "license" (resourceDescriptorLicense value), optionalPair "version" (resourceDescriptorVersion value), optionalPair "dateCreated" (resourceDescriptorDateCreated value), optionalPair "dateModified" (resourceDescriptorDateModified value), optionalPair "wasDerivedFrom" (resourceDescriptorWasDerivedFrom value), optionalPair "wasAttributedTo" (resourceDescriptorWasAttributedTo value), optionalPair "generator" (resourceDescriptorGenerator value), optionalPair "conformsTo" (resourceDescriptorConformsTo value), optionalPair "availableFormats" (resourceDescriptorAvailableFormats value), [("representations", toJSON (resourceDescriptorRepresentations value))], optionalPair "archived" (resourceDescriptorArchived value), optionalPair "entityTypes" (resourceDescriptorEntityTypes value), optionalPair "isDraft" (resourceDescriptorIsDraft value), optionalPair "sourceAnnotationId" (resourceDescriptorSourceAnnotationId value), optionalPair "sourceResourceId" (resourceDescriptorSourceResourceId value), optionalPair "originatedFrom" (resourceDescriptorOriginatedFrom value)]) <> fmap toJSON (withoutFields ["@context", "@id", "@type", "name", "description", "identifier", "about", "sameAs", "isPartOf", "hasPart", "license", "version", "dateCreated", "dateModified", "wasDerivedFrom", "wasAttributedTo", "generator", "conformsTo", "availableFormats", "representations", "archived", "entityTypes", "isDraft", "sourceAnnotationId", "sourceResourceId", "originatedFrom"] (resourceDescriptorAdditionalProperties value)))
 
 data ResourceDescriptorContext = ResourceDescriptorContextText Text | ResourceDescriptorContextObject ResourceDescriptorContextObject | ResourceDescriptorContextList [ResourceDescriptorContextItem] deriving (Eq, Show)
 
@@ -97,15 +97,15 @@ instance ToJSON ResourceDescriptorIdentifier where
 
 data ResourceDescriptorIdentifierObject = MkResourceDescriptorIdentifierObject
   { resourceDescriptorIdentifierObjectId :: Maybe Text,
-    resourceDescriptorIdentifierObjectScheme :: Maybe Text,
     resourceDescriptorIdentifierObjectValue :: Maybe Text,
+    resourceDescriptorIdentifierObjectScheme :: Maybe Text,
     resourceDescriptorIdentifierObjectAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorIdentifierObject where parseJSON = checked "ResourceDescriptorIdentifierObject" $ withObject "ResourceDescriptorIdentifierObject" (\fields -> MkResourceDescriptorIdentifierObject <$> optional fields "@id" <*> optional fields "scheme" <*> optional fields "value" <*> traverse parseJSON (withoutFields ["@id", "scheme", "value"] fields))
+instance FromJSON ResourceDescriptorIdentifierObject where parseJSON = checked "ResourceDescriptorIdentifierObject" $ withObject "ResourceDescriptorIdentifierObject" (\fields -> MkResourceDescriptorIdentifierObject <$> optional fields "@id" <*> optional fields "value" <*> optional fields "scheme" <*> traverse parseJSON (withoutFields ["@id", "value", "scheme"] fields))
 
-instance ToJSON ResourceDescriptorIdentifierObject where toJSON value = Object (KM.fromList (concat [optionalPair "@id" (resourceDescriptorIdentifierObjectId value), optionalPair "scheme" (resourceDescriptorIdentifierObjectScheme value), optionalPair "value" (resourceDescriptorIdentifierObjectValue value)]) <> fmap toJSON (withoutFields ["@id", "scheme", "value"] (resourceDescriptorIdentifierObjectAdditionalProperties value)))
+instance ToJSON ResourceDescriptorIdentifierObject where toJSON value = Object (KM.fromList (concat [optionalPair "@id" (resourceDescriptorIdentifierObjectId value), optionalPair "value" (resourceDescriptorIdentifierObjectValue value), optionalPair "scheme" (resourceDescriptorIdentifierObjectScheme value)]) <> fmap toJSON (withoutFields ["@id", "value", "scheme"] (resourceDescriptorIdentifierObjectAdditionalProperties value)))
 
 data ResourceDescriptorRepresentations = ResourceDescriptorRepresentationsRepresentation Representation | ResourceDescriptorRepresentationsList [Representation] deriving (Eq, Show)
 

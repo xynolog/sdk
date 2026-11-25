@@ -15,24 +15,24 @@ import Xynolog.Internal.Generated.Models.Target
 
 data StackStartParams = StackStartParams
   { stackStartParamsApiVersion :: ApiVersion,
-    stackStartParamsCodespaceName :: Maybe Text,
+    stackStartParamsTarget :: Maybe Target,
+    stackStartParamsRuntime :: Maybe Runtime,
     stackStartParamsConfig :: Maybe Text,
-    stackStartParamsDryRun :: Maybe Bool,
+    stackStartParamsService :: Maybe Text,
     stackStartParamsGroup :: Maybe ServiceGroup,
-    stackStartParamsIdleTimeout :: Maybe Text,
+    stackStartParamsCodespaceName :: Maybe Text,
     stackStartParamsMachine :: Maybe Text,
+    stackStartParamsIdleTimeout :: Maybe Text,
+    stackStartParamsRetentionPeriod :: Maybe Text,
     stackStartParamsObserve :: Maybe Bool,
     stackStartParamsOllamaCache :: Maybe StackStartParamsOllamaCache,
-    stackStartParamsRetentionPeriod :: Maybe Text,
-    stackStartParamsRuntime :: Maybe Runtime,
-    stackStartParamsService :: Maybe Text,
-    stackStartParamsTarget :: Maybe Target
+    stackStartParamsDryRun :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON StackStartParams where parseJSON = checked "StackStartParams" $ withObject "StackStartParams" (\fields -> StackStartParams <$> (fields .: "apiVersion") <*> optional fields "codespaceName" <*> optional fields "config" <*> optional fields "dryRun" <*> optional fields "group" <*> optional fields "idleTimeout" <*> optional fields "machine" <*> optional fields "observe" <*> optional fields "ollamaCache" <*> optional fields "retentionPeriod" <*> optional fields "runtime" <*> optional fields "service" <*> optional fields "target")
+instance FromJSON StackStartParams where parseJSON = checked "StackStartParams" $ withObject "StackStartParams" (\fields -> StackStartParams <$> (fields .: "apiVersion") <*> optional fields "target" <*> optional fields "runtime" <*> optional fields "config" <*> optional fields "service" <*> optional fields "group" <*> optional fields "codespaceName" <*> optional fields "machine" <*> optional fields "idleTimeout" <*> optional fields "retentionPeriod" <*> optional fields "observe" <*> optional fields "ollamaCache" <*> optional fields "dryRun")
 
-instance ToJSON StackStartParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (stackStartParamsApiVersion value))], optionalPair "codespaceName" (stackStartParamsCodespaceName value), optionalPair "config" (stackStartParamsConfig value), optionalPair "dryRun" (stackStartParamsDryRun value), optionalPair "group" (stackStartParamsGroup value), optionalPair "idleTimeout" (stackStartParamsIdleTimeout value), optionalPair "machine" (stackStartParamsMachine value), optionalPair "observe" (stackStartParamsObserve value), optionalPair "ollamaCache" (stackStartParamsOllamaCache value), optionalPair "retentionPeriod" (stackStartParamsRetentionPeriod value), optionalPair "runtime" (stackStartParamsRuntime value), optionalPair "service" (stackStartParamsService value), optionalPair "target" (stackStartParamsTarget value)]))
+instance ToJSON StackStartParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (stackStartParamsApiVersion value))], optionalPair "target" (stackStartParamsTarget value), optionalPair "runtime" (stackStartParamsRuntime value), optionalPair "config" (stackStartParamsConfig value), optionalPair "service" (stackStartParamsService value), optionalPair "group" (stackStartParamsGroup value), optionalPair "codespaceName" (stackStartParamsCodespaceName value), optionalPair "machine" (stackStartParamsMachine value), optionalPair "idleTimeout" (stackStartParamsIdleTimeout value), optionalPair "retentionPeriod" (stackStartParamsRetentionPeriod value), optionalPair "observe" (stackStartParamsObserve value), optionalPair "ollamaCache" (stackStartParamsOllamaCache value), optionalPair "dryRun" (stackStartParamsDryRun value)]))
 
 data StackStartParamsOllamaCache = StackStartParamsOllamaCacheHost | StackStartParamsOllamaCacheVolume deriving (Eq, Show)
 

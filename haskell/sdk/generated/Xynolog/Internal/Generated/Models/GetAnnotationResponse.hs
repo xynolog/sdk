@@ -12,11 +12,11 @@ import Xynolog.Internal.Generated.Models.ResourceDescriptor
 
 data GetAnnotationResponse = GetAnnotationResponse
   { getAnnotationResponseAnnotation :: Annotation,
-    getAnnotationResponseResolvedResource :: Maybe ResourceDescriptor,
-    getAnnotationResponseResource :: Maybe ResourceDescriptor
+    getAnnotationResponseResource :: Maybe ResourceDescriptor,
+    getAnnotationResponseResolvedResource :: Maybe ResourceDescriptor
   }
   deriving (Eq, Show)
 
-instance FromJSON GetAnnotationResponse where parseJSON = checked "GetAnnotationResponse" $ withObject "GetAnnotationResponse" (\fields -> GetAnnotationResponse <$> (fields .: "annotation") <*> (fields .: "resolvedResource") <*> (fields .: "resource"))
+instance FromJSON GetAnnotationResponse where parseJSON = checked "GetAnnotationResponse" $ withObject "GetAnnotationResponse" (\fields -> GetAnnotationResponse <$> (fields .: "annotation") <*> (fields .: "resource") <*> (fields .: "resolvedResource"))
 
-instance ToJSON GetAnnotationResponse where toJSON value = Object (KM.fromList (concat [[("annotation", toJSON (getAnnotationResponseAnnotation value))], [("resolvedResource", toJSON (getAnnotationResponseResolvedResource value))], [("resource", toJSON (getAnnotationResponseResource value))]]))
+instance ToJSON GetAnnotationResponse where toJSON value = Object (KM.fromList (concat [[("annotation", toJSON (getAnnotationResponseAnnotation value))], [("resource", toJSON (getAnnotationResponseResource value))], [("resolvedResource", toJSON (getAnnotationResponseResolvedResource value))]]))

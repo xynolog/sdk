@@ -35,14 +35,14 @@ instance ToJSON ConformanceDriverLine where
   toJSON (ConformanceDriverLineStalled value) = toJSON value
 
 data ConformanceDriverLineAbandoned = MkConformanceDriverLineAbandoned
-  { conformanceDriverLineAbandonedAbandoned :: ConformanceDriverLineAbandonedAbandoned,
-    conformanceDriverLineAbandonedId :: Integer
+  { conformanceDriverLineAbandonedId :: Integer,
+    conformanceDriverLineAbandonedAbandoned :: ConformanceDriverLineAbandonedAbandoned
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceDriverLineAbandoned where parseJSON = checked "ConformanceDriverLineAbandoned" $ withObject "ConformanceDriverLineAbandoned" (\fields -> MkConformanceDriverLineAbandoned <$> (fields .: "abandoned") <*> (fields .: "id"))
+instance FromJSON ConformanceDriverLineAbandoned where parseJSON = checked "ConformanceDriverLineAbandoned" $ withObject "ConformanceDriverLineAbandoned" (\fields -> MkConformanceDriverLineAbandoned <$> (fields .: "id") <*> (fields .: "abandoned"))
 
-instance ToJSON ConformanceDriverLineAbandoned where toJSON value = Object (KM.fromList (concat [[("abandoned", toJSON (conformanceDriverLineAbandonedAbandoned value))], [("id", toJSON (conformanceDriverLineAbandonedId value))]]))
+instance ToJSON ConformanceDriverLineAbandoned where toJSON value = Object (KM.fromList (concat [[("id", toJSON (conformanceDriverLineAbandonedId value))], [("abandoned", toJSON (conformanceDriverLineAbandonedAbandoned value))]]))
 
 data ConformanceDriverLineAbandonedAbandoned = ConformanceDriverLineAbandonedAbandonedTrue deriving (Eq, Show)
 
@@ -106,14 +106,14 @@ instance ToJSON ConformanceDriverLineEmissionEmissionState where
   toJSON (ConformanceDriverLineEmissionEmissionStateFailed value) = toJSON value
 
 data ConformanceDriverLineEmissionEmissionStateFailed = MkConformanceDriverLineEmissionEmissionStateFailed
-  { conformanceDriverLineEmissionEmissionStateFailedError :: ConformanceFailure,
-    conformanceDriverLineEmissionEmissionStateFailedStatus :: ConformanceDriverLineEmissionEmissionStateFailedStatus
+  { conformanceDriverLineEmissionEmissionStateFailedStatus :: ConformanceDriverLineEmissionEmissionStateFailedStatus,
+    conformanceDriverLineEmissionEmissionStateFailedError :: ConformanceFailure
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceDriverLineEmissionEmissionStateFailed where parseJSON = checked "ConformanceDriverLineEmissionEmissionStateFailed" $ withObject "ConformanceDriverLineEmissionEmissionStateFailed" (\fields -> MkConformanceDriverLineEmissionEmissionStateFailed <$> (fields .: "error") <*> (fields .: "status"))
+instance FromJSON ConformanceDriverLineEmissionEmissionStateFailed where parseJSON = checked "ConformanceDriverLineEmissionEmissionStateFailed" $ withObject "ConformanceDriverLineEmissionEmissionStateFailed" (\fields -> MkConformanceDriverLineEmissionEmissionStateFailed <$> (fields .: "status") <*> (fields .: "error"))
 
-instance ToJSON ConformanceDriverLineEmissionEmissionStateFailed where toJSON value = Object (KM.fromList (concat [[("error", toJSON (conformanceDriverLineEmissionEmissionStateFailedError value))], [("status", toJSON (conformanceDriverLineEmissionEmissionStateFailedStatus value))]]))
+instance ToJSON ConformanceDriverLineEmissionEmissionStateFailed where toJSON value = Object (KM.fromList (concat [[("status", toJSON (conformanceDriverLineEmissionEmissionStateFailedStatus value))], [("error", toJSON (conformanceDriverLineEmissionEmissionStateFailedError value))]]))
 
 data ConformanceDriverLineEmissionEmissionStateFailedStatus = ConformanceDriverLineEmissionEmissionStateFailedStatusFailed deriving (Eq, Show)
 
@@ -171,14 +171,14 @@ instance FromJSON ConformanceDriverLineErrorStream where parseJSON = checked "Co
 instance ToJSON ConformanceDriverLineErrorStream where toJSON value = Object (KM.fromList (concat [[("error", toJSON (conformanceDriverLineErrorStreamError value))]]))
 
 data ConformanceDriverLineFailed = MkConformanceDriverLineFailed
-  { conformanceDriverLineFailedError :: ConformanceFailure,
-    conformanceDriverLineFailedId :: Integer
+  { conformanceDriverLineFailedId :: Integer,
+    conformanceDriverLineFailedError :: ConformanceFailure
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceDriverLineFailed where parseJSON = checked "ConformanceDriverLineFailed" $ withObject "ConformanceDriverLineFailed" (\fields -> MkConformanceDriverLineFailed <$> (fields .: "error") <*> (fields .: "id"))
+instance FromJSON ConformanceDriverLineFailed where parseJSON = checked "ConformanceDriverLineFailed" $ withObject "ConformanceDriverLineFailed" (\fields -> MkConformanceDriverLineFailed <$> (fields .: "id") <*> (fields .: "error"))
 
-instance ToJSON ConformanceDriverLineFailed where toJSON value = Object (KM.fromList (concat [[("error", toJSON (conformanceDriverLineFailedError value))], [("id", toJSON (conformanceDriverLineFailedId value))]]))
+instance ToJSON ConformanceDriverLineFailed where toJSON value = Object (KM.fromList (concat [[("id", toJSON (conformanceDriverLineFailedId value))], [("error", toJSON (conformanceDriverLineFailedError value))]]))
 
 data ConformanceDriverLineFrame = MkConformanceDriverLineFrame
   { conformanceDriverLineFrameFrame :: ConformanceDriverLineFrameFrame
@@ -191,15 +191,15 @@ instance ToJSON ConformanceDriverLineFrame where toJSON value = Object (KM.fromL
 
 data ConformanceDriverLineFrameFrame = ConformanceDriverLineFrameFrame
   { conformanceDriverLineFrameFrameChannel :: Text,
-    conformanceDriverLineFrameFrameCorrelationId :: Maybe Text,
     conformanceDriverLineFrameFramePayload :: Maybe Value,
+    conformanceDriverLineFrameFrameCorrelationId :: Maybe Text,
     conformanceDriverLineFrameFrameScope :: Maybe ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceDriverLineFrameFrame where parseJSON = checked "ConformanceDriverLineFrameFrame" $ withObject "ConformanceDriverLineFrameFrame" (\fields -> ConformanceDriverLineFrameFrame <$> (fields .: "channel") <*> optional fields "correlationId" <*> optional fields "payload" <*> optional fields "scope")
+instance FromJSON ConformanceDriverLineFrameFrame where parseJSON = checked "ConformanceDriverLineFrameFrame" $ withObject "ConformanceDriverLineFrameFrame" (\fields -> ConformanceDriverLineFrameFrame <$> (fields .: "channel") <*> optional fields "payload" <*> optional fields "correlationId" <*> optional fields "scope")
 
-instance ToJSON ConformanceDriverLineFrameFrame where toJSON value = Object (KM.fromList (concat [[("channel", toJSON (conformanceDriverLineFrameFrameChannel value))], optionalPair "correlationId" (conformanceDriverLineFrameFrameCorrelationId value), optionalPair "payload" (conformanceDriverLineFrameFramePayload value), optionalPair "scope" (conformanceDriverLineFrameFrameScope value)]))
+instance ToJSON ConformanceDriverLineFrameFrame where toJSON value = Object (KM.fromList (concat [[("channel", toJSON (conformanceDriverLineFrameFrameChannel value))], optionalPair "payload" (conformanceDriverLineFrameFramePayload value), optionalPair "correlationId" (conformanceDriverLineFrameFrameCorrelationId value), optionalPair "scope" (conformanceDriverLineFrameFrameScope value)]))
 
 data ConformanceDriverLineMisuse = MkConformanceDriverLineMisuse
   { conformanceDriverLineMisuseId :: Integer,
@@ -231,15 +231,15 @@ instance FromJSON ConformanceDriverLineProgress where parseJSON = checked "Confo
 instance ToJSON ConformanceDriverLineProgress where toJSON value = Object (KM.fromList (concat [[("progress", toJSON (conformanceDriverLineProgressProgress value))]]))
 
 data ConformanceDriverLineProgressProgress = ConformanceDriverLineProgressProgress
-  { conformanceDriverLineProgressProgressBytesUploaded :: Integer,
-    conformanceDriverLineProgressProgressTotalBytes :: Integer,
-    conformanceDriverLineProgressProgressUpload :: Integer
+  { conformanceDriverLineProgressProgressUpload :: Integer,
+    conformanceDriverLineProgressProgressBytesUploaded :: Integer,
+    conformanceDriverLineProgressProgressTotalBytes :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceDriverLineProgressProgress where parseJSON = checked "ConformanceDriverLineProgressProgress" $ withObject "ConformanceDriverLineProgressProgress" (\fields -> ConformanceDriverLineProgressProgress <$> (fields .: "bytesUploaded") <*> (fields .: "totalBytes") <*> (fields .: "upload"))
+instance FromJSON ConformanceDriverLineProgressProgress where parseJSON = checked "ConformanceDriverLineProgressProgress" $ withObject "ConformanceDriverLineProgressProgress" (\fields -> ConformanceDriverLineProgressProgress <$> (fields .: "upload") <*> (fields .: "bytesUploaded") <*> (fields .: "totalBytes"))
 
-instance ToJSON ConformanceDriverLineProgressProgress where toJSON value = Object (KM.fromList (concat [[("bytesUploaded", toJSON (conformanceDriverLineProgressProgressBytesUploaded value))], [("totalBytes", toJSON (conformanceDriverLineProgressProgressTotalBytes value))], [("upload", toJSON (conformanceDriverLineProgressProgressUpload value))]]))
+instance ToJSON ConformanceDriverLineProgressProgress where toJSON value = Object (KM.fromList (concat [[("upload", toJSON (conformanceDriverLineProgressProgressUpload value))], [("bytesUploaded", toJSON (conformanceDriverLineProgressProgressBytesUploaded value))], [("totalBytes", toJSON (conformanceDriverLineProgressProgressTotalBytes value))]]))
 
 data ConformanceDriverLineReady = MkConformanceDriverLineReady
   { conformanceDriverLineReadyReady :: ConformanceDriverLineReadyReady

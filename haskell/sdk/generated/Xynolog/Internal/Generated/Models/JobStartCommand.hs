@@ -15,14 +15,14 @@ import Xynolog.Internal.Generated.Models.UserId
 
 data JobStartCommand = JobStartCommand
   { jobStartCommandUserId :: Maybe UserId,
-    jobStartCommandAnnotationId :: Maybe AnnotationId,
-    jobStartCommandAttempt :: Maybe Integer,
+    jobStartCommandResourceId :: ResourceId,
     jobStartCommandJobId :: JobId,
     jobStartCommandJobType :: JobType,
-    jobStartCommandResourceId :: ResourceId
+    jobStartCommandAnnotationId :: Maybe AnnotationId,
+    jobStartCommandAttempt :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON JobStartCommand where parseJSON = checked "JobStartCommand" $ withObject "JobStartCommand" (\fields -> JobStartCommand <$> optional fields "_userId" <*> optional fields "annotationId" <*> optional fields "attempt" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId"))
+instance FromJSON JobStartCommand where parseJSON = checked "JobStartCommand" $ withObject "JobStartCommand" (\fields -> JobStartCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "annotationId" <*> optional fields "attempt")
 
-instance ToJSON JobStartCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobStartCommandUserId value), optionalPair "annotationId" (jobStartCommandAnnotationId value), optionalPair "attempt" (jobStartCommandAttempt value), [("jobId", toJSON (jobStartCommandJobId value))], [("jobType", toJSON (jobStartCommandJobType value))], [("resourceId", toJSON (jobStartCommandResourceId value))]]))
+instance ToJSON JobStartCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobStartCommandUserId value), [("resourceId", toJSON (jobStartCommandResourceId value))], [("jobId", toJSON (jobStartCommandJobId value))], [("jobType", toJSON (jobStartCommandJobType value))], optionalPair "annotationId" (jobStartCommandAnnotationId value), optionalPair "attempt" (jobStartCommandAttempt value)]))

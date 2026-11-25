@@ -10,15 +10,15 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data FragmentSelector = FragmentSelector
-  { fragmentSelectorConformsTo :: Maybe Text,
-    fragmentSelectorType :: FragmentSelectorType,
-    fragmentSelectorValue :: Text
+  { fragmentSelectorType :: FragmentSelectorType,
+    fragmentSelectorValue :: Text,
+    fragmentSelectorConformsTo :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON FragmentSelector where parseJSON = checked "FragmentSelector" $ withObject "FragmentSelector" (\fields -> FragmentSelector <$> optional fields "conformsTo" <*> (fields .: "type") <*> (fields .: "value"))
+instance FromJSON FragmentSelector where parseJSON = checked "FragmentSelector" $ withObject "FragmentSelector" (\fields -> FragmentSelector <$> (fields .: "type") <*> (fields .: "value") <*> optional fields "conformsTo")
 
-instance ToJSON FragmentSelector where toJSON value = Object (KM.fromList (concat [optionalPair "conformsTo" (fragmentSelectorConformsTo value), [("type", toJSON (fragmentSelectorType value))], [("value", toJSON (fragmentSelectorValue value))]]))
+instance ToJSON FragmentSelector where toJSON value = Object (KM.fromList (concat [[("type", toJSON (fragmentSelectorType value))], [("value", toJSON (fragmentSelectorValue value))], optionalPair "conformsTo" (fragmentSelectorConformsTo value)]))
 
 data FragmentSelectorType = FragmentSelectorTypeFragmentSelector deriving (Eq, Show)
 

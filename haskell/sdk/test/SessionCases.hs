@@ -98,7 +98,7 @@ withClient time action = do
   bracket (Client.newClient transport contents Nothing options Timing.protocolSettings Nothing) Client.dispose (\owned -> action owned input)
 
 stored :: Text -> StoredSession
-stored access = StoredSession access "session-cases" Nothing "refresh-credential" Nothing "https://issuer.test/token"
+stored access = StoredSession {storedSessionAccess = access, storedSessionClientId = "session-cases", storedSessionPersonKey = Nothing, storedSessionRefresh = "refresh-credential", storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "https://issuer.test/token"}
 
 -- | Each thing the session says, as its code: a session error's own, a
 -- transport failure's prefixed, so a row that expects none fails on either.

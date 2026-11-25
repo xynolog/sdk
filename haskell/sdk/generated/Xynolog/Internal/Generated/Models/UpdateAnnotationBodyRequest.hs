@@ -11,11 +11,11 @@ import Xynolog.Internal.Generated.Models.BodyOperation
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data UpdateAnnotationBodyRequest = UpdateAnnotationBodyRequest
-  { updateAnnotationBodyRequestOperations :: [BodyOperation],
-    updateAnnotationBodyRequestResourceId :: ResourceId
+  { updateAnnotationBodyRequestResourceId :: ResourceId,
+    updateAnnotationBodyRequestOperations :: [BodyOperation]
   }
   deriving (Eq, Show)
 
-instance FromJSON UpdateAnnotationBodyRequest where parseJSON = checked "UpdateAnnotationBodyRequest" $ withObject "UpdateAnnotationBodyRequest" (\fields -> UpdateAnnotationBodyRequest <$> (fields .: "operations") <*> (fields .: "resourceId"))
+instance FromJSON UpdateAnnotationBodyRequest where parseJSON = checked "UpdateAnnotationBodyRequest" $ withObject "UpdateAnnotationBodyRequest" (\fields -> UpdateAnnotationBodyRequest <$> (fields .: "resourceId") <*> (fields .: "operations"))
 
-instance ToJSON UpdateAnnotationBodyRequest where toJSON value = Object (KM.fromList (concat [[("operations", toJSON (updateAnnotationBodyRequestOperations value))], [("resourceId", toJSON (updateAnnotationBodyRequestResourceId value))]]))
+instance ToJSON UpdateAnnotationBodyRequest where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (updateAnnotationBodyRequestResourceId value))], [("operations", toJSON (updateAnnotationBodyRequestOperations value))]]))

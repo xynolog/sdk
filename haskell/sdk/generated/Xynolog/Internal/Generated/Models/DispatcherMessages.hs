@@ -12,39 +12,39 @@ import Xynolog.Internal.Generated.Models.FailureClass
 
 data DispatcherMessages = DispatcherMessages
   { dispatcherMessagesComment :: Text,
-    dispatcherMessagesErrors :: [DispatcherMessagesErrorsItem],
-    dispatcherMessagesRefusals :: [DispatcherMessagesRefusalsItem]
+    dispatcherMessagesRefusals :: [DispatcherMessagesRefusalsItem],
+    dispatcherMessagesErrors :: [DispatcherMessagesErrorsItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON DispatcherMessages where parseJSON = checked "DispatcherMessages" $ withObject "DispatcherMessages" (\fields -> DispatcherMessages <$> (fields .: "$comment") <*> (fields .: "errors") <*> (fields .: "refusals"))
+instance FromJSON DispatcherMessages where parseJSON = checked "DispatcherMessages" $ withObject "DispatcherMessages" (\fields -> DispatcherMessages <$> (fields .: "$comment") <*> (fields .: "refusals") <*> (fields .: "errors"))
 
-instance ToJSON DispatcherMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (dispatcherMessagesComment value))], [("errors", toJSON (dispatcherMessagesErrors value))], [("refusals", toJSON (dispatcherMessagesRefusals value))]]))
+instance ToJSON DispatcherMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (dispatcherMessagesComment value))], [("refusals", toJSON (dispatcherMessagesRefusals value))], [("errors", toJSON (dispatcherMessagesErrors value))]]))
 
 data DispatcherMessagesErrorsItem = DispatcherMessagesErrorsItem
-  { dispatcherMessagesErrorsItemError :: Text,
-    dispatcherMessagesErrorsItemFailureClass :: FailureClass,
-    dispatcherMessagesErrorsItemName :: Text,
-    dispatcherMessagesErrorsItemSituation :: Text
+  { dispatcherMessagesErrorsItemName :: Text,
+    dispatcherMessagesErrorsItemSituation :: Text,
+    dispatcherMessagesErrorsItemError :: Text,
+    dispatcherMessagesErrorsItemFailureClass :: FailureClass
   }
   deriving (Eq, Show)
 
-instance FromJSON DispatcherMessagesErrorsItem where parseJSON = checked "DispatcherMessagesErrorsItem" $ withObject "DispatcherMessagesErrorsItem" (\fields -> DispatcherMessagesErrorsItem <$> (fields .: "error") <*> (fields .: "failureClass") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON DispatcherMessagesErrorsItem where parseJSON = checked "DispatcherMessagesErrorsItem" $ withObject "DispatcherMessagesErrorsItem" (\fields -> DispatcherMessagesErrorsItem <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "error") <*> (fields .: "failureClass"))
 
-instance ToJSON DispatcherMessagesErrorsItem where toJSON value = Object (KM.fromList (concat [[("error", toJSON (dispatcherMessagesErrorsItemError value))], [("failureClass", toJSON (dispatcherMessagesErrorsItemFailureClass value))], [("name", toJSON (dispatcherMessagesErrorsItemName value))], [("situation", toJSON (dispatcherMessagesErrorsItemSituation value))]]))
+instance ToJSON DispatcherMessagesErrorsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (dispatcherMessagesErrorsItemName value))], [("situation", toJSON (dispatcherMessagesErrorsItemSituation value))], [("error", toJSON (dispatcherMessagesErrorsItemError value))], [("failureClass", toJSON (dispatcherMessagesErrorsItemFailureClass value))]]))
 
 data DispatcherMessagesRefusalsItem = DispatcherMessagesRefusalsItem
-  { dispatcherMessagesRefusalsItemCode :: Maybe DispatcherMessagesRefusalsItemCode,
-    dispatcherMessagesRefusalsItemMessage :: Text,
-    dispatcherMessagesRefusalsItemName :: Text,
+  { dispatcherMessagesRefusalsItemName :: Text,
     dispatcherMessagesRefusalsItemOperation :: Text,
-    dispatcherMessagesRefusalsItemSituation :: Text
+    dispatcherMessagesRefusalsItemCode :: Maybe DispatcherMessagesRefusalsItemCode,
+    dispatcherMessagesRefusalsItemSituation :: Text,
+    dispatcherMessagesRefusalsItemMessage :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON DispatcherMessagesRefusalsItem where parseJSON = checked "DispatcherMessagesRefusalsItem" $ withObject "DispatcherMessagesRefusalsItem" (\fields -> DispatcherMessagesRefusalsItem <$> optional fields "code" <*> (fields .: "message") <*> (fields .: "name") <*> (fields .: "operation") <*> (fields .: "situation"))
+instance FromJSON DispatcherMessagesRefusalsItem where parseJSON = checked "DispatcherMessagesRefusalsItem" $ withObject "DispatcherMessagesRefusalsItem" (\fields -> DispatcherMessagesRefusalsItem <$> (fields .: "name") <*> (fields .: "operation") <*> optional fields "code" <*> (fields .: "situation") <*> (fields .: "message"))
 
-instance ToJSON DispatcherMessagesRefusalsItem where toJSON value = Object (KM.fromList (concat [optionalPair "code" (dispatcherMessagesRefusalsItemCode value), [("message", toJSON (dispatcherMessagesRefusalsItemMessage value))], [("name", toJSON (dispatcherMessagesRefusalsItemName value))], [("operation", toJSON (dispatcherMessagesRefusalsItemOperation value))], [("situation", toJSON (dispatcherMessagesRefusalsItemSituation value))]]))
+instance ToJSON DispatcherMessagesRefusalsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (dispatcherMessagesRefusalsItemName value))], [("operation", toJSON (dispatcherMessagesRefusalsItemOperation value))], optionalPair "code" (dispatcherMessagesRefusalsItemCode value), [("situation", toJSON (dispatcherMessagesRefusalsItemSituation value))], [("message", toJSON (dispatcherMessagesRefusalsItemMessage value))]]))
 
 data DispatcherMessagesRefusalsItemCode = DispatcherMessagesRefusalsItemCodePeerUnavailable | DispatcherMessagesRefusalsItemCodeNotFound | DispatcherMessagesRefusalsItemCodeUnauthorized | DispatcherMessagesRefusalsItemCodeNonePending deriving (Eq, Show)
 

@@ -30,15 +30,15 @@ instance FromJSON TabCheckGone where parseJSON = checked "TabCheckGone" $ withOb
 instance ToJSON TabCheckGone where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckGoneVerdict value))]]))
 
 data TabCheckReady = MkTabCheckReady
-  { tabCheckReadyMediaType :: Maybe Text,
+  { tabCheckReadyVerdict :: TabVerdict,
     tabCheckReadyName :: Text,
-    tabCheckReadyVerdict :: TabVerdict
+    tabCheckReadyMediaType :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON TabCheckReady where parseJSON = checked "TabCheckReady" $ withObject "TabCheckReady" (\fields -> MkTabCheckReady <$> optional fields "mediaType" <*> (fields .: "name") <*> (fields .: "verdict"))
+instance FromJSON TabCheckReady where parseJSON = checked "TabCheckReady" $ withObject "TabCheckReady" (\fields -> MkTabCheckReady <$> (fields .: "verdict") <*> (fields .: "name") <*> optional fields "mediaType")
 
-instance ToJSON TabCheckReady where toJSON value = Object (KM.fromList (concat [optionalPair "mediaType" (tabCheckReadyMediaType value), [("name", toJSON (tabCheckReadyName value))], [("verdict", toJSON (tabCheckReadyVerdict value))]]))
+instance ToJSON TabCheckReady where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckReadyVerdict value))], [("name", toJSON (tabCheckReadyName value))], optionalPair "mediaType" (tabCheckReadyMediaType value)]))
 
 data TabCheckUnknown = MkTabCheckUnknown
   { tabCheckUnknownVerdict :: TabVerdict

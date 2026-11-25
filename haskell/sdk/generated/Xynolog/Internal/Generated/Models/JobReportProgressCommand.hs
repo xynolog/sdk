@@ -17,16 +17,16 @@ import Xynolog.Internal.Generated.Models.UserId
 
 data JobReportProgressCommand = JobReportProgressCommand
   { jobReportProgressCommandUserId :: Maybe UserId,
-    jobReportProgressCommandAnnotationId :: Maybe AnnotationId,
-    jobReportProgressCommandAttempt :: Maybe Integer,
+    jobReportProgressCommandResourceId :: ResourceId,
     jobReportProgressCommandJobId :: JobId,
     jobReportProgressCommandJobType :: JobType,
+    jobReportProgressCommandAttempt :: Maybe Integer,
+    jobReportProgressCommandAnnotationId :: Maybe AnnotationId,
     jobReportProgressCommandPercentage :: Scientific,
-    jobReportProgressCommandProgress :: Maybe JobProgress,
-    jobReportProgressCommandResourceId :: ResourceId
+    jobReportProgressCommandProgress :: Maybe JobProgress
   }
   deriving (Eq, Show)
 
-instance FromJSON JobReportProgressCommand where parseJSON = checked "JobReportProgressCommand" $ withObject "JobReportProgressCommand" (\fields -> JobReportProgressCommand <$> optional fields "_userId" <*> optional fields "annotationId" <*> optional fields "attempt" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "percentage") <*> optional fields "progress" <*> (fields .: "resourceId"))
+instance FromJSON JobReportProgressCommand where parseJSON = checked "JobReportProgressCommand" $ withObject "JobReportProgressCommand" (\fields -> JobReportProgressCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "attempt" <*> optional fields "annotationId" <*> (fields .: "percentage") <*> optional fields "progress")
 
-instance ToJSON JobReportProgressCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobReportProgressCommandUserId value), optionalPair "annotationId" (jobReportProgressCommandAnnotationId value), optionalPair "attempt" (jobReportProgressCommandAttempt value), [("jobId", toJSON (jobReportProgressCommandJobId value))], [("jobType", toJSON (jobReportProgressCommandJobType value))], [("percentage", toJSON (jobReportProgressCommandPercentage value))], optionalPair "progress" (jobReportProgressCommandProgress value), [("resourceId", toJSON (jobReportProgressCommandResourceId value))]]))
+instance ToJSON JobReportProgressCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobReportProgressCommandUserId value), [("resourceId", toJSON (jobReportProgressCommandResourceId value))], [("jobId", toJSON (jobReportProgressCommandJobId value))], [("jobType", toJSON (jobReportProgressCommandJobType value))], optionalPair "attempt" (jobReportProgressCommandAttempt value), optionalPair "annotationId" (jobReportProgressCommandAnnotationId value), [("percentage", toJSON (jobReportProgressCommandPercentage value))], optionalPair "progress" (jobReportProgressCommandProgress value)]))

@@ -11,16 +11,16 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationBody
 
 data BindBodyOperation = BindBodyOperation
-  { bindBodyOperationItem :: Maybe AnnotationBody,
-    bindBodyOperationNewItem :: Maybe AnnotationBody,
+  { bindBodyOperationOp :: BindBodyOperationOp,
+    bindBodyOperationItem :: Maybe AnnotationBody,
     bindBodyOperationOldItem :: Maybe AnnotationBody,
-    bindBodyOperationOp :: BindBodyOperationOp
+    bindBodyOperationNewItem :: Maybe AnnotationBody
   }
   deriving (Eq, Show)
 
-instance FromJSON BindBodyOperation where parseJSON = checked "BindBodyOperation" $ withObject "BindBodyOperation" (\fields -> BindBodyOperation <$> optional fields "item" <*> optional fields "newItem" <*> optional fields "oldItem" <*> (fields .: "op"))
+instance FromJSON BindBodyOperation where parseJSON = checked "BindBodyOperation" $ withObject "BindBodyOperation" (\fields -> BindBodyOperation <$> (fields .: "op") <*> optional fields "item" <*> optional fields "oldItem" <*> optional fields "newItem")
 
-instance ToJSON BindBodyOperation where toJSON value = Object (KM.fromList (concat [optionalPair "item" (bindBodyOperationItem value), optionalPair "newItem" (bindBodyOperationNewItem value), optionalPair "oldItem" (bindBodyOperationOldItem value), [("op", toJSON (bindBodyOperationOp value))]]))
+instance ToJSON BindBodyOperation where toJSON value = Object (KM.fromList (concat [[("op", toJSON (bindBodyOperationOp value))], optionalPair "item" (bindBodyOperationItem value), optionalPair "oldItem" (bindBodyOperationOldItem value), optionalPair "newItem" (bindBodyOperationNewItem value)]))
 
 data BindBodyOperationOp = BindBodyOperationOpAdd | BindBodyOperationOpRemove | BindBodyOperationOpReplace deriving (Eq, Show)
 

@@ -227,7 +227,7 @@ httpClockCases root = clockCasesFor
                         ( Bus.request
                             wire
                             Channel.BrowseEventsRequestedOperation
-                            (BrowseEventsRequest Nothing resource Nothing Nothing)
+                            (BrowseEventsRequest {browseEventsRequestLimit = Nothing, browseEventsRequestResourceId = resource, browseEventsRequestType = Nothing, browseEventsRequestUserId = Nothing})
                             (Timing.busRequestTimeoutMs Timing.protocolSettings)
                         ) ::
                         IO (Either BusRequestError BrowseEventsResult)

@@ -10,19 +10,19 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data AgentSoftware = AgentSoftware
-  { agentSoftwareId :: Maybe Text,
-    agentSoftwareType :: AgentSoftwareType,
-    agentSoftwareModel :: Maybe Text,
+  { agentSoftwareType :: AgentSoftwareType,
+    agentSoftwareId :: Maybe Text,
     agentSoftwareName :: Maybe Text,
-    agentSoftwareParameters :: Maybe AgentSoftwareParameters,
     agentSoftwareProvider :: Maybe Text,
+    agentSoftwareModel :: Maybe Text,
+    agentSoftwareParameters :: Maybe AgentSoftwareParameters,
     agentSoftwareAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON AgentSoftware where parseJSON = checked "AgentSoftware" $ withObject "AgentSoftware" (\fields -> AgentSoftware <$> optional fields "@id" <*> (fields .: "@type") <*> optional fields "model" <*> optional fields "name" <*> optional fields "parameters" <*> optional fields "provider" <*> traverse parseJSON (withoutFields ["@id", "@type", "model", "name", "parameters", "provider"] fields))
+instance FromJSON AgentSoftware where parseJSON = checked "AgentSoftware" $ withObject "AgentSoftware" (\fields -> AgentSoftware <$> (fields .: "@type") <*> optional fields "@id" <*> optional fields "name" <*> optional fields "provider" <*> optional fields "model" <*> optional fields "parameters" <*> traverse parseJSON (withoutFields ["@type", "@id", "name", "provider", "model", "parameters"] fields))
 
-instance ToJSON AgentSoftware where toJSON value = Object (KM.fromList (concat [optionalPair "@id" (agentSoftwareId value), [("@type", toJSON (agentSoftwareType value))], optionalPair "model" (agentSoftwareModel value), optionalPair "name" (agentSoftwareName value), optionalPair "parameters" (agentSoftwareParameters value), optionalPair "provider" (agentSoftwareProvider value)]) <> fmap toJSON (withoutFields ["@id", "@type", "model", "name", "parameters", "provider"] (agentSoftwareAdditionalProperties value)))
+instance ToJSON AgentSoftware where toJSON value = Object (KM.fromList (concat [[("@type", toJSON (agentSoftwareType value))], optionalPair "@id" (agentSoftwareId value), optionalPair "name" (agentSoftwareName value), optionalPair "provider" (agentSoftwareProvider value), optionalPair "model" (agentSoftwareModel value), optionalPair "parameters" (agentSoftwareParameters value)]) <> fmap toJSON (withoutFields ["@type", "@id", "name", "provider", "model", "parameters"] (agentSoftwareAdditionalProperties value)))
 
 data AgentSoftwareParameters = AgentSoftwareParameters
   { agentSoftwareParametersAdditionalProperties :: KM.KeyMap Value

@@ -13,12 +13,12 @@ import Xynolog.Internal.Generated.Models.UserId
 
 data MarkArchiveCommand = MarkArchiveCommand
   { markArchiveCommandUserId :: Maybe UserId,
-    markArchiveCommandKeepFile :: Maybe Bool,
     markArchiveCommandResourceId :: ResourceId,
-    markArchiveCommandStorageUri :: Maybe Text
+    markArchiveCommandStorageUri :: Maybe Text,
+    markArchiveCommandKeepFile :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkArchiveCommand where parseJSON = checked "MarkArchiveCommand" $ withObject "MarkArchiveCommand" (\fields -> MarkArchiveCommand <$> optional fields "_userId" <*> optional fields "keepFile" <*> (fields .: "resourceId") <*> optional fields "storageUri")
+instance FromJSON MarkArchiveCommand where parseJSON = checked "MarkArchiveCommand" $ withObject "MarkArchiveCommand" (\fields -> MarkArchiveCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> optional fields "storageUri" <*> optional fields "keepFile")
 
-instance ToJSON MarkArchiveCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markArchiveCommandUserId value), optionalPair "keepFile" (markArchiveCommandKeepFile value), [("resourceId", toJSON (markArchiveCommandResourceId value))], optionalPair "storageUri" (markArchiveCommandStorageUri value)]))
+instance ToJSON MarkArchiveCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markArchiveCommandUserId value), [("resourceId", toJSON (markArchiveCommandResourceId value))], optionalPair "storageUri" (markArchiveCommandStorageUri value), optionalPair "keepFile" (markArchiveCommandKeepFile value)]))

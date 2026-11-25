@@ -36,11 +36,11 @@ optional fields key = traverse decode (KM.lookup key fields)
 failure :: SomeException -> Maybe ConformanceFailure
 failure exception
   | Just problem <- fromException exception =
-      Just (ConformanceFailure (Just (Code.transportCode (transportErrorCode problem))) (transportErrorMessage problem) Nothing (toInteger <$> httpStatus problem))
+      Just (ConformanceFailure {conformanceFailureCode = (Just (Code.transportCode (transportErrorCode problem))), conformanceFailureDetail = (transportErrorMessage problem), conformanceFailureFailureClass = Nothing, conformanceFailureStatus = (toInteger <$> httpStatus problem)})
   | Just problem <- fromException exception =
-      Just (ConformanceFailure (Just (Code.busRequestCode (busRequestErrorCode problem))) (busRequestErrorMessage problem) Nothing Nothing)
+      Just (ConformanceFailure {conformanceFailureCode = (Just (Code.busRequestCode (busRequestErrorCode problem))), conformanceFailureDetail = (busRequestErrorMessage problem), conformanceFailureFailureClass = Nothing, conformanceFailureStatus = Nothing})
   | Just problem <- fromException exception =
-      Just (ConformanceFailure (Just (Code.jobCode (Delegation.jobErrorCode problem))) (Text.pack (show problem)) (Delegation.jobErrorFailureClass problem) Nothing)
+      Just (ConformanceFailure {conformanceFailureCode = (Just (Code.jobCode (Delegation.jobErrorCode problem))), conformanceFailureDetail = (Text.pack (show problem)), conformanceFailureFailureClass = (Delegation.jobErrorFailureClass problem), conformanceFailureStatus = Nothing})
   | otherwise = Nothing
 
 -- A line is written whole or not at all: a thread cancelled between a line's text and its newline would leave the
@@ -70,8 +70,8 @@ answerValue identifier outcome = case outcome of
   Left problem
     | Just issue <- (fromException problem :: Maybe Worker.WorkerError) -> Right (misuse (Text.pack (show issue)))
     | Just (Misuse reason) <- fromException problem -> Right (misuse (Text.pack reason))
-    | Just AsyncCancelled <- fromException problem -> Right (ConformanceDriverLineAbandoned (MkConformanceDriverLineAbandoned ConformanceDriverLineAbandonedAbandonedTrue identifier))
-    | Just value <- failure problem -> Right (ConformanceDriverLineFailed (MkConformanceDriverLineFailed value identifier))
+    | Just AsyncCancelled <- fromException problem -> Right (ConformanceDriverLineAbandoned (MkConformanceDriverLineAbandoned {conformanceDriverLineAbandonedAbandoned = ConformanceDriverLineAbandonedAbandonedTrue, conformanceDriverLineAbandonedId = identifier}))
+    | Just value <- failure problem -> Right (ConformanceDriverLineFailed (MkConformanceDriverLineFailed {conformanceDriverLineFailedError = value, conformanceDriverLineFailedId = identifier}))
     | otherwise -> Left problem
   where
     misuse reason = ConformanceDriverLineMisuse (MkConformanceDriverLineMisuse identifier reason)

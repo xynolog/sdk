@@ -10,15 +10,15 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data TextPositionSelector = TextPositionSelector
-  { textPositionSelectorEnd :: Integer,
+  { textPositionSelectorType :: TextPositionSelectorType,
     textPositionSelectorStart :: Integer,
-    textPositionSelectorType :: TextPositionSelectorType
+    textPositionSelectorEnd :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON TextPositionSelector where parseJSON = checked "TextPositionSelector" $ withObject "TextPositionSelector" (\fields -> TextPositionSelector <$> (fields .: "end") <*> (fields .: "start") <*> (fields .: "type"))
+instance FromJSON TextPositionSelector where parseJSON = checked "TextPositionSelector" $ withObject "TextPositionSelector" (\fields -> TextPositionSelector <$> (fields .: "type") <*> (fields .: "start") <*> (fields .: "end"))
 
-instance ToJSON TextPositionSelector where toJSON value = Object (KM.fromList (concat [[("end", toJSON (textPositionSelectorEnd value))], [("start", toJSON (textPositionSelectorStart value))], [("type", toJSON (textPositionSelectorType value))]]))
+instance ToJSON TextPositionSelector where toJSON value = Object (KM.fromList (concat [[("type", toJSON (textPositionSelectorType value))], [("start", toJSON (textPositionSelectorStart value))], [("end", toJSON (textPositionSelectorEnd value))]]))
 
 data TextPositionSelectorType = TextPositionSelectorTypeTextPositionSelector deriving (Eq, Show)
 

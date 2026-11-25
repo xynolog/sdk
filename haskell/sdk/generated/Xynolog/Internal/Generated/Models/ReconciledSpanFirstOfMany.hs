@@ -11,17 +11,17 @@ import Xynolog.Internal.Codec
 
 data ReconciledSpanFirstOfMany = ReconciledSpanFirstOfMany
   { reconciledSpanFirstOfManyAnchorMethod :: ReconciledSpanFirstOfManyAnchorMethod,
+    reconciledSpanFirstOfManyStart :: Integer,
     reconciledSpanFirstOfManyEnd :: Integer,
     reconciledSpanFirstOfManyExact :: Text,
     reconciledSpanFirstOfManyPrefix :: Maybe Text,
-    reconciledSpanFirstOfManyStart :: Integer,
     reconciledSpanFirstOfManySuffix :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ReconciledSpanFirstOfMany where parseJSON = checked "ReconciledSpanFirstOfMany" $ withObject "ReconciledSpanFirstOfMany" (\fields -> ReconciledSpanFirstOfMany <$> (fields .: "anchorMethod") <*> (fields .: "end") <*> (fields .: "exact") <*> optional fields "prefix" <*> (fields .: "start") <*> optional fields "suffix")
+instance FromJSON ReconciledSpanFirstOfMany where parseJSON = checked "ReconciledSpanFirstOfMany" $ withObject "ReconciledSpanFirstOfMany" (\fields -> ReconciledSpanFirstOfMany <$> (fields .: "anchorMethod") <*> (fields .: "start") <*> (fields .: "end") <*> (fields .: "exact") <*> optional fields "prefix" <*> optional fields "suffix")
 
-instance ToJSON ReconciledSpanFirstOfMany where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanFirstOfManyAnchorMethod value))], [("end", toJSON (reconciledSpanFirstOfManyEnd value))], [("exact", toJSON (reconciledSpanFirstOfManyExact value))], optionalPair "prefix" (reconciledSpanFirstOfManyPrefix value), [("start", toJSON (reconciledSpanFirstOfManyStart value))], optionalPair "suffix" (reconciledSpanFirstOfManySuffix value)]))
+instance ToJSON ReconciledSpanFirstOfMany where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanFirstOfManyAnchorMethod value))], [("start", toJSON (reconciledSpanFirstOfManyStart value))], [("end", toJSON (reconciledSpanFirstOfManyEnd value))], [("exact", toJSON (reconciledSpanFirstOfManyExact value))], optionalPair "prefix" (reconciledSpanFirstOfManyPrefix value), optionalPair "suffix" (reconciledSpanFirstOfManySuffix value)]))
 
 data ReconciledSpanFirstOfManyAnchorMethod = ReconciledSpanFirstOfManyAnchorMethodFirstOfMany deriving (Eq, Show)
 

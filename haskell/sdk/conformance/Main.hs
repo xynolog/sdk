@@ -184,7 +184,7 @@ upload driver identifier progress args = do
   let notice (UploadProgress sent total) =
         when progress
           $ say driver
-          $ ConformanceDriverLineProgress (MkConformanceDriverLineProgress (ConformanceDriverLineProgressProgress sent total identifier))
+          $ ConformanceDriverLineProgress (MkConformanceDriverLineProgress (ConformanceDriverLineProgressProgress {conformanceDriverLineProgressProgressBytesUploaded = sent, conformanceDriverLineProgressProgressTotalBytes = total, conformanceDriverLineProgressProgressUpload = identifier}))
       notice _ = pure ()
   created <- Content.putBinary (Http.content http) Nothing metadata (Content.bytesBody bytes) notice
   pure (toJSON created)
@@ -343,7 +343,7 @@ workerPerform driver identifier operation args = case operation of
       ready
         >> Stream.mapM_
           ( \refusal ->
-              say driver (ConformanceDriverLineRefused (MkConformanceDriverLineRefused (ConformanceFailure (Code.busRequestCode <$> claimRefusalCode refusal) (claimRefusalMessage refusal) Nothing Nothing)))
+              say driver (ConformanceDriverLineRefused (MkConformanceDriverLineRefused (ConformanceFailure {conformanceFailureCode = (Code.busRequestCode <$> claimRefusalCode refusal), conformanceFailureDetail = (claimRefusalMessage refusal), conformanceFailureFailureClass = Nothing, conformanceFailureStatus = Nothing})))
           )
           events
     reporter driver $ \ready -> Worker.stalled worker $ \events -> ready >> Stream.mapM_ (\event -> say driver (ConformanceDriverLineStalled (MkConformanceDriverLineStalled (jobIdValue (heldJobStallJobId event))))) events
@@ -424,7 +424,7 @@ frameLine :: BusFrame -> ConformanceDriverLine
 frameLine frame =
   ConformanceDriverLineFrame
     ( MkConformanceDriverLineFrame
-        (ConformanceDriverLineFrameFrame (busFrameChannel frame) (busFrameCorrelationId frame) (Just (toJSON (busFramePayload frame))) (busFrameScope frame))
+        (ConformanceDriverLineFrameFrame {conformanceDriverLineFrameFrameChannel = (busFrameChannel frame), conformanceDriverLineFrameFrameCorrelationId = (busFrameCorrelationId frame), conformanceDriverLineFrameFramePayload = (Just (toJSON (busFramePayload frame))), conformanceDriverLineFrameFrameScope = (busFrameScope frame)})
     )
 
 serve :: Driver -> IO ()

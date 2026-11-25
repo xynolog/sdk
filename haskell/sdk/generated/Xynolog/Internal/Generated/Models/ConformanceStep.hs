@@ -158,17 +158,17 @@ instance FromJSON ConformanceStepCompletes where parseJSON = checked "Conformanc
 instance ToJSON ConformanceStepCompletes where toJSON value = Object (KM.fromList (concat [[("completes", toJSON (conformanceStepCompletesCompletes value))]]))
 
 data ConformanceStepDriver = MkConformanceStepDriver
-  { conformanceStepDriverAs :: Maybe Text,
-    conformanceStepDriverDriver :: Text,
-    conformanceStepDriverFails :: Maybe Value,
+  { conformanceStepDriverDriver :: Text,
+    conformanceStepDriverWith :: Maybe ConformanceStepDriverWith,
     conformanceStepDriverReturns :: Maybe Value,
-    conformanceStepDriverWith :: Maybe ConformanceStepDriverWith
+    conformanceStepDriverFails :: Maybe Value,
+    conformanceStepDriverAs :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepDriver where parseJSON = checked "ConformanceStepDriver" $ withObject "ConformanceStepDriver" (\fields -> MkConformanceStepDriver <$> optional fields "as" <*> (fields .: "driver") <*> optional fields "fails" <*> optional fields "returns" <*> optional fields "with")
+instance FromJSON ConformanceStepDriver where parseJSON = checked "ConformanceStepDriver" $ withObject "ConformanceStepDriver" (\fields -> MkConformanceStepDriver <$> (fields .: "driver") <*> optional fields "with" <*> optional fields "returns" <*> optional fields "fails" <*> optional fields "as")
 
-instance ToJSON ConformanceStepDriver where toJSON value = Object (KM.fromList (concat [optionalPair "as" (conformanceStepDriverAs value), [("driver", toJSON (conformanceStepDriverDriver value))], optionalPair "fails" (conformanceStepDriverFails value), optionalPair "returns" (conformanceStepDriverReturns value), optionalPair "with" (conformanceStepDriverWith value)]))
+instance ToJSON ConformanceStepDriver where toJSON value = Object (KM.fromList (concat [[("driver", toJSON (conformanceStepDriverDriver value))], optionalPair "with" (conformanceStepDriverWith value), optionalPair "returns" (conformanceStepDriverReturns value), optionalPair "fails" (conformanceStepDriverFails value), optionalPair "as" (conformanceStepDriverAs value)]))
 
 data ConformanceStepDriverWith = ConformanceStepDriverWith
   { conformanceStepDriverWithAdditionalProperties :: KM.KeyMap Value
@@ -216,14 +216,14 @@ instance FromJSON ConformanceStepFrame where parseJSON = checked "ConformanceSte
 instance ToJSON ConformanceStepFrame where toJSON value = Object (KM.fromList (concat [[("frame", toJSON (conformanceStepFrameFrame value))], [("is", toJSON (conformanceStepFrameIs value))]]))
 
 data ConformanceStepFrames = MkConformanceStepFrames
-  { conformanceStepFramesCount :: Integer,
-    conformanceStepFramesFrames :: Text
+  { conformanceStepFramesFrames :: Text,
+    conformanceStepFramesCount :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepFrames where parseJSON = checked "ConformanceStepFrames" $ withObject "ConformanceStepFrames" (\fields -> MkConformanceStepFrames <$> (fields .: "count") <*> (fields .: "frames"))
+instance FromJSON ConformanceStepFrames where parseJSON = checked "ConformanceStepFrames" $ withObject "ConformanceStepFrames" (\fields -> MkConformanceStepFrames <$> (fields .: "frames") <*> (fields .: "count"))
 
-instance ToJSON ConformanceStepFrames where toJSON value = Object (KM.fromList (concat [[("count", toJSON (conformanceStepFramesCount value))], [("frames", toJSON (conformanceStepFramesFrames value))]]))
+instance ToJSON ConformanceStepFrames where toJSON value = Object (KM.fromList (concat [[("frames", toJSON (conformanceStepFramesFrames value))], [("count", toJSON (conformanceStepFramesCount value))]]))
 
 data ConformanceStepHolds = MkConformanceStepHolds
   { conformanceStepHoldsHolds :: Text,
@@ -263,27 +263,27 @@ instance FromJSON ConformanceStepLetLet where parseJSON = checked "ConformanceSt
 instance ToJSON ConformanceStepLetLet where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceStepLetLetAdditionalProperties value)))
 
 data ConformanceStepObserve = MkConformanceStepObserve
-  { conformanceStepObserveAs :: Text,
-    conformanceStepObserveObserve :: ConformanceStepObserveObserve
+  { conformanceStepObserveObserve :: ConformanceStepObserveObserve,
+    conformanceStepObserveAs :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepObserve where parseJSON = checked "ConformanceStepObserve" $ withObject "ConformanceStepObserve" (\fields -> MkConformanceStepObserve <$> (fields .: "as") <*> (fields .: "observe"))
+instance FromJSON ConformanceStepObserve where parseJSON = checked "ConformanceStepObserve" $ withObject "ConformanceStepObserve" (\fields -> MkConformanceStepObserve <$> (fields .: "observe") <*> (fields .: "as"))
 
-instance ToJSON ConformanceStepObserve where toJSON value = Object (KM.fromList (concat [[("as", toJSON (conformanceStepObserveAs value))], [("observe", toJSON (conformanceStepObserveObserve value))]]))
+instance ToJSON ConformanceStepObserve where toJSON value = Object (KM.fromList (concat [[("observe", toJSON (conformanceStepObserveObserve value))], [("as", toJSON (conformanceStepObserveAs value))]]))
 
 data ConformanceStepObserveObserve = ConformanceStepObserveObserve
-  { conformanceStepObserveObserveAnnotation :: Maybe Value,
-    conformanceStepObserveObserveFilters :: Maybe Value,
-    conformanceStepObserveObserveQuery :: Text,
+  { conformanceStepObserveObserveQuery :: Text,
     conformanceStepObserveObserveResource :: Maybe Value,
-    conformanceStepObserveObserveSearch :: Maybe Value
+    conformanceStepObserveObserveAnnotation :: Maybe Value,
+    conformanceStepObserveObserveSearch :: Maybe Value,
+    conformanceStepObserveObserveFilters :: Maybe Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepObserveObserve where parseJSON = checked "ConformanceStepObserveObserve" $ withObject "ConformanceStepObserveObserve" (\fields -> ConformanceStepObserveObserve <$> optional fields "annotation" <*> optional fields "filters" <*> (fields .: "query") <*> optional fields "resource" <*> optional fields "search")
+instance FromJSON ConformanceStepObserveObserve where parseJSON = checked "ConformanceStepObserveObserve" $ withObject "ConformanceStepObserveObserve" (\fields -> ConformanceStepObserveObserve <$> (fields .: "query") <*> optional fields "resource" <*> optional fields "annotation" <*> optional fields "search" <*> optional fields "filters")
 
-instance ToJSON ConformanceStepObserveObserve where toJSON value = Object (KM.fromList (concat [optionalPair "annotation" (conformanceStepObserveObserveAnnotation value), optionalPair "filters" (conformanceStepObserveObserveFilters value), [("query", toJSON (conformanceStepObserveObserveQuery value))], optionalPair "resource" (conformanceStepObserveObserveResource value), optionalPair "search" (conformanceStepObserveObserveSearch value)]))
+instance ToJSON ConformanceStepObserveObserve where toJSON value = Object (KM.fromList (concat [[("query", toJSON (conformanceStepObserveObserveQuery value))], optionalPair "resource" (conformanceStepObserveObserveResource value), optionalPair "annotation" (conformanceStepObserveObserveAnnotation value), optionalPair "search" (conformanceStepObserveObserveSearch value), optionalPair "filters" (conformanceStepObserveObserveFilters value)]))
 
 data ConformanceStepProgress = MkConformanceStepProgress
   { conformanceStepProgressProgress :: Text
@@ -332,16 +332,16 @@ instance FromJSON ConformanceStepScopes where parseJSON = checked "ConformanceSt
 instance ToJSON ConformanceStepScopes where toJSON value = Object (KM.fromList (concat [[("scopes", toJSON (conformanceStepScopesScopes value))]]))
 
 data ConformanceStepSettles = MkConformanceStepSettles
-  { conformanceStepSettlesAbandoned :: Maybe ConformanceStepSettlesAbandoned,
-    conformanceStepSettlesFails :: Maybe Value,
+  { conformanceStepSettlesSettles :: Text,
     conformanceStepSettlesReturns :: Maybe Value,
-    conformanceStepSettlesSettles :: Text
+    conformanceStepSettlesFails :: Maybe Value,
+    conformanceStepSettlesAbandoned :: Maybe ConformanceStepSettlesAbandoned
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepSettles where parseJSON = checked "ConformanceStepSettles" $ withObject "ConformanceStepSettles" (\fields -> MkConformanceStepSettles <$> optional fields "abandoned" <*> optional fields "fails" <*> optional fields "returns" <*> (fields .: "settles"))
+instance FromJSON ConformanceStepSettles where parseJSON = checked "ConformanceStepSettles" $ withObject "ConformanceStepSettles" (\fields -> MkConformanceStepSettles <$> (fields .: "settles") <*> optional fields "returns" <*> optional fields "fails" <*> optional fields "abandoned")
 
-instance ToJSON ConformanceStepSettles where toJSON value = Object (KM.fromList (concat [optionalPair "abandoned" (conformanceStepSettlesAbandoned value), optionalPair "fails" (conformanceStepSettlesFails value), optionalPair "returns" (conformanceStepSettlesReturns value), [("settles", toJSON (conformanceStepSettlesSettles value))]]))
+instance ToJSON ConformanceStepSettles where toJSON value = Object (KM.fromList (concat [[("settles", toJSON (conformanceStepSettlesSettles value))], optionalPair "returns" (conformanceStepSettlesReturns value), optionalPair "fails" (conformanceStepSettlesFails value), optionalPair "abandoned" (conformanceStepSettlesAbandoned value)]))
 
 data ConformanceStepSettlesAbandoned = ConformanceStepSettlesAbandonedTrue deriving (Eq, Show)
 
@@ -430,23 +430,23 @@ conformanceStepStaysStaysText ConformanceStepStaysStaysUnauthenticated = "unauth
 conformanceStepStaysStaysText ConformanceStepStaysStaysClosed = "closed"
 
 data ConformanceStepWire = MkConformanceStepWire
-  { conformanceStepWireAnswer :: Maybe Value,
-    conformanceStepWireAs :: Maybe Text,
+  { conformanceStepWireWire :: Text,
     conformanceStepWireAt :: Maybe ConformanceStepWireAt,
-    conformanceStepWireBody :: Maybe Value,
-    conformanceStepWireFollows :: Maybe Text,
-    conformanceStepWireHeaders :: Maybe ConformanceStepWireHeaders,
-    conformanceStepWireParams :: Maybe Value,
     conformanceStepWireStatus :: Maybe Integer,
+    conformanceStepWireParams :: Maybe Value,
+    conformanceStepWireBody :: Maybe Value,
     conformanceStepWireToken :: Maybe Value,
-    conformanceStepWireWaited :: Maybe Text,
-    conformanceStepWireWire :: Text
+    conformanceStepWireHeaders :: Maybe ConformanceStepWireHeaders,
+    conformanceStepWireAnswer :: Maybe Value,
+    conformanceStepWireAs :: Maybe Text,
+    conformanceStepWireFollows :: Maybe Text,
+    conformanceStepWireWaited :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceStepWire where parseJSON = checked "ConformanceStepWire" $ withObject "ConformanceStepWire" (\fields -> MkConformanceStepWire <$> optional fields "answer" <*> optional fields "as" <*> optional fields "at" <*> optional fields "body" <*> optional fields "follows" <*> optional fields "headers" <*> optional fields "params" <*> optional fields "status" <*> optional fields "token" <*> optional fields "waited" <*> (fields .: "wire"))
+instance FromJSON ConformanceStepWire where parseJSON = checked "ConformanceStepWire" $ withObject "ConformanceStepWire" (\fields -> MkConformanceStepWire <$> (fields .: "wire") <*> optional fields "at" <*> optional fields "status" <*> optional fields "params" <*> optional fields "body" <*> optional fields "token" <*> optional fields "headers" <*> optional fields "answer" <*> optional fields "as" <*> optional fields "follows" <*> optional fields "waited")
 
-instance ToJSON ConformanceStepWire where toJSON value = Object (KM.fromList (concat [optionalPair "answer" (conformanceStepWireAnswer value), optionalPair "as" (conformanceStepWireAs value), optionalPair "at" (conformanceStepWireAt value), optionalPair "body" (conformanceStepWireBody value), optionalPair "follows" (conformanceStepWireFollows value), optionalPair "headers" (conformanceStepWireHeaders value), optionalPair "params" (conformanceStepWireParams value), optionalPair "status" (conformanceStepWireStatus value), optionalPair "token" (conformanceStepWireToken value), optionalPair "waited" (conformanceStepWireWaited value), [("wire", toJSON (conformanceStepWireWire value))]]))
+instance ToJSON ConformanceStepWire where toJSON value = Object (KM.fromList (concat [[("wire", toJSON (conformanceStepWireWire value))], optionalPair "at" (conformanceStepWireAt value), optionalPair "status" (conformanceStepWireStatus value), optionalPair "params" (conformanceStepWireParams value), optionalPair "body" (conformanceStepWireBody value), optionalPair "token" (conformanceStepWireToken value), optionalPair "headers" (conformanceStepWireHeaders value), optionalPair "answer" (conformanceStepWireAnswer value), optionalPair "as" (conformanceStepWireAs value), optionalPair "follows" (conformanceStepWireFollows value), optionalPair "waited" (conformanceStepWireWaited value)]))
 
 data ConformanceStepWireAt = ConformanceStepWireAtArrival | ConformanceStepWireAtAnswer | ConformanceStepWireAtLive deriving (Eq, Show)
 

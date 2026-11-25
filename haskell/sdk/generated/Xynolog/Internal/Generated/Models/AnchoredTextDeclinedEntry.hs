@@ -11,15 +11,15 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ExtractionDeclinedReason
 
 data AnchoredTextDeclinedEntry = AnchoredTextDeclinedEntry
-  { anchoredTextDeclinedEntryDeclined :: ExtractionDeclinedReason,
+  { anchoredTextDeclinedEntryV :: AnchoredTextDeclinedEntryV,
     anchoredTextDeclinedEntryStamp :: Text,
-    anchoredTextDeclinedEntryV :: AnchoredTextDeclinedEntryV
+    anchoredTextDeclinedEntryDeclined :: ExtractionDeclinedReason
   }
   deriving (Eq, Show)
 
-instance FromJSON AnchoredTextDeclinedEntry where parseJSON = checked "AnchoredTextDeclinedEntry" $ withObject "AnchoredTextDeclinedEntry" (\fields -> AnchoredTextDeclinedEntry <$> (fields .: "declined") <*> (fields .: "stamp") <*> (fields .: "v"))
+instance FromJSON AnchoredTextDeclinedEntry where parseJSON = checked "AnchoredTextDeclinedEntry" $ withObject "AnchoredTextDeclinedEntry" (\fields -> AnchoredTextDeclinedEntry <$> (fields .: "v") <*> (fields .: "stamp") <*> (fields .: "declined"))
 
-instance ToJSON AnchoredTextDeclinedEntry where toJSON value = Object (KM.fromList (concat [[("declined", toJSON (anchoredTextDeclinedEntryDeclined value))], [("stamp", toJSON (anchoredTextDeclinedEntryStamp value))], [("v", toJSON (anchoredTextDeclinedEntryV value))]]))
+instance ToJSON AnchoredTextDeclinedEntry where toJSON value = Object (KM.fromList (concat [[("v", toJSON (anchoredTextDeclinedEntryV value))], [("stamp", toJSON (anchoredTextDeclinedEntryStamp value))], [("declined", toJSON (anchoredTextDeclinedEntryDeclined value))]]))
 
 data AnchoredTextDeclinedEntryV = AnchoredTextDeclinedEntryV3 deriving (Eq, Show)
 

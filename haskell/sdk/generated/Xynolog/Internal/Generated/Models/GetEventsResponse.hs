@@ -13,11 +13,11 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data GetEventsResponse = GetEventsResponse
   { getEventsResponseEvents :: [AttributedEvent],
-    getEventsResponseResourceId :: ResourceId,
-    getEventsResponseTotal :: Scientific
+    getEventsResponseTotal :: Scientific,
+    getEventsResponseResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON GetEventsResponse where parseJSON = checked "GetEventsResponse" $ withObject "GetEventsResponse" (\fields -> GetEventsResponse <$> (fields .: "events") <*> (fields .: "resourceId") <*> (fields .: "total"))
+instance FromJSON GetEventsResponse where parseJSON = checked "GetEventsResponse" $ withObject "GetEventsResponse" (\fields -> GetEventsResponse <$> (fields .: "events") <*> (fields .: "total") <*> (fields .: "resourceId"))
 
-instance ToJSON GetEventsResponse where toJSON value = Object (KM.fromList (concat [[("events", toJSON (getEventsResponseEvents value))], [("resourceId", toJSON (getEventsResponseResourceId value))], [("total", toJSON (getEventsResponseTotal value))]]))
+instance ToJSON GetEventsResponse where toJSON value = Object (KM.fromList (concat [[("events", toJSON (getEventsResponseEvents value))], [("total", toJSON (getEventsResponseTotal value))], [("resourceId", toJSON (getEventsResponseResourceId value))]]))

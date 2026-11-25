@@ -147,14 +147,7 @@ asStored value = do
     then Nothing
     else
       pure
-        ( StoredSession
-            (signInToken value)
-            OAuth.scriptClientId
-            Nothing
-            refresh
-            (signInRevocationEndpoint value)
-            (signInTokenEndpoint value)
-        )
+        (StoredSession {storedSessionAccess = (signInToken value), storedSessionClientId = OAuth.scriptClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = (signInRevocationEndpoint value), storedSessionTokenEndpoint = (signInTokenEndpoint value)})
 
 writtenTimes :: SignInStoreOptions -> Text -> IO (Text, Maybe Text)
 writtenTimes options access = do
@@ -183,15 +176,7 @@ entry store@(SignInStore options _ _) identity =
         change store $ \document -> do
           (obtained, expiry) <- writtenTimes options (storedSessionAccess held)
           let written =
-                SignIn
-                  (Tokens.textClaim (storedSessionAccess held) "email")
-                  expiry
-                  issuer
-                  obtained
-                  (Just (storedSessionRefresh held))
-                  (storedSessionRevocationEndpoint held)
-                  (storedSessionAccess held)
-                  (storedSessionTokenEndpoint held)
+                SignIn {signInEmail = (Tokens.textClaim (storedSessionAccess held) "email"), signInExpiresAt = expiry, signInIssuer = issuer, signInObtainedAt = obtained, signInRefreshToken = (Just (storedSessionRefresh held)), signInRevocationEndpoint = (storedSessionRevocationEndpoint held), signInToken = (storedSessionAccess held), signInTokenEndpoint = (storedSessionTokenEndpoint held)}
           pure (Just (KM.insert (Key.fromText identity) (toJSON written) document), ())
     )
     ( \before issued -> change store $ \document -> do

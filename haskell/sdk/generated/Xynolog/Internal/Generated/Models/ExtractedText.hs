@@ -14,19 +14,19 @@ import Xynolog.Internal.Generated.Models.PdfClass
 import Xynolog.Internal.Generated.Models.PdfTextItem
 
 data ExtractedText = ExtractedText
-  { extractedTextItems :: [PdfTextItem],
+  { extractedTextText :: Text,
+    extractedTextItems :: [PdfTextItem],
     extractedTextKind :: ExtractedTextKind,
     extractedTextMethod :: ExtractionMethod,
-    extractedTextOcrConfidence :: Maybe OcrConfidence,
     extractedTextPdfClass :: Maybe PdfClass,
-    extractedTextText :: Text,
+    extractedTextOcrConfidence :: Maybe OcrConfidence,
     extractedTextUnreadPages :: Maybe [Integer]
   }
   deriving (Eq, Show)
 
-instance FromJSON ExtractedText where parseJSON = checked "ExtractedText" $ withObject "ExtractedText" (\fields -> ExtractedText <$> (fields .: "items") <*> (fields .: "kind") <*> (fields .: "method") <*> optional fields "ocrConfidence" <*> optional fields "pdfClass" <*> (fields .: "text") <*> optional fields "unreadPages")
+instance FromJSON ExtractedText where parseJSON = checked "ExtractedText" $ withObject "ExtractedText" (\fields -> ExtractedText <$> (fields .: "text") <*> (fields .: "items") <*> (fields .: "kind") <*> (fields .: "method") <*> optional fields "pdfClass" <*> optional fields "ocrConfidence" <*> optional fields "unreadPages")
 
-instance ToJSON ExtractedText where toJSON value = Object (KM.fromList (concat [[("items", toJSON (extractedTextItems value))], [("kind", toJSON (extractedTextKind value))], [("method", toJSON (extractedTextMethod value))], optionalPair "ocrConfidence" (extractedTextOcrConfidence value), optionalPair "pdfClass" (extractedTextPdfClass value), [("text", toJSON (extractedTextText value))], optionalPair "unreadPages" (extractedTextUnreadPages value)]))
+instance ToJSON ExtractedText where toJSON value = Object (KM.fromList (concat [[("text", toJSON (extractedTextText value))], [("items", toJSON (extractedTextItems value))], [("kind", toJSON (extractedTextKind value))], [("method", toJSON (extractedTextMethod value))], optionalPair "pdfClass" (extractedTextPdfClass value), optionalPair "ocrConfidence" (extractedTextOcrConfidence value), optionalPair "unreadPages" (extractedTextUnreadPages value)]))
 
 data ExtractedTextKind = ExtractedTextKindExtracted deriving (Eq, Show)
 

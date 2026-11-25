@@ -19,22 +19,22 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data Annotation = Annotation
   { annotationContext :: AnnotationContext,
-    annotationBody :: Maybe AnnotationBodies,
-    annotationCreated :: Text,
-    annotationCreator :: Maybe Agent,
-    annotationGenerator :: Maybe OneOrMoreAgents,
+    annotationType :: AnnotationType,
     annotationId :: AnnotationId,
-    annotationModified :: Maybe Text,
     annotationMotivation :: Motivation,
     annotationTarget :: AnnotationTargetValue,
-    annotationType :: AnnotationType,
+    annotationBody :: Maybe AnnotationBodies,
+    annotationCreator :: Maybe Agent,
+    annotationCreated :: Text,
+    annotationModified :: Maybe Text,
+    annotationGenerator :: Maybe OneOrMoreAgents,
     annotationWasAttributedTo :: Maybe OneOrMoreAgents
   }
   deriving (Eq, Show)
 
-instance FromJSON Annotation where parseJSON = checked "Annotation" $ withObject "Annotation" (\fields -> Annotation <$> (fields .: "@context") <*> optional fields "body" <*> (fields .: "created") <*> optional fields "creator" <*> optional fields "generator" <*> (fields .: "id") <*> optional fields "modified" <*> (fields .: "motivation") <*> (fields .: "target") <*> (fields .: "type") <*> optional fields "wasAttributedTo")
+instance FromJSON Annotation where parseJSON = checked "Annotation" $ withObject "Annotation" (\fields -> Annotation <$> (fields .: "@context") <*> (fields .: "type") <*> (fields .: "id") <*> (fields .: "motivation") <*> (fields .: "target") <*> optional fields "body" <*> optional fields "creator" <*> (fields .: "created") <*> optional fields "modified" <*> optional fields "generator" <*> optional fields "wasAttributedTo")
 
-instance ToJSON Annotation where toJSON value = Object (KM.fromList (concat [[("@context", toJSON (annotationContext value))], optionalPair "body" (annotationBody value), [("created", toJSON (annotationCreated value))], optionalPair "creator" (annotationCreator value), optionalPair "generator" (annotationGenerator value), [("id", toJSON (annotationId value))], optionalPair "modified" (annotationModified value), [("motivation", toJSON (annotationMotivation value))], [("target", toJSON (annotationTarget value))], [("type", toJSON (annotationType value))], optionalPair "wasAttributedTo" (annotationWasAttributedTo value)]))
+instance ToJSON Annotation where toJSON value = Object (KM.fromList (concat [[("@context", toJSON (annotationContext value))], [("type", toJSON (annotationType value))], [("id", toJSON (annotationId value))], [("motivation", toJSON (annotationMotivation value))], [("target", toJSON (annotationTarget value))], optionalPair "body" (annotationBody value), optionalPair "creator" (annotationCreator value), [("created", toJSON (annotationCreated value))], optionalPair "modified" (annotationModified value), optionalPair "generator" (annotationGenerator value), optionalPair "wasAttributedTo" (annotationWasAttributedTo value)]))
 
 data AnnotationContext = AnnotationContextHttpWwwW3OrgNsAnnoJsonld deriving (Eq, Show)
 

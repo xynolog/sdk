@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.PdfTextItem
 
 data AnchoredText = AnchoredText
-  { anchoredTextItems :: [PdfTextItem],
-    anchoredTextText :: Text
+  { anchoredTextText :: Text,
+    anchoredTextItems :: [PdfTextItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON AnchoredText where parseJSON = checked "AnchoredText" $ withObject "AnchoredText" (\fields -> AnchoredText <$> (fields .: "items") <*> (fields .: "text"))
+instance FromJSON AnchoredText where parseJSON = checked "AnchoredText" $ withObject "AnchoredText" (\fields -> AnchoredText <$> (fields .: "text") <*> (fields .: "items"))
 
-instance ToJSON AnchoredText where toJSON value = Object (KM.fromList (concat [[("items", toJSON (anchoredTextItems value))], [("text", toJSON (anchoredTextText value))]]))
+instance ToJSON AnchoredText where toJSON value = Object (KM.fromList (concat [[("text", toJSON (anchoredTextText value))], [("items", toJSON (anchoredTextItems value))]]))

@@ -12,12 +12,12 @@ import Xynolog.Internal.Generated.Models.JobFilter
 import Xynolog.Internal.Generated.Models.UserId
 
 data JobClaimCommand = JobClaimCommand
-  { jobClaimCommandRoles :: Maybe [Text],
+  { jobClaimCommandAccepts :: [JobFilter],
     jobClaimCommandUserId :: Maybe UserId,
-    jobClaimCommandAccepts :: [JobFilter]
+    jobClaimCommandRoles :: Maybe [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON JobClaimCommand where parseJSON = checked "JobClaimCommand" $ withObject "JobClaimCommand" (\fields -> JobClaimCommand <$> optional fields "_roles" <*> optional fields "_userId" <*> (fields .: "accepts"))
+instance FromJSON JobClaimCommand where parseJSON = checked "JobClaimCommand" $ withObject "JobClaimCommand" (\fields -> JobClaimCommand <$> (fields .: "accepts") <*> optional fields "_userId" <*> optional fields "_roles")
 
-instance ToJSON JobClaimCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (jobClaimCommandRoles value), optionalPair "_userId" (jobClaimCommandUserId value), [("accepts", toJSON (jobClaimCommandAccepts value))]]))
+instance ToJSON JobClaimCommand where toJSON value = Object (KM.fromList (concat [[("accepts", toJSON (jobClaimCommandAccepts value))], optionalPair "_userId" (jobClaimCommandUserId value), optionalPair "_roles" (jobClaimCommandRoles value)]))

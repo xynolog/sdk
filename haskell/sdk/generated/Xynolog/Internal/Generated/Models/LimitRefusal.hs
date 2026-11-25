@@ -10,16 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data LimitRefusal = LimitRefusal
-  { limitRefusalCode :: LimitRefusalCode,
-    limitRefusalDetails :: Maybe Value,
-    limitRefusalError :: Text,
-    limitRefusalHint :: Maybe Text
+  { limitRefusalError :: Text,
+    limitRefusalCode :: LimitRefusalCode,
+    limitRefusalHint :: Maybe Text,
+    limitRefusalDetails :: Maybe Value
   }
   deriving (Eq, Show)
 
-instance FromJSON LimitRefusal where parseJSON = checked "LimitRefusal" $ withObject "LimitRefusal" (\fields -> LimitRefusal <$> (fields .: "code") <*> optional fields "details" <*> (fields .: "error") <*> optional fields "hint")
+instance FromJSON LimitRefusal where parseJSON = checked "LimitRefusal" $ withObject "LimitRefusal" (\fields -> LimitRefusal <$> (fields .: "error") <*> (fields .: "code") <*> optional fields "hint" <*> optional fields "details")
 
-instance ToJSON LimitRefusal where toJSON value = Object (KM.fromList (concat [[("code", toJSON (limitRefusalCode value))], optionalPair "details" (limitRefusalDetails value), [("error", toJSON (limitRefusalError value))], optionalPair "hint" (limitRefusalHint value)]))
+instance ToJSON LimitRefusal where toJSON value = Object (KM.fromList (concat [[("error", toJSON (limitRefusalError value))], [("code", toJSON (limitRefusalCode value))], optionalPair "hint" (limitRefusalHint value), optionalPair "details" (limitRefusalDetails value)]))
 
 data LimitRefusalCode = LimitRefusalCodeStreams | LimitRefusalCodeEmitRate | LimitRefusalCodeUnansweredRequests | LimitRefusalCodeCapacity | LimitRefusalCodeRefusalRate deriving (Eq, Show)
 

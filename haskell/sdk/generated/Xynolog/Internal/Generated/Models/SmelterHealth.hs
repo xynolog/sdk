@@ -14,60 +14,60 @@ import Xynolog.Internal.Generated.Models.SmelterChunking
 import Xynolog.Internal.Generated.Models.SmelterReconcileSummary
 
 data SmelterHealth = SmelterHealth
-  { smelterHealthEventsProcessed :: Integer,
-    smelterHealthFollowing :: FollowerFollowing,
-    smelterHealthIndex :: SmelterHealthIndex,
+  { smelterHealthStatus :: SmelterHealthStatus,
     smelterHealthKb :: KbDid,
+    smelterHealthStream :: SmelterHealthStream,
+    smelterHealthFollowing :: FollowerFollowing,
+    smelterHealthEventsProcessed :: Integer,
     smelterHealthReconcile :: SmelterHealthReconcile,
-    smelterHealthStatus :: SmelterHealthStatus,
-    smelterHealthStream :: SmelterHealthStream
+    smelterHealthIndex :: SmelterHealthIndex
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterHealth where parseJSON = checked "SmelterHealth" $ withObject "SmelterHealth" (\fields -> SmelterHealth <$> (fields .: "eventsProcessed") <*> (fields .: "following") <*> (fields .: "index") <*> (fields .: "kb") <*> (fields .: "reconcile") <*> (fields .: "status") <*> (fields .: "stream"))
+instance FromJSON SmelterHealth where parseJSON = checked "SmelterHealth" $ withObject "SmelterHealth" (\fields -> SmelterHealth <$> (fields .: "status") <*> (fields .: "kb") <*> (fields .: "stream") <*> (fields .: "following") <*> (fields .: "eventsProcessed") <*> (fields .: "reconcile") <*> (fields .: "index"))
 
-instance ToJSON SmelterHealth where toJSON value = Object (KM.fromList (concat [[("eventsProcessed", toJSON (smelterHealthEventsProcessed value))], [("following", toJSON (smelterHealthFollowing value))], [("index", toJSON (smelterHealthIndex value))], [("kb", toJSON (smelterHealthKb value))], [("reconcile", toJSON (smelterHealthReconcile value))], [("status", toJSON (smelterHealthStatus value))], [("stream", toJSON (smelterHealthStream value))]]))
+instance ToJSON SmelterHealth where toJSON value = Object (KM.fromList (concat [[("status", toJSON (smelterHealthStatus value))], [("kb", toJSON (smelterHealthKb value))], [("stream", toJSON (smelterHealthStream value))], [("following", toJSON (smelterHealthFollowing value))], [("eventsProcessed", toJSON (smelterHealthEventsProcessed value))], [("reconcile", toJSON (smelterHealthReconcile value))], [("index", toJSON (smelterHealthIndex value))]]))
 
 data SmelterHealthIndex = SmelterHealthIndex
-  { smelterHealthIndexMadeAnew :: Bool,
-    smelterHealthIndexStamp :: SmelterHealthIndexStamp
+  { smelterHealthIndexStamp :: SmelterHealthIndexStamp,
+    smelterHealthIndexMadeAnew :: Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterHealthIndex where parseJSON = checked "SmelterHealthIndex" $ withObject "SmelterHealthIndex" (\fields -> SmelterHealthIndex <$> (fields .: "madeAnew") <*> (fields .: "stamp"))
+instance FromJSON SmelterHealthIndex where parseJSON = checked "SmelterHealthIndex" $ withObject "SmelterHealthIndex" (\fields -> SmelterHealthIndex <$> (fields .: "stamp") <*> (fields .: "madeAnew"))
 
-instance ToJSON SmelterHealthIndex where toJSON value = Object (KM.fromList (concat [[("madeAnew", toJSON (smelterHealthIndexMadeAnew value))], [("stamp", toJSON (smelterHealthIndexStamp value))]]))
+instance ToJSON SmelterHealthIndex where toJSON value = Object (KM.fromList (concat [[("stamp", toJSON (smelterHealthIndexStamp value))], [("madeAnew", toJSON (smelterHealthIndexMadeAnew value))]]))
 
 data SmelterHealthIndexStamp = SmelterHealthIndexStamp
-  { smelterHealthIndexStampChunking :: SmelterChunking,
-    smelterHealthIndexStampEmbedding :: SmelterHealthIndexStampEmbedding
+  { smelterHealthIndexStampEmbedding :: SmelterHealthIndexStampEmbedding,
+    smelterHealthIndexStampChunking :: SmelterChunking
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterHealthIndexStamp where parseJSON = checked "SmelterHealthIndexStamp" $ withObject "SmelterHealthIndexStamp" (\fields -> SmelterHealthIndexStamp <$> (fields .: "chunking") <*> (fields .: "embedding"))
+instance FromJSON SmelterHealthIndexStamp where parseJSON = checked "SmelterHealthIndexStamp" $ withObject "SmelterHealthIndexStamp" (\fields -> SmelterHealthIndexStamp <$> (fields .: "embedding") <*> (fields .: "chunking"))
 
-instance ToJSON SmelterHealthIndexStamp where toJSON value = Object (KM.fromList (concat [[("chunking", toJSON (smelterHealthIndexStampChunking value))], [("embedding", toJSON (smelterHealthIndexStampEmbedding value))]]))
+instance ToJSON SmelterHealthIndexStamp where toJSON value = Object (KM.fromList (concat [[("embedding", toJSON (smelterHealthIndexStampEmbedding value))], [("chunking", toJSON (smelterHealthIndexStampChunking value))]]))
 
 data SmelterHealthIndexStampEmbedding = SmelterHealthIndexStampEmbedding
-  { smelterHealthIndexStampEmbeddingModel :: Text,
-    smelterHealthIndexStampEmbeddingType :: Text
+  { smelterHealthIndexStampEmbeddingType :: Text,
+    smelterHealthIndexStampEmbeddingModel :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterHealthIndexStampEmbedding where parseJSON = checked "SmelterHealthIndexStampEmbedding" $ withObject "SmelterHealthIndexStampEmbedding" (\fields -> SmelterHealthIndexStampEmbedding <$> (fields .: "model") <*> (fields .: "type"))
+instance FromJSON SmelterHealthIndexStampEmbedding where parseJSON = checked "SmelterHealthIndexStampEmbedding" $ withObject "SmelterHealthIndexStampEmbedding" (\fields -> SmelterHealthIndexStampEmbedding <$> (fields .: "type") <*> (fields .: "model"))
 
-instance ToJSON SmelterHealthIndexStampEmbedding where toJSON value = Object (KM.fromList (concat [[("model", toJSON (smelterHealthIndexStampEmbeddingModel value))], [("type", toJSON (smelterHealthIndexStampEmbeddingType value))]]))
+instance ToJSON SmelterHealthIndexStampEmbedding where toJSON value = Object (KM.fromList (concat [[("type", toJSON (smelterHealthIndexStampEmbeddingType value))], [("model", toJSON (smelterHealthIndexStampEmbeddingModel value))]]))
 
 data SmelterHealthReconcile = SmelterHealthReconcile
-  { smelterHealthReconcileError :: Maybe Text,
-    smelterHealthReconcilePhase :: SmelterHealthReconcilePhase,
-    smelterHealthReconcileSummary :: Maybe SmelterReconcileSummary
+  { smelterHealthReconcilePhase :: SmelterHealthReconcilePhase,
+    smelterHealthReconcileSummary :: Maybe SmelterReconcileSummary,
+    smelterHealthReconcileError :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterHealthReconcile where parseJSON = checked "SmelterHealthReconcile" $ withObject "SmelterHealthReconcile" (\fields -> SmelterHealthReconcile <$> optional fields "error" <*> (fields .: "phase") <*> optional fields "summary")
+instance FromJSON SmelterHealthReconcile where parseJSON = checked "SmelterHealthReconcile" $ withObject "SmelterHealthReconcile" (\fields -> SmelterHealthReconcile <$> (fields .: "phase") <*> optional fields "summary" <*> optional fields "error")
 
-instance ToJSON SmelterHealthReconcile where toJSON value = Object (KM.fromList (concat [optionalPair "error" (smelterHealthReconcileError value), [("phase", toJSON (smelterHealthReconcilePhase value))], optionalPair "summary" (smelterHealthReconcileSummary value)]))
+instance ToJSON SmelterHealthReconcile where toJSON value = Object (KM.fromList (concat [[("phase", toJSON (smelterHealthReconcilePhase value))], optionalPair "summary" (smelterHealthReconcileSummary value), optionalPair "error" (smelterHealthReconcileError value)]))
 
 data SmelterHealthReconcilePhase = SmelterHealthReconcilePhasePending | SmelterHealthReconcilePhaseRunning | SmelterHealthReconcilePhaseDone | SmelterHealthReconcilePhaseFailed deriving (Eq, Show)
 

@@ -12,13 +12,13 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data BrowseEventsRequest = BrowseEventsRequest
-  { browseEventsRequestLimit :: Maybe Integer,
-    browseEventsRequestResourceId :: ResourceId,
+  { browseEventsRequestResourceId :: ResourceId,
     browseEventsRequestType :: Maybe Text,
-    browseEventsRequestUserId :: Maybe UserId
+    browseEventsRequestUserId :: Maybe UserId,
+    browseEventsRequestLimit :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseEventsRequest where parseJSON = checked "BrowseEventsRequest" $ withObject "BrowseEventsRequest" (\fields -> BrowseEventsRequest <$> optional fields "limit" <*> (fields .: "resourceId") <*> optional fields "type" <*> optional fields "userId")
+instance FromJSON BrowseEventsRequest where parseJSON = checked "BrowseEventsRequest" $ withObject "BrowseEventsRequest" (\fields -> BrowseEventsRequest <$> (fields .: "resourceId") <*> optional fields "type" <*> optional fields "userId" <*> optional fields "limit")
 
-instance ToJSON BrowseEventsRequest where toJSON value = Object (KM.fromList (concat [optionalPair "limit" (browseEventsRequestLimit value), [("resourceId", toJSON (browseEventsRequestResourceId value))], optionalPair "type" (browseEventsRequestType value), optionalPair "userId" (browseEventsRequestUserId value)]))
+instance ToJSON BrowseEventsRequest where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (browseEventsRequestResourceId value))], optionalPair "type" (browseEventsRequestType value), optionalPair "userId" (browseEventsRequestUserId value), optionalPair "limit" (browseEventsRequestLimit value)]))

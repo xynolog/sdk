@@ -11,15 +11,15 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationBody
 
 data BodyOperationReplace = BodyOperationReplace
-  { bodyOperationReplaceNewItem :: AnnotationBody,
+  { bodyOperationReplaceOp :: BodyOperationReplaceOp,
     bodyOperationReplaceOldItem :: AnnotationBody,
-    bodyOperationReplaceOp :: BodyOperationReplaceOp
+    bodyOperationReplaceNewItem :: AnnotationBody
   }
   deriving (Eq, Show)
 
-instance FromJSON BodyOperationReplace where parseJSON = checked "BodyOperationReplace" $ withObject "BodyOperationReplace" (\fields -> BodyOperationReplace <$> (fields .: "newItem") <*> (fields .: "oldItem") <*> (fields .: "op"))
+instance FromJSON BodyOperationReplace where parseJSON = checked "BodyOperationReplace" $ withObject "BodyOperationReplace" (\fields -> BodyOperationReplace <$> (fields .: "op") <*> (fields .: "oldItem") <*> (fields .: "newItem"))
 
-instance ToJSON BodyOperationReplace where toJSON value = Object (KM.fromList (concat [[("newItem", toJSON (bodyOperationReplaceNewItem value))], [("oldItem", toJSON (bodyOperationReplaceOldItem value))], [("op", toJSON (bodyOperationReplaceOp value))]]))
+instance ToJSON BodyOperationReplace where toJSON value = Object (KM.fromList (concat [[("op", toJSON (bodyOperationReplaceOp value))], [("oldItem", toJSON (bodyOperationReplaceOldItem value))], [("newItem", toJSON (bodyOperationReplaceNewItem value))]]))
 
 data BodyOperationReplaceOp = BodyOperationReplaceOpReplace deriving (Eq, Show)
 

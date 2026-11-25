@@ -10,12 +10,12 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data KbDescription = KbDescription
-  { kbDescriptionDomain :: Text,
-    kbDescriptionGitBranch :: Maybe Text,
-    kbDescriptionName :: Text
+  { kbDescriptionName :: Text,
+    kbDescriptionDomain :: Text,
+    kbDescriptionGitBranch :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON KbDescription where parseJSON = checked "KbDescription" $ withObject "KbDescription" (\fields -> KbDescription <$> (fields .: "domain") <*> optional fields "gitBranch" <*> (fields .: "name"))
+instance FromJSON KbDescription where parseJSON = checked "KbDescription" $ withObject "KbDescription" (\fields -> KbDescription <$> (fields .: "name") <*> (fields .: "domain") <*> optional fields "gitBranch")
 
-instance ToJSON KbDescription where toJSON value = Object (KM.fromList (concat [[("domain", toJSON (kbDescriptionDomain value))], optionalPair "gitBranch" (kbDescriptionGitBranch value), [("name", toJSON (kbDescriptionName value))]]))
+instance ToJSON KbDescription where toJSON value = Object (KM.fromList (concat [[("name", toJSON (kbDescriptionName value))], [("domain", toJSON (kbDescriptionDomain value))], optionalPair "gitBranch" (kbDescriptionGitBranch value)]))

@@ -12,13 +12,13 @@ import Xynolog.Internal.Generated.Models.JobId
 import Xynolog.Internal.Generated.Models.JobType
 
 data JobStartedPayload = JobStartedPayload
-  { jobStartedPayloadAnnotationId :: Maybe AnnotationId,
-    jobStartedPayloadJobId :: JobId,
+  { jobStartedPayloadJobId :: JobId,
     jobStartedPayloadJobType :: JobType,
+    jobStartedPayloadAnnotationId :: Maybe AnnotationId,
     jobStartedPayloadTotalSteps :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON JobStartedPayload where parseJSON = checked "JobStartedPayload" $ withObject "JobStartedPayload" (\fields -> JobStartedPayload <$> optional fields "annotationId" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "totalSteps")
+instance FromJSON JobStartedPayload where parseJSON = checked "JobStartedPayload" $ withObject "JobStartedPayload" (\fields -> JobStartedPayload <$> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "annotationId" <*> optional fields "totalSteps")
 
-instance ToJSON JobStartedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (jobStartedPayloadAnnotationId value), [("jobId", toJSON (jobStartedPayloadJobId value))], [("jobType", toJSON (jobStartedPayloadJobType value))], optionalPair "totalSteps" (jobStartedPayloadTotalSteps value)]))
+instance ToJSON JobStartedPayload where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (jobStartedPayloadJobId value))], [("jobType", toJSON (jobStartedPayloadJobType value))], optionalPair "annotationId" (jobStartedPayloadAnnotationId value), optionalPair "totalSteps" (jobStartedPayloadTotalSteps value)]))

@@ -539,9 +539,6 @@ and newtype state name value_type =
 
 and object_ state name original (members : T.member list) (rest : T.rest) ~open_
     =
-  let members =
-    List.sort (fun (a : T.member) b -> String.compare a.wire b.wire) members
-  in
   let names = H.List (List.map (fun (m : T.member) -> H.Str m.wire) members) in
   let* fields =
     Result.map List.rev

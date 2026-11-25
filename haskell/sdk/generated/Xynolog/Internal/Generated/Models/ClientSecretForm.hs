@@ -10,15 +10,15 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ClientSecretForm = ClientSecretForm
-  { clientSecretFormClientId :: Text,
-    clientSecretFormClientSecret :: Text,
-    clientSecretFormGrantType :: ClientSecretFormGrantType
+  { clientSecretFormGrantType :: ClientSecretFormGrantType,
+    clientSecretFormClientId :: Text,
+    clientSecretFormClientSecret :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ClientSecretForm where parseJSON = checked "ClientSecretForm" $ withObject "ClientSecretForm" (\fields -> ClientSecretForm <$> (fields .: "client_id") <*> (fields .: "client_secret") <*> (fields .: "grant_type"))
+instance FromJSON ClientSecretForm where parseJSON = checked "ClientSecretForm" $ withObject "ClientSecretForm" (\fields -> ClientSecretForm <$> (fields .: "grant_type") <*> (fields .: "client_id") <*> (fields .: "client_secret"))
 
-instance ToJSON ClientSecretForm where toJSON value = Object (KM.fromList (concat [[("client_id", toJSON (clientSecretFormClientId value))], [("client_secret", toJSON (clientSecretFormClientSecret value))], [("grant_type", toJSON (clientSecretFormGrantType value))]]))
+instance ToJSON ClientSecretForm where toJSON value = Object (KM.fromList (concat [[("grant_type", toJSON (clientSecretFormGrantType value))], [("client_id", toJSON (clientSecretFormClientId value))], [("client_secret", toJSON (clientSecretFormClientSecret value))]]))
 
 data ClientSecretFormGrantType = ClientSecretFormGrantTypeClientCredentials deriving (Eq, Show)
 

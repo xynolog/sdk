@@ -34,7 +34,7 @@ newMatchStateUnit client = do
                 ( Local.signalWithCorrelation
                     (Client.bus client)
                     MatchSearchFailed
-                    (Types.MatchSearchFailed Nothing Nothing message (matchSearchRequestReferenceId input))
+                    (Types.MatchSearchFailed {matchSearchFailedCode = Nothing, matchSearchFailedDetails = Nothing, matchSearchFailedMessage = message, matchSearchFailedReferenceId = (matchSearchRequestReferenceId input)})
                     NoScope
                     (busFrameCorrelationId envelope)
                 )

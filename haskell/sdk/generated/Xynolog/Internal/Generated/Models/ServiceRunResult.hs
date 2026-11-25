@@ -10,12 +10,12 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.RunInstance
 
 data ServiceRunResult = ServiceRunResult
-  { serviceRunResultExitCode :: Integer,
-    serviceRunResultInstance :: RunInstance,
+  { serviceRunResultInstance :: RunInstance,
+    serviceRunResultExitCode :: Integer,
     serviceRunResultRanMs :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceRunResult where parseJSON = checked "ServiceRunResult" $ withObject "ServiceRunResult" (\fields -> ServiceRunResult <$> (fields .: "exitCode") <*> (fields .: "instance") <*> (fields .: "ranMs"))
+instance FromJSON ServiceRunResult where parseJSON = checked "ServiceRunResult" $ withObject "ServiceRunResult" (\fields -> ServiceRunResult <$> (fields .: "instance") <*> (fields .: "exitCode") <*> (fields .: "ranMs"))
 
-instance ToJSON ServiceRunResult where toJSON value = Object (KM.fromList (concat [[("exitCode", toJSON (serviceRunResultExitCode value))], [("instance", toJSON (serviceRunResultInstance value))], [("ranMs", toJSON (serviceRunResultRanMs value))]]))
+instance ToJSON ServiceRunResult where toJSON value = Object (KM.fromList (concat [[("instance", toJSON (serviceRunResultInstance value))], [("exitCode", toJSON (serviceRunResultExitCode value))], [("ranMs", toJSON (serviceRunResultRanMs value))]]))
