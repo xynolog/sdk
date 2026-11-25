@@ -16,7 +16,7 @@ import Xynolog.Internal.Generated.Models.UserId
 import Xynolog.Internal.Generated.Models.YieldJobResult
 
 data YieldJobCompleteCommand = YieldJobCompleteCommand
-  { yieldJobCompleteCommandU5f_userId :: Maybe UserId,
+  { yieldJobCompleteCommandUserId :: Maybe UserId,
     yieldJobCompleteCommandAnnotationId :: Maybe AnnotationId,
     yieldJobCompleteCommandAttempt :: Maybe Integer,
     yieldJobCompleteCommandDurability :: Maybe DurabilityEvidence,
@@ -30,7 +30,7 @@ data YieldJobCompleteCommand = YieldJobCompleteCommand
 
 instance FromJSON YieldJobCompleteCommand where parseJSON = checked "YieldJobCompleteCommand" $ withObject "YieldJobCompleteCommand" (\fields -> YieldJobCompleteCommand <$> optional fields "_userId" <*> optional fields "annotationId" <*> optional fields "attempt" <*> optional fields "durability" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> optional fields "result" <*> traverse parseJSON (withoutFields ["_userId", "annotationId", "attempt", "durability", "jobId", "jobType", "resourceId", "result"] fields))
 
-instance ToJSON YieldJobCompleteCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldJobCompleteCommandU5f_userId value), optionalPair "annotationId" (yieldJobCompleteCommandAnnotationId value), optionalPair "attempt" (yieldJobCompleteCommandAttempt value), optionalPair "durability" (yieldJobCompleteCommandDurability value), [("jobId", toJSON (yieldJobCompleteCommandJobId value))], [("jobType", toJSON (yieldJobCompleteCommandJobType value))], [("resourceId", toJSON (yieldJobCompleteCommandResourceId value))], optionalPair "result" (yieldJobCompleteCommandResult value)]) <> fmap toJSON (withoutFields ["_userId", "annotationId", "attempt", "durability", "jobId", "jobType", "resourceId", "result"] (yieldJobCompleteCommandAdditionalProperties value)))
+instance ToJSON YieldJobCompleteCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldJobCompleteCommandUserId value), optionalPair "annotationId" (yieldJobCompleteCommandAnnotationId value), optionalPair "attempt" (yieldJobCompleteCommandAttempt value), optionalPair "durability" (yieldJobCompleteCommandDurability value), [("jobId", toJSON (yieldJobCompleteCommandJobId value))], [("jobType", toJSON (yieldJobCompleteCommandJobType value))], [("resourceId", toJSON (yieldJobCompleteCommandResourceId value))], optionalPair "result" (yieldJobCompleteCommandResult value)]) <> fmap toJSON (withoutFields ["_userId", "annotationId", "attempt", "durability", "jobId", "jobType", "resourceId", "result"] (yieldJobCompleteCommandAdditionalProperties value)))
 
 data YieldJobCompleteCommandJobType = YieldJobCompleteCommandJobTypeYield deriving (Eq, Show)
 

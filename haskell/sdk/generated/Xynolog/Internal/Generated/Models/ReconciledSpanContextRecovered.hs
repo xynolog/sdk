@@ -23,11 +23,11 @@ instance FromJSON ReconciledSpanContextRecovered where parseJSON = checked "Reco
 
 instance ToJSON ReconciledSpanContextRecovered where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanContextRecoveredAnchorMethod value))], [("end", toJSON (reconciledSpanContextRecoveredEnd value))], [("exact", toJSON (reconciledSpanContextRecoveredExact value))], optionalPair "prefix" (reconciledSpanContextRecoveredPrefix value), [("start", toJSON (reconciledSpanContextRecoveredStart value))], optionalPair "suffix" (reconciledSpanContextRecoveredSuffix value)]))
 
-data ReconciledSpanContextRecoveredAnchorMethod = ReconciledSpanContextRecoveredAnchorMethodContextU2d_recovered deriving (Eq, Show)
+data ReconciledSpanContextRecoveredAnchorMethod = ReconciledSpanContextRecoveredAnchorMethodContextRecovered deriving (Eq, Show)
 
-instance FromJSON ReconciledSpanContextRecoveredAnchorMethod where parseJSON = checked "ReconciledSpanContextRecoveredAnchorMethod" $ \value -> if value == String "context-recovered" then pure ReconciledSpanContextRecoveredAnchorMethodContextU2d_recovered else fail "unknown enumeration member"
+instance FromJSON ReconciledSpanContextRecoveredAnchorMethod where parseJSON = checked "ReconciledSpanContextRecoveredAnchorMethod" $ \value -> if value == String "context-recovered" then pure ReconciledSpanContextRecoveredAnchorMethodContextRecovered else fail "unknown enumeration member"
 
-instance ToJSON ReconciledSpanContextRecoveredAnchorMethod where toJSON ReconciledSpanContextRecoveredAnchorMethodContextU2d_recovered = String "context-recovered"
+instance ToJSON ReconciledSpanContextRecoveredAnchorMethod where toJSON ReconciledSpanContextRecoveredAnchorMethodContextRecovered = String "context-recovered"
 
 reconciledSpanContextRecoveredAnchorMethodText :: ReconciledSpanContextRecoveredAnchorMethod -> Text
-reconciledSpanContextRecoveredAnchorMethodText ReconciledSpanContextRecoveredAnchorMethodContextU2d_recovered = "context-recovered"
+reconciledSpanContextRecoveredAnchorMethodText ReconciledSpanContextRecoveredAnchorMethodContextRecovered = "context-recovered"

@@ -79,13 +79,13 @@ bodySource = listToMaybe . mapMaybe source . bodies
 isBodyResolved :: Maybe AnnotationBodies -> Bool
 isBodyResolved = isJust . bodySource
 
-targetSource :: AnnotationTargetInline -> ResourceId
-targetSource (AnnotationTargetInlineResourceId resource) = resource
-targetSource (AnnotationTargetInlineAnnotationTarget target) = annotationTargetSource target
+targetSource :: AnnotationTargetValue -> ResourceId
+targetSource (AnnotationTargetValueResourceId resource) = resource
+targetSource (AnnotationTargetValueAnnotationTarget target) = annotationTargetSource target
 
-targetSelector :: AnnotationTargetInline -> Maybe AnnotationSelector
-targetSelector (AnnotationTargetInlineResourceId _) = Nothing
-targetSelector (AnnotationTargetInlineAnnotationTarget target) = annotationTargetSelector target
+targetSelector :: AnnotationTargetValue -> Maybe AnnotationSelector
+targetSelector (AnnotationTargetValueResourceId _) = Nothing
+targetSelector (AnnotationTargetValueAnnotationTarget target) = annotationTargetSelector target
 
 isHighlight, isReference, isAssessment, isComment, isTag :: Annotation -> Bool
 isHighlight = (== MotivationHighlighting) . annotationMotivation
@@ -146,7 +146,7 @@ built wall resource motivation anchor target generator body = do
   let created = Text.pack (formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%3QZ" instant)
   pure
     ( Annotation
-        AnnotationU40_contextHttpU3a_U2f_U2f_wwwU2e_w3U2e_orgU2f_nsU2f_annoU2e_jsonld
+        AnnotationContextHttpWwwW3OrgNsAnnoJsonld
         body
         created
         Nothing
@@ -154,7 +154,7 @@ built wall resource motivation anchor target generator body = do
         identity
         Nothing
         motivation
-        (AnnotationTargetInlineAnnotationTarget target)
+        (AnnotationTargetValueAnnotationTarget target)
         AnnotationTypeAnnotation
         Nothing
         mempty

@@ -42,18 +42,18 @@ import Xynolog.Transport qualified as Transport
 import Xynolog.Transport.Facts (connectionStateName)
 import Xynolog.Types
   ( ConformanceDriverLine (..),
-    ConformanceDriverLineCompletedValue (..),
-    ConformanceDriverLineEmissionValue (..),
-    ConformanceDriverLineEmissionValueEmission (..),
-    ConformanceDriverLineEmissionValueEmissionState (..),
-    ConformanceDriverLineEmissionValueEmissionStateFailedValue (..),
-    ConformanceDriverLineEmissionValueEmissionStateFailedValueStatus (..),
-    ConformanceDriverLineEmissionValueEmissionStatePendingValue (..),
-    ConformanceDriverLineEmissionValueEmissionStatePendingValueStatus (..),
-    ConformanceDriverLineEmissionValueEmissionStateReadyValue (..),
-    ConformanceDriverLineEmissionValueEmissionStateReadyValueStatus (..),
-    ConformanceDriverLineErrorStreamValue (..),
-    ConformanceDriverLineStateValue (..),
+    ConformanceDriverLineCompleted (..),
+    ConformanceDriverLineEmission (..),
+    ConformanceDriverLineEmissionEmission (..),
+    ConformanceDriverLineEmissionEmissionState (..),
+    ConformanceDriverLineEmissionEmissionStateFailed (..),
+    ConformanceDriverLineEmissionEmissionStateFailedStatus (..),
+    ConformanceDriverLineEmissionEmissionStatePending (..),
+    ConformanceDriverLineEmissionEmissionStatePendingStatus (..),
+    ConformanceDriverLineEmissionEmissionStateReady (..),
+    ConformanceDriverLineEmissionEmissionStateReadyStatus (..),
+    ConformanceDriverLineErrorStream (..),
+    ConformanceDriverLineState (..),
   )
 import Xynolog.Yield qualified as Yield
 
@@ -75,13 +75,13 @@ say driver line = withMVar (output driver) (\() -> writeLine line)
 opened :: Driver -> IO Client.Client
 opened driver = readTVarIO (current driver) >>= maybe (throwIO (Misuse "no client is open")) pure
 
-emissionState :: Cache.CacheState Value -> IO ConformanceDriverLineEmissionValueEmissionState
+emissionState :: Cache.CacheState Value -> IO ConformanceDriverLineEmissionEmissionState
 emissionState Cache.Pending =
-  pure (ConformanceDriverLineEmissionValueEmissionStatePending (ConformanceDriverLineEmissionValueEmissionStatePendingValue ConformanceDriverLineEmissionValueEmissionStatePendingValueStatusPending))
+  pure (ConformanceDriverLineEmissionEmissionStatePending (MkConformanceDriverLineEmissionEmissionStatePending ConformanceDriverLineEmissionEmissionStatePendingStatusPending))
 emissionState (Cache.Ready value) =
-  pure (ConformanceDriverLineEmissionValueEmissionStateReady (ConformanceDriverLineEmissionValueEmissionStateReadyValue ConformanceDriverLineEmissionValueEmissionStateReadyValueStatusReady value))
+  pure (ConformanceDriverLineEmissionEmissionStateReady (MkConformanceDriverLineEmissionEmissionStateReady ConformanceDriverLineEmissionEmissionStateReadyStatusReady value))
 emissionState (Cache.Failed problem) = case failure problem of
-  Just reason -> pure (ConformanceDriverLineEmissionValueEmissionStateFailed (ConformanceDriverLineEmissionValueEmissionStateFailedValue reason ConformanceDriverLineEmissionValueEmissionStateFailedValueStatusFailed))
+  Just reason -> pure (ConformanceDriverLineEmissionEmissionStateFailed (MkConformanceDriverLineEmissionEmissionStateFailed reason ConformanceDriverLineEmissionEmissionStateFailedStatusFailed))
   Nothing -> throwIO problem
 
 queryOf :: Client.Client -> Object -> IO (Cache.Query Value)
@@ -102,7 +102,7 @@ queryOf client args = do
     Engines -> pure (toJSON <$> Browse.engines (Client.browse client))
 
 emitState :: Driver -> Text -> Cache.CacheState Value -> IO ()
-emitState driver observer state = emissionState state >>= \value -> say driver (ConformanceDriverLineEmission (ConformanceDriverLineEmissionValue (ConformanceDriverLineEmissionValueEmission observer value)))
+emitState driver observer state = emissionState state >>= \value -> say driver (ConformanceDriverLineEmission (MkConformanceDriverLineEmission (ConformanceDriverLineEmissionEmission observer value)))
 
 launch :: Driver -> IO () -> IO (Async ())
 launch driver action = mask $ \restore -> do
@@ -147,7 +147,7 @@ open driver args = do
       ( Stream.mapM_ $ \state -> do
           let name = connectionStateName state
           changed <- atomically $ do before <- readTVar (reported driver); writeTVar (reported driver) (Just name); pure (before /= Just name)
-          when changed (say driver (ConformanceDriverLineState (ConformanceDriverLineStateValue name)))
+          when changed (say driver (ConformanceDriverLineState (MkConformanceDriverLineState name)))
       )
   void
     $ launch driver
@@ -155,7 +155,7 @@ open driver args = do
       (Client.transport client)
       ( Stream.mapM_ $ \problem ->
           case failure (toException problem) of
-            Just reason -> say driver (ConformanceDriverLineErrorStream (ConformanceDriverLineErrorStreamValue reason))
+            Just reason -> say driver (ConformanceDriverLineErrorStream (MkConformanceDriverLineErrorStream reason))
             Nothing -> throwIO problem
       )
   pure Null
@@ -180,7 +180,7 @@ observe driver args = do
   case outcome of { Left () -> pure Null; Right () -> pure Null }
 
 completedLine :: Text -> ConformanceDriverLine
-completedLine observer = ConformanceDriverLineCompleted (ConformanceDriverLineCompletedValue observer)
+completedLine observer = ConformanceDriverLineCompleted (MkConformanceDriverLineCompleted observer)
 
 free :: Driver -> Object -> IO Text
 free driver args = do

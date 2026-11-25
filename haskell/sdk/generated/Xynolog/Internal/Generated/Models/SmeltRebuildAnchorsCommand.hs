@@ -11,7 +11,7 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data SmeltRebuildAnchorsCommand = SmeltRebuildAnchorsCommand
-  { smeltRebuildAnchorsCommandU5f_userId :: Maybe UserId,
+  { smeltRebuildAnchorsCommandUserId :: Maybe UserId,
     smeltRebuildAnchorsCommandResourceId :: Maybe ResourceId,
     smeltRebuildAnchorsCommandAdditionalProperties :: KM.KeyMap Value
   }
@@ -19,4 +19,4 @@ data SmeltRebuildAnchorsCommand = SmeltRebuildAnchorsCommand
 
 instance FromJSON SmeltRebuildAnchorsCommand where parseJSON = checked "SmeltRebuildAnchorsCommand" $ withObject "SmeltRebuildAnchorsCommand" (\fields -> SmeltRebuildAnchorsCommand <$> optional fields "_userId" <*> optional fields "resourceId" <*> traverse parseJSON (withoutFields ["_userId", "resourceId"] fields))
 
-instance ToJSON SmeltRebuildAnchorsCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (smeltRebuildAnchorsCommandU5f_userId value), optionalPair "resourceId" (smeltRebuildAnchorsCommandResourceId value)]) <> fmap toJSON (withoutFields ["_userId", "resourceId"] (smeltRebuildAnchorsCommandAdditionalProperties value)))
+instance ToJSON SmeltRebuildAnchorsCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (smeltRebuildAnchorsCommandUserId value), optionalPair "resourceId" (smeltRebuildAnchorsCommandResourceId value)]) <> fmap toJSON (withoutFields ["_userId", "resourceId"] (smeltRebuildAnchorsCommandAdditionalProperties value)))

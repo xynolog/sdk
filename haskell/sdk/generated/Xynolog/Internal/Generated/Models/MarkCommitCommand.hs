@@ -14,8 +14,8 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data MarkCommitCommand = MarkCommitCommand
-  { markCommitCommandU5f_roles :: Maybe [Text],
-    markCommitCommandU5f_userId :: Maybe UserId,
+  { markCommitCommandRoles :: Maybe [Text],
+    markCommitCommandUserId :: Maybe UserId,
     markCommitCommandAnnotations :: [Annotation],
     markCommitCommandJobId :: Maybe JobId,
     markCommitCommandResourceId :: ResourceId,
@@ -25,4 +25,4 @@ data MarkCommitCommand = MarkCommitCommand
 
 instance FromJSON MarkCommitCommand where parseJSON = checked "MarkCommitCommand" $ withObject "MarkCommitCommand" (\fields -> MarkCommitCommand <$> optional fields "_roles" <*> optional fields "_userId" <*> (fields .: "annotations") <*> optional fields "jobId" <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["_roles", "_userId", "annotations", "jobId", "resourceId"] fields))
 
-instance ToJSON MarkCommitCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (markCommitCommandU5f_roles value), optionalPair "_userId" (markCommitCommandU5f_userId value), [("annotations", toJSON (markCommitCommandAnnotations value))], optionalPair "jobId" (markCommitCommandJobId value), [("resourceId", toJSON (markCommitCommandResourceId value))]]) <> fmap toJSON (withoutFields ["_roles", "_userId", "annotations", "jobId", "resourceId"] (markCommitCommandAdditionalProperties value)))
+instance ToJSON MarkCommitCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (markCommitCommandRoles value), optionalPair "_userId" (markCommitCommandUserId value), [("annotations", toJSON (markCommitCommandAnnotations value))], optionalPair "jobId" (markCommitCommandJobId value), [("resourceId", toJSON (markCommitCommandResourceId value))]]) <> fmap toJSON (withoutFields ["_roles", "_userId", "annotations", "jobId", "resourceId"] (markCommitCommandAdditionalProperties value)))

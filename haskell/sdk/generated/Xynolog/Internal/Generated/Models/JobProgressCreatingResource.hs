@@ -19,11 +19,11 @@ instance FromJSON JobProgressCreatingResource where parseJSON = checked "JobProg
 
 instance ToJSON JobProgressCreatingResource where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingResourceCode value))]]) <> fmap toJSON (withoutFields ["code"] (jobProgressCreatingResourceAdditionalProperties value)))
 
-data JobProgressCreatingResourceCode = JobProgressCreatingResourceCodeCreatingU2d_resource deriving (Eq, Show)
+data JobProgressCreatingResourceCode = JobProgressCreatingResourceCodeCreatingResource deriving (Eq, Show)
 
-instance FromJSON JobProgressCreatingResourceCode where parseJSON = checked "JobProgressCreatingResourceCode" $ \value -> if value == String "creating-resource" then pure JobProgressCreatingResourceCodeCreatingU2d_resource else fail "unknown enumeration member"
+instance FromJSON JobProgressCreatingResourceCode where parseJSON = checked "JobProgressCreatingResourceCode" $ \value -> if value == String "creating-resource" then pure JobProgressCreatingResourceCodeCreatingResource else fail "unknown enumeration member"
 
-instance ToJSON JobProgressCreatingResourceCode where toJSON JobProgressCreatingResourceCodeCreatingU2d_resource = String "creating-resource"
+instance ToJSON JobProgressCreatingResourceCode where toJSON JobProgressCreatingResourceCodeCreatingResource = String "creating-resource"
 
 jobProgressCreatingResourceCodeText :: JobProgressCreatingResourceCode -> Text
-jobProgressCreatingResourceCodeText JobProgressCreatingResourceCodeCreatingU2d_resource = "creating-resource"
+jobProgressCreatingResourceCodeText JobProgressCreatingResourceCodeCreatingResource = "creating-resource"

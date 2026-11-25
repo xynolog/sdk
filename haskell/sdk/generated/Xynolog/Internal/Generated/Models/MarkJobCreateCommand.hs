@@ -13,8 +13,8 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data MarkJobCreateCommand = MarkJobCreateCommand
-  { markJobCreateCommandU5f_roles :: Maybe [Text],
-    markJobCreateCommandU5f_userId :: Maybe UserId,
+  { markJobCreateCommandRoles :: Maybe [Text],
+    markJobCreateCommandUserId :: Maybe UserId,
     markJobCreateCommandJobType :: MarkJobCreateCommandJobType,
     markJobCreateCommandParams :: MarkJobParams,
     markJobCreateCommandResourceId :: ResourceId
@@ -23,7 +23,7 @@ data MarkJobCreateCommand = MarkJobCreateCommand
 
 instance FromJSON MarkJobCreateCommand where parseJSON = checked "MarkJobCreateCommand" $ withObject "MarkJobCreateCommand" (\fields -> MarkJobCreateCommand <$> optional fields "_roles" <*> optional fields "_userId" <*> (fields .: "jobType") <*> (fields .: "params") <*> (fields .: "resourceId"))
 
-instance ToJSON MarkJobCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (markJobCreateCommandU5f_roles value), optionalPair "_userId" (markJobCreateCommandU5f_userId value), [("jobType", toJSON (markJobCreateCommandJobType value))], [("params", toJSON (markJobCreateCommandParams value))], [("resourceId", toJSON (markJobCreateCommandResourceId value))]]))
+instance ToJSON MarkJobCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (markJobCreateCommandRoles value), optionalPair "_userId" (markJobCreateCommandUserId value), [("jobType", toJSON (markJobCreateCommandJobType value))], [("params", toJSON (markJobCreateCommandParams value))], [("resourceId", toJSON (markJobCreateCommandResourceId value))]]))
 
 data MarkJobCreateCommandJobType = MarkJobCreateCommandJobTypeMark deriving (Eq, Show)
 

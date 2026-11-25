@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.WorkerMessages (WorkerMessages (..), WorkerMessagesBootItem (..), WorkerMessagesBootItemOwnBootRefusalValue (..), WorkerMessagesBootItemSharedBootRefusalValue (..), WorkerMessagesDetailsItem (..), WorkerMessagesErrorsItem (..), WorkerMessagesJob (..), WorkerMessagesLoggedItem (..), WorkerMessagesLoggedItemFields (..), WorkerMessagesReasonsItem (..), WorkerMessagesWaitsItem (..)) where
+module Xynolog.Internal.Generated.Models.WorkerMessages (WorkerMessages (..), WorkerMessagesBootItem (..), WorkerMessagesBootItemOwnBootRefusal (..), WorkerMessagesBootItemSharedBootRefusal (..), WorkerMessagesDetailsItem (..), WorkerMessagesErrorsItem (..), WorkerMessagesJob (..), WorkerMessagesLoggedItem (..), WorkerMessagesLoggedItemFields (..), WorkerMessagesReasonsItem (..), WorkerMessagesWaitsItem (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -12,7 +12,7 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.LogLevel
 
 data WorkerMessages = WorkerMessages
-  { workerMessagesU24_comment :: Text,
+  { workerMessagesComment :: Text,
     workerMessagesBoot :: [WorkerMessagesBootItem],
     workerMessagesDetails :: [WorkerMessagesDetailsItem],
     workerMessagesErrors :: [WorkerMessagesErrorsItem],
@@ -25,9 +25,9 @@ data WorkerMessages = WorkerMessages
 
 instance FromJSON WorkerMessages where parseJSON = checked "WorkerMessages" $ withObject "WorkerMessages" (\fields -> WorkerMessages <$> (fields .: "$comment") <*> (fields .: "boot") <*> (fields .: "details") <*> (fields .: "errors") <*> (fields .: "job") <*> (fields .: "logged") <*> (fields .: "reasons") <*> (fields .: "waits"))
 
-instance ToJSON WorkerMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (workerMessagesU24_comment value))], [("boot", toJSON (workerMessagesBoot value))], [("details", toJSON (workerMessagesDetails value))], [("errors", toJSON (workerMessagesErrors value))], [("job", toJSON (workerMessagesJob value))], [("logged", toJSON (workerMessagesLogged value))], [("reasons", toJSON (workerMessagesReasons value))], [("waits", toJSON (workerMessagesWaits value))]]))
+instance ToJSON WorkerMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (workerMessagesComment value))], [("boot", toJSON (workerMessagesBoot value))], [("details", toJSON (workerMessagesDetails value))], [("errors", toJSON (workerMessagesErrors value))], [("job", toJSON (workerMessagesJob value))], [("logged", toJSON (workerMessagesLogged value))], [("reasons", toJSON (workerMessagesReasons value))], [("waits", toJSON (workerMessagesWaits value))]]))
 
-data WorkerMessagesBootItem = WorkerMessagesBootItemOwnBootRefusal WorkerMessagesBootItemOwnBootRefusalValue | WorkerMessagesBootItemSharedBootRefusal WorkerMessagesBootItemSharedBootRefusalValue deriving (Eq, Show)
+data WorkerMessagesBootItem = WorkerMessagesBootItemOwnBootRefusal WorkerMessagesBootItemOwnBootRefusal | WorkerMessagesBootItemSharedBootRefusal WorkerMessagesBootItemSharedBootRefusal deriving (Eq, Show)
 
 instance FromJSON WorkerMessagesBootItem where parseJSON = checked "WorkerMessagesBootItem" $ \value -> (WorkerMessagesBootItemOwnBootRefusal <$> parseJSON value) <|> (WorkerMessagesBootItemSharedBootRefusal <$> parseJSON value)
 
@@ -35,27 +35,27 @@ instance ToJSON WorkerMessagesBootItem where
   toJSON (WorkerMessagesBootItemOwnBootRefusal value) = toJSON value
   toJSON (WorkerMessagesBootItemSharedBootRefusal value) = toJSON value
 
-data WorkerMessagesBootItemOwnBootRefusalValue = WorkerMessagesBootItemOwnBootRefusalValue
-  { workerMessagesBootItemOwnBootRefusalValueName :: Text,
-    workerMessagesBootItemOwnBootRefusalValueRefusal :: Text,
-    workerMessagesBootItemOwnBootRefusalValueSituation :: Text
+data WorkerMessagesBootItemOwnBootRefusal = MkWorkerMessagesBootItemOwnBootRefusal
+  { workerMessagesBootItemOwnBootRefusalName :: Text,
+    workerMessagesBootItemOwnBootRefusalRefusal :: Text,
+    workerMessagesBootItemOwnBootRefusalSituation :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesBootItemOwnBootRefusalValue where parseJSON = checked "WorkerMessagesBootItemOwnBootRefusalValue" $ withObject "WorkerMessagesBootItemOwnBootRefusalValue" (\fields -> WorkerMessagesBootItemOwnBootRefusalValue <$> (fields .: "name") <*> (fields .: "refusal") <*> (fields .: "situation"))
+instance FromJSON WorkerMessagesBootItemOwnBootRefusal where parseJSON = checked "WorkerMessagesBootItemOwnBootRefusal" $ withObject "WorkerMessagesBootItemOwnBootRefusal" (\fields -> MkWorkerMessagesBootItemOwnBootRefusal <$> (fields .: "name") <*> (fields .: "refusal") <*> (fields .: "situation"))
 
-instance ToJSON WorkerMessagesBootItemOwnBootRefusalValue where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesBootItemOwnBootRefusalValueName value))], [("refusal", toJSON (workerMessagesBootItemOwnBootRefusalValueRefusal value))], [("situation", toJSON (workerMessagesBootItemOwnBootRefusalValueSituation value))]]))
+instance ToJSON WorkerMessagesBootItemOwnBootRefusal where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesBootItemOwnBootRefusalName value))], [("refusal", toJSON (workerMessagesBootItemOwnBootRefusalRefusal value))], [("situation", toJSON (workerMessagesBootItemOwnBootRefusalSituation value))]]))
 
-data WorkerMessagesBootItemSharedBootRefusalValue = WorkerMessagesBootItemSharedBootRefusalValue
-  { workerMessagesBootItemSharedBootRefusalValueBootRefusal :: Text,
-    workerMessagesBootItemSharedBootRefusalValueName :: Text,
-    workerMessagesBootItemSharedBootRefusalValueSituation :: Text
+data WorkerMessagesBootItemSharedBootRefusal = MkWorkerMessagesBootItemSharedBootRefusal
+  { workerMessagesBootItemSharedBootRefusalBootRefusal :: Text,
+    workerMessagesBootItemSharedBootRefusalName :: Text,
+    workerMessagesBootItemSharedBootRefusalSituation :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesBootItemSharedBootRefusalValue where parseJSON = checked "WorkerMessagesBootItemSharedBootRefusalValue" $ withObject "WorkerMessagesBootItemSharedBootRefusalValue" (\fields -> WorkerMessagesBootItemSharedBootRefusalValue <$> (fields .: "bootRefusal") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON WorkerMessagesBootItemSharedBootRefusal where parseJSON = checked "WorkerMessagesBootItemSharedBootRefusal" $ withObject "WorkerMessagesBootItemSharedBootRefusal" (\fields -> MkWorkerMessagesBootItemSharedBootRefusal <$> (fields .: "bootRefusal") <*> (fields .: "name") <*> (fields .: "situation"))
 
-instance ToJSON WorkerMessagesBootItemSharedBootRefusalValue where toJSON value = Object (KM.fromList (concat [[("bootRefusal", toJSON (workerMessagesBootItemSharedBootRefusalValueBootRefusal value))], [("name", toJSON (workerMessagesBootItemSharedBootRefusalValueName value))], [("situation", toJSON (workerMessagesBootItemSharedBootRefusalValueSituation value))]]))
+instance ToJSON WorkerMessagesBootItemSharedBootRefusal where toJSON value = Object (KM.fromList (concat [[("bootRefusal", toJSON (workerMessagesBootItemSharedBootRefusalBootRefusal value))], [("name", toJSON (workerMessagesBootItemSharedBootRefusalName value))], [("situation", toJSON (workerMessagesBootItemSharedBootRefusalSituation value))]]))
 
 data WorkerMessagesDetailsItem = WorkerMessagesDetailsItem
   { workerMessagesDetailsItemDetail :: Text,

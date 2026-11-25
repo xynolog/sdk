@@ -117,14 +117,14 @@ reconcile :: Text -> QuotedText -> Maybe ReconciledSpan
 reconcile text quoted
   | Text.null (Text.dropAround whiteSpace exact) = Nothing
   | otherwise = case [(offset, offset + Text.length exact) | offset <- occurrencesOf text exact] of
-      [place] -> Just (ReconciledSpanReconciledSpanUniqueMatch (built place (ReconciledSpanUniqueMatch ReconciledSpanUniqueMatchAnchorMethodUniqueU2d_match)))
+      [place] -> Just (ReconciledSpanReconciledSpanUniqueMatch (built place (ReconciledSpanUniqueMatch ReconciledSpanUniqueMatchAnchorMethodUniqueMatch)))
       places@(first : _) -> case hinted places of
-        Just place -> Just (ReconciledSpanReconciledSpanContextRecovered (built place (ReconciledSpanContextRecovered ReconciledSpanContextRecoveredAnchorMethodContextU2d_recovered)))
-        Nothing -> Just (ReconciledSpanReconciledSpanFirstOfMany (built first (ReconciledSpanFirstOfMany ReconciledSpanFirstOfManyAnchorMethodFirstU2d_ofU2d_many)))
+        Just place -> Just (ReconciledSpanReconciledSpanContextRecovered (built place (ReconciledSpanContextRecovered ReconciledSpanContextRecoveredAnchorMethodContextRecovered)))
+        Nothing -> Just (ReconciledSpanReconciledSpanFirstOfMany (built first (ReconciledSpanFirstOfMany ReconciledSpanFirstOfManyAnchorMethodFirstOfMany)))
       [] -> do
         (places, quality) <- looser
         place <- case hinted places of Just found -> Just found; Nothing -> case places of value : _ -> Just value; _ -> Nothing
-        pure (ReconciledSpanReconciledSpanFuzzyMatch (built place (\stop said -> ReconciledSpanFuzzyMatch ReconciledSpanFuzzyMatchAnchorMethodFuzzyU2d_match stop said quality)))
+        pure (ReconciledSpanReconciledSpanFuzzyMatch (built place (\stop said -> ReconciledSpanFuzzyMatch ReconciledSpanFuzzyMatchAnchorMethodFuzzyMatch stop said quality)))
   where
     exact = quotedTextExact quoted
     hint value = value >>= \given -> if Text.null (Text.dropAround whiteSpace given) then Nothing else Just given
@@ -141,7 +141,7 @@ reconcile text quoted
             then Just (normalized, MatchQualityNormalized)
             else
               if not (null insensitive)
-                then Just (insensitive, MatchQualityCaseU2d_insensitive)
+                then Just (insensitive, MatchQualityCaseInsensitive)
                 else (\place -> ([place], MatchQualityFuzzy)) <$> nearest text exact
     boundary char = whiteSpace char || char `elem` (".,;:!?'\"()[]{}<>/\\" :: String)
     buildPrefix start

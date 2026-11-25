@@ -12,7 +12,7 @@ import Xynolog.Internal.Generated.Models.HttpStatus
 import Xynolog.Internal.Generated.Models.LogLevel
 
 data ArchivistMessages = ArchivistMessages
-  { archivistMessagesU24_comment :: Text,
+  { archivistMessagesComment :: Text,
     archivistMessagesBoot :: [ArchivistMessagesBootItem],
     archivistMessagesHttp :: [ArchivistMessagesHttpItem],
     archivistMessagesLogged :: [ArchivistMessagesLoggedItem],
@@ -24,7 +24,7 @@ data ArchivistMessages = ArchivistMessages
 
 instance FromJSON ArchivistMessages where parseJSON = checked "ArchivistMessages" $ withObject "ArchivistMessages" (\fields -> ArchivistMessages <$> (fields .: "$comment") <*> (fields .: "boot") <*> (fields .: "http") <*> (fields .: "logged") <*> (fields .: "refusals") <*> (fields .: "unauthorized") <*> (fields .: "unsent"))
 
-instance ToJSON ArchivistMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (archivistMessagesU24_comment value))], [("boot", toJSON (archivistMessagesBoot value))], [("http", toJSON (archivistMessagesHttp value))], [("logged", toJSON (archivistMessagesLogged value))], [("refusals", toJSON (archivistMessagesRefusals value))], [("unauthorized", toJSON (archivistMessagesUnauthorized value))], [("unsent", toJSON (archivistMessagesUnsent value))]]))
+instance ToJSON ArchivistMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (archivistMessagesComment value))], [("boot", toJSON (archivistMessagesBoot value))], [("http", toJSON (archivistMessagesHttp value))], [("logged", toJSON (archivistMessagesLogged value))], [("refusals", toJSON (archivistMessagesRefusals value))], [("unauthorized", toJSON (archivistMessagesUnauthorized value))], [("unsent", toJSON (archivistMessagesUnsent value))]]))
 
 data ArchivistMessagesBootItem = ArchivistMessagesBootItem
   { archivistMessagesBootItemName :: Text,
@@ -101,21 +101,21 @@ instance FromJSON ArchivistMessagesRefusalsItem where parseJSON = checked "Archi
 
 instance ToJSON ArchivistMessagesRefusalsItem where toJSON value = Object (KM.fromList (concat [optionalPair "code" (archivistMessagesRefusalsItemCode value), [("message", toJSON (archivistMessagesRefusalsItemMessage value))], [("name", toJSON (archivistMessagesRefusalsItemName value))], [("operations", toJSON (archivistMessagesRefusalsItemOperations value))], [("situation", toJSON (archivistMessagesRefusalsItemSituation value))]]))
 
-data ArchivistMessagesRefusalsItemCode = ArchivistMessagesRefusalsItemCodePeerU2d_unavailable | ArchivistMessagesRefusalsItemCodeNotU2d_found | ArchivistMessagesRefusalsItemCodeUnauthorized | ArchivistMessagesRefusalsItemCodeNoneU2d_pending deriving (Eq, Show)
+data ArchivistMessagesRefusalsItemCode = ArchivistMessagesRefusalsItemCodePeerUnavailable | ArchivistMessagesRefusalsItemCodeNotFound | ArchivistMessagesRefusalsItemCodeUnauthorized | ArchivistMessagesRefusalsItemCodeNonePending deriving (Eq, Show)
 
-instance FromJSON ArchivistMessagesRefusalsItemCode where parseJSON = checked "ArchivistMessagesRefusalsItemCode" $ \value -> if value == String "peer-unavailable" then pure ArchivistMessagesRefusalsItemCodePeerU2d_unavailable else if value == String "not-found" then pure ArchivistMessagesRefusalsItemCodeNotU2d_found else if value == String "unauthorized" then pure ArchivistMessagesRefusalsItemCodeUnauthorized else if value == String "none-pending" then pure ArchivistMessagesRefusalsItemCodeNoneU2d_pending else fail "unknown enumeration member"
+instance FromJSON ArchivistMessagesRefusalsItemCode where parseJSON = checked "ArchivistMessagesRefusalsItemCode" $ \value -> if value == String "peer-unavailable" then pure ArchivistMessagesRefusalsItemCodePeerUnavailable else if value == String "not-found" then pure ArchivistMessagesRefusalsItemCodeNotFound else if value == String "unauthorized" then pure ArchivistMessagesRefusalsItemCodeUnauthorized else if value == String "none-pending" then pure ArchivistMessagesRefusalsItemCodeNonePending else fail "unknown enumeration member"
 
 instance ToJSON ArchivistMessagesRefusalsItemCode where
-  toJSON ArchivistMessagesRefusalsItemCodePeerU2d_unavailable = String "peer-unavailable"
-  toJSON ArchivistMessagesRefusalsItemCodeNotU2d_found = String "not-found"
+  toJSON ArchivistMessagesRefusalsItemCodePeerUnavailable = String "peer-unavailable"
+  toJSON ArchivistMessagesRefusalsItemCodeNotFound = String "not-found"
   toJSON ArchivistMessagesRefusalsItemCodeUnauthorized = String "unauthorized"
-  toJSON ArchivistMessagesRefusalsItemCodeNoneU2d_pending = String "none-pending"
+  toJSON ArchivistMessagesRefusalsItemCodeNonePending = String "none-pending"
 
 archivistMessagesRefusalsItemCodeText :: ArchivistMessagesRefusalsItemCode -> Text
-archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodePeerU2d_unavailable = "peer-unavailable"
-archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodeNotU2d_found = "not-found"
+archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodePeerUnavailable = "peer-unavailable"
+archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodeNotFound = "not-found"
 archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodeUnauthorized = "unauthorized"
-archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodeNoneU2d_pending = "none-pending"
+archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodeNonePending = "none-pending"
 
 data ArchivistMessagesUnauthorized = ArchivistMessagesUnauthorized
   { archivistMessagesUnauthorizedAbsent :: Text,

@@ -10,14 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data LocalesRegistry = LocalesRegistry
-  { localesRegistryU24_comment :: Text,
+  { localesRegistryComment :: Text,
     localesRegistryLocales :: [LocalesRegistryLocalesItem]
   }
   deriving (Eq, Show)
 
 instance FromJSON LocalesRegistry where parseJSON = checked "LocalesRegistry" $ withObject "LocalesRegistry" (\fields -> LocalesRegistry <$> (fields .: "$comment") <*> (fields .: "locales"))
 
-instance ToJSON LocalesRegistry where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (localesRegistryU24_comment value))], [("locales", toJSON (localesRegistryLocales value))]]))
+instance ToJSON LocalesRegistry where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (localesRegistryComment value))], [("locales", toJSON (localesRegistryLocales value))]]))
 
 data LocalesRegistryLocalesItem = LocalesRegistryLocalesItem
   { localesRegistryLocalesItemCode :: Text,

@@ -38,8 +38,8 @@ delegate (YieldNamespace _ _ _ timing follower) params stall =
     (Just (fromMaybe (Delegation.deriveStallDeadlineMs timing (generationJobParamsMaxTokens params)) stall))
   where
     identity = case gatheredContextFocus (generationJobParamsContext params) of
-      GatheredContextFocusAnnotation focus -> resourceDescriptorU40_id (gatheredContextFocusAnnotationValueSourceResource focus)
-      GatheredContextFocusResource focus -> resourceDescriptorU40_id (gatheredContextFocusResourceValueResource focus)
+      GatheredContextFocusAnnotation focus -> resourceDescriptorId (gatheredContextFocusAnnotationSourceResource focus)
+      GatheredContextFocusResource focus -> resourceDescriptorId (gatheredContextFocusResourceResource focus)
 
 cloneToken :: YieldNamespace -> ResourceId -> IO CloneResourceWithTokenResponse
 cloneToken (YieldNamespace wire _ _ timing _) identity =

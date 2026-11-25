@@ -10,7 +10,7 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ServiceTelemetryLogLines = ServiceTelemetryLogLines
-  { serviceTelemetryLogLinesU24_comment :: Text,
+  { serviceTelemetryLogLinesComment :: Text,
     serviceTelemetryLogLinesBus :: ServiceTelemetryLogLinesBus,
     serviceTelemetryLogLinesLogger :: ServiceTelemetryLogLinesLogger,
     serviceTelemetryLogLinesSupervisor :: ServiceTelemetryLogLinesSupervisor
@@ -19,7 +19,7 @@ data ServiceTelemetryLogLines = ServiceTelemetryLogLines
 
 instance FromJSON ServiceTelemetryLogLines where parseJSON = checked "ServiceTelemetryLogLines" $ withObject "ServiceTelemetryLogLines" (\fields -> ServiceTelemetryLogLines <$> (fields .: "$comment") <*> (fields .: "bus") <*> (fields .: "logger") <*> (fields .: "supervisor"))
 
-instance ToJSON ServiceTelemetryLogLines where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceTelemetryLogLinesU24_comment value))], [("bus", toJSON (serviceTelemetryLogLinesBus value))], [("logger", toJSON (serviceTelemetryLogLinesLogger value))], [("supervisor", toJSON (serviceTelemetryLogLinesSupervisor value))]]))
+instance ToJSON ServiceTelemetryLogLines where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceTelemetryLogLinesComment value))], [("bus", toJSON (serviceTelemetryLogLinesBus value))], [("logger", toJSON (serviceTelemetryLogLinesLogger value))], [("supervisor", toJSON (serviceTelemetryLogLinesSupervisor value))]]))
 
 data ServiceTelemetryLogLinesBus = ServiceTelemetryLogLinesBus
   { serviceTelemetryLogLinesBusLine :: Text,

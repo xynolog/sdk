@@ -12,7 +12,7 @@ import Xynolog.Internal.Generated.Models.ContentFormat
 import Xynolog.Internal.Generated.Models.UserId
 
 data YieldCloneCreateCommand = YieldCloneCreateCommand
-  { yieldCloneCreateCommandU5f_userId :: Maybe UserId,
+  { yieldCloneCreateCommandUserId :: Maybe UserId,
     yieldCloneCreateCommandArchiveOriginal :: Maybe Bool,
     yieldCloneCreateCommandByteSize :: Integer,
     yieldCloneCreateCommandContentChecksum :: Text,
@@ -26,4 +26,4 @@ data YieldCloneCreateCommand = YieldCloneCreateCommand
 
 instance FromJSON YieldCloneCreateCommand where parseJSON = checked "YieldCloneCreateCommand" $ withObject "YieldCloneCreateCommand" (\fields -> YieldCloneCreateCommand <$> optional fields "_userId" <*> optional fields "archiveOriginal" <*> (fields .: "byteSize") <*> (fields .: "contentChecksum") <*> (fields .: "format") <*> (fields .: "name") <*> (fields .: "storageUri") <*> (fields .: "token") <*> traverse parseJSON (withoutFields ["_userId", "archiveOriginal", "byteSize", "contentChecksum", "format", "name", "storageUri", "token"] fields))
 
-instance ToJSON YieldCloneCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldCloneCreateCommandU5f_userId value), optionalPair "archiveOriginal" (yieldCloneCreateCommandArchiveOriginal value), [("byteSize", toJSON (yieldCloneCreateCommandByteSize value))], [("contentChecksum", toJSON (yieldCloneCreateCommandContentChecksum value))], [("format", toJSON (yieldCloneCreateCommandFormat value))], [("name", toJSON (yieldCloneCreateCommandName value))], [("storageUri", toJSON (yieldCloneCreateCommandStorageUri value))], [("token", toJSON (yieldCloneCreateCommandToken value))]]) <> fmap toJSON (withoutFields ["_userId", "archiveOriginal", "byteSize", "contentChecksum", "format", "name", "storageUri", "token"] (yieldCloneCreateCommandAdditionalProperties value)))
+instance ToJSON YieldCloneCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldCloneCreateCommandUserId value), optionalPair "archiveOriginal" (yieldCloneCreateCommandArchiveOriginal value), [("byteSize", toJSON (yieldCloneCreateCommandByteSize value))], [("contentChecksum", toJSON (yieldCloneCreateCommandContentChecksum value))], [("format", toJSON (yieldCloneCreateCommandFormat value))], [("name", toJSON (yieldCloneCreateCommandName value))], [("storageUri", toJSON (yieldCloneCreateCommandStorageUri value))], [("token", toJSON (yieldCloneCreateCommandToken value))]]) <> fmap toJSON (withoutFields ["_userId", "archiveOriginal", "byteSize", "contentChecksum", "format", "name", "storageUri", "token"] (yieldCloneCreateCommandAdditionalProperties value)))

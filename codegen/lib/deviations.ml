@@ -52,11 +52,11 @@ let closed_empty_named (form : T.form) =
    one value. *)
 let haskell_enumeration (s : Schema.schema) = Option.is_some s.enum
 
-(* Haskell names a type written in place by the schema that states it and
-   its member ([AnnotationU40_context]), a union's member as the union and
-   what the member is with [Value] after it, and a list's item with [Item],
-   [Inline] after any of them that a schema already names, where [Typing]
-   names it by [Naming.inline]. *)
+(* Haskell constructs a record or newtype written in place as a union's
+   member by [Mk] and its name ([MkConformanceDriverLineAbandoned]): the
+   union's constructor for it is the union's name and the member's variant,
+   which is the type's name, and Haskell's constructors share one namespace,
+   where [Typing] has a type constructed by its name. *)
 
 (* Haskell sorts a record's members by name, where [Typing] has them in the
    schema's order. *)

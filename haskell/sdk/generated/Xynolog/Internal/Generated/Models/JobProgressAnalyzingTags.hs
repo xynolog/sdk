@@ -19,11 +19,11 @@ instance FromJSON JobProgressAnalyzingTags where parseJSON = checked "JobProgres
 
 instance ToJSON JobProgressAnalyzingTags where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressAnalyzingTagsCode value))]]) <> fmap toJSON (withoutFields ["code"] (jobProgressAnalyzingTagsAdditionalProperties value)))
 
-data JobProgressAnalyzingTagsCode = JobProgressAnalyzingTagsCodeAnalyzingU2d_tags deriving (Eq, Show)
+data JobProgressAnalyzingTagsCode = JobProgressAnalyzingTagsCodeAnalyzingTags deriving (Eq, Show)
 
-instance FromJSON JobProgressAnalyzingTagsCode where parseJSON = checked "JobProgressAnalyzingTagsCode" $ \value -> if value == String "analyzing-tags" then pure JobProgressAnalyzingTagsCodeAnalyzingU2d_tags else fail "unknown enumeration member"
+instance FromJSON JobProgressAnalyzingTagsCode where parseJSON = checked "JobProgressAnalyzingTagsCode" $ \value -> if value == String "analyzing-tags" then pure JobProgressAnalyzingTagsCodeAnalyzingTags else fail "unknown enumeration member"
 
-instance ToJSON JobProgressAnalyzingTagsCode where toJSON JobProgressAnalyzingTagsCodeAnalyzingU2d_tags = String "analyzing-tags"
+instance ToJSON JobProgressAnalyzingTagsCode where toJSON JobProgressAnalyzingTagsCodeAnalyzingTags = String "analyzing-tags"
 
 jobProgressAnalyzingTagsCodeText :: JobProgressAnalyzingTagsCode -> Text
-jobProgressAnalyzingTagsCodeText JobProgressAnalyzingTagsCodeAnalyzingU2d_tags = "analyzing-tags"
+jobProgressAnalyzingTagsCodeText JobProgressAnalyzingTagsCodeAnalyzingTags = "analyzing-tags"

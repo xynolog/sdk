@@ -11,7 +11,7 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.FailureClass
 
 data DispatcherMessages = DispatcherMessages
-  { dispatcherMessagesU24_comment :: Text,
+  { dispatcherMessagesComment :: Text,
     dispatcherMessagesErrors :: [DispatcherMessagesErrorsItem],
     dispatcherMessagesRefusals :: [DispatcherMessagesRefusalsItem]
   }
@@ -19,7 +19,7 @@ data DispatcherMessages = DispatcherMessages
 
 instance FromJSON DispatcherMessages where parseJSON = checked "DispatcherMessages" $ withObject "DispatcherMessages" (\fields -> DispatcherMessages <$> (fields .: "$comment") <*> (fields .: "errors") <*> (fields .: "refusals"))
 
-instance ToJSON DispatcherMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (dispatcherMessagesU24_comment value))], [("errors", toJSON (dispatcherMessagesErrors value))], [("refusals", toJSON (dispatcherMessagesRefusals value))]]))
+instance ToJSON DispatcherMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (dispatcherMessagesComment value))], [("errors", toJSON (dispatcherMessagesErrors value))], [("refusals", toJSON (dispatcherMessagesRefusals value))]]))
 
 data DispatcherMessagesErrorsItem = DispatcherMessagesErrorsItem
   { dispatcherMessagesErrorsItemError :: Text,
@@ -46,18 +46,18 @@ instance FromJSON DispatcherMessagesRefusalsItem where parseJSON = checked "Disp
 
 instance ToJSON DispatcherMessagesRefusalsItem where toJSON value = Object (KM.fromList (concat [optionalPair "code" (dispatcherMessagesRefusalsItemCode value), [("message", toJSON (dispatcherMessagesRefusalsItemMessage value))], [("name", toJSON (dispatcherMessagesRefusalsItemName value))], [("operation", toJSON (dispatcherMessagesRefusalsItemOperation value))], [("situation", toJSON (dispatcherMessagesRefusalsItemSituation value))]]))
 
-data DispatcherMessagesRefusalsItemCode = DispatcherMessagesRefusalsItemCodePeerU2d_unavailable | DispatcherMessagesRefusalsItemCodeNotU2d_found | DispatcherMessagesRefusalsItemCodeUnauthorized | DispatcherMessagesRefusalsItemCodeNoneU2d_pending deriving (Eq, Show)
+data DispatcherMessagesRefusalsItemCode = DispatcherMessagesRefusalsItemCodePeerUnavailable | DispatcherMessagesRefusalsItemCodeNotFound | DispatcherMessagesRefusalsItemCodeUnauthorized | DispatcherMessagesRefusalsItemCodeNonePending deriving (Eq, Show)
 
-instance FromJSON DispatcherMessagesRefusalsItemCode where parseJSON = checked "DispatcherMessagesRefusalsItemCode" $ \value -> if value == String "peer-unavailable" then pure DispatcherMessagesRefusalsItemCodePeerU2d_unavailable else if value == String "not-found" then pure DispatcherMessagesRefusalsItemCodeNotU2d_found else if value == String "unauthorized" then pure DispatcherMessagesRefusalsItemCodeUnauthorized else if value == String "none-pending" then pure DispatcherMessagesRefusalsItemCodeNoneU2d_pending else fail "unknown enumeration member"
+instance FromJSON DispatcherMessagesRefusalsItemCode where parseJSON = checked "DispatcherMessagesRefusalsItemCode" $ \value -> if value == String "peer-unavailable" then pure DispatcherMessagesRefusalsItemCodePeerUnavailable else if value == String "not-found" then pure DispatcherMessagesRefusalsItemCodeNotFound else if value == String "unauthorized" then pure DispatcherMessagesRefusalsItemCodeUnauthorized else if value == String "none-pending" then pure DispatcherMessagesRefusalsItemCodeNonePending else fail "unknown enumeration member"
 
 instance ToJSON DispatcherMessagesRefusalsItemCode where
-  toJSON DispatcherMessagesRefusalsItemCodePeerU2d_unavailable = String "peer-unavailable"
-  toJSON DispatcherMessagesRefusalsItemCodeNotU2d_found = String "not-found"
+  toJSON DispatcherMessagesRefusalsItemCodePeerUnavailable = String "peer-unavailable"
+  toJSON DispatcherMessagesRefusalsItemCodeNotFound = String "not-found"
   toJSON DispatcherMessagesRefusalsItemCodeUnauthorized = String "unauthorized"
-  toJSON DispatcherMessagesRefusalsItemCodeNoneU2d_pending = String "none-pending"
+  toJSON DispatcherMessagesRefusalsItemCodeNonePending = String "none-pending"
 
 dispatcherMessagesRefusalsItemCodeText :: DispatcherMessagesRefusalsItemCode -> Text
-dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodePeerU2d_unavailable = "peer-unavailable"
-dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodeNotU2d_found = "not-found"
+dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodePeerUnavailable = "peer-unavailable"
+dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodeNotFound = "not-found"
 dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodeUnauthorized = "unauthorized"
-dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodeNoneU2d_pending = "none-pending"
+dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodeNonePending = "none-pending"

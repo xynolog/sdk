@@ -129,7 +129,7 @@ let timing (t : Table.t) =
       ];
     body =
       [
-        H.record "RetryBudget"
+        H.record ~constructor:"RetryBudget" "RetryBudget"
           (List.map (fun f -> (f, H.T_name "Integer")) fields)
           ~deriving:[ "Eq"; "Show" ];
         to_object ~type_:"RetryBudget" (List.combine budget fields);
@@ -168,7 +168,7 @@ let settings (t : Table.t) =
       ];
     body =
       [
-        H.record "Settings"
+        H.record ~constructor:"Settings" "Settings"
           (List.map
              (fun (e : Table.entry) ->
                (e.name, type_of ~budget_type:"Base.RetryBudget" e))

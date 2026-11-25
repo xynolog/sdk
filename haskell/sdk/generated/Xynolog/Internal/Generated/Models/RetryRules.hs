@@ -11,7 +11,7 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.HttpStatus
 
 data RetryRules = RetryRules
-  { retryRulesU24_comment :: Text,
+  { retryRulesComment :: Text,
     retryRulesBoot :: RetryRulesBoot,
     retryRulesJob :: RetryRulesJob,
     retryRulesRefresh :: RetryRulesRefresh,
@@ -21,7 +21,7 @@ data RetryRules = RetryRules
 
 instance FromJSON RetryRules where parseJSON = checked "RetryRules" $ withObject "RetryRules" (\fields -> RetryRules <$> (fields .: "$comment") <*> (fields .: "boot") <*> (fields .: "job") <*> (fields .: "refresh") <*> (fields .: "transport"))
 
-instance ToJSON RetryRules where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (retryRulesU24_comment value))], [("boot", toJSON (retryRulesBoot value))], [("job", toJSON (retryRulesJob value))], [("refresh", toJSON (retryRulesRefresh value))], [("transport", toJSON (retryRulesTransport value))]]))
+instance ToJSON RetryRules where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (retryRulesComment value))], [("boot", toJSON (retryRulesBoot value))], [("job", toJSON (retryRulesJob value))], [("refresh", toJSON (retryRulesRefresh value))], [("transport", toJSON (retryRulesTransport value))]]))
 
 data RetryRulesBoot = RetryRulesBoot
   { retryRulesBootStatuses :: [HttpStatus]

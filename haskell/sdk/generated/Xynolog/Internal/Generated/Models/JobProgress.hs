@@ -68,16 +68,16 @@ instance FromJSON JobProgressCurrent where parseJSON = checked "JobProgressCurre
 
 instance ToJSON JobProgressCurrent where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (jobProgressCurrentKind value))], [("value", toJSON (jobProgressCurrentValue value))]]) <> fmap toJSON (withoutFields ["kind", "value"] (jobProgressCurrentAdditionalProperties value)))
 
-data JobProgressCurrentKind = JobProgressCurrentKindEntityU2d_type | JobProgressCurrentKindCategory deriving (Eq, Show)
+data JobProgressCurrentKind = JobProgressCurrentKindEntityType | JobProgressCurrentKindCategory deriving (Eq, Show)
 
-instance FromJSON JobProgressCurrentKind where parseJSON = checked "JobProgressCurrentKind" $ \value -> if value == String "entity-type" then pure JobProgressCurrentKindEntityU2d_type else if value == String "category" then pure JobProgressCurrentKindCategory else fail "unknown enumeration member"
+instance FromJSON JobProgressCurrentKind where parseJSON = checked "JobProgressCurrentKind" $ \value -> if value == String "entity-type" then pure JobProgressCurrentKindEntityType else if value == String "category" then pure JobProgressCurrentKindCategory else fail "unknown enumeration member"
 
 instance ToJSON JobProgressCurrentKind where
-  toJSON JobProgressCurrentKindEntityU2d_type = String "entity-type"
+  toJSON JobProgressCurrentKindEntityType = String "entity-type"
   toJSON JobProgressCurrentKindCategory = String "category"
 
 jobProgressCurrentKindText :: JobProgressCurrentKind -> Text
-jobProgressCurrentKindText JobProgressCurrentKindEntityU2d_type = "entity-type"
+jobProgressCurrentKindText JobProgressCurrentKindEntityType = "entity-type"
 jobProgressCurrentKindText JobProgressCurrentKindCategory = "category"
 
 data JobProgressRequestParamsItem = JobProgressRequestParamsItem
@@ -91,18 +91,18 @@ instance FromJSON JobProgressRequestParamsItem where parseJSON = checked "JobPro
 
 instance ToJSON JobProgressRequestParamsItem where toJSON value = Object (KM.fromList (concat [[("label", toJSON (jobProgressRequestParamsItemLabel value))], [("value", toJSON (jobProgressRequestParamsItemValue value))]]) <> fmap toJSON (withoutFields ["label", "value"] (jobProgressRequestParamsItemAdditionalProperties value)))
 
-data JobProgressRequestParamsItemLabel = JobProgressRequestParamsItemLabelEntityU2d_types | JobProgressRequestParamsItemLabelInstructions | JobProgressRequestParamsItemLabelTone | JobProgressRequestParamsItemLabelDensity deriving (Eq, Show)
+data JobProgressRequestParamsItemLabel = JobProgressRequestParamsItemLabelEntityTypes | JobProgressRequestParamsItemLabelInstructions | JobProgressRequestParamsItemLabelTone | JobProgressRequestParamsItemLabelDensity deriving (Eq, Show)
 
-instance FromJSON JobProgressRequestParamsItemLabel where parseJSON = checked "JobProgressRequestParamsItemLabel" $ \value -> if value == String "entity-types" then pure JobProgressRequestParamsItemLabelEntityU2d_types else if value == String "instructions" then pure JobProgressRequestParamsItemLabelInstructions else if value == String "tone" then pure JobProgressRequestParamsItemLabelTone else if value == String "density" then pure JobProgressRequestParamsItemLabelDensity else fail "unknown enumeration member"
+instance FromJSON JobProgressRequestParamsItemLabel where parseJSON = checked "JobProgressRequestParamsItemLabel" $ \value -> if value == String "entity-types" then pure JobProgressRequestParamsItemLabelEntityTypes else if value == String "instructions" then pure JobProgressRequestParamsItemLabelInstructions else if value == String "tone" then pure JobProgressRequestParamsItemLabelTone else if value == String "density" then pure JobProgressRequestParamsItemLabelDensity else fail "unknown enumeration member"
 
 instance ToJSON JobProgressRequestParamsItemLabel where
-  toJSON JobProgressRequestParamsItemLabelEntityU2d_types = String "entity-types"
+  toJSON JobProgressRequestParamsItemLabelEntityTypes = String "entity-types"
   toJSON JobProgressRequestParamsItemLabelInstructions = String "instructions"
   toJSON JobProgressRequestParamsItemLabelTone = String "tone"
   toJSON JobProgressRequestParamsItemLabelDensity = String "density"
 
 jobProgressRequestParamsItemLabelText :: JobProgressRequestParamsItemLabel -> Text
-jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelEntityU2d_types = "entity-types"
+jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelEntityTypes = "entity-types"
 jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelInstructions = "instructions"
 jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelTone = "tone"
 jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelDensity = "density"

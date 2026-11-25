@@ -10,14 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data WorkerAnswerFormats = WorkerAnswerFormats
-  { workerAnswerFormatsU24_comment :: Text,
+  { workerAnswerFormatsComment :: Text,
     workerAnswerFormatsFormats :: [WorkerAnswerFormatsFormatsItem]
   }
   deriving (Eq, Show)
 
 instance FromJSON WorkerAnswerFormats where parseJSON = checked "WorkerAnswerFormats" $ withObject "WorkerAnswerFormats" (\fields -> WorkerAnswerFormats <$> (fields .: "$comment") <*> (fields .: "formats"))
 
-instance ToJSON WorkerAnswerFormats where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (workerAnswerFormatsU24_comment value))], [("formats", toJSON (workerAnswerFormatsFormats value))]]))
+instance ToJSON WorkerAnswerFormats where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (workerAnswerFormatsComment value))], [("formats", toJSON (workerAnswerFormatsFormats value))]]))
 
 data WorkerAnswerFormatsFormatsItem = WorkerAnswerFormatsFormatsItem
   { workerAnswerFormatsFormatsItemAbout :: Text,

@@ -62,14 +62,14 @@ instance FromJSON GatewayConfigSignal where parseJSON = checked "GatewayConfigSi
 
 instance ToJSON GatewayConfigSignal where toJSON value = Object (KM.fromList (concat [optionalPair "passwordEnv" (gatewayConfigSignalPasswordEnv value), optionalPair "servers" (gatewayConfigSignalServers value), [("type", toJSON (gatewayConfigSignalType value))], optionalPair "userEnv" (gatewayConfigSignalUserEnv value)]))
 
-data GatewayConfigSignalType = GatewayConfigSignalTypeInU2d_process | GatewayConfigSignalTypeNats deriving (Eq, Show)
+data GatewayConfigSignalType = GatewayConfigSignalTypeInProcess | GatewayConfigSignalTypeNats deriving (Eq, Show)
 
-instance FromJSON GatewayConfigSignalType where parseJSON = checked "GatewayConfigSignalType" $ \value -> if value == String "in-process" then pure GatewayConfigSignalTypeInU2d_process else if value == String "nats" then pure GatewayConfigSignalTypeNats else fail "unknown enumeration member"
+instance FromJSON GatewayConfigSignalType where parseJSON = checked "GatewayConfigSignalType" $ \value -> if value == String "in-process" then pure GatewayConfigSignalTypeInProcess else if value == String "nats" then pure GatewayConfigSignalTypeNats else fail "unknown enumeration member"
 
 instance ToJSON GatewayConfigSignalType where
-  toJSON GatewayConfigSignalTypeInU2d_process = String "in-process"
+  toJSON GatewayConfigSignalTypeInProcess = String "in-process"
   toJSON GatewayConfigSignalTypeNats = String "nats"
 
 gatewayConfigSignalTypeText :: GatewayConfigSignalType -> Text
-gatewayConfigSignalTypeText GatewayConfigSignalTypeInU2d_process = "in-process"
+gatewayConfigSignalTypeText GatewayConfigSignalTypeInProcess = "in-process"
 gatewayConfigSignalTypeText GatewayConfigSignalTypeNats = "nats"

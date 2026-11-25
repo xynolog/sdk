@@ -23,11 +23,11 @@ instance FromJSON ReconciledSpanUniqueMatch where parseJSON = checked "Reconcile
 
 instance ToJSON ReconciledSpanUniqueMatch where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanUniqueMatchAnchorMethod value))], [("end", toJSON (reconciledSpanUniqueMatchEnd value))], [("exact", toJSON (reconciledSpanUniqueMatchExact value))], optionalPair "prefix" (reconciledSpanUniqueMatchPrefix value), [("start", toJSON (reconciledSpanUniqueMatchStart value))], optionalPair "suffix" (reconciledSpanUniqueMatchSuffix value)]))
 
-data ReconciledSpanUniqueMatchAnchorMethod = ReconciledSpanUniqueMatchAnchorMethodUniqueU2d_match deriving (Eq, Show)
+data ReconciledSpanUniqueMatchAnchorMethod = ReconciledSpanUniqueMatchAnchorMethodUniqueMatch deriving (Eq, Show)
 
-instance FromJSON ReconciledSpanUniqueMatchAnchorMethod where parseJSON = checked "ReconciledSpanUniqueMatchAnchorMethod" $ \value -> if value == String "unique-match" then pure ReconciledSpanUniqueMatchAnchorMethodUniqueU2d_match else fail "unknown enumeration member"
+instance FromJSON ReconciledSpanUniqueMatchAnchorMethod where parseJSON = checked "ReconciledSpanUniqueMatchAnchorMethod" $ \value -> if value == String "unique-match" then pure ReconciledSpanUniqueMatchAnchorMethodUniqueMatch else fail "unknown enumeration member"
 
-instance ToJSON ReconciledSpanUniqueMatchAnchorMethod where toJSON ReconciledSpanUniqueMatchAnchorMethodUniqueU2d_match = String "unique-match"
+instance ToJSON ReconciledSpanUniqueMatchAnchorMethod where toJSON ReconciledSpanUniqueMatchAnchorMethodUniqueMatch = String "unique-match"
 
 reconciledSpanUniqueMatchAnchorMethodText :: ReconciledSpanUniqueMatchAnchorMethod -> Text
-reconciledSpanUniqueMatchAnchorMethodText ReconciledSpanUniqueMatchAnchorMethodUniqueU2d_match = "unique-match"
+reconciledSpanUniqueMatchAnchorMethodText ReconciledSpanUniqueMatchAnchorMethodUniqueMatch = "unique-match"

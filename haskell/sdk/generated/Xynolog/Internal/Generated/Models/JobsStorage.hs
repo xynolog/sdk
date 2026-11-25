@@ -10,7 +10,7 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data JobsStorage = JobsStorage
-  { jobsStorageU24_comment :: Text,
+  { jobsStorageComment :: Text,
     jobsStorageBucket :: JobsStorageBucket,
     jobsStorageConsumer :: JobsStorageConsumer,
     jobsStorageStream :: JobsStorageStream
@@ -19,7 +19,7 @@ data JobsStorage = JobsStorage
 
 instance FromJSON JobsStorage where parseJSON = checked "JobsStorage" $ withObject "JobsStorage" (\fields -> JobsStorage <$> (fields .: "$comment") <*> (fields .: "bucket") <*> (fields .: "consumer") <*> (fields .: "stream"))
 
-instance ToJSON JobsStorage where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (jobsStorageU24_comment value))], [("bucket", toJSON (jobsStorageBucket value))], [("consumer", toJSON (jobsStorageConsumer value))], [("stream", toJSON (jobsStorageStream value))]]))
+instance ToJSON JobsStorage where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (jobsStorageComment value))], [("bucket", toJSON (jobsStorageBucket value))], [("consumer", toJSON (jobsStorageConsumer value))], [("stream", toJSON (jobsStorageStream value))]]))
 
 data JobsStorageBucket = JobsStorageBucket
   { jobsStorageBucketName :: Text,

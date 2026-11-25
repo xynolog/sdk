@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ProtectedResourceMetadata (ProtectedResourceMetadata (..), ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem (..), protectedResourceMetadataBearerU5f_methodsU5f_supportedItemText) where
+module Xynolog.Internal.Generated.Models.ProtectedResourceMetadata (ProtectedResourceMetadata (..), ProtectedResourceMetadataBearerMethodsSupportedItem (..), protectedResourceMetadataBearerMethodsSupportedItemText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -10,22 +10,22 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ProtectedResourceMetadata = ProtectedResourceMetadata
-  { protectedResourceMetadataAuthorizationU5f_servers :: [Text],
-    protectedResourceMetadataBearerU5f_methodsU5f_supported :: [ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem],
+  { protectedResourceMetadataAuthorizationServers :: [Text],
+    protectedResourceMetadataBearerMethodsSupported :: [ProtectedResourceMetadataBearerMethodsSupportedItem],
     protectedResourceMetadataResource :: Text,
-    protectedResourceMetadataResourceU5f_name :: Maybe Text
+    protectedResourceMetadataResourceName :: Maybe Text
   }
   deriving (Eq, Show)
 
 instance FromJSON ProtectedResourceMetadata where parseJSON = checked "ProtectedResourceMetadata" $ withObject "ProtectedResourceMetadata" (\fields -> ProtectedResourceMetadata <$> (fields .: "authorization_servers") <*> (fields .: "bearer_methods_supported") <*> (fields .: "resource") <*> optional fields "resource_name")
 
-instance ToJSON ProtectedResourceMetadata where toJSON value = Object (KM.fromList (concat [[("authorization_servers", toJSON (protectedResourceMetadataAuthorizationU5f_servers value))], [("bearer_methods_supported", toJSON (protectedResourceMetadataBearerU5f_methodsU5f_supported value))], [("resource", toJSON (protectedResourceMetadataResource value))], optionalPair "resource_name" (protectedResourceMetadataResourceU5f_name value)]))
+instance ToJSON ProtectedResourceMetadata where toJSON value = Object (KM.fromList (concat [[("authorization_servers", toJSON (protectedResourceMetadataAuthorizationServers value))], [("bearer_methods_supported", toJSON (protectedResourceMetadataBearerMethodsSupported value))], [("resource", toJSON (protectedResourceMetadataResource value))], optionalPair "resource_name" (protectedResourceMetadataResourceName value)]))
 
-data ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem = ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItemHeader deriving (Eq, Show)
+data ProtectedResourceMetadataBearerMethodsSupportedItem = ProtectedResourceMetadataBearerMethodsSupportedItemHeader deriving (Eq, Show)
 
-instance FromJSON ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem where parseJSON = checked "ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem" $ \value -> if value == String "header" then pure ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItemHeader else fail "unknown enumeration member"
+instance FromJSON ProtectedResourceMetadataBearerMethodsSupportedItem where parseJSON = checked "ProtectedResourceMetadataBearerMethodsSupportedItem" $ \value -> if value == String "header" then pure ProtectedResourceMetadataBearerMethodsSupportedItemHeader else fail "unknown enumeration member"
 
-instance ToJSON ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem where toJSON ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItemHeader = String "header"
+instance ToJSON ProtectedResourceMetadataBearerMethodsSupportedItem where toJSON ProtectedResourceMetadataBearerMethodsSupportedItemHeader = String "header"
 
-protectedResourceMetadataBearerU5f_methodsU5f_supportedItemText :: ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItem -> Text
-protectedResourceMetadataBearerU5f_methodsU5f_supportedItemText ProtectedResourceMetadataBearerU5f_methodsU5f_supportedItemHeader = "header"
+protectedResourceMetadataBearerMethodsSupportedItemText :: ProtectedResourceMetadataBearerMethodsSupportedItem -> Text
+protectedResourceMetadataBearerMethodsSupportedItemText ProtectedResourceMetadataBearerMethodsSupportedItemHeader = "header"

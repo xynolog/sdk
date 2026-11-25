@@ -87,7 +87,7 @@ reportState driver state = withMVar (output driver) $ \() -> do
     before <- readTVar (reported driver)
     writeTVar (reported driver) (Just state)
     pure (before /= Just state)
-  when changed (writeLine (ConformanceDriverLineState (ConformanceDriverLineStateValue (connectionStateName state))))
+  when changed (writeLine (ConformanceDriverLineState (MkConformanceDriverLineState (connectionStateName state))))
 
 -- Registration completes inside each public scoped subscription, before its
 -- operation is acknowledged and the harness can publish the first event.
@@ -147,7 +147,7 @@ open driver args = do
     ready
       >> Stream.mapM_
         ( \problem ->
-            case failure (toException problem) of Just value -> say driver (ConformanceDriverLineErrorStream (ConformanceDriverLineErrorStreamValue value)); Nothing -> throwIO problem
+            case failure (toException problem) of Just value -> say driver (ConformanceDriverLineErrorStream (MkConformanceDriverLineErrorStream value)); Nothing -> throwIO problem
         )
         errors
   pure Null
@@ -184,7 +184,7 @@ upload driver identifier progress args = do
   let notice (UploadProgress sent total) =
         when progress
           $ say driver
-          $ ConformanceDriverLineProgress (ConformanceDriverLineProgressValue (ConformanceDriverLineProgressValueProgress sent total identifier))
+          $ ConformanceDriverLineProgress (MkConformanceDriverLineProgress (ConformanceDriverLineProgressProgress sent total identifier))
       notice _ = pure ()
   created <- Content.putBinary (Http.content http) Nothing metadata (Content.bytesBody bytes) notice
   pure (toJSON created)
@@ -303,8 +303,8 @@ reportJobs driver worker = do
                 atomically (writeTVar (currentJob driver) (Just (ActiveJob some context)))
                 say driver
                   $ ConformanceDriverLineClaimed
-                  $ ConformanceDriverLineClaimedValue
-                  $ ConformanceDriverLineClaimedValueClaimed
+                  $ MkConformanceDriverLineClaimed
+                  $ ConformanceDriverLineClaimedClaimed
                   $ KM.fromList
                     [ "jobId" .= Worker.jobId job,
                       "jobType" .= Worker.jobType job,
@@ -318,7 +318,7 @@ reportJobs driver worker = do
                 let waitSettled = atomically (Worker.settled job >>= check)
                     cancellation = do
                       signalled <- atomically ((Worker.cancelled job >>= check >> pure True) `orElse` (Worker.settled job >>= check >> pure False))
-                      when signalled (say driver (ConformanceDriverLineSignalled (ConformanceDriverLineSignalledValue (jobIdValue (Worker.jobId job)))))
+                      when signalled (say driver (ConformanceDriverLineSignalled (MkConformanceDriverLineSignalled (jobIdValue (Worker.jobId job)))))
                 withAsync cancellation (const waitSettled)
                 atomically (writeTVar (currentJob driver) Nothing)
     case some of { Worker.HeldMark job -> runJob job; Worker.HeldYield job -> runJob job }
@@ -343,10 +343,10 @@ workerPerform driver identifier operation args = case operation of
       ready
         >> Stream.mapM_
           ( \refusal ->
-              say driver (ConformanceDriverLineRefused (ConformanceDriverLineRefusedValue (ConformanceFailure (Code.busRequestCode <$> claimRefusalCode refusal) (claimRefusalMessage refusal) Nothing Nothing)))
+              say driver (ConformanceDriverLineRefused (MkConformanceDriverLineRefused (ConformanceFailure (Code.busRequestCode <$> claimRefusalCode refusal) (claimRefusalMessage refusal) Nothing Nothing)))
           )
           events
-    reporter driver $ \ready -> Worker.stalled worker $ \events -> ready >> Stream.mapM_ (\event -> say driver (ConformanceDriverLineStalled (ConformanceDriverLineStalledValue (jobIdValue (heldJobStallJobId event))))) events
+    reporter driver $ \ready -> Worker.stalled worker $ \events -> ready >> Stream.mapM_ (\event -> say driver (ConformanceDriverLineStalled (MkConformanceDriverLineStalled (jobIdValue (heldJobStallJobId event))))) events
     reporter driver $ \ready -> ready >> reportJobs driver worker
     pure Null
   "start" -> Just $ withJob driver (\job -> Worker.start job >> pure Null)
@@ -423,8 +423,8 @@ dispatch driver args = do
 frameLine :: BusFrame -> ConformanceDriverLine
 frameLine frame =
   ConformanceDriverLineFrame
-    ( ConformanceDriverLineFrameValue
-        (ConformanceDriverLineFrameValueFrame (busFrameChannel frame) (busFrameCorrelationId frame) (Just (toJSON (busFramePayload frame))) (busFrameScope frame))
+    ( MkConformanceDriverLineFrame
+        (ConformanceDriverLineFrameFrame (busFrameChannel frame) (busFrameCorrelationId frame) (Just (toJSON (busFramePayload frame))) (busFrameScope frame))
     )
 
 serve :: Driver -> IO ()

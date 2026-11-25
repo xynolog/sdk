@@ -13,7 +13,7 @@ import Xynolog.Internal.Generated.Models.UnitCursor
 import Xynolog.Internal.Generated.Models.UserId
 
 data JobCheckpointCommand = JobCheckpointCommand
-  { jobCheckpointCommandU5f_userId :: Maybe UserId,
+  { jobCheckpointCommandUserId :: Maybe UserId,
     jobCheckpointCommandCompletedUnits :: [Text],
     jobCheckpointCommandJobId :: JobId,
     jobCheckpointCommandUnitCursors :: Maybe JobCheckpointCommandUnitCursors,
@@ -23,7 +23,7 @@ data JobCheckpointCommand = JobCheckpointCommand
 
 instance FromJSON JobCheckpointCommand where parseJSON = checked "JobCheckpointCommand" $ withObject "JobCheckpointCommand" (\fields -> JobCheckpointCommand <$> optional fields "_userId" <*> (fields .: "completedUnits") <*> (fields .: "jobId") <*> optional fields "unitCursors" <*> traverse parseJSON (withoutFields ["_userId", "completedUnits", "jobId", "unitCursors"] fields))
 
-instance ToJSON JobCheckpointCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobCheckpointCommandU5f_userId value), [("completedUnits", toJSON (jobCheckpointCommandCompletedUnits value))], [("jobId", toJSON (jobCheckpointCommandJobId value))], optionalPair "unitCursors" (jobCheckpointCommandUnitCursors value)]) <> fmap toJSON (withoutFields ["_userId", "completedUnits", "jobId", "unitCursors"] (jobCheckpointCommandAdditionalProperties value)))
+instance ToJSON JobCheckpointCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobCheckpointCommandUserId value), [("completedUnits", toJSON (jobCheckpointCommandCompletedUnits value))], [("jobId", toJSON (jobCheckpointCommandJobId value))], optionalPair "unitCursors" (jobCheckpointCommandUnitCursors value)]) <> fmap toJSON (withoutFields ["_userId", "completedUnits", "jobId", "unitCursors"] (jobCheckpointCommandAdditionalProperties value)))
 
 data JobCheckpointCommandUnitCursors = JobCheckpointCommandUnitCursors
   { jobCheckpointCommandUnitCursorsAdditionalProperties :: KM.KeyMap UnitCursor

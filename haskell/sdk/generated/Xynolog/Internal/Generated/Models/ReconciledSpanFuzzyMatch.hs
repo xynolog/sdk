@@ -25,11 +25,11 @@ instance FromJSON ReconciledSpanFuzzyMatch where parseJSON = checked "Reconciled
 
 instance ToJSON ReconciledSpanFuzzyMatch where toJSON value = Object (KM.fromList (concat [[("anchorMethod", toJSON (reconciledSpanFuzzyMatchAnchorMethod value))], [("end", toJSON (reconciledSpanFuzzyMatchEnd value))], [("exact", toJSON (reconciledSpanFuzzyMatchExact value))], [("matchQuality", toJSON (reconciledSpanFuzzyMatchMatchQuality value))], optionalPair "prefix" (reconciledSpanFuzzyMatchPrefix value), [("start", toJSON (reconciledSpanFuzzyMatchStart value))], optionalPair "suffix" (reconciledSpanFuzzyMatchSuffix value)]))
 
-data ReconciledSpanFuzzyMatchAnchorMethod = ReconciledSpanFuzzyMatchAnchorMethodFuzzyU2d_match deriving (Eq, Show)
+data ReconciledSpanFuzzyMatchAnchorMethod = ReconciledSpanFuzzyMatchAnchorMethodFuzzyMatch deriving (Eq, Show)
 
-instance FromJSON ReconciledSpanFuzzyMatchAnchorMethod where parseJSON = checked "ReconciledSpanFuzzyMatchAnchorMethod" $ \value -> if value == String "fuzzy-match" then pure ReconciledSpanFuzzyMatchAnchorMethodFuzzyU2d_match else fail "unknown enumeration member"
+instance FromJSON ReconciledSpanFuzzyMatchAnchorMethod where parseJSON = checked "ReconciledSpanFuzzyMatchAnchorMethod" $ \value -> if value == String "fuzzy-match" then pure ReconciledSpanFuzzyMatchAnchorMethodFuzzyMatch else fail "unknown enumeration member"
 
-instance ToJSON ReconciledSpanFuzzyMatchAnchorMethod where toJSON ReconciledSpanFuzzyMatchAnchorMethodFuzzyU2d_match = String "fuzzy-match"
+instance ToJSON ReconciledSpanFuzzyMatchAnchorMethod where toJSON ReconciledSpanFuzzyMatchAnchorMethodFuzzyMatch = String "fuzzy-match"
 
 reconciledSpanFuzzyMatchAnchorMethodText :: ReconciledSpanFuzzyMatchAnchorMethod -> Text
-reconciledSpanFuzzyMatchAnchorMethodText ReconciledSpanFuzzyMatchAnchorMethodFuzzyU2d_match = "fuzzy-match"
+reconciledSpanFuzzyMatchAnchorMethodText ReconciledSpanFuzzyMatchAnchorMethodFuzzyMatch = "fuzzy-match"

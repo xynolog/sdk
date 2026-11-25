@@ -12,8 +12,8 @@ import Xynolog.Internal.Generated.Models.GenerationJobParams
 import Xynolog.Internal.Generated.Models.UserId
 
 data YieldJobCreateCommand = YieldJobCreateCommand
-  { yieldJobCreateCommandU5f_roles :: Maybe [Text],
-    yieldJobCreateCommandU5f_userId :: Maybe UserId,
+  { yieldJobCreateCommandRoles :: Maybe [Text],
+    yieldJobCreateCommandUserId :: Maybe UserId,
     yieldJobCreateCommandJobType :: YieldJobCreateCommandJobType,
     yieldJobCreateCommandParams :: GenerationJobParams
   }
@@ -21,7 +21,7 @@ data YieldJobCreateCommand = YieldJobCreateCommand
 
 instance FromJSON YieldJobCreateCommand where parseJSON = checked "YieldJobCreateCommand" $ withObject "YieldJobCreateCommand" (\fields -> YieldJobCreateCommand <$> optional fields "_roles" <*> optional fields "_userId" <*> (fields .: "jobType") <*> (fields .: "params"))
 
-instance ToJSON YieldJobCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (yieldJobCreateCommandU5f_roles value), optionalPair "_userId" (yieldJobCreateCommandU5f_userId value), [("jobType", toJSON (yieldJobCreateCommandJobType value))], [("params", toJSON (yieldJobCreateCommandParams value))]]))
+instance ToJSON YieldJobCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (yieldJobCreateCommandRoles value), optionalPair "_userId" (yieldJobCreateCommandUserId value), [("jobType", toJSON (yieldJobCreateCommandJobType value))], [("params", toJSON (yieldJobCreateCommandParams value))]]))
 
 data YieldJobCreateCommandJobType = YieldJobCreateCommandJobTypeYield deriving (Eq, Show)
 

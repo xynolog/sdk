@@ -12,8 +12,8 @@ import Xynolog.Internal.Generated.Models.JobFilter
 import Xynolog.Internal.Generated.Models.UserId
 
 data JobClaimCommand = JobClaimCommand
-  { jobClaimCommandU5f_roles :: Maybe [Text],
-    jobClaimCommandU5f_userId :: Maybe UserId,
+  { jobClaimCommandRoles :: Maybe [Text],
+    jobClaimCommandUserId :: Maybe UserId,
     jobClaimCommandAccepts :: [JobFilter],
     jobClaimCommandAdditionalProperties :: KM.KeyMap Value
   }
@@ -21,4 +21,4 @@ data JobClaimCommand = JobClaimCommand
 
 instance FromJSON JobClaimCommand where parseJSON = checked "JobClaimCommand" $ withObject "JobClaimCommand" (\fields -> JobClaimCommand <$> optional fields "_roles" <*> optional fields "_userId" <*> (fields .: "accepts") <*> traverse parseJSON (withoutFields ["_roles", "_userId", "accepts"] fields))
 
-instance ToJSON JobClaimCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (jobClaimCommandU5f_roles value), optionalPair "_userId" (jobClaimCommandU5f_userId value), [("accepts", toJSON (jobClaimCommandAccepts value))]]) <> fmap toJSON (withoutFields ["_roles", "_userId", "accepts"] (jobClaimCommandAdditionalProperties value)))
+instance ToJSON JobClaimCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (jobClaimCommandRoles value), optionalPair "_userId" (jobClaimCommandUserId value), [("accepts", toJSON (jobClaimCommandAccepts value))]]) <> fmap toJSON (withoutFields ["_roles", "_userId", "accepts"] (jobClaimCommandAdditionalProperties value)))

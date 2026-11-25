@@ -13,7 +13,7 @@ mark =
           else do
             result <- case jobStatusResponseResult status of
               Nothing -> Just Nothing
-              Just (JobStoredResultObject _) -> Just Nothing
+              Just (JobStoredResultEmpty _) -> Just Nothing
               Just (JobStoredResultJobResult value) -> case value of
                 JobResultMarkJobDone done -> Just (Just (MarkJobResultMarkJobDone done))
                 JobResultYieldJobDone _ -> Nothing
@@ -31,7 +31,7 @@ yield =
           else do
             result <- case jobStatusResponseResult status of
               Nothing -> Just Nothing
-              Just (JobStoredResultObject _) -> Just Nothing
+              Just (JobStoredResultEmpty _) -> Just Nothing
               Just (JobStoredResultJobResult value) -> case value of
                 JobResultMarkJobDone _ -> Nothing
                 JobResultYieldJobDone done -> Just (Just (YieldJobResultYieldJobDone done))

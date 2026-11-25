@@ -11,7 +11,7 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.UserId
 
 data FrameAddEntityTypeCommand = FrameAddEntityTypeCommand
-  { frameAddEntityTypeCommandU5f_userId :: Maybe UserId,
+  { frameAddEntityTypeCommandUserId :: Maybe UserId,
     frameAddEntityTypeCommandTag :: Text,
     frameAddEntityTypeCommandAdditionalProperties :: KM.KeyMap Value
   }
@@ -19,4 +19,4 @@ data FrameAddEntityTypeCommand = FrameAddEntityTypeCommand
 
 instance FromJSON FrameAddEntityTypeCommand where parseJSON = checked "FrameAddEntityTypeCommand" $ withObject "FrameAddEntityTypeCommand" (\fields -> FrameAddEntityTypeCommand <$> optional fields "_userId" <*> (fields .: "tag") <*> traverse parseJSON (withoutFields ["_userId", "tag"] fields))
 
-instance ToJSON FrameAddEntityTypeCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (frameAddEntityTypeCommandU5f_userId value), [("tag", toJSON (frameAddEntityTypeCommandTag value))]]) <> fmap toJSON (withoutFields ["_userId", "tag"] (frameAddEntityTypeCommandAdditionalProperties value)))
+instance ToJSON FrameAddEntityTypeCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (frameAddEntityTypeCommandUserId value), [("tag", toJSON (frameAddEntityTypeCommandTag value))]]) <> fmap toJSON (withoutFields ["_userId", "tag"] (frameAddEntityTypeCommandAdditionalProperties value)))

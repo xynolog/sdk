@@ -13,7 +13,7 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data YieldClonePersistCommand = YieldClonePersistCommand
-  { yieldClonePersistCommandU5f_userId :: Maybe UserId,
+  { yieldClonePersistCommandUserId :: Maybe UserId,
     yieldClonePersistCommandByteSize :: Integer,
     yieldClonePersistCommandContentChecksum :: Text,
     yieldClonePersistCommandEntityTypes :: Maybe [Text],
@@ -28,4 +28,4 @@ data YieldClonePersistCommand = YieldClonePersistCommand
 
 instance FromJSON YieldClonePersistCommand where parseJSON = checked "YieldClonePersistCommand" $ withObject "YieldClonePersistCommand" (\fields -> YieldClonePersistCommand <$> optional fields "_userId" <*> (fields .: "byteSize") <*> (fields .: "contentChecksum") <*> optional fields "entityTypes" <*> (fields .: "format") <*> optional fields "language" <*> (fields .: "name") <*> (fields .: "parentResourceId") <*> (fields .: "storageUri") <*> traverse parseJSON (withoutFields ["_userId", "byteSize", "contentChecksum", "entityTypes", "format", "language", "name", "parentResourceId", "storageUri"] fields))
 
-instance ToJSON YieldClonePersistCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldClonePersistCommandU5f_userId value), [("byteSize", toJSON (yieldClonePersistCommandByteSize value))], [("contentChecksum", toJSON (yieldClonePersistCommandContentChecksum value))], optionalPair "entityTypes" (yieldClonePersistCommandEntityTypes value), [("format", toJSON (yieldClonePersistCommandFormat value))], optionalPair "language" (yieldClonePersistCommandLanguage value), [("name", toJSON (yieldClonePersistCommandName value))], [("parentResourceId", toJSON (yieldClonePersistCommandParentResourceId value))], [("storageUri", toJSON (yieldClonePersistCommandStorageUri value))]]) <> fmap toJSON (withoutFields ["_userId", "byteSize", "contentChecksum", "entityTypes", "format", "language", "name", "parentResourceId", "storageUri"] (yieldClonePersistCommandAdditionalProperties value)))
+instance ToJSON YieldClonePersistCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldClonePersistCommandUserId value), [("byteSize", toJSON (yieldClonePersistCommandByteSize value))], [("contentChecksum", toJSON (yieldClonePersistCommandContentChecksum value))], optionalPair "entityTypes" (yieldClonePersistCommandEntityTypes value), [("format", toJSON (yieldClonePersistCommandFormat value))], optionalPair "language" (yieldClonePersistCommandLanguage value), [("name", toJSON (yieldClonePersistCommandName value))], [("parentResourceId", toJSON (yieldClonePersistCommandParentResourceId value))], [("storageUri", toJSON (yieldClonePersistCommandStorageUri value))]]) <> fmap toJSON (withoutFields ["_userId", "byteSize", "contentChecksum", "entityTypes", "format", "language", "name", "parentResourceId", "storageUri"] (yieldClonePersistCommandAdditionalProperties value)))

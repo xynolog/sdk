@@ -22,11 +22,11 @@ instance FromJSON JobProgressCompleteCreated where parseJSON = checked "JobProgr
 
 instance ToJSON JobProgressCompleteCreated where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCompleteCreatedCode value))], [("count", toJSON (jobProgressCompleteCreatedCount value))], [("motivation", toJSON (jobProgressCompleteCreatedMotivation value))]]) <> fmap toJSON (withoutFields ["code", "count", "motivation"] (jobProgressCompleteCreatedAdditionalProperties value)))
 
-data JobProgressCompleteCreatedCode = JobProgressCompleteCreatedCodeCompleteU2d_created deriving (Eq, Show)
+data JobProgressCompleteCreatedCode = JobProgressCompleteCreatedCodeCompleteCreated deriving (Eq, Show)
 
-instance FromJSON JobProgressCompleteCreatedCode where parseJSON = checked "JobProgressCompleteCreatedCode" $ \value -> if value == String "complete-created" then pure JobProgressCompleteCreatedCodeCompleteU2d_created else fail "unknown enumeration member"
+instance FromJSON JobProgressCompleteCreatedCode where parseJSON = checked "JobProgressCompleteCreatedCode" $ \value -> if value == String "complete-created" then pure JobProgressCompleteCreatedCodeCompleteCreated else fail "unknown enumeration member"
 
-instance ToJSON JobProgressCompleteCreatedCode where toJSON JobProgressCompleteCreatedCodeCompleteU2d_created = String "complete-created"
+instance ToJSON JobProgressCompleteCreatedCode where toJSON JobProgressCompleteCreatedCodeCompleteCreated = String "complete-created"
 
 jobProgressCompleteCreatedCodeText :: JobProgressCompleteCreatedCode -> Text
-jobProgressCompleteCreatedCodeText JobProgressCompleteCreatedCodeCompleteU2d_created = "complete-created"
+jobProgressCompleteCreatedCodeText JobProgressCompleteCreatedCodeCompleteCreated = "complete-created"

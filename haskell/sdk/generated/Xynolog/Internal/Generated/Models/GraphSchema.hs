@@ -10,7 +10,7 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data GraphSchema = GraphSchema
-  { graphSchemaU24_comment :: Text,
+  { graphSchemaComment :: Text,
     graphSchemaNodes :: GraphSchemaNodes,
     graphSchemaRelationships :: GraphSchemaRelationships,
     graphSchemaStub :: GraphSchemaStub
@@ -19,7 +19,7 @@ data GraphSchema = GraphSchema
 
 instance FromJSON GraphSchema where parseJSON = checked "GraphSchema" $ withObject "GraphSchema" (\fields -> GraphSchema <$> (fields .: "$comment") <*> (fields .: "nodes") <*> (fields .: "relationships") <*> (fields .: "stub"))
 
-instance ToJSON GraphSchema where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (graphSchemaU24_comment value))], [("nodes", toJSON (graphSchemaNodes value))], [("relationships", toJSON (graphSchemaRelationships value))], [("stub", toJSON (graphSchemaStub value))]]))
+instance ToJSON GraphSchema where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (graphSchemaComment value))], [("nodes", toJSON (graphSchemaNodes value))], [("relationships", toJSON (graphSchemaRelationships value))], [("stub", toJSON (graphSchemaStub value))]]))
 
 data GraphSchemaNodes = GraphSchemaNodes
   { graphSchemaNodesAnnotation :: GraphSchemaNodesAnnotation,

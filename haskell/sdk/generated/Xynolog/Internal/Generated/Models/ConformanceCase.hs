@@ -24,16 +24,16 @@ instance FromJSON ConformanceCase where parseJSON = checked "ConformanceCase" $ 
 
 instance ToJSON ConformanceCase where toJSON value = Object (KM.fromList (concat [[("about", toJSON (conformanceCaseAbout value))], optionalPair "planes" (conformanceCasePlanes value), [("source", toJSON (conformanceCaseSource value))], [("steps", toJSON (conformanceCaseSteps value))], optionalPair "telemetry" (conformanceCaseTelemetry value), optionalPair "tier" (conformanceCaseTier value)]))
 
-data ConformanceCasePlanesItem = ConformanceCasePlanesItemInU2d_process | ConformanceCasePlanesItemNats deriving (Eq, Show)
+data ConformanceCasePlanesItem = ConformanceCasePlanesItemInProcess | ConformanceCasePlanesItemNats deriving (Eq, Show)
 
-instance FromJSON ConformanceCasePlanesItem where parseJSON = checked "ConformanceCasePlanesItem" $ \value -> if value == String "in-process" then pure ConformanceCasePlanesItemInU2d_process else if value == String "nats" then pure ConformanceCasePlanesItemNats else fail "unknown enumeration member"
+instance FromJSON ConformanceCasePlanesItem where parseJSON = checked "ConformanceCasePlanesItem" $ \value -> if value == String "in-process" then pure ConformanceCasePlanesItemInProcess else if value == String "nats" then pure ConformanceCasePlanesItemNats else fail "unknown enumeration member"
 
 instance ToJSON ConformanceCasePlanesItem where
-  toJSON ConformanceCasePlanesItemInU2d_process = String "in-process"
+  toJSON ConformanceCasePlanesItemInProcess = String "in-process"
   toJSON ConformanceCasePlanesItemNats = String "nats"
 
 conformanceCasePlanesItemText :: ConformanceCasePlanesItem -> Text
-conformanceCasePlanesItemText ConformanceCasePlanesItemInU2d_process = "in-process"
+conformanceCasePlanesItemText ConformanceCasePlanesItemInProcess = "in-process"
 conformanceCasePlanesItemText ConformanceCasePlanesItemNats = "nats"
 
 data ConformanceCaseTelemetry = ConformanceCaseTelemetryTrue deriving (Eq, Show)

@@ -21,8 +21,8 @@ instance FromJSON AnchoredTextDeclinedEntry where parseJSON = checked "AnchoredT
 
 instance ToJSON AnchoredTextDeclinedEntry where toJSON value = Object (KM.fromList (concat [[("declined", toJSON (anchoredTextDeclinedEntryDeclined value))], [("stamp", toJSON (anchoredTextDeclinedEntryStamp value))], [("v", toJSON (anchoredTextDeclinedEntryV value))]]))
 
-data AnchoredTextDeclinedEntryV = AnchoredTextDeclinedEntryVV3U2e_0 deriving (Eq, Show)
+data AnchoredTextDeclinedEntryV = AnchoredTextDeclinedEntryV3 deriving (Eq, Show)
 
-instance FromJSON AnchoredTextDeclinedEntryV where parseJSON = checked "AnchoredTextDeclinedEntryV" $ \value -> if value == Number (read "3.0") then pure AnchoredTextDeclinedEntryVV3U2e_0 else fail "unknown enumeration member"
+instance FromJSON AnchoredTextDeclinedEntryV where parseJSON = checked "AnchoredTextDeclinedEntryV" $ \value -> if value == Number (read "3.0") then pure AnchoredTextDeclinedEntryV3 else fail "unknown enumeration member"
 
-instance ToJSON AnchoredTextDeclinedEntryV where toJSON AnchoredTextDeclinedEntryVV3U2e_0 = Number (read "3.0")
+instance ToJSON AnchoredTextDeclinedEntryV where toJSON AnchoredTextDeclinedEntryV3 = Number (read "3.0")

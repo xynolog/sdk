@@ -20,11 +20,11 @@ instance FromJSON JobProgressCreatingAnnotations where parseJSON = checked "JobP
 
 instance ToJSON JobProgressCreatingAnnotations where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingAnnotationsCode value))], [("count", toJSON (jobProgressCreatingAnnotationsCount value))]]) <> fmap toJSON (withoutFields ["code", "count"] (jobProgressCreatingAnnotationsAdditionalProperties value)))
 
-data JobProgressCreatingAnnotationsCode = JobProgressCreatingAnnotationsCodeCreatingU2d_annotations deriving (Eq, Show)
+data JobProgressCreatingAnnotationsCode = JobProgressCreatingAnnotationsCodeCreatingAnnotations deriving (Eq, Show)
 
-instance FromJSON JobProgressCreatingAnnotationsCode where parseJSON = checked "JobProgressCreatingAnnotationsCode" $ \value -> if value == String "creating-annotations" then pure JobProgressCreatingAnnotationsCodeCreatingU2d_annotations else fail "unknown enumeration member"
+instance FromJSON JobProgressCreatingAnnotationsCode where parseJSON = checked "JobProgressCreatingAnnotationsCode" $ \value -> if value == String "creating-annotations" then pure JobProgressCreatingAnnotationsCodeCreatingAnnotations else fail "unknown enumeration member"
 
-instance ToJSON JobProgressCreatingAnnotationsCode where toJSON JobProgressCreatingAnnotationsCodeCreatingU2d_annotations = String "creating-annotations"
+instance ToJSON JobProgressCreatingAnnotationsCode where toJSON JobProgressCreatingAnnotationsCodeCreatingAnnotations = String "creating-annotations"
 
 jobProgressCreatingAnnotationsCodeText :: JobProgressCreatingAnnotationsCode -> Text
-jobProgressCreatingAnnotationsCodeText JobProgressCreatingAnnotationsCodeCreatingU2d_annotations = "creating-annotations"
+jobProgressCreatingAnnotationsCodeText JobProgressCreatingAnnotationsCodeCreatingAnnotations = "creating-annotations"

@@ -184,7 +184,7 @@ annotationId job = case jobType job of
   JobTypeYield -> do
     Success generation <- Just (fromJSON (toJSON (params job)))
     GatheredContextFocusAnnotation focus <- Just (gatheredContextFocus (generationJobParamsContext generation))
-    Just (Types.annotationId (gatheredContextFocusAnnotationValueAnnotation focus))
+    Just (Types.annotationId (gatheredContextFocusAnnotationAnnotation focus))
 
 trace :: HeldJob result -> Maybe TraceCarrier
 trace = heldTrace
@@ -515,9 +515,9 @@ checkpoint job value = withMVar (heldGate job) $ \() -> do
 
 weakness :: DurabilityEvidence -> Int
 weakness DurabilityEvidenceAcknowledged = 0
-weakness DurabilityEvidenceProbeU2d_confirmed = 1
-weakness DurabilityEvidenceProbeU2d_refused = 2
-weakness DurabilityEvidenceProbeU2d_unreachable = 2
+weakness DurabilityEvidenceProbeConfirmed = 1
+weakness DurabilityEvidenceProbeRefused = 2
+weakness DurabilityEvidenceProbeUnreachable = 2
 
 observeDurability :: HeldJob result -> DurabilityEvidence -> IO ()
 observeDurability job observed = atomically $ modifyTVar' (heldDurability job) $ \prior ->
@@ -545,11 +545,11 @@ commit job resource annotations = withMVar (heldGate job) $ \() -> do
                   timeoutMs
               )
           let evidence = case probe of
-                Right _ -> DurabilityEvidenceProbeU2d_confirmed
-                Left failure | Just refusedProbe <- fromException failure, busRequestErrorCode refusedProbe == BusRequestRejected -> DurabilityEvidenceProbeU2d_refused
-                Left _ -> DurabilityEvidenceProbeU2d_unreachable
+                Right _ -> DurabilityEvidenceProbeConfirmed
+                Left failure | Just refusedProbe <- fromException failure, busRequestErrorCode refusedProbe == BusRequestRejected -> DurabilityEvidenceProbeRefused
+                Left _ -> DurabilityEvidenceProbeUnreachable
           observeDurability job evidence
-          unless (evidence == DurabilityEvidenceProbeU2d_confirmed) (throwIO problem)
+          unless (evidence == DurabilityEvidenceProbeConfirmed) (throwIO problem)
         Left problem -> throwIO problem
 
 release :: HeldJob result -> Bool -> IO ()
@@ -609,7 +609,7 @@ complete job result = settle job True $ do
 fail :: HeldJob result -> Text -> Maybe JobFailure -> IO ()
 fail job message failure = settle job False $ do
   observed <- readTVarIO (heldDurability job)
-  let durability = observed >>= \value -> if weakness value > weakness DurabilityEvidenceProbeU2d_confirmed then Just value else Nothing
+  let durability = observed >>= \value -> if weakness value > weakness DurabilityEvidenceProbeConfirmed then Just value else Nothing
       classification = failure >>= jobFailureFailureClass
       units = failure >>= jobFailureCompletedUnits
       cursors = JobFailCommandUnitCursors <$> (failure >>= jobFailureUnitCursors)

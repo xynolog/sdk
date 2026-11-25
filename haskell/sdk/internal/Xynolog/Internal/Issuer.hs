@@ -147,7 +147,7 @@ discoverIssuer options target = do
     (metadataStatus == Route.routeStatus Route.GetProtectedResourceMetadata)
     (failWith Code.SignInDiscovery "The knowledge base refused its resource metadata" (Just metadataStatus))
   metadata <- parse Code.SignInDiscovery "The knowledge base returned invalid resource metadata" body
-  identity <- case protectedResourceMetadataAuthorizationU5f_servers metadata of
+  identity <- case protectedResourceMetadataAuthorizationServers metadata of
     [] -> failWith Code.SignInNoIssuer "The knowledge base names no issuer" Nothing
     first : _ -> pure first
   doc <- configuration options identity

@@ -152,13 +152,32 @@ let cases =
          \  }\n\
          \  deriving (Eq, Show)"
          (decl
-            (H.record "State" ~params:[ "v" ] ~deriving:[ "Eq"; "Show" ]
+            (H.record "State" ~constructor:"State" ~params:[ "v" ]
+               ~deriving:[ "Eq"; "Show" ]
                [
                  ("stateResults", T_list (T_name "v"));
                  ("stateBusy", T_name "Bool");
                ])));
+    case "a record is made by the constructor it names"
+      (writes "data Line = MkLine\n  { lineText :: Text\n  }"
+         (decl
+            (H.record "Line" ~constructor:"MkLine"
+               [ ("lineText", T_name "Text") ])));
+    case "a newtype is made by the constructor it names"
+      (writes "newtype Name = MkName Text"
+         (decl
+            (H.Newtype
+               {
+                 about = [];
+                 name = "Name";
+                 constructor = "MkName";
+                 field = None;
+                 type_ = T_name "Text";
+                 opaque = false;
+                 deriving = [];
+               })));
     case "a record of no fields is refused"
-      (refuses (decl (H.record "Empty" [])));
+      (refuses (decl (H.record "Empty" ~constructor:"Empty" [])));
     case "a doc comment's line is one line"
       (refuses (decl (H.alias ~about:[ "two\nlines" ] "A" (T_name "B"))));
     case
@@ -281,6 +300,7 @@ let cases =
                      {
                        about = [];
                        name = "Id";
+                       constructor = "Id";
                        field = None;
                        type_ = T_name "Text";
                        opaque = true;
@@ -290,6 +310,7 @@ let cases =
                      {
                        about = [];
                        name = "Name";
+                       constructor = "Name";
                        field = Some "nameText";
                        type_ = T_name "Text";
                        opaque = false;

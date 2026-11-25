@@ -432,7 +432,7 @@ kbSessionStatus owner key = do
   grant <- storedSession (storage owner) key
   now <- registryWallNow (configuration owner)
   pure $ case grant of
-    Nothing -> KbSessionStatusSignedU2d_out
+    Nothing -> KbSessionStatusSignedOut
     Just held
       | Tokens.isTokenExpired (storedSessionAccess held) now -> KbSessionStatusExpired
       | otherwise -> KbSessionStatusAuthenticated
@@ -548,7 +548,7 @@ setLastViewedResource owner resource = Lifetime.run (lifetime owner) $ do
     atomically (writeTVar (viewedByKb owner) values >> project owner)
 
 noVerdict :: KbReadVerdict
-noVerdict = KbReadVerdictNoVerdict (KbReadVerdictNoVerdictValue KbReadKindNoU2d_verdict)
+noVerdict = KbReadVerdictNoVerdict (MkKbReadVerdictNoVerdict KbReadKindNoVerdict)
 
 readKb :: XynologBrowser -> Session.Session -> Text -> IO KbReadVerdict
 readKb owner session key = do
@@ -567,11 +567,11 @@ readKb owner session key = do
         Nothing -> pure noVerdict
         Just (description, did) ->
           if did /= knowledgeBaseDid entry
-            then pure (KbReadVerdictConflict (KbReadVerdictConflictValue KbReadKindConflict did (kbDescriptionName description)))
+            then pure (KbReadVerdictConflict (MkKbReadVerdictConflict KbReadKindConflict did (kbDescriptionName description)))
             else do
               reading <- readNow owner description
               updateKb owner key (Just (kbDescriptionName description)) (Just reading)
-              pure (KbReadVerdictRecorded (KbReadVerdictRecordedValue KbReadKindRecorded))
+              pure (KbReadVerdictRecorded (MkKbReadVerdictRecorded KbReadKindRecorded))
 
 readActiveKb :: XynologBrowser -> IO KbReadVerdict
 readActiveKb owner = Lifetime.run (lifetime owner) $ do
@@ -596,7 +596,7 @@ validateOpened owner version session = do
             | actual == version ->
                 Signals.notifyKbIdentityConflict
                   signals
-                  (Signals.KbIdentityConflict (knowledgeBaseDid entry) (kbReadVerdictConflictValueObservedDid conflict))
+                  (Signals.KbIdentityConflict (knowledgeBaseDid entry) (kbReadVerdictConflictObservedDid conflict))
           _ -> pure ()
     _ -> do
       raw <- Storage.get (storage owner) openResourcesByKbKey
@@ -604,14 +604,14 @@ validateOpened owner version session = do
           checkTab tab =
             ( do
                 value <- Cache.fresh (Browse.resource (Client.browse (Session.client session)) (openResourceId tab))
-                pure (openResourceId tab, TabCheckReady (TabCheckReadyValue (Resources.getPrimaryMediaType value) (resourceDescriptorName value) TabVerdictReady))
+                pure (openResourceId tab, TabCheckReady (MkTabCheckReady (Resources.getPrimaryMediaType value) (resourceDescriptorName value) TabVerdictReady))
             )
               `catchSync` \problem ->
                 pure
                   ( openResourceId tab,
                     case fromException problem of
-                      Just failure | busRequestErrorCode failure == Code.BusRequestNotFound -> TabCheckGone (TabCheckGoneValue TabVerdictGone)
-                      _ -> TabCheckUnknown (TabCheckUnknownValue TabVerdictUnknown)
+                      Just failure | busRequestErrorCode failure == Code.BusRequestNotFound -> TabCheckGone (MkTabCheckGone TabVerdictGone)
+                      _ -> TabCheckUnknown (MkTabCheckUnknown TabVerdictUnknown)
                   )
       lanes <- newQSem (fromInteger Timing.checksAtOnceCount)
       checks <- Map.fromList <$> mapConcurrently (\tab -> bracket_ (waitQSem lanes) (signalQSem lanes) (checkTab tab)) waiting

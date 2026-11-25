@@ -6,12 +6,13 @@
    is kept beside it, as the SDK validates a value against it.
 
    Haskell's own choices are this writer's rules, and where they are not
-   [Typing]'s they are [Deviations]. A schema's type is named as the schema
-   is; one stated in place takes the name of the schema that states its
-   member and the member's, made unique by "Inline". A string, integer,
-   number and boolean are Text, Integer, Scientific and Bool. Words are a type
-   of constructors, with a function that gives each its word, branches a type
-   of one constructor each, an object a record, and anything else a newtype;
+   [Typing]'s they are [Deviations]. A type is named as [Typing] names it,
+   a union's constructor as the union and its member's variant, a field as
+   its record and its member, and an enumeration's constructor as the
+   enumeration and its value. A string, integer, number and boolean are
+   Text, Integer, Scientific and Bool. Words are a type of constructors, with
+   a function that gives each its word, branches a type of one constructor
+   each, an object a record, and anything else a newtype;
    an identifier's newtype is opaque, made only by its module's mk. A member
    the object needn't state is a Maybe, and an object open to other members
    keeps them. *)
@@ -24,31 +25,18 @@ let ( let* ) = Result.bind
 module Names = Set.Make (String)
 module Named = Map.Make (String)
 
-(* What a name is in Haskell: its letters and digits, every other character
-   by its code point between U and _, begun upper case, and V before it if it
-   would begin with a digit. *)
-let identifier value =
-  let out = Buffer.create (String.length value) in
-  Text.fold_uchars
-    (fun () u ->
-      match Uchar.to_int u with
-      | c
-        when (c >= Char.code 'a' && c <= Char.code 'z')
-             || (c >= Char.code 'A' && c <= Char.code 'Z')
-             || (c >= Char.code '0' && c <= Char.code '9') ->
-          Buffer.add_char out (Char.chr c)
-      | c -> Buffer.add_string out (Printf.sprintf "U%x_" c))
-    () value;
-  match Buffer.contents out with
-  | "" -> "Value"
-  | encoded when encoded.[0] >= '0' && encoded.[0] <= '9' -> "V" ^ encoded
-  | encoded -> String.capitalize_ascii encoded
-
 let lower = String.uncapitalize_ascii
 
-(* The name of the type written in place for member [key] of [owner], the
-   schema that states it. *)
-let member_type owner key = owner ^ identifier key
+(* A record's field for its member [key]: the record's name begun lower case
+   and the member's in Pascal case. *)
+let field record key = lower record ^ Text.pascal key
+
+(* An enumeration's constructor for [value]: the enumeration's name and the
+   value's ([Naming.variant]). *)
+let constructor enumeration : Schema.literal -> string = function
+  | String_literal text -> enumeration ^ Naming.variant text
+  | Int_literal n -> enumeration ^ Naming.variant (string_of_int n)
+  | Bool_literal b -> enumeration ^ if b then "True" else "False"
 
 (* A number as Haskell's Scientific shows it: a whole number below ten
    million with ".0" after it. *)
@@ -75,6 +63,8 @@ type state = {
   mutable dependencies : Names.t Named.t;
   ids : Decode.ids;  (** Each schema's [$id]: what a reference names. *)
   identifiers : Names.t;
+  mutable union_members : Names.t;
+      (** The types written in place as a union's members. *)
   typing : T.t;
 }
 
@@ -87,19 +77,6 @@ let normalize state schema =
   Normalize.normalize state.ids
     ~find:(fun r -> find state (Definitions.referenced r))
     schema
-
-let scalar_type : Schema.type_name -> H.type_ option = function
-  | String -> Some (T_name "Text")
-  | Integer -> Some (T_name "Integer")
-  | Number -> Some (T_name "Scientific")
-  | Boolean -> Some (T_name "Bool")
-  | Array | Object | Null -> None
-
-let one_type name (s : Schema.schema) =
-  match s.type_ with
-  | None -> Ok None
-  | Some [ t ] -> Ok (Some t)
-  | Some _ -> Error (name ^ ": a type of more than one name")
 
 let checked name = H.Apply (Name "checked", [ Str name ])
 
@@ -135,14 +112,7 @@ let depend state component =
 let enumeration name values =
   let members =
     List.map
-      (fun (v : Schema.literal) ->
-        let constructor =
-          match v with
-          | String_literal text -> name ^ identifier text
-          | Int_literal n -> name ^ identifier (scientific (Float.of_int n))
-          | Bool_literal b -> name ^ if b then "True" else "False"
-        in
-        (constructor, literal_value v))
+      (fun (v : Schema.literal) -> (constructor name v, literal_value v))
       values
   in
   let constructors = List.map fst members in
@@ -201,38 +171,6 @@ let enumeration name values =
        ]
       @ text)
 
-(* What a union's member is named by: the schema it names, its kind when it
-   is a list or a scalar, and, stated in place as an object, the one string
-   its discriminating property admits, else its title. *)
-let rec branch name part =
-  let* raw = Normalize.layer part in
-  match (raw.ref_, raw.all_of) with
-  | Some r, _ -> Ok (Definitions.referenced r)
-  | None, Some [ only ] -> branch name only
-  | None, _ -> (
-      let* t = one_type name raw in
-      match t with
-      | Some Array -> Ok "List"
-      | Some Object | None -> (
-          let discriminant =
-            List.find_map
-              (fun (_, property) ->
-                match property with
-                | Schema.Schema { const = Some (String_literal v); _ }
-                | Schema.Schema { enum = Some [ String_literal v ]; _ } ->
-                    Some v
-                | _ -> None)
-              (Option.value raw.properties ~default:[])
-          in
-          match (discriminant, raw.title) with
-          | Some value, _ -> Ok (Text.pascal value)
-          | None, Some title -> Ok (Text.pascal title)
-          | None, None -> Ok "Object")
-      | Some scalar -> (
-          match scalar_type scalar with
-          | Some (T_name haskell) -> Ok haskell
-          | _ -> Error (name ^ ": a union member of no Haskell scalar")))
-
 (* A union's type, a constructor of each member's type, read as the first
    member that parses: [Deviations.haskell_first_fit]. *)
 let union_decls name members =
@@ -266,7 +204,7 @@ let union_decls name members =
 
 (* A newtype of [value_type]: an identifier's opaque, made only by its
    module's mk. *)
-let newtype_decls name value_type opaque =
+let newtype_decls name ~constructor value_type opaque =
   let accessor = lower name ^ "Value" in
   let maker = "mk" ^ name in
   let newtype =
@@ -274,6 +212,7 @@ let newtype_decls name value_type opaque =
       {
         about = [];
         name;
+        constructor;
         field = (if opaque then None else Some accessor);
         type_ = value_type;
         opaque;
@@ -287,12 +226,12 @@ let newtype_decls name value_type opaque =
         (Lambda
            ( "value",
              Infix
-               ( Name name,
+               ( Name constructor,
                  [ ("<$>", Apply (Name "parseJSON", [ Name "value" ])) ] ) ));
       to_json
         [
           {
-            H.patterns = [ Constructor (name, [ Var "value" ]) ];
+            H.patterns = [ Constructor (constructor, [ Var "value" ]) ];
             body = Apply (Name "toJSON", [ Name "value" ]);
           };
         ]
@@ -311,7 +250,7 @@ let newtype_decls name value_type opaque =
               clauses =
                 [
                   {
-                    patterns = [ Constructor (name, [ Var "value" ]) ];
+                    patterns = [ Constructor (constructor, [ Var "value" ]) ];
                     body = Name "value";
                   };
                 ];
@@ -343,7 +282,7 @@ let newtype_decls name value_type opaque =
 
 (* A record of [members], each its field, type, parser and encoder, and the
    members of an open object beside them. *)
-let object_decls name ~open_ ~names ~extra_type members =
+let object_decls name ~constructor ~open_ ~names ~extra_type members =
   let extras = lower name ^ "AdditionalProperties" in
   let without held = H.Apply (Name "withoutFields", [ names; held ]) in
   let fields =
@@ -362,18 +301,18 @@ let object_decls name ~open_ ~names ~extra_type members =
   in
   let declaration =
     match fields with
-    | [] -> H.data name ~deriving:[ "Eq"; "Show" ] [ H.constructor name ]
-    | fields -> H.record name ~deriving:[ "Eq"; "Show" ] fields
+    | [] -> H.data name ~deriving:[ "Eq"; "Show" ] [ H.constructor constructor ]
+    | fields -> H.record name ~constructor ~deriving:[ "Eq"; "Show" ] fields
   in
   let reader =
     match parsers with
-    | [] -> H.Lambda ("_", Apply (Name "pure", [ Name name ]))
+    | [] -> H.Lambda ("_", Apply (Name "pure", [ Name constructor ]))
     | first :: rest ->
         Lambda
           ( "fields",
             Infix
-              (Name name, ("<$>", first) :: List.map (fun p -> ("<*>", p)) rest)
-          )
+              ( Name constructor,
+                ("<$>", first) :: List.map (fun p -> ("<*>", p)) rest ) )
   in
   let known =
     H.Apply
@@ -451,9 +390,9 @@ let beside_null name original =
   in
   Ok (Schema.Schema (Option.value beside ~default:fields))
 
-(* The type [ty] is in Haskell, [original] the schema it is read from, and
-   [proposed] the name a type written in place for it takes. *)
-let rec type_of state proposed original (ty : T.ty) : (H.type_, string) result =
+(* The type [ty] is in Haskell, [original] the schema it is read from, at
+   [at]. *)
+let rec type_of state at original (ty : T.ty) : (H.type_, string) result =
   let* raw = Normalize.layer original in
   match (raw.ref_, raw.all_of, ty) with
   | None, Some [ part ], _ -> (
@@ -463,48 +402,42 @@ let rec type_of state proposed original (ty : T.ty) : (H.type_, string) result =
           let target = Definitions.referenced r in
           depend state target;
           Ok (H.T_name target)
-      | _ -> type_of state proposed part ty)
+      | _ -> type_of state at part ty)
   | _, _, Inline { form = Enum { base = Some s; _ }; _ } ->
       let* merged = normalize state original in
-      if Deviations.haskell_enumeration merged then
-        stated state proposed original ty
+      if Deviations.haskell_enumeration merged then stated state at original ty
       else Ok (scalar_of s)
-  | _ -> stated state proposed original ty
+  | _ -> stated state at original ty
 
-and stated state proposed original (ty : T.ty) =
+and stated state at original (ty : T.ty) =
   match ty with
   | Named target ->
       depend state target;
       Ok (H.T_name target)
   | Scalar s -> Ok (scalar_of s)
   | List (Some item) ->
-      let* item_schema = items state proposed original in
-      Result.map
-        (fun t -> H.T_list t)
-        (type_of state (proposed ^ "Item") item_schema item)
+      let* item_schema = items state at original in
+      Result.map (fun t -> H.T_list t) (type_of state at item_schema item)
   | Any -> Ok (H.T_name "Value")
-  | Inline i -> inline state proposed original i.form
+  | Inline i -> inline state original i
   | List None | Null | Nothing | Nullable _ ->
-      Error (proposed ^ ": unsupported type shape")
+      Error (at ^ ": unsupported type shape")
 
-and inline state proposed schema form =
-  match
-    ( Named.find_opt proposed state.definitions,
-      Named.find_opt proposed state.declarations )
-  with
-  | Some written, Some (Some { owner; _ }) when written = schema ->
-      if owner <> state.owner then depend state owner;
-      Ok (H.T_name proposed)
-  | _ ->
-      let rec unique candidate =
-        if Named.mem candidate state.definitions then
-          unique (candidate ^ "Inline")
-        else candidate
-      in
-      let name = unique proposed in
-      state.definitions <- Named.add name schema state.definitions;
-      let* () = declare state name schema form in
-      Ok (H.T_name name)
+(* The type written in place as [i], declared once, by [Typing]'s name. *)
+and inline state schema (i : T.inline) =
+  let* () =
+    match Named.find_opt i.name state.declarations with
+    | Some (Some { owner; _ }) ->
+        if owner <> state.owner then depend state owner;
+        Ok ()
+    | Some None -> Ok ()
+    | None when Named.mem i.name state.definitions ->
+        Error ("two schemas written in place would both be " ^ i.name)
+    | None ->
+        state.definitions <- Named.add i.name schema state.definitions;
+        declare state i.name schema i.form
+  in
+  Ok (H.T_name i.name)
 
 (* [component] declared as its own module's, before a schema that inherits
    its properties refers to the types written in place for them. *)
@@ -562,19 +495,24 @@ and union state name original (u : T.union) =
       (List.fold_left2
          (fun found part (b : T.branch) ->
            let* found = found in
-           let* named = branch name part in
-           let constructor = name ^ named in
-           if List.mem_assoc constructor found then
-             Error (name ^ ": two union members would both be " ^ constructor)
-           else
-             let* t = type_of state (constructor ^ "Value") part b.ty in
-             Ok ((constructor, t) :: found))
+           (match b.ty with
+           | Inline i ->
+               state.union_members <- Names.add i.name state.union_members
+           | _ -> ());
+           let* t = type_of state name part b.ty in
+           Ok ((name ^ b.variant, t) :: found))
          (Ok []) parts u.branches)
   in
   union_decls name members
 
+(* What constructs the record or newtype [name]:
+   [Deviations.haskell_union_member]. *)
+and constructed state name =
+  if Names.mem name state.union_members then "Mk" ^ name else name
+
 and newtype state name value_type =
-  newtype_decls name value_type (Names.mem name state.identifiers)
+  newtype_decls name ~constructor:(constructed state name) value_type
+    (Names.mem name state.identifiers)
 
 and object_ state name original (members : T.member list) (rest : T.rest) =
   let members =
@@ -588,7 +526,7 @@ and object_ state name original (members : T.member list) (rest : T.rest) =
          (fun found (m : T.member) ->
            let* found = found in
            let key = m.wire in
-           let field = lower name ^ identifier key in
+           let accessor = field name key in
            let nullable, ty =
              match m.ty with Nullable ty -> (true, ty) | ty -> (false, ty)
            in
@@ -603,12 +541,12 @@ and object_ state name original (members : T.member list) (rest : T.rest) =
            in
            let* stated = property state name original key in
            let* beside = beside_null (name ^ "." ^ key) stated in
-           let* t = type_of state (member_type owner key) beside ty in
-           let held = H.Apply (Name field, [ Name "value" ]) in
+           let* t = type_of state (name ^ "." ^ key) beside ty in
+           let held = H.Apply (Name accessor, [ Name "value" ]) in
            let typ, parser, encoder =
              member ~row:"fields" ~key ~held ~nullable ~mandatory:m.required t
            in
-           Ok ((field, typ, parser, encoder) :: found))
+           Ok ((accessor, typ, parser, encoder) :: found))
          (Ok []) members)
   in
   let* extra_type =
@@ -620,10 +558,20 @@ and object_ state name original (members : T.member list) (rest : T.rest) =
           | Some (Schema _ as typed) -> typed
           | _ -> Schema.Boolean_schema true
         in
-        type_of state (name ^ "AdditionalValue") additional value
+        type_of state name additional value
     | Closed | Unstated | Open -> Ok (H.T_name "Value")
   in
-  object_decls name ~open_ ~names ~extra_type fields
+  object_decls name ~constructor:(constructed state name) ~open_ ~names
+    ~extra_type fields
+
+(* The type [typing] writes in place for member [key] of record [record]. *)
+let member_type (typing : T.t) record key =
+  match (typing.find record).form with
+  | Record { members; _ } -> (
+      match List.find_opt (fun (m : T.member) -> m.wire = key) members with
+      | Some { ty = Inline i | Nullable (Inline i); _ } -> Ok i.name
+      | _ -> Error (record ^ "." ^ key ^ " is no type written in place"))
+  | _ -> Error (record ^ " is no record")
 
 (* Tarjan's strongly connected components of [names] by [edges], each sorted
    by name. *)
@@ -669,6 +617,7 @@ type t = {
   definitions : (string * Schema.t) list;
       (** Every schema a type was made for, those stated in place among them, by
           name. *)
+  typing : T.t;
 }
 
 let prefix = "Xynolog.Internal.Generated.Models."
@@ -773,6 +722,7 @@ let generate ~banner ~ids ~identifiers definitions =
       dependencies = Named.empty;
       ids;
       identifiers = Names.of_list identifiers;
+      union_members = Names.empty;
       typing;
     }
   in
@@ -834,4 +784,5 @@ let generate ~banner ~ids ~identifiers definitions =
       module_names =
         List.sort String.compare (List.map (fun m -> m.H.name) modules);
       definitions = Named.bindings state.definitions;
+      typing;
     }

@@ -184,7 +184,7 @@ commits fixtures = forM_ [0 :: Int .. 3] $ \mode -> rig fixtures $ \rigValue@(Ri
   Worker.fail job "finished test" Nothing
   said <- outgoing rigValue (channelName JobFail)
   payload <- decode (Object (busFramePayloadAdditionalProperties (busFramePayload said)))
-  let expected = case mode of 2 -> Just DurabilityEvidenceProbeU2d_refused; 3 -> Just DurabilityEvidenceProbeU2d_unreachable; _ -> Nothing
+  let expected = case mode of 2 -> Just DurabilityEvidenceProbeRefused; 3 -> Just DurabilityEvidenceProbeUnreachable; _ -> Nothing
   require "failed job misstated durability or retry budget" (jobFailCommandDurability payload == expected && jobFailCommandWillRetry payload == Just True)
 
 failedSettle :: Map.Map Text Value -> IO ()
@@ -223,7 +223,7 @@ idleAndStalled fixtures = rig fixtures $ \rigValue@(Rig worker input _ clock _) 
         case workerVitalsLastQueuedEventAt stats of { Nothing -> yield >> waitStamp; Just _ -> pure () }
   announceJob fixtures rigValue
   waitStamp
-  reply rigValue firstClaim JobClaimFailed (CommandError (Just CommandErrorCodeNoneU2d_pending) Nothing "empty" KM.empty)
+  reply rigValue firstClaim JobClaimFailed (CommandError (Just CommandErrorCodeNonePending) Nothing "empty" KM.empty)
   secondClaim <- outgoing rigValue (channelName JobClaim)
   reply rigValue secondClaim JobClaimFailed (CommandError (Just CommandErrorCodeUnauthorized) Nothing "refused" KM.empty)
   refusal <- wait refusalReader

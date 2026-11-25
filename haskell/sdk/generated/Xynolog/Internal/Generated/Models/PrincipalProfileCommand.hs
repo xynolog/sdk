@@ -11,7 +11,7 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.UserId
 
 data PrincipalProfileCommand = PrincipalProfileCommand
-  { principalProfileCommandU5f_userId :: Maybe UserId,
+  { principalProfileCommandUserId :: Maybe UserId,
     principalProfileCommandName :: Text,
     principalProfileCommandAdditionalProperties :: KM.KeyMap Value
   }
@@ -19,4 +19,4 @@ data PrincipalProfileCommand = PrincipalProfileCommand
 
 instance FromJSON PrincipalProfileCommand where parseJSON = checked "PrincipalProfileCommand" $ withObject "PrincipalProfileCommand" (\fields -> PrincipalProfileCommand <$> optional fields "_userId" <*> (fields .: "name") <*> traverse parseJSON (withoutFields ["_userId", "name"] fields))
 
-instance ToJSON PrincipalProfileCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (principalProfileCommandU5f_userId value), [("name", toJSON (principalProfileCommandName value))]]) <> fmap toJSON (withoutFields ["_userId", "name"] (principalProfileCommandAdditionalProperties value)))
+instance ToJSON PrincipalProfileCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (principalProfileCommandUserId value), [("name", toJSON (principalProfileCommandName value))]]) <> fmap toJSON (withoutFields ["_userId", "name"] (principalProfileCommandAdditionalProperties value)))

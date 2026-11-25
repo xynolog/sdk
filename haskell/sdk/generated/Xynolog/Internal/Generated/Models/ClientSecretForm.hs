@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ClientSecretForm (ClientSecretForm (..), ClientSecretFormGrantU5f_type (..), clientSecretFormGrantU5f_typeText) where
+module Xynolog.Internal.Generated.Models.ClientSecretForm (ClientSecretForm (..), ClientSecretFormGrantType (..), clientSecretFormGrantTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -10,22 +10,22 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ClientSecretForm = ClientSecretForm
-  { clientSecretFormClientU5f_id :: Text,
-    clientSecretFormClientU5f_secret :: Text,
-    clientSecretFormGrantU5f_type :: ClientSecretFormGrantU5f_type,
+  { clientSecretFormClientId :: Text,
+    clientSecretFormClientSecret :: Text,
+    clientSecretFormGrantType :: ClientSecretFormGrantType,
     clientSecretFormAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
 instance FromJSON ClientSecretForm where parseJSON = checked "ClientSecretForm" $ withObject "ClientSecretForm" (\fields -> ClientSecretForm <$> (fields .: "client_id") <*> (fields .: "client_secret") <*> (fields .: "grant_type") <*> traverse parseJSON (withoutFields ["client_id", "client_secret", "grant_type"] fields))
 
-instance ToJSON ClientSecretForm where toJSON value = Object (KM.fromList (concat [[("client_id", toJSON (clientSecretFormClientU5f_id value))], [("client_secret", toJSON (clientSecretFormClientU5f_secret value))], [("grant_type", toJSON (clientSecretFormGrantU5f_type value))]]) <> fmap toJSON (withoutFields ["client_id", "client_secret", "grant_type"] (clientSecretFormAdditionalProperties value)))
+instance ToJSON ClientSecretForm where toJSON value = Object (KM.fromList (concat [[("client_id", toJSON (clientSecretFormClientId value))], [("client_secret", toJSON (clientSecretFormClientSecret value))], [("grant_type", toJSON (clientSecretFormGrantType value))]]) <> fmap toJSON (withoutFields ["client_id", "client_secret", "grant_type"] (clientSecretFormAdditionalProperties value)))
 
-data ClientSecretFormGrantU5f_type = ClientSecretFormGrantU5f_typeClientU5f_credentials deriving (Eq, Show)
+data ClientSecretFormGrantType = ClientSecretFormGrantTypeClientCredentials deriving (Eq, Show)
 
-instance FromJSON ClientSecretFormGrantU5f_type where parseJSON = checked "ClientSecretFormGrantU5f_type" $ \value -> if value == String "client_credentials" then pure ClientSecretFormGrantU5f_typeClientU5f_credentials else fail "unknown enumeration member"
+instance FromJSON ClientSecretFormGrantType where parseJSON = checked "ClientSecretFormGrantType" $ \value -> if value == String "client_credentials" then pure ClientSecretFormGrantTypeClientCredentials else fail "unknown enumeration member"
 
-instance ToJSON ClientSecretFormGrantU5f_type where toJSON ClientSecretFormGrantU5f_typeClientU5f_credentials = String "client_credentials"
+instance ToJSON ClientSecretFormGrantType where toJSON ClientSecretFormGrantTypeClientCredentials = String "client_credentials"
 
-clientSecretFormGrantU5f_typeText :: ClientSecretFormGrantU5f_type -> Text
-clientSecretFormGrantU5f_typeText ClientSecretFormGrantU5f_typeClientU5f_credentials = "client_credentials"
+clientSecretFormGrantTypeText :: ClientSecretFormGrantType -> Text
+clientSecretFormGrantTypeText ClientSecretFormGrantTypeClientCredentials = "client_credentials"

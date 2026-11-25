@@ -115,10 +115,11 @@ let modules (spec : Spec.t) =
                   H.import "Xynolog.State.SessionSignals" ~qualified:"Signals";
                 ]
               [
-                H.record "SessionFactoryOptions"
+                H.record ~constructor:"SessionFactoryOptions"
+                  "SessionFactoryOptions"
                   (List.map
                      (fun (field, type_) ->
-                       ( "sessionFactoryOptions" ^ Models.identifier field,
+                       ( Models.field "SessionFactoryOptions" field,
                          H.T_name type_ ))
                      fields);
               ];

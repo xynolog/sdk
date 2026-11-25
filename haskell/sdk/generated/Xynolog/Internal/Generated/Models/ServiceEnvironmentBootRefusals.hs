@@ -10,7 +10,7 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ServiceEnvironmentBootRefusals = ServiceEnvironmentBootRefusals
-  { serviceEnvironmentBootRefusalsU24_comment :: Text,
+  { serviceEnvironmentBootRefusalsComment :: Text,
     serviceEnvironmentBootRefusalsExitCode :: Integer,
     serviceEnvironmentBootRefusalsLine :: Text,
     serviceEnvironmentBootRefusalsMembers :: [ServiceEnvironmentBootRefusalsMembersItem],
@@ -21,7 +21,7 @@ data ServiceEnvironmentBootRefusals = ServiceEnvironmentBootRefusals
 
 instance FromJSON ServiceEnvironmentBootRefusals where parseJSON = checked "ServiceEnvironmentBootRefusals" $ withObject "ServiceEnvironmentBootRefusals" (\fields -> ServiceEnvironmentBootRefusals <$> (fields .: "$comment") <*> (fields .: "exitCode") <*> (fields .: "line") <*> (fields .: "members") <*> (fields .: "refusals") <*> (fields .: "services"))
 
-instance ToJSON ServiceEnvironmentBootRefusals where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceEnvironmentBootRefusalsU24_comment value))], [("exitCode", toJSON (serviceEnvironmentBootRefusalsExitCode value))], [("line", toJSON (serviceEnvironmentBootRefusalsLine value))], [("members", toJSON (serviceEnvironmentBootRefusalsMembers value))], [("refusals", toJSON (serviceEnvironmentBootRefusalsRefusals value))], [("services", toJSON (serviceEnvironmentBootRefusalsServices value))]]))
+instance ToJSON ServiceEnvironmentBootRefusals where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceEnvironmentBootRefusalsComment value))], [("exitCode", toJSON (serviceEnvironmentBootRefusalsExitCode value))], [("line", toJSON (serviceEnvironmentBootRefusalsLine value))], [("members", toJSON (serviceEnvironmentBootRefusalsMembers value))], [("refusals", toJSON (serviceEnvironmentBootRefusalsRefusals value))], [("services", toJSON (serviceEnvironmentBootRefusalsServices value))]]))
 
 data ServiceEnvironmentBootRefusalsMembersItem = ServiceEnvironmentBootRefusalsMembersItem
   { serviceEnvironmentBootRefusalsMembersItemLine :: Text,

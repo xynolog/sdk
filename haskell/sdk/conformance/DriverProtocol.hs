@@ -15,7 +15,7 @@ import System.IO (hFlush, stdout)
 import Xynolog.Delegation qualified as Delegation
 import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors
-import Xynolog.Types (ConformanceDriverLine (..), ConformanceDriverLineAbandonedValue (..), ConformanceDriverLineAbandonedValueAbandoned (..), ConformanceDriverLineFailedValue (..), ConformanceDriverLineMisuseValue (..), ConformanceDriverLineOkValue (..), ConformanceDriverLineReadyValue (..), ConformanceDriverLineReadyValueReady (..), ConformanceDriverLineUnsupportedValue (..), ConformanceDriverLineUnsupportedValueUnsupported (..), ConformanceFailure (..))
+import Xynolog.Types (ConformanceDriverLine (..), ConformanceDriverLineAbandoned (..), ConformanceDriverLineAbandonedAbandoned (..), ConformanceDriverLineFailed (..), ConformanceDriverLineMisuse (..), ConformanceDriverLineOk (..), ConformanceDriverLineReady (..), ConformanceDriverLineReadyReady (..), ConformanceDriverLineUnsupported (..), ConformanceDriverLineUnsupportedUnsupported (..), ConformanceFailure (..))
 import Xynolog.Worker qualified as Worker
 
 data Misuse = Misuse String deriving (Show)
@@ -49,10 +49,10 @@ writeLine :: ConformanceDriverLine -> IO ()
 writeLine line = uninterruptibleMask_ (Lazy.hPut stdout (encode line <> "\n") >> hFlush stdout)
 
 readyLine :: ConformanceDriverLine
-readyLine = ConformanceDriverLineReady (ConformanceDriverLineReadyValue ConformanceDriverLineReadyValueReadyTrue)
+readyLine = ConformanceDriverLineReady (MkConformanceDriverLineReady ConformanceDriverLineReadyReadyTrue)
 
 unsupportedLine :: Integer -> ConformanceDriverLine
-unsupportedLine identifier = ConformanceDriverLineUnsupported (ConformanceDriverLineUnsupportedValue identifier ConformanceDriverLineUnsupportedValueUnsupportedTrue)
+unsupportedLine identifier = ConformanceDriverLineUnsupported (MkConformanceDriverLineUnsupported identifier ConformanceDriverLineUnsupportedUnsupportedTrue)
 
 now :: IO Integer
 now = toInteger <$> getMonotonicTimeNSec
@@ -66,12 +66,12 @@ waitUntil due = do
 
 answerValue :: Integer -> Either SomeException Value -> Either SomeException ConformanceDriverLine
 answerValue identifier outcome = case outcome of
-  Right value -> Right (ConformanceDriverLineOk (ConformanceDriverLineOkValue identifier value))
+  Right value -> Right (ConformanceDriverLineOk (MkConformanceDriverLineOk identifier value))
   Left problem
     | Just issue <- (fromException problem :: Maybe Worker.WorkerError) -> Right (misuse (Text.pack (show issue)))
     | Just (Misuse reason) <- fromException problem -> Right (misuse (Text.pack reason))
-    | Just AsyncCancelled <- fromException problem -> Right (ConformanceDriverLineAbandoned (ConformanceDriverLineAbandonedValue ConformanceDriverLineAbandonedValueAbandonedTrue identifier))
-    | Just value <- failure problem -> Right (ConformanceDriverLineFailed (ConformanceDriverLineFailedValue value identifier))
+    | Just AsyncCancelled <- fromException problem -> Right (ConformanceDriverLineAbandoned (MkConformanceDriverLineAbandoned ConformanceDriverLineAbandonedAbandonedTrue identifier))
+    | Just value <- failure problem -> Right (ConformanceDriverLineFailed (MkConformanceDriverLineFailed value identifier))
     | otherwise -> Left problem
   where
-    misuse reason = ConformanceDriverLineMisuse (ConformanceDriverLineMisuseValue identifier reason)
+    misuse reason = ConformanceDriverLineMisuse (MkConformanceDriverLineMisuse identifier reason)

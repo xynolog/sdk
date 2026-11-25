@@ -82,6 +82,21 @@ the coming release's, and gathers its changes as they land.
 - A gateway's URL takes its scheme from the endpoint's `protocol`.
 - What each retry rule retries is read from `retryRules`, the value of
   `retry/rules.json`, in place of the SDK's own statuses and methods.
+- A type written in place is named as every SDK names it: its owner and its
+  member in Pascal case (`AnnotationContext`), a list's item with `Item`
+  and a map's value with `Value` after it, in place of the member's
+  characters spelled by code point (`AnnotationU40_context`) and `Inline`
+  or `AdditionalValue` after it (`AnnotationTargetValue`,
+  `BusReplyBoundsRepliesValue`). A union's member written in place is named
+  by the union and what the member is (`ConformanceDriverLineAbandoned`, in
+  place of `ConformanceDriverLineAbandonedValue`), and as a record or
+  newtype is constructed by `Mk` and its name
+  (`MkConformanceDriverLineAbandoned`), as the union's constructor for it
+  takes that name. A field is named by its record and its member in Pascal
+  case (`annotationContext`, `clientSecretFormGrantType`), and an
+  enumeration's constructor by its value in Pascal case
+  (`AnchorMethodFuzzyMatch`, `SupportedMediaTypeTextXCPlusPlus`,
+  `AnchoredTextDeclinedEntryV3`).
 
 ### Removed
 

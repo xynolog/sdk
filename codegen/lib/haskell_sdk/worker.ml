@@ -234,7 +234,7 @@ let rec record name members =
   Ok
     (List.concat_map (fun (_, _, _, nested) -> nested) typed
     @ [
-        H.record name
+        H.record ~constructor:name name
           (List.map (fun (field, _, _, _) -> field) typed)
           ~deriving:[ "Eq"; "Show" ];
         H.instance "FromJSON" (T_name name)

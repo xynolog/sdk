@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.BusReplyBounds (BusReplyBounds (..), BusReplyBoundsReplies (..), BusReplyBoundsRepliesAdditionalValue (..), BusReplyBoundsRepliesAdditionalValueAdditionalValue (..), BusReplyBoundsRepliesAdditionalValueAdditionalValueByValue (..), BusReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValue (..)) where
+module Xynolog.Internal.Generated.Models.BusReplyBounds (BusReplyBounds (..), BusReplyBoundsReplies (..), BusReplyBoundsRepliesValue (..), BusReplyBoundsRepliesValueValue (..), BusReplyBoundsRepliesValueValueBy (..), BusReplyBoundsRepliesValueValueGrows (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -11,17 +11,17 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data BusReplyBounds = BusReplyBounds
-  { busReplyBoundsU24_comment :: Text,
+  { busReplyBoundsComment :: Text,
     busReplyBoundsReplies :: BusReplyBoundsReplies
   }
   deriving (Eq, Show)
 
 instance FromJSON BusReplyBounds where parseJSON = checked "BusReplyBounds" $ withObject "BusReplyBounds" (\fields -> BusReplyBounds <$> (fields .: "$comment") <*> (fields .: "replies"))
 
-instance ToJSON BusReplyBounds where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (busReplyBoundsU24_comment value))], [("replies", toJSON (busReplyBoundsReplies value))]]))
+instance ToJSON BusReplyBounds where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (busReplyBoundsComment value))], [("replies", toJSON (busReplyBoundsReplies value))]]))
 
 data BusReplyBoundsReplies = BusReplyBoundsReplies
-  { busReplyBoundsRepliesAdditionalProperties :: KM.KeyMap BusReplyBoundsRepliesAdditionalValue
+  { busReplyBoundsRepliesAdditionalProperties :: KM.KeyMap BusReplyBoundsRepliesValue
   }
   deriving (Eq, Show)
 
@@ -29,37 +29,37 @@ instance FromJSON BusReplyBoundsReplies where parseJSON = checked "BusReplyBound
 
 instance ToJSON BusReplyBoundsReplies where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (busReplyBoundsRepliesAdditionalProperties value)))
 
-data BusReplyBoundsRepliesAdditionalValue = BusReplyBoundsRepliesAdditionalValue
-  { busReplyBoundsRepliesAdditionalValueAdditionalProperties :: KM.KeyMap BusReplyBoundsRepliesAdditionalValueAdditionalValue
+data BusReplyBoundsRepliesValue = BusReplyBoundsRepliesValue
+  { busReplyBoundsRepliesValueAdditionalProperties :: KM.KeyMap BusReplyBoundsRepliesValueValue
   }
   deriving (Eq, Show)
 
-instance FromJSON BusReplyBoundsRepliesAdditionalValue where parseJSON = checked "BusReplyBoundsRepliesAdditionalValue" $ withObject "BusReplyBoundsRepliesAdditionalValue" (\fields -> BusReplyBoundsRepliesAdditionalValue <$> traverse parseJSON (withoutFields [] fields))
+instance FromJSON BusReplyBoundsRepliesValue where parseJSON = checked "BusReplyBoundsRepliesValue" $ withObject "BusReplyBoundsRepliesValue" (\fields -> BusReplyBoundsRepliesValue <$> traverse parseJSON (withoutFields [] fields))
 
-instance ToJSON BusReplyBoundsRepliesAdditionalValue where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (busReplyBoundsRepliesAdditionalValueAdditionalProperties value)))
+instance ToJSON BusReplyBoundsRepliesValue where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (busReplyBoundsRepliesValueAdditionalProperties value)))
 
-data BusReplyBoundsRepliesAdditionalValueAdditionalValue = BusReplyBoundsRepliesAdditionalValueAdditionalValueBy BusReplyBoundsRepliesAdditionalValueAdditionalValueByValue | BusReplyBoundsRepliesAdditionalValueAdditionalValueGrows BusReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValue deriving (Eq, Show)
+data BusReplyBoundsRepliesValueValue = BusReplyBoundsRepliesValueValueBy BusReplyBoundsRepliesValueValueBy | BusReplyBoundsRepliesValueValueGrows BusReplyBoundsRepliesValueValueGrows deriving (Eq, Show)
 
-instance FromJSON BusReplyBoundsRepliesAdditionalValueAdditionalValue where parseJSON = checked "BusReplyBoundsRepliesAdditionalValueAdditionalValue" $ \value -> (BusReplyBoundsRepliesAdditionalValueAdditionalValueBy <$> parseJSON value) <|> (BusReplyBoundsRepliesAdditionalValueAdditionalValueGrows <$> parseJSON value)
+instance FromJSON BusReplyBoundsRepliesValueValue where parseJSON = checked "BusReplyBoundsRepliesValueValue" $ \value -> (BusReplyBoundsRepliesValueValueBy <$> parseJSON value) <|> (BusReplyBoundsRepliesValueValueGrows <$> parseJSON value)
 
-instance ToJSON BusReplyBoundsRepliesAdditionalValueAdditionalValue where
-  toJSON (BusReplyBoundsRepliesAdditionalValueAdditionalValueBy value) = toJSON value
-  toJSON (BusReplyBoundsRepliesAdditionalValueAdditionalValueGrows value) = toJSON value
+instance ToJSON BusReplyBoundsRepliesValueValue where
+  toJSON (BusReplyBoundsRepliesValueValueBy value) = toJSON value
+  toJSON (BusReplyBoundsRepliesValueValueGrows value) = toJSON value
 
-data BusReplyBoundsRepliesAdditionalValueAdditionalValueByValue = BusReplyBoundsRepliesAdditionalValueAdditionalValueByValue
-  { busReplyBoundsRepliesAdditionalValueAdditionalValueByValueBy :: Text
+data BusReplyBoundsRepliesValueValueBy = MkBusReplyBoundsRepliesValueValueBy
+  { busReplyBoundsRepliesValueValueByBy :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON BusReplyBoundsRepliesAdditionalValueAdditionalValueByValue where parseJSON = checked "BusReplyBoundsRepliesAdditionalValueAdditionalValueByValue" $ withObject "BusReplyBoundsRepliesAdditionalValueAdditionalValueByValue" (\fields -> BusReplyBoundsRepliesAdditionalValueAdditionalValueByValue <$> (fields .: "by"))
+instance FromJSON BusReplyBoundsRepliesValueValueBy where parseJSON = checked "BusReplyBoundsRepliesValueValueBy" $ withObject "BusReplyBoundsRepliesValueValueBy" (\fields -> MkBusReplyBoundsRepliesValueValueBy <$> (fields .: "by"))
 
-instance ToJSON BusReplyBoundsRepliesAdditionalValueAdditionalValueByValue where toJSON value = Object (KM.fromList (concat [[("by", toJSON (busReplyBoundsRepliesAdditionalValueAdditionalValueByValueBy value))]]))
+instance ToJSON BusReplyBoundsRepliesValueValueBy where toJSON value = Object (KM.fromList (concat [[("by", toJSON (busReplyBoundsRepliesValueValueByBy value))]]))
 
-data BusReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValue = BusReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValue
-  { busReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValueGrows :: Text
+data BusReplyBoundsRepliesValueValueGrows = MkBusReplyBoundsRepliesValueValueGrows
+  { busReplyBoundsRepliesValueValueGrowsGrows :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON BusReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValue where parseJSON = checked "BusReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValue" $ withObject "BusReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValue" (\fields -> BusReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValue <$> (fields .: "grows"))
+instance FromJSON BusReplyBoundsRepliesValueValueGrows where parseJSON = checked "BusReplyBoundsRepliesValueValueGrows" $ withObject "BusReplyBoundsRepliesValueValueGrows" (\fields -> MkBusReplyBoundsRepliesValueValueGrows <$> (fields .: "grows"))
 
-instance ToJSON BusReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValue where toJSON value = Object (KM.fromList (concat [[("grows", toJSON (busReplyBoundsRepliesAdditionalValueAdditionalValueGrowsValueGrows value))]]))
+instance ToJSON BusReplyBoundsRepliesValueValueGrows where toJSON value = Object (KM.fromList (concat [[("grows", toJSON (busReplyBoundsRepliesValueValueGrowsGrows value))]]))

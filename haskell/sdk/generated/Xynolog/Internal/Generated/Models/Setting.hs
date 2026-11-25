@@ -24,14 +24,14 @@ instance FromJSON Setting where parseJSON = checked "Setting" $ withObject "Sett
 
 instance ToJSON Setting where toJSON value = Object (KM.fromList (concat [[("appliesTo", toJSON (settingAppliesTo value))], optionalPair "changedBy" (settingChangedBy value), [("default", toJSON (settingDefault value))], [("name", toJSON (settingName value))], [("settable", toJSON (settingSettable value))], [("values", toJSON (settingValues value))]]))
 
-data SettingAppliesTo = SettingAppliesToMachine | SettingAppliesToKnowledgeU2d_base deriving (Eq, Show)
+data SettingAppliesTo = SettingAppliesToMachine | SettingAppliesToKnowledgeBase deriving (Eq, Show)
 
-instance FromJSON SettingAppliesTo where parseJSON = checked "SettingAppliesTo" $ \value -> if value == String "machine" then pure SettingAppliesToMachine else if value == String "knowledge-base" then pure SettingAppliesToKnowledgeU2d_base else fail "unknown enumeration member"
+instance FromJSON SettingAppliesTo where parseJSON = checked "SettingAppliesTo" $ \value -> if value == String "machine" then pure SettingAppliesToMachine else if value == String "knowledge-base" then pure SettingAppliesToKnowledgeBase else fail "unknown enumeration member"
 
 instance ToJSON SettingAppliesTo where
   toJSON SettingAppliesToMachine = String "machine"
-  toJSON SettingAppliesToKnowledgeU2d_base = String "knowledge-base"
+  toJSON SettingAppliesToKnowledgeBase = String "knowledge-base"
 
 settingAppliesToText :: SettingAppliesTo -> Text
 settingAppliesToText SettingAppliesToMachine = "machine"
-settingAppliesToText SettingAppliesToKnowledgeU2d_base = "knowledge-base"
+settingAppliesToText SettingAppliesToKnowledgeBase = "knowledge-base"
