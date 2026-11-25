@@ -49,8 +49,10 @@ internal object JobStoredResultSerializer : SignatureUnionSerializer<JobStoredRe
             ),
         ),
     ),
-    variants = { listOf(
-        JobResult.serializer(),
-        JobStoredResult.Empty.serializer(),
-    ) },
+    variants = {
+        listOf(
+            JobResult.serializer(),
+            JobStoredResult.Empty.serializer(),
+        )
+    },
 )

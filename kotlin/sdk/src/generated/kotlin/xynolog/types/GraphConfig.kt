@@ -49,10 +49,12 @@ internal object GraphConfigSerializer : SignatureUnionSerializer<GraphConfig>(
             ),
         ),
     ),
-    variants = { listOf(
-        Neo4jGraphConfig.serializer(),
-        JanusGraphConfig.serializer(),
-        NeptuneGraphConfig.serializer(),
-        MemoryGraphConfig.serializer(),
-    ) },
+    variants = {
+        listOf(
+            Neo4jGraphConfig.serializer(),
+            JanusGraphConfig.serializer(),
+            NeptuneGraphConfig.serializer(),
+            MemoryGraphConfig.serializer(),
+        )
+    },
 )

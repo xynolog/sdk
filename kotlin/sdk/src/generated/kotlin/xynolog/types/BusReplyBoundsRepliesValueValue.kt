@@ -30,8 +30,10 @@ internal object BusReplyBoundsRepliesValueValueSerializer : SignatureUnionSerial
             ),
         ),
     ),
-    variants = { listOf(
-        BusReplyBoundsRepliesValueValueBy.serializer(),
-        BusReplyBoundsRepliesValueValueGrows.serializer(),
-    ) },
+    variants = {
+        listOf(
+            BusReplyBoundsRepliesValueValueBy.serializer(),
+            BusReplyBoundsRepliesValueValueGrows.serializer(),
+        )
+    },
 )

@@ -40,9 +40,11 @@ internal object TabCheckSerializer : SignatureUnionSerializer<TabCheck>(
             ),
         ),
     ),
-    variants = { listOf(
-        TabCheckGone.serializer(),
-        TabCheckReady.serializer(),
-        TabCheckUnknown.serializer(),
-    ) },
+    variants = {
+        listOf(
+            TabCheckGone.serializer(),
+            TabCheckReady.serializer(),
+            TabCheckUnknown.serializer(),
+        )
+    },
 )

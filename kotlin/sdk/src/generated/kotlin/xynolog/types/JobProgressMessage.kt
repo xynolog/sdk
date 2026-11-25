@@ -103,16 +103,18 @@ internal object JobProgressMessageSerializer : SignatureUnionSerializer<JobProgr
             ),
         ),
     ),
-    variants = { listOf(
-        JobProgressLoading.serializer(),
-        JobProgressAnalyzing.serializer(),
-        JobProgressAnalyzingTags.serializer(),
-        JobProgressGeneratingResource.serializer(),
-        JobProgressCreatingResource.serializer(),
-        JobProgressCompleteGenerated.serializer(),
-        JobProgressDetectingEntities.serializer(),
-        JobProgressCreatingAnnotations.serializer(),
-        JobProgressCreatingTagAnnotations.serializer(),
-        JobProgressCompleteCreated.serializer(),
-    ) },
+    variants = {
+        listOf(
+            JobProgressLoading.serializer(),
+            JobProgressAnalyzing.serializer(),
+            JobProgressAnalyzingTags.serializer(),
+            JobProgressGeneratingResource.serializer(),
+            JobProgressCreatingResource.serializer(),
+            JobProgressCompleteGenerated.serializer(),
+            JobProgressDetectingEntities.serializer(),
+            JobProgressCreatingAnnotations.serializer(),
+            JobProgressCreatingTagAnnotations.serializer(),
+            JobProgressCompleteCreated.serializer(),
+        )
+    },
 )

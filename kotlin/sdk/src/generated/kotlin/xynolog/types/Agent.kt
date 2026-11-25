@@ -40,9 +40,11 @@ internal object AgentSerializer : SignatureUnionSerializer<Agent>(
             ),
         ),
     ),
-    variants = { listOf(
-        AgentPerson.serializer(),
-        AgentOrganization.serializer(),
-        AgentSoftware.serializer(),
-    ) },
+    variants = {
+        listOf(
+            AgentPerson.serializer(),
+            AgentOrganization.serializer(),
+            AgentSoftware.serializer(),
+        )
+    },
 )

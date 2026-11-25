@@ -31,8 +31,10 @@ internal object JobFilterSerializer : SignatureUnionSerializer<JobFilter>(
             ),
         ),
     ),
-    variants = { listOf(
-        MarkJobFilter.serializer(),
-        YieldJobFilter.serializer(),
-    ) },
+    variants = {
+        listOf(
+            MarkJobFilter.serializer(),
+            YieldJobFilter.serializer(),
+        )
+    },
 )

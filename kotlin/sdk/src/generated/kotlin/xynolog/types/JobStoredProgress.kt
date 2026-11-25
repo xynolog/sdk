@@ -35,8 +35,10 @@ internal object JobStoredProgressSerializer : SignatureUnionSerializer<JobStored
             ),
         ),
     ),
-    variants = { listOf(
-        JobProgress.serializer(),
-        JobStoredProgress.Empty.serializer(),
-    ) },
+    variants = {
+        listOf(
+            JobProgress.serializer(),
+            JobStoredProgress.Empty.serializer(),
+        )
+    },
 )

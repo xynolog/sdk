@@ -31,8 +31,10 @@ internal object GatheredContextFocusSerializer : SignatureUnionSerializer<Gather
             ),
         ),
     ),
-    variants = { listOf(
-        GatheredContextFocusAnnotation.serializer(),
-        GatheredContextFocusResource.serializer(),
-    ) },
+    variants = {
+        listOf(
+            GatheredContextFocusAnnotation.serializer(),
+            GatheredContextFocusResource.serializer(),
+        )
+    },
 )

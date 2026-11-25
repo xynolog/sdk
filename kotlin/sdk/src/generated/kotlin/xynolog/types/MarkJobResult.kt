@@ -31,8 +31,10 @@ internal object MarkJobResultSerializer : SignatureUnionSerializer<MarkJobResult
             ),
         ),
     ),
-    variants = { listOf(
-        MarkJobDone.serializer(),
-        JobDeclined.serializer(),
-    ) },
+    variants = {
+        listOf(
+            MarkJobDone.serializer(),
+            JobDeclined.serializer(),
+        )
+    },
 )

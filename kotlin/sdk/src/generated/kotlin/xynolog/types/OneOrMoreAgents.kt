@@ -51,8 +51,10 @@ internal object OneOrMoreAgentsSerializer : SignatureUnionSerializer<OneOrMoreAg
             ),
         ),
     ),
-    variants = { listOf(
-        Agent.serializer(),
-        OneOrMoreAgents.List.serializer(),
-    ) },
+    variants = {
+        listOf(
+            Agent.serializer(),
+            OneOrMoreAgents.List.serializer(),
+        )
+    },
 )

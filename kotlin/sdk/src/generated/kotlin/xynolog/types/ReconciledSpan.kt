@@ -49,10 +49,12 @@ internal object ReconciledSpanSerializer : SignatureUnionSerializer<ReconciledSp
             ),
         ),
     ),
-    variants = { listOf(
-        ReconciledSpanUniqueMatch.serializer(),
-        ReconciledSpanContextRecovered.serializer(),
-        ReconciledSpanFirstOfMany.serializer(),
-        ReconciledSpanFuzzyMatch.serializer(),
-    ) },
+    variants = {
+        listOf(
+            ReconciledSpanUniqueMatch.serializer(),
+            ReconciledSpanContextRecovered.serializer(),
+            ReconciledSpanFirstOfMany.serializer(),
+            ReconciledSpanFuzzyMatch.serializer(),
+        )
+    },
 )

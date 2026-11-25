@@ -31,8 +31,10 @@ internal object JobCreateCommandSerializer : SignatureUnionSerializer<JobCreateC
             ),
         ),
     ),
-    variants = { listOf(
-        MarkJobCreateCommand.serializer(),
-        YieldJobCreateCommand.serializer(),
-    ) },
+    variants = {
+        listOf(
+            MarkJobCreateCommand.serializer(),
+            YieldJobCreateCommand.serializer(),
+        )
+    },
 )

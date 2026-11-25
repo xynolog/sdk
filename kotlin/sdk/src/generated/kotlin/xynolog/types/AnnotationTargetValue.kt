@@ -38,8 +38,10 @@ internal object AnnotationTargetValueSerializer : SignatureUnionSerializer<Annot
             ),
         ),
     ),
-    variants = { listOf(
-        AnnotationTargetValue.ResourceId.serializer(),
-        AnnotationTarget.serializer(),
-    ) },
+    variants = {
+        listOf(
+            AnnotationTargetValue.ResourceId.serializer(),
+            AnnotationTarget.serializer(),
+        )
+    },
 )

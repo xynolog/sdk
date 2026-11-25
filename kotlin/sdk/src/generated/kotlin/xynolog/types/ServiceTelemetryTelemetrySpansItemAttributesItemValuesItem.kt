@@ -42,8 +42,10 @@ internal object ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemSerial
             ),
         ),
     ),
-    variants = { listOf(
-        ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.Text.serializer(),
-        ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.Boolean.serializer(),
-    ) },
+    variants = {
+        listOf(
+            ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.Text.serializer(),
+            ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.Boolean.serializer(),
+        )
+    },
 )

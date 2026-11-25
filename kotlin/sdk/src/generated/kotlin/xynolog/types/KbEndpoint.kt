@@ -31,8 +31,10 @@ internal object KbEndpointSerializer : SignatureUnionSerializer<KbEndpoint>(
             ),
         ),
     ),
-    variants = { listOf(
-        HttpEndpoint.serializer(),
-        LocalEndpoint.serializer(),
-    ) },
+    variants = {
+        listOf(
+            HttpEndpoint.serializer(),
+            LocalEndpoint.serializer(),
+        )
+    },
 )

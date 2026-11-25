@@ -59,9 +59,11 @@ internal object ResourceDescriptorContextSerializer : SignatureUnionSerializer<R
             ),
         ),
     ),
-    variants = { listOf(
-        ResourceDescriptorContext.Text.serializer(),
-        ResourceDescriptorContext.Object.serializer(),
-        ResourceDescriptorContext.List.serializer(),
-    ) },
+    variants = {
+        listOf(
+            ResourceDescriptorContext.Text.serializer(),
+            ResourceDescriptorContext.Object.serializer(),
+            ResourceDescriptorContext.List.serializer(),
+        )
+    },
 )

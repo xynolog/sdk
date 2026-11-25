@@ -58,11 +58,13 @@ internal object MarkJobParamsSerializer : SignatureUnionSerializer<MarkJobParams
             ),
         ),
     ),
-    variants = { listOf(
-        HighlightingJobParams.serializer(),
-        CommentingJobParams.serializer(),
-        AssessingJobParams.serializer(),
-        LinkingJobParams.serializer(),
-        TaggingJobParams.serializer(),
-    ) },
+    variants = {
+        listOf(
+            HighlightingJobParams.serializer(),
+            CommentingJobParams.serializer(),
+            AssessingJobParams.serializer(),
+            LinkingJobParams.serializer(),
+            TaggingJobParams.serializer(),
+        )
+    },
 )

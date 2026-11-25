@@ -46,9 +46,11 @@ internal object AnchoredTextAnswerSerializer : SignatureUnionSerializer<Anchored
             ),
         ),
     ),
-    variants = { listOf(
-        ExtractedText.serializer(),
-        ExtractionDeclined.serializer(),
-        AnchoredTextAbsent.serializer(),
-    ) },
+    variants = {
+        listOf(
+            ExtractedText.serializer(),
+            ExtractionDeclined.serializer(),
+            AnchoredTextAbsent.serializer(),
+        )
+    },
 )

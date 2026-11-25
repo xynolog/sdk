@@ -43,8 +43,10 @@ internal object RequestIdSerializer : SignatureUnionSerializer<RequestId>(
             ),
         ),
     ),
-    variants = { listOf(
-        RequestId.Text.serializer(),
-        RequestId.Integer.serializer(),
-    ) },
+    variants = {
+        listOf(
+            RequestId.Text.serializer(),
+            RequestId.Integer.serializer(),
+        )
+    },
 )

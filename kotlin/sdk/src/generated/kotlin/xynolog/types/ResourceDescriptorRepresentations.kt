@@ -37,8 +37,10 @@ internal object ResourceDescriptorRepresentationsSerializer : SignatureUnionSeri
             ),
         ),
     ),
-    variants = { listOf(
-        Representation.serializer(),
-        ResourceDescriptorRepresentations.List.serializer(),
-    ) },
+    variants = {
+        listOf(
+            Representation.serializer(),
+            ResourceDescriptorRepresentations.List.serializer(),
+        )
+    },
 )

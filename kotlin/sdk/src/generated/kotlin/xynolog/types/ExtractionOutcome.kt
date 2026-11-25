@@ -31,8 +31,10 @@ internal object ExtractionOutcomeSerializer : SignatureUnionSerializer<Extractio
             ),
         ),
     ),
-    variants = { listOf(
-        ExtractedText.serializer(),
-        ExtractionDeclined.serializer(),
-    ) },
+    variants = {
+        listOf(
+            ExtractedText.serializer(),
+            ExtractionDeclined.serializer(),
+        )
+    },
 )

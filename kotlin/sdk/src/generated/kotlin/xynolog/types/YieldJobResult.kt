@@ -31,8 +31,10 @@ internal object YieldJobResultSerializer : SignatureUnionSerializer<YieldJobResu
             ),
         ),
     ),
-    variants = { listOf(
-        YieldJobDone.serializer(),
-        JobDeclined.serializer(),
-    ) },
+    variants = {
+        listOf(
+            YieldJobDone.serializer(),
+            JobDeclined.serializer(),
+        )
+    },
 )

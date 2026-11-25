@@ -40,9 +40,11 @@ internal object ConformanceDriverLineEmissionEmissionStateSerializer : Signature
             ),
         ),
     ),
-    variants = { listOf(
-        ConformanceDriverLineEmissionEmissionStatePending.serializer(),
-        ConformanceDriverLineEmissionEmissionStateReady.serializer(),
-        ConformanceDriverLineEmissionEmissionStateFailed.serializer(),
-    ) },
+    variants = {
+        listOf(
+            ConformanceDriverLineEmissionEmissionStatePending.serializer(),
+            ConformanceDriverLineEmissionEmissionStateReady.serializer(),
+            ConformanceDriverLineEmissionEmissionStateFailed.serializer(),
+        )
+    },
 )

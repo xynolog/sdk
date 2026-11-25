@@ -65,7 +65,9 @@ struct UnionSignature: Sendable {
     if let values, !values.contains(where: { $0.matches(value) }) { return false }
     guard case .object(let object) = value else { return true }
     return fixed.allSatisfy { stated in
-      object[stated.property].map { member in stated.values.contains { $0.matches(member) } } ?? true
+      object[stated.property].map { member in
+        stated.values.contains { $0.matches(member) }
+      } ?? true
     }
   }
 
@@ -81,7 +83,9 @@ struct UnionSignature: Sendable {
   /// The one of a union's `members`, each its signatures, that admits
   /// `value`; or, none admitting it, the one that names it, whose decoding
   /// says what is wrong with it.
-  static func member(of value: JSONValue, in members: [[UnionSignature]]) -> (at: Int, admitted: Bool)? {
+  static func member(
+    of value: JSONValue, in members: [[UnionSignature]]
+  ) -> (at: Int, admitted: Bool)? {
     func only(_ test: (UnionSignature) -> Bool) -> Int? {
       let found = members.indices.filter { members[$0].contains(where: test) }
       return found.count == 1 ? found[0] : nil
@@ -105,7 +109,8 @@ struct UnionSignature: Sendable {
     }.first
     guard let toldApart else { return "a \(union) that is none of its members" }
     let (property, values) = toldApart
-    return "a \(union) states a `\(property)` that is one of \(values.map(\.description).joined(separator: ", "))"
+    let listed = values.map(\.description).joined(separator: ", ")
+    return "a \(union) states a `\(property)` that is one of \(listed)"
   }
 
   /// A value of `union` from `decoder`, read as the one of its `variants`, in

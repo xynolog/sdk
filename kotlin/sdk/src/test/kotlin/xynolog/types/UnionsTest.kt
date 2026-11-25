@@ -2,8 +2,8 @@ package xynolog.types
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 import kotlinx.serialization.json.JsonNull
@@ -100,11 +100,10 @@ class UnionsTest {
 
         object Serializer : SignatureUnionSerializer<Closed>(
             Closed::class,
-            members =
-                listOf(
-                    listOf(Signature(Kind.OBJECT, required = listOf("kind", "a"), allowed = null, fixed = listOf("kind" to listOf(Literal.Text("open"))), values = null)),
-                    listOf(Signature(Kind.OBJECT, required = listOf("kind", "b"), allowed = listOf("kind", "b"), fixed = listOf("kind" to listOf(Literal.Text("shut"))), values = null)),
-                ),
+            members = listOf(
+                listOf(Signature(Kind.OBJECT, required = listOf("kind", "a"), allowed = null, fixed = listOf("kind" to listOf(Literal.Text("open"))), values = null)),
+                listOf(Signature(Kind.OBJECT, required = listOf("kind", "b"), allowed = listOf("kind", "b"), fixed = listOf("kind" to listOf(Literal.Text("shut"))), values = null)),
+            ),
             variants = { listOf(Open.serializer(), Shut.serializer()) },
         )
     }

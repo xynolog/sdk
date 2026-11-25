@@ -40,9 +40,11 @@ internal object KbReadVerdictSerializer : SignatureUnionSerializer<KbReadVerdict
             ),
         ),
     ),
-    variants = { listOf(
-        KbReadVerdictRecorded.serializer(),
-        KbReadVerdictConflict.serializer(),
-        KbReadVerdictNoVerdict.serializer(),
-    ) },
+    variants = {
+        listOf(
+            KbReadVerdictRecorded.serializer(),
+            KbReadVerdictConflict.serializer(),
+            KbReadVerdictNoVerdict.serializer(),
+        )
+    },
 )

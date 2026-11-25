@@ -30,8 +30,10 @@ internal object ConformanceStepFetchesFetchesItemSerializer : SignatureUnionSeri
             ),
         ),
     ),
-    variants = { listOf(
-        ConformanceBusFetch.serializer(),
-        ConformanceHttpFetch.serializer(),
-    ) },
+    variants = {
+        listOf(
+            ConformanceBusFetch.serializer(),
+            ConformanceHttpFetch.serializer(),
+        )
+    },
 )

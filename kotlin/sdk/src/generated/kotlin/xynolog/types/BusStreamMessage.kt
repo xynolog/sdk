@@ -31,8 +31,10 @@ internal object BusStreamMessageSerializer : SignatureUnionSerializer<BusStreamM
             ),
         ),
     ),
-    variants = { listOf(
-        BusEventMessage.serializer(),
-        BusPingMessage.serializer(),
-    ) },
+    variants = {
+        listOf(
+            BusEventMessage.serializer(),
+            BusPingMessage.serializer(),
+        )
+    },
 )

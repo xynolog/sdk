@@ -31,8 +31,10 @@ internal object VectorsConfigSerializer : SignatureUnionSerializer<VectorsConfig
             ),
         ),
     ),
-    variants = { listOf(
-        QdrantVectorsConfig.serializer(),
-        MemoryVectorsConfig.serializer(),
-    ) },
+    variants = {
+        listOf(
+            QdrantVectorsConfig.serializer(),
+            MemoryVectorsConfig.serializer(),
+        )
+    },
 )

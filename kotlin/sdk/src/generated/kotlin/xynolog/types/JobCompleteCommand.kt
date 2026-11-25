@@ -31,8 +31,10 @@ internal object JobCompleteCommandSerializer : SignatureUnionSerializer<JobCompl
             ),
         ),
     ),
-    variants = { listOf(
-        MarkJobCompleteCommand.serializer(),
-        YieldJobCompleteCommand.serializer(),
-    ) },
+    variants = {
+        listOf(
+            MarkJobCompleteCommand.serializer(),
+            YieldJobCompleteCommand.serializer(),
+        )
+    },
 )

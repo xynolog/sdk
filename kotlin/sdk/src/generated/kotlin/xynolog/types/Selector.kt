@@ -49,10 +49,12 @@ internal object SelectorSerializer : SignatureUnionSerializer<Selector>(
             ),
         ),
     ),
-    variants = { listOf(
-        TextPositionSelector.serializer(),
-        TextQuoteSelector.serializer(),
-        SvgSelector.serializer(),
-        FragmentSelector.serializer(),
-    ) },
+    variants = {
+        listOf(
+            TextPositionSelector.serializer(),
+            TextQuoteSelector.serializer(),
+            SvgSelector.serializer(),
+            FragmentSelector.serializer(),
+        )
+    },
 )

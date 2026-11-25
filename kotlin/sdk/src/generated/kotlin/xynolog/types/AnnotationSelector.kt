@@ -58,8 +58,10 @@ internal object AnnotationSelectorSerializer : SignatureUnionSerializer<Annotati
             ),
         ),
     ),
-    variants = { listOf(
-        Selector.serializer(),
-        AnnotationSelector.List.serializer(),
-    ) },
+    variants = {
+        listOf(
+            Selector.serializer(),
+            AnnotationSelector.List.serializer(),
+        )
+    },
 )

@@ -31,8 +31,10 @@ internal object DirectoryEntrySerializer : SignatureUnionSerializer<DirectoryEnt
             ),
         ),
     ),
-    variants = { listOf(
-        FileEntry.serializer(),
-        DirEntry.serializer(),
-    ) },
+    variants = {
+        listOf(
+            FileEntry.serializer(),
+            DirEntry.serializer(),
+        )
+    },
 )

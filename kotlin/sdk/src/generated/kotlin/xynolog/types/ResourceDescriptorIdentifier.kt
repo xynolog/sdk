@@ -52,9 +52,11 @@ internal object ResourceDescriptorIdentifierSerializer : SignatureUnionSerialize
             ),
         ),
     ),
-    variants = { listOf(
-        ResourceDescriptorIdentifier.Text.serializer(),
-        ResourceDescriptorIdentifier.List.serializer(),
-        ResourceDescriptorIdentifierObject.serializer(),
-    ) },
+    variants = {
+        listOf(
+            ResourceDescriptorIdentifier.Text.serializer(),
+            ResourceDescriptorIdentifier.List.serializer(),
+            ResourceDescriptorIdentifierObject.serializer(),
+        )
+    },
 )

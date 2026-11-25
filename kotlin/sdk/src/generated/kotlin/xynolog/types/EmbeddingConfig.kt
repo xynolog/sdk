@@ -31,8 +31,10 @@ internal object EmbeddingConfigSerializer : SignatureUnionSerializer<EmbeddingCo
             ),
         ),
     ),
-    variants = { listOf(
-        OllamaEmbeddingConfig.serializer(),
-        VoyageEmbeddingConfig.serializer(),
-    ) },
+    variants = {
+        listOf(
+            OllamaEmbeddingConfig.serializer(),
+            VoyageEmbeddingConfig.serializer(),
+        )
+    },
 )

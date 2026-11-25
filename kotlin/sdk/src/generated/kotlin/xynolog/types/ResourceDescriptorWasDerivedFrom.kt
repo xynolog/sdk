@@ -44,8 +44,10 @@ internal object ResourceDescriptorWasDerivedFromSerializer : SignatureUnionSeria
             ),
         ),
     ),
-    variants = { listOf(
-        ResourceDescriptorWasDerivedFrom.ResourceId.serializer(),
-        ResourceDescriptorWasDerivedFrom.List.serializer(),
-    ) },
+    variants = {
+        listOf(
+            ResourceDescriptorWasDerivedFrom.ResourceId.serializer(),
+            ResourceDescriptorWasDerivedFrom.List.serializer(),
+        )
+    },
 )

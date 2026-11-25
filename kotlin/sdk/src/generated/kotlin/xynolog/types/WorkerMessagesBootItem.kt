@@ -30,8 +30,10 @@ internal object WorkerMessagesBootItemSerializer : SignatureUnionSerializer<Work
             ),
         ),
     ),
-    variants = { listOf(
-        WorkerMessagesBootItemOwnBootRefusal.serializer(),
-        WorkerMessagesBootItemSharedBootRefusal.serializer(),
-    ) },
+    variants = {
+        listOf(
+            WorkerMessagesBootItemOwnBootRefusal.serializer(),
+            WorkerMessagesBootItemSharedBootRefusal.serializer(),
+        )
+    },
 )

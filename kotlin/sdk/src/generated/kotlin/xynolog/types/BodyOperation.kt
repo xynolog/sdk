@@ -40,9 +40,11 @@ internal object BodyOperationSerializer : SignatureUnionSerializer<BodyOperation
             ),
         ),
     ),
-    variants = { listOf(
-        BodyOperationAdd.serializer(),
-        BodyOperationRemove.serializer(),
-        BodyOperationReplace.serializer(),
-    ) },
+    variants = {
+        listOf(
+            BodyOperationAdd.serializer(),
+            BodyOperationRemove.serializer(),
+            BodyOperationReplace.serializer(),
+        )
+    },
 )

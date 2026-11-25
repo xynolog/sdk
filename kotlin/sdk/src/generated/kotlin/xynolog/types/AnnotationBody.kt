@@ -31,8 +31,10 @@ internal object AnnotationBodySerializer : SignatureUnionSerializer<AnnotationBo
             ),
         ),
     ),
-    variants = { listOf(
-        TextualBody.serializer(),
-        SpecificResource.serializer(),
-    ) },
+    variants = {
+        listOf(
+            TextualBody.serializer(),
+            SpecificResource.serializer(),
+        )
+    },
 )

@@ -58,11 +58,13 @@ internal object JobSerializer : SignatureUnionSerializer<Job>(
             ),
         ),
     ),
-    variants = { listOf(
-        JobPending.serializer(),
-        JobRunning.serializer(),
-        JobComplete.serializer(),
-        JobFailed.serializer(),
-        JobCancelled.serializer(),
-    ) },
+    variants = {
+        listOf(
+            JobPending.serializer(),
+            JobRunning.serializer(),
+            JobComplete.serializer(),
+            JobFailed.serializer(),
+            JobCancelled.serializer(),
+        )
+    },
 )

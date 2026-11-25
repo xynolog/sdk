@@ -62,6 +62,10 @@ let cases =
                ~lambda:
                  (K.Lambda ([ "c" ], K.Binary (K.Name "c", K.Eq, K.Int 1)))
                (K.Name "xs.all") [])));
+    case "a lambda whose body spans lines is on lines of its own"
+      (writes "{\n    f(\n        a,\n    )\n}"
+         (expr
+            (K.Lambda ([], K.call ~layout:K.Lines (K.Name "f") [ K.Name "a" ]))));
     case "a when's branches are a line each, its else last"
       (writes "when (x) {\n    \"a\", \"b\" -> 1\n    else -> 3\n}"
          (expr

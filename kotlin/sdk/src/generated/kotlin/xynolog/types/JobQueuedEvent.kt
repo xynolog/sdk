@@ -31,8 +31,10 @@ internal object JobQueuedEventSerializer : SignatureUnionSerializer<JobQueuedEve
             ),
         ),
     ),
-    variants = { listOf(
-        MarkJobQueuedEvent.serializer(),
-        YieldJobQueuedEvent.serializer(),
-    ) },
+    variants = {
+        listOf(
+            MarkJobQueuedEvent.serializer(),
+            YieldJobQueuedEvent.serializer(),
+        )
+    },
 )

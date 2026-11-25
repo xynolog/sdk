@@ -40,9 +40,11 @@ internal object JobResultSerializer : SignatureUnionSerializer<JobResult>(
             ),
         ),
     ),
-    variants = { listOf(
-        MarkJobDone.serializer(),
-        YieldJobDone.serializer(),
-        JobDeclined.serializer(),
-    ) },
+    variants = {
+        listOf(
+            MarkJobDone.serializer(),
+            YieldJobDone.serializer(),
+            JobDeclined.serializer(),
+        )
+    },
 )

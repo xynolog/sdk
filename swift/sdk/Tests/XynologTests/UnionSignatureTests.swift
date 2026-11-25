@@ -46,7 +46,9 @@ private func refusal(_ read: () throws -> Any) -> String {
 }
 
 @Test func eachKindIsTheJsonItNames() {
-  let values: [JSONValue] = [.string("a"), .number(1), .number(1.5), .bool(true), .array([]), .object([:]), .null]
+  let values: [JSONValue] = [
+    .string("a"), .number(1), .number(1.5), .bool(true), .array([]), .object([:]), .null,
+  ]
   let admitted: [(UnionSignature.Kind, [Int])] = [
     (.text, [0]), (.integer, [1]), (.number, [1, 2]), (.boolean, [3]), (.list, [4]), (.object, [5]),
     (.null, [6]), (.any, Array(values.indices)),
@@ -62,8 +64,8 @@ private func refusal(_ read: () throws -> Any) -> String {
   #expect(UnionSignature.Literal.boolean(false).matches(.bool(false)))
   #expect(!UnionSignature.Literal.boolean(false).matches(.bool(true)))
   #expect(UnionSignature.Literal.text("x").matches(.string("x")))
-  #expect(
-    [UnionSignature.Literal.integer(3), .boolean(false), .text("x")].map(\.description) == ["`3`", "`false`", "`x`"])
+  let literals: [UnionSignature.Literal] = [.integer(3), .boolean(false), .text("x")]
+  #expect(literals.map(\.description) == ["`3`", "`false`", "`x`"])
 }
 
 /// A union told apart by `kind`, whose second member admits only the
@@ -109,6 +111,10 @@ private enum Closed: Decodable, Equatable {
 @Test func aMemberThatOnlyNamesAValueSaysItDoesNotAdmitIt() throws {
   let closed = { (wire: String) in try JSONDecoder().decode(Closed.self, from: Data(wire.utf8)) }
   #expect(try closed(#"{"kind":"shut","b":1}"#) == .shut(.init(kind: "shut", b: 1)))
-  #expect(refusal { try closed(#"{"kind":"shut","b":1,"c":2}"#) } == "a Closed its member shut does not admit")
-  #expect(refusal { try closed(#"{"kind":"other"}"#) } == "a Closed states a `kind` that is one of `open`, `shut`")
+  #expect(
+    refusal { try closed(#"{"kind":"shut","b":1,"c":2}"#) }
+      == "a Closed its member shut does not admit")
+  #expect(
+    refusal { try closed(#"{"kind":"other"}"#) }
+      == "a Closed states a `kind` that is one of `open`, `shut`")
 }

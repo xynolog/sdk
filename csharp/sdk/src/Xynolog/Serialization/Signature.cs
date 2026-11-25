@@ -114,7 +114,7 @@ internal sealed record Signature(Kind Kind, string[] Required, string[]? Allowed
             var values = signatures.Select(signature => signature.Fixed.FirstOrDefault(other => other.Property == stated.Property)?.Values).ToArray();
             if (values.All(of => of is not null))
             {
-                return "a " + union + " states a `" + stated.Property + "` that is one of " + string.Join(", ", values.SelectMany(of => of!));
+                return "a " + union + " states a `" + stated.Property + "` that is one of " + string.Join(", ", values.OfType<Literal[]>().SelectMany(of => of));
             }
         }
         return "a " + union + " that is none of its members";

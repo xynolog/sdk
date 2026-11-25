@@ -40,9 +40,11 @@ internal object UploadProgressSerializer : SignatureUnionSerializer<UploadProgre
             ),
         ),
     ),
-    variants = { listOf(
-        UploadProgressStarted.serializer(),
-        UploadProgressProgress.serializer(),
-        UploadProgressFinished.serializer(),
-    ) },
+    variants = {
+        listOf(
+            UploadProgressStarted.serializer(),
+            UploadProgressProgress.serializer(),
+            UploadProgressFinished.serializer(),
+        )
+    },
 )

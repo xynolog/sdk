@@ -30,8 +30,10 @@ internal object KnowledgeGraphNodesItemSerializer : SignatureUnionSerializer<Kno
             ),
         ),
     ),
-    variants = { listOf(
-        GraphResourceNode.serializer(),
-        GraphAnnotationNode.serializer(),
-    ) },
+    variants = {
+        listOf(
+            GraphResourceNode.serializer(),
+            GraphAnnotationNode.serializer(),
+        )
+    },
 )

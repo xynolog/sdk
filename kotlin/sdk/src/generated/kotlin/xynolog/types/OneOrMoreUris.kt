@@ -43,8 +43,10 @@ internal object OneOrMoreUrisSerializer : SignatureUnionSerializer<OneOrMoreUris
             ),
         ),
     ),
-    variants = { listOf(
-        OneOrMoreUris.Text.serializer(),
-        OneOrMoreUris.List.serializer(),
-    ) },
+    variants = {
+        listOf(
+            OneOrMoreUris.Text.serializer(),
+            OneOrMoreUris.List.serializer(),
+        )
+    },
 )

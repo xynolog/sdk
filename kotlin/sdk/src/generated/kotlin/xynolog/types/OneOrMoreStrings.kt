@@ -43,8 +43,10 @@ internal object OneOrMoreStringsSerializer : SignatureUnionSerializer<OneOrMoreS
             ),
         ),
     ),
-    variants = { listOf(
-        OneOrMoreStrings.Text.serializer(),
-        OneOrMoreStrings.List.serializer(),
-    ) },
+    variants = {
+        listOf(
+            OneOrMoreStrings.Text.serializer(),
+            OneOrMoreStrings.List.serializer(),
+        )
+    },
 )

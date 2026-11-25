@@ -31,8 +31,10 @@ internal object AnchoredTextEntrySerializer : SignatureUnionSerializer<AnchoredT
             ),
         ),
     ),
-    variants = { listOf(
-        AnchoredTextExtractedEntry.serializer(),
-        AnchoredTextDeclinedEntry.serializer(),
-    ) },
+    variants = {
+        listOf(
+            AnchoredTextExtractedEntry.serializer(),
+            AnchoredTextDeclinedEntry.serializer(),
+        )
+    },
 )
