@@ -86,6 +86,7 @@ let rec type_of ~(names : names) (ty : Typing.ty) : T.type_ =
   | Any -> unknown
   | Nothing -> T_name "never"
   | Nullable ty -> union [ type_of ~names ty; T_name "null" ]
+  | Scalar (Text { binary = true; _ }) -> T_name "Uint8Array"
   | Scalar (Text _) -> T_name "string"
   | Scalar (Integer _ | Number) -> T_name "number"
   | Scalar Boolean -> T_name "boolean"

@@ -544,7 +544,13 @@ let string_shape =
 
 let go =
   let declared =
-    [ ("A", None); ("B", Some "string"); ("C", Some "map[string]int") ]
+    [
+      ("A", None);
+      ("B", Some "string");
+      ("C", Some "map[string]int");
+      ("L", Some "[]A");
+      ("M", Some "[]string");
+    ]
   in
   let check shapes =
     List.map Decode.error_to_string (Required.Go.check ~declared shapes)
@@ -583,6 +589,57 @@ let go =
                      Required.Shape.empty with
                      kinds = Some [ Object ];
                      closed = Some [];
+                   } );
+             ]));
+    case "a list alias is read as a list of what its items are read as"
+      (fun () ->
+        Alcotest.(check (list string))
+          "refusals" []
+          (check
+             [
+               ("A", string_shape);
+               ( "L",
+                 Required.Shape.Shape
+                   {
+                     Required.Shape.empty with
+                     kinds = Some [ Array ];
+                     items = Some (Required.Shape.Ref "A");
+                   } );
+               ( "M",
+                 Required.Shape.Shape
+                   {
+                     Required.Shape.empty with
+                     kinds = Some [ Array ];
+                     items = Some string_shape;
+                   } );
+             ]));
+    case "a list alias whose items hold more than it reads is refused"
+      (fun () ->
+        Alcotest.(check (list string))
+          "refusals"
+          [
+            "go/api/types_gen.go: /: writes M as an alias of []string, which \
+             is read as \
+             {\"kinds\":[\"array\"],\"items\":{\"kinds\":[\"string\"]}}, and \
+             its schema requires \
+             {\"kinds\":[\"array\"],\"items\":{\"kinds\":[\"string\"],\"minLength\":1}} \
+             of it";
+          ]
+          (check
+             [
+               ( "M",
+                 Required.Shape.Shape
+                   {
+                     Required.Shape.empty with
+                     kinds = Some [ Array ];
+                     items =
+                       Some
+                         (Required.Shape.Shape
+                            {
+                              Required.Shape.empty with
+                              kinds = Some [ String ];
+                              min_length = Some 1;
+                            });
                    } );
              ]));
     case "a component with no type is refused" (fun () ->

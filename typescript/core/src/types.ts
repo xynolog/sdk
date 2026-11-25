@@ -4704,7 +4704,7 @@ export interface components {
       /** Human-readable resource name */
       name: string;
       /** Binary content */
-      file: string;
+      file: Uint8Array;
       /**
        * Media type of the content (e.g. text/plain, text/markdown, image/png)
        */

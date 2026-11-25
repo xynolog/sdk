@@ -60,6 +60,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A member Protocol states as bytes (`format: binary`) is a `Vec<u8>`, where
+  it was a `String`: `ResourceUpload`'s `file`, which
+  `ResourceUpload::new` takes as one.
 - A union's variant for a schema it names is that schema's own name
   (`Job::JobPending`, `ConformanceStep::ConformanceBusFetch`,
   `Agent::AgentPerson`), as every SDK names it, where the prefix its members'

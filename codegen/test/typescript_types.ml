@@ -135,6 +135,10 @@ let cases =
         in
         lacks text "What an A is.";
         has text "What an a is.");
+    case "bytes are a Uint8Array, and other text a string" (fun () ->
+        equal "{\n  a?: Uint8Array;\n  b?: string;\n}"
+          (one
+             {|{"type": "object", "properties": {"a": {"type": "string", "format": "binary"}, "b": {"type": "string"}}}|}));
     case "a schema that states nothing is unknown" (fun () ->
         equal "unknown" (one "{}"));
     case "a kind of id is text of a type of its own" (fun () ->
