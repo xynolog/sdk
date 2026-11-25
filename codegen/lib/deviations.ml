@@ -46,3 +46,32 @@ let closed_empty_named (form : T.form) =
 
 (* OCaml holds an enumeration of integers, numbers or booleans, a constant
    among them, as its scalar, where [Typing] has the enumeration. *)
+
+(* Haskell declares an enumeration only where a schema states [enum], and
+   holds a [const] as its scalar, where [Typing] has the enumeration of its
+   one value. *)
+let haskell_enumeration (s : Schema.schema) = Option.is_some s.enum
+
+(* Haskell names a type written in place by the schema that states it and
+   its member ([AnnotationU40_context]), a union's member as the union and
+   what the member is with [Value] after it, and a list's item with [Item],
+   [Inline] after any of them that a schema already names, where [Typing]
+   names it by [Naming.inline]. *)
+
+(* Haskell sorts a record's members by name, where [Typing] has them in the
+   schema's order. *)
+
+(* Haskell keeps the members an object does not name unless it is closed
+   ([Unstated] among them), where [Typing] has an [Unstated] object hold
+   none. *)
+
+(* Haskell declares every named schema that is no record, enumeration or
+   union as a newtype, a named list or map among them, where [Typing] has it
+   an alias. *)
+
+(* Haskell reads a union as the first member that parses, where [Typing]
+   tells its members apart by their signatures. *)
+
+(* Haskell holds a schema in place that states one [allOf] as that [allOf]'s
+   schema, dropping what it states beside it ([KnowledgeIndex]'s
+   [spec.graph] is a [Runner]), where [Typing] merges them. *)
