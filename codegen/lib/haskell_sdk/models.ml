@@ -696,7 +696,7 @@ let imports body dependencies =
        List.filter type_
          (List.map
             (fun (member, _) -> Error_codes.Haskell.type_of member)
-            Error_codes.Table.names)
+            Code_names.names)
      with
     | [] -> []
     | codes ->

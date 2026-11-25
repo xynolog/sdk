@@ -52,27 +52,6 @@ type t = {
 
 (* Each vocabulary by its member of the table: its type's name in Python and
    TypeScript, and in Go, Rust, Kotlin and Swift. *)
-let names =
-  [
-    ("busRequest", ("BusRequestErrorCode", "BusRequestErrorCode"));
-    ("transport", ("TransportErrorCode", "TransportErrorCode"));
-    ("job", ("JobErrorCode", "JobErrorCode"));
-    ("session", ("XynologSessionErrorCode", "SessionErrorCode"));
-    ("signIn", ("SignInErrorCode", "SignInErrorCode"));
-    ("kbIdentity", ("IdentityUnverifiableReason", "IdentityUnverifiableReason"));
-    ("spanRefusal", ("SpanRefusal", "SpanRefusal"));
-    ("control", ("ControlErrorCode", "ControlErrorCode"));
-  ]
-
-(* The names of the vocabulary [member] names, as a schema's
-   [x-xynolog-codes] names it. *)
-let named member =
-  match List.assoc_opt member names with
-  | Some named -> named
-  | None ->
-      invalid_arg
-        (Printf.sprintf "%s names %s, which is no vocabulary of it" file member)
-
 (* A code's part after its last dot, which names its Go constant: lower-case
    words of letters and digits joined by hyphens. *)
 let segment code =
@@ -105,7 +84,7 @@ let derive (table : Tables.Errors_codes.t) =
   (* Each vocabulary's codes, each stated once and each a distinct Go
      constant. *)
   let vocabulary ~member ~docs codes =
-    let name, go_name = named member in
+    let name, go_name = Code_names.named member in
     let stated = Hashtbl.create 16 and constants = Hashtbl.create 16 in
     let codes =
       List.mapi

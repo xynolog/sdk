@@ -185,7 +185,7 @@ and type_of st what (ty : T.ty) =
   | T.Inline i -> in_place st what i
   | T.Scalar (T.Text { binary = true; _ }) -> G.Slice (named "byte")
   | T.Scalar (T.Text _) -> string_
-  | T.Scalar (T.Code vocabulary) -> named (snd (Error_codes.Table.named vocabulary))
+  | T.Scalar (T.Code vocabulary) -> named (snd (Code_names.named vocabulary))
   | T.Scalar T.Boolean -> named "bool"
   | T.Scalar T.Number -> named "float64"
   | T.Scalar (T.Integer _) -> named "int"

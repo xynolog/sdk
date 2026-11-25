@@ -191,7 +191,7 @@ and type_of t what (ty : T.ty) =
   | T.Inline i -> in_place t what i
   | T.Scalar (T.Text _) -> string_type
   | T.Scalar (T.Code vocabulary) ->
-      S.Named (snd (Error_codes.Table.named vocabulary))
+      S.Named (snd (Code_names.named vocabulary))
   | T.Scalar (T.Integer _) -> S.Named "Int"
   | T.Scalar T.Number -> S.Named "Double"
   | T.Scalar T.Boolean -> S.Named "Bool"

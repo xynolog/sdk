@@ -338,7 +338,7 @@ let error_codes t (spec : Spec.t) =
             (block
                ~opening:
                  ("public enum "
-                 ^ snd (Error_codes.Table.named v.member)
+                 ^ snd (Code_names.named v.member)
                  ^ ":")
                ~closing:"\n}" (t.generated swift_models))
             ("case ", " = ")

@@ -331,7 +331,7 @@ let error_codes models ~shapes ~table (codes : Error_codes.Table.t) =
     List.map
       (fun (family, listed) ->
         string_enumeration [ "public" ]
-          (snd (Error_codes.Table.named family))
+          (snd (Code_names.named family))
           listed)
       (List.sort (fun (a, _) (b, _) -> String.compare a b) (families table))
   in

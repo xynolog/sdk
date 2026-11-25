@@ -87,7 +87,7 @@ let rec type_of ~(names : names) (ty : Typing.ty) : T.type_ =
   | Nothing -> T_name "never"
   | Nullable ty -> union [ type_of ~names ty; T_name "null" ]
   | Scalar (Text _) -> T_name "string"
-  | Scalar (Code vocabulary) -> T_name (fst (Error_codes.Table.named vocabulary))
+  | Scalar (Code vocabulary) -> T_name (fst (Code_names.named vocabulary))
   | Scalar (Integer _ | Number) -> T_name "number"
   | Scalar Boolean -> T_name "boolean"
   | List items ->
@@ -291,7 +291,7 @@ let text (spec : Spec.t) =
             [
               T.import ~type_only:true
                 (List.map
-                   (fun v -> fst (Error_codes.Table.named v))
+                   (fun v -> fst (Code_names.named v))
                    vocabularies)
                 "./error-codes";
             ])

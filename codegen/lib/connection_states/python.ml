@@ -1,12 +1,10 @@
 (* The states of a client's stream and their moves as the Python SDK reads
    them (python/sdk/src/xynolog/_connection_states.py, which
-   xynolog.transport exports): each state in its order, and each with the
-   states it may become. *)
+   xynolog.transport reads): each state with the states it may become. *)
 
 module P = Python_syntax
 
 let path = "python/sdk/src/xynolog/_connection_states.py"
-let states = P.sub "tuple" [ P.item (P.Name "ConnectionState"); P.item P.Ellipsis ]
 
 let file (t : Table.t) =
   {
@@ -17,8 +15,7 @@ let file (t : Table.t) =
           header = Banner.python_lines ~from_:Table.from_ __FILE__;
           doc =
             As_is
-              "The states of a client's stream, and the states each may \
-               become.\n";
+              "The states each state of a client's stream may become.\n";
           imports =
             [
               [
@@ -34,14 +31,8 @@ let file (t : Table.t) =
                   (P.List
                      (P.items ~magic:true
                         [
-                          P.item (P.Str "CONNECTION_STATES");
                           P.item (P.Str "CONNECTION_STATE_MAY_BECOME");
                         ]));
-              P.assign
-                ~about:[ Line "Every state, in the order the protocol states them." ]
-                ~annotation:(P.sub "Final" [ P.item states ])
-                ~value:(P.strings ~magic:true (List.map fst t))
-                "CONNECTION_STATES";
               P.assign
                 ~about:[ Line "The states each state may be followed by." ]
                 ~annotation:

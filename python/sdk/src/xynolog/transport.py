@@ -22,7 +22,7 @@ from typing import Final, Literal, Protocol, Self, final
 
 from pydantic import JsonValue
 
-from xynolog._connection_states import CONNECTION_STATE_MAY_BECOME, CONNECTION_STATES
+from xynolog._connection_states import CONNECTION_STATE_MAY_BECOME
 from xynolog.errors import BusRequestError, XynologError
 from xynolog.events import Broadcast, Events
 from xynolog.identifiers import AnnotationId, JobId, ResourceId
@@ -45,7 +45,6 @@ from xynolog.types import (
 from xynolog.watched import Watched
 
 __all__ = [
-    "CONNECTION_STATES",
     "CONNECTION_STATE_MAY_BECOME",
     "ConnectionState",
     "Content",
