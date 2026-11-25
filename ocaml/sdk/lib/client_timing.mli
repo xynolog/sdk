@@ -1,11 +1,9 @@
 (* Generated from protocol/specs/src/client/timing.json. Do not edit.
    Regenerate: make generate (codegen/lib/timing/ocaml.ml) *)
 
-type retry = { attempts : int; initial_delay_ms : int; max_delay_ms : int }
-
 val bus_request_timeout_ms : int
 val emit_timeout_ms : int
-val emit_retry : retry
+val emit_retry : Records.Retry_budget.t
 val http_request_timeout_ms : int
 val request_retry_pause_ms : int
 val stream_open_timeout_ms : int
@@ -16,7 +14,7 @@ val linger_ms : int
 val seen_event_ids_count : int
 val reconnect_debounce_ms : int
 val lazy_remove_ms : int
-val refresh_retry : retry
+val refresh_retry : Records.Retry_budget.t
 val refresh_before_exp_ms : int
 val min_refresh_delay_ms : int
 val device_poll_ms : int

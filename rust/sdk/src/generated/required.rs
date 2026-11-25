@@ -1032,6 +1032,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             ..NONE
         },
     ),
+    ("Binary", of(&[Kind::String])),
     (
         "BindBodyOperation",
         Shape {
@@ -10259,7 +10260,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("archiveOriginal", of(&[Kind::String])),
                 ("cloneToken", of(&[Kind::String])),
                 ("entityTypes", of(&[Kind::String])),
-                ("file", of(&[Kind::String])),
+                ("file", reference("Binary")),
                 ("format", of(&[Kind::String])),
                 ("generationPrompt", of(&[Kind::String])),
                 ("generator", of(&[Kind::String])),
@@ -10334,6 +10335,41 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 },
             )],
             closed: Some(&["limits"]),
+            ..NONE
+        },
+    ),
+    (
+        "RetryBudget",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["attempts", "initialDelayMs", "maxDelayMs"],
+            members: &[
+                (
+                    "attempts",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "initialDelayMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "maxDelayMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["attempts", "initialDelayMs", "maxDelayMs"]),
             ..NONE
         },
     ),

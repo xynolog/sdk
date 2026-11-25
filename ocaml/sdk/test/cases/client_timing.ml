@@ -1,9 +1,13 @@
 (* Generated from protocol/specs/src/client/timing.json. Do not edit.
    Regenerate: make generate (codegen/lib/case_data/ocaml.ml) *)
 
-type object_ = { attempts : int; initial_delay_ms : int; max_delay_ms : int }
+type retry_budget = {
+  attempts : int;
+  initial_delay_ms : int;
+  max_delay_ms : int;
+}
 
-let object__json (r : object_) =
+let retry_budget_json (r : retry_budget) =
   `Assoc
     (List.filter_map Fun.id
        [
@@ -12,11 +16,11 @@ let object__json (r : object_) =
          Option.Some ("maxDelayMs", (fun n -> `Int n) r.max_delay_ms);
        ])
 
-type item_value = Integer of int | Object of object_
+type item_value = Integer of int | Object of retry_budget
 
 let item_value_json = function
   | (Integer v : item_value) -> (fun n -> `Int n) v
-  | (Object v : item_value) -> object__json v
+  | (Object v : item_value) -> retry_budget_json v
 
 type timing_item = { name : string; value : item_value; docs : string }
 
@@ -87,7 +91,7 @@ let table : t =
             value =
               (Object
                  ({ attempts = 4; initial_delay_ms = 1000; max_delay_ms = 4000 }
-                   : object_)
+                   : retry_budget)
                 : item_value);
             docs =
               "The retry budget of ONE emit. Per request, never per boot pass: \
@@ -239,7 +243,7 @@ let table : t =
             value =
               (Object
                  ({ attempts = 4; initial_delay_ms = 500; max_delay_ms = 4000 }
-                   : object_)
+                   : retry_budget)
                 : item_value);
             docs =
               "The retry budget of one token renewal: long enough to ride out \

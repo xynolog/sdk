@@ -15,6 +15,8 @@ import (
 	"testing"
 	"testing/synctest"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
 )
 
 // The agent's token falls due, and its renewal gets no answer; while it waits
@@ -51,7 +53,7 @@ func TestADueRenewalTriedAgainRenewsNothingOnceTheAgentsTokenIsRenewedSomeOtherW
 		timing := quickTiming()
 		// The renewal waits a minute or more to try again: the refusal is
 		// answered before it does.
-		timing.RefreshRetry = RetryPolicy{Attempts: 3, InitialDelay: time.Minute, MaxDelay: time.Minute}
+		timing.RefreshRetry = api.RetryBudget{Attempts: 3, InitialDelayMs: 60_000, MaxDelayMs: 60_000}
 		service := NewServiceToken(SecretCredential{Issuer: "http://issuer.test/realms/xynolog", ClientID: "xynolog-worker", ClientSecret: "s3cret"}, Issuer{HTTP: client, Timing: timing})
 		agent, err := SignInAgent(context.Background(), AgentConfig{Gateway: "http://gateway.test", Service: service, HTTP: client, Timing: timing})
 		if err != nil {

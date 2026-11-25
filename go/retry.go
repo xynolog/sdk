@@ -4,7 +4,7 @@ package xynolog
 // at it.
 //
 // The two are separate questions. A RetryRule answers the first for one
-// context, as protocol/specs/src/retry/cases.json states it. A RetryPolicy answers the
+// context, as protocol/specs/src/retry/cases.json states it. An api.RetryBudget answers the
 // second: a budget of attempts, and the backoff between them. The budgets a
 // client keeps are protocol/specs/src/client/timing.json's (Timing).
 
@@ -17,19 +17,9 @@ import (
 	"strings"
 	"sync"
 	"time"
-)
 
-// RetryPolicy is a retry budget: how many attempts, and the backoff between
-// them.
-type RetryPolicy struct {
-	// Attempts is how many times it is tried in all, the first included.
-	Attempts int
-	// InitialDelay is the wait before the second attempt; each later wait
-	// doubles it.
-	InitialDelay time.Duration
-	// MaxDelay is the longest any wait grows to.
-	MaxDelay time.Duration
-}
+	"github.com/xynolog/sdk/go/api"
+)
 
 // RetryFacts is what is known of a failure when someone asks whether to try
 // again. What is not known is nil.
@@ -119,25 +109,26 @@ func draw(random *rand.Rand) float64 {
 	return random.Float64()
 }
 
-// RetryWithBackoff runs attempt until it succeeds, the policy's attempts are
+// RetryWithBackoff runs attempt until it succeeds, the budget's attempts are
 // spent, or it fails in a way retryable does not accept. The wait before each
-// further attempt is the policy's backoff, its jitter drawn from random
+// further attempt is the budget's backoff, its jitter drawn from random
 // (EqualJitter), and never less than the wait the failure itself stated (a
 // refusal's Retry-After). A context that is done ends the wait in progress,
 // and its error is returned; otherwise the last failure is returned as it
 // was.
 func RetryWithBackoff[T any](
 	ctx context.Context,
-	policy RetryPolicy,
+	budget api.RetryBudget,
 	random *rand.Rand,
 	attempt func(context.Context) (T, error),
 	retryable func(error) bool,
 	stated func(error) (time.Duration, bool),
 ) (T, error) {
-	limit := policy.InitialDelay
+	limit := time.Duration(budget.InitialDelayMs) * time.Millisecond
+	ceiling := time.Duration(budget.MaxDelayMs) * time.Millisecond
 	for made := 1; ; made++ {
 		value, err := attempt(ctx)
-		if err == nil || made >= policy.Attempts || ctx.Err() != nil || !retryable(err) {
+		if err == nil || made >= budget.Attempts || ctx.Err() != nil || !retryable(err) {
 			return value, err
 		}
 		wait := EqualJitter(limit, random)
@@ -152,6 +143,6 @@ func RetryWithBackoff[T any](
 			return none, ctx.Err()
 		case <-timer.C:
 		}
-		limit = min(limit*2, policy.MaxDelay)
+		limit = min(limit*2, ceiling)
 	}
 }

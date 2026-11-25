@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import xynolog.Spec
 import xynolog.errors.TransportError
+import xynolog.types.RetryBudget
 
 /** Trying again, held to the cases every SDK runs (protocol/specs/src/retry/cases.json). */
 class RetryCasesTest {
@@ -60,7 +61,7 @@ class RetryCasesTest {
 
     private fun refused(status: Int, retryAfterMs: Long? = null) = TransportError.ofStatus("refused $status", status, retryAfterMs)
 
-    private val quick = RetryPolicy(attempts = 3, initialDelayMs = 1, maxDelayMs = 2)
+    private val quick = RetryBudget(attempts = 3, initialDelayMs = 1, maxDelayMs = 2)
 
     @Test
     fun aFailureWorthAnotherAttemptIsTriedAgainUntilTheAttemptsAreSpent() = runBlocking {
@@ -106,7 +107,7 @@ class RetryCasesTest {
     fun theWaitIsNeverLessThanTheFailureStated() = runBlocking {
         val started = System.nanoTime()
         var made = 0
-        retryWithBackoff(RetryPolicy(attempts = 2, initialDelayMs = 1, maxDelayMs = 1), { true }) {
+        retryWithBackoff(RetryBudget(attempts = 2, initialDelayMs = 1, maxDelayMs = 1), { true }) {
             made += 1
             if (made == 1) throw refused(429, retryAfterMs = 200)
         }
@@ -117,7 +118,7 @@ class RetryCasesTest {
     fun cancellingGivesUpAWaitInProgress() = runBlocking {
         var made = 0
         val retrying = launch {
-            retryWithBackoff(RetryPolicy(attempts = 5, initialDelayMs = 60_000, maxDelayMs = 60_000), { true }) {
+            retryWithBackoff(RetryBudget(attempts = 5, initialDelayMs = 60_000, maxDelayMs = 60_000), { true }) {
                 made += 1
                 throw refused(429)
             }

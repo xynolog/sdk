@@ -43,6 +43,20 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A retry budget is `api.RetryBudget`, the type of Protocol's
+  `client/RetryBudget.json`, where it was `RetryPolicy`: `Timing.EmitRetry`
+  and `Timing.RefreshRetry` are one, and `RetryWithBackoff` takes one. Its
+  delays are whole milliseconds, `InitialDelayMs` and `MaxDelayMs`, as
+  Protocol states them, where they were `time.Duration`s, `InitialDelay` and
+  `MaxDelay`.
+- `ResourceUpload.File` is an `api.Binary`, the type of Protocol's bytes held
+  whole, which is `[]byte`.
+- The keys a registry keeps what it keeps under, and the prefixes of the
+  keys made per knowledge base, are generated from Protocol's
+  `session/stored.json`, with the names and values they had
+  (`registry.KnowledgeBasesKey`, `PendingAuthorizationKey`, …).
+- The version of a kept query's document is generated from
+  `session/stored.json` too, where `storage.go` stated it.
 - A struct's fields are in the order its schema states its members, as in
   every SDK, where they were in the order of their names.
 - A schema of an object that names no member and says nothing of others

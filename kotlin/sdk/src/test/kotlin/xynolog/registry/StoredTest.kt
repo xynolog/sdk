@@ -61,15 +61,6 @@ private fun <K : Any, V : Any> saveOne(kept: KeptQuery<K, V>, persistence: Cache
 
 private fun JsonObject.text(name: String): String = getValue(name).jsonPrimitive.content
 
-/** Each key's constant here, by the name the table gives it. */
-private val KEYS = mapOf(
-    "knowledgeBasesKey" to KNOWLEDGE_BASES_KEY,
-    "activeKey" to ACTIVE_KEY,
-    "openResourcesByKbKey" to OPEN_RESOURCES_BY_KB_KEY,
-    "lastViewedResourceByKbKey" to LAST_VIEWED_RESOURCE_BY_KB_KEY,
-    "pendingAuthorizationKey" to PENDING_AUTHORIZATION_KEY,
-)
-
 /** What the registry writes of two resources it opens: one with a media type and a storage URI, then one with neither. */
 private fun writtenOpen(): List<JsonObject> = runBlocking {
     val world = World().with(kbOfA())
@@ -83,14 +74,15 @@ private fun writtenOpen(): List<JsonObject> = runBlocking {
 
 /**
  * What a registry keeps in its storage, as protocol/specs/src/session/stored.json
- * states it: every key Kotlin writes by hand, the key of a knowledge base's
- * session, the keys of what a session keeps of its stream and its queries for
- * one person, each the table's example, the members of a stored session, and
- * those of an open resource; and the queries a session keeps (the rows
+ * states it: the key of a knowledge base's session, the keys of what a
+ * session keeps of its stream and its queries for one person, each the
+ * table's example, the members of a stored session, and those of an open
+ * resource; and the queries a session keeps (the rows
  * protocol/specs/src/client/refresh.json marks `persisted`), what each is
  * keyed by (its row's `per`) and keeps (its row's `value`), the document each
- * is kept as, and what is kept of its stream. A key or a member the table
- * gains, a query the refresh table comes to persist, or a change to what
+ * is kept as, and what is kept of its stream. The fixed keys, the prefixes and
+ * the whole key are generated from the table (StoredKeys.kt). A member the
+ * table gains, a query the refresh table comes to persist, or a change to what
  * either requires, fails here until Kotlin has it. And the registry's
  * readers and writers of what it keeps. QueryValuesTest holds what every
  * live query's cache holds; PersistedCasesTest, when each person's keys are
@@ -98,12 +90,6 @@ private fun writtenOpen(): List<JsonObject> = runBlocking {
  * queries and its stream, case by case.
  */
 class StoredTest {
-    @Test
-    fun eachKeyIsTheTablesAndTheTableHasNoneKotlinLacks() {
-        val stated = table.getValue("keys").jsonArray.map { it.jsonObject }
-        assertEquals(stated.associate { it.getValue("member").jsonPrimitive.content to it.getValue("key").jsonPrimitive.content }, KEYS)
-    }
-
     @Test
     fun aKnowledgeBasesSessionIsKeptUnderTheTablesPrefixAndItsId() {
         val prefix = table.getValue("sessionKeyPrefix").jsonObject.getValue("prefix").jsonPrimitive.content
@@ -144,7 +130,6 @@ class StoredTest {
                     "annotation" -> assertEquals(AnnotationId.serializer().descriptor, kept.key.descriptor)
                     // A query per nothing keeps its one entry under the table's whole key, and under no other.
                     null -> {
-                        assertEquals(wholeKey, WHOLE_KEY)
                         assertEquals(wholeKey, wireJson.decodeFromJsonElement(kept.key, JsonPrimitive(wholeKey)))
                         assertThrows(SerializationException::class.java) { wireJson.decodeFromJsonElement(kept.key, JsonPrimitive("$wholeKey$wholeKey")) }
                     }
@@ -156,7 +141,6 @@ class StoredTest {
     @Test
     fun aKeptQuerysDocumentIsWrittenWithTheTablesMembersAndNoOthers() {
         val version = cacheDocument.getValue("properties").jsonObject.getValue("version").jsonObject.getValue("const").jsonPrimitive.content.toLong()
-        assertEquals(version, CACHE_DOCUMENT_VERSION)
         val storage = MemoryStorage()
         saveOne(
             PERSISTED_QUERIES.single { it.query == CacheQuery.Resource },

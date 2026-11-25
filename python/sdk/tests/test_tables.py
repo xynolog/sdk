@@ -14,7 +14,6 @@ from xynolog import error_codes, refresh, storage_keys, stored, timing
 from xynolog import types as wire
 from xynolog.channels import CHANNELS
 from xynolog.namespaces import live
-from xynolog.retry import RetryPolicy
 
 CODES = read(SPEC / "errors/codes.json")
 
@@ -83,7 +82,7 @@ def test_each_timing_entry_is_a_constant_of_its_value() -> None:
         value = entry["value"]
         held = getattr(timing, constant(text(entry["name"], "a name")))
         if isinstance(value, dict):
-            assert held == RetryPolicy(
+            assert held == wire.RetryBudget(
                 attempts=whole(value["attempts"]), initial_delay_ms=whole(value["initialDelayMs"]), max_delay_ms=whole(value["maxDelayMs"])
             )
         else:

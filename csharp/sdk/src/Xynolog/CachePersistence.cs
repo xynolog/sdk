@@ -184,13 +184,10 @@ internal sealed class WritesWhileNamed(ISignInKept kept, string kbId, Action<Ses
     }
 }
 
-/// <summary>What protocol/specs/src/session/stored.json says a kept query's document is.</summary>
+/// <summary>What protocol/specs/src/client/refresh.json says of a kept query.</summary>
 internal static class KeptTable
 {
-    private static readonly JsonElement Stored = JsonSerializer.Deserialize<JsonElement>(ProtocolTables.Stored);
     private static readonly JsonElement Refresh = JsonSerializer.Deserialize<JsonElement>(ProtocolTables.CacheRefresh);
-    internal static readonly string WholeKey = Text(Stored.GetProperty("wholeKey"), "key");
-    internal static readonly long Version = Stored.GetProperty("cacheDocument").GetProperty("properties").GetProperty("version").GetProperty("const").GetInt64();
 
     /// <summary>What client/refresh.json says a query is per: a resource, an annotation, or nothing (null).</summary>
     internal static string? Per(string query)
@@ -216,8 +213,8 @@ internal static class KeptKeys
     internal static readonly KeptKey<LiveQueries.AnnotationKey, Annotation> ByAnnotation = new("annotation", key => key.Annotation.Value,
         (key, value) => new(AnnotationTools.TargetSource(value.Target), WireJson.Read<AnnotationId>(key, JsonSerializerOptions.Default)));
 
-    internal static KeptKey<bool, T> Whole<T>() => new(null, _ => KeptTable.WholeKey, (key, _) =>
-        key.ValueKind == JsonValueKind.String && key.GetString() == KeptTable.WholeKey ? true : throw new JsonException("The key is not the whole key."));
+    internal static KeptKey<bool, T> Whole<T>() => new(null, _ => RegistryStorage.WholeKey, (key, _) =>
+        key.ValueKind == JsonValueKind.String && key.GetString() == RegistryStorage.WholeKey ? true : throw new JsonException("The key is not the whole key."));
 }
 
 internal interface IKeptQuery
@@ -563,7 +560,7 @@ internal sealed class KeptQuery<TKey, T> : IKeptQuery where TKey : notnull
     {
         if (LiveCacheStorage.Parse(text) is not { ValueKind: JsonValueKind.Object } document ||
             !document.TryGetProperty("version", out var version) || version.ValueKind != JsonValueKind.Number ||
-            Required.NumberOf(version) != KeptTable.Version ||
+            Required.NumberOf(version) != RegistryStorage.CacheDocumentVersion ||
             !document.TryGetProperty("entries", out var listed) || listed.ValueKind != JsonValueKind.Array)
             return null;
         var entries = new List<(JsonElement, JsonElement, long)>();
@@ -634,7 +631,7 @@ internal sealed class KeptQuery<TKey, T> : IKeptQuery where TKey : notnull
         using (var writer = new Utf8JsonWriter(buffer))
         {
             writer.WriteStartObject();
-            writer.WriteNumber("version", KeptTable.Version);
+            writer.WriteNumber("version", RegistryStorage.CacheDocumentVersion);
             writer.WriteStartArray("entries");
             foreach (var (id, stamp) in entries)
             {

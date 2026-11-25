@@ -112,6 +112,8 @@ let referenced state (r : Decode.reference) =
 let rec plain state (form : T.form) =
   match form with
   | T.Alias (T.Named name) -> plain state (state.find name).form
+  | T.Alias (T.Scalar (T.Text { binary = true; _ })) ->
+      Some (C.Array (T "byte"))
   | T.Alias (T.Scalar (T.Text _)) | T.Identifier _ -> Some (C.T "string")
   | T.Alias (T.Scalar (T.Integer _)) -> Some (C.T "long")
   | T.Alias (T.Scalar T.Number) -> Some (C.T "double")

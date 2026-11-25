@@ -19,7 +19,7 @@ import Control.Monad (unless, when)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Xynolog.Internal.RetryPolicy (RetryRule (..), retryable, ruleName)
-import Xynolog.Timing (RetryBudget (..))
+import Xynolog.Types (RetryBudget (..))
 
 retryAfterMs :: Maybe Text -> Maybe Integer
 retryAfterMs header = do
@@ -47,9 +47,9 @@ retryWithBackoff ::
   RetryOptions -> RetryBudget -> (failure -> Bool) -> (failure -> Maybe Integer) -> IO value -> IO value
 retryWithBackoff options budget accepts retryAfter action = do
   when
-    (retryAttempts budget < 1 || retryInitialDelayMs budget < 0 || retryMaxDelayMs budget < retryInitialDelayMs budget)
+    (retryBudgetAttempts budget < 1 || retryBudgetInitialDelayMs budget < 0 || retryBudgetMaxDelayMs budget < retryBudgetInitialDelayMs budget)
     (throwIO InvalidRetryBudget)
-  run 1 (retryInitialDelayMs budget)
+  run 1 (retryBudgetInitialDelayMs budget)
   where
     run made cap = do
       outcome <- try action :: IO (Either failure value)
@@ -59,7 +59,7 @@ retryWithBackoff options budget accepts retryAfter action = do
           case fromException (toException failure) :: Maybe SomeAsyncException of
             Just _ -> throwIO failure
             Nothing -> pure ()
-          if made >= retryAttempts budget || not (accepts failure)
+          if made >= retryBudgetAttempts budget || not (accepts failure)
             then throwIO failure
             else do
               draw <- retryRandom options
@@ -70,4 +70,4 @@ retryWithBackoff options budget accepts retryAfter action = do
                   delay = ceiling (max jitter (fromInteger (maybe 0 id stated)) * 1000000)
               now <- retryNow options
               retryWaitUntil options (now + delay)
-              run (made + 1) (min (retryMaxDelayMs budget) (cap * 2))
+              run (made + 1) (min (retryBudgetMaxDelayMs budget) (cap * 2))

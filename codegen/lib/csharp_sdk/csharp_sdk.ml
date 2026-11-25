@@ -242,7 +242,6 @@ let tables =
     ("MediaTypes", "media-types/registry.json");
     ("Encodings", "text/encoding-cases.json");
     ("CacheRefresh", "client/refresh.json");
-    ("Stored", "session/stored.json");
     ("Discovery", "discovery/DiscoveryDocument.json");
   ]
 
@@ -400,7 +399,7 @@ let error_codes (t : Error_codes.Table.t) =
     @ [ vocabulary t.control ])
 
 (* The timing a client keeps (client/timing.json), a constant an entry,
-   named as the entry is; a budget is a RetryPolicy. *)
+   named as the entry is; a budget is the model of client/RetryBudget.json. *)
 let timing_name (e : Timing.Table.entry) = String.capitalize_ascii e.name
 
 let timings (entries : Timing.Table.t) =
@@ -414,7 +413,7 @@ let timings (entries : Timing.Table.t) =
           {
             attributes = [];
             modifiers = [ Internal; Static ];
-            type_ = T "global::Xynolog.Http.RetryPolicy";
+            type_ = T (Models.types ^ "RetryBudget");
             name;
             accessors = [ Get ];
             value =
@@ -422,14 +421,19 @@ let timings (entries : Timing.Table.t) =
                 (New
                    {
                      type_ = None;
-                     args =
+                     args = Some [];
+                     init =
                        Some
-                         [
-                           Arg (Int attempts);
-                           Arg (Int initial_delay_ms);
-                           Arg (Int max_delay_ms);
-                         ];
-                     init = None;
+                         (Members
+                            (List.map
+                               (fun (member, n) ->
+                                 ( Models.field_name "RetryBudget" member,
+                                   C.Int n ))
+                               [
+                                 ("attempts", attempts);
+                                 ("initialDelayMs", initial_delay_ms);
+                                 ("maxDelayMs", max_delay_ms);
+                               ]));
                    });
           }
   in

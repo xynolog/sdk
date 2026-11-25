@@ -1,11 +1,11 @@
 /**
  * What a registry keeps in its storage, as protocol/specs/src/session/stored.json
- * states it: every key this SDK writes by hand, the key of a knowledge base's
- * session, the keys of what a session keeps of its stream and its queries for
- * one person, each as the table's example works it out, the members of a
- * stored session, the members of a resource open in a knowledge base, the key
- * of a kept query per nothing, and the members and the version of a kept
- * query's document. The queries kept across a restart are those
+ * states it: the key of a knowledge base's session, the keys of what a session
+ * keeps of its stream and its queries for one person, each as the table's
+ * example works it out, the members of a stored session, the members of a
+ * resource open in a knowledge base, and the members and the version of a kept
+ * query's document. The fixed keys, the prefixes and the whole key are
+ * generated from the table (`@xynolog/core`'s stored.ts). The queries kept across a restart are those
  * protocol/specs/src/client/refresh.json marks `persisted`, each asked for per
  * what it says, as the generated refresh table (`PERSISTED_QUERIES`,
  * `CACHE_PER`) states them. A key or a member the table gains, or a change in
@@ -17,8 +17,12 @@
 import { describe, it, expect } from 'vitest';
 import { filter, firstValueFrom } from 'rxjs';
 import {
+  ACTIVE_KEY,
   CACHE_PER,
+  OPEN_RESOURCES_BY_KB_KEY,
   PERSISTED_QUERIES,
+  STORAGE_KEY,
+  WHOLE_KEY,
   faultOf,
   isObject,
   isSchemaName,
@@ -29,19 +33,13 @@ import {
 } from '@xynolog/core';
 import {
   KEPT_QUERIES,
-  WHOLE_KEY,
   coupledLastEventId,
   keptPersister,
 } from '../../cache-persister';
 import { createTestSession } from '../../testing';
-import { PENDING_AUTHORIZATION_KEY } from '../oauth';
 import { XynologBrowser } from '../xynolog-browser';
 import { InMemorySessionStorage } from '../session-storage';
 import {
-  ACTIVE_KEY,
-  LAST_VIEWED_RESOURCE_BY_KB_KEY,
-  OPEN_RESOURCES_BY_KB_KEY,
-  STORAGE_KEY,
   cacheKey,
   getStoredSession,
   lastEventIdKey,
@@ -100,15 +98,6 @@ const KEY_OF_KIND: { [P in CachePer[PersistedQuery]]: string } = {
   resource: 'res-1',
   annotation: 'ann-1',
   whole: table.wholeKey.key,
-};
-
-/** Each key's constant here, by the name the table gives it. */
-const KEYS: Record<string, string> = {
-  knowledgeBasesKey: STORAGE_KEY,
-  activeKey: ACTIVE_KEY,
-  openResourcesByKbKey: OPEN_RESOURCES_BY_KB_KEY,
-  lastViewedResourceByKbKey: LAST_VIEWED_RESOURCE_BY_KB_KEY,
-  pendingAuthorizationKey: PENDING_AUTHORIZATION_KEY,
 };
 
 /**
@@ -188,12 +177,6 @@ const storedWithout = (left: string): string =>
   );
 
 describe('what a registry keeps, as protocol/specs/src/session/stored.json states it', () => {
-  it("each key is the table's, and the table has none this SDK lacks", () => {
-    expect(
-      Object.fromEntries(table.keys.map(({ member, key }) => [member, key])),
-    ).toEqual(KEYS);
-  });
-
   it("a knowledge base's session is kept under the table's prefix and its id", () => {
     expect(sessionKey('kb-a')).toBe(`${table.sessionKeyPrefix.prefix}kb-a`);
   });
@@ -283,10 +266,6 @@ describe('what a registry keeps, as protocol/specs/src/session/stored.json state
       ).toBe(true);
     },
   );
-
-  it("a kept query per nothing keeps its one entry under the table's whole key", () => {
-    expect(WHOLE_KEY).toBe(table.wholeKey.key);
-  });
 
   it("a kept query's document is written with the table's members and version, and no others", () => {
     const storage = new InMemorySessionStorage();

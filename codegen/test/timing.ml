@@ -207,7 +207,11 @@ let go =
 
 package xynolog
 
-import "time"
+import (
+~"time"
+
+~"github.com/xynolog/sdk/go/api"
+)
 
 // Timing is the timing a Xynolog client keeps: its deadlines, its retry
 // budgets, the cadence of its stream, and what it keeps count of, as
@@ -223,7 +227,7 @@ type Timing struct {
 ~// wait gateway request stream closed peer peer an timer peer reply gateway
 ~// an gateway closed the wait request emit emit emit an emit reply the
 ~// closed.
-~EmitRetry RetryPolicy
+~EmitRetry api.RetryBudget
 ~// SeenEventIdsCount is seenEventIdsCount: Counted, */ even.
 ~SeenEventIdsCount int
 }
@@ -232,7 +236,7 @@ type Timing struct {
 func DefaultTiming() Timing {
 ~return Timing{
 ~~Linger:            1000 * time.Millisecond,
-~~EmitRetry:         RetryPolicy{Attempts: 4, InitialDelay: 1000 * time.Millisecond, MaxDelay: 4000 * time.Millisecond},
+~~EmitRetry:         api.RetryBudget{Attempts: 4, InitialDelayMs: 1000, MaxDelayMs: 4000},
 ~~SeenEventIdsCount: 512,
 ~}
 }
@@ -253,7 +257,7 @@ as the table states them, which is how a caller overrides one.
 
 from typing import Final
 
-from xynolog.retry import RetryPolicy
+from xynolog.types import RetryBudget
 
 __all__ = [
     "EMIT_RETRY",
@@ -270,7 +274,7 @@ LINGER_MS: Final = 1000
 # timer wait request a retry retry wait open an the wait gateway request stream closed peer peer
 # an timer peer reply gateway an gateway closed the wait request emit emit emit an emit reply
 # the closed.
-EMIT_RETRY: Final = RetryPolicy(attempts=4, initial_delay_ms=1000, max_delay_ms=4000)
+EMIT_RETRY: Final = RetryBudget(attempts=4, initial_delay_ms=1000, max_delay_ms=4000)
 
 # Counted, */ even.
 SEEN_EVENT_IDS_COUNT: Final = 512
@@ -290,13 +294,13 @@ let typescript =
 // Authority:   protocol/specs/src/client/timing.json
 // Regenerate:  make generate  (codegen/lib/timing/typescript.ml)
 
-import type { RetryPolicy } from './retry';
+import type { RetryBudget } from './retry';
 
 /** %s */
 export const LINGER_MS = 1000;
 
 /** %s */
-export const EMIT_RETRY: RetryPolicy = { attempts: 4, initialDelayMs: 1000, maxDelayMs: 4000 };
+export const EMIT_RETRY: RetryBudget = { attempts: 4, initialDelayMs: 1000, maxDelayMs: 4000 };
 
 /** Counted, *\/ even. */
 export const SEEN_EVENT_IDS_COUNT = 512;

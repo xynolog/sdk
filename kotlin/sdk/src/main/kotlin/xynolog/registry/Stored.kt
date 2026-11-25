@@ -23,29 +23,9 @@ import xynolog.storage.SessionStorage
 import xynolog.storage.StoragePersister
 
 // What a registry of knowledge bases keeps in a SessionStorage, and what its sessions keep there of their queries and
-// their stream, as protocol/specs/src/session/stored.json states it. StoredTest fails when this differs from the table,
-// and CacheCasesTest when what a session keeps differs from session/cache-cases.json.
-
-/** The registered knowledge bases: a JSON list of `KnowledgeBase`. */
-public const val KNOWLEDGE_BASES_KEY: String = "xynolog.knowledgeBases"
-
-/** The id of the active knowledge base. Nothing is kept under it while none is active. */
-public const val ACTIVE_KEY: String = "xynolog.activeKnowledgeBaseId"
-
-/** What is open in each knowledge base: a JSON object from a knowledge base's id to the list of its open resources. */
-public const val OPEN_RESOURCES_BY_KB_KEY: String = "xynolog.openResourcesByKb"
-
-/** Where the person was in each knowledge base: a JSON object from a knowledge base's id to the id of the resource last viewed in it. */
-public const val LAST_VIEWED_RESOURCE_BY_KB_KEY: String = "xynolog.lastViewedResourceByKb"
-
-/**
- * A sign-in by a page redirect that is under way: what it remembers across
- * the trip to the issuer and back. It is taken when the sign-in completes, so
- * a callback that is replayed finds nothing to complete.
- */
-public const val PENDING_AUTHORIZATION_KEY: String = "xynolog.pendingAuthorization"
-
-private const val SESSION_KEY_PREFIX = "xynolog.session."
+// their stream, as protocol/specs/src/session/stored.json states it, under the keys and prefixes generated from it
+// (StoredKeys.kt). StoredTest fails when this differs from the table, and CacheCasesTest when what a session keeps
+// differs from session/cache-cases.json.
 
 /** The key a knowledge base's session is kept under. */
 public fun sessionKey(kbId: String): String = SESSION_KEY_PREFIX + kbId
@@ -62,7 +42,7 @@ public fun kbOfSessionKey(key: String): String? = if (key.startsWith(SESSION_KEY
 public fun personKey(did: String): String = codeChallenge(did)
 
 /** The key the stream's places in each scope of knowledge base `kbId` are kept under, as `lastEventIds`, for the person whose key is `personKey`. */
-internal fun lastEventIdKey(kbId: String, personKey: String): String = "xynolog.lastEventId.$kbId.$personKey"
+internal fun lastEventIdKey(kbId: String, personKey: String): String = "$LAST_EVENT_ID_KEY_PREFIX$kbId.$personKey"
 
 /** Whether `places` is places `lastEventIds` holds: in each scope, the id of a recorded event delivered on it. */
 internal fun holdsPlaces(places: JsonObject): Boolean = faultOfSchema("LastEventIds", places) == null
@@ -71,7 +51,7 @@ internal fun holdsPlaces(places: JsonObject): Boolean = faultOfSchema("LastEvent
 internal fun isPlace(scope: ResourceId, eventId: String): Boolean = holdsPlaces(JsonObject(mapOf(scope.value to JsonPrimitive(eventId))))
 
 /** The key the query `query` of knowledge base `kbId` is kept under, for the person whose key is `personKey`. */
-internal fun cacheKey(kbId: String, personKey: String, query: String): String = "xynolog.cache.$kbId.$personKey.$query"
+internal fun cacheKey(kbId: String, personKey: String, query: String): String = "$CACHE_KEY_PREFIX$kbId.$personKey.$query"
 
 /**
  * Delete what a client kept of knowledge base `kbId` for the person whose key
@@ -83,12 +63,6 @@ internal fun forgetKept(storage: SessionStorage, kbId: String, personKey: String
     PERSISTED_QUERIES.forEach { storage.delete(cacheKey(kbId, personKey, it.query.wire)) }
     storage.delete(lastEventIdKey(kbId, personKey))
 }
-
-/** The form of a kept query's document, `cacheDocument`: `{version, entries}`, each entry a key, a value and its stamp. */
-internal const val CACHE_DOCUMENT_VERSION: Long = 1
-
-/** The key of a query per nothing: the one entry a kept one keeps is kept under it. */
-internal const val WHOLE_KEY: String = "_"
 
 /** The key of a kept query per nothing, as its document writes it: `WHOLE_KEY`, and no other text. */
 internal object WholeKeySerializer : KSerializer<String> {

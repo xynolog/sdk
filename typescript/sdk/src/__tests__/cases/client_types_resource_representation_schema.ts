@@ -13,8 +13,7 @@ export const schema = {
     "A resource's bytes as the content transport answers them, whole, with the media type it answered with.",
   properties: {
     data: {
-      type: 'string',
-      format: 'binary',
+      $ref: 'https://xynolog.org/protocol/Binary.json',
       description: 'The bytes, whole.',
     },
     contentType: {

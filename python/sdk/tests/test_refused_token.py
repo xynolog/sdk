@@ -21,12 +21,11 @@ from xynolog.errors import SignInError, TransportError, XynologError
 from xynolog.events import Events
 from xynolog.http import HttpTransport, Timing
 from xynolog.identifiers import ResourceId
-from xynolog.retry import RetryPolicy
 from xynolog.transport import PutBinaryRequest, UploadProgress
-from xynolog.types import UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
+from xynolog.types import RetryBudget, UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
 from xynolog.watched import Variable, reached
 
-QUICK = Timing(reconnect_ms=20, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryPolicy(attempts=2, initial_delay_ms=1, max_delay_ms=1))
+QUICK = Timing(reconnect_ms=20, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1))
 REFUSED = Answer(status=401, body=b'{"error":"The token is not one this gateway admits"}')
 # Its `Retry-After` is longer than any test here waits: a client that waited it out would fail.
 LIMITED = Answer(
