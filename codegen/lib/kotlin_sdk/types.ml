@@ -10,8 +10,7 @@
    [anyOf: [{type: null}, what it is beside null]].
 
    A property that is required and may be null is stated, as null or a
-   value; one that is optional is absent or a value; one that is optional
-   and may be null is a [Stated]: absent, null or a value. A property that
+   value; and one that is optional is absent or a value. A property that
    admits one value says which member of a union an object is: it is the
    type's to state, and is written whatever the encoder's defaults.
 
@@ -43,7 +42,6 @@ let identifiers_package = "xynolog.identifiers"
 (* The generator's own declaration, written when a schema needs it, and the
    SDK's, written by hand beside the generated ones. *)
 let empty_object = "EmptyObject"
-let stated = "Stated"
 let invalid_identifier = "InvalidIdentifier"
 let kinds_union_serializer = "KindsUnionSerializer"
 let tagged_union_serializer = "TaggedUnionSerializer"
@@ -227,12 +225,7 @@ let meant spec what = function
       | Error message -> refuse "%s: %s" what message)
   | n -> n
 
-type form =
-  | Stated_nullable
-  | Single of string
-  | Required
-  | Three_states
-  | Optional
+type form = Stated_nullable | Single of string | Required | Optional
 
 (* One property of an object, as its class and its builder have it. *)
 type property = {
@@ -542,8 +535,7 @@ and property st owner wire n required =
     | true, true, _ -> Stated_nullable
     | true, false, Some only -> Single only
     | true, false, None -> Required
-    | false, true, _ -> Three_states
-    | false, false, _ -> Optional
+    | false, _, _ -> Optional
   in
   { wire; name; type_; about; boxed; form }
 
@@ -657,8 +649,6 @@ and declared p =
             refuse "%s: a property of one value that is not an enumeration"
               p.wire)
     | Required -> (p.type_, None)
-    | Three_states ->
-        (K.Generic (stated, [ p.type_ ]), Some (K.Name (stated ^ ".Absent")))
     | Optional -> (K.Nullable p.type_, Some K.Null)
   in
   K.param ?about:p.about ~annotations ~binding:public_val ?default p.name type_
@@ -666,7 +656,7 @@ and declared p =
 (* The type a builder takes it as. *)
 and taken p =
   match p.form with
-  | Stated_nullable | Three_states | Optional -> K.Nullable p.type_
+  | Stated_nullable | Optional -> K.Nullable p.type_
   | Single _ | Required -> p.type_
 
 (* What Java makes one with: the builder, and the companion's [builder]. *)
@@ -691,20 +681,12 @@ and builder name props open_ =
   in
   let set =
     List.filter
-      (fun p ->
-        match p.form with Optional | Three_states -> true | _ -> false)
+      (fun p -> match p.form with Optional -> true | _ -> false)
       props
   in
   let field p =
-    match p.form with
-    | Three_states ->
-        K.property ~visibility:K.Private ~mutable_:true
-          ~type_:(K.Generic (stated, [ p.type_ ]))
-          ~value:(K.Same_line (K.Name (stated ^ ".Absent")))
-          p.name
-    | _ ->
-        K.property ~visibility:K.Private ~mutable_:true ~type_:(taken p)
-          ~value:(K.Same_line K.Null) p.name
+    K.property ~visibility:K.Private ~mutable_:true ~type_:(taken p)
+      ~value:(K.Same_line K.Null) p.name
   in
   let fields =
     List.map field set
@@ -729,19 +711,10 @@ and builder name props open_ =
   let setters =
     List.map
       (fun p ->
-        let value =
-          match p.form with
-          | Three_states ->
-              K.If
-                ( K.Binary (K.Name p.name, K.Eq, K.Null),
-                  K.Name (stated ^ ".Null"),
-                  K.call (K.Name (stated ^ ".Value")) [ K.Name p.name ] )
-          | _ -> K.Name p.name
-        in
         setter
           ~annotations:
             (if p.boxed then [ K.annotation "JvmExposeBoxed" ] else [])
-          p.name (taken p) value)
+          p.name (taken p) (K.Name p.name))
       set
     @
     if open_ then [ setter ~annotations:[] rest (t "JsonObject") (K.Name rest) ]
@@ -1181,7 +1154,6 @@ let generate spec =
         List.mem name
           [
             empty_object;
-            stated;
             invalid_identifier;
             kinds_union_serializer;
             tagged_union_serializer;

@@ -41,8 +41,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The HTTP transport names each span and its count by the SDK telemetry
+  table, as generated values (`spanContentGet`, `metricXynologBusSent`, …)
+  in place of names spelled at each call. What it reports is the same.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- `getAnnotationsResponseMotivation` is a `Maybe Motivation`, where it was a
+  `Presence Motivation`. Protocol no longer allows it to be null: a null for
+  it is refused as malformed.
 - The smelter's and the weaver's health name how far they have followed the
   record as `FollowerFollowing`, the type Protocol states, in place of
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
@@ -76,6 +82,11 @@ the coming release's, and gathers its changes as they land.
 - A gateway's URL takes its scheme from the endpoint's `protocol`.
 - What each retry rule retries is read from `retryRules`, the value of
   `retry/rules.json`, in place of the SDK's own statuses and methods.
+
+### Removed
+
+- `Xynolog.Types.Presence` is removed. No member of Protocol is both optional
+  and nullable, so a model's optional field is a `Maybe`.
 
 ## 0.8.1
 

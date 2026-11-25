@@ -14,6 +14,9 @@ let strings names = R.Ref_of (R.Array (List.map (fun n -> R.Str n) names))
 let str_slice = R.Ref (None, R.Slice R.str_ty)
 let static_strs = R.Ref (Some "'static", R.Slice R.static_str)
 
+(* A channel's marker type, which names it in channels.rs. *)
+let marker channel = Text.pascal channel
+
 let constant ?(doc = []) name ty value =
   R.Const { doc; attrs = []; vis = Pub; name; ty; value }
 
@@ -108,7 +111,7 @@ let carried (c : Reg.channels_item) =
         R.Struct ([ "Shape" ], [ ("kinds", object_kind) ], Some (R.p "NONE")) )
 
 let channel_items (bus : Registry.t) component (c : Reg.channels_item) =
-  let marker = Text.pascal (Registry.name c) in
+  let marker = marker (Registry.name c) in
   let payload, _ = carried c in
   let stamps =
     match c with
@@ -124,7 +127,12 @@ let channel_items (bus : Registry.t) component (c : Reg.channels_item) =
   in
   [
     R.Unit_struct
-      { doc = [ "`" ^ Registry.name c ^ "`" ]; vis = Pub; name = marker };
+      {
+        attrs = [];
+        doc = [ "`" ^ Registry.name c ^ "`" ];
+        vis = Pub;
+        name = marker;
+      };
     R.Impl
       {
         generics = [];
@@ -331,7 +339,7 @@ let channels (bus : Registry.t) component =
   let markers =
     List.map
       (fun (c : Reg.channels_item) ->
-        (Text.pascal (Registry.name c), Registry.name c))
+        (marker (Registry.name c), Registry.name c))
       reg.channels
   in
   let refusals =
@@ -409,11 +417,11 @@ let channels (bus : Registry.t) component =
                     {
                       generics = [];
                       trait_ = Some (R.named "Request");
-                      for_ = R.named (Text.pascal o.request);
+                      for_ = R.named (marker o.request);
                       items =
                         [
-                          R.I_type ("Result", R.named (Text.pascal o.result));
-                          R.I_type ("Failure", R.named (Text.pascal o.failure));
+                          R.I_type ("Result", R.named (marker o.result));
+                          R.I_type ("Failure", R.named (marker o.failure));
                         ];
                     })
                 reg.operations
@@ -456,7 +464,7 @@ let channels (bus : Registry.t) component =
                             ( R.p "channel",
                               by_name (fun c ->
                                   R.Qualified
-                                    ( R.named (Text.pascal (Registry.name c)),
+                                    ( R.named (marker (Registry.name c)),
                                       R.named "Channel",
                                       [ "STAMPS" ] )) ));
                      ]);

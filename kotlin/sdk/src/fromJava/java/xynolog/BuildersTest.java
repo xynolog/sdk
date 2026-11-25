@@ -2,7 +2,6 @@ package xynolog;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
@@ -13,7 +12,6 @@ import xynolog.identifiers.ResourceId;
 import xynolog.types.GetAnnotationsResponse;
 import xynolog.types.MarkDeleteCommand;
 import xynolog.types.Motivation;
-import xynolog.types.Stated;
 
 /** The protocol's types as a Java program makes and reads them: through builders and checked ids, with no cast and no mangled name. */
 final class BuildersTest {
@@ -36,9 +34,8 @@ final class BuildersTest {
     }
 
     @Test
-    void anOptionalNullableMemberIsAbsentNullOrAValue() {
-        assertSame(Stated.Absent.INSTANCE, GetAnnotationsResponse.builder(List.of(), 0.0).build().getMotivation());
-        assertSame(Stated.Null.INSTANCE, GetAnnotationsResponse.builder(List.of(), 0.0).motivation(null).build().getMotivation());
-        assertEquals(new Stated.Value<>(Motivation.Linking), GetAnnotationsResponse.builder(List.of(), 0.0).motivation(Motivation.Linking).build().getMotivation());
+    void anOptionalMemberIsAbsentOrAValue() {
+        assertNull(GetAnnotationsResponse.builder(List.of(), 0.0).build().getMotivation());
+        assertEquals(Motivation.Linking, GetAnnotationsResponse.builder(List.of(), 0.0).motivation(Motivation.Linking).build().getMotivation());
     }
 }

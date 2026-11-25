@@ -1,9 +1,10 @@
 (* The cache refresh group: what a client's live queries hold, and what each
    event on the bus, the reopening of a dropped stream and an event that
    cannot be read does to them (protocol/specs/src/client/refresh.json), for
-   the Go, Python, TypeScript, Haskell, OCaml and Kotlin SDKs. Table holds the
-   table to the registry, the gateway's API and each channel's events; Go,
-   Python, Typescript, Haskell, Ocaml and Kotlin write it. *)
+   the Go, Python, TypeScript, Haskell, OCaml, Kotlin, Rust and C# SDKs.
+   Table holds the table to the registry, the gateway's API and each
+   channel's events; Go, Python, Typescript, Haskell, Ocaml, Kotlin and Rust
+   write it, and Csharp the queries' names. *)
 
 module Table = Table
 module Go = Go
@@ -13,6 +14,7 @@ module Haskell = Haskell
 module Ocaml = Ocaml
 module Kotlin = Kotlin
 module Rust = Rust
+module Csharp = Csharp
 
 let ( let* ) = Result.bind
 
@@ -90,5 +92,5 @@ let files ~root:_ (spec : Spec.t) =
   Ok
     ([ Go.file t; Python.file t; Typescript.file t ]
     @ Haskell.files t
-    @ [ Ocaml.file spec.tables.client_refresh; kotlin ]
+    @ [ Ocaml.file spec.tables.client_refresh; kotlin; Csharp.file t ]
     @ rust)

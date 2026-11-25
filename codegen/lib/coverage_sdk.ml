@@ -24,3 +24,15 @@ let name = function
   | Kotlin -> "kotlin"
   | Ocaml -> "ocaml"
   | Swift -> "swift"
+
+(* How a reader names each SDK. *)
+let label = function
+  | Typescript -> "TypeScript"
+  | Python -> "Python"
+  | Rust -> "Rust"
+  | Go -> "Go"
+  | Csharp -> "C#"
+  | Haskell -> "Haskell"
+  | Kotlin -> "Kotlin"
+  | Ocaml -> "OCaml"
+  | Swift -> "Swift"

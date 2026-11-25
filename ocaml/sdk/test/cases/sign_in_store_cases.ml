@@ -6,7 +6,7 @@ type cases_item = {
   os : string;
   home : string option;
   xdg_state_home : string option;
-  local_app_data : string option option;
+  local_app_data : string option;
   dir : string option;
 }
 
@@ -27,12 +27,7 @@ let cases_item_json (r : cases_item) =
                | Option.None -> `Null | Option.Some v -> (fun s -> `String s) v)
                r.xdg_state_home );
          Option.map
-           (fun v ->
-             ( "localAppData",
-               (function
-                 | Option.None -> `Null
-                 | Option.Some v -> (fun s -> `String s) v)
-                 v ))
+           (fun v -> ("localAppData", (fun s -> `String s) v))
            r.local_app_data;
          Option.Some
            ( "dir",
@@ -165,13 +160,13 @@ let table : t =
         program that finds those files computes it the same way. `os` is \
         `macos`, `windows`, or anything else; `home` is the home directory \
         (HOME, or USERPROFILE on Windows), `xdgStateHome` is XDG_STATE_HOME, \
-        and `localAppData` is LOCALAPPDATA; null, or a key a case leaves out, \
-        means not set. `dir` null means there is no state home, and nothing is \
-        read or written. `dir` is written with the system's own separator, \
-        whatever system computes it: a backslash on Windows, a slash \
-        elsewhere. Each SDK runs every case against its reader of the state \
-        home, which is given what the environment says and reads none itself: \
-        a program that finds its state home through an SDK's reads the \
+        null when it is not set, and `localAppData` is LOCALAPPDATA, left out \
+        when it is not set. `dir` null means there is no state home, and \
+        nothing is read or written. `dir` is written with the system's own \
+        separator, whatever system computes it: a backslash on Windows, a \
+        slash elsewhere. Each SDK runs every case against its reader of the \
+        state home, which is given what the environment says and reads none \
+        itself: a program that finds its state home through an SDK's reads the \
         environment for it. `renewals`: what a renewal of a kept sign-in \
         writes and gives, when other programs renew the same stack and sign it \
         out (README.md, Renewing it). A row's store holds `kept` for the stack \
@@ -276,7 +271,7 @@ let table : t =
             os = "windows";
             home = Some "C:\\Users\\alice";
             xdg_state_home = None;
-            local_app_data = Some (Some "C:\\Users\\alice\\AppData\\Local");
+            local_app_data = Some "C:\\Users\\alice\\AppData\\Local";
             dir = Some "C:\\Users\\alice\\AppData\\Local\\xynolog";
           }
            : cases_item);
@@ -285,7 +280,7 @@ let table : t =
             os = "windows";
             home = Some "C:\\Users\\alice";
             xdg_state_home = None;
-            local_app_data = Some (Some "D:\\Profiles\\alice\\Local");
+            local_app_data = Some "D:\\Profiles\\alice\\Local";
             dir = Some "D:\\Profiles\\alice\\Local\\xynolog";
           }
            : cases_item);
@@ -294,7 +289,7 @@ let table : t =
             os = "windows";
             home = Some "C:\\Users\\alice";
             xdg_state_home = Some "D:\\state";
-            local_app_data = Some (Some "C:\\Users\\alice\\AppData\\Local");
+            local_app_data = Some "C:\\Users\\alice\\AppData\\Local";
             dir = Some "C:\\Users\\alice\\AppData\\Local\\xynolog";
           }
            : cases_item);
@@ -305,7 +300,7 @@ let table : t =
             os = "windows";
             home = Some "C:\\Users\\alice";
             xdg_state_home = None;
-            local_app_data = Some None;
+            local_app_data = None;
             dir = Some "C:\\Users\\alice\\AppData\\Local\\xynolog";
           }
            : cases_item);
@@ -314,7 +309,7 @@ let table : t =
             os = "windows";
             home = Some "C:\\Users\\alice";
             xdg_state_home = None;
-            local_app_data = Some (Some "");
+            local_app_data = Some "";
             dir = Some "C:\\Users\\alice\\AppData\\Local\\xynolog";
           }
            : cases_item);
@@ -325,7 +320,7 @@ let table : t =
             os = "windows";
             home = None;
             xdg_state_home = None;
-            local_app_data = Some (Some "C:\\Users\\alice\\AppData\\Local");
+            local_app_data = Some "C:\\Users\\alice\\AppData\\Local";
             dir = None;
           }
            : cases_item);
@@ -334,7 +329,7 @@ let table : t =
             os = "linux";
             home = Some "/home/alice";
             xdg_state_home = None;
-            local_app_data = Some (Some "C:\\Users\\alice\\AppData\\Local");
+            local_app_data = Some "C:\\Users\\alice\\AppData\\Local";
             dir = Some "/home/alice/.local/state/xynolog";
           }
            : cases_item);

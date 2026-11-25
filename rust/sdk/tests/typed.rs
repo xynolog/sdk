@@ -13,13 +13,14 @@ use xynolog::channels::{
 };
 use xynolog::errors::{TransportErrorCode, XynologError};
 use xynolog::testing::as_id;
+use xynolog::testing::schema_fault;
 use xynolog::testing::{FaultAction, FaultyTransport};
 use xynolog::transport::{Envelope, Frame, FrameRefusal, Transport};
 use xynolog::types::BusFrame;
 use xynolog::types::FrameRefusalReason;
 use xynolog::types::{
     Annotation, AnnotationBodies, AnnotationTargetValue, BeckonFocusEvent,
-    BrowseEntityTypesRequest, GetAnnotationsResponse, ResourceId,
+    BrowseEntityTypesRequest, GetAnnotationsResponse, Motivation, ResourceId,
 };
 
 fn object(value: Value) -> Map<String, Value> {
@@ -254,22 +255,32 @@ fn an_annotation_decodes_with_one_body_or_several_and_a_target_that_is_text_or_a
 }
 
 #[test]
-fn a_property_that_is_optional_and_nullable_keeps_absent_null_and_a_value_apart() {
+fn a_property_that_is_optional_is_absent_or_a_value_and_a_null_is_refused() {
     let read = |wire: Value| -> GetAnnotationsResponse {
         serde_json::from_value(wire).expect("it decodes")
     };
     let absent = json!({ "annotations": [], "total": 0 });
-    let null = json!({ "annotations": [], "total": 0, "motivation": null });
     let stated = json!({ "annotations": [], "total": 0, "motivation": "highlighting" });
     assert_eq!(read(absent.clone()).motivation, None);
-    assert_eq!(read(null.clone()).motivation, Some(None));
-    assert!(matches!(read(stated.clone()).motivation, Some(Some(_))));
-    // Each survives being written and read again as what it was.
-    for wire in [absent, null, stated] {
+    assert_eq!(
+        read(stated.clone()).motivation,
+        Some(Motivation::Highlighting)
+    );
+    // Each is read, and survives being written and read again as what it was.
+    for wire in [absent, stated] {
+        assert_eq!(
+            schema_fault("GetAnnotationsResponse", &mut wire.clone()),
+            None
+        );
         let written = serde_json::to_value(read(wire.clone())).expect("it encodes");
         assert_eq!(written.get("motivation"), wire.get("motivation"));
         assert_eq!(read(written), read(wire));
     }
+    let mut null = json!({ "annotations": [], "total": 0, "motivation": null });
+    assert_eq!(
+        schema_fault("GetAnnotationsResponse", &mut null),
+        Some(("motivation".to_owned(), FrameRefusalReason::Malformed))
+    );
 }
 
 #[tokio::test]

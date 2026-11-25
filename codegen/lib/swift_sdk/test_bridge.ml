@@ -17,7 +17,7 @@ let json_value = M.json_value
 let string_type = M.string_type
 
 let fixture =
-  {|{"type":"object","properties":{"requiredValue":{"type":"string"},"requiredNullable":{"type":["string","null"]},"optionalValue":{"type":"string"},"optionalNullable":{"type":["string","null"]}},"required":["requiredValue","requiredNullable"],"additionalProperties":true}|}
+  {|{"type":"object","properties":{"requiredValue":{"type":"string"},"requiredNullable":{"type":["string","null"]},"optionalValue":{"type":"string"}},"required":["requiredValue","requiredNullable"],"additionalProperties":true}|}
 
 let fixture_declaration () =
   let schema =

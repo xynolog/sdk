@@ -203,14 +203,23 @@ let sender_variant from = R.Path [ "ControlSender"; Text.pascal (sender from) ]
 let static_strs = R.Ref (Some "'static", R.Slice R.static_str)
 let strings names = R.Ref_of (R.Array (List.map (fun n -> R.Str n) names))
 
+(* A control method's or notification's marker type, which names it in
+   control.rs. *)
+let control_marker name = Text.pascal name
+
 let const name ty value =
   R.I_const { doc = []; vis = Private; name; ty; value = Some value }
 
 let method_items spec (m : C.methods_item) =
-  let marker = Text.pascal m.name in
+  let marker = control_marker m.name in
   [
     R.Unit_struct
-      { doc = [ "`" ^ m.name ^ "`: " ^ m.docs ]; vis = Pub; name = marker };
+      {
+        attrs = [];
+        doc = [ "`" ^ m.name ^ "`: " ^ m.docs ];
+        vis = Pub;
+        name = marker;
+      };
     R.Impl
       {
         generics = [];
@@ -229,10 +238,15 @@ let method_items spec (m : C.methods_item) =
   ]
 
 let notification_items spec (n : C.notifications_item) =
-  let marker = Text.pascal n.name in
+  let marker = control_marker n.name in
   [
     R.Unit_struct
-      { doc = [ "`" ^ n.name ^ "`: " ^ n.docs ]; vis = Pub; name = marker };
+      {
+        attrs = [];
+        doc = [ "`" ^ n.name ^ "`: " ^ n.docs ];
+        vis = Pub;
+        name = marker;
+      };
     R.Impl
       {
         generics = [];

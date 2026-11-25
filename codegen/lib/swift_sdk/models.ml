@@ -349,17 +349,15 @@ and object_ t ~modifiers ~owner n s =
         in
         let type_ = type_ t (owner wire) wire raw in
         let declared =
-          if (not is_required) && nullable then S.Generic ("Stated", [ type_ ])
-          else if (not is_required) || nullable then S.Optional type_
-          else type_
+          if (not is_required) || nullable then S.Optional type_ else type_
         in
-        (wire, m, type_, is_required, nullable, constant, declared))
+        (wire, m, type_, is_required, constant, declared))
       properties
   in
   let rest_type = dictionary_of json_value in
   let stored =
     List.map
-      (fun (_, m, _, _, _, constant, declared) ->
+      (fun (_, m, _, _, constant, declared) ->
         decl [ "public" ]
           (S.Property
              {
@@ -380,7 +378,7 @@ and object_ t ~modifiers ~owner n s =
   in
   let params =
     List.filter_map
-      (fun (_, m, _, is_required, nullable, constant, declared) ->
+      (fun (_, m, _, is_required, constant, declared) ->
         if constant <> None then None
         else
           Some
@@ -388,10 +386,7 @@ and object_ t ~modifiers ~owner n s =
               S.label = None;
               name = m;
               type_ = declared;
-              default =
-                (if is_required then None
-                 else if nullable then Some (S.Implicit_member "absent")
-                 else Some S.Nil);
+              default = (if is_required then None else Some S.Nil);
             })
       fields
     @
@@ -415,13 +410,13 @@ and object_ t ~modifiers ~owner n s =
            body =
              line_block
                (List.map
-                  (fun (_, m, _, _, _, constant, _) ->
+                  (fun (_, m, _, _, constant, _) ->
                     assign (self_ m) (Option.value constant ~default:(name m)))
                   fields
                @ if open_ then [ assign (self_ "rest") (name "rest") ] else []);
          })
   in
-  let wires = List.map (fun (wire, _, _, _, _, _, _) -> wire) fields in
+  let wires = List.map (fun (wire, _, _, _, _, _) -> wire) fields in
   let names = S.Array (S.Inline, List.map (fun w -> S.String w) wires) in
   let c = name "c" in
   let on_c f args = S.Expr (try_ (labelled (member c f) args)) in
@@ -446,12 +441,8 @@ and object_ t ~modifiers ~owner n s =
        [ on_c "refuseUnknown" [ unlabelled names; arg "in" (S.String n) ] ]
      else [])
     @ List.map
-        (fun (wire, m, _, is_required, nullable, _, _) ->
-          let read =
-            if is_required then "value"
-            else if nullable then "stated"
-            else "ifPresent"
-          in
+        (fun (wire, m, _, is_required, _, _) ->
+          let read = if is_required then "value" else "ifPresent" in
           assign (self_ m) (try_ (call (member c read) [ S.String wire ])))
         fields
     @
@@ -479,10 +470,9 @@ and object_ t ~modifiers ~owner n s =
        ]
      else [])
     @ List.map
-        (fun (wire, m, _, is_required, nullable, _, _) ->
+        (fun (wire, m, _, is_required, _, _) ->
           let value = self_ m and as_ = arg "as" (S.String wire) in
           if is_required then on_c "encode" [ unlabelled value; as_ ]
-          else if nullable then on_c "encode" [ arg "stated" value; as_ ]
           else on_c "encodeIfPresent" [ unlabelled value; as_ ])
         fields
   in

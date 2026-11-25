@@ -26,8 +26,35 @@ let object_ required properties =
 let closed = {|, "additionalProperties": false|}
 let check what expected actual = Alcotest.(check bool) what expected actual
 
+let apart_by_pattern_only schemas =
+  let typing =
+    Typing.make (definitions schemas) ~roots:[ "U" ] ~identifiers:[] ~keys:[]
+  in
+  match (typing.find "U").form with
+  | Typing.Union u -> Typing.apart_by_pattern_only u
+  | _ -> Alcotest.fail "U is no union"
+
 let cases =
   [
+    case "members only a pattern tells apart are named" (fun () ->
+        Alcotest.(check (option (pair string string)))
+          "the members"
+          (Some ("A", "B"))
+          (apart_by_pattern_only
+             [
+               ("U", union [ {|{"$ref": "A.json"}|}; {|{"$ref": "B.json"}|} ]);
+               ("A", pattern "^a-[0-9]+$");
+               ("B", pattern "^b-[0-9]+$");
+             ]));
+    case "members a value they state tells apart need no pattern" (fun () ->
+        Alcotest.(check (option (pair string string)))
+          "the members" None
+          (apart_by_pattern_only
+             [
+               ("U", union [ {|{"$ref": "A.json"}|}; {|{"$ref": "B.json"}|} ]);
+               ("A", object_ [ "kind" ] [ ("kind", {|{"enum": ["a"]}|}) ] "");
+               ("B", object_ [ "kind" ] [ ("kind", {|{"enum": ["b"]}|}) ] "");
+             ]));
     case "members of no kind in common are a union" (fun () ->
         ignore
           (typed

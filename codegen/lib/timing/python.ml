@@ -5,6 +5,7 @@
 module P = Python_syntax
 
 let path = "python/sdk/src/xynolog/timing.py"
+let name (e : Table.entry) = Text.upper_snake e.name
 
 let value (e : Table.entry) =
   match e.value with
@@ -45,15 +46,11 @@ let text (t : Table.t) =
                (P.items ~magic:true
                   (List.map
                      (fun n -> P.item (P.Str n))
-                     (List.sort compare
-                        ("TIMING_NAMES"
-                        :: List.map
-                             (fun (e : Table.entry) -> Text.upper_snake e.name)
-                             t)))))
+                     (List.sort compare ("TIMING_NAMES" :: List.map name t)))))
         :: List.map
              (fun (e : Table.entry) ->
                P.assign ~about:[ Prose e.docs ] ~annotation:(P.Name "Final")
-                 ~value:(value e) (Text.upper_snake e.name))
+                 ~value:(value e) (name e))
              t
         @ [
             P.assign

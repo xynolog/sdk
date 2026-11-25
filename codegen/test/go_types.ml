@@ -91,17 +91,20 @@ let cases =
           "func (Circle) told() (string, string) { return \"kind\", \"circle\" \
            }";
         lacks code "func (Square) told()");
-    case "a union told apart by a property names the member each value names"
-      (fun () ->
+    case "a union is read as the member whose schema admits a value" (fun () ->
         let code = generated (shapes [ "Circle"; "Square" ]) "Shape" in
         has code
           "func (u Shape) Discriminator() (string, error) { return \
            u.stated(\"kind\") }";
         has code
-          "\tcase \"circle\":\n\
-           \t\treturn as[Circle](u.union)\n\
-           \tcase \"square\", \"box\":\n\
-           \t\treturn as[Square](u.union)\n");
+          "func (u Shape) Member() (any, error) { return u.member(\"Shape\", \
+           shapeMembers) }";
+        has code
+          "var shapeMembers = []unionMember{\n\t{\"Circle\", readAs[Circle], ";
+        has code
+          "[]signature{{kind: objectKind, required: []string{\"kind\", \"r\"}, \
+           fixed: []fixedValues{{\"kind\", []any{\"circle\"}}}}}},\n";
+        has code "[]any{\"square\", \"box\"}");
     case "two members that state the same value are refused"
       (refused "Shape: two members state the `kind` circle" (fun () ->
            generated (shapes [ "Circle"; "Disc" ]) "Shape"));

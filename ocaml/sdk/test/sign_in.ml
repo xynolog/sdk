@@ -257,8 +257,7 @@ let paths () =
       in
       let actual =
         Store.state_directory ~platform ~home:row.home
-          ~xdg_state_home:row.xdg_state_home
-          ~local_app_data:(Option.join row.local_app_data)
+          ~xdg_state_home:row.xdg_state_home ~local_app_data:row.local_app_data
       in
       Alcotest.(check (option string)) row.why row.dir actual)
     Store_cases.table.cases

@@ -12,6 +12,9 @@ let banner =
       "protocol/specs/src/identifiers/kinds.json and the kinds' required shapes"
     __FILE__
 
+(* A kind's module, by its schema's name. *)
+let module_name schema = String.capitalize_ascii (Text.snake schema)
+
 let files (spec : Spec.t) (shapes : (string * Required.Shape.shape) list) =
   let kinds = spec.tables.identifiers_kinds.kinds in
   let refusals = ref [] in
@@ -60,7 +63,7 @@ let files (spec : Spec.t) (shapes : (string * Required.Shape.shape) list) =
                 :: !refusals;
               []
         in
-        (k, String.capitalize_ascii (Text.snake k.schema), steps))
+        (k, module_name k.schema, steps))
       kinds
   in
   let value = O.ident "value" in

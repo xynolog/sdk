@@ -10,7 +10,8 @@ type group = {
   files : root:string -> Spec.t -> (Output.file list, Decode.error list) result;
 }
 
-let sdk =
+(* The groups that write the sdk's code, which the contracts group counts. *)
+let writers =
   [
     { name = "bus"; files = Bus.files };
     { name = "required"; files = Required.files };
@@ -44,6 +45,15 @@ let sdk =
     { name = "csharp-sdk"; files = Csharp_sdk.files };
     { name = "case-data"; files = Case_data.files };
   ]
+
+let sdk =
+  writers
+  @ [
+      {
+        name = "contracts";
+        files = Contracts.files (List.map (fun g -> g.files) writers);
+      };
+    ]
 
 let cli =
   [

@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
+using Xynolog.Serialization;
+using Xynolog.Types;
 using Xunit;
 
 namespace Xynolog.Tests;
@@ -56,15 +58,22 @@ public sealed class GenerationTests
 
     [Theory]
     [InlineData("{\"annotations\":[],\"total\":0}")]
-    [InlineData("{\"annotations\":[],\"total\":0,\"motivation\":null}")]
     [InlineData("{\"annotations\":[],\"total\":0,\"motivation\":\"highlighting\"}")]
-    public void AnOptionalNullableMemberKeepsAllThreeStates(string source)
+    public void AnOptionalMemberIsAbsentOrAValue(string source)
     {
-        var type = Assembly.Load("Xynolog").GetType("Xynolog.Types.GetAnnotationsResponse");
-        Assert.NotNull(type);
-        var value = JsonSerializer.Deserialize(source, type);
+        using var document = JsonDocument.Parse(source);
+        Assert.Null(Required.FaultOf("GetAnnotationsResponse", document.RootElement, out _));
+        var value = JsonSerializer.Deserialize<GetAnnotationsResponse>(source);
         Assert.True(System.Text.Json.Nodes.JsonNode.DeepEquals(
-            System.Text.Json.Nodes.JsonNode.Parse(source), JsonSerializer.SerializeToNode(value, type)));
+            System.Text.Json.Nodes.JsonNode.Parse(source), JsonSerializer.SerializeToNode(value)));
+    }
+
+    [Fact]
+    public void ANullForAnOptionalMemberThatMayNotBeNullIsRefused()
+    {
+        using var document = JsonDocument.Parse("{\"annotations\":[],\"total\":0,\"motivation\":null}");
+        Assert.Equal(new Fault("motivation", FrameRefusalReason.Malformed),
+            Required.FaultOf("GetAnnotationsResponse", document.RootElement, out _));
     }
 
     [Fact]

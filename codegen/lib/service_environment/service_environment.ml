@@ -25,6 +25,7 @@ let pascal name =
   String.concat "" (List.map String.capitalize_ascii (words name))
 
 let camel name = String.uncapitalize_ascii (pascal name)
+let snake name = String.concat "_" (words name)
 
 let typescript (t : T.t) =
   let module S = Typescript_syntax in
@@ -236,8 +237,7 @@ let ocaml (t : T.t) =
   O.implementation ~path:"ocaml/sdk/lib/service_environment.ml"
     ~banner:(Banner.ocaml ~from_ __FILE__)
     (List.map
-       (fun (v : T.variables_item) ->
-         O.let_ (String.concat "_" (words v.name)) (O.string v.name))
+       (fun (v : T.variables_item) -> O.let_ (snake v.name) (O.string v.name))
        t.variables)
 
 let files ~root:_ (spec : Spec.t) =

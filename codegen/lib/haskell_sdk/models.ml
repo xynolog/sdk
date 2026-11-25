@@ -11,9 +11,8 @@
    with a function that gives each its word, branches a type of one
    constructor each, an object a record, and anything
    else a newtype; an identifier's newtype is opaque, made only by its
-   module's mk. A member the object needn't state is a Maybe, one it may
-   state as null too a Presence, and an object open to other members keeps
-   them. *)
+   module's mk. A member the object needn't state is a Maybe, and an object
+   open to other members keeps them. *)
 
 module H = Haskell_syntax
 
@@ -112,15 +111,10 @@ let to_json clauses name =
 
 (* A record's member of type [t] under [key]: the type the record holds it
    as, how its parser reads it from the object it names [row], and how its
-   encoder writes [held], its value. A member that may be absent or null is
-   a Presence, one that may be absent a Maybe, and one that is required its
-   own type, or a Maybe if it may be null. *)
+   encoder writes [held], its value. A member that may be absent is a Maybe,
+   and one that is required its own type, or a Maybe if it may be null. *)
 let member ~row ~key ~held ~nullable ~mandatory t =
-  if nullable && not mandatory then
-    ( H.T_apply ("Presence", [ t ]),
-      H.Apply (Name "presence", [ Name row; Str key ]),
-      H.Apply (Name "presencePair", [ Str key; held ]) )
-  else if mandatory then
+  if mandatory then
     ( (if nullable then H.T_apply ("Maybe", [ t ]) else t),
       H.Infix (Name row, [ (".:", Str key) ]),
       H.List [ Tuple [ Str key; Apply (Name "toJSON", [ held ]) ] ] )
@@ -681,17 +675,8 @@ let imports body dependencies =
   @ when_ (type_ "Text") (H.import "Data.Text" ~items:[ Plain "Text" ])
   @ when_
       (List.exists value
-         [
-           "checked";
-           "optional";
-           "presence";
-           "optionalPair";
-           "presencePair";
-           "withoutFields";
-         ])
+         [ "checked"; "optional"; "optionalPair"; "withoutFields" ])
       (H.import "Xynolog.Internal.Codec")
-  @ when_ (type_ "Presence")
-      (H.import "Xynolog.Types.Presence" ~items:[ Plain "Presence" ])
   @ List.map (fun m -> H.import m) dependencies
 
 let generate ~banner ~ids ~identifiers definitions =

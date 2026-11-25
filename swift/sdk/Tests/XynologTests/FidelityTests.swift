@@ -7,16 +7,21 @@ private func json(_ text: String) throws -> JSONValue {
   try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8))
 }
 
-@Test func nullableMembersPreserveAbsenceAndExplicitNull() throws {
+@Test func optionalMembersAreAbsentOrAValueAndANullIsRefused() throws {
   let model = GetAnnotationsResponse(annotations: [], total: 0)
   let absent = try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode(model))
-  let back = try roundTripModel("GetAnnotationsResponse", absent)
-  #expect(back == absent)
-  for value in [JSONValue.null, .string("commenting")] {
-    var payload = try absent.object
-    payload["motivation"] = value
-    #expect(try roundTripModel("GetAnnotationsResponse", .object(payload)) == .object(payload))
+  #expect(try roundTripModel("GetAnnotationsResponse", absent) == absent)
+  var stated = try absent.object
+  stated["motivation"] = .string("commenting")
+  #expect(try roundTripModel("GetAnnotationsResponse", .object(stated)) == .object(stated))
+  var null = try absent.object
+  null["motivation"] = .null
+  #expect(throws: DecodingError.self) {
+    try roundTripModel("GetAnnotationsResponse", .object(null))
   }
+  #expect(
+    faultOf("GetAnnotationsResponse", .object(null))
+      == Fault(member: "motivation", reason: .malformed))
 }
 
 @Test func requiredNullableMembersAreNeverManufactured() throws {

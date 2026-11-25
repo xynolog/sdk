@@ -98,7 +98,9 @@ writes:
   its slot is, and a row a passing frame triggers only refetches what
   `reopened` refetches too. `Cache_refresh.Go`, `Cache_refresh.Python`,
   `Cache_refresh.Typescript` and `Cache_refresh.Haskell` write each SDK's
-  table, Haskell's with the live conformance driver's queries.
+  table, Haskell's with the live conformance driver's queries;
+  `Cache_refresh.Csharp` the name of each query, which the C# SDK's live
+  queries are keyed by.
 - `identifiers`: the kinds of id, from `identifiers/kinds.json` and each
   kind's schema, for the Go, Python and TypeScript SDKs: a type of its own
   per kind, made only through the kind's pattern. `Identifiers.Table` holds
@@ -107,7 +109,10 @@ writes:
   for, from `session/oauth.json`, for the Go, Python, TypeScript, OCaml and
   Haskell SDKs. A client is named in lowercase letters, once.
 - `telemetry`: every span and metric an SDK's transports export, from
-  `sdk-telemetry/telemetry.json`, for the Go and Python SDKs. A span's kind
+  `sdk-telemetry/telemetry.json`, for the Go, Python, OCaml and Kotlin SDKs;
+  the name of each, for the TypeScript, C#, Haskell and Rust SDKs, whose
+  transports name each by it; and every attribute key, for those and Swift.
+  A span's kind
   is one of OTLP's, a metric a counter, a span's name holds no placeholder
   but `{channel}`, and no two rows or keys are one Go or Python name.
 - `sign-in`: the sign-in store's entry, from `sign-in-store/SignIn.json`, and
@@ -243,6 +248,14 @@ writes:
   `Naming`, and each declaration follows every one it names, so pydantic
   builds each model as the module runs. `Python_syntax` is the Python it is
   built of.
+- `contracts`: [`CONTRACTS.md`](../CONTRACTS.md), every kind of contract
+  the pinned Protocol states, how many items it has, and how many of them
+  each SDK declares. `Contracts` counts them in what the other groups write,
+  by the name each writer gives an item, and in the SDK's own files where
+  the SDK writes a kind by hand. A declaration counts, and a literal counts
+  only as a member of the named type that holds its vocabulary (a
+  TypeScript union or record, a Python `Literal`), never as a string
+  anywhere in a file.
 
 ### cli's groups
 
@@ -368,7 +381,8 @@ one direction: no base module a generated one imports at run time comes back
 to it, and the generated modules are those the groups write.
 `protocol_paths_census.exe` holds every sdk file the pinned Protocol names,
 as `sdk/<path>` or as a link into this repository, to the files this checkout
-has.
+has. `contracts_census.exe` holds every SDK to every item of every contract
+`CONTRACTS.md` counts, and names each item an SDK does not declare.
 
 ```sh
 make generate

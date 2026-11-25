@@ -199,10 +199,7 @@ async fn answer(running: Arc<Running>, id: u64, operation: JoinHandle<Result<Val
     locked(&running.callers).remove(&id);
     say(match outcome {
         // The suite abandoned it, and the SDK reported nothing else.
-        Err(_) => ConformanceDriverLine::Abandoned(ConformanceDriverLineAbandoned {
-            id,
-            abandoned: true,
-        }),
+        Err(_) => ConformanceDriverLine::Abandoned(ConformanceDriverLineAbandoned::new(id)),
         Ok(Ok(ok)) => ConformanceDriverLine::Ok(ConformanceDriverLineOk { id, ok }),
         Ok(Err(Ended::Misuse(misuse))) => {
             ConformanceDriverLine::Misuse(ConformanceDriverLineMisuse { id, misuse })
@@ -232,9 +229,7 @@ pub async fn serve<D: Driver>(driver: D) {
     }
     let driver = Arc::new(driver);
     let running = Arc::new(Running::default());
-    say(ConformanceDriverLine::Ready(ConformanceDriverLineReady {
-        ready: true,
-    }));
+    say(ConformanceDriverLine::Ready(ConformanceDriverLineReady::new()));
 
     let mut operations = JoinSet::new();
     let mut lines = tokio::io::BufReader::new(tokio::io::stdin()).lines();
@@ -259,10 +254,7 @@ pub async fn serve<D: Driver>(driver: D) {
         } else {
             // Said at once, before the next operation is read.
             say(ConformanceDriverLine::Unsupported(
-                ConformanceDriverLineUnsupported {
-                    id,
-                    unsupported: true,
-                },
+                ConformanceDriverLineUnsupported::new(id),
             ));
         }
     }

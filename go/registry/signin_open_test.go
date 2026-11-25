@@ -695,7 +695,7 @@ func TestAskingAgainReportsADifferentKnowledgeBaseAndActsOnNothing(t *testing.T)
 		verdict, err := browser.ReadActiveKb(context.Background())
 		must(t, err)
 
-		said, err := verdict.ValueByDiscriminator()
+		said, err := verdict.Member()
 		must(t, err)
 		if said != (api.KbReadVerdictConflict{Kind: api.KbReadVerdictConflictKindConflict, ObservedDid: didB, ObservedName: "KB B"}) {
 			t.Errorf("asked again, it says %+v", said)

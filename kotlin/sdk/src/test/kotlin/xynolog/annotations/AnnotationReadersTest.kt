@@ -42,7 +42,7 @@ private val READERS: Map<String, (Annotation) -> JsonElement> = mapOf(
     "isResolvedReference" to { a -> JsonPrimitive(isResolvedReference(a)) },
     "exactText" to { a -> said(exactText(targetSelector(a.target))) },
     "annotationExactText" to { a -> said(annotationExactText(a)) },
-    "textQuoteSelector" to { a -> said(textQuoteSelector(checkNotNull(targetSelector(a.target)) { "the table gives textQuoteSelector no selector to read" })) },
+    "textQuoteSelector" to { a -> said(targetSelector(a.target)?.let { textQuoteSelector(it) }) },
     "entityTypes" to { a -> JsonArray(entityTypes(a).map(::JsonPrimitive)) },
     "tagCategory" to { a -> said(tagCategory(a)) },
     "tagSchemaId" to { a -> said(tagSchemaId(a)) },
@@ -63,10 +63,9 @@ class AnnotationReadersTest {
     }
 
     @Test
-    fun everyCaseStatesEveryReaderButTheQuoteSelectorWhereThereIsNoSelector() {
+    fun everyCaseStatesEveryReader() {
         for (case in cases) {
-            val applies = readers.filter { it != "textQuoteSelector" || targetSelector(annotation(case).target) != null }
-            assertEquals(applies.sorted(), case.getValue("reads").jsonObject.keys.sorted(), case.getValue("why").jsonPrimitive.content)
+            assertEquals(readers.sorted(), case.getValue("reads").jsonObject.keys.sorted(), case.getValue("why").jsonPrimitive.content)
         }
         assertTrue(cases.isNotEmpty())
     }

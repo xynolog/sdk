@@ -921,6 +921,7 @@ let tables_text ~root (spec : Spec.t) =
    an ArchivistRoute named for its operationId, with its method and its path,
    a [{name}] for each parameter, which the caller fills. *)
 let archivist_path = "python/sdk/src/xynolog/http/archivist_http.py"
+let archivist_route_name operation_id = Text.upper_snake operation_id
 
 let archivist_text (spec : Spec.t) =
   let operations =
@@ -939,7 +940,6 @@ let archivist_text (spec : Spec.t) =
               [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
       spec.archivist.paths
   in
-  let name operation_id = Text.upper_snake operation_id in
   P.text
     {
       header =
@@ -967,7 +967,9 @@ let archivist_text (spec : Spec.t) =
                        (fun n -> P.item (P.Str n))
                        (List.sort compare
                           ("ArchivistRoute"
-                          :: List.map (fun (o, _, _) -> name o) operations)))));
+                          :: List.map
+                               (fun (o, _, _) -> archivist_route_name o)
+                               operations)))));
           P.frozen_dataclass "ArchivistRoute"
             "An operation of the Archivist: its method, and its path, a \
              `{name}` for each parameter, which the caller fills."
@@ -984,7 +986,7 @@ let archivist_text (spec : Spec.t) =
                        P.keyword "method" (P.Str method_);
                        P.keyword "path" (P.Str path);
                      ])
-                (name operation_id))
+                (archivist_route_name operation_id))
             operations;
     }
 

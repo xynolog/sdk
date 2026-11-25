@@ -60,6 +60,9 @@ the coming release's, and gathers its changes as they land.
 
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- `GetAnnotationsResponse`'s `motivation` is absent or a `Motivation`.
+  Protocol no longer allows it to be null: a null for it is refused as
+  malformed.
 - The element of an answer format (`WorkerAnswerFormatsFormatsItem`'s
   `element`) carries Protocol's description of it.
 - The smelter's and the weaver's health name how far they have followed the

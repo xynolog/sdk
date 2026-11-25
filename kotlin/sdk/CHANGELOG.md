@@ -41,6 +41,10 @@ the coming release's, and gathers its changes as they land.
   `PersistedEventId` by that schema's name.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- `GetAnnotationsResponse.motivation` is a `Motivation?`, absent when null,
+  where it was a `Stated<Motivation>`, and carries Protocol's description of
+  it; its builder's `motivation(null)` leaves it absent. Protocol no longer
+  allows it to be null: a null for it is refused as malformed.
 - The element of an answer format (`WorkerAnswerFormatsFormatsItem`'s
   `element`) carries Protocol's description of it.
 - The smelter's and the weaver's health name how far they have followed the
@@ -74,6 +78,12 @@ the coming release's, and gathers its changes as they land.
   `xynolog.http.PendingAuthorization`, and its issuer is
   `xynolog.types.PendingAuthorizationIssuer`, in place of
   `xynolog.http.IssuerEndpoints`. Java makes each with its `builder`.
+
+### Removed
+
+- `xynolog.types.Stated` is removed. No member of Protocol is both optional
+  and nullable, so a model's optional property is a nullable type, absent when
+  null.
 
 ## 0.8.1
 

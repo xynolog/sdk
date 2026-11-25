@@ -6,8 +6,7 @@
    module of the record's own), the record or union it names, the table
    record it names, a list or a map of one of those, and its raw JSON only
    where Typing gives it no type. One that may be absent or null is an
-   option, and one that may be both a [Types.presence], as is a raw one that
-   may be absent. A union whose every member is a record Protocol roots and
+   option, and a raw one that may be absent a [Types.presence]. A union whose every member is a record Protocol roots and
    that a tag tells apart is a constructor per value of its tag; any other is
    a constructor per member, read as the first member whose signature admits
    the value. Each is read from the value a [Models] descriptor accepted,
@@ -707,8 +706,8 @@ let rec held_writer = function
   | Raw -> O.ident "json_raw"
 
 (* How a record's member is held: always present, an option when it may be
-   absent, or a [Types.presence] when it may be absent and may be null (a
-   raw one may always be null). *)
+   absent, or a [Types.presence] when it is raw and may be absent, since a
+   raw one may always be null. *)
 type presence = Always | Maybe | Presence
 
 (* A record's member: how it is held, its type, its reader and its writer. *)
@@ -726,7 +725,7 @@ let record_member (f : held_member) =
           O.call "nullable" [ read ],
           O.call "json_nullable" [ write ] )
       else (Always, type_, read, write)
-  | _ -> ((if f.nullable then Presence else Maybe), type_, read, write)
+  | _ -> (Maybe, type_, read, write)
 
 let kind_constructor (k : T.kind) =
   match k with

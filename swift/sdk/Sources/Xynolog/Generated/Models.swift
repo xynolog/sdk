@@ -7654,9 +7654,9 @@ public struct GetAnnotationResponse: Codable, Sendable, Hashable {
 
 public struct GetAnnotationsResponse: Codable, Sendable, Hashable {
   public var annotations: [Annotation]
-  public var motivation: Stated<Motivation>
+  public var motivation: Motivation?
   public var total: Double
-  public init(annotations: [Annotation], motivation: Stated<Motivation> = .absent, total: Double) {
+  public init(annotations: [Annotation], motivation: Motivation? = nil, total: Double) {
     self.annotations = annotations
     self.motivation = motivation
     self.total = total
@@ -7664,13 +7664,13 @@ public struct GetAnnotationsResponse: Codable, Sendable, Hashable {
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.annotations = try c.value("annotations")
-    self.motivation = try c.stated("motivation")
+    self.motivation = try c.ifPresent("motivation")
     self.total = try c.value("total")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.annotations, as: "annotations")
-    try c.encode(stated: self.motivation, as: "motivation")
+    try c.encodeIfPresent(self.motivation, as: "motivation")
     try c.encode(self.total, as: "total")
   }
 }
@@ -23962,9 +23962,7 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["annotations", "total"],
     members: [
       "annotations": Shape(kinds: [.array], items: Shape(ref: "Annotation")),
-      "motivation": Shape(
-        kinds: [.string, .null], oneOf: [Shape(kinds: [.null]), Shape(ref: "Motivation")]),
-      "total": Shape(kinds: [.number]),
+      "motivation": Shape(ref: "Motivation"), "total": Shape(kinds: [.number]),
     ])
   shapes["GetEntityTypesResponse"] = Shape(
     kinds: [.object], required: ["entityTypes"],

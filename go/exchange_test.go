@@ -169,7 +169,7 @@ func reported(t *testing.T, upload *xynolog.Upload) []any {
 	t.Helper()
 	var reports []any
 	for progress := range upload.Progress() {
-		member, err := progress.ValueByDiscriminator()
+		member, err := progress.Member()
 		if err != nil {
 			t.Fatal(err)
 		}
