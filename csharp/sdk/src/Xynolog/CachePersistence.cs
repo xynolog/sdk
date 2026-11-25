@@ -189,7 +189,6 @@ internal static class KeptTable
 {
     private static readonly JsonElement Stored = JsonSerializer.Deserialize<JsonElement>(ProtocolTables.Stored);
     private static readonly JsonElement Refresh = JsonSerializer.Deserialize<JsonElement>(ProtocolTables.CacheRefresh);
-    internal static readonly string WholeKey = Text(Stored.GetProperty("wholeKey"), "key");
     internal static readonly long Version = Stored.GetProperty("cacheDocument").GetProperty("properties").GetProperty("version").GetProperty("const").GetInt64();
 
     /// <summary>What client/refresh.json says a query is per: a resource, an annotation, or nothing (null).</summary>
@@ -216,8 +215,8 @@ internal static class KeptKeys
     internal static readonly KeptKey<LiveQueries.AnnotationKey, Annotation> ByAnnotation = new("annotation", key => key.Annotation.Value,
         (key, value) => new(AnnotationTools.TargetSource(value.Target), WireJson.Read<AnnotationId>(key, JsonSerializerOptions.Default)));
 
-    internal static KeptKey<bool, T> Whole<T>() => new(null, _ => KeptTable.WholeKey, (key, _) =>
-        key.ValueKind == JsonValueKind.String && key.GetString() == KeptTable.WholeKey ? true : throw new JsonException("The key is not the whole key."));
+    internal static KeptKey<bool, T> Whole<T>() => new(null, _ => RegistryStorage.WholeKey, (key, _) =>
+        key.ValueKind == JsonValueKind.String && key.GetString() == RegistryStorage.WholeKey ? true : throw new JsonException("The key is not the whole key."));
 }
 
 internal interface IKeptQuery

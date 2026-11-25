@@ -466,6 +466,55 @@ let timing t (spec : Spec.t) =
             (t.generated "ocaml/sdk/lib/client_timing.ml")
             ("\nlet ", " =") (Timing.Ocaml.name e))
 
+(* The fixed keys a registry and its sessions keep what they keep under
+   (session/stored.json): each SDK's, as the stored group writes it. OCaml's
+   are the facts it keeps of the registry (Ocaml_sdk.Facts). *)
+let stored_keys t (spec : Spec.t) =
+  kind "stored keys" (derived (Stored.of_spec spec)).keys
+    ~item:(fun (k : Stored.key) -> k.row.member)
+    ~declared:(fun sdk (k : Stored.key) ->
+      match sdk with
+      | Go ->
+          declares
+            (t.generated "go/registry/stored_gen.go"
+            ^ t.generated "go/stored_gen.go")
+            ("const ", " =") (Stored.go_name k)
+      | Typescript ->
+          declares
+            (t.generated "typescript/core/src/stored.ts")
+            ("export const ", " =") (Stored.typescript_name k)
+      | Python ->
+          declares
+            (t.generated "python/sdk/src/xynolog/stored.py")
+            ("\n", ": Final") (Stored.python_name k)
+      | Rust ->
+          declares
+            (t.generated "rust/sdk/src/generated/stored.rs"
+            ^ t.generated "rust/http-transport/src/generated/stored.rs")
+            ("pub const ", ":") (Stored.rust_name k)
+      | Swift ->
+          declares
+            (t.generated "swift/sdk/Sources/Xynolog/Generated/StoredKeys.swift")
+            ("public let ", " =") (Stored.swift_name k)
+      | Kotlin ->
+          declares
+            (t.generated (kotlin_generated ^ "registry/StoredKeys.kt"))
+            ("public const val ", ":") (Stored.kotlin_name k)
+      | Csharp ->
+          declares
+            (t.generated (csharp_generated ^ "StoredKeys.g.cs")
+            ^ t.generated (csharp_generated ^ "RedirectSignInKeys.g.cs"))
+            ("public const string ", " =")
+            (Stored.csharp_name k)
+      | Haskell ->
+          declares
+            (t.generated (haskell_generated ^ "Stored.hs"))
+            ("\n", " ::") (Stored.haskell_name k)
+      | Ocaml ->
+          declares
+            (t.generated "ocaml/sdk/lib/registry_facts.ml")
+            ("\nlet ", " =") (Text.snake k.row.member))
+
 let environment t (spec : Spec.t) =
   let module E = Service_environment in
   kind "service environment variables"
@@ -1212,6 +1261,7 @@ let kinds ~written t spec =
     error_codes t spec;
     identifier_kinds t spec;
     timing t spec;
+    stored_keys t spec;
     environment t spec;
     spans t spec;
     metrics t spec;

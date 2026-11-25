@@ -43,6 +43,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `RegistryStorage`'s keys and `RedirectSignIn.PendingAuthorizationKey` are
+  constants generated from Protocol's `session/stored.json`, where they were
+  fields read from the table when the SDK loaded.
 - A model whose JSON member was never set is refused when written, with a
   `JsonException` that names the member, as a default identifier is. It
   threw an `InvalidOperationException` from System.Text.Json.

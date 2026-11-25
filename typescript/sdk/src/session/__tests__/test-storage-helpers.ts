@@ -8,11 +8,11 @@ import {
   type SessionStorage,
 } from '../session-storage';
 import { MemorySignIn } from '../sign-in-kept';
-import type { StoredSession } from '@xynolog/core';
+import { SESSION_KEY_PREFIX, type StoredSession } from '@xynolog/core';
 
-const PREFIX = 'xynolog.session.';
-
-export const SESSION_PREFIX_RE = new RegExp(`^${PREFIX.replace('.', '\\.')}`);
+export const SESSION_PREFIX_RE = new RegExp(
+  `^${SESSION_KEY_PREFIX.replace('.', '\\.')}`,
+);
 
 /** The issuer every seeded session came from; refresh tests point their fetch stub here. */
 export const TEST_TOKEN_ENDPOINT =
@@ -21,7 +21,7 @@ export const TEST_REVOCATION_ENDPOINT =
   'https://issuer.test/realms/xynolog/protocol/openid-connect/revoke';
 
 export function storageKey(kbId: string): string {
-  return `${PREFIX}${kbId}`;
+  return `${SESSION_KEY_PREFIX}${kbId}`;
 }
 
 let minted = 0;

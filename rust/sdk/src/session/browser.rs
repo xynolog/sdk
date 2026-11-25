@@ -46,11 +46,11 @@ use super::factory::{SessionFactory, SessionFactoryOptions};
 use super::open_resource::{apply_tab_checks, sort_open_resources};
 use super::signals::SessionSignals;
 use super::stored::{
-    ACTIVE_KEY, LAST_VIEWED_RESOURCE_BY_KB_KEY, OPEN_RESOURCES_BY_KB_KEY, forget_kept,
-    is_token_expired, load_knowledge_bases, replace_stored_session, save_knowledge_bases,
-    store_session, stored_session,
+    forget_kept, is_token_expired, load_knowledge_bases, replace_stored_session,
+    save_knowledge_bases, store_session, stored_session,
 };
 use super::xynolog_session::XynologSession;
+use super::{ACTIVE_KEY, LAST_VIEWED_RESOURCE_BY_KB_KEY, OPEN_RESOURCES_BY_KB_KEY};
 use crate::errors::{BusRequestErrorCode, SessionError, TransportErrorCode, XynologError};
 use crate::event_bus::EventBus;
 use crate::kept_for_first_reader::KeptForFirstReader;

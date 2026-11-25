@@ -26,6 +26,7 @@ import xynolog.http.HttpSessionFactory;
 import xynolog.identifiers.ResourceId;
 import xynolog.registry.KeepingKt;
 import xynolog.registry.OpenKt;
+import xynolog.registry.StoredKeysKt;
 import xynolog.registry.StoredKt;
 import xynolog.registry.XynologBrowser;
 import xynolog.registry.XynologBrowserConfig;
@@ -106,7 +107,7 @@ final class RegistryTest {
         SharedStorage beneath = new SharedStorage();
         KeepingKt.saveKnowledgeBases(beneath, List.of(KnowledgeBase.builder("kb-a", "KB A", LocalEndpoint.builder("kb-a").build(), "did:web:example.org:kb-a").build()));
         String open = "{\"kb-a\":[{\"id\":\"res-1\",\"name\":\"One\",\"openedAt\":1,\"order\":0}]}";
-        beneath.set(StoredKt.OPEN_RESOURCES_BY_KB_KEY, open);
+        beneath.set(StoredKeysKt.OPEN_RESOURCES_BY_KB_KEY, open);
         CompletableFuture<Void> refused = new CompletableFuture<>();
         // A storage written in Java that takes no update: it fails unchecked, as a Java store does.
         SessionStorage refusing = new SessionStorage() {
@@ -147,7 +148,7 @@ final class RegistryTest {
             }
         });
         assertEquals("the storage is full", thrown.getCause().getMessage());
-        assertEquals(open, beneath.get(StoredKt.OPEN_RESOURCES_BY_KB_KEY));
+        assertEquals(open, beneath.get(StoredKeysKt.OPEN_RESOURCES_BY_KB_KEY));
     }
 
     @Test
@@ -157,7 +158,6 @@ final class RegistryTest {
         KeepingKt.storeSession(storage, "kb-a", session);
         assertEquals(session, KeepingKt.storedSession(storage, "kb-a"));
         assertEquals("kb-a", StoredKt.kbOfSessionKey(StoredKt.sessionKey("kb-a")));
-        assertEquals("xynolog.knowledgeBases", StoredKt.KNOWLEDGE_BASES_KEY);
         KeepingKt.clearStoredSession(storage, "kb-a");
         assertNull(KeepingKt.storedSession(storage, "kb-a"));
     }

@@ -22,6 +22,7 @@
 import {
   CACHE_VALUES,
   MAX_STORED_BYTES_COUNT,
+  WHOLE_KEY,
   faultOf,
   isAnnotationId,
   isObject,
@@ -130,7 +131,6 @@ export function whileSignedIn(
 export const CACHE_DOCUMENT_VERSION = 1;
 
 /** The key a query per nothing keeps its one entry under: `wholeKey`. */
-export const WHOLE_KEY = '_';
 export type WholeKey = typeof WHOLE_KEY;
 
 /** How a document's entry is read back: its key and its value, each held to what the document keeps. */
