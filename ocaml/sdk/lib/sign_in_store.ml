@@ -211,7 +211,7 @@ let save_device t ~key ~(issuer : Records.Pending_authorization_issuer.t) tokens
     =
   let claims = jwt_claims tokens.Oauth.access_token in
   if field "iss" claims <> Some issuer.issuer then
-    Error { Oauth.code = Error_codes.Sign_in.exchange; status = None }
+    Error { Oauth.code = Error_codes.Sign_in.Exchange; status = None }
   else
     let optional key value =
       Option.to_list (Option.map (fun value -> (key, `String value)) value)

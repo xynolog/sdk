@@ -30,7 +30,7 @@ type t = {
   trace : unit -> Wire_stream.trace option;
   mutable last_active : Mtime.t option;
   mutable did_stall : bool;
-  refusals : string option Kept_for_first_reader.t;
+  refusals : Http_wire.request_code option Kept_for_first_reader.t;
   stalls : Worker.held Kept_for_first_reader.t;
   mutable vitals : vitals;
   on_cancel : Worker.held -> unit;
@@ -200,7 +200,8 @@ let next t =
               ~client_id:(Client_core.client_id t.client)
               ~correlation_id:(Client_core.next_key t.client)
               ~accepts:t.accepts ()
-          with Http_wire.Failed failure -> Worker.Refused (Some failure.code)
+          with Http_wire.Failed failure ->
+            Worker.Refused (Some (Http_wire.Transport failure.code))
         in
         match result with
         | Worker.Held job ->

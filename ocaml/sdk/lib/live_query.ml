@@ -1,6 +1,9 @@
 open Eio.Std
 
-type 'value state = Pending | Ready of 'value | Failed of string
+type 'value state =
+  | Pending
+  | Ready of 'value
+  | Failed of Http_wire.request_code
 
 type 'value observer = {
   id : unit ref;
@@ -14,7 +17,7 @@ type 'value entry = {
   mutable state : 'value state;
   mutable observers : 'value observer list;
   mutable release : unit -> unit;
-  mutable in_flight : ('value, string) result Promise.t option;
+  mutable in_flight : ('value, Http_wire.request_code) result Promise.t option;
   mutable patches : ('value -> 'value) list;
   mutable invalidated : bool;
   mutable trailing : bool ref option;
@@ -24,7 +27,7 @@ type ('key, 'value) t = {
   sw : Switch.t;
   clock : Clock.t;
   window_ms : int;
-  load : 'key -> ('value, string) result;
+  load : 'key -> ('value, Http_wire.request_code) result;
   hold : 'key -> unit -> unit;
   restore : 'key -> 'value option;
   save : 'key -> 'value option -> unit;
@@ -112,7 +115,7 @@ let rec fetch ?(force = false) ?(retry = true) t key entry =
                 match t.load key with
                 | Error code
                   when retry
-                       && code <> Error_codes.Bus_request.closed
+                       && code <> Http_wire.Bus Error_codes.Bus_request.Closed
                        && current () ->
                     (* The patches kept with the failed ask go with it; the
                        retry is asked after their events (B13b). *)
@@ -121,7 +124,7 @@ let rec fetch ?(force = false) ?(retry = true) t key entry =
                 | result -> result)
               (fun () ->
                 Promise.await t.stopped;
-                Error Error_codes.Bus_request.closed)
+                Error (Http_wire.Bus Error_codes.Bus_request.Closed))
           in
           let result =
             if Promise.is_resolved t.stopped || not (current ()) then result
@@ -176,7 +179,8 @@ let observe t key ~on_state ~on_close =
         entry.release <- Fun.id)
 
 let fresh t key =
-  if Promise.is_resolved t.stopped then Error Error_codes.Bus_request.closed
+  if Promise.is_resolved t.stopped then
+    Error (Http_wire.Bus Error_codes.Bus_request.Closed)
   else Promise.await (fetch ~retry:false t key (entry t key))
 
 let refetch_held t key =
@@ -367,7 +371,7 @@ let refetch t ~on ~payload =
               in
               if applies then (
                 if List.mem query removes then
-                  remove t key Error_codes.Bus_request.not_found;
+                  remove t key (Http_wire.Bus Error_codes.Bus_request.Not_found);
                 (if List.mem query writes then
                    let value = at carries payload in
                    if query = Live_facts.Query.annotation then set t key value

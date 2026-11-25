@@ -1,11 +1,10 @@
 (** Composition of an existing session, HTTP adapter, bus and delegation. *)
 
 type session_error = Client_record.session_error = {
-  code : string;
+  code : Error_codes.Session.t;
   message : string;
 }
-(** One of a session's own errors: its code in the session group of
-    protocol/specs/src/errors/codes.json, and what went wrong. *)
+(** One of a session's own errors: its code, and what went wrong. *)
 
 (** What a client says on its errors, and a session on its: a session's own
     error, or a failure of the transport. *)
@@ -86,7 +85,7 @@ val await_closed : t -> unit
 
 type error =
   | Transport of Subscription.request_error
-  | Refused of string
+  | Refused of Http_wire.request_code
   | Http of Http_wire.failure
 
 val ask :
@@ -127,7 +126,7 @@ val observe :
   unit ->
   unit
 
-val fresh : query -> (Yojson.Safe.t, string) result
+val fresh : query -> (Yojson.Safe.t, Http_wire.request_code) result
 val invalidate : query -> unit
 
 type unsubscribe = unit -> unit

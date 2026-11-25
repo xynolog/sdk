@@ -2,15 +2,15 @@
    Regenerate: make generate (codegen/lib/ocaml_sdk/http_facts.ml) *)
 
 let status_code = function
-  | 401 -> "unauthorized"
-  | 403 -> "forbidden"
-  | 404 -> "not-found"
-  | 409 -> "conflict"
-  | 400 -> "bad-request"
-  | 422 -> "unprocessable"
-  | 429 -> "rate-limited"
-  | status when status >= 500 -> "unavailable"
-  | _ -> "error"
+  | 401 -> Error_codes.Transport.Unauthorized
+  | 403 -> Error_codes.Transport.Forbidden
+  | 404 -> Error_codes.Transport.Not_found
+  | 409 -> Error_codes.Transport.Conflict
+  | 400 -> Error_codes.Transport.Bad_request
+  | 422 -> Error_codes.Transport.Unprocessable
+  | 429 -> Error_codes.Transport.Rate_limited
+  | status when status >= 500 -> Error_codes.Transport.Unavailable
+  | _ -> Error_codes.Transport.Error
 
 module Failure_code = struct
   type t = Not_found | Peer_unavailable | Unauthorized | None_pending
@@ -27,8 +27,9 @@ module Failure_code = struct
 end
 
 let bus_failure = function
-  | None -> "bus.rejected"
-  | Some Failure_code.Not_found -> "bus.not-found"
-  | Some Failure_code.Peer_unavailable -> "bus.peer-unavailable"
-  | Some Failure_code.Unauthorized -> "bus.unauthorized"
-  | Some Failure_code.None_pending -> "bus.none-pending"
+  | None -> Error_codes.Bus_request.Rejected
+  | Some Failure_code.Not_found -> Error_codes.Bus_request.Not_found
+  | Some Failure_code.Peer_unavailable ->
+      Error_codes.Bus_request.Peer_unavailable
+  | Some Failure_code.Unauthorized -> Error_codes.Bus_request.Unauthorized
+  | Some Failure_code.None_pending -> Error_codes.Bus_request.None_pending

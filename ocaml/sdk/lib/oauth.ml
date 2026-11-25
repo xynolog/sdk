@@ -1,6 +1,6 @@
 type request = { meth : string; url : string; form : (string * string) list }
 type http = request -> int * string
-type error = { code : string; status : int option }
+type error = { code : Error_codes.Sign_in.t; status : int option }
 type script
 type browser
 type service
@@ -69,7 +69,7 @@ let exchange http ~code request =
   | status, _ -> failed ~status code
 
 let discover http ~issuer =
-  let code = Error_codes.Sign_in.discovery in
+  let code = Error_codes.Sign_in.Discovery in
   let* issuer = required code (endpoint issuer) in
   let* () =
     if Uri.query (Uri.of_string issuer) = [] then Ok () else failed code
@@ -145,7 +145,7 @@ let begin_redirect issuer ~random
 (* The tokens an answer of [status] grants. *)
 let issued ~status json =
   let* access_token =
-    required ~status Error_codes.Sign_in.exchange (string "access_token" json)
+    required ~status Error_codes.Sign_in.Exchange (string "access_token" json)
   in
   Ok
     {
@@ -155,7 +155,7 @@ let issued ~status json =
     }
 
 let grant http ~token_endpoint form =
-  let code = Error_codes.Sign_in.exchange in
+  let code = Error_codes.Sign_in.Exchange in
   let* url = required code (endpoint token_endpoint) in
   let* status, json = exchange http ~code { meth = "POST"; url; form } in
   issued ~status json
@@ -173,13 +173,13 @@ let finish_redirect http (pending : Records.Pending_authorization.t) ~callback =
   in
   let address uri = Uri.with_query (Uri.with_fragment uri None) [] in
   match List.assoc_opt "error" (Uri.query callback) with
-  | Some ("access_denied" :: _) -> failed Error_codes.Sign_in.denied
-  | Some _ -> failed Error_codes.Sign_in.exchange
+  | Some ("access_denied" :: _) -> failed Error_codes.Sign_in.Denied
+  | Some _ -> failed Error_codes.Sign_in.Exchange
   | None -> (
       if
         param "state" <> Some pending.state
         || address callback <> address (Uri.of_string pending.redirect_uri)
-      then failed Error_codes.Sign_in.state
+      then failed Error_codes.Sign_in.State
       else
         match param "code" with
         | Some code when code <> "" ->
@@ -191,11 +191,11 @@ let finish_redirect http (pending : Records.Pending_authorization.t) ~callback =
                 ("redirect_uri", pending.redirect_uri);
                 ("code_verifier", pending.verifier);
               ]
-        | _ -> failed Error_codes.Sign_in.exchange)
+        | _ -> failed Error_codes.Sign_in.Exchange)
 
 let begin_device http (issuer : Records.Pending_authorization_issuer.t) =
-  let code = Error_codes.Sign_in.exchange in
-  let* url = required Error_codes.Sign_in.discovery issuer.device in
+  let code = Error_codes.Sign_in.Exchange in
+  let* url = required Error_codes.Sign_in.Discovery issuer.device in
   let* status, json =
     exchange http ~code
       {
@@ -230,7 +230,7 @@ let begin_device http (issuer : Records.Pending_authorization_issuer.t) =
     }
 
 let poll_device http (issuer : Records.Pending_authorization_issuer.t) device =
-  let* url = required Error_codes.Sign_in.exchange (endpoint issuer.token) in
+  let* url = required Error_codes.Sign_in.Exchange (endpoint issuer.token) in
   let form =
     [
       ("grant_type", "urn:ietf:params:oauth:grant-type:device_code");
@@ -245,9 +245,9 @@ let poll_device http (issuer : Records.Pending_authorization_issuer.t) device =
       match Option.bind json (string "error") with
       | Some "authorization_pending" -> Ok Pending
       | Some "slow_down" -> Ok Slow_down
-      | Some "access_denied" -> failed ~status Error_codes.Sign_in.denied
-      | Some "expired_token" -> failed ~status Error_codes.Sign_in.expired
-      | _ -> failed ~status Error_codes.Sign_in.exchange)
+      | Some "access_denied" -> failed ~status Error_codes.Sign_in.Denied
+      | Some "expired_token" -> failed ~status Error_codes.Sign_in.Expired
+      | _ -> failed ~status Error_codes.Sign_in.Exchange)
 
 let await_device ~clock http issuer device =
   let stamp () = Clock.monotonic_now clock in
@@ -262,7 +262,7 @@ let await_device ~clock http issuer device =
     Clock.sleep_until clock
       (if Mtime.compare due expires < 0 then due else expires);
     if Mtime.compare (stamp ()) expires >= 0 then
-      failed Error_codes.Sign_in.expired
+      failed Error_codes.Sign_in.Expired
     else
       match poll_device http issuer device with
       | Ok Pending -> wait interval
@@ -275,7 +275,7 @@ let await_device ~clock http issuer device =
   wait (max Client_timing.device_poll_floor_ms (milliseconds device.interval))
 
 let refresh_refused { code; status } =
-  code = Error_codes.Sign_in.exchange
+  code = Error_codes.Sign_in.Exchange
   && Option.fold ~none:false
        ~some:(fun status -> not (Retry.retryable Retry.Refresh ~status ()))
        status
@@ -362,7 +362,7 @@ let service_key http (issuer : Records.Pending_authorization_issuer.t) ~clock
 
 let revoke_script http ~revocation_endpoint ~refresh_token =
   let* url =
-    required Error_codes.Sign_in.exchange (endpoint revocation_endpoint)
+    required Error_codes.Sign_in.Exchange (endpoint revocation_endpoint)
   in
   let status, _ =
     http
@@ -377,4 +377,4 @@ let revoke_script http ~revocation_endpoint ~refresh_token =
           ];
       }
   in
-  if status = 200 then Ok () else failed ~status Error_codes.Sign_in.exchange
+  if status = 200 then Ok () else failed ~status Error_codes.Sign_in.Exchange
